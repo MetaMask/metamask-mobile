@@ -4,12 +4,14 @@ import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PerpsTraceNames,
   type PerpsAnalyticsEvent,
 } from '@metamask/perps-controller';
 import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
 import {
+  endTrace as endSharedTrace,
   setTraceMeasurement,
   trace as startTrace,
   TraceName,
@@ -25,7 +27,8 @@ import {
 } from './mobileInfrastructure';
 import {
   resolveTerminalGlobalSnapshotUrl,
-  TERMINAL_API_URLS,
+  TERMINAL_API_HOSTS,
+  TERMINAL_API_PATHS,
 } from '../constants/terminalApi';
 import Engine from '../../../../core/Engine';
 
@@ -69,6 +72,7 @@ jest.mock('../../../../util/trace', () => ({
   TraceName: {
     PerpsMarketDataPreload: 'Perps Market Data Preload',
     PerpsUserDataPreload: 'Perps User Data Preload',
+    PerpsPlaceOrder: 'Perps Place Order',
   },
 }));
 
@@ -103,6 +107,12 @@ jest.mock('../../../../core/Engine', () => ({
   context: {
     RewardsController: {
       getPerpsDiscountForAccount: jest.fn().mockResolvedValue(5),
+      getPerpsTradingFeeGrant: jest.fn().mockResolvedValue({
+        providerId: 'hyperliquid',
+        isTestnet: false,
+        feeBips: 2.5,
+        expiresAt: 1_800_000_000_000,
+      }),
     },
   },
 }));
@@ -140,6 +150,11 @@ jest.mock('../../../../util/intl', () => ({
   getIntlNumberFormatter: jest.fn(() => ({
     format: jest.fn((v: number) => `${v}%`),
   })),
+}));
+
+const mockIsLighterProviderEnabled = jest.fn();
+jest.mock('../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: () => mockIsLighterProviderEnabled(),
 }));
 
 describe('createMobileInfrastructure', () => {
@@ -278,6 +293,29 @@ describe('createMobileInfrastructure', () => {
       );
       expect(setTraceMeasurement).not.toHaveBeenCalled();
     });
+
+    it('forwards the Core trade status to the shared trace', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.trace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        op: 'perps.trade',
+      });
+      infra.tracer.endTrace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
+
+      expect(endSharedTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsPlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
+    });
   });
 
   describe('metrics', () => {
@@ -401,7 +439,7 @@ describe('createMobileInfrastructure', () => {
       expect(result).toBe(5);
     });
 
-    it('returns 0 discount when vipProgramEnabled is false', async () => {
+    it('leaves VIP eligibility to RewardsController', async () => {
       mockSelectVipProgramEnabled.mockReturnValue(false);
       const infra = createMobileInfrastructure();
       const caipAccountId =
@@ -414,8 +452,27 @@ describe('createMobileInfrastructure', () => {
 
       expect(
         Engine.context.RewardsController.getPerpsDiscountForAccount,
-      ).not.toHaveBeenCalled();
-      expect(result).toBe(0);
+      ).toHaveBeenCalledWith(caipAccountId, 10);
+      expect(result).toBe(5);
+    });
+
+    it('delegates a route-aware grant independently of VIP eligibility', async () => {
+      mockSelectVipProgramEnabled.mockReturnValue(false);
+      const infra = createMobileInfrastructure();
+      const scope = { providerId: 'hyperliquid', isTestnet: false };
+
+      const result = await infra.rewards.getPerpsTradingFeeGrant?.(scope);
+
+      expect(
+        Engine.context.RewardsController.getPerpsTradingFeeGrant,
+      ).toHaveBeenCalledWith(scope);
+      expect(result).toEqual(
+        expect.objectContaining({
+          providerId: 'hyperliquid',
+          isTestnet: false,
+          feeBips: 2.5,
+        }),
+      );
     });
   });
 
@@ -473,21 +530,45 @@ describe('createMobileInfrastructure', () => {
 });
 
 describe('createMobileClientConfig', () => {
-  it('returns default config with empty strings and arrays when no env vars are set', () => {
-    // Arrange — ensure relevant env vars are absent
-    const envVars = [
-      'MM_PERPS_BLOCKED_REGIONS',
-      'MM_PERPS_HIP3_ENABLED',
-      'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
-      'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
-      'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
-      'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
-    ];
-    const saved: Record<string, string | undefined> = {};
+  const envVars = [
+    'METAMASK_ENVIRONMENT',
+    'MM_PERPS_BLOCKED_REGIONS',
+    'MM_PERPS_HIP3_ENABLED',
+    'MM_PERPS_HIP3_ALLOWLIST_MARKETS',
+    'MM_PERPS_HIP3_BLOCKLIST_MARKETS',
+    'MM_PERPS_HL_BUILDER_ADDRESS_TESTNET',
+    'MM_PERPS_HL_BUILDER_ADDRESS_MAINNET',
+    'MM_PERPS_LIGHTER_PROVIDER_ENABLED',
+    'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+    'MM_PERPS_LIGHTER_API_KEY_INDEX',
+    'MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE',
+  ] as const;
+  const saved: Partial<Record<(typeof envVars)[number], string>> = {};
+
+  beforeEach(() => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
     for (const key of envVars) {
-      saved[key] = process.env[key];
+      if (process.env[key] !== undefined) {
+        saved[key] = process.env[key];
+      }
       delete process.env[key];
     }
+  });
+
+  afterEach(() => {
+    for (const key of envVars) {
+      const savedValue = saved[key];
+      if (savedValue === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = savedValue;
+      }
+      delete saved[key];
+    }
+  });
+
+  it('returns default config when no env vars are set', () => {
+    // Arrange is provided by beforeEach.
 
     // Act
     const config = createMobileClientConfig();
@@ -501,17 +582,120 @@ describe('createMobileClientConfig', () => {
       providerCredentials: {
         hyperliquid: {
           builderAddressTestnet: '',
-          builderAddressMainnet: '',
+          builderAddressMainnet: BUILDER_FEE_CONFIG.MainnetBuilder,
+        },
+        lighter: {
+          enabled: false,
+          chaseTestnetProbe: false,
+          accountIndexTestnet: undefined,
+          apiKeyIndex: undefined,
         },
       },
     });
+  });
 
-    // Restore
-    for (const key of envVars) {
-      if (saved[key] !== undefined) {
-        process.env[key] = saved[key];
-      }
-    }
+  it('enables Lighter with its signer bridge when explicitly enabled', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it.each([false, true])(
+    'passes the explicit Chase probe only with Lighter enabled=%s',
+    (enabled) => {
+      mockIsLighterProviderEnabled.mockReturnValue(enabled);
+      process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = 'true';
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        enabled,
+      );
+    },
+  );
+
+  it.each([undefined, 'false', 'TRUE', '1'])(
+    'keeps the Chase probe disabled for %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      if (value !== undefined)
+        process.env.MM_PERPS_LIGHTER_CHASE_TESTNET_PROBE = value;
+
+      const config = createMobileClientConfig();
+
+      expect(config.providerCredentials?.lighter?.chaseTestnetProbe).toBe(
+        false,
+      );
+    },
+  );
+
+  it('enables Lighter with its signer bridge through a production override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({
+        enabled: true,
+        signerBridge: expect.any(Object),
+      }),
+    );
+  });
+
+  it.each(['abc', 'NaN', 'Infinity', '-1', '1.5', '0x08', ' ', '255'])(
+    'rejects malformed signer key slot %s instead of selecting another slot',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_API_KEY_INDEX',
+      );
+    },
+  );
+
+  it.each(['invalid', '-1', '1.5', '9007199254740992'])(
+    'rejects malformed Lighter account index %s',
+    (value) => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = value;
+
+      expect(() => createMobileClientConfig()).toThrow(
+        'MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET',
+      );
+    },
+  );
+
+  it('supplies validated explicit signer indices', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(true);
+    process.env.MM_PERPS_LIGHTER_ACCOUNT_INDEX_TESTNET = '59';
+    process.env.MM_PERPS_LIGHTER_API_KEY_INDEX = '254';
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual(
+      expect.objectContaining({ accountIndexTestnet: 59, apiKeyIndex: 254 }),
+    );
+  });
+
+  it('keeps Lighter disabled in production without an override', () => {
+    mockIsLighterProviderEnabled.mockReturnValue(false);
+
+    const config = createMobileClientConfig();
+
+    expect(config.providerCredentials?.lighter).toEqual({
+      enabled: false,
+      chaseTestnetProbe: false,
+      accountIndexTestnet: undefined,
+      apiKeyIndex: undefined,
+    });
   });
 });
 
@@ -540,67 +724,89 @@ describe('getTerminalApiUrl', () => {
   it('returns dev URL for dev environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for test environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'test';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL for e2e environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'e2e';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for beta build type', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for production environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns prd URL for rc environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'rc';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for exp environment (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for non-beta build type in non-prod env (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL when METAMASK_ENVIRONMENT is undefined', () => {
     delete process.env.METAMASK_ENVIRONMENT;
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns uat URL for local environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'local';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 
   it('returns dev URL when env is dev even if build type is beta', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
+    expect(getTerminalApiUrl()).toBe(
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
+    );
   });
 });
 
@@ -626,13 +832,17 @@ describe('createMobileInfrastructure - terminalApi', () => {
     }
   });
 
+  it('uses the schema-v4 global snapshot route required by Core', () => {
+    expect(TERMINAL_API_PATHS.GLOBAL_SNAPSHOT).toBe('/v4/perpetuals');
+  });
+
   it('includes the production market endpoint in one Terminal config', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.PRD,
-      globalSnapshotUrl: 'https://terminal.api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 
@@ -641,18 +851,17 @@ describe('createMobileInfrastructure - terminalApi', () => {
     delete process.env.METAMASK_BUILD_TYPE;
     const infra = createMobileInfrastructure();
     expect(infra.terminalApi?.marketDataUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.MARKET_DATA}`,
     );
     expect(infra.terminalApi?.globalSnapshotUrl).toBe(
-      'https://terminal.dev-api.cx.metamask.io/v2/perpetuals',
+      `${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     );
 
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'beta';
     expect(createMobileInfrastructure().terminalApi).toEqual({
-      marketDataUrl: TERMINAL_API_URLS.UAT,
-      globalSnapshotUrl:
-        'https://terminal.uat-api.cx.metamask.io/v2/perpetuals',
+      marketDataUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.MARKET_DATA}`,
+      globalSnapshotUrl: `${TERMINAL_API_HOSTS.UAT}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`,
     });
   });
 });
@@ -663,27 +872,27 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'dev',
-        endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        endpoint: '  http://127.0.0.1:9332/v4/perpetuals  ',
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
+    ).toBe('http://127.0.0.1:9332/v4/perpetuals');
 
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'production',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.PRD,
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
+        host: TERMINAL_API_HOSTS.PRD,
       }),
-    ).toBe('https://terminal.api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: false,
         environment: 'dev',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 
   it('derives the deployed endpoint when the dev override is blank', () => {
@@ -692,8 +901,8 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
         isDevBundle: true,
         environment: 'dev',
         endpoint: '   ',
-        marketDataUrl: TERMINAL_API_URLS.DEV,
+        host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('https://terminal.dev-api.cx.metamask.io/v2/perpetuals');
+    ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
   });
 });

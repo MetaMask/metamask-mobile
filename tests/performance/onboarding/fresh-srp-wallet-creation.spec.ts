@@ -185,7 +185,7 @@ const waitForPostOnboardingDestination = async (
         if (!visible) {
           if (tracking) {
             // These optional UI probes are known infrastructure lookups when
-            // absent. BrowserStack can spend several seconds resolving a
+            // absent. TestMu can spend several seconds resolving a
             // missing native element, so do not charge that RTT to the app.
             recordInfrastructureCommand(Date.now() - t0);
           }
@@ -355,9 +355,9 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
       await CreatePasswordView.enterPassword(password);
       await CreatePasswordView.reEnterPassword(password);
       await AppiumGestures.hideKeyboard();
-      await CreatePasswordView.tapIUnderstandCheckBox();
 
       await CreatePasswordView.tapCreatePasswordButton();
+      await CreatePasswordView.tapPasswordWarningConfirmButton();
       await walletCreationTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           ProtectYourWalletView.remindMeLaterButton,

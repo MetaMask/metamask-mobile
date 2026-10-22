@@ -82,6 +82,7 @@ const renderPanel = (
 ) =>
   render(
     <PerpsProTwapPanel
+      view="active"
       activeTwapOrders={[buildTwapOrder()]}
       historicalTwapOrders={[]}
       isInitialLoading={false}
@@ -101,18 +102,6 @@ describe('PerpsProTwapPanel', () => {
     jest.mocked(useSelector).mockReturnValue(false);
   });
 
-  it('offers all three views', () => {
-    // Arrange / Act
-    renderPanel();
-
-    // Assert
-    expect(screen.getByTestId(ids.TWAP_VIEW_TAB_ACTIVE)).toBeOnTheScreen();
-    expect(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY)).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY),
-    ).toBeOnTheScreen();
-  });
-
   it('shows active schedules first', () => {
     // Arrange / Act
     renderPanel();
@@ -129,6 +118,7 @@ describe('PerpsProTwapPanel', () => {
   it('switches to terminal schedules on the history view', () => {
     // Arrange
     renderPanel({
+      view: 'history',
       activeTwapOrders: [],
       historicalTwapOrders: [
         buildTwapOrder({ orderId: 'done', status: 'completed' }),
@@ -136,7 +126,6 @@ describe('PerpsProTwapPanel', () => {
     });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
 
     // Assert
     expect(screen.getByTestId(ids.TWAP_LIST)).toBeOnTheScreen();
@@ -145,6 +134,7 @@ describe('PerpsProTwapPanel', () => {
   it('does not offer Terminate on a terminal schedule', () => {
     // Arrange
     renderPanel({
+      view: 'history',
       activeTwapOrders: [],
       historicalTwapOrders: [
         buildTwapOrder({ orderId: 'done', status: 'completed' }),
@@ -152,7 +142,6 @@ describe('PerpsProTwapPanel', () => {
     });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
 
     // Assert: a finished schedule has nothing left to stop
     expect(
@@ -162,27 +151,37 @@ describe('PerpsProTwapPanel', () => {
     ).toBeNull();
   });
 
-  it('flattens slice fills on the fill-history view', () => {
+  it('lists schedules rather than slice fills on the active view', () => {
     // Arrange
-    renderPanel({
-      activeTwapOrders: [
-        buildTwapOrder({
-          fills: [buildFill({ fillId: 'f1' }), buildFill({ fillId: 'f2' })],
-        }),
-      ],
-    });
+    const activeTwapOrders = [
+      buildTwapOrder({
+        fills: [buildFill({ fillId: 'f1' }), buildFill({ fillId: 'f2' })],
+      }),
+    ];
 
-    // Assert: the active view shows schedules, not fills
+    // Act
+    renderPanel({ view: 'active', activeTwapOrders });
+
+    // Assert
     expect(
       screen.queryByTestId(
         getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'f1'),
       ),
     ).toBeNull();
+  });
+
+  it('flattens slice fills on the fill-history view', () => {
+    // Arrange
+    const activeTwapOrders = [
+      buildTwapOrder({
+        fills: [buildFill({ fillId: 'f1' }), buildFill({ fillId: 'f2' })],
+      }),
+    ];
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    renderPanel({ view: 'fill_history', activeTwapOrders });
 
-    // Assert: both slices of the one schedule are now listed individually
+    // Assert: both slices of the one schedule are listed individually
     expect(
       screen.getByTestId(
         getPerpsProTwapFillRowSelector(DEFAULT_PROVIDER_ID, 'twap-1', 'f1'),
@@ -206,11 +205,11 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `fill-${index}`, timestamp: index }),
     );
     renderPanel({
+      view: 'fill_history',
       activeTwapOrders: [buildTwapOrder({ fills })],
     });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
 
     // Assert: the newest page is bounded to 50 rows
     expect(
@@ -257,8 +256,10 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `scope-fill-${index}`, timestamp: index }),
     );
     const activeOrders = [buildTwapOrder({ fills })];
-    const view = renderPanel({ activeTwapOrders: activeOrders });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
+    const view = renderPanel({
+      view: 'fill_history',
+      activeTwapOrders: activeOrders,
+    });
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
     expect(screen.getByTestId(ids.TWAP_FILL_PAGE_LABEL)).toHaveTextContent(
       'Page 2 of 2',
@@ -267,6 +268,7 @@ describe('PerpsProTwapPanel', () => {
     // Act
     view.rerender(
       <PerpsProTwapPanel
+        view="fill_history"
         activeTwapOrders={activeOrders}
         historicalTwapOrders={[]}
         isInitialLoading={false}
@@ -300,9 +302,9 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `first-${index}`, timestamp: index }),
     );
     const view = renderPanel({
+      view: 'fill_history',
       activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
     expect(
       screen.getByTestId(
@@ -318,6 +320,7 @@ describe('PerpsProTwapPanel', () => {
     // controller content.
     view.rerender(
       <PerpsProTwapPanel
+        view="fill_history"
         activeTwapOrders={[
           buildTwapOrder({
             fills: firstFills.map((fill) => ({ ...fill })),
@@ -361,14 +364,15 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `fill-${index}`, timestamp: index }),
     );
     const view = renderPanel({
+      view: 'fill_history',
       activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
 
     // Act
     view.rerender(
       <PerpsProTwapPanel
+        view="fill_history"
         activeTwapOrders={[
           buildTwapOrder({
             fills: [
@@ -412,9 +416,9 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `first-${index}`, timestamp: index }),
     );
     const view = renderPanel({
+      view: 'fill_history',
       activeTwapOrders: [buildTwapOrder({ fills: firstFills })],
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
 
@@ -424,6 +428,7 @@ describe('PerpsProTwapPanel', () => {
     );
     view.rerender(
       <PerpsProTwapPanel
+        view="fill_history"
         activeTwapOrders={[buildTwapOrder({ fills: nextFills })]}
         historicalTwapOrders={[]}
         isInitialLoading={false}
@@ -452,9 +457,9 @@ describe('PerpsProTwapPanel', () => {
       buildFill({ fillId: `boundary-${index}`, timestamp: index }),
     );
     const view = renderPanel({
+      view: 'fill_history',
       activeTwapOrders: [buildTwapOrder({ fills })],
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_FILL_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_FILL_NEXT));
     expect(screen.queryByTestId('twap-empty-state')).toBeNull();
 
@@ -462,6 +467,7 @@ describe('PerpsProTwapPanel', () => {
     // page is clamped back to the only page.
     view.rerender(
       <PerpsProTwapPanel
+        view="fill_history"
         activeTwapOrders={[buildTwapOrder({ fills: [] })]}
         historicalTwapOrders={[]}
         isInitialLoading={false}
@@ -489,10 +495,13 @@ describe('PerpsProTwapPanel', () => {
         startedAt: pageSize - index,
       }),
     );
-    renderPanel({ activeTwapOrders: [], historicalTwapOrders: historyOrders });
+    renderPanel({
+      view: 'history',
+      activeTwapOrders: [],
+      historicalTwapOrders: historyOrders,
+    });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
 
     // Assert
     expect(
@@ -535,10 +544,10 @@ describe('PerpsProTwapPanel', () => {
       }),
     );
     const view = renderPanel({
+      view: 'history',
       activeTwapOrders: [],
       historicalTwapOrders: historyOrders,
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
     expect(screen.getByTestId(ids.TWAP_HISTORY_PAGE_LABEL)).toHaveTextContent(
       'Page 2 of 2',
@@ -547,6 +556,7 @@ describe('PerpsProTwapPanel', () => {
     // Act
     view.rerender(
       <PerpsProTwapPanel
+        view="history"
         activeTwapOrders={[]}
         historicalTwapOrders={historyOrders}
         isInitialLoading={false}
@@ -580,10 +590,10 @@ describe('PerpsProTwapPanel', () => {
       }),
     );
     const view = renderPanel({
+      view: 'history',
       activeTwapOrders: [],
       historicalTwapOrders: firstHistory,
     });
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
     fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
     fireEvent.press(screen.getByTestId(ids.TWAP_HISTORY_NEXT));
 
@@ -596,6 +606,7 @@ describe('PerpsProTwapPanel', () => {
     );
     view.rerender(
       <PerpsProTwapPanel
+        view="history"
         activeTwapOrders={[]}
         historicalTwapOrders={nextHistory}
         isInitialLoading={false}
@@ -686,6 +697,7 @@ describe('PerpsProTwapPanel', () => {
   it('uses empty metadata from the selected history view', () => {
     // Arrange
     renderPanel({
+      view: 'history',
       activeTwapOrders: [],
       historicalTwapOrders: [],
       emptyMetadataByView: {
@@ -698,7 +710,6 @@ describe('PerpsProTwapPanel', () => {
     });
 
     // Act
-    fireEvent.press(screen.getByTestId(ids.TWAP_VIEW_TAB_HISTORY));
 
     // Assert
     expect(screen.getByTestId('twap-empty-state')).toHaveTextContent(

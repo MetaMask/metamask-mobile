@@ -236,6 +236,9 @@ describe('PredictTransactionsView', () => {
     );
 
     expect(screen.getByText('Prediction won')).toBeOnTheScreen();
+    expect(screen.getByText('Prediction won')).toHaveStyle({
+      fontFamily: 'Inter-Medium',
+    });
     expect(
       screen.getByTestId(
         PREDICT_TRANSACTIONS_VIEW_TEST_IDS.FOOTER_ACTIVITY_INDICATOR,
@@ -431,6 +434,42 @@ describe('PredictTransactionsView', () => {
     ).toBeOnTheScreen();
     expect(screen.getByText('Claim pending')).toBeOnTheScreen();
     expect(screen.queryByText('No recent activity')).toBeNull();
+  });
+
+  describe('section header alignment', () => {
+    const renderWithSectionHeader = (activityContainerStyle?: string) => {
+      (usePredictActivity as jest.Mock).mockReturnValueOnce(
+        createUsePredictActivityValue({
+          data: [],
+          isLoading: false,
+        }),
+      );
+
+      render(
+        <PredictTransactionsView
+          claimPendingPositions={[createClaimPendingPosition()]}
+          activityContainerStyle={activityContainerStyle}
+        />,
+      );
+
+      return screen.getByTestId(
+        PredictPositionsHistoryListSelectorsIDs.CLAIM_PENDING_SECTION,
+      );
+    };
+
+    it('matches the default row padding when no override is provided', () => {
+      expect(renderWithSectionHeader()).toHaveStyle({
+        paddingLeft: 8,
+        paddingRight: 8,
+      });
+    });
+
+    it('follows the row padding override so the date label lines up with the rows', () => {
+      expect(renderWithSectionHeader('px-0')).toHaveStyle({
+        paddingLeft: 0,
+        paddingRight: 0,
+      });
+    });
   });
 
   it('uses unique test IDs for multiple claim pending positions', () => {

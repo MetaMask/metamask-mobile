@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {
   Box,
+  FontWeight,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -151,7 +152,11 @@ const ClaimPendingPositionRow = ({
       </Box>
 
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} numberOfLines={1}>
+        <Text
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+          variant={TextVariant.BodyMd}
+        >
           {positionTitle}
         </Text>
         <Text variant={TextVariant.BodySm} twClassName="text-alternative">
@@ -432,16 +437,22 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const renderSectionHeader = useCallback(
     ({ section }: { section: ActivitySection }) => (
-      <Box twClassName="bg-default px-2 pt-3" testID={section.testID}>
+      // Horizontal padding follows the rows so the date label lines up with
+      // them. bg-default is required because the headers are sticky.
+      <Box
+        style={tw.style('bg-default px-2 pt-4 pb-1', activityContainerStyle)}
+        testID={section.testID}
+      >
         <Text
           variant={TextVariant.BodyMd}
-          twClassName="text-alternative font-semibold"
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
         >
           {section.title}
         </Text>
       </Box>
     ),
-    [],
+    [activityContainerStyle, tw],
   );
 
   const renderItem = useCallback(

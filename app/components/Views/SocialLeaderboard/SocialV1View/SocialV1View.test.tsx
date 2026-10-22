@@ -1,22 +1,32 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import { MOCK_SOCIAL_V1_FEED_ITEMS } from './feed/mocks/socialV1Feed.mock';
-import { getSocialFeedPositionCardTestId } from './feed/components/SocialFeedPositionCard.testIds';
+import {
+  MOCK_SOCIAL_V1_FEED_ITEMS,
+  mockOpenPerpsFeedItem,
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
+import {
+  addPendingPost,
+  requestFollowingFocus,
+  resetPendingPosts,
+} from '../pendingPosts/pendingPostsStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
+const mockMarkSocialTabVisited = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -27,6 +37,37 @@ let mockRouteParams: { showNotificationsBanner?: boolean } = {};
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
+}));
+
+jest.mock('../hooks/useOpenSocialPostComposer', () => ({
+  useOpenSocialPostComposer: () => ({ openComposer: mockOpenComposer }),
+}));
+
+jest.mock('../utils/socialTabVisit', () => ({
+  markSocialTabVisited: () => mockMarkSocialTabVisited(),
+}));
+
+// The feed pages fetch through `useSocialFeed`, which reads keyring state and
+// React Query. This suite covers the V1 chrome, so stand in for both data
+// sources while still driving the real pending-post store the pinning tests
+// depend on.
+jest.mock('./feed/hooks/useSocialV1Feed', () => ({
+  useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
+    .mockUseSocialV1Feed,
+}));
+
+jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
+  useSocialFeed: jest.fn(() => ({
+    posts: [],
+    rows: [],
+    isLoading: false,
+    isFetchingNextPage: false,
+    hasNextPage: false,
+    loadMore: jest.fn(),
+    error: null,
+    refresh: jest.fn(async () => undefined),
+    dataUpdatedAt: undefined,
+  })),
 }));
 
 const mockUseABTest = jest.fn();
@@ -42,14 +83,42 @@ jest.mock('../../../../hooks/useABTest', () => ({
 }));
 
 jest.mock('../analytics', () => {
-  const actual = jest.requireActual('../analytics');
+  const events = jest.requireActual('../analytics/socialLeaderboardEvents');
   return {
-    ...actual,
+    ...events,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
   };
 });
 
-jest.mock('../components/PositionTokenAvatar', () => ({
+jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ post }: { post: { item: { id: string } } }) => (
+      <View testID={`social-v1-feed-card-${post.item.id}`} />
+    ),
+  };
+});
+
+jest.mock('./feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof import('react');
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
+jest.mock('./feed/components', () => ({
+  HotTokensCarousel: () => null,
+}));
+
+jest.mock('../../../UI/SocialFeed/components/PositionTokenAvatar', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -89,6 +158,18 @@ jest.mock('../TopTradersView', () => {
   };
 });
 
+jest.mock('../shell/LeaderboardShellTabPage', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ isActive }: { isActive?: boolean }) =>
+      isActive
+        ? ReactActual.createElement(View, { testID: 'top-traders-view' })
+        : null,
+  };
+});
+
 jest.mock(
   '../../../../util/notifications/services/NotificationService',
   () => ({
@@ -99,10 +180,14 @@ jest.mock(
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const ReactActual = jest.requireActual('react');
   return {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => callback(), [callback]);
+    },
   };
 });
 
@@ -112,7 +197,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  return Reanimated;
+  return {
+    ...Reanimated,
+    useReducedMotion: jest.fn(() => false),
+  };
 });
 
 jest.mock('react-native-gesture-handler', () => {
@@ -151,11 +239,20 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
+    act(() => {
+      resetPendingPosts();
+    });
     mockUseMyProfile.mockReturnValue({
       profile: null,
       isLoading: false,
       error: null,
       refresh: mockRefreshMyProfile,
+    });
+  });
+
+  afterEach(() => {
+    act(() => {
+      resetPendingPosts();
     });
   });
 
@@ -214,6 +311,20 @@ describe('SocialV1View', () => {
     );
   });
 
+  it('marks Social as visited when the v1 home opens', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockMarkSocialTabVisited).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the account mask icon when no profile exists', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeOnTheScreen();
+  });
+
   it('opens My Profile from the avatar', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -222,12 +333,102 @@ describe('SocialV1View', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.MY_PROFILE);
   });
 
-  it('keeps the placeholder header add action inactive', () => {
+  it('opens the post composer from the plus button', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON));
 
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens Rewards from the gift button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
+  });
+
+  it('keeps the header action icons transparent while pressed', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON),
+      'pressIn',
+    );
+    fireEvent(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON),
+      'pressIn',
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.REWARDS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.PLUS_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
+  });
+
+  describe('after posting', () => {
+    const PENDING_ITEM_ID = 'pending-item';
+
+    beforeEach(() => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: 'viewer-profile',
+          displayName: 'Giga Whale',
+          handle: 'giga_whale',
+          shareUrl: '',
+        },
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshMyProfile,
+      });
+      act(() => {
+        addPendingPost({
+          ownerProfileId: 'viewer-profile',
+          post: {
+            id: 'pending-comment-1',
+            commentId: 'comment-1',
+            authorHandle: 'Giga Whale',
+            timestampMs: Date.now(),
+            reactions: [],
+            item: mockOpenPerpsFeedItem({
+              id: PENDING_ITEM_ID,
+              comment: 'this is alpha',
+            }),
+          },
+        });
+      });
+    });
+
+    it('opens Following with the new post pinned on top', () => {
+      requestFollowingFocus();
+
+      renderWithProvider(<SocialV1View />);
+
+      const followingCards = within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+      ).getAllByTestId(/^social-v1-feed-card-/);
+      expect(followingCards[0].props.testID).toBe(
+        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
+      );
+    });
+
+    it('stays on Trending, without the post, when no post was just written', () => {
+      renderWithProvider(<SocialV1View />);
+
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
+    });
   });
 
   it('renders the Live trades filter icon on the Live trades page', () => {
@@ -251,15 +452,13 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
-  it('closes the filters bottom sheet when Show results is pressed', () => {
+  it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
   });
@@ -273,6 +472,19 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens the filters bottom sheet from the Following filter button', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('omits the header back button', () => {
@@ -416,9 +628,7 @@ describe('SocialV1View', () => {
 
     fireEvent.press(filterButton());
     fireEvent.press(screen.getByTestId('social-filters-type-tokens'));
-    fireEvent.press(
-      screen.getByTestId('social-filters-bottom-sheet-show-results'),
-    );
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
 
     const activeStyle = StyleSheet.flatten(filterButton().props.style);
     expect(activeStyle?.backgroundColor).not.toBe(
@@ -482,6 +692,9 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR),
+    ).toBeNull();
   });
 
   describe('notifications nudge banner', () => {

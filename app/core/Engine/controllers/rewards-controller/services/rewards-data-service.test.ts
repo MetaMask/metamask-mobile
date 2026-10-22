@@ -111,6 +111,156 @@ describe('RewardsDataService', () => {
     jest.useRealTimers();
   });
 
+  describe('getTradingFeeGrants', () => {
+    const grant = {
+      programId: 'perps-builder-fee-experiment',
+      hyperliquid: {
+        builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
+        builderFeeBips: '2.5',
+      },
+      expiresAt: '2099-10-01T00:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger.call.mockResolvedValue('profile-token');
+    });
+
+    it('uses only the Profile Sync bearer token and no query parameters', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      expect(await service.getTradingFeeGrants()).toEqual({ grant });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AuthenticationController:getBearerToken',
+      );
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/trading-fee-grants`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            Authorization: 'Bearer profile-token',
+          }),
+        }),
+      );
+      expect(mockFetch.mock.calls[0][1]?.headers).not.toHaveProperty(
+        'rewards-access-token',
+      );
+      expect(mockGetSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it('returns null grants as a successful response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant: null }),
+      } as Response);
+      expect(await service.getTradingFeeGrants()).toEqual({ grant: null });
+    });
+
+    it('does not fall back to a rewards session when the profile token is unavailable', async () => {
+      mockMessenger.call.mockResolvedValue('');
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Profile Sync',
+      );
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(mockGetSubscriptionToken).not.toHaveBeenCalled();
+    });
+
+    it.each([401, 500])(
+      'rejects HTTP %s without treating it as no grant',
+      async (status) => {
+        mockFetch.mockResolvedValue({ ok: false, status } as Response);
+        await expect(service.getTradingFeeGrants()).rejects.toThrow(
+          String(status),
+        );
+      },
+    );
+
+    it.each(['0', '1.25', '999.99'])(
+      'preserves a valid fee string of %s',
+      async (builderFeeBips) => {
+        const response = {
+          grant: {
+            ...grant,
+            hyperliquid: { ...grant.hyperliquid, builderFeeBips },
+          },
+        };
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => response,
+        } as Response);
+        expect(await service.getTradingFeeGrants()).toEqual(response);
+      },
+    );
+
+    it('accepts additive response fields', async () => {
+      const response = {
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            futureProviderField: true,
+          },
+          futureGrantField: 'value',
+        },
+        futureEnvelopeField: 1,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => response,
+      } as Response);
+
+      expect(await service.getTradingFeeGrants()).toEqual(response);
+    });
+
+    it.each([
+      {},
+      { grant: {} },
+      { grant: { ...grant, expiresAt: 'invalid' } },
+      ...['', '-1', '1.234', '1000', '2.5oops', 'Infinity'].map(
+        (builderFeeBips) => ({
+          grant: {
+            ...grant,
+            hyperliquid: { ...grant.hyperliquid, builderFeeBips },
+          },
+        }),
+      ),
+    ])('rejects malformed responses: %j', async (response) => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => response,
+      } as Response);
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Invalid trading fee grant',
+      );
+    });
+
+    it('uses the short request timeout for quote-path lookups', async () => {
+      const abortError = new Error('Aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Request timeout after 2000ms',
+      );
+    });
+
+    it('rejects the result if the active profile changes during the request', async () => {
+      mockMessenger.call
+        .mockResolvedValueOnce('profile-token')
+        .mockResolvedValueOnce('next-profile-token');
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Profile changed',
+      );
+    });
+  });
+
   describe('initialization', () => {
     it('should register all action handlers', () => {
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -219,6 +369,10 @@ describe('RewardsDataService', () => {
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
         'RewardsDataService:getVipFees',
+        expect.any(Function),
+      );
+      expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+        'RewardsDataService:getTradingFeeGrants',
         expect.any(Function),
       );
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
@@ -5747,6 +5901,43 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getMoneyAccountSweepstakesVolumeStats', () => {
+    const mockCampaignId = 'mas-campaign-api-1';
+    const mockVolumeStats = {
+      totalVolumeUsd: 3000000,
+      eligibleParticipantCount: 420,
+      yieldEarnedUsd: 8123.55,
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockVolumeStats),
+      } as unknown as Response);
+    });
+
+    it('calls the public volume stats endpoint with GET and returns data', async () => {
+      const result =
+        await service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/money-account-sweepstakes/${mockCampaignId}/stats/volume`,
+        expect.objectContaining({ method: 'GET' }),
+      );
+      expect(result).toEqual(mockVolumeStats);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getMoneyAccountSweepstakesVolumeStats(mockCampaignId),
+      ).rejects.toThrow(
+        'Get Money Account Sweepstakes volume stats failed: 500',
+      );
+    });
+  });
+
   describe('Predict The Pitch endpoints', () => {
     const mockCampaignId = 'predict-campaign-1';
     const mockSubscriptionId = 'sub-predict-1';
@@ -5931,6 +6122,8 @@ describe('RewardsDataService', () => {
     const mockSubscriptionId = 'sub-456';
     const mockAddress = '0xABCDEF1234567890abcdef1234567890ABCDEF12';
     const mockToken = 'test-bearer-token';
+    const mockTimestamp = 1758700000000;
+    const mockSignature = '0xsignature';
 
     beforeEach(() => {
       mockGetSubscriptionToken.mockResolvedValue({
@@ -5939,7 +6132,7 @@ describe('RewardsDataService', () => {
       });
     });
 
-    it('POSTs the money account address and returns bound on 201', async () => {
+    it('POSTs the address, timestamp and signature to the signed endpoint and returns bound on 201', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 201,
@@ -5948,13 +6141,19 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://uat.rewards.test/wr/money-account/binding',
+        'https://uat.rewards.test/wr/money-account/binding/signed',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ moneyAccountAddress: mockAddress }),
+          body: JSON.stringify({
+            moneyAccountAddress: mockAddress,
+            timestamp: mockTimestamp,
+            signature: mockSignature,
+          }),
           headers: expect.objectContaining({
             'rewards-access-token': mockToken,
           }),
@@ -5972,6 +6171,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('bound');
@@ -5986,6 +6187,8 @@ describe('RewardsDataService', () => {
       const result = await service.registerMoneyAccountBinding(
         mockSubscriptionId,
         mockAddress,
+        mockTimestamp,
+        mockSignature,
       );
 
       expect(result).toBe('conflict');
@@ -5998,8 +6201,42 @@ describe('RewardsDataService', () => {
       } as unknown as Response);
 
       await expect(
-        service.registerMoneyAccountBinding(mockSubscriptionId, mockAddress),
+        service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        ),
       ).rejects.toThrow('Register Money Account binding failed: 500');
+    });
+
+    it('throws InvalidTimestampError with serverTime in milliseconds', async () => {
+      const serverTime = 1758700800000;
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 400,
+        json: jest.fn().mockResolvedValue({
+          statusCode: 400,
+          error: 'Bad Request',
+          code: 'TIMESTAMP_OUT_OF_WINDOW',
+          serverTime,
+        }),
+      } as unknown as Response);
+
+      try {
+        await service.registerMoneyAccountBinding(
+          mockSubscriptionId,
+          mockAddress,
+          mockTimestamp,
+          mockSignature,
+        );
+        fail('Expected InvalidTimestampError to be thrown');
+      } catch (error) {
+        expect((error as InvalidTimestampError).name).toBe(
+          'InvalidTimestampError',
+        );
+        expect((error as InvalidTimestampError).timestamp).toBe(serverTime);
+      }
     });
   });
 });

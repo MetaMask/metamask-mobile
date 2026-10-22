@@ -1,16 +1,18 @@
 import {
+  AvatarAccount,
+  AvatarAccountSize,
   BannerAlert,
   BannerAlertSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
   HeaderStandardAnimated,
+  IconColor,
   IconName,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -24,7 +26,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Image, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -43,6 +46,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -67,11 +71,35 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveTradesView from '../LiveTradesView';
-import superheroAvatar from '../../../../images/socialV1/superhero.png';
+import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import Routes from '../../../../constants/navigation/Routes';
+import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../selectors/settings';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
+import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { markSocialTabVisited } from '../utils/socialTabVisit';
+import {
+  QuickBuy,
+  TOP_TRADERS_QUICK_BUY_FEATURES,
+  type QuickBuyTarget,
+} from '../../../UI/QuickBuy';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
+
+const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
+  const index = initialTab ? SOCIAL_V1_TAB_ORDER.indexOf(initialTab) : -1;
+  return index === -1 ? LANDING_INDEX : index;
+};
 
 const PAGE_TEST_IDS: Record<
   SocialShellTab,
@@ -108,6 +136,9 @@ const PAGE_TEST_IDS: Record<
 // still transient so it never becomes permanent chrome.
 const NOTIFICATIONS_BANNER_AUTO_DISMISS_MS = 20000;
 
+/** Lets the pager finish sliding before live prices re-measure visible cards. */
+const TAB_CHANGE_VISIBILITY_DELAY_MS = 400;
+
 const getTabAnalyticsValue = (tab: SocialShellTab) => {
   switch (tab) {
     case 'trending':
@@ -127,38 +158,57 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
  */
-const SocialV1View: React.FC = () => {
+const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
+  const livePrices = useSocialLivePrices();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const route = useRoute<RouteProp<RootStackParamList, 'SocialV1View'>>();
+  const route =
+    useRoute<
+      RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
+    >();
   const { profile: myProfile } = useMyProfile();
+  const accountAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
   const liveTradesIndex = tabOrder.indexOf('liveTrades');
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
-  // The landing tab is the first one, so the surface always opens on index 0.
-  const [activeIndex, setActiveIndex] = useState(LANDING_INDEX);
-
+  const [landingIndex] = useState(() =>
+    getLandingIndex(route.params?.initialTab),
+  );
+  const [activeIndex, setActiveIndex] = useState(landingIndex);
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
     openTab,
     draft,
+    applied,
     hasActiveFilters,
     openSheet,
     closeSheet,
     updateDraft,
     applyFilters,
+    resetDraftToDefaults,
   } = useSocialShellFilters();
 
   const handleOpenLiveTradesFilters = useCallback(() => {
     openSheet('liveTrades');
+  }, [openSheet]);
+  const handleOpenFollowingFilters = useCallback(() => {
+    openSheet('following');
+  }, [openSheet]);
+  const handleOpenLeaderboardFilters = useCallback(() => {
+    openSheet('leaderboard');
   }, [openSheet]);
 
   // Each page scrolls independently, so keep a scroll offset per tab and let a
@@ -174,7 +224,7 @@ const SocialV1View: React.FC = () => {
   const followingPageRef = useRef<SocialTabPageHandle>(null);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
-  const activeIndexSv = useSharedValue(LANDING_INDEX);
+  const activeIndexSv = useSharedValue(landingIndex);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
   const liveTradesIndexSv = useSharedValue(liveTradesIndex);
@@ -331,9 +381,17 @@ const SocialV1View: React.FC = () => {
     };
   });
 
-  const handlePlaceholderHeaderAction = useCallback(() => undefined, []);
   const handleOpenMyProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MY_PROFILE);
+  }, [navigation]);
+
+  const handleOpenComposer = useCallback(() => {
+    playSelection().catch(() => undefined);
+    openComposer();
+  }, [openComposer]);
+
+  const handleOpenRewards = useCallback(() => {
+    navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
   // One-shot nudge shown when onboarding reports the user tapped "Allow
@@ -341,6 +399,31 @@ const SocialV1View: React.FC = () => {
   // appears on that hand-off, never on normal tab visits.
   const [showNotificationsBanner, setShowNotificationsBanner] = useState(
     Boolean(route.params?.showNotificationsBanner),
+  );
+
+  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
+  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
+  // inside a pager page it would be clipped by the collapsing header block and
+  // painted over by the page's own scroll content.
+  const [quickBuy, setQuickBuy] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const openQuickBuy = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
+      setQuickBuy({ target, copyTradeOrigin }),
+    [],
+  );
+  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
   );
 
   useEffect(() => {
@@ -400,8 +483,16 @@ const SocialV1View: React.FC = () => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
+      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
-    [activeIndex, activeIndexSv, tabOrder, syncIncomingPageScroll, track],
+    [
+      activeIndex,
+      activeIndexSv,
+      livePrices,
+      tabOrder,
+      syncIncomingPageScroll,
+      track,
+    ],
   );
 
   const handleTabPress = useCallback(
@@ -420,6 +511,22 @@ const SocialV1View: React.FC = () => {
     [changeTab],
   );
 
+  useFocusEffect(
+    useCallback(() => {
+      // A post just written from the composer is pinned on Following.
+      if (!consumeFollowingFocus()) {
+        return;
+      }
+      programmaticTabChangeRef.current = true;
+      pagerRef.current?.setPage(followingIndex);
+      if (activeIndex !== followingIndex) {
+        changeTab(followingIndex);
+      } else {
+        followingPageRef.current?.scrollToOffset(0, true);
+      }
+    }, [activeIndex, changeTab, followingIndex]),
+  );
+
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -430,163 +537,216 @@ const SocialV1View: React.FC = () => {
     // Top and bottom edges are deliberately off — see
     // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
     // `includesTopInset` (JS `marginTop` off the already resolved provider).
-    <SafeAreaView
-      edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
-      style={tw.style('flex-1 bg-default')}
-      testID={SocialV1ViewSelectorsIDs.CONTAINER}
-    >
-      <HeaderStandardAnimated
-        includesTopInset
-        scrollY={scrollY}
-        titleSectionHeight={titleHeightSv}
-        title={title}
-        titleProps={{
-          testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
-        }}
-        startAccessory={
-          <Pressable
-            onPress={handleOpenMyProfile}
-            testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
-            accessibilityRole="button"
-            accessibilityLabel={strings(
-              'social_leaderboard.my_profile.open_profile',
-            )}
-          >
-            <Image
-              source={
-                myProfile?.imageUrl
-                  ? { uri: myProfile.imageUrl }
-                  : superheroAvatar
-              }
-              style={tw.style('w-8 h-8 rounded-full')}
-            />
-          </Pressable>
-        }
-        endAccessory={
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
-          >
-            <ButtonIcon
-              iconName={IconName.Add}
-              size={ButtonIconSize.Md}
-              onPress={handlePlaceholderHeaderAction}
-              testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+    <SocialEntryOptionsProvider>
+      <SafeAreaView
+        edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
+        style={tw.style('flex-1 bg-default')}
+        testID={SocialV1ViewSelectorsIDs.CONTAINER}
+      >
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={scrollY}
+          titleSectionHeight={titleHeightSv}
+          title={title}
+          titleProps={{
+            testID: SocialV1ViewSelectorsIDs.HEADER_TITLE,
+          }}
+          startAccessory={
+            <Pressable
+              onPress={handleOpenMyProfile}
+              testID={SocialV1ViewSelectorsIDs.AVATAR_BUTTON}
+              accessibilityRole="button"
+              accessibilityLabel={strings(
+                'social_leaderboard.my_profile.open_profile',
+              )}
+            >
+              <SocialHeaderGlassSurface twClassName="w-10 justify-center">
+                {myProfile ? (
+                  <ProfileAvatar
+                    imageUrl={myProfile.imageUrl}
+                    avatarPresetId={myProfile.avatarPresetId}
+                    avatarBackgroundId={myProfile.avatarBackgroundId}
+                    size="sm"
+                  />
+                ) : (
+                  <AvatarAccount
+                    address={accountAddress ?? ''}
+                    variant={getAvatarAccountVariant(avatarAccountType)}
+                    size={AvatarAccountSize.Sm}
+                    testID={SocialV1ViewSelectorsIDs.ACCOUNT_AVATAR}
+                  />
+                )}
+              </SocialHeaderGlassSurface>
+            </Pressable>
+          }
+          endAccessory={
+            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
+              <ButtonIcon
+                iconName={IconName.Gift}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenRewards}
+                accessibilityLabel={strings(
+                  'wallet.rewards_accessibility_label',
+                )}
+                testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                twClassName="bg-transparent"
+              />
+              <ButtonIcon
+                iconName={IconName.Edit}
+                iconProps={{ color: IconColor.IconDefault }}
+                size={ButtonIconSize.Md}
+                onPress={handleOpenComposer}
+                testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                twClassName="bg-transparent"
+              />
+            </SocialHeaderGlassSurface>
+          }
+          testID={SocialV1ViewSelectorsIDs.HEADER}
+        />
+
+        {showNotificationsBanner && (
+          <Box twClassName="px-4 pt-2">
+            <BannerAlert
+              severity={BannerAlertSeverity.Info}
+              description={strings(
+                'social_leaderboard.top_traders_view.notifications_banner.description',
+              )}
+              actionButtonLabel={strings(
+                'social_leaderboard.top_traders_view.notifications_banner.open_settings',
+              )}
+              actionButtonOnPress={handleOpenNotificationSettings}
+              onClose={handleDismissNotificationsBanner}
+              testID={SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
             />
           </Box>
-        }
-        testID={SocialV1ViewSelectorsIDs.HEADER}
-      />
+        )}
 
-      {showNotificationsBanner && (
-        <Box twClassName="px-4 pt-2">
-          <BannerAlert
-            severity={BannerAlertSeverity.Info}
-            description={strings(
-              'social_leaderboard.top_traders_view.notifications_banner.description',
-            )}
-            actionButtonLabel={strings(
-              'social_leaderboard.top_traders_view.notifications_banner.open_settings',
-            )}
-            actionButtonOnPress={handleOpenNotificationSettings}
-            onClose={handleDismissNotificationsBanner}
-            testID={SocialV1ViewSelectorsIDs.NOTIFICATIONS_BANNER}
-          />
-        </Box>
-      )}
-
-      {/* `overflow-hidden` clips the title as the block slides up so it
+        {/* `overflow-hidden` clips the title as the block slides up so it
           disappears *under* the fixed header (revealing the compact title)
           instead of scrolling over the header actions. */}
-      <Box twClassName="flex-1 overflow-hidden">
-        <Animated.View
-          style={[
-            tw.style('absolute top-0 left-0 right-0'),
-            collapsingBlockStyle,
-          ]}
-        >
-          <Box twClassName="bg-default mt-4">
-            <TabsBar
-              tabs={tabs}
-              activeIndex={activeIndex}
-              onTabPress={handleTabPress}
-              testID={SocialV1ViewSelectorsIDs.TABS}
-            />
-          </Box>
-
-          {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
-          <PagerView
-            ref={pagerRef}
-            style={tw.style('flex-1 mt-4')}
-            initialPage={LANDING_INDEX}
-            onPageSelected={handlePageSelected}
-            testID={SocialV1ViewSelectorsIDs.PAGER}
+        <Box twClassName="flex-1 overflow-hidden">
+          <Animated.View
+            style={[
+              tw.style('absolute top-0 left-0 right-0'),
+              collapsingBlockStyle,
+            ]}
           >
-            {tabOrder.map((tab) => {
-              const testIds = PAGE_TEST_IDS[tab];
-              const pageRef =
-                tab === 'trending'
-                  ? trendingPageRef
-                  : tab === 'following'
-                    ? followingPageRef
-                    : tab === 'liveTrades'
-                      ? liveTradesPageRef
-                      : leaderboardPageRef;
-              return (
-                <View
-                  key={tab}
-                  style={tw.style('flex-1')}
-                  collapsable={false}
-                  testID={testIds.page}
-                >
-                  {tab === 'leaderboard' ? (
-                    <LeaderboardShellTabPage
-                      isActive={activeIndex === leaderboardIndex}
-                      onScroll={scrollHandlers[tab]}
-                      pageRef={pageRef}
-                      containerTestID={testIds.container}
-                    />
-                  ) : tab === 'liveTrades' ? (
-                    <LiveTradesView
-                      onScroll={scrollHandlers[tab]}
-                      pageRef={pageRef}
-                      onOpenFilters={handleOpenLiveTradesFilters}
-                      isFilterActive={hasActiveFilters('liveTrades')}
-                    />
-                  ) : (
-                    <EmptyShellTabPage
-                      tab={tab}
-                      isActive={
-                        tab === 'trending'
-                          ? activeIndex === trendingIndex
-                          : activeIndex === followingIndex
-                      }
-                      onScroll={scrollHandlers[tab]}
-                      pageRef={pageRef}
-                      containerTestID={testIds.container}
-                      scrollTestID={testIds.scroll}
-                    />
-                  )}
-                </View>
-              );
-            })}
-          </PagerView>
-        </Animated.View>
-      </Box>
+            <Box twClassName="bg-default mt-4">
+              <TabsBar
+                tabs={tabs}
+                activeIndex={activeIndex}
+                onTabPress={handleTabPress}
+                testID={SocialV1ViewSelectorsIDs.TABS}
+              />
+            </Box>
 
-      {openTab ? (
-        <SocialFiltersBottomSheet
-          tab={openTab}
-          draft={draft}
-          onChange={updateDraft}
-          onApply={applyFilters}
-          onClose={closeSheet}
+            {/* Pages are rendered in `tabOrder` so the pager positions stay
+              aligned with the tabs bar. */}
+            <PagerView
+              ref={pagerRef}
+              style={tw.style('flex-1 mt-6')}
+              initialPage={landingIndex}
+              onPageSelected={handlePageSelected}
+              testID={SocialV1ViewSelectorsIDs.PAGER}
+            >
+              {tabOrder.map((tab) => {
+                const testIds = PAGE_TEST_IDS[tab];
+                const pageRef =
+                  tab === 'trending'
+                    ? trendingPageRef
+                    : tab === 'following'
+                      ? followingPageRef
+                      : tab === 'liveTrades'
+                        ? liveTradesPageRef
+                        : leaderboardPageRef;
+                return (
+                  <View
+                    key={tab}
+                    style={tw.style('flex-1')}
+                    collapsable={false}
+                    testID={testIds.page}
+                  >
+                    {tab === 'leaderboard' ? (
+                      <LeaderboardShellTabPage
+                        isActive={activeIndex === leaderboardIndex}
+                        onScroll={scrollHandlers[tab]}
+                        pageRef={pageRef}
+                        containerTestID={testIds.container}
+                        appliedFilters={applied.leaderboard}
+                        onOpenFilters={handleOpenLeaderboardFilters}
+                        isFilterActive={hasActiveFilters('leaderboard')}
+                      />
+                    ) : tab === 'liveTrades' ? (
+                      <LiveTradesView
+                        onScroll={scrollHandlers[tab]}
+                        pageRef={pageRef}
+                        onOpenFilters={handleOpenLiveTradesFilters}
+                        isFilterActive={hasActiveFilters('liveTrades')}
+                        appliedFilters={applied.liveTrades}
+                      />
+                    ) : (
+                      <EmptyShellTabPage
+                        tab={tab}
+                        isActive={
+                          tab === 'trending'
+                            ? activeIndex === trendingIndex
+                            : activeIndex === followingIndex
+                        }
+                        onScroll={scrollHandlers[tab]}
+                        pageRef={pageRef}
+                        containerTestID={testIds.container}
+                        scrollTestID={testIds.scroll}
+                        onOpenFilters={
+                          tab === 'following'
+                            ? handleOpenFollowingFilters
+                            : undefined
+                        }
+                        isFilterActive={hasActiveFilters('following')}
+                        appliedFilters={
+                          tab === 'following' ? applied.following : undefined
+                        }
+                        onQuickBuy={openQuickBuy}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+            </PagerView>
+          </Animated.View>
+        </Box>
+
+        {openTab ? (
+          <SocialFiltersBottomSheet
+            tab={openTab}
+            draft={draft}
+            onChange={updateDraft}
+            onApply={applyFilters}
+            onReset={resetDraftToDefaults}
+            onClose={closeSheet}
+          />
+        ) : null}
+
+        <QuickBuy.Root
+          isVisible={quickBuy !== null}
+          target={quickBuy?.target ?? null}
+          onClose={closeQuickBuy}
+          features={TOP_TRADERS_QUICK_BUY_FEATURES}
+          initialTradeMode="buy"
+          analyticsContext={{ source: 'trader_feed' }}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
+          copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
-      ) : null}
-    </SafeAreaView>
+      </SafeAreaView>
+    </SocialEntryOptionsProvider>
   );
 };
+
+const SocialV1View: React.FC = () => (
+  <SocialLivePricesProvider>
+    <SocialV1ViewContent />
+  </SocialLivePricesProvider>
+);
 
 export default SocialV1View;

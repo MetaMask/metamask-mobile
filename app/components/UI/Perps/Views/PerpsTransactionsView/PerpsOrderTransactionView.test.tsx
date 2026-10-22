@@ -543,15 +543,4 @@ describe('PerpsOrderTransactionView', () => {
       1640995200000,
     );
   });
-
-  it('sets correct navigation options', () => {
-    const mockSetOptions = jest.fn();
-    mockUseNavigation.mockReturnValue({
-      setOptions: mockSetOptions,
-    });
-
-    render(<PerpsOrderTransactionView />);
-
-    expect(mockSetOptions).toHaveBeenCalled();
-  });
 });

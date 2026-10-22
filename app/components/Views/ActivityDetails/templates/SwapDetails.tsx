@@ -61,16 +61,6 @@ type SwapDetailsItem = Extract<
   }
 >;
 
-function markAmountHumanReadable(
-  token: TokenAmount | undefined,
-  enabled: boolean,
-): TokenAmount | undefined {
-  if (!token || !enabled) {
-    return token;
-  }
-  return { ...token, amountIsHumanReadable: true };
-}
-
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   const rawSourceToken = item.data.sourceToken;
   const rawDestinationToken =
@@ -81,17 +71,18 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
       (assetId): assetId is string => Boolean(assetId),
     ),
   );
-  // Keep API decimals for Swap again, but keyring amounts are already
-  // human-readable so display/fiat must not run formatUnits on them.
-  const amountIsHumanReadable = isNonEvmChainId(item.chainId);
-  const sourceToken = markAmountHumanReadable(
-    enrichTokenFromApi(rawSourceToken, tokenData),
-    amountIsHumanReadable,
-  );
-  const destinationToken = markAmountHumanReadable(
-    enrichTokenFromApi(rawDestinationToken, tokenData),
-    amountIsHumanReadable,
-  );
+  // Keyring amounts are already human-readable — skip formatUnits.
+  const humanReadable = isNonEvmChainId(item.chainId);
+  const sourceBase = enrichTokenFromApi(rawSourceToken, tokenData);
+  const destBase = enrichTokenFromApi(rawDestinationToken, tokenData);
+  const sourceToken =
+    humanReadable && sourceBase
+      ? { ...sourceBase, amountIsHumanReadable: true as const }
+      : sourceBase;
+  const destinationToken =
+    humanReadable && destBase
+      ? { ...destBase, amountIsHumanReadable: true as const }
+      : destBase;
   const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken,

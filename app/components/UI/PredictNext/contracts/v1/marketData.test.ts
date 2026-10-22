@@ -627,6 +627,26 @@ describe('Predict API canonical response parsers', () => {
     });
   });
 
+  it('keeps the backend-owned terms URL and fails closed on a malformed one', () => {
+    const withTerms = parsePredictVenueStatus({
+      venueId,
+      status: 'available',
+      checkedAt: '2026-08-07T12:00:00Z',
+      termsUrl: 'https://kalshi.com/regulatory/agreement',
+    });
+    expect(withTerms.termsUrl).toBe('https://kalshi.com/regulatory/agreement');
+
+    // Wire drift on a backend-owned field fails closed at the boundary.
+    expect(() =>
+      parsePredictVenueStatus({
+        venueId,
+        status: 'available',
+        checkedAt: '2026-08-07T12:00:00Z',
+        termsUrl: 'not-a-url',
+      }),
+    ).toThrow();
+  });
+
   it('parses Market history', () => {
     const input = createMarketHistory();
 

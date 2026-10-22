@@ -82,6 +82,20 @@ export const DEFAULT_FIXTURE_ACCOUNT_2 =
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
 
+/**
+ * Keyring `metadata.id` (a.k.a. entropy source) of the primary HD keyring in
+ * {@link FixtureBuilder.withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController}.
+ * Because it is baked into that fixture's pre-encrypted vault, it is stable
+ * across runs — unlike fixtures whose keyrings are restored without metadata,
+ * where the KeyringController mints a fresh ULID at unlock.
+ *
+ * The AccountTreeController derives IDs from it: the wallet is
+ * `entropy:<id>` and its account groups are `entropy:<id>/<groupIndex>`, where
+ * `groupIndex` is the account's position in the keyring's `accounts` array.
+ * Tests can therefore target a specific group without scanning the UI.
+ */
+export const DEFAULT_FIXTURE_HD_KEYRING_1_ID = '01JX9NJ15HPNS6RRRYBCKDK33R';
+
 export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
   'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
@@ -105,6 +119,39 @@ export interface MainnetUsdcFixtureOptions {
   hasUsdcBalance?: boolean;
   usdcBalance?: number;
 }
+
+/**
+ * State of the removed legacy asset controllers. Kept out of
+ * `default-fixture.json` so the fixture schema matches the app, but builder
+ * methods and specs still write to these keys, so `withDefaultFixture()` adds
+ * them back in memory. The app ignores them.
+ */
+const LEGACY_ASSET_CONTROLLERS_STATE = {
+  AccountTrackerController: {
+    accountsByChainId: {
+      '1': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+      '64': {
+        '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3': { balance: '0x0' },
+      },
+    },
+  },
+  CurrencyRateController: {
+    currencyRates: {
+      ETH: {
+        conversionDate: 1684232383.997,
+        conversionRate: 1815.41,
+        usdConversionRate: 1815.41,
+      },
+    },
+    currentCurrency: 'usd',
+  },
+  MultichainAssetsController: { accountsAssets: {}, assetsMetadata: {} },
+  MultichainAssetsRatesController: { conversionRates: {} },
+  TokenBalancesController: { tokenBalances: {} },
+  TokenRatesController: { marketData: {} },
+};
 
 /**
  * FixtureBuilder class provides a fluent interface for building fixture data.
@@ -216,6 +263,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     // Deep clone the JSON fixture to avoid mutations
     this.fixture = JSON.parse(JSON.stringify(defaultFixture));
+    merge(
+      this.fixture.state.engine.backgroundState,
+      LEGACY_ASSET_CONTROLLERS_STATE,
+    );
 
     // Inject dynamic values that can't be stored in static JSON
     // 1. Timestamp for legal notices
@@ -1120,7 +1171,7 @@ class FixtureBuilder {
           type: 'HD Key Tree',
           accounts: [DEFAULT_FIXTURE_ACCOUNT, DEFAULT_FIXTURE_ACCOUNT_2],
           metadata: {
-            id: '01JX9NJ15HPNS6RRRYBCKDK33R',
+            id: DEFAULT_FIXTURE_HD_KEYRING_1_ID,
             name: '',
           },
         },
@@ -2363,6 +2414,8 @@ class FixtureBuilder {
         dataCollectionForMarketing: true,
         isNFTAutoDetectionModalViewed: false,
         osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
       },
       attribution: {
         attribution: {

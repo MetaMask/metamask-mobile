@@ -25,8 +25,6 @@ const utilNumberImportBurndownFiles = [
   'app/component-library/components-temp/CustomSpendCap/CustomSpendCap.tsx',
   'app/components/UI/AccountInfoCard/index.js',
   'app/components/UI/Bridge/components/QuoteSelectorView/QuoteRow.tsx',
-  'app/components/UI/Bridge/components/QuoteSelectorView/index.tsx',
-  'app/components/UI/Bridge/hooks/useBridgeQuoteData/index.ts',
   'app/components/UI/Bridge/hooks/useFormattedBalanceWithThreshold/index.ts',
   'app/components/UI/Bridge/hooks/useHasSufficientGas/index.ts',
   'app/components/UI/Bridge/hooks/useInsufficientBalance/index.ts',
@@ -36,11 +34,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Bridge/utils/formatNetworkFee.test.ts',
   'app/components/UI/Bridge/utils/formatNetworkFee.ts',
   'app/components/UI/Bridge/utils/transaction-history.ts',
-  'app/components/UI/Card/hooks/useAssetBalances.tsx',
-  'app/components/UI/Card/hooks/useCardDelegation.test.ts',
-  'app/components/UI/Card/hooks/useCardDelegation.ts',
-  'app/components/UI/Card/hooks/useNeedsGasFaucet.ts',
-  'app/components/UI/Card/sdk/CardSDK.ts',
   'app/components/UI/Earn/Views/EarnInputView/EarnInputView.test.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/components/Erc20TokenHero/index.tsx',
   'app/components/UI/Earn/Views/EarnLendingDepositConfirmationView/index.tsx',
@@ -146,6 +139,9 @@ module.exports = {
         'app/components/hooks/useOTAUpdates.ts',
         'app/components/Nav/Main/index.js',
         'app/components/Nav/App/App.tsx',
+        // Card: capabilities are re-read from Engine when providerId/location
+        // change; Engine.context is a module singleton, not a reactive dep.
+        'app/components/UI/Card/hooks/useCardCapabilities.ts',
       ],
       rules: {
         'react-hooks/exhaustive-deps': 'off',

@@ -4,6 +4,9 @@ import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FontWeight,
   Icon,
   IconName,
@@ -27,6 +30,8 @@ interface PortfolioPositionRowProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
   onPress?: (position: PredictPosition) => void;
+  /** Shows the Cash Out affordance for selling the Position back. */
+  onCashOut?: (position: PredictPosition) => void;
 }
 
 interface PortfolioPositionMetricsProps {
@@ -79,11 +84,13 @@ const PortfolioPositionMetrics = ({
   );
 };
 
-/** Renders one open Position as an optionally pressable row. */
+/** Renders one open Position as an optionally pressable row with an
+ * optional Cash Out affordance. */
 export const PortfolioPositionRow = ({
   position,
   isPrivacyMode,
   onPress,
+  onCashOut,
 }: PortfolioPositionRowProps) => {
   const tw = useTailwind();
   const { context } = position;
@@ -139,10 +146,24 @@ export const PortfolioPositionRow = ({
           {metaLine}
         </SensitiveText>
       </Box>
-      <PortfolioPositionMetrics
-        position={position}
-        isPrivacyMode={isPrivacyMode}
-      />
+      <Box twClassName="flex-1 items-end gap-1 pr-1">
+        <PortfolioPositionMetrics
+          position={position}
+          isPrivacyMode={isPrivacyMode}
+        />
+        {onCashOut ? (
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={() => onCashOut(position)}
+            testID={PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT}
+          >
+            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
+              {strings('predict_next.portfolio.cash_out')}
+            </Text>
+          </Button>
+        ) : null}
+      </Box>
     </TouchableOpacity>
   );
 };

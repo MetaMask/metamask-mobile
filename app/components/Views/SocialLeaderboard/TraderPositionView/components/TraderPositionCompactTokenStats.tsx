@@ -10,8 +10,11 @@ import {
 import React from 'react';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
 import PerpBadges from '../../components/PerpBadges';
-import { EM_DASH, formatPercent } from '../../utils/formatters';
-import type { PerpDirection } from '../../utils/perp';
+import {
+  EM_DASH,
+  formatPercent,
+} from '../../../../UI/SocialFeed/utils/formatters';
+import type { PerpDirection } from '../../../../UI/SocialFeed/utils/perp';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 
 export interface TraderPositionCompactTokenStatsProps {

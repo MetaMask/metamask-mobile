@@ -25,12 +25,14 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   BottomSheet,
   BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ButtonGlass from '../../../component-library/components-temp/ButtonGlass';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useNavigationPerformance } from '../../../hooks/performance/useNavigationPerformance';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -48,6 +50,12 @@ type OnboardingSheetRouteProp = RouteProp<
   { OnboardingSheet: OnboardingSheetParams },
   'OnboardingSheet'
 >;
+
+/**
+ * Joins a label with non-breaking spaces so an inline link wraps to the next
+ * line as a whole instead of splitting across lines mid-phrase.
+ */
+const noWrap = (label: string) => label.replace(/ /gu, '\u00A0');
 
 const OnboardingSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -232,17 +240,18 @@ const OnboardingSheet = () => {
           </Text>
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
-        <Button
+        <ButtonGlass
           variant={ButtonVariant.Secondary}
           onPress={createWallet ? onPressCreateAction : onPressImportAction}
           testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}
           isFullWidth
           size={ButtonSize.Lg}
+          containerStyle={tw.style('self-stretch')}
         >
           {createWallet
             ? strings('onboarding.continue_with_srp')
             : strings('onboarding.import_srp')}
-        </Button>
+        </ButtonGlass>
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}
@@ -250,25 +259,23 @@ const OnboardingSheet = () => {
           twClassName="mt-6 text-center"
         >
           {strings('onboarding.by_continuing')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressTermsOfUse}
             testID="terms-of-use-link"
           >
-            {strings('onboarding.terms_of_use')}
-          </Text>{' '}
+            {noWrap(strings('onboarding.terms_of_use'))}
+          </TextButton>{' '}
           {strings('onboarding.and')}{' '}
-          <Text
+          <TextButton
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            color={TextColor.PrimaryDefault}
             onPress={onPressPrivacyNotice}
             testID="privacy-notice-link"
           >
-            {strings('onboarding.privacy_notice')}
-          </Text>
+            {noWrap(strings('onboarding.privacy_notice'))}
+          </TextButton>
         </Text>
       </Box>
     </BottomSheet>

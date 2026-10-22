@@ -1,5 +1,6 @@
 import {
   getCrossmintFailureMessage,
+  getCrossmintUnpurchasableMessage,
   isCrossmintPaymentCompleted,
   isCrossmintPaymentInProgress,
   parseCrossmintCheckoutMessage,
@@ -122,5 +123,62 @@ describe('isCrossmintPaymentInProgress', () => {
       isCrossmintPaymentInProgress({ payment: { status: 'awaiting-payment' } }),
     ).toBe(false);
     expect(isCrossmintPaymentInProgress(undefined)).toBe(false);
+  });
+});
+
+describe('getCrossmintUnpurchasableMessage', () => {
+  it('returns the message for order creation failures', () => {
+    expect(
+      getCrossmintUnpurchasableMessage({
+        event: 'order:creation-failed',
+        data: { message: 'Order limit exceeded' },
+      }),
+    ).toBe('Order limit exceeded');
+    expect(
+      getCrossmintUnpurchasableMessage({ event: 'order:creation-failed' }),
+    ).toBe('Order creation failed');
+  });
+
+  it('returns the quote unavailability reason', () => {
+    expect(
+      getCrossmintUnpurchasableMessage({
+        event: 'order:updated',
+        data: {
+          order: {
+            phase: 'quote',
+            lineItems: [
+              { quote: { unavailabilityReason: { message: 'No liquidity' } } },
+            ],
+          },
+        },
+      }),
+    ).toBe('No liquidity');
+  });
+
+  it('ignores payment declines, which are retryable in the checkout', () => {
+    expect(
+      getCrossmintUnpurchasableMessage({
+        event: 'order:updated',
+        data: {
+          order: {
+            payment: {
+              status: 'failed',
+              failureReason: { message: 'Card declined' },
+            },
+          },
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null for a healthy order', () => {
+    expect(
+      getCrossmintUnpurchasableMessage({
+        event: 'order:updated',
+        data: {
+          order: { phase: 'payment', payment: { status: 'requires-email' } },
+        },
+      }),
+    ).toBeNull();
   });
 });

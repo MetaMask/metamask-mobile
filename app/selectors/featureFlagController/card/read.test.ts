@@ -9,11 +9,13 @@ import {
   getCardUkMigrationUpdateBadgeSeverity,
   isCardUkMigrationEligible,
   readCardFeatureFlag,
+  readCardLinkApiEnabled,
   readCardProviderChains,
   readCardProviderConfig,
   readCardProviderCountries,
   readCardProviderEnabled,
   readCardUkMigrationFlag,
+  readCardUkMigrationSignInRoutingEnabled,
   resolveCardProviderForCountry,
   resolveCardUkMigrationState,
 } from './read';
@@ -549,6 +551,105 @@ describe('card feature flag readers', () => {
           regionCode: 'US',
         }),
       ).toBe(false);
+    });
+
+    it('returns false when the user has completed migration', () => {
+      expect(
+        isCardUkMigrationEligible(activeState, {
+          providerId: 'baanx',
+          regionCode: 'GB',
+          hasCompletedMigration: true,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('readCardLinkApiEnabled', () => {
+    const originalEnv = process.env.MM_CARD_LINK_API_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_LINK_API_ENABLED;
+      } else {
+        process.env.MM_CARD_LINK_API_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated cardLinkApi flag when present', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(true);
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: false, minimumVersion: '0.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('is off when the app is below cardLinkApi.minimumVersion', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(
+        readCardLinkApiEnabled({
+          cardLinkApi: { enabled: true, minimumVersion: '99.0.0' },
+        }),
+      ).toBe(false);
+    });
+
+    it('ignores cardFeature.cardLinkApiEnabled', () => {
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(
+        readCardLinkApiEnabled({ cardFeature: { cardLinkApiEnabled: true } }),
+      ).toBe(false);
+    });
+
+    it('falls back to MM_CARD_LINK_API_ENABLED when the remote flag is absent', () => {
+      process.env.MM_CARD_LINK_API_ENABLED = 'true';
+      expect(readCardLinkApiEnabled({})).toBe(true);
+      delete process.env.MM_CARD_LINK_API_ENABLED;
+      expect(readCardLinkApiEnabled({})).toBe(false);
+    });
+  });
+
+  describe('readCardUkMigrationSignInRoutingEnabled', () => {
+    const originalEnv =
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+
+    afterEach(() => {
+      if (originalEnv === undefined) {
+        delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      } else {
+        process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = originalEnv;
+      }
+    });
+
+    it('reads the version-gated remote flag when present', () => {
+      delete process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED;
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(true);
+      expect(
+        readCardUkMigrationSignInRoutingEnabled({
+          cardUkMigrationSignInRouting: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        }),
+      ).toBe(false);
+    });
+
+    it('falls back to the env override when the remote flag is absent', () => {
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'true';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(true);
+      process.env.MM_CARD_UK_MIGRATION_SIGN_IN_ROUTING_ENABLED = 'false';
+      expect(readCardUkMigrationSignInRoutingEnabled({})).toBe(false);
     });
   });
 

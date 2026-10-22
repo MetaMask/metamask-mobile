@@ -14,6 +14,7 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 | ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
 | `perpsTAT1937AbtestButtonColor`          | `control`, `colors`    | Long/short button color (TAT-1937)                                        |
 | `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                  |
+| `perpsTAT3793AbtestPerpsHomeExplore`     | `control`, `treatment` | Perps home Explore table replacing stacked market sections (TAT-3793)     |
 | `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597) |
 
 `perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
@@ -73,31 +74,21 @@ const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 - `useBottomSheet` is `true` only for treatment.
 - Route only on `useBottomSheet`. An active `control` assignment is still an active experiment assignment; it must continue to render the screen.
 - `useABTest` emits `Experiment Viewed` once per `experiment_id` + `variation_id` per app session.
+- `{ trackExposure: false }` resolves the assignment without exposure, for reads outside the experiment surface (see screen options below).
 
 ### Router-swap pattern (conversion tickets)
 
 Keep **one route and the same params**. Swap the presented component from a thin router, the same way `PerpsMarketDetailsRouter` swaps `PerpsProMarketView` vs `PerpsMarketDetailsView` behind a flag without changing navigation.
 
-Sketch (Close Position, TAT-3552). Control today is the existing `PerpsClosePositionView`. Treatment sheets are owned by the conversion ticket and do not exist in this PR:
-
-```typescript
-const ClosePositionRouter: React.FC = () => {
-  const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
-  const isProMode = useIsPerpsProModeActive();
-
-  if (useBottomSheet) {
-    return isProMode ? <ProClosePositionSheet /> : <LiteClosePositionSheet />;
-  }
-
-  return <PerpsClosePositionView />;
-};
-```
+Worked example: `PerpsClosePositionRouter` (TAT-3552). Branch on Lite/Pro only where a mode owns a different layout — Close Position does not, since both modes share one screen today.
 
 Rules:
 
 - Register the existing route name (`Routes.PERPS.*`) on the router, not on a new treatment-only route.
 - Do not branch on Lite/Pro for _whether_ the experiment applies — only for _which_ sheet/page that mode owns.
 - Control (`useBottomSheet === false`) must keep today's full-page UI in both modes.
+- Screen options live on the navigator, so `PerpsScreenStack` resolves the assignment once with `{ trackExposure: false }` and each converted screen passes it through `getPerpsConversionScreenOptions` (local to `routes/index.tsx`, where every converted screen is registered) to add the transparent presentation. Add one `Stack.Screen` line; do not add another hook call to that navigator. Exposure stays with the router, which only mounts when the flow opens.
+- Keep each flow's non-visual logic in one hook both variants render from (`usePerpsClosePositionForm` for Close Position) so the two cannot drift. It takes a `dismiss` override so the sheet animates closed before the route pops.
 
 ### Analytics
 

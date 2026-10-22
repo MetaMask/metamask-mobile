@@ -23,6 +23,7 @@ export interface DeeplinkUrlParams {
   request?: string;
   attributionId?: string;
   attribution_id?: string;
+  referral?: string;
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
@@ -38,8 +39,12 @@ export interface DeeplinkUrlParams {
   amount?: string;
   asset?: string;
 
-  // Swap-specific parameters
+  // Market Swap-specific parameters
   slippage?: string;
+
+  // Limit Order-specific parameters
+  expiresInMinutes?: string;
+  priceTolerance?: string;
 
   // Perps-specific parameters
   symbol?: string;
@@ -69,6 +74,11 @@ export interface DeeplinkUrlParams {
   // Which privacy settings section to scroll to (e.g. 'metametrics',
   // 'data-collection')
   setting?: string;
+
+  // Notification settings-specific parameters
+  // Which notification preference section to open (e.g. 'wallet-activity',
+  // 'price-alerts')
+  section?: string;
 
   // What's Happening-specific parameters
   // Id of a market overview front-page item to render as the first, "outdated"
@@ -139,6 +149,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.PERPS,
   ACTIONS.PERPS_MARKETS,
   ACTIONS.PERPS_ASSET,
+  ACTIONS.PERPS_OUTREACH,
   ACTIONS.REWARDS,
   ACTIONS.WC,
   ACTIONS.ONBOARDING,
@@ -154,6 +165,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.AGENTIC_CLI,
   ACTIONS.ON_RAMP,
   ACTIONS.PRIVACY,
+  ACTIONS.NOTIFICATIONS_SETTINGS,
   // MetaMask SDK deeplinks (`@metamask/sdk` / sdk-communication-layer, a.k.a.
   // "SDKv1"; the `connect`/`mmsdk`/`bind` actions). Listed here so they resolve
   // to a SupportedAction and get a DeepLinkRoute (SDK_CONNECT / SDK_MMSDK) for

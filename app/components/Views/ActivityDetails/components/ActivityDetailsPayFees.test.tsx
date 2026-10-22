@@ -64,7 +64,6 @@ const providerItem = {
   timestamp: 1,
   hash: 'predict-1',
   data: {},
-  raw: { type: 'predictActivity', data: { id: 'predict-1' } },
 } as unknown as ActivityListItem;
 
 /** Pay metadata as the component receives it, already resolved by the hook. */

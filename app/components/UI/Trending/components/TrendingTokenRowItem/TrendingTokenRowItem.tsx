@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
-import { getTrendingTokenRowItemTestId } from './TrendingTokenRowItem.testIds';
+import {
+  getTrendingTokenRowAddButtonTestId,
+  getTrendingTokenRowItemTestId,
+} from './TrendingTokenRowItem.testIds';
 import { Pressable, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -12,6 +16,8 @@ import {
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
+  ButtonIcon,
+  ButtonIconSize,
   Icon,
   IconName,
   IconSize,
@@ -25,11 +31,12 @@ import {
   getCaipChainIdFromAssetId,
   getNetworkBadgeSrc,
   formatMarketStats,
+  formatSearchStats,
   getPriceChangeFieldKey,
 } from './utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../../constants/bridge';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { TimeOption } from '../TrendingTokensBottomSheet';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
@@ -55,6 +62,8 @@ const getPriceChangePrefix = (
   if (priceChange === 0) return '';
   return isPositive ? '+' : '-';
 };
+
+export type TrendingTokenRowSubtitle = 'marketStats' | 'search';
 
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
@@ -85,9 +94,24 @@ interface TrendingTokenRowItemProps {
    * `testID` (and E2E selectors) unique per instance.
    */
   testIdInstanceKey?: string;
-  /** When provided, shows a circular Quick Trade button on the right of the row. */
-  onQuickTrade?: (token: TrendingAsset) => void;
+  /** Optional trailing action button rendered on the right of the row. */
+  endAction?: QuickActionButton;
+  /**
+   * Subtitle layout. `marketStats` is market cap and volume.
+   * `search` is the token symbol and market cap.
+   */
+  subtitle?: TrendingTokenRowSubtitle;
 }
+
+/**
+ * Trailing action button variants for {@link TrendingTokenRowItem}.
+ *
+ * - `quick-trade`: circular Quick Trade button.
+ * - `watchlist`: outline star button (add to watchlist), matching perps.
+ */
+export type QuickActionButton =
+  | { type: 'quick-trade'; onPress: (token: TrendingAsset) => void }
+  | { type: 'watchlist'; onPress: (token: TrendingAsset) => void };
 
 /**
  * Converts a TrendingAsset to Asset navigation params
@@ -139,7 +163,8 @@ const TrendingTokenRowItem = ({
   onPress,
   onCardPress,
   testIdInstanceKey,
-  onQuickTrade,
+  endAction,
+  subtitle: subtitleVariant = 'marketStats',
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency) || 'usd';
@@ -158,6 +183,15 @@ const TrendingTokenRowItem = ({
     () => getResultTypeConfig(token.securityData?.resultType).badge,
     [token.securityData?.resultType],
   );
+
+  const subtitle =
+    subtitleVariant === 'search'
+      ? formatSearchStats(token.symbol, token.marketCap ?? 0, currentCurrency)
+      : formatMarketStats(
+          token.marketCap ?? 0,
+          token.aggregatedUsdVolume ?? 0,
+          currentCurrency,
+        );
 
   const priceChangeFieldKey = getPriceChangeFieldKey(selectedTimeOption);
   const pricePercentChangeString = token.priceChangePct?.[priceChangeFieldKey];
@@ -237,11 +271,7 @@ const TrendingTokenRowItem = ({
           ellipsizeMode="tail"
           style={styles.marketStats}
         >
-          {formatMarketStats(
-            token.marketCap ?? 0,
-            token.aggregatedUsdVolume ?? 0,
-            currentCurrency,
-          )}
+          {subtitle}
         </Text>
       </View>
       <View style={styles.rightContainer}>
@@ -264,11 +294,21 @@ const TrendingTokenRowItem = ({
           )
         )}
       </View>
-      {onQuickTrade && (
+      {endAction?.type === 'watchlist' && (
+        <ButtonIcon
+          iconName={IconName.Star}
+          size={ButtonIconSize.Md}
+          onPress={() => endAction.onPress(token)}
+          accessibilityLabel={strings('token_watchlist.add_to_watchlist')}
+          testID={getTrendingTokenRowAddButtonTestId(token.assetId)}
+          twClassName="self-center"
+        />
+      )}
+      {endAction?.type === 'quick-trade' && (
         <Pressable
           onPress={(e) => {
             e?.stopPropagation?.();
-            onQuickTrade(token);
+            endAction.onPress(token);
           }}
           hitSlop={8}
           testID="quick-trade-button"

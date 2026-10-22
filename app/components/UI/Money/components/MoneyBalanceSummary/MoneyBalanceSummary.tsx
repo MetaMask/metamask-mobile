@@ -1,15 +1,11 @@
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Pressable, TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonIcon,
-  ButtonIconSize,
+  FontFamily,
   FontWeight,
-  IconColor,
-  IconName,
-  IconSize,
   SensitiveText,
   SensitiveTextLength,
   Text,
@@ -18,11 +14,13 @@ import {
   TitleHub,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
-
+import { useTheme } from '../../../../../util/theme';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 interface MoneyBalanceSummaryProps {
   displayState: MoneyBalanceDisplayState;
   /**
@@ -58,6 +56,9 @@ const MoneyBalanceSummary = ({
   onBalancePress,
   showTitle = false,
 }: MoneyBalanceSummaryProps) => {
+  const { colors } = useTheme();
+  const tw = useTailwind();
+
   // APY + mUSD label stays visible alongside the balance and in the
   // unavailable states (dash / last known figure).
   const showApy =
@@ -70,16 +71,24 @@ const MoneyBalanceSummary = ({
       alignItems={BoxAlignItems.Center}
       testID={MoneyBalanceSummaryTestIds.APY}
     >
-      <TextShimmer>
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.SuccessDefault}
-          numberOfLines={1}
-        >
-          {strings('money.apy_label', { percentage: apy })}
-        </Text>
-      </TextShimmer>
+      <Pressable
+        onPress={onApyInfoPress}
+        style={({ pressed }) => pressed && tw.style('opacity-50')}
+        testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
+      >
+        <DottedUnderline color={colors.success.default}>
+          <TextShimmer>
+            <Text
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.SuccessDefault}
+              numberOfLines={1}
+            >
+              {strings('money.apy_label', { percentage: apy })}
+            </Text>
+          </TextShimmer>
+        </DottedUnderline>
+      </Pressable>
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
@@ -89,18 +98,6 @@ const MoneyBalanceSummary = ({
       </Text>
     </Box>
   ) : undefined;
-
-  const apyInfoButton =
-    hasApy && onApyInfoPress ? (
-      <ButtonIcon
-        iconName={IconName.Info}
-        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-        size={ButtonIconSize.Sm}
-        onPress={onApyInfoPress}
-        accessibilityLabel={strings('money.apy_info_label')}
-        testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}
-      />
-    ) : undefined;
 
   const wrapPressable = (content: React.ReactNode) =>
     onBalancePress ? (
@@ -119,8 +116,8 @@ const MoneyBalanceSummary = ({
       case 'balance':
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
             testID={MoneyBalanceSummaryTestIds.BALANCE}
@@ -143,8 +140,8 @@ const MoneyBalanceSummary = ({
         // with no cache the slot shows a dash. Both pair with the BannerAlert.
         return wrapPressable(
           <SensitiveText
-            variant={TextVariant.DisplayLg}
-            fontWeight={FontWeight.Bold}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
             color={TextColor.TextAlternative}
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
@@ -163,27 +160,31 @@ const MoneyBalanceSummary = ({
     return (
       <TitleHub
         testID={MoneyBalanceSummaryTestIds.CONTAINER}
-        twClassName="px-4 pb-3"
+        // TitleHub hardcodes gap-1. gap-0 is listed after it so the amount's
+        // 24px margin is the only space under the title.
+        twClassName="px-4 pb-3 gap-0"
         title={strings('money.title')}
         titleProps={{ testID: MoneyBalanceSummaryTestIds.TITLE }}
         amount={renderBalanceSlot()}
+        amountWrapperProps={{
+          twClassName: 'mt-6',
+          testID: MoneyBalanceSummaryTestIds.AMOUNT,
+        }}
         bottomLabel={apyLabel}
-        bottomLabelEndAccessory={apyInfoButton}
+        bottomLabelWrapperProps={{ twClassName: 'mt-1' }}
       />
     );
   }
 
+  // The tab title lives in HeaderRoot, which centers a 32px line in a 56px
+  // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
-    <Box twClassName="px-4 gap-1" testID={MoneyBalanceSummaryTestIds.CONTAINER}>
+    <Box
+      twClassName="px-4 pt-1 gap-1"
+      testID={MoneyBalanceSummaryTestIds.CONTAINER}
+    >
       {renderBalanceSlot()}
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-1"
-      >
-        {apyLabel}
-        {apyInfoButton}
-      </Box>
+      {apyLabel}
     </Box>
   );
 };

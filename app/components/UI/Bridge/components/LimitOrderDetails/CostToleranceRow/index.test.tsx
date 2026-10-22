@@ -4,6 +4,13 @@ import { strings } from '../../../../../../../locales/i18n';
 import CostToleranceRow from './index';
 import { CostToleranceRowSelectorsIDs } from './testIds';
 
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({
+    navigate: jest.fn(),
+  }),
+}));
+
 const defaultProps = {
   value: '2%',
   onPress: jest.fn(),
@@ -46,5 +53,13 @@ describe('CostToleranceRow', () => {
 
     expect(getByTestId('custom-cost-tolerance-row')).toBeOnTheScreen();
     expect(queryByTestId(CostToleranceRowSelectorsIDs.CONTAINER)).toBeNull();
+  });
+
+  it('renders the cost tolerance label as the tooltip trigger', () => {
+    const { getByTestId } = render(<CostToleranceRow {...defaultProps} />);
+
+    expect(getByTestId(CostToleranceRowSelectorsIDs.TOOLTIP)).toHaveTextContent(
+      strings('bridge.cost_tolerance'),
+    );
   });
 });

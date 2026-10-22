@@ -180,11 +180,12 @@ const ConnectQRInstruction = (props: IConnectQRInstructionProps) => {
           )}
         </View>
       </ScrollView>
-      <View style={styles.bottom}>
+      <View style={styles.bottom} testID={ConnectQRHardwareSelectorsIDs.FOOTER}>
         <StyledButton
           type={'confirm'}
           onPress={onConnect}
           style={styles.button}
+          containerStyle={styles.buttonContainer}
           testID={ConnectQRHardwareSelectorsIDs.CONTINUE_BUTTON}
         >
           {strings('connect_qr_hardware.button_continue')}

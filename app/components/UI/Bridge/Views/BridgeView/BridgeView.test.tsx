@@ -47,7 +47,9 @@ import { useABTest } from '../../../../../hooks/useABTest';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
 import { BridgeSessionProvider } from '../../providers/BridgeSessionProvider';
+import { BridgeTabKey } from './BridgeView.constants';
 import BridgeViewContent from '.';
+import { OrdersTabsSelectorsIDs } from '../../components/OrdersTabs/OrdersTabs.testIds';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -291,6 +293,37 @@ jest.mock('../../hooks/useBridgeQuoteData', () => ({
     .mockImplementation(() => mockUseBridgeQuoteData),
 }));
 
+jest.mock('../../hooks/useRecurringOrders', () => ({
+  useRecurringOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useLimitOrders', () => ({
+  useLimitOrders: jest.fn(() => ({
+    orders: [],
+    isLoading: false,
+    isError: false,
+    hasNextPage: false,
+    isFetchingNextPage: false,
+    fetchNextPage: jest.fn(),
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
+  useSentinelFeeTokenValidation: jest.fn(() => ({
+    isValid: true,
+    retry: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => {
   const { useBridgeQuoteData } = jest.requireMock(
     '../../hooks/useBridgeQuoteData',
@@ -343,8 +376,8 @@ jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: jest.fn(),
 }));
 
-jest.mock('../../../Tokens/hooks/useTokenListSecurityBadgeQuery', () => ({
-  useTokenListSecurityBadgeQuery: jest.fn(() => ({ data: null })),
+jest.mock('../../../Tokens/hooks/useTokenSecurityQuery', () => ({
+  useTokenSecurityQuery: jest.fn(() => ({ data: null })),
 }));
 
 const mockUseABTest = jest.mocked(useABTest);
@@ -1770,12 +1803,8 @@ describe('BridgeView', () => {
         location: MetaMetricsSwapsEventSource.MainView,
       } as BridgeRouteParams;
 
-      // A priceImpact above the error threshold causes handleContinue to
-      // navigate to the PriceImpactModal — the location value is embedded in
-      // the navigation params, making this the easiest observable side-effect
-      // to assert for location forwarding.
-      // The component reads activeQuote.quote.priceData.priceImpact.amount (raw decimal),
-      // so we must override it alongside the formatted display string.
+      // shouldShowPriceImpactError causes handleContinue to navigate to the
+      // PriceImpactModal. The location value is embedded in the navigation params.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1784,13 +1813,14 @@ describe('BridgeView', () => {
             ...mockQuoteWithMetadata,
             quote: {
               ...mockQuoteWithMetadata.quote,
-              priceData: { priceImpact: { amount: '0.30' } }, // 0.30 > danger threshold 0.25
+              priceData: { priceImpact: { amount: '0.30' } },
             },
           },
           formattedQuoteData: {
             ...mockUseBridgeQuoteData.formattedQuoteData,
             priceImpact: '30%',
           },
+          shouldShowPriceImpactError: true,
         }));
 
       const testState = createBridgeTestState(
@@ -2555,6 +2585,196 @@ describe('BridgeView', () => {
         await Promise.resolve();
       });
     };
+
+    it('opens the initial tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Recurring,
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.RECURRING_BUY_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
+
+    it('opens the Limit tab requested by the route', async () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+        swapViewTraceId: 'trace-1',
+      };
+
+      const { getByTestId } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: undefined,
+      });
+    });
+
+    it('applies the limit order deep link presets over the session values once per deep link', () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+        initialLimitOrderExpirationMinutes: 10080,
+        initialLimitOrderPriceTolerance: '0.5',
+      };
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 1440,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('0.5');
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialLimitOrderExpirationMinutes: undefined,
+        initialLimitOrderPriceTolerance: undefined,
+      });
+    });
+
+    it('keeps the session limit order settings when the deep link omits presets', () => {
+      mockRoute.params = {
+        sourcePage: 'deeplink',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.MainView,
+        initialTab: BridgeTabKey.Limit,
+      };
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 10080,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    });
+
+    it('keeps the limit order settings when switching tabs away and back', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        initialTab: BridgeTabKey.Limit,
+      } as BridgeRouteParams;
+
+      const testState = merge({}, stateWithTabsEnabled(), {
+        bridge: {
+          limitOrderExpirationMinutes: 10080,
+          limitOrderCostTolerance: '3',
+        },
+      }) as DeepPartial<RootState>;
+
+      const { getByTestId, queryByTestId, store } = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: testState },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+
+      // The mocked setParams leaves params in place; the real one clears
+      // initialTab once consumed. Mirror that before switching tabs.
+      mockRoute.params.initialTab = undefined;
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.MARKET_TAB));
+      await waitFor(() => {
+        expect(
+          queryByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeNull();
+      });
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+
+      fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
+      expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+    });
+
+    it('resets a reused Limit tab from History to Open orders', async () => {
+      const rendered = renderScreen(
+        BridgeView,
+        { name: Routes.BRIDGE.ROOT },
+        { state: stateWithTabsEnabled() },
+      );
+      fireEvent.press(rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
+      await waitFor(() => {
+        expect(
+          rendered.getByTestId(BridgeViewSelectorsIDs.LIMIT_ORDER_CONTAINER),
+        ).toBeOnTheScreen();
+      });
+      fireEvent.press(rendered.getByTestId(OrdersTabsSelectorsIDs.HISTORY_TAB));
+      expect(
+        rendered.getByText(strings('bridge.orders.empty.history')),
+      ).toBeOnTheScreen();
+
+      mockRoute.params = {
+        sourcePage: 'TokenDetails',
+        bridgeViewMode: BridgeViewMode.Unified,
+        location: MetaMetricsSwapsEventSource.TokenView,
+        initialTab: BridgeTabKey.Limit,
+      };
+      rendered.rerender(<BridgeView />);
+
+      await waitFor(() => {
+        expect(
+          rendered.getByText(strings('bridge.orders.empty.open_orders')),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        rendered.queryByText(strings('bridge.orders.empty.history')),
+      ).toBeNull();
+    });
 
     it('navigates to the next tab on a left swipe', async () => {
       const { getByTestId, queryByTestId } = renderScreen(

@@ -6,6 +6,7 @@ const Routes = {
   BROWSER_VIEW: 'BrowserView',
   ACCOUNTS_MENU_VIEW: 'AccountsMenuView',
   ACCOUNT_HUB_VIEW: 'AccountHubView',
+  MANAGE_ACCOUNTS_VIEW: 'ManageAccountsView',
   SETTINGS_VIEW: 'SettingsView',
   DEPRECATED_NETWORK_DETAILS: 'DeprecatedNetworkDetails',
   RAMP: {
@@ -40,9 +41,8 @@ const Routes = {
     KYC_WEBVIEW: 'RampKycWebview',
     ENTER_ADDRESS: 'RampEnterAddress',
     // Virtual Bank Account (Brazil neobank MVP) flow — Iron KYC, not Transak.
-    GET_PIX_KEY: 'RampGetPixKey',
-    VBA_VERIFY_IDENTITY: 'RampVbaVerifyIdentity',
-    VBA_KYC_EMAIL: 'RampVbaKycEmail',
+    VBA_ONBOARDING: 'RampVbaOnboarding',
+    VBA_DETAILS: 'RampVbaDetails',
     MODALS: {
       ID: 'RampModals',
       TOKEN_SELECTOR: 'RampTokenSelectorModal',
@@ -118,6 +118,10 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
+  REWARDS_MONEY_DASHBOARD: 'RewardsMoneyDashboard',
+  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW:
+    'RewardsMoneyReferralAcceptedSplashView',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
@@ -125,6 +129,9 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
+  REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
+  REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
+  REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -191,6 +198,8 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
+    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -205,7 +214,6 @@ const Routes = {
     ONBOARDING: 'Onboarding',
     LOGIN: 'Login',
     NAV: 'OnboardingNav',
-    SOCIAL_LOGIN_SUCCESS_NEW_USER: 'SocialLoginSuccessNewUser',
     MANUAL_BACKUP: {
       STEP_1: 'ManualBackupStep1',
       STEP_2: 'ManualBackupStep2',
@@ -214,7 +222,6 @@ const Routes = {
     IMPORT_FROM_SECRET_RECOVERY_PHRASE: 'ImportFromSecretRecoveryPhrase',
     CHOOSE_PASSWORD: 'ChoosePassword',
     OPTIN_METRICS: 'OptinMetrics',
-    SOCIAL_LOGIN_SUCCESS_EXISTING_USER: 'SocialLoginSuccessExistingUser',
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
@@ -304,6 +311,7 @@ const Routes = {
       SHARE_ADDRESS: 'ShareAddress',
       SHARE_ADDRESS_QR: 'ShareAddressQR',
       DELETE_ACCOUNT: 'DeleteAccount',
+      REMOVE_ACCOUNT: 'RemoveAccount',
       REVEAL_PRIVATE_CREDENTIAL: 'RevealPrivateCredential',
       REVEAL_SRP_CREDENTIAL: 'RevealSRPCredential',
       SRP_REVEAL_QUIZ: 'SRPRevealQuizInMultichainAccountDetails',
@@ -347,6 +355,8 @@ const Routes = {
     BATCH_SELL_REVIEW: 'BatchSellReview',
     QUOTE_SELECTOR_VIEW: 'QuoteSelectorView',
     RECURRING_ORDER_DETAILS: 'RecurringOrderDetails',
+    RECURRING_SWAP_DETAILS: 'RecurringSwapDetails',
+    SWAPS_LIMIT_ORDER_ACTIVITY: 'SwapsLimitOrderActivity',
     HARDWARE_WALLETS_SWAPS: 'HardwareWalletsSwaps',
     HW_QR_SCANNER: 'HwQrScanner',
     MODALS: {
@@ -379,6 +389,12 @@ const Routes = {
       SWAPS_LIMIT_ORDER_CUSTOM_COST_TOLERANCE_MODAL:
         'SwapsLimitOrderCustomCostToleranceModal',
       LIMIT_ORDER_CONFIRMATION_MODAL: 'LimitOrderConfirmationModal',
+      LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
+      LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
+        'LimitOrderAccountUpgradeFeeInfoModal',
+      LIMIT_ORDER_METAMASK_FEE_INFO_MODAL: 'LimitOrderMetaMaskFeeInfoModal',
+      OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
+      CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
       RECURRING_REPEAT_INFO_MODAL: 'RecurringRepeatInfoModal',
       RECURRING_PRICE_RANGE_MODAL: 'RecurringPriceRangeModal',
@@ -391,6 +407,7 @@ const Routes = {
     ROOT: 'Perps',
     PERPS_TAB: 'PerpsTradingView', // Redirect to wallet home and select perps tab
     ORDER_REDIRECT: 'PerpsOrderRedirect', // Redirect for one-click trade from token details
+    BALANCE_ORDER: 'PerpsBalanceOrder',
     WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     PERPS_HOME: 'PerpsMarketListView', // Home screen (positions, orders, watchlist, markets)
@@ -419,10 +436,14 @@ const Routes = {
       CROSS_MARGIN_WARNING: 'PerpsCrossMarginWarning',
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
+      OUTREACH_DETAILS: 'PerpsOutreachDetails',
+      SHARE_POSITION: 'PerpsSharePosition',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
     FUNDING_TRANSACTION: 'PerpsFundingTransaction',
+    PRICE_ALERTS: 'PerpsPriceAlerts',
+    CREATE_PRICE_ALERT: 'PerpsCreatePriceAlert',
   },
   MARKET_INSIGHTS: {
     ROOT: 'MarketInsights',
@@ -434,13 +455,19 @@ const Routes = {
     V0: 'SocialV0View',
     PROFILE: 'TraderProfileView',
     MY_PROFILE: 'MyProfileView',
+    V1_PROFILE: 'SocialV1ProfileView',
+    FOLLOW_CONNECTIONS: 'FollowConnectionsView',
+    PROFILES_TO_FOLLOW: 'ProfilesToFollowView',
     MANAGE_PROFILE: 'ManageProfileView',
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
     POSITION: 'TraderPositionView',
+    POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
     V1: 'SocialV1View',
+    POST_COMPOSER: 'SocialPostComposerView',
+    PROFILE_ONBOARDING: 'SocialProfileOnboardingView',
     TRADING_SIGNALS_SETUP: 'TradingSignalsSetupBottomSheet',
   },
   PREDICT: {
@@ -458,7 +485,6 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
-  LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
@@ -505,6 +531,8 @@ const Routes = {
     ACTIVITY: 'MoneyActivity',
     HOW_IT_WORKS: 'MoneyHowItWorks',
     POTENTIAL_EARNINGS: 'MoneyPotentialEarnings',
+    MUSD_RESCUE_SEND: 'MoneyMusdRescueSend',
+    MUSD_RESCUE_RECIPIENT: 'MoneyMusdRescueRecipient',
     ONBOARDING: 'MoneyOnboarding',
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
@@ -543,6 +571,13 @@ const Routes = {
     PRIVATE_KEY_LIST: 'MultichainPrivateKeyList',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
+  SOCIAL_PROFILE: {
+    DRAWER: 'ProfileDrawer',
+    MANAGE_PROFILE: 'ManageProfile',
+    MANAGE_PROFILE_FIELD: 'ManageProfileField',
+    X_ACCOUNT: 'ManageProfileXAccount',
+    LINKED_SOCIAL_ACCOUNT: 'LinkedSocialAccount',
+  },
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   SNAPS: {
     SNAPS_SETTINGS_LIST: 'SnapsSettingsList',
@@ -576,6 +611,7 @@ const Routes = {
     TRANSACTION_HISTORY: 'CardTransactionHistory',
     TRANSACTION_DETAILS: 'CardTransactionDetails',
     REPORT_TRANSACTION: 'CardReportTransaction',
+    CONTACT_DETAILS: 'CardContactDetails',
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     ONBOARDING: {
@@ -614,6 +650,7 @@ const Routes = {
       REVOKE_ALLOWANCE: 'CardRevokeAllowanceSheet',
       UK_MIGRATION: 'CardUkMigrationModal',
       DIGITAL_WALLET_INSTRUCTIONS: 'CardDigitalWalletInstructionsModal',
+      SIGN_IN_HELP: 'CardSignInHelpModal',
     },
   },
   SEND: {
@@ -633,9 +670,17 @@ const Routes = {
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',
   SECURITY_TRUST: 'SecurityTrust',
+  /** Token Details V1 equivalent of `SECURITY_TRUST`, pushed from the Security tab. */
+  CONTRACT_SECURITY: 'ContractSecurity',
   AGENTIC_CLI_APPROVAL: {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
+  },
+  MFA: {
+    FLOW: 'MfaFlow',
+    SETTINGS: 'MfaSettings',
+    PASSKEYS: 'MfaPasskeys',
+    METHOD_DETAILS: 'MfaMethodDetails',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

@@ -79,7 +79,11 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
           selectedTimeOption={selectedTimeOption}
           position={index}
           filterContext={filterContext}
-          onQuickTrade={onQuickTrade}
+          endAction={
+            onQuickTrade
+              ? { type: 'quick-trade', onPress: onQuickTrade }
+              : undefined
+          }
           tokenDetailsSource={tokenDetailsSource}
         />
       ),

@@ -1,5 +1,6 @@
 import Engine, { Engine as EngineClass } from './Engine';
 import { EngineState } from './types';
+import { ExtendedMessenger } from '../ExtendedMessenger';
 import { backgroundState } from '../../util/test/initial-root-state';
 import {
   createMockAccountsControllerState,
@@ -14,7 +15,7 @@ import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller
 import { ConnectivityController } from '@metamask/connectivity-controller';
 import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import type { SubscriptionControllerState } from '@metamask/subscription-controller';
-import { backupVault } from '../BackupVault';
+import { backupVault, clearAllVaultBackups } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
@@ -34,6 +35,7 @@ jest.mock('redux-persist-filesystem-storage');
 
 jest.mock('../BackupVault', () => ({
   backupVault: jest.fn().mockResolvedValue({ success: true, vault: 'vault' }),
+  clearAllVaultBackups: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('@react-native-community/netinfo', () => ({
@@ -61,7 +63,9 @@ jest.mock('../../store', () => ({
         },
       },
     })),
-    subscribe: jest.fn(),
+    // Redux's subscribe returns an unsubscribe function. BackendWebSocketService
+    // calls it from Engine.destroy, so a bare jest.fn() fails the whole suite.
+    subscribe: jest.fn(() => jest.fn()),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -137,24 +141,20 @@ describe('Engine', () => {
     await EngineClass.instance?.destroyEngineInstance();
   });
 
-  it('should expose an API', () => {
+  it('exposes an API', () => {
     const engine = Engine.init(TEST_ANALYTICS_ID, {});
-    expect(engine.context).toHaveProperty('AccountTrackerController');
     expect(engine.context).toHaveProperty('AddressBookController');
     expect(engine.context).toHaveProperty('AssetsContractController');
-    expect(engine.context).toHaveProperty('TokenDetectionController');
+    expect(engine.context).toHaveProperty('AssetsController');
     expect(engine.context).toHaveProperty('NftDetectionController');
     expect(engine.context).toHaveProperty('NftController');
-    expect(engine.context).toHaveProperty('CurrencyRateController');
+    expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('KeyringController');
     expect(engine.context).toHaveProperty('NetworkController');
     expect(engine.context).toHaveProperty('PhishingController');
     expect(engine.context).toHaveProperty('PreferencesController');
     expect(engine.context).toHaveProperty('RemoteFeatureFlagController');
     expect(engine.context).toHaveProperty('SignatureController');
-    expect(engine.context).toHaveProperty('TokenBalancesController');
-    expect(engine.context).toHaveProperty('TokenRatesController');
-    expect(engine.context).toHaveProperty('TokensController');
     expect(engine.context).toHaveProperty('LoggingController');
     expect(engine.context).toHaveProperty('TransactionController');
     expect(engine.context).toHaveProperty('SmartTransactionsController');
@@ -163,7 +163,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('NotificationServicesController');
     expect(engine.context).toHaveProperty('SelectedNetworkController');
     expect(engine.context).toHaveProperty('SnapInterfaceController');
-    expect(engine.context).toHaveProperty('MultichainBalancesController');
     expect(engine.context).toHaveProperty('MultichainNetworkController');
     expect(engine.context).toHaveProperty('BridgeController');
     expect(engine.context).toHaveProperty('BridgeStatusController');
@@ -179,6 +178,7 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('ConnectivityController');
     expect(engine.context).toHaveProperty('SubscriptionController');
     expect(engine.context).toHaveProperty('SubscriptionService');
+    expect(engine.context).toHaveProperty('SubscriptionDelegationService');
     expect(engine.context).toHaveProperty('ShieldController');
     expect(engine.context).toHaveProperty('ClaimsController');
     expect(engine.context).toHaveProperty('AiDigestController');
@@ -375,6 +375,109 @@ describe('Engine', () => {
       [],
     );
     expect(backupVault).not.toHaveBeenCalled();
+  });
+
+  it('does not back up again when stateChange fires twice with the same vault (burst dedup)', () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    const publish = (vault: string) =>
+      // @ts-expect-error accessing protected property for testing
+      engine.keyringController.messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publish('vault-a');
+    publish('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(1);
+  });
+
+  it('backs up again on the next unlock after a lock, even for the same vault (self-heal preserved)', () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-a');
+    messenger.publish('KeyringController:lock');
+    publishStateChange('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not resurrect a cleared vault when a stale stateChange arrives after clearAllVaultBackups', async () => {
+    (backupVault as jest.Mock).mockResolvedValue({
+      success: true,
+      vault: 'vault',
+    });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-being-reset');
+    expect(backupVault).toHaveBeenCalledTimes(1);
+
+    await clearAllVaultBackups();
+
+    // A straggler stateChange event for the same (now stale) vault arrives
+    // with no KeyringController:lock in between — it must not be treated as
+    // a "new" unlock and must not trigger another backup.
+    publishStateChange('vault-being-reset');
+
+    expect(backupVault).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a failed backup on the next stateChange for the same vault, without waiting for a lock', async () => {
+    (backupVault as jest.Mock)
+      .mockResolvedValueOnce({
+        success: false,
+        error: 'Vault backup failed',
+      })
+      .mockResolvedValueOnce({
+        success: true,
+        vault: 'vault-a',
+      });
+    const engine = Engine.init(TEST_ANALYTICS_ID, {});
+    // @ts-expect-error accessing protected property for testing
+    const messenger = engine.keyringController.messenger;
+    const publishStateChange = (vault: string) =>
+      messenger.publish(
+        'KeyringController:stateChange',
+        { vault, isUnlocked: false, keyrings: [] },
+        [],
+      );
+
+    publishStateChange('vault-a');
+    // Let the failed attempt's .then/.catch settle before the retry.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // No lock happened, but the same vault arrives again — since the prior
+    // attempt failed, this must be treated as a fresh attempt, not skipped
+    // as a burst duplicate.
+    publishStateChange('vault-a');
+
+    expect(backupVault).toHaveBeenCalledTimes(2);
   });
 
   it('calling Engine.destroy deletes the old instance', async () => {
@@ -1196,90 +1299,6 @@ describe('Engine', () => {
     );
   });
 
-  describe('BridgeStatusController:destinationTransactionCompleted', () => {
-    const EVM_CAIP_ASSET = 'eip155:10/slip44:60';
-    const NON_EVM_CAIP_ASSET =
-      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const getBridgeStatusMessenger = (engine: any) =>
-      engine.context.BridgeStatusController.messenger;
-
-    it('refreshes tokens, balances, account tracker, and incoming transactions for EVM destination chain', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-      const mockNetworkClientId = 'optimism-network-client';
-
-      const detectTokensSpy = jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      const updateBalancesSpy = jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      const findNetworkClientIdSpy = jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockReturnValue(mockNetworkClientId);
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        EVM_CAIP_ASSET,
-      );
-
-      expect(detectTokensSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
-      expect(updateBalancesSpy).toHaveBeenCalledWith({ chainIds: ['0xa'] });
-      expect(findNetworkClientIdSpy).toHaveBeenCalledWith('0xa');
-      expect(refreshSpy).toHaveBeenCalledWith([mockNetworkClientId]);
-    });
-
-    it('does not refresh anything for non-EVM destination chains', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      const detectTokensSpy = jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      const updateBalancesSpy = jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        NON_EVM_CAIP_ASSET,
-      );
-
-      expect(detectTokensSpy).not.toHaveBeenCalled();
-      expect(updateBalancesSpy).not.toHaveBeenCalled();
-      expect(refreshSpy).not.toHaveBeenCalled();
-    });
-
-    it('does not refresh balance when findNetworkClientIdByChainId throws', () => {
-      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
-
-      jest
-        .spyOn(engine.context.TokenDetectionController, 'detectTokens')
-        .mockImplementation(() => Promise.resolve());
-      jest
-        .spyOn(engine.context.TokenBalancesController, 'updateBalances')
-        .mockImplementation(() => Promise.resolve());
-      jest
-        .spyOn(engine.context.NetworkController, 'findNetworkClientIdByChainId')
-        .mockImplementation(() => {
-          throw new Error('Unknown chain');
-        });
-      const refreshSpy = jest
-        .spyOn(engine.context.AccountTrackerController, 'refresh')
-        .mockImplementation(() => Promise.resolve());
-      getBridgeStatusMessenger(engine).publish(
-        'BridgeStatusController:destinationTransactionCompleted',
-        EVM_CAIP_ASSET,
-      );
-
-      expect(refreshSpy).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Engine.state', () => {
     it('throws error when accessing state before Engine exists', () => {
       expect(() => Engine.state).toThrow('Engine does not exist');
@@ -1368,6 +1387,218 @@ describe('Engine', () => {
       await engine.resetState();
 
       expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('calls KycController.clearState', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const clearStateSpy = jest
+        .spyOn(engine.context.KycController, 'clearState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(clearStateSpy).toHaveBeenCalled();
+    });
+
+    it('clears asset controllers kept after the legacy cleanup', async () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const tokensResetSpy = jest
+        .spyOn(engine.context.TokensController, 'resetState')
+        .mockImplementation(() => undefined);
+      const nftResetSpy = jest
+        .spyOn(engine.context.NftController, 'resetState')
+        .mockImplementation(() => undefined);
+
+      await engine.resetState();
+
+      expect(tokensResetSpy).toHaveBeenCalled();
+      expect(nftResetSpy).toHaveBeenCalled();
+    });
+  });
+
+  describe('hasFunds', () => {
+    const hasFundsAccountId = 'mock-account-id-1';
+    const hasFundsAddress = '0xd8da6bf26964af9d7eed9e03e53415d37aa96045';
+    const usdcAssetId =
+      'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+    // Real fiat computes to 0 because the only priced native asset has a zero
+    // balance (`ethAmount: '0'`), so `hasFunds` is decided purely by whether a
+    // token balance / NFT is present in this state.
+    const buildHasFundsState = (tokenAmount: string | null) => ({
+      onboarding: { completedOnboarding: true },
+      engine: {
+        backgroundState: {
+          NftController: { nfts: [] },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [hasFundsAccountId]: {
+                  ...createMockInternalAccount(hasFundsAddress, 'Account 1'),
+                  id: hasFundsAccountId,
+                  type: 'eip155:eoa' as const,
+                },
+              },
+              selectedAccount: hasFundsAccountId,
+            },
+          },
+          NetworkController: mockNetworkState({
+            chainId: '0x1',
+            id: '0x1',
+            nickname: 'mainnet',
+            ticker: 'ETH',
+          }),
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              'eip155:1/slip44:60': {
+                type: 'native' as const,
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              [usdcAssetId]: {
+                type: 'erc20' as const,
+                symbol: 'USDC',
+                name: 'USDC',
+                decimals: 6,
+              },
+            },
+            assetsPrice: {
+              'eip155:1/slip44:60': {
+                assetPriceType: 'fungible' as const,
+                price: 0,
+                usdPrice: 0,
+                lastUpdated: 0,
+              },
+            },
+            assetsBalance: {
+              [hasFundsAccountId]: {
+                'eip155:1/slip44:60': { amount: '0' },
+                ...(tokenAmount === null
+                  ? {}
+                  : { [usdcAssetId]: { amount: tokenAmount } }),
+              },
+            },
+            customAssets: {},
+            assetPreferences: {},
+          },
+        },
+      },
+    });
+
+    it('returns falsy when fiat, token balances and NFTs are all empty', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      (store.getState as jest.Mock).mockReturnValue(buildHasFundsState(null));
+
+      expect(engine.hasFunds()).toBeFalsy();
+    });
+
+    it('returns truthy when a token balance is non-zero', () => {
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      (store.getState as jest.Mock).mockReturnValue(buildHasFundsState('1'));
+
+      expect(engine.hasFunds()).toBeTruthy();
+    });
+  });
+
+  describe('AccountActivityService:balanceUpdated forwarding', () => {
+    const wsAddress = '0xabc';
+    const wsAssetId =
+      'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913';
+    const wsUpdate = {
+      asset: { type: wsAssetId, unit: 'USDC', decimals: 6 },
+      postBalance: { amount: '0xf4240' }, // 1000000 minimal units -> '1' USDC
+    };
+
+    const buildWsPayload = (updates: unknown[]) => ({
+      address: wsAddress,
+      chain: 'eip155:8453',
+      updates,
+    });
+
+    const getHandleAssetsUpdateSpy = (engine: EngineClass) => {
+      const spy = jest.fn().mockResolvedValue(undefined);
+      (
+        engine.context.AssetsController as unknown as {
+          handleAssetsUpdate: unknown;
+        }
+      ).handleAssetsUpdate = spy;
+      return spy;
+    };
+
+    // The root messenger only allows publishing `Root:`-prefixed events, so we
+    // capture the handler Engine subscribes and invoke it directly.
+    type BalanceUpdatedHandler = (payload: unknown) => void;
+    const captureBalanceUpdatedHandler = (): {
+      engine: EngineClass;
+      handler: BalanceUpdatedHandler;
+    } => {
+      // Engine builds a fresh root messenger per init, so spy on the
+      // ExtendedMessenger prototype to catch the constructor's subscription.
+      const subscribeSpy = jest.spyOn(ExtendedMessenger.prototype, 'subscribe');
+      const engine = Engine.init(TEST_ANALYTICS_ID, backgroundState);
+      const balanceUpdatedCall = subscribeSpy.mock.calls.find(
+        ([eventName]) => eventName === 'AccountActivityService:balanceUpdated',
+      );
+      subscribeSpy.mockRestore();
+      if (!balanceUpdatedCall) {
+        throw new Error('balanceUpdated handler was not subscribed');
+      }
+      const handler = balanceUpdatedCall[1] as BalanceUpdatedHandler;
+      return { engine, handler };
+    };
+
+    it('forwards a balance push to AssetsController as a merge update', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue({ id: 'account-1' } as never);
+
+      handler(buildWsPayload([wsUpdate]));
+
+      expect(handleAssetsUpdateSpy).toHaveBeenCalledWith(
+        {
+          updateMode: 'merge',
+          assetsBalance: {
+            'account-1': { [wsAssetId]: { amount: '1' } },
+          },
+          assetsInfo: {
+            [wsAssetId]: {
+              type: 'erc20',
+              symbol: 'USDC',
+              name: 'USDC',
+              decimals: 6,
+            },
+          },
+        },
+        'BackendWebsocketDataSource',
+      );
+    });
+
+    it('does not forward when the address resolves to no account', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue(undefined as never);
+
+      handler(buildWsPayload([wsUpdate]));
+
+      expect(handleAssetsUpdateSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not forward when the push has no applicable updates', () => {
+      const { engine, handler } = captureBalanceUpdatedHandler();
+      const handleAssetsUpdateSpy = getHandleAssetsUpdateSpy(engine);
+      jest
+        .spyOn(engine.context.AccountsController, 'getAccountByAddress')
+        .mockReturnValue({ id: 'account-1' } as never);
+
+      handler(buildWsPayload([]));
+
+      expect(handleAssetsUpdateSpy).not.toHaveBeenCalled();
     });
   });
 });

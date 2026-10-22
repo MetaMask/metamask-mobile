@@ -181,7 +181,7 @@ describe('PerpsSlider', () => {
       });
     });
 
-    it('wraps the compact variant in a single double-width, scaled-down container so the track still spans the full row', () => {
+    it('wraps the compact variant in a single over-wide, scaled-down container so the track still spans the full row', () => {
       const { toJSON } = render(
         <PerpsSlider {...defaultProps} variant="compact" />,
       );
@@ -189,12 +189,13 @@ describe('PerpsSlider', () => {
       const wrapper = toJSON() as ReactTestRendererJSON;
       // A single View declares the post-scale height/width; the Slider child
       // renders at its natural (pre-scale) size and overflows it by exactly
-      // 2x, which `transform: scale(0.5)` (anchored top-left) shrinks back
-      // down to precisely fit — no separate clipping container needed.
+      // 1/0.75, which `transform: scale(0.75)` (anchored top-left) shrinks
+      // back down to precisely fit — no separate clipping container needed.
+      // 0.75 turns the design system's 32px thumb into Figma's 24px thumb.
       expect(wrapper.props.style).toMatchObject({
-        height: 17.5,
-        width: '200%',
-        transform: [{ scale: 0.5 }],
+        height: 26.25,
+        width: `${100 / 0.75}%`,
+        transform: [{ scale: 0.75 }],
         transformOrigin: 'left top',
       });
     });
@@ -204,6 +205,18 @@ describe('PerpsSlider', () => {
 
       // The mocked Slider renders null, so an unwrapped render produces no tree.
       expect(toJSON()).toBeNull();
+    });
+
+    it('never renders range labels for the compact variant, whose wrapper is sized to the track and thumb only', () => {
+      render(
+        <PerpsSlider
+          {...defaultProps}
+          variant="compact"
+          showPercentageLabels
+        />,
+      );
+
+      expect(getSliderProps().showRangeLabels).toBe(false);
     });
   });
 

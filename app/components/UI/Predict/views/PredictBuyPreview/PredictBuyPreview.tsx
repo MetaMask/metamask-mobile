@@ -76,7 +76,7 @@ import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { MINIMUM_BET } from '../../constants/transactions';
 import {
-  buildPredictFeeBreakdownAmounts,
+  buildPredictFeeBreakdowns,
   getPredictBuyAllInCost,
   roundUpToCents,
 } from '../../utils/orders';
@@ -165,6 +165,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isLoading,
     error: placeOrderError,
     result,
+    lastSubmittedPreview,
+    retryOrderState,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder({ transactionActiveAbTests });
@@ -185,6 +187,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     preview,
     error: previewError,
     isCalculating,
+    refetchPreview,
   } = usePredictOrderPreview({
     marketId: market.id,
     outcomeId: outcome.id,
@@ -207,14 +210,20 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const {
     retrySheetRef,
     retrySheetVariant,
+    retryQuote,
+    retryPreviousPrice,
     isRetrying,
-    handleRetryWithBestPrice,
+    handleRetry,
+    handleRetryConfirm,
   } = usePredictOrderRetry({
     preview,
+    refetchPreview,
+    lastSubmittedPreview,
     placeOrder,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
+    orderState: retryOrderState,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -276,7 +285,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     currentValue > 0 && preview
       ? previewAllInCost
       : roundUpToCents(currentValue);
-  const feeBreakdown = buildPredictFeeBreakdownAmounts({
+  const { feeBreakdown, originalFeeBreakdown } = buildPredictFeeBreakdowns({
+    preview,
     side: Side.BUY,
     order: currentValue,
     metamaskFee,
@@ -607,13 +617,19 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
         flexDirection={BoxFlexDirection.Column}
         twClassName="border-t border-muted"
       >
-        <PredictFeeSummary
-          disabled={false}
-          total={total}
-          rewardsFeeAmountUsd={rewardsFeeAmountUsd}
-          rewardsLoadingOverride={isCalculating && isUserInputChange}
-          handleFeesInfoPress={handleFeesInfoPress}
-        />
+        {/* Padding lives here rather than on the parent so the top border
+            stays full-bleed while the rows line up with the action button. */}
+        <Box twClassName="px-4">
+          <PredictFeeSummary
+            disabled={false}
+            total={total}
+            originalTotal={originalFeeBreakdown?.total}
+            feePolicyDiscountType={preview?.feePolicy?.discountType}
+            rewardsFeeAmountUsd={rewardsFeeAmountUsd}
+            rewardsLoadingOverride={isCalculating && isUserInputChange}
+            handleFeesInfoPress={handleFeesInfoPress}
+          />
+        </Box>
         <Box
           justifyContent={BoxJustifyContent.Center}
           twClassName="gap-2 px-4 pb-0"
@@ -632,6 +648,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
             <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
+              style={tw.style('text-center')}
             >
               {strings('predict.consent_sheet.disclaimer')}
             </Text>
@@ -675,6 +692,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
+          feePolicyDiscountType={preview?.feePolicy?.discountType}
+          originalTotal={originalFeeBreakdown?.total}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
           }
@@ -688,11 +707,11 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={
-          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
-        }
+        preview={retryQuote}
+        previousPrice={retryPreviousPrice}
         side={Side.BUY}
-        onRetry={handleRetryWithBestPrice}
+        onRetry={handleRetry}
+        onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />

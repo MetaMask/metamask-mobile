@@ -57,6 +57,7 @@ jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
   getVersion: () => '99.0.0',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
 }));
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => Date.now()),
@@ -217,6 +218,7 @@ const testHardwareWalletValue: HardwareWalletContextValue = {
   setTargetWalletType: (): void => undefined,
   setPendingOperationAddress: (): void => undefined,
   showHardwareWalletError: (): void => undefined,
+  cancelConnectionFlow: (): void => undefined,
   showAwaitingConfirmation: (): void => undefined,
   hideAwaitingConfirmation: (): void => undefined,
   qr: {
@@ -237,6 +239,7 @@ function channelWithInitialValue<T>(initialValue: T) {
       return noopUnsubscribe;
     },
     getSnapshot: () => initialValue,
+    getError: (): Error | null => null,
     getLastDeliveredAt: () => lastDeliveredAt,
   };
 }

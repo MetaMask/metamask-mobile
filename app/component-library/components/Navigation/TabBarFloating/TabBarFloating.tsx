@@ -18,7 +18,9 @@ import { playImpact, ImpactMoment } from '../../../../util/haptics';
 import { useMoneyNavigation } from '../../../../components/UI/Money/hooks/useMoneyNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { trackExploreSearchOpened } from '../../../../components/Views/TrendingView/search/analytics';
-import { TabBarProps } from '../TabBar/TabBar.types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { navigateToSocialTab } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { TabBarIconKey, TabBarProps } from '../TabBar/TabBar.types';
 import { LABEL_BY_TAB_BAR_ICON_KEY } from '../TabBar/TabBar.constants';
 import TabBarFloatingItem from './TabBarFloatingItem';
 import TabBarFloatingSurface from './TabBarFloatingSurface';
@@ -151,7 +153,9 @@ const TabBarFloating = ({
             navigateToMoneyHome();
             break;
           case Routes.SOCIAL.TAB:
-            navigation.navigate(Routes.SOCIAL.TAB);
+            navigateToSocialTab(navigation.navigate, {
+              source: 'nav_tab',
+            });
             break;
           case Routes.REWARDS_VIEW:
             navigation.navigate(Routes.REWARDS_VIEW);
@@ -167,6 +171,12 @@ const TabBarFloating = ({
           label={labelText}
           isActive={isSelected}
           onPress={onPress}
+          showNewBadge={options.showNewBadge}
+          newBadgeTestID={
+            tabBarIconKey === TabBarIconKey.Social
+              ? TAB_BAR_FLOATING_TEST_IDS.SOCIAL_NEW_BADGE
+              : undefined
+          }
         />
       );
     },

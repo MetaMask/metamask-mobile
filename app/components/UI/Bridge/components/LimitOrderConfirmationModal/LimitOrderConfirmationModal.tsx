@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useRef } from 'react';
+import { Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  BannerAlert,
+  BannerAlertSeverity,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
@@ -16,6 +21,12 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useTheme } from '../../../../../util/theme';
+import DottedUnderline from '../../../DottedUnderline';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
+import { LimitOrderCostToleranceTooltip } from '../LimitOrderCostToleranceTooltip';
 import { DetailRow } from './DetailRow';
 import { TokenAmountValue } from './TokenAmountValue';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
@@ -25,25 +36,43 @@ export const LimitOrderConfirmationModal = ({
   sourceToken,
   destToken,
   payingAmount,
+  estReceivingAmount,
   triggerPrice,
+  triggerDirection,
   triggerComparison,
   triggerToken,
   expiry,
   costTolerance,
-  networkFee,
+  delegationFee,
   feeToken,
-  feeDisclaimer,
-  onConfirm,
+  usdExchangeRate,
+  primaryButton,
+  error,
   onClose,
   goBack,
   testID = LimitOrderConfirmationModalSelectorsIDs.SHEET,
 }: LimitOrderConfirmationModalProps) => {
+  const tw = useTailwind();
+  const { colors } = useTheme();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const initialCostToleranceRef = useRef(costTolerance);
 
   const closeSheet = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
   }, []);
+
+  const handleAccountUpgradeFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
+
+  const handleMetaMaskFeeInfoPress = useCallback(() => {
+    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
+    });
+  }, [navigation]);
 
   // If the user edits the cost tolerance while this sheet is still mounted,
   // that quote is stale until a new one is fetched, so close the sheet rather
@@ -76,20 +105,52 @@ export const LimitOrderConfirmationModal = ({
           dest: destToken?.symbol ?? '',
         })}
       </BottomSheetHeader>
-      <Box paddingBottom={2}>
+      {error && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Danger}
+            description={error}
+          />
+        </Box>
+      )}
+      {usdExchangeRate && (
+        <Box paddingHorizontal={3} paddingBottom={2}>
+          <BannerAlert
+            descriptionProps={{
+              variant: TextVariant.BodySm,
+              color: TextColor.TextDefault,
+            }}
+            severity={BannerAlertSeverity.Info}
+            description={strings('bridge.limit.usd_price_notice', {
+              rate: usdExchangeRate.rate,
+              currency: usdExchangeRate.currency,
+            })}
+            testID={LimitOrderConfirmationModalSelectorsIDs.USD_PRICE_NOTICE}
+          />
+        </Box>
+      )}
+      <>
         <DetailRow label={strings('bridge.limit.paying')}>
           <TokenAmountValue amount={payingAmount} token={sourceToken} />
         </DetailRow>
-        <DetailRow label={strings('bridge.limit.receiving')}>
-          <TokenAmountValue
-            amount={destToken?.symbol ?? '--'}
-            token={destToken}
-          />
+        <DetailRow
+          label={strings('bridge.limit.est_receiving')}
+          testID={LimitOrderConfirmationModalSelectorsIDs.RECEIVING}
+        >
+          <TokenAmountValue amount={estReceivingAmount} token={destToken} />
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
+        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
         <DetailRow label={strings('bridge.limit.trigger_condition')}>
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
-            <TokenAmountValue amount={triggerPrice} token={triggerToken} />
+            <TokenAmountValue
+              amount={triggerPrice}
+              prefix={strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)}
+              token={triggerToken}
+            />
             {triggerComparison ? (
               <Text
                 variant={TextVariant.BodySm}
@@ -109,8 +170,17 @@ export const LimitOrderConfirmationModal = ({
             {expiry}
           </Text>
         </DetailRow>
-        <Box twClassName="mx-4 my-2 h-px bg-muted" />
-        <DetailRow label={strings('bridge.cost_tolerance')}>
+        <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+        <DetailRow
+          label={
+            <LimitOrderCostToleranceTooltip
+              testID={
+                LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE_TOOLTIP
+              }
+            />
+          }
+          testID={LimitOrderConfirmationModalSelectorsIDs.COST_TOLERANCE}
+        >
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -121,38 +191,79 @@ export const LimitOrderConfirmationModal = ({
             </Text>
           </Box>
         </DetailRow>
-        <DetailRow label={strings('bridge.limit.est_network_fee')}>
-          <TokenAmountValue
-            amount={networkFee}
-            token={feeToken}
-            withNetworkBadge
-          />
-        </DetailRow>
-      </Box>
+        {(delegationFee.status === 'ready' ||
+          delegationFee.status === 'error') && (
+          <>
+            <Box twClassName="mx-4 my-2 h-px bg-border-muted" />
+            <DetailRow
+              label={strings('bridge.limit.est_network_fee')}
+              labelAccessory={
+                <ButtonIcon
+                  iconName={IconName.Info}
+                  iconProps={{ color: IconColor.IconAlternative }}
+                  size={ButtonIconSize.Sm}
+                  onPress={handleAccountUpgradeFeeInfoPress}
+                  testID={
+                    LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE_TOOLTIP
+                  }
+                  accessibilityLabel={strings(
+                    'bridge.limit.account_upgrade_fee_info_title',
+                  )}
+                  accessibilityRole="button"
+                />
+              }
+              testID={LimitOrderConfirmationModalSelectorsIDs.NETWORK_FEE}
+              error={delegationFee.status === 'error'}
+            >
+              <TokenAmountValue
+                amount={
+                  delegationFee.status === 'ready'
+                    ? delegationFee.displayFee
+                    : '--'
+                }
+                token={feeToken}
+                error={delegationFee.status === 'error'}
+                withNetworkBadge
+                showTokenSymbol={delegationFee.status === 'ready'}
+              />
+            </DetailRow>
+          </>
+        )}
+      </>
       <BottomSheetFooter
+        twClassName="mt-4"
         primaryButtonProps={{
-          children: strings('bridge.limit.confirm_order'),
-          onPress: onConfirm,
-          testID: LimitOrderConfirmationModalSelectorsIDs.CONFIRM_BUTTON,
+          children: primaryButton.label,
+          onPress: primaryButton.onPress,
+          testID: LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON,
+          isLoading: primaryButton.isLoading,
+          isDisabled: primaryButton.isDisabled,
         }}
       />
-      {feeDisclaimer ? (
-        <Box
-          alignItems={BoxAlignItems.Center}
-          paddingHorizontal={4}
-          paddingBottom={4}
-          twClassName="pt-1"
+      <Box
+        alignItems={BoxAlignItems.Center}
+        paddingHorizontal={4}
+        paddingBottom={4}
+        twClassName="pt-3"
+      >
+        <Pressable
+          onPress={handleMetaMaskFeeInfoPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings('bridge.limit.includes_metamask_fee')}
+          style={({ pressed }) => pressed && tw.style('opacity-50')}
+          testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
         >
-          <Text
-            variant={TextVariant.BodyXs}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-            testID={LimitOrderConfirmationModalSelectorsIDs.FEE_DISCLAIMER}
-          >
-            {feeDisclaimer}
-          </Text>
-        </Box>
-      ) : null}
+          <DottedUnderline color={colors.text.alternative}>
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('bridge.limit.includes_metamask_fee')}
+            </Text>
+          </DottedUnderline>
+        </Pressable>
+      </Box>
     </BottomSheet>
   );
 };

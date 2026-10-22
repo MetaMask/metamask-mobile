@@ -11,7 +11,10 @@ const multiSrpFixture = new FixtureBuilder()
   .build();
 
 appiumTest.describe(SmokeSnaps('BIP-44 Snap Tests'), () => {
-  appiumTest.describe.configure({ mode: 'serial', timeout: 150_000 });
+  // Increased from 150 s: 6 serial tests on Android include a snap install
+  // (up to 60 s) plus five WebView sign-and-verify rounds, which regularly
+  // accumulates past 150 s on slower CI runners.
+  appiumTest.describe.configure({ mode: 'serial', timeout: 240_000 });
 
   appiumTest(
     'can connect to BIP-44 snap',

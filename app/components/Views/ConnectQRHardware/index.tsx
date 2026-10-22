@@ -58,8 +58,10 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     header: {
-      paddingLeft: 32,
-      paddingRight: 32,
+      // Override HeaderStandard's default `px-2` (paddingLeft/Right).
+      // `paddingHorizontal` does not win over those keys in RN style flatten.
+      paddingLeft: 16,
+      paddingRight: 16,
       alignItems: 'center',
     },
     qrcode: {
@@ -356,6 +358,7 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
         <HeaderStandard
           includesTopInset
           testID={ConnectQRHardwareSelectorsIDs.HEADER}
+          twClassName="px-4"
           style={styles.header}
           startAccessory={
             <Icon

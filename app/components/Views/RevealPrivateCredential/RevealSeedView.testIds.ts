@@ -3,6 +3,7 @@ import enContent from '../../../../locales/languages/en.json';
 export const RevealSeedViewSelectorsIDs = {
   REVEAL_CREDENTIAL_BACK_BUTTON_ID: 'reveal-credential-back-button',
   REVEAL_CREDENTIAL_CONTAINER_ID: 'reveal-private-credential-screen',
+  REVEAL_CREDENTIAL_TITLE_ID: 'reveal-credential-title',
   REVEAL_CREDENTIAL_SCROLL_ID: 'reveal-credential-scroll',
   PASSWORD_WARNING_ID: 'password-warning',
   REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON:

@@ -1,25 +1,29 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { BackHandler, Keyboard, ScrollView } from 'react-native';
 import {
-  BackHandler,
-  Keyboard,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Button,
   ButtonSize,
-  ButtonVariant,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  ListItemSelect,
+  ListItemVariant,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { InterestSelectionIndicator } from './InterestSelectionIndicator';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import OtherBottomSheet from './OtherBottomSheet';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -84,6 +88,11 @@ const INTEREST_OPTIONS: InterestOption[] = [
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -220,104 +229,92 @@ const OnboardingInterestQuestionnaire = () => {
       style={tw.style('flex-1 bg-default')}
       testID={OnboardingInterestQuestionnaireTestIds.SCREEN}
     >
-      <HeaderCompactStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
-        twClassName="mb-2"
-        endAccessory={
-          <Text
-            variant={TextVariant.BodyLg}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            onPress={onSkip}
-            testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
-            style={tw.style('pr-4')}
-          >
-            {strings('onboarding_interest_questionnaire.skip')}
-          </Text>
-        }
       />
 
-      <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
-        <Text
-          variant={TextVariant.DisplayMd}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          {strings('onboarding_interest_questionnaire.title')}
-        </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('onboarding_interest_questionnaire.description')}
-        </Text>
+      <Box twClassName="px-4 pb-6" style={{ marginTop: headerInset }}>
+        <TitleStandard
+          title={strings('onboarding_interest_questionnaire.title')}
+          bottomLabel={strings('onboarding_interest_questionnaire.description')}
+        />
       </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-4')}
+        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-2')}
         showsVerticalScrollIndicator={false}
       >
         {INTEREST_OPTIONS.map((option) => {
           const isSelected = selectedIds.has(option.id);
           const isOtherOption = option.id === 'other';
           return (
-            <TouchableOpacity
+            <ListItemSelect
               key={option.id}
+              variant={ListItemVariant.OneLine}
+              isSelected={isSelected}
+              showSelectedIcon
+              endAccessory={
+                <Icon
+                  name={IconName.Add}
+                  size={IconSize.Lg}
+                  color={IconColor.IconDefault}
+                />
+              }
               onPress={() => handleOptionPress(option.id)}
-              style={tw.style(
-                'flex-row items-center rounded-full px-6 py-4 border',
-                isSelected
-                  ? 'border-text-default bg-background-section'
-                  : 'border-text-muted',
-              )}
-              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked: isSelected }}
-            >
-              <Text
-                variant={TextVariant.HeadingMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-              >
-                {option.emoji}
-              </Text>
-              <Box twClassName="flex-1 flex-row items-center gap-x-2 ml-3">
+              twClassName={`rounded-full border px-6 py-4 ${
+                isSelected ? 'border-icon-default' : 'border-muted'
+              }`}
+              startAccessory={
                 <Text
-                  variant={TextVariant.BodyMd}
+                  variant={TextVariant.HeadingMd}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {strings(option.labelKey)}
+                  {option.emoji}
                 </Text>
-                {isOtherOption && otherText?.length > 0 ? (
+              }
+              title={strings(option.labelKey)}
+              titleEndAccessory={
+                isOtherOption && otherText?.length > 0 ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink mr-2"
+                    twClassName="flex-shrink"
                   >
                     {otherText}
                   </Text>
-                ) : null}
-              </Box>
-              <InterestSelectionIndicator isSelected={isSelected} />
-            </TouchableOpacity>
+                ) : null
+              }
+              testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: isSelected }}
+            />
           );
         })}
       </ScrollView>
 
-      <Box twClassName="px-4 py-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={onNext}
-          isDisabled={selectedIds.size === 0}
-          style={tw.style('w-full')}
-          testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
-        >
-          {strings('onboarding_interest_questionnaire.done')}
-        </Button>
-      </Box>
+      <FooterGlass
+        twClassName="pt-2 pb-2"
+        primaryButtonProps={{
+          children: strings('onboarding_interest_questionnaire.done'),
+          onPress: onNext,
+          size: ButtonSize.Lg,
+          isDisabled: selectedIds.size === 0,
+          testID: OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+        }}
+        tertiaryButtonProps={{
+          children: strings('onboarding_interest_questionnaire.skip'),
+          onPress: onSkip,
+          size: ButtonSize.Lg,
+          testID: OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON,
+        }}
+      />
 
       {isOtherBottomSheetVisible ? (
         <OtherBottomSheet

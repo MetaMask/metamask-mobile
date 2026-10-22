@@ -23,6 +23,7 @@ import {
 import { MarketGroupOptionSelector } from './MarketGroupOptionSelector';
 import { MarketGroupCardTestIds } from '../MarketGroupCard.testIds';
 import { MarketCard } from './MarketCard';
+import { isOutcomeTradeable } from '../../shared/tradeable';
 
 export interface MarketGroupCardProps {
   groupKey: string;
@@ -31,6 +32,7 @@ export interface MarketGroupCardProps {
   selectedMarket: PredictMarket;
   onSelectMarket: (marketId: PredictMarket['id']) => void;
   onRulesPress: (market: PredictMarket) => void;
+  onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
 }
 
 function findOutcome(
@@ -53,18 +55,16 @@ function getOutcomeOptionValue(
   return formatMarketGroupOption(market, outcome.side) ?? '—';
 }
 
-function noOp(): void {
-  return undefined;
-}
-
 function OutcomeRow({
   groupKey,
   market,
   outcome,
+  onOrder,
 }: {
   groupKey: string;
   market: PredictMarket;
   outcome: PredictOutcome;
+  onOrder?: (market: PredictMarket, outcome: PredictOutcome) => void;
 }): React.JSX.Element {
   const price = formatAskPrice(outcome.askPrice);
   const optionValue = getOutcomeOptionValue(market, outcome);
@@ -119,10 +119,10 @@ function OutcomeRow({
             price: price ?? strings('predict.market_groups.price_unavailable'),
           },
         )}
-        isDisabled
+        isDisabled={!isOutcomeTradeable(market, outcome)}
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        onPress={noOp}
+        onPress={() => onOrder?.(market, outcome)}
         twClassName="h-12 min-w-[64px] rounded-xl bg-muted px-3"
       >
         <Text
@@ -144,6 +144,7 @@ export function MarketGroupCard({
   selectedMarket,
   onSelectMarket,
   onRulesPress,
+  onOrder,
 }: MarketGroupCardProps): React.JSX.Element | null {
   const rules = selectedMarket.rules?.trim();
   const yesOutcome = findOutcome(selectedMarket, 'yes');
@@ -180,11 +181,13 @@ export function MarketGroupCard({
           groupKey={groupKey}
           market={selectedMarket}
           outcome={yesOutcome}
+          onOrder={onOrder}
         />
         <OutcomeRow
           groupKey={groupKey}
           market={selectedMarket}
           outcome={noOutcome}
+          onOrder={onOrder}
         />
       </Box>
       {markets.length > 1 ? (

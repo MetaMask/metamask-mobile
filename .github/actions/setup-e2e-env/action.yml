@@ -30,6 +30,11 @@ inputs:
     required: false
     default: '3.2.9'
   xcode-version:
+    # The default must stay in sync with the Xcode installed on the `ios-e2e`
+    # runner image (used by Appium smoke and api-specs): those jobs build
+    # WebDriverAgent against the image's simulator runtime, and a newer Xcode
+    # SDK than the runtime breaks the WDA launch. Jobs on the tahoe-slim build
+    # image that need Xcode 26.6 (Expo SDK 57) must pass it explicitly.
     description: 'Xcode version to select (e.g., 26.3). Uses xcodes CLI on Cirrus Labs runners, falls back to xcode-select on GitHub-hosted runners.'
     required: false
     default: '26.3'
@@ -71,8 +76,8 @@ inputs:
     default: 'true'
   install-foundry:
     description: >-
-      Whether to install Foundry (anvil/cast/forge) and add `node_modules/.bin`
-      to `$GITHUB_PATH`. Set to `'false'` when the caller already runs
+      Whether to install Foundry (anvil/cast/forge) into `node_modules/.bin`.
+      Set to `'false'` when the caller already runs
       `yarn setup:github-ci` afterwards (which itself runs `install:foundryup`
       via `installFoundryTask`), to avoid the redundant install step. Test
       runner workflows that go straight to Detox/seeder without an intervening
@@ -122,7 +127,6 @@ runs:
     ## Common Setup ##
     - run: echo "Setup E2E Environment started"
       shell: bash
-
     ## Android Setup (early for fail-fast) ##
 
     # Set Android environment variables (self-hosted runner has SDK pre-installed)
@@ -155,7 +159,7 @@ runs:
       # Skip apt-get install on namespace — libpulse0 / libglu1-mesa / libnss3 / libxss1
       # are baked into the metamask-android-build image.
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' && runner.os == 'Linux' && inputs.runner_provider != 'namespace' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: 5
         max_attempts: 3
@@ -258,7 +262,8 @@ runs:
     - name: Set ANDROID_AVD_HOME for downstream steps
       if: ${{ inputs.platform == 'android' && inputs.setup-simulator == 'true' }}
       shell: bash
-      run: |
+      run:
+        | # zizmor: ignore[github-env] value is only runner-set $HOME, no event data or inputs to inject
         echo "ANDROID_AVD_HOME=$HOME/.android/avd" >> "$GITHUB_ENV"
         mkdir -p "$HOME/.android/avd"
 
@@ -331,7 +336,7 @@ runs:
 
     - name: Corepack
       id: corepack
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -362,7 +367,7 @@ runs:
 
     - name: Install JavaScript dependencies with retry
       id: yarn-install
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.js-retry-timeout-minutes) }}
         max_attempts: 3
@@ -379,7 +384,6 @@ runs:
       run: |
         echo "Installing Foundry via yarn install:foundryup (matches local dev and tests/seeder)..."
         yarn install:foundryup
-        echo "$GITHUB_WORKSPACE/node_modules/.bin" >> "$GITHUB_PATH"
 
     ## iOS Setup ##
 
@@ -392,9 +396,11 @@ runs:
 
     - name: Install bundler
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: gem install bundler -v ${{ inputs.bundler-version }}
+      run: gem install bundler -v "${BUNDLER_VERSION}"
       working-directory: ios
       shell: bash
+      env:
+        BUNDLER_VERSION: ${{ inputs.bundler-version }}
 
     - name: Restore Bundler cache
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' && inputs.runner_provider != 'namespace' }}
@@ -417,30 +423,13 @@ runs:
       working-directory: ios
       shell: bash
 
-    - name: Generate binstubs for CocoaPods
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: bundle binstubs cocoapods --force --path=vendor/bundle/bin
-      working-directory: ios
-      shell: bash
-
-    - name: Add binstubs to PATH
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: echo "$(pwd)/ios/vendor/bundle/bin" >> "$GITHUB_PATH"
-      shell: bash
-
+    # CocoaPods is only run through `bundle exec`; its binstubs are not put on
+    # PATH, so a gem cannot shadow other commands for later steps.
     - name: Verify CocoaPods
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
       run: |
         bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
         bundle exec pod --version
-      working-directory: ios
-      shell: bash
-
-    - name: Verify CocoaPods BinStub
-      if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      run: |
-        bundle show cocoapods || (echo "❌ CocoaPods not installed from ios/Gemfile" && exit 1)
-        pod --version
       working-directory: ios
       shell: bash
 
@@ -466,14 +455,14 @@ runs:
 
     - name: Install CocoaPods via bundler
       if: ${{ inputs.platform == 'ios' && inputs.skip-pod-install != 'true' }}
-      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
+      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
       with:
         timeout_minutes: ${{ fromJSON(inputs.pod-install-timeout-minutes) }}
         max_attempts: 3
         retry_wait_seconds: 60
         on_retry_command: |
           echo "::warning::CocoaPods install failed, retrying after trunk cleanup..."
-          pod repo remove trunk || true
+          (cd ios && bundle exec pod repo remove trunk) || true
         command: cd ios && bundle exec pod install --repo-update
       env:
         COCOAPODS_DISABLE_STATS: 'true'
@@ -483,6 +472,8 @@ runs:
       run: |
         if ! brew list applesimutils &>/dev/null; then
           brew tap wix/brew
+          # Homebrew 6+ refuses third-party taps unless they are explicitly trusted.
+          brew trust --formula wix/brew/applesimutils
           brew install applesimutils
         else
           echo "applesimutils is already installed, skipping..."

@@ -606,8 +606,25 @@ export default class AppiumGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    const key = await drv.$(`~${keyName}`);
-    await key.waitForExist({ timeout: 5000 });
+    await drv.$('//XCUIElementTypeKeyboard').waitForExist({
+      timeout: 5000,
+      timeoutMsg: 'iOS keyboard is not displayed',
+    });
+
+    // Prefer the keyboard-scoped key: inputs like CodeField render typed
+    // digits as accessible text, so a bare `~0` lookup can match an input
+    // cell instead of the number-pad key.
+    const scopedKey = await drv.$(
+      `//XCUIElementTypeKeyboard//*[@name="${keyName}"]`,
+    );
+    const key = (await scopedKey.isExisting())
+      ? scopedKey
+      : await drv.$(`~${keyName}`);
+
+    await key.waitForExist({
+      timeout: 5000,
+      timeoutMsg: `Could not find iOS keyboard key "${keyName}"`,
+    });
     await key.click();
   }
 

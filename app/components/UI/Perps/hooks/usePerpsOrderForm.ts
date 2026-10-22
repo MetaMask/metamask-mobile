@@ -41,6 +41,8 @@ interface UsePerpsOrderFormParams {
   fallbackAmount?: string;
   initialLeverage?: number;
   initialType?: OrderType;
+  /** Known market precision from navigation; avoids a duplicate market fetch. */
+  initialSzDecimals?: number;
   /** When paying with a custom token, the selected token amount in USD; used to cap maxPossibleAmount and handlers */
   effectiveAvailableBalance?: number;
 }
@@ -109,6 +111,7 @@ export function usePerpsOrderForm(
     fallbackAmount: fallbackAmountParam,
     initialLeverage,
     initialType,
+    initialSzDecimals,
     effectiveAvailableBalance: effectiveAvailableBalanceParam,
   } = params;
 
@@ -121,7 +124,13 @@ export function usePerpsOrderForm(
     throttleMs: 1000,
   });
   const currentPrice = prices[initialAsset];
-  const { marketData } = usePerpsMarketData(initialAsset);
+  const { marketData } = usePerpsMarketData(
+    initialSzDecimals == null ? initialAsset : '',
+  );
+  const assetSzDecimals =
+    initialSzDecimals ??
+    marketData?.szDecimals ??
+    DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
 
   // Get existing position leverage for this asset (protocol constraint)
   // Positions load asynchronously via WebSocket, so this may be undefined initially
@@ -191,8 +200,7 @@ export function usePerpsOrderForm(
     const tempMaxAmount = getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: Number.parseFloat(currentPrice.price),
-      assetSzDecimals:
-        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+      assetSzDecimals,
       leverage: defaultLeverage, // Use default leverage for initial calculation
     });
 
@@ -215,7 +223,7 @@ export function usePerpsOrderForm(
     balanceForMax,
     fallbackAmount,
     currentPrice?.price,
-    marketData?.szDecimals,
+    assetSzDecimals,
     defaultLeverage,
   ]);
 
@@ -281,8 +289,7 @@ export function usePerpsOrderForm(
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
-    const sizeDecimals =
-      marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals;
+    const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
       orderForm.limitPrice,
       sizeDecimals,
@@ -323,8 +330,7 @@ export function usePerpsOrderForm(
     return getMaxAllowedAmount({
       spendableBalance: balanceForMax,
       assetPrice: effectiveAssetPrice,
-      assetSzDecimals:
-        marketData?.szDecimals ?? DECIMAL_PRECISION_CONFIG.FallbackSizeDecimals,
+      assetSzDecimals,
       leverage: orderForm.leverage,
     });
   }, [
@@ -334,7 +340,7 @@ export function usePerpsOrderForm(
     orderForm.direction,
     orderForm.limitPrice,
     triggerPrice,
-    marketData?.szDecimals,
+    assetSzDecimals,
     orderForm.leverage,
     effectiveMaxSlippageBps,
   ]);

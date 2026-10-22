@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { render, act } from '@testing-library/react-native';
-import { Fit, RiveErrorType } from '@rive-app/react-native';
+import { Alignment, Fit, RiveErrorType } from '@rive-app/react-native';
 import CardWelcomeCardsAnimation from './CardWelcomeCardsAnimation';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
@@ -13,6 +13,7 @@ interface MockRiveViewProps {
   stateMachineName?: string;
   autoPlay?: boolean;
   fit?: Fit;
+  alignment?: unknown;
   onError?: (error: { message: string; type: RiveErrorType }) => void;
 }
 
@@ -105,6 +106,7 @@ describe('CardWelcomeCardsAnimation', () => {
         stateMachineName: 'State Machine 1',
         autoPlay: true,
         fit: Fit.Contain,
+        alignment: Alignment.BottomCenter,
       }),
     );
   });
@@ -249,7 +251,25 @@ describe('CardWelcomeCardsAnimation', () => {
     expect(onEntranceStart).toHaveBeenCalledTimes(1);
   });
 
-  it('passes the style prop through to the Rive animation', () => {
+  it('passes the animationStyle prop through to the Rive animation', () => {
+    const animationStyle = { width: 240, height: 240, marginTop: 40 };
+
+    const { getByTestId } = render(
+      <CardWelcomeCardsAnimation
+        animate
+        style={style}
+        animationStyle={animationStyle}
+      />,
+    );
+
+    const flattenedStyle = StyleSheet.flatten(
+      getByTestId(CardWelcomeSelectors.CARDS_ANIMATION).props.style,
+    );
+
+    expect(flattenedStyle).toEqual(expect.objectContaining(animationStyle));
+  });
+
+  it('falls back to style for the Rive animation when animationStyle is omitted', () => {
     const { getByTestId } = render(
       <CardWelcomeCardsAnimation animate style={style} />,
     );
@@ -262,8 +282,14 @@ describe('CardWelcomeCardsAnimation', () => {
   });
 
   it('passes the style prop through to the static image', () => {
+    const animationStyle = { width: 240, height: 240, marginTop: 40 };
+
     const { getByTestId } = render(
-      <CardWelcomeCardsAnimation animate={false} style={style} />,
+      <CardWelcomeCardsAnimation
+        animate={false}
+        style={style}
+        animationStyle={animationStyle}
+      />,
     );
 
     const flattenedStyle = StyleSheet.flatten(
@@ -271,6 +297,7 @@ describe('CardWelcomeCardsAnimation', () => {
     );
 
     expect(flattenedStyle).toEqual(expect.objectContaining(style));
+    expect(flattenedStyle).not.toEqual(expect.objectContaining(animationStyle));
   });
 
   it('falls back to the static image when the Rive animation errors', () => {

@@ -1,6 +1,7 @@
 import { LIMIT_PRICE_CONFIG } from '../constants/perpsConfig';
 import {
   getFarthestRestingLimitPrice,
+  getLimitPriceDirectionWarning,
   getLimitPriceFarFromMarketWarning,
 } from './limitPriceFarFromMarket';
 
@@ -149,5 +150,106 @@ describe('getLimitPriceFarFromMarketWarning', () => {
         bestAsk: ask,
       }),
     ).toBeUndefined();
+  });
+});
+
+describe('getLimitPriceDirectionWarning', () => {
+  const ABOVE = 'perps.order.limit_price_modal.limit_price_above';
+  const BELOW = 'perps.order.limit_price_modal.limit_price_below';
+
+  it('returns empty for unusable input', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '',
+        currentPrice: 3000,
+        direction: 'long',
+        isClosingPosition: false,
+      }),
+    ).toBe('');
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '3100',
+        currentPrice: 0,
+        direction: 'long',
+        isClosingPosition: false,
+      }),
+    ).toBe('');
+  });
+
+  it('returns empty for a zero limit price the field renders as empty', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '0',
+        currentPrice: 3000,
+        direction: 'short',
+        isClosingPosition: true,
+      }),
+    ).toBe('');
+  });
+
+  it('warns when an opening long sits above market', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '3100',
+        currentPrice: 3000,
+        direction: 'long',
+        isClosingPosition: false,
+      }),
+    ).toBe(ABOVE);
+  });
+
+  it('warns when an opening short sits below market', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '2900',
+        currentPrice: 3000,
+        direction: 'short',
+        isClosingPosition: false,
+      }),
+    ).toBe(BELOW);
+  });
+
+  it('warns when closing a long below market', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '2900',
+        currentPrice: 3000,
+        direction: 'short',
+        isClosingPosition: true,
+      }),
+    ).toBe(BELOW);
+  });
+
+  it('warns when closing a short above market', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '3100',
+        currentPrice: 3000,
+        direction: 'long',
+        isClosingPosition: true,
+      }),
+    ).toBe(ABOVE);
+  });
+
+  it('stays silent on the favourable side of market', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '3100',
+        currentPrice: 3000,
+        direction: 'short',
+        isClosingPosition: true,
+      }),
+    ).toBe('');
+  });
+
+  it('ignores currency formatting in the limit price', () => {
+    expect(
+      getLimitPriceDirectionWarning({
+        limitPrice: '$3,100',
+        currentPrice: 3000,
+        direction: 'long',
+        isClosingPosition: false,
+      }),
+    ).toBe(ABOVE);
   });
 });

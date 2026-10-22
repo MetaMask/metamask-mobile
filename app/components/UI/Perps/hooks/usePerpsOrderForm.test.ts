@@ -239,6 +239,7 @@ describe('usePerpsOrderForm', () => {
       },
       refetch: jest.fn(),
       isLoading: false,
+      isProviderMetadataAvailable: true,
       error: null,
     });
   });
@@ -260,6 +261,21 @@ describe('usePerpsOrderForm', () => {
         limitPrice: undefined,
         type: 'market',
       });
+    });
+
+    it('skips the market lookup when route precision is available', () => {
+      renderHook(
+        () =>
+          usePerpsOrderForm({
+            initialAsset: 'ETH',
+            initialSzDecimals: 4,
+          }),
+        {
+          wrapper: createWrapper(),
+        },
+      );
+
+      expect(mockUsePerpsMarketData).toHaveBeenCalledWith('');
     });
 
     it('keeps an empty surface fallback empty', () => {
@@ -1151,6 +1167,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 
@@ -1229,6 +1246,7 @@ describe('usePerpsOrderForm', () => {
         },
         refetch: jest.fn(),
         isLoading: false,
+        isProviderMetadataAvailable: true,
         error: null,
       });
 

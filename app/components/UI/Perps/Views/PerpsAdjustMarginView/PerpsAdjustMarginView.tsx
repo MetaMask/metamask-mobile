@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -12,16 +18,14 @@ import {
   Text,
   TextColor,
   TextVariant,
-  Slider,
   KeyValueRow,
   KeyValueRowVariant,
   Icon,
   IconName,
   IconSize,
   IconColor,
-  HelpText,
-  HelpTextSeverity,
   HeaderStandard,
+  HelpText,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
@@ -37,9 +41,12 @@ import { usePerpsMarginAdjustment } from '../../hooks/usePerpsMarginAdjustment';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsAdjustMarginData } from '../../hooks/usePerpsAdjustMarginData';
+import { usePerpsFreshRemovalLimit } from '../../hooks/usePerpsFreshRemovalLimit';
 import { TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsSlider from '../../components/PerpsSlider';
+import PerpsValidationErrors from '../../components/PerpsValidationErrors';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import Keypad from '../../../../Base/Keypad';
@@ -49,11 +56,7 @@ import {
   PRICE_RANGES_UNIVERSAL,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
-import {
-  ImpactMoment,
-  playImpact,
-  useHaptics,
-} from '../../../../../util/haptics';
+import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 
 interface AdjustMarginRouteParams {
   position: Position;
@@ -76,6 +79,7 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { playImpact: playHapticImpact } = useHaptics();
 
   const [marginAmountString, setMarginAmountString] = useState('0');
+  const [freshMaxAmount, setFreshMaxAmount] = useState<number | null>(null);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -98,6 +102,11 @@ const PerpsAdjustMarginView: React.FC = () => {
   const { handleAddMargin, handleRemoveMargin, isAdjusting } =
     usePerpsMarginAdjustment({
       onSuccess: () => navigation.goBack(),
+      onAmountChanged: (safeMaxAmount) => {
+        submittedEstimateRef.current = null;
+        setFreshMaxAmount(safeMaxAmount);
+        setMarginAmountString(safeMaxAmount.toFixed(2));
+      },
       onError: (errorMessage) => {
         submittedEstimateRef.current = null;
         Logger.error(new Error(errorMessage), {
@@ -120,8 +129,10 @@ const PerpsAdjustMarginView: React.FC = () => {
   const {
     position,
     isLoading,
+    hasValidPositionData,
     currentMargin,
     maxAmount,
+    exchangeMaxAmount,
     currentLiquidationPrice,
     newLiquidationPrice,
     currentLiquidationDistance,
@@ -133,7 +144,24 @@ const PerpsAdjustMarginView: React.FC = () => {
     inputAmount: marginAmount,
   });
 
-  const flooredMaxAmount = floorUsd(maxAmount);
+  const { flooredMaxAmount, submitLimitAmount } = usePerpsFreshRemovalLimit({
+    freshMaxAmount,
+    setFreshMaxAmount,
+    position,
+    snapshotMaxAmount: floorUsd(maxAmount),
+    exchangeMaxAmount,
+    isAddMode,
+  });
+  // The buffered Max is a suggestion; only the submit limit means nothing
+  // can be removed, including an amount selected before a price tick.
+  const hasNoRemovableMargin =
+    !isAddMode && !isLoading && hasValidPositionData && submitLimitAmount <= 0;
+  // Close an open keypad once nothing is left to remove.
+  useEffect(() => {
+    if (hasNoRemovableMargin) {
+      setIsInputFocused(false);
+    }
+  }, [hasNoRemovableMargin]);
 
   const sliderPercentage = useMemo(() => {
     if (flooredMaxAmount <= 0) {
@@ -147,7 +175,12 @@ const PerpsAdjustMarginView: React.FC = () => {
     if (isInputFocused) {
       return [];
     }
-    if (marginAmount > flooredMaxAmount && marginAmount > 0) {
+    // The zero-removable explanation replaces an error on a retained amount.
+    if (
+      !hasNoRemovableMargin &&
+      marginAmount > submitLimitAmount &&
+      marginAmount > 0
+    ) {
       return [
         isAddMode
           ? strings('perps.adjust_margin.exceeds_available')
@@ -155,7 +188,13 @@ const PerpsAdjustMarginView: React.FC = () => {
       ];
     }
     return [];
-  }, [isInputFocused, marginAmount, flooredMaxAmount, isAddMode]);
+  }, [
+    isInputFocused,
+    hasNoRemovableMargin,
+    marginAmount,
+    submitLimitAmount,
+    isAddMode,
+  ]);
 
   const amountHasError = validationErrors.length > 0;
 
@@ -184,14 +223,6 @@ const PerpsAdjustMarginView: React.FC = () => {
     },
     [flooredMaxAmount],
   );
-
-  const handleSliderGrip = useCallback(() => {
-    playImpact(ImpactMoment.SliderGrip);
-  }, []);
-
-  const handleSliderMark = useCallback(() => {
-    playImpact(ImpactMoment.SliderTick);
-  }, []);
 
   const handleMaxPress = useCallback(() => {
     setMarginAmountString(flooredMaxAmount.toFixed(2));
@@ -258,7 +289,10 @@ const PerpsAdjustMarginView: React.FC = () => {
     }
 
     // Prevent submission if amount exceeds max removable (extra safety for remove mode)
-    if (!isAddMode && marginAmount > flooredMaxAmount) {
+    if (
+      !isAddMode &&
+      (hasNoRemovableMargin || marginAmount > submitLimitAmount)
+    ) {
       return;
     }
 
@@ -284,7 +318,8 @@ const PerpsAdjustMarginView: React.FC = () => {
     isAddMode,
     isAdjusting,
     validationErrors.length,
-    flooredMaxAmount,
+    submitLimitAmount,
+    hasNoRemovableMargin,
     newLiquidationPrice,
     newLiquidationDistance,
     handleAddMargin,
@@ -301,10 +336,11 @@ const PerpsAdjustMarginView: React.FC = () => {
   const isPositionGone = !isLoading && !position;
 
   const isConfirmDisabled =
+    hasNoRemovableMargin ||
     marginAmount <= 0 ||
     isAdjusting ||
     isPositionGone ||
-    marginAmount > flooredMaxAmount ||
+    marginAmount > submitLimitAmount ||
     Boolean(validationErrors.length);
 
   // Show error if no position found (either from route or live data)
@@ -436,7 +472,7 @@ const PerpsAdjustMarginView: React.FC = () => {
       >
         <PerpsAmountDisplay
           amount={marginAmountString}
-          onPress={handleAmountPress}
+          onPress={hasNoRemovableMargin ? undefined : handleAmountPress}
           isActive={isInputFocused}
           hasError={amountHasError}
           isLoading={isLoading}
@@ -445,33 +481,25 @@ const PerpsAdjustMarginView: React.FC = () => {
 
         {!isInputFocused && (
           <Box twClassName="px-4 py-4">
-            <Slider
+            <PerpsSlider
               value={sliderPercentage}
               onValueChange={handleSliderChange}
-              minimumValue={0}
-              maximumValue={100}
-              step={1}
-              showRangeLabels
-              showRangeDots
-              isDisabled={isAdjusting}
-              onGrip={handleSliderGrip}
-              onMark={handleSliderMark}
+              disabled={isAdjusting || hasNoRemovableMargin}
               testID={PerpsAdjustMarginViewSelectorsIDs.SLIDER}
             />
           </Box>
         )}
 
-        <Box twClassName="items-center justify-start px-4 my-4 min-h-10">
-          {validationErrors.map((error, index) => (
-            <HelpText
-              key={`error-${index}`}
-              severity={HelpTextSeverity.Danger}
-              twClassName="w-full justify-center text-center"
-            >
-              {error}
-            </HelpText>
-          ))}
-        </Box>
+        <PerpsValidationErrors errors={validationErrors} />
+
+        {hasNoRemovableMargin && (
+          <HelpText
+            twClassName="px-4 justify-center text-center"
+            testID={PerpsAdjustMarginViewSelectorsIDs.NO_REMOVABLE_MARGIN}
+          >
+            {strings('perps.adjust_margin.no_removable_margin')}
+          </HelpText>
+        )}
       </ScrollView>
 
       {isInputFocused && (

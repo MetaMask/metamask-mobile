@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -45,6 +46,7 @@ import type {
   PredictThePitchPrizePoolDto,
   MoneyAccountSweepstakesStatsMeDto,
   MoneyAccountSweepstakesPrizePoolDto,
+  MoneyAccountSweepstakesVolumeStatsDto,
   MoneyAccountSweepstakesDrawProofDto,
   MoneyAccountSweepstakesOutcomeDto,
   VipDashboardDto,
@@ -55,6 +57,7 @@ import type {
   VipTransactionType,
   PaginatedVipTransactionsDto,
   VipTransactionsLastUpdatedDto,
+  TradingFeeGrantResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -110,6 +113,44 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
+
+export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isTradingFeeGrantResponse(
+  value: unknown,
+): value is TradingFeeGrantResponseDto {
+  if (!isRecord(value) || !Object.hasOwn(value, 'grant')) {
+    return false;
+  }
+  if (value.grant === null) {
+    return true;
+  }
+  if (
+    !isRecord(value.grant) ||
+    typeof value.grant.programId !== 'string' ||
+    typeof value.grant.expiresAt !== 'string' ||
+    !Number.isFinite(Date.parse(value.grant.expiresAt)) ||
+    !isRecord(value.grant.hyperliquid) ||
+    typeof value.grant.hyperliquid.builderCode !== 'string' ||
+    typeof value.grant.hyperliquid.builderFeeBips !== 'string'
+  ) {
+    return false;
+  }
+
+  const feeString = value.grant.hyperliquid.builderFeeBips;
+  const fee = Number(feeString);
+  return (
+    /^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/u.test(feeString) &&
+    Number.isFinite(fee) &&
+    fee >= 0 &&
+    fee <= MAX_PERPS_TRADING_FEE_GRANT_BIPS
+  );
+}
 
 // Auth endpoint action types
 
@@ -337,6 +378,11 @@ export interface RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction {
   handler: RewardsDataService['getMoneyAccountSweepstakesPrizePool'];
 }
 
+export interface RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction {
+  type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsDataService['getMoneyAccountSweepstakesVolumeStats'];
+}
+
 export interface RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction {
   type: `${typeof SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`;
   handler: RewardsDataService['getMoneyAccountSweepstakesDrawProof'];
@@ -397,6 +443,11 @@ export interface RewardsDataServiceGetVipFeesAction {
   handler: RewardsDataService['getVipFees'];
 }
 
+export interface RewardsDataServiceGetTradingFeeGrantsAction {
+  type: `${typeof SERVICE_NAME}:getTradingFeeGrants`;
+  handler: RewardsDataService['getTradingFeeGrants'];
+}
+
 export interface RewardsDataServiceGetVipTransactionsAction {
   type: `${typeof SERVICE_NAME}:getVipTransactions`;
   handler: RewardsDataService['getVipTransactions'];
@@ -451,6 +502,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -477,13 +529,17 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
+type AllowedActions =
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
-  RewardsDataServiceActions,
+  RewardsDataServiceActions | AllowedActions,
   never
 >;
 
@@ -699,6 +755,10 @@ export class RewardsDataService {
       this.getMoneyAccountSweepstakesPrizePool.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getMoneyAccountSweepstakesVolumeStats`,
+      this.getMoneyAccountSweepstakesVolumeStats.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getMoneyAccountSweepstakesDrawProof`,
       this.getMoneyAccountSweepstakesDrawProof.bind(this),
     );
@@ -745,6 +805,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipFees`,
       this.getVipFees.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTradingFeeGrants`,
+      this.getTradingFeeGrants.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipTransactions`,
@@ -1795,6 +1859,45 @@ export class RewardsDataService {
     return (await response.json()) as VipFeesResponseDto;
   }
 
+  /**
+   * Fetch the active profile's trading-fee grant using Profile Sync auth.
+   */
+  async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
+    const token = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (!token) {
+      throw new Error('Profile Sync bearer token is required');
+    }
+
+    const response = await this.makeRequest(
+      '/trading-fee-grants',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      undefined,
+      TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS,
+    );
+    if (!response.ok) {
+      throw new Error(`Get trading fee grants failed: ${response.status}`);
+    }
+
+    const result: unknown = await response.json();
+    if (!isTradingFeeGrantResponse(result)) {
+      throw new Error('Invalid trading fee grant response');
+    }
+
+    const currentToken = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (currentToken !== token) {
+      throw new Error('Profile changed during trading fee grant request');
+    }
+
+    return result;
+  }
+
   async getVipTransactions(
     subscriptionId: string,
     type: VipTransactionType,
@@ -2302,6 +2405,23 @@ export class RewardsDataService {
     return (await response.json()) as MoneyAccountSweepstakesPrizePoolDto;
   }
 
+  async getMoneyAccountSweepstakesVolumeStats(
+    campaignId: string,
+  ): Promise<MoneyAccountSweepstakesVolumeStatsDto> {
+    const response = await this.makeRequest(
+      `/money-account-sweepstakes/${campaignId}/stats/volume`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get Money Account Sweepstakes volume stats failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as MoneyAccountSweepstakesVolumeStatsDto;
+  }
+
   async getMoneyAccountSweepstakesDrawProof(
     campaignId: string,
   ): Promise<MoneyAccountSweepstakesDrawProofDto | null> {
@@ -2346,18 +2466,22 @@ export class RewardsDataService {
    * Register (or re-assert) the Money Account holder address for a subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @param moneyAccountAddress - The Money Account holder address to bind.
+   * @param timestamp - The timestamp (ms) included in the signed message.
+   * @param signature - The Money Account signature of the binding message.
    * @returns `'bound'` on 201/200, or `'conflict'` when the address is already
    * bound to a different subscription (409).
    */
   async registerMoneyAccountBinding(
     subscriptionId: string,
     moneyAccountAddress: string,
+    timestamp: number,
+    signature: string,
   ): Promise<'bound' | 'conflict'> {
     const response = await this.makeRequest(
-      '/wr/money-account/binding',
+      '/wr/money-account/binding/signed',
       {
         method: 'POST',
-        body: JSON.stringify({ moneyAccountAddress }),
+        body: JSON.stringify({ moneyAccountAddress, timestamp, signature }),
       },
       subscriptionId,
     );
@@ -2367,6 +2491,23 @@ export class RewardsDataService {
     }
 
     if (!response.ok) {
+      let errorData: { code?: string; serverTime?: number } | undefined;
+      try {
+        errorData = (await response.json()) as {
+          code?: string;
+          serverTime?: number;
+        };
+      } catch {
+        // Body may be empty or non-JSON; fall through to the generic error.
+      }
+
+      if (errorData?.code === 'TIMESTAMP_OUT_OF_WINDOW') {
+        throw new InvalidTimestampError(
+          'Invalid timestamp. Please try again with a new timestamp.',
+          Number(errorData.serverTime),
+        );
+      }
+
       throw new Error(
         `Register Money Account binding failed: ${response.status}`,
       );

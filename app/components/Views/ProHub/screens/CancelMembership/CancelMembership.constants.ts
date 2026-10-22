@@ -1,40 +1,38 @@
+import {
+  CANCELLATION_REASONS,
+  type CancellationReasonCode,
+} from '@metamask/subscription-controller';
+
 export interface CancelReason {
-  id: string;
+  id: CancellationReasonCode;
   labelKey: string;
 }
 
 export const CANCEL_REASONS: CancelReason[] = [
   {
-    id: 'issue',
-    labelKey: 'pro_hub.cancel_membership.reason_issue',
+    id: CANCELLATION_REASONS.TOO_EXPENSIVE,
+    labelKey: 'pro_hub.cancel_membership.reason_cost',
   },
   {
-    id: 'no_value',
-    labelKey: 'pro_hub.cancel_membership.reason_no_value',
+    id: CANCELLATION_REASONS.NOT_USING_BENEFITS,
+    labelKey: 'pro_hub.cancel_membership.reason_not_using',
   },
   {
-    id: 'no_benefits',
-    labelKey: 'pro_hub.cancel_membership.reason_no_benefits',
+    id: CANCELLATION_REASONS.BENEFITS_NOT_AS_EXPECTED,
+    labelKey: 'pro_hub.cancel_membership.reason_benefit_misfit',
   },
   {
-    id: 'support',
+    id: CANCELLATION_REASONS.SOMETHING_DID_NOT_WORK,
+    labelKey: 'pro_hub.cancel_membership.reason_didnt_work',
+  },
+  {
+    id: CANCELLATION_REASONS.UNHAPPY_WITH_SUPPORT,
     labelKey: 'pro_hub.cancel_membership.reason_support',
   },
   {
-    id: 'other',
+    id: CANCELLATION_REASONS.OTHER,
     labelKey: 'pro_hub.cancel_membership.reason_other',
   },
 ];
 
-export interface CancelMembershipStats {
-  earnedAsMember: string;
-  membershipCost: string;
-}
-
-export const MOCK_CANCEL_STATS: CancelMembershipStats = {
-  earnedAsMember: '+$503.51',
-  membershipCost: '$49.99/yr',
-};
-
-/** Mock cancellation end-date shown in the success step. */
-export const MOCK_CANCELLATION_END_DATE = 'July 20th, 2027';
+export const MAX_STAY_FEEDBACK_LENGTH = 280;

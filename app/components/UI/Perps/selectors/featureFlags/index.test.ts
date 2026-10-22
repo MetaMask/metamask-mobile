@@ -5,6 +5,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsGtmOnboardingModalEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
+  selectPerpsLighterProviderEnabledFlag,
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsRecentlyViewedEnabledFlag,
@@ -27,6 +28,10 @@ import {
   PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsPositionModifyPreviewEnabledFlag,
+  selectPerpsPriceAlertsEnabledFlag,
+  selectPerpsPriceAlertsPercentChangeEnabledFlag,
+  selectPerpsSocialEnabledFlag,
+  PERPS_SOCIAL_ENABLED_FLAG_KEY,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -40,6 +45,11 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
+import { isLighterProviderEnabled } from '../../utils/lighterFeatureFlags';
+
+jest.mock('../../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -198,6 +208,89 @@ describe('Perps Feature Flag Selectors', () => {
       });
 
       const result = selectPerpsPositionModifyPreviewEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPerpsSocialEnabledFlag', () => {
+    const createStateWithFlag = (flag?: Json): StateWithPartialEngine => {
+      const remoteFeatureFlags: Record<string, Json> = {};
+      if (flag !== undefined) {
+        remoteFeatureFlags[PERPS_SOCIAL_ENABLED_FLAG_KEY] = flag;
+      }
+
+      return {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags,
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+    };
+
+    it('returns true when enabled and the app meets the minimum version', () => {
+      jest.mocked(getVersion).mockReturnValue('8.17.0');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.17.0',
+      });
+
+      const result = selectPerpsSocialEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      jest.mocked(getVersion).mockReturnValue('8.17.0');
+      const state = createStateWithFlag({
+        enabled: false,
+        minimumVersion: '8.17.0',
+      });
+
+      const result = selectPerpsSocialEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false below the minimum version', () => {
+      jest.mocked(getVersion).mockReturnValue('8.16.9');
+      const state = createStateWithFlag({
+        enabled: true,
+        minimumVersion: '8.17.0',
+      });
+
+      const result = selectPerpsSocialEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is missing', () => {
+      const state = createStateWithFlag();
+
+      const result = selectPerpsSocialEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag is null', () => {
+      const state = createStateWithFlag(null);
+
+      const result = selectPerpsSocialEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when the flag shape is malformed', () => {
+      const state = createStateWithFlag({
+        enabled: 'yes',
+        minimumVersion: 8.17,
+      });
+
+      const result = selectPerpsSocialEnabledFlag(state);
 
       expect(result).toBe(false);
     });
@@ -684,6 +777,115 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsLighterProviderEnabledFlag', () => {
+    beforeEach(() => {
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(false);
+    });
+
+    const createEmptyFlagsState = () =>
+      ({
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      }) as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+    it('returns false without a remote flag or local enablement', () => {
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(false);
+    });
+
+    it('falls back to local enablement when the remote flag is absent', () => {
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(true);
+
+      expect(
+        selectPerpsLighterProviderEnabledFlag(createEmptyFlagsState()),
+      ).toBe(true);
+    });
+
+    it('lets a valid remote flag win over local enablement', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      jest.mocked(isLighterProviderEnabled).mockReturnValue(true);
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
+    });
+
+    it('enables the provider when the remote flag is enabled and the version gate passes', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(true);
+    });
+
+    it('stays disabled when the remote flag is enabled but the version gate fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED = 'false';
+
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsLighterProviderEnabled: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      } as unknown as Parameters<
+        typeof selectPerpsLighterProviderEnabledFlag
+      >[0];
+
+      expect(selectPerpsLighterProviderEnabledFlag(state)).toBe(false);
     });
   });
 
@@ -3167,5 +3369,109 @@ describe('Perps Feature Flag Selectors', () => {
       );
       expect(result).toEqual([]);
     });
+  });
+
+  describe('selectPerpsPriceAlertsEnabledFlag', () => {
+    const stateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: flag ? { perpsPriceAlertsEnabled: flag } : {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults off when the remote flag is absent', () => {
+      expect(selectPerpsPriceAlertsEnabledFlag(stateWithFlag())).toBe(false);
+    });
+
+    it('returns true for an enabled flag at the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false below the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = stateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsEnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPerpsPriceAlertsPercentChangeEnabledFlag', () => {
+    const stateWithFlag = (flag?: Json): StateWithPartialEngine => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags:
+              flag === undefined
+                ? {}
+                : { perpsPriceAlertsPercentChangeEnabled: flag },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults off when the remote flag is absent', () => {
+      expect(
+        selectPerpsPriceAlertsPercentChangeEnabledFlag(stateWithFlag()),
+      ).toBe(false);
+    });
+
+    it('returns true for an enabled flag at the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsPercentChangeEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false below the minimum app version', () => {
+      const state = stateWithFlag({
+        enabled: true,
+        minimumVersion: '99.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsPercentChangeEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the flag is disabled', () => {
+      const state = stateWithFlag({
+        enabled: false,
+        minimumVersion: '1.0.0',
+      });
+
+      expect(selectPerpsPriceAlertsPercentChangeEnabledFlag(state)).toBe(false);
+    });
+
+    it.each([null, true, { enabled: 'yes' }, { minimumVersion: '1.0.0' }])(
+      'returns false for malformed flag %p',
+      (flag) => {
+        expect(
+          selectPerpsPriceAlertsPercentChangeEnabledFlag(
+            stateWithFlag(flag as Json),
+          ),
+        ).toBe(false);
+      },
+    );
   });
 });

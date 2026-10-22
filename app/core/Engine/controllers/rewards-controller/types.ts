@@ -4,6 +4,10 @@ import {
 } from '@metamask/base-controller';
 import { CaipAccountId, CaipAssetType, type Json } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+export type {
+  PerpsFeeResolverScope,
+  PerpsTradingFeeGrant,
+} from '@metamask/perps-controller';
 import type { RewardsControllerMethodActions } from './RewardsController-method-action-types';
 
 export interface LoginResponseDto {
@@ -267,6 +271,21 @@ export type VipFeesResponseDto = {
   vipTier: number;
   fees: VipFeesGroupDto | null;
   updatedAt: string | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantDto = {
+  programId: string;
+  hyperliquid: {
+    builderCode: string;
+    builderFeeBips: string;
+  };
+  expiresAt: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type TradingFeeGrantResponseDto = {
+  grant: TradingFeeGrantDto | null;
 };
 
 export type VipTransactionType = 'PERPS' | 'SWAP';
@@ -1598,6 +1617,15 @@ export interface MoneyAccountSweepstakesPrizePoolDto {
   maxPrizeUsd: number;
 }
 
+/**
+ * Response DTO for GET /money-account-sweepstakes/:campaignId/stats/volume (public).
+ */
+export interface MoneyAccountSweepstakesVolumeStatsDto {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
+}
+
 export interface MoneyAccountSweepstakesDrawExplanationDto {
   merkleRoot: string;
   seedBlock: number;
@@ -1679,6 +1707,14 @@ export type MoneyAccountSweepstakesPrizePoolState = {
   numberOfWinners: number;
   minPrizeUsd: number;
   maxPrizeUsd: number;
+  lastFetched: number;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type MoneyAccountSweepstakesVolumeStatsState = {
+  totalVolumeUsd: number;
+  eligibleParticipantCount: number;
+  yieldEarnedUsd: number;
   lastFetched: number;
 };
 
@@ -2852,6 +2888,10 @@ export type RewardsControllerState = {
   /** Money Account Sweepstakes prize pool keyed by campaignId (public endpoint). */
   moneyAccountSweepstakesPrizePool: {
     [campaignId: string]: MoneyAccountSweepstakesPrizePoolState;
+  };
+  /** Money Account Sweepstakes volume stats keyed by campaignId (public endpoint). */
+  moneyAccountSweepstakesVolumeStats: {
+    [campaignId: string]: MoneyAccountSweepstakesVolumeStatsState;
   };
   /** Money Account Sweepstakes draw proof keyed by campaignId (public endpoint). */
   moneyAccountSweepstakesDrawProof: {

@@ -6,10 +6,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -18,6 +14,9 @@ import { selectCardActiveProviderId } from '../../../../../selectors/cardControl
 import MM_CARD_ONBOARDING_FAILED from '../../../../../images/mm-card-onboarding-failed.png';
 import {
   Box,
+  ButtonIcon,
+  ButtonIconSize,
+  IconName,
   Text,
   TextVariant,
   Button,
@@ -25,7 +24,6 @@ import {
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
-import { colors as importedColors } from '../../../../../styles/common';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 
 const staticStyles = StyleSheet.create({
@@ -89,6 +87,7 @@ const KYCFailed = () => {
         resizeMode="cover"
         style={staticStyles.backgroundImage}
         testID="kyc-failed-image"
+        accessible={false}
       />
 
       {/* Header with back button */}
@@ -96,8 +95,8 @@ const KYCFailed = () => {
         <Box twClassName="px-4 py-2 items-start">
           <ButtonIcon
             iconName={IconName.ArrowLeft}
-            size={ButtonIconSizes.Md}
-            iconColor={importedColors.white}
+            size={ButtonIconSize.Md}
+            iconProps={{ twClassName: 'text-white' }}
             onPress={navigateToHome}
             testID="kyc-failed-back-button"
           />

@@ -2,6 +2,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import {
   type Position,
+  type MarginMode,
   type Order,
   type OrderType,
   type PerpsMarketData,
@@ -9,15 +10,28 @@ import {
   type SortDirection,
   type SortOptionId,
   type MarketTypeFilter,
+  type PerpsProviderType,
 } from '@metamask/perps-controller';
+import type {
+  PriceAlertRouteParams,
+  CreatePriceAlertRouteParams,
+} from '../../Assets/PriceAlerts/constants';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import type { PerpsTooltipViewRouteParams } from '../Views/PerpsTooltipView/PerpsTooltipView';
+import type { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PerpsModalsNavigationParamList = {
+  /**
+   * Trade sheet entry from outside the Perps stack (e.g. Social copy trade).
+   * The modal stack is transparent, so the sheet opens over the calling page.
+   */
+  PerpsOrderRedirect: PerpsStackParamList['PerpsOrderRedirect'];
+  RedesignedConfirmations: PerpsStackParamList['RedesignedConfirmations'];
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;
@@ -25,6 +39,10 @@ export type PerpsModalsNavigationParamList = {
   PerpsCrossMarginWarning: undefined;
   PerpsSelectProvider: undefined;
   PerpsModeSelection: undefined;
+  PerpsOutreachDetails: undefined;
+  PerpsSharePosition: PerpsStackParamList['PerpsPnlHeroCard'] & {
+    accountAddress?: string;
+  };
   PerpsSelectModifyAction: {
     position: Position;
     useBottomSheet?: boolean;
@@ -58,6 +76,7 @@ export type PerpsClosePositionModalsNavigationParamList = {
 export type PerpsOrderRouteParams = {
   direction: 'long' | 'short';
   asset: string;
+  providerId?: PerpsProviderType;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
   leverage?: number;
@@ -69,6 +88,11 @@ export type PerpsOrderRouteParams = {
   fromTokenDetails?: boolean;
   /** When false, confirmation screen uses header: () => null; when true/undefined uses headerLeft/title options */
   showPerpsHeader?: boolean;
+  /**
+   * Where the confirmation was opened from. Adjust-margin deposits use this
+   * so the confirmation covers that sheet and returns to it when finished.
+   */
+  launchedFrom?: ConfirmationLaunchSource;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
   /** Analytics: market-list discovery section (search, watchlist, category, all_markets) */
@@ -78,6 +102,20 @@ export type PerpsOrderRouteParams = {
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Resolved shared TAT-3938 assignment, forwarded to confirmation routing. */
   useBottomSheet?: boolean;
+  /**
+   * Read by the shared `Confirm` screen: while the Trade sheet variant has no
+   * approval (before it attaches, and after Place order removes it), show the
+   * loader inside a bottom sheet instead of a full-screen spinner.
+   */
+  forceBottomSheet?: boolean;
+  /**
+   * After submit, dismiss back to the presenting screen instead of opening
+   * market details. The order still places and the same submitted / confirmed
+   * / failed toasts still fire.
+   */
+  stayOnCurrentScreen?: boolean;
+  /** Social post being copied; a matching order records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
 };
 
 // ParamListBase requires `type`; `interface` cannot satisfy it.
@@ -85,6 +123,7 @@ export type PerpsOrderRouteParams = {
 export type PerpsStackParamList = {
   // Order flow routes
   PerpsOrder: PerpsOrderRouteParams;
+  PerpsBalanceOrder: PerpsOrderRouteParams;
 
   PerpsOrderSuccess: {
     orderId: string;
@@ -144,6 +183,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * When true, selecting a market replaces the underlying MARKET_DETAILS
          * (and dismisses this list) instead of pushing another details screen.
@@ -207,6 +247,8 @@ export type PerpsStackParamList = {
     position: Position;
     mode: 'add' | 'remove';
     enableHaptics?: boolean;
+    /** Resolved shared TAT-3938 assignment for the amount-entry experience. */
+    useBottomSheet?: boolean;
   };
 
   // Action selection routes
@@ -270,6 +312,8 @@ export type PerpsStackParamList = {
     initialTakeProfitPrice?: string;
     initialStopLossPrice?: string;
     leverage?: number;
+    /** Collateral mode for a new order; existing positions report their own liquidation price. */
+    marginMode?: MarginMode;
     orderType?: OrderType;
     limitPrice?: string;
     amount?: string; // For new orders - USD amount to calculate position size for P&L
@@ -279,6 +323,30 @@ export type PerpsStackParamList = {
      * Defaults off so Lite entry points stay silent.
      */
     enableHaptics?: boolean;
+    /**
+     * Screen-vs-bottom-sheet treatment, resolved by the caller. Only the
+     * position-edit entry points pass it; the order flow keeps the full screen
+     * either way and must not read the experiment.
+     *
+     * The navigator needs the arm before the screen mounts, so it cannot be
+     * resolved inside the view: screen `options` is a plain function and the
+     * sheet must skip the stack animation that would otherwise slide its
+     * backdrop in.
+     */
+    useBottomSheet?: boolean;
+    /**
+     * Claims the recovery owner's current reviewed action before dismissal.
+     * When supplied, must return true to submit. The owner must still fence
+     * forwarding in onConfirm after the editor has dismissed.
+     */
+    onBeforeConfirm?: () => boolean;
+    /**
+     * Validates the recovery owner's exact authoritative position review when
+     * ordinary position streams are unavailable. Without this callback, the
+     * view uses its existing live-position guard. The owner must also fence
+     * forwarding after dismissal; the provider rechecks size and entry price.
+     */
+    isPositionReviewCurrent?: (position: Position) => boolean;
     /**
      * Called when user confirms TP/SL. First arg is position when editing existing position (avoids "No position found" from stale ref).
      * Signature: (position?, takeProfitPrice?, stopLossPrice?, trackingData?) so both edit-flow and order-flow can use it.
@@ -331,9 +399,28 @@ export type PerpsStackParamList = {
   PerpsOrderRedirect: {
     direction: 'long' | 'short';
     asset: string;
+    leverage?: number;
     /** When true, the order was initiated from the token details screen */
     fromTokenDetails?: boolean;
+    /**
+     * Analytics source for the order. Token details omit this and the redirect
+     * defaults to the asset-detail screen. The Social feed passes `trader_feed`.
+     */
+    source?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+    /**
+     * Forces the trade bottom sheet and renders the redirect transparent.
+     * Meant for the `PerpsModals` entry, where the page beneath should stay
+     * visible. Omitted entries keep the screen-vs-sheet experiment assignment.
+     */
+    useBottomSheet?: boolean;
+    /**
+     * After submit, stay on the presenting screen (e.g. Social feed) instead
+     * of opening market details.
+     */
+    stayOnCurrentScreen?: boolean;
+    /** Social post being copied, forwarded to the order view. */
+    copyTradeOrigin?: CopyTradeOrigin;
   };
 
   // Screen names registered in the Perps stack (may differ from legacy aliases above)
@@ -353,6 +440,7 @@ export type PerpsStackParamList = {
         button_location?: string;
         transactionActiveAbTests?: TransactionActiveAbTestEntry[];
         animation?: NativeStackNavigationOptions['animation'];
+        animationDuration?: NativeStackNavigationOptions['animationDuration'];
         /**
          * Stamped when Perps Home was removed from this stack (TAT-3786).
          * `MARKET_LIST` is `PerpsTrendingView`; drop-Home remaining routes include it.
@@ -380,6 +468,10 @@ export type PerpsStackParamList = {
   PerpsSelectProvider: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
+
+  // Price alert routes (perps variants of the shared alert UI)
+  PerpsPriceAlerts: PriceAlertRouteParams;
+  PerpsCreatePriceAlert: CreatePriceAlertRouteParams;
 };
 
 /** Screens inside the Perps stack plus the root `Perps` entry for cross-stack navigation. */

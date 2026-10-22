@@ -19,11 +19,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   Theme: { Light: 'light', Dark: 'dark' },
 }));
 
-jest.mock(
-  '../../../images/add_wallet_to_device.png',
-  () => 'add_wallet_to_device_image',
-);
-
 jest.mock('../../../core/Engine', () => ({
   context: {},
 }));
@@ -51,27 +46,6 @@ jest.mock('../QRTabSwitcher', () => ({
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
-jest.mock(
-  '../../../component-library/components-temp/HeaderCompactStandard',
-  () => {
-    const ActualReact = jest.requireActual('react');
-    const { Pressable } = jest.requireActual('react-native');
-
-    return {
-      __esModule: true,
-      default: jest.fn(
-        ({ onBack }: { onBack?: () => void; includesTopInset?: boolean }) =>
-          ActualReact.createElement(Pressable, {
-            testID: 'button-icon',
-            onPress: onBack,
-            accessibilityRole: 'button',
-          }),
-      ),
-    };
-  },
-);
-
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { createMockRouteMessenger } from '../../../util/test/mock-route-messenger';
 
 const mockHandleScannedQrPayload = jest.fn();
@@ -113,13 +87,10 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('initial render', () => {
-    it('applies top safe-area inset to the header so the back button is tappable on iOS', () => {
-      renderComponent();
+    it('renders the back button', () => {
+      const { getByTestId } = renderComponent();
 
-      expect(HeaderCompactStandard).toHaveBeenCalledWith(
-        expect.objectContaining({ includesTopInset: true }),
-        undefined,
-      );
+      expect(getByTestId('button-icon')).toBeOnTheScreen();
     });
 
     it('renders the page heading', () => {
@@ -147,33 +118,42 @@ describe('AddDeviceToWallet', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders instruction point 1', () => {
+    it('renders the instruction titles and descriptions', () => {
       const { getByText } = renderComponent();
 
       expect(
-        getByText(strings('app_settings.add_device.points.one')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders instruction points 3 and 4', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.points.three')),
+        getByText(strings('app_settings.add_device.points.one_title')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.points.four')),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders point 2 bold text fragments', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.points.two_bold_one')),
+        getByText(strings('app_settings.add_device.points.one_description')),
       ).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.points.two_bold_two')),
+        getByText(strings('app_settings.add_device.points.two_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('app_settings.add_device.points.two_description_prefix'),
+          {
+            exact: false,
+          },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('app_settings.add_device.points.two_description_path'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.three_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.three_description')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_title')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four_description')),
       ).toBeOnTheScreen();
     });
 

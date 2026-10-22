@@ -423,6 +423,32 @@ export function useCardHomeActions({
     activeProviderId,
   ]);
 
+  const contactDetailsAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties(
+          withCardProvider(activeProviderId, {
+            action: CardActions.CONTACT_DETAILS_BUTTON,
+          }),
+        )
+        .build(),
+    );
+    if (isAuthenticated) {
+      navigation.navigate(Routes.CARD.CONTACT_DETAILS);
+    } else {
+      navigation.navigate(Routes.CARD.AUTHENTICATION, {
+        showAuthPrompt: true,
+        postAuthRedirect: { screen: Routes.CARD.CONTACT_DETAILS },
+      });
+    }
+  }, [
+    activeProviderId,
+    createEventBuilder,
+    isAuthenticated,
+    navigation,
+    trackEvent,
+  ]);
+
   const digitalWalletInstructionsAction = useCallback(() => {
     navigation.navigate(Routes.CARD.MODALS.ID, {
       screen: Routes.CARD.MODALS.DIGITAL_WALLET_INSTRUCTIONS,
@@ -601,6 +627,7 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    contactDetailsAction,
     digitalWalletInstructionsAction,
     unlinkMoneyAccountAction,
     revokeAllowanceAction,

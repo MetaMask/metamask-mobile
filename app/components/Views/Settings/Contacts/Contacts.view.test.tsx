@@ -1,5 +1,5 @@
 import '../../../../../tests/component-view/mocks';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
@@ -56,15 +56,19 @@ describeForPlatforms('Contacts component views', () => {
 
     fireEvent.press(await findByText(SYNCED_CONTACT.name));
 
-    const nameInput = await findByTestId(AddContactViewSelectorsIDs.NAME_INPUT);
-    const addressInput = await findByTestId(
-      AddContactViewSelectorsIDs.ADDRESS_INPUT,
+    const contactForm = await findByTestId(
+      AddContactViewSelectorsIDs.CONTAINER,
     );
 
-    await waitFor(() => {
-      expect(nameInput).toHaveProp('value', SYNCED_CONTACT.name);
-      expect(addressInput).toHaveProp('value', SYNCED_CONTACT.address);
-    });
+    expect(
+      within(contactForm).getByText(SYNCED_CONTACT.name),
+    ).toBeOnTheScreen();
+    expect(
+      within(contactForm).getByText(SYNCED_CONTACT.address),
+    ).toBeOnTheScreen();
+    expect(
+      within(contactForm).getByTestId(AddContactViewSelectorsIDs.COPY_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('deletes an existing contact from the contacts list', async () => {
@@ -251,7 +255,7 @@ describeForPlatforms('Contacts component views', () => {
       },
     });
 
-    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    // Edit mode opens read-only; tap the bottom Edit button to enable save/delete.
     fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
 
     const deleteButton = await findByTestId(

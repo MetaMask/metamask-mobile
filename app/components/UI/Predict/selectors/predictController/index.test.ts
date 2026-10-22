@@ -511,6 +511,39 @@ describe('Predict Controller Selectors', () => {
       expect(result).toEqual([]);
     });
 
+    it('matches the address case-insensitively', () => {
+      const checksumAddress = '0xAbC123';
+      const mockState = makeClaimablePositionsState({
+        [checksumAddress]: [makeWonPosition({ id: 'pos-a' })],
+      });
+
+      const result = selectPredictWonPositions(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        checksumAddress.toLowerCase(),
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('pos-a');
+    });
+
+    it('prefers a populated entry over an exact-case empty one', () => {
+      const checksumAddress = '0xAbC123';
+      const mockState = makeClaimablePositionsState({
+        [checksumAddress.toLowerCase()]: [],
+        [checksumAddress]: [makeWonPosition({ id: 'pos-a' })],
+      });
+
+      const result = selectPredictWonPositions(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+        checksumAddress.toLowerCase(),
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0].id).toBe('pos-a');
+    });
+
     it('retains memoized results across different addresses', () => {
       const addressA = '0xaaa';
       const addressB = '0xbbb';

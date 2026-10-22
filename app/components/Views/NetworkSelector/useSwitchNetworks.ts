@@ -7,6 +7,8 @@ import {
   InfuraNetworkType,
   BUILT_IN_NETWORKS,
 } from '@metamask/controller-utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { FUNGIBLE_ASSET_TYPES } from '../../../core/Assets/accountGroupAssetLoader';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   CaipChainId,
@@ -18,6 +20,7 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
 } from '../../../selectors/networkController';
+import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -66,6 +69,9 @@ export function useSwitchNetworks({
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const selectedAccountGroupAccounts = useSelector(
+    selectSelectedAccountGroupInternalAccounts,
+  );
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   /**
@@ -104,15 +110,6 @@ export function useSwitchNetworks({
           origin,
           networkConfigurationId,
         );
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = networkConfigurationId;
-        });
         dismissModal?.();
       } else {
         trace({
@@ -166,21 +163,12 @@ export function useSwitchNetworks({
 
       const {
         MultichainNetworkController,
-        AccountTrackerController,
+        AssetsController,
         SelectedNetworkController,
       } = Engine.context;
 
       if (domainIsConnectedDapp) {
         SelectedNetworkController.setNetworkClientIdForDomain(origin, type);
-        (
-          SelectedNetworkController as typeof SelectedNetworkController & {
-            update: (
-              fn: (state: { activeDappNetwork: string | null }) => void,
-            ) => void;
-          }
-        ).update((state: { activeDappNetwork: string | null }) => {
-          state.activeDappNetwork = type;
-        });
         dismissModal?.();
       } else {
         const networkConfiguration =
@@ -195,7 +183,16 @@ export function useSwitchNetworks({
         await MultichainNetworkController.setActiveNetwork(clientId);
 
         closeRpcModal?.();
-        AccountTrackerController.refresh([clientId]);
+        AssetsController.getAssets([...selectedAccountGroupAccounts], {
+          forceUpdate: true,
+          chainIds: [toEvmCaipChainId(networkConfiguration.chainId)],
+          assetTypes: FUNGIBLE_ASSET_TYPES,
+        }).catch((error) => {
+          Logger.error(
+            error as Error,
+            'Failed to refresh assets after network switch',
+          );
+        });
 
         dismissModal?.();
       }
@@ -225,6 +222,7 @@ export function useSwitchNetworks({
       parentSpan,
       dismissModal,
       closeRpcModal,
+      selectedAccountGroupAccounts,
     ],
   );
 

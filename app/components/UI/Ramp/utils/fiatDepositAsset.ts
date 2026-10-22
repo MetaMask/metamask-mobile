@@ -18,6 +18,13 @@ const ETH_MAINNET: FiatDepositAsset = {
   chainId: CHAIN_IDS.MAINNET,
 };
 
+const MUSD_MONAD_ASSET_ID = MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD];
+
+/** Returns whether an asset ID identifies mUSD on Monad. */
+export function isMonadMusdAssetId(assetId: string): boolean {
+  return assetId.toLowerCase() === MUSD_MONAD_ASSET_ID.toLowerCase();
+}
+
 /**
  * Mirrors `FIAT_ASSET_ID_BY_TX_TYPE`, unexported by TPC. See the TODO below.
  * `moneyAccountDeposit` is intentionally absent: it resolves ahead of both the
@@ -111,7 +118,7 @@ export function deriveFiatDepositAssetId(
   }
 
   if (txType === TransactionType.moneyAccountDeposit) {
-    return MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD];
+    return MUSD_MONAD_ASSET_ID;
   }
 
   return toAssetId(

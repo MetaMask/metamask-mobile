@@ -33,6 +33,8 @@ import PerpsSelectAdjustMarginActionView from '../Views/PerpsSelectAdjustMarginA
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsNavigation } from './usePerpsNavigation';
 import { usePerpsProOrderEdit } from './usePerpsProOrderEdit';
+import { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsSharePosition } from './usePerpsSharePosition';
 import { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts from './usePerpsToasts';
@@ -85,7 +87,9 @@ export interface UsePerpsProPositionsPanelActionsReturn {
 export const usePerpsProPositionsPanelActions =
   (): UsePerpsProPositionsPanelActionsReturn => {
     const navigation = useNavigation<AppNavigationProp>();
-    const { navigateToClosePosition } = usePerpsNavigation();
+    const { navigateToClosePosition, navigateToAdjustMargin } =
+      usePerpsNavigation();
+    const { sharePosition } = usePerpsSharePosition();
     const isEligible = useSelector(selectPerpsEligibility);
     const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
     const { gate } = useComplianceGate(selectedAddress ?? '');
@@ -94,6 +98,7 @@ export const usePerpsProPositionsPanelActions =
     const { handleUpdateTPSL } = usePerpsTPSLUpdate();
     const { showToast, PerpsToastOptions } = usePerpsToasts();
     const { playImpact } = useHaptics();
+    const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
 
     const [showCloseAllSheet, setShowCloseAllSheet] = useState(false);
     const [showCancelAllSheet, setShowCancelAllSheet] = useState(false);
@@ -227,12 +232,9 @@ export const usePerpsProPositionsPanelActions =
     const handleSharePosition = useCallback(
       (position: Position) => {
         playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
-        navigation.navigate(Routes.PERPS.PNL_HERO_CARD, {
-          position,
-          marketPrice: getPositionMarkPrice(position),
-        });
+        sharePosition(position, getPositionMarkPrice(position));
       },
-      [navigation, playImpact],
+      [playImpact, sharePosition],
     );
 
     const handleEditPositionTpSl = useCallback(
@@ -255,6 +257,7 @@ export const usePerpsProPositionsPanelActions =
               initialStopLossPrice: position.stopLossPrice,
               leverage: position.leverage.value,
               enableHaptics: true,
+              ...(useBottomSheet ? { useBottomSheet: true } : {}),
               onConfirm: async (
                 positionFromRoute?: Position,
                 takeProfitPrice?: string,
@@ -273,7 +276,13 @@ export const usePerpsProPositionsPanelActions =
           },
         );
       },
-      [handleUpdateTPSL, navigation, playImpact, runGatedEligibleAction],
+      [
+        handleUpdateTPSL,
+        navigation,
+        playImpact,
+        runGatedEligibleAction,
+        useBottomSheet,
+      ],
     );
 
     const isPositionMarginEditable = useCallback(
@@ -291,11 +300,28 @@ export const usePerpsProPositionsPanelActions =
           PERPS_EVENT_VALUE.SOURCE.ADJUST_MARGIN_ACTION,
           () => {
             playImpact(ImpactMoment.PageNavigation).catch(() => undefined);
+
+            // The bottom sheet treatment carries its own add/remove toggle, so
+            // the separate action-choice sheet is redundant there.
+            if (useBottomSheet) {
+              navigateToAdjustMargin(position, 'add', {
+                enableHaptics: true,
+                useBottomSheet: true,
+              });
+              return;
+            }
+
             setAdjustMarginPosition(position);
           },
         );
       },
-      [isPositionMarginEditable, playImpact, runGatedEligibleAction],
+      [
+        isPositionMarginEditable,
+        playImpact,
+        runGatedEligibleAction,
+        navigateToAdjustMargin,
+        useBottomSheet,
+      ],
     );
 
     const isOrderCancelable = useCallback(
@@ -445,6 +471,7 @@ export const usePerpsProPositionsPanelActions =
                 position={adjustMarginPosition}
                 onClose={handleAdjustMarginSheetClose}
                 enableHaptics
+                useBottomSheet={useBottomSheet}
               />
             </PerpsProModalPortal>
           )}
@@ -475,6 +502,7 @@ export const usePerpsProPositionsPanelActions =
         reversePosition,
         showCancelAllSheet,
         showCloseAllSheet,
+        useBottomSheet,
       ],
     );
 

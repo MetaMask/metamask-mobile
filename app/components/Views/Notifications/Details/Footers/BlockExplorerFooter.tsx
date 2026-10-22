@@ -64,7 +64,7 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     });
     Linking.openURL(txHashUrl);
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+      createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED)
         .addProperties({
           ...notificationAnalyticsProperties(notification),
           clicked_item: 'block_explorer',

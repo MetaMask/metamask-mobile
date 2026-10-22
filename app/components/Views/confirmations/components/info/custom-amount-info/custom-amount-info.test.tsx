@@ -55,7 +55,17 @@ import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { mockTheme } from '../../../../../../util/theme';
+import { useAutomaticTransactionPayToken } from '../../../hooks/pay/useAutomaticTransactionPayToken';
+import { ConfirmationFirstFrameProvider } from '../../../context/confirmation-first-frame-context';
 import { DepositPrefillStatus } from '../../../hooks/transactions/useDepositPrefillAmount';
+import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
+import { useTransactionPayPostQuote } from '../../../hooks/pay/useTransactionPayPostQuote';
+import { useEnsureTransakApiKey } from '../../../../../UI/Ramp/hooks/useEnsureTransakApiKey';
+import { BalanceProjection } from '../../../../../UI/Money/components/BalanceProjection';
+import useMMPayNavigation from '../../../hooks/ui/useMMPayNavigation';
+
+const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+  TransactionType.membershipSubscription;
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
 jest.mock('../../../hooks/ui/useMMPayNavigation');
@@ -68,6 +78,8 @@ jest.mock('../../../context/confirmation-context');
 jest.mock('../../../context/alert-system-context');
 jest.mock('../../../hooks/transactions/useTransactionCustomAmountAlerts');
 jest.mock('../../../hooks/pay/useTransactionPayMetrics');
+jest.mock('../../../hooks/pay/useTransactionPayPostQuote');
+jest.mock('../../../../../UI/Ramp/hooks/useEnsureTransakApiKey');
 jest.mock('../../../hooks/send/useAccountTokens');
 jest.mock('../../../../../UI/Predict/hooks/usePredictAccountState', () => ({
   usePredictAccountState: () => ({
@@ -135,7 +147,7 @@ jest.mock('../../PayAccountSelector', () => {
   };
 });
 jest.mock('../../../../../UI/Money/components/BalanceProjection', () => ({
-  BalanceProjection: () => null,
+  BalanceProjection: jest.fn(() => null),
 }));
 jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   useConfirmationAlertMetrics: () => ({
@@ -327,6 +339,10 @@ describe('CustomAmountInfo', () => {
   const useTransactionCustomAmountMock = jest.mocked(
     useTransactionCustomAmount,
   );
+  const useTransactionPayPostQuoteMock = jest.mocked(
+    useTransactionPayPostQuote,
+  );
+  const useEnsureTransakApiKeyMock = jest.mocked(useEnsureTransakApiKey);
   type CustomAmountMock = ReturnType<typeof useTransactionCustomAmount>;
   const createCustomAmountMock = (
     overrides: Partial<CustomAmountMock> = {},
@@ -423,6 +439,8 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     useAlertsMock.mockReturnValue({
@@ -462,11 +480,229 @@ describe('CustomAmountInfo', () => {
     setControllerTransactions([]);
   });
 
-  it('renders amount', () => {
-    const { getByText } = render();
+  describe('first-frame deferral', () => {
+    let frames: FrameRequestCallback[];
 
-    expect(getByText('123.45')).toBeOnTheScreen();
+    beforeEach(() => {
+      frames = [];
+      jest
+        .spyOn(global, 'requestAnimationFrame')
+        .mockImplementation((callback) => {
+          frames.push(callback);
+          return frames.length;
+        });
+      jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(jest.fn());
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    function createDeferredCustomAmountInfo(
+      props: CustomAmountInfoProps = {},
+      transactionId = 'transaction-1',
+    ) {
+      return (
+        <ConfirmationFirstFrameProvider enabled transactionId={transactionId}>
+          {createCustomAmountInfo(props)}
+        </ConfirmationFirstFrameProvider>
+      );
+    }
+
+    function renderDeferred(props: CustomAmountInfoProps = {}) {
+      return renderWithProvider(createDeferredCustomAmountInfo(props), {
+        state: merge(
+          {},
+          simpleSendTransactionControllerMock,
+          transactionApprovalControllerMock,
+          otherControllersMock,
+        ),
+      });
+    }
+
+    function completeFirstFrame() {
+      act(() => frames[0](16));
+      act(() => frames[1](32));
+    }
+
+    it('initializes immediately without a first-frame provider', () => {
+      render();
+
+      expect(useAutomaticTransactionPayToken).toHaveBeenCalled();
+      expect(useTransactionPayMetrics).toHaveBeenCalled();
+      expect(useEnsureTransakApiKey).toHaveBeenCalled();
+      expect(useTransactionPayPostQuote).toHaveBeenCalled();
+      expect(requestAnimationFrame).not.toHaveBeenCalled();
+    });
+
+    it('renders the live amount, keyboard and account selector on the first frame', () => {
+      const { getByRole, getByTestId } = renderDeferred({
+        supportAccountSelection: true,
+      });
+
+      expect(getByRole('button', { name: '$123.45' })).toBeOnTheScreen();
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(getByTestId('pay-account-selector')).toBeOnTheScreen();
+      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
+      expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
+      expect(useTransactionCustomAmountMock).toHaveBeenCalled();
+      expect(useClearConfirmationOnBackSwipeMock).toHaveBeenCalled();
+    });
+
+    it('defers automatic pay token selection and metrics until after the first frame', () => {
+      renderDeferred({ disablePay: true });
+
+      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
+      expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
+
+      act(() => frames[0](16));
+
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+      expect(useTransactionPayMetrics).not.toHaveBeenCalled();
+      expect(useEnsureTransakApiKey).not.toHaveBeenCalled();
+      expect(useTransactionPayPostQuote).not.toHaveBeenCalled();
+
+      act(() => frames[1](32));
+
+      expect(useAutomaticTransactionPayToken).toHaveBeenCalledWith(
+        expect.objectContaining({ disable: true }),
+      );
+      expect(useTransactionPayMetrics).toHaveBeenCalled();
+      expect(useEnsureTransakApiKey).toHaveBeenCalled();
+      expect(useTransactionPayPostQuote).toHaveBeenCalled();
+    });
+
+    it('does not start deferred initialization after dismissal during the frame yield', () => {
+      const { unmount } = renderDeferred();
+      act(() => frames[0](16));
+
+      unmount();
+      act(() => frames[1](32));
+
+      expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+    });
+
+    it('defers initialization again when a different transaction replaces a ready one', () => {
+      const { rerender } = renderDeferred();
+      completeFirstFrame();
+      jest.mocked(useAutomaticTransactionPayToken).mockClear();
+
+      rerender(createDeferredCustomAmountInfo({}, 'next-transaction'));
+
+      expect(useAutomaticTransactionPayToken).not.toHaveBeenCalled();
+    });
   });
+
+  it('renders amount', () => {
+    const { getByTestId } = render();
+
+    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
+      '123.45',
+    );
+  });
+
+  it('shows membership payment coverage instead of the Money balance projection', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { getByText } = render({
+      transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    });
+
+    expect(
+      getByText(
+        'We’ll add $123.45 to your Money account to cover this payment.',
+      ),
+    ).toBeOnTheScreen();
+    expect(BalanceProjection).not.toHaveBeenCalled();
+  });
+
+  it('keeps the balance projection for regular Money deposits', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+
+    const { queryByTestId } = render({
+      transactionType: TransactionType.moneyAccountDeposit,
+    });
+
+    expect(queryByTestId('membership-info-banner')).toBeNull();
+    expect(BalanceProjection).toHaveBeenCalledWith(
+      expect.objectContaining({ amountFiat: '123.45', projectedYears: 1 }),
+      undefined,
+    );
+  });
+
+  it('can prepare a fixed membership amount without displaying the keypad', async () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      txParams: { from: '0x123' },
+    } as ReturnType<typeof useTransactionMetadataRequest>);
+    const updateTokenAmount = jest.fn().mockResolvedValue(undefined);
+    useTransactionCustomAmountMock.mockReturnValue(
+      createCustomAmountMock({
+        amountFiat: '1',
+        depositPrefillStatus: DepositPrefillStatus.Skipped,
+        updateTokenAmount,
+      }),
+    );
+    const { getByTestId, queryByTestId } = render({
+      transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('membership-top-up-prepare-button'));
+    });
+
+    expect(updateTokenAmount).toHaveBeenCalledTimes(1);
+    expect(queryByTestId(KeypadTestIds.DELETE_BUTTON)).toBeNull();
+    expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+  });
+
+  it.each([
+    DepositPrefillStatus.Disabled,
+    DepositPrefillStatus.Skipped,
+    DepositPrefillStatus.Prefilled,
+  ])(
+    'does not expose membership amount entry when prefill is %s',
+    (depositPrefillStatus) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+        txParams: { from: '0x123' },
+      } as ReturnType<typeof useTransactionMetadataRequest>);
+      useRouteMock.mockReturnValue({
+        key: 'membership',
+        name: 'ConfirmationRequestModal',
+        params: {
+          amount: '1',
+        },
+      });
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '1',
+          depositPrefillStatus,
+        }),
+      );
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+      });
+      fireEvent.press(getByTestId('custom-amount-input'));
+
+      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+      expect(queryByTestId('custom-amount-cursor')).toBeNull();
+      expect(queryByTestId(KeypadTestIds.DELETE_BUTTON)).toBeNull();
+      expect(useMMPayNavigation).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.any(Function),
+        true,
+      );
+    },
+  );
 
   it('renders payment token', () => {
     const { getByText } = render();
@@ -485,9 +721,9 @@ describe('CustomAmountInfo', () => {
       }),
     );
 
-    const { getByText, getByTestId } = render();
+    const { getByTestId } = render();
 
-    expect(getByText('50.38')).toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input-value')).toHaveTextContent('50.38');
 
     fireEvent.press(getByTestId(KeypadTestIds.DELETE_BUTTON));
 
@@ -592,31 +828,21 @@ describe('CustomAmountInfo', () => {
       });
     });
 
-    it('applies 16dp paddingBottom to the bottom block on Android', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'android',
-        writable: true,
-      });
+    it.each(['android', 'ios'])(
+      'applies 16dp paddingBottom to the bottom block on %s',
+      (platformOS) => {
+        Object.defineProperty(Platform, 'OS', {
+          value: platformOS,
+          writable: true,
+        });
 
-      const { getByTestId } = render();
+        const { getByTestId } = render();
 
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 16,
-      });
-    });
-
-    it('does not apply paddingBottom to the bottom block on iOS', () => {
-      Object.defineProperty(Platform, 'OS', {
-        value: 'ios',
-        writable: true,
-      });
-
-      const { getByTestId } = render();
-
-      expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
-        paddingBottom: 0,
-      });
-    });
+        expect(getByTestId(CustomAmountInfoTestIds.BOTTOM_BLOCK)).toHaveStyle({
+          paddingBottom: 16,
+        });
+      },
+    );
   });
 
   it('renders footerText when passed in', () => {
@@ -781,7 +1007,7 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('total-row-skeleton')).toBeOnTheScreen();
     });
 
-    it('blocks review rows, amount editing, and duplicate submission during preparation', () => {
+    it('blocks review rows and duplicate submission during preparation', () => {
       const { updateTokenAmount } = arrangePendingPreparation();
       const { getByTestId } = render({
         supportAccountSelection: true,
@@ -800,7 +1026,11 @@ describe('CustomAmountInfo', () => {
       expect(
         getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props.pointerEvents,
       ).toBe('none');
-      expect(getByTestId('custom-amount-input').props.onPress).toBeUndefined();
+      // The amount stays pressable so preparation can never strand the user.
+      expect(getByTestId('custom-amount-input')).toHaveProp(
+        'accessibilityRole',
+        'button',
+      );
     });
 
     it('keeps the amount visually enabled during preparation', () => {
@@ -811,9 +1041,7 @@ describe('CustomAmountInfo', () => {
 
       fireEvent.press(getByTestId('deposit-keyboard-done-button'));
 
-      expect(getByTestId('custom-amount-input')).toHaveStyle({
-        color: mockTheme.colors.text.default,
-      });
+      expect(getByTestId('custom-amount-input-value')).toBeOnTheScreen();
       expect(getByTestId('custom-amount-symbol')).toHaveStyle({
         color: mockTheme.colors.text.default,
       });
@@ -853,9 +1081,10 @@ describe('CustomAmountInfo', () => {
         view.getByTestId(CustomAmountInfoTestIds.REVIEW_ROWS).props
           .pointerEvents,
       ).toBe('auto');
-      expect(
-        view.getByTestId('custom-amount-input').props.onPress,
-      ).toBeUndefined();
+      expect(view.getByTestId('custom-amount-input')).toHaveProp(
+        'accessibilityRole',
+        'button',
+      );
     });
 
     it('keeps the loading review until Redux observes controller loading', async () => {
@@ -1085,8 +1314,9 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
-      expect(view.getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
+      expect(view.getByTestId('custom-amount-input')).toHaveProp(
+        'accessibilityRole',
+        'button',
       );
       expect(mockShowToast).toHaveBeenCalledTimes(1);
     });
@@ -1109,9 +1339,10 @@ describe('CustomAmountInfo', () => {
       fireEvent.press(view.getByTestId('deposit-keyboard-done-button'));
 
       expect(view.queryByTestId('deposit-keyboard')).not.toBeOnTheScreen();
-      expect(
-        view.getByTestId('custom-amount-input').props.onPress,
-      ).toBeUndefined();
+      expect(view.getByTestId('custom-amount-input')).toHaveProp(
+        'accessibilityRole',
+        'button',
+      );
       expect(view.getByTestId('bridge-fee-row-skeleton')).toBeOnTheScreen();
 
       mockTransactionPayControllerState.transactionData[nonMoneyTransactionId] =
@@ -1233,8 +1464,9 @@ describe('CustomAmountInfo', () => {
     );
     // Keyboard stays open: Done button and amount editing remain available.
     expect(queryByText(strings('confirm.edit_amount_done'))).toBeOnTheScreen();
-    expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-      expect.any(Function),
+    expect(getByTestId('custom-amount-input')).toHaveProp(
+      'accessibilityRole',
+      'button',
     );
   });
 
@@ -2159,6 +2391,8 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     const { getByText } = render();
@@ -2184,6 +2418,8 @@ describe('CustomAmountInfo', () => {
       setIsHeadlessBuyInProgress: noop,
       setIsTransactionDataUpdating: noop,
       setIsTransactionValueUpdating: noop,
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: noop,
     } as ReturnType<typeof useConfirmationContext>);
 
     const { getByTestId } = render();
@@ -2239,6 +2475,41 @@ describe('CustomAmountInfo', () => {
   });
 
   describe('prefill auto-submit', () => {
+    it('prepares a nonzero initial amount once when its payment token becomes ready', async () => {
+      const updateTokenAmount = jest.fn().mockResolvedValue(undefined);
+      const onAmountSubmit = jest.fn();
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '5',
+          depositPrefillStatus: DepositPrefillStatus.Loading,
+          updateTokenAmount,
+        }),
+      );
+      const props = {
+        transactionType: TransactionType.moneyAccountDeposit,
+        onAmountSubmit,
+      };
+      const { rerender } = render(props);
+      expect(updateTokenAmount).not.toHaveBeenCalled();
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '5',
+          depositPrefillStatus: DepositPrefillStatus.Prefilled,
+          updateTokenAmount,
+        }),
+      );
+      await act(async () => {
+        rerender(createCustomAmountInfo(props));
+      });
+      await act(async () => {
+        rerender(createCustomAmountInfo(props));
+      });
+
+      expect(updateTokenAmount).toHaveBeenCalledTimes(1);
+      expect(onAmountSubmit).toHaveBeenCalledTimes(1);
+    });
+
     it('calls handleDone when isPrefillPending transitions to false', async () => {
       const updateTokenAmountMock = jest.fn();
       useTransactionCustomAmountMock.mockReturnValue(
@@ -2371,6 +2642,112 @@ describe('CustomAmountInfo', () => {
       expect(updateTokenAmountMock).not.toHaveBeenCalled();
     });
 
+    // Regression: a prefilled amount is shown long before its quote arrives.
+    // Tapping it opened the keypad, but a prefill that landed or re-ran a frame
+    // later auto-submitted it closed again, so the amount looked unresponsive
+    // until quotes settled.
+    it('keeps the keypad open when a prefill re-runs after the user taps the amount', async () => {
+      const updateTokenAmountMock = jest.fn();
+
+      const rerenderWithStatus = async (
+        view: ReturnType<typeof render>,
+        status: DepositPrefillStatus,
+      ) => {
+        useTransactionCustomAmountMock.mockReturnValue(
+          createCustomAmountMock({
+            amountFiat: '50',
+            depositPrefillStatus: status,
+            updateTokenAmount: updateTokenAmountMock,
+          }),
+        );
+
+        await act(async () => {
+          view.rerender(
+            createCustomAmountInfo({
+              transactionType: TransactionType.moneyAccountDeposit,
+            }),
+          );
+        });
+      };
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '0',
+          hasInput: false,
+          depositPrefillStatus: DepositPrefillStatus.Skipped,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      // The prefill resolves and auto-submits the amount the user never touched.
+      await rerenderWithStatus(view, DepositPrefillStatus.Prefilled);
+
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+      expect(view.queryByTestId('deposit-keyboard')).toBeNull();
+
+      // User taps the amount to edit it while the quote is still loading.
+      await act(async () => {
+        fireEvent.press(view.getByTestId('custom-amount-input'));
+      });
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+
+      // Pay token churn re-runs the prefill underneath the open keypad.
+      await rerenderWithStatus(view, DepositPrefillStatus.Skipped);
+      await rerenderWithStatus(view, DepositPrefillStatus.Prefilled);
+
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(updateTokenAmountMock).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not auto-submit a pending prefill once the user has tapped the amount', async () => {
+      const updateTokenAmountMock = jest.fn();
+      (getMoneyAccountDepositIntent as jest.Mock).mockReturnValue('addMusd');
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        batchId: '0xbatch',
+        txParams: { from: '0x123' },
+      } as never);
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: true,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      const view = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(view.getByTestId('custom-amount-skeleton'));
+      });
+
+      useTransactionCustomAmountMock.mockReturnValue(
+        createCustomAmountMock({
+          amountFiat: '50',
+          isPrefillPending: false,
+          updateTokenAmount: updateTokenAmountMock,
+        }),
+      );
+
+      await act(async () => {
+        view.rerender(
+          createCustomAmountInfo({
+            transactionType: TransactionType.moneyAccountDeposit,
+          }),
+        );
+      });
+
+      expect(updateTokenAmountMock).not.toHaveBeenCalled();
+      expect(view.getByTestId('deposit-keyboard')).toBeOnTheScreen();
+    });
+
     it('does not duplicate handleDone when user taps Done with a pending prefill', async () => {
       const updateTokenAmountMock = jest.fn();
       const onAmountSubmitMock = jest.fn();
@@ -2495,6 +2872,21 @@ describe('CustomAmountInfo', () => {
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
     });
 
+    it('opens the keyboard when the loading amount skeleton is pressed', () => {
+      // Escape hatch: a prefill that never resolves must not strand the user.
+      setupDepositPrefill();
+
+      const { getByTestId, queryByTestId } = render({
+        transactionType: TransactionType.moneyAccountDeposit,
+      });
+
+      fireEvent.press(getByTestId('custom-amount-skeleton'));
+
+      expect(getByTestId('deposit-keyboard')).toBeOnTheScreen();
+      expect(queryByTestId('custom-amount-skeleton')).toBeNull();
+      expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
+    });
+
     it('shows amount skeleton while tokens have not loaded yet and prefill is enabled', () => {
       setupDepositPrefill();
       useTransactionPayTokenMock.mockReturnValue({
@@ -2541,8 +2933,9 @@ describe('CustomAmountInfo', () => {
 
       expect(queryByTestId('custom-amount-skeleton')).toBeNull();
       expect(getByTestId('custom-amount-input')).toBeOnTheScreen();
-      expect(getByTestId('custom-amount-input').props.onPress).toEqual(
-        expect.any(Function),
+      expect(getByTestId('custom-amount-input')).toHaveProp(
+        'accessibilityRole',
+        'button',
       );
     });
 

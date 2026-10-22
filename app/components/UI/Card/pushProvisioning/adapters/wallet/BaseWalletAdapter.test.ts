@@ -1,10 +1,10 @@
 import { Platform, PlatformOSType } from 'react-native';
+import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { BaseWalletAdapter } from './BaseWalletAdapter';
 import {
   WalletType,
   ProvisionCardParams,
   ProvisioningResult,
-  CardActivationEvent,
 } from '../../types';
 
 // Mock react-native-wallet module
@@ -40,7 +40,6 @@ jest.mock('../../constants', () => ({
 class TestWalletAdapter extends BaseWalletAdapter {
   readonly walletType: WalletType = 'google_wallet';
   readonly platform: PlatformOSType = 'android';
-  public lastEvent: CardActivationEvent | null = null;
 
   protected getAdapterName(): string {
     return 'TestWalletAdapter';
@@ -48,21 +47,6 @@ class TestWalletAdapter extends BaseWalletAdapter {
 
   protected getExpectedPlatform(): PlatformOSType {
     return 'android';
-  }
-
-  protected handleNativeActivationEvent(data: unknown): void {
-    const typedData = data as { actionStatus?: string; tokenId?: string };
-    const event: CardActivationEvent = {
-      tokenId: typedData.tokenId,
-      status:
-        typedData.actionStatus === 'active'
-          ? 'activated'
-          : typedData.actionStatus === 'canceled'
-            ? 'canceled'
-            : 'failed',
-    };
-    this.lastEvent = event;
-    this.notifyActivationListeners(event);
   }
 
   // Expose provisionCard for interface compliance
@@ -97,7 +81,7 @@ class TestWalletAdapter extends BaseWalletAdapter {
   }
 
   // Helper to test handleNativeActivationEvent (protected method)
-  public testHandleNativeActivationEvent(data: unknown) {
+  public testHandleNativeActivationEvent(data: onCardActivatedPayload) {
     this.handleNativeActivationEvent(data);
   }
 
@@ -234,6 +218,16 @@ describe('BaseWalletAdapter', () => {
       expect(result.recommendedAction).toBe('none');
     });
 
+    it('hides Add when the card requires activation', async () => {
+      mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
+
+      const result = await adapter.getEligibility('1234');
+
+      expect(result.canAddCard).toBe(false);
+      expect(result.recommendedAction).toBe('none');
+      expect(result.existingCardStatus).toBe('requires_activation');
+    });
+
     it('returns add_card when card not found', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('not found');
 
@@ -305,7 +299,7 @@ describe('BaseWalletAdapter', () => {
 
       // Simulate native event
       adapter.testHandleNativeActivationEvent({
-        actionStatus: 'active',
+        status: 'activated',
         tokenId: 'token-123',
       });
 
@@ -322,7 +316,7 @@ describe('BaseWalletAdapter', () => {
       adapter.addActivationListener(callback2);
 
       adapter.testHandleNativeActivationEvent({
-        actionStatus: 'active',
+        status: 'activated',
         tokenId: 'token-123',
       });
 
@@ -337,7 +331,7 @@ describe('BaseWalletAdapter', () => {
       unsubscribe();
 
       adapter.testHandleNativeActivationEvent({
-        actionStatus: 'active',
+        status: 'activated',
         tokenId: 'token-123',
       });
 
@@ -356,7 +350,7 @@ describe('BaseWalletAdapter', () => {
       // Should not throw
       expect(() => {
         adapter.testHandleNativeActivationEvent({
-          actionStatus: 'active',
+          status: 'activated',
           tokenId: 'token-123',
         });
       }).not.toThrow();

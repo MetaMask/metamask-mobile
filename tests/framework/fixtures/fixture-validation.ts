@@ -309,6 +309,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'engine.backgroundState.NetworkEnablementController',
     'engine.backgroundState.PredictController',
     'engine.backgroundState.RewardsController',
+    'engine.backgroundState.RewardsMoneyController',
     'engine.backgroundState.SeedlessOnboardingController',
     'engine.backgroundState.SelectedNetworkController',
     'engine.backgroundState.SignatureController',
@@ -324,6 +325,11 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'card.geoLocation',
     'engine.backgroundState.GeolocationController.location',
     'engine.backgroundState.GeolocationController.lastFetchedAt',
+    'engine.backgroundState.ConfigRegistryController.lastFetched',
+    // Fetched from the config registry during onboarding. The payload and
+    // etag change between runs, so they cannot be pinned in the fixture.
+    'engine.backgroundState.ConfigRegistryController.configs.eventsConfig',
+    'engine.backgroundState.ConfigRegistryController.eventsConfigEtag',
 
     // ── Networks present in app defaults but not in fixture (added by controller at runtime) ──
     'engine.backgroundState.NetworkController.networkConfigurationsByChainId.0x2105', // Base

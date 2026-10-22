@@ -37,6 +37,7 @@ import {
   DEFAULT_PRICE_RANGE_TOKEN_SIDE,
   formatExchangeRate,
   formatTokenPrice,
+  isInvertedPriceRange,
   isValidPriceRange,
   PRICE_RANGE_MAX_PERCENTS,
   PRICE_RANGE_MIN_PERCENTS,
@@ -71,8 +72,6 @@ function PricePercentRow({
   isDisabled: boolean;
   onSelect: (percent: number) => void;
 }) {
-  const tw = useTailwind();
-
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -81,28 +80,18 @@ function PricePercentRow({
       twClassName="w-full"
     >
       {percents.map((percent) => (
-        <Pressable
+        <Button
           key={percent}
-          accessibilityRole="button"
-          disabled={isDisabled}
+          variant={ButtonVariant.Secondary}
+          size={ButtonSize.Md}
+          isDisabled={isDisabled}
           onPress={() => onSelect(percent)}
           testID={PriceRangeSheetSelectorsIDs.PERCENT(bound, percent)}
-          style={({ pressed }) =>
-            tw.style(
-              'h-12 min-w-0 flex-1 items-center justify-center rounded-xl bg-muted',
-              isDisabled && 'opacity-50',
-              pressed && !isDisabled && 'bg-muted-pressed',
-            )
-          }
+          twClassName="min-w-0 flex-1 px-0"
+          textProps={{ fontWeight: FontWeight.Medium }}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            numberOfLines={1}
-          >
-            {formatPercentLabel(percent)}
-          </Text>
-        </Pressable>
+          {formatPercentLabel(percent)}
+        </Button>
       ))}
     </Box>
   );
@@ -146,9 +135,9 @@ function PriceRangeAmountField({
 const PriceRangeSheet = ({
   sourceToken,
   destToken,
+  currency,
   sourceFiatRate,
   destFiatRate,
-  currentCurrency,
   initialTokenSide,
   initialMin,
   initialMax,
@@ -188,17 +177,13 @@ const PriceRangeSheet = ({
   const isClearedRange = pendingMin === '' && pendingMax === '';
   const canConfirm =
     isClearedRange || isValidPriceRange(pendingMin, pendingMax);
-  const currencySymbol = getCurrencySymbol(currentCurrency);
+  const showInvertedRangeError = isInvertedPriceRange(pendingMin, pendingMax);
+  const currencySymbol = getCurrencySymbol(currency);
   const isKeypadOpen = focusedField !== null;
 
   const priceLabel = useMemo(
-    () =>
-      formatTokenPrice(
-        selectedToken?.symbol,
-        selectedFiatRate,
-        currentCurrency,
-      ),
-    [currentCurrency, selectedFiatRate, selectedToken?.symbol],
+    () => formatTokenPrice(selectedToken?.symbol, selectedFiatRate, currency),
+    [currency, selectedToken?.symbol, selectedFiatRate],
   );
   const exchangeRateLabel = useMemo(
     () =>
@@ -296,7 +281,7 @@ const PriceRangeSheet = ({
       isValidPriceRange(pendingMin, pendingMax)
         ? {
             tokenSide: pendingTokenSide,
-            currency: currentCurrency,
+            currency,
             min: pendingMin,
             max: pendingMax,
           }
@@ -306,7 +291,7 @@ const PriceRangeSheet = ({
   }, [
     canConfirm,
     closeSheet,
-    currentCurrency,
+    currency,
     onConfirm,
     pendingMax,
     pendingMin,
@@ -499,6 +484,15 @@ const PriceRangeSheet = ({
                 testID={PriceRangeSheetSelectorsIDs.MAX_INPUT}
                 onPress={() => focusField('max')}
               />
+              {showInvertedRangeError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={PriceRangeSheetSelectorsIDs.MAX_ERROR}
+                >
+                  {strings('bridge.recurring.price_range.max_must_exceed_min')}
+                </Text>
+              ) : null}
             </Box>
           </Box>
         </ScrollView>

@@ -53,14 +53,34 @@ describe('useMoneyAccountDepositAndOrder', () => {
   it('mounts the default-pay-section hook so the remote flag applies to this flow', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
-    expect(useDefaultPaySelectedSection).toHaveBeenCalled();
+    expect(useDefaultPaySelectedSection).toHaveBeenCalledWith({
+      disable: false,
+    });
+  });
+
+  it('disables both automatic selection paths when disabled', () => {
+    renderHook(() => useMoneyAccountDepositAndOrder({ disable: true }));
+
+    expect(useDefaultPaySelectedSection).toHaveBeenCalledWith({
+      disable: true,
+    });
+    expect(useAutomaticMoneyAccountPayTokenMock).toHaveBeenCalledWith(
+      expect.objectContaining({ disable: true }),
+    );
+  });
+
+  it('still points the pay token at mUSD on Monad when disabled', () => {
+    useIsMoneyAccountPaymentOverrideMock.mockReturnValue(true);
+
+    renderHook(() => useMoneyAccountDepositAndOrder({ disable: true }));
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
   });
 
   it('mounts the money account fallback with the current pay state', () => {
-    jest.mocked(useTransactionPayAvailableTokens).mockReturnValue({
-      availableTokens: [],
-      hasTokens: true,
-    });
     jest
       .mocked(useTransactionPayFiatPayment)
       .mockReturnValue({ selectedPaymentMethodId: 'card' } as never);
@@ -72,8 +92,9 @@ describe('useMoneyAccountDepositAndOrder', () => {
     renderHook(() => useMoneyAccountDepositAndOrder());
 
     expect(useAutomaticMoneyAccountPayTokenMock).toHaveBeenCalledWith({
+      availableTokens: [],
+      disable: false,
       hasFiatPaymentSelected: true,
-      hasTokenBalance: true,
       payTokenSelected: true,
     });
   });

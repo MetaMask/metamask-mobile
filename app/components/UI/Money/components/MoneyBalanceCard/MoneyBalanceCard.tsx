@@ -8,6 +8,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxFlexWrap,
   BoxJustifyContent,
   Button,
   ButtonIcon,
@@ -27,35 +28,36 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
 import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import styleSheet from './MoneyBalanceCard.styles';
+import BoxGlass from '../../../../../component-library/components-temp/BoxGlass';
+import ButtonGlass from '../../../../../component-library/components-temp/ButtonGlass';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
-import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
-import Logger from '../../../../../util/Logger';
 import {
+  BOTTOM_SHEET_NAMES,
   SCREEN_NAMES,
   COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
   MONEY_TOOLTIP_NAMES,
   MONEY_TOOLTIP_TYPES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { useMoneyAddMoney } from '../../hooks/useMoneyAddMoney';
 
-const MoneyBalanceCard = () => {
+export interface MoneyBalanceCardProps {
+  isGlass?: boolean;
+}
+
+const MoneyBalanceCard = ({ isGlass = false }: MoneyBalanceCardProps) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const hasSeenMoneyCardRef = useRef(false);
-  const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
@@ -67,7 +69,6 @@ const MoneyBalanceCard = () => {
   const { apyPercent, vaultApyQuery } = useMoneyVaultApy();
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
-  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
   const isOnboardingEnabled = useSelector(
     selectMoneyOnboardingStepperAnimationEnabled,
@@ -76,6 +77,9 @@ const MoneyBalanceCard = () => {
     selectHasWalletFundingPrimaryCta,
   );
   const privacyMode = useSelector(selectPrivacyMode);
+  const isMoneyAccountGeoEligible = useSelector(
+    selectIsMoneyAccountGeoEligible,
+  );
 
   const {
     trackButtonClicked,
@@ -85,6 +89,9 @@ const MoneyBalanceCard = () => {
   } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
+  const { handleAddPress } = useMoneyAddMoney({
+    trackButtonClicked,
   });
 
   const isBalanceFetching = isBalanceFetchError && moneyBalanceQuery.isFetching;
@@ -107,6 +114,14 @@ const MoneyBalanceCard = () => {
     !isBalanceFetchError &&
     !isUnavailable &&
     totalFiatRaw === '0';
+  const hasResolvedNonZeroBalance =
+    hasMoneyAccount &&
+    !isBalanceLoading &&
+    !isBalanceFetchError &&
+    totalFiatRaw !== undefined &&
+    totalFiatRaw !== '0';
+  const shouldRenderCard =
+    isMoneyAccountGeoEligible || hasResolvedNonZeroBalance;
 
   const balanceText = totalFiatFormatted ?? '';
 
@@ -135,65 +150,41 @@ const MoneyBalanceCard = () => {
   }
 
   useEffect(() => {
-    if (hasSeenMoneyCardRef.current) {
+    if (!shouldRenderCard || hasSeenMoneyCardRef.current) {
       return;
     }
     hasSeenMoneyCardRef.current = true;
     trackComponentViewed();
-  }, [trackComponentViewed]);
+  }, [shouldRenderCard, trackComponentViewed]);
+
+  const navigateToGeoBlockSheet = useCallback(() => {
+    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+  }, [navigation]);
 
   const handleCardPress = useCallback(() => {
     trackSurfaceClicked({
-      redirect_target:
-        hasSeenMoneyOnboarding || !isOnboardingEnabled
+      redirect_target: !isMoneyAccountGeoEligible
+        ? BOTTOM_SHEET_NAMES.MONEY_GEO_BLOCK_SHEET
+        : hasSeenMoneyOnboarding || !isOnboardingEnabled
           ? SCREEN_NAMES.MONEY_HOME
           : SCREEN_NAMES.MONEY_ONBOARDING,
     });
-    navigateToMoneyHome();
-  }, [
-    hasSeenMoneyOnboarding,
-    isOnboardingEnabled,
-    navigateToMoneyHome,
-    trackSurfaceClicked,
-  ]);
 
-  const handleAddPress = useCallback(async () => {
-    const redirectedToOnboarding =
-      !hasSeenMoneyOnboarding && isOnboardingEnabled;
-
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      button_intent: redirectedToOnboarding
-        ? MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING
-        : MONEY_BUTTON_INTENTS.ADD_MONEY,
-      label_key: buttonLabelKey,
-      redirect_target: redirectedToOnboarding
-        ? SCREEN_NAMES.MONEY_ONBOARDING
-        : SCREEN_NAMES.MONEY_DEPOSIT,
-    });
-
-    if (redirectedToOnboarding) {
-      navigation.navigate(Routes.MONEY.ONBOARDING, {
-        postOnboardingRedirect: {
-          type: MoneyPostOnboardingRedirectType.DEPOSIT,
-        },
-      });
+    if (!isMoneyAccountGeoEligible) {
+      navigateToGeoBlockSheet();
       return;
     }
 
-    try {
-      await initiateDeposit();
-    } catch (error) {
-      Logger.error(error as Error, {
-        message: '[MoneyBalanceCard] Failed to initiate deposit',
-      });
-    }
+    navigateToMoneyHome();
   }, [
     hasSeenMoneyOnboarding,
-    initiateDeposit,
+    isMoneyAccountGeoEligible,
     isOnboardingEnabled,
-    navigation,
-    trackButtonClicked,
+    navigateToGeoBlockSheet,
+    navigateToMoneyHome,
+    trackSurfaceClicked,
   ]);
 
   const handleInfoPress = useCallback(() => {
@@ -205,6 +196,10 @@ const MoneyBalanceCard = () => {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
   }, [navigation, trackTooltipClicked]);
+
+  if (!shouldRenderCard) {
+    return null;
+  }
 
   const renderBalanceSlot = () => {
     if (!hasMoneyAccount || isBalanceLoading || isRetrying) {
@@ -270,47 +265,51 @@ const MoneyBalanceCard = () => {
     );
   };
 
-  return (
-    <Pressable
-      testID={containerTestId}
-      onPress={handleCardPress}
-      style={({ pressed }) => [
-        styles.container,
-        tw.style(
-          'flex-row items-center justify-between bg-muted',
-          pressed && 'opacity-80',
-        ),
-      ]}
-    >
-      <Box twClassName="min-w-0 flex-1 gap-1 pr-3">
+  const content = (
+    <>
+      <Box twClassName="w-0 min-w-0 flex-1 gap-1 pr-3">
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
+          flexWrap={BoxFlexWrap.Wrap}
+          twClassName="w-full min-w-0"
         >
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
+            twClassName="max-w-full"
             testID={MoneyBalanceCardTestIds.LABEL}
           >
             {strings('money.balance_card.label')}
           </Text>
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-            testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="shrink-0"
           >
-            {strings('money.balance_card.currency_suffix')}
-          </Text>
-          <ButtonIcon
-            iconName={IconName.Info}
-            iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Sm}
-            onPress={handleInfoPress}
-            accessibilityLabel={strings('money.balance_card.info_sheet_title')}
-            testID={MoneyBalanceCardTestIds.INFO_BUTTON}
-          />
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              testID={MoneyBalanceCardTestIds.CURRENCY_SUFFIX}
+            >
+              {strings('money.balance_card.currency_suffix')}
+            </Text>
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{
+                color: IconColor.IconAlternative,
+                size: IconSize.Sm,
+              }}
+              size={ButtonIconSize.Sm}
+              onPress={handleInfoPress}
+              accessibilityLabel={strings(
+                'money.balance_card.info_sheet_title',
+              )}
+              testID={MoneyBalanceCardTestIds.INFO_BUTTON}
+            />
+          </Box>
         </Box>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -342,16 +341,52 @@ const MoneyBalanceCard = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.End}
+        twClassName="shrink-0"
       >
-        <Button
-          testID={buttonTestId}
-          variant={buttonVariant}
-          size={ButtonSize.Md}
-          onPress={handleAddPress}
-        >
-          {strings(buttonLabelKey)}
-        </Button>
+        {buttonVariant === ButtonVariant.Secondary ? (
+          <ButtonGlass
+            isGlass={isGlass}
+            testID={buttonTestId}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </ButtonGlass>
+        ) : (
+          <Button
+            testID={buttonTestId}
+            variant={buttonVariant}
+            size={ButtonSize.Md}
+            onPress={handleAddPress}
+          >
+            {strings(buttonLabelKey)}
+          </Button>
+        )}
       </Box>
+    </>
+  );
+
+  return (
+    <Pressable
+      testID={containerTestId}
+      onPress={handleCardPress}
+      style={({ pressed }) => [
+        tw.style('mx-4'),
+        !isGlass && pressed && tw.style('opacity-80'),
+      ]}
+    >
+      <BoxGlass
+        isGlass={isGlass}
+        radiusClassName="rounded-xl"
+        isInteractive
+        hasSheen
+        testID={MoneyBalanceCardTestIds.SURFACE}
+        style={tw.style(
+          'min-h-[82px] flex-row items-center justify-between gap-3 p-4',
+        )}
+      >
+        {content}
+      </BoxGlass>
     </Pressable>
   );
 };

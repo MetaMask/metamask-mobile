@@ -96,6 +96,9 @@ enum EVENT_NAME {
   WATCHLIST_TOKEN_REMOVED = 'Token Watchlist Token Removed',
   WATCHLIST_PAGE_VIEWED = 'Token Watchlist Page Viewed',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
+  TOKEN_DETAILS_TAB_VIEWED = 'Token Details Tab Viewed',
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED = 'Token Details Security Pill Clicked',
+  TOKEN_DETAILS_CONTRACT_SECURITY_OPENED = 'Token Details Contract Security Opened',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
    * Token overview advanced chart: zoom, pan, tooltip, timeframe change, chart type
@@ -220,6 +223,7 @@ enum EVENT_NAME {
   // Account
   SWITCHED_ACCOUNT = 'Switched Account',
   ACCOUNT_LIST_VIEWED = 'Account List Viewed',
+  MANAGE_ACCOUNTS_VIEWED = 'Manage Accounts Viewed',
   SEARCH_INTERACTED = 'Search Interacted',
 
   // Browser
@@ -395,6 +399,8 @@ enum EVENT_NAME {
   RAMPS_CHECKOUT_URL_CHANGED = 'Ramps Checkout URL Changed',
   RAMPS_CHECKOUT_LOAD_COMPLETED = 'Ramps Checkout Load Completed',
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED = 'Ramps Checkout HTTP Error Received',
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED = 'Ramps Checkout Provider Event Received',
+  RAMPS_CHECKOUT_FALLBACK_OPENED = 'Ramps Checkout Fallback Opened',
   RAMPS_CHECKOUT_CALLBACK_DETECTED = 'Ramps Checkout Callback Detected',
   RAMPS_CHECKOUT_CLOSED = 'Ramps Checkout Closed',
 
@@ -420,6 +426,7 @@ enum EVENT_NAME {
   SEND_AMOUNT_SELECTED = 'Send Amount Selected',
   SEND_RECIPIENT_SELECTED = 'Send Recipient Selected',
   SEND_EXIT = 'Send Flow Exited',
+  SEND_FAILED = 'Send Failed',
 
   // Swaps
   SWAPS_OPENED = 'Swaps Opened',
@@ -436,6 +443,13 @@ enum EVENT_NAME {
   GAS_FEES_CHANGED = 'Gas Fees Changed',
   EDIT_SPEND_LIMIT_OPENED = 'Edit Spend Limit Opened',
   TOKEN_IMPORTED = 'Custom Token Imported',
+
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED = 'Advanced Order Page Viewed',
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS = 'Advanced Order Asset Search Empty Results Displayed',
+  ADVANCED_ORDER_SUBMITTED = 'Advanced Order Submitted',
+  ADVANCED_ORDER_COMPLETED = 'Advanced Order Completed',
+  ADVANCED_ORDER_FAILED = 'Advanced Order Failed',
 
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
@@ -588,7 +602,7 @@ enum EVENT_NAME {
   NOTIFICATIONS_MENU_OPENED = 'InApp Notifications Menu Opened',
   NOTIFICATION_CLICKED = 'InApp Notification Clicked',
   NOTIFICATIONS_MARKED_ALL_AS_READ = 'InApp Notifications Marked All as Read',
-  NOTIFICATION_DETAIL_CLICKED = 'InApp Notification Detail Clicked',
+  NOTIFICATION_DETAIL_ITEM_CLICKED = 'InApp Notification Detail Item Clicked',
 
   // Push Notifications
   PUSH_NOTIFICATION_PRE_PROMPT_VIEWED = 'Push Notification Pre-prompt Viewed',
@@ -644,6 +658,7 @@ enum EVENT_NAME {
   PERPS_WITHDRAWAL_TRANSACTION = 'Perp Withdrawal Transaction',
   PERPS_TRADE_TRANSACTION = 'Perp Trade Transaction',
   PERPS_POSITION_CLOSE_TRANSACTION = 'Perp Position Close Transaction',
+  PERPS_MARGIN_ADJUSTMENT_TRANSACTION = 'Perp Margin Adjustment Transaction',
   PERPS_ORDER_CANCEL_TRANSACTION = 'Perp Order Cancel Transaction',
   PERPS_SCREEN_VIEWED = 'Perp Screen Viewed',
   PERPS_UI_INTERACTION = 'Perp UI Interaction',
@@ -675,6 +690,7 @@ enum EVENT_NAME {
   CARD_SIWE_AUTH_STARTED = 'Card SIWE Auth Started',
   CARD_SIWE_AUTH_COMPLETED = 'Card SIWE Auth Completed',
   CARD_SIWE_AUTH_FAILED = 'Card SIWE Auth Failed',
+  CARD_SIGN_IN_RESOLVED = 'Card Sign In Resolved',
   CARD_FUNDING_PROCESS_STARTED = 'Card Funding Process Started',
   CARD_FUNDING_PROCESS_COMPLETED = 'Card Funding Process Completed',
   CARD_FUNDING_PROCESS_FAILED = 'Card Funding Process Failed',
@@ -697,6 +713,7 @@ enum EVENT_NAME {
   CARD_REDEEM_PROCESS_STARTED = 'Card Redeem Process Started',
   CARD_REDEEM_PROCESS_COMPLETED = 'Card Redeem Process Completed',
   CARD_REDEEM_PROCESS_FAILED = 'Card Redeem Process Failed',
+  CARD_LINK_SEEDED = 'Card Link Seeded',
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED = 'Rewards Account Linking Started',
   REWARDS_ACCOUNT_LINKING_COMPLETED = 'Rewards Account Linking Completed',
@@ -704,7 +721,6 @@ enum EVENT_NAME {
   REWARDS_ACTIVE_BOOST_CLICKED = 'Rewards Active Boost Clicked',
   REWARDS_BENEFIT_BUTTON_CLICKED = 'Rewards Benefit Button Clicked',
   REWARDS_BENEFIT_DETAIL_VIEWED = 'Rewards Benefit Detail Viewed',
-  REWARDS_DASHBOARD_TAB_VIEWED = 'Rewards Dashboard Tab Viewed',
   REWARDS_DASHBOARD_VIEWED = 'Rewards Dashboard Viewed',
   REWARDS_ONBOARDING_STARTED = 'Rewards Onboarding Started',
   REWARDS_ONBOARDING_COMPLETED = 'Rewards Onboarding Completed',
@@ -716,6 +732,8 @@ enum EVENT_NAME {
   REWARDS_OPT_OUT_FAILED = 'Rewards Opt Out Failed',
   REWARDS_PAGE_BUTTON_CLICKED = 'Rewards Page Button Clicked',
   REWARDS_REFERRALS_VIEWED = 'Rewards Referrals Viewed',
+  REWARDS_MONEY_REFERRAL_CODE_SHARED = 'Rewards Money Referral Code Shared',
+  REWARDS_MONEY_REFERRAL_OFFER_INTERACTED = 'Rewards Money Referral Offer Interacted',
   REWARDS_REWARD_CLAIMED = 'Rewards Reward Claimed',
   REWARDS_REWARD_VIEWED = 'Rewards Reward Viewed',
   REWARDS_SETTINGS_VIEWED = 'Rewards Settings Viewed',
@@ -1146,6 +1164,7 @@ const events = {
   RESET_WALLET: generateOpt(EVENT_NAME.RESET_WALLET),
   SWITCHED_ACCOUNT: generateOpt(EVENT_NAME.SWITCHED_ACCOUNT),
   ACCOUNT_LIST_VIEWED: generateOpt(EVENT_NAME.ACCOUNT_LIST_VIEWED),
+  MANAGE_ACCOUNTS_VIEWED: generateOpt(EVENT_NAME.MANAGE_ACCOUNTS_VIEWED),
   SEARCH_INTERACTED: generateOpt(EVENT_NAME.SEARCH_INTERACTED),
   // Bare form, for callers that supply `action` and `name` themselves; the
   // legacy NAVIGATION_TAPS_* entries below bake in the old drawer values.
@@ -1432,6 +1451,12 @@ const events = {
   RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_HTTP_ERROR_RECEIVED,
   ),
+  RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_PROVIDER_EVENT_RECEIVED,
+  ),
+  RAMPS_CHECKOUT_FALLBACK_OPENED: generateOpt(
+    EVENT_NAME.RAMPS_CHECKOUT_FALLBACK_OPENED,
+  ),
   RAMPS_CHECKOUT_CALLBACK_DETECTED: generateOpt(
     EVENT_NAME.RAMPS_CHECKOUT_CALLBACK_DETECTED,
   ),
@@ -1594,8 +1619,8 @@ const events = {
   NOTIFICATIONS_MARKED_ALL_AS_READ: generateOpt(
     EVENT_NAME.NOTIFICATIONS_MARKED_ALL_AS_READ,
   ),
-  NOTIFICATION_DETAIL_CLICKED: generateOpt(
-    EVENT_NAME.NOTIFICATION_DETAIL_CLICKED,
+  NOTIFICATION_DETAIL_ITEM_CLICKED: generateOpt(
+    EVENT_NAME.NOTIFICATION_DETAIL_ITEM_CLICKED,
   ),
 
   // Push Notifications Flow
@@ -1787,6 +1812,13 @@ const events = {
   WATCHLIST_TOKEN_REMOVED: generateOpt(EVENT_NAME.WATCHLIST_TOKEN_REMOVED),
   WATCHLIST_PAGE_VIEWED: generateOpt(EVENT_NAME.WATCHLIST_PAGE_VIEWED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
+  TOKEN_DETAILS_TAB_VIEWED: generateOpt(EVENT_NAME.TOKEN_DETAILS_TAB_VIEWED),
+  TOKEN_DETAILS_SECURITY_PILL_CLICKED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_SECURITY_PILL_CLICKED,
+  ),
+  TOKEN_DETAILS_CONTRACT_SECURITY_OPENED: generateOpt(
+    EVENT_NAME.TOKEN_DETAILS_CONTRACT_SECURITY_OPENED,
+  ),
   TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
     EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
   ),
@@ -1808,8 +1840,19 @@ const events = {
   SECURITY_PAGE_CTA_CLICKED: generateOpt(EVENT_NAME.SECURITY_PAGE_CTA_CLICKED),
   SECURITY_PAGE_DISMISSED: generateOpt(EVENT_NAME.SECURITY_PAGE_DISMISSED),
 
+  // Limit/Recurring Swaps
+  ADVANCED_ORDER_PAGE_VIEWED: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_PAGE_VIEWED,
+  ),
+  ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS: generateOpt(
+    EVENT_NAME.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+  ),
+  ADVANCED_ORDER_SUBMITTED: generateOpt(EVENT_NAME.ADVANCED_ORDER_SUBMITTED),
+  ADVANCED_ORDER_COMPLETED: generateOpt(EVENT_NAME.ADVANCED_ORDER_COMPLETED),
+  ADVANCED_ORDER_FAILED: generateOpt(EVENT_NAME.ADVANCED_ORDER_FAILED),
+
   // Bridge
-  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED),
   SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
     EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
   ),
@@ -1860,6 +1903,9 @@ const events = {
   PERPS_TRADE_TRANSACTION: generateOpt(EVENT_NAME.PERPS_TRADE_TRANSACTION),
   PERPS_POSITION_CLOSE_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_POSITION_CLOSE_TRANSACTION,
+  ),
+  PERPS_MARGIN_ADJUSTMENT_TRANSACTION: generateOpt(
+    EVENT_NAME.PERPS_MARGIN_ADJUSTMENT_TRANSACTION,
   ),
   PERPS_ORDER_CANCEL_TRANSACTION: generateOpt(
     EVENT_NAME.PERPS_ORDER_CANCEL_TRANSACTION,
@@ -1944,6 +1990,7 @@ const events = {
   CARD_SIWE_AUTH_STARTED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_STARTED),
   CARD_SIWE_AUTH_COMPLETED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_COMPLETED),
   CARD_SIWE_AUTH_FAILED: generateOpt(EVENT_NAME.CARD_SIWE_AUTH_FAILED),
+  CARD_SIGN_IN_RESOLVED: generateOpt(EVENT_NAME.CARD_SIGN_IN_RESOLVED),
   CARD_FUNDING_PROCESS_STARTED: generateOpt(
     EVENT_NAME.CARD_FUNDING_PROCESS_STARTED,
   ),
@@ -2010,6 +2057,7 @@ const events = {
   CARD_REDEEM_PROCESS_FAILED: generateOpt(
     EVENT_NAME.CARD_REDEEM_PROCESS_FAILED,
   ),
+  CARD_LINK_SEEDED: generateOpt(EVENT_NAME.CARD_LINK_SEEDED),
   // Rewards
   REWARDS_ACCOUNT_LINKING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ACCOUNT_LINKING_STARTED,
@@ -2029,9 +2077,6 @@ const events = {
   REWARDS_BENEFIT_DETAIL_VIEWED: generateOpt(
     EVENT_NAME.REWARDS_BENEFIT_DETAIL_VIEWED,
   ),
-  REWARDS_DASHBOARD_TAB_VIEWED: generateOpt(
-    EVENT_NAME.REWARDS_DASHBOARD_TAB_VIEWED,
-  ),
   REWARDS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_DASHBOARD_VIEWED),
   REWARDS_ONBOARDING_STARTED: generateOpt(
     EVENT_NAME.REWARDS_ONBOARDING_STARTED,
@@ -2049,6 +2094,12 @@ const events = {
     EVENT_NAME.REWARDS_PAGE_BUTTON_CLICKED,
   ),
   REWARDS_REFERRALS_VIEWED: generateOpt(EVENT_NAME.REWARDS_REFERRALS_VIEWED),
+  REWARDS_MONEY_REFERRAL_CODE_SHARED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_REFERRAL_CODE_SHARED,
+  ),
+  REWARDS_MONEY_REFERRAL_OFFER_INTERACTED: generateOpt(
+    EVENT_NAME.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
+  ),
   REWARDS_REWARD_CLAIMED: generateOpt(EVENT_NAME.REWARDS_REWARD_CLAIMED),
   REWARDS_REWARD_VIEWED: generateOpt(EVENT_NAME.REWARDS_REWARD_VIEWED),
   REWARDS_SETTINGS_VIEWED: generateOpt(EVENT_NAME.REWARDS_SETTINGS_VIEWED),
@@ -2314,7 +2365,7 @@ enum DESCRIPTION {
   SEND_ASSET_SELECTED = 'Send asset selected',
   SEND_AMOUNT_SELECTED = 'Send amount selected',
   SEND_RECIPIENT_SELECTED = 'Send recipient selected',
-  SEND_EXIT = 'Send flow exitted',
+  SEND_EXIT = 'Send flow exited',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -2580,6 +2631,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SEND,
     DESCRIPTION.SEND_EXIT,
   ),
+  SEND_FAILED: generateOpt(EVENT_NAME.SEND_FAILED),
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

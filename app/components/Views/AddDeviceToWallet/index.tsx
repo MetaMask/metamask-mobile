@@ -1,20 +1,27 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   FontWeight,
+  IconName,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
-  Button,
-  BoxBackgroundColor,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { useNavigation } from '@react-navigation/native';
-import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
@@ -37,34 +44,56 @@ import {
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
-const Points = ({
-  number,
-  children,
-}: {
-  number: number;
-  children: React.ReactNode;
-}) => (
-  <Box twClassName="flex-row items-center gap-2">
-    <Box
-      backgroundColor={BoxBackgroundColor.BackgroundSection}
-      twClassName="w-8 h-8 rounded-full items-center justify-center"
+const SettingsPathDescription = () => (
+  <Text
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
+  >
+    {strings('app_settings.add_device.points.two_description_prefix')}{' '}
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Bold}
+      color={TextColor.TextAlternative}
     >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextDefault}
-      >
-        {number}
-      </Text>
-    </Box>
-    <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
-      {children}
+      {strings('app_settings.add_device.points.two_description_path')}
     </Text>
-  </Box>
+  </Text>
 );
+
+const INSTRUCTIONS: {
+  iconName: IconName;
+  titleKey: string;
+  descriptionKey?: string;
+}[] = [
+  {
+    iconName: IconName.Monitor,
+    titleKey: 'app_settings.add_device.points.one_title',
+    descriptionKey: 'app_settings.add_device.points.one_description',
+  },
+  {
+    iconName: IconName.Setting,
+    titleKey: 'app_settings.add_device.points.two_title',
+  },
+  {
+    iconName: IconName.QrCode,
+    titleKey: 'app_settings.add_device.points.three_title',
+    descriptionKey: 'app_settings.add_device.points.three_description',
+  },
+  {
+    iconName: IconName.Key,
+    titleKey: 'app_settings.add_device.points.four_title',
+    descriptionKey: 'app_settings.add_device.points.four_description',
+  },
+];
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const messenger = useMessenger<RouteMessengerInstance>();
   const hasOpenedVerificationSheetRef = useRef(false);
@@ -135,62 +164,49 @@ const AddDeviceToWallet = () => {
       style={tw.style('flex-1 bg-default')}
       testID={AddDeviceToWalletTestIds.SCREEN}
     >
-      <HeaderCompactStandard onBack={handleBack} includesTopInset />
-      <Box twClassName="flex-1 gap-5 px-4 py-4">
-        <Image
-          source={addDeviceToWalletImage}
-          style={tw.style('w-[130px] h-[130px] mx-auto')}
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        onBack={handleBack}
+      />
+      <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
+        <TitleStandard
+          twClassName="mb-6 px-4"
+          title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
-        <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          fontWeight={FontWeight.Bold}
-        >
-          {strings('app_settings.add_device.add_device_to_wallet')}
-        </Text>
+        {INSTRUCTIONS.map((instruction) => (
+          <ListItem
+            key={instruction.titleKey}
+            variant={ListItemVariant.TwoLines}
+            avatar={
+              <AvatarIcon
+                iconName={instruction.iconName}
+                severity={AvatarIconSeverity.Neutral}
+              />
+            }
+            title={strings(instruction.titleKey)}
+            description={
+              instruction.descriptionKey ? (
+                strings(instruction.descriptionKey)
+              ) : (
+                <SettingsPathDescription />
+              )
+            }
+          />
+        ))}
 
-        <Box twClassName="flex-col gap-4 mt-2">
-          <Points number={1}>
-            {strings('app_settings.add_device.points.one')}
-          </Points>
-          <Points number={2}>
-            {strings('app_settings.add_device.points.two')}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('app_settings.add_device.points.two_bold_one')}
-            </Text>{' '}
-            {strings('app_settings.add_device.points.two_icon')}{' '}
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {strings('app_settings.add_device.points.two_bold_two')}
-            </Text>
-          </Points>
-          <Points number={3}>
-            {strings('app_settings.add_device.points.three')}
-          </Points>
-          <Points number={4}>
-            {strings('app_settings.add_device.points.four')}
-          </Points>
-        </Box>
-
-        <Box twClassName="mt-auto gap-4">
-          <Button
-            testID={AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON}
-            twClassName="w-full"
-            onPress={openQRScanner}
-            isDisabled={isBusy}
-            isLoading={isBusy}
-          >
-            {strings('app_settings.add_device.scan_qr_code_button')}
-          </Button>
-        </Box>
+        <FooterGlass
+          twClassName="mt-auto py-4"
+          primaryButtonProps={{
+            children: strings('app_settings.add_device.scan_qr_code_button'),
+            onPress: openQRScanner,
+            isDisabled: isBusy,
+            isLoading: isBusy,
+            testID: AddDeviceToWalletTestIds.SCAN_QR_CODE_BUTTON,
+          }}
+        />
       </Box>
     </SafeAreaView>
   );

@@ -17,6 +17,7 @@ import type { ImmersveService } from '../services/ImmersveService';
 import type { ImmersveProviderConfig } from '../services/immersve-config';
 import {
   AuthTokenValidity,
+  CardAccountLookupResult,
   CardAction,
   CardAuthResult,
   CardAuthSession,
@@ -27,8 +28,12 @@ import {
   CardDetails,
   CardFundingAsset,
   CardFundingSourceResult,
+  ApplePayProvisioningParams,
+  ApplePayProvisioningResponse,
   CardHomeData,
+  CardInitiateAuthOptions,
   CardProviderCapabilities,
+  CardWalletProvisioningInfo,
   CardProviderError,
   CardProviderErrorCode,
   CardProviderIds,
@@ -56,6 +61,10 @@ const REFRESH_EXPIRY_BUFFER_MS = 60 * 60 * 1000;
 
 const DEFAULT_NETWORK = 'base-sepolia';
 const IMMERSVE_LOCATION = 'international';
+
+export const IMMERSVE_NO_ACCOUNT_ERROR_CODES: ReadonlySet<string> = new Set([
+  'ACCOUNT_DOES_NOT_EXIST',
+]);
 
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
@@ -128,6 +137,15 @@ function reportAndMap(
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
+    if (error.statusCode === 400) {
+      return new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        `Invalid request on ${operation}`,
+        400,
+        error.errorCode,
+      );
+    }
+
     if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
@@ -239,6 +257,11 @@ interface ImmersveFundingSourcesResponse {
   items?: ImmersveFundingSourceListItem[];
 }
 
+interface ImmersveContactDetailsResponse {
+  email?: { emailAddress?: string };
+  phone?: { phoneNumber?: string };
+}
+
 type ImmersveCardApiStatus = 'active' | 'cancelled' | 'created' | 'shipped';
 
 interface ImmersveCardListItem {
@@ -253,6 +276,8 @@ interface ImmersveCardListItem {
   fundingSourceIds: string[];
   cardProgramId?: string;
   panLast4?: string;
+  /** Opaque reissuance-lineage id. Shared by every card in a reissue chain. */
+  seriesId?: string;
   network?: string;
   regionCode?: string;
 }
@@ -373,7 +398,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsFundingLimits: false,
     fundingChains: ['eip155:8453', 'eip155:84532'],
     supportsFreeze: true,
-    supportsPushProvisioning: false,
+    pushProvisioning: { applePay: true, googlePay: false },
     onboarding: { type: 'webview', url: '' },
     supportsPinView: false,
     supportsPinSet: true,
@@ -382,6 +407,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsSensitiveDetailsView: true,
     supportsTravel: false,
     supportsTransactionHistory: true,
+    supportsContactDetails: true,
     supportsMoneyAccountLinking: false,
   };
 
@@ -448,7 +474,7 @@ export class ImmersveProvider implements ICardProvider {
 
   async initiateAuth(
     country: string,
-    options?: { address?: string },
+    options?: CardInitiateAuthOptions,
   ): Promise<CardAuthSession> {
     const address = options?.address;
     if (!address) {
@@ -468,7 +494,7 @@ export class ImmersveProvider implements ICardProvider {
           scopes: ['cardholder-partner'],
           address,
           url: this.appUrl,
-          autoSignup: true,
+          autoSignup: options?.autoSignup ?? true,
         },
       );
 
@@ -485,10 +511,46 @@ export class ImmersveProvider implements ICardProvider {
         },
       };
     } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        typeof error.errorCode === 'string' &&
+        IMMERSVE_NO_ACCOUNT_ERROR_CODES.has(error.errorCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.NotFound,
+          `Account does not exist for ${address}`,
+          error.statusCode,
+          error.errorCode,
+        );
+      }
       reportAndMap(error, 'initiateAuth', {
         network: this.network,
         country,
       });
+    }
+  }
+
+  async lookupAccount(address: string): Promise<CardAccountLookupResult> {
+    try {
+      await this.service.post<ImmersveLoginInitResponse>('/auth/login-init', {
+        loginMethod: 'siwe',
+        network: this.network,
+        clientApplicationId: this.clientApplicationId,
+        scopes: ['cardholder-partner'],
+        address,
+        url: this.appUrl,
+        autoSignup: false,
+      });
+      return 'found';
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        typeof error.errorCode === 'string' &&
+        IMMERSVE_NO_ACCOUNT_ERROR_CODES.has(error.errorCode)
+      ) {
+        return 'not_found';
+      }
+      return 'unknown';
     }
   }
 
@@ -676,6 +738,29 @@ export class ImmersveProvider implements ICardProvider {
       }));
     } catch (error) {
       reportAndMap(error, 'getFundingSources');
+    }
+  }
+
+  async getContactDetails(tokens: CardAuthTokens): Promise<CardContactDetails> {
+    const accountId = tokens.cardholderAccountId;
+    if (!accountId) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'getContactDetails: missing cardholder account id',
+      );
+    }
+
+    try {
+      const response = await this.service.get<ImmersveContactDetailsResponse>(
+        `/api/accounts/${accountId}/contact-details`,
+        tokens,
+      );
+      return {
+        email: response.email?.emailAddress,
+        phone: response.phone?.phoneNumber,
+      };
+    } catch (error) {
+      reportAndMap(error, 'getContactDetails');
     }
   }
 
@@ -867,10 +952,13 @@ export class ImmersveProvider implements ICardProvider {
       );
       const primaryFundingAsset = fundingAssets[0] ?? null;
 
+      const walletProvisioning = this.mapWalletProvisioning(detail);
+
       if (this.isRevokedAllowance(primaryFundingAsset)) {
         return {
           ...emptyCardHomeData(),
           card: cardDetails,
+          walletProvisioning,
           primaryFundingAsset,
           fundingAssets,
           availableFundingAssets: fundingAssets,
@@ -886,6 +974,7 @@ export class ImmersveProvider implements ICardProvider {
       return {
         ...emptyCardHomeData(),
         card: cardDetails,
+        walletProvisioning,
         primaryFundingAsset,
         fundingAssets,
         availableFundingAssets: fundingAssets,
@@ -1047,6 +1136,61 @@ export class ImmersveProvider implements ICardProvider {
     } catch (error) {
       reportAndMap(error, 'getCardSensitiveDetails');
     }
+  }
+
+  async createApplePayProvisioningRequest(
+    params: ApplePayProvisioningParams,
+    tokens: CardAuthTokens,
+  ): Promise<ApplePayProvisioningResponse> {
+    const card = await this.resolveCurrentCard(tokens);
+    if (!card) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NoCard,
+        'User has no card',
+        404,
+      );
+    }
+
+    try {
+      const response = await this.service.post<ApplePayProvisioningResponse>(
+        `/api/cards/${card.id}/provision/apple-pay`,
+        {
+          certChain: params.certificates,
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+        },
+        tokens,
+      );
+      if (
+        !response.encryptedPassData ||
+        !response.activationData ||
+        !response.ephemeralPublicKey
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Apple Pay provisioning response missing required fields',
+        );
+      }
+      return {
+        encryptedPassData: response.encryptedPassData,
+        activationData: response.activationData,
+        ephemeralPublicKey: response.ephemeralPublicKey,
+      };
+    } catch (error) {
+      reportAndMap(error, 'createApplePayProvisioningRequest');
+    }
+  }
+
+  private mapWalletProvisioning(
+    detail: ImmersveCardDetail,
+  ): CardWalletProvisioningInfo {
+    return {
+      eligible: this.mapImmersveCardStatus(detail) === CardStatus.ACTIVE,
+      cardholderName: detail.cardholderName ?? '',
+      lastFour: detail.panLast4 ?? '',
+      network: 'MASTERCARD',
+      primaryAccountIdentifier: detail.seriesId,
+    };
   }
 
   private mapImmersveCard(detail: ImmersveCardDetail): CardDetails {

@@ -1,8 +1,17 @@
 import type { NavigationState } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 import {
+  CANCELLATION_REASONS,
+  CANCEL_TYPES,
+} from '@metamask/subscription-controller';
+import Routes from '../../../../../constants/navigation/Routes';
+import { CANCEL_REASONS } from './CancelMembership.constants';
+import {
+  CANCELLATION_TIMINGS,
   POST_CANCELLATION_PRO_HUB_SOURCE,
   buildPostCancellationResetState,
+  getCancellationTiming,
+  shuffleCancelReasons,
+  toCancellationReason,
 } from './CancelMembership.utils';
 
 const createStackState = (routeNames: string[]): NavigationState => ({
@@ -15,6 +24,87 @@ const createStackState = (routeNames: string[]): NavigationState => ({
   })),
   type: 'stack',
   stale: false,
+});
+
+describe('shuffleCancelReasons', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('pins other as the last item', () => {
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result[result.length - 1]?.id).toBe(CANCELLATION_REASONS.OTHER);
+  });
+
+  it('keeps the same reason ids as the input', () => {
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result.map((reason) => reason.id).sort()).toEqual(
+      CANCEL_REASONS.map((reason) => reason.id).sort(),
+    );
+  });
+
+  it('does not mutate the input array', () => {
+    const input = [...CANCEL_REASONS];
+
+    shuffleCancelReasons(input);
+
+    expect(input).toEqual(CANCEL_REASONS);
+  });
+
+  it('returns a known permutation of non-other reasons when Math.random is 0', () => {
+    jest.spyOn(Math, 'random').mockReturnValue(0);
+
+    const result = shuffleCancelReasons(CANCEL_REASONS);
+
+    expect(result.map((reason) => reason.id)).toEqual([
+      CANCELLATION_REASONS.NOT_USING_BENEFITS,
+      CANCELLATION_REASONS.BENEFITS_NOT_AS_EXPECTED,
+      CANCELLATION_REASONS.SOMETHING_DID_NOT_WORK,
+      CANCELLATION_REASONS.UNHAPPY_WITH_SUPPORT,
+      CANCELLATION_REASONS.TOO_EXPENSIVE,
+      CANCELLATION_REASONS.OTHER,
+    ]);
+  });
+});
+
+describe('toCancellationReason', () => {
+  it('returns undefined when no reason is selected', () => {
+    expect(toCancellationReason(null)).toBeUndefined();
+  });
+
+  it('returns undefined for an unknown survey id', () => {
+    expect(toCancellationReason('cost')).toBeUndefined();
+  });
+
+  it.each(Object.values(CANCELLATION_REASONS))(
+    'returns the published reason code %s',
+    (reason) => {
+      expect(toCancellationReason(reason)).toBe(reason);
+    },
+  );
+});
+
+describe('getCancellationTiming', () => {
+  it('maps immediate cancellation', () => {
+    expect(getCancellationTiming(CANCEL_TYPES.ALLOWED_IMMEDIATE)).toBe(
+      CANCELLATION_TIMINGS.IMMEDIATE,
+    );
+  });
+
+  it('maps period-end cancellation', () => {
+    expect(getCancellationTiming(CANCEL_TYPES.ALLOWED_AT_PERIOD_END)).toBe(
+      CANCELLATION_TIMINGS.PERIOD_END,
+    );
+  });
+
+  it.each([
+    CANCEL_TYPES.NOT_ALLOWED,
+    CANCEL_TYPES.NOT_ALLOWED_PENDING_VERIFICATION,
+  ])('returns undefined when cancellation type is %s', (cancelType) => {
+    expect(getCancellationTiming(cancelType)).toBeUndefined();
+  });
 });
 
 describe('buildPostCancellationResetState', () => {

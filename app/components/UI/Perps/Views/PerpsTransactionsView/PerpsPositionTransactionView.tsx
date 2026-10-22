@@ -1,7 +1,7 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
-import React, { useLayoutEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 
@@ -62,12 +62,6 @@ const PerpsPositionTransactionView: React.FC = () => {
         : undefined,
     [transaction?.asset],
   );
-
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
 
   if (!transaction) {
     // Handle missing transaction data
@@ -159,17 +153,26 @@ const PerpsPositionTransactionView: React.FC = () => {
   }
 
   if (
-    transaction.fill?.pnl &&
-    (transaction.fill?.action === 'Closed' ||
-      transaction.fill?.action === 'Flipped')
+    transaction.fill?.action === 'Closed' ||
+    transaction.fill?.action === 'Flipped'
   ) {
-    const pnlValue = BigNumber(transaction.fill?.amountNumber || 0);
-    const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
+    const pnlValue =
+      transaction.fill.amountNumber === undefined
+        ? undefined
+        : BigNumber(transaction.fill.amountNumber);
 
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: transaction.fill?.amount || '0',
-      textColor: isPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault,
+      value:
+        pnlValue === undefined
+          ? strings('perps.transactions.unknown_pnl')
+          : transaction.fill.amount,
+      textColor:
+        pnlValue === undefined
+          ? TextColor.TextDefault
+          : pnlValue.isGreaterThanOrEqualTo(0)
+            ? TextColor.SuccessDefault
+            : TextColor.ErrorDefault,
     });
   }
 

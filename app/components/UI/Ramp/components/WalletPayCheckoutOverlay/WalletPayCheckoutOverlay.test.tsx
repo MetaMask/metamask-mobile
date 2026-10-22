@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking, StyleSheet } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import WalletPayCheckoutOverlay from './WalletPayCheckoutOverlay';
 import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from './WalletPayCheckoutOverlay.testIds';
 
@@ -87,6 +88,21 @@ function completeReadySequence(webView: MockWebView) {
   reportHeight(webView, 120);
 }
 
+/** Runs the crossfade over Continue to its end, where ready is reported. */
+function finishReveal() {
+  act(() => {
+    jest.advanceTimersByTime(AnimationDuration.Promptly);
+  });
+}
+
+function overlayStyle(view: ReturnType<typeof render>) {
+  return (
+    StyleSheet.flatten(
+      view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.ROOT).props.style,
+    ) ?? {}
+  );
+}
+
 function KeyedWalletPayCheckoutOverlay({
   checkoutUrl,
   ...props
@@ -101,6 +117,14 @@ function KeyedWalletPayCheckoutOverlay({
 }
 
 describe('WalletPayCheckoutOverlay', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders the checkout WebView with the provided URL', () => {
     const { getByTestId } = render(
       <WalletPayCheckoutOverlay
@@ -132,6 +156,14 @@ describe('WalletPayCheckoutOverlay', () => {
       getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
     );
 
+    // Still fading in over Continue: a tap here would hit both.
+    expect(
+      getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY).props
+        .pointerEvents,
+    ).toBe('none');
+
+    finishReveal();
+
     expect(
       getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY).props
         .pointerEvents,
@@ -151,9 +183,100 @@ describe('WalletPayCheckoutOverlay', () => {
     completeReadySequence(
       getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
     );
+    finishReveal();
 
     const host = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY);
     expect(host.props.pointerEvents).toBe('none');
+  });
+
+  describe('reveal', () => {
+    function renderOverlay(onReady = jest.fn()) {
+      return render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={onReady}
+        />,
+      );
+    }
+
+    it('loads off the layout at full size, so the button paints before it shows', () => {
+      const view = renderOverlay();
+
+      const style = overlayStyle(view);
+      expect(style.position).toBe('absolute');
+      expect(style.opacity).toBe(0);
+      // Clipping to zero height left WebKit nothing to paint into.
+      expect(style.height).toBeUndefined();
+      expect(style.overflow).toBeUndefined();
+    });
+
+    it('fades in over Continue before reporting ready', () => {
+      const onReady = jest.fn();
+      const view = renderOverlay(onReady);
+
+      completeReadySequence(
+        view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+
+      const style = overlayStyle(view);
+      expect(style.position).toBe('absolute');
+      expect(style.zIndex).toBe(1);
+      expect(style.backgroundColor).toBeDefined();
+      expect(onReady).not.toHaveBeenCalled();
+
+      finishReveal();
+
+      expect(onReady).toHaveBeenCalledTimes(1);
+      expect(overlayStyle(view).position).toBeUndefined();
+    });
+
+    it('hides again while concealed, without unmounting the checkout', () => {
+      const onReady = jest.fn();
+      const props = { interactive: true, onMessage: jest.fn(), onReady };
+      const view = render(
+        <WalletPayCheckoutOverlay checkoutUrl={CHECKOUT_URL} {...props} />,
+      );
+      completeReadySequence(
+        view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      finishReveal();
+      expect(overlayStyle(view).position).toBeUndefined();
+
+      view.rerender(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          concealed
+          {...props}
+        />,
+      );
+
+      const style = overlayStyle(view);
+      expect(style.position).toBe('absolute');
+      expect(style.opacity).toBe(0);
+      expect(
+        view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY).props
+          .pointerEvents,
+      ).toBe('none');
+      expect(
+        view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      ).toBeTruthy();
+      expect(onReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report ready when unmounted mid-fade', () => {
+      const onReady = jest.fn();
+      const view = renderOverlay(onReady);
+
+      completeReadySequence(
+        view.getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      view.unmount();
+      finishReveal();
+
+      expect(onReady).not.toHaveBeenCalled();
+    });
   });
 
   describe('readiness', () => {
@@ -177,6 +300,7 @@ describe('WalletPayCheckoutOverlay', () => {
       expect(onReady).not.toHaveBeenCalled();
 
       reportHeight(webView, 120);
+      finishReveal();
       expect(onReady).toHaveBeenCalledTimes(1);
     });
 
@@ -196,6 +320,7 @@ describe('WalletPayCheckoutOverlay', () => {
       // Their observer reports the page as it builds; only a height after the
       // payment button mounts means the flash is over.
       reportHeight(webView, 120);
+      finishReveal();
       expect(onReady).not.toHaveBeenCalled();
     });
 
@@ -213,6 +338,7 @@ describe('WalletPayCheckoutOverlay', () => {
       const webView = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
       reportCheckoutReady(webView);
       reportHeight(webView, 0);
+      finishReveal();
 
       expect(onReady).not.toHaveBeenCalled();
     });
@@ -230,8 +356,10 @@ describe('WalletPayCheckoutOverlay', () => {
 
       const webView = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
       completeReadySequence(webView);
+      finishReveal();
       reportHeight(webView, 140);
       reportCheckoutReady(webView);
+      finishReveal();
 
       expect(onReady).toHaveBeenCalledTimes(1);
     });
@@ -250,6 +378,7 @@ describe('WalletPayCheckoutOverlay', () => {
       completeReadySequence(
         getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
       );
+      finishReveal();
       expect(onReady).toHaveBeenCalledTimes(1);
 
       rerender(
@@ -267,6 +396,7 @@ describe('WalletPayCheckoutOverlay', () => {
       completeReadySequence(
         getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
       );
+      finishReveal();
       expect(onReady).toHaveBeenCalledTimes(2);
     });
 
@@ -289,64 +419,108 @@ describe('WalletPayCheckoutOverlay', () => {
     });
 
     it('falls back when the checkout event arrives but no height follows', () => {
-      jest.useFakeTimers();
       const onReady = jest.fn();
+      const { getByTestId } = render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={onReady}
+        />,
+      );
 
-      try {
-        const { getByTestId } = render(
-          <WalletPayCheckoutOverlay
-            checkoutUrl={CHECKOUT_URL}
-            interactive
-            onMessage={jest.fn()}
-            onReady={onReady}
-          />,
-        );
+      reportCheckoutReady(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
 
-        reportCheckoutReady(
-          getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
-        );
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+      finishReveal();
 
-        act(() => {
-          jest.advanceTimersByTime(2000);
-        });
+      expect(onReady).toHaveBeenCalledTimes(1);
+    });
 
-        expect(onReady).toHaveBeenCalledTimes(1);
-      } finally {
-        jest.useRealTimers();
-      }
+    it('does not reveal on the load-end deadline once the page has posted a message', () => {
+      const onReady = jest.fn();
+      const { getByTestId } = render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={onReady}
+        />,
+      );
+      const webView = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
+
+      act(() => {
+        webView.props.onLoadEnd?.();
+      });
+      // Their first height report arrives well before their ready event, and
+      // proves the bridge works, so the short deadline must stand down.
+      reportHeight(webView, 0);
+
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+      finishReveal();
+      expect(onReady).not.toHaveBeenCalled();
+
+      completeReadySequence(webView);
+      finishReveal();
+      expect(onReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('still reveals eventually when the bridge works but ready never comes', () => {
+      const onReady = jest.fn();
+      const { getByTestId } = render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={onReady}
+        />,
+      );
+      const webView = getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW);
+
+      reportHeight(webView, 0);
+      act(() => {
+        webView.props.onLoadEnd?.();
+      });
+
+      act(() => {
+        jest.advanceTimersByTime(8000);
+      });
+      finishReveal();
+      expect(onReady).toHaveBeenCalledTimes(1);
     });
 
     it('falls back to a timeout after load, for platforms that post no events', () => {
-      jest.useFakeTimers();
       const onReady = jest.fn();
+      const { getByTestId } = render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={onReady}
+        />,
+      );
 
-      try {
-        const { getByTestId } = render(
-          <WalletPayCheckoutOverlay
-            checkoutUrl={CHECKOUT_URL}
-            interactive
-            onMessage={jest.fn()}
-            onReady={onReady}
-          />,
-        );
+      act(() => {
+        getByTestId(
+          WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW,
+        ).props.onLoadEnd?.();
+      });
 
-        act(() => {
-          getByTestId(
-            WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW,
-          ).props.onLoadEnd?.();
-        });
+      // iOS never delivers the event, so load end only starts the clock.
+      expect(onReady).not.toHaveBeenCalled();
 
-        // iOS never delivers the event, so load end only starts the clock.
-        expect(onReady).not.toHaveBeenCalled();
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+      finishReveal();
 
-        act(() => {
-          jest.advanceTimersByTime(2000);
-        });
-
-        expect(onReady).toHaveBeenCalledTimes(1);
-      } finally {
-        jest.useRealTimers();
-      }
+      expect(onReady).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -404,6 +578,12 @@ describe('WalletPayCheckoutOverlay', () => {
   });
 
   describe('terms notice', () => {
+    // Linking.openURL is already a jest.fn from the RN preset, so spying on it
+    // returns the same mock and its calls carry over between tests.
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
     it('opens Crossmint terms of service', () => {
       const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
 
@@ -415,6 +595,10 @@ describe('WalletPayCheckoutOverlay', () => {
           onReady={jest.fn()}
         />,
       );
+      completeReadySequence(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      finishReveal();
 
       fireEvent.press(
         getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.TERMS_LINK),
@@ -428,6 +612,7 @@ describe('WalletPayCheckoutOverlay', () => {
     });
 
     it('stays tappable while the payment button is not interactive', () => {
+      const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
       const { getByTestId } = render(
         <WalletPayCheckoutOverlay
           checkoutUrl={CHECKOUT_URL}
@@ -436,12 +621,35 @@ describe('WalletPayCheckoutOverlay', () => {
           onReady={jest.fn()}
         />,
       );
+      completeReadySequence(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.WEBVIEW),
+      );
+      finishReveal();
 
       // The notice sits outside the host that drops taps, so the user can
       // always read the terms even before the quote settles.
-      expect(
+      fireEvent.press(
         getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.TERMS_LINK),
-      ).toBeTruthy();
+      );
+      expect(openURL).toHaveBeenCalled();
+    });
+
+    it('takes no taps while hidden behind Continue', () => {
+      const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
+      const { getByTestId } = render(
+        <WalletPayCheckoutOverlay
+          checkoutUrl={CHECKOUT_URL}
+          interactive
+          onMessage={jest.fn()}
+          onReady={jest.fn()}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.TERMS_LINK),
+      );
+
+      expect(openURL).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,9 +1,14 @@
 import type { CaipChainId, Json } from '@metamask/utils';
 import {
+  DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS,
+  selectBridgeLimitOrderBaseUrl,
+  selectBridgeLimitOrderDefaultCostTolerance,
   selectBridgeLimitOrderFeatureFlags,
   selectBridgeLimitOrderTabEnabledFlag,
   selectBridgeRecurringBuyFeatureFlags,
   selectBridgeRecurringBuyTabEnabledFlag,
+  selectSentinelFeeTokensCacheTtlMs,
+  selectSentinelFeeTokensFeatureFlags,
 } from '.';
 import {
   mockedEmptyFlagsState,
@@ -110,6 +115,110 @@ describe('selectBridgeRecurringBuyFeatureFlags', () => {
   });
 });
 
+describe('selectBridgeLimitOrderBaseUrl', () => {
+  it('returns the baseUrl of the remote flag', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: {
+        enabled: true,
+        enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+        baseUrl: 'https://bridge.api.cx.metamask.io',
+      },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBe('https://bridge.api.cx.metamask.io');
+  });
+
+  it('returns undefined when the remote flag has no baseUrl', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeLimitOrderBaseUrl(state);
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when the remote flag is missing', () => {
+    const result = selectBridgeLimitOrderBaseUrl(mockedEmptyFlagsState);
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('selectBridgeLimitOrderDefaultCostTolerance', () => {
+  it.each([
+    ['an integer', 5, '5'],
+    ['a decimal', 1.5, '1.5'],
+    ['a decimal with 2 places', 2.25, '2.25'],
+  ])(
+    'returns the remote defaultPriceTolerance when it is %s',
+    (_caseName, defaultPriceTolerance, expected) => {
+      const state = buildStateWithRemoteFlags({
+        swapsLimitOrder: {
+          enabled: true,
+          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          defaultPriceTolerance,
+        },
+      });
+
+      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+      expect(result).toBe(expected);
+    },
+  );
+
+  it.each([
+    ['zero', 0],
+    ['100', 100],
+    ['above 100', 150],
+    ['negative', -1],
+    ['more than 2 decimals', 1.234],
+  ])(
+    'returns 3 when defaultPriceTolerance is %s',
+    (_caseName, defaultPriceTolerance) => {
+      const state = buildStateWithRemoteFlags({
+        swapsLimitOrder: {
+          enabled: true,
+          enabledChainIds: LIMIT_ORDER_CHAIN_IDS,
+          defaultPriceTolerance,
+        },
+      });
+
+      const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+      expect(result).toBe('3');
+    },
+  );
+
+  it('returns 3 when defaultPriceTolerance is missing', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsLimitOrder: { enabled: true, enabledChainIds: [] },
+    });
+
+    const result = selectBridgeLimitOrderDefaultCostTolerance(state);
+
+    expect(result).toBe('3');
+  });
+
+  it('returns 3 when the remote flag is missing', () => {
+    const result = selectBridgeLimitOrderDefaultCostTolerance(
+      mockedEmptyFlagsState,
+    );
+
+    expect(result).toBe('3');
+  });
+
+  it('returns 3 when RemoteFeatureFlagController state is undefined', () => {
+    const result = selectBridgeLimitOrderDefaultCostTolerance(
+      mockedUndefinedFlagsState,
+    );
+
+    expect(result).toBe('3');
+  });
+});
+
 describe('selectBridgeLimitOrderTabEnabledFlag', () => {
   it('returns true when the remote flag is enabled', () => {
     const state = buildStateWithRemoteFlags({
@@ -187,5 +296,79 @@ describe('selectBridgeRecurringBuyTabEnabledFlag', () => {
     );
 
     expect(result).toBe(false);
+  });
+});
+
+describe('selectSentinelFeeTokensFeatureFlags', () => {
+  it('returns the Sentinel fee-token configuration', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsSentinelFeeTokens: {
+        cacheTtlMs: 60_000,
+      },
+    });
+
+    const result = selectSentinelFeeTokensFeatureFlags(state);
+
+    expect(result).toStrictEqual({ cacheTtlMs: 60_000 });
+  });
+});
+
+describe('selectSentinelFeeTokensCacheTtlMs', () => {
+  it('returns a positive finite configured TTL', () => {
+    const state = buildStateWithRemoteFlags({
+      swapsSentinelFeeTokens: {
+        cacheTtlMs: 60_000,
+      },
+    });
+
+    const result = selectSentinelFeeTokensCacheTtlMs(state);
+
+    expect(result).toBe(60_000);
+  });
+
+  it.each([
+    ['missing flag', mockedEmptyFlagsState],
+    [
+      'missing cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {},
+      }),
+    ],
+    [
+      'string cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: '900000',
+        },
+      }),
+    ],
+    [
+      'zero cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: 0,
+        },
+      }),
+    ],
+    [
+      'negative cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: -1,
+        },
+      }),
+    ],
+    [
+      'non-finite cacheTtlMs',
+      buildStateWithRemoteFlags({
+        swapsSentinelFeeTokens: {
+          cacheTtlMs: Number.POSITIVE_INFINITY,
+        },
+      }),
+    ],
+  ])('returns the default for %s', (_caseName, state) => {
+    const result = selectSentinelFeeTokensCacheTtlMs(state);
+
+    expect(result).toBe(DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS);
   });
 });

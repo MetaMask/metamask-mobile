@@ -139,7 +139,7 @@ function NetworkFeeField(props: NetworkFeeFieldProps) {
     setIsCollapsed(!isCollapsed);
     if (!isCollapsed) {
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_CLICKED)
+        createEventBuilder(MetaMetricsEvents.NOTIFICATION_DETAIL_ITEM_CLICKED)
           .addProperties({
             ...notificationAnalyticsProperties(notification),
             clicked_item: 'fee_details',

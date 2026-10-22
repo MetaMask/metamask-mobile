@@ -24,6 +24,7 @@ import {
 } from '../utils/crossmintCheckoutAppearance';
 import {
   getCrossmintFailureMessage,
+  getCrossmintUnpurchasableMessage,
   isCrossmintPaymentCompleted,
   isCrossmintPaymentInProgress,
   parseCrossmintCheckoutMessage,
@@ -37,7 +38,8 @@ import useRampAccountAddress from './useRampAccountAddress';
 const CROSSMINT_PROVIDER_ID_FRAGMENT = 'crossmint';
 const APPLE_PAY_PAYMENT_METHOD_SUFFIX = 'apple-pay';
 const GOOGLE_PAY_PAYMENT_METHOD_SUFFIX = 'google-pay';
-const PREPARE_DEBOUNCE_MS = 400;
+
+const AWAITING_PAYMENT_STATUS = 'awaiting-payment';
 
 const PAID_ORDER_STATUSES: RampsOrderStatus[] = [
   RampsOrderStatus.Pending,
@@ -70,8 +72,22 @@ export interface UseCrossmintWalletPayOverlayResult {
   isCheckoutReady: boolean;
   /** Passed to the overlay so it can report the payment button as rendered. */
   onCheckoutReady: () => void;
+  /**
+   * True from payment authorization until hand-off (or a decline). Crossmint
+   * repaints their button through settlement, so the caller covers the slot
+   * with its own state while this holds.
+   */
+  isPaymentSettling: boolean;
   /** Best-effort handler for the overlay WebView postMessage events. */
   onMessage: (event: WebViewMessageEvent) => void;
+  /**
+   * Crossmint's reason the prepared order cannot be paid (e.g. the token is
+   * not available for purchase right now). Set when their checkout reports
+   * the order unpurchasable before payment; the overlay is torn down and the
+   * caller shows this next to the restored Continue button. Cleared on the
+   * next preparation.
+   */
+  checkoutError: string | null;
 }
 
 /**
@@ -111,9 +127,9 @@ function getPreparationKey(
  * payment button inline. The order id is registered as precreated so the order
  * processor polls it to completion even when the WebView posts no events.
  *
- * Preparation is debounced and cached per provider/asset/payment/amount, so
- * quote refreshes do not create a new order on every poll. Any failure leaves
- * the standard Continue button as the checkout path.
+ * Preparation is cached per provider/asset/payment/amount, so quote refreshes
+ * do not create a new order on every poll. Any failure leaves the standard
+ * Continue button as the checkout path.
  *
  * Once payment is authorized, navigation resets onto OrderDetails, the same
  * handoff the Checkout WebView performs on its callback redirect.
@@ -138,7 +154,10 @@ export default function useCrossmintWalletPayOverlay(
 
   const [prepared, setPrepared] = useState<PreparedOverlay | null>(null);
   const [preparationFailed, setPreparationFailed] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [checkoutReadyId, setCheckoutReadyId] = useState<number | null>(null);
+  const [settlingOrderId, setSettlingOrderId] = useState<string | null>(null);
+  const lastPaymentStatusRef = useRef<string | undefined>(undefined);
   const preparedKeyRef = useRef<string | null>(null);
   const prepareIdRef = useRef(0);
   const handedOffOrderIdRef = useRef<string | null>(null);
@@ -171,6 +190,7 @@ export default function useCrossmintWalletPayOverlay(
       preparedKeyRef.current = null;
       setPrepared(null);
       setPreparationFailed(false);
+      setCheckoutError(null);
       return;
     }
 
@@ -187,13 +207,17 @@ export default function useCrossmintWalletPayOverlay(
 
     const prepareId = prepareIdRef.current + 1;
     prepareIdRef.current = prepareId;
+    // Claimed before the request so a quote refresh that lands mid-flight
+    // with the same key does not create a second order.
+    preparedKeyRef.current = key;
     // Drop the checkout prepared for the previous amount: it points at an
     // order for the wrong total and would read as "ready" while the new one
     // is still being created.
     setPrepared(null);
     setPreparationFailed(false);
+    setCheckoutError(null);
 
-    const timer = setTimeout(async () => {
+    (async () => {
       try {
         const quoteForWidget = buildQuoteWithRedirectUrl(
           quote,
@@ -206,6 +230,7 @@ export default function useCrossmintWalletPayOverlay(
         }
 
         if (!buyWidget?.url) {
+          preparedKeyRef.current = null;
           setPreparationFailed(true);
           return;
         }
@@ -226,7 +251,6 @@ export default function useCrossmintWalletPayOverlay(
           });
         }
 
-        preparedKeyRef.current = key;
         setPrepared({
           key,
           preparationId: prepareId,
@@ -244,11 +268,7 @@ export default function useCrossmintWalletPayOverlay(
             'useCrossmintWalletPayOverlay error while preparing wallet-pay checkout',
         });
       }
-    }, PREPARE_DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    })();
   }, [
     isEligible,
     quote,
@@ -289,6 +309,11 @@ export default function useCrossmintWalletPayOverlay(
     [navigation, selectedToken?.symbol],
   );
 
+  // A new order starts with no payment history.
+  useEffect(() => {
+    lastPaymentStatusRef.current = undefined;
+  }, [activePrepared?.orderId]);
+
   const onCheckoutReady = useCallback(() => {
     if (activePrepared) {
       setCheckoutReadyId(activePrepared.preparationId);
@@ -303,22 +328,63 @@ export default function useCrossmintWalletPayOverlay(
         return;
       }
 
+      const unpurchasable = getCrossmintUnpurchasableMessage(message);
+      if (unpurchasable) {
+        // A message from a checkout that is no longer active (the amount
+        // changed and the WebView is on its way out) must not fail the
+        // preparation that replaced it.
+        if (!activePreparedRef.current) {
+          return;
+        }
+        // The order never got a quote, so the button Crossmint is about to
+        // render (and report ready) cannot be paid. Drop the overlay and hand
+        // the slot back to Continue with the reason; a new amount re-prepares.
+        Logger.error(new Error(unpurchasable), {
+          message:
+            'useCrossmintWalletPayOverlay Crossmint order is not purchasable',
+        });
+        setSettlingOrderId(null);
+        setPrepared(null);
+        setPreparationFailed(true);
+        setCheckoutError(unpurchasable);
+        return;
+      }
+
       const failure = getCrossmintFailureMessage(message);
       if (failure) {
-        // Their UI surfaces the failure inline and allows a retry, so only log.
+        // A payment decline: their UI surfaces it inline and allows a retry,
+        // so log and give them the slot back.
         Logger.error(new Error(failure), {
           message: 'useCrossmintWalletPayOverlay Crossmint checkout failure',
         });
+        setSettlingOrderId(null);
         return;
       }
 
       const order = message.data?.order;
+      if (message.event !== 'order:updated') {
+        return;
+      }
       if (
-        message.event === 'order:updated' &&
-        (isCrossmintPaymentInProgress(order) ||
-          isCrossmintPaymentCompleted(order))
+        isCrossmintPaymentInProgress(order) ||
+        isCrossmintPaymentCompleted(order)
       ) {
         handOffToOrderDetails(activePrepared);
+      }
+      // Authorization shows up as the status moving into awaiting-payment
+      // (from requires-email, which the wallet sheet resolves) or in-progress.
+      // A first report that is already awaiting-payment is the idle checkout.
+      const status = order?.payment?.status;
+      const previousStatus = lastPaymentStatusRef.current;
+      lastPaymentStatusRef.current = status;
+      if (
+        activePrepared?.orderId &&
+        ((status === AWAITING_PAYMENT_STATUS &&
+          previousStatus !== undefined &&
+          previousStatus !== AWAITING_PAYMENT_STATUS) ||
+          isCrossmintPaymentInProgress(order))
+      ) {
+        setSettlingOrderId(activePrepared.orderId);
       }
     },
     [activePrepared, handOffToOrderDetails],
@@ -351,6 +417,8 @@ export default function useCrossmintWalletPayOverlay(
   }, [isEligible, activePrepared?.checkoutUrl, colors]);
 
   const isCheckoutReady = activePrepared?.preparationId === checkoutReadyId;
+  const isPaymentSettling =
+    settlingOrderId !== null && settlingOrderId === activePrepared?.orderId;
 
   // Derived during render, not state: effects run after paint, so a flag set
   // in the prepare effect leaves one frame where Continue flashes in enabled.
@@ -363,7 +431,9 @@ export default function useCrossmintWalletPayOverlay(
     checkoutUrl,
     isPreparing,
     isCheckoutReady,
+    isPaymentSettling,
     onCheckoutReady,
     onMessage,
+    checkoutError,
   };
 }

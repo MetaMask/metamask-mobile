@@ -94,6 +94,10 @@ export const perpsCompetitionBannerDismissedKey = (campaignId: string) =>
 
 export const PERPS_LAST_ACTION_AT = `${prefix}perpsLastActionAt`;
 
+export const SOCIAL_LAST_TRADE_AT = `${prefix}socialLastTradeAt`;
+
+export const PERPS_AGGREGATE_FILLS = `${prefix}perpsAggregateFills`;
+
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 
 export const ROBINHOOD_EXPLORE_BANNER_DISMISSED = `${prefix}robinhoodExploreBannerDismissed`;
@@ -103,6 +107,8 @@ export const PREDICT_GTM_MODAL_SHOWN = `${prefix}predictGTMModalShown`;
 export const REWARDS_GTM_MODAL_SHOWN = `${prefix}rewardsGTMModalShown`;
 
 export const SOCIAL_LEADERBOARD_ONBOARDING_SHOWN = `${prefix}socialLeaderboardOnboardingShown`;
+
+export const SOCIAL_TAB_VISITED = `${prefix}socialTabVisited`;
 
 export const SOCIAL_LEADERBOARD_SNAPSHOT_PREFIX = `${prefix}socialLeaderboardSnapshot:`;
 

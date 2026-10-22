@@ -37,10 +37,11 @@ describe('CandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    expect(getByText('1min')).toBeOnTheScreen();
-    expect(getByText('3min')).toBeOnTheScreen();
-    expect(getByText('5min')).toBeOnTheScreen();
-    expect(getByText('15min')).toBeOnTheScreen();
+    expect(getByText('1m')).toBeOnTheScreen();
+    expect(getByText('5m')).toBeOnTheScreen();
+    expect(getByText('15m')).toBeOnTheScreen();
+    expect(getByText('1h')).toBeOnTheScreen();
+    expect(getByText('1d')).toBeOnTheScreen();
   });
 
   it('calls onPeriodChange when period button is pressed', () => {
@@ -53,9 +54,9 @@ describe('CandlePeriodSelector', () => {
       { state: { engine: { backgroundState: {} } } },
     );
 
-    fireEvent.press(getByText('3min'));
+    fireEvent.press(getByText('1h'));
 
-    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.ThreeMinutes);
+    expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.OneHour);
   });
 
   it('calls onMorePress when more button is pressed', () => {
@@ -78,14 +79,14 @@ describe('CandlePeriodSelector', () => {
   it('displays selected period label in more button when non-default period is selected', () => {
     const { getByText } = renderWithProvider(
       <CandlePeriodSelector
-        selectedPeriod={CandlePeriod.OneHour}
+        selectedPeriod={CandlePeriod.ThreeMinutes}
         onPeriodChange={mockOnPeriodChange}
         onMorePress={mockOnMorePress}
       />,
       { state: { engine: { backgroundState: {} } } },
     );
 
-    expect(getByText('1h')).toBeOnTheScreen();
+    expect(getByText('3m')).toBeOnTheScreen();
   });
 
   it('renders the configured visible periods', () => {
@@ -176,6 +177,127 @@ describe('CandlePeriodSelector', () => {
     expect(moreButton.props.twClassName).toBe('h-7 rounded px-1');
     expect(moreButton.props.textProps).toEqual({
       variant: TextVariant.BodyXs,
+    });
+  });
+
+  describe('fillWidth', () => {
+    it('drops the scrolling group so the periods can share the width', () => {
+      const { UNSAFE_queryByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      expect(UNSAFE_queryByType(FilterButtonGroup)).toBeNull();
+    });
+
+    it('stretches every period button and leaves More at its own width', () => {
+      const { UNSAFE_getAllByType, UNSAFE_getByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          periodButtonTwClassName="h-8 rounded-lg px-1"
+          moreButtonTwClassName="h-8 rounded-lg px-1"
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      const periodButtons = UNSAFE_getAllByType(FilterButton);
+
+      expect(periodButtons).toHaveLength(CUSTOM_CANDLE_PERIODS.length);
+      periodButtons.forEach((periodButton) => {
+        expect(periodButton.props.twClassName).toBe(
+          'min-w-0 flex-1 h-8 rounded-lg px-1',
+        );
+      });
+      expect(UNSAFE_getByType(SelectButton).props.twClassName).toBe(
+        'shrink-0 h-8 rounded-lg px-1',
+      );
+    });
+
+    it('scales period labels so the unit stays visible in the shared row', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          textVariant={TextVariant.BodySm}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      UNSAFE_getAllByType(FilterButton).forEach((periodButton) => {
+        expect(periodButton.props.textProps).toEqual(
+          expect.objectContaining({
+            variant: TextVariant.BodySm,
+            adjustsFontSizeToFit: true,
+            minimumFontScale: 0.7,
+            numberOfLines: 1,
+          }),
+        );
+      });
+    });
+
+    it('marks the selected period as selected for assistive technology', () => {
+      const { UNSAFE_getAllByType } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneHour}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      const selectedStates = UNSAFE_getAllByType(FilterButton).map(
+        (periodButton) => ({
+          isSelected: periodButton.props.isSelected,
+          accessibilityState: periodButton.props.accessibilityState,
+        }),
+      );
+
+      expect(selectedStates).toEqual([
+        { isSelected: false, accessibilityState: { selected: false } },
+        { isSelected: true, accessibilityState: { selected: true } },
+        { isSelected: false, accessibilityState: { selected: false } },
+      ]);
+    });
+
+    it('routes period presses through onPeriodChange', () => {
+      const { getByText } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          onPeriodChange={mockOnPeriodChange}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          fillWidth
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      fireEvent.press(getByText('1d'));
+
+      expect(mockOnPeriodChange).toHaveBeenCalledWith(CandlePeriod.OneDay);
+    });
+
+    it('routes More presses through onMorePress', () => {
+      const testID = 'test-candle-selector';
+      const { getByTestId } = renderWithProvider(
+        <CandlePeriodSelector
+          selectedPeriod={CandlePeriod.OneMinute}
+          onMorePress={mockOnMorePress}
+          visiblePeriods={CUSTOM_CANDLE_PERIODS}
+          fillWidth
+          testID={testID}
+        />,
+        { state: { engine: { backgroundState: {} } } },
+      );
+
+      fireEvent.press(getByTestId(`${testID}-more-button`));
+
+      expect(mockOnMorePress).toHaveBeenCalled();
     });
   });
 });

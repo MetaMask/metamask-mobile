@@ -1,28 +1,23 @@
 import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import { LimitOrderExecutionType } from '../../constants/limitOrders';
+
+const MAX_DISPLAY_PERCENT = 9999;
 
 interface Params {
   limitFiat: string | undefined;
   marketFiat: number | undefined;
-  executionType: LimitOrderExecutionType;
-  threshold: number;
 }
 
 /**
- * Returns the market-comparison label for a quoted-token unit limit price.
+ * Returns the signed market-comparison label for a quoted-token unit limit
+ * price, whether the limit is above or below market.
  *
- * Hidden when the displayed percent rounds to 0.00. Buy: shown only when the
- * limit is at least X% below the quoted token's market fiat. Sell: shown only
- * when the limit is more than X% above market.
- *
- * X = threshold
+ * Hidden when the displayed percent rounds to 0.00. Capped at >+9999%; the
+ * below-market side is bounded by -100% since the limit must be positive.
  */
 export const getSwapsLimitOrderPriceMarketComparison = ({
   limitFiat,
   marketFiat,
-  executionType,
-  threshold,
 }: Params): { label: string; isNegative: boolean } | undefined => {
   if (!limitFiat || !marketFiat) {
     return undefined;
@@ -40,32 +35,25 @@ export const getSwapsLimitOrderPriceMarketComparison = ({
   }
 
   const percent = limit.minus(market).dividedBy(market).multipliedBy(100);
-  const displayPercent = percent.abs().toFixed(2);
+  const isCapped = percent.gt(MAX_DISPLAY_PERCENT);
+  const displayPercent = isCapped
+    ? String(MAX_DISPLAY_PERCENT)
+    : percent.abs().toFixed(2);
   if (!percent.isFinite() || displayPercent === '0.00') {
     return undefined;
   }
 
-  if (executionType === LimitOrderExecutionType.SELL) {
-    if (percent.lte(threshold)) {
-      return undefined;
-    }
+  const isNegative = percent.isNegative();
 
-    return {
-      label: strings('bridge.limit.from_market_above', {
-        percent: displayPercent,
-      }),
-      isNegative: false,
-    };
-  }
-
-  if (percent.gt(-threshold)) {
-    return undefined;
+  let labelKey = 'bridge.limit.from_market_above';
+  if (isNegative) {
+    labelKey = 'bridge.limit.from_market';
+  } else if (isCapped) {
+    labelKey = 'bridge.limit.from_market_above_capped';
   }
 
   return {
-    label: strings('bridge.limit.from_market', {
-      percent: displayPercent,
-    }),
-    isNegative: true,
+    label: strings(labelKey, { percent: displayPercent }),
+    isNegative,
   };
 };

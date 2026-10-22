@@ -50,7 +50,7 @@ const PredictAddFundsSheet = forwardRef<
   const handleAddFunds = () => {
     executeGuardedAction(
       () => {
-        deposit();
+        deposit({ sheetPresentation: true });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.DEPOSIT },
     );

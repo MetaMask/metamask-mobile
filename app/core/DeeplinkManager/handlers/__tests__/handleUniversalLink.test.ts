@@ -23,9 +23,25 @@ import { handleBatchSellUrl } from '../legacy/handleBatchSellUrl';
 import { handleAssetUrl } from '../legacy/handleAssetUrl';
 import { handlePrivacyUrl } from '../legacy/handlePrivacyUrl';
 import {
+  handlePerpsUrl,
+  createPerpsDeeplinkIntent,
+} from '../intent/handlePerpsUrl';
+import {
+  handlePerpsOutreachUrl,
+  createPerpsOutreachDeeplinkIntent,
+} from '../intent/handlePerpsOutreachUrl';
+import {
+  createNotificationsSettingsDeeplinkIntent,
+  handleNotificationsSettingsUrl,
+} from '../intent/handleNotificationsSettingsUrl';
+import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
 } from '../intent/handleRewardsUrl';
+import {
+  handlePredictUrl,
+  createPredictDeeplinkIntent,
+} from '../intent/handlePredictUrl';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../utils/verifySignature';
@@ -56,6 +72,7 @@ jest.mock('../intent/handleSwapUrl');
 jest.mock('../legacy/handleBatchSellUrl');
 jest.mock('../legacy/handleAssetUrl');
 jest.mock('../legacy/handlePrivacyUrl');
+jest.mock('../intent/handleNotificationsSettingsUrl');
 jest.mock('../intent/handleBrowserUrl');
 jest.mock('../intent/handleDappUrl', () => {
   const actual = jest.requireActual('../intent/handleDappUrl');
@@ -67,6 +84,7 @@ jest.mock('../intent/handleDappUrl', () => {
 });
 jest.mock('../legacy/handleCreateAccountUrl');
 jest.mock('../intent/handlePerpsUrl');
+jest.mock('../intent/handlePerpsOutreachUrl');
 jest.mock('../intent/handleRewardsUrl');
 jest.mock('../intent/handlePredictUrl');
 jest.mock('../legacy/handleFastOnboarding');
@@ -360,22 +378,54 @@ describe('handleUniversalLink', () => {
 
       isSupportedActionSpy.mockRestore();
     });
+
+    it('logs and swallows the failure when the analytics event builder rejects', async () => {
+      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
+        jest.requireMock('../../util/deeplinks/deepLinkAnalytics') as {
+          createDeepLinkUsedEventBuilder: jest.Mock;
+        };
+      DevLogger.log = jest.fn();
+      mockCreateBuilder.mockRejectedValueOnce(
+        new Error('event builder failed'),
+      );
+
+      const connectUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}?channelId=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(connectUrl).urlObj,
+        url: connectUrl,
+        source: 'test',
+      });
+
+      // Fire-and-forget: the rejection must not propagate to the caller.
+      await new Promise(setImmediate);
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'DeepLinkAnalytics: Failed to track analytics:',
+        expect.any(Error),
+      );
+    });
   });
 
   describe('SDK Actions', () => {
     const testCases = [
-      { action: ACTIONS.CONNECT },
-      { action: ACTIONS.MMSDK },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.io' },
+      { action: ACTIONS.CONNECT, host: 'link.metamask.com' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.io' },
+      { action: ACTIONS.MMSDK, host: 'link.metamask.com' },
     ] as const;
 
     it.each(testCases)(
-      'calls handleMetaMaskDeeplink when deeplink is $url',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'calls handleMetaMaskDeeplink when deeplink is https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const expectedMappedUrl = `metamask://${action}`;
-        const { urlObj: testUrlObj, params: testParams } =
+        const { urlObj: testUrlObj } = extractURLParams(testUrl);
+        const { urlObj: mappedUrlObj, params: testParams } =
           extractURLParams(expectedMappedUrl);
-        const wcURL = testParams?.uri || testUrlObj.href;
+        const wcURL = testParams?.uri || mappedUrlObj.href;
 
         await handleUniversalLink({
           instance,
@@ -397,9 +447,9 @@ describe('handleUniversalLink', () => {
     );
 
     it.each(testCases)(
-      'returns null in resolve mode without executing SDK action $action',
-      async ({ action }) => {
-        const testUrl = `https://link.metamask.io/${action}`;
+      'returns null in resolve mode without executing SDK action https://$host/$action',
+      async ({ action, host }) => {
+        const testUrl = `https://${host}/${action}`;
         const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
         const result = await handleUniversalLink({
@@ -432,9 +482,7 @@ describe('handleUniversalLink', () => {
       mockHandleMetaMaskDeeplink.mockRejectedValueOnce(rejectionError);
 
       const testUrl = `https://link.metamask.io/${ACTIONS.CONNECT}`;
-      const { urlObj: testUrlObj } = extractURLParams(
-        `metamask://${ACTIONS.CONNECT}`,
-      );
+      const { urlObj: testUrlObj } = extractURLParams(testUrl);
 
       await expect(
         handleUniversalLink({
@@ -583,6 +631,74 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePrivacyUrl).toHaveBeenCalledWith({ privacyPath });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.NOTIFICATIONS_SETTINGS', () => {
+    it('calls handleNotificationsSettingsUrl with the path after the action', async () => {
+      const notificationsSettingsPath = '?section=price-alerts';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.NOTIFICATIONS_SETTINGS}${notificationsSettingsPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.NOTIFICATIONS_SETTINGS}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+      });
+
+      expect(handleNotificationsSettingsUrl).toHaveBeenCalledWith({
+        notificationsSettingsPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a startup intent in resolve mode without executing notification settings navigation', async () => {
+      const notificationsSettingsPath = '?section=wallet-activity';
+      url = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.NOTIFICATIONS_SETTINGS}${notificationsSettingsPath}`;
+      urlObj = {
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        pathname: `/${ACTIONS.NOTIFICATIONS_SETTINGS}`,
+        href: url,
+      } as ReturnType<typeof extractURLParams>['urlObj'];
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'SettingsView',
+          params: {
+            screen: 'NotificationsSettings',
+            params: { section: 'wallet-activity' },
+          },
+        },
+      };
+      (
+        createNotificationsSettingsDeeplinkIntent as jest.MockedFunction<
+          typeof createNotificationsSettingsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj,
+        browserCallBack: mockBrowserCallBack,
+        url,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createNotificationsSettingsDeeplinkIntent).toHaveBeenCalledWith({
+        notificationsSettingsPath,
+      });
+      expect(handleNotificationsSettingsUrl).not.toHaveBeenCalled();
       expect(handled).toHaveBeenCalled();
     });
   });
@@ -751,6 +867,10 @@ describe('handleUniversalLink', () => {
           domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
           description: 'test deeplink domain',
         },
+        {
+          domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+          description: 'com test deeplink domain',
+        },
       ] as const;
 
       it.each(testCases)(
@@ -828,6 +948,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 
@@ -1033,6 +1157,127 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handled).toHaveBeenCalled();
+    });
+
+    it('injects screen=asset when action is PERPS_ASSET in execute mode', async () => {
+      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH`;
+      const perpsAssetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsAssetUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsAssetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsAssetUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a perps asset startup intent in resolve mode with screen=asset injected', async () => {
+      const perpsAssetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH`;
+      const perpsAssetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsAssetUrl,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'PerpsView',
+        },
+      };
+      (
+        createPerpsDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsAssetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsAssetUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&symbol=ETH',
+      });
+      expect(handlePerpsUrl).not.toHaveBeenCalled();
+    });
+
+    it('calls handlePerpsOutreachUrl when action is PERPS_OUTREACH in execute mode', async () => {
+      const perpsOutreachUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_OUTREACH}?campaign=test`;
+      const perpsOutreachUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsOutreachUrl,
+        pathname: `/${ACTIONS.PERPS_OUTREACH}`,
+        search: '?campaign=test',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsOutreachUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsOutreachUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsOutreachUrl).toHaveBeenCalledWith();
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('returns a perps outreach startup intent in resolve mode', async () => {
+      const perpsOutreachUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_OUTREACH}`;
+      const perpsOutreachUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsOutreachUrl,
+        pathname: `/${ACTIONS.PERPS_OUTREACH}`,
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'PerpsView',
+        },
+      };
+      (
+        createPerpsOutreachDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsOutreachDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsOutreachUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsOutreachUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsOutreachDeeplinkIntent).toHaveBeenCalledWith();
+      expect(handlePerpsOutreachUrl).not.toHaveBeenCalled();
     });
   });
 
@@ -1263,6 +1508,45 @@ describe('handleUniversalLink', () => {
 
       expect(handled).toHaveBeenCalled();
     });
+
+    it('returns a predict startup intent in resolve mode without executing predict navigation', async () => {
+      const predictUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PREDICT}?market=23246`;
+      const predictUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: predictUrl,
+        pathname: `/${ACTIONS.PREDICT}`,
+        search: '?market=23246',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'home-tab',
+          routeName: 'PredictView',
+        },
+      };
+      (
+        createPredictDeeplinkIntent as jest.MockedFunction<
+          typeof createPredictDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: predictUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: predictUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPredictDeeplinkIntent).toHaveBeenCalledWith({
+        predictPath: '?market=23246',
+        origin: 'test-source',
+      });
+      expect(handlePredictUrl).not.toHaveBeenCalled();
+    });
   });
 
   describe('ACTIONS.TRENDING', () => {
@@ -1292,6 +1576,7 @@ describe('handleUniversalLink', () => {
         AppConstants.MM_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
         AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
+        AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
       ];
 
       for (const domain of testCases) {
@@ -1438,6 +1723,10 @@ describe('handleUniversalLink', () => {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
       },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
+      },
     ] as const;
 
     it.each(testCases)(
@@ -1508,6 +1797,10 @@ describe('handleUniversalLink', () => {
       {
         domain: AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST,
         description: 'test deeplink domain',
+      },
+      {
+        domain: AppConstants.MM_COM_UNIVERSAL_LINK_TEST_HOST,
+        description: 'com test deeplink domain',
       },
     ] as const;
 
@@ -2012,6 +2305,7 @@ describe('handleUniversalLink', () => {
         AppConstants.DEEPLINKS.ORIGIN_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_PUSH_NOTIFICATION,
         AppConstants.DEEPLINKS.ORIGIN_BRAZE,
+        AppConstants.DEEPLINKS.ORIGIN_PERPS_OUTREACH,
       ];
 
       // All in-app sources except the trusted ones (excluding ORIGIN_DEEPLINK which is external)
@@ -2383,6 +2677,14 @@ describe('handleUniversalLink', () => {
       },
       {
         link: `https://link.metamask.io/${ACTIONS.OAUTH_REDIRECT}?code=test-code&state=test-state`,
+        shouldSkip: true,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.X_OAUTH_REDIRECT}`,
+        shouldSkip: true,
+      },
+      {
+        link: `https://link.metamask.io/${ACTIONS.X_OAUTH_REDIRECT}?code=test-code&state=test-state`,
         shouldSkip: true,
       },
     ];

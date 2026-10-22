@@ -54,7 +54,6 @@ export function mapRampsOrder({
     status: mapRampsOrderStatus(order.status),
     timestamp: getRampsOrderCreatedAt(order),
     hash,
-    raw: { type: 'rampOrder', data: order },
     data: {
       from: order.walletAddress,
       token: toRampsOrderToken(order, isSell ? 'out' : 'in'),

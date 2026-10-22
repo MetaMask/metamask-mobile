@@ -27,6 +27,12 @@ export type ConfirmNavigateOptions = {
   headerShown?: boolean;
   replace?: boolean;
   stack?: string;
+  /**
+   * Push the confirmation on the navigator that called this hook.
+   * `navigate()` from a transparent modal is handled by a parent and comes
+   * back as a page sheet. Pending custom-amount rejections still run first.
+   */
+  pushOnCurrentStack?: boolean;
 } & ConfirmationParams;
 
 export function useConfirmNavigation() {
@@ -45,7 +51,13 @@ export function useConfirmNavigation() {
 
   const navigateToConfirmation = useCallback(
     (options: ConfirmNavigateOptions) => {
-      const { headerShown, replace = false, stack, ...params } = options;
+      const {
+        headerShown,
+        replace = false,
+        stack,
+        pushOnCurrentStack = false,
+        ...params
+      } = options;
       const { loader } = params;
 
       if (!loader && stack === Routes.PERPS.ROOT) {
@@ -65,11 +77,21 @@ export function useConfirmNavigation() {
         return;
       }
 
-      const route = headerShown === false ? ROUTE_NO_HEADER : ROUTE;
+      const isForceBottomSheet = params.forceBottomSheet === true;
+      const route = isForceBottomSheet
+        ? Routes.CONFIRMATION_REQUEST_MODAL
+        : headerShown === false
+          ? ROUTE_NO_HEADER
+          : ROUTE;
 
-      log('Navigating', { route, params, stack });
+      log('Navigating', { route, params, stack, pushOnCurrentStack });
 
-      if (stack) {
+      if (pushOnCurrentStack) {
+        navigation.dispatch(StackActions.push(route, params));
+        return;
+      }
+
+      if (stack && !isForceBottomSheet) {
         if (replace) {
           navigation.dispatch(
             StackActions.replace(stack, { screen: route, params }),

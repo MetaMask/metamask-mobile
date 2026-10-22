@@ -28,6 +28,7 @@ import {
   CommonActions,
   StackActions,
   useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   RouteProp,
@@ -46,6 +47,8 @@ import {
   selectCardRedemptionDestinationIsMoneyAccount,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSelectedCountry,
+  selectHasCompletedCardMigration,
 } from '../../../../../selectors/cardController';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
@@ -81,6 +84,7 @@ import {
 } from '../../../../../component-library/components/Toast';
 import SpendingLimitProgressBar from '../../components/SpendingLimitProgressBar/SpendingLimitProgressBar';
 import { AddToWalletButton } from '../../pushProvisioning/components/AddToWalletButton';
+import type { WalletPassDevice } from '../../pushProvisioning/types';
 import { CardScreenshotDeterrent } from '../../components/CardScreenshotDeterrent';
 import Routes from '../../../../../constants/navigation/Routes';
 import { TOKEN_RATE_UNDEFINED } from '../../../Tokens/constants';
@@ -105,7 +109,8 @@ import { useCardArrivalAnimation } from './hooks/useCardArrivalAnimation';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardIntercomSupport } from './hooks/useCardIntercomSupport';
-import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { useCardWalletProvisioning } from './hooks/useCardWalletProvisioning';
+import { getWalletTypeForPlatform } from '../../pushProvisioning/constants';
 import { useCardEnableCard } from './hooks/useCardEnableCard';
 import { useCardRevokeAllowance } from './hooks/useCardRevokeAllowance';
 import { useFundingAccountName } from '../../hooks/useFundingAccountName';
@@ -151,6 +156,7 @@ const CardHome = () => {
     selectMetalCardCheckoutFeatureFlag,
   );
   const navigation = useNavigation<AppNavigationProp>();
+  const isFocused = useIsFocused();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<RouteProp<{ params: CardHomeRouteParams }, 'params'>>();
@@ -169,6 +175,7 @@ const CardHome = () => {
   const { state: ukMigrationState, refresh: refreshUkMigrationState } =
     useCardUkMigrationState();
   const cardUpdateBadgeSeverity = useCardUkMigrationUpdateBadge();
+  const hasCompletedMigration = useSelector(selectHasCompletedCardMigration);
   // Baanx UK migration uses account.countryOfResidence; Immersve regionCode is
   // irrelevant because Immersve users are never eligible.
   const migrationRegionCode =
@@ -176,22 +183,25 @@ const CardHome = () => {
   const isUkMigrationEligible = isCardUkMigrationEligible(ukMigrationState, {
     providerId: activeProviderId,
     regionCode: migrationRegionCode,
+    hasCompletedMigration,
   });
   const isUkMigrationForced =
     isUkMigrationEligible && ukMigrationState.phase === 'forced';
   const isUkMigrationSoft =
     isUkMigrationEligible && ukMigrationState.phase === 'soft';
+  const selectedCountry = useSelector(selectCardSelectedCountry);
+  const immersveLegalRegionCode = data?.card?.regionCode ?? selectedCountry;
   const {
     permanentDocuments: immersveLegalDocuments,
     isLoading: isImmersveLegalDocsLoading,
     error: immersveLegalDocsError,
     refetch: refetchImmersveLegalDocs,
-  } = useImmersveSupportedRegions(data?.card?.regionCode, {
-    enabled: isImmersve && Boolean(data?.card?.regionCode),
+  } = useImmersveSupportedRegions(immersveLegalRegionCode, {
+    enabled: isImmersve && Boolean(immersveLegalRegionCode),
   });
   const immersveLegalDocsUnavailable = Boolean(
     isImmersve &&
-      Boolean(data?.card?.regionCode) &&
+      Boolean(immersveLegalRegionCode) &&
       !isImmersveLegalDocsLoading &&
       (immersveLegalDocsError || immersveLegalDocuments.length === 0),
   );
@@ -222,19 +232,23 @@ const CardHome = () => {
 
   const isBlocked = data?.card?.status === CardStatus.BLOCKED;
 
+  const platformWallet = getWalletTypeForPlatform();
+  const platformWalletSupported =
+    platformWallet === 'apple_wallet'
+      ? capabilities?.pushProvisioning?.applePay === true
+      : capabilities?.pushProvisioning?.googlePay === true;
   const {
     initiateProvisioning,
     isProvisioning,
-    isLoading: isPushProvisioningLoading,
-    canAddToWallet,
-  } = useCardProvisioning(data);
-  const isBaanxInternational =
-    activeProviderId === CardProviderIds.Baanx &&
-    userLocation === 'international';
-  const showDigitalWalletInstructions =
-    (isImmersve || isBaanxInternational) &&
-    !isPushProvisioningLoading &&
-    !canAddToWallet;
+    walletEntry,
+    pendingVerificationDevices,
+    canOpenInWallet,
+    openInWallet,
+  } = useCardWalletProvisioning(data, platformWalletSupported);
+  const pendingDevicesLabel = formatPendingDevices(pendingVerificationDevices);
+  const handleOpenInWallet = useCallback(() => {
+    openInWallet().catch(() => undefined);
+  }, [openInWallet]);
 
   const { canEnableCard, enableCard, provisioningView } =
     useCardEnableCard(data);
@@ -317,18 +331,28 @@ const CardHome = () => {
   );
 
   // --- Auth state transition: navigate to auth screen on logout ---
+  // Defer the redirect until Card Home is focused. A provider switch during
+  // UK migration marks the user signed out while SignUp is on top; replacing
+  // the focused route from this background screen unmounts that flow.
   const wasAuthenticated = useRef(isAuthenticated);
+  const pendingAuthRedirect = useRef(false);
   useEffect(() => {
-    const wasAuth = wasAuthenticated.current;
-    wasAuthenticated.current = isAuthenticated;
     if (
-      wasAuth &&
+      wasAuthenticated.current &&
       !isAuthenticated &&
       lastUnauthenticatedReason !== 'onboarding_token_revoked'
     ) {
+      pendingAuthRedirect.current = true;
+    }
+    if (isAuthenticated) {
+      pendingAuthRedirect.current = false;
+    }
+    wasAuthenticated.current = isAuthenticated;
+    if (pendingAuthRedirect.current && isFocused) {
+      pendingAuthRedirect.current = false;
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+  }, [isAuthenticated, isFocused, lastUnauthenticatedReason, navigation]);
 
   const hasHandledOnboardingTokenRevocation = useRef(false);
   useEffect(() => {
@@ -723,6 +747,21 @@ const CardHome = () => {
           </Box>
         )}
 
+        {!isLoading &&
+          pendingDevicesLabel.length > 0 &&
+          !isUkMigrationForced && (
+            <Box
+              twClassName="mx-4 mt-2"
+              testID={CardHomeSelectors.VERIFICATION_PENDING_NOTICE}
+            >
+              <CardMessageBox
+                messageType={CardMessageBoxType.WalletVerificationPending}
+                values={{ devices: pendingDevicesLabel }}
+                onConfirm={canOpenInWallet ? handleOpenInWallet : undefined}
+              />
+            </Box>
+          )}
+
         <Box twClassName="mt-4 bg-background-muted rounded-lg mx-4 py-4 px-4">
           <Animated.View
             style={[tw.style('w-full relative'), arrival.cardStyle]}
@@ -827,7 +866,7 @@ const CardHome = () => {
             </Box>
           )}
 
-        {!isLoading && canAddToWallet && !isUkMigrationForced && (
+        {!isLoading && walletEntry === 'push' && !isUkMigrationForced && (
           <Box twClassName="w-full px-4 pt-4 items-center justify-center">
             {isProvisioning ? (
               <Box twClassName="py-3">
@@ -902,7 +941,8 @@ const CardHome = () => {
             onSetPin={actions.setPinAction}
             onToggleFreeze={actions.handleToggleFreeze}
             onManageSpendingLimit={actions.manageSpendingLimitAction}
-            showDigitalWalletInstructions={showDigitalWalletInstructions}
+            onContactDetails={actions.contactDetailsAction}
+            showDigitalWalletInstructions={walletEntry === 'instructions'}
             onDigitalWalletInstructions={
               actions.digitalWalletInstructionsAction
             }
@@ -966,5 +1006,28 @@ const CardHome = () => {
     </Box>
   );
 };
+
+function formatPendingDevices(devices: WalletPassDevice[] | undefined): string {
+  if (!devices?.length) {
+    return '';
+  }
+
+  const names = devices.map((walletDevice) =>
+    strings(
+      walletDevice === 'phone'
+        ? 'card.push_provisioning.device_iphone'
+        : 'card.push_provisioning.device_apple_watch',
+    ),
+  );
+
+  if (names.length < 2) {
+    return names[0];
+  }
+
+  return strings('card.push_provisioning.device_list_and', {
+    first: names[0],
+    second: names[1],
+  });
+}
 
 export default CardHome;

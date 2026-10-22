@@ -25,8 +25,35 @@ import {
 import type { UsePerpsMarketsOptions } from '../../hooks/usePerpsMarkets';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { playSelection } from '../../../../../util/haptics';
+import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 
 jest.mock('../../../../../util/haptics');
+
+const mockSetTitleSectionHeight = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    useHeaderStandardAnimated: () => {
+      const animated = actual.useHeaderStandardAnimated();
+
+      return {
+        ...animated,
+        setTitleSectionHeight: (height: number) => {
+          mockSetTitleSectionHeight(height);
+          animated.setTitleSectionHeight(height);
+        },
+      };
+    },
+  };
+});
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
+}));
 
 interface MockLiveOrderBookResult {
   orderBook: OrderBookData | null;
@@ -68,6 +95,9 @@ interface MockChartPanelProps {
   selectedCandlePeriod: CandlePeriod;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
+  onSummaryLayout?: (event: {
+    nativeEvent: { layout: { height: number } };
+  }) => void;
   currentPrice?: number;
   onLatestPriceChange?: (price: number | undefined) => void;
 }
@@ -144,11 +174,12 @@ const mockPerpsProChartPanel = jest.fn(
     selectedCandlePeriod,
     onCandlePeriodChange,
     onMorePress,
+    onSummaryLayout,
   }: MockChartPanelProps) => (
     <>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
-        twClassName="h-[76px]"
+        onLayout={onSummaryLayout}
       />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
@@ -800,7 +831,7 @@ describe('PerpsProMarketView', () => {
         getByTestId(PerpsProMarketViewSelectorsIDs.ERROR),
       ).toBeOnTheScreen();
       expect(
-        getByText('Market data not found. Please go back and try again.'),
+        getByText('Market data not found. Go back and try again.'),
       ).toBeOnTheScreen();
       expect(
         queryByTestId(PerpsProMarketViewSelectorsIDs.CONTAINER),
@@ -820,9 +851,57 @@ describe('PerpsProMarketView', () => {
           PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
         [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+        [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: false,
         [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: expect.any(String),
         [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
       }),
+    });
+  });
+
+  describe('service interruption banner', () => {
+    afterEach(() => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(false);
+    });
+
+    it('does not render the banner when the outage flag is off', () => {
+      const { queryByTestId } = renderView();
+
+      expect(
+        queryByTestId(
+          PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+    });
+
+    it('renders the banner above the header and reports it on the screen view when the outage flag is on', () => {
+      jest
+        .mocked(selectPerpsServiceInterruptionBannerEnabledFlag)
+        .mockReturnValue(true);
+
+      const { getByTestId } = renderView();
+
+      expect(
+        getByTestId(PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER),
+      ).toBeOnTheScreen();
+      // Pinned above the fixed header rather than scrolling with the content.
+      expect(
+        within(
+          getByTestId(PerpsProMarketViewSelectorsIDs.SCROLL_VIEW),
+        ).queryByTestId(
+          PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER,
+        ),
+      ).toBeNull();
+
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]: true,
+          }),
+        }),
+      );
     });
   });
 
@@ -1116,15 +1195,31 @@ describe('PerpsProMarketView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('sets the header crossfade threshold from the measured summary height', () => {
+    mockSetTitleSectionHeight.mockClear();
+    const { getByTestId } = renderView();
+    const summary = getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY);
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).not.toHaveBeenCalled();
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledTimes(1);
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(96);
+  });
+
   it('uses the Figma shell heights', () => {
     const { getByTestId } = renderView();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toHaveStyle({
       height: 64,
     });
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });

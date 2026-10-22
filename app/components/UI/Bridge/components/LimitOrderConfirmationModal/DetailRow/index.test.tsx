@@ -18,4 +18,28 @@ describe('DetailRow', () => {
     );
     expect(getByTestId('detail-row-child')).toHaveTextContent('0.1 ETH');
   });
+
+  it('renders the label accessory next to the label when provided', () => {
+    const { getByTestId } = render(
+      <DetailRow
+        label="Cost Tolerance"
+        labelAccessory={<Text testID="detail-row-label-accessory">i</Text>}
+      >
+        <Text testID="detail-row-child">2%</Text>
+      </DetailRow>,
+    );
+
+    expect(getByTestId('detail-row-label-accessory')).toBeOnTheScreen();
+  });
+
+  it('renders an element label as is instead of the default label text', () => {
+    const { getByTestId, queryByTestId } = render(
+      <DetailRow label={<Text testID="detail-row-custom-label">Custom</Text>}>
+        <Text testID="detail-row-child">2%</Text>
+      </DetailRow>,
+    );
+
+    expect(getByTestId('detail-row-custom-label')).toHaveTextContent('Custom');
+    expect(queryByTestId(DetailRowSelectorsIDs.LABEL)).toBeNull();
+  });
 });

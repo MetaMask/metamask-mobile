@@ -112,6 +112,8 @@ const mockAlerts = [
 ];
 
 describe('Footer', () => {
+  const MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE =
+    TransactionType.membershipSubscription;
   const mockUseConfirmationContext = jest.mocked(useConfirmationContext);
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
@@ -142,6 +144,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     (useAlerts as jest.Mock).mockReturnValue({
@@ -267,6 +271,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
     const { getByTestId } = renderWithProvider(<Footer />, {
       state: personalSignatureConfirmationState,
@@ -419,7 +425,10 @@ describe('Footer', () => {
     ).not.toBeDisabled();
   });
 
-  it('hides footer by default for moneyAccountDeposit transaction type', () => {
+  it.each([
+    TransactionType.moneyAccountDeposit,
+    MEMBERSHIP_SUBSCRIPTION_TRANSACTION_TYPE,
+  ])('hides footer by default for %s transaction type', (transactionType) => {
     mockUseConfirmationContext.mockReturnValue({
       mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
@@ -435,6 +444,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountDepositConfirmation = {
@@ -447,7 +458,7 @@ describe('Footer', () => {
         to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
         value: '0x0',
       },
-      type: TransactionType.moneyAccountDeposit,
+      type: transactionType,
     } as unknown as TransactionMeta;
 
     const { queryByTestId } = renderWithProvider(<Footer />, {
@@ -475,6 +486,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const moneyAccountWithdrawConfirmation = {
@@ -515,6 +528,8 @@ describe('Footer', () => {
       setIsHeadlessBuyInProgress: jest.fn(),
       setIsTransactionDataUpdating: jest.fn(),
       setIsTransactionValueUpdating: jest.fn(),
+      isGasFeeModalVisible: false,
+      setIsGasFeeModalVisible: jest.fn(),
     });
 
     const { queryByTestId } = renderWithProvider(<Footer />, {

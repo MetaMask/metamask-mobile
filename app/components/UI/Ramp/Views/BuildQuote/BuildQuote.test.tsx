@@ -5,7 +5,6 @@ import BuildQuote, {
   isBailedOrderStatus,
 } from './BuildQuote';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
-import { WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS } from '../../components/WalletPayCheckoutOverlay/WalletPayCheckoutOverlay.testIds';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../util/test/initial-root-state';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
@@ -349,25 +348,37 @@ const buildRampsControllerResult = (overrides = {}) => ({
   ...overrides,
 });
 
-const mockCrossmintWalletPayDefaults = {
-  isEligible: false,
-  checkoutUrl: null as string | null,
-  isPreparing: false,
-  isCheckoutReady: false,
-  onCheckoutReady: jest.fn(),
-  onMessage: jest.fn(),
+const EMBEDDED_CHECKOUT_OVERLAY_TEST_ID = 'mock-embedded-checkout-overlay';
+const mockRenderEmbeddedCheckoutOverlay = jest.fn(
+  ({ interactive }: { interactive: boolean }) => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.createElement(View, {
+      testID: EMBEDDED_CHECKOUT_OVERLAY_TEST_ID,
+      accessibilityState: { disabled: !interactive },
+    });
+  },
+);
+const mockEmbeddedCheckoutDefaults: {
+  phase: 'inactive' | 'preparing' | 'ready' | 'settling';
+  renderOverlay: typeof mockRenderEmbeddedCheckoutOverlay | null;
+  error: string | null;
+} = {
+  phase: 'inactive',
+  renderOverlay: null,
+  error: null,
 };
-let mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
+let mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
 
-jest.mock('../../hooks/useCrossmintWalletPayOverlay', () => ({
+jest.mock('../../hooks/useEmbeddedCheckout', () => ({
   __esModule: true,
-  default: () => mockCrossmintWalletPay,
+  default: () => mockEmbeddedCheckout,
 }));
 
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockCrossmintWalletPay = { ...mockCrossmintWalletPayDefaults };
+    mockEmbeddedCheckout = { ...mockEmbeddedCheckoutDefaults };
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue(buildRampsControllerResult());
     mockUseDebouncedValue.mockImplementation((value: unknown) => value);
@@ -392,41 +403,6 @@ describe('BuildQuote', () => {
       setParams: jest.fn(),
       navigate: mockNavigate,
       goBack: mockGoBack,
-    });
-  });
-
-  describe('amount param initialization', () => {
-    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
-      mockUseParams.mockReturnValue({});
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('100');
-    });
-
-    it('uses amount param as initial value when provided via route params', () => {
-      mockUseParams.mockReturnValue({ amount: 30 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('30');
-    });
-
-    it('does not override amount with region default when amount param is provided', () => {
-      mockUseParams.mockReturnValue({ amount: 50 });
-
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
     });
   });
 
@@ -468,23 +444,6 @@ describe('BuildQuote', () => {
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       expect(amountInput.props.children).toContain('99.99');
-    });
-
-    it('updates amount from number input via QuickAmounts', async () => {
-      const { getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId('keypad-trigger-empty'));
-      });
-
-      await act(async () => {
-        fireEvent.press(getByTestId('quick-amount-50'));
-      });
-
-      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-      expect(amountInput.props.children).toContain('50');
     });
 
     it('clears rampsError when amount is updated', async () => {
@@ -612,29 +571,6 @@ describe('BuildQuote', () => {
   });
 
   describe('client-side buy limits', () => {
-    it('shows a below-min inline error and skips quote fetching', () => {
-      const providerWithLimits = buildProviderWithLimits({
-        minAmount: 120,
-        maxAmount: 1000,
-      });
-      mockUseRampsController.mockReturnValue(
-        buildRampsControllerResult({
-          providers: [providerWithLimits, NATIVE_PROVIDER],
-          selectedProvider: providerWithLimits,
-        }),
-      );
-
-      const { getByText, getByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
-
-      expect(getByText('Minimum purchase is $120.00')).toBeOnTheScreen();
-      expect(mockUseRampsQuotes).toHaveBeenLastCalledWith(null);
-
-      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
-      expect(continueButton).toBeDisabled();
-    });
-
     it('shows an above-max inline error and skips quote fetching', () => {
       const providerWithLimits = buildProviderWithLimits({
         minAmount: 10,
@@ -777,7 +713,7 @@ describe('BuildQuote', () => {
         amount: 12,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -811,7 +747,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -843,7 +779,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -868,7 +804,7 @@ describe('BuildQuote', () => {
         amount: 250,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -881,7 +817,7 @@ describe('BuildQuote', () => {
         amount: 10,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -911,7 +847,7 @@ describe('BuildQuote', () => {
         amount: 50,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -941,7 +877,7 @@ describe('BuildQuote', () => {
         amount: 200,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -966,7 +902,7 @@ describe('BuildQuote', () => {
         amount: 100,
         walletAddress: '0x1234567890123456789012345678901234567890',
         redirectUrl:
-          'https://on-ramp-content.uat-api.cx.metamask.io/regions/fake-callback',
+          'https://on-ramp-content.api.cx.metamask.io/regions/fake-callback',
         paymentMethods: ['/payments/debit-credit-card'],
         providers: ['moonpay'],
       });
@@ -2184,31 +2120,43 @@ describe('BuildQuote', () => {
     });
   });
 
-  describe('Crossmint wallet-pay overlay', () => {
-    it('replaces Continue with the hosted payment button once the overlay is ready', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        checkoutUrl: 'https://staging.crossmint.com/embedded-checkout',
-        isCheckoutReady: true,
+  describe('embedded checkout', () => {
+    it('replaces Continue with the embedded checkout once it is ready', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
-      const { queryByTestId } = renderWithProvider(<BuildQuote />, {
-        state: initialRootState,
-      });
+      const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
 
-      expect(
-        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
-      ).toBeOnTheScreen();
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
       expect(queryByTestId(BuildQuoteSelectors.CONTINUE_BUTTON)).toBeNull();
+      expect(queryByText('Powered by MoonPay')).toBeNull();
     });
 
-    it('keeps Continue when the overlay has no checkout URL but still reports ready', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        checkoutUrl: null,
-        isCheckoutReady: true,
+    it('lets the embedded checkout take taps only when the quote can continue', () => {
+      mockEmbeddedCheckout = {
+        phase: 'ready',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+
+      expect(mockRenderEmbeddedCheckoutOverlay).toHaveBeenCalledWith({
+        interactive: true,
+      });
+    });
+
+    it('shows Continue in a loading state while the checkout is preparing', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: null,
+        error: null,
       };
 
       const { getByTestId, getByText, queryByTestId } = renderWithProvider(
@@ -2216,28 +2164,70 @@ describe('BuildQuote', () => {
         { state: initialRootState },
       );
 
-      expect(
-        queryByTestId(WALLET_PAY_CHECKOUT_OVERLAY_TEST_IDS.OVERLAY),
-      ).toBeNull();
-      expect(
-        getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON),
-      ).toBeOnTheScreen();
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
       expect(getByText('Powered by MoonPay')).toBeOnTheScreen();
     });
 
-    it('shows Continue in a loading state while the overlay is preparing', () => {
-      mockCrossmintWalletPay = {
-        ...mockCrossmintWalletPayDefaults,
-        isEligible: true,
-        isPreparing: true,
+    it('mounts the checkout behind a loading Continue while it is preparing with a URL', () => {
+      mockEmbeddedCheckout = {
+        phase: 'preparing',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
       };
 
       const { getByTestId } = renderWithProvider(<BuildQuote />, {
         state: initialRootState,
       });
 
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
       const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
       expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+    });
+
+    it('covers the checkout with a processing state while payment settles', () => {
+      mockEmbeddedCheckout = {
+        phase: 'settling',
+        renderOverlay: mockRenderEmbeddedCheckoutOverlay,
+        error: null,
+      };
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      // The checkout stays mounted for order events, hidden behind our own
+      // state, so the provider's post-authorization repaint is never visible.
+      expect(getByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(true);
+      // The spinner is mocked in Jest, so the loading label is asserted
+      // through the accessibility label the button derives from it.
+      expect(continueButton.props.accessibilityLabel).toBe('Processing');
+    });
+
+    it('shows the provider reason and restores Continue when the checkout is unpurchasable', () => {
+      mockEmbeddedCheckout = {
+        phase: 'inactive',
+        renderOverlay: null,
+        error:
+          'This item is not available for purchase with Crossmint at this moment',
+      };
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <BuildQuote />,
+        { state: initialRootState },
+      );
+
+      expect(queryByTestId(EMBEDDED_CHECKOUT_OVERLAY_TEST_ID)).toBeNull();
+      expect(
+        getByText(
+          'This item is not available for purchase with Crossmint at this moment',
+        ),
+      ).toBeOnTheScreen();
+      const continueButton = getByTestId(BuildQuoteSelectors.CONTINUE_BUTTON);
+      expect(continueButton.props.accessibilityState?.disabled).toBe(false);
     });
   });
 });

@@ -3,8 +3,11 @@
  */
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import type { ReactTestInstance } from 'react-test-renderer';
-import { StyleSheet as ReactNativeStyleSheet } from 'react-native';
+import {
+  StyleSheet as ReactNativeStyleSheet,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import {
   TransactionStatus,
   TransactionType,
@@ -179,6 +182,20 @@ jest.mock('../../../selectors/moneyAccountController', () => ({
 jest.mock('../../hooks/useTokensData/useTokensData', () => ({
   useTokensData: jest.fn(() => ({})),
 }));
+
+const mockCachedEvmTransactions = new Map<
+  string,
+  { transactionProtocol?: string }
+>();
+
+jest.mock(
+  '../../Views/ActivityList/hooks/activity/useCachedEvmTransaction',
+  () => ({
+    useCachedEvmTransaction: ({ txHash }: { txHash?: string }) =>
+      (txHash && mockCachedEvmTransactions.get(txHash.toLowerCase())) ||
+      undefined,
+  }),
+);
 
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
@@ -413,6 +430,12 @@ const makeItem = (
     isEarliestNonce: overrides.isEarliestNonce,
   };
 
+  if (overrides.transactionProtocol) {
+    mockCachedEvmTransactions.set(base.hash.toLowerCase(), {
+      transactionProtocol: overrides.transactionProtocol,
+    });
+  }
+
   if (type === 'send' || type === 'receive') {
     return {
       ...base,
@@ -437,14 +460,6 @@ const makeItem = (
     return {
       ...base,
       type,
-      raw: overrides.transactionProtocol
-        ? {
-            type: 'apiEvmTransaction',
-            data: {
-              transactionProtocol: overrides.transactionProtocol,
-            },
-          }
-        : undefined,
       data: {
         sourceToken: overrides.sourceToken as never,
         destinationToken: overrides.destinationToken as never,
@@ -455,14 +470,6 @@ const makeItem = (
   return {
     ...base,
     type,
-    raw: overrides.transactionProtocol
-      ? {
-          type: 'apiEvmTransaction',
-          data: {
-            transactionProtocol: overrides.transactionProtocol,
-          },
-        }
-      : undefined,
     data: {
       from: overrides.from ?? '0xfrom',
       to: overrides.to ?? '0xto',
@@ -473,6 +480,7 @@ const makeItem = (
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockCachedEvmTransactions.clear();
   jest.mocked(selectCurrentCurrency).mockReturnValue('usd');
   jest.mocked(selectConversionRateByChainId).mockReturnValue(2500);
   jest.mocked(selectUSDConversionRateByChainId).mockReturnValue(2500);
@@ -904,6 +912,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
   });
 
+  it.each(['perpsCloseLong', 'perpsCloseShortStopLoss'] as const)(
+    'displays Unknown for %s without a reported amount',
+    (type) => {
+      const item = {
+        type,
+        chainId: 'eip155:421614',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash: 'missing-pnl',
+        data: {
+          sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+        },
+      } as ActivityListItem;
+
+      const { getByTestId } = render(
+        <ActivityListItemRow item={item} index={0} />,
+      );
+
+      expect(
+        getByTestId('activity-primary-amount-missing-pnl'),
+      ).toHaveTextContent(strings('perps.transactions.unknown_pnl'));
+    },
+  );
+
+  it('preserves a reported zero closing PnL in the activity row', () => {
+    const item = {
+      type: 'perpsCloseLong',
+      chainId: 'eip155:421614',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: 'zero-pnl',
+      data: {
+        token: { amount: '0', symbol: 'USD', direction: 'in' },
+        sourceToken: { amount: '0.008', symbol: 'ETH', direction: 'out' },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-zero-pnl')).toHaveTextContent(
+      '+$0.00',
+    );
+  });
+
   it('uses PerpsTokenLogo for market avatars', () => {
     const openLong = {
       type: 'perpsOpenLong',
@@ -1011,7 +1065,7 @@ describe('ActivityListItemRow — row content', () => {
       },
     }) as unknown as ActivityListItem;
 
-  const flattenColor = (node: ReactTestInstance) => {
+  const flattenColor = (node: { props: { style?: StyleProp<TextStyle> } }) => {
     const { StyleSheet } = jest.requireActual('react-native');
     return StyleSheet.flatten(node.props.style).color;
   };
@@ -1309,19 +1363,11 @@ describe('ActivityListItemRow — row content', () => {
       chainId: 'eip155:137',
       status: 'success',
       timestamp: 1_700_000_000_000,
-      raw: {
-        type: 'predictActivity',
-        data: {
-          id: 'p1',
-          providerId: 'polymarket',
-          title: 'Will Spain win the 2026 FIFA World Cup?',
-          icon: 'https://example.com/spain.png',
-          entry: { type: 'buy', timestamp: 1, amount: 3 },
-        },
-      },
       hash: 'predict-1',
       data: {
         token: { amount: '3', symbol: 'USDC', direction: 'out' },
+        eventTitle: 'Will Spain win the 2026 FIFA World Cup?',
+        icon: 'https://example.com/spain.png',
       },
     } as unknown as ActivityListItem;
 
@@ -1411,8 +1457,8 @@ describe('ActivityListItemRow — row content', () => {
       type: 'approveSpendingCap',
       status: 'success',
       token: {
-        amount: '115792089237316195423570985.639935',
-        isUnlimitedApproval: true,
+        amount:
+          '115792089237316195423570985008687907853269984665640564039457584007913129639935',
         symbol: 'USDT',
         direction: 'out',
       },
@@ -2416,9 +2462,6 @@ describe('getLocalTransactionStatus — all local transaction status paths', () 
   const { getLocalTransactionStatus } = jest.requireActual(
     '../../../util/activity-adapters/adapters/helpers',
   );
-  const { TransactionStatus } = jest.requireActual(
-    '@metamask/transaction-controller',
-  );
 
   const makeGroup = (overrides: Record<string, unknown>) => ({
     primaryTransaction: {
@@ -2765,6 +2808,27 @@ describe('ActivityListItemRowPendingActions', () => {
 
     expect(getByText(strings('transaction.speedup'))).toBeOnTheScreen();
     expect(getByText(strings('transaction.cancel'))).toBeOnTheScreen();
+  });
+
+  it('hides speed-up for swaps, bridges, and their approvals', () => {
+    for (const type of [
+      TransactionType.swap,
+      TransactionType.bridge,
+      TransactionType.swapApproval,
+      TransactionType.bridgeApproval,
+    ]) {
+      const props = makePendingActionProps({
+        tx: makePendingActionTx({ type }),
+      });
+
+      const { queryByText, unmount } = render(
+        <ActivityListItemRowPendingActions {...props} />,
+      );
+
+      expect(queryByText(strings('transaction.speedup'))).toBeNull();
+
+      unmount();
+    }
   });
 
   it('renders QR signing and QR cancel actions for approved QR hardware transactions', () => {

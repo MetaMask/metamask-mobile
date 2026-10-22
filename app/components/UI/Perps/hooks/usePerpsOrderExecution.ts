@@ -33,6 +33,7 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
+import type { PerpsErrorInput } from '../utils/translatePerpsError';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 import { usePerpsNetwork } from './usePerpsNetwork';
 
@@ -40,15 +41,15 @@ interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
   onSubmitted?: () => void;
   /** Called when the position has rendered via the stream (or, on stream timeout, without it). */
-  onSuccess?: (position?: Position) => void;
-  onError?: (error: string) => void;
+  onSuccess?: (position?: Position, result?: OrderResult) => void;
+  onError?: (error: PerpsErrorInput) => void;
 }
 
 interface UsePerpsOrderExecutionReturn {
   placeOrder: (params: OrderParams) => Promise<OrderResult | undefined>;
   isPlacing: boolean;
   lastResult?: OrderResult;
-  error?: string;
+  error?: PerpsErrorInput;
 }
 
 type PerpsOrderTrackingValue = string | number | boolean;
@@ -90,7 +91,7 @@ export function usePerpsOrderExecution(
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<PerpsErrorInput>();
 
   // Track order submission toast with unified measurement hook
   usePerpsMeasurement({
@@ -139,11 +140,17 @@ export function usePerpsOrderExecution(
           await handlers.onSuccess(result);
         } else {
           handlers.onFailure?.();
-          const errorMessage =
-            result.error || strings('perps.order.error.unknown');
-          setError(errorMessage);
-          DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
-          onError?.(errorMessage);
+          const errorInput: PerpsErrorInput = {
+            error: result.error || strings('perps.order.error.unknown'),
+            errorCode: result.errorCode,
+            errorDetails: result.errorDetails,
+            maxSlippageBps:
+              orderParams.maxSlippageBps ??
+              orderParams.trackingData?.maxSlippageBps,
+          };
+          setError(errorInput);
+          DevLogger.log('usePerpsOrderExecution: Order failed', errorInput);
+          onError?.(errorInput);
         }
 
         return result;
@@ -158,7 +165,13 @@ export function usePerpsOrderExecution(
           err instanceof Error
             ? err.message
             : strings('perps.order.error.unknown');
-        setError(errorMessage);
+        const errorInput: PerpsErrorInput = {
+          error: errorMessage,
+          maxSlippageBps:
+            orderParams.maxSlippageBps ??
+            orderParams.trackingData?.maxSlippageBps,
+        };
+        setError(errorInput);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 
         Logger.error(errorObject, {
@@ -187,7 +200,7 @@ export function usePerpsOrderExecution(
           },
         });
 
-        onError?.(errorMessage);
+        onError?.(errorInput);
 
         return undefined;
       } finally {
@@ -211,7 +224,7 @@ export function usePerpsOrderExecution(
         return executeControllerPlacement(orderParams, {
           // Strategy acceptance starts a schedule; it does not imply that a
           // position or resting child order has rendered yet.
-          onSuccess: () => onSuccess?.(),
+          onSuccess: (result) => onSuccess?.(undefined, result),
         });
       }
 
@@ -312,7 +325,7 @@ export function usePerpsOrderExecution(
             // therefore have no resting IDs; that is still a valid acceptance,
             // so it stays open for a position stream boundary or timeout rather
             // than being marked as a request failure.
-            onSuccess?.();
+            onSuccess?.(undefined, result);
             const orderIds = (
               orderParams.orderType === 'scale'
                 ? (result.childOrderIds ?? [])
@@ -398,14 +411,14 @@ export function usePerpsOrderExecution(
                 'usePerpsOrderExecution: Position rendered by stream',
                 rendered.position,
               );
-              onSuccess?.(position);
+              onSuccess?.(position, result);
             } else {
               // Stream quiet: unblock the toast now, end the span when the
               // position finally renders (or record the miss on timeout).
               DevLogger.log(
                 'usePerpsOrderExecution: Position not rendered yet, toasting without it',
               );
-              onSuccess?.();
+              onSuccess?.(undefined, result);
               // Deliberately not awaited: the caller must not block on the span.
               waitForPerpsPlaceOrderPositionRendered(
                 PERPS_CUF_STREAM_TIMEOUT_MS,

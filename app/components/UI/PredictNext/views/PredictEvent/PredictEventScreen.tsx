@@ -19,9 +19,14 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../constants';
-import { findWinnerMarketQuotes, getEventGame } from '../../events/game';
+import {
+  findWinnerMarketQuotes,
+  getEventGame,
+  type GameSelectionQuote,
+} from '../../events/game';
 import {
   MarketFooterCard,
   MarketList,
@@ -30,11 +35,15 @@ import {
   TotalMarketGroupCard,
 } from '../../events/markets';
 import { useEvent } from '../../hooks/useEvent';
-import { useEventWithLiveGame } from '../../hooks/useEventWithLiveGame';
+import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
+import { usePositions } from '../../hooks/usePositions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
-import type { PredictEvent, PredictMarket } from '../../types';
+import { PORTFOLIO_PAGE_LIMIT } from '../../queries/portfolioQueries';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import type { PredictEvent, PredictMarket, PredictPosition } from '../../types';
+import { usePredictOrderFlow } from '../PredictOrderFlow';
 import { TraceName } from '../../../../../util/trace';
 import {
   PredictGameMarketHistory,
@@ -46,6 +55,7 @@ import {
   StandardEventHeader,
 } from './internal/EventHeaders';
 import RulesBottomSheet from './internal/RulesBottomSheet';
+import { EventPositionsSection } from './internal/EventPositionsSection';
 import {
   createMarketGroupProjection,
   type MarketGroupProjection,
@@ -67,6 +77,13 @@ type RulesTarget =
   | null;
 
 type WinnerQuotes = NonNullable<ReturnType<typeof findWinnerMarketQuotes>>;
+
+const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
+/** Upper bound on venue-wide Positions pages walked for one Event visit.
+ * The backend offers no Event-scoped Positions filter, so the first page
+ * alone cannot prove an Event has no held Position; the walk instead ends
+ * at the backend's exhausted cursor or at this bound. */
+const EVENT_POSITIONS_MAX_PAGES = 5;
 
 const getProjectionKey = (projection: MarketGroupProjection) =>
   projection.type === 'group' ? projection.key : projection.market.id;
@@ -142,6 +159,8 @@ const EventScreenLayout = ({
   );
 };
 
+const isUngroupedMarket = (market: PredictMarket) => market.group === undefined;
+
 const EventLoadedHeader = ({
   event,
   winnerQuotes,
@@ -158,22 +177,12 @@ const EventLoadedHeader = ({
   onSelectMarket: (marketId: string) => void;
 }) => {
   const game = getEventGame(event);
+  const chartMarkets = event.markets.filter(isUngroupedMarket);
+  const selectedChartMarket = chartMarkets.find(
+    (market) => market.id === selectedMarketId,
+  );
 
   const renderMarketHistory = () => {
-    if (selectedMarketId) {
-      const selectedMarket = event.markets.find(
-        (market) => market.id === selectedMarketId,
-      );
-      if (selectedMarket) {
-        return (
-          <PredictMarketHistory
-            venueId={event.venueId}
-            market={selectedMarket}
-          />
-        );
-      }
-    }
-
     if (game && winnerQuotes) {
       return (
         <PredictGameMarketHistory
@@ -192,10 +201,9 @@ const EventLoadedHeader = ({
       );
     }
 
-    if (historyMarket) {
-      return (
-        <PredictMarketHistory venueId={event.venueId} market={historyMarket} />
-      );
+    const market = selectedChartMarket ?? historyMarket;
+    if (market) {
+      return <PredictMarketHistory venueId={event.venueId} market={market} />;
     }
 
     return null;
@@ -208,14 +216,14 @@ const EventLoadedHeader = ({
       ) : (
         <StandardEventHeader event={event} />
       )}
-      {event.markets.length > 1 && !winnerQuotes ? (
+      {!game && !winnerQuotes && chartMarkets.length > 1 ? (
         <FilterButtonGroup
           value={historyMarket?.id ?? ''}
           onChange={onSelectMarket}
           variant={FilterButtonVariant.Secondary}
           testID={PredictEventScreenTestIds.MARKETS}
         >
-          {event.markets.map((market) => (
+          {chartMarkets.map((market) => (
             <FilterButton
               key={market.id}
               value={market.id}
@@ -253,8 +261,13 @@ export const PredictEventScreen = () => {
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const { venueId, eventId, titleSnapshot } =
     useRoute<RouteProp<PredictNextStackParamList, 'PredictNextEvent'>>().params;
+  const privacyMode = useSelector(selectPrivacyMode);
   const query = useEvent(venueId, eventId);
-  const liveEvent = useEventWithLiveGame(venueId, query.data);
+  const liveEvent = useEventWithLiveData(venueId, query.data);
+  const positionsQuery = usePositions(venueId, PAGE_PARAMS, {
+    enabled: Boolean(liveEvent),
+  });
+  const { openOrderFlow } = usePredictOrderFlow();
   const [hasBlockingError, setHasBlockingError] = useState(false);
   const [selectedMarketId, setSelectedMarketId] = useState<string>();
   const [rulesTarget, setRulesTarget] = useState<RulesTarget>(null);
@@ -288,6 +301,19 @@ export const PredictEventScreen = () => {
     [liveEvent?.markets, winnerMarketIds],
   );
   const listContentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
+  // Positions the Predict User holds in this Event's Markets: matched by
+  // canonical Market identity, independent of the Position's catalog context.
+  const heldPositions = useMemo(() => {
+    const positions =
+      positionsQuery.data?.pages.flatMap((page) => page.positions) ?? [];
+    if (!liveEvent) {
+      return [];
+    }
+    const marketIds = new Set(liveEvent.markets.map((market) => market.id));
+    return positions.filter(
+      (position) => position != null && marketIds.has(position.marketId),
+    );
+  }, [positionsQuery.data, liveEvent]);
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextEventView,
     conditions: [!query.isLoading],
@@ -310,6 +336,26 @@ export const PredictEventScreen = () => {
     setSelectedMarketIds({});
     setRulesTarget(null);
   }, [eventId]);
+  // The Positions read is venue-wide and cursor-paginated, and the backend
+  // offers no Event-scoped Positions filter, so page 1 alone cannot prove
+  // this Event has no held Position. Walk the shared cache forward within a
+  // small bound so a Position past page 1 still reaches "Your positions".
+  // The walk ends at the backend's exhausted cursor, at the page bound, or
+  // at the first failed page (a failed next page parks the read in the
+  // error state until the next successful refetch) — it never retries
+  // mid-visit, because fetchNextPage resolves rather than rejects on a
+  // failed page.
+  useEffect(() => {
+    if (
+      positionsQuery.isError ||
+      !positionsQuery.hasNextPage ||
+      positionsQuery.isFetchingNextPage ||
+      (positionsQuery.data?.pages.length ?? 0) >= EVENT_POSITIONS_MAX_PAGES
+    ) {
+      return;
+    }
+    positionsQuery.fetchNextPage().catch(() => undefined);
+  }, [positionsQuery]);
   const handleBack = useCallback(
     () =>
       navigation.canGoBack()
@@ -329,37 +375,77 @@ export const PredictEventScreen = () => {
         ...current,
         [groupKey]: marketId,
       }));
-      setSelectedMarketId(marketId);
     },
     [],
   );
-  const handleMarketSelect = useCallback(
-    (marketId: string) => {
-      setSelectedMarketId(marketId);
-      const market = liveEvent?.markets.find(
-        (candidate) => candidate.id === marketId,
-      );
-      const groupKey =
-        market?.group?.groupType === 'marketSelector'
-          ? market.group.key
-          : undefined;
-      if (groupKey !== undefined && market !== undefined) {
-        setSelectedMarketIds((current) => ({
-          ...current,
-          [groupKey]: market.id,
-        }));
-      }
-    },
-    [liveEvent?.markets],
-  );
+  const handleMarketSelect = useCallback((marketId: string) => {
+    setSelectedMarketId(marketId);
+  }, []);
   const handleRulesClose = useCallback(() => {
     setRulesTarget(null);
   }, []);
-  const handleWinnerSelect = useCallback((marketId: string) => {
-    setSelectedMarketId((current) =>
-      current === marketId ? undefined : marketId,
-    );
-  }, []);
+  /** Opens the shared Order flow as a Cash Out: a sell bounded by the
+   * Position's whole-contract size. Canonical identity comes from the
+   * presented Event; display context falls back to the Position's catalog
+   * context only when the live Event cannot supply it. */
+  const handlePositionCashOut = useCallback(
+    (position: PredictPosition) => {
+      if (!liveEvent) {
+        return;
+      }
+      const market = liveEvent.markets.find(
+        (candidate) => candidate.id === position.marketId,
+      );
+      const outcome = market?.outcomes.find(
+        (candidate) => candidate.side === position.side,
+      );
+      openOrderFlow({
+        action: 'sell',
+        eventId,
+        venueId,
+        marketId: position.marketId,
+        side: position.side,
+        outcomeLabel:
+          outcome?.label ?? position.context?.outcomeLabel ?? position.side,
+        eventTitle: liveEvent.title,
+        eventImageUrl: liveEvent.imageUrl,
+        maxContracts: Math.floor(Number(position.shares)),
+      });
+    },
+    [eventId, liveEvent, openOrderFlow, venueId],
+  );
+  const handleWinnerOrder = useCallback(
+    (quote: GameSelectionQuote) => {
+      openOrderFlow({
+        action: 'buy',
+        eventId,
+        venueId,
+        marketId: quote.market.id,
+        side: quote.outcome.side,
+        outcomeLabel: quote.outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: quote.outcome.askPrice,
+      });
+    },
+    [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+  );
+  const handleMarketOrder = useCallback(
+    (market: PredictMarket, outcome: (typeof market.outcomes)[number]) => {
+      openOrderFlow({
+        action: 'buy',
+        eventId,
+        venueId,
+        marketId: market.id,
+        side: outcome.side,
+        outcomeLabel: outcome.label,
+        eventTitle: liveEvent?.title ?? '',
+        eventImageUrl: liveEvent?.imageUrl,
+        askPrice: outcome.askPrice,
+      });
+    },
+    [eventId, liveEvent?.title, liveEvent?.imageUrl, openOrderFlow, venueId],
+  );
   const renderMarket = useCallback(
     (projection: MarketGroupProjection) => {
       if (projection.type === 'standard') {
@@ -367,6 +453,7 @@ export const PredictEventScreen = () => {
           <MarketStandardCard
             market={projection.market}
             onRulesPress={handleMarketRulesPress}
+            onOrder={handleMarketOrder}
           />
         );
       }
@@ -386,6 +473,7 @@ export const PredictEventScreen = () => {
         onSelectMarket: (marketId: PredictMarket['id']) =>
           handleGroupMarketSelect(projection.key, marketId),
         onRulesPress: handleMarketRulesPress,
+        onOrder: handleMarketOrder,
       };
 
       return projection.marketType === PREDICT_MARKET_TYPES.TOTAL ? (
@@ -394,7 +482,12 @@ export const PredictEventScreen = () => {
         <SpreadMarketGroupCard {...groupProps} />
       );
     },
-    [handleGroupMarketSelect, handleMarketRulesPress, selectedMarketIds],
+    [
+      handleGroupMarketSelect,
+      handleMarketRulesPress,
+      handleMarketOrder,
+      selectedMarketIds,
+    ],
   );
 
   if (liveEvent) {
@@ -405,7 +498,10 @@ export const PredictEventScreen = () => {
         ? marketProjection[0].markets[0]
         : marketProjection[0]?.market;
     const historyMarket =
-      event.markets.find((market) => market.id === selectedMarketId) ??
+      event.markets.find(
+        (market) => market.id === selectedMarketId && isUngroupedMarket(market),
+      ) ??
+      event.markets.find(isUngroupedMarket) ??
       firstProjectedMarket ??
       event.markets[0];
     const rulesMarket =
@@ -427,8 +523,7 @@ export const PredictEventScreen = () => {
                 awayQuote={winnerQuotes.away}
                 homeQuote={winnerQuotes.home}
                 drawQuote={winnerQuotes.draw}
-                selectedMarketId={selectedMarketId}
-                onSelectMarket={handleWinnerSelect}
+                onOrder={handleWinnerOrder}
               />
             ) : undefined
           }
@@ -440,14 +535,23 @@ export const PredictEventScreen = () => {
             renderItem={renderMarket}
             contentContainerStyle={listContentContainerStyle}
             ListHeaderComponent={
-              <EventLoadedHeader
-                event={event}
-                winnerQuotes={winnerQuotes}
-                historyMarket={historyMarket}
-                selectedMarketId={selectedMarketId}
-                showPredictTitle={marketProjection.length > 0}
-                onSelectMarket={handleMarketSelect}
-              />
+              <>
+                <EventLoadedHeader
+                  event={event}
+                  winnerQuotes={winnerQuotes}
+                  historyMarket={historyMarket}
+                  selectedMarketId={selectedMarketId}
+                  showPredictTitle={marketProjection.length > 0}
+                  onSelectMarket={handleMarketSelect}
+                />
+                {heldPositions.length > 0 ? (
+                  <EventPositionsSection
+                    positions={heldPositions}
+                    isPrivacyMode={Boolean(privacyMode)}
+                    onCashOut={handlePositionCashOut}
+                  />
+                ) : null}
+              </>
             }
           />
         </EventScreenChrome>

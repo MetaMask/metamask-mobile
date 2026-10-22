@@ -36,6 +36,7 @@ import {
   defaultPerpsRewardsMock,
 } from '../../__mocks__/perpsHooksMocks';
 import { createPerpsStateMock } from '../../__mocks__/perpsStateMock';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import PerpsClosePositionView from './PerpsClosePositionView';
 import { PerpsCacheInvalidator } from '../../services/PerpsCacheInvalidator';
 
@@ -71,6 +72,14 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+}));
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsCloseInFlight: jest.fn(() => false),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -175,7 +184,7 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   default: 'PerpsBottomSheetTooltip',
 }));
 
-jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
   const MockReact = jest.requireActual('react');
   const { View: MockView } = jest.requireActual('react-native');
   return {
@@ -265,6 +274,7 @@ describe('PerpsClosePositionView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetLastCloseOrderType();
     mockLimitPriceConfirmValue = '0';
 
     // Setup navigation mocks
@@ -1635,6 +1645,68 @@ describe('PerpsClosePositionView', () => {
         expect(handleClosePosition).not.toHaveBeenCalled();
       });
       selectLimitFlagMock.mockReturnValue(false);
+    });
+
+    it('keeps the form open while another close for the market is in flight', async () => {
+      // Arrange
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+      const closeInFlightMock = jest.mocked(
+        jest.requireMock('../../hooks/usePerpsClosePosition')
+          .usePerpsCloseInFlight,
+      );
+      closeInFlightMock.mockReturnValue(true);
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+
+      // Act
+      fireEvent.press(confirmButton);
+
+      // Assert
+      expect(confirmButton).toBeDisabled();
+      expect(handleClosePosition).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+      closeInFlightMock.mockReturnValue(false);
+    });
+
+    it('dismisses once when confirm is double-tapped', async () => {
+      // Arrange - the view renderer mounts this screen as the initial route, so
+      // a single goBack is only observable here. isClosing stays false, as it
+      // does for a second tap that lands before the first re-render.
+      const handleClosePosition = jest.fn();
+      usePerpsClosePositionMock.mockReturnValue({
+        handleClosePosition,
+        isClosing: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsClosePositionView />,
+        { state: STATE_MOCK },
+        true,
+      );
+      const confirmButton = getByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+      );
+
+      // Act
+      fireEvent.press(confirmButton);
+      fireEvent.press(confirmButton);
+
+      // Assert
+      await waitFor(() => {
+        expect(handleClosePosition).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 

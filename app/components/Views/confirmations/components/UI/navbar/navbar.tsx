@@ -1,6 +1,32 @@
 import React, { ReactNode } from 'react';
-import { ViewStyle } from 'react-native';
+import { Platform, View, ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useTheme } from '../../../../../../util/theme';
+
+export const NAVBAR_SHEET_HANDLE_TEST_ID = 'navbar-sheet-handle';
+
+/**
+ * HeaderBase's top inset is a margin, so the header background starts below
+ * it and the screen behind shows through. Padding keeps the title below the
+ * notch and paints that band with the screen background.
+ */
+function FullScreenNavbarBackground({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.background.default,
+        paddingTop: insets.top,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
 
 /**
  * Optional overrides for navbar customization.
@@ -24,6 +50,13 @@ export interface NavbarOptions {
   theme?: unknown;
   overrides?: NavbarOverrides;
   mmPayRequestInProgressNavHandler?: React.RefObject<(() => void) | false>;
+  /**
+   * Set when the confirmation is presented as a sheet instead of filling the
+   * window. The sheet already starts below the notch, so the header must not
+   * add the top inset on top of that, and it gets a drag handle like other
+   * sheets.
+   */
+  sheetPresentation?: boolean;
 }
 
 export function getNavbar({
@@ -32,7 +65,10 @@ export function getNavbar({
   addBackButton = true,
   overrides,
   mmPayRequestInProgressNavHandler,
+  sheetPresentation = false,
 }: NavbarOptions) {
+  const isSheetPresentation = sheetPresentation && Platform.OS === 'ios';
+
   function handleBackPress() {
     if (mmPayRequestInProgressNavHandler?.current) {
       mmPayRequestInProgressNavHandler.current();
@@ -52,22 +88,44 @@ export function getNavbar({
     : undefined;
 
   return {
-    header: () => (
-      <HeaderCompactStandard
-        title={title}
-        onBack={addBackButton ? handleBackPress : undefined}
-        backButtonProps={
-          addBackButton ? { testID: `${title}-navbar-back-button` } : undefined
-        }
-        startAccessory={customLeft}
-        endAccessory={customRight}
-        style={overrides?.headerStyle}
-        includesTopInset
-        twClassName="bg-default"
-      >
-        {customTitle}
-      </HeaderCompactStandard>
-    ),
+    header: () => {
+      const header = (
+        <HeaderCompactStandard
+          title={title}
+          onBack={addBackButton ? handleBackPress : undefined}
+          backButtonProps={
+            addBackButton
+              ? { testID: `${title}-navbar-back-button` }
+              : undefined
+          }
+          startAccessory={customLeft}
+          endAccessory={customRight}
+          style={overrides?.headerStyle}
+          includesTopInset={false}
+          twClassName="bg-default"
+        >
+          {customTitle}
+        </HeaderCompactStandard>
+      );
+
+      if (!isSheetPresentation) {
+        return (
+          <FullScreenNavbarBackground>{header}</FullScreenNavbarBackground>
+        );
+      }
+
+      return (
+        <Box twClassName="bg-default">
+          <Box
+            twClassName="items-center p-1"
+            testID={NAVBAR_SHEET_HANDLE_TEST_ID}
+          >
+            <Box twClassName="w-10 h-1 rounded-full bg-border-muted" />
+          </Box>
+          {header}
+        </Box>
+      );
+    },
   };
 }
 

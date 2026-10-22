@@ -38,6 +38,11 @@ import {
   snapKeyringV2Builder,
 } from '../../SnapKeyring/SnapKeyringV2';
 import { legacySnapKeyringBuilder } from '../../SnapKeyring/SnapKeyring';
+import {
+  buildMpcMoneyKeyringBuilder,
+  buildMpcMoneyKeyringV2Builder,
+} from '../../MpcMoneyKeyring/mpc-money-keyring-builder';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../constants/featureFlags';
 
 // This is initialized globally as it is used in lots of UI contexts.
 export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
@@ -58,10 +63,8 @@ export const qrKeyringBridge = new QrKeyringDeferredPromiseBridge({
  * @param messenger - Needed by some builders that interact with the shared bus.
  * TODO: Remove this parameter when we remove the DMK feature flag.
  * @param useDmk - Whether to use the DMK Ledger bridge for Ledger keyrings.
- * Resolved once in `initializeWallet` from persisted RemoteFeatureFlagController
- * state via `isDmkEnabled` (the `ledgerDmk` flag; `LEDGER_FORCE_DMK` env var
- * overrides) and threaded via `getKeyringControllerInstanceOptions`; the
- * adapter factory reads the same flag in `useAdapterLifecycle`.
+ * Seeded in `initializeWallet`; adapter creation reads the same value via
+ * `getLedgerDmkMode`.
  * @returns The keyring builders to register with the `KeyringController`.
  */
 export function getKeyringBuilders(
@@ -88,11 +91,9 @@ export function getKeyringBuilders(
 
   keyrings.push(qrKeyringBuilder);
 
-  // Bridge type is fixed at Engine init: the `useDmk` param is resolved once
-  // in `initializeWallet` from persisted feature-flag state (`isDmkEnabled`
-  // honors the `LEDGER_FORCE_DMK` env override there) and threaded through
-  // `getKeyringControllerInstanceOptions`. The adapter factory must use the
-  // same decision so discovery/connect share one DMK instance.
+  // Bridge type is fixed at Engine init; adapter creation reads the same
+  // seeded value (`getLedgerDmkMode`) so discovery/connect share one DMK
+  // instance.
   const ledgerBridge = useDmk
     ? new LedgerDmkBridge({ transportFactory: RNBleTransportFactory })
     : new LedgerMobileBridge(new LedgerTransportMiddleware());
@@ -149,6 +150,14 @@ export function getKeyringBuilders(
   // underlying object — enabling both `withKeyring` and `withKeyringV2`.
   keyrings.push(snapKeyringV2AdaptedAsV1Builder(snapKeyringMessenger));
   ///: END:ONLY_INCLUDE_IF
+
+  // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`
+  // compile-time gate while the feature is unreleased: no released build can
+  // yet hold a Money MPC keyring in its vault, so a build without the flag
+  // never needs to recognize the type. See `buildMpcMoneyKeyringBuilder`.
+  if (isMpcMoneyKeyringBuildEnabled()) {
+    keyrings.push(buildMpcMoneyKeyringBuilder());
+  }
 
   return keyrings;
 }
@@ -211,7 +220,7 @@ function buildMoneyKeyringV2Builder<Wrapper, Legacy>(
  * @returns The V2 keyring builders to register with the `KeyringController`.
  */
 export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Builders'] {
-  return [
+  const builders = [
     buildHardwareKeyringV2Builder(LedgerKeyringV2, LedgerKeyring.type),
     buildHardwareKeyringV2Builder(QrKeyringV2, QrKeyring.type),
     buildMoneyKeyringV2Builder(MoneyKeyringV2, MoneyKeyring.type),
@@ -224,4 +233,13 @@ export function getKeyringV2Builders(): KeyringControllerOptions['keyringV2Build
     snapKeyringV2Builder(),
     ///: END:ONLY_INCLUDE_IF
   ];
+
+  // The Money MPC keyring is fenced behind the `MM_MONEY_MPC_KEYRING_ENABLED`
+  // compile-time gate while the feature is unreleased, for the same reason as
+  // in `getKeyringBuilders` above. See `buildMpcMoneyKeyringBuilder`.
+  if (isMpcMoneyKeyringBuildEnabled()) {
+    builders.push(buildMpcMoneyKeyringV2Builder());
+  }
+
+  return builders;
 }

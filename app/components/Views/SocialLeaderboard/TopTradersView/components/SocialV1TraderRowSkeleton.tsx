@@ -6,13 +6,8 @@ import { useTheme } from '../../../../../util/theme';
 import { SOCIAL_V1_TRADER_ROW_HEIGHT } from './SocialV1TraderRow';
 
 /**
- * SocialV1TraderRowSkeleton -- loading placeholder mirroring
- * `SocialV1TraderRow`.
- *
- * Bar widths trace the real row: avatar, then the username and follower lines,
- * then the right-aligned metric / ROI pair. Outer wrapper height is locked to
- * `SOCIAL_V1_TRADER_ROW_HEIGHT` so the skeleton occupies the exact same
- * vertical space as a rendered row.
+ * Loading placeholder matching the single-line V1 leaderboard row: rank,
+ * avatar, name, metric.
  */
 const SocialV1TraderRowSkeleton: React.FC = () => {
   const tw = useTailwind();
@@ -30,20 +25,12 @@ const SocialV1TraderRowSkeleton: React.FC = () => {
         highlightColor={colors.background.subsection}
       >
         <Box style={tw.style('flex-row items-center')}>
-          {/* Avatar placeholder */}
+          <Box style={tw.style('w-6 h-4 rounded mr-3')} />
           <Box style={tw.style('w-10 h-10 rounded-full mr-3')} />
-
-          {/* Username + follower-count lines */}
-          <Box style={tw.style('flex-1 gap-1')}>
-            <Box style={tw.style('w-24 h-5 rounded')} />
-            <Box style={tw.style('w-20 h-4 rounded')} />
+          <Box style={tw.style('flex-1')}>
+            <Box style={tw.style('w-24 h-4 rounded')} />
           </Box>
-
-          {/* Right-aligned metric / ROI pair */}
-          <Box style={tw.style('items-end gap-1 ml-3')}>
-            <Box style={tw.style('w-28 h-5 rounded')} />
-            <Box style={tw.style('w-12 h-4 rounded')} />
-          </Box>
+          <Box style={tw.style('w-20 h-4 rounded ml-3')} />
         </Box>
       </SkeletonPlaceholder>
     </Box>

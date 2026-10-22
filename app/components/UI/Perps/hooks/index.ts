@@ -1,5 +1,5 @@
 // Core hooks (direct controller access)
-export { useBottomSafeAreaInset } from './useBottomSafeAreaInset';
+export { useBottomSafeAreaInset } from '../../../hooks/useBottomSafeAreaInset';
 export { usePerpsCategories } from './usePerpsCategories';
 export { useHasNewMarkets } from './useHasNewMarkets';
 export { usePerpsMarkets } from './usePerpsMarkets';
@@ -76,6 +76,7 @@ export { useColorPulseAnimation } from './useColorPulseAnimation';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { usePerpsRebateQuote } from './usePerpsRebateQuote';
 export { usePerpsRewards } from './usePerpsRewards';
 export { usePerpsRewardAccountOptedIn } from './usePerpsRewardAccountOptedIn';
 export { usePerpsCloseAllCalculations } from './usePerpsCloseAllCalculations';
@@ -90,6 +91,8 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { useIsActivePerpsTrader } from './useIsActivePerpsTrader';
+// Removed from barrel: usePerpsClosePositionForm consumes this barrel.
+// Import directly: import { usePerpsClosePositionForm } from './hooks/usePerpsClosePositionForm';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
 export { usePerpsOrderDepositTracking } from './usePerpsOrderDepositTracking';
 export { useIsPriceDeviatedAboveThreshold } from './useIsPriceDeviatedAboveThreshold';
@@ -102,6 +105,7 @@ export {
 
 // A/B tests
 export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
+export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

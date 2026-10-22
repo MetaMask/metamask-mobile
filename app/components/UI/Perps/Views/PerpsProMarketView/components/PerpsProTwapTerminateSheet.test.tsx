@@ -1,7 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import type { TwapOrder } from '@metamask/perps-controller';
 import React from 'react';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
+import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
 import PerpsProTwapTerminateSheet from './PerpsProTwapTerminateSheet';
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -165,5 +171,29 @@ describe('PerpsProTwapTerminateSheet', () => {
       'isInteractable',
       false,
     );
+  });
+
+  it('renders the sheet inside the modal portal so it anchors to the screen, not the scrolling panel', () => {
+    // Arrange / Act
+    render(
+      <PerpsProTwapTerminateSheet
+        twapOrder={twapOrder}
+        onClose={jest.fn()}
+        onConfirm={jest.fn()}
+      />,
+    );
+
+    // Assert: rendered inline, BottomSheet's `absolute inset-0` would resolve
+    // against the scrollable positions panel and put the footer below the fold.
+    const portal = screen.getByTestId(PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID);
+    expect(
+      within(portal).getByTestId(ids.TWAP_TERMINATE_SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      within(portal).getByTestId(ids.TWAP_TERMINATE_CONFIRM),
+    ).toBeOnTheScreen();
+    expect(
+      within(portal).getByTestId(ids.TWAP_TERMINATE_CANCEL),
+    ).toBeOnTheScreen();
   });
 });

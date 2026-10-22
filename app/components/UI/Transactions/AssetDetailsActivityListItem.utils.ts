@@ -4,8 +4,6 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { Hex } from '@metamask/utils';
 import {
   enrichLocalActivity,
-  getActivityFromTo,
-  getActivityValue,
   getBridgeActivityStatus,
   getSwapTokenEnrichment,
   prepareLocalTransactionGroup,
@@ -16,8 +14,6 @@ import {
 export type TransactionWithImportTime = TransactionMeta & {
   insertImportTime?: boolean;
 };
-
-export { getActivityFromTo, getActivityValue };
 
 export const mapTransactionToActivityItem = ({
   transaction: tx,
@@ -89,53 +85,10 @@ export const mapTransactionToActivityItem = ({
 
   const prepared = prepareLocalTransactionGroup(transactionGroup);
 
-  return {
-    ...enrichLocalActivity(
-      mapLocalTransaction(
-        prepared as Parameters<typeof mapLocalTransaction>[0],
-      ) as ActivityListItem,
-      prepared,
-    ),
-    raw: { type: 'localTransaction' as const, data: transactionGroup },
-  };
+  return enrichLocalActivity(
+    mapLocalTransaction(
+      prepared as Parameters<typeof mapLocalTransaction>[0],
+    ) as ActivityListItem,
+    prepared,
+  );
 };
-
-export const getTransactionDetailsParams = ({
-  item,
-  selectedTx,
-  actionKey,
-  value,
-  from,
-  to,
-  currentChainId,
-  tokenChainId,
-  showSpeedUpModal,
-  showCancelModal,
-}: {
-  item: ActivityListItem;
-  selectedTx: TransactionMeta;
-  actionKey: string;
-  value?: string;
-  from?: string;
-  to?: string;
-  currentChainId?: Hex;
-  tokenChainId?: Hex;
-  showSpeedUpModal: () => void;
-  showCancelModal: () => void;
-}) => ({
-  tx: selectedTx,
-  transactionElement: {
-    actionKey,
-    value,
-  },
-  transactionDetails: {
-    hash: item.hash,
-    renderFrom: from,
-    renderTo: to,
-    renderValue: value,
-    transactionType: item.type,
-    txChainId: selectedTx.chainId ?? tokenChainId ?? currentChainId,
-  },
-  showSpeedUpModal,
-  showCancelModal,
-});

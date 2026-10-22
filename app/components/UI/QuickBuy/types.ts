@@ -5,7 +5,9 @@ import type {
   QuickBuyOriginalEntryPoint,
   QuickBuySheetSource,
 } from './analytics';
-import { chainNameToId } from '../../Views/SocialLeaderboard/utils/chainMapping';
+import { chainNameToId } from '../SocialFeed/utils/chainMapping';
+import { TokenDetailsSource } from '../TokenDetails/constants/constants';
+import type { CopyTradeOrigin } from '../../../util/social/copyTradeIntent';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
 export interface QuickBuyTarget {
@@ -13,6 +15,7 @@ export interface QuickBuyTarget {
   tokenSymbol: string;
   tokenName: string;
   chain: CaipChainId;
+  source?: TokenDetailsSource;
 }
 
 export type QuickBuyTradeMode = 'buy' | 'sell';
@@ -22,10 +25,10 @@ export type QuickBuyAmountDisplayMode = 'fiat' | 'crypto';
 
 export type QuickBuyScreen =
   | 'amount'
-  | 'editQuickAmounts'
   | 'quoteDetails'
   | 'selectQuote'
   | 'payWith'
+  | 'selectNetwork'
   | 'priceImpactConfirm';
 
 /** Feature flags for optional flow pieces (enabled per consumer). */
@@ -44,7 +47,7 @@ export interface QuickBuyFeatures {
 export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;
-  source?: QuickBuySheetSource;
+  source: QuickBuySheetSource;
   /**
    * How the user reached the trade screen before opening Quick Buy. Only set
    * when Quick Buy is hosted on `TraderPositionView`.
@@ -67,7 +70,20 @@ export interface QuickBuyRootProps {
   target: QuickBuyTarget | null;
   onClose: () => void;
   features?: QuickBuyFeatures;
-  analyticsContext?: QuickBuyAnalyticsContext;
+  initialTradeMode?: QuickBuyTradeMode;
+  analyticsContext: QuickBuyAnalyticsContext;
+  /**
+   * When true, a confirmed swap opens the Social post-trade share sheet instead
+   * of Quick Buy's pending/complete/failed toasts.
+   */
+  postTradeShare?: boolean;
+  /**
+   * Screen that opened this Quick Buy. A failed post-trade share reopens only
+   * that screen.
+   */
+  postTradeShareOwner?: string;
+  /** Social post being copied; a submitted swap records a copy-trade intent. */
+  copyTradeOrigin?: CopyTradeOrigin;
   children?: ReactNode;
 }
 

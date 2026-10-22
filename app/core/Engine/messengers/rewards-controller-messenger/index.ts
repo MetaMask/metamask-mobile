@@ -61,6 +61,7 @@ import {
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipEquityMultiplierAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
+  RewardsDataServiceGetTradingFeeGrantsAction,
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServiceGetVipTransactionsAction,
   RewardsDataServiceLookupVipTransactionAction,
@@ -86,11 +87,13 @@ import {
   RewardsDataServiceGetPredictThePitchPrizePoolAction,
   RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction,
   RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction,
+  RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction,
   RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction,
   RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction,
   RewardsDataServiceRegisterMoneyAccountBindingAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 
 const name = 'RewardsController' as const;
 
@@ -148,6 +151,7 @@ type AllowedActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -160,6 +164,7 @@ type AllowedActions =
   | RewardsDataServiceGetPredictThePitchPrizePoolAction
   | RewardsDataServiceGetMoneyAccountSweepstakesStatsMeAction
   | RewardsDataServiceGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsDataServiceGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsDataServiceGetMoneyAccountSweepstakesDrawProofAction
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
@@ -167,7 +172,11 @@ type AllowedActions =
 // Don't reexport as per guidelines
 type AllowedEvents =
   | AccountTreeControllerSelectedAccountGroupChangeEvent
-  | KeyringControllerUnlockEvent;
+  | KeyringControllerUnlockEvent
+  | Extract<
+      AuthenticationController.Events,
+      { type: 'AuthenticationController:stateChange' }
+    >;
 
 export type RewardsControllerMessenger = Messenger<
   typeof name,
@@ -243,6 +252,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getVIPDashboard',
       'RewardsDataService:getVipEquityMultiplier',
       'RewardsDataService:getVipRefereeDashboard',
+      'RewardsDataService:getTradingFeeGrants',
       'RewardsDataService:getVipFees',
       'RewardsDataService:getVipTransactions',
       'RewardsDataService:lookupVipTransaction',
@@ -268,6 +278,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getPredictThePitchPrizePool',
       'RewardsDataService:getMoneyAccountSweepstakesStatsMe',
       'RewardsDataService:getMoneyAccountSweepstakesPrizePool',
+      'RewardsDataService:getMoneyAccountSweepstakesVolumeStats',
       'RewardsDataService:getMoneyAccountSweepstakesDrawProof',
       'RewardsDataService:getMoneyAccountSweepstakesParticipantOutcome',
       'RewardsDataService:registerMoneyAccountBinding',
@@ -275,6 +286,7 @@ export function getRewardsControllerMessenger(
     events: [
       'AccountTreeController:selectedAccountGroupChange',
       'KeyringController:unlock',
+      'AuthenticationController:stateChange',
     ],
   } as Parameters<RootMessenger['delegate']>[0]);
 

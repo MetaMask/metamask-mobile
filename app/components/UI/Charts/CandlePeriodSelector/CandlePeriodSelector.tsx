@@ -1,6 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FilterButton,
   FilterButtonGroup,
   FilterButtonSize,
@@ -20,10 +22,11 @@ export interface CandlePeriodOption {
 }
 
 export const DEFAULT_CANDLE_PERIODS = [
-  { label: '1min', value: CandlePeriod.OneMinute },
-  { label: '3min', value: CandlePeriod.ThreeMinutes },
-  { label: '5min', value: CandlePeriod.FiveMinutes },
-  { label: '15min', value: CandlePeriod.FifteenMinutes },
+  { label: '1m', value: CandlePeriod.OneMinute },
+  { label: '5m', value: CandlePeriod.FiveMinutes },
+  { label: '15m', value: CandlePeriod.FifteenMinutes },
+  { label: '1h', value: CandlePeriod.OneHour },
+  { label: '1d', value: CandlePeriod.OneDay },
 ] as const satisfies readonly CandlePeriodOption[];
 
 /**
@@ -61,6 +64,16 @@ interface CandlePeriodSelectorProps {
   periodButtonTwClassName?: string;
   moreButtonTwClassName?: string;
   textVariant?: TextVariant;
+  /**
+   * Lays the periods out in a non-scrolling row where they share the available
+   * width equally, leaving the `More` button at its intrinsic width.
+   *
+   * The default scrolling layout cannot do this: its horizontal `ScrollView`
+   * measures content with an unbounded width, so flexible children have no
+   * free space to grow into and always hug their labels. Use this only when
+   * `visiblePeriods` is known to fit the available width.
+   */
+  fillWidth?: boolean;
   testID?: string;
 }
 
@@ -75,6 +88,7 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
   periodButtonTwClassName,
   moreButtonTwClassName,
   textVariant,
+  fillWidth = false,
   testID,
 }) => {
   const isMorePeriodSelected = !visiblePeriods.some(
@@ -100,55 +114,110 @@ const CandlePeriodSelector: React.FC<CandlePeriodSelectorProps> = ({
     ? getCandlePeriodLabel(selectedPeriod)
     : null;
 
+  const periodButtons = visiblePeriods.map((period) => (
+    <FilterButton
+      key={period.value}
+      // Selection is driven by the surrounding group unless the periods are
+      // laid out without it.
+      {...(fillWidth
+        ? {
+            isSelected: period.value === selectedPeriod,
+            variant: filterVariant,
+            onPress: () => onPeriodChange?.(period.value),
+            accessibilityState: {
+              selected: period.value === selectedPeriod,
+            },
+          }
+        : { value: period.value })}
+      size={FilterButtonSize.Sm}
+      twClassName={
+        fillWidth
+          ? `min-w-0 flex-1 ${periodButtonTwClassName ?? ''}`.trim()
+          : periodButtonTwClassName
+      }
+      textProps={
+        fillWidth || textVariant
+          ? {
+              ...(textVariant ? { variant: textVariant } : {}),
+              // Equal-width chips clip longer labels (`15min` → `15mi`).
+              // Scale the label down instead of cutting the unit off.
+              ...(fillWidth
+                ? {
+                    adjustsFontSizeToFit: true,
+                    minimumFontScale: 0.7,
+                    numberOfLines: 1,
+                  }
+                : {}),
+            }
+          : undefined
+      }
+      testID={
+        testID
+          ? getCandlePeriodSelectorSelectors.periodButton(testID, period.value)
+          : undefined
+      }
+    >
+      {period.label}
+    </FilterButton>
+  ));
+
+  const moreButton = (
+    <SelectButton
+      placeholder={strings('perps.chart.candle_period_selector.show_more')}
+      value={moreButtonValue}
+      variant={
+        isMorePeriodSelected
+          ? SelectButtonVariant.Primary
+          : SelectButtonVariant.Tertiary
+      }
+      size={SelectButtonSize.Sm}
+      twClassName={
+        fillWidth
+          ? `shrink-0 ${moreButtonTwClassName ?? ''}`.trim()
+          : moreButtonTwClassName
+      }
+      textProps={textVariant ? { variant: textVariant } : undefined}
+      onPress={onMorePress}
+      testID={
+        testID ? getCandlePeriodSelectorSelectors.moreButton(testID) : undefined
+      }
+    />
+  );
+
   return (
     <Box twClassName={twClassName} testID={testID}>
-      <FilterButtonGroup
-        value={groupValue}
-        onChange={handleFilterChange}
-        variant={filterVariant}
-        twClassName={groupTwClassName}
-        testID={
-          testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
-        }
-      >
-        {visiblePeriods.map((period) => (
-          <FilterButton
-            key={period.value}
-            value={period.value}
-            size={FilterButtonSize.Sm}
-            twClassName={periodButtonTwClassName}
-            textProps={textVariant ? { variant: textVariant } : undefined}
-            testID={
-              testID
-                ? getCandlePeriodSelectorSelectors.periodButton(
-                    testID,
-                    period.value,
-                  )
-                : undefined
-            }
-          >
-            {period.label}
-          </FilterButton>
-        ))}
-        <SelectButton
-          placeholder={strings('perps.chart.candle_period_selector.show_more')}
-          value={moreButtonValue}
-          variant={
-            isMorePeriodSelected
-              ? SelectButtonVariant.Primary
-              : SelectButtonVariant.Tertiary
-          }
-          size={SelectButtonSize.Sm}
-          twClassName={moreButtonTwClassName}
-          textProps={textVariant ? { variant: textVariant } : undefined}
-          onPress={onMorePress}
+      {fillWidth ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName={groupTwClassName}
           testID={
-            testID
-              ? getCandlePeriodSelectorSelectors.moreButton(testID)
-              : undefined
+            testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
           }
-        />
-      </FilterButtonGroup>
+        >
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="min-w-0 flex-1 gap-2"
+          >
+            {periodButtons}
+          </Box>
+          {moreButton}
+        </Box>
+      ) : (
+        <FilterButtonGroup
+          value={groupValue}
+          onChange={handleFilterChange}
+          variant={filterVariant}
+          twClassName={groupTwClassName}
+          testID={
+            testID ? getCandlePeriodSelectorSelectors.group(testID) : undefined
+          }
+        >
+          {periodButtons}
+          {moreButton}
+        </FilterButtonGroup>
+      )}
     </Box>
   );
 };

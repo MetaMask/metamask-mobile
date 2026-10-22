@@ -1,35 +1,356 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { toast, ToastSeverity } from '@metamask/design-system-react-native';
+import { FeatureId, formatChainIdToDec } from '@metamask/bridge-controller';
+import { parseCaipAssetType } from '@metamask/utils';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import Logger from '../../../../../util/Logger';
 import {
+  resetBridgeTokenInputs,
   selectLimitOrderCostTolerance,
   selectLimitOrderMarketComparison,
 } from '../../../../../core/redux/slices/bridge';
-import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
+import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
+import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
+import { useCreateLimitOrder } from '../../api/limitOrders/create';
+import type { SignedLimitOrderDelegation } from '../../api/limitOrders/create/schema';
+import { useAutoUpgradeEIP7702Account } from '../../hooks/useAutoUpgradeEIP7702Account';
+import { useEIP7702UpgradeFee } from '../../hooks/useEIP7702UpgradeFee';
+import { useFiatToUsdRate } from '../../hooks/useFiatToUsdRate';
+import { getNativeSourceToken } from '../../utils/tokenUtils';
+import { getLimitOrderTriggerParams } from '../../utils/limitOrders/getLimitOrderTriggerParams';
+import { getLimitOrderUsdExchangeRate } from '../../utils/limitOrders/getLimitOrderUsdExchangeRate';
+import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { LimitOrderConfirmationModal } from './LimitOrderConfirmationModal';
 import type { LimitOrderConfirmationModalParams } from './types';
+import { strings } from '../../../../../../locales/i18n';
+import { useSentinelFeeTokenValidation } from '../../hooks/useSentinelFeeTokenValidation';
+import { useBridgeSession } from '../../hooks/useBridgeSession';
+import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { getOrderTypeFromTrigger } from '../../utils/limitOrders/getOrderTypeFromTrigger';
+
+/**
+ * What went wrong on the last confirm attempt. Each one reads differently in
+ * the banner, since "we never asked for an order" and "the order was rejected"
+ * are not the same thing to a user about to try again.
+ */
+enum LimitOrderConfirmError {
+  MissingTrigger = 'missingTrigger',
+  AccountUpgrade = 'accountUpgrade',
+  Delegations = 'delegations',
+  Signature = 'signature',
+  Create = 'create',
+}
+
+const CONFIRM_ERROR_MESSAGE_KEY: Record<LimitOrderConfirmError, string> = {
+  [LimitOrderConfirmError.MissingTrigger]:
+    'bridge.limit.error_missing_trigger_price',
+  [LimitOrderConfirmError.AccountUpgrade]:
+    'bridge.limit.error_upgrading_account',
+  [LimitOrderConfirmError.Delegations]:
+    'bridge.limit.error_fetching_delegations',
+  [LimitOrderConfirmError.Signature]: 'bridge.limit.error_signing_delegations',
+  [LimitOrderConfirmError.Create]: 'bridge.limit.error_creating_order',
+};
 
 export const LimitOrderConfirmationModalScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const dispatch = useDispatch();
   const params = useParams<LimitOrderConfirmationModalParams>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
+  const currentCurrency = useSelector(selectCurrentCurrency);
+  const sourceWalletAddress = useSelector(selectSourceWalletAddress);
+  const { setLimitOrdersTab } = useBridgeSession();
+  const delegationFee = useEIP7702UpgradeFee();
+  const feeTokenValidation = useSentinelFeeTokenValidation({
+    chainId: parseCaipAssetType(params.order.sourceAssetId).chainId,
+    sourceAssetId: params.order.sourceAssetId,
+    destinationAssetId: params.order.destAssetId,
+  });
+  const supportedFeeTokenSymbols =
+    feeTokenValidation.reason === 'unsupported-pair'
+      ? feeTokenValidation.supportedTokenSymbols
+      : undefined;
+  const sourceChainId = params.sourceToken?.chainId;
+  const { autoUpgradeEIP7702Account } = useAutoUpgradeEIP7702Account({
+    address: sourceWalletAddress,
+    chainId: sourceChainId,
+  });
+  const feeToken = useMemo(
+    () => (sourceChainId ? getNativeSourceToken(sourceChainId) : undefined),
+    [sourceChainId],
+  );
 
-  const handleConfirm = useCallback(() => {
-    // STUB FOR LIMIT ORDER CREATION
-    console.warn('Confirm limit order');
-  }, []);
+  // A price entered in fiat is sent as its USD equivalent, which only matches
+  // what is on screen when the display currency is already USD. The order is
+  // not created until it is confirmed, so the price is converted with the live
+  // rate, and the notice shows that same rate: whatever it reads when the
+  // order is confirmed is what the order is placed at. A ratio trigger is
+  // priced in the counter token, so no exchange rate is involved.
+  const { triggerInput } = params;
+  const fiatToUsdRate = useFiatToUsdRate(sourceChainId);
+  const trigger = useMemo(
+    () => getLimitOrderTriggerParams({ ...triggerInput, fiatToUsdRate }),
+    [triggerInput, fiatToUsdRate],
+  );
+  const usdExchangeRate = useMemo(() => {
+    if (!trigger || trigger.kind === 'ratio') {
+      return undefined;
+    }
+
+    return getLimitOrderUsdExchangeRate(currentCurrency, fiatToUsdRate);
+  }, [currentCurrency, fiatToUsdRate, trigger]);
+
+  const [confirmError, setConfirmError] = useState<LimitOrderConfirmError>();
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
+  // The tolerance the delegations are requested with. The create request has to
+  // be given the same one, so both read this single resolved value.
+  const costTolerancePercent = costTolerance ?? defaultCostTolerance;
+  const { fetchLimitOrdersDelegations } = useFetchLimitOrdersDelegations({
+    ...params.order,
+    costTolerance: costTolerancePercent,
+  });
+  const createLimitOrder = useCreateLimitOrder();
+
+  const error = useMemo(() => {
+    if (feeTokenValidation.reason === 'unsupported-pair') {
+      return {
+        bannerMessage: strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: supportedFeeTokenSymbols?.join(', ') ?? '',
+        }),
+      };
+    }
+
+    if (feeTokenValidation.reason === 'unavailable') {
+      return {
+        bannerMessage: strings('bridge.limit.fee_tokens_unavailable'),
+      };
+    }
+
+    if (delegationFee.status === 'error') {
+      return {
+        bannerMessage: strings('bridge.limit.error_calculation_network_fees'),
+        primaryButtonLabel: strings('bridge.limit.try_again'),
+      };
+    }
+
+    if (confirmError) {
+      return {
+        bannerMessage: strings(CONFIRM_ERROR_MESSAGE_KEY[confirmError]),
+        primaryButtonLabel: strings('bridge.limit.try_again'),
+      };
+    }
+  }, [
+    delegationFee,
+    confirmError,
+    feeTokenValidation.reason,
+    supportedFeeTokenSymbols,
+  ]);
+
+  const sharedAdvancedOrderProperties = useMemo(
+    () => ({
+      feature_id: FeatureId.LIMIT_ORDER,
+      // TODO use location from navigation context
+      location: 'Main View',
+    }),
+    [],
+  );
+
+  const publishDelegationFailureEvent = useCallback(() => {
+    if (!trigger) {
+      return;
+    }
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
+        .addProperties({
+          ...sharedAdvancedOrderProperties,
+          order_type: getOrderTypeFromTrigger(trigger),
+          error: 'delegation_failed',
+        })
+        .build(),
+    );
+  }, [trigger, trackEvent, createEventBuilder, sharedAdvancedOrderProperties]);
+
+  const handleConfirm = useCallback(async () => {
+    if (!feeTokenValidation.isValid) {
+      return;
+    }
+
+    if (delegationFee.status === 'error') {
+      delegationFee.retry();
+      return;
+    }
+
+    setConfirmError(undefined);
+
+    // An unusable price, or a fiat one with no rate to convert it to USD,
+    // leaves no trigger. Failing in the banner beats sending an order whose
+    // fill condition we would have had to guess.
+    if (!trigger) {
+      setConfirmError(LimitOrderConfirmError.MissingTrigger);
+      return;
+    }
+
+    setIsCreatingOrder(true);
+
+    try {
+      await autoUpgradeEIP7702Account();
+    } catch (upgradeError) {
+      publishDelegationFailureEvent();
+      Logger.error(
+        upgradeError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to upgrade account',
+      );
+      setConfirmError(LimitOrderConfirmError.AccountUpgrade);
+      setIsCreatingOrder(false);
+      return;
+    }
+
+    // A retry starts over from the delegations, which hands back the same
+    // `clientOrderId` for these order params. The API treats that id as
+    // idempotent, so retrying a create whose response never arrived cannot
+    // place the order twice.
+    let delegationsResponse: LimitOrderDelegationsResponse;
+    try {
+      delegationsResponse = await fetchLimitOrdersDelegations();
+    } catch (fetchError) {
+      publishDelegationFailureEvent();
+      Logger.error(
+        fetchError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to fetch limit order delegations',
+      );
+      setConfirmError(LimitOrderConfirmError.Delegations);
+      setIsCreatingOrder(false);
+      return;
+    }
+
+    // The API issues the delegations unsigned and will not accept them back
+    // that way: the delegator's signature is what authorises the fill.
+    let signedDelegations: SignedLimitOrderDelegation[];
+    try {
+      signedDelegations = await signLimitOrderDelegations(
+        delegationsResponse.delegations,
+      );
+    } catch (signatureError) {
+      publishDelegationFailureEvent();
+      Logger.error(
+        signatureError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to sign limit order delegations',
+      );
+      setConfirmError(LimitOrderConfirmError.Signature);
+      setIsCreatingOrder(false);
+      return;
+    }
+
+    try {
+      await createLimitOrder({
+        // Echoed back by the delegations request, so both calls are tied to the
+        // same order id without having to thread it through separately.
+        clientOrderId: delegationsResponse.order.clientOrderId,
+        // The delegations response reports the chain as CAIP-2 (`eip155:56`);
+        // the create request takes it in decimal (`56`).
+        chainId: formatChainIdToDec(delegationsResponse.chainId),
+        trigger,
+        // Bookkeeping only, and explicitly the amount as requested rather than
+        // the one the tolerance was applied to: the enforceable floor is the
+        // one in the signed caveat.
+        requestedDestAmount: params.order.destAmount,
+        // Must match the tolerance the delegations were requested with, since
+        // that is what set the slippage budget of the fill quote. It is a
+        // percent, i.e. `2.5` means 2.5%.
+        priceTolerance: Number(costTolerancePercent),
+        // As issued by the delegations request, `typedData` included, with only
+        // the delegator's signature filled in: the API verifies each signature
+        // against exactly the delegation it issued.
+        delegations: signedDelegations,
+      });
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromTrigger(trigger),
+          })
+          .build(),
+      );
+    } catch (createError) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
+          .addProperties({
+            ...sharedAdvancedOrderProperties,
+            order_type: getOrderTypeFromTrigger(trigger),
+            error: (createError as Error).message,
+          })
+          .build(),
+      );
+      Logger.error(
+        createError as Error,
+        'LimitOrderConfirmationModalScreen: Failed to create limit order',
+      );
+      setConfirmError(LimitOrderConfirmError.Create);
+      return;
+    } finally {
+      setIsCreatingOrder(false);
+    }
+
+    // The order is placed, so the sheet has nothing left to confirm.
+    dispatch(resetBridgeTokenInputs());
+    setLimitOrdersTab?.(OrdersTabKey.OpenOrders);
+    navigation.goBack();
+    toast({
+      severity: ToastSeverity.Success,
+      title: strings('bridge.limit.order_created_title'),
+      description: strings('bridge.limit.order_created_description'),
+      showCloseButton: false,
+    });
+  }, [
+    autoUpgradeEIP7702Account,
+    createLimitOrder,
+    delegationFee,
+    dispatch,
+    fetchLimitOrdersDelegations,
+    feeTokenValidation.isValid,
+    navigation,
+    params.order.destAmount,
+    setLimitOrdersTab,
+    costTolerancePercent,
+    trackEvent,
+    createEventBuilder,
+    publishDelegationFailureEvent,
+    trigger,
+    sharedAdvancedOrderProperties,
+  ]);
 
   return (
     <LimitOrderConfirmationModal
       {...params}
+      triggerDirection={triggerInput.priceComparisonDirection}
       triggerComparison={triggerComparison}
-      costTolerance={`${costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`}
+      delegationFee={delegationFee}
+      feeToken={feeToken}
+      usdExchangeRate={usdExchangeRate}
+      costTolerance={`${costTolerancePercent}%`}
       goBack={navigation.goBack}
-      onConfirm={handleConfirm}
+      error={error?.bannerMessage}
+      primaryButton={{
+        onPress: handleConfirm,
+        label:
+          error?.primaryButtonLabel ?? strings('bridge.limit.confirm_order'),
+        isLoading: delegationFee.status === 'loading' || isCreatingOrder,
+        isDisabled: !feeTokenValidation.isValid,
+      }}
     />
   );
 };

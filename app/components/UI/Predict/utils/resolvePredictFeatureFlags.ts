@@ -8,6 +8,7 @@ import {
   DEFAULT_HIDDEN_MARKETS_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+  DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
@@ -23,6 +24,7 @@ import {
   parse,
   PredictFeeCollectionSchema,
   PredictHiddenMarketsSchema,
+  PredictHomeCategoriesSchema,
   PredictSportsFeedSchema,
   PredictWimbledonTabSchema,
 } from '../schemas';
@@ -154,6 +156,9 @@ export function resolvePredictFeatureFlags(
     flags.predictSportCardLivePrices,
     true,
   );
+  const isMembershipFeeWaiverEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSubscriptionFeeWaiverEnabled,
+  );
   const parsedPredictSportsFeed = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictSportsFeed']>(
       flags.predictSportsFeed,
@@ -166,6 +171,22 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictSportsFeed
     : DEFAULT_PREDICT_SPORTS_FEED_FLAG;
+  const parsedPredictHomeCategories = parse(
+    unwrapRemoteFeatureFlag<PredictFeatureFlags['predictHomeCategories']>(
+      flags.predictHomeCategories,
+    ),
+    PredictHomeCategoriesSchema,
+    DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
+  );
+  // An enabled flag with no renderable tiles would blank the Categories
+  // section, so treat it like an invalid payload and keep the bundled rail.
+  const predictHomeCategories =
+    validatedVersionGatedFeatureFlag(parsedPredictHomeCategories) &&
+    parsedPredictHomeCategories.categories.some(
+      (category) => category.enabled !== false,
+    )
+      ? parsedPredictHomeCategories
+      : DEFAULT_PREDICT_HOME_CATEGORIES_FLAG;
   const parsedPredictWimbledonTab = parse(
     unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
     PredictWimbledonTabSchema,
@@ -191,7 +212,9 @@ export function resolvePredictFeatureFlags(
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
     predictSportCardLivePricesEnabled,
+    isMembershipFeeWaiverEnabled,
     predictSportsFeed,
+    predictHomeCategories,
     predictWimbledonTab,
   };
 }

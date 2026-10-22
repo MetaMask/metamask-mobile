@@ -467,6 +467,8 @@ describe('usePerpsToasts', () => {
           label: 'Network error',
           isBold: false,
         });
+        expect(config.linkButtonOptions).toBeUndefined();
+        expect(config.hasNoTimeout).toBe(false);
       });
 
       it('strips hip3 prefix from asset symbol in market order submitted', () => {
@@ -565,6 +567,20 @@ describe('usePerpsToasts', () => {
 
         expect(config.labelOptions).toContainEqual({
           label: 'Network error',
+          isBold: false,
+        });
+      });
+
+      it('retains a supplied definite refusal reason without changing default failure copy', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.orderManagement.limit.creationFailed(
+            undefined,
+            'Review existing Scale orders before placing another',
+          );
+
+        expect(config.labelOptions).toContainEqual({
+          label: 'Review existing Scale orders before placing another',
           isBold: false,
         });
       });
@@ -1305,6 +1321,29 @@ describe('usePerpsToasts', () => {
         });
       });
 
+      it('returns remove amount changed configuration with the new max', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '7.00',
+          );
+
+        expect(config.labelOptions).toHaveLength(3);
+        expect(config.labelOptions?.[0]).toMatchObject({ isBold: true });
+        expect(config.labelOptions?.[2]).toMatchObject({ isBold: false });
+        expect(String(config.labelOptions?.[2]?.label)).toContain('7.00');
+      });
+
+      it('explains nothing is removable when the new max is zero', () => {
+        const { result } = renderHook(() => usePerpsToasts());
+        const config =
+          result.current.PerpsToastOptions.positionManagement.margin.removeAmountChanged(
+            '0.00',
+          );
+
+        expect(String(config.labelOptions?.[2]?.label)).not.toContain('0.00');
+      });
+
       it('returns adjustment failed configuration with custom error', () => {
         const { result } = renderHook(() => usePerpsToasts());
         const customError = 'Insufficient funds';
@@ -1423,7 +1462,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);
@@ -1447,7 +1486,7 @@ describe('usePerpsToasts', () => {
           { label: '\n', isBold: false },
           {
             // Uses fallback message when no error provided
-            label: 'Unable to update take profit/stop loss. Please try again.',
+            label: 'Unable to update take profit/stop loss. Try again.',
             isBold: false,
           },
         ]);

@@ -122,7 +122,7 @@ export function PredictPayWithRow({
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4 pt-4 pb-2"
+          twClassName="pt-4 pb-2"
         >
           <Text
             variant={TextVariant.BodyMd}

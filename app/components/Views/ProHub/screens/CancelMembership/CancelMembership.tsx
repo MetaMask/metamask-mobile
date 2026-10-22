@@ -3,83 +3,167 @@ import { BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { PRODUCT_TYPES } from '@metamask/subscription-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
+import { strings } from '../../../../../../locales/i18n';
+import { CANCEL_REASONS } from './CancelMembership.constants';
 import { CancelMembershipTestIds } from './CancelMembership.testIds';
-import { buildPostCancellationResetState } from './CancelMembership.utils';
+import {
+  buildPostCancellationResetState,
+  CANCELLATION_TIMINGS,
+  getCancellationTiming,
+  shuffleCancelReasons,
+  toCancellationReason,
+} from './CancelMembership.utils';
 import CancelSurveyStep from './components/CancelSurveyStep';
-import CancelSuccessStep from './components/CancelSuccessStep';
+import CancelStayStep from './components/CancelStayStep';
 
-type CancelStep = 'survey' | 'success';
+const CANCEL_STEPS = {
+  REASON: 'reason',
+  STAY: 'stay',
+} as const;
+
+type CancelStep = (typeof CANCEL_STEPS)[keyof typeof CANCEL_STEPS];
 
 const CancelMembership = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const [step, setStep] = useState<CancelStep>('survey');
+  const [orderedReasons] = useState(() => shuffleCancelReasons(CANCEL_REASONS));
+  const [step, setStep] = useState<CancelStep>(CANCEL_STEPS.REASON);
   const [selectedReasonId, setSelectedReasonId] = useState<string | null>(null);
+  const [stayFeedback, setStayFeedback] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isNavigatingRef = useRef(false);
 
   const handleBack = useCallback(() => {
+    if (isSubmitting) return;
+    if (step === CANCEL_STEPS.STAY) {
+      setStep(CANCEL_STEPS.REASON);
+      return;
+    }
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, step, navigation]);
 
   const handleKeepMembership = useCallback(() => {
+    if (isSubmitting) return;
+    // Mark as intentionally leaving so the stay-step beforeRemove interception
+    // does not redirect this back to the reason step.
+    isNavigatingRef.current = true;
     navigation.goBack();
-  }, [navigation]);
+  }, [isSubmitting, navigation]);
 
-  const handleCancelConfirm = useCallback(() => {
-    setStep('success');
-  }, []);
-
-  const handleReasonSelect = useCallback((id: string) => {
-    setSelectedReasonId(id);
-  }, []);
-
-  const handleDone = useCallback(() => {
+  const navigateToProHub = useCallback(() => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    // Reset instead of navigate: navigate() pushes another Pro Hub on top of
-    // this success step, so Header back would return here. Reset keeps Pro Hub
-    // on top of the screen that started the flow (Money, Wallet, etc.).
+    // Reset instead of navigate so the stale cancel and membership screens are
+    // removed and Pro Hub sits directly above the origin screen.
     navigation.dispatch((state) =>
       CommonActions.reset(buildPostCancellationResetState(state)),
     );
   }, [navigation]);
 
-  // Once the membership is cancelled (success step), disable iOS swipe-back
-  // so the user cannot accidentally return to the now-stale Membership screen.
-  useEffect(() => {
-    navigation.setOptions({ gestureEnabled: step !== 'success' });
-  }, [navigation, step]);
+  const handleCancelConfirm = useCallback(async () => {
+    if (isSubmitting || isNavigatingRef.current) return;
 
-  // Intercept any navigation attempt that would remove this screen while
-  // on the success step. Covers programmatic goBack() and acts as
-  // defense-in-depth alongside the disabled gesture.
+    const controller = Engine.context.SubscriptionController;
+    const subscription = controller.getSubscriptionByProduct(
+      PRODUCT_TYPES.MONEY_ACCOUNT_PLUS,
+    );
+    const currentPeriodEnd = subscription?.currentPeriodEnd;
+    const timing = getCancellationTiming(subscription?.cancelType);
+
+    if (!subscription || !timing || !currentPeriodEnd) {
+      setErrorMessage(
+        strings('pro_hub.cancel_membership.cancellation_unavailable'),
+      );
+      return;
+    }
+
+    setErrorMessage(null);
+    setIsSubmitting(true);
+
+    try {
+      const cancellationReason = toCancellationReason(selectedReasonId);
+
+      await controller.cancelSubscription({
+        subscriptionId: subscription.id,
+        cancelAtPeriodEnd: timing === CANCELLATION_TIMINGS.PERIOD_END,
+        ...(cancellationReason ? { cancellationReason } : {}),
+      });
+
+      navigateToProHub();
+    } catch (error) {
+      Logger.error(ensureError(error, 'CancelMembership.cancelSubscription'), {
+        tags: {
+          feature: 'money_account_plus',
+          operation: 'cancel_subscription',
+        },
+      });
+      setErrorMessage(strings('pro_hub.cancel_membership.cancellation_failed'));
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, selectedReasonId, navigateToProHub]);
+
+  const handleReasonSelect = useCallback((id: string) => {
+    setSelectedReasonId(id);
+    setStep(CANCEL_STEPS.STAY);
+  }, []);
+
+  const handleStayFeedbackChange = useCallback((value: string) => {
+    setStayFeedback(value);
+  }, []);
+
+  // Leaving is blocked while the cancel request is in flight: it would still
+  // cancel the membership but skip the redirect to Pro Hub.
+  const isLeaveBlocked = isSubmitting;
+
+  // On the stay step, leaving via back gesture / hardware back should return
+  // to the reason step instead of popping the whole screen.
+  const shouldInterceptLeave = isLeaveBlocked || step === CANCEL_STEPS.STAY;
+
+  // Disable iOS swipe-back so the user cannot leave by gesture.
   useEffect(() => {
-    if (step !== 'success') {
+    navigation.setOptions({ gestureEnabled: !isLeaveBlocked });
+  }, [navigation, isLeaveBlocked]);
+
+  // Intercept any navigation attempt that would remove this screen. Covers
+  // programmatic goBack() and acts as defense-in-depth alongside the disabled
+  // gesture.
+  useEffect(() => {
+    if (!shouldInterceptLeave) {
       return undefined;
     }
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (isNavigatingRef.current) return;
       e.preventDefault();
-      handleDone();
+      if (step === CANCEL_STEPS.STAY && !isSubmitting) {
+        setStep(CANCEL_STEPS.REASON);
+      }
     });
     return () => unsubscribe();
-  }, [step, navigation, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting, navigation]);
 
-  // Android hardware back button: redirect to handleDone on the success step.
+  // Android hardware back button: swallow it while submitting and return to
+  // the reason step from the stay step.
   useEffect(() => {
-    if (step !== 'success') {
+    if (!shouldInterceptLeave) {
       return undefined;
     }
     const subscription = BackHandler.addEventListener(
       'hardwareBackPress',
       () => {
-        handleDone();
+        if (step === CANCEL_STEPS.STAY && !isSubmitting) {
+          setStep(CANCEL_STEPS.REASON);
+        }
         return true;
       },
     );
     return () => subscription.remove();
-  }, [step, handleDone]);
+  }, [shouldInterceptLeave, step, isSubmitting]);
 
   return (
     <SafeAreaView
@@ -87,16 +171,28 @@ const CancelMembership = () => {
       edges={['top', 'bottom']}
       testID={CancelMembershipTestIds.CONTAINER}
     >
-      {step === 'survey' ? (
+      {step === CANCEL_STEPS.REASON && (
         <CancelSurveyStep
+          reasons={orderedReasons}
           selectedReasonId={selectedReasonId}
           onReasonSelect={handleReasonSelect}
           onBack={handleBack}
           onKeepMembership={handleKeepMembership}
           onCancelConfirm={handleCancelConfirm}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
         />
-      ) : (
-        <CancelSuccessStep onDone={handleDone} />
+      )}
+      {step === CANCEL_STEPS.STAY && (
+        <CancelStayStep
+          stayFeedback={stayFeedback}
+          onStayFeedbackChange={handleStayFeedbackChange}
+          onBack={handleBack}
+          onKeepMembership={handleKeepMembership}
+          onCancelConfirm={handleCancelConfirm}
+          isSubmitting={isSubmitting}
+          errorMessage={errorMessage}
+        />
       )}
     </SafeAreaView>
   );

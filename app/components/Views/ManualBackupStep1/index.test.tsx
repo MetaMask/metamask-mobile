@@ -120,7 +120,12 @@ jest.mock('../../../core', () => ({
 jest.mock('../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
 const Logger = jest.requireMock('../../../util/Logger');
 
+jest.mock('../../UI/OnboardingFoxLoader/OnboardingFoxLoader');
+
 jest.mock('../../../util/metrics/TrackError/trackErrorAsAnalytics', () =>
+  jest.fn(),
+);
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding', () =>
   jest.fn(),
 );
 const trackErrorAsAnalytics = jest.requireMock(
@@ -181,21 +186,18 @@ const renderComponent = (routeParams: SetupOptions = {}) => {
   return { wrapper, ...nav };
 };
 
-const revealSeedPhrase = async (
-  wrapper: ReturnType<typeof renderWithProvider>,
-) => {
-  // Wrap in act so the seedPhraseHidden state update flushes before assert.
-  // waitFor is unsafe here: testSetup mocks Date.now to a constant, so
-  // waitFor's timeout never elapses and a missed update hangs until Jest's
-  // test timeout (seen as flaky 15s failures in CI).
-  await act(async () => {
-    fireEvent.press(
-      wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
-    );
-  });
+const revealSeedPhrase = (wrapper: ReturnType<typeof renderWithProvider>) => {
+  // fireEvent flushes the seedPhraseHidden update before it returns.
+  // Do not wrap this in `await act(async () => ...)` or waitFor: testSetup
+  // freezes Date.now, so those waits never elapse and the test hits Jest's
+  // timeout.
+  fireEvent.press(
+    wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
+  );
   expect(
     wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
   ).toBeOnTheScreen();
+  expect(wrapper.getByText(MOCK_WORDS[0])).toBeOnTheScreen();
 };
 
 const renderPasswordView = async () => {
@@ -242,7 +244,7 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('seed phrase reveal', () => {
-    it('reveals seed phrase words after pressing the blur overlay', async () => {
+    it('reveals seed phrase words after pressing the blur overlay', () => {
       const { wrapper } = renderComponent();
 
       expect(
@@ -252,7 +254,7 @@ describe('ManualBackupStep1', () => {
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
       ).toBeOnTheScreen();
 
-      await revealSeedPhrase(wrapper);
+      revealSeedPhrase(wrapper);
     });
 
     it('displays the concealer with blur overlay before reveal', () => {
@@ -262,6 +264,12 @@ describe('ManualBackupStep1', () => {
         wrapper.getByText(strings('manual_backup_step_1.action')),
       ).toBeOnTheScreen();
       expect(
+        wrapper.getByText(strings('manual_backup_step_1.description')),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.getByText(strings('manual_backup_step_1.what_is_srp')),
+      ).toBeOnTheScreen();
+      expect(
         wrapper.getByText(strings('manual_backup_step_1.reveal')),
       ).toBeOnTheScreen();
     });
@@ -269,8 +277,9 @@ describe('ManualBackupStep1', () => {
     it('opens the seedphrase definition modal', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
-      fireEvent.press(srpText);
+      fireEvent.press(
+        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK),
+      );
 
       expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
         screen: 'SeedphraseModal',
@@ -280,7 +289,7 @@ describe('ManualBackupStep1', () => {
     it('navigates to ManualBackupStep2 after reveal and continue', async () => {
       const { wrapper, navigate } = renderComponent();
 
-      await revealSeedPhrase(wrapper);
+      revealSeedPhrase(wrapper);
 
       fireEvent.press(
         wrapper.getByText(strings('manual_backup_step_1.continue')),
@@ -513,11 +522,11 @@ describe('ManualBackupStep1', () => {
       );
     });
 
-    it('navigates to ManualBackupStep2 after revealing and pressing continue', async () => {
+    it('navigates to ManualBackupStep2 after revealing and pressing continue', () => {
       mockHasFunds.mockReturnValue(false);
       const { wrapper, navigate } = renderOnboarding();
 
-      await revealSeedPhrase(wrapper);
+      revealSeedPhrase(wrapper);
 
       fireEvent.press(
         wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON),
@@ -533,6 +542,25 @@ describe('ManualBackupStep1', () => {
   });
 
   describe('seed phrase recovery (no seed phrase in route params)', () => {
+    it('shows the onboarding fox loader while recovering the seed phrase', () => {
+      mockGetPassword.mockReturnValue(new Promise(() => undefined));
+
+      const { wrapper } = renderComponent({
+        seedPhrase: undefined,
+        backupFlow: false,
+        settingsBackup: false,
+      });
+
+      expect(
+        wrapper.getByTestId('fox-rive-loader-animation'),
+      ).toBeOnTheScreen();
+      expect(
+        wrapper.queryByTestId(
+          ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows password view when Authentication.getPassword returns null', async () => {
       const { wrapper } = await renderPasswordView();
 

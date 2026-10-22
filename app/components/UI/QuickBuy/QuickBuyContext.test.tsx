@@ -16,15 +16,6 @@ jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
 }));
 
-jest.mock('./hooks/useQuickBuyQuickAmountPreferences', () => ({
-  useQuickBuyQuickAmountPreferences: jest.fn(() => ({
-    buyAmounts: [10, 50, 100, 250],
-    sellPercentages: [25, 50, 75, 100],
-    savePreferences: jest.fn(),
-    isLoaded: true,
-  })),
-}));
-
 const mockTarget: QuickBuyTarget = {
   tokenAddress: '0x1234567890123456789012345678901234567890',
   tokenSymbol: 'PEPE',
@@ -57,6 +48,7 @@ const buildController = (
   sourceToken: undefined,
   sourceChainId: '0x1',
   sourceTokenOptions: [],
+  payWithChainIds: [],
   selectedSourceToken: undefined,
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
@@ -79,7 +71,6 @@ const buildController = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -89,9 +80,7 @@ const buildController = (
   setSelectedQuoteRequestId: jest.fn(),
   handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
-  refreshCount: 0,
   quoteRefreshRateMs: 30000,
-  maxRefreshCount: 5,
   refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
@@ -103,6 +92,12 @@ const buildController = (
   isPriceImpactError: false,
   isPresetAddFundsMode: false,
   hasNoPayWithFunds: false,
+  hasInsufficientBalance: false,
+  isGasless: false,
+  estimatedReceiveFiat: undefined,
+  gasFeeDeductionLabel: undefined,
+  discountBadge: undefined,
+  baseFeePercentage: undefined,
   buttonError: null,
   hasValidAmount: false,
   isConfirmDisabled: false,
@@ -124,9 +119,10 @@ const buildController = (
   sourceTokenAmount: undefined,
   hasSourcePrice: true,
   isSliderDisabled: false,
-  sellDestTokenOptions: [],
-  selectedDestStable: undefined,
-  handleSelectDestStable: jest.fn(),
+  isMaxAmountAllowed: true,
+  positionTokenFromSetup: undefined,
+  selectedReceiveToken: undefined,
+  handleSelectReceiveToken: jest.fn(),
   handleConfirm: jest.fn().mockResolvedValue(undefined),
   ...overrides,
 });
@@ -153,6 +149,7 @@ function renderProvider(
       target={mockTarget}
       onClose={jest.fn()}
       features={features}
+      analyticsContext={{ source: 'profile_position' }}
       activeScreen="amount"
       setActiveScreen={setActiveScreen}
     >

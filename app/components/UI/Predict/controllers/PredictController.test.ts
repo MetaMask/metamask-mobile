@@ -7,9 +7,11 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
+import { DiscountType } from '@metamask/bridge-controller';
 
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
+import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
 import {
   type TransactionMeta,
   TransactionStatus,
@@ -109,6 +111,40 @@ const REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN = {
     },
   },
 };
+
+const REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER = {
+  ...DEFAULT_REMOTE_FEATURE_FLAG_STATE,
+  remoteFeatureFlags: {
+    ...DEFAULT_REMOTE_FEATURE_FLAG_STATE.remoteFeatureFlags,
+    predictSubscriptionFeeWaiverEnabled: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+  },
+};
+
+const ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS = {
+  eligible: true,
+  billingPeriodId: 'period-1',
+  products: {
+    swaps: {
+      feeBips: null,
+      remainingMicroUsd: null,
+      exhausted: false,
+    },
+    perps: {
+      builderFeeBips: null,
+      builderCode: null,
+      remainingMicroUsd: null,
+      exhausted: false,
+    },
+    predict: {
+      builderCode: 'predict-pro-builder',
+      remainingTxCount: 2,
+      exhausted: false,
+    },
+  },
+} satisfies SubscriptionBenefitsResponse;
 
 const DEFAULT_NETWORK_CLIENT = {
   blockTracker: {
@@ -421,6 +457,9 @@ describe('PredictController', () => {
           (chainId: string) => string
         >;
         getNetworkClientById?: jest.MockedFunction<(clientId: string) => any>;
+        getBenefits?: jest.MockedFunction<
+          () => Promise<SubscriptionBenefitsResponse>
+        >;
       };
     } = {},
   ): ReturnValue {
@@ -498,6 +537,12 @@ describe('PredictController', () => {
         jest.fn().mockReturnValue(DEFAULT_REMOTE_FEATURE_FLAG_STATE),
     );
 
+    rootMessenger.registerActionHandler(
+      'SubscriptionController:getBenefits',
+      mocks.getBenefits ??
+        jest.fn().mockRejectedValue(new Error('Benefits unavailable')),
+    );
+
     const messenger = new Messenger<
       'PredictController',
       AllPredictControllerMessengerActions,
@@ -519,6 +564,7 @@ describe('PredictController', () => {
         'KeyringController:signTypedMessage',
         'KeyringController:signPersonalMessage',
         'RemoteFeatureFlagController:getState',
+        'SubscriptionController:getBenefits',
       ],
       events: [
         'TransactionController:transactionSubmitted',
@@ -1607,6 +1653,405 @@ describe('PredictController', () => {
 
         expect(result).toEqual(mockResult);
       });
+    });
+
+    it('restores standard fees when membership policy is unavailable at submission', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue({
+            success: true as const,
+            response: {
+              id: 'order-123',
+              spentAmount: '100',
+              receivedAmount: '200',
+            },
+          });
+
+          const standardFees = {
+            metamaskFee: 0.2,
+            providerFee: 0.3,
+            totalFee: 0.5,
+            totalFeePercentage: 5,
+            collector: '0x1111111111111111111111111111111111111111',
+            executors: ['0x2222222222222222222222222222222222222222'],
+            permit2Enabled: true,
+          } as NonNullable<OrderPreview['fees']>;
+          const preview = createMockOrderPreview({
+            feePolicy: {
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            },
+            fees: {
+              ...standardFees,
+              metamaskFee: 0,
+              totalFee: standardFees.providerFee,
+              totalFeePercentage: 3,
+            },
+            originalFees: standardFees,
+          });
+
+          await controller.placeOrder({ preview });
+
+          const submittedPreview =
+            mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+          expect(submittedPreview.fees).toEqual(standardFees);
+          expect(submittedPreview.feePolicy).toBeUndefined();
+          expect(submittedPreview.originalFees).toBeUndefined();
+        },
+        {
+          mocks: {
+            getBenefits: jest
+              .fn()
+              .mockRejectedValue(new Error('Benefits unavailable')),
+          },
+        },
+      );
+    });
+
+    it('waives the MetaMask fee when membership becomes available at submission', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ tags: [] }),
+      } as Response);
+
+      const standardFees = {
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        marketFee: 0.1,
+        totalFee: 0.04,
+        totalFeePercentage: 4,
+        collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        executors: [],
+        permit2Enabled: false,
+      } as NonNullable<OrderPreview['fees']>;
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            mockPolymarketProvider.placeOrder.mockResolvedValue({
+              success: true as const,
+              response: {
+                id: 'order-123',
+                spentAmount: '100',
+                receivedAmount: '200',
+              },
+            });
+            const preview = createMockOrderPreview({
+              fees: standardFees,
+              maxAmountSpent: 1,
+            });
+
+            await controller.placeOrder({ preview });
+
+            const submittedPreview =
+              mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+            expect(submittedPreview.feePolicy).toEqual({
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            });
+            expect(submittedPreview.fees).toEqual({
+              ...standardFees,
+              metamaskFee: 0,
+              totalFee: standardFees.providerFee,
+              totalFeePercentage: 2,
+            });
+            expect(submittedPreview.originalFees).toEqual(standardFees);
+          },
+          {
+            mocks: {
+              getBenefits: jest
+                .fn()
+                .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS),
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        fetchSpy.mockRestore();
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('keeps waived fees when membership is still available at submission', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+
+      const standardFees = {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: ['0x2222222222222222222222222222222222222222'],
+        permit2Enabled: true,
+      } as NonNullable<OrderPreview['fees']>;
+      const waivedFees = {
+        ...standardFees,
+        metamaskFee: 0,
+        totalFee: standardFees.providerFee,
+        totalFeePercentage: 3,
+      };
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            mockPolymarketProvider.placeOrder.mockResolvedValue({
+              success: true as const,
+              response: {
+                id: 'order-123',
+                spentAmount: '100',
+                receivedAmount: '200',
+              },
+            });
+            const preview = createMockOrderPreview({
+              feePolicy: {
+                discountType: DiscountType.SUBSCRIPTION,
+                builderCode: 'predict-pro-builder',
+              },
+              fees: waivedFees,
+              originalFees: standardFees,
+            });
+
+            await controller.placeOrder({ preview });
+
+            const submittedPreview =
+              mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+            expect(submittedPreview.fees).toEqual(waivedFees);
+            expect(submittedPreview.originalFees).toEqual(standardFees);
+            expect(submittedPreview.feePolicy).toEqual({
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            });
+          },
+          {
+            mocks: {
+              getBenefits: jest
+                .fn()
+                .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS),
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('keeps priced fees when the preview has no membership policy', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true as const,
+          response: {
+            id: 'order-123',
+            spentAmount: '100',
+            receivedAmount: '200',
+          },
+        });
+        const pricedFees = {
+          metamaskFee: 0.2,
+          providerFee: 0.3,
+          totalFee: 0.5,
+          totalFeePercentage: 5,
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        } as NonNullable<OrderPreview['fees']>;
+        const preview = createMockOrderPreview({ fees: pricedFees });
+
+        await controller.placeOrder({ preview });
+
+        const submittedPreview =
+          mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+        expect(submittedPreview.fees).toEqual(pricedFees);
+        expect(submittedPreview.feePolicy).toBeUndefined();
+        expect(submittedPreview.originalFees).toBeUndefined();
+      });
+    });
+
+    it('drops waived fees when a membership preview has no standard fee snapshot', async () => {
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true as const,
+          response: {
+            id: 'order-123',
+            spentAmount: '100',
+            receivedAmount: '200',
+          },
+        });
+        const waivedFees = {
+          metamaskFee: 0,
+          providerFee: 0.3,
+          totalFee: 0.3,
+          totalFeePercentage: 3,
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        } as NonNullable<OrderPreview['fees']>;
+        const preview = createMockOrderPreview({
+          feePolicy: {
+            discountType: DiscountType.SUBSCRIPTION,
+            builderCode: 'predict-pro-builder',
+          },
+          fees: waivedFees,
+        });
+
+        await controller.placeOrder({ preview });
+
+        const submittedPreview =
+          mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+        expect(submittedPreview.fees).toBeUndefined();
+        expect(submittedPreview.feePolicy).toBeUndefined();
+        expect(submittedPreview.originalFees).toBeUndefined();
+      });
+    });
+
+    it('waives the MetaMask fee for a sell when membership becomes available at submission', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ tags: [] }),
+      } as Response);
+      const standardFees = {
+        metamaskFee: 0.02,
+        providerFee: 0.02,
+        totalFee: 0.04,
+        totalFeePercentage: 4,
+        collector: '0x100c7b833bbd604a77890783439bbb9d65e31de7',
+        executors: [],
+        permit2Enabled: false,
+      } as NonNullable<OrderPreview['fees']>;
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            mockPolymarketProvider.placeOrder.mockResolvedValue({
+              success: true as const,
+              response: {
+                id: 'order-123',
+                spentAmount: '100',
+                receivedAmount: '200',
+              },
+            });
+            const preview = createMockOrderPreview({
+              side: Side.SELL,
+              fees: standardFees,
+              minAmountReceived: 1,
+            });
+
+            await controller.placeOrder({ preview });
+
+            const submittedPreview =
+              mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+            expect(submittedPreview.feePolicy).toEqual({
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            });
+            expect(submittedPreview.fees).toEqual({
+              ...standardFees,
+              metamaskFee: 0,
+              totalFee: standardFees.providerFee,
+              totalFeePercentage: 2,
+            });
+            expect(submittedPreview.originalFees).toEqual(standardFees);
+          },
+          {
+            mocks: {
+              getBenefits: jest
+                .fn()
+                .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS),
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        fetchSpy.mockRestore();
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('leaves fees unset when membership becomes available for a preview without fees', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            mockPolymarketProvider.placeOrder.mockResolvedValue({
+              success: true as const,
+              response: {
+                id: 'order-123',
+                spentAmount: '100',
+                receivedAmount: '200',
+              },
+            });
+            const preview = createMockOrderPreview();
+
+            await controller.placeOrder({ preview });
+
+            const submittedPreview =
+              mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
+            expect(submittedPreview.feePolicy).toEqual({
+              discountType: DiscountType.SUBSCRIPTION,
+              builderCode: 'predict-pro-builder',
+            });
+            expect(submittedPreview.fees).toBeUndefined();
+            expect(submittedPreview.originalFees).toBeUndefined();
+          },
+          {
+            mocks: {
+              getBenefits: jest
+                .fn()
+                .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS),
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
     });
 
     it('retries a post-deposit order once after the first attempt fails', async () => {
@@ -4666,6 +5111,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4712,6 +5158,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4741,6 +5188,7 @@ describe('PredictController', () => {
             marketId: 'test-market-1',
             outcomeId: 'test-outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
           {
             marketId: 'test-market-2',
@@ -4793,6 +5241,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -4817,6 +5266,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4848,6 +5298,7 @@ describe('PredictController', () => {
             marketId: 'market-1',
             outcomeId: 'outcome-1',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ];
 
@@ -4895,6 +5346,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         const errorMessage = 'Claim preparation failed';
@@ -4913,6 +5365,210 @@ describe('PredictController', () => {
       });
     });
 
+    it('refreshes claimable positions before failing when state is empty', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-refresh';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        expect(controller.state.claimablePositions).toEqual({});
+
+        // Act
+        const result = await controller.claimWithConfirmation({});
+
+        // Assert
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledWith(
+          expect.objectContaining({ claimable: true }),
+        );
+        expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions: [expect.objectContaining(wonPosition)],
+          }),
+        );
+        expect(result.batchId).toBe(mockBatchId);
+      });
+    });
+
+    it('throws when refreshed positions contain no won or redeemable position', async () => {
+      // Arrange
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
+          {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.LOST,
+          },
+        ]);
+        await controller.getPositions({ claimable: true });
+        mockPolymarketProvider.prepareClaim = jest.fn();
+
+        // Act & Assert
+        await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+          'No claimable positions found',
+        );
+        expect(mockPolymarketProvider.getPositions).toHaveBeenCalledTimes(2);
+        expect(mockPolymarketProvider.prepareClaim).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not overwrite claimable positions while a claim is pending', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-frozen';
+      await withController(async ({ controller }) => {
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue(mockClaim);
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: mockBatchId,
+        });
+        await controller.getPositions({ claimable: true });
+        await controller.claimWithConfirmation({});
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        expect(controller.state.pendingClaims[signerAddress]).toBe(mockBatchId);
+
+        // Act: a concurrent refetch returns an empty page mid-confirmation.
+        mockPolymarketProvider.getPositions.mockResolvedValue([]);
+        await controller.getPositions({ address: signerAddress });
+        await controller.getPositions({
+          address: signerAddress.toUpperCase(),
+          claimable: true,
+        });
+
+        // Assert
+        expect(controller.state.claimablePositions[signerAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[signerAddress.toUpperCase()],
+        ).toBeUndefined();
+      });
+    });
+
+    it('collapses address casings into a single claimable positions entry', async () => {
+      // Arrange: a confirmed-claim refetch keys by lowercased txParams.from,
+      // later fetches key by the checksummed signer address. The address must
+      // contain hex letters so the two casings are actually different strings.
+      await withController(async ({ controller }) => {
+        const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+        const lowercaseAddress = checksumAddress.toLowerCase();
+        expect(lowercaseAddress).not.toBe(checksumAddress);
+        mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([]);
+        await controller.getPositions({
+          address: lowercaseAddress,
+          claimable: true,
+        });
+
+        const wonPosition = {
+          marketId: 'test-market',
+          outcomeId: 'test-outcome',
+          balance: '100',
+          status: PredictPositionStatus.WON,
+        };
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([wonPosition]);
+
+        // Act
+        await controller.getPositions({
+          address: checksumAddress,
+          claimable: true,
+        });
+
+        // Assert: one key, holding the latest positions.
+        expect(Object.keys(controller.state.claimablePositions)).toEqual([
+          lowercaseAddress,
+        ]);
+        expect(controller.state.claimablePositions[lowercaseAddress]).toEqual([
+          expect.objectContaining(wonPosition),
+        ]);
+        expect(
+          controller.state.claimablePositions[checksumAddress],
+        ).toBeUndefined();
+      });
+    });
+
+    it('claims positions stored under a different casing of the signer address', async () => {
+      // Arrange
+      const mockBatchId = 'claim-batch-casing';
+      const checksumAddress = '0xAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCdEfAbCd';
+      const lowercaseAddress = checksumAddress.toLowerCase();
+      expect(lowercaseAddress).not.toBe(checksumAddress);
+      await withController(
+        async ({ controller }) => {
+          const wonPosition = {
+            marketId: 'test-market',
+            outcomeId: 'test-outcome',
+            balance: '100',
+            status: PredictPositionStatus.WON,
+          };
+          mockPolymarketProvider.getPositions = jest
+            .fn()
+            .mockResolvedValue([wonPosition]);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue(mockClaim);
+          (addTransactionBatch as jest.Mock).mockResolvedValue({
+            batchId: mockBatchId,
+          });
+          // Stored under the lowercased txParams.from key; the signer is
+          // checksummed, which is the PRED-1321 mismatch.
+          await controller.getPositions({
+            address: lowercaseAddress,
+            claimable: true,
+          });
+          mockPolymarketProvider.getPositions.mockClear();
+
+          // Act
+          const result = await controller.claimWithConfirmation({});
+
+          // Assert: no refetch was needed, the existing entry was found.
+          expect(mockPolymarketProvider.getPositions).not.toHaveBeenCalled();
+          expect(mockPolymarketProvider.prepareClaim).toHaveBeenCalledWith(
+            expect.objectContaining({
+              positions: [expect.objectContaining(wonPosition)],
+            }),
+          );
+          expect(result.batchId).toBe(mockBatchId);
+        },
+        {
+          mocks: {
+            getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+              {
+                id: 'mock-account-id',
+                address: checksumAddress,
+                type: 'eip155:eoa',
+                name: 'Test Account',
+                metadata: { lastSelected: 0 },
+              },
+            ]),
+          },
+        },
+      );
+    });
+
     it('throws error when network client not found', async () => {
       // Arrange
       await withController(
@@ -4922,6 +5578,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
 
@@ -4952,6 +5609,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -4982,6 +5640,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -5004,6 +5663,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5025,6 +5685,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockResolvedValue({
@@ -5060,6 +5721,7 @@ describe('PredictController', () => {
               marketId: 'test-market',
               outcomeId: 'test-outcome',
               balance: '100',
+              status: PredictPositionStatus.WON,
             },
           ]);
           mockPolymarketProvider.prepareClaim = jest
@@ -5098,6 +5760,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5138,6 +5801,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5192,6 +5856,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5215,6 +5880,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5252,6 +5918,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5279,6 +5946,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest.fn().mockRejectedValue(
@@ -5313,6 +5981,7 @@ describe('PredictController', () => {
             marketId: 'test-market',
             outcomeId: 'test-outcome',
             balance: '100',
+            status: PredictPositionStatus.WON,
           },
         ]);
         mockPolymarketProvider.prepareClaim = jest
@@ -5514,11 +6183,17 @@ describe('PredictController', () => {
 
     it('fetches activity successfully with default address', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
           address: '0x1234567890123456789012345678901234567890',
         });
@@ -5529,14 +6204,20 @@ describe('PredictController', () => {
 
     it('fetches activity successfully with custom address', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         const customAddress = '0xCustomAddress';
 
         const result = await controller.getActivity({
           address: customAddress,
         });
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
           address: customAddress,
         });
@@ -5545,23 +6226,35 @@ describe('PredictController', () => {
 
     it('fetches activity with specific provider', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
         expect(mockPolymarketProvider.getActivity).toHaveBeenCalled();
       });
     });
 
     it('filters out undefined activity entries', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue(mockActivity);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual(mockActivity);
-        expect(result.length).toBe(2);
+        expect(result).toEqual({
+          activities: mockActivity,
+          nextCursor: undefined,
+        });
+        expect(result.activities.length).toBe(2);
       });
     });
 
@@ -5595,11 +6288,14 @@ describe('PredictController', () => {
 
     it('returns empty array when no activity found', async () => {
       await withController(async ({ controller }) => {
-        mockPolymarketProvider.getActivity.mockResolvedValue([]);
+        mockPolymarketProvider.getActivity.mockResolvedValue({
+          activities: [],
+          nextCursor: undefined,
+        });
 
         const result = await controller.getActivity({});
 
-        expect(result).toEqual([]);
+        expect(result).toEqual({ activities: [], nextCursor: undefined });
         expect(controller.state.lastError).toBeNull();
       });
     });
@@ -5661,7 +6357,6 @@ describe('PredictController', () => {
           disableHook: true,
           disableSequential: true,
           overwriteUpgrade: true,
-          skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
         const event = (analytics.trackEvent as jest.Mock).mock.calls
@@ -9072,6 +9767,144 @@ describe('PredictController', () => {
       });
     });
 
+    it('passes the resolved membership fee policy to the provider', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
+
+            expect(getBenefits).toHaveBeenCalledTimes(1);
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                feePolicy: {
+                  discountType: DiscountType.SUBSCRIPTION,
+                  builderCode: 'predict-pro-builder',
+                },
+              }),
+            );
+          },
+          {
+            mocks: {
+              getBenefits,
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('skips the membership fee waiver when the remote flag is disabled', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
+
+            expect(getBenefits).not.toHaveBeenCalled();
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.not.objectContaining({
+                feePolicy: expect.anything(),
+              }),
+            );
+          },
+          { mocks: { getBenefits } },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
+    it('applies the membership fee waiver when the env override is true and the remote flag is disabled', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED = 'true';
+      mockPolymarketProvider.previewOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.BUY,
+              size: 100,
+            });
+
+            expect(getBenefits).toHaveBeenCalledTimes(1);
+            expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                feePolicy: {
+                  discountType: DiscountType.SUBSCRIPTION,
+                  builderCode: 'predict-pro-builder',
+                },
+              }),
+            );
+          },
+          { mocks: { getBenefits } },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
+    });
+
     it('handles preview errors', async () => {
       mockPolymarketProvider.previewOrder.mockRejectedValue(
         new Error('Preview failed'),
@@ -9134,6 +9967,60 @@ describe('PredictController', () => {
           }),
         );
       });
+    });
+
+    it('passes the resolved membership fee policy to the provider', async () => {
+      const previousFeeWaiverOverride =
+        process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+      mockPolymarketProvider.previewMaxBuyOrder.mockResolvedValue(
+        createMockOrderPreview({ side: Side.BUY }),
+      );
+      const getBenefits = jest
+        .fn()
+        .mockResolvedValue(ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS);
+
+      try {
+        await withController(
+          async ({ controller }) => {
+            await controller.previewMaxBuyOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              availableBalance: 100,
+            });
+
+            expect(getBenefits).toHaveBeenCalledTimes(1);
+            expect(
+              mockPolymarketProvider.previewMaxBuyOrder,
+            ).toHaveBeenCalledWith(
+              expect.objectContaining({
+                feePolicy: {
+                  discountType: DiscountType.SUBSCRIPTION,
+                  builderCode: 'predict-pro-builder',
+                },
+              }),
+            );
+          },
+          {
+            mocks: {
+              getBenefits,
+              getRemoteFeatureFlagState: jest
+                .fn()
+                .mockReturnValue(
+                  REMOTE_FEATURE_FLAG_STATE_WITH_SUBSCRIPTION_FEE_WAIVER,
+                ),
+            },
+          },
+        );
+      } finally {
+        if (previousFeeWaiverOverride === undefined) {
+          delete process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED;
+        } else {
+          process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED =
+            previousFeeWaiverOverride;
+        }
+      }
     });
   });
 

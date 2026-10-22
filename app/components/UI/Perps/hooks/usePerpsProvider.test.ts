@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { InitializationState } from '@metamask/perps-controller';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import Engine from '../../../../core/Engine';
 import {
   selectPerpsInitializationState,
@@ -9,6 +10,7 @@ import {
 } from '../selectors/perpsController';
 import { usePerpsProvider } from './usePerpsProvider';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsLighterProviderEnabledFlag } from '../selectors/featureFlags';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -31,11 +33,16 @@ jest.mock('../services/PerpsConnectionManager', () => ({
   },
 }));
 
+const mockIsLighterProviderEnabled = jest.fn();
+jest.mock('../utils/lighterFeatureFlags', () => ({
+  isLighterProviderEnabled: () => mockIsLighterProviderEnabled(),
+}));
+const mockLighterRemoteFlagEnabled = jest.fn();
+
 const mockUseSelector = useSelector as jest.Mock;
 const mockGetOrderCapabilities = jest.mocked(
   Engine.context.PerpsController.getOrderCapabilities,
 );
-
 type Capabilities = Awaited<
   ReturnType<typeof Engine.context.PerpsController.getOrderCapabilities>
 >;
@@ -69,13 +76,18 @@ const mockAggregatedProviderSelectors = (
 
 beforeEach(() => {
   jest.clearAllMocks();
-  mockGetOrderCapabilities.mockResolvedValue({
+  mockIsLighterProviderEnabled.mockReturnValue(false);
+  mockLighterRemoteFlagEnabled.mockReturnValue(false);
+  mockGetOrderCapabilities.mockReset().mockResolvedValue({
     status: 'ready',
     providerId: 'hyperliquid',
     supportedStrategies: [],
   });
   // Default: Hyperliquid active on mainnet.
   mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectPerpsLighterProviderEnabledFlag) {
+      return mockLighterRemoteFlagEnabled();
+    }
     if (selector === selectPerpsProvider) {
       return 'hyperliquid';
     }
@@ -95,6 +107,19 @@ describe('usePerpsProvider', () => {
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.availableProviders).toEqual(['hyperliquid']);
+    });
+
+    it('includes Lighter and aggregated providers in development', () => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.availableProviders).toEqual([
+        'hyperliquid',
+        'lighter',
+        'aggregated',
+      ]);
     });
   });
 
@@ -182,6 +207,335 @@ describe('usePerpsProvider', () => {
 
       expect(result.current.supportsTwapOrders).toBe(false);
       expect(mockGetOrderCapabilities).not.toHaveBeenCalled();
+    });
+
+    it('does not infer trigger support from a ready provider name', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({ supportedTriggerOrderTypes: [] });
+    });
+
+    it('exposes only the standalone trigger types declared for the route', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+
+      const { result } = renderHook(() => usePerpsProvider({ symbol: 'BTC' }));
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({
+        supportedTriggerOrderTypes: ['stop_market', 'take_profit_limit'],
+      });
+    });
+
+    it('rejects trigger declarations attributed to a different explicit route', async () => {
+      mockAggregatedProviderSelectors();
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'lighter' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(result.current).toMatchObject({ supportedTriggerOrderTypes: [] });
+    });
+
+    it.each([
+      { status: 'ready', providerId: 'hyperliquid', supportedStrategies: [] },
+      {
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['take_profit_limit'],
+      },
+      {
+        status: 'ready',
+        providerId: 'lighter',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      },
+      {
+        status: 'unavailable',
+        providerId: 'hyperliquid',
+        reason: 'not_implemented',
+      },
+    ] as const)('rejects fresh trigger response %j', async (capabilities) => {
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+      mockGetOrderCapabilities.mockResolvedValue(capabilities);
+
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+    });
+
+    it('rechecks the exact declared trigger type', async () => {
+      mockGetOrderCapabilities.mockResolvedValue({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: [],
+        supportedTriggerOrderTypes: ['stop_market'],
+      });
+      const { result } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() =>
+        expect(result.current.isLoadingOrderCapabilities).toBe(false),
+      );
+
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(true);
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_limit',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+      mockGetOrderCapabilities.mockRejectedValue(new Error('Disconnected'));
+      expect(
+        await result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        ),
+      ).toBe(false);
+    });
+
+    it.each([
+      'account',
+      'provider',
+      'network',
+      'initialization',
+      'unmount',
+    ] as const)(
+      'discards a fresh trigger response after %s changes',
+      async (transition) => {
+        let activeProvider = 'hyperliquid';
+        let network = 'mainnet';
+        let initialization = InitializationState.Initialized;
+        let address = '0x0000000000000000000000000000000000000001';
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectSelectedInternalAccountAddress) return address;
+          if (selector === selectPerpsProvider) return activeProvider;
+          if (selector === selectPerpsNetwork) return network;
+          if (selector === selectPerpsInitializationState)
+            return initialization;
+          return false;
+        });
+        const { result, rerender, unmount } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+        );
+        await waitFor(() =>
+          expect(result.current.isLoadingOrderCapabilities).toBe(false),
+        );
+        const deferred = createDeferredCapabilities();
+        mockGetOrderCapabilities.mockReturnValueOnce(deferred.promise);
+        const check = result.current.checkTriggerOrderSupport(
+          'stop_market',
+          'hyperliquid',
+        );
+
+        if (transition === 'unmount') unmount();
+        else {
+          if (transition === 'account')
+            address = '0x0000000000000000000000000000000000000002';
+          if (transition === 'provider') activeProvider = 'lighter';
+          if (transition === 'network') network = 'testnet';
+          if (transition === 'initialization')
+            initialization = InitializationState.Uninitialized;
+          rerender({});
+          // Even returning to the original route must not revive the old request.
+          address = '0x0000000000000000000000000000000000000001';
+          activeProvider = 'hyperliquid';
+          network = 'mainnet';
+          initialization = InitializationState.Initialized;
+          rerender({});
+        }
+        await act(async () =>
+          deferred.resolve({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: [],
+            supportedTriggerOrderTypes: ['stop_market'],
+          }),
+        );
+
+        expect(await check).toBe(false);
+      },
+    );
+
+    it.each(['twap', 'scale', 'chase'] as const)(
+      'rejects %s declarations for a different explicit provider',
+      async (strategy) => {
+        mockAggregatedProviderSelectors();
+        mockGetOrderCapabilities.mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [strategy],
+        });
+        const { result } = renderHook(() =>
+          usePerpsProvider({ symbol: 'BTC', providerId: 'lighter' }),
+        );
+        await waitFor(() =>
+          expect(result.current.isLoadingOrderCapabilities).toBe(false),
+        );
+
+        expect(result.current.supportsTwapOrders).toBe(false);
+        expect(result.current.supportsScaleOrders).toBe(false);
+        expect(result.current.supportsChaseOrders).toBe(false);
+        expect(await result.current.checkOrderCapability(strategy)).toBe(false);
+        expect(
+          await result.current.checkOrderCapability(strategy, 'hyperliquid'),
+        ).toBe(false);
+      },
+    );
+
+    it.each(
+      (['twap', 'scale', 'chase'] as const).flatMap((strategy) =>
+        (
+          [
+            'account',
+            'provider',
+            'network',
+            'market',
+            'initialization',
+            'unmount',
+          ] as const
+        ).map((transition) => ({ strategy, transition })),
+      ),
+    )(
+      'discards a pending $strategy check after $transition changes',
+      async ({ strategy, transition }) => {
+        let activeProvider = 'hyperliquid';
+        let network = 'mainnet';
+        let address = '0x0000000000000000000000000000000000000001';
+        let initialization = InitializationState.Initialized;
+        mockUseSelector.mockImplementation((selector: unknown) => {
+          if (selector === selectPerpsProvider) return activeProvider;
+          if (selector === selectPerpsNetwork) return network;
+          if (selector === selectSelectedInternalAccountAddress) return address;
+          if (selector === selectPerpsInitializationState)
+            return initialization;
+          return false;
+        });
+        mockGetOrderCapabilities.mockResolvedValue({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [strategy],
+        });
+        const { result, rerender, unmount } = renderHook(
+          ({ symbol }) =>
+            usePerpsProvider({ symbol, providerId: 'hyperliquid' }),
+          { initialProps: { symbol: 'BTC' } },
+        );
+        await waitFor(() =>
+          expect(result.current.isLoadingOrderCapabilities).toBe(false),
+        );
+        const deferred = createDeferredCapabilities();
+        mockGetOrderCapabilities.mockReturnValueOnce(deferred.promise);
+        const check = result.current.checkOrderCapability(
+          strategy,
+          'hyperliquid',
+        );
+
+        if (transition === 'unmount') unmount();
+        else {
+          if (transition === 'account')
+            address = '0x0000000000000000000000000000000000000002';
+          if (transition === 'provider') activeProvider = 'lighter';
+          if (transition === 'network') network = 'testnet';
+          if (transition === 'initialization')
+            initialization = InitializationState.Uninitialized;
+          rerender({ symbol: transition === 'market' ? 'ETH' : 'BTC' });
+          address = '0x0000000000000000000000000000000000000001';
+          activeProvider = 'hyperliquid';
+          network = 'mainnet';
+          initialization = InitializationState.Initialized;
+          rerender({ symbol: 'BTC' });
+        }
+        await act(async () =>
+          deferred.resolve({
+            status: 'ready',
+            providerId: 'hyperliquid',
+            supportedStrategies: [strategy],
+          }),
+        );
+
+        expect(await check).toBe(false);
+        if (transition !== 'unmount') unmount();
+      },
+    );
+
+    it('invalidates displayed capabilities as the selected account changes', async () => {
+      let address = '0x0000000000000000000000000000000000000001';
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsProvider) return 'hyperliquid';
+        if (selector === selectPerpsNetwork) return 'testnet';
+        if (selector === selectSelectedInternalAccountAddress) return address;
+        if (selector === selectPerpsInitializationState)
+          return InitializationState.Initialized;
+        return false;
+      });
+      mockGetOrderCapabilities.mockResolvedValueOnce({
+        status: 'ready',
+        providerId: 'hyperliquid',
+        supportedStrategies: ['twap', 'scale', 'chase'],
+      });
+      const { result, rerender } = renderHook(() =>
+        usePerpsProvider({ symbol: 'BTC', providerId: 'hyperliquid' }),
+      );
+      await waitFor(() => expect(result.current.supportsTwapOrders).toBe(true));
+      const nextAccountCapabilities = createDeferredCapabilities();
+      mockGetOrderCapabilities.mockReturnValue(nextAccountCapabilities.promise);
+
+      address = '0x0000000000000000000000000000000000000002';
+      rerender({});
+
+      expect(result.current.supportsTwapOrders).toBe(false);
+      expect(result.current.supportsScaleOrders).toBe(false);
+      expect(result.current.supportsChaseOrders).toBe(false);
+      expect(result.current.isLoadingOrderCapabilities).toBe(true);
+      await act(async () =>
+        nextAccountCapabilities.resolve({
+          status: 'ready',
+          providerId: 'hyperliquid',
+          supportedStrategies: [],
+        }),
+      );
+      expect(result.current.isLoadingOrderCapabilities).toBe(false);
     });
 
     it('returns TWAP support from a ready controller capability', async () => {
@@ -291,7 +645,7 @@ describe('usePerpsProvider', () => {
       expect(result.current.supportsChaseOrders).toBe(true);
     });
 
-    it('keeps Scale unsupported when capabilities resolve to Lighter', async () => {
+    it('supports Scale when the issuing Lighter route reports the capability', async () => {
       mockAggregatedProviderSelectors();
       mockGetOrderCapabilities.mockResolvedValue({
         status: 'ready',
@@ -304,7 +658,7 @@ describe('usePerpsProvider', () => {
       await waitFor(() => {
         expect(result.current.isLoadingOrderCapabilities).toBe(false);
       });
-      expect(result.current.supportsScaleOrders).toBe(false);
+      expect(result.current.supportsScaleOrders).toBe(true);
 
       let isSupported = true;
       await act(async () => {
@@ -314,7 +668,7 @@ describe('usePerpsProvider', () => {
         );
       });
 
-      expect(isSupported).toBe(false);
+      expect(isSupported).toBe(true);
     });
 
     it('preserves the provider route resolved by default capability routing', async () => {
@@ -665,6 +1019,43 @@ describe('usePerpsProvider', () => {
       const { result } = renderHook(() => usePerpsProvider());
 
       expect(result.current.isMultiProviderEnabled).toBe(false);
+    });
+
+    it('enables the provider selector in development', () => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.isProviderSelectorEnabled).toBe(true);
+    });
+
+    it('enables the multi-provider badge when both gates are enabled', () => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.isMultiProviderEnabled).toBe(true);
+    });
+
+    it('keeps Lighter unavailable when the runtime flag is enabled without the build gate', () => {
+      mockLighterRemoteFlagEnabled.mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.isProviderSelectorEnabled).toBe(false);
+      expect(result.current.availableProviders).toEqual(['hyperliquid']);
+    });
+
+    it('keeps Lighter unavailable when the build gate is enabled without the runtime flag', () => {
+      mockIsLighterProviderEnabled.mockReturnValue(true);
+
+      const { result } = renderHook(() => usePerpsProvider());
+
+      expect(result.current.isMultiProviderEnabled).toBe(false);
+      expect(result.current.isProviderSelectorEnabled).toBe(false);
+      expect(result.current.availableProviders).toEqual(['hyperliquid']);
     });
   });
 });

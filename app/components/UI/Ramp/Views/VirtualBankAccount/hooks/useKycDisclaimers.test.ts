@@ -1,82 +1,100 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { VBA_KYC_PRODUCT, VBA_KYC_VENDOR } from '../constants';
+import Engine from '../../../../../../core/Engine';
+import { VBA_KYC_VENDOR } from '../constants';
 import { useKycDisclaimers } from './useKycDisclaimers';
 
-const mockInitialize = jest.fn();
-const mockLoadDisclaimers = jest.fn();
-const mockReset = jest.fn();
-const mockKycControllerState = {
-  vendorDisclaimers: [] as { id: string; url: string; display_name: string }[],
-  vendorError: null as string | null,
-};
+const mockFetchVendorDisclaimers = jest.fn();
+const mockGetGeoCountry = jest.fn();
+const mockGetState = jest.fn();
+const mockSaveVbaVendorTermsAcceptance = jest.fn();
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     KycController: {
-      initialize: (...args: unknown[]) => mockInitialize(...args),
-      loadDisclaimers: (...args: unknown[]) => mockLoadDisclaimers(...args),
-      reset: (...args: unknown[]) => mockReset(...args),
-      get state() {
-        return mockKycControllerState;
-      },
+      fetchVendorDisclaimers: (...args: unknown[]) =>
+        mockFetchVendorDisclaimers(...args),
+    },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
     },
   },
 }));
 
+jest.mock('../../../../../../core/redux', () => ({
+  store: {
+    getState: () => mockGetState(),
+  },
+}));
+
+jest.mock('../../../../../../selectors/rampsController', () => ({
+  selectSelectedVbaWalletAddress: jest.fn(
+    (state: { address?: string }) => state.address ?? null,
+  ),
+}));
+
+jest.mock('../vbaVendorTermsStorage', () => ({
+  saveVbaVendorTermsAcceptance: (...args: unknown[]) =>
+    mockSaveVbaVendorTermsAcceptance(...args),
+}));
+
+const disclaimers = [{ id: '1', url: 'https://t.c', display_name: 'T&C' }];
+
 describe('useKycDisclaimers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockKycControllerState.vendorDisclaimers = [];
-    mockKycControllerState.vendorError = null;
-    mockInitialize.mockResolvedValue(undefined);
-    mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.vendorDisclaimers = [
-        { id: '1', url: 'https://t.c', display_name: 'T&C' },
-      ];
-      mockKycControllerState.vendorError = null;
-    });
+    mockFetchVendorDisclaimers.mockResolvedValue(disclaimers);
+    mockGetGeoCountry.mockResolvedValue('BRA');
+    mockGetState.mockReturnValue({ address: '0xabc' });
+    mockSaveVbaVendorTermsAcceptance.mockResolvedValue(undefined);
   });
 
-  it('loads Iron/MoonPay vendor disclaimers for the given country via KycController', async () => {
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+  it('loads vendor disclaimers through KycController', async () => {
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockInitialize).toHaveBeenCalledWith({
+    expect(mockGetGeoCountry).toHaveBeenCalled();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledWith({
       vendor: VBA_KYC_VENDOR,
-      product: VBA_KYC_PRODUCT,
+      country: 'BRA',
     });
-    expect(mockLoadDisclaimers).toHaveBeenCalledWith({ country: 'BRA' });
-    expect(result.current.disclaimers).toStrictEqual([
-      { id: '1', url: 'https://t.c', display_name: 'T&C' },
-    ]);
+    expect(result.current.disclaimers).toStrictEqual(disclaimers);
     expect(result.current.error).toBeNull();
   });
 
-  it('surfaces vendorError from KycController state when the load fails', async () => {
-    mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.vendorDisclaimers = [];
-      mockKycControllerState.vendorError =
-        'Failed to load disclaimers: Error: boom';
-    });
+  it('surfaces an error when KycService is unavailable', async () => {
+    const originalKycService = Engine.context.KycService;
+    (Engine.context as { KycService?: typeof originalKycService }).KycService =
+      undefined;
 
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    try {
+      const { result } = renderHook(() => useKycDisclaimers());
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.disclaimers).toBeNull();
+      expect(result.current.error).toBe('KYC service is unavailable');
+      expect(mockFetchVendorDisclaimers).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = originalKycService;
+    }
+  });
+
+  it('surfaces errors returned by KycController', async () => {
+    mockFetchVendorDisclaimers.mockRejectedValue(new Error('server error'));
+
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.disclaimers).toBeNull();
-    expect(result.current.error).toBe(
-      'Failed to load disclaimers: Error: boom',
-    );
+    expect(result.current.error).toBe('server error');
   });
 
-  it('treats an empty successful response as an error so the CTA is not soft-locked', async () => {
-    mockLoadDisclaimers.mockImplementation(async () => {
-      mockKycControllerState.vendorDisclaimers = [];
-      mockKycControllerState.vendorError = null;
-    });
+  it('treats an empty response as an error', async () => {
+    mockFetchVendorDisclaimers.mockResolvedValue([]);
 
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
+    const { result } = renderHook(() => useKycDisclaimers());
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -84,107 +102,68 @@ describe('useKycDisclaimers', () => {
     expect(result.current.error).toBe('No KYC disclaimers returned');
   });
 
-  it('times out when loadDisclaimers hangs', async () => {
+  it('times out when fetching disclaimers hangs', async () => {
     jest.useFakeTimers();
     try {
-      mockLoadDisclaimers.mockReturnValueOnce(new Promise(() => undefined));
+      mockFetchVendorDisclaimers.mockReturnValue(new Promise(() => undefined));
 
-      const { result } = renderHook(() => useKycDisclaimers('BRA'));
+      const { result } = renderHook(() => useKycDisclaimers());
 
       await act(async () => {
         jest.advanceTimersByTime(10_000);
       });
 
       expect(result.current.isLoading).toBe(false);
-      expect(result.current.disclaimers).toBeNull();
       expect(result.current.error).toBe('Request timed out');
     } finally {
       jest.useRealTimers();
     }
   });
 
-  it('propagates thrown errors from loadDisclaimers', async () => {
-    mockLoadDisclaimers.mockRejectedValueOnce(new Error('not signed in'));
+  it('reloads disclaimers when retry is called', async () => {
+    mockFetchVendorDisclaimers
+      .mockRejectedValueOnce(new Error('server error'))
+      .mockResolvedValueOnce(disclaimers);
+    const { result } = renderHook(() => useKycDisclaimers());
+    await waitFor(() => expect(result.current.error).toBe('server error'));
 
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
-
+    act(() => result.current.retry());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(result.current.disclaimers).toBeNull();
-    expect(result.current.error).toBe('not signed in');
-  });
-
-  it('re-loads and clears the previous error when retry is called', async () => {
-    mockLoadDisclaimers
-      .mockImplementationOnce(async () => {
-        mockKycControllerState.vendorDisclaimers = [];
-        mockKycControllerState.vendorError = 'server error';
-      })
-      .mockImplementationOnce(async () => {
-        mockKycControllerState.vendorDisclaimers = [
-          { id: '1', url: 'https://t.c', display_name: 'T&C' },
-        ];
-        mockKycControllerState.vendorError = null;
-      });
-
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.error).toBe('server error');
-
-    act(() => {
-      result.current.retry();
-    });
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+    expect(result.current.disclaimers).toStrictEqual(disclaimers);
     expect(result.current.error).toBeNull();
-    expect(result.current.disclaimers).toStrictEqual([
-      { id: '1', url: 'https://t.c', display_name: 'T&C' },
-    ]);
-    expect(mockLoadDisclaimers).toHaveBeenCalledTimes(2);
-    expect(mockReset).not.toHaveBeenCalled();
   });
 
-  it('invalidates a superseded in-flight load so it cannot overwrite the retry result', async () => {
-    let settleFirstLoad = () => undefined as void;
-    mockLoadDisclaimers
-      .mockImplementationOnce(
-        () =>
-          new Promise<void>((resolve) => {
-            settleFirstLoad = () => {
-              mockKycControllerState.vendorDisclaimers = [];
-              mockKycControllerState.vendorError = 'stale server error';
-              resolve();
-            };
-          }),
-      )
-      .mockImplementationOnce(async () => {
-        mockKycControllerState.vendorDisclaimers = [
-          { id: '1', url: 'https://t.c', display_name: 'T&C' },
-        ];
-        mockKycControllerState.vendorError = null;
-      });
-
-    const { result } = renderHook(() => useKycDisclaimers('BRA'));
-
-    await waitFor(() => expect(mockLoadDisclaimers).toHaveBeenCalledTimes(1));
-
-    act(() => {
-      result.current.retry();
-    });
-
+  it('stores every displayed vendor disclaimer locally for the selected wallet', async () => {
+    const { result } = renderHook(() => useKycDisclaimers());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockReset).toHaveBeenCalledTimes(1);
-
+    let accepted = false;
     await act(async () => {
-      settleFirstLoad();
+      accepted = await result.current.acceptDisclaimers();
     });
 
-    expect(result.current.error).toBeNull();
-    expect(result.current.disclaimers).toStrictEqual([
-      { id: '1', url: 'https://t.c', display_name: 'T&C' },
+    expect(mockSaveVbaVendorTermsAcceptance).toHaveBeenCalledWith('0xabc', [
+      '1',
     ]);
+    expect(accepted).toBe(true);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('returns false and surfaces an error when storing acceptance fails', async () => {
+    mockSaveVbaVendorTermsAcceptance.mockRejectedValue(
+      new Error('Consent storage failed'),
+    );
+    const { result } = renderHook(() => useKycDisclaimers());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    let accepted = true;
+    await act(async () => {
+      accepted = await result.current.acceptDisclaimers();
+    });
+
+    expect(accepted).toBe(false);
+    expect(result.current.error).toBe('Consent storage failed');
   });
 });

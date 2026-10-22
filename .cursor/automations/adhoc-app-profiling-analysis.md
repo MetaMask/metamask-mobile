@@ -4,13 +4,16 @@ Manual / ad-hoc prompt for MetaMask Mobile. Pulls only the per-scenario Hermes
 `.cpuprofile` files from a scheduled 6-hour performance run, then has the agent
 review **each scenario** and call out sampled JavaScript hot frames.
 
-BrowserStack app-profiling JSON and its CPU, memory, frame, and issue metrics
+TestMu app-profiling JSON and its CPU, memory, frame, and issue metrics
 are explicitly out of scope.
 
 This is complementary to:
 
-- GitHub workflow `Analyze App Profiling` (Actions → workflow_dispatch only)
-- Weekly rollup in `weekly-app-profiling-report.md` (7-day merged-PR averages)
+- GitHub workflow `Analyze App Profiling`
+  - 6-hour scheduled performance runs: collect `report.json` only (no Slack)
+  - Monday 09:00 UTC: week-over-week exception report (Slack DM)
+  - Manual performance dispatch: full per-run digest (Slack DM)
+- Weekly TestMu rollup in `weekly-app-profiling-report.md`
 
 Note: `workflow_dispatch` is only offered for workflows already on the default
 branch. After it lands on `main`, run it from Actions. Until then, use the
@@ -18,7 +21,8 @@ local command below.
 
 ## Suggested trigger
 
-- Cadence: ad-hoc only. Do not add a GitHub or Cursor schedule for this.
+- Cadence: ad-hoc investigation, or Actions → Analyze App Profiling → `weekly`.
+  Do not add a Cursor schedule; GitHub owns Monday and 6-hour collection.
 - Repo: `MetaMask/metamask-mobile`
 - Model: high-reasoning model preferred
 
@@ -93,7 +97,7 @@ disclaimer stating this is a testing experiment and not a production alert.
    - Status: issue | watch | healthy
    - Sample counts and hottest self/inclusive JavaScript frames
    - One recommended next step
-   - Append a BrowserStack recording link when `videoURL` is present
+   - Append a TestMu recording link when `videoURL` is present
 
 5. Then write:
    - at most 5 executive-summary bullets
@@ -110,7 +114,7 @@ disclaimer stating this is a testing experiment and not a production alert.
 - The plain `<scenario>.cpuprofile` is logical segment 1. Files named
   `<scenario>.segment-2.cpuprofile` (and `.segment-3`, …) belong to the **same
   scenario**. Analyze them together and cite retry/segment locations.
-- Do not use BrowserStack app-profiling JSON, CPU %, memory, slow/frozen
+- Do not use TestMu app-profiling JSON, CPU %, memory, slow/frozen
   frames, ANRs, detected issues, API calls, or quality gates.
 - Do not mention quality gates, test errors, or flake unless they appear in
   those files.

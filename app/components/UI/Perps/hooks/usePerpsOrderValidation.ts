@@ -15,10 +15,12 @@ import {
   type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
+import { PROVIDER_CONFIG } from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
   getOrderFormFieldIssues,
+  isAdvisoryOrderFormFieldIssue,
   canonicalizeOrderPrice,
   type OrderFormFieldIssue,
 } from '../utils/triggerOrderValidation';
@@ -352,6 +354,25 @@ const getProtocolValidationErrors = ({
   return { errors, insufficientBalanceErrors };
 };
 
+/**
+ * Mobile's Lighter signer only supports two-order groups, but a Lighter limit
+ * order with both TP and SL set signs as a group of three (entry + TP + SL).
+ */
+const getLighterLimitTpSlErrors = ({
+  providerId,
+  orderType,
+  hasTakeProfitAndStopLoss,
+}: {
+  providerId?: PerpsProviderType;
+  orderType: OrderFormState['type'];
+  hasTakeProfitAndStopLoss: boolean;
+}): string[] =>
+  providerId === PROVIDER_CONFIG.LighterProvider &&
+  orderType === 'limit' &&
+  hasTakeProfitAndStopLoss
+    ? [strings('perps.order.validation.lighter_limit_tpsl_unsupported')]
+    : EMPTY_ERRORS;
+
 const getValidationWarnings = (leverage: number): string[] => {
   if (leverage <= VALIDATION_THRESHOLDS.HighLeverageWarning) {
     return EMPTY_WARNINGS;
@@ -382,7 +403,9 @@ const buildValidationOutcome = ({
     isValid:
       protocolValid &&
       requestLocalErrors.length === 0 &&
-      requestFieldIssues.length === 0,
+      !requestFieldIssues.some(
+        (issue) => !isAdvisoryOrderFormFieldIssue(issue),
+      ),
   };
 
   return {
@@ -504,11 +527,28 @@ export function usePerpsOrderValidation(
       spendableBalance,
     ],
   );
-  const localErrors = immediateValidation.errors;
+  const hasLighterLimitTakeProfitAndStopLoss = Boolean(
+    orderForm.takeProfitPrice && orderForm.stopLossPrice,
+  );
+  const lighterLimitTpSlErrors = useMemo(
+    () =>
+      getLighterLimitTpSlErrors({
+        providerId,
+        orderType: orderForm.type,
+        hasTakeProfitAndStopLoss: hasLighterLimitTakeProfitAndStopLoss,
+      }),
+    [providerId, orderForm.type, hasLighterLimitTakeProfitAndStopLoss],
+  );
+  const localErrors = useMemo(
+    () => [...immediateValidation.errors, ...lighterLimitTpSlErrors],
+    [immediateValidation.errors, lighterLimitTpSlErrors],
+  );
   const localInsufficientBalanceErrors =
     immediateValidation.insufficientBalanceErrors;
 
-  const isLocallyValid = localErrors.length === 0 && fieldIssues.length === 0;
+  const isLocallyValid =
+    localErrors.length === 0 &&
+    !fieldIssues.some((issue) => !isAdvisoryOrderFormFieldIssue(issue));
 
   const combinedErrors = useMemo(
     () =>
@@ -681,6 +721,10 @@ export function usePerpsOrderValidation(
     // Pro intentionally maps its CTA spinner only to active placement.
     setValidation((prev) => ({
       ...prev,
+      // Values typed while validation is suspended have never been checked.
+      // Invalidate the previous result synchronously so the CTA cannot submit
+      // one render with stale validity when the keypad closes.
+      protocolValid: skipValidation ? false : prev.protocolValid,
       isValidating: !skipValidation,
     }));
 

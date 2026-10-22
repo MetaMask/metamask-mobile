@@ -284,12 +284,11 @@ jest.mock('../../../TokenDetails/components/AssetDetailsQuickBuy', () => ({
   default: (props: unknown) => mockAssetDetailsQuickBuy(props),
 }));
 
-let mockIsQuickBuyEnabled = false;
 jest.mock('../../../../../hooks/useABTest', () => ({
   useABTest: () => ({
-    variant: { showQuickBuy: mockIsQuickBuyEnabled },
-    variantName: mockIsQuickBuyEnabled ? 'treatment' : 'control',
-    isActive: true,
+    variant: {},
+    variantName: 'control',
+    isActive: false,
   }),
 }));
 
@@ -331,7 +330,6 @@ describe('MarketInsightsView', () => {
     jest.clearAllMocks();
     resetFeedbackCache();
     mockIsEligible = true;
-    mockIsQuickBuyEnabled = false;
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -1095,25 +1093,7 @@ describe('MarketInsightsView', () => {
     expect(getByTestId('token-details-sticky-footer')).toBeOnTheScreen();
   });
 
-  it('does not render the quick buy button or mount AssetDetailsQuickBuy when the flag is disabled', () => {
-    mockIsQuickBuyEnabled = false;
-    mockUseMarketInsights.mockReturnValue({
-      report: buildMockReport(),
-      isLoading: false,
-      error: null,
-      timeAgo: '1m ago',
-    });
-
-    const { queryByTestId } = renderWithProvider(<MarketInsightsView />);
-
-    expect(
-      queryByTestId(MarketInsightsSelectorsIDs.QUICK_BUY_BUTTON),
-    ).toBeNull();
-    expect(mockAssetDetailsQuickBuy).not.toHaveBeenCalled();
-  });
-
-  it('renders the quick buy button and mounts AssetDetailsQuickBuy hidden when the flag is enabled', () => {
-    mockIsQuickBuyEnabled = true;
+  it('renders the quick buy button and mounts AssetDetailsQuickBuy hidden', () => {
     mockUseMarketInsights.mockReturnValue({
       report: buildMockReport(),
       isLoading: false,
@@ -1136,7 +1116,6 @@ describe('MarketInsightsView', () => {
   });
 
   it('opens AssetDetailsQuickBuy and tracks a quick_buy interaction when the quick buy button is pressed', async () => {
-    mockIsQuickBuyEnabled = true;
     mockUseMarketInsights.mockReturnValue({
       report: buildMockReport({ digestId: 'digest-123' }),
       isLoading: false,

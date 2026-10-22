@@ -16,6 +16,9 @@ import {
   willFlipPosition,
   determineMakerStatus,
   isPriceOutsideDeviationBand,
+  getPriceDeviationBand,
+  resolveOracleReferencePrice,
+  calculateLimitPriceForPercentage,
   getOrderPriceRowVisibility,
   getValidPerpsPrice,
   resolvePerpsTransactionOrderType,
@@ -1680,5 +1683,57 @@ describe('orderUtils', () => {
         );
       },
     );
+  });
+
+  describe('getPriceDeviationBand', () => {
+    it('returns the inclusive ratio band around a usable reference', () => {
+      const band = getPriceDeviationBand(2000, 0.95);
+
+      expect(band?.min).toBeCloseTo(100);
+      expect(band?.max).toBeCloseTo(40000);
+    });
+
+    it('returns undefined when the reference is not usable', () => {
+      expect(getPriceDeviationBand(0, 0.95)).toBeUndefined();
+      expect(getPriceDeviationBand(2000, 1)).toBeUndefined();
+    });
+  });
+});
+
+describe('resolveOracleReferencePrice', () => {
+  it('prefers a usable mark price', () => {
+    expect(resolveOracleReferencePrice('3050', 3000)).toBe(3050);
+  });
+
+  it('falls back when the mark price is missing', () => {
+    expect(resolveOracleReferencePrice(undefined, 3000)).toBe(3000);
+  });
+
+  it('falls back when the mark price is unparseable or non-positive', () => {
+    expect(resolveOracleReferencePrice('not-a-number', 3000)).toBe(3000);
+    expect(resolveOracleReferencePrice('0', 3000)).toBe(3000);
+    expect(resolveOracleReferencePrice('-5', 3000)).toBe(3000);
+  });
+});
+
+describe('calculateLimitPriceForPercentage', () => {
+  it('offsets from the current limit price when one is set', () => {
+    expect(calculateLimitPriceForPercentage('100', 3000, 10)).toBe('110');
+  });
+
+  it('falls back to the market price when no limit price is set', () => {
+    expect(calculateLimitPriceForPercentage('', 3000, 1)).toBe('3030');
+  });
+
+  it('supports negative offsets', () => {
+    expect(calculateLimitPriceForPercentage('100', 3000, -2)).toBe('98');
+  });
+
+  it('ignores currency formatting in the limit price', () => {
+    expect(calculateLimitPriceForPercentage('$1,000', 3000, 10)).toBe('1100');
+  });
+
+  it('returns empty when there is no usable base price', () => {
+    expect(calculateLimitPriceForPercentage('', 0, 10)).toBe('');
   });
 });

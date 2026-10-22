@@ -1,7 +1,10 @@
 import { test as perfTest } from '../../../framework/fixtures/playwright/index.js';
 import TimerHelper from '../../../framework/TimerHelper.js';
 import { AppiumAssertions } from '../../../framework/index.js';
-import { onboardingFlowImportSRPPlaywright } from '../../../flows/wallet.flow.js';
+import {
+  dismissMoneyOnboardingIfPresent,
+  onboardingFlowImportSRPPlaywright,
+} from '../../../flows/wallet.flow.js';
 import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
@@ -24,13 +27,15 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       const timer = new TimerHelper(
         'Time since the user taps Money until content is visible',
-        // Temp: Keeping large timeout temporarily until we measure baseline performance.
-        { ios: 60_000, android: 60_000 },
+        // Android base from the Oct 2026 Pixel 8 Pro baseline (max 1605ms).
+        // iOS stays wide until an iOS baseline exists.
+        { ios: 60_000, android: 4_200 },
         currentDeviceDetails.platform,
       );
 
       // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
+      await dismissMoneyOnboardingIfPresent();
 
       await timer.measure(async () => {
         await MoneyHomeView.waitForEmptyBalanceLoaded();

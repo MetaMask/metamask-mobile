@@ -12,8 +12,6 @@ import {
 import type { TwapOrder } from '@metamask/perps-controller';
 import React, { useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
-import type { TabItem } from '../../../../../../component-library/components-temp/Tabs/TabsBar/TabsBar.types';
 import { PERPS_TWAP_UI_CONFIG } from '../../../constants/perpsConfig';
 import { getTwapOrderIdentityKey } from '../../../utils/twapOrderUtils';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -21,14 +19,14 @@ import PerpsProTwapCard from './PerpsProTwapCard';
 import PerpsProTwapEmptyState from './PerpsProTwapEmptyState';
 import PerpsProTwapFillRowItem from './PerpsProTwapFillRow';
 import {
-  PRO_TWAP_VIEWS,
-  DEFAULT_PRO_TWAP_VIEW,
   selectTwapFillRows,
   type PerpsProTwapEmptyMetadata,
   type ProTwapView,
 } from '../utils/proTwapViews';
 
 interface PerpsProTwapPanelProps {
+  /** Which view to render. Owned by the panel's activity toggle, not by us. */
+  view: ProTwapView;
   /** Active schedules, already ticker- and side-filtered by the caller. */
   activeTwapOrders: TwapOrder[];
   /** Terminal schedules, already ticker- and side-filtered by the caller. */
@@ -52,27 +50,17 @@ interface PerpsProTwapPanelProps {
   emptyMetadataByView?: Partial<Record<ProTwapView, PerpsProTwapEmptyMetadata>>;
 }
 
-const VIEW_LABEL_KEYS: Record<ProTwapView, string> = {
-  active: 'perps.pro_positions_panel.twap_views.active',
-  history: 'perps.pro_positions_panel.twap_views.history',
-  fill_history: 'perps.pro_positions_panel.twap_views.fill_history',
-};
-
-const VIEW_TEST_IDS: Record<ProTwapView, string> = {
-  active: PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_ACTIVE,
-  history: PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_HISTORY,
-  fill_history: PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TAB_FILL_HISTORY,
-};
-
 /**
- * The TWAP tab's body: an Active / History / Fill History switch over the one
- * `getTwapOrders()` fetch the caller supplies.
+ * The TWAP tab's body, rendering whichever of Active / History / Fill History
+ * the caller's activity toggle selects, over the one `getTwapOrders()` fetch it
+ * supplies.
  *
  * Only Active offers Terminate — a terminal schedule has nothing left to stop.
  * Fill history flattens the slice fills of every schedule in view, so it
  * follows whichever of the two lists the other views are showing.
  */
 const PerpsProTwapPanel = ({
+  view: activeView,
   activeTwapOrders,
   historicalTwapOrders,
   isInitialLoading,
@@ -86,12 +74,8 @@ const PerpsProTwapPanel = ({
   isRefreshing,
   emptyMetadataByView,
 }: PerpsProTwapPanelProps) => {
-  const [activeViewIndex, setActiveViewIndex] = useState(() =>
-    PRO_TWAP_VIEWS.indexOf(DEFAULT_PRO_TWAP_VIEW),
-  );
   const [fillHistoryPage, setFillHistoryPage] = useState(0);
   const [scheduleHistoryPage, setScheduleHistoryPage] = useState(0);
-  const activeView = PRO_TWAP_VIEWS[activeViewIndex] ?? DEFAULT_PRO_TWAP_VIEW;
 
   const fillRows = useMemo(
     () => selectTwapFillRows([...activeTwapOrders, ...historicalTwapOrders]),
@@ -138,17 +122,6 @@ const PerpsProTwapPanel = ({
     setFillHistoryPage(0);
     setScheduleHistoryPage(0);
   }, [filterScopeKey]);
-
-  const viewTabs: TabItem[] = useMemo(
-    () =>
-      PRO_TWAP_VIEWS.map((view) => ({
-        key: view,
-        label: strings(VIEW_LABEL_KEYS[view]),
-        content: null,
-        testID: VIEW_TEST_IDS[view],
-      })),
-    [],
-  );
 
   const renderEmptyState = () => {
     if (isInitialLoading) {
@@ -315,13 +288,6 @@ const PerpsProTwapPanel = ({
 
   return (
     <Box>
-      <TabsBar
-        tabs={viewTabs}
-        activeIndex={activeViewIndex}
-        onTabPress={setActiveViewIndex}
-        twClassName="-mx-2"
-        testID={PerpsProMarketViewSelectorsIDs.TWAP_VIEW_TABS}
-      />
       {error ? (
         <Box
           twClassName="mx-2 mt-3 gap-2 rounded-xl bg-error-muted p-3"

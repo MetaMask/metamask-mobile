@@ -25,16 +25,6 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
   typeof import('../../hooks/stream').usePerpsLivePrices
 >;
 
-jest.mock('@metamask/design-system-react-native', () => {
-  const { Text } = jest.requireActual('react-native');
-  return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
-    SectionHeader: ({ title, testID }: { title: string; testID?: string }) => (
-      <Text testID={testID}>{title}</Text>
-    ),
-  };
-});
-
 jest.mock('../PerpsTokenLogo/PerpsTokenLogo', () => {
   const { View } = jest.requireActual('react-native');
   return ({ symbol }: { symbol: string }) => (
@@ -102,6 +92,10 @@ describe('PerpsRecentlyViewedRail', () => {
       screen.getByTestId(PerpsRecentlyViewedRailSelectorsIDs.PILL_GRID),
     ).toBeOnTheScreen();
     expect(screen.getByText('Recently viewed')).toBeOnTheScreen();
+    expect(screen.getByText('Recently viewed')).toHaveStyle({
+      fontSize: 16,
+      fontFamily: 'Inter-Medium',
+    });
     expect(
       screen.getByTestId('perps-recently-viewed-tile-BTC'),
     ).toBeOnTheScreen();

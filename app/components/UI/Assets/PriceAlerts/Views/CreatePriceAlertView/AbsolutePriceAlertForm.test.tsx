@@ -21,6 +21,17 @@ jest.mock('../../api', () => ({
     mockUseSubmitPriceAlert(editingAlert),
 }));
 
+const mockPerpSubmit = jest.fn();
+const mockUseSubmitPerpAlert = jest.fn((_editingAlert?: unknown) => ({
+  submit: mockPerpSubmit,
+  isSubmitting: false,
+}));
+
+jest.mock('../../perpApi', () => ({
+  useSubmitPerpAlert: (editingAlert?: unknown) =>
+    mockUseSubmitPerpAlert(editingAlert),
+}));
+
 const baseProps: React.ComponentProps<typeof AbsolutePriceAlertForm> = {
   assetId: 'eip155:1/slip44:60',
   displayTicker: 'ETH',
@@ -156,13 +167,13 @@ describe('AbsolutePriceAlertForm', () => {
       ),
     );
 
-    expect(screen.getByText('$1322.18')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1322.18' })).toBeOnTheScreen();
   });
 
   it('displays pre-filled current price with $ prefix', () => {
     const screen = renderForm();
 
-    expect(screen.getByText('$1201.98')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1201.98' })).toBeOnTheScreen();
   });
 
   it('shows only the $ sign with no digits after fully clearing the input', () => {
@@ -170,7 +181,7 @@ describe('AbsolutePriceAlertForm', () => {
 
     clearKeypad(screen.getByTestId);
 
-    expect(screen.getByText('$')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$' })).toBeOnTheScreen();
     expect(
       screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).toBeDisabled();
@@ -182,7 +193,7 @@ describe('AbsolutePriceAlertForm', () => {
     clearKeypad(screen.getByTestId);
     fireEvent.press(screen.getByTestId('keypad-key-1'));
 
-    expect(screen.getByText('$1')).toBeOnTheScreen();
+    expect(screen.getByRole('text', { name: '$1' })).toBeOnTheScreen();
   });
 
   it('displays an approximate zero percent before input', () => {
@@ -375,7 +386,9 @@ describe('AbsolutePriceAlertForm', () => {
         ),
       );
 
-      expect(screen.getByText('$0.000000000000011')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('text', { name: '$0.000000000000011' }),
+      ).toBeOnTheScreen();
     });
 
     it('enables saving for a non-zero tiny quick-percentage value', () => {
@@ -420,7 +433,9 @@ describe('AbsolutePriceAlertForm', () => {
         fireEvent.press(screen.getByTestId(`keypad-key-${key}`));
       }
 
-      expect(screen.getByText('$0.000012345')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('text', { name: '$0.000012345' }),
+      ).toBeOnTheScreen();
       expect(
         screen.getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
       ).toBeOnTheScreen();
@@ -440,7 +455,9 @@ describe('AbsolutePriceAlertForm', () => {
 
       fireEvent.press(screen.getByTestId('keypad-key-2'));
 
-      expect(screen.getByText('$0.111111111111111')).toBeOnTheScreen();
+      expect(
+        screen.getByRole('text', { name: '$0.111111111111111' }),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -454,7 +471,7 @@ describe('AbsolutePriceAlertForm', () => {
     it('prepopulates the existing threshold', () => {
       const screen = renderEditingForm();
 
-      expect(screen.getByText('$1500')).toBeOnTheScreen();
+      expect(screen.getByRole('text', { name: '$1500' })).toBeOnTheScreen();
     });
 
     it('renders the Set button for a prepopulated threshold', () => {
@@ -651,5 +668,30 @@ describe('AbsolutePriceAlertForm', () => {
         }),
       );
     });
+  });
+
+  it('pre-fills BTC with integer keypad precision when szDecimals is 5', () => {
+    const screen = renderForm({
+      currentPrice: 83714,
+      szDecimals: 5,
+      displayTicker: 'BTC',
+      marketId: 'btc-hyperliquid-mainnet',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$83,714');
+  });
+
+  it('allows 6 keypad decimal places when szDecimals is 0', () => {
+    const screen = renderForm({
+      currentPrice: 0.008764,
+      szDecimals: 0,
+      displayTicker: 'kPEPE',
+    });
+
+    expect(
+      screen.getByTestId(CreatePriceAlertTestIds.TARGET_PRICE_INPUT),
+    ).toHaveTextContent('$0.008764');
   });
 });

@@ -10,6 +10,7 @@ import {
   hasSeenSocialLeaderboardOnboarding,
   isSocialV1Treatment,
   navigateToSocialLeaderboard,
+  navigateToSocialTab,
   resetSocialLeaderboardOnboardingSeen,
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
@@ -134,8 +135,91 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         source: 'home_carousel',
       });
     });
+
+    it('forwards the initial tab to the Social V1 route', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+      });
+    });
   });
 
+  describe('navigateToSocialTab', () => {
+    it('navigates to the onboarding for a first-time user', () => {
+      mockGetItemSync.mockReturnValue(null);
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.ONBOARDING,
+        undefined,
+      );
+    });
+
+    it('returns to the Social tab after V1 treatment onboarding', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING, {
+        returnToTab: true,
+      });
+    });
+
+    it('selects the Social tab with the source when onboarding is not due', () => {
+      mockGetItemSync.mockReturnValue('true');
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+    });
+
+    it('does not push the stack V0 or V1 home routes', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialTab(navigate, { source: 'nav_tab' });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.TAB, {
+        source: 'nav_tab',
+      });
+      expect(navigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL.V1,
+        expect.anything(),
+      );
+      expect(navigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL.V0,
+        expect.anything(),
+      );
+    });
+  });
   describe('getFollowTradingHomeRoute', () => {
     it('returns the legacy home route for control', () => {
       expect(getFollowTradingHomeRoute()).toBe(Routes.SOCIAL.V0);

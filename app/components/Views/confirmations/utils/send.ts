@@ -20,7 +20,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
-import { fetchEstimatedMultiLayerL1Fee } from '../../../../util/networks/engineNetworkUtils';
 import {
   NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE,
   TRANSFER_FROM_FUNCTION_SIGNATURE,
@@ -407,37 +406,6 @@ export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
 export const fromHexWithDecimals = (value: Hex, decimals: number) => {
   const bnValue = hexToBN(value);
   return fromBNWithDecimals(bnValue, decimals);
-};
-
-export const fromTokenMinUnits = (
-  value: string,
-  decimals?: number | string,
-) => {
-  const decimalValue = parseInt(decimals?.toString() ?? '0', 10);
-  const multiplier = new BN(10).pow(new BN(decimalValue));
-  return addHexPrefix(new BN(value).mul(multiplier).toString(16));
-};
-
-export const getLayer1GasFeeForSend = async ({
-  asset,
-  chainId,
-  from,
-  value,
-}: {
-  asset: AssetType;
-  chainId: Hex;
-  from: Hex;
-  value: string;
-}) => {
-  const txParams = {
-    chainId,
-    from,
-    value: fromTokenMinUnits(value, asset.decimals),
-  };
-  return await fetchEstimatedMultiLayerL1Fee(undefined, {
-    txParams,
-    chainId,
-  });
 };
 
 export const convertCurrency = (

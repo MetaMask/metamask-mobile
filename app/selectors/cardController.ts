@@ -6,17 +6,21 @@ import {
   type CaipChainId,
 } from '@metamask/utils';
 import { RootState } from '../reducers';
+import { latestByUpdatedAt } from '../core/Engine/controllers/card-controller/utils/cardLinks';
 import {
   DEFAULT_CARD_PROVIDER_ID,
   type CardUnauthenticatedReason,
   type CardControllerState,
   type CardHomeDataError,
   type CardHomeDataStatus,
+  type CardLink,
   type CardRedeemWithdrawal,
 } from '../core/Engine/controllers/card-controller/types';
 import {
   FundingAssetStatus,
   type CardHomeData,
+  type CardProviderId,
+  type CardSignInLink,
 } from '../core/Engine/controllers/card-controller/provider-types';
 import {
   CardType,
@@ -46,7 +50,10 @@ import {
   isAnyMoneyAccountDelegatedForCard,
 } from '../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
-import { selectCardFeatureFlag } from './featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardLinkApiEnabled,
+} from './featureFlagController/card';
 import { selectMoneyAccountGeoBlockedCountries } from '../components/UI/Money/selectors/featureFlags';
 import {
   buildCardResidencyRegion,
@@ -115,6 +122,22 @@ export const selectIsCardAuthenticated = createSelector(
     cardState?.isAuthenticated ?? false,
 );
 
+export const selectCardSignInLink = createSelector(
+  selectCardControllerState,
+  (cardState: CardControllerState | undefined): CardSignInLink | null =>
+    (cardState?.signInLink as unknown as CardSignInLink | null) ?? null,
+);
+
+export const selectHasCardSignInLink = createSelector(
+  selectCardSignInLink,
+  (link) => link !== null,
+);
+
+export const selectHasCompletedCardMigration = createSelector(
+  selectCardSignInLink,
+  (link) => link?.status === 'completed',
+);
+
 export const selectCardProviderUserId = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
@@ -170,6 +193,37 @@ export const selectIsCardholder = createSelector(
       }
     });
   },
+);
+
+/** `null` while card links are off (flag, or a 403 from Card API), so routing stays legacy. */
+export const selectCardLinks = createSelector(
+  selectCardControllerState,
+  selectCardLinkApiEnabled,
+  (
+    cardState: CardControllerState | undefined,
+    cardLinkApiEnabled,
+  ): CardLink[] | null =>
+    cardLinkApiEnabled && !cardState?.cardLinkApiBlocked
+      ? (cardState?.cardLinks ?? null)
+      : null,
+);
+
+/** `active` wins over `onboarding`; `closed` rows are ignored; ties go to the newest row. */
+const selectRoutableCardLink = createSelector(
+  selectCardLinks,
+  (links): CardLink | null =>
+    latestByUpdatedAt(links?.filter((l) => l.status === 'active') ?? []) ??
+    latestByUpdatedAt(links?.filter((l) => l.status === 'onboarding') ?? []),
+);
+
+export const selectHasLinkedCard = createSelector(
+  selectRoutableCardLink,
+  (link) => link !== null,
+);
+
+export const selectLinkedCardProvider = createSelector(
+  selectRoutableCardLink,
+  (link): CardProviderId | null => link?.provider ?? null,
 );
 
 export const selectCardUserLocation = createSelector(

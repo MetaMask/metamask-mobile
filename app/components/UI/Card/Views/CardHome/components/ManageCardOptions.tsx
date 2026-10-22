@@ -33,6 +33,7 @@ interface ManageCardOptionsProps {
   onSetPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
+  onContactDetails: () => void;
   showDigitalWalletInstructions: boolean;
   onDigitalWalletInstructions: () => void;
   showUnlinkMoneyAccount: boolean;
@@ -70,6 +71,7 @@ const ManageCardOptions = ({
   onSetPin,
   onToggleFreeze,
   onManageSpendingLimit,
+  onContactDetails,
   showDigitalWalletInstructions,
   onDigitalWalletInstructions,
   showUnlinkMoneyAccount,
@@ -280,6 +282,21 @@ const ManageCardOptions = ({
               testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
             />
           )}
+        {isFullySetUp &&
+          capabilities?.supportsContactDetails &&
+          !hideManageOptions && (
+            <ManageCardListItem
+              title={strings(
+                'card.card_home.manage_card_options.contact_details',
+              )}
+              description={strings(
+                'card.card_home.manage_card_options.contact_details_description',
+              )}
+              rightIcon={IconName.ArrowRight}
+              onPress={onContactDetails}
+              testID={CardHomeSelectors.CONTACT_DETAILS_ITEM}
+            />
+          )}
         {isFullySetUp && showUnlinkMoneyAccount && (
           <ManageCardListItem
             title={strings(
@@ -324,7 +341,7 @@ const ManageCardOptions = ({
             description={strings(
               'card.card_home.manage_card_options.travel_description',
             )}
-            rightIcon={IconName.Export}
+            rightIcon={IconName.ArrowSquareOut}
             onPress={onTravel}
             testID={CardHomeSelectors.TRAVEL_ITEM}
           />

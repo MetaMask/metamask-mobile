@@ -1,5 +1,9 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
-import { type OrderParams, type Position } from '@metamask/perps-controller';
+import {
+  PERPS_ERROR_CODES,
+  type OrderParams,
+  type Position,
+} from '@metamask/perps-controller';
 import { usePerpsOrderExecution } from './usePerpsOrderExecution';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
@@ -154,7 +158,10 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
@@ -174,7 +181,10 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
     });
@@ -199,9 +209,13 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onError).toHaveBeenCalledWith('TWAP order rejected');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'TWAP order rejected' }),
+      );
       expect(onSuccess).not.toHaveBeenCalled();
-      expect(result.current.error).toBe('TWAP order rejected');
+      expect(result.current.error).toMatchObject({
+        error: 'TWAP order rejected',
+      });
       expect(result.current.lastResult).toEqual({
         success: false,
         error: 'TWAP order rejected',
@@ -227,9 +241,13 @@ describe('usePerpsOrderExecution', () => {
         });
       });
 
-      expect(onError).toHaveBeenCalledWith('TWAP network timeout');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'TWAP network timeout' }),
+      );
       expect(onSuccess).not.toHaveBeenCalled();
-      expect(result.current.error).toBe('TWAP network timeout');
+      expect(result.current.error).toMatchObject({
+        error: 'TWAP network timeout',
+      });
       expect(result.current.lastResult).toBeUndefined();
       expect(mockTrace).not.toHaveBeenCalled();
       expect(mockEndTrace).not.toHaveBeenCalled();
@@ -290,7 +308,10 @@ describe('usePerpsOrderExecution', () => {
 
       // Limit orders capture a pre-submit position baseline so marketable
       // limits that fill before watcher registration are still detected.
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
       expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
       // The already-rested order ends at its stream delivery instant, not now.
       expect(mockEndTrace).toHaveBeenCalledWith(
@@ -495,7 +516,10 @@ describe('usePerpsOrderExecution', () => {
           });
         });
 
-        expect(onSuccess).toHaveBeenCalledWith();
+        expect(onSuccess).toHaveBeenCalledWith(
+          undefined,
+          result.current.lastResult,
+        );
         expect(mockEndTrace).not.toHaveBeenCalledWith(
           expect.objectContaining({
             id: expect.stringContaining(
@@ -802,7 +826,10 @@ describe('usePerpsOrderExecution', () => {
             });
           });
 
-          expect(onSuccess).toHaveBeenCalledWith();
+          expect(onSuccess).toHaveBeenCalledWith(
+            undefined,
+            result.current.lastResult,
+          );
           expect(mockGetPositionsSnapshot).toHaveBeenCalledTimes(1);
           expect(mockEndTrace).not.toHaveBeenCalledWith(
             expect.objectContaining({
@@ -850,7 +877,10 @@ describe('usePerpsOrderExecution', () => {
       });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(mockOrderParams);
-      expect(onSuccess).toHaveBeenCalledWith(mockPosition);
+      expect(onSuccess).toHaveBeenCalledWith(
+        mockPosition,
+        result.current.lastResult,
+      );
       expect(onError).not.toHaveBeenCalled();
       expect(result.current.lastResult).toEqual({
         success: true,
@@ -987,7 +1017,10 @@ describe('usePerpsOrderExecution', () => {
         await act(async () => {
           await placeOrderPromise;
         });
-        expect(onSuccess).toHaveBeenCalledWith();
+        expect(onSuccess).toHaveBeenCalledWith(
+          undefined,
+          result.current.lastResult,
+        );
         mockEndTrace.mockClear();
 
         act(() => {
@@ -1037,7 +1070,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onSuccess).toHaveBeenCalledWith();
+      expect(onSuccess).toHaveBeenCalledWith(
+        undefined,
+        result.current.lastResult,
+      );
 
       // Deliver the late render so the pending stream waiter (and its
       // timeout) resolves instead of leaking past the test.
@@ -1074,7 +1110,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onSuccess).toHaveBeenCalledWith(mockPosition);
+      expect(onSuccess).toHaveBeenCalledWith(
+        mockPosition,
+        result.current.lastResult,
+      );
       expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
   });
@@ -1101,12 +1140,40 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onError).toHaveBeenCalledWith('Insufficient margin');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Insufficient margin' }),
+      );
       expect(onSuccess).not.toHaveBeenCalled();
-      expect(result.current.error).toBe('Insufficient margin');
+      expect(result.current.error).toMatchObject({
+        error: 'Insufficient margin',
+      });
       expect(result.current.lastResult).toEqual({
         success: false,
         error: 'Insufficient margin',
+      });
+    });
+
+    it('preserves submitted slippage context for IOC_CANCEL results', async () => {
+      const onError = jest.fn();
+      mockPlaceOrder.mockResolvedValue({
+        success: false,
+        error: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+      });
+      const { result } = renderHook(() => usePerpsOrderExecution({ onError }));
+
+      await act(async () => {
+        await result.current.placeOrder({
+          ...mockOrderParams,
+          maxSlippageBps: 800,
+        });
+      });
+
+      expect(onError).toHaveBeenCalledWith({
+        error: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorCode: PERPS_ERROR_CODES.IOC_CANCEL,
+        errorDetails: undefined,
+        maxSlippageBps: 800,
       });
     });
 
@@ -1164,7 +1231,9 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onError).toHaveBeenCalledWith('Insufficient margin');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Insufficient margin' }),
+      );
       expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
 
@@ -1185,8 +1254,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onError).toHaveBeenCalledWith('Unknown error');
-      expect(result.current.error).toBe('Unknown error');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Unknown error' }),
+      );
+      expect(result.current.error).toMatchObject({ error: 'Unknown error' });
     });
 
     it('calls onError with exception message when placeOrder rejects', async () => {
@@ -1204,8 +1275,10 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onError).toHaveBeenCalledWith('Network timeout');
-      expect(result.current.error).toBe('Network timeout');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Network timeout' }),
+      );
+      expect(result.current.error).toMatchObject({ error: 'Network timeout' });
     });
 
     it('forwards trackingData to controller when placeOrder rejects without client trade analytics', async () => {
@@ -1233,7 +1306,9 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(onError).toHaveBeenCalledWith('Network timeout');
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ error: 'Network timeout' }),
+      );
       expect(mockPlaceOrder).toHaveBeenCalledWith(paramsWithTracking);
     });
   });
@@ -1254,7 +1329,7 @@ describe('usePerpsOrderExecution', () => {
         await result.current.placeOrder(mockOrderParams);
       });
 
-      expect(result.current.error).toBe('First error');
+      expect(result.current.error).toMatchObject({ error: 'First error' });
 
       // Second order succeeds
       await act(async () => {
@@ -1300,7 +1375,7 @@ describe('usePerpsOrderExecution', () => {
         expect(result.current.isPlacing).toBe(false);
       });
 
-      expect(result.current.error).toBe('Order failed');
+      expect(result.current.error).toMatchObject({ error: 'Order failed' });
     });
   });
 });

@@ -29,6 +29,17 @@ export type {
   RankingFilterSheetProps,
 } from './RankingFilter';
 export {
+  DEFAULT_FEED_SORT,
+  FEED_SORT_OPTIONS,
+  FeedSortFilterSelector,
+  FeedSortFilterSheet,
+} from './FeedSortFilter';
+export type {
+  FeedSort,
+  FeedSortFilterSelectorProps,
+  FeedSortFilterSheetProps,
+} from './FeedSortFilter';
+export {
   DEFAULT_LEADERBOARD_COHORT,
   DEFAULT_LEADERBOARD_SORT,
   DEFAULT_TIMEFRAME,
@@ -44,18 +55,18 @@ export {
   V1_LEADERBOARD_RANKING_LABEL_KEY,
   V1_LEADERBOARD_RANKING_OPTIONS,
 } from './filterOptions';
-export type {
-  LeaderboardTraderCohort,
-  V1LeaderboardRanking,
-} from './filterOptions';
+export type { LeaderboardTraderCohort } from '../../../../UI/SocialFeed/utils/traderStats';
+export type { V1LeaderboardRanking } from './filterOptions';
 export {
   CohortFilterSelectorsIDs,
   FilterOptionSheetSelectorsIDs,
   RankingFilterSelectorsIDs,
+  FeedSortFilterSelectorsIDs,
   SortFilterSelectorsIDs,
   TimeframeFilterSelectorsIDs,
   TypeFilterSelectorsIDs,
   getCohortFilterOptionTestId,
+  getFeedSortFilterOptionTestId,
   getRankingFilterOptionTestId,
   getSortFilterOptionTestId,
   getTimeframeFilterOptionTestId,

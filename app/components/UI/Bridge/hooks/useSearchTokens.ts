@@ -6,6 +6,7 @@ import {
   BridgeClientId,
   FeatureId,
   getClientHeaders,
+  SwapFeatureTag,
 } from '@metamask/bridge-controller';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import Engine from '../../../../core/Engine';
@@ -18,6 +19,8 @@ import {
 } from '../../../../util/trace';
 import type { IncludeAsset, PopularToken } from '../types';
 import { useSwapsFeatureId } from './useSwapsFeatureId';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const MIN_SEARCH_LENGTH = 3;
 
@@ -36,6 +39,7 @@ type SearchTraceResult = 'success' | 'error';
 interface UseSearchTokensParams {
   chainIds: CaipChainId[];
   includeAssets: IncludeAsset[];
+  enabled?: boolean;
 }
 
 interface UseSearchTokensResult {
@@ -72,6 +76,7 @@ const getResultCountBucket = (count: number): string =>
 export const useSearchTokens = ({
   chainIds,
   includeAssets,
+  enabled = true,
 }: UseSearchTokensParams): UseSearchTokensResult => {
   const featureId = useSwapsFeatureId();
   const [searchResults, setSearchResults] = useState<PopularToken[]>([]);
@@ -87,6 +92,7 @@ export const useSearchTokens = ({
   const chainIdsRef = useRef(chainIds);
   const includeAssetsRef = useRef(includeAssets);
   const featureIdRef = useRef(featureId);
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   // Update refs when values change
   useEffect(() => {
@@ -120,7 +126,11 @@ export const useSearchTokens = ({
 
   const searchTokens = useCallback(
     async (query: string, cursor?: string) => {
-      if (!query.trim()) {
+      if (!enabled) {
+        return;
+      }
+      const trimmedQuery = query.trim();
+      if (!trimmedQuery) {
         // If query is empty, reset search state
         resetSearch();
         return;
@@ -128,14 +138,14 @@ export const useSearchTokens = ({
 
       // Determine if this is a pagination request (same query with cursor)
       const isPagination =
-        cursor && currentSearchQueryRef.current === query.trim();
+        cursor && currentSearchQueryRef.current === trimmedQuery;
 
       if (isPagination) {
         setIsLoadingMore(true);
       } else {
         setIsSearchLoading(true);
-        currentSearchQueryRef.current = query.trim();
-        setCurrentSearchQuery(query.trim());
+        currentSearchQueryRef.current = trimmedQuery;
+        setCurrentSearchQuery(trimmedQuery);
         setSearchResults([]);
       }
 
@@ -152,7 +162,7 @@ export const useSearchTokens = ({
           featureId: FeatureId;
         } = {
           chainIds: chainIdsRef.current,
-          query: query.trim(),
+          query: trimmedQuery,
           featureId: featureIdRef.current,
         };
 
@@ -173,8 +183,9 @@ export const useSearchTokens = ({
             data: {
               chain_scope:
                 chainIdsRef.current.length > 1 ? 'multi_chain' : 'single_chain',
-              query_length_bucket: getQueryLengthBucket(query.trim().length),
+              query_length_bucket: getQueryLengthBucket(trimmedQuery.length),
             },
+            tags: { feature: SwapFeatureTag.SWAP },
             startTime: Date.now(),
           });
         }
@@ -206,6 +217,20 @@ export const useSearchTokens = ({
           : [];
         resultCount = searchResultData.length;
 
+        if (resultCount === 0 && featureId !== FeatureId.UNIFIED_SWAP_BRIDGE) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.ADVANCED_ORDER_ASSET_SEARCH_EMPTY_RESULTS,
+            )
+              .addProperties({
+                // TODO use location from navigation context
+                location: 'Main View',
+                feature_id: featureId,
+                query: trimmedQuery,
+              })
+              .build(),
+          );
+        }
         // Store the cursor for pagination if there's a next page
         setSearchCursor(
           searchData.pageInfo?.hasNextPage
@@ -250,7 +275,14 @@ export const useSearchTokens = ({
         }
       }
     },
-    [bearerToken, resetSearch],
+    [
+      bearerToken,
+      enabled,
+      resetSearch,
+      featureId,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   // Create debounced search function

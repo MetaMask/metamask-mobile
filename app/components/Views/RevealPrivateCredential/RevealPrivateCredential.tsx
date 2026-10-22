@@ -17,13 +17,10 @@ import { BottomTabBarHeightContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
-  BannerBase,
+  BannerAlert,
+  BannerAlertSeverity,
   Box,
   HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -59,6 +56,14 @@ import {
   RevealPrivateCredentialRouteProp,
   RevealSrpStage,
 } from './types';
+
+// Locales such as Greek wrap this title onto a second line, which defaults to
+// left alignment inside the centered header column.
+const HEADER_TITLE_PROPS = {
+  twClassName: 'text-center',
+  testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_TITLE_ID,
+} as const;
+
 const RevealPrivateCredential = ({
   cancel,
   showCancelButton,
@@ -281,23 +286,12 @@ const RevealPrivateCredential = ({
   );
 
   const renderWarning = () => (
-    <Box testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}>
-      <BannerBase
-        startAccessory={
-          <Icon
-            name={IconName.Danger}
-            color={IconColor.ErrorDefault}
-            size={IconSize.Lg}
-          />
-        }
-        title={
-          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-            {strings('reveal_credential.seed_phrase_warning_explanation')}
-          </Text>
-        }
-        twClassName="mt-6 border border-error-default bg-error-muted"
-      />
-    </Box>
+    <BannerAlert
+      severity={BannerAlertSeverity.Danger}
+      description={strings('reveal_credential.seed_phrase_warning_explanation')}
+      twClassName="mt-6"
+      testID={RevealSeedViewSelectorsIDs.SEED_PHRASE_WARNING_ID}
+    />
   );
 
   const renderActionView = () => (
@@ -398,6 +392,7 @@ const RevealPrivateCredential = ({
     >
       <HeaderStandard
         title={strings('reveal_credential.seed_phrase_title')}
+        titleProps={HEADER_TITLE_PROPS}
         onBack={headerNavigationBack}
         backButtonProps={{
           testID: RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BACK_BUTTON_ID,

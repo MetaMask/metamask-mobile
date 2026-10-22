@@ -22,6 +22,7 @@ import Logger from '../../../../../util/Logger';
 import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import type { NavigationAnalyticsContext } from '../../../../../util/analytics/navigationAnalyticsAttribution';
 import {
   __fireRiveTrigger,
   __getRivePropertySetter,
@@ -35,8 +36,12 @@ const mockDispatch = jest.fn();
 let mockTimingCompletion: (() => void) | undefined;
 let mockIsUsUnauthenticatedNonCardholder = false;
 let mockIsE2EOrPerformanceTest = false;
+let mockRiveViewReady = true;
+const mockRiveViewRef = {};
+const mockSetHybridRef = { f: jest.fn() };
 let mockRouteParams:
   | {
+      analyticsContext?: NavigationAnalyticsContext;
       postOnboardingRedirect?: {
         type: MoneyPostOnboardingRedirectType;
         preferredPaymentToken?: {
@@ -166,23 +171,29 @@ const mockWorklets = jest.requireMock(
 interface MockRiveViewProps {
   fit?: Fit;
   onError?: (error: RiveError) => void;
-  onLayout?: () => void;
   style?: StyleProp<ViewStyle>;
 }
 
 const mockRiveViewProps: { current?: MockRiveViewProps } = {};
 
 jest.mock('@rive-app/react-native', () => {
-  const actual = jest.requireActual('@rive-app/react-native');
+  const rive = jest.requireActual(
+    '../../../../../__mocks__/rive-app-react-native',
+  );
   const ReactActual = jest.requireActual('react');
+  const mockUseRive = () => ({
+    riveViewRef: mockRiveViewReady ? mockRiveViewRef : undefined,
+    setHybridRef: mockSetHybridRef,
+  });
   const MockRiveView = (props: MockRiveViewProps) => {
     mockRiveViewProps.current = props;
-    return ReactActual.createElement(actual.RiveView, props);
+    return ReactActual.createElement(rive.RiveView, props);
   };
   return {
     __esModule: true,
-    ...actual,
+    ...rive,
     RiveView: MockRiveView,
+    useRive: mockUseRive,
   };
 });
 
@@ -235,13 +246,9 @@ const completeOnboarding = async () => {
   setOnboardingCompleted(true);
 };
 
-const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
+const RIVE_READY_FALLBACK_DELAY_MS = 2500;
 
-const triggerRiveLayout = () => {
-  act(() => {
-    mockRiveViewProps.current?.onLayout?.();
-  });
-};
+const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
@@ -261,6 +268,7 @@ describe('MoneyOnboardingView', () => {
     mockApy = { apyPercent: 4, apyPercentFormatted: '4%' };
     mockIsUsUnauthenticatedNonCardholder = false;
     mockIsE2EOrPerformanceTest = false;
+    mockRiveViewReady = true;
     mockRouteParams = undefined;
     mockInitiateDeposit.mockResolvedValue(undefined);
     jest.mocked(useMoneyAccountDeposit).mockReturnValue({
@@ -283,6 +291,21 @@ describe('MoneyOnboardingView', () => {
       expect(
         getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
+    });
+
+    it('renders onboarding in a transparent fade modal', () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      const modal = getByTestId(MoneyOnboardingViewTestIds.MODAL);
+
+      expect(modal.props).toEqual(
+        expect.objectContaining({
+          animationType: 'fade',
+          hardwareAccelerated: true,
+          navigationBarTranslucent: true,
+          statusBarTranslucent: true,
+          transparent: true,
+        }),
+      );
     });
 
     it('renders the initial native text overlay for step 1', () => {
@@ -342,49 +365,41 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  describe('Rive initial layout', () => {
-    it('starts hidden with Cover fit before native layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
+  describe('Rive readiness', () => {
+    it('reveals the overlay after the fallback delay when Rive is not ready', async () => {
+      mockRiveViewReady = false;
 
-      expect(mockRiveViewProps.current?.fit).toBe(Fit.Cover);
-      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
-        0,
-      );
+      const { getByTestId, queryByTestId } = renderMoneyOnboardingView();
+
+      expect(
+        queryByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).not.toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
         ).opacity,
       ).toBe(0);
-    });
 
-    it('switches to Layout fit after native layout while remaining hidden', () => {
-      renderMoneyOnboardingView();
-
-      triggerRiveLayout();
-
-      expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
-      expect(StyleSheet.flatten(mockRiveViewProps.current?.style).opacity).toBe(
-        0,
-      );
-    });
-
-    it('reveals Rive and overlay on the animation frame after layout', () => {
-      const { getByTestId } = renderMoneyOnboardingView();
-
-      triggerRiveLayout();
-
-      act(() => {
-        jest.runOnlyPendingTimers();
+      await act(async () => {
+        await jest.advanceTimersByTimeAsync(RIVE_READY_FALLBACK_DELAY_MS);
       });
 
       expect(
-        StyleSheet.flatten(mockRiveViewProps.current?.style).opacity,
-      ).toBeUndefined();
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER),
+      ).toBeOnTheScreen();
       expect(
         StyleSheet.flatten(
-          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTAINER).props.style,
+          getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION).props.style,
         ).opacity,
-      ).toBe(1);
+      ).toBeUndefined();
+    });
+  });
+
+  describe('Rive configuration', () => {
+    it('renders the animation with Layout fit', () => {
+      renderMoneyOnboardingView();
+
+      expect(mockRiveViewProps.current?.fit).toBe(Fit.Layout);
     });
   });
 
@@ -420,6 +435,29 @@ describe('MoneyOnboardingView', () => {
         },
         { pop: true },
       );
+    });
+
+    it('initiates the post-onboarding deposit during E2E and performance tests', () => {
+      const preferredPaymentToken = {
+        address: '0xabc' as const,
+        chainId: '0x1' as const,
+      };
+      mockIsE2EOrPerformanceTest = true;
+      mockRouteParams = {
+        postOnboardingRedirect: {
+          type: MoneyPostOnboardingRedirectType.DEPOSIT,
+          preferredPaymentToken,
+        },
+      };
+
+      renderMoneyOnboardingView();
+
+      expect(mockInitiateDeposit).toHaveBeenCalledWith({
+        preferredPaymentToken,
+        replaceConfirmation: true,
+        onDepositSetupFailure: expect.any(Function),
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -490,20 +528,6 @@ describe('MoneyOnboardingView', () => {
         step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
         redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
-    });
-
-    it('tracks the next step immediately when currentStep changes', () => {
-      renderMoneyOnboardingView();
-      mockTrackOnboardingEvent.mockClear();
-
-      advanceStep();
-
-      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          step: 2,
-          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
-        }),
-      );
     });
 
     it('tracks the previous step again when currentStep moves backward', () => {
@@ -619,6 +643,34 @@ describe('MoneyOnboardingView', () => {
         }),
       );
       expect(mockNavigate).toHaveBeenCalled();
+    });
+
+    it('logs an error when onboardingCompleted fires before the final step', () => {
+      renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      setOnboardingCompleted(true);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'MoneyOnboardingView: onboardingCompleted fired before the final step',
+        }),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('ignores duplicate onboardingCompleted triggers after completion', async () => {
+      renderMoneyOnboardingView();
+
+      await completeOnboarding();
+      mockNavigate.mockClear();
+      mockTrackOnboardingEvent.mockClear();
+
+      setOnboardingCompleted(true);
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
 
     it('dispatches setMoneyOnboardingSeen when onboardingCompleted becomes true', async () => {
@@ -751,6 +803,53 @@ describe('MoneyOnboardingView', () => {
         {
           screen: Routes.MONEY.ROOT,
           params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
+    it('closes onboarding when the modal requests close', async () => {
+      const { getByTestId } = renderMoneyOnboardingView();
+      jest.clearAllMocks();
+
+      await act(async () => {
+        getByTestId(MoneyOnboardingViewTestIds.MODAL).props.onRequestClose();
+      });
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 1,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        },
+        { pop: true },
+      );
+    });
+
+    it('preserves analytics context when close trigger navigates home', () => {
+      const analyticsContext: NavigationAnalyticsContext = {
+        id: 'money-home',
+        attribution: 'homescreen_balance_breakdown',
+      };
+      mockRouteParams = { analyticsContext };
+
+      renderMoneyOnboardingView();
+      fireTrigger('close');
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.MONEY.ROOT,
+          params: {
+            screen: Routes.MONEY.HOME,
+            params: { analyticsContext },
+          },
         },
         { pop: true },
       );

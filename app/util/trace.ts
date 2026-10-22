@@ -2,7 +2,6 @@ import {
   startSpan as sentryStartSpan,
   startSpanManual,
   setMeasurement,
-  Scope,
 } from '@sentry/react-native';
 import {
   type StartSpanOptions,
@@ -10,12 +9,17 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
 import { AGREED, METRICS_OPT_IN } from '../constants/storage';
 import StorageWrapper from '../store/storage-wrapper';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
+import type {
+  SwapRelatedTraceName,
+  SwapTraceRequest,
+} from '@metamask/bridge-controller';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -71,6 +75,7 @@ export enum TraceName {
   RampBuyNativeToOrderCreated = 'Ramp Buy Native To Order Created',
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
+  RampScreenLoad = 'Ramp Screen Load',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -129,6 +134,11 @@ export enum TraceName {
   OnboardingCtaNavigation = 'Onboarding CTA Navigation',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  BridgeTransactionApprovalCompleted = 'Bridge Transaction Approval Completed',
+  BridgeTransactionCompleted = 'Bridge Transaction Completed',
+  SwapOperationCompleted = 'Swap Operation Completed',
+  SwapTransactionApprovalCompleted = 'Swap Transaction Approval Completed',
+  SwapTransactionCompleted = 'Swap Transaction Completed',
   SwapQuoteFetch = 'Swap Quote Fetch',
   SwapTokenSearch = 'Swap Token Search',
   SwapPopularTokensFetch = 'Swap Popular Tokens Fetch',
@@ -217,6 +227,8 @@ export enum TraceName {
   PerpsMarketDetailLive = 'Perps Market Detail Live',
   /** Market detail -> order form ready with current price + account state. */
   PerpsTradePageRender = 'Perps Trade Page Render',
+  /** Trade action -> bottom sheet content laid out and interactive. */
+  PerpsTradeSheetInteractive = 'Perps Trade Sheet Interactive',
   /** Order submit tap -> matching position rendered from the live stream. */
   PerpsPlaceOrderToPositionRendered = 'Perps Place Order To Position Rendered',
   /** Limit order submit tap -> resting order rendered in the live orders stream. */
@@ -282,6 +294,9 @@ export enum TraceName {
   PredictNextGetFeed = 'PredictNext Get Feed',
   PredictNextGetEvent = 'PredictNext Get Event',
   PredictNextGetMarketHistory = 'PredictNext Get Market History',
+  PredictNextSearchEvents = 'PredictNext Search Events',
+  PredictNextOrderPreview = 'PredictNext Order Preview',
+  PredictNextOrderCommit = 'PredictNext Order Commit',
   // mUSD Conversion
   MusdConversionNavigation = 'mUSD Conversion Navigation',
   MusdConversionQuote = 'mUSD Conversion Quote',
@@ -498,6 +513,7 @@ function getSpanAttributes(
 
 export interface PendingTrace {
   end: (timestamp?: number) => void;
+  maxLifetimeMs: number;
   request: TraceRequest;
   startTime: number;
   timeoutId: NodeJS.Timeout;
@@ -563,6 +579,12 @@ export interface TraceRequest {
    * Custom operation name to associate with the trace.
    */
   op?: string;
+
+  /**
+   * Maximum lifetime for a manually-ended trace.
+   * Defaults to {@link TRACES_CLEANUP_INTERVAL}.
+   */
+  maxLifetimeMs?: number;
 }
 /**
  * A request to end a pending trace.
@@ -583,6 +605,11 @@ export interface EndTraceRequest {
    * Override the end time of the trace.
    */
   timestamp?: number;
+
+  /**
+   * Final status to record on the span.
+   */
+  status?: 'ok' | 'error';
 
   /**
    * Custom data to associate with the trace when ending it.
@@ -606,9 +633,26 @@ interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
   }[];
 }
 
-export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
+type GenericTraceName = TraceRequest['name'];
 
-export function trace(request: TraceRequest): TraceContext;
+/**
+ * Overloads the {@link TraceRequest} type for swap-related trace names.
+ * The {@link SwapTraceRequest} type defines required properties for swap-related traces
+ */
+type TraceRequestFor<TName extends GenericTraceName> = [TName] extends [
+  SwapRelatedTraceName<TraceName>,
+]
+  ? Omit<SwapTraceRequest<TName>, 'op'> & { op?: TraceOperation }
+  : Omit<TraceRequest, 'name'> & { name: TName };
+
+export function trace<ResultType, TName extends GenericTraceName>(
+  request: TraceRequestFor<TName>,
+  fn: TraceCallback<ResultType>,
+): ResultType;
+
+export function trace<TName extends GenericTraceName>(
+  request: TraceRequestFor<TName>,
+): TraceContext;
 
 /**
  * Create a Sentry transaction to analyse the duration of a code flow.
@@ -648,7 +692,7 @@ function getEffectiveEndTime(
   pendingTrace: PendingTrace,
   requestedEndTime?: number,
 ): number {
-  const maximumEndTime = pendingTrace.startTime + TRACES_CLEANUP_INTERVAL;
+  const maximumEndTime = pendingTrace.startTime + pendingTrace.maxLifetimeMs;
   const endTime = requestedEndTime ?? getPerformanceTimestamp();
 
   // Guard against non-finite timestamps (e.g. environments without a
@@ -910,6 +954,12 @@ export function endTrace(request: EndTraceRequest): void {
     for (const [attrKey, attrValue] of Object.entries(request.data)) {
       span.setAttribute(attrKey, attrValue);
     }
+  }
+
+  if (request.status && pendingTrace.span) {
+    pendingTrace.span.setStatus({
+      code: request.status === 'ok' ? SPAN_STATUS_OK : SPAN_STATUS_ERROR,
+    });
   }
 
   let endTimeRequest = timestamp;
@@ -1256,6 +1306,7 @@ function startTrace(request: TraceRequest): TraceContext {
       finishPendingTrace(key, previousTrace);
     }
 
+    const maxLifetimeMs = request.maxLifetimeMs ?? TRACES_CLEANUP_INTERVAL;
     const timeoutId = setTimeout(() => {
       // Defensive identity check: a stale timer must never touch a newer
       // trace registered under the same key.
@@ -1274,12 +1325,13 @@ function startTrace(request: TraceRequest): TraceContext {
       // The timer only fires at or after the maximum lifetime (possibly hours
       // late when the app was backgrounded), so record the capped timestamp
       // rather than the current time.
-      end(startTime + TRACES_CLEANUP_INTERVAL);
+      end(startTime + maxLifetimeMs);
       tracesByKey.delete(key);
-    }, TRACES_CLEANUP_INTERVAL);
+    }, maxLifetimeMs);
 
     const pendingTrace: PendingTrace = {
       end,
+      maxLifetimeMs,
       request,
       startTime,
       timeoutId,
@@ -1318,9 +1370,7 @@ function startSpan<T>(
     forceTransaction,
   };
 
-  return withIsolationScope((scope) => {
-    setScopeTags(scope, request);
-
+  return withIsolationScope(() => {
     if (forceTransaction && !parentSpan) {
       return startNewTrace(() => callback(spanOptions));
     }
@@ -1338,23 +1388,6 @@ function getTraceKey(request: TraceRequest | EndTraceRequest) {
   const id = getTraceId(request);
 
   return [name, id].join(':');
-}
-
-/**
- * Initialise the isolated Sentry scope created for each trace.
- * Includes setting all non-numeric tags.
- *
- * @param scope - The Sentry scope to initialise.
- * @param request - The trace request.
- */
-function setScopeTags(scope: Scope, request: TraceRequest) {
-  const tags = request.tags ?? {};
-
-  for (const [key, value] of Object.entries(tags)) {
-    if (typeof value !== 'number') {
-      scope.setTag(key, value);
-    }
-  }
 }
 
 /**

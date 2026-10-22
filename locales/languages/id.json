@@ -28,7 +28,7 @@
   },
   "arc_usage_notice": {
     "title": "Pemberitahuan",
-    "description": "Selamat datang di Arc! Untuk memfasilitasi dan memverifikasi penggunaan chain Arc, kami akan membagikan informasi kepada tim Arc."
+    "description": "Selamat datang di Arc! Untuk memfasilitasi dan memverifikasi penggunaan Anda atas Arc chain, kami dapat membagikan informasi kepada tim Arc."
   },
   "storage": {
     "device_full_alert": "Penyimpanan pada perangkat Anda hampir habis. Kosongkan ruang sehingga MetaMask dapat menyimpan data dompet Anda."
@@ -66,6 +66,10 @@
       "title": "Biaya tidak akurat",
       "message": "Kami tidak dapat memberikan biaya yang akurat dan estimasi ini mungkin terlalu tinggi. Sebaiknya, masukkan batas gas khusus, tetapi ada risiko transaksi tetap gagal."
     },
+    "gas_limit_below_minimum": {
+      "title": "Batas gas rendah",
+      "message": "Untuk melanjutkan transaksi ini, Anda harus meningkatkan batas gas hingga 12000 atau lebih tinggi."
+    },
     "insufficient_balance": {
       "title": "Dana tidak cukup",
       "message": "{{nativeCurrency}} di akun Anda tidak cukup untuk membayar biaya jaringan.",
@@ -74,6 +78,11 @@
     "signed_or_submitted": {
       "title": "Transaksi sedang berlangsung",
       "message": "Transaksi sebelumnya masih dalam proses penandatanganan atau pengiriman."
+    },
+    "suggested_gas_fee_high": {
+      "title": "Biaya situs tinggi",
+      "message": "Situs ini menyarankan biaya jaringan yang lebih tinggi dari yang seharusnya. Edit biaya jaringan agar Anda membayar lebih murah.",
+      "edit_action": "Edit biaya jaringan"
     },
     "signed_or_submitted_perps_deposit": {
       "title": "Deposit sedang diproses",
@@ -546,6 +555,9 @@
     "reset_wallet_desc_2": "dari MetaMask di perangkat ini. Tindakan ini tidak dapat dibatalkan.",
     "reset_wallet_desc_login": "Untuk memulihkan dompet, Anda dapat menggunakan Frasa Pemulihan Rahasia, atau kata sandi akun Google atau Apple. MetaMask tidak memiliki informasi ini.",
     "reset_wallet_desc_srp": "Untuk memulihkan dompet, pastikan Anda memiliki Frasa Pemulihan Rahasia. MetaMask tidak memiliki informasi ini.",
+    "reset_wallet_desc_srp_1": "Untuk memulihkan dompet Anda, pastikan Anda memiliki",
+    "reset_wallet_desc_srp_bold": "Frasa Pemulihan Rahasia",
+    "reset_wallet_desc_srp_2": "MetaMask tidak memiliki informasi ini.",
     "biometric_authentication_cancelled": "Autentikasi biometrik dibatalkan",
     "biometric_authentication_cancelled_title": "Pengaturan Biometrik Gagal",
     "biometric_authentication_cancelled_description": "Atur kembali autentikasi biometrik dari pengaturan.",
@@ -567,8 +579,9 @@
     "error": "Kesalahan"
   },
   "choose_password": {
-    "title": "Kata sandi MetaMask",
+    "title": "Buat kata sandi",
     "description": "Buka MetaMask hanya pada perangkat ini.",
+    "create_description": "Gunakan kata sandi ini untuk membuka MetaMask pada perangkat ini. Kata sandi ini tidak menggantikan Frasa Pemulihan Rahasia.",
     "description_social_login": "Gunakan ini untuk pemulihan dompet di semua perangkat.",
     "description_social_login_update": "Jika kehilangan kata sandi ini, Anda akan kehilangan akses ke dompet di semua perangkat. Simpan di tempat yang aman,",
     "description_social_login_update_ios": "Gunakan ini untuk memulihkan dompet di semua perangkat. MetaMask tidak dapat meresetnya.",
@@ -597,10 +610,17 @@
     "confirm": "Konfirmasikan Frasa Pemulihan Rahasia",
     "disable_biometric_error": "Anda telah menonaktifkan biometrik untuk aplikasi ini. Perbarui pengaturan Ingatkan Saya dan coba lagi.",
     "create_password_cta": "Buat kata sandi",
+    "new_password_placeholder": "Kata sandi baru",
+    "confirm_password_placeholder": "Masukkan kembali kata sandi baru",
     "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
     "password_error": "Kata sandi tidak cocok.",
     "marketing_opt_in_description": "Dapatkan pembaruan produk, kiat, dan berita, termasuk melalui email. Kami dapat menggunakan interaksi Anda untuk meningkatkan konten yang kami bagikan.",
-    "loose_password_description": "Jika saya kehilangan kata sandi ini, MetaMask tidak dapat meresetnya."
+    "password_warning_title": "MetaMask tidak dapat mereset kata sandi Anda",
+    "password_warning_description_part1": "Jika lupa kata sandi ini, satu-satunya cara untuk masuk kembali adalah dengan ",
+    "password_warning_srp": "Frasa Pemulihan Rahasia",
+    "password_warning_description_part2": " atau perangkat dengan fitur biometrik yang diaktifkan.",
+    "password_warning_confirm": "Saya mengerti",
+    "password_warning_cancel": "Batal"
   },
   "wallet_creation_error": {
     "title": "Terjadi kesalahan",
@@ -672,13 +692,15 @@
     "enter_your_secret_recovery_phrase": "Masukkan Frasa Pemulihan Rahasia",
     "or": "atau",
     "import_wallet_from_extension": "impor dari ekstensi MetaMask",
+    "import_menu_title": "Impor",
+    "import_from_srp_qr": "Import from Secret Recovery Phrase QR Code",
+    "import_from_extension_menu": "Impor dari ekstensi MetaMask",
     "metamask_password": "Kata sandi MetaMask",
     "metamask_password_description": "Buka MetaMask hanya pada perangkat ini.",
     "seed_phrase_required": "Frasa Pemulihan Rahasia wajib diisi",
     "re_enter_password": "Masukkan kembali kata sandi",
     "use_at_least_8_characters": "Gunakan minimal 8 karakter",
     "unlock_with_face_id": "Buka dengan ID Wajah?",
-    "learn_more": "Jika saya lupa kata sandi ini, MetaMask tidak dapat memulihkannya untuk saya.",
     "learn_more_social_login": "Jika lupa kata sandi ini, saya akan kehilangan akses ke dompet secara permanen. MetaMask tidak dapat mereset kata sandi ini untuk saya.",
     "seed_phrase_length_error": "Frasa Pemulihan Rahasia harus terdiri dari 12, 15, 18, 21, atau 24 kata",
     "continue": "Lanjutkan",
@@ -977,7 +999,7 @@
       "dob_required": "Tanggal lahir diperlukan",
       "dob_invalid": "Masukkan tanggal lahir yang valid",
       "ssn_required": "Nomor jaminan sosial diperlukan",
-      "unexpected_error": "Terjadi kesalahan tidak terduga. Coba lagi.",
+      "unexpected_error": "Terjadi kesalahan tak terduga. Coba lagi.",
       "phone_already_registered": "Nomor telepon ini sudah digunakan oleh {{email}}. Masuk menggunakan email ini untuk melanjutkan.",
       "login_with_email": "Masuk dengan email"
     },
@@ -1073,6 +1095,7 @@
       "bank_name": "Nama bank",
       "beneficiary_address": "Alamat penerima",
       "bank_address": "Alamat bank",
+      "copy_value": "Copy {{label}}",
       "info_banner_text": "Anda harus melihat '{{accountHolderName}}' sebagai pemegang rekening. Ini membantu bank memproses transfer.",
       "error_message": "Kami tidak dapat mengonfirmasi transfer bank Anda. Coba lagi.",
       "cancel_order_error": "Kami tidak dapat membatalkan order Anda. Coba lagi."
@@ -1106,49 +1129,143 @@
     }
   },
   "virtual_bank_account": {
-    "get_pix_key": {
+    "create_virtual_bank_account": {
       "navbar_title": "Rekening bank",
-      "title": "Dapatkan Kunci Pix Anda",
-      "description": "Kirim dana langsung ke Money account dari rekening bank mana pun.",
-      "benefit_deposit_pix": "Deposit dengan",
-      "benefit_payments": "Kirim pembayaran lokal dan internasional",
-      "agreements_disclosures_title": "Perjanjian dan pengungkapan",
+      "title": "Add funds right from your bank",
+      "description": "Get virtual account details so you can receive funds directly from your local bank.",
+      "feature_no_fees_title": "No fees to add funds",
+      "feature_no_fees_description": "We don’t charge to deposit. Your bank may.",
+      "feature_arrives_title": "Arrives in {{timeframe}}",
+      "feature_arrives_title_no_timeframe": "Arrives in a few business days",
+      "feature_arrives_description": "Funds land as soon as your transfer clears.",
+      "feature_set_up_title": "Set up once, use anytime",
+      "feature_set_up_description": "Save it as a payee in your banking app.",
+      "feature_earn_title": "Starts earning straight away",
+      "feature_earn_description": "Deposits earn {{percentage}}% APY as mUSD.",
+      "feature_earn_description_no_apy": "Deposits earn APY as mUSD.",
       "disclaimers_error": "Tidak dapat memuat syarat dan ketentuan.",
       "disclaimers_retry": "Coba lagi",
-      "agreement_text": "Dengan melanjutkan, Anda menyetujui syarat dan ketentuan di atas.",
-      "powered_by_moonpay": "Didukung oleh MoonPay.",
-      "button": "Setuju dan lanjutkan"
+      "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
+      "agreement_separator": " dan ",
+      "agreement_suffix": ".",
+      "powered_by": "Didukung oleh",
+      "button": "Get account details"
     },
     "verify_identity": {
       "title": "Verifikasikan identitas Anda",
-      "description": "Verifikasi cepat dan hanya perlu dilakukan satu kali. Untuk memverifikasi, Anda harus:",
-      "step_upload_id": "Mengunggah dokumen ID",
+      "description": "This usually only takes a few minutes. You'll need a valid, government-issued photo ID on hand.",
+      "step_photograph_id": "Photograph your ID",
       "step_take_selfie": "Ambil selfie",
-      "step_confirm_details": "Konfirmasikan detail pribadi",
-      "data_and_privacy_title": "Data dan privasi",
-      "what_we_collect_title": "Yang kami kumpulkan",
-      "what_we_collect_description": "Kami mengumpulkan informasi pribadi sebagai bagian dari verifikasi identitas, termasuk nama lengkap, alamat, dan banyak lagi.",
-      "how_we_store_data_title": "Cara kami menyimpan data",
-      "how_we_store_data_description": "Verifikasi info disimpan dengan aman di server yang dikelola MetaMask. Ini dienkripsi dengan entropi Frasa Pemulihan Rahasia dan kami tidak dapat mengakses datanya. Persetujuan Anda akan diperlukan untuk penggunaan di masa mendatang dengan penyedia lain.",
-      "how_to_delete_title": "Cara menghapus",
-      "how_to_delete_description": "Anda dapat menghapus data setiap saat dengan membuka Pengaturan> Kelola data.",
-      "metamask_privacy_policy": "Kebijakan Privasi MetaMask",
-      "metamask_terms": "S&K MetaMask",
+      "step_confirm_details": "Confirm your details",
+      "step_answer_questions": "Answer a few questions",
+      "footer": "Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
+      "powered_by": "Didukung oleh",
       "disclaimers_error": "Tidak dapat memuat syarat dan ketentuan.",
       "disclaimers_retry": "Coba lagi",
-      "button": "Lanjutkan"
+      "button": "Lanjutkan",
+      "terms_sheet_title": "Data dan privasi",
+      "terms_sheet_description": "To verify your identity, your information will be shared securely with the providers below. Review their policies and terms before continuing.",
+      "metamask_privacy_policy": "Kebijakan Privasi MetaMask",
+      "metamask_terms": "MetaMask Terms and Conditions",
+      "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "title": "What's your email?",
-      "description": "We'll use this to send account updates.",
-      "input_placeholder": "Alamat email",
-      "button": "Lanjutkan",
-      "error_title": "Identity verification",
-      "error_description": "We couldn't start your identity verification. Try again.",
-      "terms_not_loaded_error": "Terms are not loaded yet. Go back to Get your Pix Key and try again."
+      "verify_description": "placeholder for verify description",
+      "enroll_description": "placeholder for enroll description",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening email verification. Please try again."
+    },
+    "sumsub_kyc": {
+      "more_info_title": "We need a little more info",
+      "more_info_description": "Sometimes we need additional information to complete verification. Review what's needed below to continue.",
+      "more_info_item_title": "Proof of address",
+      "more_info_item_description": "Upload a recent document showing your name and current home address",
+      "more_info_button": "Lanjutkan",
+      "more_info_help": "Need help verifying?",
+      "error_title": "Couldn't start verification",
+      "error_description": "Something went wrong opening identity verification. Please try again.",
+      "retry": "Coba lagi"
+    },
+    "kyc_taking_longer": {
+      "title": "Memverifikasi identitas Anda",
+      "description": "Most checks finish in about 10 seconds. You can come back later, we'll let you know when your check is complete.",
+      "button": "Come back later"
+    },
+    "identity_verified": {
+      "title": "Identitas diverifikasi",
+      "description": "Your identity check is complete.",
+      "button": "Lanjutkan"
+    },
+    "creating_account": {
+      "title": "Creating your bank account"
+    },
+    "kyc_rejected": {
+      "title": "We couldn’t verify your identity",
+      "description": "A few details need your attention. Review each item below, then try again.",
+      "identity_document_title": "Check your identity document",
+      "identity_document_description": "Make sure it is valid, clear, and fully visible",
+      "selfie_title": "Retake your selfie",
+      "selfie_description": "Use good lighting and show your face clearly",
+      "details_title": "Review your details",
+      "details_description": "Make sure your information matches your documents",
+      "button": "Coba lagi"
+    },
+    "account_provisioning_error": {
+      "title": "Couldn't create your account",
+      "description": "Your identity is verified, but we couldn't finish creating your account.",
+      "button": "Coba lagi"
+    },
+    "error": {
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
+      "button": "Coba lagi"
+    },
+    "vba_details": {
+      "title": "Add money with Pix",
+      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
+      "copia_cola_label": "PIX Copia e Cola",
+      "pix_key_label": "PIX key",
+      "bank_transfer_title": "Add money by bank transfer",
+      "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
+      "account_holder_label": "Account holder",
+      "routing_number_label": "Nomor routing",
+      "account_number_label": "Nomor rekening",
+      "bank_name_label": "Nama bank",
+      "copy_label": "Copy {{field}}",
+      "copied_label": "Copied {{field}}",
+      "button": "Selesai",
+      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "loading_details": "Loading account details",
+      "load_error": "Couldn't refresh the deposit. We'll try again.",
+      "setup_error": "Couldn't create your account.",
+      "retry": "Coba lagi"
     }
   },
   "social_leaderboard": {
+    "entry_options": {
+      "title": "Opsi",
+      "report": "Report",
+      "hide_post": "Hide post",
+      "block_user": "Block user",
+      "report_reason_title": "Report",
+      "report_reason_description": "Select the reason that best describes the issue.",
+      "report_reasons": {
+        "spam": "Spam",
+        "harassment": "Harassment or bullying",
+        "misleading": "False or misleading information",
+        "other": "Sesuatu yang lain"
+      },
+      "submit_report": "Kirim",
+      "post_hidden_confirmation": "Post hidden",
+      "user_blocked_confirmation": "{{username}} has been blocked",
+      "report_confirmation": "Report submitted"
+    },
+    "feed_sort": {
+      "title": "Urutkan",
+      "most_recent": "Most recent",
+      "popular": "Populer"
+    },
     "top_traders_view": {
       "notifications_banner": {
         "description": "Anda akan mendapatkan peringatan saat trader yang Anda ikuti membuat pergerakan. Aktifkan pemberitahuan di pengaturan perangkat Anda.",
@@ -1188,13 +1305,18 @@
         "live_trades": "Perdagangan langsung"
       },
       "live_stream": {
-        "paused": "Paused",
+        "paused": "Dijeda",
         "live": "Langsung"
       },
       "following": "Mengikuti",
       "all": "Semua",
       "trade": "Berdagang",
       "just_now": "Baru saja",
+      "age": {
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} hr ago",
+        "days": "{{count}} d ago"
+      },
       "action": {
         "perps_opened": "dibuka",
         "perps_added": "ditambahkan",
@@ -1216,6 +1338,20 @@
         "title": "Belum ada aktivitas",
         "description": "Aktivitas trader akan ditampilkan di sini saat perdagangan terjadi."
       },
+      "v1_empty": {
+        "trending": {
+          "title": "No posts yet",
+          "description": "Trader posts will show up here."
+        },
+        "following": {
+          "title": "No posts yet",
+          "description": "Follow traders to see their posts here."
+        },
+        "liveTrades": {
+          "title": "Belum ada perdagangan",
+          "description": "Live trades will show up here."
+        }
+      },
       "empty_type": {
         "tokens": {
           "title": "Tidak ada aktivitas token"
@@ -1224,6 +1360,9 @@
           "title": "Tidak ada aktivitas perp"
         },
         "description": "Tidak ada perdagangan yang sesuai dalam aktivitas sejauh ini."
+      },
+      "empty_filtered": {
+        "title": "Belum ada perdagangan"
       },
       "load_more": "Muat lainnya",
       "error": {
@@ -1236,19 +1375,67 @@
         "size_at_price": "{{size}} pada {{price}}",
         "size_at_market_cap": "{{size}} pada {{marketCap}} {{abbreviation}}"
       },
+      "trader_stats": {
+        "pnl_30d": "{{pnl}} P&L (30d)",
+        "followers": "{{count}} pengikut",
+        "win_rate": "{{winRate}} win rate"
+      },
       "no_data": "Data kosong",
+      "add_reaction": "Add reaction",
       "position_card": {
         "copy_trade": "Copy trade",
         "leverage": "Leverage",
-        "auto_close": "Auto-close",
-        "entry_price": "Harga masuk",
-        "exit_price": "Exit price",
-        "max_hold_time": "Max hold time",
-        "status": "Status",
-        "closed": "Ditutup",
+        "mock_data_footnote": "* Mock data",
+        "entry": "Entri",
+        "exit": "Keluar",
+        "cost": "Cost",
+        "hold_time": "Hold time",
         "buy": "Beli",
-        "sell": "Jual"
+        "sell": "Jual",
+        "closed_ago": "Closed {{age}}"
       }
+    },
+    "composer": {
+      "placeholder": "Share your thoughts about a position",
+      "post": "Post",
+      "close": "Close composer",
+      "character_count": "{{count}}/{{limit}}",
+      "chip_position": "Posisi",
+      "chip_gif": "GIF",
+      "gifs_title": "GIFs",
+      "gifs_close": "Close GIFs",
+      "gifs_search_placeholder": "Search GIFs",
+      "gifs_empty": "No GIFs found",
+      "gifs_error": "Couldn't load GIFs",
+      "gifs_missing_key": "Add a Klipy API key to load GIFs",
+      "remove_position": "Remove position",
+      "remove_gif": "Remove GIF",
+      "share_position_title": "Share a position",
+      "tab_open": "Buka",
+      "tab_closed": "Ditutup",
+      "section_tokens": "Token",
+      "section_perps": "Perps",
+      "empty_title": "No positions to share",
+      "empty_description": "Create a position to share it here.",
+      "empty_open": "Tidak ada posisi terbuka",
+      "empty_closed": "No closed positions",
+      "error_title": "Couldn't load positions",
+      "retry": "Coba lagi",
+      "posting": "Posting...",
+      "post_failed": "Couldn't create post. Try again.",
+      "linked_account_missing": "Your linked Social account isn't in this wallet.",
+      "showing_linked_account": "Showing positions from {{account}}",
+      "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
+    },
+    "post_swap_share": {
+      "in_progress": "Sedang berlangsung...",
+      "complete": "Swap selesai",
+      "failed": "Pertukaran gagal",
+      "share_and_earn_title": "Share and earn",
+      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
+      "share_this_trade": "Share this trade",
+      "try_again": "Coba lagi",
+      "close": "Tutup"
     },
     "shell": {
       "subnav": {
@@ -1262,11 +1449,15 @@
         "kols": "KOL"
       },
       "filters": {
-        "title": "Filters",
-        "show_results": "Show results",
+        "title": "Custom filters",
+        "show_results": "Terapkan",
+        "apply": "Terapkan",
+        "reset": "Reset",
         "section": {
-          "type": "Jenis",
-          "trader_cohort": "Trader cohort",
+          "type": "Aset",
+          "asset_type": "Asset type",
+          "verification": "Verification",
+          "trader_cohort": "Trader",
           "timeframe": "Jangka waktu",
           "network": "Jaringan",
           "market_cap": "Kap pasar",
@@ -1278,13 +1469,19 @@
           "perps": "Perps",
           "predictions": "Prediksi"
         },
+        "verification": {
+          "all": "Semua",
+          "verified": "Terverifikasi",
+          "unverified": "Unverified"
+        },
         "trader_cohort": {
           "all": "Semua",
           "following": "Mengikuti",
           "shrimp": "Shrimp",
           "dolphin": "Dolphin",
           "whale": "Whale",
-          "kol": "KOL"
+          "kol": "KOL",
+          "verified": "Terverifikasi"
         },
         "timeframe": {
           "1h": "1H",
@@ -1297,7 +1494,7 @@
           "robinhood": "Robinhood",
           "bnb": "BNB",
           "solana": "Solana",
-          "base": "Dasar"
+          "base": "Base"
         },
         "range": {
           "market_cap_min": "$0",
@@ -1343,6 +1540,13 @@
     },
     "follow": "Ikuti",
     "following": "Mengikuti",
+    "popular_traders": "Popular traders",
+    "profiles_to_follow": {
+      "title": "Profiles to follow",
+      "empty": "No traders to show yet.",
+      "error": "Couldn't load traders",
+      "retry": "Coba lagi"
+    },
     "win_rate_tag": "{{winRate}} WR",
     "mute": {
       "on_accessibility_label": "Notifikasi aktif. Ketuk untuk membisukan trader ini",
@@ -1356,10 +1560,25 @@
       "followers_count_plural": "{{count}} pengikut",
       "win_rate": "Persentase kemenangan",
       "pnl_7d": "P&L 7D",
+      "pnl_30d": "30D P&L",
       "hold_time": "Rata-Rata dimiliki",
       "hold_time_minutes": "{{count}}m",
       "hold_time_hours": "{{count}} jam",
       "hold_time_days": "{{count}} hari",
+      "stats_sheet_title": "30D stats",
+      "stats_sheet_hold_time": "Hold time",
+      "stats_sheet_breakdown": "Breakdown",
+      "stats_sheet_performance": "Performa",
+      "stats_sheet_profile_age": "Profile age",
+      "stats_sheet_positions": "Posisi",
+      "stats_sheet_avg_position_value": "Avg. position value",
+      "stats_sheet_avg_30d_sample": "Avg. 30D sample",
+      "stats_sheet_copy_success_rate": "Copy success rate",
+      "stats_sheet_accessibility_label": "View trader stats",
+      "trading_volume": "Trading volume",
+      "number_of_trades": "Number of trades",
+      "followers": "Followers",
+      "trades_copied": "Trades copied",
       "open": "Buka",
       "closed": "Ditutup",
       "no_positions": "Belum ada posisi",
@@ -1375,18 +1594,97 @@
     "my_profile": {
       "avatar_accessibility_label": "Your profile avatar",
       "open_profile": "Open my profile",
+      "create_post": "Create post",
       "followers": "followers",
       "following": "mengikuti",
+      "followers_tab": "{{count}} pengikut",
+      "following_tab": "{{count}} following",
+      "mutuals_tab": "{{count}} mutuals",
+      "win_rate": "Persentase kemenangan",
+      "pnl": "P&L",
+      "hold_time": "Hold time",
+      "avg_hold_time": "Avg. hold time",
+      "volume": "Volume",
+      "performance_30d": "Performance (30d)",
+      "times_copied": "Times copied",
+      "empty_following": "You aren't following anyone yet.",
+      "empty_trader_following": "Not following anyone yet.",
+      "empty_followers": "No followers yet.",
+      "empty_mutuals": "No mutual followers yet.",
+      "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
+      "section_tokens": "Token",
+      "section_perpetuals": "Abadi",
+      "empty_open": "Tidak ada posisi terbuka",
+      "empty_closed": "No closed positions",
+      "empty_open_tokens": "No open tokens",
+      "empty_closed_tokens": "No closed tokens",
+      "empty_open_perps": "No open perps",
+      "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
       "empty_title": "Your feed starts here",
       "empty_description": "Share a trade and it'll show up here for your followers",
       "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "other_empty_title": "No posts yet",
+      "other_empty_description": "When they share a trade, it will show up here.",
       "share_first_trade": "Share your first trade",
+      "debug_reset_profile": "debug: reset profile",
+      "joined": "Joined {{time}}",
+      "load_profile_error": "Couldn't load your profile.",
+      "no_profile_title": "Create your profile",
+      "no_profile_description": "Claim a username to show up on the feed.",
+      "create_profile": "Create profile",
       "retry": "Coba lagi"
+    },
+    "profile_onboarding": {
+      "intro_title": "See trades as they happen",
+      "live_activity": "Live activity",
+      "bought": "dibeli",
+      "sold": "terjual",
+      "just_now": "baru saja",
+      "seconds_ago": "{{count}}s",
+      "connect_x": "Connect X account",
+      "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
+      "claim_username": "Claim a username",
+      "username_label": "Nama pengguna",
+      "display_name_label": "Nama tampilan",
+      "username_available": "Username available",
+      "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_check_error": "Couldn't check that username. Check your connection and try again.",
+      "connect_x_error": "Couldn't connect X. Check your connection and try again.",
+      "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "shuffle_username": "Suggest a username",
+      "customize_avatar": "Choose an avatar",
+      "avatar_background_peach": "Peach background",
+      "avatar_background_lilac": "Lilac background",
+      "avatar_background_sky": "Sky background",
+      "avatar_background_purple": "Purple background",
+      "avatar_background_lime": "Lime background",
+      "link_account": "Pick an account to link with your profile",
+      "link_account_description": "Activity from this account will appear on your profile starting today.",
+      "select_account": "Pilih akun",
+      "link_account_benefit_trades": "Your profile shows this account's trades, win rate, and P&L from the last 30 days.",
+      "link_account_benefit_private": "Your account address stays private.",
+      "link_account_benefit_follow": "Other traders can follow your profile.",
+      "link_account_benefit_fees": "Earn 15% on fees when someone copies your trades.",
+      "link_account_change_footnote": "You can change your linked account every 30 days.",
+      "share_trading_activity": "Share trading activity",
+      "share_trading_activity_description": "Other people can see your trades. Get 15% of the fees when someone copies your moves.",
+      "feed_awaits": "Your profile is ready!",
+      "feed_awaits_description": "Make a trade, share your take, and earn 15% on fees when someone copies you.",
+      "hi": "Hi!",
+      "lets_go": "Ayo",
+      "continue": "Lanjutkan"
     },
     "manage_profile": {
       "title": "Manage profile",
@@ -1397,9 +1695,12 @@
       "bio": "Bio",
       "socials": "Socials",
       "trading_activity": "Aktivitas perdagangan",
-      "trading_activity_on": "On",
+      "trading_activity_on": "Aktif",
+      "trading_activity_off": "Nonaktif",
       "linked_social_account": "Linked social account",
       "save": "Simpan",
+      "save_error": "Perubahan tidak dapat disimpan. Periksa koneksi Anda dan coba lagi.",
+      "username_unavailable": "This handle is unavailable. Choose another one.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -1408,6 +1709,46 @@
       "trading_activity_info": "More information about trading activity",
       "linked_account_footnote": "Trades made with this account will be shown on your feed and the leaderboard.",
       "avatar_accessibility_label": "Your profile avatar"
+    },
+    "position_sheet": {
+      "title": "{{username}}'s trade",
+      "follow": "Ikuti",
+      "following": "Mengikuti",
+      "today": "Hari ini",
+      "market_cap_suffix": "(MC)",
+      "level": {
+        "entry": "Entri",
+        "exit": "Keluar",
+        "current": "Saat ini",
+        "take_profit": "TP",
+        "stop_loss": "SL",
+        "with_age": "{{level}} · {{age}}"
+      },
+      "weekdays": {
+        "0": "Sun",
+        "1": "Mon",
+        "2": "Tue",
+        "3": "Wed",
+        "4": "Thu",
+        "5": "Fri",
+        "6": "Sat"
+      },
+      "tooltip": {
+        "label": "{{action}} @ {{price}}",
+        "bought": "Dibeli",
+        "sold": "Terjual",
+        "perps_closed": "Ditutup",
+        "perps_long_opened": "Long terbuka",
+        "perps_long_added": "Added to long",
+        "perps_long_reduced": "Reduced long",
+        "perps_short_opened": "Posisi short dibuka",
+        "perps_short_added": "Added to short",
+        "perps_short_reduced": "Bought back",
+        "spot_opened": "Dibeli",
+        "spot_added": "Bought more",
+        "spot_reduced": "Sold some",
+        "spot_closed": "Sold all"
+      }
     },
     "trader_position": {
       "market_cap": "Kap pasar",
@@ -1433,15 +1774,23 @@
       "fallback_back_to_leaderboard": "Kembali ke papan peringkat",
       "sell": "Jual",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "your_position": "Posisi Anda",
+      "unrealized_pnl": "P&L Belum Terealisasi",
+      "expand_position": "Expand position",
+      "collapse_position": "Collapse position",
+      "expanded_placeholder": "Position details will appear here"
     },
     "quick_buy": {
       "title": "Beli {{symbol}}",
+      "sell_title": "Sell {{symbol}}",
+      "change_trade_mode": "Change trade mode",
       "market_cap_label": "Kap pasar",
       "pay_with": "Bayar melalui",
       "buy_mode": "Beli",
       "with": "dengan",
-      "total": "Total",
+      "est_receive": "Est. receive",
+      "metamask_fee": "Biaya MetaMask",
       "network_fee": "Biaya jaringan",
       "slippage": "Selip",
       "minimum_received": "Jumlah minimum yang diterima",
@@ -1457,14 +1806,8 @@
       "select_quote_title": "Pilih kuotasi",
       "rate": "Terbaik",
       "get_new_quote": "Dapatkan kuotasi baru",
-      "available_balance": "{{amount}} tersedia",
+      "available_balance": "{{amount}} Tersedia",
       "toggle_amount_display": "Beralih antar jumlah token dan jumlah dolar",
-      "includes_mm_fee": "Termasuk biaya MetaMask sebesar {{fee}}%",
-      "pay_with_no_tokens": "Token untuk pembayaran tidak tersedia",
-      "receive_with_no_tokens": "Token yang akan diterima tidak tersedia",
-      "pay_with_filter_all": "Semua",
-      "buy_label": "Beli",
-      "sell_label": "Jual",
       "receive": "Terima",
       "max": "Maks",
       "add_funds": "Tambahkan dana",
@@ -1473,27 +1816,28 @@
       "toast_complete_buy": "Membeli {{amount}} dari {{symbol}} dengan {{counter}}",
       "toast_complete_sell": "Menjual {{amount}} dari {{symbol}} untuk {{counter}}",
       "toast_failed_buy": "Tidak bisa membeli {{symbol}}",
-      "toast_failed_sell": "Tidak bisa menjual {{symbol}}",
-      "edit_quick_amounts_title": "Edit jumlah default",
-      "edit_quick_amounts_set_buy": "Untuk membeli",
-      "edit_quick_amounts_set_sell": "Untuk dijual",
-      "edit_quick_amounts_confirm": "Simpan",
-      "edit_quick_amounts_buy_above_zero": "Jumlah pembelian harus di atas {{min}}",
-      "edit_quick_amounts_buy_below_max": "Jumlah pembelian harus di bawah {{max}}",
-      "edit_quick_amounts_sell_above_zero": "Jumlah penjualan harus di atas 0%",
-      "edit_quick_amounts_sell_below_max": "Jumlah penjualan harus di bawah 100%"
+      "toast_failed_sell": "Tidak bisa menjual {{symbol}}"
     }
   },
   "perps": {
     "basic_functionality_disabled_title": "Perp tidak tersedia",
     "title": "Perps",
+    "recovery": {
+      "review_expired": "Your position review needs refreshing. Go back and review your positions and orders before trying again."
+    },
     "trade_sheet": {
+      "close": "Tutup perdagangan",
       "settings": "Pengaturan",
-      "order_summary": "Order summary",
-      "includes_fee": "Includes {{feePercentage}}% fee",
-      "amount_slider_accessibility_label": "Order amount",
-      "show_asset_value": "Show asset value",
-      "show_fiat_value": "Show fiat value"
+      "order_summary": "Ringkasan order",
+      "includes_fee": "Termasuk biaya {{feePercentage}}%",
+      "includes_fee_with_bridge": "Includes {{feePercentage}}% fee + {{bridgeFee}} bridge fee",
+      "amount_slider_accessibility_label": "Jumlah order",
+      "order_type_accessibility_label": "Jenis order {{orderType}}",
+      "show_asset_value": "Tampilkan nilai aset",
+      "show_fiat_value": "Tampilkan nilai fiat",
+      "max_leverage_accessibility_label": "Leverage hingga {{maxLeverage}}x",
+      "margin_info_accessibility_label": "Tentang margin",
+      "liquidation_price_info_accessibility_label": "Tentang harga likuidasi"
     },
     "mode": {
       "lite": "Lite",
@@ -1515,7 +1859,7 @@
     "available_balance": "Saldo tersedia",
     "margin_used": "Margin yang digunakan",
     "gtm_content": {
-      "title": "PERP TELAH HADIR",
+      "title": "Perp telah hadir",
       "title_description": "Posisi long atau short dengan leverage hingga 40x. Danai akun Anda dalam satu klik.",
       "not_now": "Tidak sekarang",
       "try_now": "Mulai"
@@ -1526,8 +1870,10 @@
     },
     "service_interruption": {
       "title": "Kami sedang mengalami gangguan",
-      "description": "Beberapa layanan mungkin tidak tersedia selagi tim melakukan perbaikan.",
-      "contact_support": "Hubungi dukungan"
+      "description": "Beberapa layanan tidak tersedia untuk sementara waktu. {{faqLink}}, atau {{supportLink}}.",
+      "faq_link": "Lihat pilihan Anda di bagian Pertanyaan Umum",
+      "contact_support": "hubungi dukungan",
+      "faq_title": "Pertanyaan Umum Perp"
     },
     "competition_banner": {
       "title": "Papan peringkat kompetisi",
@@ -1635,7 +1981,7 @@
         "view_transaction": "Lihat transaksi"
       },
       "success_toast": "Akun Perp Anda telah didanai",
-      "success_amount_added": "{{amount}} was added to Perps",
+      "success_amount_added": "{{amount}} ditambahkan ke Perp",
       "funds_are_ready_to_trade": "Dana siap untuk diperdagangkan",
       "error_toast": "Transaksi gagal",
       "error_generic": "Dana telah dikembalikan kepada Anda",
@@ -1645,6 +1991,8 @@
       "cancel_trade": "Batalkan perdagangan",
       "trade_canceled": "Perdagangan dibatalkan",
       "funds_returned_to_account": "Dana dikembalikan ke akun Anda",
+      "order_not_placed": "Deposit diterima, order belum dibuat",
+      "order_not_placed_description": "Deposit Anda telah berhasil diproses, namun belum muncul di saldo Perp. Periksa saldo Anda sebelum kembali membuat order.",
       "your_funds_have_arrived": "Dana Anda telah tiba",
       "estimated_processing_time": "Estimasi {{time}}",
       "funds_available_momentarily": "Dana akan segera tersedia",
@@ -1742,6 +2090,10 @@
         "start": "Mulai",
         "end": "Akhiri",
         "margin": "Margin",
+        "orders_uncertain": "Scale placement needs review",
+        "orders_rejected": "Scale orders were not placed",
+        "rejected_placement_summary": "The venue confirmed that no orders were accepted",
+        "uncertain_placement_summary": "{{submittedCount}} accepted orders confirmed · Other outcomes need venue review",
         "orders_submitted": "Order bertahap dikirimkan",
         "orders_placed": "Order bertahap dibuat",
         "orders_partially_placed": "Order bertahap sebagian dibuat",
@@ -1755,6 +2107,7 @@
           "invalid_order_count": "Jumlah order harus antara {{minOrderCount}} dan {{maxOrderCount}}",
           "invalid_skew": "Ketimpangan ukuran harus lebih dari 0",
           "minimum_lot": "Order terkecil harus memiliki nilai minimum ${{minOrderValue}}",
+          "route_changed": "Your trading route changed. Review the Scale order and try again.",
           "unavailable": "Order bertahap untuk sementara tidak tersedia. Pilih jenis order lainnya."
         }
       },
@@ -1769,15 +2122,15 @@
         "randomize_description": "Variasikan setiap ukuran suborder hingga ±{{randomizeVariancePercent}}%.",
         "minimum_size": "Ukuran total TWAP minimal ${{minNotionalUsd}}.",
         "duration_range": "Waktu eksekusi antara {{minDurationMinutes}} menit dan {{maxDurationHours}} jam.",
-        "summary_runtime": "Runtime",
-        "summary_size_per_suborder": "Size per suborder",
-        "runtime_info": "About TWAP runtime",
-        "duration_day": "1 day",
+        "summary_runtime": "Waktu eksekusi",
+        "summary_size_per_suborder": "Ukuran per suborder",
+        "runtime_info": "Tentang waktu eksekusi TWAP",
+        "duration_day": "1 hari",
         "duration_days": "{{count}} hari",
-        "duration_hour": "1 hr",
+        "duration_hour": "1 jam",
         "duration_hours": "{{count}} jam",
-        "duration_minute": "1 min",
-        "duration_minutes": "{{count}} mins"
+        "duration_minute": "1 menit",
+        "duration_minutes": "{{count}} menit"
       }
     },
     "pro_positions_panel": {
@@ -1795,6 +2148,14 @@
       "twap": "TWAP",
       "twap_with_count": "TWAP ({{count}})",
       "ticker_only": "Hanya {{ticker}}",
+      "positions_hidden_by_filters": {
+        "one": "1 posisi disembunyikan oleh filter.",
+        "other": "{{count}} posisi disembunyikan oleh filter."
+      },
+      "orders_hidden_by_filters": {
+        "one": "1 order disembunyikan oleh filter.",
+        "other": "{{count}} order disembunyikan oleh filter."
+      },
       "view_market_accessibility": "Beralih ke pasar {{symbol}}",
       "positions_empty": "Posisi yang dibuka akan muncul di sini.",
       "positions_empty_filtered": "Tidak ada posisi {{ticker}} yang dibuka.",
@@ -1863,6 +2224,8 @@
         "active": "Aktif",
         "history": "Riwayat",
         "fill_history": "Riwayat eksekusi",
+        "toggle_hint": "Beralih antara tampilan Aktif, Riwayat, dan Riwayat eksekusi.",
+        "toggle_hint_without_fills": "Beralih antara tampilan Aktif dan Riwayat.",
         "previous": "Sebelumnya",
         "next": "Berikutnya",
         "page_count": "Halaman {{page}} dari {{total}}"
@@ -1940,10 +2303,12 @@
         "limit_price_far_from_market_ask": "Anda menggunakan harga limit yang {{percent}}% jauh dari harga permintaan terbaik.",
         "limit_price_above_warning": "Harga limit berada di atas harga saat ini. Order dapat dilakukan sebagai order pasar.",
         "limit_price_below_warning": "Harga limit berada di bawah harga saat ini. Order dapat dilakukan sebagai order pasar.",
-        "scale_price_above_warning": "Rentang harga Anda di atas harga saat ini dan dapat segera tereksekusi sebagai taker order dan dikenakan biaya taker.",
-        "scale_price_below_warning": "Rentang harga Anda di bawah harga saat ini dan dapat segera tereksekusi sebagai taker order dan dikenakan biaya taker.",
-        "scale_price_above_partial_warning": "Part of your price range is above current price and may fill immediately as a taker order.",
-        "scale_price_below_partial_warning": "Bagian dari rentang harga Anda di bawah harga saat ini dan dapat segera tereksekusi sebagai taker order dan dikenakan biaya taker.",
+        "limit_price_below_trigger_warning": "Harga limit berada di bawah harga pemicu. Order Anda kemungkinan besar tidak akan terpenuhi.",
+        "limit_price_above_trigger_warning": "Harga limit berada di atas harga pemicu. Order Anda kemungkinan besar tidak akan terpenuhi.",
+        "scale_price_above_warning": "Your price range is above current price and may fill immediately as a taker order.",
+        "scale_price_below_warning": "Your price range is below current price and may fill immediately as a taker order.",
+        "scale_price_above_partial_warning": "Bagian dari rentang harga Anda di atas harga saat ini dan dapat segera tereksekusi sebagai taker order.",
+        "scale_price_below_partial_warning": "Bagian dari rentang harga Anda di bawah harga saat ini dan dapat segera tereksekusi sebagai taker order.",
         "trigger_must_be_above_mid": "Harga pemicu harus lebih tinggi dari harga pertengahan",
         "trigger_must_be_below_mid": "Harga pemicu harus lebih rendah dari harga pertengahan",
         "trigger_orders_unavailable": "Order yang dipicu tidak tersedia untuk sementara waktu. Pilih order pasar.",
@@ -1959,7 +2324,8 @@
         "reduce_only_no_position": "Anda harus memiliki posisi terbuka di pasar ini untuk menempatkan order untuk mengurangi posisi",
         "reduce_only_wrong_side": "Order untuk mengurangi posisi hanya dapat mengurangi posisi yang ada. Beralih ke sisi yang berlawanan.",
         "reduce_only_too_large": "Order untuk mengurangi posisi lebih besar dari posisi terbuka milik Anda",
-        "twap_unavailable": "Penempatan TWAP tidak tersedia untuk penyedia ini."
+        "twap_unavailable": "Penempatan TWAP tidak tersedia untuk penyedia ini.",
+        "lighter_limit_tpsl_unsupported": "Take profit and stop loss can't both be set on a limit order for this provider yet"
       },
       "error": {
         "placement_failed": "Pembuatan order gagal",
@@ -2011,7 +2377,8 @@
         "difference_from_market": "Perbedaan dari pasar:",
         "limit_price_above": "Harga limit berada di atas harga saat ini",
         "limit_price_below": "Harga limit berada di bawah harga saat ini",
-        "limit_price_too_far": "Harga tidak bisa lebih dari 95% dari harga pasar"
+        "limit_price_too_far": "Harga tidak bisa lebih dari 95% dari harga pasar",
+        "limit_price_too_far_range": "Masukkan harga antara {{min}} dan {{max}}."
       },
       "leverage_modal": {
         "title": "Leverage",
@@ -2021,7 +2388,8 @@
         "current_price": "Harga saat ini",
         "liquidation_price": "Harga likuidasi",
         "liquidation_distance": "Jarak likuidasi",
-        "price_unavailable": "Informasi harga tidak tersedia"
+        "price_unavailable": "Informasi harga tidak tersedia",
+        "description": "Jika harga mencapai tingkat likuidasi, posisi Anda akan dilikuidasi dan Anda akan kehilangan margin. Leverage yang lebih tinggi meningkatkan kemungkinan terjadinya hal ini."
       },
       "type": {
         "title": "Jenis order",
@@ -2042,7 +2410,7 @@
         },
         "chase": {
           "title": "Ikuti harga",
-          "description": "Auto adjust limit order to the best price"
+          "description": "Sesuaikan order limit secara otomatis ke harga terbaik"
         },
         "stop_limit": {
           "title": "Stop limit",
@@ -2079,10 +2447,7 @@
         "max_distance_reached_notification": "Order ikuti harga {{symbol}} mencapai jarak maksimal dan kini berstatus sebagai order limit.",
         "tab": "Ikuti harga",
         "tab_with_count": "Ikuti harga ({{count}})",
-        "active": "Aktif",
-        "history": "Riwayat",
         "filled_only": "Khusus order yang dieksekusi",
-        "visible_count": "{{count}} terlihat",
         "running": "Berjalan",
         "running_with_progress": "Berjalan · {{progress}}",
         "cancel": "Batal",
@@ -2182,7 +2547,11 @@
       "increment_label": "Tingkatkan selip",
       "out_of_range": "Masukkan nilai antara {{min}}% dan {{max}}%",
       "slippage": "Selip",
-      "exceeds_max": "Estimasi selip ({{est}}%) melebihi selip maksimum Anda ({{max}}%). Tingkatkan batas maksimum atau kurangi ukuran order."
+      "exceeds_max": "Estimasi selip ({{est}}%) melebihi selip maksimum Anda ({{max}}%). Tingkatkan batas maksimum atau kurangi ukuran order.",
+      "insufficient_depth": "Unable to confirm enough visible liquidity to fill this market order. Try again when market data is available, reduce the size, or use a limit order.",
+      "cannot_fill": "This market order cannot fill within your max slippage. Increase max slippage, reduce the size, or use a limit order.",
+      "cannot_fill_reduce_size": "This market order cannot fill within your max slippage. Reduce the size or use a limit order.",
+      "exceeds_max_reduce_size": "Estimasi selip ({{est}}%) melebihi batas selip maksimum Anda ({{max}}%). Kurangi ukuran order."
     },
     "price_deviation_warning": {
       "message": "Harga telah menyimpang terlalu jauh dari harga spot. Posisi baru tidak dapat dibuka untuk saat ini."
@@ -2227,6 +2596,15 @@
       "closing_position_subtitle": "{{direction}} {{amount}} {{assetSymbol}}",
       "your_funds_will_be_available_momentarily": "Dana Anda akan segera tersedia",
       "cancel": "Batalkan",
+      "close": "Tutup",
+      "sheet_position_summary": "{{direction}} {{asset}} {{leverage}}x",
+      "sheet_title_long": "Tutup Posisi Long {{asset}}",
+      "sheet_title_short": "Tutup Posisi Short {{asset}}",
+      "order_type_accessibility_label": "Jenis order: {{orderType}}",
+      "toggle_amount_display": "Beralih antara jumlah mata uang fiat dan token",
+      "total_inc_pnl": "Total (termasuk P&L)",
+      "total_receive": "Total receive",
+      "included_pnl": "Included P&L",
       "margin": "Margin",
       "includes_pnl": "termasuk P&L",
       "pnl": "P&L",
@@ -2241,6 +2619,8 @@
       "funds_are_available_to_trade": "Dana tersedia untuk diperdagangkan",
       "already_closed": "Posisi sudah ditutup",
       "already_closed_subtitle": "Posisi ini sudah dieksekusi atau ditutup",
+      "already_in_progress": "Proses penutupan sedang berlangsung",
+      "already_in_progress_subtitle": "Tunggu sampai selesai sebelum menutupnya kembali",
       "failed_to_close_position": "Gagal menutup posisi",
       "failed_to_partially_close_position": "Gagal menutup sebagian posisi",
       "failed_to_place_close_order": "Gagal melakukan penutupan order",
@@ -2272,23 +2652,35 @@
       "est_size": "Est. Ukuran",
       "flip": "Balik",
       "flipping": "Membalikkan...",
-      "cancel": "Batal"
+      "cancel": "Batal",
+      "below_minimum": "Position too small to reverse. Minimum order size is ${{amount}}."
     },
     "adjust_margin": {
       "title": "Sesuaikan Margin",
+      "edit_title": "Edit margin",
       "add_margin": "Tambahkan Margin",
+      "add_margin_sheet": "Tambahkan margin",
+      "add_toggle": "Tambah",
       "add_margin_description": "Tingkatkan margin untuk mengurangi risiko likuidasi",
       "reduce_margin": "Hapus Margin",
+      "remove_margin_sheet": "Hapus margin",
+      "remove_toggle": "Hapus",
       "reduce_margin_description": "Tarik kelebihan margin dari posisi",
       "add_title": "Tambahkan Margin",
       "remove_title": "Hapus Margin",
+      "amount_accessibility_label": "Jumlah margin",
+      "slider_accessibility_label": "Persentase margin",
       "margin_in_position": "Margin dalam posisi",
       "margin_available_to_add": "Margin yang tersedia untuk ditambahkan",
       "margin_available_to_remove": "Margin yang tersedia untuk dihapus",
+      "available_to_add": "Tersedia untuk ditambahkan",
+      "available_to_remove": "Tersedia untuk dihapus",
+      "position_data_unavailable": "Data posisi tidak tersedia. Coba lagi.",
       "perps_balance": "Saldo perp",
       "liquidation_price": "Harga likuidasi",
       "liquidation_distance": "Jarak likuidasi",
-      "exceeds_available": "Jumlah melebihi margin yang tersedia"
+      "exceeds_available": "Jumlah melebihi margin yang tersedia",
+      "no_removable_margin": "No margin can be removed right now. This position needs its current margin to stay open."
     },
     "tpsl": {
       "title": "Tutup otomatis",
@@ -2308,9 +2700,9 @@
       "loss_percent_placeholder": "Loss",
       "profit_roe_placeholder": "% Profit",
       "loss_roe_placeholder": "% Loss",
-      "gain_roe_placeholder": "% Gain",
-      "toggle_take_profit_sign": "Toggle take profit return sign",
-      "toggle_stop_loss_sign": "Toggle stop loss return sign",
+      "gain_roe_placeholder": "% Keuntungan",
+      "toggle_take_profit_sign": "Alihkan tanda laba take profit",
+      "toggle_stop_loss_sign": "Alihkan tanda laba stop loss",
       "usd_label": "$",
       "take_profit_invalid_price": "Take profit harus dilakukan pada harga {{direction}} {{priceType}}",
       "trigger_price_must_be_positive": "Harga pemicu harus lebih besar dari nol",
@@ -2401,6 +2793,7 @@
         "scaleRangeInvalid": "Harga maksimum order penskalaan harus di atas harga minimum",
         "scaleCountInvalid": "Jumlah order penskalaan tidak valid",
         "scaleSizeTooSmall": "Setiap order penskalaan berada di bawah ukuran minimum",
+        "scalePreviewStale": "Scale order details changed. Review the updated preview and try again.",
         "scaleNotionalTooSmall": "Setiap order penskalaan berada di bawah nilai tukar minimum",
         "chaseIntervalInvalid": "Interval pergeseran tidak valid",
         "chaseDurationInvalid": "Durasi pergeseran tidak valid",
@@ -2408,10 +2801,10 @@
         "chaseAbandoned": "Order pergeseran dibatalkan karena koneksi melemah",
         "chaseTouchUnavailable": "Harga pasar tidak tersedia untuk menempatkan order pergeseran ini",
         "chaseMaxDistanceInvalid": "Jarak ikuti harga maks berada di luar rentang yang diizinkan",
-        "marginModeInvalid": "Choose a valid margin mode.",
-        "marginModeUnsupported": "The selected margin mode is not available for this market.",
-        "marginModePositionOpen": "Close the open position on this market before changing margin mode.",
-        "marginModeOrderOpen": "Cancel the open orders on this market before changing margin mode."
+        "marginModeInvalid": "Pilih mode margin yang valid.",
+        "marginModeUnsupported": "Mode margin yang dipilih tidak tersedia untuk pasar ini.",
+        "marginModePositionOpen": "Tutup posisi terbuka di pasar ini sebelum mengubah mode margin.",
+        "marginModeOrderOpen": "Batalkan order terbuka di pasar ini sebelum mengubah mode margin."
       },
       "networkToggleFailed": "Gagal mengganti jaringan: {{error}}",
       "accountBalanceFailed": "Gagal mendapatkan saldo akun: {{error}}",
@@ -2426,6 +2819,8 @@
       "depositFailed": "Deposit gagal",
       "orderLeverageReductionFailed": "Anda tidak dapat mengurangi leverage",
       "insufficientLiquidity": "Likuiditas tidak cukup untuk mengeksekusi order. Coba gunakan order limit atau coba lagi nanti.",
+      "iocCancel": "Your order couldn't fill within your {{maxSlippage}}% slippage tolerance. Try a limit order or adjust your slippage.",
+      "iocCancelUnknownTolerance": "Your order couldn't fill within your slippage tolerance. Try a limit order or adjust your slippage.",
       "connectionTimeout": "Koneksi terputus. Periksa jaringan Anda dan coba lagi.",
       "clientReinitializing": "Layanan sedang diinisialisasi ulang. Mohon tunggu sebentar dan coba lagi.",
       "transferFailed": "Tidak dapat mentransfer dana. Coba lagi.",
@@ -2441,7 +2836,8 @@
       "tpslUpdateFailed": "Tidak dapat memperbarui take profit/stop loss. Coba lagi.",
       "orderRejected": "Order ditolak. Periksa parameter Anda dan coba lagi.",
       "slippageExceeded": "Harga bergerak terlalu jauh. Coba gunakan order limit atau tingkatkan toleransi selip.",
-      "rateLimitExceeded": "Terlalu banyak permintaan. Mohon tunggu sebentar dan coba lagi.",
+      "priceMoved": "The price moved {{priceDelta}}%, exceeding your {{maxSlippage}}% slippage tolerance. Review the updated price and try again.",
+      "rateLimitExceeded": "Terlalu banyak permintaan. Tunggu sebentar dan coba lagi.",
       "serviceUnavailable": "Layanan tidak tersedia untuk sementara waktu. Coba lagi nanti.",
       "networkErrorSimple": "Terjadi kesalahan jaringan. Periksa koneksi Anda dan coba lagi.",
       "insufficientBalance": "Saldo tidak cukup untuk menyelesaikan operasi ini. Periksa dana yang tersedia.",
@@ -2468,6 +2864,7 @@
     },
     "position": {
       "title": "Posisi",
+      "no_positions": "Tidak ada posisi terbuka",
       "card": {
         "position_title": "Posisi",
         "pnl_label": "P&L",
@@ -2506,7 +2903,7 @@
         "position_count_plural": "{{count}} posisi"
       },
       "details": {
-        "error_message": "Data posisi tidak ditemukan. Kembali dan coba lagi.",
+        "error_message": "Data posisi tidak ditemukan. Kembalilah dan coba lagi.",
         "section_title": "Posisi"
       },
       "account": {
@@ -2518,14 +2915,16 @@
         "unrealized_pnl": "P&L Belum Terealisasi"
       },
       "tpsl": {
-        "update_in_progress": "Updating TP/SL",
+        "update_in_progress": "Memperbarui TP/SL",
         "update_success": "TP/SL berhasil diperbarui",
         "update_failed": "Gagal memperbarui TP/SL"
       },
       "margin": {
         "add_success": "Menambahkan margin sebesar ${{amount}} ke posisi {{asset}}",
         "remove_success": "Menghapus margin sebesar ${{amount}} posisi {{asset}}",
-        "adjustment_failed": "Penyesuaian margin gagal"
+        "adjustment_failed": "Penyesuaian margin gagal",
+        "remove_amount_changed_title": "Removable margin changed",
+        "remove_amount_changed": "Your position moved. You can now remove up to ${{amount}}. Check the amount and try again."
       }
     },
     "markets": {
@@ -2534,7 +2933,7 @@
     "market": {
       "details": {
         "title": "Detail pasar",
-        "error_message": "Data pasar tidak ditemukan. Kembali dan coba lagi."
+        "error_message": "Data pasar tidak ditemukan. Kembalilah dan coba lagi."
       },
       "statistics": "Ikhtisar",
       "stats": "Statistik",
@@ -2546,6 +2945,7 @@
       "24h_low": "Rendah 24 jam",
       "24h_volume": "Volume 24 jam",
       "24h_vol": "volume 24 jam",
+      "change_period_24h": "24 jam",
       "open_interest": "Kontrak terbuka",
       "funding": "Pendanaan",
       "funding_rate": "Tingkat pendanaan",
@@ -2602,12 +3002,12 @@
         "content": "Jika harga mencapai titik ini, Anda akan dilikuidasi dan kehilangan margin. Leverage yang lebih tinggi meningkatkan kemungkinan hal ini."
       },
       "cross_liquidation_price": {
-        "title": "Cross liquidation price",
-        "content": "This price moves with the profit and loss of your other cross positions and changes to your cross balance. A liquidation can affect your entire cross balance."
+        "title": "Harga likuidasi silang",
+        "content": "Harga ini bergerak seiring dengan keuntungan dan kerugian dari posisi silang yang lain serta perubahan pada saldo silang Anda. Likuidasi dapat memengaruhi seluruh saldo silang."
       },
       "cross_no_liquidation_price": {
-        "title": "No liquidation price",
-        "content": "At the current account value, this position has no liquidation price. This can change as the value of your other cross positions changes. A liquidation can affect your entire cross balance."
+        "title": "Tidak ada harga likuidasi",
+        "content": "Pada nilai akun saat ini, posisi ini tidak memiliki harga likuidasi. Hal ini dapat berubah seiring dengan perubahan nilai posisi silang yang lain. Likuidasi dapat memengaruhi keseluruhan saldo silang."
       },
       "liquidation_distance": {
         "title": "Jarak likuidasi",
@@ -2631,8 +3031,8 @@
         "content": "Ketimpangan ukuran mengontrol bagaimana ukuran order didistribusikan di seluruh rentang. Nilai di atas 1 menempatkan ukuran lebih di dekat akhir, nilai di bawah 1 menempatkan lebih dekat di awal, dan 1.00 membagi ukuran secara merata."
       },
       "twap_runtime": {
-        "title": "Runtime",
-        "content": "Runtime is how long the TWAP order keeps working. The total size is split into suborders that are submitted at regular intervals until the runtime ends."
+        "title": "Waktu eksekusi",
+        "content": "Waktu eksekusi adalah durasi berjalannya order TWAP. Ukuran total dipecah menjadi suborder yang dikirimkan secara berkala hingga waktu eksekusi order berakhir."
       },
       "closing_fees": {
         "title": "Biaya penutupan",
@@ -2769,6 +3169,8 @@
       "see_all": "Lihat semua",
       "positions": "Posisi Anda",
       "orders": "Order Anda",
+      "orders_load_error": "Couldn’t connect to your trading account. Try again to load your orders.",
+      "activity_load_error": "Couldn't load your trading activity. Try again.",
       "perps": "Perps",
       "all": "Semua",
       "crypto": "Jelajahi kripto",
@@ -2778,6 +3180,7 @@
       "tabs": {
         "all": "Semua",
         "crypto": "Kripto",
+        "memecoin": "Koin meme",
         "pre_ipo": "Pra-IPO",
         "forex": "Forex",
         "new": "Baru",
@@ -2791,12 +3194,17 @@
       "watchlist": "Daftar pantauan",
       "markets": "Pasar",
       "explore_markets": "Jelajahi pasar",
+      "explore": "Jelajahi",
+      "see_more": "Lihat selengkapnya",
       "see_all_perps": "Lihat semua perp",
       "products": "Produk",
       "top_movers": "Penggerak teratas",
       "gainers": "Gainer",
       "losers": "Loser",
-      "recently_added": "Baru ditambahkan"
+      "recently_added": "Baru ditambahkan",
+      "social_feed": "Social feed",
+      "trending": "Sedang tren",
+      "top_traders": "Trader top"
     },
     "learn_more": {
       "title": "Pelajari tentang Perp",
@@ -2809,6 +3217,31 @@
     },
     "feedback": {
       "title": "Berikan masukan kepada kami"
+    },
+    "outreach_details": {
+      "title": "Anda adalah salah satu trader perp terbaik kami",
+      "subtitle": "Volume transaksi Anda telah memberi Anda tempat istimewa. Beri tahu tim Perp mengenai apa yang harus dirancang selanjutnya dan dapatkan status VIP.",
+      "features": {
+        "vip": {
+          "title": "Akses VIP, dirancang untuk para profesional",
+          "subtitle": "Keuntungan, status, dan akses awal ke fitur-fitur baru"
+        },
+        "support": {
+          "title": "Dukungan prioritas 24/7",
+          "subtitle": "Manusia sungguhan, tanpa bot, tanpa tiket"
+        },
+        "roadmap": {
+          "title": "Keputusan Anda membentuk peta jalan",
+          "subtitle": "Apa yang Anda minta untuk dirancang"
+        },
+        "trip": {
+          "title": "Jumpai tim IRL",
+          "subtitle": "Perjalanan yang disponsori oleh MetaMask, sepenuhnya ditanggung oleh kami"
+        }
+      },
+      "contact": "Hubungi melalui Telegram {{telegramHandle}}, atau email {{email}}",
+      "telegram_button": "Mengobrol di Telegram",
+      "schedule_button": "Jadwalkan panggilan"
     },
     "close_all_modal": {
       "title": "Tutup semua posisi",
@@ -2850,13 +3283,14 @@
       "isolated_title": "Terisolasi",
       "isolated_description": "Setiap posisi hanya menggunakan margin yang dialokasikan. Jika habis, posisi tersebut likuidasi, yang lainnya tidak terpengaruh. Anda dapat menyesuaikan margin per posisi.",
       "cross_title": "Silang",
-      "cross_description": "Saldo akun lengkap Anda dibagikan di semua posisi. Profit pada satu posisi dapat melindungi posisi lainnya – tetapi likuidasi dapat menarik dari seluruh saldo Anda. Segera hadir."
+      "cross_description": "Saldo akun lengkap Anda dibagikan di semua posisi. Profit pada satu posisi dapat melindungi posisi lainnya – tetapi likuidasi dapat menarik dari seluruh saldo Anda. Segera hadir.",
+      "cross_description_available": "Your full account balance is shared across all positions. Profits on one can protect another — but a liquidation can draw from your entire balance."
     },
     "cross_position": {
       "badge": "Silang",
-      "margin_used": "Position margin used",
-      "no_liquidation_price": "No liquidation price",
-      "liquidation_info": "About cross liquidation price"
+      "margin_used": "Margin posisi yang digunakan",
+      "no_liquidation_price": "Tidak ada harga likuidasi",
+      "liquidation_info": "Tentang harga likuidasi silang"
     },
     "crossMargin": {
       "title": "Margin silang tidak didukung",
@@ -2864,9 +3298,9 @@
       "dismiss": "Mengerti"
     },
     "sort": {
-      "volume": "Volume",
+      "volume": "Volume (24h)",
       "volume_short": "Vol",
-      "price_change": "Perubahan harga",
+      "price_change": "Price change (24h)",
       "funding_rate": "Tingkat pendanaan",
       "funding_rate_short": "Pendanaan",
       "open_interest": "Kontrak terbuka",
@@ -2934,6 +3368,7 @@
     },
     "transactions": {
       "title": "Perp",
+      "aggregated": "Dikumpulkan",
       "tabs": {
         "trades": "Perdagangan",
         "orders": "Order",
@@ -2944,6 +3379,7 @@
         "funding_description": "Riwayat pendanaan merupakan ringkasan biaya yang telah Anda bayarkan atau terima, sebagaimana ditentukan oleh tingkat pendanaan pada posisi terbuka."
       },
       "not_found": "Transaksi tidak ditemukan",
+      "unknown_pnl": "Tidak diketahui",
       "position": {
         "date": "Tanggal",
         "size": "Ukuran",
@@ -3108,6 +3544,9 @@
       "close_button": "Tutup",
       "history_button": "Lihat aktivitas",
       "available": "Tersedia"
+    },
+    "price_alerts": {
+      "open": "Peringatan harga pembukaan"
     }
   },
   "market_insights": {
@@ -3145,33 +3584,110 @@
     "available_balance": "Saldo tersedia",
     "balance_unavailable": {
       "title": "Saldo tidak tersedia",
-      "description": "Unable to load your available balance.",
+      "description": "Tidak dapat memuat saldo yang tersedia.",
       "retry": "Coba lagi"
     },
     "home_title": "Prediksi",
+    "event": {
+      "your_positions": "Posisi Anda"
+    },
+    "search": {
+      "placeholder": "Cari pasar",
+      "idle": "Search by team, topic, or market question.",
+      "empty": "No markets found for \"{{query}}\".",
+      "error": "Search couldn’t complete.",
+      "retry": "Coba lagi"
+    },
     "portfolio": {
       "title": "Portfolio",
       "positions": "Posisi",
       "activity_empty": {
         "title": "Belum ada aktivitas",
-        "description": "Your fills and settlements will appear here."
+        "description": "Eksekusi dan penyelesaian akan muncul di sini."
       },
       "load_failed": "Tidak dapat memuat.",
       "load_failed_retry": "Coba lagi",
-      "outcome_shares": "{{outcome}} · {{shares}} shares",
+      "outcome_shares": "{{outcome}} · {{shares}} saham",
       "active_positions": "Posisi aktif",
+      "cash_out": "Uang Tunai",
       "add_funds": "Tambahkan Dana",
       "withdraw": "Tarik",
       "empty": {
         "title": "Belum ada posisi",
-        "description": "Your active and resolved positions will appear here.",
+        "description": "Posisi yang aktif dan telah diselesaikan akan muncul di sini.",
         "browse_markets": "Jelajahi pasar"
       },
       "activity": "Riwayat",
       "activity_rows": {
-        "settled": "Settled",
+        "settled": "Diselesaikan",
         "shares_at_price": "{{shares}} @ {{price}}"
       }
+    },
+    "order_preview": {
+      "amount": "Jumlah USD",
+      "contracts": "Jumlah kontrak",
+      "minimum_amount": "Masukkan minimal ${{amount}}.",
+      "minimum_contracts": "Masukkan minimal 1 kontrak.",
+      "over_sell": "Anda dapat menjual hingga {{contracts}} kontrak.",
+      "held_contracts": "Anda memiliki {{contracts}} kontrak",
+      "estimated_contracts": "Estimasi kontrak",
+      "average_price": "Harga rata-rata",
+      "limit_price": "Harga limit",
+      "proceeds": "Hasil",
+      "net_proceeds": "Hasil bersih",
+      "net_proceeds_line": "Hasil bersih {{amount}}",
+      "max": "Maks",
+      "potential_payout": "Potensi pembayaran",
+      "potential_profit": "Potensi keuntungan",
+      "fee": "Biaya",
+      "exchange_fee": "Biaya penukaran",
+      "metamask_fee": "Biaya MetaMask",
+      "total_debit": "Total debit",
+      "to_win": "Untuk memenangkan {{amount}}",
+      "pay_with": "Bayar melalui",
+      "predict_balance": "Saldo Predict",
+      "total": "Total",
+      "price_details": "Detail harga",
+      "terms": "Dengan melanjutkan, Anda menyetujui ketentuan platform.",
+      "learn_more": "Pelajari selengkapnya",
+      "submitting": "Mengirimkan order Anda...",
+      "done": "Selesai",
+      "close": "Tutup",
+      "delete": "Hapus",
+      "expired": "Kuotasi ini sudah kedaluwarsa. Segarkan untuk mendapatkan yang baru.",
+      "refresh": "Segarkan",
+      "retry": "Coba lagi",
+      "review": "Tinjau order"
+    },
+    "order_approval": {
+      "title": "Tinjau order",
+      "expires_at": "Kuotasi berakhir pada {{time}}",
+      "approve": "Setujui dan kirim",
+      "edit_order": "Edit order"
+    },
+    "order_receipt": {
+      "filled_title": "Order terpenuhi",
+      "partial_title": "Order sebagian terpenuhi",
+      "partial_description": "{{filled}} dari {{quoted}} kontrak telah terpenuhi. Sisanya sebanyak {{remainder}} dibatalkan dan tidak akan dibuat.",
+      "position_context": "Kini Anda memiliki {{contracts}} kontrak {{outcome}}",
+      "sell_filled_title": "Pencairan Dana selesai",
+      "sell_partial_title": "Pencairan Dana sebagian terpenuhi",
+      "sell_partial_description": "{{filled}} dari {{quoted}} kontrak telah terjual. Sisanya {{remainder}} tetap berada di posisi Anda.",
+      "sold_context": "Anda menjual {{contracts}} kontrak {{outcome}}",
+      "filled_contracts": "Terpenuhi",
+      "average_fill_price": "Harga eksekusi rata-rata",
+      "actual_spend": "Digunakan",
+      "payout_exposure": "Eksposur pembayaran",
+      "not_filled_title": "Order tidak terpenuhi",
+      "not_filled_description": "Pasar bergerak cepat, jadi kami tidak bisa membeli di harga {{price}}. Tidak ada dana yang terpotong dari saldo Anda.",
+      "sell_not_filled_description": "Pasar bergerak cepat, jadi kami tidak bisa menjual di harga {{price}}. Tidak ada yang terjual.",
+      "rejected_title": "Order ditolak",
+      "rejected_description": "Platform tersebut menolak order ini. Tidak ada order yang terpenuhi dan saldo Anda tetap utuh.",
+      "sell_rejected_description": "Platform tersebut menolak order ini. Tidak ada yang terjual dan posisi Anda tetap tidak berubah.",
+      "reconciling_title": "Masih mengonfirmasi order Anda",
+      "reconciling_description": "Kami masih memastikan apa yang terjadi dengan order Anda. Terus periksa di sini, atau lihat hasilnya di Riwayat Anda nanti.",
+      "keep_checking": "Terus periksa",
+      "requote": "Coba lagi"
     }
   },
   "predict": {
@@ -3254,6 +3770,7 @@
       "loading_accessibility_label": "Memuat riwayat pasar",
       "unable_to_load": "Tidak dapat memuat riwayat pasar.",
       "unavailable_for_range": "Riwayat pasar tidak tersedia untuk rentang ini.",
+      "range_live": "LANGSUNG",
       "chart_accessibility_label": "Riwayat probabilitas pasar. {{values}}",
       "chart_scrub_accessibility_label": "Riwayat probabilitas pasar di {{time}}. {{values}}"
     },
@@ -3457,6 +3974,10 @@
       "sports": "Olahraga",
       "crypto": "Kripto",
       "politics": "Politik",
+      "esports": "E-sport",
+      "culture": "Budaya",
+      "finance": "Keuangan",
+      "tech": "Teknologi",
       "hot": "Terpopuler",
       "wimbledon": "Wimbledon"
     },
@@ -3680,8 +4201,22 @@
       "to_win": "Untuk menang",
       "order_failed_generic": "Transaksi gagal. Coba lagi.",
       "market_busy_title": "Pasar ramai",
-      "market_busy_body_buy": "Pasar bergerak dengan cepat, sehingga kami tidak dapat membeli pada harga {{price}}. Coba lagi dengan harga terbaik yang tersedia?",
-      "market_busy_body_sell": "Pasar bergerak dengan cepat, sehingga kami tidak dapat menjual pada harga {{price}}. Coba lagi dengan harga terbaik yang tersedia?",
+      "getting_price_body": "The market is moving fast, so we couldn't fill your order. Getting the latest price…",
+      "price_updated_body": "Here's the latest price. Confirm to try again:",
+      "price_moved_title": "Price moved",
+      "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
+      "no_match_title": "No match",
+      "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "try_later": "Try later",
+      "retry_price_label": "Harga",
+      "retry_proceeds_label": "Anda menerima",
+      "retry_payout_label": "Untuk menang",
+      "retry_worst_case_label": "Worst case ({{band}} band)",
+      "retry_fees_label": "Biaya",
+      "yes_buy_at": "Yes, buy at {{price}}",
+      "yes_sell_at": "Yes, sell at {{price}}",
+      "price_unavailable_title": "Price unavailable",
+      "price_unavailable_body": "We couldn't get the latest price. Check your connection and try again.",
       "order_failed_title": "Order gagal",
       "order_failed_body": "Order tidak dapat diproses. Coba lagi?",
       "payment_failed_title": "Pembayaran gagal diproses",
@@ -3692,8 +4227,6 @@
       "retry": "Coba lagi",
       "try_again": "Coba lagi",
       "view": "Lihat",
-      "yes_buy": "Ya, beli",
-      "yes_sell": "Ya, jual",
       "confirm": "Konfirmasikan",
       "cashout_failed": "Gagal mencairkan uang tunai",
       "predict_balance_first": "Saldo Predict akan digunakan terlebih dahulu"
@@ -3740,7 +4273,7 @@
       "title": "Tidak dapat terhubung ke Prediksi",
       "description": "Periksa koneksi Anda dan coba lagi. Jika terus berlanjut, cobalah jaringan lain.",
       "description_short": "Tidak dapat terhubung ke Prediksi. Periksa koneksi Anda dan coba lagi.",
-      "chart_connection_error": "Ada masalah koneksi. Coba lagi nanti.",
+      "chart_connection_error": "Ada masalah saat menghubungkan. Coba lagi nanti.",
       "retry": "Coba lagi"
     },
     "error_messages": {
@@ -3851,6 +4384,7 @@
   "wallet": {
     "title": "Dompet",
     "search_accessibility_label": "Cari",
+    "homepage_search_placeholder": "Cari",
     "rewards_accessibility_label": "Reward",
     "tokens": "Token",
     "view_all_nfts": "Lihat semua NFT",
@@ -3945,7 +4479,7 @@
     "tokens_empty_description": "Kosong. Mengapa tidak menjelajahi token atau melakukan perdagangan?",
     "discover_nfts": "Impor NFT",
     "no_transactions": "Belum ada transaksi",
-    "switch_network_to_view_transactions": "Alihkan jaringan untuk melihat transaksi",
+    "switch_network_to_view_transactions": "Beralih jaringan untuk melihat transaksi",
     "send_button": "Kirim",
     "deposit_button": "Deposit",
     "copy_address": "Salin",
@@ -3971,6 +4505,7 @@
     "display_nft_media_cta": "Aktifkan Tampilkan media NFT",
     "display_media_nft_warning": "Menampilkan media dan data NFT dapat mengekspos alamat IP ke server terpusat. Impor NFT hanya jika Anda memahami risiko yang terlibat.",
     "nfts_autodetect_title": "Autodeteksi NFT",
+    "nfts_unavailable_title": "NFT tidak tersedia",
     "nfts_autodetect_cta": "Aktifkan autodeteksi NFT",
     "turn_on_network_check_cta": "Aktifkan pemeriksaan detail jaringan",
     "display_nft_media_cta_new_1": "Untuk melihat NFT, aktifkan Tampilkan media NFT di",
@@ -4029,6 +4564,7 @@
     "title": "Aktivitas",
     "search_placeholder": "Cari token, jenis transaksi...",
     "filter_all_networks": "Semua jaringan",
+    "aggregated": "Dikumpulkan",
     "type_filter": {
       "title": "Jenis",
       "all": "Semua jenis",
@@ -4104,7 +4640,7 @@
       "search_link": "Aktifkan dari Pengaturan.",
       "custom_warning_desc": "Siapa pun dapat membuat token, termasuk membuat versi palsu dari token yang ada. Pelajari selengkapnya seputar",
       "custom_warning_link": "penipuan dan risiko keamanan.",
-      "custom_info_desc": "Deteksi token belum tersedia di jaringan ini. Impor token secara manual dan pastikan keamanannya. Pelajari seputar ",
+      "custom_info_desc": "Deteksi token belum tersedia di jaringan ini. Impor token secara manual dan pastikan Anda memercayainya. Pelajari seputar ",
       "custom_info_link": "penipuan dan risiko keamanan token.",
       "custom_security_tips": "Kiat keamanan"
     }
@@ -4137,13 +4673,14 @@
     "privacy_policy_button": "Kebijakan Privasi",
     "agree": "Saya Setuju",
     "decline": "Tidak, terima kasih",
-    "description_title": "Tingkatkan MetaMask",
+    "description_title": "Bantu kami meningkatkan MetaMask",
     "description_content_1": "Kami ingin meminta izin ini. Anda dapat memilih keluar atau menghapus data penggunaan setiap saat.",
     "description_content_2": "Saat kami mengumpulkan metrik, maka akan selalu...",
     "description_content_3": "Pelajari cara kami melindungi privasi Anda saat mengumpulkan data penggunaan untuk profil Anda.",
     "gather_basic_usage_title": "Kumpulkan data penggunaan dasar",
     "gather_basic_usage_description": "Kami akan mengumpulkan data penggunaan produk dasar. Kami mungkin akan menghubungkan informasi ini dengan data on-chain.",
     "gather_basic_usage_learn_more": "Selengkapnya",
+    "stay_informed": "Tetap terinformasi",
     "checkbox_marketing": "Pembaruan pemasaran",
     "checkbox": "Kami akan menggunakan data ini untuk mempelajari cara Anda berinteraksi dengan komunikasi pemasaran kami. Kami mungkin akan membagikan berita terkait (seperti fitur produk).",
     "action_description_1_prefix": "Pribadi:",
@@ -4182,18 +4719,19 @@
     "settings_link": "mengelola pengaturan default lainnya."
   },
   "basic_functionality_migration": {
-    "title": "We’ve updated our settings",
-    "social_title": "Pembaruan privasi dan produk",
-    "social_body_1": "Kami memperbarui cara kerja MetaMask untuk login sosial. Untuk menghadirkan pengalaman yang mulus di seluruh ekosistem MetaMask, pengenal login sosial Anda (email atau nama pengguna) kini akan ditautkan secara aman ke profil pengguna dan alamat akun terkait milik Anda. Sebagai bagian dari pembaruan ini, Fungsionalitas Dasar dan pengaturan default lainnya akan selalu diaktifkan.",
-    "social_body_2_prefix": "Kami tidak pernah menjual data Anda kepada pihak ketiga. Baca selengkapnya seputar apa saja yang kami kumpulkan dan alasannya di",
-    "social_body_2_middle": " dan yang diperbarui ",
+    "title": "Kami telah memperbarui pengaturan kami",
+    "social_title": "Pembaruan untuk login sosial",
+    "social_body_1": "Karena Anda masuk menggunakan Google, Apple, atau Telegram, email Anda (atau nama pengguna Telegram) kini tersimpan di profil MetaMask bersama dengan alamat dompet Anda. Hal ini memastikan akun Anda berfungsi secara konsisten di berbagai fitur MetaMask. Fungsionalitas dasar tetap tersedia untuk akun yang menggunakan login sosial.",
+    "social_body_2_prefix": "Kunci Anda tetap menjadi milik Anda sendiri. Baca selengkapnya di",
+    "social_body_2_middle": " dan ",
     "social_body_2_suffix": ".",
     "blog_post_link": "postingan blog",
     "privacy_notice_link": "Pemberitahuan Privasi",
-    "toast_description": "Basic functionality now includes third-party APIs. It’s turned on based on your previous settings. Adjust anytime in",
-    "toast_description_disabled": "Basic functionality now includes third-party APIs. It’s turned off based on your previous settings. Adjust anytime in",
-    "settings_link": "Pengaturan > Privasi.",
-    "accept_and_close": "Terima dan tutup"
+    "toast_description": "Pengaturan privasi Anda kini disatukan menjadi Fungsionalitas Dasar. Pengaturan ini diaktifkan berdasarkan pengaturan Anda sebelumnya. Sesuaikan setiap saat di",
+    "toast_description_disabled": "Pengaturan privasi Anda kini disatukan menjadi Fungsionalitas Dasar. Pengaturan ini dinonaktifkan berdasarkan pengaturan Anda sebelumnya. Sesuaikan setiap saat di",
+    "settings_link": "Pengaturan > Privasi. ",
+    "learn_more_link": "Selengkapnya.",
+    "accept_and_close": "Lanjutkan"
   },
   "onboarding_interest_questionnaire": {
     "title": "Bagaimana Anda akan menggunakan MetaMask?",
@@ -4309,9 +4847,12 @@
     "remove_hardware_account": "Hapus akun perangkat keras",
     "remove_hw_account_alert_description": "Yakin ingin menghapus akun dompet perangkat keras ini? Anda harus menyinkronkan ulang dompet perangkat keras jika ingin menggunakan akun ini lagi dengan MetaMask Mobile.",
     "remove_snap_account": "Hapus akun snap",
-    "remove_snap_account_alert_description": "Akun ini akan dihapus dari dompet Anda. Pastikan Anda memiliki Frasa Pemulihan Rahasia atau kunci pribadi asli untuk akun yang diimpor ini sebelum melanjutkan. Anda dapat mengimpor atau membuat akun lagi dari menu tarik-turun akun.",
+    "remove_snap_account_alert_description": "Akun ini akan dihapus dari dompet Anda. Pastikan Anda memiliki Frasa Pemulihan Rahasia atau kunci pribadi asli untuk akun yang diimpor ini sebelum melanjutkan. Anda dapat mengimpor atau membuat akun lagi melalui menu tarik-turun akun.",
     "remove_account_alert_remove_btn": "Hapus",
-    "remove_account_alert_cancel_btn": "Abaikan",
+    "remove_account_alert_cancel_btn": "Batal",
+    "remove_account_title_with_account_name": "Hapus {{accountName}}?",
+    "remove_account_warning": "Anda dapat memulihkan akun ini kapan saja dengan mengimpornya menggunakan kunci privat.",
+    "account_removed_toast": "{{accountName}} dihapus",
     "accounts_title": "Akun",
     "connect_account_title": "Hubungkan akun",
     "connect_accounts_title": "Hubungkan akun",
@@ -4446,6 +4987,8 @@
     "networks": "Jaringan",
     "log_out": "Keluar",
     "notifications": "Notifikasi",
+    "metamask_orange": "MetaMask Orange",
+    "join_metamask_orange": "Join MetaMask Orange",
     "buy": "Beli",
     "scan": "Pindai"
   },
@@ -4453,6 +4996,43 @@
     "info": "Informasi",
     "scan": "Pindai",
     "activity": "Aktivitas"
+  },
+  "manage_profile": {
+    "header": "Manage profile",
+    "about": "Tentang",
+    "privacy": "Privasi",
+    "display_name": "Nama tampilan",
+    "handle": "Handle",
+    "bio": "Bio",
+    "x_account": "X account",
+    "trading_activity": "Aktivitas perdagangan",
+    "linked_social_account": "Linked social account",
+    "on": "Aktif",
+    "off": "Nonaktif",
+    "not_set": "Belum diatur",
+    "no_linked_account": "Tidak ada",
+    "avatar_accessibility_label": "Your profile picture",
+    "save": "Simpan",
+    "display_name_placeholder": "Enter a display name",
+    "bio_placeholder": "Tell people about your trading style",
+    "bio_helper": "Shown on your profile.",
+    "bio_character_count": "{{count}}/{{limit}}",
+    "show_trading_activity": "Show trading activity",
+    "trading_activity_public": "Public and available to copy",
+    "trading_activity_private": "Private and unavailable to copy",
+    "trading_activity_info": "More information about trading activity",
+    "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+  },
+  "profile_drawer": {
+    "close": "Tutup",
+    "scan": "Pindai kode QR",
+    "create_profile": "Create profile",
+    "notifications": "Notifikasi",
+    "activity": "Aktivitas",
+    "subscriptions": "Langganan",
+    "settings": "Pengaturan",
+    "help_and_support": "Help and support"
   },
   "app_settings": {
     "enabling_notifications": "Mengaktifkan notifikasi...",
@@ -4472,10 +5052,10 @@
     "state_logs": "Log state",
     "add_network_title": "Tambahkan jaringan",
     "auto_lock": "Kunci otomatis",
-    "enable_device_authentication": "Aktifkan Autentikasi Perangkat",
+    "enable_device_authentication": "Aktifkan autentikasi perangkat",
     "enable_device_authentication_desc": "Gunakan biometrik atau kode sandi perangkat Anda untuk membuka MetaMask.",
     "auto_lock_desc": "Pilih jumlah waktu sebelum aplikasi terkunci secara otomatis.",
-    "state_logs_desc": "Ini akan membantu MetaMask memperbaiki masalah apa pun yang mungkin Anda temui. Kirimkan kepada dukungan MetaMask melalui ikon hamburger > Kirim Umpan Balik, atau balas tiket yang ada, jika ada.",
+    "state_logs_desc": "Hal ini akan membantu MetaMask memperbaiki masalah apa pun yang mungkin Anda alami. Kirimkan informasi tersebut ke dukungan MetaMask melalui ikon hamburger > Kirim Umpan Balik, atau balas tiket yang sudah ada jika Anda memilikinya.",
     "autolock_immediately": "Langsung",
     "autolock_never": "Tidak pernah",
     "autolock_after": "Setelah {{time}} detik",
@@ -4733,7 +5313,7 @@
     "delete_data_status_title": "Penghapusan status tugas",
     "delete_data_status_description": "Status saat ini adalah",
     "delete_metrics_error_title": "Kami tidak dapat menghapus data ini sekarang.",
-    "delete_metrics_error_description": "Permintaan ini tidak dapat diselesaikan sekarang karena masalah server sistem analitis, coba lagi nanti.",
+    "delete_metrics_error_description": "Permintaan ini tidak dapat diselesaikan sekarang karena masalah server sistem analitis. Coba lagi nanti.",
     "ok": "Oke",
     "clear_sdk_connections_title": "Hapus semua koneksi SDK MetaMask",
     "clear_sdk_connections_text": "Semua koneksi akan dihapus dan aplikasi terdesentralisasi (dapps) perlu meminta koneksi lagi",
@@ -4937,7 +5517,7 @@
     "simulation_details_description": "Aktifkan ini untuk mengestimasikan perubahan saldo transaksi sebelum Anda mengonfirmasikannya. Ini tidak menjamin hasil akhir transaksi Anda. ",
     "simulation_details_learn_more": "Selengkapnya.",
     "aes_crypto_test_form_title": "Kripto AES - formulir pengujian",
-    "aes_crypto_test_form_description": "Bagian khusus dikembangkan untuk pengujian E2E. Apabila terlihat di aplikasi, laporkan ke dukungan MetaMask.",
+    "aes_crypto_test_form_description": "Bagian ini dikembangkan secara khusus untuk pengujian E2E. Jika bagian ini terlihat di aplikasi Anda, laporkan kepada dukungan MetaMask.",
     "developer_options": {
       "title": "Opsi pengembang",
       "generate_trace_test": "Buat uji jejak",
@@ -4956,7 +5536,7 @@
       },
       "identity": {
         "title": "Identitas",
-        "description": "Menghapus sesi autentikasi yang tersimpan. Gunakan ini setelah mengaktifkan/menonaktifkan MM_DEV_API_ENV — jika tidak, JWT yang dibuat di lingkungan produksi akan terus diberikan kepada pelanggan API pengembangan hingga kedaluwarsa. MM_DEV_API_ENV saat ini: {{env}}.",
+        "description": "Menghapus sesi autentikasi yang tersimpan. Gunakan ini setelah mengubah pengaturan MM_API_ENV — jika tidak, JWT yang dibuat di lingkungan produksi akan terus diberikan kepada pelanggan API pengembangan hingga kedaluwarsa. MM_API_ENV saat ini: {{env}}.",
         "clear_auth_session_button": "Hapus sesi autentikasi yang dipertahankan"
       },
       "notifications": {
@@ -4969,6 +5549,19 @@
         "description": "Reset orientasi Papan Peringkat Sosial sehingga dapat menampilkan lagi waktu berikutnya fitur dibuka.",
         "onboarding_seen": "Orientasi dilihat: {{seen}}",
         "reset_onboarding": "Reset orientasi"
+      },
+      "new_wallet": {
+        "title": "New wallet",
+        "description": "Runs the Reset wallet cleanup (browser history, cookies, identity session, ramps orders and sessions), creates a new SRP with the saved password (DEV_AUTO_UNLOCK_PASSWORD, else the keychain), turns biometrics back on when the device supports them and lands on the wallet already unlocked.",
+        "button": "Wipe and create new SRP",
+        "confirm_title": "Wipe wallet and create a new SRP?",
+        "confirm_message": "The current SRP, accounts and app data are deleted. Back up the SRP first if you need it.",
+        "confirm": "Wipe and create",
+        "cancel": "Batal",
+        "no_password_title": "No saved password",
+        "no_password_message": "Set DEV_AUTO_UNLOCK_PASSWORD in .js.env, or enable remember me or biometrics so the keychain holds the password.",
+        "success": "New wallet ready",
+        "failure": "New wallet failed"
       },
       "haptics": {
         "title": "Haptic",
@@ -4984,11 +5577,13 @@
         "raw_impacts_desc": "Gaya dampak expo-haptic langsung untuk perbandingan dengan momen katalog yang dipetakan di atas.",
         "impacts": {
           "quick_amount_selection": "Dampak — Pemilihan jumlah cepat",
+          "keypad_key": "Impact — Keypad key",
           "slider_tick": "Dampak — Centang penggeser",
           "edge_gesture_engage": "Dampak — Gerakan tepi aktif",
           "page_navigation": "Dampak — Navigasi halaman",
           "slider_grip": "Dampak — Grip penggeser",
           "tab_change": "Dampak — Perubahan tab",
+          "secondary_cta": "Impact — Secondary CTA",
           "primary_cta": "Dampak — CTA Utama",
           "pull_to_refresh_engage": "Dampak — Tarik untuk menyegarkan (aktif)",
           "pull_to_refresh": "Dampak — Tarik untuk menyegarkan (rilis)",
@@ -5236,8 +5831,10 @@
     "once_label": "Satu kali",
     "moves_up": "Saat harga bergerak naik",
     "moves_down": "Saat harga bergerak turun",
+    "period_5m": "5min",
     "period_1h": "1 jam",
     "period_24h": "24 jam",
+    "period_5m_short": "5m",
     "period_1h_short": "1 jam",
     "period_24h_short": "24 jam",
     "moves_up_summary": "Naik sebesar {{percent}}%",
@@ -5263,6 +5860,7 @@
     "market_closed": "Pasar tutup",
     "send_button": "Kirim",
     "buy_button": "Beli",
+    "buy_token_button": "Beli {{symbol}}",
     "cash_buy_button": "Pembelian Tunai",
     "long_button": "Long",
     "short_button": "Short",
@@ -5283,6 +5881,7 @@
     "convert": "Konversikan",
     "bridge": "Bridge",
     "earn": "Dapatkan",
+    "orders": "Order",
     "convert_to_musd": "Konversikan ke mUSD",
     "tron": {
       "daily_resource_new_energy": "Energi harian baru",
@@ -5295,7 +5894,8 @@
       "sufficient_to_cover_trx_transfers": "Menutupi ~{{amount}} transfer TRX",
       "sufficient_to_cover_trx_transfer": "Menutupi 1 transfer TRX",
       "sufficient_to_cover_usdt_transfers": "Menutupi ~{{amount}} transfer USDT",
-      "sufficient_to_cover_usdt_transfer": "Menutupi 1 transfer USDT"
+      "sufficient_to_cover_usdt_transfer": "Menutupi 1 transfer USDT",
+      "resource_unavailable": "Tidak tersedia"
     },
     "disabled_button": {
       "buy": "Pembelian tidak didukung untuk akun ini",
@@ -5313,6 +5913,19 @@
     "address": "Alamat",
     "were_unable": "Kami tidak dapat memuat saldo",
     "balance": "Anda. Lihat artikel dukungan",
+    "position_pnl": {
+      "your_position": "Posisi Anda",
+      "unrealised": "Unrealised PNL",
+      "average_cost": "Average cost",
+      "realized": "Realized",
+      "realized_pnl": "Realized P&L",
+      "unrealized": "Unrealized",
+      "unrealized_pnl": "P&L Belum Terealisasi",
+      "hold_time": "Hold time",
+      "share_to_feed": "Share to feed",
+      "loading": "Loading position",
+      "shown_in_usd": "Shown in USD"
+    },
     "troubleshooting_missing": "pemecahan masalah saldo yang hilang",
     "for_help": "untuk mendapatkan bantuan.",
     "troubleshoot": "Troubleshoot",
@@ -5339,6 +5952,7 @@
       "all": "Semua"
     },
     "chart_time_period_navigation": {
+      "1h": "1H",
       "1d": "1H",
       "7d": "7H",
       "1w": "1M",
@@ -5477,6 +6091,294 @@
         "non_transerable": "Tidak dapat ditransfer"
       }
     }
+  },
+  "token_details_overview": {
+    "performance": {
+      "title": "Performa"
+    }
+  },
+  "token_details_v1": {
+    "security_pill": {
+      "screened": "Screened",
+      "flags": {
+        "one": "{{count}} flag",
+        "other": "{{count}} flags"
+      },
+      "high_risk": "Risiko tinggi",
+      "unscreened": "Unscreened",
+      "pending": "Menunggu",
+      "accessibility_label": "Security: {{verdict}}. Open Security tab"
+    },
+    "social": {
+      "website": "Open website",
+      "x": "Open on X",
+      "telegram": "Open on Telegram",
+      "search_on_x": "Search on X",
+      "copy_address": "Copy contract address {{address}}"
+    },
+    "age": {
+      "accessibility_label": "Token age {{age}}. Learn about token age.",
+      "explainer": {
+        "title": "Usia token",
+        "description": "Time since token creation. Seconds, minutes, hours, then days."
+      }
+    },
+    "stats": {
+      "market_cap": "MCap",
+      "liquidity": "Likuiditas",
+      "volume_24h": "24h Vol",
+      "holders": "Pemilik",
+      "top_10": "Top 10",
+      "liquidity_to_market_cap": "Liq/MC",
+      "tax": "Tax",
+      "high_low_24h": "24h high/low",
+      "circulating_supply": "Suplai yang beredar",
+      "explain": "{{stat}}. Learn what this means",
+      "explainers": {
+        "market_cap": {
+          "title": "Market capitalization",
+          "description": "Current market capitalization of the circulating token supply."
+        },
+        "liquidity": {
+          "title": "Total liquidity",
+          "description": "Value currently available in the token's trading pools."
+        },
+        "volume_24h": {
+          "title": "24-hour trading volume",
+          "description": "Value traded over the last 24 hours."
+        },
+        "holders": {
+          "title": "Pemilik",
+          "description": "Number of unique addresses holding this token."
+        },
+        "top_10": {
+          "title": "Top 10 pemilik",
+          "description": "Share held by the top 10 wallets, excluding pools, routers, and burn addresses."
+        },
+        "liquidity_to_market_cap": {
+          "title": "Liquidity to market capitalization",
+          "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
+        },
+        "tax": {
+          "title": "Buy and sell tax",
+          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+        },
+        "high_low_24h": {
+          "title": "24-hour high and low",
+          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+        },
+        "circulating_supply": {
+          "title": "Suplai yang beredar",
+          "description": "Amount of this token currently circulating."
+        },
+        "lp_burned_locked": {
+          "title": "Liquidity pool tokens burned or locked",
+          "description": "Share of the primary pool liquidity that is burned or locked."
+        },
+        "primary_pool": {
+          "title": "Primary pool",
+          "description": "The main trading pool reported for this token."
+        },
+        "volume_flags": {
+          "title": "Volume flags",
+          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+        },
+        "listed_on_exchange": {
+          "title": "Terdaftar di bursa",
+          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+        },
+        "created": {
+          "title": "Dibuat",
+          "description": "Date the token contract was created, when reported by its source."
+        }
+      }
+    },
+    "tabs": {
+      "overview": "Ikhtisar",
+      "security": "Keamanan",
+      "feed": "Feed",
+      "holders": "Pemilik"
+    },
+    "holders_tab": {
+      "empty": "No holders to show yet",
+      "error": {
+        "title": "We couldn't load holders",
+        "retry": "Coba lagi"
+      }
+    },
+    "performance": {
+      "title": "Performa"
+    },
+    "activity": {
+      "title": "Aktivitas {{symbol}}"
+    },
+    "security_tab": {
+      "explain": "What does {{term}} mean?",
+      "contract_details_link": "See all contract security checks",
+      "sections": {
+        "contract": "Kontrak",
+        "contract_checks": "Contract checks",
+        "additional_checks": "Additional checks",
+        "holders": "Pemilik",
+        "liquidity": "Likuiditas",
+        "trading": "Trading",
+        "origin": "Asal"
+      },
+      "checks": {
+        "no_honeypot": "No honeypot",
+        "contract_verified": "Contract verified",
+        "renounced": "Renounced",
+        "no_blacklist": "No blacklist",
+        "is_mintable": "Is mintable"
+      },
+      "check_values": {
+        "no_honeypot": {
+          "pass": "Honeypot not detected",
+          "fail": "Honeypot detected"
+        },
+        "contract_verified": {
+          "pass": "Ya",
+          "fail": "Tidak"
+        },
+        "renounced": {
+          "pass": "Renounced",
+          "fail": "Not renounced"
+        },
+        "no_blacklist": {
+          "pass": "No controls",
+          "fail": "Control detected"
+        },
+        "is_mintable": {
+          "pass": "Ya",
+          "fail": "Tidak"
+        }
+      },
+      "values": {
+        "yes": "Ya",
+        "no": "Tidak",
+        "none_detected": "None detected",
+        "detected": {
+          "one": "{{count}} detected",
+          "other": "{{count}} detected"
+        }
+      },
+      "risk_banner": {
+        "one": "We found {{count}} risk",
+        "other": "We found {{count}} risks"
+      },
+      "risks": {
+        "default": {
+          "title": "Risk detected"
+        },
+        "known_malicious": {
+          "title": "Dikenal berbahaya",
+          "description": "Blockaid has identified known malicious activity or a compromised token contract."
+        },
+        "dangerous_contract_behavior": {
+          "title": "Dangerous contract behavior",
+          "description": "The contract contains suspicious code, privileged backdoors, or behavior that differs from its expected operation."
+        },
+        "impersonation_risk": {
+          "title": "Impersonation risk",
+          "description": "This token may imitate a legitimate token's name, symbol, branding, or identifying properties."
+        },
+        "rug_pull": {
+          "title": "Rug pull detected",
+          "description": "Blockaid has identified the token creators have a history of orchestrating malicious rug pull and honeypot schemes."
+        },
+        "exit_scam_risk": {
+          "title": "Exit scam risk",
+          "description": "Creator or insider behavior suggests a risk of withdrawing value at the expense of holders."
+        },
+        "high_token_fees": {
+          "title": "High token fees",
+          "description": "The token's transfer, buy, or sell fees are unusually high."
+        },
+        "low_liquidity_risk": {
+          "title": "Low liquidity risk",
+          "description": "Limited liquidity could make the token price volatile."
+        },
+        "concentrated_ownership": {
+          "title": "Concentrated ownership",
+          "description": "A small group of holders controls a large share of supply, increasing price-manipulation and sell-pressure risk."
+        },
+        "wash_trading": {
+          "title": "Wash trading activity",
+          "description": "Artificial trades or trading accounts may be inflating the token's activity or volume."
+        },
+        "sniped_at_launch": {
+          "title": "Sniped at launch",
+          "description": "One or more wallets acquired supply in the same block as the token's creation."
+        },
+        "suspicious_creator": {
+          "title": "Suspicious creator",
+          "description": "The creator's reputation or the token's funding trail raises additional risk concerns."
+        },
+        "sanctioned_creator": {
+          "title": "Pembuat yang disetujui",
+          "description": "The token's creator is sanctioned by a government or financial institution."
+        },
+        "suspicious_airdrop": {
+          "title": "Airdrop mencurigakan",
+          "description": "The token's onchain airdrop activity or metadata may be deceptive or spam-like."
+        },
+        "liquidity_withdrawal_risk": {
+          "title": "Liquidity withdrawal risk",
+          "description": "Insufficient locked liquidity or a migration unlock could allow the operator to withdraw liquidity."
+        }
+      },
+      "checks_meta": {
+        "attribution": "Blockaid",
+        "age_clause": "· updated {{count}} min ago",
+        "age_clause_just_now": "· updated just now",
+        "explainer": {
+          "title": "Security verification",
+          "description": "Security verification checks are completed by Blockaid based on onchain history. They are shared for your information only and are not financial, legal or investment advice. Verification is not an endorsement by MetaMask."
+        }
+      },
+      "stats": {
+        "holders": "Pemilik",
+        "top_ten": "Top 10",
+        "total_liquidity": "Total liquidity",
+        "liquidity_to_market_cap": "Liq/MC",
+        "lp_burned_locked": "LP burned/locked",
+        "primary_pool": "Primary pool",
+        "buy_sell_tax": "Buy/sell tax",
+        "volume_flags": "Volume flags",
+        "listed_on_exchange": "Terdaftar di bursa",
+        "created": "Dibuat"
+      },
+      "holders": {
+        "top_ten": "Top 10",
+        "remaining": "Remaining holders"
+      },
+      "explainers": {
+        "no_honeypot": {
+          "title": "No honeypot",
+          "description": "Whether the token can be sold."
+        },
+        "contract_verified": {
+          "title": "Contract verified",
+          "description": "Whether the contract source is reported as verified."
+        },
+        "renounced": {
+          "title": "Renounced",
+          "description": "Whether contract ownership has been renounced."
+        },
+        "no_blacklist": {
+          "title": "No blacklist",
+          "description": "Whether an address can be blocked from trading."
+        },
+        "is_mintable": {
+          "title": "Is mintable",
+          "description": "Whether a token can mint additional supply."
+        }
+      }
+    },
+    "contract_security": {
+      "title": "Contract security"
+    },
+    "tab_placeholder": "Segera hadir"
   },
   "account_details": {
     "title": "Detail akun",
@@ -6021,6 +6923,7 @@
       "only_numbers_allowed": "Hanya angka yang diizinkan",
       "negative_values_not_allowed": "Nilai negatif tidak diizinkan",
       "max_base_fee_must_be_greater_than_priority_fee": "Biaya dasar maks harus lebih besar dari biaya prioritas",
+      "gas_limit_below_minimum": "Batas gas minimal adalah 12000",
       "priority_fee_too_high": "Biaya prioritas harus kurang dari biaya dasar maks",
       "no_zero_value": "{{field}} harus lebih besar dari 0",
       "speed": "Kecepatan",
@@ -6070,12 +6973,15 @@
     "others": "Lainnya",
     "memo": "Memo",
     "network": "Jaringan",
-    "custom": "Kustom"
+    "custom": "Kustom",
+    "no_contacts": "Tidak ada kontak",
+    "no_contacts_desc": "Jika Anda menambahkan kontak, Anda akan melihatnya di sini."
   },
   "duplicate_address": {
     "title": "Ini adalah alamat duplikat",
     "body": "Daftar kontak Anda menampilkan alamat ini di lebih dari satu jaringan. Pastikan untuk memilih kontak yang benar sebelum Anda mengirim dana.",
-    "button": "Mengerti"
+    "button": "Mengerti",
+    "accessibility_label": "Tampilkan informasi alamat yang ambigu"
   },
   "transaction_submitted": {
     "title": "Transaksi dikirim",
@@ -6245,7 +7151,7 @@
       "remember_me": "Ingat Saya",
       "face_id": "ID Wajah",
       "touch_id": "ID Sentuh",
-      "device_authentication": "Autentikasi Perangkat",
+      "device_authentication": "Autentikasi perangkat",
       "device_passcode": "Kode Sandi Perangkat"
     }
   },
@@ -6350,14 +7256,12 @@
     "skip_button_confirm": "Lewati",
     "skip_title": "Lewati keamanan akun?",
     "skip_check": "Jika kehilangan Frasa Pemulihan Rahasia ini, Anda tidak dapat mengakses dompet ini.",
-    "what_is_seedphrase_title": "Apa itu Frasa Pemulihan Rahasia?",
-    "what_is_seedphrase_text_1": "Frasa Pemulihan Rahasia, yang juga disebut seed phrase atau mnemonik, merupakan serangkaian kata yang memungkinkan Anda untuk mengakses dan mengendalikan dompet kripto. Untuk memindahkan dompet ke MetaMask, Anda memerlukan frasa ini.",
-    "what_is_seedphrase_text_2": "Anda harus merahasiakan dan mengamankan Frasa Pemulihan Rahasia. Jika seseorang mendapatkan Frasa Pemulihan Rahasia, mereka akan mendapatkan kendali atas akun Anda.",
-    "what_is_seedphrase_text_3": "Simpan di tempat yang aman dan hanya bisa diakses oleh Anda. Jika hilang, MetaMask sekali pun tidak dapat membantu Anda memulihkannya.",
-    "what_is_seedphrase_text_4": "Siapa pun yang memiliki Frasa Pemulihan Rahasia milik Anda dapat:",
-    "seedPhrase_point_1": "Mengambil semua uang Anda",
-    "seedPhrase_point_2": "Mengonfirmasikan transaksi",
-    "seedPhrase_point_3": "Mengubah informasi login Anda",
+    "what_is_seedphrase_title": "Frasa Pemulihan Rahasia",
+    "what_is_seedphrase_description": "Frasa Pemulihan Rahasia memulihkan dompet Anda di perangkat baru.",
+    "keep_private_title": "Jaga kerahasiaannya.",
+    "keep_private_description": "Siapa pun yang memilikinya dapat mengakses dompet Anda dan memindahkan dana Anda. MetaMask tidak akan pernah meminta Anda untuk membagikannya.",
+    "store_safely_title": "Simpanlah dengan aman.",
+    "store_safely_description": "Catatlah secara berurutan dan simpan secara offline di tempat yang hanya bisa diakses oleh Anda. MetaMask tidak dapat memulihkannya jika hilang.",
     "what_is_seedphrase_confirm": "Mengerti"
   },
   "account_backup_step_1B": {
@@ -6451,10 +7355,8 @@
   "manual_backup_step_1": {
     "steps": "Langkah {{currentStep}} dari {{totalSteps}}",
     "action": "Simpan Frasa Pemulihan Rahasia",
-    "info-1": "Anda",
-    "info-2": "Frasa Pemulihan Rahasia",
-    "info-3": "memberikan akses dompet sepenuhnya.",
-    "info-4": "Catat dengan urutan dan nomor yang benar. Simpan dengan aman dan jangan pernah dibagikan.",
+    "description": "Frasa Pemulihan Rahasia memberikan akses penuh ke dompet Anda. Catat kata-kata tersebut sesuai urutannya dan jangan pernah membagikannya.",
+    "what_is_srp": "Apa itu Frasa Pemulihan Rahasia?",
     "continue": "Lanjutkan",
     "reveal": "Ketuk untuk menampilkan",
     "watching": "Pastikan tidak ada yang melihat layar Anda.",
@@ -6989,6 +7891,12 @@
     "order_status_cancelled": "Dibatalkan",
     "webview_no_url_provided": "URL untuk melanjutkan tidak diberikan",
     "webview_error_no_address_provided": "Alamat dompet untuk melanjutkan tidak diberikan",
+    "checkout_link_expired": "Tautan checkout telah kedaluwarsa. Kembalilah dan coba lagi.",
+    "checkout_link_expired_cta": "Kembali",
+    "checkout_payment_failed": "Pembayaran tidak dapat diselesaikan. Coba lagi.",
+    "checkout_guest_limit_reached_description": "Anda telah mencapai batas maksimum untuk checkout sebagai tamu. Lanjutkan dengan akun {{provider}} untuk menyelesaikan pembelian ini.",
+    "checkout_continue_with_provider_account": "Lanjutkan dengan akun {{provider}}",
+    "google_pay_unavailable": "Google Pay tidak tersedia di perangkat ini. Pilih metode pembayaran lain untuk melanjutkan.",
     "settings_modal": {
       "title": "Pengaturan",
       "use_new_buy_experience": "Cara lain untuk membeli",
@@ -7525,6 +8433,128 @@
     "unrecognized_chain_ticker": "Sepertinya simbol jaringan ini tidak cocok dengan ID chain-nya.",
     "unrecognized_chain_id": "Kami tidak mengenali jaringan ini. Pastikan ID chain sudah benar sebelum melanjutkan."
   },
+  "mfa": {
+    "method_email": "Email",
+    "method_passkey": "Passkey",
+    "method_totp": "Authenticator app",
+    "intro": {
+      "title": "Set up 2-step verification",
+      "description": "We’ll set up a few ways to confirm it’s you. If you lose access to one method, you can use another.",
+      "passkey_description": "Confirm with your device or password manager",
+      "passkey_done": "Saved to this device",
+      "email_description": "Get a 6-digit code sent to your inbox",
+      "totp_description": "Get a 6-digit code from an app like Google Authenticator",
+      "totp_done": "Set up in your authenticator app",
+      "continue": "Mulai"
+    },
+    "picker": {
+      "title": "Confirm with 2-step verification",
+      "passkey": "Verify with Passkey",
+      "email_otp": "Get a verification code",
+      "totp": "Use authenticator app",
+      "or": "atau"
+    },
+    "email_entry": {
+      "title": "Verify your email",
+      "description": "We’ll use your email to verify your account and send you occasional account updates.",
+      "placeholder": "Alamat email",
+      "invalid": "Masukkan alamat email yang valid.",
+      "continue": "Lanjutkan"
+    },
+    "otp": {
+      "title": "Enter your verification code",
+      "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
+      "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
+      "description_totp": "Open your authenticator app and enter the 6-digit code.",
+      "verify": "Verifikasikan",
+      "retry": "Coba lagi",
+      "retry_in": "Try again in {{seconds}}s",
+      "sending": "Sending code...",
+      "send_in": "Sending a new code in {{seconds}}s",
+      "resend": "Kirim ulang kode",
+      "resend_in": "Kirim ulang kode dalam {{seconds}} dtk",
+      "resent": "We sent you a new code.",
+      "paste": "Tempel",
+      "get_new_code": "Get new code"
+    },
+    "totp_setup": {
+      "title": "Set up authenticator app",
+      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
+      "open_app": "Open authenticator app",
+      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
+      "setup_key": "Setup key",
+      "copy": "Copy setup key",
+      "other_device": "Set up on another device",
+      "qr_title": "Pindai kode QR",
+      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
+      "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
+      "continue": "Lanjutkan"
+    },
+    "passkey": {
+      "title_setup": "Create a passkey",
+      "title_verify": "Use your passkey"
+    },
+    "failure": {
+      "title": "Terjadi kesalahan",
+      "retry": "Coba lagi",
+      "close": "Tutup"
+    },
+    "errors": {
+      "invalid_code": "That code isn’t right. Check it and try again.",
+      "too_many_attempts": "Too many attempts. Request a new code.",
+      "invalid_passkey": "Your passkey couldn't be verified. Try again.",
+      "passkey_cancelled": "Passkey request was cancelled.",
+      "email_taken": "This email is already in use. Try a different one.",
+      "cooldown": "Terlalu banyak permintaan. Tunggu sebentar dan coba lagi.",
+      "limit_reached": "You've reached the limit for this method.",
+      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
+      "signed_out": "Sign in to continue.",
+      "unsupported": "This method isn't supported on this device.",
+      "flow_in_progress": "Another verification is already in progress.",
+      "generic": "Terjadi kesalahan. Coba lagi.",
+      "code_expired": "Your verification code expired, get a new code.",
+      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
+      "totp_expired": "That took too long. Enter the current code from your app.",
+      "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
+      "totp_taken": "An authenticator app is already set up for this account."
+    },
+    "settings": {
+      "title": "2-step verification",
+      "description": "Used to confirm it's you before sensitive actions.",
+      "manage": "Kelola",
+      "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
+      "add": "Tambah",
+      "passkeys": "Passkeys",
+      "passkey_count": {
+        "one": "{{count}} passkey",
+        "other": "{{count}} passkeys"
+      },
+      "add_passkey": "Add passkey",
+      "passkey_name": "Passkey #{{number}}",
+      "passkey_name_with_provider": "Passkey #{{number}} - {{provider}}",
+      "added_on": "Added {{date}}",
+      "used_for": "Used for",
+      "used_for_money": "Verifying Money transactions",
+      "remove_passkey": "Remove passkey",
+      "remove_passkey_description": "This passkey will be removed from all your devices. Make sure you have another way to sign in before deleting.",
+      "remove_email": "Remove email",
+      "remove_email_description": "You’ll no longer be able to log in or verify transactions by receiving a code via email.",
+      "remove_totp": "Remove authenticator app",
+      "remove_totp_description": "You’ll no longer be able to verify Money transactions with codes from your authenticator app.",
+      "remove": "Hapus",
+      "last_passkey_title": "Passkey can’t be deleted",
+      "last_passkey_description": "This passkey is the only security method for this account. Add a second method before removing it.",
+      "last_email_title": "Email can’t be removed",
+      "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
+      "last_totp_title": "Authenticator app can’t be removed",
+      "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "got_it": "Mengerti",
+      "passkey_removed": "Passkey removed",
+      "email_removed": "Email verification removed",
+      "totp_removed": "Authenticator app removed",
+      "remove_failed": "Couldn’t remove this method. Try again later."
+    }
+  },
   "media_player": {
     "loading": "Memuat...",
     "not_found": "Media tidak ditemukan"
@@ -7843,7 +8873,7 @@
     "ledger_disconnected": "Sambungan perangkat terputus",
     "ledger_disconnected_error": "Koneksi ke perangkat Anda telah terputus. Coba lagi.",
     "unknown_error": "Terjadi kesalahan tidak terduga.",
-    "unknown_error_message": "Terjadi kesalahan tidak terduga. Silakan coba lagi.",
+    "unknown_error_message": "Terjadi kesalahan tak terduga. Coba lagi.",
     "error_occured": "Terjadi kesalahan",
     "how_to_install_eth_app": "Cara menginstal aplikasi Ethereum di perangkat Ledger",
     "ledger_account_count": "Anda menggunakan 1 akun dari Ledger dengan MetaMask Mobile.",
@@ -8019,7 +9049,7 @@
     "claimable_bonus_tooltip_with_percentage": "Bonus tahunan sebesar {{percentage}}% yang Anda peroleh karena memiliki mUSD. Bonus dapat diklaim setiap hari di Linea.",
     "learn_more": "Pelajari selengkapnya",
     "service_interruption_banner": {
-      "maintenance_message": "Kami sedang dalam perbaikan dan akan segera kembali online."
+      "maintenance_message": "{{experienceName}} is down for maintenance and will be back online soon."
     },
     "supply": "Suplai",
     "deposit": "Deposit",
@@ -8066,7 +9096,7 @@
     "withdraw_from_aave": "Tarik dari Aave",
     "deposit_more": "Deposit lagi",
     "earning": "Penghasilan",
-    "lending_earnings": "Pendapatan pinjaman",
+    "lending": "Meminjamkan",
     "withdrawal_time": "Waktu penarikan",
     "withdrawing_to": "Penarikan ke",
     "network": "Jaringan",
@@ -8123,7 +9153,7 @@
         "failed": "Konversi mUSD gagal"
       },
       "education": {
-        "heading": "DAPATKAN {{percentage}}% PADA\nSTABLECOIN",
+        "heading": "Dapatkan {{percentage}}% pada stablecoin",
         "description": "Konversikan stablecoin Anda ke mUSD dan dapatkan bonus tahunan sebesar {{percentage}}%.",
         "terms_apply": "Syarat berlaku.",
         "primary_button": "Mulai",
@@ -8182,7 +9212,7 @@
     "get_started": "Mulai",
     "rate_apy": "APY {{percentage}}%",
     "rate_apr": "APR {{percentage}}%",
-    "get_rate_apy": "Dapatkan APY {{percentage}}%",
+    "get_rate_apy": "Raih {{percentage}}% APY",
     "get_rate_apr": "Dapatkan APR {{percentage}}%",
     "rate_unavailable": "Tarif tidak tersedia",
     "balance_unavailable": "Saldo tidak tersedia",
@@ -8229,6 +9259,34 @@
         }
       }
     },
+    "vba_home_card": {
+      "get_started": {
+        "title": "Add money from your bank",
+        "description": "Transfer directly from your bank in seconds. No network fees.",
+        "cta": "Mulai"
+      },
+      "account_is_ready": {
+        "title": "Anda sudah siap",
+        "description": "Your virtual account details are ready.",
+        "cta": "View account details"
+      },
+      "kyc_pending": {
+        "title": "Memverifikasi identitas Anda",
+        "description": "We’re reviewing your details. We’ll let you know when the check is complete.",
+        "cta": "Verifying"
+      },
+      "finish_verification": {
+        "title": "We need more info",
+        "description": "Provide more details to finish verifying your identity. It only takes a minute.",
+        "cta": "Lanjutkan"
+      },
+      "kyc_decision": {
+        "title": "We can’t verify your identity",
+        "description": "We’re unable to offer bank transfers at this time. Contact support for assistance.",
+        "cta": "Selengkapnya",
+        "dismiss": "Lewatkan"
+      }
+    },
     "first_time_deposit": {
       "title": "Deposit pertama, selesai",
       "content": "Ada di Money Account milik Anda —\ndan sudah menghasilkan keuntungan.",
@@ -8253,14 +9311,15 @@
     "action": {
       "add": "Tambah",
       "transfer": "Kirim",
-      "card": "Kartu"
+      "card": "Kartu",
+      "details": "Detail"
     },
     "token_list_cta": {
-      "get_apy": "Dapatkan APY {{apy}}%"
+      "get_apy": "Raih {{apy}}% APY"
     },
     "asset_overview": {
       "cta": {
-        "earn_apy": "Dapatkan APY {{apy}}%",
+        "earn_apy": "Raih {{apy}}% APY",
         "start_earning": "Mulai menghasilkan",
         "current_apy_disclaimer": "APY saat ini, bersifat variabel dan tidak dijamin."
       },
@@ -8300,7 +9359,6 @@
       "add": "Tambah",
       "convert_cta": "Konversikan kripto Anda",
       "no_fee": "Tidak ada biaya",
-      "view_all": "Lihat semua",
       "view_potential_earnings": "Lihat potensi penghasilan"
     },
     "metamask_card": {
@@ -8310,13 +9368,11 @@
       "virtual_card": "Kartu virtual",
       "metal_card": "Kartu logam",
       "cashback": "pengembalian {{percentage}}% mUSD",
-      "get_now": "Dapatkan",
       "link_title": "Tautkan kartu",
       "link_subtitle": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
       "link_subtitle_no_apy": "Gunakan saldo Anda dan dapatkan keuntungan dari pembelian.",
       "link_bullet_cashback": "Dapatkan pengembalian {{percentage}}% mUSD",
       "link_bullet_apy": "Dapatkan hingga ~{{apy}}% APY",
-      "link_card": "Tautkan kartu",
       "link_pending_title": "Menghubungkan kartu Anda",
       "link_success_title": "Kartu Anda siap digunakan",
       "link_error": "Terjadi kesalahan saat menghubungkan kartu Anda",
@@ -8338,7 +9394,6 @@
       "unlink_card_sheet_another_money_account": "Money Account lain",
       "unlink_card_sheet_keep_linked": "Tetap terhubung",
       "unlink_card_sheet_unlink_account": "Putuskan tautan akun",
-      "manage_card": "Kelola",
       "verification_pending": "Verifikasi identitas Anda sedang ditinjau. Proses ini umumnya memerlukan waktu kurang dari 12 jam."
     },
     "what_you_get": {
@@ -8375,7 +9430,31 @@
       "perps_account": "Akun perp",
       "predictions_account": "Akun Predictions",
       "send_external": "Alamat eksternal",
+      "back_to_account": "Back to account",
       "withdraw_to_bank": "Rekening bank"
+    },
+    "musd_rescue_send": {
+      "title": "Kirim",
+      "your_funds_are_safe_title": "Your funds are safe",
+      "your_funds_are_safe_description": "{{amount}} of your mUSD is in your Money account but isn't earning yet. Send the funds back to your MetaMask account, then add them again.",
+      "to_label": "Ke",
+      "receive_label": "Terima",
+      "est_time_label": "Estimasi waktu",
+      "est_time_value": "< 10 dtk",
+      "transaction_fees_label": "Biaya transaksi",
+      "paid_by_metamask": "Dibayar oleh MetaMask",
+      "you_ll_receive_label": "Anda akan menerima",
+      "recipient_label": "Pilih akun",
+      "recipient_placeholder": "Enter account name or paste address",
+      "recipient_empty": "Akun tidak ditemukan",
+      "send": "Kirim",
+      "rescue_success_body": "{{amount}} ditambahkan ke {{destination}}.",
+      "error_invalid_recipient": "Select an account to send to",
+      "error_invalid_amount": "Enter an amount greater than zero",
+      "error_insufficient_balance": "Amount exceeds available mUSD",
+      "error_vmusd_balance_present": "Sending is available only before mUSD is converted to vmUSD.",
+      "error_balance_unavailable": "Balance unavailable — try again shortly",
+      "error_send_failed": "Failed to start the send — try again"
     },
     "toasts": {
       "in_progress_title": "Transaksi sedang berlangsung",
@@ -8455,6 +9534,7 @@
     },
     "transaction": {
       "deposited": "Didepositkan",
+      "bank_transfer": "Bank transfer",
       "received": "Diterima",
       "sent": "Mengirim",
       "card_transaction": "Transaksi kartu",
@@ -8596,7 +9676,7 @@
     "unstake": "Batalkan stake",
     "stake_more": "Stake lebih banyak",
     "claim": "Klaim",
-    "your_earnings": "Pendapatan Anda",
+    "staking": "Staking",
     "annual_rate": "Nilai tahunan",
     "lifetime_rewards": "Reward seumur hidup",
     "estimated_annual_earnings": "Estimasi pendapatan tahunan",
@@ -8808,6 +9888,7 @@
   "confirm": {
     "cancel": "Batalkan",
     "confirm": "Konfirmasikan",
+    "membership_top_up_info": "Kami akan menambahkan {{amount}} ke Money account untuk menutupi pembayaran ini.",
     "pay_with_bottom_sheet": {
       "title": "Bayar melalui",
       "receive_title": "Terima",
@@ -8823,7 +9904,8 @@
       "other_assets": "Aset lainnya",
       "other_assets_description": "Pilih dari token Anda",
       "other_assets_receive_description": "Pilih token yang ingin Anda terima",
-      "money_account": "Money Account"
+      "money_account": "Money Account",
+      "no_deposit_fee": "No deposit fee"
     },
     "staking_footer": {
       "part1": "Dengan melanjutkan, Anda menyetujui ",
@@ -9024,6 +10106,20 @@
     "deposit_edit_amount_musd_conversion": "Konversikan ke mUSD",
     "preparing_order": "Mempersiapkan order"
   },
+  "confirm_membership": {
+    "title": "Konfirmasi keanggotaan",
+    "plan_name": "Orange (Monthly)",
+    "confirm_and_pay": "Confirm and pay",
+    "start_trial": "Start your free trial",
+    "billed_on": "Billed on",
+    "disclaimer": {
+      "part1": "By clicking \"{{confirmAndPay}}\", you authorize MetaMask to charge {{monthlyAmount}}/month. Renews on {{renewDate}}. Cancel anytime. You also accept the ",
+      "terms_of_use": "Ketentuan penggunaan",
+      "part2": " dan ",
+      "privacy_policy": "Kebijakan Privasi",
+      "part3": "."
+    }
+  },
   "change_in_simulation_modal": {
     "title": "Hasil telah berubah",
     "description": "Estimasi perubahan untuk transaksi ini telah diperbarui. Tinjau dengan saksama sebelum melanjutkan.",
@@ -9047,25 +10143,38 @@
       "limit": "Limit",
       "recurring": "Berulang"
     },
+    "generic_error_toast_title": "Terjadi kesalahan",
+    "generic_error_toast_body": "Coba lagi dalam beberapa menit.",
     "orders": {
       "tabs": {
         "open_orders": "Order terbuka",
+        "open_orders_with_count": "Open orders ({{count}})",
         "history": "Riwayat"
       },
       "empty": {
         "open_orders": "Order terbuka ditampilkan di sini",
         "history": "Riwayat order ditampilkan di sini"
-      }
+      },
+      "error": "Order tidak dapat dimuat",
+      "try_again": "Coba lagi",
+      "today": "Hari ini"
     },
     "limit": {
       "pair": "{{source}} → {{dest}}",
-      "expiry": "Kedaluwarsa: {{timeLeft}}",
+      "expiry": "Expires after: {{timeLeft}}",
       "limit_price": "Harga limit {{symbol}}",
       "not_enough_gas": "Gas tidak cukup",
       "filled": "Terpenuhi",
       "filled_at": "Terpenuhi pada {{date}}",
       "expired": "Kedaluwarsa",
       "expired_after": "Kedaluwarsa setelah {{duration}}",
+      "duration_days": "{{count}} hari",
+      "duration_hours": "{{count}} jam",
+      "duration_minutes": "{{count}}m",
+      "canceled": "Dibatalkan",
+      "canceled_at": "Dibatalkan pada {{date}}",
+      "failed": "Gagal",
+      "failed_at": "Gagal pada {{date}}",
       "buy_when": "Beli saat",
       "sell_when": "Jual saat",
       "is_at_or_below": "berada di atau di bawah",
@@ -9074,11 +10183,12 @@
       "quote_unit_fallback": "{{amount}}",
       "from_market": "(={{percent}}% dari pasar)",
       "from_market_above": "(+{{percent}}% dari pasar)",
-      "trigger_price_near_market": "Trigger price is only {{percent}}% from market, your order may fill instantly.",
+      "from_market_above_capped": "(>+{{percent}}% dari pasar)",
+      "trigger_price_near_market": "Harga pemicu hanya {{percent}}% dari harga pasar; order mungkin akan langsung dieksekusi.",
       "market": "Pasar",
       "custom": "Kustom",
-      "expires": "Kedaluwarsa",
-      "expiration": "Kedaluwarsa",
+      "expires": "Kedaluwarsa setelah",
+      "expiration": "Kedaluwarsa setelah",
       "expiration_option": {
         "minutes": "{{count}} menit",
         "hour": "{{count}} jam",
@@ -9087,14 +10197,51 @@
         "week": "{{count}} minggu",
         "month": "{{count}} bulan"
       },
-      "est_network_fee": "Est. biaya jaringan",
+      "est_network_fee": "Account upgrade fee",
+      "includes_metamask_fee": "Includes MetaMask fee",
+      "account_upgrade_fee_info_title": "Account upgrade fee",
+      "account_upgrade_fee_info_body": "Upgrading to a smart account lets you execute limit orders. Like all on-chain actions, this has a small network fee.",
+      "metamask_fee_info_title": "Biaya MetaMask",
+      "metamask_fee_info_body": "MetaMask's standard fee is {{feePercentage}}%. You may be eligible for fee discounts or rebates, so we calculate your final fee at order execution.",
+      "metamask_fee_info_learn_more": "Selengkapnya",
       "create_order": "Buat Order",
+      "min_order_amount": "Min. order amount is ${{amount}}",
       "paying": "Membayar",
-      "receiving": "Menerima",
+      "est_receiving": "Est. receiving",
       "trigger_condition": "Kondisi pemicu",
-      "expiry_label": "Kedaluwarsa",
+      "trigger_condition_at_or_above": "≥",
+      "trigger_condition_at_or_below": "≤",
+      "expiry_label": "Kedaluwarsa setelah",
       "confirm_order": "Konfirmasikan order",
-      "edit_cost_tolerance": "Edit cost tolerance"
+      "status": "Status",
+      "in_progress": "Sedang berlangsung",
+      "submitted": "Dikirim",
+      "cancel_order": "Batalkan order",
+      "cancel_order_confirmation": "Apakah Anda benar-benar ingin membatalkan order ini?",
+      "edit_cost_tolerance": "Edit price tolerance",
+      "try_again": "Coba lagi",
+      "error_calculation_network_fees": "Tidak dapat menghitung biaya jaringan.",
+      "error_upgrading_account": "Could not create an order: the account couldn't be upgraded.",
+      "error_fetching_delegations": "Tidak dapat membuat order: tidak dapat mengambil detail delegasi.",
+      "error_signing_delegations": "Tidak dapat membuat order: order tidak dapat ditandatangani.",
+      "error_creating_order": "Tidak dapat membuat order: order tidak dapat dibuat.",
+      "error_missing_trigger_price": "Tidak dapat membuat order: harga pemicu tidak tersedia.",
+      "unsupported_fee_token_pair": "Limit orders aren’t available for this token pair. To continue, change at least one token to: {{supportedTokens}}",
+      "fee_tokens_unavailable": "Supported fee tokens couldn’t be loaded. Please try again.",
+      "error_canceling_order": "Tidak dapat membatalkan order. Coba lagi.",
+      "order_created_title": "Order dibuat",
+      "order_created_description": "Kami akan memberi tahu Anda setelah dieksekusi.",
+      "order_canceled_title": "Order dibatalkan",
+      "usd_price_notice": "Harga ditampilkan dalam mata uang pilihan Anda, tetapi order diproses dalam USD berdasarkan nilai tukar saat order dibuat. Nilai tukar saat ini: 1 USD = {{rate}} {{currency}}.",
+      "activity_title_filled": "Menukar {{source}} menjadi {{dest}}",
+      "activity_title_expired": "{{source}} ke {{dest}} kedaluwarsa",
+      "activity_title_canceled": "{{source}} ke {{dest}} dibatalkan",
+      "activity_title_failed": "{{source}} ke {{dest}} gagal",
+      "expired_at_status": "Kedaluwarsa (pada {{date}})",
+      "date_created": "Tanggal dibuat",
+      "order_type": "Jenis order",
+      "order_type_limit": "Limit",
+      "create_new_order": "Create new order"
     },
     "recurring": {
       "you_get": "Anda mendapatkan",
@@ -9104,8 +10251,8 @@
       "confirm": "Konfirmasikan",
       "preview_order": "Pratinjau Order",
       "confirm_title": "Konfirmasikan order berulang",
-      "order_created_toast_title": "Order created",
-      "order_created_toast_body": "We'll let you know when it's filled.",
+      "order_created_toast_title": "Order dibuat",
+      "order_created_toast_body": "Kami akan memberi tahu Anda setelah dieksekusi.",
       "order_canceled_toast_title": "Order dibatalkan",
       "paying_all_orders": "Membayar (semua order)",
       "paying_per_order": "Membayar (per order)",
@@ -9115,12 +10262,13 @@
       "expires_after": "Kedaluwarsa setelah",
       "slippage_all_orders": "Selip (semua order)",
       "est_network_fee_per_order": "Est. biaya jaringan (per order)",
-      "delegation_fee_one_time": "Delegation fee (one time)",
-      "delegation_fee_info_title": "Delegation fee",
+      "delegation_fee_one_time": "Biaya delegasi (sekali bayar)",
+      "delegation_fee_info_title": "Biaya delegasi",
       "delegation_fee_info_body": "placeholder",
       "got_it": "Mengerti",
       "repeat_info_title": "Ulangi order",
       "repeat_info_body": "Kami mengacak order Anda dalam waktu dan ukuran, sehingga swap Anda tidak mengikuti pola yang dapat diprediksi.",
+      "local_currency_notice": "Harga ditampilkan dalam mata uang lokal Anda, tetapi order diproses dalam USD berdasarkan nilai tukar saat order dibuat. Nilai tukar saat ini: 1 USD = {{rate}} {{currency}}.",
       "max_is": "Maks {{max}}",
       "price_range": {
         "label": "Rentang harga",
@@ -9132,6 +10280,7 @@
         "max_token_price": "Harga {{symbol}} maks",
         "min_placeholder": "Harga pasar",
         "max_placeholder": "Harga pasar",
+        "max_must_exceed_min": "Harga maksimum harus lebih tinggi dari harga minimum",
         "clear": "Hapus",
         "token_price": "1 {{symbol}} = {{price}}",
         "exchange_rate_value": "1 {{from}} = {{rate}} {{to}}"
@@ -9162,6 +10311,7 @@
       "spend_summary": "Anda menggunakan {{amount}} {{symbol}} setiap {{everyValue}} {{unit}} sebanyak {{repeatCount}} kali",
       "percent_filled": "{{percent}}% terpenuhi",
       "completed": "Selesai",
+      "cancelled": "Dibatalkan",
       "you_sent": "Anda mengirim",
       "you_receive": "Anda menerima",
       "filled_progress": "{{percent}}%",
@@ -9175,12 +10325,23 @@
       "history_progress": "{{filledOrderCount}}/{{totalOrderCount}} terpenuhi",
       "not_enough_gas": "Gas tidak cukup",
       "out_of_price_range": "Di luar kisaran harga",
+      "insufficient_balance": "Saldo tidak cukup",
+      "no_quotes_available": "Kuotasi tidak tersedia",
+      "needs_smart_account": "Akun cerdas diperlukan",
+      "delegate_your_account": "Delegasikan akun Anda",
+      "execution_failed": "Eksekusi gagal",
+      "history_empty": "Belum ada riwayat swap",
+      "history_error": "Riwayat swap tidak dapat dimuat",
       "failed": "Gagal",
       "filled": "Terpenuhi",
+      "skipped": "Dilewati",
+      "reason": "Alasan",
+      "swap_details_title": "Menukar {{source}} menjadi {{dest}}",
       "order_not_found": "Order tidak ditemukan",
       "cancel_order": "Batalkan order",
       "duplicate_order": "Order ganda",
-      "cancel_confirmation_body": "Apakah Anda benar-benar ingin membatalkan order ini?"
+      "cancel_confirmation_title": "Anda yakin?",
+      "cancel_confirmation_body": "Jika Anda melanjutkan, kami akan membatalkan order berulang ini. Anda harus membuat order baru untuk melakukan swap lagi."
     },
     "continue": "Lanjutkan",
     "confirm_bridge": "Bridge",
@@ -9251,8 +10412,8 @@
     "quote_info_title": "Tarif",
     "network_fee_info_title": "Biaya jaringan",
     "network_fee_info_content": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa rumit transaksi Anda.",
-    "network_fee_info_content_gasless": "When you don’t have enough native tokens, you’ll pay this fee using tokens in your swap.",
-    "gas_fee_deduction": "-{{fee}} for gas",
+    "network_fee_info_content_gasless": "Jika token asli yang Anda miliki tidak cukup, Anda akan membayar biaya ini menggunakan token dalam transaksi swap.",
+    "gas_fee_deduction": "-{{fee}} untuk gas",
     "batch_sell_network_fee_info_content": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa kompleks transaksi Anda. Jika Anda tidak memiliki cukup dana untuk menutupi biaya tersebut, kami akan mengambilnya dari token yang Anda konversi.",
     "network_fee_info_content_sponsored": "Biaya jaringan ini dibayar oleh MetaMask, sehingga Anda dapat bertransaksi tanpa {{nativeToken}} di akun Anda.",
     "points": "Estimasi poin",
@@ -9284,6 +10445,7 @@
     "fee_includes": "Termasuk",
     "fee_percentage": "{{feePercentage}}%",
     "fee_percentage_meta_mask": "{{feePercentage}}% biaya MetaMask",
+    "no_fees_with_orange": "No fees with Orange",
     "fee_disclaimer": "Termasuk biaya MetaMask sebesar {{feePercentage}}%",
     "discount_badge_promo": "Promo",
     "discount_badge_dao": "DAO",
@@ -9300,15 +10462,18 @@
       "failed_title": "Transaksi gagal",
       "disconnected_title": "Koneksi perangkat terputus",
       "approve_token": "Setujui {{amount}} {{symbol}}",
-      "approving_token": "Menyetujui {{amount}} {{symbol}}",
       "approved_token": "Telah menyetujui {{amount}} {{symbol}}",
       "send_token": "Kirim {{amount}} {{symbol}}",
       "sending_token": "Mengirim {{amount}} {{symbol}}",
       "sent_token": "Telah mengirim {{amount}} {{symbol}}",
+      "swap_amount": "Swap {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
+      "swapping_amount": "Swapping {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
+      "swapped_amount": "Swapped {{amount}} {{symbol}} for {{destAmount}} {{destSymbol}}",
       "spender": "Spender",
-      "spender_address": "Spender {{address}}",
+      "spender_address": "Spender: {{address}}",
+      "token_address": "Token: {{address}}",
       "recipient": "Penerima",
-      "recipient_address": "Penerima {{address}}",
+      "recipient_address": "To: {{address}}",
       "rejected": "Ditolak",
       "reconnect": "Hubungkan kembali",
       "done": "Selesai",
@@ -9373,10 +10538,11 @@
     },
     "submit": "Kirim",
     "default_slippage_description": "Transaksi Anda tidak akan berhasil jika harga berubah lebih dari persentase selip.",
-    "cost_tolerance": "Cost Tolerance",
-    "default_cost_tolerance_description": "Your transaction won't go through if the price changes more than the cost tolerance percent.",
-    "exceeding_lower_cost_tolerance_error": "Enter a cost tolerance greater than {{value}}%",
-    "exceeding_upper_cost_tolerance_error": "Enter a cost tolerance lower than {{value}}%",
+    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
+    "default_cost_tolerance_description": "Order limit tidak akan berhasil jika kami tidak dapat mengeksekusinya dalam kisaran {{costTolerance}}% dari jumlah output yang ditampilkan.",
+    "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
+    "exceeding_upper_cost_tolerance_error": "Enter a price tolerance lower than {{value}}%",
     "confirm": "Konfirmasikan",
     "exceeding_upper_slippage_warning": "Selip tinggi, ini dapat mengakibatkan swap yang tidak menguntungkan",
     "exceeding_lower_slippage_warning": "Selip rendah, ini dapat mengakibatkan swap yang tidak menguntungkan",
@@ -9708,7 +10874,7 @@
     },
     "manage_accounts": {
       "title": "Kelola akun",
-      "locked": "Terkunci",
+      "locked": "Kunci",
       "remove": "Hapus",
       "remove_wallet": "Hapus dompet"
     }
@@ -9820,7 +10986,7 @@
       "payment_creation_error": "Gagal membuat pembayaran. Coba lagi."
     },
     "order_completed": {
-      "title": "KARTU ANDA\nSUDAH DIPESAN",
+      "title": "Kartu Anda sudah dipesan",
       "subtitle": "Kartu akan tiba dalam waktu 4 sampai 6 minggu.",
       "description": "Atur kartu virtual Anda dan tambahkan ke dompet digital untuk mulai mendapatkan pengembalian mUSD.",
       "set_up_card_button": "Atur kartu",
@@ -9863,15 +11029,14 @@
       "try_again": "Coba lagi"
     },
     "card_onboarding": {
-      "title": "Gunakan\ndan Dapatkan",
+      "title": "Gunakan dan dapatkan",
       "description": "Kartu MetaMask merupakan cara cepat dan mudah untuk menggunakan kripto dan mendapatkan pengembalian hingga 3% mUSD.",
       "apply_now_button": "Atur sekarang",
       "login_button": "Masuk",
       "not_now_button": "Tidak sekarang",
       "sign_up": {
         "title": "Ayo mulai",
-        "description": "Buat akun dengan Crypto Life (CL) untuk mengatur Kartu MetaMask. MetaMask tidak melihat atau menyimpan data pribadi Anda.",
-        "description_immersve": "Kami membutuhkan beberapa detail untuk mengatur kartu Anda.",
+        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
         "i_already_have_an_account": "Saya sudah memiliki Kartu MetaMask",
         "i_already_have_an_account_immersve": "Saya sudah punya akun",
         "email_label": "Alamat email",
@@ -9972,7 +11137,12 @@
         "description": "Setujui Kartu MetaMask untuk menggunakan USDC Anda di Base untuk pembelian.",
         "helper_text": "Proses ini umumnya membutuhkan waktu beberapa detik. Jangan tutup aplikasi.",
         "confirm_button": "Setujui pendanaan",
-        "retry_button": "Coba lagi"
+        "retry_button": "Coba lagi",
+        "reapprove": {
+          "title": "Atur pendanaan kartu",
+          "description": "Setujui kembali Kartu MetaMask untuk menggunakan USDC Anda di jaringan Base agar Anda dapat melanjutkan penggunaan.",
+          "confirm_button": "Setujui pendanaan"
+        }
       },
       "verifying_registration": {
         "title": "Memverifikasi identitas Anda",
@@ -10148,11 +11318,6 @@
         "kyc_pending": {
           "title": "Verifikasi sedang berlangsung",
           "description": "Verifikasi identitas Anda sedang ditinjau. Proses ini umumnya memerlukan waktu kurang dari 12 jam."
-        },
-        "pending_verification": {
-          "title": "Selesaikan pengaturan kartu Anda",
-          "description": "Anda memiliki beberapa langkah verifikasi yang perlu diselesaikan sebelum kartu Anda dapat diaktifkan.",
-          "confirm_button_label": "Lanjutkan verifikasi"
         }
       },
       "messages": {
@@ -10168,7 +11333,7 @@
         },
         "rejected": {
           "title": "Verifikasi tidak disetujui",
-          "description": "Kami tidak dapat memverifikasi identitas Anda. Hubungi dukungan untuk mendapatkan bantuan.",
+          "description": "Kami tidak dapat memverifikasi identitas Anda. Hubungi dukungan mendapatkan bantuan.",
           "support_description": "Saat ini kami tidak dapat memverifikasi identitas Anda. Hubungi tim dukungan di {{email}} untuk mendapatkan bantuan dan kami akan membantu Anda menyelesaikan masalah ini."
         },
         "unverified": {
@@ -10195,6 +11360,8 @@
         "manage_spending_limit_description_full": "Akses penuh aktif",
         "unlink_money_account": "Putuskan tautan Money Account",
         "unlink_money_account_description": "Ubah sumber pendanaan Kartu Anda",
+        "unlink_funding_account": "Putus tautan kartu",
+        "unlink_funding_account_description": "Cegah pembelian di masa mendatang dari {{accountName}}",
         "travel_title": "MetaMask Travel",
         "travel_description": "Pesan hotel dengan diskon hingga 70%",
         "card_tos_title": "Syarat dan Ketentuan",
@@ -10211,8 +11378,51 @@
         "freeze_success": "Kartu berhasil diblokir",
         "unfreeze_success": "Blokir kartu berhasil dibuka",
         "change_asset": "Ubah aset",
-        "change_asset_description": "Pilih token yang berbeda"
+        "change_asset_description": "Pilih token yang berbeda",
+        "contact_details": "Detail kontak",
+        "contact_details_description": "Perbarui email dan nomor telepon Anda",
+        "add_to_digital_wallet": "Tambahkan ke dompet digital",
+        "add_to_digital_wallet_description": "Atur Apple Pay atau Google Pay"
       }
+    },
+    "contact_details": {
+      "title": "Detail kontak",
+      "description": "Pastikan alamat email dan nomor telepon Anda selalu terkini.",
+      "email_label": "Alamat email",
+      "phone_label": "Nomor telepon",
+      "invalid_email": "Masukkan alamat email yang valid",
+      "invalid_phone": "Masukkan nomor telepon yang valid",
+      "save": "Simpan",
+      "retry": "Coba lagi",
+      "load_error": "Kami tidak dapat memuat detail kontak Anda. Coba lagi.",
+      "update_error": "Kami tidak dapat memperbarui detail kontak Anda. Coba lagi.",
+      "success_message": "Detail kontak telah diperbarui"
+    },
+    "digital_wallet_instructions": {
+      "title": "Tambahkan kartu ke dompet digital",
+      "description": "Tampilkan detail Kartu MetaMask Anda di bawah ini, lalu ikuti langkah-langkah berikut untuk menambahkan kartu Anda secara manual.",
+      "apple_wallet": "Apple Wallet",
+      "google_wallet": "Google Wallet",
+      "steps": {
+        "apple": {
+          "open_wallet": "Buka Apple Wallet dan ketuk tombol tambah.",
+          "choose_card": "Pilih Kartu Debit atau Kredit, lalu pilih untuk memasukkan detail kartu secara manual.",
+          "enter_details": "Masukkan detail Kartu MetaMask Anda dan ikuti petunjuk untuk menyelesaikan penambahan kartu Anda."
+        },
+        "google": {
+          "open_wallet": "Buka Google Wallet dan ketuk Tambahkan ke Dompet.",
+          "choose_card": "Pilih Kartu pembayaran, lalu pilih Kartu kredit atau debit baru.",
+          "enter_details": "Masukkan detail Kartu MetaMask Anda secara manual dan ikuti petunjuk untuk menyelesaikan penambahan kartu Anda."
+        }
+      }
+    },
+    "revoke_allowance_sheet": {
+      "title": "Putus tautan kartu",
+      "description": "Anda tidak dapat melakukan pembelian menggunakan kartu Anda lagi. Tautkan kembali setiap saat.",
+      "unlink_button": "Putus tautan kartu",
+      "pending_title": "Memutus tautan {{accountName}}",
+      "success_title": "Tautan {{accountName}} telah terputus",
+      "error": "Terjadi kesalahan saat memutus tautan akun Anda"
     },
     "transactions": {
       "title": "Transaksi",
@@ -10285,7 +11495,7 @@
       "update_error": "Gagal memperbarui batas penggunaan",
       "select_token": "Pilih token",
       "loading": "Memuat token yang tersedia...",
-      "load_error": "Tidak dapat memuat token. coba lagi.",
+      "load_error": "Tidak dapat memuat token. Coba lagi.",
       "retry": "Coba lagi",
       "on_linea": "di Linea",
       "account_label": "Akun",
@@ -10311,7 +11521,7 @@
       "withdrawal_success": "Penarikan berhasil diselesaikan",
       "withdrawal_failed": "Penarikan gagal. Coba lagi.",
       "no_cashback": "Pengembalian mUSD tidak tersedia",
-      "loading_error": "Gagal memuat pengembalian mUSD. Coba lagi.",
+      "loading_error": "Gagal memuat cashback mUSD. Coba lagi.",
       "funding_required": {
         "title": "Atur pendanaan Linea",
         "description": "Anda memerlukan minimal satu sumber pendanaan yang disetujui di Linea sebelum menukar pengembalian mUSD.",
@@ -10390,17 +11600,63 @@
       "update_error": "Gagal memperbarui prioritas penggunaan"
     },
     "card_authentication": {
-      "title": "Masuk ke akun kartu Anda",
+      "title": "Masuk ke kartu Anda",
+      "title_resume": "Selesaikan pembaruan kartu Anda",
+      "description": "Masuk untuk mengelola Kartu MetaMask.",
+      "description_resolving": "Memeriksa cara mengatur kartu Anda.",
+      "description_resume": "Lanjutkan dari posisi terakhir Anda. Akun ini tetap terhubung dengan kartu Anda.",
       "auth_prompt_info": "Masuk ke akun kartu Anda untuk mengakses fitur ini.",
+      "country_label": "Negara",
       "location_button_text": "Internasional",
       "location_button_text_us": "Amerika Serikat",
       "location_button_text_uk": "Britania Raya",
       "email_label": "Email",
       "password_label": "Kata sandi",
       "login_button": "Masuk",
+      "siwe_button": "Masuk dengan Ethereum",
+      "continue_button": "Lanjutkan",
       "uk_login_button": "Masuk dengan akun ini",
       "signup_button": "Daftar",
       "forgot_password_button": "Lupa kata sandi?",
+      "account_label": "Akun",
+      "account_helper_pick": "Pilih akun yang Anda gunakan untuk mengatur kartu Anda. Kami akan memeriksanya sebelum meminta Anda untuk menandatangani.",
+      "fork_title": "Bagaimana biasanya Anda masuk?",
+      "fork_body": "Kami tidak menemukan kartu pada akun yang paling sering Anda gunakan. Pilih cara Anda mengaturnya.",
+      "fork_body_api_error": "Kami tidak dapat memeriksa pengaturan kartu Anda. Coba lagi, atau beri tahu kami cara Anda masuk.",
+      "fork_email_title": "Lanjutkan dengan email",
+      "fork_email_body": "Gunakan ini jika Anda masuk menggunakan alamat email dan kata sandi.",
+      "fork_wallet_title": "Lanjutkan dengan dompet Anda",
+      "fork_wallet_body": "Gunakan ini jika Anda mengatur kartu dengan akun MetaMask tanpa kata sandi.",
+      "fork_not_sure": "Tidak yakin yang mana?",
+      "fork_try_again": "Coba lagi",
+      "fork_email_back": "Masuk dengan email",
+      "fork_wallet_back": "Masuk dengan dompet Anda",
+      "resume_back": "Kembali ke pembaruan",
+      "resume_use_current_card": "Gunakan kartu Anda saat ini sebagai gantinya",
+      "resume_progress_identity": "Identitas diverifikasi",
+      "resume_progress_identity_pending": "Verifikasikan identitas Anda",
+      "resume_progress_spending": "Atur penggunaan",
+      "banner_account_missing_title": "Kartu Anda ditautkan ke akun yang tidak ada di perangkat ini",
+      "banner_account_missing_body": "Impor Frasa Pemulihan Rahasia yang memuat akun kartu Anda, atau pilih akun lain di perangkat ini.",
+      "banner_account_missing_choose": "Pilih akun",
+      "banner_account_missing_import": "Impor Frasa Pemulihan Rahasia",
+      "banner_no_card_title": "Kami tidak dapat menemukan kartu Anda di akun ini",
+      "banner_no_card_body": "Pilih akun yang Anda gunakan saat mengaturnya, atau impor Frasa Pemulihan Rahasia tersebut.",
+      "banner_no_card_choose": "Pilih akun",
+      "banner_moved_title": "Kartu ini telah beralih ke pengaturan baru",
+      "banner_moved_body": "Masuk menggunakan akun dompet yang Anda gunakan saat memperbarui kartu Anda.",
+      "banner_moved_action": "Lanjutkan dengan dompet Anda",
+      "banner_resume_soft_title": "Pembaruan belum selesai",
+      "banner_resume_soft_body": "Selesaikan sebelum {{deadline}}. Anda masih bisa menggunakan kartu saat ini sampai waktunya habis.",
+      "banner_bad_creds_title": "Anda tidak dapat masuk",
+      "banner_bad_creds_body": "Periksa alamat email dan kata sandi Anda, lalu coba lagi.",
+      "sign_in_help_title": "Yang mana milik saya?",
+      "sign_in_help_email_title": "Anda telah membuat kata sandi",
+      "sign_in_help_email_body": "Masuk menggunakan email. Kartu di Britania Raya (UK) sedang beralih ke sistem baru, jadi kami akan memandu Anda melalui proses peralihan tersebut setelah Anda masuk.",
+      "sign_in_help_wallet_title": "Anda belum pernah membuat kata sandi, atau Anda sudah beralih",
+      "sign_in_help_wallet_body": "Masuk menggunakan dompet. Anda akan menyetujui permintaan di MetaMask dan tidak mengetik apa pun.",
+      "sign_in_help_footer": "Kami hanya menanyakan hal ini jika kami tidak dapat memeriksa pengaturan kartu Anda. Memilih opsi yang salah tidak akan membuat Anda terkunci dari akses.",
+      "sign_in_help_got_it": "Mengerti",
       "errors": {
         "invalid_credentials": "Detail login tidak valid",
         "invalid_otp_code": "Kode salah, coba lagi",
@@ -10414,7 +11670,8 @@
         "timeout_error": "Waktu permintaan habis. Periksa koneksi Anda dan coba lagi.",
         "server_error": "Kesalahan server. Coba lagi nanti.",
         "configuration_error": "Layanan tidak tersedia untuk sementara waktu. Coba lagi nanti.",
-        "forbidden_error": "Tindakan ini tidak tersedia untuk akun Anda."
+        "forbidden_error": "Tindakan ini tidak tersedia untuk akun Anda.",
+        "account_check_failed": "Kami tidak dapat memeriksa akun ini. Coba lagi."
       }
     },
     "card_forgot_password": {
@@ -10449,18 +11706,25 @@
       "error_card_suspended": "Kartu Anda di {{walletName}} telah diblokir. Hubungi dukungan untuk mendapatkan bantuan.",
       "error_card_not_eligible": "Kartu ini tidak memenuhi syarat untuk penyediaan dompet digital.",
       "error_encryption_failed": "Gagal mengenkripsi data kartu. Coba lagi.",
+      "error_provider_unavailable": "The card provider is temporarily unavailable. Try again.",
       "error_invalid_card_data": "Data kartu tidak valid. Verifikasikan detail kartu Anda dan coba lagi.",
       "error_card_not_found": "Kartu tidak ditemukan. Coba lagi.",
       "error_card_provider_not_found": "Penyedia kartu tidak tersedia untuk wilayah Anda.",
       "error_card_id_mismatch": "Verifikasi kartu gagal. Coba lagi.",
-      "error_card_not_active": "Kartu Anda belum aktif. Aktifkan kartu terlebih dahulu.",
+      "error_card_not_active": "Kartu Anda belum aktif. Aktifkan kartu Anda terlebih dahulu.",
       "error_network": "Terjadi kesalahan jaringan. Periksa koneksi Anda dan coba lagi.",
       "error_timeout": "Waktu permintaan telah habis. Coba lagi.",
       "error_server": "Terjadi kesalahan server. Coba lagi nanti.",
       "error_unknown": "Terjadi kesalahan tak terduga. Coba lagi atau hubungi dukungan.",
       "error_platform_not_supported": "Platform ini tidak mendukung penyediaan dompet seluler.",
       "try_again": "Coba lagi",
-      "cancel": "Batalkan"
+      "cancel": "Batalkan",
+      "verification_pending_title": "Verification pending",
+      "verification_pending_description": "Open the card in Apple Wallet to verify it on {{devices}}.",
+      "open_in_apple_wallet": "Open in Apple Wallet",
+      "device_iphone": "iPhone",
+      "device_apple_watch": "Apple Watch",
+      "device_list_and": "{{first}} and {{second}}"
     }
   },
   "onboarding_error_fallback": {
@@ -10486,6 +11750,11 @@
     "close": "Tutup"
   },
   "rewards": {
+    "rebate": {
+      "banner": "You’re getting {{percent}}% back on fees",
+      "tooltip_title": "Trading Rewards",
+      "tooltip_content": "Get {{percent}}% of the MetaMask fee on this trade back as a reward, paid in mUSD to your Money account. Network fees aren’t included. See the Rewards tab for details."
+    },
     "auth_fail_title": "Kesalahan tidak dikenal.",
     "auth_fail_description": "Terjadi kesalahan tidak dikenal saat mengautentikasi akun ini dengan MetaMask Rewards. Coba lagi nanti.",
     "failed_to_authenticate": "Gagal melakukan autentikasi dengan MetaMask Rewards",
@@ -10548,7 +11817,7 @@
       "error_fetching_description": "Periksa koneksi Anda dan coba lagi.",
       "retry_button": "Coba lagi"
     },
-    "solana_signup_not_supported": "Masuk ke Reward dengan akun Solana belum didukung. Gunakan akun Ethereum sebagai gantinya.",
+    "solana_signup_not_supported": "Masuk ke Reward menggunakan akun Solana belum didukung. Gunakan akun Ethereum sebagai gantinya.",
     "error_messages": {
       "unknown_error": "Terjadi kesalahan tidak dikenal",
       "something_went_wrong": "Terjadi kesalahan. Coba lagi nanti.",
@@ -10580,6 +11849,7 @@
       "retry_button": "Coba lagi"
     },
     "main_title": "Reward",
+    "pro_member_badge_label": "Member",
     "vip": {
       "progress_to_next_tier": "{{pointsRemaining} poin ke tingkat berikutnya",
       "bps_unit": "bps",
@@ -10595,7 +11865,7 @@
       "points_from_referrals_label": "Poin dari referensi",
       "referrals_label": "Referensi VIP",
       "tier_benefits_title": "Manfaat tingkatan",
-      "splash_title": "SELAMAT DATANG\nDI GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Selamat datang di Gold Fox Collective",
       "splash_description": "Dapatkan keuntungan eksklusif, fitur-fitur awal, dan reward pilihan. Hanya dengan undangan.",
       "splash_accept_invite": "Terima undangan",
       "splash_not_now": "Tidak sekarang",
@@ -10775,7 +12045,7 @@
         "cancel": "Batal",
         "confirm": "Konfirmasikan",
         "error_title": "Terjadi kesalahan",
-        "error_message": "Gagal keluar dari Reward. Coba lagi.",
+        "error_message": "Gagal berhenti dari Reward. Coba lagi.",
         "processing": "Memproses..."
       },
       "request_received": {
@@ -10798,7 +12068,7 @@
       "account_not_supported": {
         "title": "Akun tidak didukung",
         "description_hardware": "Akun dompet perangkat keras belum memenuhi syarat. Beralih ke akun lain untuk melanjutkan.",
-        "description_general": "Saat ini hanya akun Ethereum dan Solana internal non-perangkat keras yang memenuhi syarat. Beralih ke akun lain untuk melanjutkan.",
+        "description_general": "Saat ini, hanya akun internal Ethereum dan Solana non-perangkat keras yang memenuhi syarat. Beralih ke akun lain untuk melanjutkan.",
         "confirm": "Kembali"
       }
     },
@@ -10934,7 +12204,7 @@
       "error_title": "Tidak dapat memuat kampanye ini",
       "error_description": "Kami tidak dapat memuat kampanye ini. Coba lagi.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "Terjadi masalah saat memuat statistik Anda. Coba lagi.",
       "retry": "Coba lagi",
       "last_checked_at": "Terakhir diperiksa pada",
       "ondo": {
@@ -10945,12 +12215,13 @@
     "campaign_ended_stats": {
       "title": "Statistik",
       "error_title": "Tidak dapat memuat semua statistik",
-      "error_description": "Terjadi masalah saat memuat statistik. Coba lagi nanti.",
+      "error_description": "Terjadi masalah saat memuat statistik Anda. Coba lagi nanti.",
       "retry": "Coba lagi",
       "total_participants": "Total peserta",
       "total_volume": "Volume total",
       "top_return": "Pengembalian tertinggi",
       "top_pnl": "PnL Tertinggi",
+      "total_yield": "Total hasil",
       "total_winners": "Total pemenang"
     },
     "campaign_prize_pool": {
@@ -11012,7 +12283,7 @@
     "ondo_campaign_stats": {
       "title": "Statistik",
       "stats_error_title": "Tidak dapat memuat semua statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi nanti.",
+      "stats_error_description": "Terjadi masalah saat memuat statistik Anda. Coba lagi nanti.",
       "retry": "Coba lagi",
       "label_return": "Laba",
       "label_market_value": "Nilai pasar",
@@ -11079,7 +12350,7 @@
       "stats_qualify_for_rank_title": "Lolos ke papan peringkat",
       "stats_qualify_for_rank_description": "Lakukan perdagangan {{notionalRemaining}} lagi dalam volume notional untuk memenuhi syarat.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "Terjadi masalah saat memuat statistik Anda. Coba lagi.",
       "stats_retry": "Coba lagi"
     },
     "predict_the_pitch_campaign": {
@@ -11098,7 +12369,7 @@
       "positions_open_badge": "{{count}} dibuka",
       "positions_closed_badge": "{{count}} ditutup",
       "positions_error": "Gagal memuat prediksi",
-      "positions_error_description": "Terjadi kesalahan saat memuat prediksi. Coba lagi.",
+      "positions_error_description": "Terjadi kesalahan saat memuat prediksi Anda. Coba lagi.",
       "positions_retry": "Coba lagi",
       "positions_last_updated": "Terakhir diperbarui: {{time}}",
       "positions_empty": "Belum ada prediksi",
@@ -11110,7 +12381,7 @@
       "leaderboard_error_loading_description": "Terjadi kesalahan saat memuat papan peringkat. Coba lagi.",
       "leaderboard_not_yet_computed": "Papan peringkat belum dihitung. Periksa kembali nanti.",
       "stats_error_title": "Tidak dapat memuat statistik",
-      "stats_error_description": "Terjadi masalah saat memuat statistik. Coba lagi.",
+      "stats_error_description": "Terjadi masalah saat memuat statistik Anda. Coba lagi.",
       "label_markets_traded": "Pasar yang diperdagangkan",
       "stats_retry": "Coba lagi",
       "performance_title": "Performa",
@@ -11327,7 +12598,7 @@
     },
     "show_internal_error": {
       "title": "Terjadi kesalahan",
-      "description": "Terjadi kesalahan tidak terduga. Coba lagi."
+      "description": "Terjadi kesalahan tak terduga. Coba lagi."
     },
     "agentic_cli_dashboard_webview": {
       "title": "Pilih proyek",
@@ -11487,7 +12758,7 @@
       "device_not_ready": "Perangkat Anda belum siap. Periksa dan coba lagi",
       "blind_signing": "Penandatanganan buta dinonaktifkan. Aktifkan di pengaturan perangkat Anda",
       "connection_closed": "Koneksi terputus. Coba lagi",
-      "connection_timeout": "Waktu koneksi telah habis. Coba lagi",
+      "connection_timeout": "Waktu koneksi habis. Coba lagi",
       "user_cancelled": "Tindakan dibatalkan di perangkat Anda",
       "pending_confirmation": "Terdapat tindakan yang tertunda di perangkat Anda. Selesaikan atau batalkan tindakan tersebut",
       "bluetooth_permission_denied": "Izin Bluetooth diperlukan untuk terhubung ke perangkat Anda",
@@ -11496,7 +12767,7 @@
       "bluetooth_off": "Aktifkan Bluetooth untuk terhubung ke perangkat Anda",
       "bluetooth_scan_failed": "Gagal memindai perangkat. Coba lagi",
       "bluetooth_connection_failed": "Koneksi ke perangkat Anda gagal. Coba lagi",
-      "camera_permission_denied": "Izin akses kamera diperlukan untuk memindai kode QR. Aktifkan di pengaturan perangkat Anda",
+      "camera_permission_denied": "Izin kamera diperlukan untuk memindai kode QR. Aktifkan di pengaturan perangkat Anda",
       "not_supported": "Operasi ini tidak didukung",
       "only_v4_supported": "{{device}} Anda hanya dapat menandatangani data bertipe versi 4 (V4). Situs ini meminta jenis tanda tangan lama yang tidak didukung",
       "unknown_error": "Pastikan {{device}} Anda telah diatur dengan Frasa Pemulihan Rahasia atau passphrase untuk akun ini"
@@ -11634,8 +12905,10 @@
   "token_watchlist": {
     "added_to_watchlist": "Ditambahkan ke Daftar Pantauan",
     "removed_from_watchlist": "Dihapus dari Daftar Pantauan",
+    "add_to_watchlist": "Tambahkan ke daftar pantauan",
     "home_empty_title": "Daftar pantauan",
     "home_empty_subtitle": "Anda belum memiliki item dalam daftar pantauan",
+    "suggested": "Disarankan",
     "fullscreen_title": "Daftar pantauan",
     "tokens_tab": "Token",
     "edit": "Edit",
@@ -11677,9 +12950,17 @@
     },
     "membership_brand": "METAMASK",
     "membership_label": "Pro",
+    "membership_status": {
+      "active": "Aktif",
+      "overdue": "Overdue",
+      "deactivated": "Deactivated",
+      "cancelled": "Dibatalkan",
+      "unavailable": "Tidak tersedia"
+    },
     "lifetime_earnings": "Penghasilan seumur hidup",
-    "money_balance": "{{apy}} APY on Money balance",
-    "musd_back": "{{rate}} mUSD back",
+    "money_balance": "{{apy}} APY pada saldo Money",
+    "musd_back": "Cashback mUSD {{rate}}",
+    "musd_back_locked": "Locked during free trial",
     "member_pricing": {
       "title": "Harga anggota pada perdagangan",
       "allowance_currency": "${{amount}}",
@@ -11696,11 +12977,43 @@
       "predict": {
         "label": "Predict",
         "footnote": "Satu prediksi perdagangan per bulan. Perdagangan yang tidak terpakai tidak dapat dialihkan ke periode berikutnya."
-      }
+      },
+      "resets_on": "Direset pada {{date}}",
+      "load_error": "Tidak dapat memuat tunjangan Anda.",
+      "retry": "Coba lagi"
     },
     "physical_card": {
       "title": "Dapatkan Kartu MetaMask gratis",
-      "description": "Dapatkan cashback mUSD sebesar 3% untuk setiap pembelian"
+      "description": "Dapatkan cashback mUSD sebesar 3% untuk setiap pembelian",
+      "trial_title": "Unlock {{rate}} mUSD back",
+      "trial_description": "Unlock card when you complete your free trial"
+    },
+    "membership_alert": {
+      "low_balance": {
+        "title": "Add funds by {{date}}",
+        "description": "Your Money account is low. Add funds to keep your membership.",
+        "action": "Coba lagi"
+      },
+      "renewal_failed": {
+        "title": "Renewal failed",
+        "description": "Your balance is too low. Add to your Money account to restore membership.",
+        "action": "Tambahkan dana"
+      },
+      "payment_failed": {
+        "title": "Payment failed",
+        "description": "Add funds to your Money account to restore your membership.",
+        "action": "Tambahkan dana"
+      },
+      "inactive": {
+        "title": "Your membership is inactive",
+        "description": "Add funds to your Money account to regain access to your benefits.",
+        "action": "Tambahkan dana"
+      },
+      "cancelled": {
+        "title": "Your membership is cancelled",
+        "description": "Renew before {{date}} to continue receiving 7% APY, 3% mUSD back, and more.",
+        "action": "Perpanjang keanggotaan"
+      }
     },
     "earned": {
       "total_label": "Diperoleh sejak bergabung dengan Pro",
@@ -11715,50 +13028,60 @@
       "add_money": "Tambahkan uang"
     },
     "membership": {
-      "title": "Keanggotaan Anda",
-      "plan": "Keanggotaan",
-      "earned_this_month": "Diperoleh bulan ini",
+      "title": "Paket Anda",
+      "plan": "Paket",
+      "lifetime_earnings": "Penghasilan seumur hidup",
       "payment_details": "Detail pembayaran",
       "total": "Total",
       "paying_with": "Membayar dengan",
+      "money_account": "Money Account",
       "renews_on": "Diperpanjang pada",
-      "manage": "Kelola",
+      "months_on_us_one": "{{count}} bulan gratis dari kami",
+      "months_on_us_other": "{{count}} bulan gratis dari kami",
+      "manage": "Kelola paket",
       "invoices": "Faktur",
       "contact_support": "Hubungi dukungan",
       "cancel_membership": "Batalkan keanggotaan",
-      "earned_info": {
-        "title": "Diperoleh bulan ini",
-        "description": "Jumlah yang Anda peroleh dalam cashback APY dan mUSD sebagai anggota Pro."
-      },
-      "saved_info": {
-        "title": "Disimpan bulan ini",
-        "description": "Jumlah yang Anda hemat sebagai anggota Pro pada biaya MetaMask untuk swap, perp, dan prediksi bulan ini, ditambah biaya ATM dan FX."
-      }
+      "resume_membership": "Resume membership",
+      "resume_in_progress": "Resuming membership",
+      "resume_failed": "We couldn't resume your membership. Please try again."
     },
     "cancel_membership": {
-      "title": "Mengapa Anda membatalkannya?",
-      "subtitle": "Survei bersifat opsional.",
-      "earned_as_member": "Diperoleh sebagai anggota",
-      "membership_cost": "Biaya keanggotaan",
-      "reason_issue": "Saya memiliki masalah dengan keanggotaan saya",
-      "reason_no_value": "Tidak mendapatkan nilai yang cukup",
-      "reason_no_benefits": "Saya tidak memerlukan manfaat",
-      "reason_support": "Kurang puas dengan dukungan pelanggan",
+      "title": "Why are you canceling your plan?",
+      "reason_cost": "Biayanya melebihi nilainya",
+      "reason_not_using": "Saya tidak menggunakan manfaatnya",
+      "reason_benefit_misfit": "Manfaatnya tidak seperti yang saya harapkan",
+      "reason_didnt_work": "Tidak berjalan sebagaimana mestinya",
+      "reason_support": "Tidak puas dengan dukungan",
       "reason_other": "Lainnya",
-      "keep_membership": "Pertahankan keanggotaan",
-      "cancel": "Batal",
-      "success": {
-        "title": "Paket dibatalkan",
-        "description_prefix": "Paket Pro Anda berhasil dibatalkan. Ini tidak akan diperpanjang, dan Anda akan menyimpan semua manfaat Anda sampai ",
-        "description_suffix": ".",
-        "done": "Selesai"
-      }
+      "stay_question": "What's one feature that would have made you stay?",
+      "stay_question_placeholder": "Opsional",
+      "keep_membership": "Keep Orange",
+      "cancel": "Batalkan keanggotaan",
+      "cancellation_unavailable": "Keanggotaan Anda tidak dapat dibatalkan sekarang. Coba lagi nanti.",
+      "cancellation_failed": "Kami tidak dapat membatalkan keanggotaan Anda. Coba lagi."
     }
   },
   "pro_subscription": {
-    "title": "Hasilkan lebih banyak dengan Pro",
-    "description": "$4,99/bln ($49,99 untuk keanggotaan tahunan)",
-    "join_pro": "Gabung Pro",
+    "title": "MetaMask Orange",
+    "description": "{{monthlyPrice}}/bulan ({{annualPrice}} untuk keanggotaan tahunan)",
+    "description_monthly": "{{monthlyPrice}}/bln",
+    "description_annual": "{{annualPrice}} untuk keanggotaan tahunan",
+    "join_pro": "Tingkatkan",
+    "join_error": "We couldn't start your Pro membership. Try again.",
+    "join_orange": "Gabung dengan Orange",
+    "start_free_trial": "Mulai uji coba gratis",
+    "free_trial_description": "No commitment, cancel anytime",
+    "insufficient_balance": "Your Money account doesn't have enough balance to start Pro.",
+    "enable_stripe_test_clocks": "Aktifkan Stripe Test clocks (hanya untuk pengembangan dan pengujian)",
+    "pro": "Orange",
+    "pricing": {
+      "loading": "Memuat paket...",
+      "error": "Kami tidak dapat memuat harga paket. Coba lagi.",
+      "unavailable": "Paket Pro tidak tersedia untuk saat ini. Coba lagi nanti.",
+      "malformed": "Kami tidak dapat membaca harga paket. Coba lagi.",
+      "retry": "Coba lagi"
+    },
     "benefits": {
       "apy": {
         "title": "Maksimal 7% APY pada Money account",
@@ -11790,16 +13113,17 @@
     "plans": {
       "annual": {
         "label": "Tahunan",
-        "price": "$49,99",
-        "sub_price": "($4,15/bln)",
+        "price": "{{price}}",
+        "sub_price": "({{price}}/bln)",
         "badge": "2 bulan gratis",
-        "cta": "Gabung Pro senilai $4,15/bulan"
+        "cta": "Gabung dengan Pro seharga {{price}}/bulan"
       },
       "monthly": {
         "label": "Bulanan",
-        "price": "$4,99/bln",
-        "cta": "Gabung Pro senilai $4,99/bulan"
-      }
+        "price": "{{price}}/bln",
+        "cta": "Gabung dengan Pro seharga {{price}}/bulan"
+      },
+      "trial": "{{days}}-hari uji coba gratis"
     },
     "benefits_description": {
       "apy": {

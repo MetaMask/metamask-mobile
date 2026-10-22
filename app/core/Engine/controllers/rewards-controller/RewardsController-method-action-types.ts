@@ -199,6 +199,16 @@ export type RewardsControllerGetPerpsDiscountForAccountAction = {
 };
 
 /**
+ * Fetch a trading-fee grant for the requested Perps route.
+ * Grant lookup respects Basic Functionality while remaining independent of
+ * Rewards opt-in, VIP feature state, and Rewards subscription state.
+ */
+export type RewardsControllerGetPerpsTradingFeeGrantAction = {
+  type: `RewardsController:getPerpsTradingFeeGrant`;
+  handler: RewardsController['getPerpsTradingFeeGrant'];
+};
+
+/**
  * Get points events for a given season
  * @param params - The request parameters
  * @returns Promise<PaginatedPointsEventsDto> - The points events data
@@ -502,6 +512,7 @@ export type RewardsControllerOptInToCampaignsAction = {
 
 /**
  * Register (or re-assert) the Money Account holder address for a subscription.
+ * The request carries a personal_sign signature from the Money Account.
  * Results are memoized in-session so repeated re-asserts do not re-POST, and
  * a discovered conflict is returned synchronously on subsequent calls.
  * @param moneyAccountAddress - The Money Account holder address to bind.
@@ -853,6 +864,17 @@ export type RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction = {
 };
 
 /**
+ * Fetch the Money Account Sweepstakes aggregate volume stats.
+ * Public endpoint — results are cached for 5 minutes.
+ * @param campaignId - The campaign ID.
+ * @returns The volume stats DTO.
+ */
+export type RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction = {
+  type: `RewardsController:getMoneyAccountSweepstakesVolumeStats`;
+  handler: RewardsController['getMoneyAccountSweepstakesVolumeStats'];
+};
+
+/**
  * Fetch the Money Account Sweepstakes draw proof.
  * Public endpoint. Non-null proofs are cached in controller state for 1 hour;
  * null (pending) responses are cached in-memory for 5 minutes.
@@ -956,6 +978,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetOptInStatusAction
   | RewardsControllerGetVipTierForAccountAction
   | RewardsControllerGetPerpsDiscountForAccountAction
+  | RewardsControllerGetPerpsTradingFeeGrantAction
   | RewardsControllerGetPointsEventsAction
   | RewardsControllerGetPointsEventsIfChangedAction
   | RewardsControllerGetPointsEventsLastUpdatedAction
@@ -1021,6 +1044,7 @@ export type RewardsControllerMethodActions =
   | RewardsControllerGetPredictThePitchPrizePoolAction
   | RewardsControllerGetMoneyAccountSweepstakesStatsMeAction
   | RewardsControllerGetMoneyAccountSweepstakesPrizePoolAction
+  | RewardsControllerGetMoneyAccountSweepstakesVolumeStatsAction
   | RewardsControllerGetMoneyAccountSweepstakesDrawProofAction
   | RewardsControllerGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsControllerGetPerpsTradingCampaignLeaderboardAction

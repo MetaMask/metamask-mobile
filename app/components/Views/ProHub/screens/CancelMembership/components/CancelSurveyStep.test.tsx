@@ -1,15 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { CANCELLATION_REASONS } from '@metamask/subscription-controller';
 import CancelSurveyStep from './CancelSurveyStep';
 import {
   CancelMembershipTestIds,
   getCancelReasonCheckmarkTestId,
   getCancelReasonTestId,
 } from '../CancelMembership.testIds';
-import {
-  CANCEL_REASONS,
-  MOCK_CANCEL_STATS,
-} from '../CancelMembership.constants';
+import { CANCEL_REASONS } from '../CancelMembership.constants';
 import { strings } from '../../../../../../../locales/i18n';
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
@@ -22,22 +20,18 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/**
- * Escapes all regex special characters so a plain string can be used
- * as a partial-match pattern inside toHaveTextContent().
- */
-const toRegex = (s: string) =>
-  new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-
 const renderStep = (
   overrides: Partial<React.ComponentProps<typeof CancelSurveyStep>> = {},
 ) => {
   const props: React.ComponentProps<typeof CancelSurveyStep> = {
+    reasons: CANCEL_REASONS,
     selectedReasonId: null,
     onReasonSelect: jest.fn(),
     onBack: jest.fn(),
     onKeepMembership: jest.fn(),
     onCancelConfirm: jest.fn(),
+    isSubmitting: false,
+    errorMessage: null,
     ...overrides,
   };
   const utils = render(<CancelSurveyStep {...props} />);
@@ -70,55 +64,15 @@ describe('CancelSurveyStep', () => {
       );
     });
 
-    it('renders the subtitle from i18n', () => {
-      const { getByTestId } = renderStep();
+    it('does not render the stay question', () => {
+      const { queryByTestId } = renderStep({
+        selectedReasonId: CANCEL_REASONS[0].id,
+      });
 
-      expect(getByTestId(CancelMembershipTestIds.SUBTITLE)).toHaveTextContent(
-        strings('pro_hub.cancel_membership.subtitle'),
-      );
-    });
-  });
-
-  // ── Stats card ─────────────────────────────────────────────────────────────
-
-  describe('stats card', () => {
-    it('renders the stats card', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toBeOnTheScreen();
-    });
-
-    it('shows earned as member value', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.earnedAsMember),
-      );
-    });
-
-    it('shows membership cost value', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(MOCK_CANCEL_STATS.membershipCost),
-      );
-    });
-
-    it('shows earned as member label from i18n', () => {
-      const { getByTestId } = renderStep();
-
-      // Use toRegex for partial match — the card contains multiple text nodes.
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.earned_as_member')),
-      );
-    });
-
-    it('shows membership cost label from i18n', () => {
-      const { getByTestId } = renderStep();
-
-      expect(getByTestId(CancelMembershipTestIds.STATS_CARD)).toHaveTextContent(
-        toRegex(strings('pro_hub.cancel_membership.membership_cost')),
-      );
+      expect(queryByTestId(CancelMembershipTestIds.STAY_QUESTION)).toBeNull();
+      expect(
+        queryByTestId(CancelMembershipTestIds.STAY_QUESTION_INPUT),
+      ).toBeNull();
     });
   });
 
@@ -133,7 +87,7 @@ describe('CancelSurveyStep', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders all 5 reason items', () => {
+    it('renders all 6 reason items', () => {
       const { getByTestId } = renderStep();
 
       CANCEL_REASONS.forEach((reason) => {
@@ -180,6 +134,32 @@ describe('CancelSurveyStep', () => {
 
       expect(props.onReasonSelect).toHaveBeenCalledWith(firstReason.id);
     });
+
+    it('renders other as the last reason', () => {
+      const { getAllByRole } = renderStep();
+
+      const radios = getAllByRole('radio');
+
+      expect(radios[radios.length - 1]).toHaveProp(
+        'testID',
+        getCancelReasonTestId(CANCELLATION_REASONS.OTHER),
+      );
+    });
+
+    it('keeps the same reason order after a reason is selected', () => {
+      const { getAllByRole, rerender, props } = renderStep();
+      const orderBeforeSelect = getAllByRole('radio').map(
+        (item) => item.props.testID,
+      );
+
+      rerender(
+        <CancelSurveyStep {...props} selectedReasonId={CANCEL_REASONS[0].id} />,
+      );
+
+      expect(getAllByRole('radio').map((item) => item.props.testID)).toEqual(
+        orderBeforeSelect,
+      );
+    });
   });
 
   // ── Bottom actions ─────────────────────────────────────────────────────────
@@ -190,7 +170,7 @@ describe('CancelSurveyStep', () => {
 
       expect(
         getByTestId(CancelMembershipTestIds.KEEP_BUTTON),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent(strings('pro_hub.cancel_membership.keep_membership'));
     });
 
     it('renders the cancel button with i18n label', () => {
@@ -198,7 +178,7 @@ describe('CancelSurveyStep', () => {
 
       expect(
         getByTestId(CancelMembershipTestIds.CANCEL_BUTTON),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent(strings('pro_hub.cancel_membership.cancel'));
     });
 
     it('calls onKeepMembership when keep membership is pressed', () => {
@@ -211,6 +191,17 @@ describe('CancelSurveyStep', () => {
 
     it('calls onCancelConfirm when the cancel button is pressed', () => {
       const { getByTestId, props } = renderStep();
+
+      fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
+
+      expect(props.onCancelConfirm).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onCancelConfirm when cancel is pressed after a reason is selected', () => {
+      const firstReason = CANCEL_REASONS[0];
+      const { getByTestId, props } = renderStep({
+        selectedReasonId: firstReason.id,
+      });
 
       fireEvent.press(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON));
 
@@ -239,6 +230,38 @@ describe('CancelSurveyStep', () => {
       const { props } = renderStep();
 
       expect(props.onBack).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Cancellation state ────────────────────────────────────────────────────
+
+  describe('cancellation state', () => {
+    it('shows the cancellation error', () => {
+      const errorMessage = 'Cancellation failed';
+      const { getByTestId } = renderStep({ errorMessage });
+
+      expect(
+        getByTestId(CancelMembershipTestIds.ERROR_MESSAGE),
+      ).toHaveTextContent(errorMessage);
+    });
+
+    it('hides the error message when there is none', () => {
+      const { queryByTestId } = renderStep();
+
+      expect(queryByTestId(CancelMembershipTestIds.ERROR_MESSAGE)).toBeNull();
+    });
+
+    it('disables both actions while cancellation is submitting', () => {
+      const { getByTestId } = renderStep({ isSubmitting: true });
+
+      expect(getByTestId(CancelMembershipTestIds.KEEP_BUTTON)).toBeDisabled();
+      expect(getByTestId(CancelMembershipTestIds.CANCEL_BUTTON)).toBeDisabled();
+    });
+
+    it('disables the back button while cancellation is submitting', () => {
+      const { getByTestId } = renderStep({ isSubmitting: true });
+
+      expect(getByTestId(CancelMembershipTestIds.BACK_BUTTON)).toBeDisabled();
     });
   });
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { TransactionType, CHAIN_IDS } from '@metamask/transaction-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyAddMoneySheet from './MoneyAddMoneySheet';
@@ -11,13 +12,16 @@ import { ConfirmationLaunchSource } from '../../../../Views/confirmations/compon
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { selectMoneyMovementBrazilNeobankEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
   MUSD_TOKEN_ASSET_ID_BY_CHAIN,
 } from '../../../Earn/constants/musd';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -30,6 +34,15 @@ const mockTrackSurfaceClicked = jest.fn();
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
 }));
+
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
+  () => ({
+    openAsOnlyOnboardingRoute: jest.fn(),
+  }),
+);
+
+const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -85,9 +98,14 @@ jest.mock(
     ...jest.requireActual(
       '../../../../../selectors/featureFlagController/moneyAccount',
     ),
-    selectMoneyMovementBrazilNeobankEnabled: jest.fn(),
+    selectMoneyMovementNeobank: jest.fn(),
   }),
 );
+
+jest.mock('../../../../../selectors/geolocationController', () => ({
+  ...jest.requireActual('../../../../../selectors/geolocationController'),
+  selectGeolocationLocation: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
@@ -149,9 +167,12 @@ describe('MoneyAddMoneySheet', () => {
       true,
     );
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(true);
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['BR'],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
+    delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
 
   it('renders all options', () => {
@@ -163,7 +184,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
     expect(getByText('$1,203.89')).toBeOnTheScreen();
     expect(getByText('mUSD')).toBeOnTheScreen();
-    expect(getByText('Bank account')).toBeOnTheScreen();
+    expect(getByText('Bank transfer')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
     // Only External address is coming soon; Bank account is live with a "New" badge.
     expect(getAllByText('Coming soon')).toHaveLength(1);
@@ -192,7 +213,7 @@ describe('MoneyAddMoneySheet', () => {
     }
   });
 
-  it('renders the Bank account row enabled with a "New" badge when the neobank flag is on', () => {
+  it('renders the Bank account row enabled with a "New" badge when moneyMovementNeobank allows Brazil', () => {
     const { getByTestId, getByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
     );
@@ -202,15 +223,20 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('New')).toBeOnTheScreen();
 
     // It is a standalone VBA screen, not part of the crypto deposit flow.
+    // Opening shows the loading screen before onboarding status is known.
     fireEvent.press(bankRow);
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith('RampGetPixKey');
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
   });
 
-  it('keeps the Bank account row as a coming-soon, non-pressable option when the neobank flag is off', () => {
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+  it('keeps the Bank account row as a coming-soon, non-pressable option when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
 
     const { getByTestId, getAllByText, queryByText } = renderWithProvider(
       <MoneyAddMoneySheet />,
@@ -222,6 +248,84 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+
+    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
+    expect(queryByText('Bank transfer')).toBeNull();
+    expect(queryByText('New')).toBeNull();
+    expect(getAllByText('Coming soon')).toHaveLength(1);
+  });
+
+  it('hides the Bank account row when the flag is on and geolocation is unknown', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+      UNKNOWN_LOCATION,
+    );
+
+    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeNull();
+  });
+
+  it('enables the Bank account row for a listed US region', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      regions: ['US'],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+      'US-NY',
+    );
+
+    const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('enables the Bank account row outside the listed regions when the dev geo bypass is on', () => {
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+    const { getByTestId, getByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    const bankRow = getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW);
+    expect(bankRow).toBeOnTheScreen();
+    expect(getByText('New')).toBeOnTheScreen();
+
+    fireEvent.press(bankRow);
+    expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+      expect.objectContaining({ navigate: mockNavigate }),
+      VbaOnboardingRoutes.LOADING,
+    );
+  });
+
+  it('keeps the coming-soon Bank account row when the flag is off even if the geo bypass is on', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+    process.env.MM_MONEY_VBA_GEO_BYPASS = 'true';
+
+    const { getAllByText, queryByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(getAllByText('Coming soon')).toHaveLength(2);
+    expect(queryByText('New')).toBeNull();
   });
 
   it('renders the "Add funds" title', () => {
@@ -587,10 +691,11 @@ describe('MoneyAddMoneySheet', () => {
     ]);
   });
 
-  it('keeps the coming-soon Bank account row in its pre-flag position when the neobank flag is off', () => {
-    (
-      selectMoneyMovementBrazilNeobankEnabled as unknown as jest.Mock
-    ).mockReturnValue(false);
+  it('keeps the coming-soon Bank account row in its pre-flag position when moneyMovementNeobank is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
     // Empty wallet: Convert crypto is disabled too, so the disabled rows'
     // relative order must still match prod (Convert crypto above Bank account).
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
@@ -676,6 +781,17 @@ describe('MoneyAddMoneySheet', () => {
       renderWithProvider(<MoneyAddMoneySheet />);
 
       expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank transfer" row is pressed', () => {
+      const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
+
+      fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
+
+      expect(mockTrackSurfaceClicked).toHaveBeenCalledWith({
+        component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
+        redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
+      });
     });
 
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {

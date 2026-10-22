@@ -8,6 +8,15 @@ export enum PredictErrorCode {
   GEO_BLOCKED = 'GEO_BLOCKED',
   FEATURE_DISABLED = 'FEATURE_DISABLED',
   SERVICE_DEGRADED = 'SERVICE_DEGRADED',
+  MARKET_NOT_FOUND = 'MARKET_NOT_FOUND',
+  MARKET_NOT_TRADEABLE = 'MARKET_NOT_TRADEABLE',
+  QUOTE_UNAVAILABLE = 'QUOTE_UNAVAILABLE',
+  PREVIEW_EXPIRED = 'PREVIEW_EXPIRED',
+  BALANCE_UNAVAILABLE = 'BALANCE_UNAVAILABLE',
+  INSUFFICIENT_LIQUIDITY = 'INSUFFICIENT_LIQUIDITY',
+  INSUFFICIENT_BALANCE = 'INSUFFICIENT_BALANCE',
+  INSUFFICIENT_POSITION = 'INSUFFICIENT_POSITION',
+  POSITION_UNAVAILABLE = 'POSITION_UNAVAILABLE',
   UNKNOWN = 'UNKNOWN',
 }
 
@@ -70,6 +79,53 @@ export const predictErrorRegistry: Record<
   [PredictErrorCode.SERVICE_DEGRADED]: {
     category: 'degraded',
     message: 'Prediction data may be temporarily out of date.',
+    recoverable: true,
+  },
+  [PredictErrorCode.MARKET_NOT_FOUND]: {
+    category: 'action_failed',
+    message: 'This prediction market could not be found.',
+    recoverable: false,
+  },
+  [PredictErrorCode.MARKET_NOT_TRADEABLE]: {
+    category: 'action_failed',
+    message: 'This market is no longer tradeable.',
+    recoverable: false,
+  },
+  [PredictErrorCode.QUOTE_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'A quote is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.PREVIEW_EXPIRED]: {
+    category: 'action_failed',
+    message: 'This quote expired. Refresh to get a new one.',
+    recoverable: true,
+  },
+  [PredictErrorCode.BALANCE_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'Your balance is unavailable right now.',
+    recoverable: true,
+  },
+  [PredictErrorCode.INSUFFICIENT_LIQUIDITY]: {
+    category: 'action_failed',
+    message: 'Not enough liquidity to quote this amount.',
+    recoverable: false,
+  },
+  [PredictErrorCode.INSUFFICIENT_BALANCE]: {
+    category: 'action_failed',
+    message: 'Not enough balance for this order.',
+    recoverable: false,
+  },
+  // Over-sell / not-owned: the backend validates against authoritative
+  // Venue evidence, so a local over-sell that slips through fails here.
+  [PredictErrorCode.INSUFFICIENT_POSITION]: {
+    category: 'action_failed',
+    message: 'Not enough contracts in this position.',
+    recoverable: true,
+  },
+  [PredictErrorCode.POSITION_UNAVAILABLE]: {
+    category: 'unavailable',
+    message: 'Your position is unavailable right now.',
     recoverable: true,
   },
   [PredictErrorCode.UNKNOWN]: {

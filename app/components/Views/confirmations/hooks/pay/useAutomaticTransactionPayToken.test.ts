@@ -39,7 +39,9 @@ import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/t
 import { useIsFiatPaymentAvailable } from './useIsFiatPaymentAvailable';
 import { useMMPayFiatConfig } from './useMMPayFiatConfig';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
+import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 
+jest.mock('./useIsMoneyAccountFlagDefault');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../transactions/useTransactionAccountOverride');
 jest.mock('./useTransactionPayToken');
@@ -211,6 +213,7 @@ describe('useAutomaticTransactionPayToken', () => {
       isPending: false,
       shouldSelect: false,
     });
+    jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(false);
   });
 
   it('selects first token', () => {
@@ -1968,6 +1971,42 @@ describe('useAutomaticTransactionPayToken', () => {
       runHook();
 
       expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('money account flag default', () => {
+    beforeEach(() => {
+      jest.mocked(useIsMoneyAccountFlagDefault).mockReturnValue(true);
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+    });
+
+    it('waits for the money account override instead of selecting a token', () => {
+      runHook();
+
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
+
+    it('selects MUSD once the money account override is applied', () => {
+      const { rerender } = runHook();
+
+      jest
+        .mocked(selectPaymentOverrideByTransactionId)
+        .mockReturnValue(PaymentOverride.MoneyAccount);
+
+      rerender(undefined);
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: MUSD_TOKEN_ADDRESS,
+        chainId: CHAIN_IDS.MONAD,
+      });
     });
   });
 });

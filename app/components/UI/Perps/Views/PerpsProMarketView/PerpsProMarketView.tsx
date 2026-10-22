@@ -33,7 +33,7 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { View, type ScrollView } from 'react-native';
+import { View, type LayoutChangeEvent, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -66,7 +66,10 @@ import {
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
 import { selectPerpsChartPreferredCandlePeriod } from '../../selectors/chartPreferences';
-import { selectPerpsAdvancedChartEnabledFlag } from '../../selectors/featureFlags';
+import {
+  selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsServiceInterruptionBannerEnabledFlag,
+} from '../../selectors/featureFlags';
 import { selectPerpsSelectedAccountAddress } from '../../selectors/selectedAccountAddress';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
@@ -79,7 +82,7 @@ import PerpsProChartPanel from './components/PerpsProChartPanel';
 import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
-import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
+import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
@@ -258,9 +261,15 @@ const PerpsProMarketView = ({
     [activeProvider, markets, routeMarket?.symbol, routeProviderId],
   );
   const market = useMemo(() => {
-    if (hasFormattedMaxLeverage) return routeMarket;
-    return enrichedMarket ?? routeMarket;
-  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket]);
+    const resolvedMarket = hasFormattedMaxLeverage
+      ? routeMarket
+      : (enrichedMarket ?? routeMarket);
+    return resolvedMarket &&
+      resolvedMarket.providerId === undefined &&
+      routeProviderId === PROVIDER_CONFIG.LighterProvider
+      ? { ...resolvedMarket, providerId: PROVIDER_CONFIG.LighterProvider }
+      : resolvedMarket;
+  }, [enrichedMarket, hasFormattedMaxLeverage, routeMarket, routeProviderId]);
   const { isOrderBookExpanded, setOrderBookExpanded } =
     usePerpsProOrderBookExpanded();
   const isOrderBookCollapsed = !isOrderBookExpanded;
@@ -328,14 +337,19 @@ const PerpsProMarketView = ({
     setOrderBookExpanded(true);
   }, [setOrderBookExpanded]);
 
-  // Drives the header's subtitle/live-price crossfade (see
-  // PerpsProMarketHeader). The price section above the fold has a fixed
-  // height, so the threshold is set once instead of measured via onLayout.
+  // Drives the header's subtitle/live-price crossfade. The summary row
+  // sizes to its content, so the threshold comes from its measured height.
   const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
-  useEffect(() => {
-    setTitleSectionHeight(PRICE_SECTION_HEIGHT);
-  }, [setTitleSectionHeight]);
+  const handleMarketSummaryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setTitleSectionHeight(height);
+      }
+    },
+    [setTitleSectionHeight],
+  );
 
   const handleRequestScrollBy = useCallback(
     (delta: number) => {
@@ -352,6 +366,9 @@ const PerpsProMarketView = ({
   );
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
+  );
+  const isServiceInterruptionBannerEnabled = useSelector(
+    selectPerpsServiceInterruptionBannerEnabledFlag,
   );
   const configuredChartLibrary = getPerpsChartLibrary(isAdvancedChartEnabled);
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
@@ -430,12 +447,20 @@ const PerpsProMarketView = ({
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
       ...chartAnalyticsProperties,
       ...(sourceSection && {
         [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: sourceSection,
       }),
     }),
-    [chartAnalyticsProperties, market?.symbol, source, sourceSection],
+    [
+      chartAnalyticsProperties,
+      isServiceInterruptionBannerEnabled,
+      market?.symbol,
+      source,
+      sourceSection,
+    ],
   );
 
   usePerpsEventTracking({
@@ -579,6 +604,17 @@ const PerpsProMarketView = ({
       style={styles.container}
       testID={PerpsProMarketViewSelectorsIDs.CONTAINER}
     >
+      {/* Service Interruption Banner — pinned above the header; collapses to
+          its title row once the content is scrolled. Outer flag guard avoids
+          mounting the padded wrapper (and banner hooks) when disabled. */}
+      {isServiceInterruptionBannerEnabled && (
+        <Box twClassName="px-4 pb-2">
+          <PerpsServiceInterruptionBanner
+            scrollY={scrollY}
+            testID={PerpsProMarketViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
+        </Box>
+      )}
       <PerpsMarketHeader
         market={{ ...market, symbol: market.symbol }}
         testIDs={createProMarketHeaderTestIDs()}
@@ -619,9 +655,11 @@ const PerpsProMarketView = ({
           currentPrice={syncedChartCurrentPrice}
           onLatestPriceChange={setAdvancedChartCurrentPrice}
           onResolvedStateChange={handleChartResolvedStateChange}
+          marketId={market.id}
           onFreshDelivery={() =>
             setChartDeliveryRevision((revision) => revision + 1)
           }
+          onSummaryLayout={handleMarketSummaryLayout}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would
