@@ -138,9 +138,6 @@ describe('VbaVerifyIdentity', () => {
         "By tapping Agree & Continue, you agree to MetaMask's Terms and Conditions and Privacy Policy. Your information is encrypted and shared securely with our verification providers. You'll review the details before continuing.",
       ),
     ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaVerifyIdentitySelectorsIDs.POWERED_BY),
-    ).toBeOnTheScreen();
     expect(getByText('Agree & Continue')).toBeOnTheScreen();
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
@@ -236,7 +233,7 @@ describe('VbaVerifyIdentity', () => {
     expect(mockRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the data and privacy sheet with the provider documents only on continue', () => {
+  it('opens the data and privacy sheet with the provider documents only on continue, showing the catalog as is when none are recognised', () => {
     const { getByTestId, getByText } = renderScreen();
 
     openTermsSheet(getByTestId);
@@ -282,6 +279,106 @@ describe('VbaVerifyIdentity', () => {
       ['https://idos.example/privacy'],
       ['https://sumsub.example/terms'],
     ]);
+  });
+
+  describe('with the idOS and Sumsub catalog legal reviewed', () => {
+    const legalCatalog = [
+      {
+        id: 'idOS:privacy_notice',
+        key: 'privacy_notice',
+        version: '1',
+        title: 'idOS Privacy Notice',
+        url: 'https://idos.example/privacy-notice',
+      },
+      {
+        id: 'idOS:privacy_policy',
+        key: 'privacy_policy',
+        version: '1',
+        title: 'idOS Privacy Policy',
+        url: 'https://idos.example/privacy-policy',
+      },
+      {
+        id: 'idOS:transparency_document',
+        key: 'transparency_document',
+        version: '1',
+        title: 'idOS Transparency Document',
+        url: 'https://idos.example/transparency',
+      },
+      {
+        id: 'idOS:end_user_agreement',
+        key: 'end_user_agreement',
+        version: '1',
+        title: 'idOS End User Agreement v2',
+        url: 'https://idos.example/eua',
+      },
+      {
+        id: 'kycProvider:notice_of_personal_data_processing',
+        key: 'notice_of_personal_data_processing',
+        version: '1',
+        title: 'Notice of Personal Data Processing',
+        url: 'https://sumsub.example/personal-data',
+      },
+    ];
+
+    const getSheetLinkTitles = (
+      getAllByTestId: ReturnType<typeof renderScreen>['getAllByTestId'],
+    ) =>
+      getAllByTestId(
+        new RegExp(`^${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-`),
+      ).map((row) => within(row).getByText(/./).props.children);
+
+    beforeEach(() => {
+      mockUseKycSessionDisclaimers.mockReturnValue({
+        disclaimers: legalCatalog,
+        isLoading: false,
+        error: null,
+        retry: mockRetry,
+      });
+    });
+
+    it('shows the four legal documents in order with their labels', () => {
+      const { getByTestId, getAllByTestId } = renderScreen();
+
+      openTermsSheet(getByTestId);
+
+      expect(getSheetLinkTitles(getAllByTestId)).toEqual([
+        'idOS Terms and Conditions',
+        'idOS Privacy Notice',
+        'idOS Transparency Document',
+        'Sumsub Privacy Notice',
+      ]);
+    });
+
+    it('hides catalog documents legal did not ask for', () => {
+      const { getByTestId, queryByTestId, queryByText } = renderScreen();
+
+      openTermsSheet(getByTestId);
+
+      expect(queryByText('idOS Privacy Policy')).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-idOS:privacy_policy`,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the backend URL from a relabelled row', () => {
+      const openUrlSpy = jest
+        .spyOn(Linking, 'openURL')
+        .mockResolvedValue(undefined);
+      const { getByTestId } = renderScreen();
+      openTermsSheet(getByTestId);
+
+      fireEvent.press(
+        getByTestId(
+          `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-kycProvider:notice_of_personal_data_processing`,
+        ),
+      );
+
+      expect(openUrlSpy).toHaveBeenCalledWith(
+        'https://sumsub.example/personal-data',
+      );
+    });
   });
 
   it('shows the biometric consent checkbox unticked and Agree disabled when the sheet opens', () => {

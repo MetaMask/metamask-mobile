@@ -19,7 +19,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
-import { IDOS_PRIVACY_NOTICE_URL } from '../../../Ramp/Views/VirtualBankAccount/constants';
+import {
+  IDOS_PRIVACY_NOTICE_URL,
+  KYC_SESSION_DISCLAIMER_DISPLAY,
+} from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 
@@ -29,6 +32,38 @@ interface TermsLink {
   url: string;
   testID: string;
 }
+
+const toTermsLink = (
+  disclaimer: KycCatalogDisclaimerLink,
+  title: string,
+): TermsLink => ({
+  id: disclaimer.id,
+  title,
+  url: disclaimer.url,
+  testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+});
+
+/**
+ * Picks the documents legal asked for, in their order and with their labels.
+ * Falls back to the full catalog with backend titles if none match, so the
+ * sheet is never empty when the catalog changes shape.
+ */
+const getDisplayedLinks = (
+  disclaimers: KycCatalogDisclaimerLink[],
+): TermsLink[] => {
+  const displayed = KYC_SESSION_DISCLAIMER_DISPLAY.flatMap((entry) => {
+    const disclaimer = disclaimers.find(
+      (item) => item.id === `${entry.group}:${entry.key}`,
+    );
+    return disclaimer ? [toTermsLink(disclaimer, strings(entry.titleKey))] : [];
+  });
+
+  return displayed.length
+    ? displayed
+    : disclaimers.map((disclaimer) =>
+        toTermsLink(disclaimer, disclaimer.title),
+      );
+};
 
 const TermsLinkRow = ({ link }: { link: TermsLink }) => {
   const openLink = useCallback(() => openExternalUrl(link.url), [link.url]);
@@ -81,16 +116,7 @@ const VbaProviderTermsSheet = ({
     sheetRef.current?.onCloseBottomSheet(onAgree);
   }, [onAgree]);
 
-  const links = useMemo<TermsLink[]>(
-    () =>
-      disclaimers.map((disclaimer) => ({
-        id: disclaimer.id,
-        title: disclaimer.title,
-        url: disclaimer.url,
-        testID: `${VbaVerifyIdentitySelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
-      })),
-    [disclaimers],
-  );
+  const links = useMemo(() => getDisplayedLinks(disclaimers), [disclaimers]);
 
   return (
     <BottomSheet

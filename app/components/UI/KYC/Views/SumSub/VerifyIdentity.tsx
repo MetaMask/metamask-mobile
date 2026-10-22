@@ -12,7 +12,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   HeaderStandard,
   Icon,
   IconColor,
@@ -31,7 +30,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
-import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
@@ -218,22 +216,6 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
               'virtual_bank_account.verify_identity.agree_and_continue_button',
             )}
           </Button>
-        </Box>
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-10 gap-1 opacity-40"
-          testID={VbaVerifyIdentitySelectorsIDs.POWERED_BY}
-        >
-          <Text
-            variant={TextVariant.BodyXs}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextAlternative}
-          >
-            {strings('virtual_bank_account.verify_identity.powered_by')}
-          </Text>
-          <MoonPayLogo name="moonpay-logo" width={77} height={18} />
         </Box>
       </SafeAreaView>
 
