@@ -25,7 +25,11 @@ import {
   createLongPositionForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsMarketDetailsView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
-import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import {
+  createRouteParamsProbe,
+  getRouteParamsProbeTestId,
+  getRouteProbeTestId,
+} from '../../../../../../tests/component-view/render';
 import {
   SOCIAL_V1_AB_KEY,
   SocialV1Variant,
@@ -35,10 +39,6 @@ import {
   getModifyActionLabels,
   wirePerpsControllerForStore,
 } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
-import {
-  createRouteParamsProbe,
-  getRouteParamsProbeTestId,
-} from '../../../../../../tests/component-view/render';
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
