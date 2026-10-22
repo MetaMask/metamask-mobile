@@ -2,6 +2,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  isNativeAddress,
   QuoteResponse,
   sumAmounts,
 } from '@metamask/bridge-controller';
@@ -10,12 +11,23 @@ import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { getNativeSourceToken } from '../../utils/tokenUtils';
 import { BigNumber } from 'bignumber.js';
-import { isNumberValue } from '../../../../../util/number';
+import { isNumberValue } from '../../../../../util/number/bigint';
 
 interface Props {
   additionalGasFeeInHex?: Hex;
   quote?: QuoteResponse | null;
 }
+
+const getHexOrCaipChainId = (
+  chainId?: QuoteResponse['chainId'],
+): CaipChainId | Hex | undefined => {
+  if (!chainId) {
+    return undefined;
+  }
+  return isNonEvmChainId(chainId)
+    ? formatChainIdToCaip(chainId)
+    : formatChainIdToHex(chainId);
+};
 
 /**
  * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficient
@@ -24,23 +36,16 @@ export const useHasSufficientGas = ({
   additionalGasFeeInHex,
   quote,
 }: Props): boolean | null => {
-  const gasIncluded = quote?.quote.gasIncluded;
-  const gasSponsored = quote?.quote?.gasSponsored;
-  const gasIncluded7702 = quote?.quote.gasIncluded7702;
-  const isGasless = gasIncluded7702 || gasIncluded;
-  const shouldCheckQuoteGas = !isGasless && !gasSponsored;
-  const shouldCheckAdditionalGas = Boolean(additionalGasFeeInHex);
+  const isGasless =
+    quote?.quote?.gasIncluded7702 ||
+    quote?.quote?.gasIncluded ||
+    quote?.quote?.gasSponsored;
+  const shouldCheckQuoteGas = !isGasless;
+  const shouldCheckGas = shouldCheckQuoteGas || Boolean(additionalGasFeeInHex);
 
-  const sourceChainId = quote?.chainId;
-
-  let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId && (shouldCheckQuoteGas || shouldCheckAdditionalGas)) {
-    if (isNonEvmChainId(sourceChainId)) {
-      hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
-    } else {
-      hexOrCaipChainId = formatChainIdToHex(sourceChainId);
-    }
-  }
+  const hexOrCaipChainId = shouldCheckGas
+    ? getHexOrCaipChainId(quote?.chainId)
+    : undefined;
   const sourceChainNativeAsset = hexOrCaipChainId
     ? getNativeSourceToken(hexOrCaipChainId)
     : undefined;
@@ -51,16 +56,19 @@ export const useHasSufficientGas = ({
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  if (!shouldCheckQuoteGas && !shouldCheckAdditionalGas) {
+  if (!shouldCheckGas) {
     return true;
   }
 
   const gasAmount = sumAmounts(
     quote?.quote?.feeData?.network,
     quote?.quote?.feeData?.relayer,
+    quote?.quote?.src?.asset && !isNativeAddress(quote.quote.src.asset.assetId)
+      ? quote.quote.feeData.reserve
+      : undefined,
   )?.normalizedAmount;
   const effectiveGasFee =
-    isNumberValue(gasAmount) && gasAmount != null && gasAmount !== undefined
+    isNumberValue(gasAmount) && gasAmount != null
       ? new BigNumber(gasAmount).toFixed()
       : null;
 

@@ -7,7 +7,7 @@ import {
   playSuccessNotification,
 } from '../../../util/haptics';
 import type { Theme } from '../../../util/theme/models';
-import { patchPostSwapShareSession } from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -104,9 +104,9 @@ function emitTerminalToast(
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  if (trade.postSwapShare && trade.postSwapShareSessionId) {
-    const sessionUpdated = patchPostSwapShareSession(
-      trade.postSwapShareSessionId,
+  if (trade.postTradeShare && trade.postTradeShareSessionId) {
+    const sessionUpdated = patchPostTradeShareSession(
+      trade.postTradeShareSessionId,
       {
         status: isComplete ? 'complete' : 'failed',
         ...(transactionHash ? { transactionHash } : {}),

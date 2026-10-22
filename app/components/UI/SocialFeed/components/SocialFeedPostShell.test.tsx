@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
+import { reactToComment, removeCommentReaction } from '../commentReactionApi';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -23,6 +24,17 @@ jest.mock('../commentReactionApi', () => ({
   }),
   removeCommentReaction: jest.fn(),
 }));
+
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding',
+  () => ({
+    useRequireSocialProfileOnboarding: () => ({
+      ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+    }),
+  }),
+);
 
 // The real avatar falls back to a Maskicon, which loads its SVG asynchronously
 // and reports un-acted state updates. Capture the props the shell passes in.
@@ -162,6 +174,8 @@ const itemWithoutStats = (id: string, comment: string) => {
 
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
     });
@@ -191,6 +205,45 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
+    mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+      mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      return false;
+    });
+
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not change an existing reaction without a linked wallet', async () => {
+    mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+      mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      return false;
+    });
+
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+    });
+    expect(jest.mocked(reactToComment)).not.toHaveBeenCalled();
+    expect(jest.mocked(removeCommentReaction)).not.toHaveBeenCalled();
   });
 
   it('closes the balloon when the scrim is pressed', () => {
@@ -239,26 +292,21 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('$50K P&L (30d)');
   });
 
-  // Nothing reports verification yet, so the badge has to read as invented.
-  it('marks the mocked verified badge', () => {
+  it('shows the verified badge and a temporary mock marker after the timestamp', () => {
     renderShell(basePost());
 
     expect(
       screen.getByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
     ).toBeOnTheScreen();
-    expect(screen.getByText('*')).toBeOnTheScreen();
-  });
-
-  it('badges the trader cohort from their 30-day P&L', () => {
-    renderShell(basePost());
-
-    // $50K sits in the dolphin band.
     expect(
-      screen.getByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
-    ).toHaveTextContent('🐬');
+      screen.getByTestId(
+        `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-post-1`,
+      ),
+    ).toHaveTextContent('*');
+    expect(screen.queryByText('🐬')).toBeNull();
   });
 
-  it('places the post age next to the cohort on the author row', () => {
+  it('places the post age on the author row', () => {
     renderShell(basePost({ timestampMs: Date.now() - 7 * 60 * 1000 }));
 
     expect(
@@ -266,14 +314,11 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('7 min ago');
   });
 
-  it('omits the stat line and cohort for a trader with no stats', () => {
+  it('omits the stat line for a trader with no stats', () => {
     renderShell(basePost({ item: itemWithoutStats('item-3', 'No stats') }));
 
     expect(
       screen.queryByTestId(SocialFeedPostShellSelectorsIDs.TRADER_STAT),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.COHORT),
     ).toBeNull();
   });
 

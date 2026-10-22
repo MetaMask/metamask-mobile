@@ -1,12 +1,13 @@
 import { renderHook } from '@testing-library/react-native';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenStats } from './useTokenStats';
 import { TokenStatKey } from '../constants/tokenStats';
+import type { TokenAssetLaunchpadData } from '../queries/tokenAssetQuery';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 
 const buildMarketData = (
-  overrides: Partial<FungibleAssetPrice> = {},
-): FungibleAssetPrice =>
+  overrides: Partial<TokenMarketData> = {},
+): TokenMarketData =>
   ({
     assetPriceType: 'fungible',
     lastUpdated: 0,
@@ -18,7 +19,7 @@ const buildMarketData = (
     low1d: 0.039812,
     circulatingSupply: 12_400_000,
     ...overrides,
-  }) as FungibleAssetPrice;
+  }) as TokenMarketData;
 
 const buildSecurityData = (
   overrides: Partial<TokenSecurityData> = {},
@@ -59,6 +60,24 @@ const buildSecurityData = (
     ...overrides,
   }) as TokenSecurityData;
 
+const buildLaunchpadData = (
+  overrides: Partial<TokenAssetLaunchpadData> = {},
+): TokenAssetLaunchpadData => ({
+  protocol: null,
+  deployer: null,
+  launchedAt: null,
+  description: null,
+  bondingCurve: null,
+  graduationPercent: null,
+  graduationStage: null,
+  devHeldPercent: null,
+  insiderHeldPercent: null,
+  sniperHeldPercent: null,
+  holdersCount: 66,
+  top10HeldPercent: '19.210466818518498',
+  ...overrides,
+});
+
 const renderStats = (
   params: Partial<Parameters<typeof useTokenStats>[0]> = {},
 ) =>
@@ -91,8 +110,8 @@ describe('useTokenStats', () => {
     expect(stats[TokenStatKey.HighLow24h]?.value).toBe('$0.043120 / $0.039812');
   });
 
-  // Liquidity over market cap, both in USD: 560k / 12.4m.
-  it('computes Liq/MC from the USD figures on both sides', () => {
+  // Liquidity over market cap: 560k / 12.4m = 4.52%.
+  it('computes Liq/MC from liquidity and market cap', () => {
     const stats = renderStats();
 
     expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBe('4.52%');
@@ -106,29 +125,43 @@ describe('useTokenStats', () => {
 
   it('does not flag a deep pool as a warning', () => {
     const stats = renderStats({
+      marketData: buildMarketData({
+        marketCap: 10_000_000,
+        liquidity: 1_000_000,
+      }),
       securityData: buildSecurityData({
         financialStats: {
           ...buildSecurityData().financialStats,
-          markets: [
-            {
-              marketType: 'uniswap_v2',
-              marketName: 'Uniswap',
-              pairName: 'X/WETH',
-              reserveUSD: 5_000_000,
-            },
-          ],
+          markets: [],
         },
       }),
     });
 
+    expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBe('10.00%');
     expect(stats[TokenStatKey.LiquidityToMarketCap]?.isWarning).toBe(false);
   });
 
-  // A ratio against a total-supply valuation is not comparable to one against
-  // circulating supply, so an unknown supply yields no ratio at all.
-  it('omits Liq/MC when circulating supply is unknown', () => {
+  it('omits Liq/MC when market cap is unknown', () => {
     const stats = renderStats({
-      marketData: buildMarketData({ circulatingSupply: undefined }),
+      marketData: buildMarketData({
+        marketCap: undefined,
+        dilutedMarketCap: undefined,
+      }),
+    });
+
+    expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBeNull();
+    expect(stats[TokenStatKey.LiquidityToMarketCap]?.isWarning).toBe(false);
+  });
+
+  it('omits Liq/MC when liquidity is unknown', () => {
+    const stats = renderStats({
+      securityData: buildSecurityData({
+        financialStats: {
+          ...buildSecurityData().financialStats,
+          markets: [],
+        },
+      }),
+      marketData: buildMarketData({ liquidity: undefined }),
     });
 
     expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBeNull();
@@ -368,5 +401,56 @@ describe('useTokenStats', () => {
         expect(stats[TokenStatKey.Created]?.value).toBeNull();
       },
     );
+  });
+
+  it('fills gaps from diluted market cap, price liquidity, and trade volume', () => {
+    const stats = renderStats({
+      marketData: buildMarketData({
+        marketCap: undefined,
+        totalVolume: undefined,
+        dilutedMarketCap: 23_975,
+        liquidity: 9_181.67,
+      }),
+      securityData: buildSecurityData({
+        financialStats: {
+          ...buildSecurityData().financialStats,
+          markets: [],
+          tradeVolume24h: 8_355.5,
+        },
+      }),
+    });
+
+    expect(stats[TokenStatKey.MarketCap]?.value).toBe('$24.0K');
+    expect(stats[TokenStatKey.Liquidity]?.value).toBe('$9.2K');
+    expect(stats[TokenStatKey.Volume24h]?.value).toBe('$8.4K');
+    expect(stats[TokenStatKey.LiquidityToMarketCap]?.value).toBe('38.30%');
+  });
+
+  it('reads top 10 from the launchpad ahead of security data', () => {
+    const stats = renderStats({
+      launchpadData: buildLaunchpadData(),
+    });
+
+    expect(stats[TokenStatKey.Holders]?.value).toBe('12.9K');
+    expect(stats[TokenStatKey.Top10]?.value).toBe('19.2%');
+  });
+
+  it('reads the holder count from the token API ahead of Blockaid', () => {
+    const stats = renderStats({
+      launchpadData: buildLaunchpadData(),
+      tokenApiHoldersCount: 1_250,
+    });
+
+    expect(stats[TokenStatKey.Holders]?.value).toBe('1.3K');
+    expect(stats[TokenStatKey.Top10]?.value).toBe('19.2%');
+  });
+
+  it('falls back to Blockaid holders when the token API count is missing', () => {
+    const stats = renderStats({
+      launchpadData: buildLaunchpadData(),
+      tokenApiHoldersCount: null,
+    });
+
+    expect(stats[TokenStatKey.Holders]?.value).toBe('12.9K');
   });
 });

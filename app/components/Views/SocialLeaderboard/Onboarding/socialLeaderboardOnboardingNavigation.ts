@@ -119,7 +119,10 @@ export const navigateToSocialTab = (
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (shouldShowSocialLeaderboardOnboarding()) {
-    navigate(Routes.SOCIAL.ONBOARDING);
+    navigate(
+      Routes.SOCIAL.ONBOARDING,
+      isSocialV1Treatment() ? { returnToTab: true } : undefined,
+    );
     return;
   }
   navigate(Routes.SOCIAL.TAB, toHomeRouteParams(params));
