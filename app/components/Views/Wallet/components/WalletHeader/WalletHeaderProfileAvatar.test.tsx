@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -83,7 +84,12 @@ describe('WalletHeaderProfileAvatar', () => {
 
     render(<WalletHeaderProfileAvatar />);
 
-    expect(screen.getByTestId(avatarTestID)).toBeOnTheScreen();
+    const placeholder = screen.getByTestId(avatarTestID);
+
+    expect(placeholder).toBeOnTheScreen();
+    expect(StyleSheet.flatten(placeholder.props.style).backgroundColor).toBe(
+      'transparent',
+    );
   });
 
   it('refreshes the profile when the network is usable and memory is not low', () => {
