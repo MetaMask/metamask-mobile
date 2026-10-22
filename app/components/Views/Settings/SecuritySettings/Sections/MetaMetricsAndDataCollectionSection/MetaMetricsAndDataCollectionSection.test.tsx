@@ -744,7 +744,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(false);
       });
 
-      it('is disabled and turns marketing off when basic functionality is disabled', async () => {
+      it('is disabled and keeps marketing consent when basic functionality is disabled', async () => {
         const { findByTestId, store } = renderScreen(
           MetaMetricsAndDataCollectionSection,
           { name: 'MetaMetricsAndDataCollectionSection' },
@@ -761,9 +761,9 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         );
         expect(marketingSwitch).toBeTruthy();
         expect(marketingSwitch).toHaveProp('disabled', true);
-        expect(store.getState().security.dataCollectionForMarketing).toBe(
-          false,
-        );
+        expect(marketingSwitch.props.value).toBe(true);
+        // Basic Functionality only disables the toggle; it never revokes consent.
+        expect(store.getState().security.dataCollectionForMarketing).toBe(true);
       });
 
       const turnMarketingOn = async (metaMetricsEnabled: boolean) => {

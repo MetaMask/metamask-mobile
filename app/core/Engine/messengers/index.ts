@@ -142,6 +142,7 @@ import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getProfileServiceMessenger } from './profile-service-messenger';
 import { getProfileControllerMessenger } from './profile-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
+import { getMarketingConsentControllerMessenger } from './marketing-consent-controller-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getUiSlotsControllerMessenger } from './ui-slots-controller-messenger';
 import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
@@ -460,6 +461,10 @@ export const MESSENGER_FACTORIES = {
   },
   AuthenticatedUserStorageService: {
     getMessenger: getAuthenticatedUserStorageServiceMessenger,
+    getInitMessenger: noop,
+  },
+  MarketingConsentController: {
+    getMessenger: getMarketingConsentControllerMessenger,
     getInitMessenger: noop,
   },
   CardController: {

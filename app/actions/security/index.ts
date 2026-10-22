@@ -30,11 +30,6 @@ export interface SetMultiRpcMigrationModalOpen
 export interface SetDataCollectionForMarketing
   extends ReduxAction<ActionType.SET_DATA_COLLECTION_FOR_MARKETING> {
   enabled: boolean;
-  /**
-   * Updates the Redux preference without copying it into AnalyticsController.
-   * Used when a failed controller write must not record a new consent decision.
-   */
-  skipControllerSync?: boolean;
 }
 
 export interface SetOsAuthEnabled
@@ -72,11 +67,9 @@ export const setMultiRpcMigrationModalOpen = (
 
 export const setDataCollectionForMarketing = (
   enabled: boolean,
-  options?: { skipControllerSync?: boolean },
 ): SetDataCollectionForMarketing => ({
   type: ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
   enabled,
-  ...(options?.skipControllerSync ? { skipControllerSync: true } : {}),
 });
 
 export const setOsAuthEnabled = (enabled: boolean): SetOsAuthEnabled => ({

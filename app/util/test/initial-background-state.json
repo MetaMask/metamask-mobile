@@ -40,6 +40,9 @@
     "lastSyncedTimestamp": -1,
     "pendingRevocations": []
   },
+  "MarketingConsentController": {
+    "pendingMarketingConsent": null
+  },
   "NftController": {
     "allNftContracts": {},
     "allNfts": {},

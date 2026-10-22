@@ -20,6 +20,9 @@ const assetsWatchlistUrl =
 const notificationPreferencesUrl =
   'https://user-storage.api.cx.metamask.io/api/v1/preferences/notifications';
 
+const marketingConsentUrl =
+  'https://user-storage.api.cx.metamask.io/api/v1/preferences/marketing-consent';
+
 const notificationPreferences = {
   walletActivity: {
     inAppNotificationsEnabled: true,
@@ -58,6 +61,12 @@ const notificationPreferences = {
 
 export const USER_STORAGE_MOCK: MockEventsObject = {
   GET: [
+    // No stored consent, so MarketingConsentController writes the local value.
+    {
+      urlEndpoint: marketingConsentUrl,
+      responseCode: 404,
+      response: {},
+    },
     {
       urlEndpoint: notificationPreferencesUrl,
       responseCode: 200,
@@ -92,6 +101,11 @@ export const USER_STORAGE_MOCK: MockEventsObject = {
   PUT: [
     {
       urlEndpoint: notificationPreferencesUrl,
+      responseCode: 200,
+      response: 'OK',
+    },
+    {
+      urlEndpoint: marketingConsentUrl,
       responseCode: 200,
       response: 'OK',
     },
