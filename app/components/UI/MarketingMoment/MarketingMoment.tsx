@@ -19,7 +19,6 @@ import {
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
 import MarketingMomentTitle from '../MarketingMomentTitle';
-import { MarketingMomentSelectorsIDs } from './MarketingMoment.testIds';
 import type {
   MarketingMomentAction,
   MarketingMomentProps,
@@ -54,7 +53,7 @@ const MarketingMomentContent = ({
   primaryAction,
   secondaryAction,
   background,
-  testID = MarketingMomentSelectorsIDs.CONTAINER,
+  testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
   const { label: primaryLabel, ...primaryButtonProps } =
@@ -86,7 +85,7 @@ const MarketingMomentContent = ({
       <SafeAreaView style={tw.style('min-h-0 flex-1')}>
         <Box
           flexDirection={BoxFlexDirection.Column}
-          gap={2}
+          gap={4}
           paddingHorizontal={6}
           twClassName="mt-12 shrink-0"
         >
@@ -94,7 +93,6 @@ const MarketingMomentContent = ({
             <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
-                  testID={MarketingMomentSelectorsIDs.TITLE}
                   {...titleTextProps}
                   twClassName="w-full text-center"
                   style={[
@@ -116,7 +114,6 @@ const MarketingMomentContent = ({
                   variant={TextVariant.BodyMd}
                   color={TextColor.TextAlternative}
                   twClassName="text-center"
-                  testID={MarketingMomentSelectorsIDs.DESCRIPTION}
                   {...descriptionProps}
                 >
                   {description}
@@ -146,7 +143,6 @@ const MarketingMomentContent = ({
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Center}
               paddingHorizontal={6}
-              testID={MarketingMomentSelectorsIDs.ARTWORK}
               {...artworkBoxSpreadProps}
               twClassName={`min-h-0 w-full flex-1 overflow-hidden${
                 artworkBoxProps.className ? ` ${artworkBoxProps.className}` : ''
@@ -160,9 +156,7 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View
-            entering={enterDown(ACTION_ENTER_STEP)}
-          >
+          <Animated.View entering={enterDown(ACTION_ENTER_STEP)}>
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}

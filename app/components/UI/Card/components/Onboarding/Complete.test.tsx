@@ -10,7 +10,6 @@ import Complete from './Complete';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { MarketingMomentSelectorsIDs } from '../../../MarketingMoment';
 
 // Mock dependencies
 const mockNavigationDispatch = jest.fn();
@@ -315,17 +314,13 @@ describe('Complete Component', () => {
 
   describe('Component Rendering', () => {
     it('renders the completion title and description', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
-        'Complete',
+      expect(getByText('Complete')).toBeOnTheScreen();
+      expect(getByText('Your card setup is complete!')).toBeOnTheScreen();
+      expect(getByText('Your card setup is complete!').props.twClassName).toBe(
+        'text-center px-4',
       );
-      expect(
-        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-      ).toHaveTextContent('Your card setup is complete!');
-      expect(
-        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION).props.twClassName,
-      ).toBe('text-center px-4');
     });
   });
 
@@ -441,14 +436,10 @@ describe('Complete Component', () => {
 
   describe('Marketing moment', () => {
     it('renders the completion copy and continue action', () => {
-      const { getByTestId, getByText } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
-        'Complete',
-      );
-      expect(
-        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-      ).toHaveTextContent('Your card setup is complete!');
+      expect(getByText('Complete')).toBeOnTheScreen();
+      expect(getByText('Your card setup is complete!')).toBeOnTheScreen();
       expect(getByText('Continue')).toBeOnTheScreen();
     });
   });
@@ -471,19 +462,15 @@ describe('Complete Component', () => {
     });
 
     it('renders the completion title', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      expect(getByTestId(MarketingMomentSelectorsIDs.TITLE)).toHaveTextContent(
-        'Complete',
-      );
+      expect(getByText('Complete')).toBeOnTheScreen();
     });
 
     it('renders the completion description', () => {
-      const { getByTestId } = render(<Complete />);
+      const { getByText } = render(<Complete />);
 
-      expect(
-        getByTestId(MarketingMomentSelectorsIDs.DESCRIPTION),
-      ).toHaveTextContent('Your card setup is complete!');
+      expect(getByText('Your card setup is complete!')).toBeOnTheScreen();
     });
 
     it('renders translated button label', () => {
