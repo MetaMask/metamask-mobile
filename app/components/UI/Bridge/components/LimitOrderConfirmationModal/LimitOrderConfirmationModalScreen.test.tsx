@@ -433,7 +433,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
       }),
     );
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
+  });
+
+  it('displays the remote default cost tolerance when none is set in bridge state', () => {
+    const { getByText } = renderScreen(
+      merge(
+        {},
+        createBridgeTestState({
+          bridgeReducerOverrides: { limitOrderCostTolerance: undefined },
+        }),
+        {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  swapsLimitOrder: { defaultPriceTolerance: 1.5 },
+                },
+              },
+            },
+          },
+        },
+      ),
+    );
+
+    expect(getByText('1.5%')).toBeOnTheScreen();
   });
 
   // The limit order screen writes the live comparison to
@@ -905,7 +929,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
 
     expect(mockUseFetchLimitOrdersDelegations).toHaveBeenCalledWith({
       ...mockOrder,
-      costTolerance: '2',
+      costTolerance: '3',
     });
   });
 

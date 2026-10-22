@@ -995,10 +995,10 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays 2% when the cost tolerance is not set', () => {
+  it('displays 3% when the cost tolerance is not set', () => {
     const { getByText } = renderLimitOrderView();
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
   });
 
   it('keeps the session cost tolerance when the limit orders screen mounts', () => {
