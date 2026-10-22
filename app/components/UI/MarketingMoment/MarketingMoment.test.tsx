@@ -1,8 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
+import { FadeIn } from 'react-native-reanimated';
 import MarketingMoment from './MarketingMoment';
 import type { MarketingMomentProps } from './MarketingMoment.types';
+import { useMarketingMomentReduceMotion } from './useMarketingMomentReduceMotion';
+
+jest.mock('./useMarketingMomentReduceMotion', () => ({
+  useMarketingMomentReduceMotion: jest.fn(() => false),
+}));
 
 const testIds = {
   container: 'marketing-moment',
@@ -147,6 +153,7 @@ const renderMoment = (props: Partial<MarketingMomentProps> = {}) =>
 describe('MarketingMoment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useMarketingMomentReduceMotion).mockReturnValue(false);
   });
 
   it('renders a string title as a header and a string description', () => {
@@ -253,6 +260,54 @@ describe('MarketingMoment', () => {
     expect(queryByTestId(testIds.artwork)).not.toBeOnTheScreen();
     expect(queryByTestId(testIds.primaryButton)).not.toBeOnTheScreen();
     expect(queryByTestId(testIds.secondaryButton)).not.toBeOnTheScreen();
+  });
+
+  it('fades the title in when reduce motion is off', () => {
+    const { getByTestId } = renderMoment();
+
+    expect(
+      getByTestId(`${testIds.container}-title-motion`).props.entering,
+    ).toBeDefined();
+  });
+
+  it('shows the title without an entrance when reduce motion is on', () => {
+    jest.mocked(useMarketingMomentReduceMotion).mockReturnValue(true);
+
+    const { getByTestId } = renderMoment({
+      artwork: <View testID="marketing-moment-custom-art" />,
+      artworkWrapperAnimatedViewProps: {
+        testID: 'artwork-animated-wrapper',
+        entering: FadeIn.duration(1),
+      },
+    });
+
+    expect(
+      getByTestId(`${testIds.container}-title-motion`).props.entering,
+    ).toBeUndefined();
+    expect(
+      getByTestId(`${testIds.container}-description-motion`).props.entering,
+    ).toBeUndefined();
+    expect(
+      getByTestId(`${testIds.container}-actions-motion`).props.entering,
+    ).toBeUndefined();
+    expect(
+      getByTestId('artwork-animated-wrapper').props.entering,
+    ).toBeUndefined();
+    expect(getByTestId(testIds.title)).toBeOnTheScreen();
+  });
+
+  it('keeps a caller-cleared artwork entrance when reduce motion is off', () => {
+    const { getByTestId } = renderMoment({
+      artwork: <View testID="marketing-moment-custom-art" />,
+      artworkWrapperAnimatedViewProps: {
+        testID: 'artwork-animated-wrapper',
+        entering: undefined,
+      },
+    });
+
+    expect(
+      getByTestId('artwork-animated-wrapper').props.entering,
+    ).toBeUndefined();
   });
 
   it('renders a page background and forced theme when provided', () => {

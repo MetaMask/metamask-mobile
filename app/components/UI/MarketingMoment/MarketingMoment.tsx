@@ -1,7 +1,6 @@
 import React from 'react';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { AnimationDuration } from '@metamask/design-tokens';
 import {
   Box,
   BoxAlignItems,
@@ -19,26 +18,32 @@ import {
   useTailwind,
 } from '@metamask/design-system-twrnc-preset';
 import MarketingMomentTitle from '../MarketingMomentTitle';
+import {
+  MARKETING_MOMENT_ACTION_ENTER_STEP,
+  marketingMomentActionsEnteredAt,
+  marketingMomentEntrance,
+  marketingMomentSlotEntering,
+} from './MarketingMoment.animations';
 import type {
   MarketingMomentAction,
   MarketingMomentProps,
 } from './MarketingMoment.types';
+import { useMarketingMomentReduceMotion } from './useMarketingMomentReduceMotion';
 
-const ACTION_ENTER_STEP = 3;
+export { marketingMomentActionsEnteredAt };
 
-const enterDown = (step: number) =>
-  FadeInDown.duration(AnimationDuration.Slowly).delay(
-    step * AnimationDuration.Quickly,
-  );
+const omitEntering = <T extends object>(
+  props: T | undefined,
+): Omit<T, 'entering'> => {
+  if (!props) {
+    return {} as Omit<T, 'entering'>;
+  }
 
-const enterFade = (step: number) =>
-  FadeIn.duration(AnimationDuration.Slowly).delay(
-    step * AnimationDuration.Quickly,
-  );
-
-/** Milliseconds until the footer actions have finished entering. */
-export const marketingMomentActionsEnteredAt =
-  ACTION_ENTER_STEP * AnimationDuration.Quickly + AnimationDuration.Slowly;
+  const { entering: _entering, ...rest } = props as T & {
+    entering?: unknown;
+  };
+  return rest;
+};
 
 const MarketingMomentContent = ({
   title,
@@ -56,6 +61,9 @@ const MarketingMomentContent = ({
   testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
+  const reduceMotion = useMarketingMomentReduceMotion();
+  const motionTestId = (slot: string) =>
+    testID ? `${testID}-${slot}` : undefined;
   const { label: primaryLabel, ...primaryButtonProps } =
     primaryAction ?? ({} as Partial<MarketingMomentAction>);
   const { label: secondaryLabel, ...secondaryButtonProps } =
@@ -90,7 +98,11 @@ const MarketingMomentContent = ({
           twClassName="mt-12 shrink-0"
         >
           {title ? (
-            <Animated.View entering={enterDown(0)} style={tw.style('w-full')}>
+            <Animated.View
+              entering={marketingMomentEntrance(FadeInDown, 0, reduceMotion)}
+              style={tw.style('w-full')}
+              testID={motionTestId('title-motion')}
+            >
               {typeof title === 'string' ? (
                 <MarketingMomentTitle
                   {...titleTextProps}
@@ -108,7 +120,10 @@ const MarketingMomentContent = ({
             </Animated.View>
           ) : null}
           {description ? (
-            <Animated.View entering={enterDown(1)}>
+            <Animated.View
+              entering={marketingMomentEntrance(FadeInDown, 1, reduceMotion)}
+              testID={motionTestId('description-motion')}
+            >
               {typeof description === 'string' ? (
                 <Text
                   variant={TextVariant.BodyMd}
@@ -125,8 +140,16 @@ const MarketingMomentContent = ({
           ) : null}
           {children ? (
             <Animated.View
-              entering={enterDown(2)}
-              {...childrenWrapperAnimatedViewProps}
+              {...omitEntering(childrenWrapperAnimatedViewProps)}
+              entering={marketingMomentSlotEntering(
+                reduceMotion,
+                childrenWrapperAnimatedViewProps,
+                marketingMomentEntrance(FadeInDown, 2, reduceMotion),
+              )}
+              testID={
+                childrenWrapperAnimatedViewProps?.testID ??
+                motionTestId('children-motion')
+              }
             >
               {children}
             </Animated.View>
@@ -135,9 +158,20 @@ const MarketingMomentContent = ({
 
         {artwork ? (
           <Animated.View
-            entering={enterFade(2)}
-            style={tw.style('min-h-0 w-full flex-1')}
-            {...artworkWrapperAnimatedViewProps}
+            {...omitEntering(artworkWrapperAnimatedViewProps)}
+            entering={marketingMomentSlotEntering(
+              reduceMotion,
+              artworkWrapperAnimatedViewProps,
+              marketingMomentEntrance(FadeIn, 2, reduceMotion),
+            )}
+            style={
+              artworkWrapperAnimatedViewProps?.style ??
+              tw.style('min-h-0 w-full flex-1')
+            }
+            testID={
+              artworkWrapperAnimatedViewProps?.testID ??
+              motionTestId('artwork-motion')
+            }
           >
             <Box
               alignItems={BoxAlignItems.Center}
@@ -156,7 +190,14 @@ const MarketingMomentContent = ({
         )}
 
         {primaryAction || secondaryAction ? (
-          <Animated.View entering={enterDown(ACTION_ENTER_STEP)}>
+          <Animated.View
+            entering={marketingMomentEntrance(
+              FadeInDown,
+              MARKETING_MOMENT_ACTION_ENTER_STEP,
+              reduceMotion,
+            )}
+            testID={motionTestId('actions-motion')}
+          >
             <Box
               flexDirection={BoxFlexDirection.Column}
               gap={2}
