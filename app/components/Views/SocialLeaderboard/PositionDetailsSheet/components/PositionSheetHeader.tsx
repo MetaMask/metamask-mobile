@@ -22,10 +22,6 @@ import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 import { MOCK_MARKER } from '../../../../UI/SocialFeed/mockMarker';
 import { useSocialFeedSurface } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
-import {
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../../../../UI/SocialFeed/utils/traderStats';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
 import { PositionDetailsSheetSelectorsIDs } from '../PositionDetailsSheet.testIds';
@@ -50,7 +46,6 @@ const PositionSheetHeader = ({
   const { showMockedFields } = useSocialFeedSurface();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
   const { followWithSetup } = useFollowWithNotificationSetup();
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
 
   const handleFollowPress = useCallback(
     () =>
@@ -126,11 +121,6 @@ const PositionSheetHeader = ({
               {MOCK_MARKER}
             </Text>
           </>
-        ) : null}
-        {cohortEmoji ? (
-          <Text variant={TextVariant.BodySm} twClassName="shrink-0">
-            {cohortEmoji}
-          </Text>
         ) : null}
       </Box>
 

@@ -30,7 +30,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank medal, username, cohort, and PnL without follow chrome', () => {
+  it('renders rank medal, username, and PnL without follow chrome', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -41,8 +41,8 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
+    ).toBeNull();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
     expect(screen.queryByText('92% WR')).toBeNull();
     expect(screen.queryByText('48,707 followers')).toBeNull();
