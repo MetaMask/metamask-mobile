@@ -68,7 +68,6 @@ import {
   useNavigation,
   useRoute,
   RouteProp,
-  StackActions,
 } from '@react-navigation/native';
 import {
   TraceName,
@@ -968,23 +967,21 @@ const Onboarding = () => {
 
       if (isOffline) {
         endSocialLoginLoading();
-        navigation.dispatch(
-          StackActions.replace(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              title: strings(`error_sheet.no_internet_connection_title`),
-              description: strings(
-                `error_sheet.no_internet_connection_description`,
-              ),
-              descriptionAlign: 'left',
-              primaryButtonLabel: strings(
-                `error_sheet.no_internet_connection_button`,
-              ),
-              closeOnPrimaryButtonPress: true,
-              type: 'error',
-            },
-          }),
-        );
+        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings(`error_sheet.no_internet_connection_title`),
+            description: strings(
+              `error_sheet.no_internet_connection_description`,
+            ),
+            descriptionAlign: 'left',
+            primaryButtonLabel: strings(
+              `error_sheet.no_internet_connection_button`,
+            ),
+            closeOnPrimaryButtonPress: true,
+            type: 'error',
+          },
+        });
         return;
       }
 
@@ -1287,6 +1284,7 @@ const Onboarding = () => {
 
   const closeOnboardingSheet = useCallback(() => {
     setSheetMode(null);
+    setSheetSocialProvider(null);
   }, []);
 
   useEffect(() => {
