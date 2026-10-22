@@ -37,6 +37,7 @@ jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
   selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
 }));
 
+const mockWalletHeaderProfileAvatar = jest.fn();
 jest.mock('./WalletHeaderProfileAvatar', () => {
   const { View } = jest.requireActual('react-native');
   const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
@@ -44,7 +45,11 @@ jest.mock('./WalletHeaderProfileAvatar', () => {
   );
   return {
     __esModule: true,
-    default: () => <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />,
+    SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER: 40,
+    default: (props: { diameter?: number }) => {
+      mockWalletHeaderProfileAvatar(props);
+      return <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />;
+    },
   };
 });
 
@@ -331,11 +336,12 @@ describe('WalletHeader', () => {
     });
 
     it('uses the Social glass header with Profile, account and Rewards actions', () => {
+      const handleProfilePress = jest.fn();
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader
           {...interimProps}
           isSocialLayout
-          handleProfilePress={jest.fn()}
+          handleProfilePress={handleProfilePress}
           handleRewardsPress={jest.fn()}
         />,
       );
@@ -343,6 +349,16 @@ describe('WalletHeader', () => {
       expect(
         getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+      expect(mockWalletHeaderProfileAvatar).toHaveBeenCalledWith({
+        diameter: 40,
+      });
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+
+      expect(handleProfilePress).toHaveBeenCalledTimes(1);
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
       ).toBeOnTheScreen();

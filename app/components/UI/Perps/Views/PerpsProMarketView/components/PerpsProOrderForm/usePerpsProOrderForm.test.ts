@@ -481,6 +481,13 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
+jest.mock('../../../../hooks/usePerpsOrderBookPreferences', () => ({
+  usePerpsOrderBookPreferences: () => ({
+    preferences: { currency: 'usd', metric: 'total' },
+    setOrderBookPreferences: jest.fn(),
+  }),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: (selector: {
     isSelectedAccountSelector?: boolean;
