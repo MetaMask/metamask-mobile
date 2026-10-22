@@ -6095,7 +6095,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: false,
     productionDefault: {
       enabled: false,
-      minimumVersion: '8.15.0',
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
