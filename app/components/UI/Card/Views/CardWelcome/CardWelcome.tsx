@@ -3,6 +3,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import React, { useCallback, useEffect } from 'react';
 import { StatusBar } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import { brandColor } from '@metamask/design-tokens';
 import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import { strings } from '../../../../../../locales/i18n';
@@ -30,8 +31,7 @@ import type {
 } from '../../../../../util/deviceCapability/types';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 
-// eslint-disable-next-line @metamask/design-tokens/color-no-hex
-const GRADIENT_COLORS = ['#1D002E', '#360853'];
+const GRADIENT_COLORS = [brandColor.indigo900, brandColor.purple800];
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
