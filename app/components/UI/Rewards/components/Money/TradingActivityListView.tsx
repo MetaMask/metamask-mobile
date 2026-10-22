@@ -40,6 +40,11 @@ interface TradingActivityListViewProps<T extends { id: string }> {
   testIDs: TradingActivityListViewTestIds;
   list: UseCursorPaginatedListResult<T>;
   renderItem: (item: T) => React.ReactElement | null;
+  /**
+   * Row identity. Defaults to `id`. A feed that mixes types, such as earnings
+   * and claims, must include the type: those rows can share an id.
+   */
+  keyExtractor?: (item: T) => string;
   /** Empty-state description from referral `localized_text`. */
   emptyDescription: string;
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
@@ -63,6 +68,7 @@ function TradingActivityListView<T extends { id: string }>({
   testIDs,
   list,
   renderItem,
+  keyExtractor = (item) => item.id,
   emptyDescription,
   emptyActionLabel,
   emptyOnAction,
@@ -208,7 +214,7 @@ function TradingActivityListView<T extends { id: string }>({
             <FlatList
               style={tw.style('flex-1')}
               data={items ?? []}
-              keyExtractor={(item) => item.id}
+              keyExtractor={keyExtractor}
               renderItem={renderListItem}
               onEndReached={onEndReached}
               onEndReachedThreshold={0.4}

@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Icon,
   IconName,
@@ -83,7 +84,8 @@ const PositionSheetPriceHeader = ({
         gap={1}
       >
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.AmountDisplayLg}
+          fontFamily={FontFamily.Hero}
           testID={PositionDetailsSheetSelectorsIDs.PRICE}
         >
           {valueLabel ?? EM_DASH}

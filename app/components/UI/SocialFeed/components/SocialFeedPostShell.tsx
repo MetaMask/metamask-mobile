@@ -140,7 +140,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   return (
     <Box
-      twClassName="py-2"
+      twClassName={post.isPending ? 'py-2 opacity-60' : 'py-2'}
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
       <SocialTraderIdentityRow
@@ -161,6 +161,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
         }}
       >
+        {post.isPending ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${SocialFeedPostShellSelectorsIDs.PENDING}-${post.id}`}
+          >
+            {strings('social_leaderboard.composer.posting')}
+          </Text>
+        ) : null}
         {post.item.comment ? (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {post.item.comment}

@@ -46,10 +46,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import {
-  consumeSocialV1FocusTrending,
-  refreshSocialV1ComposedFeed,
-} from './feed/store/socialV1ComposedFeedStore';
+import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -516,22 +513,18 @@ const SocialV1ViewContent: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      // Reconcile with the composed-post store on every focus. A store update
-      // that lands while this screen is blurred (the composer is pushed on top
-      // of it) reaches no subscribers, and re-subscribing does not replay it.
-      refreshSocialV1ComposedFeed();
-
-      if (!consumeSocialV1FocusTrending()) {
+      // A post just written from the composer is pinned on Following.
+      if (!consumeFollowingFocus()) {
         return;
       }
       programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(trendingIndex);
-      if (activeIndex !== trendingIndex) {
-        changeTab(trendingIndex);
+      pagerRef.current?.setPage(followingIndex);
+      if (activeIndex !== followingIndex) {
+        changeTab(followingIndex);
       } else {
-        trendingPageRef.current?.scrollToOffset(0, true);
+        followingPageRef.current?.scrollToOffset(0, true);
       }
-    }, [activeIndex, changeTab, trendingIndex]),
+    }, [activeIndex, changeTab, followingIndex]),
   );
 
   useEffect(() => {
