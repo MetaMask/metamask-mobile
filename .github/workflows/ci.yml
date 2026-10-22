@@ -2193,9 +2193,6 @@ jobs:
         '**/*.stories.js'
         '**/*.snap'
       rules-excluded: example
-    secrets:
-      project-metrics-token: ${{ secrets.SECURITY_SCAN_METRICS_TOKEN }}
-      slack-webhook: ${{ secrets.APPSEC_BOT_SLACK_WEBHOOK }}
 
   check-all-jobs-pass:
     name: Check all jobs pass
