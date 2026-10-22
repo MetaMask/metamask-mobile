@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -196,12 +197,15 @@ export function useResumePendingMasSeriesOptIn(): void {
         !subscriptionId ||
         pending.subscriptionId !== subscriptionId
       ) {
-        return;
+        return undefined;
       }
 
-      ensureOptedInRef.current().catch(() => {
-        // Quiet resume — failures remain pending for a later focus.
+      const handle = runAfterInteractions(() => {
+        ensureOptedInRef.current().catch(() => {
+          // Quiet resume — failures remain pending for a later focus.
+        });
       });
+      return () => handle.cancel();
     }, [pending.needsRetry, pending.subscriptionId, subscriptionId]),
   );
 }
