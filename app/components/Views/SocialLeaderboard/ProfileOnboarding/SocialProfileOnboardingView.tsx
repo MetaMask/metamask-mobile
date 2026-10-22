@@ -944,6 +944,20 @@ const SocialProfileOnboardingView: React.FC = () => {
                   {finishError}
                 </Text>
               ) : null}
+              {step === 'account' ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-center pb-4"
+                  testID={
+                    SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE
+                  }
+                >
+                  {strings(
+                    'social_leaderboard.profile_onboarding.link_account_change_footnote',
+                  )}
+                </Text>
+              ) : null}
               {step === 'ready' ? (
                 <Button
                   variant={ButtonVariant.Primary}

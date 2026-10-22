@@ -37,6 +37,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   ACCOUNT_SHEET_BACKDROP: 'social-profile-onboarding-account-sheet-backdrop',
   ACCOUNT_SHEET_CLOSE: 'social-profile-onboarding-account-sheet-close',
   ACCOUNT_ROW: 'social-profile-onboarding-account-row',
+  ACCOUNT_CHANGE_FOOTNOTE: 'social-profile-onboarding-account-change-footnote',
   SHARE_ACTIVITY_SWITCH: 'social-profile-onboarding-share-activity-switch',
   READY_STEP: 'social-profile-onboarding-ready-step',
   READY_HANDLE: 'social-profile-onboarding-ready-handle',

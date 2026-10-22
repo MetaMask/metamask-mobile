@@ -147,16 +147,6 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
         ))}
       </Box>
 
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        twClassName="text-center"
-      >
-        {strings(
-          'social_leaderboard.profile_onboarding.link_account_change_footnote',
-        )}
-      </Text>
-
       {isSheetOpen ? (
         <Modal
           visible
