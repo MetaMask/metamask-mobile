@@ -8716,7 +8716,32 @@ describe('usePerpsProOrderForm', () => {
         handlers?.chaseMaxDistance?.('91800');
       });
 
-      expect(result.current.chaseMaxDistance).toBe('2.00');
+      expect(result.current.chaseMaxDistance).toBe('2');
+    });
+
+    it('keeps a fractional Chase percent when the tapped price is one unit from the reference', () => {
+      // Arrange: reference 90000, percent unit. A $1 book tap is ~0.00111%.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '90000';
+      const { result } = renderProForm();
+
+      act(() => {
+        result.current.onChaseMaxDistanceUnitChange('percent');
+      });
+
+      // Act
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('90001');
+      });
+
+      // Assert: two-decimal rounding would store 0.00 and block placement.
+      expect(result.current.chaseMaxDistance).toBe('0.00111111');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
     });
 
     it('ignores a tapped price equal to the live reference price for Chase max distance', () => {

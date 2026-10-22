@@ -258,6 +258,44 @@ const coerceScaleSkew = (value: string): string => {
     : value;
 };
 
+/**
+ * Percent offset from a tapped book price to the live reference.
+ *
+ * The Chase field shares the 9-digit input cap, so this keeps every fractional
+ * digit that still fits. Rounding to two decimals turns a positive distance
+ * below 0.005% into 0 and blocks placement. Core accepts fractional basis points.
+ *
+ * @param distance - Absolute price distance from the live reference.
+ * @param referencePrice - Live reference price, greater than zero.
+ * @returns Percent string that stays positive for a positive distance.
+ */
+const formatChaseDistancePercent = (
+  distance: number,
+  referencePrice: number,
+): string => {
+  const percent = new BigNumber(distance)
+    .multipliedBy(100)
+    .dividedBy(referencePrice);
+  const integerDigits = percent
+    .integerValue(BigNumber.ROUND_DOWN)
+    .toFixed(0).length;
+  const fractionDigits = Math.max(0, MAX_PERPS_INPUT_DIGITS - integerDigits);
+  let rounded = percent.decimalPlaces(fractionDigits, BigNumber.ROUND_HALF_UP);
+
+  // Half-up can still collapse a tiny positive ratio to zero. Keep the
+  // smallest positive value the digit cap can hold so placement stays enabled.
+  if (rounded.lte(0) && fractionDigits > 0) {
+    rounded = new BigNumber(1).shiftedBy(-fractionDigits);
+  }
+
+  const fixed = rounded.toFixed(fractionDigits);
+  if (!fixed.includes('.')) {
+    return fixed;
+  }
+
+  return fixed.replace(/0+$/u, '').replace(/\.$/u, '');
+};
+
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
   minPrice > 0 && maxPrice > minPrice
     ? ((maxPrice - minPrice) / minPrice) * 100
@@ -4088,7 +4126,7 @@ export const usePerpsProOrderForm = ({
           }
           const nextValue =
             chaseMaxDistanceUnit === 'percent'
-              ? ((distance / assetData.price) * 100).toFixed(2)
+              ? formatChaseDistancePercent(distance, assetData.price)
               : (canonicalizeOrderPrice(distance.toString(), szDecimals) ??
                 distance.toString());
           setChaseMaxDistance(nextValue);
