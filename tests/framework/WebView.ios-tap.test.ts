@@ -55,8 +55,15 @@ const LAVAMOAT_CLICK_ERROR = new Error(
   'LavaMoat - property "self" of globalThis is inaccessible under scuttling mode.',
 );
 
+const LAVAMOAT_ELEMENT_FIND_ERROR = new Error(
+  'unknown error: WebDriverError: Remote debugger error with code \'undefined\': Error: LavaMoat - property "navigator" of globalThis is inaccessible under scuttling mode. when running "element" with method "POST"',
+);
+
 describe('WebView.tapById on iOS', () => {
   const execute = jest.fn();
+  const Matchers = jest.requireMock('./Matchers.ts').default as {
+    getElementByWebID: jest.Mock;
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -64,6 +71,7 @@ describe('WebView.tapById on iOS', () => {
     jest.mocked(getDriver).mockReturnValue({
       execute,
     } as unknown as ReturnType<typeof getDriver>);
+    Matchers.getElementByWebID.mockResolvedValue({ id: 'web-element' });
   });
 
   it('clicks the HTML id when the WebView element click hits LavaMoat scuttling', async () => {
@@ -77,5 +85,19 @@ describe('WebView.tapById on iOS', () => {
     expect(Gestures.tap).toHaveBeenCalledTimes(1);
     expect(execute).toHaveBeenCalledTimes(1);
     expect(String(execute.mock.calls[0]?.[0])).toContain('signTypedDataV3');
+  });
+
+  it('clicks the HTML id when Appium element find hits LavaMoat navigator scuttling', async () => {
+    Matchers.getElementByWebID.mockRejectedValue(LAVAMOAT_ELEMENT_FIND_ERROR);
+
+    await WebView.tapById('download_button', {
+      pageUrl: 'http://localhost:8545/download_blob_file.html',
+      description: 'Download File website - Download button (iOS)',
+    });
+
+    expect(Matchers.getElementByWebID).toHaveBeenCalled();
+    expect(Gestures.tap).not.toHaveBeenCalled();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(String(execute.mock.calls[0]?.[0])).toContain('download_button');
   });
 });

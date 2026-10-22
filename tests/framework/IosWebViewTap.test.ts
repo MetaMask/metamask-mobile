@@ -63,4 +63,18 @@ describe('tapWebIdFallingBackToDomClick', () => {
       tapWebIdFallingBackToDomClick('missingButton', tap),
     ).rejects.toThrow('WebView element #missingButton not found for DOM click');
   });
+
+  it('falls back when Appium element find hits LavaMoat navigator scuttling', async () => {
+    const tap = jest.fn().mockRejectedValue(
+      new Error(
+        'Remote debugger error: LavaMoat - property "navigator" of globalThis is inaccessible under scuttling mode. when running "element" with method "POST"',
+      ),
+    );
+
+    await tapWebIdFallingBackToDomClick('download_button', tap);
+
+    expect(tap).toHaveBeenCalledTimes(1);
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(execute.mock.calls[0]?.[0]).toContain('download_button');
+  });
 });

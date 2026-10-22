@@ -69,14 +69,16 @@ export default class WebView {
       return;
     }
 
+    // Wrap find + scroll + tap: LavaMoat can fail on Appium `element` POST
+    // (navigator/self) before click — same DOM fallback as click scuttling.
     await this.withContext(options.pageUrl, async () => {
-      const webElement = await this.getElementById(webId, options);
-      await Gestures.scrollToWebViewPort(webElement);
-      await tapWebIdFallingBackToDomClick(webId, () =>
-        Gestures.tap(webElement, {
+      await tapWebIdFallingBackToDomClick(webId, async () => {
+        const webElement = await this.getElementById(webId, options);
+        await Gestures.scrollToWebViewPort(webElement);
+        await Gestures.tap(webElement, {
           elemDescription: options.description ?? `WebView tapById: ${webId}`,
-        }),
-      );
+        });
+      });
     });
   }
 
