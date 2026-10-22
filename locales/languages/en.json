@@ -5654,13 +5654,15 @@
       "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
       "add_device_to_wallet": "Add this device to wallet",
       "points": {
-        "one": "Open MetaMask on your other device",
-        "two": "Go to",
-        "two_bold_one": "Settings",
-        "two_bold_two": "Add device",
-        "two_icon": ">",
-        "three": "Scan the QR code with this device",
-        "four": "Enter the security code on your extension"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "Scan QR code",
       "scanner": {
