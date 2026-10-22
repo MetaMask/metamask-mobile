@@ -28,9 +28,12 @@ import {
   CardDetails,
   CardFundingAsset,
   CardFundingSourceResult,
+  ApplePayProvisioningParams,
+  ApplePayProvisioningResponse,
   CardHomeData,
   CardInitiateAuthOptions,
   CardProviderCapabilities,
+  CardWalletProvisioningInfo,
   CardProviderError,
   CardProviderErrorCode,
   CardProviderIds,
@@ -134,6 +137,15 @@ function reportAndMap(
 function mapApiError(error: unknown, operation: string): CardProviderError {
   if (error instanceof CardProviderError) return error;
   if (error instanceof CardApiError) {
+    if (error.statusCode === 400) {
+      return new CardProviderError(
+        CardProviderErrorCode.InvalidRequest,
+        `Invalid request on ${operation}`,
+        400,
+        error.errorCode,
+      );
+    }
+
     if (error.statusCode === 401) {
       return new CardProviderError(
         CardProviderErrorCode.InvalidCredentials,
@@ -264,6 +276,8 @@ interface ImmersveCardListItem {
   fundingSourceIds: string[];
   cardProgramId?: string;
   panLast4?: string;
+  /** Opaque reissuance-lineage id. Shared by every card in a reissue chain. */
+  seriesId?: string;
   network?: string;
   regionCode?: string;
 }
@@ -384,7 +398,7 @@ export class ImmersveProvider implements ICardProvider {
     supportsFundingLimits: false,
     fundingChains: ['eip155:8453', 'eip155:84532'],
     supportsFreeze: true,
-    pushProvisioning: { applePay: false, googlePay: false },
+    pushProvisioning: { applePay: true, googlePay: false },
     onboarding: { type: 'webview', url: '' },
     supportsPinView: false,
     supportsPinSet: true,
@@ -938,10 +952,13 @@ export class ImmersveProvider implements ICardProvider {
       );
       const primaryFundingAsset = fundingAssets[0] ?? null;
 
+      const walletProvisioning = this.mapWalletProvisioning(detail);
+
       if (this.isRevokedAllowance(primaryFundingAsset)) {
         return {
           ...emptyCardHomeData(),
           card: cardDetails,
+          walletProvisioning,
           primaryFundingAsset,
           fundingAssets,
           availableFundingAssets: fundingAssets,
@@ -957,6 +974,7 @@ export class ImmersveProvider implements ICardProvider {
       return {
         ...emptyCardHomeData(),
         card: cardDetails,
+        walletProvisioning,
         primaryFundingAsset,
         fundingAssets,
         availableFundingAssets: fundingAssets,
@@ -1118,6 +1136,61 @@ export class ImmersveProvider implements ICardProvider {
     } catch (error) {
       reportAndMap(error, 'getCardSensitiveDetails');
     }
+  }
+
+  async createApplePayProvisioningRequest(
+    params: ApplePayProvisioningParams,
+    tokens: CardAuthTokens,
+  ): Promise<ApplePayProvisioningResponse> {
+    const card = await this.resolveCurrentCard(tokens);
+    if (!card) {
+      throw new CardProviderError(
+        CardProviderErrorCode.NoCard,
+        'User has no card',
+        404,
+      );
+    }
+
+    try {
+      const response = await this.service.post<ApplePayProvisioningResponse>(
+        `/api/cards/${card.id}/provision/apple-pay`,
+        {
+          certChain: params.certificates,
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+        },
+        tokens,
+      );
+      if (
+        !response.encryptedPassData ||
+        !response.activationData ||
+        !response.ephemeralPublicKey
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.ServerError,
+          'Apple Pay provisioning response missing required fields',
+        );
+      }
+      return {
+        encryptedPassData: response.encryptedPassData,
+        activationData: response.activationData,
+        ephemeralPublicKey: response.ephemeralPublicKey,
+      };
+    } catch (error) {
+      reportAndMap(error, 'createApplePayProvisioningRequest');
+    }
+  }
+
+  private mapWalletProvisioning(
+    detail: ImmersveCardDetail,
+  ): CardWalletProvisioningInfo {
+    return {
+      eligible: this.mapImmersveCardStatus(detail) === CardStatus.ACTIVE,
+      cardholderName: detail.cardholderName ?? '',
+      lastFour: detail.panLast4 ?? '',
+      network: 'MASTERCARD',
+      primaryAccountIdentifier: detail.seriesId,
+    };
   }
 
   private mapImmersveCard(detail: ImmersveCardDetail): CardDetails {

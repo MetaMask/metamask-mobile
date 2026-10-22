@@ -1,17 +1,26 @@
 import { createSelector } from 'reselect';
 import { CaipChainId, Json } from '@metamask/utils';
 import { selectRemoteFeatureFlags } from '../../featureFlagController';
+import { parseLimitOrderCostTolerance } from '../../../components/UI/Bridge/components/SwapsLimitOrderCostToleranceModal/constants';
+import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../../components/UI/Bridge/constants/limitOrders';
 
 interface RawBridgeLimitOrderFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
   baseUrl: string;
+  defaultPriceTolerance: number;
 }
 
 interface RawBridgeRecurringBuyFeatureFlagValue extends Record<string, Json> {
   enabled: boolean;
   enabledChainIds: CaipChainId[];
 }
+
+interface RawSentinelFeeTokensFeatureFlagValue extends Record<string, Json> {
+  cacheTtlMs: number;
+}
+
+export const DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS = 15 * 60 * 1000;
 
 /**
  * Builds a selector for a Bridge swap feature flag (Limit Order, Recurring
@@ -55,6 +64,11 @@ export const selectBridgeRecurringBuyFeatureFlags =
     'swapsRecurringBuy',
   );
 
+export const selectSentinelFeeTokensFeatureFlags =
+  createBridgeSwapFeatureFlagsSelector<RawSentinelFeeTokensFeatureFlagValue>(
+    'swapsSentinelFeeTokens',
+  );
+
 /**
  * Selector for the Bridge Limit Order tab feature flag.
  * Controls visibility of the "Limit" tab in the Bridge/Swap view.
@@ -78,6 +92,27 @@ export const selectBridgeLimitOrderBaseUrl = createSelector(
 );
 
 /**
+ * Selector for the cost (price) tolerance in % that limit orders start with
+ * until the user picks another value.
+ *
+ * @returns string - the `defaultPriceTolerance` of the Limit Order feature
+ * flag when it is a valid tolerance, or `LIMIT_ORDER_DEFAULT_COST_TOLERANCE`
+ * otherwise.
+ */
+export const selectBridgeLimitOrderDefaultCostTolerance = createSelector(
+  selectBridgeLimitOrderFeatureFlags,
+  (flags): string => {
+    const defaultPriceTolerance = flags?.defaultPriceTolerance;
+    const remoteValue =
+      typeof defaultPriceTolerance === 'number'
+        ? parseLimitOrderCostTolerance(String(defaultPriceTolerance))
+        : undefined;
+
+    return remoteValue ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
+  },
+);
+
+/**
  * Selector for the Bridge Recurring Buy tab feature flag.
  * Controls visibility of the "Recurring" tab in the Bridge/Swap view.
  *
@@ -86,4 +121,22 @@ export const selectBridgeLimitOrderBaseUrl = createSelector(
 export const selectBridgeRecurringBuyTabEnabledFlag = createSelector(
   selectBridgeRecurringBuyFeatureFlags,
   (flags): boolean => flags?.enabled ?? false,
+);
+
+/**
+ * Selector for the Sentinel fee-token cache TTL.
+ *
+ * @returns A positive TTL from LaunchDarkly, or the 15-minute default.
+ */
+export const selectSentinelFeeTokensCacheTtlMs = createSelector(
+  selectSentinelFeeTokensFeatureFlags,
+  (flags): number => {
+    const cacheTtlMs = flags?.cacheTtlMs;
+
+    return typeof cacheTtlMs === 'number' &&
+      Number.isFinite(cacheTtlMs) &&
+      cacheTtlMs > 0
+      ? cacheTtlMs
+      : DEFAULT_SENTINEL_FEE_TOKENS_CACHE_TTL_MS;
+  },
 );

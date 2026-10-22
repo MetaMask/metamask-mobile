@@ -5,6 +5,7 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
   selectMoneyDepositMinBalance,
@@ -23,6 +24,7 @@ import {
   selectIsMoneyEarnBannerEnabledFlag,
   selectIsMoneyTokenListItemCtaEnabledFlag,
   selectMoneyDepositCtaTokenAddresses,
+  selectMoneyVbaActivityDepositFromAddresses,
 } from './featureFlags';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
@@ -37,6 +39,7 @@ jest.mock('../../../../util/remoteFeatureFlag', () => ({
 
 jest.mock('../../../../lib/Money/feature-flags', () => ({
   isMoneyAccountEnabled: jest.fn(),
+  isMoneyMfaEnabled: jest.fn(),
 }));
 
 const mockedValidate =
@@ -47,6 +50,10 @@ const mockedValidate =
 const mockedIsMoneyAccountEnabled = jest.requireMock(
   '../../../../lib/Money/feature-flags',
 ).isMoneyAccountEnabled as jest.Mock;
+
+const mockedIsMoneyMfaEnabled = jest.requireMock(
+  '../../../../lib/Money/feature-flags',
+).isMoneyMfaEnabled as jest.Mock;
 
 const createState = (remoteFeatureFlags: Record<string, unknown> = {}) => ({
   engine: {
@@ -209,6 +216,22 @@ describe('selectMoneyEnableMoneyAccountFlag', () => {
     const result = selectMoneyEnableMoneyAccountFlag(state as never);
 
     expect(mockedIsMoneyAccountEnabled).toHaveBeenCalledWith({});
+    expect(result).toBe(true);
+  });
+});
+
+describe('selectMoneyEnableMfaFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('delegates to isMoneyMfaEnabled', () => {
+    mockedIsMoneyMfaEnabled.mockReturnValue(true);
+    const state = createState();
+
+    const result = selectMoneyEnableMfaFlag(state as never);
+
+    expect(mockedIsMoneyMfaEnabled).toHaveBeenCalledWith({});
     expect(result).toBe(true);
   });
 });
@@ -647,6 +670,42 @@ describe('selectMoneyDepositMinBalance', () => {
     const result = selectMoneyDepositMinBalance(state as never);
 
     expect(result).toBe(0.01);
+  });
+});
+
+describe('selectMoneyVbaActivityDepositFromAddresses', () => {
+  it('returns a validated remote sender list and refreshes after rotation', () => {
+    const first = '0x000000000000000000000000000000000000000a';
+    const second = '0x000000000000000000000000000000000000000b';
+
+    const firstResult = selectMoneyVbaActivityDepositFromAddresses(
+      createState({ moneyVbaActivityDepositFromAddresses: [first] }) as never,
+    );
+    const overlapResult = selectMoneyVbaActivityDepositFromAddresses(
+      createState({
+        moneyVbaActivityDepositFromAddresses: [first, second],
+      }) as never,
+    );
+    const rotatedResult = selectMoneyVbaActivityDepositFromAddresses(
+      createState({ moneyVbaActivityDepositFromAddresses: [second] }) as never,
+    );
+
+    expect(firstResult).toEqual([first]);
+    expect(overlapResult).toEqual([first, second]);
+    expect(rotatedResult).toEqual([second]);
+  });
+
+  it('returns an empty list for malformed remote sender configuration', () => {
+    const result = selectMoneyVbaActivityDepositFromAddresses(
+      createState({
+        moneyVbaActivityDepositFromAddresses: [
+          '0x000000000000000000000000000000000000000a',
+          'not-an-address',
+        ],
+      }) as never,
+    );
+
+    expect(result).toEqual([]);
   });
 });
 

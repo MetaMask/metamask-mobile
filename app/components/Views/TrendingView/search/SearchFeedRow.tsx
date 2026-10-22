@@ -21,6 +21,7 @@ import {
 } from './analytics';
 import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 import { BROWSER_ENTRY_POINT } from '../../../../constants/browser';
+import { PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH } from '../../../UI/Perps/constants/perpsAnalytics';
 import type { EarnSearchItem } from '../feeds/earn/earnSearchTypes';
 import EarnSearchRow from './EarnSearchRow';
 
@@ -137,7 +138,10 @@ const SearchFeedRow: React.FC<SearchFeedRowProps> = ({
         // container's px-4 to avoid indenting perps rows an extra 16px.
         return (
           <Box twClassName="-mx-4" testID={PERPS_ROW_WRAPPER_TEST_ID}>
-            <PerpsRowItem market={item as PerpsMarketData} />
+            <PerpsRowItem
+              market={item as PerpsMarketData}
+              source={PERPS_ANALYTICS_SOURCE_EXPLORE_SEARCH}
+            />
           </Box>
         );
       case 'predictions':

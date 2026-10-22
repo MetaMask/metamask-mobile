@@ -29,6 +29,7 @@ import React, {
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import type { LayoutChangeEvent } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -54,10 +55,7 @@ import {
   getChartLimitOrderLines,
 } from '../../../utils/chartOverlayLines';
 import PerpsAdvancedChart from '../../../components/PerpsAdvancedChart/PerpsAdvancedChart';
-import {
-  CandlePeriodSelector,
-  type CandlePeriodOption,
-} from '../../../../Charts/CandlePeriodSelector';
+import { CandlePeriodSelector } from '../../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
 import PerpsOHLCVBar from '../../../components/PerpsOHLCVBar';
 import PerpsPriceDeviationWarning from '../../../components/PerpsPriceDeviationWarning';
@@ -78,14 +76,6 @@ const PRO_CHART_BUTTON = {
   COLLAPSE_CHART: 'collapse_chart',
   EXPAND_CHART: 'expand_chart',
 } as const;
-const PRO_CANDLE_PERIODS = [
-  { label: '1m', value: CandlePeriod.OneMinute },
-  { label: '5m', value: CandlePeriod.FiveMinutes },
-  { label: '15m', value: CandlePeriod.FifteenMinutes },
-  { label: '1h', value: CandlePeriod.OneHour },
-  { label: '1d', value: CandlePeriod.OneDay },
-] as const satisfies readonly CandlePeriodOption[];
-
 interface PerpsProChartPanelProps {
   symbol: string;
   selectedCandlePeriod: CandlePeriod;
@@ -116,6 +106,8 @@ interface PerpsProChartPanelProps {
     contextKey: string,
   ) => void;
   onFreshDelivery?: () => void;
+  /** Measured height of the summary row, used as the header crossfade threshold. */
+  onSummaryLayout?: (event: LayoutChangeEvent) => void;
 }
 
 /**
@@ -137,6 +129,7 @@ const PerpsProChartPanel = ({
   onResolvedStateChange,
   onFreshDelivery,
   marketId: marketIdProp,
+  onSummaryLayout,
 }: PerpsProChartPanelProps) => {
   const { track } = usePerpsEventTracking();
   const { playSelection } = useHaptics();
@@ -421,6 +414,7 @@ const PerpsProChartPanel = ({
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
         testIDPrice={PerpsProMarketViewSelectorsIDs.MARKET_PRICE}
         testIDChange={PerpsProMarketViewSelectorsIDs.MARKET_PRICE_CHANGE}
+        onLayout={onSummaryLayout}
         endAccessory={
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -478,7 +472,6 @@ const PerpsProChartPanel = ({
                   selectedPeriod={selectedCandlePeriod}
                   onPeriodChange={onCandlePeriodChange}
                   onMorePress={onMorePress}
-                  visiblePeriods={PRO_CANDLE_PERIODS}
                   twClassName="flex-1 py-0"
                   groupTwClassName="gap-2"
                   filterVariant={FilterButtonVariant.Secondary}

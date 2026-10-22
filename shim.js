@@ -368,10 +368,12 @@ if (enableApiCallLogs || isTestEnvironment) {
         return installedFetch(url, options);
       }
 
+      // No direct retry on failure: a request the mock server cannot serve
+      // must fail, not silently reach the live backend.
       return installedFetch(
         `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
         options,
-      ).catch(() => installedFetch(url, options));
+      );
     };
 
     if (isMockServerAvailable) {

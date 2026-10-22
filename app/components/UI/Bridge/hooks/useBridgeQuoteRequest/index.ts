@@ -28,6 +28,7 @@ import { BigNumber } from 'ethers';
 import { useInsufficientNativeReserveError } from '../useInsufficientNativeReserveError';
 import { swapQuoteFetchTrace } from '../../utils/swapQuoteFetchTrace';
 import { DEBOUNCE_WAIT } from '../../Views/BridgeView/BridgeView.constants';
+import { useSwapQuotes } from '../useSwapQuotes';
 
 interface UseBridgeQuoteRequestOptions {
   latestSourceAtomicBalance?: BigNumber;
@@ -54,7 +55,13 @@ export const useBridgeQuoteRequest = (
     }
   }, []);
 
-  useEffect(() => cancelOwnedTrace, [cancelOwnedTrace]);
+  const maybeSwapQuotes = useSwapQuotes();
+  const isActive = maybeSwapQuotes === null;
+
+  useEffect(
+    () => (isActive ? cancelOwnedTrace : undefined),
+    [cancelOwnedTrace, isActive],
+  );
 
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);

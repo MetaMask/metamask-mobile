@@ -31,6 +31,8 @@ import PerpsCloseAllPositionsView from '../Views/PerpsCloseAllPositionsView/Perp
 import PerpsCancelAllOrdersView from '../Views/PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import { ConfirmationLaunchSource } from '../../../Views/confirmations/components/confirm/confirm-component';
+import { useTheme } from '../../../../util/theme';
 import PerpsGTMModal from '../components/PerpsGTMModal';
 import PerpsTooltipView from '../Views/PerpsTooltipView/PerpsTooltipView';
 import PerpsTPSLRouter from '../Views/PerpsTPSLRouter';
@@ -49,6 +51,7 @@ import PerpsCrossMarginWarningBottomSheet from '../components/PerpsCrossMarginWa
 import PerpsSelectProviderView from '../Views/PerpsSelectProviderView';
 import PerpsModeSelectionView from '../Views/PerpsModeSelectionView';
 import PerpsOutreachDetailsView from '../Views/PerpsOutreachDetailsView';
+import PerpsSharePositionView from '../Views/PerpsSharePositionView';
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithBottomSheet } from '../../../Views/confirmations/components/modals/pay-with-bottom-sheet/pay-with-bottom-sheet';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -104,6 +107,7 @@ export const getPerpsConversionScreenOptions = (
 
 export function getRedesignedConfirmationsHeaderOptions(
   params: PerpsNavigationParamList['RedesignedConfirmations'] = {},
+  screenBackgroundColor?: string,
 ): NativeStackNavigationOptions {
   if (params?.useBottomSheet) {
     return {
@@ -116,16 +120,35 @@ export function getRedesignedConfirmationsHeaderOptions(
   const showPerpsHeader =
     params?.showPerpsHeader ??
     CONFIRMATION_HEADER_CONFIG.DefaultShowPerpsHeader;
-  if (showPerpsHeader) {
-    return {
-      ...getEmptyNavHeader(),
-      headerBackVisible: false,
-    };
+  const headerOptions: NativeStackNavigationOptions = showPerpsHeader
+    ? {
+        ...getEmptyNavHeader(),
+        headerBackVisible: false,
+      }
+    : {
+        headerShown: false,
+        title: '',
+        headerBackVisible: false,
+      };
+
+  // The adjust-margin sheet is a transparent modal. A card or page sheet
+  // leaves that sheet's rounded top visible above the deposit screen.
+  if (params?.launchedFrom !== ConfirmationLaunchSource.PerpsAdjustMargin) {
+    return headerOptions;
   }
+
   return {
-    headerShown: false,
-    title: '',
-    headerBackVisible: false,
+    ...headerOptions,
+    presentation: 'fullScreenModal',
+    headerTransparent: false,
+    // iOS 26 otherwise draws a transparent edge that shows the screen behind.
+    scrollEdgeEffects: { top: 'hidden' },
+    ...(screenBackgroundColor
+      ? {
+          contentStyle: { backgroundColor: screenBackgroundColor },
+          headerStyle: { backgroundColor: screenBackgroundColor },
+        }
+      : {}),
   };
 }
 
@@ -286,6 +309,7 @@ const PerpsModalStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const { colors } = useTheme();
 
   if (!isBasicFunctionalityEnabled) {
     return (
@@ -357,6 +381,10 @@ const PerpsModalStack = () => {
               title: strings('perps.outreach_details.title'),
             }}
           />
+          <ModalStack.Screen
+            name={Routes.PERPS.MODALS.SHARE_POSITION}
+            component={PerpsSharePositionView}
+          />
           {/* Action Selection Modals */}
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_MODIFY_ACTION}
@@ -369,6 +397,24 @@ const PerpsModalStack = () => {
           <ModalStack.Screen
             name={Routes.PERPS.SELECT_ORDER_TYPE}
             component={PerpsSelectOrderTypeView}
+          />
+          {/* Trade sheet from outside the Perps stack (Social copy trade). The
+              redirect waits for the connection this stack provides, then
+              replaces itself with the sheet confirmation, so the sheet opens
+              over the page the user pressed on instead of a Perps screen. */}
+          <ModalStack.Screen
+            name={Routes.PERPS.ORDER_REDIRECT}
+            component={PerpsOrderRedirect}
+          />
+          <ModalStack.Screen
+            name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+            component={PerpsConfirmScreen}
+            options={({ route }) =>
+              getRedesignedConfirmationsHeaderOptions(
+                route.params as PerpsNavigationParamList['RedesignedConfirmations'],
+                colors.background.default,
+              )
+            }
           />
         </ModalStack.Navigator>
       </PerpsStreamProvider>
@@ -415,6 +461,7 @@ const PerpsScreenStack = () => {
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const { colors } = useTheme();
   // While Pro mode is active, `PerpsHomeView` must never be the landing
   // screen (TAT-3612): default straight to the Pro market instead.
   const isProModeActive = useIsPerpsProModeActive();
@@ -646,7 +693,10 @@ const PerpsScreenStack = () => {
                 name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
                 component={PerpsConfirmScreen}
                 options={({ route }) =>
-                  getRedesignedConfirmationsHeaderOptions(route.params)
+                  getRedesignedConfirmationsHeaderOptions(
+                    route.params,
+                    colors.background.default,
+                  )
                 }
               />
             </Stack.Navigator>

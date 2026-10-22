@@ -39,15 +39,17 @@ export const mockOpenPerpsFeedItem = (
     },
   },
   direction: 'short',
+  tradeSymbol: 'BTC',
   markPriceLabel: '$104,213',
   valueLabel: '$212,000.00',
   pnlLabel: '+128.6%',
   pnlValueLabel: '+$256.96K',
   costLabel: '$212,000.00',
   isPnlPositive: true,
+  leverage: 40,
   leverageLabel: '40X',
-  autoCloseLabel: 'TP $101,214 / SL $110,905',
   entryPriceLabel: '$107,675',
+  holdTimeLabel: '1d 18h',
   ...overrides,
 });
 

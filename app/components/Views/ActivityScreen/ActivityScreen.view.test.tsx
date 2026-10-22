@@ -231,6 +231,37 @@ const emptyActivityStateFunded = () =>
   } as never);
 
 describeForPlatforms('ActivityScreen', () => {
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
+  });
+
+  const waitForActivityListLoaded = async (
+    queryByTestId: (testId: string) => unknown,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 10000 },
+    );
+  };
+
+  const waitForActivityListRow = async (
+    findByTestId: (testId: string) => Promise<unknown>,
+    queryByTestId: (testId: string) => unknown,
+    transactionHash: string,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 15000 },
+    );
+    expect(
+      await findByTestId(activityListRowTitleTestId(transactionHash)),
+    ).toBeOnTheScreen();
+  };
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -365,52 +396,64 @@ describeForPlatforms('ActivityScreen', () => {
         lineaTx,
       ])
         .withOverrides(activityLineaNetworkOverride)
+        // The All-filter loader also waits on Predict. The flag defaults on
+        // when absent, and this test's accounts nock blocks that fetch, so
+        // the spinner can outlive the EVM rows. This case only asserts EVM
+        // network filtering.
+        .withRemoteFeatureFlags({
+          predictTradingEnabled: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        })
         .build();
 
       const { getByTestId, findByTestId, queryByTestId } =
         renderActivityScreenView({ state });
+
+      await waitForActivityListLoaded(queryByTestId);
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        LINEA_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitFor(() => {
-        expect(
-          getByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-        ).not.toBeOnTheScreen();
-      });
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
+      expect(
+        queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
+      ).not.toBeOnTheScreen();
     } finally {
       clearAccountsTransactionsApiMocks();
     }
@@ -1232,7 +1275,7 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     clearAccountsTransactionsApiMocks();
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([]);
+    ).mockResolvedValue({ activities: [], nextCursor: undefined });
   });
 
   it('shows deposit, withdrawal, claim, cash-out, and placed rows under Predictions after load', async () => {
@@ -1247,7 +1290,10 @@ describeForPlatforms('ActivityScreen — prediction rows', () => {
     setupAccountsTransactionsApiMock([]);
     (
       Engine.context.PredictController.getActivity as jest.Mock
-    ).mockResolvedValue([claim, sell, buy]);
+    ).mockResolvedValue({
+      activities: [claim, sell, buy],
+      nextCursor: undefined,
+    });
 
     const state = initialStateActivityWithLocalTransactions([deposit, withdraw])
       .withRemoteFeatureFlags(activityPredictTradingEnabledFlag)

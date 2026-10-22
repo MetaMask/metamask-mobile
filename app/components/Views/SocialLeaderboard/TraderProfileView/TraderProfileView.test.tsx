@@ -373,6 +373,8 @@ let mockPositionsResult: UseTraderPositionsResult = {
   isLoadingOpen: false,
   isLoadingClosed: false,
   error: null,
+  openError: null,
+  closedError: null,
   refetch: mockRefetchPositions,
 };
 
@@ -407,6 +409,8 @@ describe('TraderProfileView', () => {
       isLoadingOpen: false,
       isLoadingClosed: false,
       error: null,
+      openError: null,
+      closedError: null,
       refetch: mockRefetchPositions,
     };
     mockRefresh.mockResolvedValue(undefined);
@@ -559,11 +563,11 @@ describe('TraderProfileView', () => {
       );
     });
 
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.TRADING_SIGNALS_SETUP,
-      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      expect.objectContaining({ onSetupComplete: undefined }),
     );
-    expect(mockToggleFollow).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
   });
 
@@ -578,7 +582,7 @@ describe('TraderProfileView', () => {
       );
     });
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
@@ -603,7 +607,7 @@ describe('TraderProfileView', () => {
     );
   });
 
-  it('performs the follow when the deferred setup action runs', async () => {
+  it('does not follow again when the setup sheet completes', async () => {
     mockNotificationPreferences = channelsDisabledPreferences;
 
     renderWithProvider(<TraderProfileView />);

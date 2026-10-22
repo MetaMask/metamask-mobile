@@ -40,6 +40,6 @@ export const PredictionSearchRowItem: React.FC<
 > = ({ market }) => (
   <PredictMarketRowItem
     market={market}
-    entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE}
+    entryPoint={PredictEventValues.ENTRY_POINT.EXPLORE_SEARCH}
   />
 );

@@ -151,6 +151,7 @@ const WalletHeaderCompact = ({
                 address={accountAddress}
                 variant={getAvatarAccountVariant(avatarAccountType)}
                 size={AvatarAccountSize.Sm}
+                testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
               />
             </BadgeWrapper>
           </Box>

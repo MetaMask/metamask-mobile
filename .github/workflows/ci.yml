@@ -339,9 +339,10 @@ jobs:
       # `profile` is consumed by `runs-on` above. Shape follows peak RAM.
       matrix:
         include:
-          # Stay on 8x16: peak RAM above the 8 GB line.
-          - scripts: lint # 12.3 GB peak
-            profile: namespace-profile-metamask-ci-linux
+          # `lint` is not in this matrix. It runs as `lint-shards` below so the
+          # wall clock is one shard. The aggregate job name stays exactly
+          # Run `lint`, backticks included: the name the scripts job template
+          # renders for the lint script (MCWP-813).
           - scripts: lint:tsc # 8.9 GB peak
             profile: namespace-profile-metamask-ci-linux
           # Right-sized to 4x8: worst observed peak <= 5.6 GB.
@@ -350,6 +351,8 @@ jobs:
           - scripts: format:check
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:depcheck
+            profile: namespace-profile-metamask-ci-linux-small
+          - scripts: test:app-profiling
             profile: namespace-profile-metamask-ci-linux-small
           - scripts: test:tgz-check
             profile: namespace-profile-metamask-ci-linux-small
@@ -397,6 +400,112 @@ jobs:
             echo "No changes detected"
           fi
 
+  # Same files, rules, and exit semantics as `yarn lint`, split by file size.
+  # ESLint 8.57 has no shard flag. scripts/lint-shard.mjs enumerates the CLI
+  # file set and bin-packs by size. Per-file cache stays off the persisted
+  # paths: #33370 reverted it because cross-file and type-aware rules go stale.
+  lint-shards:
+    name: Run lint (${{ matrix.shard }})
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-large' || 'ubuntu-latest'
+      }}
+    env:
+      # Effective provider for this job. Steps must test this, never inputs.runner_provider
+      # directly, or a provider set through the repo variables would be ignored.
+      RESOLVED_RUNNER_PROVIDER: >-
+        ${{
+          (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current')
+        }}
+    if: ${{ needs.get_requirements.outputs.skip_everything != 'true' }}
+    needs:
+      - get_requirements
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        with:
+          fetch-depth: 2
+      - uses: actions/checkout@v6
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' }}
+        with:
+          fetch-depth: 2
+      - name: Configure Namespace cache
+        if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1
+        with:
+          path: |
+            ~/.cache/yarn
+            .metamask
+            node_modules
+            .yarn/cache
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: ${{ env.RESOLVED_RUNNER_PROVIDER != 'namespace' && 'yarn' || '' }}
+      - name: Install Yarn dependencies with retry
+        uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 #v4
+        with:
+          timeout_minutes: 10
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: yarn install --immutable
+      - name: Clean state and following up dependencies installation
+        run: yarn setup:github-ci --node
+      # The "4" in this command is the total number of shards. It must be kept
+      # in sync with the length of matrix.shard.
+      # messenger-action-types:check runs only on shard 1. That leg is required,
+      # so a failure still fails the aggregate Run `lint` job and Check all jobs pass.
+      - name: Lint shard
+        run: yarn lint:shard --shard ${{ matrix.shard }} --shards 4
+        env:
+          # Namespace large is 16x32 (MCWP-812): 24576. ubuntu-latest matches
+          # the other test jobs at 20480. Local yarn lint stays at 12288.
+          LINT_HEAP_MB: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' && '24576' || '20480' }}
+      - name: Require clean working directory
+        shell: bash
+        run: |
+          if ! git diff --exit-code; then
+            echo "Working tree dirty at end of job"
+            exit 1
+          else
+            echo "No changes detected"
+          fi
+
+  # Same check name the scripts matrix rendered for `lint`: backticks included.
+  # Shard jobs are `Run lint (N)` and do not use that name.
+  lint:
+    name: Run `lint`
+    runs-on: >-
+      ${{
+        (inputs.runner_provider != '' && inputs.runner_provider != 'inherit' && inputs.runner_provider || vars.NAMESPACE_RUNNER_LINUX || vars.NAMESPACE_RUNNER_PROVIDER || 'current') == 'namespace' &&
+        'namespace-profile-metamask-ci-linux-small' || 'ubuntu-latest'
+      }}
+    needs:
+      - get_requirements
+      - lint-shards
+    if: >-
+      ${{
+        always() &&
+        !cancelled() &&
+        needs.get_requirements.result == 'success' &&
+        needs.get_requirements.outputs.skip_everything != 'true'
+      }}
+    steps:
+      - name: Require every lint shard to pass
+        env:
+          LINT_SHARDS_RESULT: ${{ needs.lint-shards.result }}
+        run: |
+          if [ "$LINT_SHARDS_RESULT" != "success" ]; then
+            echo "lint shards result: $LINT_SHARDS_RESULT"
+            exit 1
+          fi
+          echo "lint shards passed"
+
   smart-e2e-contract-tests:
     name: Smart E2E contract tests
     runs-on: >-
@@ -408,6 +517,9 @@ jobs:
       ${{ needs.get_requirements.outputs.run_smart_e2e_contracts == 'true' && github.event.pull_request.head.repo.fork != true }}
     needs:
       - get_requirements
+    permissions:
+      contents: read
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -425,13 +537,21 @@ jobs:
         id: analyzer-ref
         shell: bash
         run: echo "ref=$(<.github/actions/smart-e2e-selection/analyzer-ref.txt)" >> "$GITHUB_OUTPUT"
+      - name: Get AI Analyzer token
+        id: get-ai-analyzer-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          target-repository: MetaMask/ai-analyzer
+          permissions: |
+            contents: read
       - name: Checkout AI Analyzer
         uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: ${{ steps.analyzer-ref.outputs.ref }}
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+          token: ${{ steps.get-ai-analyzer-token.outputs.token }}
       - name: Install AI Analyzer dependencies
         working-directory: .ai-analyzer-action
         run: npm ci
@@ -562,9 +682,10 @@ jobs:
       - name: Pin bundle size baseline SHA
         if: github.event_name == 'pull_request'
         shell: bash
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
           set -euo pipefail
-          BASE_REF='${{ github.event.pull_request.base.ref }}'
           # PR checkout is the merge ref (fetch-depth: 2); first parent is the base tip.
           MERGE_BASE_SHA="$(git rev-parse HEAD^1)"
           echo "Merge-base pinned (${BASE_REF}, HEAD): ${MERGE_BASE_SHA}"
@@ -1009,6 +1130,7 @@ jobs:
       - get_requirements
       - prepare-ci-js-deps
     strategy:
+      fail-fast: false
       matrix:
         shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     steps:
@@ -1305,9 +1427,9 @@ jobs:
       - prepare-ci-js-deps
     strategy:
       matrix:
-        # Trying 4 shards: between the pre-#36684 count (3) and #36684 (6).
         # Peak memory is bounded by workerIdleMemoryLimit in jest.config.view.js.
-        shard: [1, 2, 3, 4]
+        # The shard list length must match the denominator in --shard below.
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ env.RESOLVED_RUNNER_PROVIDER == 'namespace' }}
@@ -1333,7 +1455,7 @@ jobs:
         run: mkdir -p tests/results
       - run: |
           yarn test:view:ci \
-            --shard=${{ matrix.shard }}/4 \
+            --shard=${{ matrix.shard }}/6 \
             --json \
             --outputFile=tests/results/cv-test-results-${{ matrix.shard }}.json
         env:
@@ -1463,6 +1585,7 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+      id-token: write # required by MetaMask/github-tools/.github/actions/get-token
     outputs:
       ai_e2e_test_tags: ${{ steps.e2e-selection.outputs.ai_e2e_test_tags }}
       ai_confidence: ${{ steps.e2e-selection.outputs.ai_confidence }}
@@ -1501,38 +1624,29 @@ jobs:
           post-comment: true
           base-ref: ${{ github.event.pull_request.base.ref }}
           analyzer-ref: ${{ steps.analyzer-ref.outputs.ref }}
-          analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}
           langfuse-public-key: ${{ secrets.AI_ANALYZER_LANGFUSE_PUBLIC_KEY }}
           langfuse-secret-key: ${{ secrets.AI_ANALYZER_LANGFUSE_SECRET_KEY }}
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
 
   run-performance-tests-pr:
     name: 'Run Performance Tests (PR)'
-    # Run when:
-    # - run-performance-tests label is on the PR (forced run, all tests), OR
-    # - the PR targets main and Smart E2E Selection chose performance tags.
-    # PRs targeting release/* or stable only run performance tests via the label.
-    # ai_performance_test_tags == '[]'  → AI ran and found no perf-relevant changes: skip.
-    # ai_performance_test_tags == ''    → conservative fallback (AI failed) or run-performance-tests label: run all tests.
-    # ai_performance_test_tags == '[…]' → specific tags selected: run those tests.
+    # PR performance runs only from labels, on non-fork PRs whose base is
+    # not stable. run-performance-tests runs the full suite. Each
+    # run-performance-<area>-tests label runs that area. Smart E2E Selection
+    # does not start this job. Scheduled and manual runs use
+    # run-performance-e2e-manual.yml.
     if: >-
       ${{
         github.event_name == 'pull_request' &&
         !cancelled() &&
-        (
-          needs.get_requirements.outputs.run_performance == 'true' ||
-          (
-            github.event.pull_request.base.ref == 'main' &&
-            needs.smart-e2e-selection.result == 'success' &&
-            needs.smart-e2e-selection.outputs.ai_performance_test_tags != '[]'
-          )
-        )
+        needs.get_requirements.outputs.run_performance == 'true'
       }}
-    needs: [get_requirements, smart-e2e-selection, native-build-fingerprint]
+    needs: [get_requirements, native-build-fingerprint]
     uses: ./.github/workflows/run-performance-e2e.yml
     with:
-      performance_tags: ${{ needs.get_requirements.outputs.run_performance != 'true' && needs.smart-e2e-selection.outputs.ai_performance_test_tags || '' }}
-      performance_tags_reasoning: ${{ needs.get_requirements.outputs.run_performance == 'true' && 'Forced run via run-performance-tests label on PR' || needs.smart-e2e-selection.outputs.ai_performance_test_reasoning }}
+      performance_tags: ${{ needs.get_requirements.outputs.performance_tags }}
+      performance_tags_reasoning: ${{ needs.get_requirements.outputs.performance_tags_reasoning }}
       build_variant: 'e2e'
       branch_name: ${{ github.head_ref }}
       source_ref: ${{ github.sha }}
@@ -2065,6 +2179,8 @@ jobs:
       - check-diff
       - dedupe
       - scripts
+      - lint-shards
+      - lint
       - unit-tests
       - component-view-tests
       - merge-unit-and-component-view-tests

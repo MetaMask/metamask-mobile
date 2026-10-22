@@ -2,11 +2,10 @@ import { test as perfTest } from '../../../framework/fixtures/playwright';
 import TimerHelper from '../../../framework/TimerHelper';
 import { loginToAppPlaywright } from '../../../flows/wallet.flow';
 import { AppiumAssertions } from '../../../framework';
-import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../../page-objects/wallet/ToastModal';
-import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 /*
  * Scenario: Predict Available Balance Performance Test
@@ -33,14 +32,13 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 1: Navigate to Predict tab and verify available balance
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Available Balance is displayed',
-        { ios: 4500, android: 5000 },
+        { ios: 4500, android: 2400 },
         currentDeviceDetails.platform,
       );
+
       await ToastModal.waitForToastToDismiss();
+      await WalletView.scrollAndTapPredictionsSection();
 
-      await TabBarComponent.tapActions();
-
-      await WalletActionsBottomSheet.tapPredictButton();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictMarketList.container,

@@ -40,6 +40,7 @@ import {
   selectIsCardResidencyBlocked,
   selectMoneyAccountVedaTokenConfig,
   selectCardActiveProviderId,
+  selectCardSignInLink,
 } from '../../../../selectors/cardController';
 import {
   selectPendingMoneyAccountCardLink,
@@ -50,10 +51,14 @@ import {
   hasMoneyAccountCardRequirements,
   resolveMoneyAccountCardToken,
 } from '../../../../core/Engine/controllers/card-controller/utils/moneyAccountCardToken';
-import { CardLinkageInProgressError } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  CardLinkageInProgressError,
+  type CardProviderId,
+} from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { isMoneyAccountCardTokenAllowlisted } from '../util/vedaToken';
 import { CardFundingToken } from '../types';
+import { useCardCapabilities } from './useCardCapabilities';
 import { UserCancelledError } from './useCardDelegation';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -111,6 +116,30 @@ export interface LinkFlowOrigin {
   entrypoint?: CardEntryPoint;
 }
 
+const supportsMoneyAccountLinking = (
+  capabilities: { supportsMoneyAccountLinking?: boolean } | null,
+  whenUnknown: boolean,
+): boolean => capabilities?.supportsMoneyAccountLinking ?? whenUnknown;
+
+const signInProviderSupportsLinking = (
+  providerId?: CardProviderId,
+): boolean => {
+  if (!providerId) return true;
+
+  try {
+    return supportsMoneyAccountLinking(
+      Engine.context?.CardController?.getCapabilities(providerId) ?? null,
+      true,
+    );
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'Failed to read sign-in provider capabilities',
+    );
+    return true;
+  }
+};
+
 export interface UseMoneyAccountCardLinkageReturn {
   hasMoneyAccountRequirements: boolean;
   hasMoneyAccountBaseRequirements: boolean;
@@ -121,6 +150,8 @@ export interface UseMoneyAccountCardLinkageReturn {
   moneyAccountCardToken: CardFundingToken | null;
   canLink: boolean;
   isResidencyBlocked: boolean;
+  isMoneyAccountLinkingSupported: boolean;
+  isMoneyCardSectionAvailable: boolean;
 
   status: LinkageStatus;
   isLinking: boolean;
@@ -174,6 +205,22 @@ export const useMoneyAccountCardLinkage =
     );
     const linkInProgress = useSelector(selectIsMoneyAccountCardLinkInProgress);
     const isResidencyBlocked = useSelector(selectIsCardResidencyBlocked);
+    const capabilities = useCardCapabilities();
+    const signInLink = useSelector(selectCardSignInLink);
+    const isMoneyAccountLinkingSupported =
+      !isCardAuthenticated || supportsMoneyAccountLinking(capabilities, false);
+    const isSignInInProgress =
+      !isCardAuthenticated && signInLink?.status === 'started';
+    const signInProviderCanLink = useMemo(
+      () =>
+        isSignInInProgress
+          ? signInProviderSupportsLinking(signInLink?.providerId)
+          : true,
+      [isSignInInProgress, signInLink?.providerId],
+    );
+    const isMoneyCardSectionAvailable = isCardAuthenticated
+      ? isMoneyAccountLinkingSupported
+      : signInProviderCanLink;
     const isMonadSponsorshipEnabled = useSelector(
       getGasFeesSponsoredNetworkEnabled,
     )(vaultConfig?.chainId ?? '');
@@ -210,7 +257,8 @@ export const useMoneyAccountCardLinkage =
         isCardAuthenticated &&
         isCardVerified &&
         moneyAccountCardToken &&
-        isMonadSponsorshipEnabled,
+        isMonadSponsorshipEnabled &&
+        isMoneyAccountLinkingSupported,
     );
     const canLink = Boolean(
       canSubmitDelegation && !isAlreadyDelegated && !isResidencyBlocked,
@@ -221,7 +269,8 @@ export const useMoneyAccountCardLinkage =
         linkInProgress ||
         !hasMoneyAccountBaseRequirements ||
         !primaryMoneyAccount?.address ||
-        isResidencyBlocked
+        isResidencyBlocked ||
+        !isMoneyAccountLinkingSupported
       ) {
         return undefined;
       }
@@ -235,6 +284,7 @@ export const useMoneyAccountCardLinkage =
       canLink,
       hasMoneyAccountBaseRequirements,
       isCardAuthenticated,
+      isMoneyAccountLinkingSupported,
       isResidencyBlocked,
       linkInProgress,
       primaryMoneyAccount?.address,
@@ -370,6 +420,10 @@ export const useMoneyAccountCardLinkage =
         if (linkInProgress) {
           return;
         }
+        if (!isMoneyAccountLinkingSupported) {
+          showErrorToast();
+          return;
+        }
         if (!hasMoneyAccountBaseRequirements || !primaryMoneyAccount?.address) {
           showErrorToast();
           return;
@@ -431,6 +485,7 @@ export const useMoneyAccountCardLinkage =
       },
       [
         linkInProgress,
+        isMoneyAccountLinkingSupported,
         hasMoneyAccountBaseRequirements,
         moneyAccountCardToken,
         primaryMoneyAccount?.address,
@@ -450,6 +505,11 @@ export const useMoneyAccountCardLinkage =
     useEffect(() => {
       if (!pendingMoneyAccountCardLinkEntryPoint) return;
       if (!isCardAuthenticated) return;
+
+      if (!isMoneyAccountLinkingSupported) {
+        dispatch(setPendingMoneyAccountCardLink(null));
+        return;
+      }
 
       if (!isCardVerified) {
         if (
@@ -510,6 +570,7 @@ export const useMoneyAccountCardLinkage =
     }, [
       pendingMoneyAccountCardLinkEntryPoint,
       isCardAuthenticated,
+      isMoneyAccountLinkingSupported,
       isCardVerified,
       hasMoneyAccountBaseRequirements,
       isMoneyAccountCardSupported,
@@ -674,6 +735,8 @@ export const useMoneyAccountCardLinkage =
       moneyAccountCardToken,
       canLink,
       isResidencyBlocked,
+      isMoneyAccountLinkingSupported,
+      isMoneyCardSectionAvailable,
 
       status,
       isLinking: linkInProgress,

@@ -17,6 +17,10 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { TopTrader } from '../types';
 
 import { formatSignedAbbreviatedUsd } from '../../../../../UI/SocialFeed/utils/formatters';
+import {
+  getTopTraderAvatarTestId,
+  getTopTraderCardTestId,
+} from './TopTraderCard.testIds';
 import TraderAvatar from '../../../../../UI/SocialFeed/components/TraderAvatar';
 
 export interface TopTraderCardProps {
@@ -69,7 +73,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
       }
       disabled={!onTraderPress}
       accessibilityRole={onTraderPress ? 'button' : undefined}
-      testID={testID ?? `top-trader-card-${trader.id}`}
+      testID={testID ?? getTopTraderCardTestId(trader.id)}
       style={({ pressed }) =>
         tw.style(
           `relative w-[${TOP_TRADER_CARD_WIDTH}px] rounded-xl overflow-hidden`,
@@ -87,7 +91,7 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
             imageUrl={trader.avatarUri}
             address={trader.address}
             size={AVATAR_SIZE}
-            testID={`top-trader-avatar-${trader.id}`}
+            testID={getTopTraderAvatarTestId(trader.id)}
           />
 
           <Box twClassName="flex-1 min-w-0">

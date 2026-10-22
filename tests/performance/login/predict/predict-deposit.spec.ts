@@ -7,6 +7,7 @@ import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActions
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
 import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
+import WalletView from '../../../page-objects/wallet/WalletView.js';
 
 /*
  * Scenario: Predict Deposit Performance Test
@@ -34,12 +35,11 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       // Timer 1: Navigate to Predict tab
       const timer1 = new TimerHelper(
         'Time since user taps Predict button until Predict Market List is displayed',
-        { ios: 8000, android: 8000 },
+        { ios: 8000, android: 3600 },
         currentDeviceDetails.platform,
       );
 
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapPredictButton();
+      await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           PredictMarketList.container,

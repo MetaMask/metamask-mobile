@@ -1,15 +1,11 @@
 import React from 'react';
 import {
-  Box,
-  BoxAlignItems,
-  BoxFlexDirection,
   Icon,
   IconAlert,
+  IconAlertSeverity,
   IconSize,
-  Text as DesignSystemText,
-  TextColor,
-  TextVariant as DesignSystemTextVariant,
-  FontWeight,
+  Tag,
+  TagSeverity,
 } from '@metamask/design-system-react-native';
 
 import type { ResultTypeConfig } from '../../utils/securityUtils';
@@ -24,8 +20,15 @@ export interface SecurityTrustInlineBadgeProps {
   iconTestID?: string;
 }
 
+const TAG_SEVERITY_BY_ICON_ALERT: Record<IconAlertSeverity, TagSeverity> = {
+  [IconAlertSeverity.Info]: TagSeverity.Info,
+  [IconAlertSeverity.Success]: TagSeverity.Success,
+  [IconAlertSeverity.Warning]: TagSeverity.Warning,
+  [IconAlertSeverity.Danger]: TagSeverity.Danger,
+};
+
 /**
- * Inline security badge (pill with label for Risky/Malicious; icon-only for Verified).
+ * Inline security badge (design-system Tag for Risky/Malicious; icon-only for Verified).
  */
 const SecurityTrustInlineBadge = ({
   badge,
@@ -52,29 +55,23 @@ const SecurityTrustInlineBadge = ({
     );
   }
 
-  const twBg = badge.bg ?? '';
-
   return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName={`rounded min-w-[22px] px-1.5 gap-1 shrink-0 ${twBg}`}
+    <Tag
+      severity={
+        badge.iconAlertSeverity
+          ? TAG_SEVERITY_BY_ICON_ALERT[badge.iconAlertSeverity]
+          : TagSeverity.Neutral
+      }
+      startIconName={badge.iconAlertSeverity ? undefined : badge.icon}
+      startAccessory={
+        badge.iconAlertSeverity ? (
+          <IconAlert severity={badge.iconAlertSeverity} size={IconSize.Xs} />
+        ) : undefined
+      }
+      twClassName="shrink-0"
     >
-      {badge.iconAlertSeverity ? (
-        <IconAlert severity={badge.iconAlertSeverity} size={IconSize.Sm} />
-      ) : (
-        <Icon name={badge.icon} size={IconSize.Sm} color={badge.iconColor} />
-      )}
-      <DesignSystemText
-        variant={DesignSystemTextVariant.BodySm}
-        color={badge.textColor ?? TextColor.TextDefault}
-        fontWeight={FontWeight.Medium}
-        numberOfLines={1}
-        twClassName="whitespace-nowrap"
-      >
-        {badge.label}
-      </DesignSystemText>
-    </Box>
+      {badge.label}
+    </Tag>
   );
 };
 

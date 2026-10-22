@@ -3,8 +3,8 @@ export const SocialTraderIdentityRowSelectorsIDs = {
   AVATAR: 'social-trader-identity-avatar',
   HANDLE: 'social-trader-identity-handle',
   VERIFIED_BADGE: 'social-trader-identity-verified',
-  COHORT: 'social-trader-identity-cohort',
   TIMESTAMP: 'social-trader-identity-timestamp',
+  MOCK_MARKER: 'social-trader-identity-mock-marker',
   TRADER_STAT: 'social-trader-identity-trader-stat',
   MORE: 'social-trader-identity-more',
 } as const;
@@ -14,8 +14,8 @@ export interface SocialTraderIdentityRowTestIds {
   avatar?: string;
   handle?: string;
   verifiedBadge?: string;
-  cohort?: string;
   timestamp?: string;
+  mockMarker?: string;
   traderStat?: string;
   more?: string;
   identityPress?: string;

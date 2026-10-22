@@ -1,8 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMemo } from 'react';
+import {
+  queryOptions,
+  useQuery,
+  type QueryClient,
+} from '@tanstack/react-query';
 import type { OHLCVBar } from './AdvancedChart.types';
-import type { OHLCVTimePeriod } from './TimeRangeSelector';
+import { TIME_RANGE_CONFIGS, type OHLCVTimePeriod } from './TimeRangeSelector';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
+import { usePriceApiHost } from '../../TokenDetails/context/PriceApiHostContext';
 
-const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
+const OHLCV_CHART_PATH = '/v3/ohlcv-chart';
+const OHLCV_FETCH_TIMEOUT_MS = 3000;
+const QUERY_STALE_TIME_MS = 30_000;
 
 export interface OHLCVApiCandle {
   timestamp: number;
@@ -20,12 +29,12 @@ export interface OHLCVApiResponse {
 }
 
 export interface UseOHLCVChartOptions {
-  /** CAIP asset ID, e.g. "eip155:1/slip44:60" */
   assetId: string;
   timePeriod: OHLCVTimePeriod;
-  /** Optional interval override (e.g. '1m' for 1-minute candles instead of API default) */
   interval?: string;
   vsCurrency?: string;
+  /** Price API origin. Omitted means prod. */
+  baseUrl?: string;
 }
 
 export interface UseOHLCVChartResult {
@@ -33,9 +42,7 @@ export interface UseOHLCVChartResult {
   isLoading: boolean;
   error: string | null;
   hasMore: boolean;
-  /** Opaque cursor for the next page. Pass to the WebView so it can fetch directly. */
   nextCursor: string | null;
-  /** True if the API returned an empty data array (asset not supported for OHLCV) */
   hasEmptyData: boolean;
 }
 
@@ -48,117 +55,154 @@ const mapCandle = (candle: OHLCVApiCandle): OHLCVBar => ({
   volume: candle.volume,
 });
 
-async function fetchOHLCV(
-  assetId: string,
-  params: {
-    timePeriod?: OHLCVTimePeriod;
-    interval?: string;
-    nextCursor?: string;
-    vsCurrency?: string;
-  },
+const buildOhlcvChartUrl = (request: UseOHLCVChartOptions): string => {
+  const url = new URL(
+    `${request.baseUrl ?? PRICE_API_BASE_URL}${OHLCV_CHART_PATH}/${
+      request.assetId
+    }`,
+  );
+
+  if (request.timePeriod) {
+    url.searchParams.set('timePeriod', request.timePeriod);
+  }
+
+  if (request.interval) {
+    url.searchParams.set('interval', request.interval);
+  }
+
+  if (request.vsCurrency) {
+    url.searchParams.set('vsCurrency', request.vsCurrency);
+  }
+
+  return url.toString();
+};
+
+const fetchOHLCV = async (
+  request: UseOHLCVChartOptions,
   signal?: AbortSignal,
-): Promise<OHLCVApiResponse> {
-  const url = new URL(`${OHLCV_BASE_URL}/${assetId}`);
+): Promise<OHLCVApiResponse> => {
+  const url = buildOhlcvChartUrl(request);
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  if (params.nextCursor) {
-    url.searchParams.set('nextCursor', params.nextCursor);
-  } else if (params.timePeriod) {
-    url.searchParams.set('timePeriod', params.timePeriod);
+  try {
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(
+        () => reject(new Error('OHLCV fetch timeout')),
+        OHLCV_FETCH_TIMEOUT_MS,
+      );
+    });
+
+    const response = await Promise.race([
+      fetch(url, { signal }),
+      timeoutPromise,
+    ]);
+
+    if (!response.ok) {
+      throw new Error(`OHLCV API error: ${response.status}`);
+    }
+
+    return response.json();
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Unknown error');
+  } finally {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId);
+    }
   }
+};
 
-  if (params.interval) {
-    url.searchParams.set('interval', params.interval);
-  }
-
-  if (params.vsCurrency) {
-    url.searchParams.set('vsCurrency', params.vsCurrency);
-  }
-
-  // Add 3 second timeout to prevent infinite hang
-  const FETCH_TIMEOUT_MS = 3000;
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(
-      () => reject(new Error('OHLCV fetch timeout')),
-      FETCH_TIMEOUT_MS,
-    );
+export const ohlcvChartQueryOptions = (request: UseOHLCVChartOptions) =>
+  queryOptions({
+    queryKey: [
+      'token-details',
+      'ohlcv-chart',
+      request.assetId,
+      request.timePeriod,
+      request.interval ?? null,
+      request.vsCurrency ?? null,
+      // Keyed by host so a non-prod response never surfaces under the prod
+      // entry, or the other way round.
+      request.baseUrl ?? PRICE_API_BASE_URL,
+    ],
+    queryFn: ({ signal }) => fetchOHLCV(request, signal),
+    retry: false,
+    staleTime: QUERY_STALE_TIME_MS,
   });
 
-  const response = await Promise.race([
-    fetch(url.toString(), { signal }),
-    timeoutPromise,
-  ]);
-
-  if (!response.ok) {
-    throw new Error(`OHLCV API error: ${response.status}`);
-  }
-
-  return response.json();
-}
-
 /**
- * Fetches OHLCV chart data from the MetaMask Price API.
- *
- * Supports initial load via `timePeriod` and scroll-back pagination
- * via opaque `nextCursor` tokens returned by the API.
+ * @param baseUrl - Price API origin. Passed explicitly rather than read from
+ * context because this runs outside the React tree, and it has to match what
+ * the hook will ask for or the warmed entry is never read.
  */
+export const prefetchOhlcvChart = (
+  queryClient: QueryClient,
+  assetId: string | null,
+  vsCurrency: string,
+  baseUrl?: string,
+): void => {
+  if (!assetId) {
+    return;
+  }
+  const { timePeriod, interval } = TIME_RANGE_CONFIGS['1D'];
+  queryClient
+    .query(
+      ohlcvChartQueryOptions({
+        assetId,
+        timePeriod,
+        interval,
+        vsCurrency,
+        baseUrl,
+      }),
+    )
+    .catch(() => undefined);
+};
+
 export const useOHLCVChart = ({
   assetId,
   timePeriod,
   interval,
   vsCurrency,
+  baseUrl,
 }: UseOHLCVChartOptions): UseOHLCVChartResult => {
-  const [ohlcvData, setOhlcvData] = useState<OHLCVBar[]>([]);
-  const [isLoading, setIsLoading] = useState(!!assetId);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(false);
-  const [hasEmptyData, setHasEmptyData] = useState(false);
+  // Outside a `PriceApiHostProvider` this is prod, which is what keeps the
+  // Social Leaderboard trader charts and the legacy Token Details page on the
+  // host they already use without either of them passing anything.
+  const contextBaseUrl = usePriceApiHost();
 
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const query = useQuery({
+    ...ohlcvChartQueryOptions({
+      assetId,
+      timePeriod,
+      interval,
+      vsCurrency,
+      baseUrl: baseUrl ?? contextBaseUrl,
+    }),
+    enabled: Boolean(assetId),
+  });
 
-  const loadInitial = useCallback(async () => {
-    if (!assetId) return;
+  const response = query.data;
+  const ohlcvData = useMemo(
+    () => (response ? response.data.map(mapCandle) : []),
+    [response],
+  );
+  const errorMessage =
+    query.error instanceof Error
+      ? query.error.message
+      : query.error
+        ? 'Unknown error'
+        : null;
 
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-
-    setIsLoading(true);
-    setError(null);
-    setNextCursor(null);
-    setHasMore(false);
-    setHasEmptyData(false);
-
-    try {
-      const result = await fetchOHLCV(
-        assetId,
-        { timePeriod, interval, vsCurrency },
-        controller.signal,
-      );
-
-      if (!controller.signal.aborted) {
-        const isEmpty = result.data.length === 0;
-        setHasEmptyData(isEmpty);
-        setOhlcvData(result.data.map(mapCandle));
-        setNextCursor(result.nextCursor || null);
-        setHasMore(result.hasNext);
-      }
-    } catch (e) {
-      if (!controller.signal.aborted) {
-        setOhlcvData([]); // Clear data on error to show error state
-        setError(e instanceof Error ? e.message : 'Unknown error');
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setIsLoading(false);
-      }
-    }
-  }, [assetId, timePeriod, interval, vsCurrency]);
-
-  useEffect(() => {
-    loadInitial();
-    return () => abortRef.current?.abort();
-  }, [loadInitial]);
-
-  return { ohlcvData, isLoading, error, hasMore, nextCursor, hasEmptyData };
+  return {
+    ohlcvData,
+    isLoading: Boolean(assetId) && query.isPending,
+    error: errorMessage,
+    hasMore: response?.hasNext ?? false,
+    nextCursor: response?.nextCursor || null,
+    hasEmptyData: Boolean(
+      response && response.data.length === 0 && !query.error,
+    ),
+  };
 };

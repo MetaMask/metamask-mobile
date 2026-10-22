@@ -6,7 +6,10 @@ import {
   parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
+import {
+  isMoneyAccountEnabled,
+  isMoneyMfaEnabled,
+} from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
@@ -27,6 +30,7 @@ import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmatio
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
+import { parseMoneyVbaActivityDepositFromAddresses } from '../utils/moneyVbaActivityDepositFromAddresses';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -105,9 +109,32 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
+/**
+ * Selects the remotely managed Iron/MoonPay sender addresses for completed VBA
+ * deposits. The allowlist can overlap while provider addresses rotate. An
+ * absent or malformed flag fails closed; production addresses are never bundled.
+ */
+export const selectMoneyVbaActivityDepositFromAddresses = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] =>
+    parseMoneyVbaActivityDepositFromAddresses(
+      remoteFeatureFlags?.moneyVbaActivityDepositFromAddresses,
+    ),
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+/**
+ * Selects whether Money MFA (MPC-backed 2FA) is enabled. Independent of
+ * `moneyEnableMoneyAccount` so MFA can be rolled out or killed without
+ * disabling the rest of Money. Remote flag: `isMoneyMfaEnabled`.
+ */
+export const selectMoneyEnableMfaFlag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaEnabled,
 );
 
 /**

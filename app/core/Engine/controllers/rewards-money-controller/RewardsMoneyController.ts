@@ -19,14 +19,20 @@ import {
   type GetClaimHistoryDto,
   type GetCommissionsDto,
   type GetEarningsLedgerDto,
+  type EarningsSummaryQuery,
   type GetEarningsSummaryDto,
   type GetReferralCodesDto,
   type GetReferralFunnelDto,
   type GetReferralMeDto,
   type OwnReferralCodesDto,
+  type PerpsRebateTrade,
+  type RebateQuoteBody,
+  type RebateQuoteResponse,
+  type SwapsRebateBridgeQuote,
   type ReferralFunnelDto,
   type ReferralMeDto,
   type ReferrerOriginType,
+  type RegisterRefereeDto,
   type RewardsMoneyControllerState,
 } from './types';
 
@@ -43,6 +49,10 @@ export const CLAIM_BY_ID_CACHE_THRESHOLD_MS = 300_000;
 export const REFERRAL_FUNNEL_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_SUMMARY_CACHE_THRESHOLD_MS = 60_000;
 export const EARNINGS_LEDGER_CACHE_THRESHOLD_MS = 60_000;
+/**
+ * Claim history, when a screen reads it, uses this cache on focus and
+ * refreshes behind the cached page. A focus visit does not pass forceFresh.
+ */
 export const CLAIM_HISTORY_CACHE_THRESHOLD_MS = 60_000;
 export const COMMISSIONS_CACHE_THRESHOLD_MS = 60_000;
 
@@ -123,6 +133,29 @@ export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
 }
 
 /**
+ * Cache key for an earnings summary.
+ *
+ * The default call — no window, claimability included — stays on the origin-type
+ * key the heroes already read. A windowed lifetime is a different figure and
+ * omits `claimable`, so it must not land in that bucket.
+ */
+export function summaryScopeKey(
+  originTypes?: EarningOriginType[],
+  query?: EarningsSummaryQuery,
+): string {
+  const base = originTypeScopeKey(originTypes);
+  const from = query?.from;
+  const to = query?.to;
+  const hasWindow = Boolean(from || to);
+  const includeClaimable = query?.includeClaimable !== false;
+  if (!hasWindow && includeClaimable) {
+    return base;
+  }
+  const windowPart = hasWindow ? `${from ?? ''}..${to ?? ''}` : 'all-time';
+  return `${base}|window:${windowPart}|claimable:${includeClaimable ? '1' : '0'}`;
+}
+
+/**
  * Cache key for ledger first pages. `include_claims` is not in the server
  * cursor, so with/without claims must not share a bucket.
  */
@@ -149,16 +182,43 @@ export function profileCacheKey(profileId: string, scope?: string): string {
   return scope ? `${profileId}:${scope}` : profileId;
 }
 
+/**
+ * The money service's checks on a perps quote `trade`, copied so a trade it
+ * would refuse is never sent: a Hyperliquid perp name (`BTC`, `xyz:TSLA`),
+ * and a non-negative decimal USD amount. `side` is already narrowed to
+ * `BUY` | `SELL` by its type.
+ */
+const PERPS_REBATE_TRADE_COIN = /^(?:[a-z0-9]{1,16}:)?[A-Za-z0-9]{1,32}$/;
+const PERPS_REBATE_TRADE_NOTIONAL_USD = /^\d{1,15}(\.\d{1,18})?$/;
+
+/**
+ * Whether the money service would accept this perps quote `trade`. The
+ * server refuses the whole quote with a `400` otherwise, even though it drops
+ * the trade.
+ *
+ * @param trade - The trade a caller passed.
+ * @returns True when every field passes the server's checks.
+ */
+function isSendablePerpsRebateTrade(trade: PerpsRebateTrade): boolean {
+  return (
+    PERPS_REBATE_TRADE_COIN.test(trade.coin) &&
+    PERPS_REBATE_TRADE_NOTIONAL_USD.test(trade.notionalUsd)
+  );
+}
+
 const MESSENGER_EXPOSED_METHODS = [
   'getReferralMe',
   'getReferralFunnel',
   'getReferralCodes',
   'validateReferralCode',
+  'registerReferee',
   'getEarningsSummary',
   'getEarningsLedger',
   'getClaimHistory',
   'getCommissions',
   'getClaimById',
+  'getSwapsRebateQuote',
+  'getPerpsRebateQuote',
   'isRewardsMoneyFeatureEnabled',
   'getRewardsMoneyEnvUrl',
   'canChangeRewardsMoneyEnvUrl',
@@ -177,6 +237,12 @@ export class RewardsMoneyController extends BaseController<
   RewardsMoneyControllerMessenger
 > {
   readonly #isDisabled: () => boolean;
+  readonly #referralMeRequestGeneration = new Map<string, number>();
+  readonly #referralMeInFlight = new Map<string, Promise<ReferralMeDto>>();
+  readonly #earningsSummaryInFlight = new Map<
+    string,
+    Promise<EarningsSummaryDto>
+  >();
 
   constructor({
     messenger,
@@ -208,6 +274,9 @@ export class RewardsMoneyController extends BaseController<
   /**
    * Hydra profile id for the primary session — same identity the bearer token
    * authenticates as. Throws when no session profile is available.
+   *
+   * `getSessionProfile` returns the authentication controller's cached session
+   * and only logs in when none exists, so this call is not wrapped again.
    */
   async #getProfileId(): Promise<string> {
     const profile = await this.messenger.call(
@@ -260,12 +329,15 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const profileId = await this.#getProfileId();
-    const fetchFresh = () =>
-      this.messenger.call('RewardsMoneyDataService:getReferralMe');
 
+    // A forceFresh asks for data newer than a read already running, and its
+    // result has to win if that older read lands last. It does not join.
     if (params.forceFresh) {
-      const fresh = await fetchFresh();
-      this.#writeReferralMe(profileId, fresh);
+      const requestGeneration = this.#startReferralMeRequest(profileId);
+      const fresh = await this.messenger.call(
+        'RewardsMoneyDataService:getReferralMe',
+      );
+      this.#writeReferralMeIfLatest(profileId, fresh, requestGeneration);
       return fresh;
     }
 
@@ -273,16 +345,45 @@ export class RewardsMoneyController extends BaseController<
       key: profileId,
       ttl: REFERRAL_ME_CACHE_THRESHOLD_MS,
       readCache: (key) => this.state.referralMe[key],
-      fetchFresh,
-      writeCache: (key, payload) => this.#writeReferralMe(key, payload),
+      fetchFresh: () => this.#fetchReferralMe(profileId),
+      // #fetchReferralMe writes under the generation that started the shared
+      // read. Writing again here would let that older payload replace a
+      // forceFresh that finished first.
+      writeCache: () => undefined,
     });
+  }
+
+  /**
+   * One network read per profile. The unlock warm-up and a Rewards open that
+   * arrives while it is running share this promise.
+   */
+  #fetchReferralMe(profileId: string): Promise<ReferralMeDto> {
+    const inFlight = this.#referralMeInFlight.get(profileId);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const requestGeneration = this.#startReferralMeRequest(profileId);
+    const pending = this.messenger
+      .call('RewardsMoneyDataService:getReferralMe')
+      .then((payload) => {
+        this.#writeReferralMeIfLatest(profileId, payload, requestGeneration);
+        return payload;
+      })
+      .finally(() => {
+        if (this.#referralMeInFlight.get(profileId) === pending) {
+          this.#referralMeInFlight.delete(profileId);
+        }
+      });
+    this.#referralMeInFlight.set(profileId, pending);
+    return pending;
   }
 
   async getReferralFunnel(
     params: GetReferralFunnelDto = {},
   ): Promise<ReferralFunnelDto> {
     if (this.#isDisabled()) {
-      return { enrolled: 0, earning_generating: 0 };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -308,7 +409,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetReferralCodesDto = {},
   ): Promise<OwnReferralCodesDto> {
     if (this.#isDisabled()) {
-      return { codes: [] };
+      throw new Error('Rewards Money is disabled');
     }
 
     const profileId = await this.#getProfileId();
@@ -341,6 +442,102 @@ export class RewardsMoneyController extends BaseController<
     );
   }
 
+  /**
+   * Rebate a swaps confirmation screen should show. The bridge quote decides
+   * fee-token eligibility. Not cached: the rate has to disappear the moment
+   * an operator ends the window, and a different quote can name a different
+   * fee token.
+   *
+   * Pass the `quote` of the bridge `QuoteResponse`, not the response. Only
+   * its `feeData.metabridge` is sent.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`. A `401` is not retried.
+   *
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
+   * server is unavailable, whether the body reason is `SERVER_BUSY` or
+   * `JWKS_UNAVAILABLE`.
+   *
+   * @param quote - The bridge quote the confirmation screen holds.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getSwapsRebateQuote(
+    quote: SwapsRebateBridgeQuote,
+  ): Promise<RebateQuoteResponse> {
+    return this.#getRebateQuote({
+      product: 'swaps',
+      quote: { feeData: { metabridge: quote.feeData.metabridge } },
+    });
+  }
+
+  /**
+   * Rebate a perps confirmation screen should show. `trade` is optional and
+   * the server drops it today; the answer does not depend on it. A trade the
+   * server would refuse (see {@link PerpsRebateTrade}) is left out rather
+   * than sent, so it cannot turn the quote into a `400`.
+   *
+   * A refusal rejects with `RewardsMoneyRebateQuoteError`, a `401` with
+   * `RewardsMoneyAuthorizationError`. A timeout or a network failure rejects
+   * with a plain `Error`. A `401` is not retried.
+   *
+   * A `503` or `429` whose `Retry-After` is at most 5 seconds is retried once
+   * inside the data service, after that delay plus up to a second of jitter.
+   * The promise includes that wait. Callers must not retry again. A `429`
+   * (`RATE_LIMITED`) shares the profile read budget, 60 requests per 30
+   * seconds, with the Earnings reads. A `503` (`UNAVAILABLE`) means the
+   * server is unavailable, whether the body reason is `SERVER_BUSY` or
+   * `JWKS_UNAVAILABLE`.
+   *
+   * @param trade - What the user is about to trade, when known.
+   * @returns The rebate to show; `eligible: false` means no rebate row.
+   */
+  getPerpsRebateQuote(trade?: PerpsRebateTrade): Promise<RebateQuoteResponse> {
+    if (trade === undefined || !isSendablePerpsRebateTrade(trade)) {
+      return this.#getRebateQuote({ product: 'perps' });
+    }
+    return this.#getRebateQuote({
+      product: 'perps',
+      trade: {
+        coin: trade.coin,
+        side: trade.side,
+        notionalUsd: trade.notionalUsd,
+      },
+    });
+  }
+
+  async #getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    return this.messenger.call('RewardsMoneyDataService:getRebateQuote', body);
+  }
+
+  /**
+   * Enrols the session profile under a referrer's code. Drops that profile's
+   * cached referral me after the write succeeds, so a later read cannot
+   * return the pre-registration roles for the rest of the cache window. A
+   * read already in flight cannot write its payload back. The new role is
+   * read through `getReferralMe({ forceFresh: true })`.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    if (this.#isDisabled()) {
+      throw new Error('Rewards Money is disabled');
+    }
+
+    const profileId = await this.#getProfileId();
+    await this.messenger.call(
+      'RewardsMoneyDataService:registerReferee',
+      params,
+    );
+    this.#invalidateReferralMe(profileId);
+  }
+
   async getEarningsSummary(
     params: GetEarningsSummaryDto = {},
   ): Promise<EarningsSummaryDto> {
@@ -348,14 +545,12 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    const { originTypes, forceFresh } = params;
+    const { originTypes, forceFresh, from, to, includeClaimable } = params;
+    const query = { from, to, includeClaimable };
     const profileId = await this.#getProfileId();
-    const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
+    const key = profileCacheKey(profileId, summaryScopeKey(originTypes, query));
     const fetchFresh = () =>
-      this.messenger.call(
-        'RewardsMoneyDataService:getEarningsSummary',
-        originTypes,
-      );
+      this.#fetchEarningsSummary(key, originTypes, query);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
@@ -377,7 +572,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetEarningsLedgerDto = {},
   ): Promise<EarningsLedgerPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null, window: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originTypes, cursor, forceFresh } = params;
@@ -427,7 +622,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetClaimHistoryDto = {},
   ): Promise<ClaimHistoryPageDto> {
     if (this.#isDisabled()) {
-      return { results: [], has_more: false, cursor: null };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { cursor, forceFresh } = params;
@@ -463,15 +658,7 @@ export class RewardsMoneyController extends BaseController<
     params: GetCommissionsDto = {},
   ): Promise<CommissionsPageDto> {
     if (this.#isDisabled()) {
-      return {
-        results: [],
-        mechanisms: {
-          REFERRAL_REV_SHARE: { claim_open: false, reason: null },
-          SOCIAL_FOLLOW_TRADE: { claim_open: false, reason: null },
-        },
-        has_more: false,
-        cursor: null,
-      };
+      throw new Error('Rewards Money is disabled');
     }
 
     const { originType, cursor, fromDay, forceFresh } = params;
@@ -543,6 +730,31 @@ export class RewardsMoneyController extends BaseController<
     });
   }
 
+  /**
+   * One network read per cache key. A focus fetch and a delayed refetch of
+   * the same profile share the promise already in flight.
+   */
+  #fetchEarningsSummary(
+    key: string,
+    originTypes: EarningOriginType[] | undefined,
+    query?: EarningsSummaryQuery,
+  ): Promise<EarningsSummaryDto> {
+    const inFlight = this.#earningsSummaryInFlight.get(key);
+    if (inFlight) {
+      return inFlight;
+    }
+
+    const pending = this.messenger
+      .call('RewardsMoneyDataService:getEarningsSummary', originTypes, query)
+      .finally(() => {
+        if (this.#earningsSummaryInFlight.get(key) === pending) {
+          this.#earningsSummaryInFlight.delete(key);
+        }
+      });
+    this.#earningsSummaryInFlight.set(key, pending);
+    return pending;
+  }
+
   #writeReferralMe(profileId: string, payload: ReferralMeDto): void {
     try {
       this.update((draft) => {
@@ -554,6 +766,39 @@ export class RewardsMoneyController extends BaseController<
         error instanceof Error ? error.message : String(error),
       );
     }
+  }
+
+  #startReferralMeRequest(profileId: string): number {
+    const generation =
+      (this.#referralMeRequestGeneration.get(profileId) ?? 0) + 1;
+    this.#referralMeRequestGeneration.set(profileId, generation);
+    return generation;
+  }
+
+  /**
+   * Forget a profile's referral me. The generation moves first so a read that
+   * started before registration cannot refill the entry after it is removed.
+   * The in-flight promise is dropped so a later read does not join it.
+   */
+  #invalidateReferralMe(profileId: string): void {
+    this.#startReferralMeRequest(profileId);
+    this.#referralMeInFlight.delete(profileId);
+    this.update((draft) => {
+      delete draft.referralMe[profileId];
+    });
+  }
+
+  #writeReferralMeIfLatest(
+    profileId: string,
+    payload: ReferralMeDto,
+    requestGeneration: number,
+  ): void {
+    if (
+      this.#referralMeRequestGeneration.get(profileId) !== requestGeneration
+    ) {
+      return;
+    }
+    this.#writeReferralMe(profileId, payload);
   }
 
   #writeReferralFunnel(profileId: string, payload: ReferralFunnelDto): void {

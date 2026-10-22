@@ -8,10 +8,14 @@ import type {
   EarningOriginType,
   EarningsLedgerPageDto,
   EarningsSummaryDto,
+  EarningsSummaryQuery,
   OwnReferralCodesDto,
+  RebateQuoteBody,
+  RebateQuoteResponse,
   ReferralFunnelDto,
   ReferralMeDto,
   ReferrerOriginType,
+  RegisterRefereeDto,
 } from '../types';
 import {
   canChangeRewardsMoneyEnvUrl,
@@ -45,6 +49,91 @@ export class RewardsMoneyAuthorizationError extends Error {
   }
 }
 
+/**
+ * Why `POST /earnings/rebate/quote` did not return a quote. A 200 whose
+ * `reason` is set is not this: that quote is the answer, and the screen
+ * shows no row. These are the responses the screen has to tell apart.
+ */
+export type RewardsMoneyRebateQuoteFailure =
+  | 'INVALID_REQUEST'
+  | 'RATE_LIMITED'
+  | 'UNAVAILABLE'
+  | 'FAILED';
+
+/**
+ * A rebate quote the server refused. `failure` is the status the confirmation
+ * screen branches on; `detail` is the server's message when it sent one.
+ * A `401` is {@link RewardsMoneyAuthorizationError} and is not retried.
+ *
+ * A `503` is `failure: 'UNAVAILABLE'`: the server is unavailable. That covers
+ * a busy pod (`reason: 'SERVER_BUSY'`, message `Server busy, retry shortly`,
+ * `Retry-After: 2`) and token verification down
+ * (`reason: 'JWKS_UNAVAILABLE'`). Both are handled the same way. A `429` is
+ * `failure: 'RATE_LIMITED'`: the profile spent the read budget it shares with
+ * the Earnings reads, 60 requests per 30 seconds. `retryAfterSeconds` is the
+ * `Retry-After` header when the refusal carried one, and `undefined` when the
+ * header is missing. There is no default.
+ */
+export class RewardsMoneyRebateQuoteError extends Error {
+  readonly status: number;
+
+  readonly failure: RewardsMoneyRebateQuoteFailure;
+
+  /** Nest `message`, or `reason` when that is all the body carries. */
+  readonly detail: string | undefined;
+
+  /**
+   * Seconds from a `Retry-After` header, when the refusal carried one.
+   * `undefined` when the header is missing. There is no default.
+   */
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(
+    status: number,
+    failure: RewardsMoneyRebateQuoteFailure,
+    detail?: string,
+    retryAfterSeconds?: number,
+  ) {
+    super(
+      detail && detail.length > 0
+        ? detail
+        : `Get rebate quote failed: ${status}`,
+    );
+    this.name = 'RewardsMoneyRebateQuoteError';
+    this.status = status;
+    this.failure = failure;
+    this.detail = detail;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/**
+ * A non-OK Rewards Money response whose status and body the caller has to act
+ * on. Register refuses a referee with a 403 or 409 that carries the product
+ * reason, so the status cannot be flattened into a generic Error.
+ */
+export class RewardsMoneyHttpError extends Error {
+  readonly status: number;
+
+  readonly bodyText: string | undefined;
+
+  /** Seconds from a `Retry-After` header, when the refusal carried one. */
+  readonly retryAfterSeconds: number | undefined;
+
+  constructor(
+    message: string,
+    status: number,
+    bodyText?: string,
+    retryAfterSeconds?: number,
+  ) {
+    super(message);
+    this.name = 'RewardsMoneyHttpError';
+    this.status = status;
+    this.bodyText = bodyText;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
 // ─── Action types ─────────────────────────────────────────────────────────────
 
 export interface RewardsMoneyDataServiceGetReferralMeAction {
@@ -65,6 +154,11 @@ export interface RewardsMoneyDataServiceGetReferralCodesAction {
 export interface RewardsMoneyDataServiceValidateReferralCodeAction {
   type: `${typeof SERVICE_NAME}:validateReferralCode`;
   handler: RewardsMoneyDataService['validateReferralCode'];
+}
+
+export interface RewardsMoneyDataServiceRegisterRefereeAction {
+  type: `${typeof SERVICE_NAME}:registerReferee`;
+  handler: RewardsMoneyDataService['registerReferee'];
 }
 
 export interface RewardsMoneyDataServiceGetEarningsSummaryAction {
@@ -92,6 +186,11 @@ export interface RewardsMoneyDataServiceGetClaimByIdAction {
   handler: RewardsMoneyDataService['getClaimById'];
 }
 
+export interface RewardsMoneyDataServiceGetRebateQuoteAction {
+  type: `${typeof SERVICE_NAME}:getRebateQuote`;
+  handler: RewardsMoneyDataService['getRebateQuote'];
+}
+
 export interface RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsMoneyEnvUrl`;
   handler: RewardsMoneyDataService['getRewardsMoneyEnvUrl'];
@@ -117,11 +216,13 @@ export type RewardsMoneyDataServiceActions =
   | RewardsMoneyDataServiceGetReferralFunnelAction
   | RewardsMoneyDataServiceGetReferralCodesAction
   | RewardsMoneyDataServiceValidateReferralCodeAction
+  | RewardsMoneyDataServiceRegisterRefereeAction
   | RewardsMoneyDataServiceGetEarningsSummaryAction
   | RewardsMoneyDataServiceGetEarningsLedgerAction
   | RewardsMoneyDataServiceGetClaimHistoryAction
   | RewardsMoneyDataServiceGetCommissionsAction
   | RewardsMoneyDataServiceGetClaimByIdAction
+  | RewardsMoneyDataServiceGetRebateQuoteAction
   | RewardsMoneyDataServiceGetRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceCanChangeRewardsMoneyEnvUrlAction
   | RewardsMoneyDataServiceSetRewardsMoneyEnvUrlAction
@@ -146,6 +247,167 @@ function trimTrailingSlashes(url: string): string {
     end -= 1;
   }
   return url.slice(0, end);
+}
+
+/**
+ * A `503` or `429` whose `Retry-After` is at most this is waited out once. A
+ * busy pod sends 2. A statement timeout sends 30, and a JWKS outage can send
+ * up to 30. Both are left to the caller.
+ */
+const BUSY_READ_RETRY_MAX_SECONDS = 5;
+
+/** Spread retries so a shed wave does not return in the same instant. */
+const BUSY_RETRY_JITTER_MS = 1000;
+
+/** `Retry-After` is delta-seconds. An HTTP-date is accepted too. */
+function retryAfterSeconds(header: string | null): number | undefined {
+  if (!header) {
+    return undefined;
+  }
+  const seconds = Number(header);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return Math.max(1, Math.ceil(seconds));
+  }
+  const at = Date.parse(header);
+  if (Number.isNaN(at)) {
+    return undefined;
+  }
+  return Math.max(1, Math.ceil((at - Date.now()) / 1000));
+}
+
+/**
+ * Wait for a short busy refusal, plus up to a second of jitter. `undefined`
+ * means the header was missing: jitter alone, so a registration the server
+ * shed with no `Retry-After` still waits before its one retry.
+ */
+/** 0..BUSY_RETRY_JITTER_MS inclusive. Jitter only, not a secret. */
+function busyRetryJitterMs(): number {
+  const values = new Uint32Array(1);
+  globalThis.crypto.getRandomValues(values);
+  return values[0] % (BUSY_RETRY_JITTER_MS + 1);
+}
+
+function busyRetryDelayMs(waitSeconds: number | undefined): number {
+  const baseMs = waitSeconds === undefined ? 0 : waitSeconds * 1000;
+  return baseMs + busyRetryJitterMs();
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * A `503` or `429` with `Retry-After` of {@link BUSY_READ_RETRY_MAX_SECONDS}
+ * or less. Anything longer, or a missing header, is not retried here.
+ */
+function shortBusyRetrySeconds(response: Response): number | undefined {
+  if (response.ok || (response.status !== 503 && response.status !== 429)) {
+    return undefined;
+  }
+  const waitSeconds = retryAfterSeconds(
+    response.headers?.get('retry-after') ?? null,
+  );
+  if (waitSeconds === undefined || waitSeconds > BUSY_READ_RETRY_MAX_SECONDS) {
+    return undefined;
+  }
+  return waitSeconds;
+}
+
+function isServerBusyBody(bodyText: string | undefined): boolean {
+  if (!bodyText) {
+    return false;
+  }
+  try {
+    const parsed: unknown = JSON.parse(bodyText);
+    return (
+      typeof parsed === 'object' &&
+      parsed !== null &&
+      'reason' in parsed &&
+      parsed.reason === 'SERVER_BUSY'
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function readBodyText(response: Response): Promise<string | undefined> {
+  try {
+    return await response.text();
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The quote failures a confirmation screen branches on. Anything else,
+ * including a 500, stays `FAILED` so a shed is not reported as a validation
+ * error.
+ */
+function rebateQuoteFailure(status: number): RewardsMoneyRebateQuoteFailure {
+  if (status === 400) {
+    return 'INVALID_REQUEST';
+  }
+  if (status === 429) {
+    return 'RATE_LIMITED';
+  }
+  if (status === 503) {
+    return 'UNAVAILABLE';
+  }
+  return 'FAILED';
+}
+
+/**
+ * Whether a `200` body has the fields a confirmation screen reads. A cheap
+ * shape check, so an unexpected body is a `FAILED` quote rather than a row
+ * showing `undefined`.
+ */
+function isRebateQuoteResponse(value: unknown): value is RebateQuoteResponse {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+  const quote = value as Record<string, unknown>;
+  return (
+    typeof quote.product === 'string' &&
+    typeof quote.eligible === 'boolean' &&
+    typeof quote.rebateBips === 'number' &&
+    Number.isFinite(quote.rebateBips) &&
+    (quote.reason === null || typeof quote.reason === 'string')
+  );
+}
+
+/**
+ * Nest sends `message` as a string or a list. A rate limit sends `reason`
+ * beside that message. A body that is not JSON still leaves the status.
+ */
+function rebateQuoteDetail(bodyText: string): string | undefined {
+  if (bodyText.length === 0) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(bodyText) as {
+      message?: unknown;
+      reason?: unknown;
+    };
+    if (typeof parsed.message === 'string' && parsed.message.length > 0) {
+      return parsed.message;
+    }
+    if (Array.isArray(parsed.message)) {
+      const messages = parsed.message.filter(
+        (item): item is string => typeof item === 'string' && item.length > 0,
+      );
+      if (messages.length > 0) {
+        return messages.join('; ');
+      }
+    }
+    if (typeof parsed.reason === 'string' && parsed.reason.length > 0) {
+      return parsed.reason;
+    }
+  } catch {
+    // A non-JSON body still classifies by status.
+  }
+  return undefined;
 }
 
 /**
@@ -207,6 +469,10 @@ export class RewardsMoneyDataService {
       this.validateReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:registerReferee`,
+      this.registerReferee.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getEarningsSummary`,
       this.getEarningsSummary.bind(this),
     );
@@ -225,6 +491,10 @@ export class RewardsMoneyDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClaimById`,
       this.getClaimById.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getRebateQuote`,
+      this.getRebateQuote.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsMoneyEnvUrl`,
@@ -275,71 +545,135 @@ export class RewardsMoneyDataService {
     return defaultUrl;
   }
 
+  /**
+   * Loads the signed-in profile's referral persona.
+   *
+   * @returns The referral-me payload.
+   */
   async getReferralMe(): Promise<ReferralMeDto> {
-    const response = await this.#makeRequest('/referral/me', { method: 'GET' });
+    const response = await this.#read('/referral/me');
 
     if (!response.ok) {
-      throw new Error(`Get referral me failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral me failed');
     }
 
     return (await response.json()) as ReferralMeDto;
   }
 
   async getReferralFunnel(): Promise<ReferralFunnelDto> {
-    const response = await this.#makeRequest('/referral/me/funnel', {
-      method: 'GET',
-    });
+    const response = await this.#read('/referral/me/funnel');
 
     if (!response.ok) {
-      throw new Error(`Get referral funnel failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral funnel failed');
     }
 
     return (await response.json()) as ReferralFunnelDto;
   }
 
   async getReferralCodes(): Promise<OwnReferralCodesDto> {
-    const response = await this.#makeRequest('/referral/me/referral-code', {
-      method: 'GET',
-    });
+    const response = await this.#read('/referral/me/referral-code');
 
     if (!response.ok) {
-      throw new Error(`Get referral codes failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get referral codes failed');
     }
 
     return (await response.json()) as OwnReferralCodesDto;
   }
 
   /**
-   * Public code check — never attaches Authorization.
+   * Public code check — never attaches Authorization. A short `503` or `429`
+   * is waited out once, like the other reads.
    */
   async validateReferralCode(code: string): Promise<{ success: boolean }> {
     const params = new URLSearchParams();
     params.append('code', code);
 
-    const response = await this.#makeRequest(
-      `/referral/validate?${params.toString()}`,
-      { method: 'GET' },
-      DEFAULT_REQUEST_TIMEOUT_MS,
-      false,
+    const response = await this.#requestOnce(() =>
+      this.#makeRequest(
+        `/referral/validate?${params.toString()}`,
+        { method: 'GET' },
+        DEFAULT_REQUEST_TIMEOUT_MS,
+        false,
+      ),
     );
 
     if (!response.ok) {
-      throw new Error(`Validate referral code failed: ${response.status}`);
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = undefined;
+      }
+      throw new RewardsMoneyHttpError(
+        `Validate referral code failed: ${response.status}`,
+        response.status,
+        bodyText,
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
     }
 
     return (await response.json()) as { success: boolean };
   }
 
-  async getEarningsSummary(
-    originTypes?: EarningOriginType[],
-  ): Promise<EarningsSummaryDto> {
-    const query = buildOriginTypeQuery(originTypes);
-    const response = await this.#makeRequest(`/earnings/summary${query}`, {
-      method: 'GET',
-    });
+  /**
+   * Enrols the session profile under a referrer's code. The server identifies
+   * the referee from the bearer token, so the body carries the code alone.
+   */
+  async registerReferee(params: RegisterRefereeDto): Promise<void> {
+    const send = () =>
+      this.#makeRequest('/wr/referral/referee', {
+        method: 'POST',
+        body: JSON.stringify({ code: params.code }),
+      });
+    let response = await send();
+
+    // The server sheds this before any write. One retry cannot double-enrol.
+    // 409 and 428 are left to the caller.
+    if (response.status === 503) {
+      const bodyText = await readBodyText(response);
+      const waitSeconds = retryAfterSeconds(
+        response.headers?.get('retry-after') ?? null,
+      );
+      const withinCap =
+        waitSeconds === undefined || waitSeconds <= BUSY_READ_RETRY_MAX_SECONDS;
+      if (isServerBusyBody(bodyText) && withinCap) {
+        await delay(busyRetryDelayMs(waitSeconds));
+        response = await send();
+      } else {
+        throw new RewardsMoneyHttpError(
+          `Register referee failed: ${response.status}`,
+          response.status,
+          bodyText,
+          waitSeconds,
+        );
+      }
+    }
 
     if (!response.ok) {
-      throw new Error(`Get earnings summary failed: ${response.status}`);
+      let bodyText: string | undefined;
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = undefined;
+      }
+      throw new RewardsMoneyHttpError(
+        `Register referee failed: ${response.status}`,
+        response.status,
+        bodyText,
+        retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+      );
+    }
+  }
+
+  async getEarningsSummary(
+    originTypes?: EarningOriginType[],
+    request?: EarningsSummaryQuery,
+  ): Promise<EarningsSummaryDto> {
+    const query = buildEarningsSummaryQuery(originTypes, request);
+    const response = await this.#read(`/earnings/summary${query}`);
+
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get earnings summary failed');
     }
 
     return (await response.json()) as EarningsSummaryDto;
@@ -356,21 +690,20 @@ export class RewardsMoneyDataService {
     // Not encoded in the cursor — must be sent on every page of a walk.
     params.append('include_claims', includeClaims ? 'true' : 'false');
 
-    if (cursor) {
-      params.append('cursor', cursor);
-    } else {
-      for (const originType of originTypes ?? []) {
-        params.append('earning_origin_type', originType);
-      }
+    // The cursor stamps `earning_origin_type` and the server 400s when the
+    // request's filter does not match, so the filter is resent on every page.
+    for (const originType of originTypes ?? []) {
+      params.append('earning_origin_type', originType);
     }
 
-    const response = await this.#makeRequest(
-      `/earnings/ledger?${params.toString()}`,
-      { method: 'GET' },
-    );
+    if (cursor) {
+      params.append('cursor', cursor);
+    }
+
+    const response = await this.#read(`/earnings/ledger?${params.toString()}`);
 
     if (!response.ok) {
-      throw new Error(`Get earnings ledger failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get earnings ledger failed');
     }
 
     return (await response.json()) as EarningsLedgerPageDto;
@@ -385,9 +718,8 @@ export class RewardsMoneyDataService {
     const params = new URLSearchParams();
     params.append('limit', String(limit));
 
-    // Unlike the ledger, the commissions cursor stamps the filter AND is checked
-    // against the request: paging with the cursor but without the original
-    // `earning_origin_type` is a 400, so the filter is resent on every page.
+    // The cursor stamps the filter and the server 400s when the request omits
+    // it, so the filter is resent on every page.
     if (originType) {
       params.append('earning_origin_type', originType);
     }
@@ -399,13 +731,12 @@ export class RewardsMoneyDataService {
       params.append('from_day', fromDay);
     }
 
-    const response = await this.#makeRequest(
+    const response = await this.#read(
       `/referral/me/commissions?${params.toString()}`,
-      { method: 'GET' },
     );
 
     if (!response.ok) {
-      throw new Error(`Get commissions failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get commissions failed');
     }
 
     return (await response.json()) as CommissionsPageDto;
@@ -422,28 +753,111 @@ export class RewardsMoneyDataService {
       params.append('cursor', cursor);
     }
 
-    const response = await this.#makeRequest(
+    const response = await this.#read(
       `/earnings/claim/me?${params.toString()}`,
-      { method: 'GET' },
     );
 
     if (!response.ok) {
-      throw new Error(`Get claim history failed: ${response.status}`);
+      return this.#throwHttp(response, 'Get claim history failed');
     }
 
     return (await response.json()) as ClaimHistoryPageDto;
   }
 
-  async getClaimById(claimId: string): Promise<ClaimDto> {
-    const response = await this.#makeRequest(`/earnings/claim/${claimId}`, {
-      method: 'GET',
-    });
+  /**
+   * What rebate, if any, a confirmation screen shows. Writes nothing. The
+   * profile is the bearer token's; the body never names one.
+   *
+   * A refusal, or a `200` whose body is not a quote, rejects with
+   * {@link RewardsMoneyRebateQuoteError}; a `401` with
+   * {@link RewardsMoneyAuthorizationError}. A timeout or a network failure
+   * rejects with a plain `Error`.
+   *
+   * @param body - The product and, for swaps, the fee leg of the quote.
+   * @returns The rebate quote.
+   */
+  async getRebateQuote(body: RebateQuoteBody): Promise<RebateQuoteResponse> {
+    const response = await this.#requestOnce(() =>
+      this.#makeRequest('/earnings/rebate/quote', {
+        method: 'POST',
+        body: JSON.stringify(body),
+      }),
+    );
 
     if (!response.ok) {
-      throw new Error(`Get claim by id failed: ${response.status}`);
+      let bodyText = '';
+      try {
+        bodyText = await response.text();
+      } catch {
+        bodyText = '';
+      }
+      throw new RewardsMoneyRebateQuoteError(
+        response.status,
+        rebateQuoteFailure(response.status),
+        rebateQuoteDetail(bodyText),
+        retryAfterSeconds(response.headers.get('retry-after')),
+      );
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = await response.json();
+    } catch {
+      parsed = undefined;
+    }
+    if (!isRebateQuoteResponse(parsed)) {
+      throw new RewardsMoneyRebateQuoteError(
+        response.status,
+        'FAILED',
+        'Malformed rebate quote response',
+      );
+    }
+    return parsed;
+  }
+
+  async getClaimById(claimId: string): Promise<ClaimDto> {
+    const response = await this.#read(`/earnings/claim/${claimId}`);
+
+    if (!response.ok) {
+      return this.#throwHttp(response, 'Get claim by id failed');
     }
 
     return (await response.json()) as ClaimDto;
+  }
+
+  /**
+   * One idempotent GET. A `503` or `429` whose `Retry-After` is
+   * {@link BUSY_READ_RETRY_MAX_SECONDS} or less is waited out, with jitter,
+   * and tried once more.
+   */
+  async #read(endpoint: string): Promise<Response> {
+    return this.#requestOnce(() =>
+      this.#makeRequest(endpoint, { method: 'GET' }),
+    );
+  }
+
+  /**
+   * Runs `request` once, and once more after a short busy wait when the first
+   * answer is a `503` or `429` inside {@link BUSY_READ_RETRY_MAX_SECONDS}.
+   */
+  async #requestOnce(request: () => Promise<Response>): Promise<Response> {
+    const response = await request();
+    const waitSeconds = shortBusyRetrySeconds(response);
+    if (waitSeconds === undefined) {
+      return response;
+    }
+    await delay(busyRetryDelayMs(waitSeconds));
+    return request();
+  }
+
+  async #throwHttp(response: Response, label: string): Promise<never> {
+    const bodyText = await readBodyText(response);
+    throw new RewardsMoneyHttpError(
+      `${label}: ${response.status}`,
+      response.status,
+      bodyText,
+      retryAfterSeconds(response.headers?.get('retry-after') ?? null),
+    );
   }
 
   async #makeRequest(
@@ -491,10 +905,10 @@ export class RewardsMoneyDataService {
         signal: controller.signal,
       });
 
-      if (
-        authenticated &&
-        (response.status === 401 || response.status === 403)
-      ) {
+      // 401 only. The API answers a refused registration with 403 carrying the
+      // product reason (self-referral, KOL, active trader), and that has to
+      // reach the endpoint rather than read as a dead bearer token.
+      if (authenticated && response.status === 401) {
         throw new RewardsMoneyAuthorizationError(
           `Authorization failed: ${response.status}`,
         );
@@ -527,4 +941,29 @@ export function buildOriginTypeQuery(
     params.append('earning_origin_type', originType);
   }
   return `?${params.toString()}`;
+}
+
+/**
+ * Summary query. Omits `include_claimable` unless it is false, so the default
+ * call stays the URL the heroes already send and the server keeps its default.
+ */
+export function buildEarningsSummaryQuery(
+  originTypes?: EarningOriginType[],
+  request?: EarningsSummaryQuery,
+): string {
+  const params = new URLSearchParams();
+  for (const originType of originTypes ?? []) {
+    params.append('earning_origin_type', originType);
+  }
+  if (request?.from) {
+    params.append('from', request.from);
+  }
+  if (request?.to) {
+    params.append('to', request.to);
+  }
+  if (request?.includeClaimable === false) {
+    params.append('include_claimable', 'false');
+  }
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }

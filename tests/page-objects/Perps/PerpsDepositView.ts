@@ -81,13 +81,21 @@ class PerpsDepositView {
     });
   }
 
+  // Match by testID, not text: the digit also appears elsewhere on screen
+  // (e.g. the user's USDC balance), so a text match can tap the wrong element.
+  getKeypadKey(digit: string): Promise<AppiumElement> {
+    const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
+    if (PlatformDetector.isAndroid()) {
+      return Matchers.getElementByID(keyName);
+    }
+    return Matchers.getElementByNativeXPath(
+      `//*[contains(@name,'${keyName}')]`,
+    );
+  }
+
   async typeUSD(amount: string): Promise<void> {
-    const isAndroid = PlatformDetector.isAndroid();
     for (const digit of amount) {
-      const keyName = digit === '.' ? 'keypad-key-dot' : `keypad-key-${digit}`;
-      const digitEl = isAndroid
-        ? Matchers.getElementByText(digit)
-        : Matchers.getElementByNativeXPath(`//*[contains(@name,'${keyName}')]`);
+      const digitEl = this.getKeypadKey(digit);
       await Assertions.expectElementToBeVisible(digitEl, {
         timeout: TIMEOUT.KEYPAD_DIGIT,
         description: `Keypad digit ${digit} should be visible`,

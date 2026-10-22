@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import VbaEmailAdapter from './modules/VbaEmailAdapter';
-import VbaIdentityVerificationModule from './modules/VbaIdentityVerificationModule';
+import VbaEmailAdapter from '../../../KYC/Views/EmailAdapter';
+import VbaIdentityVerified from '../../../KYC/Views/Status/IdentityVerified';
+import VbaIdentityVerificationModule from '../../../KYC/Views/SumSub/IdentityVerification';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -9,16 +10,21 @@ import {
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
-import VbaDetails from './VbaDetails';
+import VbaOnboardingLoading from './VbaOnboardingLoading';
+import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
 
 const VbaOnboardingNavigator = () => (
-  <Stack.Navigator screenOptions={{ headerShown: false }}>
+  <Stack.Navigator screenOptions={{ headerShown: false, animation: 'none' }}>
     <Stack.Screen
       name={VbaOnboardingRoutes.VENDOR_TERMS}
       component={VbaVendorTermsAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.LOADING}
+      component={VbaOnboardingLoading}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.EMAIL}
@@ -33,6 +39,14 @@ const VbaOnboardingNavigator = () => (
       component={VbaKycPendingAdapter}
     />
     <Stack.Screen
+      name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
+      component={VbaIdentityVerified}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
+      component={VbaChooseCurrency}
+    />
+    <Stack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
       component={VbaKycRejectedAdapter}
     />
@@ -44,7 +58,6 @@ const VbaOnboardingNavigator = () => (
       name={VbaOnboardingRoutes.ERROR}
       component={VbaErrorAdapter}
     />
-    <Stack.Screen name={VbaOnboardingRoutes.DETAILS} component={VbaDetails} />
   </Stack.Navigator>
 );
 

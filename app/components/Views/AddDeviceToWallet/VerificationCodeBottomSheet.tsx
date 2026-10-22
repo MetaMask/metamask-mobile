@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   type BottomSheetRef,
-  BottomSheetHeader,
   Box,
   Text,
   TextVariant,
@@ -13,6 +12,7 @@ import {
   FontWeight,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import { strings } from '../../../../locales/i18n';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import {
@@ -40,9 +40,9 @@ const VerificationCodeBottomSheet = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={closeSheet}>
-      <BottomSheetHeader>
+      <HeaderStandardGlass isFloating={false}>
         {strings('app_settings.add_device.enter_code_on_extension')}
-      </BottomSheetHeader>
+      </HeaderStandardGlass>
       <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
         <Text
           variant={TextVariant.BodyMd}
