@@ -19,7 +19,7 @@ import { useFollowWithNotificationSetup } from '../../../Views/SocialLeaderboard
 import { navigateToSocialV1Profile } from '../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { matchesShellTraderCohort } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
 import {
-  SOCIAL_V1_TRADER_ROW_HEIGHT,
+  SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
   SocialV1TraderRow,
   SocialV1TraderRowSkeleton,
 } from '../../../Views/SocialLeaderboard/TopTradersView/components';
@@ -166,7 +166,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   );
 
   const skeletonKeys = useMemo(() => {
-    const visible = Math.ceil(windowHeight / SOCIAL_V1_TRADER_ROW_HEIGHT);
+    const visible = Math.ceil(
+      windowHeight / SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
+    );
     const count = Math.min(limit, visible + SKELETON_OVERSCAN);
     return Array.from({ length: count }, (_, i) => `leaderboard-skeleton-${i}`);
   }, [limit, windowHeight]);
@@ -237,7 +239,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       return (
         <Box testID={SocialLeaderboardSelectorsIDs.SKELETON}>
           {skeletonKeys.map((key) => (
-            <SocialV1TraderRowSkeleton key={key} />
+            <SocialV1TraderRowSkeleton key={key} showLeaderboardDetails />
           ))}
         </Box>
       );
@@ -257,6 +259,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
                 metric={trader.displayMetric}
                 onFollowPress={handleFollowPress}
                 onTraderPress={handleTraderPress}
+                showLeaderboardDetails
               />
             </Animated.View>
           ))}
@@ -299,6 +302,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             onTraderPress={handleViewerPress}
             highlighted
             hideRank={viewerRow.hideRank}
+            showLeaderboardDetails
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
         ) : null}
