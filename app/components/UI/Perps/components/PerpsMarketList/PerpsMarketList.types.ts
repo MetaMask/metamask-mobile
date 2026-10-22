@@ -2,7 +2,7 @@ import {
   type PerpsMarketData,
   type SortField,
 } from '@metamask/perps-controller';
-import type { StyleProp, ViewStyle } from 'react-native';
+import type { RefreshControlProps, StyleProp, ViewStyle } from 'react-native';
 
 /**
  * Props for PerpsMarketList component
@@ -71,7 +71,7 @@ export interface PerpsMarketListProps {
   /**
    * Optional pull-to-refresh control passed through to FlashList.
    */
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   /**
    * Test ID for E2E testing
    */

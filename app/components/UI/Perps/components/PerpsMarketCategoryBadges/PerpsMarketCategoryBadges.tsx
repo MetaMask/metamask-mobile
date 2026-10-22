@@ -137,7 +137,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 
   return (
     <FilterButtonGroup
-      ref={scrollRef}
+      // `ref` is forwarded to the inner ScrollView at runtime (React 19) but is
+      // missing from FilterButtonGroup's published types; spread it to bypass.
+      {...{ ref: scrollRef }}
       onScroll={handleScroll}
       scrollEventThrottle={16}
       contentOffset={{ x: sharedScrollOffset, y: 0 }}

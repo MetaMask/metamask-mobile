@@ -148,12 +148,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      shouldNavigateBack={false}
-      testID={testID}
-    >
+    <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{
