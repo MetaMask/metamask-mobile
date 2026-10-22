@@ -239,9 +239,10 @@ const CreateVirtualBankAccount = ({
             )}
             {disclaimers?.length ? (
               <>
-                {/* Iron's catalog only carries the T&C, so the MoonPay Privacy
-                    Policy is hardcoded (TRAM-4169) and shown first, per Figma.
-                    It waits for the Iron catalog so loading/error stay link-free. */}
+                {/* TRAM-4169: this URL ships with the app instead of coming from
+                    the vendor catalog. It renders with the catalog documents and
+                    waits for them, so loading and error states never show a
+                    partial legal line. */}
                 <Text
                   variant={TextVariant.BodyXs}
                   fontWeight={FontWeight.Medium}
@@ -267,10 +268,9 @@ const CreateVirtualBankAccount = ({
                       onPress={() => Linking.openURL(disclaimer.url)}
                       testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
                     >
-                      {/* The lone Iron entry is the MoonPay Enterprise T&C and
-                          its display_name doesn't say "MoonPay" (TRAM-4169);
-                          reword it. With more entries, show vendor names so
-                          nothing gets mislabeled. */}
+                      {/* A single document carries the MoonPay label
+                          (TRAM-4169); with several, the vendor labels keep each
+                          link distinguishable. */}
                       {disclaimers.length === 1
                         ? strings(
                             'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
