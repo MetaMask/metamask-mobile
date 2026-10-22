@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Hindi mai--load ang rewards",
       "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Hindi mai-load ang mga detalye ng referral",
+      "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli.",
+      "retry_button": "Subukang muli"
+    },
     "active_activity_error": {
       "error_fetching_title": "Hindi mai-load ang aktibidad",
       "error_fetching_description": "Suriin ang iyong koneksyon at subukang muli.",

@@ -11861,6 +11861,11 @@
       "error_fetching_title": "Rewards couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Referral details couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "active_activity_error": {
       "error_fetching_title": "Activity couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",

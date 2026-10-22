@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Ödüller yüklenemedi",
       "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Referans bilgileri yüklenemedi",
+      "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",
+      "retry_button": "Tekrar Dene"
+    },
     "active_activity_error": {
       "error_fetching_title": "Aktivite yüklenemedi",
       "error_fetching_description": "Bağlantınızı kontrol edin ve tekrar deneyin.",

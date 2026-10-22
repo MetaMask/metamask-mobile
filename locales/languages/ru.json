@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Не удалось загрузить вознаграждения",
       "error_fetching_description": "Проверьте соединение и повторите попытку."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Не удалось загрузить данные о реферале",
+      "error_fetching_description": "Проверьте соединение и повторите попытку.",
+      "retry_button": "Повтор"
+    },
     "active_activity_error": {
       "error_fetching_title": "Не удалось загрузить активность",
       "error_fetching_description": "Проверьте соединение и повторите попытку.",

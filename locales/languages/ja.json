@@ -11801,6 +11801,11 @@
       "error_fetching_title": "リワードを読み込めませんでした",
       "error_fetching_description": "接続を確認して、もう一度お試しください。"
     },
+    "referral_details_error": {
+      "error_fetching_title": "紹介の詳細を読み込めませんでした",
+      "error_fetching_description": "接続を確認して、もう一度お試しください。",
+      "retry_button": "再試行"
+    },
     "active_activity_error": {
       "error_fetching_title": "アクティビティを読み込めませんでした",
       "error_fetching_description": "接続を確認して、もう一度お試しください。",

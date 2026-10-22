@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Impossible de charger les récompenses",
       "error_fetching_description": "Vérifiez votre connexion et réessayez."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Impossible de charger les détails du parrainage",
+      "error_fetching_description": "Vérifiez votre connexion et réessayez.",
+      "retry_button": "Réessayer"
+    },
     "active_activity_error": {
       "error_fetching_title": "Impossible de charger l’activité",
       "error_fetching_description": "Vérifiez votre connexion et réessayez.",

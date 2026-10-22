@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των ανταμοιβών",
       "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση των στοιχείων παραπομπής",
+      "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",
+      "retry_button": "Επανάληψη"
+    },
     "active_activity_error": {
       "error_fetching_title": "Δεν ήταν δυνατή η φόρτωση της δραστηριότητας",
       "error_fetching_description": "Ελέγξτε τη σύνδεσή σας και προσπαθήστε ξανά.",

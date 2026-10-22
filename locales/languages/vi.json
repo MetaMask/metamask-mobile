@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Không thể tải phần thưởng",
       "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Không thể tải chi tiết giới thiệu",
+      "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại.",
+      "retry_button": "Thử lại"
+    },
     "active_activity_error": {
       "error_fetching_title": "Không thể tải hoạt động",
       "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại.",

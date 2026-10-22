@@ -11801,6 +11801,11 @@
       "error_fetching_title": "Belohnungen konnten nicht geladen werden",
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
     },
+    "referral_details_error": {
+      "error_fetching_title": "Empfehlungsdetails konnten nicht geladen werden",
+      "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "retry_button": "Erneut versuchen"
+    },
     "active_activity_error": {
       "error_fetching_title": "Aktivität konnte nicht geladen werden",
       "error_fetching_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",

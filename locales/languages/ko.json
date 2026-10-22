@@ -11801,6 +11801,11 @@
       "error_fetching_title": "보상을 불러올 수 없습니다",
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요."
     },
+    "referral_details_error": {
+      "error_fetching_title": "추천 정보를 불러올 수 없습니다",
+      "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
+      "retry_button": "다시 시도"
+    },
     "active_activity_error": {
       "error_fetching_title": "활동 정보를 불러올 수 없습니다",
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
