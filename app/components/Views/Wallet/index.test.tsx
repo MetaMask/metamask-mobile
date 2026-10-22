@@ -949,6 +949,36 @@ describe('Wallet', () => {
     });
   });
 
+  it('opens the marketing consent modal for a social-login wallet with no consent decision', () => {
+    const socialLoginState = {
+      ...mockInitialState,
+      engine: {
+        ...mockInitialState.engine,
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            ...mockInitialState.engine.backgroundState
+              .SeedlessOnboardingController,
+            vault: 'encrypted-vault-data',
+          },
+        },
+      },
+    } as unknown as typeof mockInitialState;
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(socialLoginState),
+      );
+    mockIsPastPrivacyPolicyDate = true;
+
+    renderWalletWithRootState(socialLoginState);
+    mockIsPastPrivacyPolicyDate = false;
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.EXPERIENCE_ENHANCER,
+    });
+  });
+
   it('should render correctly when Solana support is enabled', () => {
     jest
       .mocked(useSelector)

@@ -601,9 +601,8 @@ const Wallet = ({
   }, []);
 
   useEffect(() => {
-    // do not prompt for social login flow
+    // Includes social-login restores whose profile has no consent saved in AUS.
     if (
-      !isSocialLogin &&
       isDataCollectionForMarketingEnabled === null &&
       isPastPrivacyPolicyDate
     ) {
@@ -611,7 +610,7 @@ const Wallet = ({
         screen: Routes.SHEET.EXPERIENCE_ENHANCER,
       });
     }
-  }, [isSocialLogin, isDataCollectionForMarketingEnabled, navigate]);
+  }, [isDataCollectionForMarketingEnabled, navigate]);
 
   const checkAndNavigateToPerpsGTM = useCallback(async () => {
     const hasSeenModal = await StorageWrapper.getItem(PERPS_GTM_MODAL_SHOWN);

@@ -1,7 +1,6 @@
 import {
   selectCompletedOnboarding,
   selectOnboardingAccountType,
-  selectPendingSocialLoginMarketingConsentBackfill,
   selectWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingStepsEligible,
   selectShouldShowWalletHomeOnboardingSteps,
@@ -44,27 +43,6 @@ describe('Onboarding selectors', () => {
 
   it('returns undefined for selectOnboardingAccountType when onboarding is missing', () => {
     expect(selectOnboardingAccountType({} as RootState)).toBeUndefined();
-  });
-
-  it('returns null for selectPendingSocialLoginMarketingConsentBackfill when not set', () => {
-    const state = {
-      onboarding: {
-        completedOnboarding: false,
-      },
-    } as RootState;
-    expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBeNull();
-  });
-
-  it('returns the pending auth connection for selectPendingSocialLoginMarketingConsentBackfill', () => {
-    const state = {
-      onboarding: {
-        completedOnboarding: true,
-        pendingSocialLoginMarketingConsentBackfill: 'google',
-      },
-    } as RootState;
-    expect(selectPendingSocialLoginMarketingConsentBackfill(state)).toBe(
-      'google',
-    );
   });
 
   describe('wallet home onboarding steps (partial rehydration)', () => {

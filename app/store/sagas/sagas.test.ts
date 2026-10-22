@@ -189,7 +189,6 @@ jest.mock('../../core/AppLock/AppLockService', () => ({
 const defaultMockState = {
   onboarding: {
     completedOnboarding: false,
-    pendingSocialLoginMarketingConsentBackfill: null,
   },
   user: { existingUser: true },
   engine: { backgroundState: {} },

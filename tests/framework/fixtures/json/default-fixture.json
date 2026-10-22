@@ -854,7 +854,6 @@
       "events": [],
       "iosGoogleWarningSheetLastDismissedAt": null,
       "onboardingVersion": "7.74.0 (4138)",
-      "pendingSocialLoginMarketingConsentBackfill": null,
       "pushNotificationOsPromptRequested": false,
       "walletHomeOnboardingSkipInitialBalanceWait": false,
       "walletHomeOnboardingSteps": {
