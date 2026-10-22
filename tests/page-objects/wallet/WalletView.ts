@@ -13,6 +13,17 @@ import { isPerformanceSuiteActive } from '../../framework/ai-locator/Performance
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
+function throwBalanceDidNotStabilize(
+  maxWaitTime: number,
+  lastObservedBalance: string,
+): never {
+  const observed =
+    lastObservedBalance.length > 0 ? `"${lastObservedBalance}"` : 'none';
+  throw new Error(
+    `Balance did not stabilize within ${maxWaitTime}ms (last observed balance: ${observed})`,
+  );
+}
+
 class WalletView extends WalletHomeSectionsBase {
   get container(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
@@ -404,13 +415,13 @@ class WalletView extends WalletHomeSectionsBase {
     if (isIOS) {
       // iOS: Element lookups are extremely slow (15-30s each).
       // Skip stability loop and just wait for a valid balance once.
-      let previousBalance = '';
+      let lastObservedBalance = '';
       while (Date.now() - startTime < maxWaitTime) {
         try {
           const balance = (
             await Utilities.getElementText(this.totalBalance)
           ).trim();
-          previousBalance = balance;
+          lastObservedBalance = balance;
 
           if (balance && balance !== '' && balance !== '$0.00') {
             return balance;
@@ -420,16 +431,17 @@ class WalletView extends WalletHomeSectionsBase {
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
-      return previousBalance;
+      throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
     }
 
     // Android: Fast element lookups, use stability polling
+    let lastObservedBalance = '';
     let previousBalance = '';
     let sameResultStartTime: number | null = null;
 
     while (true) {
       if (Date.now() - startTime > maxWaitTime) {
-        return previousBalance;
+        throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
       }
 
       let currentBalance: string;
@@ -441,6 +453,8 @@ class WalletView extends WalletHomeSectionsBase {
         await new Promise((r) => setTimeout(r, pollInterval));
         continue;
       }
+
+      lastObservedBalance = currentBalance;
 
       if (
         !currentBalance ||
