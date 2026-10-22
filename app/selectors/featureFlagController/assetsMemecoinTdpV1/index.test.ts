@@ -3,10 +3,12 @@ import {
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
 import { TOKEN_API_BASE_URL } from '../../../components/UI/Assets/watchlist/utils/getTokens';
+import { PRICE_API_BASE_URL } from '../../../constants/urls';
 import { TOKEN_DETAILS_V1_TABS } from '../../../components/UI/TokenDetails/constants/constants';
 import type { StateWithPartialEngine } from '../types';
 import {
   selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1PriceApiBaseUrl,
   selectMemecoinTdpV1TabConfigOrder,
   selectMemecoinTdpV1TokenApiBaseUrl,
 } from '.';
@@ -182,5 +184,58 @@ describe('selectMemecoinTdpV1TokenApiBaseUrl', () => {
     );
 
     expect(result).toBe(TOKEN_API_BASE_URL);
+  });
+});
+
+describe('selectMemecoinTdpV1PriceApiBaseUrl', () => {
+  const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
+
+  it('returns the configured host', () => {
+    const result = selectMemecoinTdpV1PriceApiBaseUrl(
+      stateWithFlag({ enabled: true, priceApiBaseUrl: DEV_HOST }),
+    );
+
+    expect(result).toBe(DEV_HOST);
+  });
+
+  it('ignores the host when the feature is off', () => {
+    const result = selectMemecoinTdpV1PriceApiBaseUrl(
+      stateWithFlag({ enabled: false, priceApiBaseUrl: DEV_HOST }),
+    );
+
+    expect(result).toBe(PRICE_API_BASE_URL);
+  });
+
+  it('falls back to prod when the entry is absent', () => {
+    const result = selectMemecoinTdpV1PriceApiBaseUrl(
+      stateWithFlag({ enabled: true }),
+    );
+
+    expect(result).toBe(PRICE_API_BASE_URL);
+  });
+
+  it.each([
+    ['plain http', 'http://price.dev-api.cx.metamask.io'],
+    ['a relative path', '/v3/spot-prices'],
+    ['a bare scheme', 'https://'],
+    ['a non-string', 42],
+  ])('falls back to prod for %s', (_label, priceApiBaseUrl) => {
+    const result = selectMemecoinTdpV1PriceApiBaseUrl(
+      stateWithFlag({ enabled: true, priceApiBaseUrl }),
+    );
+
+    expect(result).toBe(PRICE_API_BASE_URL);
+  });
+
+  it('reads the two hosts independently', () => {
+    const state = stateWithFlag({
+      enabled: true,
+      tokenApiBaseUrl: 'https://token.dev-api.cx.metamask.io',
+    });
+
+    expect(selectMemecoinTdpV1TokenApiBaseUrl(state)).toBe(
+      'https://token.dev-api.cx.metamask.io',
+    );
+    expect(selectMemecoinTdpV1PriceApiBaseUrl(state)).toBe(PRICE_API_BASE_URL);
   });
 });
