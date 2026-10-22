@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import MarketingMoment from './MarketingMoment';
 import type { MarketingMomentProps } from './MarketingMoment.types';
 
@@ -45,7 +46,10 @@ jest.mock('react-native-safe-area-context', () => {
   const ReactActual = jest.requireActual('react');
   const { View: NativeView } = jest.requireActual('react-native');
 
+  const insets = { top: 0, right: 0, bottom: 0, left: 0 };
+
   return {
+    useSafeAreaInsets: jest.fn(() => insets),
     SafeAreaView: ({ children }: { children?: React.ReactNode }) =>
       ReactActual.createElement(NativeView, null, children),
   };
@@ -63,10 +67,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     Box: ({
       children,
       testID,
+      style,
     }: {
       children?: React.ReactNode;
       testID?: string;
-    }) => ReactActual.createElement(NativeView, { testID }, children),
+      style?: unknown;
+    }) => ReactActual.createElement(NativeView, { testID, style }, children),
     Text: ({
       children,
       testID,
@@ -147,6 +153,12 @@ const renderMoment = (props: Partial<MarketingMomentProps> = {}) =>
 describe('MarketingMoment', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useSafeAreaInsets).mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    });
   });
 
   it('renders a string title as a header and a string description', () => {
@@ -253,6 +265,27 @@ describe('MarketingMoment', () => {
     expect(queryByTestId(testIds.artwork)).not.toBeOnTheScreen();
     expect(queryByTestId(testIds.primaryButton)).not.toBeOnTheScreen();
     expect(queryByTestId(testIds.secondaryButton)).not.toBeOnTheScreen();
+  });
+
+  it('pads the body with the safe area insets from context', () => {
+    jest.mocked(useSafeAreaInsets).mockReturnValue({
+      top: 0,
+      right: 0,
+      bottom: 34,
+      left: 0,
+    });
+
+    const { getByTestId } = renderMoment();
+
+    expect(getByTestId(`${testIds.container}-body`).props.style).toEqual([
+      { twClassName: 'min-h-0 flex-1' },
+      {
+        paddingTop: 0,
+        paddingRight: 0,
+        paddingBottom: 34,
+        paddingLeft: 0,
+      },
+    ]);
   });
 
   it('renders a page background and forced theme when provided', () => {
