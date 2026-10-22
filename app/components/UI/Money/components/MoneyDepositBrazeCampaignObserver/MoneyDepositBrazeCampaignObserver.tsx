@@ -5,6 +5,7 @@ import {
   MONEY_ACCOUNT_CAMPAIGN_NAMES,
   MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
 } from '../../constants/moneyEvents';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 
 let hasEmittedCampaignEvent = false;
@@ -15,14 +16,16 @@ export const __resetMoneyDepositBrazeCampaignEventForTesting = () => {
 };
 
 /**
- * Emits the Braze campaign event once per app process when Money is visible.
+ * Emits the Braze campaign event once per app process when Money is visible and
+ * the wallet is unlocked.
  */
 const MoneyDepositBrazeCampaignObserver = () => {
+  const isUnlocked = useSelector(selectIsUnlocked);
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const { trackCampaignTriggered } = useMoneyAnalytics();
 
   useEffect(() => {
-    if (!isMoneyAccountVisible || hasEmittedCampaignEvent) {
+    if (!isUnlocked || !isMoneyAccountVisible || hasEmittedCampaignEvent) {
       return;
     }
 
@@ -37,7 +40,7 @@ const MoneyDepositBrazeCampaignObserver = () => {
       hasEmittedCampaignEvent = false;
       throw error;
     }
-  }, [isMoneyAccountVisible, trackCampaignTriggered]);
+  }, [isMoneyAccountVisible, isUnlocked, trackCampaignTriggered]);
 
   return null;
 };

@@ -40,7 +40,7 @@ const MoneyDepositDeeplinkBridge = () => {
       Logger.log(
         '[MoneyDepositDeeplinkBridge] Deposit blocked: Money account feature disabled',
       );
-      // Routes.MONEY.MODALS.DEEPLINK_MODAL is a generic modal that accepts a title and description strings.
+      // Routes.MONEY.MODALS.DEEPLINK_MODAL is a generic modal that accepts title and description strings.
       navigation.navigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
         title: strings('money.deeplink_modal.money_account_disabled.title'),
         description: strings(

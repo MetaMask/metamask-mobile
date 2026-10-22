@@ -6,6 +6,7 @@ import {
   MONEY_ACCOUNT_CAMPAIGN_NAMES,
   MONEY_ACCOUNT_CAMPAIGN_PLATFORMS,
 } from '../../constants/moneyEvents';
+import { selectIsUnlocked } from '../../../../../selectors/keyringController';
 import { selectIsMoneyAccountVisible } from '../../selectors/visibility';
 import MoneyDepositBrazeCampaignObserver, {
   __resetMoneyDepositBrazeCampaignEventForTesting,
@@ -21,20 +22,26 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockTrackCampaignTriggered = jest.fn();
 let isMoneyAccountVisible = true;
+let isUnlocked = true;
 
 const arrangeVisibility = (isVisible: boolean) => {
   isMoneyAccountVisible = isVisible;
-  mockUseSelector.mockImplementation((selector) =>
-    selector === selectIsMoneyAccountVisible
-      ? isMoneyAccountVisible
-      : undefined,
-  );
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectIsMoneyAccountVisible) {
+      return isMoneyAccountVisible;
+    }
+    if (selector === selectIsUnlocked) {
+      return isUnlocked;
+    }
+    return undefined;
+  });
 };
 
 describe('MoneyDepositBrazeCampaignObserver', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetMoneyDepositBrazeCampaignEventForTesting();
+    isUnlocked = true;
     arrangeVisibility(true);
     mockUseMoneyAnalytics.mockReturnValue({
       trackCampaignTriggered: mockTrackCampaignTriggered,
@@ -43,6 +50,14 @@ describe('MoneyDepositBrazeCampaignObserver', () => {
 
   it('does not emit when Money account is not visible', () => {
     arrangeVisibility(false);
+
+    render(<MoneyDepositBrazeCampaignObserver />);
+
+    expect(mockTrackCampaignTriggered).not.toHaveBeenCalled();
+  });
+
+  it('does not emit while the wallet is locked', () => {
+    isUnlocked = false;
 
     render(<MoneyDepositBrazeCampaignObserver />);
 
