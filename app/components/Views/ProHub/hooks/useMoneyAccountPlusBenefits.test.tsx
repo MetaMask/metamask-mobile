@@ -12,6 +12,7 @@ import {
 import type { RootState } from '../../../../reducers';
 import configureStore from '../../../../util/test/configureStore';
 import Engine from '../../../../core/Engine';
+import { updateBgState } from '../../../../core/redux/slices/engine';
 import Logger from '../../../../util/Logger';
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
@@ -162,19 +163,35 @@ const renderBenefits = (state: RootState) => {
   applyAuthFromState(state);
 
   const queryClient = createQueryClient();
+  const store = configureStore(state);
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    <Provider store={configureStore(state)}>
+    <Provider store={store}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </Provider>
   );
 
-  return renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper });
+  return {
+    store,
+    ...renderHook(() => useMoneyAccountPlusBenefits(), { wrapper: Wrapper }),
+  };
+};
+
+const setSubscriptionStatus = (status: Subscription['status']) => {
+  Object.assign(Engine, {
+    state: {
+      SubscriptionController: {
+        subscriptions: [createPlusSubscription(status)],
+        trialedProducts: [],
+      },
+    },
+  });
 };
 
 describe('useMoneyAccountPlusBenefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    Reflect.deleteProperty(Engine, 'state');
     mockAccess(MoneyAccountPlusAccess.Subscriber);
     mockSelectIsSignedIn.mockReturnValue(true);
     mockSelectIsUnlocked.mockReturnValue(true);
@@ -333,6 +350,59 @@ describe('useMoneyAccountPlusBenefits', () => {
 
     expect(result.current.items).toEqual([]);
     expect(result.current.resetsOn).toBeUndefined();
+  });
+
+  it('refetches benefits when a provisional membership becomes active', async () => {
+    let rejectConfirmedRequest: (error: Error) => void = () => undefined;
+    mockGetBenefits.mockRejectedValueOnce(
+      new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+    );
+    mockGetBenefits.mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectConfirmedRequest = reject;
+        }),
+    );
+
+    const { result, store } = renderBenefits(
+      createState({
+        subscriptionStatus: SUBSCRIPTION_STATUSES.provisional,
+      }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Pending,
+      ),
+    );
+    expect(mockGetBenefits).toHaveBeenCalledTimes(1);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    setSubscriptionStatus(SUBSCRIPTION_STATUSES.active);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'SubscriptionController' }));
+    });
+
+    expect(mockGetBenefits).toHaveBeenCalledTimes(2);
+    expect(result.current.status).toBe(MoneyAccountPlusBenefitsStatus.Loading);
+    expect(Logger.error).not.toHaveBeenCalled();
+
+    await act(async () => {
+      rejectConfirmedRequest(
+        new Error(SubscriptionControllerErrorMessage.UserNotSubscribed),
+      );
+      // React Query notifies observers on a timeout. Flush it inside act.
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 0);
+      });
+    });
+
+    await waitFor(() =>
+      expect(result.current.status).toBe(
+        MoneyAccountPlusBenefitsStatus.Unavailable,
+      ),
+    );
+    expect(Logger.error).toHaveBeenCalledTimes(1);
   });
 
   it.each([SUBSCRIPTION_STATUSES.active, SUBSCRIPTION_STATUSES.trialing])(

@@ -68,6 +68,8 @@ export interface MoneyAccountPlusBenefits {
  * subscriber whose benefits response is not eligible, or fails validation
  * because usage fields are omitted, gets Pending. An active or trialing
  * subscriber whose response is still not eligible gets Unavailable.
+ * Subscription status is part of the benefits query key, so confirming a
+ * provisional membership fetches again instead of reusing that error.
  *
  * @returns Mapped trade-allowance rows and the shared reset date.
  */
@@ -85,7 +87,9 @@ export function useMoneyAccountPlusBenefits(): MoneyAccountPlusBenefits {
   const hasCache = benefits !== undefined;
 
   const { isPending, isFetching, isError, error, refetch } = useQuery({
-    queryKey: BENEFITS_QUERY_KEY,
+    // A cached UserNotSubscribed or StructError belongs to the status that
+    // produced it. Confirming a provisional membership must not reuse it.
+    queryKey: [...BENEFITS_QUERY_KEY, plusSubscription?.status],
     queryFn: () => Engine.context.SubscriptionController.getBenefits(),
     enabled: canFetch && isSubscriptionsSettled && !hasCache,
     retry: false,
