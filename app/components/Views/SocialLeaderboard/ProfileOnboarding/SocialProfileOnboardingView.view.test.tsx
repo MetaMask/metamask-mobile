@@ -230,7 +230,7 @@ describe('SocialProfileOnboardingView', () => {
         handle,
         displayName,
         avatarPresetId: 'zombie',
-        avatarBackgroundId: 'lime',
+        avatarBackgroundId: 'background4',
         shareTradingActivity: true,
         linkedAccountId: 'acc-1',
       }),
@@ -247,7 +247,7 @@ describe('SocialProfileOnboardingView', () => {
         linked_addresses: [
           'eip155:1:0x0000000000000000000000000000000000000001',
         ],
-        avatar_url: 'foxicon://zombie/lime',
+        avatar_url: 'foxicon://zombie/background4',
         trading_privacy: 'public',
       },
     );
@@ -597,7 +597,7 @@ describe('SocialProfileOnboardingView', () => {
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({
         username: handle,
-        avatar_url: 'foxicon://visor/purple',
+        avatar_url: 'foxicon://vr/background3',
       }),
     );
   });
@@ -689,7 +689,7 @@ describe('SocialProfileOnboardingView', () => {
       expect.objectContaining({
         username: 'moon-fox',
         display_name: 'Degan Giri',
-        avatar_url: 'foxicon://zombie/purple',
+        avatar_url: 'foxicon://zombie/background3',
       }),
     );
   });
