@@ -16,6 +16,10 @@ export interface UseDeferredRenderOptions {
  * `requestAnimationFrame`. Cancels that frame on cleanup. Adds no timer
  * and does not use `InteractionManager`.
  *
+ * Once this hook has returned `true`, it keeps returning `true` for this
+ * component's lifetime. `enabled` changing from `false` to `true` does not
+ * drop back to `false` for a frame.
+ *
  * @param options - `{ enabled: false }` renders on the first commit.
  * @returns Whether deferred content may render.
  */
@@ -23,25 +27,25 @@ export function useDeferredRender({
   enabled = true,
 }: UseDeferredRenderOptions = {}): boolean {
   const isTransitionComplete = useScreenTransitionComplete();
-  const [isFrameReady, setIsFrameReady] = useState(false);
+  const [isReleased, setIsReleased] = useState(() => !enabled);
+
+  if (!enabled && !isReleased) {
+    setIsReleased(true);
+  }
 
   useEffect(() => {
-    if (!enabled || !isTransitionComplete) {
+    if (isReleased || !enabled || !isTransitionComplete) {
       return undefined;
     }
 
     const frameId = requestAnimationFrame(() => {
-      setIsFrameReady(true);
+      setIsReleased(true);
     });
 
     return () => {
       cancelAnimationFrame(frameId);
     };
-  }, [enabled, isTransitionComplete]);
+  }, [enabled, isReleased, isTransitionComplete]);
 
-  if (!enabled) {
-    return true;
-  }
-
-  return isFrameReady;
+  return isReleased || !enabled;
 }

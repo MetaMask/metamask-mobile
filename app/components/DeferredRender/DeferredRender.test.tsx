@@ -116,6 +116,20 @@ describe('DeferredRender', () => {
     expect(global.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
+  it('stays true when enabled changes from false to true after mount', () => {
+    const { result, rerender } = renderHook(
+      ({ enabled }: { enabled: boolean }) => useDeferredRender({ enabled }),
+      { initialProps: { enabled: false } },
+    );
+
+    expect(result.current).toBe(true);
+
+    rerender({ enabled: true });
+
+    expect(result.current).toBe(true);
+    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+  });
+
   it('renders the placeholder and then the children one frame later', () => {
     const view = render(gate());
 
