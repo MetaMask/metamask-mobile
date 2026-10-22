@@ -107,6 +107,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
       isLoading = false,
+      renderSkeleton,
       subPaneHeightRatio,
       useSubscriptPriceFormat,
       priceDecimals,
@@ -1120,14 +1121,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {showSkeleton && (
-            <Skeleton
-              height={height}
-              width="100%"
-              style={styles.skeletonOverlay}
-              testID="advanced-chart-skeleton"
-            />
-          )}
+          {showSkeleton &&
+            (renderSkeleton ? (
+              <View
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              >
+                {renderSkeleton({ height })}
+              </View>
+            ) : (
+              <Skeleton
+                height={height}
+                width="100%"
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              />
+            ))}
         </View>
       </View>
     );

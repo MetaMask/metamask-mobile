@@ -1,6 +1,8 @@
 import React from 'react';
+import { View as ReactNativeView } from 'react-native';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -60,6 +62,41 @@ describe('AdvancedChart', () => {
   it('renders without crashing', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+  });
+
+  it('keeps the design-system skeleton overlay when renderSkeleton is omitted', () => {
+    const { UNSAFE_getByType, getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} height={240} />,
+    );
+
+    const skeleton = UNSAFE_getByType(Skeleton);
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(skeleton.props.height).toBe(240);
+    expect(skeleton.props.width).toBe('100%');
+    expect(skeleton.props.testID).toBe('advanced-chart-skeleton');
+  });
+
+  it('renders renderSkeleton inside the overlay instead of the design-system skeleton', () => {
+    const customSkeletonStyle = { height: 240 };
+    const { UNSAFE_queryByType, getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        height={240}
+        renderSkeleton={() => (
+          <ReactNativeView
+            testID="custom-chart-skeleton"
+            style={customSkeletonStyle}
+          />
+        )}
+      />,
+    );
+
+    expect(UNSAFE_queryByType(Skeleton)).toBeNull();
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(getByTestId('custom-chart-skeleton').props.style).toEqual({
+      height: 240,
+    });
   });
 
   it('serializes configured price decimals into the WebView template', () => {

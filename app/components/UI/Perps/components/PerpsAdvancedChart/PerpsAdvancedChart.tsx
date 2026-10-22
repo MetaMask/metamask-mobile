@@ -34,6 +34,7 @@ import TradingViewChart, {
   type OhlcData,
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
+import PerpsChartSkeleton from '../PerpsChartSkeleton';
 import { getPerpsVolumeColors } from '../../utils/chartColors';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants';
 import performance from 'react-native-performance';
@@ -629,6 +630,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       priceDecimals={priceDecimals}
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
+      renderSkeleton={({ height: skeletonHeight }) => (
+        <PerpsChartSkeleton height={skeletonHeight} />
+      )}
       positionLines={positionLines}
       positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}
