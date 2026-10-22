@@ -20,8 +20,8 @@ export function getBackendApiUrlsOption(): {
 } {
   const overrides: Record<string, string> = {
     ...(process.env.MM_BACKEND_ACCOUNTS_API_URL
-      ? { ACCOUNTS: process.env.MM_BACKEND_ACCOUNTS_API_URL }
-      : {}),
+      ? { ACCOUNTS: 'https://accounts.dev-api.cx.metamask.io' }
+      : { ACCOUNTS: 'https://accounts.dev-api.cx.metamask.io' }),
     ...(process.env.MM_BACKEND_PRICES_API_URL
       ? { PRICES: process.env.MM_BACKEND_PRICES_API_URL }
       : {}),
