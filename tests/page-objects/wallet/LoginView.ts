@@ -4,6 +4,7 @@ import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import { isWalletHomeReadyOnAppium } from '../../flows/wallet-home-readiness';
 
 class LoginView {
   get container(): Promise<AppiumElement> {
@@ -57,6 +58,11 @@ class LoginView {
   }
 
   async tapLoginButton(): Promise<void> {
+    // Dismissing the keyboard can also submit the password field.
+    await Gestures.hideKeyboard();
+    if (await isWalletHomeReadyOnAppium()) {
+      return;
+    }
     await Gestures.waitAndTap(this.loginButton, {
       elemDescription: 'Login Button',
       checkForDisplayed: true,
