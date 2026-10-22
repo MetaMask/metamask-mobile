@@ -3952,7 +3952,7 @@ describe('polymarket utils', () => {
     ]);
   });
 
-  it('drops an event when every market version is v2', () => {
+  it('parses an event when every market version is v2', () => {
     const event: PolymarketApiEvent = {
       id: 'v2-event',
       slug: 'v2-event',
@@ -3964,18 +3964,45 @@ describe('polymarket utils', () => {
       markets: [
         {
           conditionId: 'v2-condition',
+          question: 'V2 question',
+          description: 'V2 market',
+          icon: '',
+          image: '',
+          groupItemTitle: 'Yes',
+          status: 'open',
+          volumeNum: 10,
+          liquidity: 10,
+          negRisk: true,
+          clobTokenIds: '',
+          positionIds: '["v2-yes","v2-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.6","0.4"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
           version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
+        },
       ],
       tags: [],
       liquidity: 0,
       volume: 0,
     };
 
-    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
+    const [market] = parsePolymarketEvents([event], 'trending');
+
+    expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+      'v2-condition',
+    ]);
+    expect(market.outcomes[0].version).toBe('v2');
+    expect(market.outcomes[0].tokens.map((token) => token.id)).toEqual([
+      'v2-yes',
+      'v2-no',
+    ]);
   });
 
-  it('keeps CTF markets when an event also contains a v2 market', () => {
+  it('keeps both CTF and v2 outcomes when an event contains a v2 market', () => {
     const event: PolymarketApiEvent = {
       id: 'mixed-event',
       slug: 'mixed-event',
@@ -4008,8 +4035,26 @@ describe('polymarket utils', () => {
         },
         {
           conditionId: 'v2-condition',
+          question: 'V2 question',
+          description: 'V2 market',
+          icon: '',
+          image: '',
+          groupItemTitle: 'Yes',
+          status: 'open',
+          volumeNum: 10,
+          liquidity: 10,
+          negRisk: true,
+          clobTokenIds: '',
+          positionIds: '["v2-yes","v2-no"]',
+          outcomes: '["Yes","No"]',
+          outcomePrices: '["0.6","0.4"]',
+          closed: false,
+          active: true,
+          resolvedBy: '',
+          orderPriceMinTickSize: 0.01,
+          umaResolutionStatus: '',
           version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
+        },
       ],
       tags: [],
       liquidity: 10,
@@ -4020,6 +4065,7 @@ describe('polymarket utils', () => {
 
     expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
       'ctf-condition',
+      'v2-condition',
     ]);
   });
 
