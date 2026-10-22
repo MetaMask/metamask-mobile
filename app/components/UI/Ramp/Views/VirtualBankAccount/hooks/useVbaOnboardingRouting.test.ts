@@ -8,7 +8,6 @@ import {
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
-import { readVbaAccountCreateErrorOverrideEnv } from '../accountCreateErrorOverride.env';
 import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
@@ -118,10 +117,6 @@ jest.mock('../vbaDevOverrides.env', () => ({
   readVbaKycStatusOverrideEnv: jest.fn(() => undefined),
 }));
 
-jest.mock('../accountCreateErrorOverride.env', () => ({
-  readVbaAccountCreateErrorOverrideEnv: jest.fn(() => undefined),
-}));
-
 jest.mock('../vbaVendorTermsStorage', () => ({
   hasAcceptedVbaVendorTerms: (...args: unknown[]) =>
     mockHasAcceptedVbaVendorTerms(...args),
@@ -132,9 +127,6 @@ jest.mock('../vbaVendorTermsStorage', () => ({
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(readVbaAccountCreateErrorOverrideEnv)
-      .mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
@@ -773,9 +765,6 @@ describe('resolveVbaOnboarding', () => {
     jest.clearAllMocks();
     devGlobal.__DEV__ = true;
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue(undefined);
-    jest
-      .mocked(readVbaAccountCreateErrorOverrideEnv)
-      .mockReturnValue(undefined);
     mockGetState.mockReturnValue({ address: '0xabc' });
     mockHasAcceptedVbaVendorTerms.mockResolvedValue(false);
     mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
@@ -786,19 +775,6 @@ describe('resolveVbaOnboarding', () => {
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
     });
-  });
-
-  it('opens the forced account-create error without hydrating', async () => {
-    jest.mocked(readVbaAccountCreateErrorOverrideEnv).mockReturnValue('403');
-
-    await expect(
-      resolveVbaOnboarding('money-add-money-bank-account'),
-    ).resolves.toEqual({
-      status: 'ready',
-      destinationId: 'accountCreateBlocked',
-      snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
-    });
-    expect(mockHydrate).not.toHaveBeenCalled();
   });
 
   it('returns an error when no wallet address is selected', async () => {

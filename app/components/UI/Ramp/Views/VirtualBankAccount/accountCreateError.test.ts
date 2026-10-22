@@ -3,31 +3,10 @@ import {
   accountCreateErrorVariantForDestination,
   getAccountCreateErrorVariant,
   getAccountCreateFailureLogFields,
-  getVbaAccountCreateErrorOverride,
   type AccountCreateRegistrationResult,
 } from './accountCreateError';
-import { readVbaAccountCreateErrorOverrideEnv } from './accountCreateErrorOverride.env';
-
-jest.mock('./accountCreateErrorOverride.env', () => ({
-  readVbaAccountCreateErrorOverrideEnv: jest.fn(),
-}));
-
-const mockReadEnv = jest.mocked(readVbaAccountCreateErrorOverrideEnv);
 
 describe('accountCreateError', () => {
-  const devGlobal = globalThis as { __DEV__?: boolean };
-  const originalDev = devGlobal.__DEV__;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    devGlobal.__DEV__ = true;
-    mockReadEnv.mockReturnValue(undefined);
-  });
-
-  afterAll(() => {
-    devGlobal.__DEV__ = originalDev;
-  });
-
   describe('getAccountCreateErrorVariant', () => {
     const cases: [
       string,
@@ -87,38 +66,6 @@ describe('accountCreateError', () => {
           status: 'AuthorizationFailed',
         }),
       ).toEqual({ httpStatus: 200, fiatStatus: 'AuthorizationFailed' });
-    });
-  });
-
-  describe('getVbaAccountCreateErrorOverride', () => {
-    it('returns null when the env var is unset', () => {
-      expect(getVbaAccountCreateErrorOverride()).toBeNull();
-    });
-
-    it.each([
-      ['blocked', 'blocked'],
-      ['403', 'blocked'],
-      ['AuthorizationFailed', 'blocked'],
-      ['400', 'details'],
-      ['RegistrationFailed', 'details'],
-      ['500', 'generic'],
-    ] as const)('maps %s to %s', (value, variant) => {
-      mockReadEnv.mockReturnValue(value);
-
-      expect(getVbaAccountCreateErrorOverride()).toBe(variant);
-    });
-
-    it('returns null for an unknown value', () => {
-      mockReadEnv.mockReturnValue('banana');
-
-      expect(getVbaAccountCreateErrorOverride()).toBeNull();
-    });
-
-    it('ignores the env var outside dev builds', () => {
-      devGlobal.__DEV__ = false;
-      mockReadEnv.mockReturnValue('blocked');
-
-      expect(getVbaAccountCreateErrorOverride()).toBeNull();
     });
   });
 

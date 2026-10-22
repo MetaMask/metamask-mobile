@@ -14,7 +14,6 @@ import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/ramp
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
-  createEmptyVbaOnboardingSnapshot,
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
@@ -25,9 +24,7 @@ import {
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import {
-  ACCOUNT_CREATE_ERROR_DESTINATION,
   accountCreateErrorVariantForDestination,
-  getVbaAccountCreateErrorOverride,
   isAccountCreateErrorDestination,
 } from '../accountCreateError';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
@@ -282,19 +279,6 @@ export type ResolvedVbaOnboarding =
 export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
-  const accountCreateError = getVbaAccountCreateErrorOverride();
-  if (accountCreateError) {
-    Logger.log('[vba-onboarding] account create error override', {
-      source,
-      variant: accountCreateError,
-    });
-    return {
-      status: 'ready',
-      destinationId: ACCOUNT_CREATE_ERROR_DESTINATION[accountCreateError],
-      snapshot: createEmptyVbaOnboardingSnapshot(),
-    };
-  }
-
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
       ReduxService.store.getState() as RootState,

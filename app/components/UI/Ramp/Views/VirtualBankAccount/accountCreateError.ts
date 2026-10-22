@@ -1,5 +1,3 @@
-import { readVbaAccountCreateErrorOverrideEnv } from './accountCreateErrorOverride.env';
-
 export const ACCOUNT_CREATE_ERROR_VARIANTS = [
   'blocked',
   'details',
@@ -40,50 +38,6 @@ export type AccountCreateRegistrationResult =
       kind: 'fiat';
       status: FiatAddressStatus;
     };
-
-const OVERRIDE_ALIASES: Record<string, AccountCreateErrorVariant> = {
-  blocked: 'blocked',
-  authorizationfailed: 'blocked',
-  '403': 'blocked',
-  '422': 'blocked',
-  details: 'details',
-  '400': 'details',
-  registrationfailed: 'details',
-  generic: 'generic',
-  '401': 'generic',
-  '404': 'generic',
-  '500': 'generic',
-};
-
-const normalizeOverride = (value: string): string =>
-  value
-    .trim()
-    .toLowerCase()
-    .replace(/[\s_-]/gu, '');
-
-/**
- * Dev-only screen override for account-creation errors. Set
- * `MM_MONEY_VBA_ACCOUNT_CREATE_ERROR_OVERRIDE` in `.js.env` to a screen
- * (`blocked`, `details`, `generic`) or a response (`403`, `400`, `500`,
- * `AuthorizationFailed`, `RegistrationFailed`) and restart Metro.
- * `RegistrationPending` stays on the creating-account spinner.
- * Production builds ignore it.
- *
- * @returns The screen to force, or null when unset or unrecognized.
- */
-export const getVbaAccountCreateErrorOverride =
-  (): AccountCreateErrorVariant | null => {
-    if (!__DEV__) {
-      return null;
-    }
-
-    const value = readVbaAccountCreateErrorOverrideEnv();
-    if (!value) {
-      return null;
-    }
-
-    return OVERRIDE_ALIASES[normalizeOverride(value)] ?? null;
-  };
 
 export const isAccountCreateErrorDestination = (
   destinationId: string,
