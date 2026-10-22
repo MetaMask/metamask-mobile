@@ -41,6 +41,15 @@ import {
 } from '../../../../selectors/notifications';
 import { isNotificationsFeatureEnabled } from '../../../../util/notifications';
 import { useQRScanner } from '../../../hooks/useQRScanner';
+import { usePlusAccess } from '../../../../hooks/usePlusAccess';
+import { useProSubscriptionEnabled } from '../../../../hooks/useProSubscriptionEnabled';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../../UI/Money/constants/moneyEvents';
+import { useMoneyAnalytics } from '../../../UI/Money/hooks/useMoneyAnalytics';
 import { ProfileDrawerSelectorsIDs } from './ProfileDrawer.testIds';
 import ProfileDrawerMenuRow from './ProfileDrawerMenuRow';
 
@@ -110,7 +119,42 @@ const ProfileDrawer = () => {
     navigateToSocialV1Profile(navigation);
   }, [navigation]);
 
-  // TODO: wire Subscriptions and Help and support once those screens exist.
+  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
+  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
+  const { trackButtonClicked } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
+  });
+  const showOrangeEntry = isProSubscriptionEnabled && !isPlusAccessUnknown;
+
+  const onPressOrange = useCallback(() => {
+    const destination = isPlusSubscriber
+      ? {
+          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+          label_key: 'accounts_menu.metamask_orange',
+          redirect_target: SCREEN_NAMES.PRO_HUB,
+          route: Routes.PRO_HUB.ROOT,
+        }
+      : {
+          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+          label_key: 'accounts_menu.join_metamask_orange',
+          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+          route: Routes.PRO_SUBSCRIPTION.ROOT,
+        };
+
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+      button_intent: destination.button_intent,
+      label_key: destination.label_key,
+      redirect_target: destination.redirect_target,
+    });
+
+    navigation.navigate(destination.route, {
+      source: 'accounts_menu',
+    });
+  }, [isPlusSubscriber, navigation, trackButtonClicked]);
+
+  // TODO: wire Help and support once that screen exists.
   const handlePress = useCallback(() => undefined, []);
 
   const menuItems: {
@@ -133,11 +177,20 @@ const ProfileDrawer = () => {
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
     },
-    {
-      iconName: IconName.Sparkle,
-      label: strings('profile_drawer.subscriptions'),
-      testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-    },
+    ...(showOrangeEntry
+      ? [
+          {
+            iconName: IconName.MetamaskFoxOutline,
+            label: strings(
+              isPlusSubscriber
+                ? 'accounts_menu.metamask_orange'
+                : 'accounts_menu.join_metamask_orange',
+            ),
+            onPress: onPressOrange,
+            testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
+          },
+        ]
+      : []),
     {
       iconName: IconName.Setting,
       label: strings('profile_drawer.settings'),
