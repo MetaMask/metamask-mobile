@@ -1,8 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import {
+  Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
 import {
   SocialFeedEmpty,
   SocialFeedError,
@@ -15,6 +22,7 @@ import {
 } from '../../../SocialFeed';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
+import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 export const PERPS_TRENDING_POST_COUNT = 3;
 
@@ -24,13 +32,30 @@ const PERPS_TRENDING_SOURCE: SocialFeedSource = {
   assetClass: 'perps',
 };
 
-const PerpsSocialTrending: React.FC = () => {
+interface PerpsSocialTrendingProps {
+  /** Scope to one perp market (raw symbol); omit for trending across all perps. */
+  symbol?: string;
+  postCount?: number;
+  source?: string;
+  /** Renders a See more button under the posts when set. */
+  onSeeMorePress?: () => void;
+}
+
+const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
+  symbol,
+  postCount = PERPS_TRENDING_POST_COUNT,
+  source = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+  onSeeMorePress,
+}) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
-  const { posts, isLoading, error, refresh } = useSocialFeed(
-    PERPS_TRENDING_SOURCE,
-    { pageSize: PERPS_TRENDING_POST_COUNT },
+  const feedSource = useMemo<SocialFeedSource>(
+    () => (symbol ? { kind: 'perp', symbol } : PERPS_TRENDING_SOURCE),
+    [symbol],
   );
+  const { posts, isLoading, error, refresh } = useSocialFeed(feedSource, {
+    pageSize: postCount,
+  });
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -40,12 +65,12 @@ const PerpsSocialTrending: React.FC = () => {
         traderAddress: post.item.author.address,
         traderAvatarUri:
           post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
-        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        source,
         viewerProfileId: myProfile?.profileId ?? undefined,
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation, myProfile],
+    [navigation, myProfile, source],
   );
 
   const handlePositionPress = useCallback(
@@ -78,7 +103,11 @@ const PerpsSocialTrending: React.FC = () => {
   );
 
   if (isLoading && posts.length === 0) {
-    return <SocialFeedSkeleton count={PERPS_TRENDING_POST_COUNT} />;
+    return (
+      <Box twClassName="gap-6">
+        <SocialFeedSkeleton count={postCount} />
+      </Box>
+    );
   }
 
   if (error && posts.length === 0) {
@@ -90,11 +119,28 @@ const PerpsSocialTrending: React.FC = () => {
   }
 
   return (
-    <SocialV1FeedPostList
-      posts={posts.slice(0, PERPS_TRENDING_POST_COUNT)}
-      dividerKeyPrefix="perps-home-trending"
-      renderPost={renderPost}
-    />
+    <>
+      <Box twClassName="gap-6">
+        <SocialV1FeedPostList
+          posts={posts.slice(0, postCount)}
+          dividerKeyPrefix="perps-home-trending"
+          renderPost={renderPost}
+        />
+      </Box>
+      {onSeeMorePress ? (
+        <Box twClassName="px-4 pt-3">
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Md}
+            isFullWidth
+            onPress={onSeeMorePress}
+            testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TRENDING_SEE_MORE}
+          >
+            {strings('perps.home.see_more')}
+          </Button>
+        </Box>
+      ) : null}
+    </>
   );
 };
 

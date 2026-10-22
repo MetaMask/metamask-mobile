@@ -7,9 +7,80 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.16.0]
+
 ### Added
 
-- Added a bank details button to the Money home action row for virtual bank account users. (#37736)
+- Added Ark chain support for delegations (#36981)
+- Added an updated token details page for PEPE on Ethereum, behind a feature flag (#37276)
+- Added a Member badge for eligible Pro subscribers and displayed subscription fee discounts in trade quotes (#36776)
+- Added support for opening external HTTPS links from Braze banners in the system browser (#37197)
+- Added a pop-out animation to the trade menu in the refreshed navigation bar treatment (#36754)
+- Added the social feed to PEPE token details (#37180)
+- Added copy trading from Social feed positions, allowing users to open a Perps order without leaving the feed (#37115)
+- Added a virtual bank account identity verification failure page with a retry action and a way to leave the more-information screen (#37140)
+- Added Robinhood tokenized stocks to Explore stocks, search, and the full list, behind a feature flag (#37453)
+
+### Changed
+
+- Added fee-estimation error details to transaction event telemetry (#37104)
+- Updated swap quote handling to support use outside the Bridge experience (#36734)
+- Updated Money balance and staking and lending earnings styling (#37082)
+- Updated the homepage balance breakdown with iconless rows and a Money Buy action (#37162)
+- Updated Perps and Predict deposits to prefill half of the selected token balance (#37214)
+- Updated the Other assets icon in the Pay with sheet (#37268)
+- Updated Perps Pro order form control sizes, spacing, and corner radius (#37290)
+- Updated close-position limit price shortcut buttons to use 12px corner radii (#37228)
+- Updated Risky and Malicious token badges (#37293)
+- Updated token security and trust tags to use 6px corner radii (#37229)
+- Updated Earn network badges to use the default corner radius (#37284)
+- Updated Quick Buy amount chips to use 12px corner radii (#37226)
+- Updated the Secret Recovery Phrase import screen with a refreshed layout, scan import menu, and 24-word paste limit (#36465)
+- Improved how quickly Perps Long and Short confirmations opened from market details for eligible bottom-sheet flow users (#36869)
+- Updated MetaMask Card sign-up copy to refer to the card provider instead of Crypto Life (#37224)
+- Updated contact add and edit forms with refreshed fields and actions (#36114)
+- Updated Contacts and Permissions empty states with improved description color and spacing (#36482)
+- Updated Stellar send confirmations to show the latest network fee, including when the fee changes after confirmation (#37568)
+- Updated Stellar security alerts to use generic copy (#37568)
+
+### Fixed
+
+- Fixed Arc USDC details opened from the swap asset picker to show the native asset balance and details (#37137)
+- Prevented Limit Orders from being submitted when neither selected asset can cover fees (#37299)
+- Hid the Money balance row in regions where Money is unavailable (#36988)
+- Updated the Perps outage banner support link to the troubleshooting article (#37196)
+- Improved text layout in Braze banners (#37139)
+- Fixed the Wallet not found screen to display a dedicated illustration (#37186)
+- Improved the contrast of transaction confirmation icons, including network fee and nonce tooltips, Advanced details icons, and data copy icons (#36859, #36860)
+- Fixed the trade menu overlapping the bottom tab bar on Android (#37366)
+- Fixed Neobank back navigation to return to the screen that opened the flow (#37313)
+- Fixed missing spacing between token icons and labels in Crypto movers pills (#37335)
+- Fixed Long and Short from spot token details opening the trade sheet on a new Perps screen (#37336)
+- Fixed the Perps bottom-sheet keypad so coin mode applied typed digits as the coin amount (#37334)
+- Fixed adding funds to a Money account from a Ledger account failing with a signing error (#37130)
+- Fixed a missing native gas warning when a sponsored deposit still required a source network fee (#37120)
+- Fixed Perps offering to reverse positions too small to meet the $10 minimum order size by disabling Reverse and explaining why (#37176)
+- Fixed the Perps Close all positions sheet showing a missing-translation message instead of "No open positions" (#37191)
+- Fixed Perps order and close-all fee previews applying VIP fee discounts twice, which showed lower MetaMask fees and points estimates than charged (#37181)
+- Fixed Perps 24-hour dollar price changes showing more decimals than market prices (#37193)
+- Fixed Quick Buy sell showing an estimated received value of US$0.00 for receive tokens on networks not added to the wallet or not held by the user (#37261)
+- Fixed Quick Buy selecting POL as the payment token when buying POL on Polygon (#37164)
+- Fixed the Quick Buy sheet flickering and jumping while opening (#37258)
+- Fixed Quick Buy showing $0.00 as the estimated received value for some quotes, including gasless quotes (#37215)
+- Fixed the card signup phone keypad advancing to the next step (#37091)
+- Fixed the Money home Card section loading indefinitely for Immersve cardholders (#37128)
+- Fixed live sports scores in Predict freezing until the app was restarted (#36648)
+- Fixed deeplinks not opening after auto-lock, including when auto-lock ran during app resume (#36905, #36925)
+- Fixed the Money home Card section so Immersve sessions no longer spin forever, and a leftover Immersve sign-in no longer hides it for Baanx users (#37476)
+- Fixed top and bottom gaps around fullscreen HTML in-app messages on Android (#37472)
+- Fixed Infura-backed networks added from the additional networks list failing to connect, including networks already saved with a broken endpoint (#37333)
+- Fixed Bitcoin transactions being built with a zero network fee when the fee estimate was below 1 sat/vB (#37508)
+- Fixed Stellar transactions showing as successful when the network asked to try again later (#37568)
+- Fixed Stellar contract-token sends failing to retry after a sequence error (#37568)
+- Fixed newly listed Stellar tokens waiting up to an hour to appear (#37568)
+- Fixed Money Account withdraw refunds returning to the wallet instead of the Money Account (#37121)
+- Fixed duplicate transaction links on Money Account deposit details (#37045)
+- Fixed Swap to clear previously saved details before opening a new swap (#37243)
 
 ## [8.15.0]
 
@@ -14381,7 +14452,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...HEAD
+[8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.16.0
 [8.15.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...v8.15.0
 [8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
 [8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1

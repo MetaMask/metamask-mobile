@@ -3,6 +3,7 @@ import { type StyleProp, type TextStyle } from 'react-native';
 import {
   Box,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Skeleton,
   Text,
@@ -12,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { addCurrencySymbol } from '../../../../util/number/bigint';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../util/number/subscriptNotation';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 
 export type TokenPriceChangeFormat = 'absoluteSubscript' | 'signedCurrency';
@@ -122,12 +123,13 @@ export const TokenPriceTitleHub = ({
       amount={
         isLoading ? (
           <Box twClassName="pt-2">
-            <Skeleton style={tw.style('h-10 w-[100px] rounded-md')} />
+            <Skeleton style={tw.style('h-14 w-[100px] rounded-md')} />
           </Box>
         ) : (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
+            variant={TextVariant.AmountDisplayLg}
+            fontFamily={FontFamily.Hero}
             color={TextColor.TextDefault}
           >
             {formatPriceWithSubscriptNotation(price, currentCurrency)}

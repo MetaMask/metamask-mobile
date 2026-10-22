@@ -40,7 +40,6 @@ const TermsLinkRow = ({ link }: { link: TermsLink }) => {
       isInteractive
       variant={ContentVariant.OneLine}
       title={link.title}
-      titleProps={{ twClassName: 'underline' }}
       endAccessory={
         <Icon
           name={IconName.Arrow2UpRight}

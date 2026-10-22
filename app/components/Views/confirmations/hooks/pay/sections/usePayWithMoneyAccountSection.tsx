@@ -18,7 +18,7 @@ import {
 } from '../../../../../../selectors/featureFlagController/confirmations';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
-import { NoFeeTag } from '../../../components/UI/no-fee-tag';
+import { NoDepositFeeTag } from '../../../components/UI/no-fee-tag';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
 import { getTransactionType } from '../../../utils/transaction';
 import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
@@ -69,6 +69,12 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       TransactionType.perpsDeposit,
       TransactionType.perpsDepositAndOrder,
     ]);
+  const showPredictDepositNoFeeTag = hasTransactionType(transactionMeta, [
+    TransactionType.predictDeposit,
+    TransactionType.predictDepositAndOrder,
+  ]);
+  const showNoDepositFeeTag =
+    showPerpsDepositNoFeeTag || showPredictDepositNoFeeTag;
 
   const handlePress = useCallback(() => {
     if (transactionId) {
@@ -101,11 +107,11 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      ...(showPerpsDepositNoFeeTag
+      ...(showNoDepositFeeTag
         ? {
             tagRenderers: [
               () => (
-                <NoFeeTag
+                <NoDepositFeeTag
                   testID={`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`}
                 />
               ),
@@ -128,7 +134,7 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     isEnabled,
     isMoneyAccountAvailable,
     isMoneyAccountSelected,
-    showPerpsDepositNoFeeTag,
+    showNoDepositFeeTag,
     withdrawableFiatFormatted,
   ]);
 }

@@ -7,6 +7,7 @@ export const VbaOnboardingRoutes = {
   IDENTITY_VERIFICATION: 'VbaIdentityVerification',
   KYC_PENDING: 'VbaKycPending',
   IDENTITY_VERIFIED: 'VbaIdentityVerified',
+  CHOOSE_CURRENCY: 'VbaChooseCurrency',
   KYC_REJECTED: 'VbaKycRejected',
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
   ERROR: 'VbaError',
@@ -23,6 +24,7 @@ export type VbaOnboardingParamList = {
   };
   VbaKycPending: undefined;
   VbaIdentityVerified: undefined;
+  VbaChooseCurrency: undefined;
   VbaKycRejected: undefined;
   VbaAccountProvisioningError: undefined;
   VbaError: undefined;
@@ -40,7 +42,5 @@ export type VbaIdentityVerificationRoute =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaIdentityVerificationParamList = {
   VbaIdentityVerificationProviderTerms: undefined;
-  VbaIdentityVerificationProvider: {
-    initialNeedsMoreInfo: boolean;
-  };
+  VbaIdentityVerificationProvider: undefined;
 };

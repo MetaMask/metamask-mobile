@@ -3,6 +3,15 @@ import { render, screen } from '@testing-library/react-native';
 import QuickBuyBottomSheetSkeleton from './QuickBuyBottomSheetSkeleton';
 
 describe('QuickBuyBottomSheetSkeleton', () => {
+  it('matches the toolbar token icon size', () => {
+    render(<QuickBuyBottomSheetSkeleton />);
+
+    expect(screen.getByTestId('quick-buy-skeleton-token')).toHaveStyle({
+      width: 40,
+      height: 40,
+    });
+  });
+
   it('renders the loading container', () => {
     render(<QuickBuyBottomSheetSkeleton />);
     expect(screen.getByTestId('quick-buy-content-loading')).toBeOnTheScreen();
