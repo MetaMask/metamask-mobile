@@ -56,14 +56,14 @@ describe('HotTokensCarousel', () => {
 
     expect(chip).toHaveTextContent('Bitcoin perps');
     expect(chip).toHaveStyle({
-      height: 32,
-      paddingLeft: 8,
-      paddingRight: 8,
+      height: 40,
+      paddingLeft: 12,
+      paddingRight: 16,
     });
     expect(
       screen.UNSAFE_getByProps({
         children: 'Bitcoin perps',
-        variant: TextVariant.BodySm,
+        variant: TextVariant.BodyMd,
         fontWeight: FontWeight.Medium,
       }),
     ).toBeTruthy();

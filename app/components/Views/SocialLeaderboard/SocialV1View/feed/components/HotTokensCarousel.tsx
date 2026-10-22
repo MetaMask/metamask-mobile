@@ -3,13 +3,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  ButtonSize,
   Icon,
   IconColor,
   IconName,
   IconSize,
   TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -84,9 +82,8 @@ const HotTokenChip: React.FC<{
     <ExplorePill
       testID={testID}
       accessibilityState={{ selected: isSelected }}
-      size={ButtonSize.Sm}
       twClassName={
-        isSelected ? 'h-8 px-2 bg-icon-default border-transparent' : 'h-8 px-2'
+        isSelected ? 'bg-icon-default border-transparent' : undefined
       }
       leading={
         <Box twClassName="mr-1">
@@ -97,7 +94,6 @@ const HotTokenChip: React.FC<{
         </Box>
       }
       title={token.label}
-      titleVariant={TextVariant.BodySm}
       titleTextColor={
         isSelected ? TextColor.InfoInverse : TextColor.TextDefault
       }
