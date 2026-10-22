@@ -43,7 +43,6 @@ import {
 } from '@metamask/perps-controller';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
-import { store } from '../../../../store';
 import {
   formatVolume,
   formatPerpsFiat,

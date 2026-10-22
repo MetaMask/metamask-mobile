@@ -601,7 +601,7 @@ export interface UsePerpsProOrderFormResult {
   feeProtocolFeeRate: number | undefined;
   feeOriginalMetamaskFeeRate: number | undefined;
   feeDiscountPercentage: number | undefined;
-  feeDiscountKind: PerpsFeeDiscountKind;
+  feeDiscountKind: PerpsFeeDiscountKind | undefined;
 }
 
 /**

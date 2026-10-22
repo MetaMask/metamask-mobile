@@ -42,7 +42,7 @@ export interface CloseAllCalculationsResult {
    * Fee source contributing the largest weighted discount to the summary.
    */
   feeSource: PerpsFeeSource | undefined;
-  feeDiscountKind: PerpsFeeDiscountKind;
+  feeDiscountKind: PerpsFeeDiscountKind | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (undefined when unavailable) */

@@ -1,4 +1,4 @@
-import { default as PerpsFeeDiscountLabel } from '../PerpsFeesDisplay/PerpsFeeDiscountLabel';
+import PerpsFeeDiscountLabel from '../PerpsFeesDisplay/PerpsFeeDiscountLabel';
 import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import {
   Box,

@@ -29,7 +29,7 @@ const DISCOUNT_MESSAGE_BY_KIND = {
   vip: 'perps.tooltips.fees.discount_message',
   promotional: 'perps.tooltips.fees.promotional_discount_message',
   generic: 'perps.tooltips.fees.fee_discount_message',
-} as const satisfies Record<Exclude<PerpsFeeDiscountKind, undefined>, string>;
+} as const satisfies Record<PerpsFeeDiscountKind, string>;
 
 const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});

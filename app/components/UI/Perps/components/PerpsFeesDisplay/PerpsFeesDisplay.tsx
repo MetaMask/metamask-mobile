@@ -1,4 +1,4 @@
-import { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
+import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';

@@ -4,11 +4,7 @@ import {
   type PerpsFeeSource,
 } from '@metamask/perps-controller';
 
-export type PerpsFeeDiscountKind =
-  | 'vip'
-  | 'promotional'
-  | 'generic'
-  | undefined;
+export type PerpsFeeDiscountKind = 'vip' | 'promotional' | 'generic';
 
 interface GetPerpsFeeDiscountParams {
   feeSource?: PerpsFeeSource;
@@ -18,7 +14,7 @@ interface GetPerpsFeeDiscountParams {
 
 export interface PerpsFeeDiscount {
   percentage?: number;
-  kind: PerpsFeeDiscountKind;
+  kind: PerpsFeeDiscountKind | undefined;
 }
 
 /** Hundredths match the fees tooltip, which prints this number with toString(). */
