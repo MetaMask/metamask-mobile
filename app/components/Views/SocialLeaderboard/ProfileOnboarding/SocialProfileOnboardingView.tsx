@@ -173,6 +173,8 @@ const OnboardingTitle: React.FC<{
 /**
  * Sits above the header, so it carries the top inset. A static inset rather
  * than a safe-area edge, which recalculates mid push transition (TSA-970).
+ * No bottom padding: the 56px header centers its 24px icons, which puts the
+ * arrow and close button 16px below this bar.
  */
 const OnboardingProgress: React.FC<{
   step: ProfileOnboardingStep;
@@ -190,7 +192,6 @@ const OnboardingProgress: React.FC<{
       flexDirection={BoxFlexDirection.Row}
       gap={1}
       paddingHorizontal={4}
-      paddingBottom={4}
       style={{ paddingTop: topInset + 8 }}
       testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
     >
@@ -871,6 +872,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'account' ? (
                 <Box
                   gap={4}
+                  twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle twClassName="pt-2">

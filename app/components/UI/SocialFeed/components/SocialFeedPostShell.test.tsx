@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
+import { reactToComment, removeCommentReaction } from '../commentReactionApi';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -23,6 +24,17 @@ jest.mock('../commentReactionApi', () => ({
   }),
   removeCommentReaction: jest.fn(),
 }));
+
+const mockEnsureSocialProfileOnboarding = jest.fn(() => true);
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding',
+  () => ({
+    useRequireSocialProfileOnboarding: () => ({
+      ensureSocialProfileOnboarding: mockEnsureSocialProfileOnboarding,
+    }),
+  }),
+);
 
 // The real avatar falls back to a Maskicon, which loads its SVG asynchronously
 // and reports un-acted state updates. Capture the props the shell passes in.
@@ -162,6 +174,8 @@ const itemWithoutStats = (id: string, comment: string) => {
 
 describe('SocialFeedPostShell', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    mockEnsureSocialProfileOnboarding.mockReturnValue(true);
     jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((cb) => {
       cb(20, 100, 40, 24);
     });
@@ -191,6 +205,45 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
       ).toBeOnTheScreen();
     });
+  });
+
+  it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
+    mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+      mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      return false;
+    });
+
+    renderShell(basePost({ reactions: [] }));
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(
+      screen.queryByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not change an existing reaction without a linked wallet', async () => {
+    mockEnsureSocialProfileOnboarding.mockImplementation(() => {
+      mockNavigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+      return false;
+    });
+
+    renderShell(basePost());
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
+    );
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL.PROFILE_ONBOARDING,
+      );
+    });
+    expect(jest.mocked(reactToComment)).not.toHaveBeenCalled();
+    expect(jest.mocked(removeCommentReaction)).not.toHaveBeenCalled();
   });
 
   it('closes the balloon when the scrim is pressed', () => {
@@ -280,6 +333,22 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('Amazing position')).toBeNull();
     expect(
       screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
+    ).toBeNull();
+  });
+
+  it('marks a pending post as posting', () => {
+    renderShell(basePost({ isPending: true }));
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
+    ).toHaveTextContent('Posting...');
+  });
+
+  it('shows no posting label once the post is confirmed', () => {
+    renderShell(basePost());
+
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
     ).toBeNull();
   });
 

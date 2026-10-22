@@ -363,6 +363,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -1057,6 +1058,7 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_VALUE: 'perps-order-view-margin-value',
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
@@ -1117,6 +1119,10 @@ export const PerpsTradeSheetSelectorsIDs = {
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
+
+export const PerpsFeeDiscountLabelSelectorsIDs = {
+  LABEL: 'perps-fee-discount-label',
+} as const;
 
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
@@ -1440,6 +1446,16 @@ export const PerpsModifyActionSheetSelectorsIDs = {
   ADD_TO_POSITION: 'perps-modify-action-sheet-add_to_position',
   REDUCE_POSITION: 'perps-modify-action-sheet-reduce_position',
   FLIP_POSITION: 'perps-modify-action-sheet-flip_position',
+} as const;
+
+// ========================================
+// PERPS SHARE POSITION SHEET SELECTORS
+// ========================================
+
+export const PerpsSharePositionSheetSelectorsIDs = {
+  SHEET: 'perps-share-position-sheet',
+  POST_TO_METAMASK: 'perps-share-position-sheet-post_to_metamask',
+  SHARE_EXTERNALLY: 'perps-share-position-sheet-share_externally',
 } as const;
 
 // ========================================

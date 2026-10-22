@@ -3,6 +3,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontFamily,
   FontWeight,
   Icon,
   IconName,
@@ -44,7 +45,7 @@ const PositionSheetPriceHeader = ({
   const isChangePositive = (changePercent ?? 0) >= 0;
 
   return (
-    <Box twClassName="px-4 pt-4 pb-6" gap={1}>
+    <Box twClassName="px-4 pt-4" gap={1}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -83,7 +84,8 @@ const PositionSheetPriceHeader = ({
         gap={1}
       >
         <Text
-          variant={TextVariant.DisplayMd}
+          variant={TextVariant.AmountDisplayLg}
+          fontFamily={FontFamily.Hero}
           testID={PositionDetailsSheetSelectorsIDs.PRICE}
         >
           {valueLabel ?? EM_DASH}
