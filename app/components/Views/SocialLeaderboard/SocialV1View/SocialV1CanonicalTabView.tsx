@@ -98,7 +98,7 @@ const SocialV1CanonicalTabView: React.FC<SocialV1CanonicalTabViewProps> = ({
       <SocialFeedCanonical
         scope={scope}
         scrollMode="virtualized"
-        realtime
+        realtime={false}
         location={tab === 'trending' ? 'social_trending' : 'social_following'}
         onScroll={onScroll}
         pageRef={pageRef}
