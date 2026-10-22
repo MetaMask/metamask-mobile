@@ -68,6 +68,7 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { calculateFees } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -4229,6 +4230,7 @@ export class PredictController extends BaseController<
 
     let ctfPayoutRaw = 0n;
     let pUsdMintRaw = 0n;
+    let legacySweepRaw = 0n;
     let hasCtfPayout = false;
     let hasPUsdMint = false;
 
@@ -4281,15 +4283,40 @@ export class PredictController extends BaseController<
         } catch (_error) {
           continue;
         }
+      } else if (logAddress === USDC_E_ADDRESS.toLowerCase()) {
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const to = parsedLog.args.to?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
+
+          if (
+            !to ||
+            value === undefined ||
+            to !== COLLATERAL_ONRAMP_ADDRESS.toLowerCase()
+          ) {
+            continue;
+          }
+
+          legacySweepRaw += BigInt(value);
+        } catch (_error) {
+          continue;
+        }
       }
     }
 
-    // The pUSD mint is the final settlement value. In a mixed claim it already
-    // includes the CTF redemption, so adding both event totals would count the
-    // CTF leg twice.
-    if (hasPUsdMint) {
+    // Claim batches can wrap legacy USDC.e before redemption. Remove that
+    // maintenance mint before using the remaining pUSD mint as settlement.
+    const claimPUsdMintRaw =
+      pUsdMintRaw > legacySweepRaw ? pUsdMintRaw - legacySweepRaw : 0n;
+
+    // In a mixed claim, the settlement mint already includes the CTF
+    // redemption. Adding both event totals would count the CTF leg twice.
+    if (hasPUsdMint && claimPUsdMintRaw > 0n) {
       return parseFloat(
-        formatUnits(pUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+        formatUnits(claimPUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
       );
     }
 

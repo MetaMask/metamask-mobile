@@ -55,9 +55,11 @@ import type { PredictFeatureFlags } from '../types/flags';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   MATIC_CONTRACTS_V2,
   MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -7966,6 +7968,21 @@ describe('PredictController', () => {
       };
     };
 
+    const createLegacySweepTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        accountAddress,
+        COLLATERAL_ONRAMP_ADDRESS,
+        valueRaw,
+      ]);
+
+      return {
+        address: USDC_E_ADDRESS,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
     it('does not publish transaction status when no sender address can be resolved', () => {
       withController(
         ({ messenger }) => {
@@ -8325,6 +8342,79 @@ describe('PredictController', () => {
             status: 'confirmed',
             senderAddress: accountAddress,
             transactionId: 'tx-1',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses the CTF payout when a legacy sweep mints pUSD', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 30,
+          }),
+        );
+      });
+    });
+
+    it('removes a legacy sweep from the mixed claim settlement mint', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+              createPUsdMintTransferLog(42_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
             amount: 42,
           }),
         );
