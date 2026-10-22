@@ -233,10 +233,13 @@ describe('ramps controller init', () => {
     expect(subscribeMock).toHaveBeenCalled();
     const subscribedEvents = subscribeMock.mock.calls.map(([event]) => event);
     expect(
-      subscribedEvents.every(
+      subscribedEvents.filter(
         (event) => event === 'RampsController:orderStatusChanged',
       ),
-    ).toBe(true);
+    ).toHaveLength(2);
+    expect(subscribedEvents).toContain(
+      'RampsController:autorampTransactionStatusChanged',
+    );
   });
 
   describe('when __DEV__ is true', () => {

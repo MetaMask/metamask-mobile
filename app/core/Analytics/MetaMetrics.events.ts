@@ -820,6 +820,7 @@ enum EVENT_NAME {
   MONEY_ACCOUNT_CAMPAIGN_TRIGGERED = 'Money Account Campaign Triggered',
   MONEY_ONBOARDING_EVENT = 'Money Onboarding Event',
   MONEY_TOOLTIP_CLICKED = 'Money Tooltip Clicked',
+  MONEY_VBA_TRANSACTION_UPDATED = 'Money VBA Transaction Updated',
 
   // Assets
   ASSETS_FIRST_INIT_FETCH_COMPLETED = 'Assets First Init Fetch Completed',
@@ -2223,6 +2224,9 @@ const events = {
   ),
   MONEY_ONBOARDING_EVENT: generateOpt(EVENT_NAME.MONEY_ONBOARDING_EVENT),
   MONEY_TOOLTIP_CLICKED: generateOpt(EVENT_NAME.MONEY_TOOLTIP_CLICKED),
+  MONEY_VBA_TRANSACTION_UPDATED: generateOpt(
+    EVENT_NAME.MONEY_VBA_TRANSACTION_UPDATED,
+  ),
 
   // Social Leaderboard (follow trading)
   SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED: generateOpt(
