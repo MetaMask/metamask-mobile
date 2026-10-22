@@ -24,6 +24,19 @@ import {
 
 const TIMEOUT_MS = 5000;
 
+const GRANT_FEE_QUOTE = {
+  feeRate: 0.0007,
+  feeAmount: 1.75,
+  protocolFeeRate: 0.00045,
+  protocolFeeAmount: 1.125,
+  metamaskFeeRate: 0.00025,
+  metamaskFeeAmount: 0.625,
+  chargesMetamaskBuilderFee: true,
+  feeSource: 'grant',
+  metamaskFeeDiscountBips: 7500,
+  undiscountedMetamaskFeeRate: 0.001,
+} as const;
+
 const renderWithVariant = (variant?: ScreenVsBottomSheetVariant) => {
   const position = createLongPositionForViews();
 
@@ -112,19 +125,21 @@ describe('PerpsClosePositionRouter', () => {
     });
   });
 
-  it('presents a Core grant quote as promotional without a VIP badge', async () => {
-    calculateFees.mockResolvedValue({
-      feeRate: 0.0007,
-      feeAmount: 1.75,
-      protocolFeeRate: 0.00045,
-      protocolFeeAmount: 1.125,
-      metamaskFeeRate: 0.00025,
-      metamaskFeeAmount: 0.625,
-      chargesMetamaskBuilderFee: true,
-      feeSource: 'grant',
-      metamaskFeeDiscountBips: 7500,
-      undiscountedMetamaskFeeRate: 0.001,
-    });
+  it('presents a Core grant quote in the full-page close flow', async () => {
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+
+    renderWithVariant(ScreenVsBottomSheetVariant.Control);
+
+    expect(
+      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('presents a Core grant quote in the close bottom sheet', async () => {
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
 
     renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
 

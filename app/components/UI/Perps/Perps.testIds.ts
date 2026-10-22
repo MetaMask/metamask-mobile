@@ -363,6 +363,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -1057,6 +1058,7 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_VALUE: 'perps-order-view-margin-value',
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',

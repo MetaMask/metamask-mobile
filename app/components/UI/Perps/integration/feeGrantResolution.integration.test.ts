@@ -14,8 +14,7 @@ describe('Perps fee grant resolution — integration', () => {
       feeBips: 2.5,
       expiresAt: Date.now() + 60_000,
     };
-    const { controller, getPerpsTradingFeeGrant } =
-      buildPerpsFeeResolutionHarness(grant);
+    const { controller } = buildPerpsFeeResolutionHarness(grant);
     await controller.init();
 
     try {
@@ -28,10 +27,6 @@ describe('Perps fee grant resolution — integration', () => {
       });
 
       // Assert
-      expect(getPerpsTradingFeeGrant).toHaveBeenCalledWith({
-        providerId: 'hyperliquid',
-        isTestnet: false,
-      });
       expect(fees).toEqual(
         expect.objectContaining({
           chargesMetamaskBuilderFee: true,

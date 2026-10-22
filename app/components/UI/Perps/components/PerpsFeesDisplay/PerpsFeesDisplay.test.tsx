@@ -1,17 +1,23 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const actual = jest.requireActual<
+    typeof import('../../../shared/MembershipVipBadge/MembershipVipBadge')
+  >('../../../shared/MembershipVipBadge/MembershipVipBadge');
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+
   return {
+    ...actual,
     __esModule: true,
     default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
       MockReact.createElement(View, {
         testID: hasProEntitlement
-          ? 'rewards-member-badge'
-          : 'rewards-vip-badge',
+          ? actual.MembershipVipBadgeSelectorsIDs.MEMBER_BADGE
+          : actual.MembershipVipBadgeSelectorsIDs.VIP_BADGE,
       }),
   };
 });
@@ -28,9 +34,11 @@ describe('PerpsFeesDisplay', () => {
       />,
     );
 
-    expect(getByText('Promotional discount')).toBeTruthy();
-    expect(getByTestId('fee-original')).toBeTruthy();
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    expect(getByText('Promotional discount')).toBeOnTheScreen();
+    expect(getByTestId('fee-original')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses a generic label when attribution is unknown', () => {
@@ -38,8 +46,10 @@ describe('PerpsFeesDisplay', () => {
       <PerpsFeesDisplay fee={5} originalFee={10} feeDiscountPercentage={50} />,
     );
 
-    expect(getByText('Fee discount')).toBeTruthy();
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    expect(getByText('Fee discount')).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   describe('Discount visibility', () => {

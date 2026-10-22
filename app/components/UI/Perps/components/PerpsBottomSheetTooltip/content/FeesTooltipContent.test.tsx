@@ -1,17 +1,23 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { MembershipVipBadgeSelectorsIDs } from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const actual = jest.requireActual<
+    typeof import('../../../../shared/MembershipVipBadge/MembershipVipBadge')
+  >('../../../../shared/MembershipVipBadge/MembershipVipBadge');
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
+
   return {
+    ...actual,
     __esModule: true,
     default: ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
       MockReact.createElement(View, {
         testID: hasProEntitlement
-          ? 'rewards-member-badge'
-          : 'rewards-vip-badge',
+          ? actual.MembershipVipBadgeSelectorsIDs.MEMBER_BADGE
+          : actual.MembershipVipBadgeSelectorsIDs.VIP_BADGE,
       }),
   };
 });
@@ -35,10 +41,12 @@ describe('FeesTooltipContent', () => {
 
     expect(
       getByText('Promotional discount: 25% off the MetaMask fee.'),
-    ).toBeTruthy();
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
-    expect(queryByTestId('vip-discount-icon')).toBeNull();
-    expect(queryByText(/as a VIP/)).toBeNull();
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+    expect(queryByTestId('vip-discount-icon')).not.toBeOnTheScreen();
+    expect(queryByText(/as a VIP/)).not.toBeOnTheScreen();
   });
 
   it('does not claim VIP eligibility when attribution is unknown', () => {
@@ -49,8 +57,12 @@ describe('FeesTooltipContent', () => {
       />,
     );
 
-    expect(getByText("You're saving 25% on the MetaMask fee.")).toBeTruthy();
-    expect(queryByTestId('rewards-vip-badge')).toBeNull();
+    expect(
+      getByText("You're saving 25% on the MetaMask fee."),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('displays fee information correctly', () => {

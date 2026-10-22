@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 
@@ -17,7 +18,9 @@ describe('PerpsFeeDiscountLabel', () => {
       />,
     );
 
-    expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).toBeOnTheScreen();
   });
 
   it('renders member treatment for subscription attribution', () => {
@@ -28,8 +31,12 @@ describe('PerpsFeeDiscountLabel', () => {
       />,
     );
 
-    expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
-    expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MembershipVipBadgeSelectorsIDs.MEMBER_BADGE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders promotional copy without VIP treatment for a grant', () => {
@@ -46,7 +53,9 @@ describe('PerpsFeeDiscountLabel', () => {
     expect(
       screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
-    expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it('renders generic copy for unknown attribution', () => {
