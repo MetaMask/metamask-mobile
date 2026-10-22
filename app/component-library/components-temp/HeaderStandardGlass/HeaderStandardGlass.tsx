@@ -27,6 +27,7 @@ const HeaderStandardGlass = ({
   isGlass = true,
   backdrop,
   fadeInDistance,
+  isFloating,
   scrollY,
   onLayout,
   ...props
@@ -41,6 +42,7 @@ const HeaderStandardGlass = ({
       backdrop={backdrop}
       scrollDistance={scrollY}
       fadeInDistance={fadeInDistance}
+      isFloating={isFloating}
     >
       <HeaderStandard
         {...props}

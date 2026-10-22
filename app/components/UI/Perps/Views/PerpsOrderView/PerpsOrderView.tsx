@@ -2380,9 +2380,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     if (isMoneyAccountSelected) {
       payWithName = strings('confirm.pay_with_bottom_sheet.money_account');
     }
+    // The picker and margin checks use spendable balance. totalBalance still
+    // includes margin locked by open positions and orders.
     const payWithBalance = formatPerpsFiat(
       isPayTokenPerpsBalance
-        ? (account?.totalBalance ?? '0')
+        ? (account?.spendableBalance ?? '0')
         : payTokenBalanceUsd,
       { ranges: PRICE_RANGES_MINIMAL_VIEW },
     );
@@ -2603,6 +2605,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 feePercentage={feePercentage}
                 bridgeFee={bridgeFee}
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                feeSource={feeResults.feeSource}
                 isSubmitting={isPlacingOrder}
                 isSubmitDisabled={submitDisabled}
                 submitLabel={placeOrderLabel}
@@ -2946,6 +2949,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               ) : (
                 <PerpsFeesDisplay
                   feeDiscountPercentage={rewardsState.feeDiscountPercentage}
+                  feeSource={feeResults.feeSource}
                   fee={hasValidAmount ? feesToDisplay : undefined}
                   originalFee={
                     hasValidAmount ? undiscountedFeesToDisplay : undefined
@@ -3270,6 +3274,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   protocolFeeRate: feeResults.protocolFeeRate,
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
+                  feeSource: feeResults.feeSource,
                   ...(hasCustomTokenSelected &&
                     depositFeeUsd > 0 && {
                       bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {

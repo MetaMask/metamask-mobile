@@ -5,6 +5,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   CLOSE_BUTTON: 'social-profile-onboarding-close-button',
   PROGRESS: 'social-profile-onboarding-progress',
   INTRO: 'social-profile-onboarding-intro',
+  INTRO_TITLE: 'social-profile-onboarding-intro-title',
   INTRO_ANIMATION: 'social-profile-onboarding-intro-animation',
   INTRO_FALLBACK: 'social-profile-onboarding-intro-fallback',
   CONNECT_X_BUTTON: 'social-profile-onboarding-connect-x-button',
@@ -23,6 +24,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   DISPLAY_NAME_INPUT: 'social-profile-onboarding-display-name-input',
   AVATAR_STEP: 'social-profile-onboarding-avatar-step',
   AVATAR_PREVIEW: 'social-profile-onboarding-avatar-preview',
+  AVATAR_PREVIEW_ART: 'social-profile-onboarding-avatar-preview-art',
   AVATAR_OPTION: 'social-profile-onboarding-avatar-option',
   AVATAR_BACKGROUND_CAROUSEL:
     'social-profile-onboarding-avatar-background-carousel',
