@@ -9,8 +9,6 @@ on:
       - main
   workflow_dispatch:
 
-# Workflow-level write is overly broad: it would apply to every job.
-# security-events: write is granted only on the job that uploads SARIF.
 permissions:
   contents: read
 
