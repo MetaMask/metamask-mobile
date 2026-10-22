@@ -24,8 +24,9 @@ import {
 import { useSelector } from 'react-redux';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import MarketingMoment from '../../../MarketingMoment';
+import { colors } from '../../../../../styles/common';
 
-const GRADIENT_COLORS = [brandColor.indigo900, brandColor.purple800];
+const GRADIENT_COLORS = [colors.cardWelcomeGradientDark, brandColor.purple800];
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
