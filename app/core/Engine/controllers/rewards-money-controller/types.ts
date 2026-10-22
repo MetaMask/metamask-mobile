@@ -135,6 +135,8 @@ export type ReferralLocalizedTextKey =
   | 'funnelFeeGenerating'
   | 'funnelFeeGeneratingDescription'
   | 'tradingCommissionsSection'
+  | 'tradingActivityEmptyDescription'
+  | 'tradingActivityEmptyAction'
   | 'copiedOnce'
   | 'copiedTimes'
   | 'rebatePerpsVolume'
