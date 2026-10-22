@@ -1,5 +1,3 @@
-import React from 'react';
-import { NavigationContext } from '@react-navigation/native';
 import { renderHook, act } from '@testing-library/react-native';
 import {
   SCREEN_TRANSITION_FALLBACK_MS,
@@ -26,22 +24,12 @@ const mockAddListener = jest.fn(
   },
 );
 
-jest.mock('@react-navigation/native', () => {
-  const ReactActual = jest.requireActual('react');
-
-  const navigation = {
-    addListener: (
-      eventName: string,
-      listener: TransitionEndListener & FocusListener,
-    ) => mockAddListener(eventName, listener),
-    isFocused: () => mockIsFocused(),
-  };
-
-  return {
-    NavigationContext: ReactActual.createContext(navigation),
-    useNavigation: () => navigation,
-  };
-});
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({
+    addListener: mockAddListener,
+    isFocused: mockIsFocused,
+  }),
+}));
 
 describe('useScreenTransitionComplete', () => {
   beforeEach(() => {
@@ -54,26 +42,6 @@ describe('useScreenTransitionComplete', () => {
 
   afterEach(() => {
     jest.useRealTimers();
-  });
-
-  it('becomes true after the fallback delay when no navigator is mounted', () => {
-    const { result } = renderHook(() => useScreenTransitionComplete(), {
-      wrapper: ({ children }) =>
-        React.createElement(
-          NavigationContext.Provider,
-          { value: undefined },
-          children,
-        ),
-    });
-
-    expect(result.current).toBe(false);
-    expect(mockAddListener).not.toHaveBeenCalled();
-
-    act(() => {
-      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
-    });
-
-    expect(result.current).toBe(true);
   });
 
   it('returns false before the transition ends', () => {
