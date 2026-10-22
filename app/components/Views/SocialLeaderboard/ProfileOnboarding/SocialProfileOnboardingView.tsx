@@ -18,7 +18,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -313,6 +319,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+  const introInsets = useMemo(
+    () => ({ top: 0, bottom: 0, left: insets.left, right: insets.right }),
+    [insets.left, insets.right],
+  );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
   const { checkUsernameAvailability, createProfile } = useProfileController();
@@ -628,15 +638,16 @@ const SocialProfileOnboardingView: React.FC = () => {
       >
         <Box twClassName="flex-1">
           {step === 'intro' ? (
-            <SafeAreaInsetsContext.Provider
-              value={{ ...insets, top: 0, bottom: 0 }}
-            >
+            <SafeAreaInsetsContext.Provider value={introInsets}>
               <MarketingMoment
                 testID={SocialProfileOnboardingSelectorsIDs.INTRO}
                 title={strings(
                   'social_leaderboard.profile_onboarding.intro_title',
                 )}
-                titleProps={{ twClassName: 'px-1' }}
+                titleProps={{
+                  testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
+                  twClassName: 'px-1',
+                }}
                 artwork={
                   <ProfileOnboardingIntroAnimation
                     fallback={<LiveActivityFallback />}

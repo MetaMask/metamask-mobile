@@ -5,6 +5,7 @@ export const SocialProfileOnboardingSelectorsIDs = {
   CLOSE_BUTTON: 'social-profile-onboarding-close-button',
   PROGRESS: 'social-profile-onboarding-progress',
   INTRO: 'social-profile-onboarding-intro',
+  INTRO_TITLE: 'social-profile-onboarding-intro-title',
   INTRO_ANIMATION: 'social-profile-onboarding-intro-animation',
   INTRO_FALLBACK: 'social-profile-onboarding-intro-fallback',
   CONNECT_X_BUTTON: 'social-profile-onboarding-connect-x-button',
