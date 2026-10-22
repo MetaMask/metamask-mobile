@@ -87,6 +87,7 @@ function TradingActivityListView<T extends { id: string }>({
   const onEndReached = useCallback(() => {
     if (
       hasMore &&
+      !error &&
       !isLoading &&
       !isLoadingMore &&
       !isRefreshing &&
@@ -95,7 +96,7 @@ function TradingActivityListView<T extends { id: string }>({
     ) {
       loadMore();
     }
-  }, [hasMore, isLoading, isLoadingMore, isRefreshing, items, loadMore]);
+  }, [error, hasMore, isLoading, isLoadingMore, isRefreshing, items, loadMore]);
 
   const renderListItem = useCallback(
     ({ item }: { item: T }) => renderItem(item),

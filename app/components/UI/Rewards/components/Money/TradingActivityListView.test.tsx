@@ -107,6 +107,7 @@ describe('TradingActivityListView', () => {
     ['a page is already loading', { isLoadingMore: true }],
     ['a refresh is in flight', { isRefreshing: true }],
     ['the list is empty', { items: [] }],
+    ['the last page failed', { error: 'boom' }],
   ])('does not load more when %s', (_case, overrides) => {
     const loadMore = jest.fn();
     const { getByTestId } = renderView(listState({ loadMore, ...overrides }));

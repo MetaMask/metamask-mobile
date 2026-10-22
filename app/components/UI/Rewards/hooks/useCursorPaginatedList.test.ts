@@ -8,13 +8,29 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
+const focusRegistrations: {
+  effect: () => void | (() => void);
+  cleanup?: () => void;
+}[] = [];
+
 jest.mock('@react-navigation/native', () => {
   const React = jest.requireActual('react');
   return {
     useFocusEffect: (effect: () => void | (() => void)) => {
       React.useEffect(() => {
+        const registration: (typeof focusRegistrations)[number] = { effect };
         const cleanup = effect();
-        return typeof cleanup === 'function' ? cleanup : undefined;
+        if (typeof cleanup === 'function') {
+          registration.cleanup = cleanup;
+        }
+        focusRegistrations.push(registration);
+        return () => {
+          const index = focusRegistrations.indexOf(registration);
+          if (index >= 0) {
+            focusRegistrations.splice(index, 1);
+          }
+          registration.cleanup?.();
+        };
       }, [effect]);
     },
   };
@@ -38,6 +54,7 @@ const PAGE_2 = {
 
 describe('useCursorPaginatedList', () => {
   beforeEach(() => {
+    focusRegistrations.splice(0, focusRegistrations.length);
     jest
       .spyOn(globalThis.crypto, 'getRandomValues')
       .mockImplementation((array) => {
@@ -265,7 +282,8 @@ describe('useCursorPaginatedList', () => {
     });
   });
 
-  it('clears the error when a later page loads after a failed load-more', async () => {
+  it('retries a failed later page after the wait and does not ask again from the list end', async () => {
+    (captureException as jest.Mock).mockClear();
     const fetchPage = jest
       .fn()
       .mockResolvedValueOnce(PAGE_1)
@@ -285,25 +303,275 @@ describe('useCursorPaginatedList', () => {
       expect(result.current.items).toEqual(PAGE_1.results);
     });
 
-    act(() => {
-      result.current.loadMore();
-    });
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
 
-    await waitFor(() => {
       expect(result.current.error).toBe('boom');
-    });
+      expect(result.current.items).toEqual(PAGE_1.results);
+      expect(fetchPage).toHaveBeenCalledTimes(2);
 
-    expect(result.current.items).toEqual(PAGE_1.results);
+      act(() => {
+        result.current.loadMore();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
 
-    act(() => {
-      result.current.loadMore();
-    });
+      await act(async () => {
+        jest.advanceTimersByTime(1999);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: 'c2',
+        isFirstPage: false,
+        forceFresh: false,
+      });
+      expect(result.current.error).toBeNull();
+      expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+      expect(captureException).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('waits out Retry-After before asking for a failed later page again', async () => {
+    const busy = new RewardsMoneyHttpError('busy', 503, undefined, 5);
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(busy)
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
 
     await waitFor(() => {
-      expect(result.current.error).toBeNull();
+      expect(result.current.items).toEqual(PAGE_1.results);
     });
 
-    expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        jest.advanceTimersByTime(4999);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: 'c2',
+        isFirstPage: false,
+        forceFresh: false,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('asks once for a waiting later page when the screen is focused again', async () => {
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      act(() => {
+        focusRegistrations.forEach((registration) => {
+          registration.cleanup?.();
+        });
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        focusRegistrations.forEach((registration) => {
+          const cleanup = registration.effect();
+          if (typeof cleanup === 'function') {
+            registration.cleanup = cleanup;
+          }
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: 'c2',
+        isFirstPage: false,
+        forceFresh: false,
+      });
+      expect(result.current.error).toBeNull();
+      expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('does not retry a later page the server refused', async () => {
+    (captureException as jest.Mock).mockClear();
+    const refused = new RewardsMoneyHttpError('nope', 400);
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValue(refused);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('nope');
+      expect(captureException).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('stops retrying a failed later page after four paced attempts', async () => {
+    (captureException as jest.Mock).mockClear();
+    const stuck = new Error('boom');
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValue(stuck);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      const waits = [2_000, 4_000, 8_000, 16_000];
+      for (const wait of waits) {
+        await act(async () => {
+          jest.advanceTimersByTime(wait);
+          await Promise.resolve();
+          await Promise.resolve();
+        });
+      }
+
+      expect(fetchPage).toHaveBeenCalledTimes(6);
+      expect(captureException).toHaveBeenCalledTimes(1);
+      expect(captureException).toHaveBeenCalledWith(stuck, {
+        tags: {
+          feature: 'rewards',
+          context: 'cursorPaginatedList.fetch_failed',
+        },
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(6);
+      expect(result.current.items).toEqual(PAGE_1.results);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('retries a failed load-more with the same cursor', async () => {
@@ -326,33 +594,44 @@ describe('useCursorPaginatedList', () => {
       expect(result.current.items).toEqual(PAGE_1.results);
     });
 
-    act(() => {
-      result.current.loadMore();
-    });
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
 
-    await waitFor(() => {
       expect(result.current.error).toBe('boom');
-    });
 
-    await act(async () => {
-      result.current.retry();
-    });
+      await act(async () => {
+        await result.current.retry();
+        await Promise.resolve();
+      });
 
-    await waitFor(() => {
       expect(result.current.error).toBeNull();
-    });
+      expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: 'c2',
+        isFirstPage: false,
+        forceFresh: false,
+      });
+      expect(fetchPage).not.toHaveBeenCalledWith({
+        cursor: null,
+        isFirstPage: true,
+        forceFresh: true,
+      });
 
-    expect(result.current.items).toEqual([{ id: '1' }, { id: '2' }]);
-    expect(fetchPage).toHaveBeenLastCalledWith({
-      cursor: 'c2',
-      isFirstPage: false,
-      forceFresh: false,
-    });
-    expect(fetchPage).not.toHaveBeenCalledWith({
-      cursor: null,
-      isFirstPage: true,
-      forceFresh: true,
-    });
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('retries a failed first page from the start', async () => {
