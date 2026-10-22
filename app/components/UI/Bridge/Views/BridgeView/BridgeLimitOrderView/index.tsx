@@ -32,6 +32,7 @@ import {
   setLimitOrderMarketComparison,
 } from '../../../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../../selectors/bridge/featureFlags';
 import type { TokenInputAreaRef } from '../../../components/TokenInputArea';
 import OrdersTabs, { OrdersTabKey } from '../../../components/OrdersTabs';
 import {
@@ -58,7 +59,6 @@ import type {
 import {
   HISTORY_LIMIT_ORDER_STATES,
   LIMIT_ORDER_BUTTON_PRICE_PRESETS,
-  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
   LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
   LIMIT_ORDERS_REFETCH_INTERVAL,
   LOAD_MORE_LIMIT_ORDERSSCROLL_THRESHOLD,
@@ -114,6 +114,9 @@ const BridgeLimitOrderViewContent = ({
   const dispatch = useDispatch();
   const navigation = useNavigation<AppNavigationProp>();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const currentCurrency = useSelector(selectCurrentCurrency);
   const inputRef = useRef<TokenInputAreaRef>(null);
   const limitPriceInputRef = useRef<InputSectionRef>(null);
@@ -467,9 +470,7 @@ const BridgeLimitOrderViewContent = ({
   ]);
 
   const expiration = getSwapsLimitOrderExpirationLabel(expirationMinutes);
-  const costToleranceLabel = `${
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE
-  }%`;
+  const costToleranceLabel = `${costTolerance ?? defaultCostTolerance}%`;
   const formattedLimitPrice =
     formatSubscriptNotation(Number(value)) ??
     formatAmountWithLocaleSeparators(value);
