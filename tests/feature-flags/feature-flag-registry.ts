@@ -4881,8 +4881,8 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tatTAT4021AbtestPerpsHeaderMarketList: {
-    name: 'tatTAT4021AbtestPerpsHeaderMarketList',
+  perpsTAT4021AbtestPerpsHeaderMarketList: {
+    name: 'perpsTAT4021AbtestPerpsHeaderMarketList',
     type: FeatureFlagType.Remote,
     // Not in the production client-config response yet. Safe default is 100%
     // control so E2E stays deterministic until the flag ships.

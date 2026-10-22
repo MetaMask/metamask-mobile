@@ -111,9 +111,10 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
  * Missing or invalid flags fall back to `control` via `useABTest`.
  *
  * LaunchDarkly JSON threshold array (50/50 at launch; dark-launch at 100%
- * control first). Team token is `tat` per the experiment brief.
+ * control first). Team token is `perps`, matching the other Perps experiments.
  */
-export const PERPS_HEADER_AB_TEST_KEY = 'tatTAT4021AbtestPerpsHeaderMarketList';
+export const PERPS_HEADER_AB_TEST_KEY =
+  'perpsTAT4021AbtestPerpsHeaderMarketList';
 
 export enum PerpsHeaderNavVariant {
   Control = 'control',

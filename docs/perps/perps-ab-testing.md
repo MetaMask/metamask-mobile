@@ -10,17 +10,17 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 
 ## Active tests
 
-| Flag key (Redux / `useABTest`)           | Variants               | Purpose                                                                            |
-| ---------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
-| `perpsTAT1937AbtestButtonColor`          | `control`, `colors`    | Long/short button color (TAT-1937)                                                 |
-| `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                           |
-| `perpsTAT3793AbtestPerpsHomeExplore`     | `control`, `treatment` | Perps home Explore table replacing stacked market sections (TAT-3793)              |
-| `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597)          |
-| `tatTAT4021AbtestPerpsHeaderMarketList`  | `control`, `treatment` | Pro entry points open the market list instead of the last-viewed market (TAT-4021) |
+| Flag key (Redux / `useABTest`)            | Variants               | Purpose                                                                            |
+| ----------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| `perpsTAT1937AbtestButtonColor`           | `control`, `colors`    | Long/short button color (TAT-1937)                                                 |
+| `perpsTAT3938AbtestScreenVsBottomSheet`   | `control`, `treatment` | Shared screen vs bottom-sheet experience                                           |
+| `perpsTAT3793AbtestPerpsHomeExplore`      | `control`, `treatment` | Perps home Explore table replacing stacked market sections (TAT-3793)              |
+| `perpsTAT3597AbtestPerpsSectionPriority`  | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597)          |
+| `perpsTAT4021AbtestPerpsHeaderMarketList` | `control`, `treatment` | Pro entry points open the market list instead of the last-viewed market (TAT-4021) |
 
 `perpsTAT1937AbtestButtonColor` is version-gated to app version `8.3.0` and above using the `versions` + `thresholdVersion: 2` LaunchDarkly composition. See [`docs/perps/perps-feature-flags.md`](./perps-feature-flags.md).
 
-## Pro entry market list (`tatTAT4021AbtestPerpsHeaderMarketList`)
+## Pro entry market list (`perpsTAT4021AbtestPerpsHeaderMarketList`)
 
 Pro-mode users who tap the wallet-home Perps section header, balance-breakdown row, or main action entry (homepage Perps button, wallet actions, trade menu), and users who switch from Lite to Pro on the Perps Home pill, open the market list in treatment. The list starts on Watchlist when the watchlist is non-empty, otherwise All. Control keeps the last-viewed market, or BTC.
 
