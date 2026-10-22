@@ -1,6 +1,10 @@
 import React from 'react';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+  type Edge,
+} from 'react-native-safe-area-context';
 import { AnimationDuration } from '@metamask/design-tokens';
 import {
   Box,
@@ -56,10 +60,12 @@ const MarketingMomentContent = ({
   testID,
 }: Omit<MarketingMomentProps, 'theme'>) => {
   const tw = useTailwind();
-  // Use the insets hook, not SafeAreaView. SafeAreaView always pads with the
-  // provider's window insets, so a screen that already applied them cannot
-  // turn the extra padding off. The hook follows SafeAreaInsetsContext.
   const insets = useSafeAreaInsets();
+  // Native safe area adds the window inset for every enabled edge. Drop an
+  // edge the context already zeroed, so a screen that applied it is not padded twice.
+  const edges = (['top', 'right', 'bottom', 'left'] as const).filter(
+    (edge): edge is Edge => insets[edge] > 0,
+  );
   const { label: primaryLabel, ...primaryButtonProps } =
     primaryAction ?? ({} as Partial<MarketingMomentAction>);
   const { label: secondaryLabel, ...secondaryButtonProps } =
@@ -86,16 +92,9 @@ const MarketingMomentContent = ({
           {background}
         </Box>
       ) : null}
-      <Box
-        style={[
-          tw.style('min-h-0 flex-1'),
-          {
-            paddingTop: insets.top,
-            paddingRight: insets.right,
-            paddingBottom: insets.bottom,
-            paddingLeft: insets.left,
-          },
-        ]}
+      <SafeAreaView
+        edges={edges}
+        style={tw.style('min-h-0 flex-1')}
         testID={testID ? `${testID}-body` : undefined}
       >
         <Box
@@ -201,7 +200,7 @@ const MarketingMomentContent = ({
             </Box>
           </Animated.View>
         ) : null}
-      </Box>
+      </SafeAreaView>
     </Box>
   );
 };

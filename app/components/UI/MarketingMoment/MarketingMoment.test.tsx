@@ -50,8 +50,18 @@ jest.mock('react-native-safe-area-context', () => {
 
   return {
     useSafeAreaInsets: jest.fn(() => insets),
-    SafeAreaView: ({ children }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(NativeView, null, children),
+    SafeAreaView: ({
+      children,
+      edges,
+      testID,
+      style,
+    }: {
+      children?: React.ReactNode;
+      edges?: string[];
+      testID?: string;
+      style?: unknown;
+    }) =>
+      ReactActual.createElement(NativeView, { edges, testID, style }, children),
   };
 });
 
@@ -267,7 +277,7 @@ describe('MarketingMoment', () => {
     expect(queryByTestId(testIds.secondaryButton)).not.toBeOnTheScreen();
   });
 
-  it('pads the body with the safe area insets from context', () => {
+  it('enables only the safe-area edges that context still reports', () => {
     jest.mocked(useSafeAreaInsets).mockReturnValue({
       top: 0,
       right: 0,
@@ -277,14 +287,8 @@ describe('MarketingMoment', () => {
 
     const { getByTestId } = renderMoment();
 
-    expect(getByTestId(`${testIds.container}-body`).props.style).toEqual([
-      { twClassName: 'min-h-0 flex-1' },
-      {
-        paddingTop: 0,
-        paddingRight: 0,
-        paddingBottom: 34,
-        paddingLeft: 0,
-      },
+    expect(getByTestId(`${testIds.container}-body`).props.edges).toEqual([
+      'bottom',
     ]);
   });
 
