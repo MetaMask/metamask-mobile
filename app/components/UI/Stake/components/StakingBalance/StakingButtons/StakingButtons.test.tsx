@@ -17,6 +17,21 @@ import {
   ParamListBase,
 } from '@react-navigation/native';
 import { MOCK_ETH_MAINNET_ASSET } from '../../../__mocks__/stakeMockData';
+import { GLASS_SURFACE_SHEEN_TEST_ID } from '../../../../../../component-library/components-temp/BoxGlass';
+
+// The glass tests need the OS to draw glass, which Jest can't.
+jest.mock('../../../../../../component-library/hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual(
+    '../../../../../../component-library/hooks/useLiquidGlass',
+  );
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: true,
+    }),
+  };
+});
 import {
   selectPooledStakingEnabledFlag,
   selectStablecoinLendingEnabledFlag,
@@ -298,6 +313,34 @@ describe('StakingButtons', () => {
         token: mockEarnTokenPair.outputToken,
       },
       screen: Routes.STAKING.UNSTAKE,
+    });
+  });
+
+  describe('glass', () => {
+    const glassProps = {
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
+    };
+
+    it('keeps the plain secondary buttons by default', () => {
+      const { queryAllByTestId } = renderWithProvider(
+        <StakingButtons {...glassProps} />,
+        { state: mockInitialState },
+      );
+
+      expect(queryAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(0);
+    });
+
+    it('draws Unstake and Stake more on glass with the sheen', () => {
+      const { getAllByTestId, getByText } = renderWithProvider(
+        <StakingButtons {...glassProps} isGlass />,
+        { state: mockInitialState },
+      );
+
+      expect(getAllByTestId(GLASS_SURFACE_SHEEN_TEST_ID)).toHaveLength(2);
+      expect(getByText('Unstake')).toBeOnTheScreen();
+      expect(getByText('Stake more')).toBeOnTheScreen();
     });
   });
 });

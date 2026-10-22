@@ -872,6 +872,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'account' ? (
                 <Box
                   gap={4}
+                  twClassName="flex-1"
                   testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP}
                 >
                   <OnboardingTitle twClassName="pt-2">

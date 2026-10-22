@@ -38,7 +38,7 @@ const LOCALIZED_TEXT = {
   share: 'Share',
   historyReferrals: 'Referrals',
   tradeCommissions: 'Trade commissions',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   shareCode: 'Share code',
   termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;

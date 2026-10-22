@@ -292,18 +292,18 @@ describe('SocialFeedPostShell', () => {
     ).toHaveTextContent('$50K P&L (30d)');
   });
 
-  it('shows the verified badge and a temporary mock marker after the timestamp', () => {
+  it('omits the verified badge and mock marker from the author row', () => {
     renderShell(basePost());
 
     expect(
-      screen.getByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
     expect(
-      screen.getByTestId(
+      screen.queryByTestId(
         `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-post-1`,
       ),
-    ).toHaveTextContent('*');
-    expect(screen.queryByText('🐬')).toBeNull();
+    ).toBeNull();
+    expect(screen.queryByText('*')).toBeNull();
   });
 
   it('places the post age on the author row', () => {
@@ -333,6 +333,22 @@ describe('SocialFeedPostShell', () => {
     expect(screen.queryByText('Amazing position')).toBeNull();
     expect(
       screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.GIF}-post-1`),
+    ).toBeNull();
+  });
+
+  it('marks a pending post as posting', () => {
+    renderShell(basePost({ isPending: true }));
+
+    expect(
+      screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
+    ).toHaveTextContent('Posting...');
+  });
+
+  it('shows no posting label once the post is confirmed', () => {
+    renderShell(basePost());
+
+    expect(
+      screen.queryByTestId(`${SocialFeedPostShellSelectorsIDs.PENDING}-post-1`),
     ).toBeNull();
   });
 

@@ -2,15 +2,18 @@ import type { RootState } from '..';
 import type {
   CommissionEntryView,
   LedgerEarningEntryDto,
+  LedgerEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
   ReferralRole,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
+import { selectGeoLocation } from '../rewards/selectors';
 import type {
   EarningsSummaryEntry,
   ReferralFunnelEntry,
   ReferralMeEntry,
 } from '.';
+import { isMoneyReferralAllowedForGeo } from './isMoneyReferralAllowedForGeo';
 
 /** Which Rewards home a settled referral-me payload opens. */
 export type MoneyDashboardPersona = 'referrer' | 'referee' | 'plain';
@@ -114,6 +117,22 @@ export function selectReferralMeLocalizedText(
 }
 
 /**
+ * Whether the current device country may accept a Money referral invite.
+ *
+ * Combines Rewards geo metadata with the program's `excluded_regions` from
+ * referral me. Unknown geo fails open (same as Rewards opt-in on error).
+ */
+export function selectMoneyReferralAllowedForGeo(
+  state: RootState,
+  profileId: string | undefined,
+): boolean {
+  const geoLocation = selectGeoLocation(state);
+  const excludedRegions = selectReferralMeEntry(state, profileId)?.data
+    ?.excluded_regions;
+  return isMoneyReferralAllowedForGeo(geoLocation, excludedRegions);
+}
+
+/**
  * Unnarrowed `GET /earnings/summary` entry for one Hydra profile. Keyed the
  * same way as referral me, for the same reason: a late write for a signed-out
  * profile must not be read as the current one's.
@@ -156,4 +175,15 @@ export function selectCashbackLedger(
     return undefined;
   }
   return state.rewardsMoney.cashbackLedger[profileId];
+}
+
+/** First page of the unified earnings ledger for one Hydra profile. */
+export function selectEarningsHistory(
+  state: RootState,
+  profileId: string | undefined,
+): LedgerEntryDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.earningsHistory[profileId];
 }

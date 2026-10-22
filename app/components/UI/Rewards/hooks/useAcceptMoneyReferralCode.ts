@@ -20,6 +20,7 @@ import {
 const SELF_REFERRAL_BODY_SNIPPET = 'own referral code';
 const REFERRER_REFUSAL_BODY_SNIPPET = 'kol cannot register as a referee';
 const ACTIVE_TRADER_BODY_SNIPPET = 'recent trading activity';
+const RESTRICTED_COUNTRY_BODY_SNIPPET = 'restrictedcountrycodeerror';
 
 /**
  * Stable reason a refused Accept was turned away. Sent as Segment
@@ -31,6 +32,7 @@ export type ReferralRefusalReason =
   | 'own_code'
   | 'kol_cannot_register'
   | 'active_trader'
+  | 'restricted_country'
   | 'rate_limited'
   | 'registration_failed';
 
@@ -67,6 +69,12 @@ export function getRegisterRefereeRefusalReason(
     if (body.includes(ACTIVE_TRADER_BODY_SNIPPET)) {
       return 'active_trader';
     }
+    if (
+      body.includes(RESTRICTED_COUNTRY_BODY_SNIPPET) ||
+      body.includes('not available in your country')
+    ) {
+      return 'restricted_country';
+    }
   }
   if (status === 429) {
     return 'rate_limited';
@@ -87,6 +95,8 @@ export function getRegisterRefereeErrorTitle(error: unknown): string {
       return strings('rewards.error_messages.referrer_cannot_be_referred');
     case 'active_trader':
       return strings('rewards.error_messages.active_trader_cannot_be_referred');
+    case 'restricted_country':
+      return strings('rewards.onboarding.not_supported_region_description');
     case 'rate_limited':
       return strings('rewards.error_messages.rate_limited');
     case 'registration_failed':

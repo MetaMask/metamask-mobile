@@ -101,6 +101,17 @@ jest.mock('../components/Campaigns/CampaignsPreview', () => {
 
 const mockPerformanceTab = jest.fn();
 
+jest.mock('../components/Money/Tabs/EarningsTab', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    EARNINGS_TAB_TEST_IDS: {
+      CONTAINER: 'rewards-money-earnings-tab',
+    },
+    default: () => <View testID="rewards-money-earnings-tab" />,
+  };
+});
+
 jest.mock('../components/Money/Tabs/PerformanceTab', () => {
   const { View } = jest.requireActual('react-native');
   return {
@@ -138,7 +149,7 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   invitedBenefitTitle: 'Your referral benefit',
   invitedReferredBy: 'Referred by',
   invitedOptInDescription: 'Opt in to Rewards to start earning.',
@@ -173,6 +184,7 @@ const createReferralMe = (
   earn_rates: EARN_RATES,
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -705,7 +717,7 @@ describe('RewardsMoneyDashboard', () => {
     });
   });
 
-  it('switches to an empty Earnings tab body', () => {
+  it('switches to the Earnings tab body', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     fireEvent.press(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB));
@@ -713,9 +725,27 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
     ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
+    ).toBeNull();
+  });
+
+  it('hides the earnings indicator when only claimed balance is positive', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: { ...EARNINGS_SUMMARY, claimable: '0', claimed: '50' },
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
   });
 
   it('switches to the Performance tab body', () => {
@@ -734,7 +764,10 @@ describe('RewardsMoneyDashboard', () => {
     );
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
   });
 
   it('returns the shared scroller to the top when the selected tab changes', () => {
@@ -763,17 +796,16 @@ describe('RewardsMoneyDashboard', () => {
     scrollToSpy.mockRestore();
   });
 
-  it('keeps inactive tab bodies mounted', () => {
+  it('mounts a tab only while it is selected', () => {
     const { getByTestId, queryByTestId } = renderDashboard();
 
     expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY, {
-        includeHiddenElements: true,
-      }),
-    ).toBeTruthy();
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeNull();
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY),
-    ).not.toBeOnTheScreen();
+    ).toBeNull();
+    expect(mockPerformanceTab).not.toHaveBeenCalled();
 
     fireEvent.press(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_TAB),
@@ -782,14 +814,7 @@ describe('RewardsMoneyDashboard', () => {
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_TAB),
     );
 
-    expect(
-      queryByTestId('rewards-money-performance-tab', {
-        includeHiddenElements: true,
-      }),
-    ).toBeTruthy();
-    expect(mockPerformanceTab).toHaveBeenLastCalledWith(
-      expect.objectContaining({ active: false }),
-    );
+    expect(queryByTestId('rewards-money-performance-tab')).toBeNull();
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();

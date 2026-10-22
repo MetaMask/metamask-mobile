@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type {
   CommissionEntryView,
+  EarningsSummaryDto,
   LedgerEarningEntryDto,
   ReferralLocalizedText,
   ReferralMeDto,
@@ -40,7 +41,7 @@ const PROFILE_ID = 'profile-a';
 
 const LOCALIZED_TEXT = {
   referrals: 'Referrals',
-  last30DaysUpdatedDaily: 'Last 30 days · Updated daily',
+  updatedDaily: 'Updated daily',
   funnelConfirmed: 'Confirmed referrals',
   funnelConfirmedDescription: 'Friends who completed a first eligible action',
   funnelFeeGenerating: 'Fee-generating referrals',
@@ -48,6 +49,7 @@ const LOCALIZED_TEXT = {
     'Referred friends whose activity generated eligible fees',
   funnelCodeUses: 'Code uses',
   funnelActive: 'Active referrals',
+  eligibleFees: 'Eligible fees',
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
@@ -57,6 +59,8 @@ const LOCALIZED_TEXT = {
   copiedOnce: 'Copied 1 time',
   copiedTimes: 'Copied {count} times',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
 } as unknown as ReferralLocalizedText;
 
@@ -164,6 +168,19 @@ const renderTab = (
               data: funnelData,
             },
           },
+          earningsSummary: {
+            [PROFILE_ID]: {
+              loading: false,
+              error: false,
+              data: {
+                earned_by_others: {
+                  by_claim_family: {
+                    REFERRAL_REV_SHARE: { lifetime: '41750000' },
+                  },
+                },
+              } as unknown as EarningsSummaryDto,
+            },
+          },
         },
       },
     },
@@ -182,6 +199,10 @@ describe('PerformanceTab', () => {
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
     expect(getByText('Confirmed referrals')).toBeOnTheScreen();
     expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
+    expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Eligible fees')).toBeOnTheScreen();
+    expect(getByText('Updated daily')).toBeOnTheScreen();
+    expect(queryByText('Last 30 days · Updated daily')).toBeNull();
     expect(queryByText('Code uses')).toBeNull();
     expect(queryByText('Active referrals')).toBeNull();
     expect(getByText('12')).toBeOnTheScreen();
@@ -208,7 +229,7 @@ describe('PerformanceTab', () => {
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
     expect(queryByText('Trading commissions')).toBeNull();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
     expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
       enabled: false,
     });
@@ -372,7 +393,7 @@ describe('PerformanceTab', () => {
 
     expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_ERROR)).toBeNull();
     expect(queryByText('Error loading your transactions')).toBeNull();
-    expect(getByText('Swaps')).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
   });
 
   it('retries rebates from the transactions error when nothing is cached', () => {
