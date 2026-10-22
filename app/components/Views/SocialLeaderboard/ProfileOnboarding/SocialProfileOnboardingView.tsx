@@ -35,10 +35,9 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
+import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
-import ProfileAvatar, {
-  ProfileAvatarArt,
-} from '../MyProfileView/components/ProfileAvatar';
+import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
@@ -840,9 +839,9 @@ const SocialProfileOnboardingView: React.FC = () => {
                             },
                           )}
                         >
-                          <ProfileAvatarArt
-                            preset={preset}
-                            sizePx={AVATAR_TILE_SIZE * 0.85}
+                          <Foxicon
+                            variant={preset.id}
+                            size={AVATAR_TILE_SIZE * 0.85}
                           />
                         </Pressable>
                       );
