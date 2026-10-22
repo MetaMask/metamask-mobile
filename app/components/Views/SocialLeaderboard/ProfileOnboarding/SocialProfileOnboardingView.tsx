@@ -60,9 +60,9 @@ import {
   getUsernameStatus,
   normalizeUsername,
   type ProfileOnboardingDraft,
-  type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -115,44 +115,6 @@ const LIVE_ACTIVITY = [
   },
 ];
 
-const MANUAL_PROGRESS_SEGMENT_COUNT = 4;
-const X_PROGRESS_SEGMENT_COUNT = 3;
-
-const progressSegmentCount = (path: ProfileOnboardingPath): number =>
-  path === 'x' ? X_PROGRESS_SEGMENT_COUNT : MANUAL_PROGRESS_SEGMENT_COUNT;
-
-const progressFilledCount = (
-  step: ProfileOnboardingStep,
-  path: ProfileOnboardingPath,
-): number => {
-  if (path === 'x') {
-    switch (step) {
-      case 'x-identity':
-      case 'avatar':
-        return 1;
-      case 'account':
-        return 2;
-      case 'ready':
-        return 3;
-      default:
-        return 0;
-    }
-  }
-
-  switch (step) {
-    case 'username':
-      return 1;
-    case 'avatar':
-      return 2;
-    case 'account':
-      return 3;
-    case 'ready':
-      return 4;
-    default:
-      return 0;
-  }
-};
-
 /**
  * Step title: Display Md size on the 32px heading line height, medium weight,
  * centered.
@@ -169,47 +131,6 @@ const OnboardingTitle: React.FC<{
     {children}
   </Text>
 );
-
-/**
- * Sits above the header, so it carries the top inset. A static inset rather
- * than a safe-area edge, which recalculates mid push transition (TSA-970).
- */
-const OnboardingProgress: React.FC<{
-  step: ProfileOnboardingStep;
-  path: ProfileOnboardingPath;
-  topInset: number;
-}> = ({ step, path, topInset }) => {
-  const filledCount = progressFilledCount(step, path);
-  const segmentCount = progressSegmentCount(path);
-  if (filledCount === 0) {
-    return null;
-  }
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      gap={1}
-      paddingHorizontal={4}
-      paddingBottom={4}
-      style={{ paddingTop: topInset + 8 }}
-      testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
-    >
-      {Array.from({ length: segmentCount }, (_, index) => (
-        <Box
-          key={`progress-${index}`}
-          twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
-          testID={`${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-${index}`}
-        >
-          <Box
-            twClassName={`h-full bg-icon-default ${
-              index < filledCount ? 'w-full' : 'w-0'
-            }`}
-          />
-        </Box>
-      ))}
-    </Box>
-  );
-};
 
 const LiveActivityFallback: React.FC = () => (
   <Box
