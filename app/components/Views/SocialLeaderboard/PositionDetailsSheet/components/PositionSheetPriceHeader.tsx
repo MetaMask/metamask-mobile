@@ -5,9 +5,6 @@ import {
   BoxFlexDirection,
   FontFamily,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -59,13 +56,6 @@ const PositionSheetPriceHeader = ({
         >
           {assetName}
         </Text>
-        {isPerp ? (
-          <Icon
-            name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
-            twClassName="text-info-default"
-          />
-        ) : null}
         {isPerp && leverage ? (
           <Box twClassName="rounded px-1.5 bg-muted">
             <Text
