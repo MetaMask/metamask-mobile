@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
 import type { PerpsCategory } from '../../hooks/usePerpsCategories';
@@ -43,6 +44,35 @@ describe('PerpsMarketCategoryBadges', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCategories = DEFAULT_CATEGORIES;
+  });
+
+  describe('horizontal scroll position', () => {
+    it('restores the last scroll offset when the selection changes or the bar remounts', () => {
+      const scrollToSpy = jest
+        .spyOn(ScrollView.prototype, 'scrollTo')
+        .mockImplementation(() => undefined);
+
+      const first = render(<PerpsMarketCategoryBadges {...defaultProps} />);
+      fireEvent.scroll(first.getByTestId('category-badges'), {
+        nativeEvent: { contentOffset: { x: 120, y: 0 } },
+      });
+      scrollToSpy.mockClear();
+
+      first.rerender(
+        <PerpsMarketCategoryBadges
+          {...defaultProps}
+          selectedCategory="forex"
+        />,
+      );
+      expect(scrollToSpy).toHaveBeenCalledWith({ x: 120, animated: false });
+
+      scrollToSpy.mockClear();
+      first.unmount();
+      render(<PerpsMarketCategoryBadges {...defaultProps} />);
+      expect(scrollToSpy).toHaveBeenCalledWith({ x: 120, animated: false });
+
+      scrollToSpy.mockRestore();
+    });
   });
 
   describe('memecoin icon', () => {

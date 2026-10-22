@@ -1,4 +1,9 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import type {
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  ScrollView,
+} from 'react-native';
 import {
   FilterButton,
   FilterButtonGroup,
@@ -26,6 +31,10 @@ import { useTheme } from '../../../../../util/theme';
 
 const WATCHLIST_FILTER_VALUE = 'watchlist';
 
+// Both copies of the bar (in-flow and FlashList's pinned sticky overlay) share
+// this so the pills keep their horizontal position when one swaps for the other.
+let sharedScrollOffset = 0;
+
 /**
  * PerpsMarketCategoryBadges - Container for category filter badges
  *
@@ -46,6 +55,14 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
   const { colors } = useTheme();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      sharedScrollOffset = event.nativeEvent.contentOffset.x;
+    },
+    [],
+  );
 
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
@@ -77,6 +94,11 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     },
     [isWatchlistSelected, onCategorySelect, onWatchlistToggle],
   );
+
+  // Re-sync on mount and on selection so whichever copy is visible matches.
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ x: sharedScrollOffset, animated: false });
+  }, [groupValue]);
 
   const renderCategoryFilterButton = (category: PerpsCategory) => {
     const isMemecoin = category.id === MEMECOIN_CATEGORY_ID;
@@ -115,6 +137,10 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 
   return (
     <FilterButtonGroup
+      ref={scrollRef}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}
+      contentOffset={{ x: sharedScrollOffset, y: 0 }}
       value={groupValue}
       onChange={handleFilterChange}
       variant={FilterButtonVariant.Primary}
