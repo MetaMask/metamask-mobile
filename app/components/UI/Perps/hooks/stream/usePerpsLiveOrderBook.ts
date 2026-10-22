@@ -50,12 +50,6 @@ export interface UsePerpsLiveOrderBookOptions {
    * connection — see `../../services/hydromancerOrderBookConnection.ts`.
    */
   channel?: 'orderBook' | 'orderBookAggregated' | 'orderBookHydromancer';
-  /**
-   * Seeds the Hydromancer PoC's mock feed's starting mid price (e.g. the
-   * market's last known price). Ignored by the other channels and by the
-   * Hydromancer channel once a real `MM_PERPS_HYDROMANCER_API_KEY` is set.
-   */
-  referencePrice?: number;
 }
 
 export interface UsePerpsLiveOrderBookReturn {
@@ -106,7 +100,6 @@ export function usePerpsLiveOrderBook(
     resetKey,
     fast = false,
     channel = 'orderBook',
-    referencePrice,
   } = options;
 
   const isAggregated = channel === 'orderBookAggregated';
@@ -223,10 +216,15 @@ export function usePerpsLiveOrderBook(
           levels,
           nSigFigs,
           mantissa,
-          referencePrice,
           callback: (data: OrderBookData) => {
             if (!isActive) return;
             applyUpdate(data, symbol);
+          },
+          onReset: () => {
+            if (!isActive) return;
+            pendingUpdateRef.current = null;
+            setOrderBook(null);
+            setIsLoading(true);
           },
           onStatusChange: (status) => {
             if (!isActive) return;
@@ -302,7 +300,6 @@ export function usePerpsLiveOrderBook(
     isAggregated,
     isHydromancer,
     usesDedicatedConnection,
-    referencePrice,
     reconnectNonce,
   ]);
 

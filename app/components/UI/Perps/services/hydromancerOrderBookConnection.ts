@@ -1,72 +1,35 @@
 import type {
   OrderBookConnectionStatus,
   OrderBookData,
+  OrderBookLevel,
 } from '@metamask/perps-controller';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import type {
-  HydromancerL2BookMessage,
-  HydromancerL2BookSubscribeRequest,
-} from '../types/hydromancer';
-import {
-  createMockHydromancerL2BookMessage,
-  HYDROMANCER_BLOCK_MS,
-  HYDROMANCER_MAX_LEVELS,
-  processHydromancerOrderBook,
-} from '../utils/hydromancerOrderBook';
 
 /**
- * Dedicated connection for the Hydromancer `l2Book` order-book PoC — the
- * first vendor feed named in the "Perps HyperLiquid order-book depth
- * investigation" doc as a path to 20 levels/side under Hyperliquid's own
- * `fast`/slow cadence trade-off.
+ * PoC connection to the local Hydromancer order-book relay
+ * (`hydromancer-orderbook-relay/`). The relay holds the vendor API key and
+ * sends the app an `OrderBookData` snapshot. This socket never talks to
+ * Hydromancer directly.
  *
- * Kept separate from `AggregatedOrderBookConnection` (Hyperliquid) so this
- * PoC can be wired, toggled, and torn down independently of the shipped
- * order-book paths — see `../hooks/stream/usePerpsLiveOrderBook.ts`'s
- * `'orderBookHydromancer'` channel.
- *
- * Two modes, selected automatically by whether an API key is configured. With
- * no key (default today), a local mock timer emits snapshots shaped exactly
- * like the real feed (see `createMockHydromancerL2BookMessage`), so the
- * mapper, hook, and UI are fully wired and need no change once a real key
- * lands. With a key present, this opens the real
- * `wss://api.hydromancer.xyz/ws` socket and speaks the documented `l2Book`
- * subscribe/unsubscribe protocol.
+ * Hardcoded for the iOS simulator: `localhost` is the Mac running the relay.
  */
-
-/** `.js.env` var. Empty/unset selects the mock feed. */
-export const getHydromancerApiKey = (): string =>
-  process.env.MM_PERPS_HYDROMANCER_API_KEY?.trim() ?? '';
-
-/** Fallback mid price for the mock feed when no reference price is known yet. */
-const DEFAULT_MOCK_MID_PRICE = 100;
-
-/** Hydromancer only accepts these `nLevels` values; snap to the nearest. */
-function toHydromancerNLevels(levels: number): 1 | 10 | 20 | 50 {
-  if (levels <= 1) return 1;
-  if (levels <= 10) return 10;
-  if (levels <= 20) return 20;
-  return 50;
-}
+const RELAY_URL = 'ws://localhost:8787';
+const RECONNECT_MS = 1000;
 
 export interface SubscribeHydromancerOrderBookParams {
-  /** Market symbol (e.g. 'BTC'). */
+  /** Market symbol (e.g. 'BTC'). Sent to the relay as `coin`. */
   symbol: string;
-  /** Number of levels per side to keep (default: 20, this PoC's goal depth). */
+  /** Number of levels per side to keep. The relay sends 20. */
   levels?: number;
-  /** Server-side aggregation significant figures (real feed only). */
+  /** Server-side price aggregation. The relay forwards this to Hydromancer. */
   nSigFigs?: 2 | 3 | 4 | 5;
-  /** Mantissa refinement when `nSigFigs` is 5 (real feed only). */
+  /** Mantissa refinement when `nSigFigs` is 5. */
   mantissa?: 2 | 5;
-  /**
-   * Seeds the mock feed's starting mid price (e.g. the market's last known
-   * price). Ignored once a real key/feed is in use — the vendor snapshot
-   * carries its own price. Falls back to `DEFAULT_MOCK_MID_PRICE`.
-   */
-  referencePrice?: number;
-  /** Invoked with each processed snapshot. */
+  /** Invoked with each snapshot from the relay. */
   callback: (data: OrderBookData) => void;
-  /** Invoked when the underlying feed's health changes. */
+  /** Invoked when a sequence gap drops the book until the next snapshot. */
+  onReset?: () => void;
+  /** Invoked when the relay socket's health changes. */
   onStatusChange?: (status: OrderBookConnectionStatus) => void;
 }
 
@@ -75,117 +38,70 @@ interface LiveHandler {
   nSigFigs?: 2 | 3 | 4 | 5;
   mantissa?: 2 | 5;
   callback: (data: OrderBookData) => void;
+  onReset?: () => void;
   onStatusChange?: (status: OrderBookConnectionStatus) => void;
+}
+
+interface RelayClientMessage {
+  type: 'subscribe' | 'unsubscribe';
+  coin: string;
+  nSigFigs?: 2 | 3 | 4 | 5;
+  mantissa?: 2 | 5;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-function isHydromancerL2BookMessage(
-  value: unknown,
-): value is HydromancerL2BookMessage {
+function isOrderBookLevel(value: unknown): value is OrderBookLevel {
   return (
     isRecord(value) &&
-    value.type === 'l2Book' &&
-    isRecord(value.data) &&
-    typeof value.data.coin === 'string' &&
-    Array.isArray(value.data.levels)
+    typeof value.price === 'string' &&
+    typeof value.size === 'string' &&
+    typeof value.total === 'string' &&
+    typeof value.notional === 'string' &&
+    typeof value.totalNotional === 'string'
+  );
+}
+
+function isOrderBookData(value: unknown): value is OrderBookData {
+  return (
+    isRecord(value) &&
+    Array.isArray(value.bids) &&
+    Array.isArray(value.asks) &&
+    value.bids.every(isOrderBookLevel) &&
+    value.asks.every(isOrderBookLevel) &&
+    typeof value.spread === 'string' &&
+    typeof value.spreadPercentage === 'string' &&
+    typeof value.midPrice === 'string' &&
+    typeof value.lastUpdated === 'number' &&
+    typeof value.maxTotal === 'string'
   );
 }
 
 /**
- * Owns a dedicated Hydromancer WebSocket (real feed) or mock timers (no key)
- * for the order-book PoC's `l2Book` subscriptions, one per active coin.
+ * One socket to the local relay, shared by every active market.
  */
 export class HydromancerOrderBookConnection {
-  /** Real-feed socket. Created lazily on first subscription with a key. */
   #ws: WebSocket | null = null;
-  /** Whether the socket has completed the `{type:'connected'}` handshake. */
   #isSocketReady = false;
   #liveHandlers = new Map<string, LiveHandler>();
-  #mockTimers = new Map<string, ReturnType<typeof setInterval>>();
-  /** Subscribe/unsubscribe messages queued until the socket is ready. */
-  #pendingQueue: HydromancerL2BookSubscribeRequest[] = [];
+  #pendingQueue: RelayClientMessage[] = [];
+  #reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  #closedByUs = false;
 
   /**
-   * Opens an `l2Book` subscription (real or mock, depending on whether
-   * `MM_PERPS_HYDROMANCER_API_KEY` is set) for one coin.
+   * Subscribes to one coin on the relay.
    *
    * @returns An unsubscribe function.
    */
-  subscribe(params: SubscribeHydromancerOrderBookParams): () => void {
-    return getHydromancerApiKey()
-      ? this.#subscribeLive(params)
-      : this.#subscribeMock(params);
-  }
-
-  /** Closes the real-feed socket (if any) and clears all mock timers. */
-  close(): void {
-    this.#mockTimers.forEach((timer) => clearInterval(timer));
-    this.#mockTimers.clear();
-    this.#liveHandlers.clear();
-    this.#ws?.close();
-    this.#ws = null;
-    this.#isSocketReady = false;
-  }
-
-  // --- Mock feed ---------------------------------------------------------
-
-  #subscribeMock({
+  subscribe({
     symbol,
-    levels = HYDROMANCER_MAX_LEVELS,
-    referencePrice,
-    callback,
-    onStatusChange,
-  }: SubscribeHydromancerOrderBookParams): () => void {
-    onStatusChange?.('connecting');
-
-    let seq = 0;
-    let mid =
-      referencePrice && referencePrice > 0
-        ? referencePrice
-        : DEFAULT_MOCK_MID_PRICE;
-    let hasConnected = false;
-
-    const emit = () => {
-      seq += 1;
-      // Small random walk so the mid price (and the ladder built around it)
-      // visibly drifts block to block instead of jittering in place.
-      mid *= 1 + (Math.random() - 0.5) * 0.0004;
-      const message = createMockHydromancerL2BookMessage({
-        coin: symbol,
-        seq,
-        midPrice: mid,
-        levels,
-      });
-      if (!hasConnected) {
-        hasConnected = true;
-        onStatusChange?.('connected');
-      }
-      callback(processHydromancerOrderBook(message.data, levels));
-    };
-
-    // First snapshot lands on the next tick, mirroring the real feed's
-    // "initial snapshot on subscribe" behavior rather than appearing instantly.
-    emit();
-    const timer = setInterval(emit, HYDROMANCER_BLOCK_MS);
-    this.#mockTimers.set(symbol, timer);
-
-    return () => {
-      clearInterval(timer);
-      this.#mockTimers.delete(symbol);
-    };
-  }
-
-  // --- Real feed -----------------------------------------------------------
-
-  #subscribeLive({
-    symbol,
-    levels = HYDROMANCER_MAX_LEVELS,
+    levels = 20,
     nSigFigs,
     mantissa,
     callback,
+    onReset,
     onStatusChange,
   }: SubscribeHydromancerOrderBookParams): () => void {
     onStatusChange?.('connecting');
@@ -194,31 +110,41 @@ export class HydromancerOrderBookConnection {
       nSigFigs,
       mantissa,
       callback,
+      onReset,
       onStatusChange,
     });
-
-    const subscribeMessage: HydromancerL2BookSubscribeRequest = {
-      method: 'subscribe',
-      subscription: {
-        type: 'l2Book',
-        coins: [symbol],
-        nSigFigs,
-        mantissa,
-        nLevels: toHydromancerNLevels(levels),
-      },
-    };
-    this.#send(subscribeMessage);
+    this.#send({ type: 'subscribe', coin: symbol, nSigFigs, mantissa });
 
     return () => {
       this.#liveHandlers.delete(symbol);
-      this.#send({
-        method: 'unsubscribe',
-        subscription: { type: 'l2Book', coins: [symbol] },
-      });
+      this.#send({ type: 'unsubscribe', coin: symbol });
       if (this.#liveHandlers.size === 0) {
         this.close();
       }
     };
+  }
+
+  /** Closes the relay socket and drops every subscription. */
+  close(): void {
+    this.#closedByUs = true;
+    if (this.#reconnectTimer) {
+      clearTimeout(this.#reconnectTimer);
+      this.#reconnectTimer = null;
+    }
+    this.#liveHandlers.clear();
+    this.#pendingQueue = [];
+    this.#ws?.close();
+    this.#ws = null;
+    this.#isSocketReady = false;
+  }
+
+  #send(message: RelayClientMessage): void {
+    const ws = this.#ensureSocket();
+    if (this.#isSocketReady && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify(message));
+      return;
+    }
+    this.#pendingQueue.push(message);
   }
 
   #ensureSocket(): WebSocket {
@@ -226,8 +152,15 @@ export class HydromancerOrderBookConnection {
       return this.#ws;
     }
 
-    const token = getHydromancerApiKey();
-    const ws = new WebSocket(`wss://api.hydromancer.xyz/ws?token=${token}`);
+    this.#closedByUs = false;
+    const ws = new WebSocket(RELAY_URL);
+
+    ws.onopen = () => {
+      this.#isSocketReady = true;
+      const queued = this.#pendingQueue;
+      this.#pendingQueue = [];
+      queued.forEach((message) => ws.send(JSON.stringify(message)));
+    };
 
     ws.onmessage = (event) => {
       let parsed: unknown;
@@ -237,66 +170,68 @@ export class HydromancerOrderBookConnection {
         DevLogger.log('HydromancerOrderBookConnection: bad message', error);
         return;
       }
-
-      if (isRecord(parsed) && parsed.type === 'connected') {
-        this.#isSocketReady = true;
-        this.#flushQueue();
-        return;
-      }
-      if (isRecord(parsed) && parsed.type === 'ping') {
-        ws.send(JSON.stringify({ type: 'pong' }));
-        return;
-      }
-      if (!isHydromancerL2BookMessage(parsed)) {
+      if (!isRecord(parsed) || typeof parsed.coin !== 'string') {
         return;
       }
 
-      const handler = this.#liveHandlers.get(parsed.data.coin);
+      const handler = this.#liveHandlers.get(parsed.coin);
       if (!handler) {
         return;
       }
+
+      if (parsed.type === 'reset') {
+        handler.onReset?.();
+        return;
+      }
+      if (parsed.type === 'error') {
+        handler.onStatusChange?.('error');
+        return;
+      }
+      if (parsed.type !== 'l2Book' || !isOrderBookData(parsed.orderBook)) {
+        return;
+      }
+
       handler.onStatusChange?.('connected');
-      handler.callback(
-        processHydromancerOrderBook(parsed.data, handler.levels),
-      );
+      handler.callback({
+        ...parsed.orderBook,
+        bids: parsed.orderBook.bids.slice(0, handler.levels),
+        asks: parsed.orderBook.asks.slice(0, handler.levels),
+      });
     };
 
     ws.onerror = (error) => {
       DevLogger.log('HydromancerOrderBookConnection: socket error', error);
-      this.#liveHandlers.forEach((handler) =>
-        handler.onStatusChange?.('error'),
-      );
     };
 
     ws.onclose = () => {
+      // A grouping change closes this socket and opens the next one immediately.
+      // Ignore the old close so it cannot drop the replacement.
+      if (this.#ws !== ws) {
+        return;
+      }
       this.#ws = null;
       this.#isSocketReady = false;
+      if (this.#closedByUs || this.#liveHandlers.size === 0) {
+        return;
+      }
       this.#liveHandlers.forEach((handler) =>
-        handler.onStatusChange?.('error'),
+        handler.onStatusChange?.('connecting'),
       );
+      this.#reconnectTimer = setTimeout(() => {
+        this.#reconnectTimer = null;
+        for (const [coin, handler] of this.#liveHandlers) {
+          this.#send({
+            type: 'subscribe',
+            coin,
+            nSigFigs: handler.nSigFigs,
+            mantissa: handler.mantissa,
+          });
+        }
+      }, RECONNECT_MS);
     };
 
     this.#ws = ws;
     return ws;
-  }
-
-  #send(message: HydromancerL2BookSubscribeRequest): void {
-    const ws = this.#ensureSocket();
-    if (this.#isSocketReady && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(message));
-      return;
-    }
-    this.#pendingQueue.push(message);
-  }
-
-  #flushQueue(): void {
-    const ws = this.#ws;
-    if (!ws) {
-      return;
-    }
-    const queued = this.#pendingQueue;
-    this.#pendingQueue = [];
-    queued.forEach((message) => ws.send(JSON.stringify(message)));
   }
 }
 

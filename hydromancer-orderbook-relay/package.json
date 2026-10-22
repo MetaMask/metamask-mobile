@@ -1,0 +1,12 @@
+{
+  "name": "hydromancer-orderbook-relay",
+  "private": true,
+  "type": "module",
+  "description": "Holds the Hydromancer API key and fans one l2Book snapshot per active market out to MetaMask Mobile.",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js"
+  }
+}

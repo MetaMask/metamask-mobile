@@ -37,8 +37,8 @@ import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
 /**
  * Dev-only: which order-book feed backs the Pro ladder. `'hydromancer'` is
- * the order-book-depth PoC (20 levels/side via Hydromancer's `l2Book`
- * stream, mocked until `MM_PERPS_HYDROMANCER_API_KEY` is set) — see
+ * the order-book-depth PoC (20 levels/side from the local relay at
+ * `ws://localhost:8787`) — see
  * `../../../hooks/stream/usePerpsLiveOrderBook.ts` and
  * `../../../services/hydromancerOrderBookConnection.ts`.
  */

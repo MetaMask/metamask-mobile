@@ -448,10 +448,11 @@ const PerpsProOrderBookPanel = ({
   const ladderViewportHeightRef = useRef(0);
   const spreadOffsetRef = useRef(0);
   const userScrolledLadderRef = useRef(false);
-  // Dev-only PoC: always 'hyperliquid' in production, since the config
-  // sheet's data-source row only renders when `__DEV__`.
-  const [dataSource, setDataSource] =
-    useState<PerpsProOrderBookDataSource>('hyperliquid');
+  // Dev builds open on the local Hydromancer relay. The settings row that
+  // can switch back to Hyperliquid only renders when `__DEV__`.
+  const [dataSource, setDataSource] = useState<PerpsProOrderBookDataSource>(
+    __DEV__ ? 'hydromancer' : 'hyperliquid',
+  );
   const isHydromancerDataSource = __DEV__ && dataSource === 'hydromancer';
 
   const handleCollapse = useCallback(() => {
@@ -613,9 +614,6 @@ const PerpsProOrderBookPanel = ({
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
-    // Seeds the Hydromancer PoC's mock mid price; ignored by the other
-    // channel and once a real MM_PERPS_HYDROMANCER_API_KEY is set.
-    referencePrice: midPriceValue ?? undefined,
   });
 
   const grouped = useMemo(
