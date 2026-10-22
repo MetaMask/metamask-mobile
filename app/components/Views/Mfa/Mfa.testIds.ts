@@ -15,6 +15,8 @@ export const MfaFlowSelectorsIDs = {
 
 export const MfaSettingsSelectorsIDs = {
   CONTAINER: 'mfa-settings',
+  MONEY_MFA_ROW: 'mfa-settings-money-mfa-row',
+  MONEY_MFA_SWITCH: 'mfa-settings-money-mfa-switch',
   EMAIL_ROW: 'mfa-settings-email-row',
   PASSKEY_ROW: 'mfa-settings-passkey-row',
   QA_PRESETS: 'mfa-settings-qa-presets',
