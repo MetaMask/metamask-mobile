@@ -7951,7 +7951,7 @@ describe('PredictController', () => {
       'event Transfer(address indexed from, address indexed to, uint256 value)',
     ]);
 
-    const createV2PayoutTransferLog = (valueRaw: bigint) => {
+    const createPUsdMintTransferLog = (valueRaw: bigint) => {
       const transferEvent = transferInterface.getEvent('Transfer');
       const encodedLog = transferInterface.encodeEventLog(transferEvent, [
         '0x0000000000000000000000000000000000000000',
@@ -8280,7 +8280,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('sums v2 minted payouts with CTF payouts in the confirmed claim receipt', () => {
+    it('uses the final pUSD mint for a mixed confirmed claim receipt', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
         const claimablePositions = [
@@ -8299,7 +8299,7 @@ describe('PredictController', () => {
           txReceipt: {
             logs: [
               createPayoutRedemptionLog(BigInt(30_000_000)),
-              createV2PayoutTransferLog(BigInt(12_000_000)),
+              createPUsdMintTransferLog(BigInt(42_000_000)),
             ],
           },
         };
@@ -8331,6 +8331,53 @@ describe('PredictController', () => {
       });
     });
 
+    it('uses a mixed claim receipt when simulation reports zero', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              // The CTF payout is subsequently wrapped into pUSD, so summing
+              // both receipt events would report 3.14 instead of 2.09.
+              createPayoutRedemptionLog(1_050_000n),
+              createPUsdMintTransferLog(2_090_000n),
+            ],
+          },
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '0x0',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 2.09,
+          }),
+        );
+      });
+    });
+
     it('uses v2 mint transfer logs for confirmed claims without CTF redemptions', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
@@ -8348,7 +8395,7 @@ describe('PredictController', () => {
             status: TransactionStatus.confirmed,
           }),
           txReceipt: {
-            logs: [createV2PayoutTransferLog(BigInt(12_000_000))],
+            logs: [createPUsdMintTransferLog(BigInt(12_000_000))],
           },
         };
 

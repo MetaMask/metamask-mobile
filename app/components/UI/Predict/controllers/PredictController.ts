@@ -4227,8 +4227,10 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    let payoutRaw = 0n;
-    let hasPayoutRedemption = false;
+    let ctfPayoutRaw = 0n;
+    let pUsdMintRaw = 0n;
+    let hasCtfPayout = false;
+    let hasPUsdMint = false;
 
     for (const log of logs) {
       const logAddress = log.address?.toLowerCase();
@@ -4251,15 +4253,12 @@ export class PredictController extends BaseController<
             continue;
           }
 
-          payoutRaw += BigInt(payout);
-          hasPayoutRedemption = true;
+          ctfPayoutRaw += BigInt(payout);
+          hasCtfPayout = true;
         } catch (_error) {
           continue;
         }
-      } else if (
-        logAddress &&
-        PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(logAddress)
-      ) {
+      } else if (logAddress === MATIC_CONTRACTS_V2.collateral.toLowerCase()) {
         // Positions-protocol (v2) redemption mints collateral and emits no
         // CTF event, so read the payout from collateral ERC20 `Transfer`
         // logs sourced by the zero address. The token filter keeps
@@ -4277,21 +4276,30 @@ export class PredictController extends BaseController<
             continue;
           }
 
-          payoutRaw += BigInt(value);
-          hasPayoutRedemption = true;
+          pUsdMintRaw += BigInt(value);
+          hasPUsdMint = true;
         } catch (_error) {
           continue;
         }
       }
     }
 
-    if (!hasPayoutRedemption) {
-      return undefined;
+    // The pUSD mint is the final settlement value. In a mixed claim it already
+    // includes the CTF redemption, so adding both event totals would count the
+    // CTF leg twice.
+    if (hasPUsdMint) {
+      return parseFloat(
+        formatUnits(pUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
     }
 
-    return parseFloat(
-      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
-    );
+    if (hasCtfPayout) {
+      return parseFloat(
+        formatUnits(ctfPayoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
+    }
+
+    return undefined;
   }
 
   private getClaimAmountFromSimulation(
