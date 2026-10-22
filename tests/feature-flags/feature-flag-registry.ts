@@ -2163,6 +2163,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
           gaslessEnabled: true,
           originGasOverhead: '500000',
           pollingTimeout: 180000,
+          solana: {
+            enabled: false,
+          },
         },
       },
       perpsWithdrawAnyToken: false,

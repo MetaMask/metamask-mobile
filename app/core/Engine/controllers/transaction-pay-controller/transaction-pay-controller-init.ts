@@ -12,6 +12,7 @@ import { createPolymarketCallbacks } from './polymarket-callbacks';
 import { getBalance } from './get-balance-callback';
 import { getTransactionPayFiatTestOptions } from '../../../../util/environment';
 import { INFURA_PROJECT_ID } from '../../../../constants/network';
+import { trackSolanaPayLifecycle } from './solana-pay-analytics';
 
 export const TransactionPayControllerInit: MessengerClientInitFunction<
   TransactionPayController,
@@ -34,6 +35,11 @@ export const TransactionPayControllerInit: MessengerClientInitFunction<
       polymarket: createPolymarketCallbacks(initMessenger),
       state: persistedState.TransactionPayController,
     });
+
+    controllerMessenger.subscribe(
+      'TransactionPayController:solanaPayLifecycle',
+      (payload) => trackSolanaPayLifecycle(initMessenger, payload),
+    );
 
     return { controller: transactionPayController };
   } catch (error) {
