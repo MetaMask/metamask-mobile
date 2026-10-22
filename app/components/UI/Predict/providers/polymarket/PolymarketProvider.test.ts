@@ -1845,6 +1845,8 @@ describe('PolymarketProvider', () => {
       '0x4444444444444444444444444444444444444444444444444444444444444444';
     const provider = createProvider();
 
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
     const result = await provider.placeOrder({
       signer,
       preview: {
@@ -2598,6 +2600,8 @@ describe('PolymarketProvider', () => {
         executors: ['0x2222222222222222222222222222222222222222'],
       },
     });
+
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
 
     await provider.placeOrder({
       signer,

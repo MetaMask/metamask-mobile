@@ -4486,7 +4486,7 @@ describe('calculateFees', () => {
   it('degrades to standard fees when the waiver lookup fails', async () => {
     mockFetch.mockRejectedValue(new Error('gamma unavailable'));
 
-    const fees = await calculateFees({
+    const { fees } = await calculateFees({
       feeCollection: {
         enabled: true,
         collector: '0x9cNcwJegqX3hyKLM8jb9vpxUtqMVBetNhhF97k5Xy',
