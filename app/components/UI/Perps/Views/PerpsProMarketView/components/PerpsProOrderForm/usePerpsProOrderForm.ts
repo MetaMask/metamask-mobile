@@ -4013,7 +4013,6 @@ export const usePerpsProOrderForm = ({
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      feeSource: feeResults.feeSource,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
       twapSummary: isTwapOrder
@@ -4040,7 +4039,6 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
-    feeResults.feeSource,
     feeResults.feeDiscountKind,
     onSlippagePress,
     isPositionModifyPreviewEnabled,

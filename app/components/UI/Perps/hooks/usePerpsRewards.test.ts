@@ -538,7 +538,6 @@ describe('usePerpsRewards', () => {
       expect(result.current.bonusBips).toBeUndefined();
       expect(result.current.feeDiscountPercentage).toBe(75);
       expect(result.current.feeDiscountKind).toBe('promotional');
-      expect(result.current.feeSource).toBe('grant');
       expect(result.current.accountOptedIn).toBe(false);
     });
 
