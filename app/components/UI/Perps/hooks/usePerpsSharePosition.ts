@@ -111,7 +111,7 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
     }
     if (hasProfileLookupFailed && !pendingShare.hasRetried) {
       pendingShare.hasRetried = true;
-      retryProfileLookup();
+      retryProfileLookup().catch(() => undefined);
       return;
     }
     pendingShareRef.current = null;
@@ -140,7 +140,7 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
           shouldRetryNow || Boolean(pendingShareRef.current?.hasRetried),
       };
       if (shouldRetryNow) {
-        retryProfileLookup();
+        retryProfileLookup().catch(() => undefined);
       }
     },
     [

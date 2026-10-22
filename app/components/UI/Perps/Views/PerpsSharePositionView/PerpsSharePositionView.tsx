@@ -65,7 +65,7 @@ const PerpsSharePositionView = () => {
   );
   const { openComposer } = useOpenSocialPostComposer();
 
-  const direction = parseFloat(position.size) > 0 ? 'long' : 'short';
+  const direction = Number.parseFloat(position.size) > 0 ? 'long' : 'short';
   const isHyperliquidPosition =
     (position.providerId ?? PROVIDER_CONFIG.DefaultProvider) ===
     PROVIDER_CONFIG.DefaultProvider;
