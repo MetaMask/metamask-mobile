@@ -3,6 +3,7 @@ import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { AppleWalletAdapter } from './AppleWalletAdapter';
 import {
   ProvisionCardParams,
+  ProvisioningError,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
 } from '../../types';
@@ -376,6 +377,30 @@ describe('AppleWalletAdapter', () => {
         expect(result.status).toBe('error');
         expect(result.error?.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
       });
+
+      it.each([
+        ProvisioningErrorCode.NETWORK_ERROR,
+        ProvisioningErrorCode.TIMEOUT,
+      ])(
+        'passes a %s from the encrypt callback through unchanged',
+        async (code) => {
+          const callbackError = new ProvisioningError(code, 'mapped');
+          mockAddCardToAppleWallet.mockImplementation(
+            async (_data, callback) => {
+              await callback('nonce', 'sig', ['cert']);
+              return 'success';
+            },
+          );
+
+          const result = await adapter.provisionCard({
+            ...mockProvisionParams,
+            issuerEncryptCallback: jest.fn().mockRejectedValue(callbackError),
+          });
+
+          expect(result.status).toBe('error');
+          expect(result.error).toBe(callbackError);
+        },
+      );
 
       it('returns error result when callback throws', async () => {
         const errorCallback = jest
