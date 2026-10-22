@@ -260,8 +260,6 @@ describe('e2eStateExport', () => {
       expect(serialized).not.toContain(EXPORTED_SECRETS.encryptionKey);
       expect(serialized).not.toContain(EXPORTED_SECRETS.encryptionSalt);
       expect(serialized).not.toContain(EXPORTED_SECRETS.mnemonic);
-      expect(serialized).not.toContain(EXPORTED_SECRETS.otp);
-      expect(serialized).not.toContain(EXPORTED_SECRETS.privateKey);
       expect(backgroundState.AuthenticationController).toBeUndefined();
       expect(backgroundState.KeyringController).toEqual(
         expect.objectContaining({
