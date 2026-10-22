@@ -181,15 +181,20 @@ export function useClaimEarnings(
   const vaultConfig = useSelector(selectMoneyAccountVaultConfig);
   const isSponsorshipEnabled = useSelector(getGasFeesSponsoredNetworkEnabled);
   const [isClaiming, setIsClaiming] = useState(false);
-  const [claimWaitingUntil, setClaimWaitingUntilState] = useState<
-    number | null
-  >(() =>
+  const storeWait =
     persistedWaitUntil !== undefined && persistedWaitUntil > Date.now()
       ? persistedWaitUntil
-      : null,
-  );
+      : null;
+  const [claimWaitingUntil, setClaimWaitingUntilState] = useState<
+    number | null
+  >(storeWait);
+  // A refusal can write Retry-After after this hook unmounts. The store is
+  // already updated when Earnings remounts, and a later write has to reach
+  // the hook that is mounted now.
+  const waitUntil = storeWait ?? claimWaitingUntil;
   const isClaimingRef = useRef(false);
-  const claimWaitingUntilRef = useRef<number | null>(claimWaitingUntil);
+  const claimWaitingUntilRef = useRef<number | null>(waitUntil);
+  claimWaitingUntilRef.current = waitUntil;
 
   useEffect(() => {
     if (claimLock?.status !== 'awaiting_fresh_summary' || !liveSummary) {
@@ -204,10 +209,14 @@ export function useClaimEarnings(
   }, [claimLock, dispatch, liveSummary, profileId]);
 
   useEffect(() => {
-    if (claimWaitingUntil === null) {
+    setClaimWaitingUntilState(storeWait);
+  }, [storeWait]);
+
+  useEffect(() => {
+    if (waitUntil === null) {
       return undefined;
     }
-    const delay = claimWaitingUntil - Date.now();
+    const delay = waitUntil - Date.now();
     if (delay <= 0) {
       claimWaitingUntilRef.current = null;
       setClaimWaitingUntilState(null);
@@ -220,7 +229,7 @@ export function useClaimEarnings(
       dispatch(setClaimWaitingUntil({ profileId, until: null }));
     }, delay);
     return () => clearTimeout(timer);
-  }, [claimWaitingUntil, dispatch, profileId]);
+  }, [waitUntil, dispatch, profileId]);
 
   const claim = useCallback(
     async (summary: EarningsSummaryDto) => {
@@ -478,7 +487,6 @@ export function useClaimEarnings(
   return {
     claim,
     isClaiming: isClaiming || claimLock != null,
-    isClaimWaiting:
-      claimWaitingUntil !== null && claimWaitingUntil > Date.now(),
+    isClaimWaiting: waitUntil !== null && waitUntil > Date.now(),
   };
 }

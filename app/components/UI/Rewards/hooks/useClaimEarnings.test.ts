@@ -1290,6 +1290,49 @@ describe('useClaimEarnings', () => {
     }
   });
 
+  it('keeps the Retry-After wait when the refusal lands after the tab remounts', async () => {
+    jest.useFakeTimers();
+    try {
+      let rejectClaim: (error: unknown) => void = () => undefined;
+      mockEngineCall.mockImplementation(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectClaim = reject;
+          }),
+      );
+      const first = renderClaim();
+      let runningClaim: Promise<void> = Promise.resolve();
+
+      await act(async () => {
+        runningClaim = first.result.current.claim(summary(ONE_DOLLAR));
+        await Promise.resolve();
+      });
+      first.unmount();
+
+      const second = renderClaim();
+      expect(second.result.current.isClaimWaiting).toBe(false);
+
+      await act(async () => {
+        rejectClaim(
+          new RewardsMoneyClaimRefusalError(429, 'CLAIM_COOLDOWN', 30),
+        );
+        await runningClaim;
+      });
+      await act(async () => {
+        second.rerender();
+      });
+
+      expect(second.result.current.isClaimWaiting).toBe(true);
+      mockEngineCall.mockClear();
+      await act(async () => {
+        await second.result.current.claim(summary(ONE_DOLLAR));
+      });
+      expect(mockEngineCall).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('ignores a second press while a claim is in flight', async () => {
     let release: (result: InitiateClaimResult) => void = () => undefined;
     mockEngineCall.mockImplementation(
