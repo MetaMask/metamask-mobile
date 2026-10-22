@@ -287,15 +287,15 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('renders the mocked owner identity and whale ranking', () => {
+  it('renders the mocked owner identity', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.DISPLAY_NAME),
     ).toHaveTextContent('Giga Whale');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐋 Whale');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');
@@ -446,8 +446,8 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐬 Dolphin');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
   });
 
   it('opens followers connections on the followers tab', () => {

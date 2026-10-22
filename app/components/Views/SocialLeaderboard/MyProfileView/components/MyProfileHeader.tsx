@@ -7,8 +7,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -21,18 +19,9 @@ import ProfileAvatar from './ProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
-import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import type { MySocialProfile } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
-
-const RANKING_TAG_DISPLAY: Record<
-  ProfileRankingTag,
-  { emoji: string; label: string }
-> = {
-  shrimp: { emoji: '🦐', label: 'Shrimp' },
-  dolphin: { emoji: '🐬', label: 'Dolphin' },
-  whale: { emoji: '🐋', label: 'Whale' },
-};
 
 interface MyProfileHeaderProps {
   profile: MySocialProfile;
@@ -57,9 +46,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
     }
   }, [profile.xHandle]);
 
-  const rankingTag = overlayedStats.rankingTag
-    ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
-    : null;
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
 
   return (
@@ -105,15 +91,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
-            {rankingTag ? (
-              <Tag
-                severity={TagSeverity.Neutral}
-                testID={MyProfileViewSelectorsIDs.RANKING_TAG}
-                twClassName="mt-2"
-              >
-                {`${rankingTag.emoji} ${rankingTag.label}`}
-              </Tag>
-            ) : null}
             {profile.xHandle ? (
               <Pressable
                 onPress={handleXPress}
