@@ -68,7 +68,6 @@ export const profileControllerToMySocialProfile = (
     shareUrl: profileUrlForHandle(profile.username),
     winRatePercent: null,
     pnlUsd: null,
-    timesCopied: null,
     linkedAccountAddress: getLinkedEvmAddress(profile.linkedAddresses),
     shareTradingActivity: profile.tradingPrivacy === 'public',
     joinedAt: profile.createdAt || null,

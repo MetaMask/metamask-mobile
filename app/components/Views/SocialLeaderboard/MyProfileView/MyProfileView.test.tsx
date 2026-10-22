@@ -133,7 +133,6 @@ jest.mock('./hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
   useMyProfileAddress: () => mockUseMyProfileAddress(),
   useMyProfilePosts: () => mockUseMyProfilePosts(),
-  useMyOpenPerpsPositionCount: () => 3,
 }));
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -236,7 +235,6 @@ const profile: UseMyProfileResult['profile'] = {
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
 };
 
 describe('MyProfileView', () => {
