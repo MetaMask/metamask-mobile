@@ -109,7 +109,9 @@ appiumTest.describe(
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
             await PredictHome.tapBackButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+            await dismissToWalletHomePlaywright(
+              resolveE2EWaitTimeoutMs(30_000),
+            );
             await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();
