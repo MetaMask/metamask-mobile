@@ -1958,6 +1958,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             feeResults,
             marketPrice: assetData.price,
             inputMethod: inputMethodRef.current,
+            orderType: orderForm.type,
             source,
             sourceSection,
             currentMarketPosition,
@@ -1966,6 +1967,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             vipTier,
             hasCustomTokenSelected,
             payToken,
+            maxSlippageBps,
+            maxSlippageSource,
+            estimatedSlippageBps:
+              typeof estimatedSlippageBps === 'number'
+                ? estimatedSlippageBps
+                : undefined,
           }),
         });
 
