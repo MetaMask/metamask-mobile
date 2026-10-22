@@ -20,6 +20,8 @@ import VbaDetails, {
   VbaDetailsSelectorsIDs,
 } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
+import VbaChooseCurrency from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency';
+import { VbaChooseCurrencySelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaChooseCurrency.testIds';
 import VbaIdentityVerified, {
   VbaIdentityVerifiedSelectorsIDs,
 } from './IdentityVerified';
@@ -38,6 +40,10 @@ const OnboardingNavigator = () => (
     <Onboarding.Screen
       name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
       component={VbaIdentityVerified}
+    />
+    <Onboarding.Screen
+      name={VbaOnboardingRoutes.CHOOSE_CURRENCY}
+      component={VbaChooseCurrency}
     />
   </Onboarding.Navigator>
 );
@@ -76,7 +82,7 @@ const ramps = Engine.context.RampsController as unknown as {
   createAutoramp?: jest.Mock;
 };
 const engineContext = Engine.context as unknown as {
-  NeoBankService?: { getPixDepositInstructions: jest.Mock };
+  NeoBankService?: { getDepositInstructions: jest.Mock };
 };
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
@@ -96,11 +102,14 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     ramps.registerMoneyAccountWallet = jest.fn();
     ramps.createAutoramp = jest.fn();
     engineContext.NeoBankService = {
-      getPixDepositInstructions: jest.fn().mockResolvedValue(null),
+      getDepositInstructions: jest.fn().mockResolvedValue(null),
     };
   });
 
-  const render = (DetailsScreen: React.ComponentType) => {
+  const render = (
+    DetailsScreen: React.ComponentType,
+    { chooseCurrency = false } = {},
+  ) => {
     const Flow = createFlow(DetailsScreen);
     return renderWithProvider(<Flow />, {
       state: initialStateWallet()
@@ -113,8 +122,10 @@ describeForPlatforms('VbaIdentityVerified view', () => {
                   moneyMovementNeobank: {
                     enabled: true,
                     minimumVersion: '0.0.0',
-                    regions: ['BR'],
-                    regionCurrencies: { BR: 'BRL' },
+                    regions: ['BR', 'US'],
+                    regionCurrencies: { BR: 'BRL', US: 'USD' },
+                    defaultCurrency: 'USD',
+                    chooseCurrency,
                   },
                 },
               },
@@ -162,7 +173,8 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       ...ramps.state?.autoramps.find((autoramp) => autoramp.id === id),
       status: 'Approved',
     }));
-    engineContext.NeoBankService?.getPixDepositInstructions.mockResolvedValue({
+    engineContext.NeoBankService?.getDepositInstructions.mockResolvedValue({
+      type: 'Pix',
       brCode: '00020126',
       instruction: 'Pay with PIX',
     });
@@ -185,6 +197,82 @@ describeForPlatforms('VbaIdentityVerified view', () => {
         source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
+  });
+
+  it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+    });
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-BRL`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
+    ).toBeNull();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('creates the currency picked on Choose Currency', async () => {
+    ramps.createAutoramp?.mockImplementation(
+      async (request: { recipient_account: { address: string } }) => {
+        const autoramp = {
+          id: 'ar-new',
+          walletAddress: request.recipient_account.address,
+          status: 'Created',
+        };
+        ramps.state = { autoramps: [autoramp] };
+        return autoramp;
+      },
+    );
+    ramps.refreshAutoramp?.mockResolvedValue({ status: 'Created' });
+    const { findByTestId, findByText, getByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+    });
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    );
+
+    expect(
+      await findByText(strings('virtual_bank_account.creating_account.title')),
+    ).toBeOnTheScreen();
+    expect(ramps.createAutoramp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
+  });
+
+  it('returns to Identity verified from the Choose Currency back button', async () => {
+    const { findByTestId, getByTestId } = render(
+      Probe(Routes.RAMP.VBA_DETAILS),
+      { chooseCurrency: true },
+    );
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      await findByTestId(VbaChooseCurrencySelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(
+      await findByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('returns to Money home from Back', async () => {

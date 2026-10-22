@@ -21,12 +21,21 @@ export const VbaCreatingAccountSelectorsIDs = {
 
 interface VbaCreatingAccountProps {
   onBack: () => void;
+  /** KYC is approved, but the MoonPay customer is not Active yet. */
+  awaitingProviderApproval?: boolean;
 }
 
 /** Shown while the autoramp is being created and until it is Approved. */
-const VbaCreatingAccount = ({ onBack }: VbaCreatingAccountProps) => {
+const VbaCreatingAccount = ({
+  onBack,
+  awaitingProviderApproval = false,
+}: VbaCreatingAccountProps) => {
   const tw = useTailwind();
-  const title = strings('virtual_bank_account.creating_account.title');
+  const title = strings(
+    awaitingProviderApproval
+      ? 'virtual_bank_account.creating_account.awaiting_provider'
+      : 'virtual_bank_account.creating_account.title',
+  );
 
   return (
     <SafeAreaView

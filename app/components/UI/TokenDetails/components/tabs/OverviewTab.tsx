@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box, BoxFlexDirection } from '@metamask/design-system-react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import ContentDisplay from '../../../AssetOverview/AboutAsset/ContentDisplay';
@@ -8,11 +9,8 @@ import type { TokenSecurityData } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import { useTokenBalance } from '../../hooks/useTokenBalance';
 import { useTokenPerformance } from '../../hooks/useTokenPerformance';
-// TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-import {
-  DEV_TOKEN_API_BASE_URL,
-  useTokenAssetDetails,
-} from '../../queries/tokenAssetQuery';
+import { useTokenAssetDetails } from '../../queries/tokenAssetQuery';
+import { selectMemecoinTdpV1TokenApiBaseUrl } from '../../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { useTokenDetailsActionTracking } from '../../hooks/useTokenDetailsActionTracking';
 import {
   TokenDetailsAction,
@@ -83,8 +81,8 @@ const OverviewTab = ({
   securityData,
   marketData,
 }: OverviewTabProps) => {
-  // TODO: remove DEV_TOKEN_API_BASE_URL once prod returns launchpadData
-  const { asset } = useTokenAssetDetails(assetId, DEV_TOKEN_API_BASE_URL);
+  const tokenApiBaseUrl = useSelector(selectMemecoinTdpV1TokenApiBaseUrl);
+  const { asset } = useTokenAssetDetails(assetId, tokenApiBaseUrl);
   const assetDescription = asset?.launchpadData?.description?.trim();
   const tokenDescription = token.description?.trim();
   // Hide the block when neither source has text. A blank string is not a description.

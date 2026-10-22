@@ -123,6 +123,8 @@ import { useAccountName } from '../../hooks/useAccountName';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { createAccountSelectorNavDetails } from '../AccountSelector';
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import Homepage from '../Homepage';
@@ -205,8 +207,6 @@ import { Carousel } from '../../UI/Carousel';
 import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createProfileDrawerNavDetails } from '../SocialProfile/ProfileDrawer';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { createAccountSelectorNavDetails } from '../AccountSelector';
 import { selectIsSocialV1Enabled } from '../../../selectors/featureFlagController/socialV1';
 import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
 import { navigateWithDetails } from '../../../util/navigation/navUtils';
@@ -761,8 +761,12 @@ const Wallet = ({
       balanceBreakdownVariantName,
     );
 
-  const { isCompactHeader, isInterimHeader, isHeaderSearchEnabled } =
-    useHomeNavBarConfig({ trackExposure: true });
+  const {
+    isCompactHeader,
+    isInterimHeader,
+    isSocialHeader,
+    isHeaderSearchEnabled,
+  } = useHomeNavBarConfig({ trackExposure: true });
   const isHomeGlass = useIsGlassSurfaceEnabled(
     selectHomeBrandRefreshSurfacesEnabled,
   );
@@ -903,22 +907,35 @@ const Wallet = ({
     navigation.navigate(...createAccountSelectorNavDetails({}));
   }, [navigation]);
 
+  const handleAccountSelectorPress = useCallback(() => {
+    navigation.navigate(...createAccountSelectorNavDetails({}));
+  }, [navigation]);
+
+  const handleProfilePress = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.DRAWER);
+  }, [navigation]);
+
   const handleRewardsPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIEW);
   }, [navigation]);
 
-  const { isSearchHeaderEnabled, showPastePill, handlePastePress } =
-    useHomepageSearchPaste({
-      enabled: true,
-      onPaste: (initialQuery, searchOrigin) => {
-        navigation.navigate(Routes.EXPLORE_SEARCH, {
-          entryPoint: 'home',
-          initialQuery,
-          initialQuerySource: 'clipboard',
-          ...(searchOrigin ? { searchOrigin } : {}),
-        });
-      },
-    });
+  const {
+    isSearchHeaderEnabled: isHomepageSearchHeaderEnabled,
+    showPastePill,
+    handlePastePress,
+  } = useHomepageSearchPaste({
+    enabled: !isSocialHeader,
+    onPaste: (initialQuery, searchOrigin) => {
+      navigation.navigate(Routes.EXPLORE_SEARCH, {
+        entryPoint: 'home',
+        initialQuery,
+        initialQuerySource: 'clipboard',
+        ...(searchOrigin ? { searchOrigin } : {}),
+      });
+    },
+  });
+  const isSearchHeaderEnabled =
+    isHomepageSearchHeaderEnabled && !isSocialHeader;
 
   const handleSearchPress = useCallback(
     (
@@ -947,6 +964,7 @@ const Wallet = ({
     touchAreaSlop,
     isEnabled:
       isInterimHeader &&
+      !isSocialHeader &&
       !isSearchHeaderEnabled &&
       Boolean(selectedInternalAccount),
   });
@@ -1108,10 +1126,13 @@ const Wallet = ({
       handleActivityPress={handleActivityPress}
       handleCardPress={handleCardPress}
       handleHamburgerPress={handleHamburgerPress}
+      handleRewardsPress={handleRewardsPress}
+      handleProfilePress={handleProfilePress}
       touchAreaSlop={touchAreaSlop}
       headerActionButtonsContainerStyle={styles.headerActionButtonsContainer}
       headerAccountPickerStyle={styles.headerAccountPickerStyle}
       isInterimLayout={isInterimHeader}
+      isSocialLayout={isSocialHeader}
     />
   );
 
@@ -1255,10 +1276,13 @@ const Wallet = ({
   ) : null;
 
   const compactHeaderAccountName =
+    !isSocialHeader &&
     (isCompactHeader || isSearchHeaderEnabled) &&
     !inWalletHomePostOnboardingFlow ? (
       <ButtonAnimated
-        onPress={handleAccountHubPress}
+        onPress={
+          isSocialHeader ? handleAccountSelectorPress : handleAccountHubPress
+        }
         style={styles.compactHeaderAccountName}
         onLayout={handleAccountNameLayout}
         testID={WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON}
@@ -1280,7 +1304,9 @@ const Wallet = ({
             {displayName}
           </CustomText>
           <MMDSIcon
-            name={MMDSIconName.ArrowRight}
+            name={
+              isSocialHeader ? MMDSIconName.ArrowDown : MMDSIconName.ArrowRight
+            }
             size={MMDSIconSize.Md}
             color={MMDSIconColor.IconAlternative}
           />
