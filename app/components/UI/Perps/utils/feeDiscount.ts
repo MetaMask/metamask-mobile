@@ -32,13 +32,23 @@ const FEE_DISCOUNT_PERCENTAGE_SCALE = 100;
  * bare lower rate with no source is not presented as a discount.
  */
 export function getPresentedOriginalMetamaskFeeRate(
+  fees: FeeCalculationResult & { metamaskFeeRate: number },
+): number;
+export function getPresentedOriginalMetamaskFeeRate(
   fees: FeeCalculationResult,
-): number {
+): number | undefined;
+export function getPresentedOriginalMetamaskFeeRate(
+  fees: FeeCalculationResult,
+): number | undefined {
   if (fees.undiscountedMetamaskFeeRate !== undefined) {
     return fees.undiscountedMetamaskFeeRate;
   }
 
-  const currentRate = fees.metamaskFeeRate ?? 0;
+  const currentRate = fees.metamaskFeeRate;
+  if (currentRate === undefined) {
+    return undefined;
+  }
+
   if (
     fees.feeSource !== undefined &&
     fees.feeSource !== 'default' &&

@@ -45,6 +45,18 @@ describe('getPresentedOriginalMetamaskFeeRate', () => {
     expect(originalRate).toBe(BUILDER_FEE_CONFIG.MaxFeeDecimal);
   });
 
+  it('preserves an unavailable current rate as undefined', () => {
+    const fees = createFeeCalculationResult({
+      feeSource: 'grant',
+      metamaskFeeRate: undefined,
+      chargesMetamaskBuilderFee: true,
+    });
+
+    const originalRate = getPresentedOriginalMetamaskFeeRate(fees);
+
+    expect(originalRate).toBeUndefined();
+  });
+
   it.each([
     { feeSource: undefined, chargesMetamaskBuilderFee: true },
     { feeSource: 'default' as const, chargesMetamaskBuilderFee: true },

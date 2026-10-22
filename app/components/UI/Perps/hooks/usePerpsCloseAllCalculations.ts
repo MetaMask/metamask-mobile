@@ -100,8 +100,7 @@ function hasCompleteFeeRates(
  * Hook to aggregate fee calculations and points estimation across multiple positions
  *
  * This hook:
- * - Fetches account-level fee discount (applies uniformly to all positions)
- * - Calculates fees PER POSITION for accuracy (coin-specific parameters)
+ * - Calculates resolved fees PER POSITION for accuracy (coin-specific parameters)
  * - Uses BATCH points estimation API for performance (single API call for all positions)
  * - Handles loading states and errors across all calculations
  *
@@ -205,8 +204,6 @@ export function usePerpsCloseAllCalculations({
           isComponentMountedRef.current
         ) {
           setHasCalculationError(true);
-          // Note: Don't set feeDiscountBips here - would create infinite loop since it's in deps
-          // The fetchFeeDiscount effect is solely responsible for managing feeDiscountBips state
         }
         return;
       }
@@ -247,8 +244,8 @@ export function usePerpsCloseAllCalculations({
               const size = Math.abs(parseFloat(pos.size));
               const positionValue = size * currentPrice;
 
-              // Calculate base fees via PerpsController (before discount)
-              const baseFees =
+              // PerpsController returns the final priced quote and its fee source.
+              const resolvedFees =
                 await Engine.context.PerpsController.calculateFees({
                   orderType: 'market',
                   isMaker: false, // Market close orders are always taker
@@ -259,7 +256,7 @@ export function usePerpsCloseAllCalculations({
               return {
                 position: pos,
                 notionalUsd: positionValue,
-                fees: baseFees,
+                fees: resolvedFees,
                 error: undefined,
               };
             } catch (error) {

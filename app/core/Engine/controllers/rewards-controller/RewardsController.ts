@@ -143,6 +143,7 @@ const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
+const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
 
 // VIP transactions cache threshold (first page only).
 // Disabled so each first-page read checks the backend last-updated timestamp.
@@ -2079,7 +2080,7 @@ export class RewardsController extends BaseController<
       if (
         !Number.isFinite(feeBips) ||
         feeBips < 0 ||
-        feeBips > 999.99 ||
+        feeBips > MAX_PERPS_TRADING_FEE_GRANT_BIPS ||
         !Number.isFinite(expiresAt) ||
         expiresAt <= Date.now()
       ) {
