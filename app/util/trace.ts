@@ -419,19 +419,10 @@ export enum TraceOperation {
 const ID_DEFAULT = 'default';
 const OP_DEFAULT = 'custom';
 export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
-/** Keeps high-frequency pre-consent callback traces from growing without bound. */
-export const MAX_BUFFERED_TRACE_ENTRIES = 1000;
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
 const localBufferedTraces: BufferedTrace[] = [];
-
-const bufferTrace = (entry: BufferedTrace): void => {
-  if (localBufferedTraces.length >= MAX_BUFFERED_TRACE_ENTRIES) {
-    localBufferedTraces.shift();
-  }
-  localBufferedTraces.push(entry);
-};
 
 /**
  * Summed machine/app wait time on `Onboarding - Overall Journey`, excluding human
@@ -1030,14 +1021,14 @@ export function bufferTraceStartCallLocal(
   request: TraceRequest,
   parentTraceName?: string,
 ) {
-  bufferTrace(createBufferedStartTrace(request, parentTraceName));
+  localBufferedTraces.push(createBufferedStartTrace(request, parentTraceName));
 }
 
 /**
  * Buffer a trace end call in local memory
  */
 export function bufferTraceEndCallLocal(request: EndTraceRequest) {
-  bufferTrace(createBufferedEndTrace(request));
+  localBufferedTraces.push(createBufferedEndTrace(request));
 }
 
 /**
