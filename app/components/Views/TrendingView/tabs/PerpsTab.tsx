@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { Modal, RefreshControl, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -28,6 +28,7 @@ import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSection';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { SectionRefreshHandle } from '../../Homepage/types';
+import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../util/theme';
 import type { TabProps } from '../hooks/useExploreRefresh';
 
@@ -175,14 +176,25 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         refreshControl={refreshControl}
         testID="perps-tab-market-list"
       />
-      <PerpsMarketSortFieldBottomSheet
-        isVisible={isSortSheetVisible}
-        onClose={() => setIsSortSheetVisible(false)}
-        selectedOptionId={selectedOptionId}
-        sortDirection={direction}
-        onOptionSelect={handleOptionChange}
-        testID="perps-tab-sort-sheet"
-      />
+      {isSortSheetVisible && (
+        // Rendered in a Modal so the sheet and backdrop cover the whole screen
+        // (above the floating tab bar) instead of being clipped to the tab.
+        // Android: wrap <Modal> in a plain <View> to avoid rendering issues.
+        <View>
+          <Modal visible transparent animationType="none" statusBarTranslucent>
+            <ModalSafeAreaProvider>
+              <PerpsMarketSortFieldBottomSheet
+                isVisible
+                onClose={() => setIsSortSheetVisible(false)}
+                selectedOptionId={selectedOptionId}
+                sortDirection={direction}
+                onOptionSelect={handleOptionChange}
+                testID="perps-tab-sort-sheet"
+              />
+            </ModalSafeAreaProvider>
+          </Modal>
+        </View>
+      )}
     </>
   );
 };

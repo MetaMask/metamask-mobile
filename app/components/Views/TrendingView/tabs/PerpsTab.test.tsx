@@ -118,11 +118,19 @@ jest.mock('../search/analytics', () => ({
 jest.mock(
   '../../../UI/Perps/Views/PerpsMarketListView/components/PerpsMarketFiltersBar',
   () => {
-    const { View } = jest.requireActual('react-native');
+    const { Pressable } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ testID }: { testID?: string }) =>
-        jest.requireActual('react').createElement(View, { testID }),
+      default: ({
+        testID,
+        onSortPress,
+      }: {
+        testID?: string;
+        onSortPress?: () => void;
+      }) =>
+        jest
+          .requireActual('react')
+          .createElement(Pressable, { testID, onPress: onSortPress }),
     };
   },
 );
@@ -171,9 +179,9 @@ jest.mock('../../../../util/theme', () => ({
 }));
 
 jest.mock('../feeds/perps/PerpsSectionProvider', () => ({
-    __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => children,
-  }));
+  __esModule: true,
+  default: ({ children }: { children: React.ReactNode }) => children,
+}));
 
 import { useSelector } from 'react-redux';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
@@ -217,8 +225,12 @@ describe('PerpsTab', () => {
     expect(getByTestId('perps-tab-filters')).toBeOnTheScreen();
   });
 
-  it('renders the sort bottom sheet', () => {
-    const { getByTestId } = renderPerpsTab();
+  it('mounts the sort bottom sheet only after the sort control is pressed', () => {
+    const { getByTestId, queryByTestId } = renderPerpsTab();
+    expect(queryByTestId('perps-tab-sort-sheet')).not.toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('perps-tab-filters'));
+
     expect(getByTestId('perps-tab-sort-sheet')).toBeOnTheScreen();
   });
 
