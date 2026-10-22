@@ -284,6 +284,53 @@ describe('useOHLCVRealtime', () => {
     expect(result.current.latestBar).toBeNull();
   });
 
+  describe('/latest host', () => {
+    const pollOnce = async (
+      options: Parameters<typeof useOHLCVRealtime>[0],
+    ) => {
+      mockFetch.mockResolvedValue(
+        makeFetchResponse({
+          timestamp: 1700000000000,
+          open: 100,
+          high: 110,
+          low: 95,
+          close: 108,
+          volume: 9000,
+        }),
+      );
+
+      renderHook(() => useOHLCVRealtime(options));
+
+      await act(async () => {
+        jest.advanceTimersByTime(500);
+      });
+
+      return mockFetch.mock.calls[0][0] as string;
+    };
+
+    // Bridge's live rate and the legacy chart both reach this hook without a
+    // provider, so prod is what it must ask for.
+    it('requests prod outside a PriceApiHostProvider', async () => {
+      const url = await pollOnce(arrangeDefaultOptions());
+
+      expect(url).toContain('https://price.api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
+
+    // The fallback has to ask the host that holds the history the chart is
+    // already drawing, or the in-progress candle never arrives for a token
+    // the prod stream does not carry.
+    it('requests the given host instead of prod', async () => {
+      const url = await pollOnce({
+        ...arrangeDefaultOptions(),
+        baseUrl: 'https://price.dev-api.cx.metamask.io',
+      });
+
+      expect(url).toContain('https://price.dev-api.cx.metamask.io/v3/ohlcv/');
+      expect(url).toContain('/latest');
+    });
+  });
+
   describe('staleness fallback', () => {
     it('polls REST API after 30s of no WS messages', async () => {
       mockFetch.mockResolvedValue(
