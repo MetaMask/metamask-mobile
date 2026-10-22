@@ -65,15 +65,18 @@ the stack remounts the screen and starts a new visit; so does a new
      `requestIdleCallback` `timeout` option).
    - Each later stage: `DEFERRED_RENDER_FRAME_TIMEOUT_MS` = **100 ms**.
    - `frameTimeoutMs` replaces both values with a single timeout for every
-     stage. There is no device-tier branching.
+     stage.
 6. **Complete.** In an effect after the commit that mounts the last stage's
    children, the host records `deferred-render:<screenId>:complete` and calls
    `onDeferredComplete`. Both happen once per visit, and not at all if the
    visit unmounts first.
 
-Released stages only move forward. Parent re-renders, prop changes, and a
-slot scrolling offscreen and back do not bring the placeholder back while the
-host stays mounted. On unmount, the pending frame, idle callback, timeout,
+Released stages only move forward. Parent re-renders, prop changes (except
+`screenId`), and a slot scrolling offscreen and back do not bring the
+placeholder back while the host stays mounted. Changing `screenId` starts a
+new visit: the released stage resets (to `-1`, or to all stages when
+`enabled` is `false`), the gate runs again, and the marks and
+`onDeferredComplete` fire again for the new id. On unmount, the pending frame, idle callback, timeout,
 and navigation listeners are all cancelled.
 
 ### Perf marks
@@ -88,8 +91,8 @@ two per visit, with no detail payload:
 
 `<screenId>` is used unchanged, so pick a stable slug. The span between the
 two marks is host first commit to deferred content committed. It does not
-include the tap that started navigation; pair the first mark with your own
-navigation-start mark when you need tap-to-ready.
+include the tap that started navigation; pair it with a `trace()` span
+started at navigation when you need tap-to-ready (see "How to measure").
 
 ### Why not `InteractionManager`
 
@@ -162,8 +165,10 @@ each next stage releases one frame later.
 </DeferredRenderHost>
 ```
 
-- `stage` must be in `0 .. stages - 1`. A slot outside that range stays on its
-  placeholder and logs a development warning.
+- `stage` must be in `0 .. stages - 1`. A slot at `stages` or above stays on
+  its placeholder and logs a development warning. A negative `stage` is
+  treated as already released: it renders its children immediately, with no
+  warning.
 - `stages` defaults to 1 and should stay constant for the visit.
 - Inside a host, `screenId`, `enabled`, `frameTimeoutMs` and
   `onDeferredComplete` on a slot are ignored (with a development warning).
@@ -225,12 +230,13 @@ Also make sure that:
 
 ## When NOT to use
 
-- **The gap between data ready and content ready is idle.** If the trace shows
-  the JS thread mostly idle while you wait for content (a WebView or chart
+- **The gap between data ready and content ready is idle.** If JS busy % is
+  low in the data-ready → content-ready gap while you wait for content (a WebView or chart
   library booting, its own fallback timers, native work off the JS thread),
   there is nothing for deferral to unblock.
-- **Content renders within tens of milliseconds of its data.** The screen is
-  network-bound; a placeholder does not make the response arrive sooner. Fix
+- **Content renders within tens of milliseconds of its data.** Most of the
+  wait is network; content follows data almost immediately. A placeholder
+  does not make the response arrive sooner. Fix
   or start the fetch earlier instead.
 - **The node is a primary action** (buy, send, swap, confirm, amount entry,
   close). It must be in the first paint and able to take accessibility focus.
@@ -247,21 +253,39 @@ timeouts (450 ms for the transition fallback plus 250 ms for stage 0, plus
 
 Measure before and after wrapping anything:
 
-1. **Add marks** with `performance.mark`:
-   - `nav_start` where navigation is triggered (the tap handler),
-   - `data_ready` when the data the deferred content needs is available,
-   - `content_ready` when that content has committed (for deferred content,
-     `deferred-render:<screenId>:complete` or `onDeferredComplete`).
+1. **Add `trace()` spans** from `app/util/trace.ts` (`trace`, `endTrace`,
+   `TraceName`, `TraceOperation`): one from navigation start (the tap
+   handler) to data ready, and one from navigation start to content ready.
+   Use an existing `TraceName` / `TraceOperation` or add one for your screen.
+   For deferred content, end the content span in `onDeferredComplete`. The
+   built-in `deferred-render:<screenId>:first-render` and
+   `deferred-render:<screenId>:complete` marks are still recorded and can be
+   read alongside the spans.
+
+   ```tsx
+   import { endTrace, trace, TraceName, TraceOperation } from '../../util/trace';
+
+   // ExampleScreenLoad / ExampleOp stand for entries you add to the enums.
+   // Tap handler
+   trace({ name: TraceName.ExampleScreenLoad, op: TraceOperation.ExampleOp });
+   navigation.navigate('ExampleScreen');
+
+   // In the screen
+   <DeferredRenderHost
+     screenId="example-screen"
+     onDeferredComplete={() => endTrace({ name: TraceName.ExampleScreenLoad })}
+   >
+   ```
+
 2. **Run on both platforms**, iOS and Android, with several repetitions per
    variant (with and without `DeferredRender`), on cold and warm visits.
-3. **Discard repetitions where content arrives before data** (`content_ready`
-   earlier than `data_ready`): those measure a cached or stale path, not the
-   one you are changing.
-4. **Look at the push window in a profiler trace** (JS long tasks, frame
+   Ignore runs where content is ready before its data (a cached path).
+3. **Look at the push window in a profiler trace** (JS long tasks, frame
    timeline) to confirm the cause matches the "When to use" evidence, and
-   compare `nav_start → content_ready` between variants.
-5. **Confirm on a release build.** Development builds add JS overhead and dev
-   warnings that distort both the busy and the idle cases.
+   compare span durations between variants.
+4. **Confirm on a release build.** Simulator and development builds are
+   directional only; dev JS overhead and warnings distort both the busy and
+   the idle cases.
 
 Keep the change only if the push becomes smoother (fewer long tasks or
-dropped frames) without a meaningful increase in `nav_start → content_ready`.
+dropped frames) without a meaningful increase in the navigation-to-content span.
