@@ -1593,7 +1593,7 @@ describe('PerpsMarketDetailsView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('caps Feed at 5 posts and opens Social V1 from See more', async () => {
+    it('caps Feed at 5 posts and opens Social V1 on Trending from See more', async () => {
       const posts = Array.from({ length: 6 }, (_, index) =>
         mockPerpFeedItem({
           positionId: `eth-perp-post-${index}`,
@@ -1640,6 +1640,7 @@ describe('PerpsMarketDetailsView', () => {
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
           source: 'perp_asset_screen',
+          initialTab: 'trending',
         });
       } finally {
         unwire();
@@ -1681,7 +1682,7 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
-    it('opens Social V1 from Top traders See more', async () => {
+    it('opens Social V1 on Leaderboard from Top traders See more', async () => {
       setupLeaderboardApiMock();
 
       const { store } = renderPerpsMarketDetailsView({
@@ -1715,6 +1716,7 @@ describe('PerpsMarketDetailsView', () => {
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
           source: 'perp_asset_screen',
+          initialTab: 'leaderboard',
         });
       } finally {
         unwire();

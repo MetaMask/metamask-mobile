@@ -94,11 +94,14 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
     [activeIndex, onOverviewVisibilityChange, symbol, track],
   );
 
-  const handleOpenSocial = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate, { source: SOURCE });
-  }, [navigation]);
-
   const activeTab = TABS[activeIndex];
+
+  const handleOpenSocial = useCallback(() => {
+    navigateToSocialLeaderboard(navigation.navigate, {
+      source: SOURCE,
+      initialTab: activeTab === 'top_traders' ? 'leaderboard' : 'trending',
+    });
+  }, [activeTab, navigation]);
 
   return (
     <>
