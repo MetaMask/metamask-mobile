@@ -2991,14 +2991,8 @@
       "tabs": {
         "overview": "Overview",
         "feed": "Feed",
-        "top_traders": "Top traders"
+        "top_traders": "Holders"
       },
-      "top_traders_timeframe": {
-        "7d": "This week",
-        "30d": "This month"
-      },
-      "top_traders_scope": "Ranked across all Perps markets",
-      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
