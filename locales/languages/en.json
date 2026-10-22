@@ -2986,6 +2986,17 @@
       "expect_more_volatility": "Expect more volatility outside of market hours",
       "after_hours_trading_banner": "After-hours trading",
       "pay_attention_to_volatility": "Pay attention to volatility and slippage",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Top traders"
+      },
+      "top_traders_timeframe": {
+        "7d": "This week",
+        "30d": "This month"
+      },
+      "top_traders_scope": "Ranked across all Perps markets",
+      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",

@@ -15,30 +15,39 @@ import {
   SocialV1TraderRowSkeleton,
 } from '../../../../Views/SocialLeaderboard/TopTradersView/components';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import SocialLeaderboardMessage from '../../../SocialLeaderboard/components/SocialLeaderboardMessage';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
-import { usePerpsTopTraders } from '../../hooks/usePerpsTopTraders';
+import {
+  usePerpsTopTraders,
+  type UsePerpsTopTradersOptions,
+} from '../../hooks/usePerpsTopTraders';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 export const PERPS_HOME_TOP_TRADERS_LIMIT = 5;
-
-const SKELETON_KEYS = Array.from(
-  { length: PERPS_HOME_TOP_TRADERS_LIMIT },
-  (_, index) => `top-trader-skeleton-${index}`,
-);
 
 const noop = () => undefined;
 
 interface PerpsSocialTopTradersProps {
   onSeeMorePress: () => void;
+  limit?: number;
+  timeframe?: UsePerpsTopTradersOptions['timeframe'];
+  source?: string;
+  /** Shown when there are no traders; renders nothing when omitted. */
+  emptyMessage?: string;
 }
 
 const PerpsSocialTopTraders: React.FC<PerpsSocialTopTradersProps> = ({
   onSeeMorePress,
+  limit = PERPS_HOME_TOP_TRADERS_LIMIT,
+  timeframe,
+  source = PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+  emptyMessage,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
   const { traders, showSkeleton, showError, refresh } = usePerpsTopTraders({
-    limit: PERPS_HOME_TOP_TRADERS_LIMIT,
+    limit,
+    timeframe,
   });
 
   const handleTraderPress = useCallback(
@@ -49,13 +58,13 @@ const PerpsSocialTopTraders: React.FC<PerpsSocialTopTradersProps> = ({
         traderName,
         traderAddress: trader?.address,
         traderAvatarUri: trader?.avatarUri,
-        source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+        source,
         traderRank: trader?.rank,
         viewerProfileId: myProfile?.profileId ?? undefined,
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation, traders, myProfile],
+    [navigation, traders, myProfile, source],
   );
 
   if (showError) {
@@ -72,15 +81,20 @@ const PerpsSocialTopTraders: React.FC<PerpsSocialTopTradersProps> = ({
   if (showSkeleton) {
     return (
       <>
-        {SKELETON_KEYS.map((key) => (
-          <SocialV1TraderRowSkeleton key={key} />
+        {Array.from({ length: limit }, (_, index) => (
+          <SocialV1TraderRowSkeleton key={`top-trader-skeleton-${index}`} />
         ))}
       </>
     );
   }
 
   if (traders.length === 0) {
-    return null;
+    return emptyMessage ? (
+      <SocialLeaderboardMessage
+        message={emptyMessage}
+        testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_EMPTY}
+      />
+    ) : null;
   }
 
   return (
