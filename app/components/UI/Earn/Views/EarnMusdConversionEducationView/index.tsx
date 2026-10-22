@@ -378,10 +378,16 @@ const EarnMusdConversionEducationView = () => {
       title={strings('earn.musd_conversion.education.heading', {
         percentage: MUSD_CONVERSION_APY,
       })}
+      titleProps={{
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.TITLE,
+      }}
       description={strings('earn.musd_conversion.education.description', {
         percentage: MUSD_CONVERSION_APY,
       })}
-      descriptionProps={{ twClassName: 'text-center px-10' }}
+      descriptionProps={{
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.DESCRIPTION,
+        twClassName: 'text-center px-10',
+      }}
       artworkWrapperProps={{
         alignItems: BoxAlignItems.Stretch,
         justifyContent: BoxJustifyContent.Start,

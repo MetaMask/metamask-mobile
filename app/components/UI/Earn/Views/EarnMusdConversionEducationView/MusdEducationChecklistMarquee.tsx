@@ -27,6 +27,7 @@ import {
 } from '../../../../../component-library/base-components/TagBase/TagBase.types';
 import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { strings } from '../../../../../../locales/i18n';
+import { EARN_TEST_IDS } from '../../constants/testIds';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -113,7 +114,12 @@ const ChecklistTags = ({
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={wrap ? BoxJustifyContent.Center : BoxJustifyContent.Start}
-      twClassName={wrap ? 'mt-1 w-full flex-wrap gap-1' : 'shrink-0 gap-1 pr-1'}
+      testID={
+        onLayout
+          ? EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CHECKLIST
+          : undefined
+      }
+      twClassName={wrap ? 'mt-4 w-full flex-wrap gap-1' : 'shrink-0 gap-1 pr-1'}
       onLayout={onLayout}
       accessibilityElementsHidden={hideFromAccessibility}
       importantForAccessibility={
@@ -121,7 +127,7 @@ const ChecklistTags = ({
       }
     >
       {CHECKLIST_KEYS.map((key) => (
-        <Box key={`${key}${idSuffix}`} twClassName="mt-4 shrink-0">
+        <Box key={`${key}${idSuffix}`} twClassName="shrink-0">
           <TagBase
             shape={TagShape.Rectangle}
             severity={TagSeverity.Neutral}
@@ -212,7 +218,7 @@ const MusdEducationChecklistMarquee = () => {
   return (
     <MaskedView
       pointerEvents="none"
-      style={tw.style('mt-1 w-full overflow-hidden')}
+      style={tw.style('mt-4 w-full overflow-hidden')}
       maskElement={
         <Box flexDirection={BoxFlexDirection.Row} twClassName="h-full flex-1">
           <LinearGradient
