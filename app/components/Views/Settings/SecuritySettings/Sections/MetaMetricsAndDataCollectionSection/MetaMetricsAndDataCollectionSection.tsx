@@ -1,4 +1,5 @@
 import { Alert, Linking, Switch, View } from 'react-native';
+import { selectMarketingConsent } from '../../../../../../selectors/analyticsController';
 import {
   META_METRICS_DATA_MARKETING_SECTION,
   META_METRICS_SECTION,
@@ -64,9 +65,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false);
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   const navigation = useNavigation<AppNavigationProp>();
   const { autoSignIn } = useAutoSignIn();
@@ -293,7 +292,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
         <View style={styles.switchElement}>
           <Switch
             disabled={!isBasicFunctionalityEnabled}
-            value={isDataCollectionForMarketingEnabled}
+            value={isDataCollectionForMarketingEnabled === true}
             onValueChange={toggleDataCollectionForMarketing}
             trackColor={{
               true: colors.primary.default,

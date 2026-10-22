@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import React, { PureComponent } from 'react';
 import {
   InteractionManager,
@@ -453,8 +454,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   chainId: selectChainId(state),
   browserTabs: state.browser.tabs,
-  isDataCollectionForMarketingEnabled:
-    state.security.dataCollectionForMarketing,
+  isDataCollectionForMarketingEnabled: selectMarketingConsent(state),
 });
 
 const mapDispatchToProps = (dispatch) => ({

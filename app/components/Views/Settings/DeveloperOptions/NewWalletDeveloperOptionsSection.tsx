@@ -35,7 +35,7 @@ import { setLockTime } from '../../../../actions/settings';
 import { resetFiatOrders } from '../../../../reducers/fiatOrders';
 import { getDevAutoUnlockPassword } from '../../../../util/environment';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import type { RootState } from '../../../../reducers';
+import { selectMarketingConsent } from '../../../../selectors/analyticsController';
 
 export const NEW_WALLET_BUTTON_TEST_ID = 'new-wallet-dev-create-button';
 
@@ -74,7 +74,7 @@ export default function NewWalletDeveloperOptionsSection() {
   const dispatch = useDispatch();
   const { isEnabled } = useAnalytics();
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   const [isRunning, setIsRunning] = useState(false);
 

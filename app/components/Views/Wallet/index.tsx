@@ -1,4 +1,5 @@
 import { AccountGroupId } from '@metamask/account-api';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import type { Theme } from '@metamask/design-tokens';
 import React, {
   useCallback,
@@ -572,7 +573,7 @@ const Wallet = ({
   ]);
 
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   /**
    * Is basic functionality enabled
