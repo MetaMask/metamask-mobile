@@ -22,6 +22,7 @@ import {
   TraceName,
   TraceOperation,
   TRACES_CLEANUP_INTERVAL,
+  MAX_BUFFERED_TRACE_ENTRIES,
   flushBufferedTraces,
   bufferTraceStartCallLocal,
   bufferTraceEndCallLocal,
@@ -1866,6 +1867,25 @@ describe('Trace', () => {
 
       expect(startSpanManualMock).toHaveBeenCalledTimes(2);
       expect(withIsolationScopeMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('bounds buffered traces when consent is unavailable', async () => {
+      const pairCount = Math.floor(MAX_BUFFERED_TRACE_ENTRIES / 2) + 1;
+
+      for (let index = 0; index < pairCount; index++) {
+        const request = {
+          name: TraceName.Middleware,
+          id: `buffered-${index}`,
+        };
+        trace(request, () => undefined);
+      }
+
+      updateCachedConsent(true);
+      await flushBufferedTraces();
+
+      expect(startSpanManualMock).toHaveBeenCalledTimes(
+        Math.floor(MAX_BUFFERED_TRACE_ENTRIES / 2),
+      );
     });
 
     it('should handle traces with same name but different IDs correctly', async () => {
