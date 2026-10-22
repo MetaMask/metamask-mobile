@@ -1,3 +1,4 @@
+import type { AccountCreateErrorVariant } from './accountCreateError';
 import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
 
 export const VbaOnboardingRoutes = {
@@ -10,6 +11,7 @@ export const VbaOnboardingRoutes = {
   CHOOSE_CURRENCY: 'VbaChooseCurrency',
   KYC_REJECTED: 'VbaKycRejected',
   ACCOUNT_PROVISIONING_ERROR: 'VbaAccountProvisioningError',
+  ACCOUNT_CREATE_ERROR: 'VbaAccountCreateError',
   ERROR: 'VbaError',
 } as const;
 
@@ -27,6 +29,9 @@ export type VbaOnboardingParamList = {
   VbaChooseCurrency: undefined;
   VbaKycRejected: undefined;
   VbaAccountProvisioningError: undefined;
+  VbaAccountCreateError: {
+    variant: AccountCreateErrorVariant;
+  };
   VbaError: undefined;
 };
 
