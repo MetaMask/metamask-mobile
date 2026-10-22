@@ -58,7 +58,7 @@ describe('OrangeFeesTooltipContent', () => {
 
     expect(
       screen.getByText(
-        'Orange covers the MetaMask fee on your first $1,000 of Perps trading each billing period. The provider fee still applies.',
+        'Orange covers the MetaMask fee on up to $1,000 of position size each billing period. The provider fee still applies.',
       ),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(`${TEST_ID}-remaining`)).not.toBeOnTheScreen();
@@ -77,7 +77,9 @@ describe('OrangeFeesTooltipContent', () => {
 
     render(<OrangeFeesTooltipContent testID={TEST_ID} />);
 
-    expect(screen.getByText(/your first \$2,000 of Perps/)).toBeOnTheScreen();
+    expect(
+      screen.getByText(/up to \$2,000 of position size/),
+    ).toBeOnTheScreen();
     expect(screen.getByTestId(`${TEST_ID}-remaining`)).toHaveTextContent(
       /^You have \$1,250 left until .*2026\.$/,
     );

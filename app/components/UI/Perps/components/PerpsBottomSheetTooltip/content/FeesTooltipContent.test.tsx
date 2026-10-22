@@ -176,11 +176,52 @@ describe('FeesTooltipContent', () => {
       expect(getByText('0.000%')).toBeTruthy();
       expect(getByText('0.045%')).toBeTruthy();
       expect(
-        getByText("You're saving 100% on the MetaMask fee for this trade."),
+        getByText('Orange covers the MetaMask fee on this trade.'),
       ).toBeTruthy();
     });
 
-    it('shows the blended MetaMask rate for a partial member waiver', () => {
+    it('says Orange covers the whole trade when the free notional reaches the order size', () => {
+      const { getByText } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{
+            ...memberData,
+            feeDiscountPercentage: 99.99,
+            orderNotionalUsd: 800,
+            subscriptionRemainingNotionalUsd: 1000,
+          }}
+        />,
+      );
+
+      expect(
+        getByText('Orange covers the MetaMask fee on this trade.'),
+      ).toBeTruthy();
+    });
+
+    it('names the covered and total notional for a partial member waiver', () => {
+      const { getByText, queryByText } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{
+            ...memberData,
+            metamaskFeeRate: 0.0005856,
+            originalMetamaskFeeRate: 0.001,
+            feeDiscountPercentage: 41.44,
+            orderNotionalUsd: 2413,
+            subscriptionRemainingNotionalUsd: 1000,
+          }}
+        />,
+      );
+
+      expect(
+        getByText(
+          'Orange covers the MetaMask fee on $1,000 of this $2,413 position.',
+        ),
+      ).toBeTruthy();
+      expect(queryByText(/You're saving/)).toBeNull();
+    });
+
+    it('falls back to the percentage when the quote has no remaining notional', () => {
       // $2,413 order with $1,000 covered: 0.1% x (1 - 1000 / 2413).
       const { getByText } = render(
         <FeesTooltipContent

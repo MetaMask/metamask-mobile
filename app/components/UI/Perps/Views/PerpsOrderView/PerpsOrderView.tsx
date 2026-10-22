@@ -2381,6 +2381,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       feeSource: feeResults.feeSource,
+      orderNotionalUsd: Number.parseFloat(orderForm.amount) || undefined,
+      subscriptionRemainingNotionalUsd:
+        feeResults.subscriptionRemainingNotionalUsd,
       ...(tradeSheetBridgeFeeUsd > 0 && {
         // Same formatter as the full-screen fees tooltip.
         bridgeFeeFormatted: formatPerpsFiat(tradeSheetBridgeFeeUsd, {
@@ -3300,6 +3303,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
                   feeDiscountPercentage: feeResults.feeDiscountPercentage,
                   feeSource: feeResults.feeSource,
+                  orderNotionalUsd:
+                    Number.parseFloat(orderForm.amount) || undefined,
+                  subscriptionRemainingNotionalUsd:
+                    feeResults.subscriptionRemainingNotionalUsd,
                   ...(hasCustomTokenSelected &&
                     depositFeeUsd > 0 && {
                       bridgeFeeFormatted: formatPerpsFiat(depositFeeUsd, {

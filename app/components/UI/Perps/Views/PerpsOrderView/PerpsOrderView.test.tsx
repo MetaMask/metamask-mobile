@@ -1949,6 +1949,7 @@ describe('PerpsOrderView', () => {
       originalMetamaskFeeRate: 0.001,
       feeDiscountPercentage: 100,
       feeSource: 'subscription',
+      subscriptionRemainingNotionalUsd: 50000,
       isLoadingMetamaskFee: false,
       error: null,
     });
@@ -1968,6 +1969,8 @@ describe('PerpsOrderView', () => {
       expect.objectContaining({
         feeSource: 'subscription',
         feeDiscountPercentage: 100,
+        orderNotionalUsd: expect.any(Number),
+        subscriptionRemainingNotionalUsd: 50000,
       }),
     );
   });

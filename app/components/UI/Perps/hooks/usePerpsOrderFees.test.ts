@@ -694,6 +694,36 @@ describe('usePerpsOrderFees', () => {
       },
     );
 
+    it.each([
+      { source: 'subscription' as const, expected: 4000 },
+      { source: 'rewards' as const, expected: undefined },
+    ])(
+      'exposes the remaining subscription notional only for a $source fee',
+      async ({ source, expected }) => {
+        mockCalculateFees.mockResolvedValue({
+          feeRate: 0.00085,
+          protocolFeeRate: 0.00045,
+          metamaskFeeRate: 0.0004,
+          chargesMetamaskBuilderFee: true,
+          feeSource: source,
+          metamaskFeeDiscountBips: 6000,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+          subscription: {
+            eligible: source === 'subscription',
+            reason: source === 'subscription' ? 'eligible' : 'no-source',
+            remainingNotionalUsd: 4000,
+          },
+        });
+
+        const { result } = renderOrderFees();
+        await waitFor(() => {
+          expect(result.current.isLoadingMetamaskFee).toBe(false);
+        });
+
+        expect(result.current.subscriptionRemainingNotionalUsd).toBe(expected);
+      },
+    );
+
     it('previews the default builder fee unchanged when no discount applies', async () => {
       mockCalculateFees.mockResolvedValue({
         feeRate: 0.00145,

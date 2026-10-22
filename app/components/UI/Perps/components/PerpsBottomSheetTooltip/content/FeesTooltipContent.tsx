@@ -20,6 +20,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import PerpsOrangeChip from '../../PerpsOrangeChip';
+import {
+  formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
+} from '../../../utils/formatUtils';
 
 interface FeesTooltipContentProps extends TooltipContentProps {
   data?: {
@@ -34,8 +38,59 @@ interface FeesTooltipContentProps extends TooltipContentProps {
      */
     feeSource?: PerpsFeeSource;
     bridgeFeeFormatted?: string;
+    /** Order notional (USD) the fees are quoted for. */
+    orderNotionalUsd?: number;
+    /**
+     * Free notional (USD) the subscription has left, from the quote. With
+     * `orderNotionalUsd` it lets the Orange banner say how much it covers.
+     */
+    subscriptionRemainingNotionalUsd?: number;
   };
 }
+
+const formatUsd = (value: number) =>
+  formatPerpsFiat(value, { ranges: PRICE_RANGES_MINIMAL_VIEW });
+
+/**
+ * Copy for the Orange banner. Full cover when the MetaMask fee is fully
+ * discounted or the free notional reaches the order size; partial cover
+ * names the dollar split when the quote reports what is left; otherwise the
+ * discount percentage.
+ */
+const getOrangeBannerMessage = ({
+  discountPercentage,
+  orderNotionalUsd,
+  remainingNotionalUsd,
+}: {
+  discountPercentage: number;
+  orderNotionalUsd?: number;
+  remainingNotionalUsd?: number;
+}) => {
+  const hasNotional =
+    orderNotionalUsd !== undefined &&
+    Number.isFinite(orderNotionalUsd) &&
+    orderNotionalUsd > 0;
+  const hasRemaining =
+    remainingNotionalUsd !== undefined && Number.isFinite(remainingNotionalUsd);
+
+  if (
+    discountPercentage >= 100 ||
+    (hasNotional && hasRemaining && remainingNotionalUsd >= orderNotionalUsd)
+  ) {
+    return strings('perps.tooltips.fees.orange_covers_full');
+  }
+
+  if (hasNotional && hasRemaining && remainingNotionalUsd > 0) {
+    return strings('perps.tooltips.fees.orange_covers_partial', {
+      covered: formatUsd(Math.min(remainingNotionalUsd, orderNotionalUsd)),
+      notional: formatUsd(orderNotionalUsd),
+    });
+  }
+
+  return strings('perps.tooltips.fees.member_discount_message', {
+    percentage: discountPercentage.toString(),
+  });
+};
 
 const FeesTooltipContent = ({
   testID,
@@ -58,8 +113,10 @@ const FeesTooltipContent = ({
       {hasDiscount && isSubscriptionDiscount ? (
         <BannerBase
           testID={`${testID}-orange-banner`}
-          description={strings('perps.tooltips.fees.member_discount_message', {
-            percentage: discountPercentage.toString(),
+          description={getOrangeBannerMessage({
+            discountPercentage,
+            orderNotionalUsd: data?.orderNotionalUsd,
+            remainingNotionalUsd: data?.subscriptionRemainingNotionalUsd,
           })}
           descriptionProps={{ color: TextColor.TextAlternative }}
           // The muted surface the neutral Tag and the VIP banner use; the
