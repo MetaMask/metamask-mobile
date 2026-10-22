@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor, within } from '@testing-library/react-native';
+import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import {
   InteractionManager,
   ScrollView,
@@ -28,6 +28,28 @@ import ReduxService from '../../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../../core/redux/types';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { BASIC_FUNCTIONALITY_SWITCH_TEST_ID } from '../../../UI/BasicFunctionality/BasicFunctionality.constants';
+import { endTrace, trace, TraceName } from '../../../../util/trace';
+
+const BELOW_FOLD_PLACEHOLDER_TEST_ID =
+  'security-settings-below-fold-placeholder';
+
+let mockIsTransitionComplete = true;
+
+type MockTransitionListener = (event: { data: { closing: boolean } }) => void;
+const mockTransitionEndListeners = new Set<MockTransitionListener>();
+
+jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
+  useScreenTransitionComplete: () => mockIsTransitionComplete,
+}));
+
+jest.mock('../../../../util/trace', () => {
+  const actual = jest.requireActual('../../../../util/trace');
+  return {
+    ...actual,
+    trace: jest.fn(),
+    endTrace: jest.fn(),
+  };
+});
 const initialState = {
   privacy: { approvedHosts: {} },
   browser: { history: [] },
@@ -51,15 +73,26 @@ const mockSetOptions = jest.fn();
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
+const mockNavigation = {
+  navigate: mockNavigate,
+  setOptions: mockSetOptions,
+  goBack: mockGoBack,
+  addListener: (eventName: string, listener: MockTransitionListener) => {
+    if (eventName !== 'transitionEnd') {
+      return () => undefined;
+    }
+    mockTransitionEndListeners.add(listener);
+    return () => {
+      mockTransitionEndListeners.delete(listener);
+    };
+  },
+};
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
     ...actualReactNavigation,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setOptions: mockSetOptions,
-      goBack: mockGoBack,
-    }),
+    useNavigation: () => mockNavigation,
     useFocusEffect: jest.fn((callback: () => void) => callback()),
   };
 });
@@ -98,9 +131,19 @@ jest.mock('../../../../core/Authentication/hooks/useAuthCapabilities', () => ({
 }));
 
 describe('SecuritySettings', () => {
+  const originalRequestAnimationFrame = global.requestAnimationFrame;
+  const originalCancelAnimationFrame = global.cancelAnimationFrame;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockGoBack.mockClear();
+    mockIsTransitionComplete = true;
+    mockTransitionEndListeners.clear();
+    global.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      callback(0);
+      return 0;
+    }) as typeof requestAnimationFrame;
+    global.cancelAnimationFrame = jest.fn();
     mockUseParamsValues = {
       scrollToSection: undefined,
     };
@@ -132,8 +175,18 @@ describe('SecuritySettings', () => {
   });
 
   afterEach(() => {
+    global.requestAnimationFrame = originalRequestAnimationFrame;
+    global.cancelAnimationFrame = originalCancelAnimationFrame;
     jest.restoreAllMocks();
   });
+
+  const emitTransitionEnd = (closing = false) => {
+    act(() => {
+      mockTransitionEndListeners.forEach((listener) => {
+        listener({ data: { closing } });
+      });
+    });
+  };
   it('renders correctly', () => {
     const { getByText } = renderWithProvider(<SecuritySettings />, {
       state: initialState,
@@ -306,5 +359,92 @@ describe('SecuritySettings', () => {
         getByTestId(BASIC_FUNCTIONALITY_SWITCH_TEST_ID).props.disabled,
       ).toBe(false);
     });
+  });
+
+  it('keeps the security block immediate and defers the privacy tail until transitionEnd', () => {
+    mockIsTransitionComplete = false;
+    const queuedFrames: FrameRequestCallback[] = [];
+    global.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
+      queuedFrames.push(callback);
+      return queuedFrames.length;
+    }) as typeof requestAnimationFrame;
+
+    const view = renderWithProvider(<SecuritySettings />, {
+      state: initialState,
+    });
+
+    expect(
+      view.getByText(strings('app_settings.protect_title')),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(BELOW_FOLD_PLACEHOLDER_TEST_ID)).toBeOnTheScreen();
+    expect(view.queryByTestId(CLEAR_PRIVACY_SECTION)).toBeNull();
+    expect(view.queryByTestId(META_METRICS_SECTION)).toBeNull();
+    expect(
+      view.queryByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON),
+    ).toBeNull();
+    expect(trace).not.toHaveBeenCalled();
+
+    emitTransitionEnd();
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.SecuritySettingsBelowFoldContentReady,
+        op: 'ui.startup',
+        id: 'security-settings-below-fold',
+        data: { deferred: true },
+      }),
+    );
+    expect(endTrace).not.toHaveBeenCalled();
+
+    mockIsTransitionComplete = true;
+    view.rerender(<SecuritySettings />);
+
+    act(() => {
+      const frame = queuedFrames.shift();
+      if (!frame) {
+        throw new Error('expected a pending animation frame');
+      }
+      frame(0);
+    });
+
+    expect(
+      view.getByTestId(SECURITY_SETTINGS_DELETE_WALLET_BUTTON),
+    ).toBeOnTheScreen();
+    expect(view.getByTestId(CLEAR_PRIVACY_SECTION)).toBeOnTheScreen();
+    expect(view.getByTestId(META_METRICS_SECTION)).toBeOnTheScreen();
+    expect(view.queryByTestId(BELOW_FOLD_PLACEHOLDER_TEST_ID)).toBeNull();
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.SecuritySettingsBelowFoldContentReady,
+        id: 'security-settings-below-fold',
+        data: { success: true, deferred: true },
+      }),
+    );
+  });
+
+  it('ends the below-fold span immediately when content is already ready at transitionEnd', () => {
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    emitTransitionEnd();
+
+    expect(trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.SecuritySettingsBelowFoldContentReady,
+      }),
+    );
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.SecuritySettingsBelowFoldContentReady,
+        data: { success: true, deferred: true },
+      }),
+    );
+  });
+
+  it('ignores a closing transitionEnd', () => {
+    renderWithProvider(<SecuritySettings />, { state: initialState });
+
+    emitTransitionEnd(true);
+
+    expect(trace).not.toHaveBeenCalled();
   });
 });

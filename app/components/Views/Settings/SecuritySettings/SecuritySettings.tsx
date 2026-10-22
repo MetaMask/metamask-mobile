@@ -39,7 +39,14 @@ import { SecurityPrivacyViewSelectorsIDs } from './SecurityPrivacyView.testIds';
 import createStyles from './SecuritySettings.styles';
 import { SecuritySettingsParams } from './SecuritySettings.types';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
+import { DeferredRender } from '../../../DeferredRender';
+import {
+  endTrace,
+  trace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { CLEAR_BROWSER_HISTORY_SECTION } from './SecuritySettings.constants';
 import {
@@ -78,13 +85,46 @@ import {
   selectIsSocialLoginBasicFunctionalityLocked,
 } from '../../../../selectors/featureFlagController/basicFunctionalityConsolidation';
 
+/**
+ * A/B arm for the Security & Privacy deferred-render demo.
+ *
+ * Arm B (HEAD): `true` — below-fold sections wait until the push
+ * `transitionEnd` and one animation frame.
+ * Arm A (before): set this line to `false`. `DeferredRender` then mounts
+ * the same tree on the first commit and does not schedule a frame.
+ */
+const DEFER_BELOW_FOLD_SECURITY_SETTINGS = true;
+
+const SECURITY_SETTINGS_BELOW_FOLD_PLACEHOLDER_TEST_ID =
+  'security-settings-below-fold-placeholder';
+
+const SECURITY_SETTINGS_BELOW_FOLD_TRACE_ID = 'security-settings-below-fold';
+
+/**
+ * Fires once the deferred below-fold tree has committed.
+ *
+ * @param props - Content-ready edge for the transition span and scroll.
+ * @param props.onReady - Called after the below-fold commit.
+ */
+const SecuritySettingsBelowFoldReady = ({
+  onReady,
+}: {
+  onReady: () => void;
+}) => {
+  useEffect(() => {
+    onReady();
+  }, [onReady]);
+
+  return null;
+};
+
 const Settings: React.FC = () => {
   const { trackEvent, isEnabled, createEventBuilder } = useAnalytics();
   const {
     styles,
     theme: { colors, brandColors },
   } = useStyles(createStyles, {});
-  const navigation = useNavigation<AppNavigationProp>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const params = useParams<SecuritySettingsParams>();
   const dispatch = useDispatch();
   const [browserHistoryModalVisible, setBrowserHistoryModalVisible] =
@@ -104,6 +144,12 @@ const Settings: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const metaMetricsSectionRef = useRef<View>(null);
   const dataCollectionSectionRef = useRef<View>(null);
+  const [isBelowFoldReady, setIsBelowFoldReady] = useState(
+    () => !DEFER_BELOW_FOLD_SECURITY_SETTINGS,
+  );
+  const belowFoldReadyRef = useRef(!DEFER_BELOW_FOLD_SECURITY_SETTINGS);
+  const traceStartedRef = useRef(false);
+  const traceEndedRef = useRef(false);
   const {
     disableNotifications,
     loading: disableNotificationsLoading,
@@ -193,13 +239,63 @@ const Settings: React.FC = () => {
     );
   }, [params?.scrollToSection]);
 
+  const finishBelowFoldTrace = useCallback((success: boolean) => {
+    if (!traceStartedRef.current || traceEndedRef.current) {
+      return;
+    }
+
+    traceEndedRef.current = true;
+    endTrace({
+      name: TraceName.SecuritySettingsBelowFoldContentReady,
+      id: SECURITY_SETTINGS_BELOW_FOLD_TRACE_ID,
+      data: {
+        success,
+        deferred: DEFER_BELOW_FOLD_SECURITY_SETTINGS,
+        ...(success ? {} : { reason: 'unmounted' }),
+      },
+    });
+  }, []);
+
+  const markBelowFoldReady = useCallback(() => {
+    belowFoldReadyRef.current = true;
+    setIsBelowFoldReady(true);
+    finishBelowFoldTrace(true);
+  }, [finishBelowFoldTrace]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('transitionEnd', (event) => {
+      if (event.data.closing || traceStartedRef.current) {
+        return;
+      }
+
+      traceStartedRef.current = true;
+      trace({
+        name: TraceName.SecuritySettingsBelowFoldContentReady,
+        op: TraceOperation.UIStartup,
+        id: SECURITY_SETTINGS_BELOW_FOLD_TRACE_ID,
+        data: { deferred: DEFER_BELOW_FOLD_SECURITY_SETTINGS },
+      });
+
+      if (belowFoldReadyRef.current) {
+        finishBelowFoldTrace(true);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+      finishBelowFoldTrace(false);
+      traceStartedRef.current = false;
+      traceEndedRef.current = false;
+    };
+  }, [navigation, finishBelowFoldTrace]);
+
   useFocusEffect(
     useCallback(() => {
-      if (!params?.scrollToSection) return;
+      if (!params?.scrollToSection || !isBelowFoldReady) return;
 
       const task = InteractionManager.runAfterInteractions(scrollToSection);
       return () => task.cancel();
-    }, [scrollToSection, params?.scrollToSection]),
+    }, [scrollToSection, params?.scrollToSection, isBelowFoldReady]),
   );
 
   const toggleHint = () => {
@@ -395,57 +491,79 @@ const Settings: React.FC = () => {
           <AutoLock />
           <DeviceSecurityToggle />
           {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.privacy_heading')}
-          </Text>
-          <View style={styles.halfSetting}>
-            <BasicFunctionalityComponent
-              flushTop
-              disabled={isSocialLoginBasicFunctionalityLocked}
-              handleSwitchToggle={toggleBasicFunctionality}
-            />
-          </View>
-          <ClearPrivacy />
-          {renderClearBrowserHistorySection()}
-          <ClearCookiesSection />
-          {!isBasicFunctionalityConsolidationEnabled && (
+          <DeferredRender
+            enabled={DEFER_BELOW_FOLD_SECURITY_SETTINGS}
+            placeholder={
+              <View
+                testID={SECURITY_SETTINGS_BELOW_FOLD_PLACEHOLDER_TEST_ID}
+                style={styles.belowFoldPlaceholder}
+              />
+            }
+          >
             <>
+              <SecuritySettingsBelowFoldReady onReady={markBelowFoldReady} />
               <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-                {strings('app_settings.network_provider')}
+                {strings('app_settings.privacy_heading')}
               </Text>
-              <NetworkDetailsCheckSettings />
-            </>
-          )}
-          {!isBasicFunctionalityConsolidationEnabled && (
-            <>
+              <View style={styles.halfSetting}>
+                <BasicFunctionalityComponent
+                  flushTop
+                  disabled={isSocialLoginBasicFunctionalityLocked}
+                  handleSwitchToggle={toggleBasicFunctionality}
+                />
+              </View>
+              <ClearPrivacy />
+              {renderClearBrowserHistorySection()}
+              <ClearCookiesSection />
+              {!isBasicFunctionalityConsolidationEnabled && (
+                <>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    style={styles.subHeading}
+                  >
+                    {strings('app_settings.network_provider')}
+                  </Text>
+                  <NetworkDetailsCheckSettings />
+                </>
+              )}
+              {!isBasicFunctionalityConsolidationEnabled && (
+                <>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    style={styles.subHeading}
+                  >
+                    {strings('app_settings.transactions_subheading')}
+                  </Text>
+                  <BatchAccountBalanceSettings />
+                  {renderUseTransactionSimulations()}
+                </>
+              )}
+              {renderHistoryModal()}
+              {!isBasicFunctionalityConsolidationEnabled && (
+                <>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    style={styles.subHeading}
+                  >
+                    {strings('app_settings.token_nft_ens_subheading')}
+                  </Text>
+                  <DisplayNFTMediaSettings />
+                  {isMainnet && <AutoDetectNFTSettings />}
+                </>
+              )}
+              <IPFSGatewaySettings />
               <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-                {strings('app_settings.transactions_subheading')}
+                {strings('app_settings.analytics_subheading')}
               </Text>
-              <BatchAccountBalanceSettings />
-              {renderUseTransactionSimulations()}
+              <MetaMetricsAndDataCollectionSection
+                metaMetricsRef={metaMetricsSectionRef}
+                dataCollectionRef={dataCollectionSectionRef}
+              />
+              <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+              <DeleteWalletData />
+              <TopTradersSection />
             </>
-          )}
-          {renderHistoryModal()}
-          {!isBasicFunctionalityConsolidationEnabled && (
-            <>
-              <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-                {strings('app_settings.token_nft_ens_subheading')}
-              </Text>
-              <DisplayNFTMediaSettings />
-              {isMainnet && <AutoDetectNFTSettings />}
-            </>
-          )}
-          <IPFSGatewaySettings />
-          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
-            {strings('app_settings.analytics_subheading')}
-          </Text>
-          <MetaMetricsAndDataCollectionSection
-            metaMetricsRef={metaMetricsSectionRef}
-            dataCollectionRef={dataCollectionSectionRef}
-          />
-          <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
-          <DeleteWalletData />
-          <TopTradersSection />
+          </DeferredRender>
           {renderHint()}
         </View>
       </ScrollView>

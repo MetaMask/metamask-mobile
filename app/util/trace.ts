@@ -328,6 +328,11 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  /**
+   * Security & Privacy push: native `transitionEnd` until the below-fold
+   * tree has committed. Demo span for the deferred-render before/after.
+   */
+  SecuritySettingsBelowFoldContentReady = 'Security Settings Below Fold Content Ready',
 }
 
 export enum TraceOperation {

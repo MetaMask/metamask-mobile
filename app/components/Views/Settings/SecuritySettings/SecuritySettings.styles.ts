@@ -97,6 +97,16 @@ const createStyles = ({ theme: { colors } }: { theme: Theme }) =>
       borderTopColor: colors.border.muted,
       paddingTop: 36,
     },
+    /**
+     * Stands in for the privacy tail (Clear privacy, MetaMetrics, Delete
+     * wallet, and the sections between them) so the scroll height does not
+     * collapse while that tree waits for the push transition.
+     * Roughly: four subheadings plus the privacy, network, transaction,
+     * NFT, analytics, and wallet rows. Not a measured layout.
+     */
+    belowFoldPlaceholder: {
+      minHeight: 1920,
+    },
   });
 
 export default createStyles;
