@@ -8,7 +8,6 @@ import { Theme, useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { AppThemeKey } from '../../../../../util/theme/models';
-import { GRADIENT_COLORS } from './CardWelcome.styles';
 import { CardWelcomeSelectors } from './CardWelcome.testIds';
 import CardWelcomeCardsAnimation from './CardWelcomeCardsAnimation';
 import { useCardEducationAnimationState } from './useCardEducationAnimationState';
@@ -30,6 +29,9 @@ import type {
   NetworkTier,
 } from '../../../../../util/deviceCapability/types';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+
+// eslint-disable-next-line @metamask/design-tokens/color-no-hex
+const GRADIENT_COLORS = ['#1D002E', '#360853'];
 
 interface TransitionEndEvent {
   data?: { closing?: boolean };
