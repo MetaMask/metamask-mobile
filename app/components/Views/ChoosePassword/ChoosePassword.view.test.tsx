@@ -12,7 +12,7 @@
  */
 import '../../../../tests/component-view/mocks';
 import { fireEvent, waitFor } from '@testing-library/react-native';
-import { InteractionManager } from 'react-native';
+import { AccessibilityInfo, InteractionManager, Platform } from 'react-native';
 import {
   describeForPlatforms,
   itEach,
@@ -251,6 +251,103 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       ).toBeEnabled();
     },
   );
+
+  it('announces confirm-password errors and names why create password stays disabled', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+    const lengthHelpText = strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+    const mismatchText = strings('choose_password.password_error');
+    const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
+      routeParams: {
+        oauthLoginSuccess: true,
+        provider: AuthConnection.Google,
+      },
+    });
+
+    try {
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(lengthHelpText);
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      fireEvent.changeText(
+        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        VALID_PASSWORD,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      fireEvent.changeText(confirmPasswordInput, 'x');
+      announceSpy.mockClear();
+      fireEvent(confirmPasswordInput, 'blur');
+
+      const tooShortHelp = await findByText(lengthHelpText);
+      expect(tooShortHelp).toBeOnTheScreen();
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(lengthHelpText);
+
+      if (Platform.OS === 'android') {
+        expect(tooShortHelp.props.accessibilityLiveRegion).toBe('polite');
+        expect(announceSpy).not.toHaveBeenCalled();
+      } else {
+        expect(tooShortHelp.props.accessibilityLiveRegion).toBeUndefined();
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(lengthHelpText);
+      }
+
+      announceSpy.mockClear();
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        `${VALID_PASSWORD.slice(0, -1)}x`,
+      );
+
+      const mismatchHelp = await findByText(mismatchText);
+      expect(mismatchHelp).toBeOnTheScreen();
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBe(mismatchText);
+
+      if (Platform.OS === 'android') {
+        expect(mismatchHelp.props.accessibilityLiveRegion).toBe('polite');
+        expect(announceSpy).not.toHaveBeenCalled();
+      } else {
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(mismatchText);
+      }
+
+      announceSpy.mockClear();
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        `${VALID_PASSWORD}y`,
+      );
+      expect(await findByText(mismatchText)).toBeOnTheScreen();
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      fireEvent.changeText(
+        await findByTestId(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+        VALID_PASSWORD,
+      );
+      expect(
+        (await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID)).props
+          .accessibilityHint,
+      ).toBeUndefined();
+    } finally {
+      announceSpy.mockRestore();
+    }
+  });
 
   it('posts marketing opt-in to auth server and navigates to interest questionnaire after wallet creation', async () => {
     setupSeedlessAuthServerMocks({ marketingOptIn: true });

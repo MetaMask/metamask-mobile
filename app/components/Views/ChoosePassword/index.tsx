@@ -6,7 +6,12 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import { Platform, Keyboard, TextInput } from 'react-native';
+import {
+  AccessibilityInfo,
+  Platform,
+  Keyboard,
+  TextInput,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -131,6 +136,49 @@ const reservedHelpTextProps = (isHidden: boolean) => ({
     : ('auto' as const),
   ...(isHidden ? { style: { opacity: 0 } } : {}),
 });
+
+const getConfirmPasswordStatusMessage = (
+  password: string,
+  confirmPassword: string,
+  confirmValidationArmed: boolean,
+  hasLeftConfirmPasswordField: boolean,
+): string | undefined => {
+  if (
+    confirmValidationArmed &&
+    shouldShowPasswordMismatchError(password, confirmPassword)
+  ) {
+    return strings('choose_password.password_error');
+  }
+
+  if (
+    hasLeftConfirmPasswordField &&
+    passwordRequirementsMet(password) &&
+    confirmPassword.length > 0 &&
+    !passwordRequirementsMet(confirmPassword)
+  ) {
+    return strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+  }
+
+  return undefined;
+};
+
+const getCreatePasswordDisabledHint = (
+  password: string,
+  confirmPassword: string,
+): string => {
+  if (
+    !passwordRequirementsMet(password) ||
+    !passwordRequirementsMet(confirmPassword)
+  ) {
+    return strings('choose_password.must_be_at_least', {
+      number: MIN_PASSWORD_LENGTH,
+    });
+  }
+
+  return strings('choose_password.password_error');
+};
 
 interface KeyringState {
   type: string;
@@ -851,6 +899,20 @@ const ChoosePassword = () => {
     [],
   );
 
+  const confirmPasswordStatusMessage = getConfirmPasswordStatusMessage(
+    password,
+    confirmPassword,
+    confirmValidationArmed,
+    hasLeftConfirmPasswordField,
+  );
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios' || !confirmPasswordStatusMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(confirmPasswordStatusMessage);
+  }, [confirmPasswordStatusMessage]);
+
   const renderContent = () => {
     if (loading) {
       return <OnboardingFoxLoader ref={foxRiveLoaderRef} />;
@@ -860,14 +922,6 @@ const ChoosePassword = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const canSubmitPassword = passwordMeetsLength && passwordsMatch;
     const showPasswordError = hasLeftPasswordField && !passwordMeetsLength;
-    const showConfirmPasswordError =
-      confirmValidationArmed &&
-      shouldShowPasswordMismatchError(password, confirmPassword);
-    const showConfirmTooShortError =
-      hasLeftConfirmPasswordField &&
-      passwordMeetsLength &&
-      confirmPassword.length > 0 &&
-      !passwordRequirementsMet(confirmPassword);
 
     return (
       <SafeAreaView
@@ -1011,7 +1065,7 @@ const ChoosePassword = () => {
                   />
                 }
                 isDisabled={password === ''}
-                isError={showConfirmPasswordError || showConfirmTooShortError}
+                isError={Boolean(confirmPasswordStatusMessage)}
                 inputProps={{
                   secureTextEntry: showPasswordIndex.includes(1),
                   testID: ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
@@ -1024,18 +1078,16 @@ const ChoosePassword = () => {
                   keyboardAppearance: themeAppearance,
                 }}
               />
-              {showConfirmPasswordError && (
-                <HelpText severity={HelpTextSeverity.Danger}>
-                  {strings('choose_password.password_error')}
+              {confirmPasswordStatusMessage ? (
+                <HelpText
+                  severity={HelpTextSeverity.Danger}
+                  accessibilityLiveRegion={
+                    Platform.OS === 'android' ? 'polite' : undefined
+                  }
+                >
+                  {confirmPasswordStatusMessage}
                 </HelpText>
-              )}
-              {showConfirmTooShortError && (
-                <HelpText severity={HelpTextSeverity.Danger}>
-                  {strings('choose_password.must_be_at_least', {
-                    number: MIN_PASSWORD_LENGTH,
-                  })}
-                </HelpText>
-              )}
+              ) : null}
             </Box>
 
             {getOauth2LoginSuccess() && (
@@ -1066,6 +1118,9 @@ const ChoosePassword = () => {
                 isLoading: isAwaitingGeolocation,
                 size: ButtonSize.Lg,
                 testID: ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+                accessibilityHint: canSubmitPassword
+                  ? undefined
+                  : getCreatePasswordDisabledHint(password, confirmPassword),
               }}
             />
           </Box>
