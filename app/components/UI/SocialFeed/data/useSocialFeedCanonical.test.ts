@@ -2,15 +2,16 @@ import type {
   FeedItem as CoreFeedItem,
   SocialFeedEvent,
 } from '@metamask/social-controllers';
-import type { TraderFeedRow } from '../../../UI/SocialFeed/types';
-import { mapFeedItem } from '../../../UI/SocialFeed/utils/mapFeedItem';
+import type { TraderFeedRow } from '../types';
+import { mapFeedItem } from '../utils/mapFeedItem';
 import {
   applyRealtimeEventToRow,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
   shouldDeferPendingNewRow,
-  toLiveFeedRow,
-} from './useLiveFeed';
+  toSocialFeedSource,
+  toSocialFeedRow,
+} from './useSocialFeedCanonical';
 
 const current = {
   positionId: 'position-1',
@@ -55,7 +56,25 @@ const event = {
   },
 } as unknown as SocialFeedEvent;
 
-describe('mergeRealtimeFeedItem', () => {
+describe('useSocialFeedCanonical helpers', () => {
+  it('maps canonical scopes to HTTP feed sources', () => {
+    expect(toSocialFeedSource('trending')).toEqual({
+      kind: 'all',
+      audience: 'all',
+      scope: 'trending',
+    });
+    expect(toSocialFeedSource('following')).toEqual({
+      kind: 'all',
+      audience: 'following',
+      scope: 'following',
+    });
+    expect(toSocialFeedSource('all')).toEqual({
+      kind: 'all',
+      audience: 'all',
+      scope: 'all',
+    });
+  });
+
   it('preserves HTTP presentation fields while applying event revision metadata', () => {
     const merged = mergeRealtimeFeedItem(current, event);
 
@@ -90,7 +109,7 @@ describe('mergeRealtimeFeedItem', () => {
       throw new Error('Expected the HTTP item to map');
     }
     const row: TraderFeedRow = { core: httpItem, item };
-    const liveRow = toLiveFeedRow(row);
+    const liveRow = toSocialFeedRow(row);
     const revisedRow = applyRealtimeEventToRow(row, event, liveRow, false);
 
     expect(revisedRow).toMatchObject({

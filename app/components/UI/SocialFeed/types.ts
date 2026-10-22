@@ -10,6 +10,10 @@ import type { TradeAction } from './utils/tradeAction';
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
 
+export interface SocialFeedPageHandle {
+  scrollToOffset: (offset: number, animated?: boolean) => void;
+}
+
 export interface SocialV1FeedAsset {
   /** Ticker shown on the position card (`BTC`, `NVDA`). */
   symbol: string;

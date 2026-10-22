@@ -7,6 +7,7 @@ export const SocialV1ViewSelectorsIDs = {
   PAGER: 'social-v1-view-pager',
   LEADERBOARD_PAGE: 'social-v1-view-leaderboard-page',
   TRENDING_PAGE: 'social-v1-view-trending-page',
+  TRENDING_FILTER_BUTTON: 'social-v1-trending-filter-button',
   FOLLOWING_PAGE: 'social-v1-view-following-page',
   LIVE_PAGE: 'social-v1-view-live-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',

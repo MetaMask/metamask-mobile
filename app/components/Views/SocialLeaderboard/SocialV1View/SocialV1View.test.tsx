@@ -56,6 +56,48 @@ jest.mock('./feed/hooks/useSocialV1Feed', () => ({
     .mockUseSocialV1Feed,
 }));
 
+jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const { mockUseSocialV1Feed } = jest.requireActual(
+    './feed/mocks/mockComposedFeedHook',
+  );
+  const SocialFeedPostingBanner = jest.requireActual(
+    './feed/components/SocialFeedPostingBanner',
+  ).default;
+
+  return {
+    __esModule: true,
+    default: ({
+      scope,
+      testID,
+    }: {
+      scope: 'trending' | 'following' | 'all';
+      testID?: string;
+    }) => {
+      const { pendingPost, posts } = mockUseSocialV1Feed(
+        scope === 'following' ? 'following' : 'trending',
+      );
+      return ReactActual.createElement(
+        View,
+        { testID },
+        pendingPost
+          ? ReactActual.createElement(SocialFeedPostingBanner, {
+              authorHandle: pendingPost.authorHandle,
+              startedAtMs: null,
+            })
+          : null,
+        ...posts.map((post: { id: string; item: { id: string } }) =>
+          ReactActual.createElement(View, {
+            key: post.id,
+            testID: `social-v1-feed-card-${post.item.id}`,
+          }),
+        ),
+      );
+    },
+  };
+});
+
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -241,7 +283,7 @@ jest.mock('react-native-gesture-handler', () => {
 describe('SocialV1View', () => {
   const openLiveTab = () => {
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
     );
     act(() => {
       screen
@@ -299,7 +341,7 @@ describe('SocialV1View', () => {
     expect(screen.queryByTestId('top-traders-view')).toBeNull();
 
     fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
     );
 
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();

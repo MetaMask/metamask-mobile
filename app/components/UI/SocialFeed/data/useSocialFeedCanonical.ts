@@ -5,28 +5,19 @@ import type {
 import { useIsFocused } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import { useSocialFeed } from '../../../UI/SocialFeed/data/useSocialFeed';
-import type {
-  SocialV1FeedPost,
-  TraderFeedRow,
-} from '../../../UI/SocialFeed/types';
-import { mapFeedItem } from '../../../UI/SocialFeed/utils/mapFeedItem';
-import { toSocialFeedPosts } from '../../../UI/SocialFeed/utils/toSocialFeedPosts';
-import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSource';
+import { useSocialFeed } from './useSocialFeed';
+import type { SocialV1FeedPost, TraderFeedRow } from '../types';
+import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
+import type { SocialFeedSource } from './socialFeedSource';
 
-export const LIVE_FEED_BUFFER_SIZE = 60;
-const LIVE_FEED_PAGE_SIZE = 30;
-const LIVE_FEED_REVEAL_BATCH_SIZE = 2;
-const LIVE_FEED_REVEAL_INTERVAL_MS = 16;
+export const SOCIAL_FEED_BUFFER_SIZE = 60;
+const SOCIAL_FEED_PAGE_SIZE = 30;
+const SOCIAL_FEED_REVEAL_BATCH_SIZE = 2;
+const SOCIAL_FEED_REVEAL_INTERVAL_MS = 16;
 const noopAnimationComplete = (_eventId: string): void => undefined;
 
-const LIVE_FEED_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  scope: 'all',
-};
-
-export interface LiveFeedRow extends TraderFeedRow {
+export interface SocialFeedRow extends TraderFeedRow {
   stableId: string;
   sortTimestamp: number;
   realtimeEventId?: string;
@@ -34,7 +25,7 @@ export interface LiveFeedRow extends TraderFeedRow {
   revision?: number;
 }
 
-interface PendingEvent {
+interface PendingRealtimeEvent {
   event: SocialFeedEvent;
   animate: boolean;
 }
@@ -45,6 +36,16 @@ interface CachedFeedPost {
   now: number;
   post: SocialV1FeedPost;
 }
+
+export type SocialFeedScope = 'all' | 'trending' | 'following';
+
+export const toSocialFeedSource = (
+  scope: SocialFeedScope,
+): SocialFeedSource => ({
+  kind: 'all',
+  audience: scope === 'following' ? 'following' : 'all',
+  scope,
+});
 
 /**
  * Full realtime events are normalized by Core and can hydrate a row without
@@ -63,7 +64,7 @@ export const mergeRealtimeFeedItem = (
     occurredAt: event.occurredAt,
   }) as CoreFeedItem;
 
-export const toLiveFeedRow = (row: TraderFeedRow): LiveFeedRow => ({
+export const toSocialFeedRow = (row: TraderFeedRow): SocialFeedRow => ({
   ...row,
   stableId: row.item.id,
   sortTimestamp: row.item.timestamp,
@@ -77,15 +78,15 @@ export const getVisiblePendingNewCount = (
 ): number => (paused || !nearTop ? pendingNewCount : 0);
 
 export const shouldDeferPendingNewRow = (
-  pending: Pick<PendingEvent, 'animate'> | undefined,
+  pending: Pick<PendingRealtimeEvent, 'animate'> | undefined,
 ): boolean => pending?.animate === true;
 
 export const applyRealtimeEventToRow = (
   row: TraderFeedRow | undefined,
   event: SocialFeedEvent,
-  previous: LiveFeedRow | undefined,
+  previous: SocialFeedRow | undefined,
   animate: boolean,
-): LiveFeedRow | null => {
+): SocialFeedRow | null => {
   const mergedCore = mergeRealtimeFeedItem(row?.core, event);
   const mappedItem = mapFeedItem(mergedCore);
   if (!mappedItem) {
@@ -110,7 +111,7 @@ export const applyRealtimeEventToRow = (
   };
 };
 
-export interface UseLiveFeedResult {
+export interface UseSocialFeedCanonicalResult {
   posts: SocialV1FeedPost[];
   isLoading: boolean;
   isFetchingNextPage: boolean;
@@ -123,27 +124,34 @@ export interface UseLiveFeedResult {
   pendingNewCount: number;
 }
 
-export interface UseLiveFeedOptions {
+export interface UseSocialFeedCanonicalOptions {
   enabled?: boolean;
   paused?: boolean;
   nearTop?: boolean;
+  scope?: SocialFeedScope;
+  realtime?: boolean;
 }
 
-export const useLiveFeed = ({
+export const useSocialFeedCanonical = ({
   enabled = true,
   paused = false,
   nearTop = true,
-}: UseLiveFeedOptions = {}): UseLiveFeedResult => {
+  scope = 'all',
+  realtime = false,
+}: UseSocialFeedCanonicalOptions = {}): UseSocialFeedCanonicalResult => {
   const isFocused = useIsFocused();
   const realtimeService = Engine.context.SocialRealtimeService;
-  const [realtimeRows, setRealtimeRows] = useState<LiveFeedRow[]>([]);
-  const pendingEvents = useRef(new Map<string, PendingEvent>());
+  const [realtimeRows, setRealtimeRows] = useState<SocialFeedRow[]>([]);
+  const pendingEvents = useRef(new Map<string, PendingRealtimeEvent>());
   const postCache = useRef(new Map<string, CachedFeedPost>());
 
-  const feed = useSocialFeed(LIVE_FEED_SOURCE, {
+  const source = useMemo(() => toSocialFeedSource(scope), [scope]);
+  const realtimeEnabled = realtime && scope !== 'following';
+  const realtimeScope = scope === 'trending' ? 'trending' : 'all';
+  const feed = useSocialFeed(source, {
     enabled: enabled && isFocused,
-    pageSize: LIVE_FEED_PAGE_SIZE,
-    maxPages: 2,
+    pageSize: SOCIAL_FEED_PAGE_SIZE,
+    ...(realtimeEnabled ? { maxPages: 2 } : {}),
   });
   const { refresh } = feed;
   const rowsRef = useRef(feed.rows);
@@ -165,7 +173,7 @@ export const useLiveFeed = ({
         event,
         animate: previous?.animate || animate,
       });
-      while (pendingEvents.current.size > LIVE_FEED_BUFFER_SIZE) {
+      while (pendingEvents.current.size > SOCIAL_FEED_BUFFER_SIZE) {
         const oldest = pendingEvents.current.keys().next().value;
         if (oldest === undefined) {
           break;
@@ -203,15 +211,15 @@ export const useLiveFeed = ({
           ...existing.filter(
             (candidate) => candidate.feedItemId !== event.feedItemId,
           ),
-        ].slice(0, LIVE_FEED_BUFFER_SIZE);
+        ].slice(0, SOCIAL_FEED_BUFFER_SIZE);
       });
     },
     [],
   );
 
   const handleRealtimeEvent = useCallback(
-    (event: SocialFeedEvent, scope: string) => {
-      if (scope !== 'all') {
+    (event: SocialFeedEvent, eventScope: string) => {
+      if (!realtimeEnabled || eventScope !== scope) {
         return;
       }
 
@@ -231,11 +239,11 @@ export const useLiveFeed = ({
 
       applyEvent(event, undefined, true);
     },
-    [applyEvent, queuePendingEvent],
+    [applyEvent, queuePendingEvent, realtimeEnabled, scope],
   );
 
   useEffect(() => {
-    if (!enabled || !isFocused || !realtimeService) {
+    if (!enabled || !isFocused || !realtimeEnabled || !realtimeService) {
       setRealtimeRows((existing) => (existing.length === 0 ? existing : []));
       return undefined;
     }
@@ -244,14 +252,25 @@ export const useLiveFeed = ({
     const removeReconnectListener = realtimeService.addReconnectListener(() => {
       refresh().catch(() => undefined);
     });
-    realtimeService.setActive(true).catch(() => undefined);
+    realtimeService
+      .setScopes([realtimeScope])
+      .then(() => realtimeService.setActive(true))
+      .catch(() => undefined);
     return () => {
       removeListener();
       removeReconnectListener();
       setRealtimeRows([]);
       realtimeService.setActive(false).catch(() => undefined);
     };
-  }, [enabled, handleRealtimeEvent, isFocused, realtimeService, refresh]);
+  }, [
+    enabled,
+    handleRealtimeEvent,
+    isFocused,
+    realtimeEnabled,
+    realtimeScope,
+    realtimeService,
+    refresh,
+  ]);
 
   useEffect(() => {
     if (paused || !nearTop || pendingEvents.current.size === 0) {
@@ -260,7 +279,7 @@ export const useLiveFeed = ({
 
     const batch = Array.from(pendingEvents.current.entries()).slice(
       0,
-      LIVE_FEED_REVEAL_BATCH_SIZE,
+      SOCIAL_FEED_REVEAL_BATCH_SIZE,
     );
     for (const [feedItemId, pending] of batch) {
       const row = feed.rows.find(
@@ -277,13 +296,13 @@ export const useLiveFeed = ({
 
     const nextBatchTimer = setTimeout(
       () => setPendingDrainVersion((version) => version + 1),
-      LIVE_FEED_REVEAL_INTERVAL_MS,
+      SOCIAL_FEED_REVEAL_INTERVAL_MS,
     );
     return () => clearTimeout(nextBatchTimer);
   }, [applyEvent, feed.rows, nearTop, paused, pendingDrainVersion]);
 
   const rows = useMemo(() => {
-    const byPositionId = new Map<string, LiveFeedRow>();
+    const byPositionId = new Map<string, SocialFeedRow>();
     feed.rows.forEach((row) => {
       if (
         pendingNewCount > 0 &&
@@ -292,13 +311,13 @@ export const useLiveFeed = ({
         return;
       }
 
-      const liveRow = toLiveFeedRow(row);
+      const liveRow = toSocialFeedRow(row);
       byPositionId.set(liveRow.core.positionId, liveRow);
     });
     realtimeRows.forEach((row) => byPositionId.set(row.core.positionId, row));
     return [...byPositionId.values()]
       .sort((a, b) => b.sortTimestamp - a.sortTimestamp)
-      .slice(0, LIVE_FEED_BUFFER_SIZE);
+      .slice(0, SOCIAL_FEED_BUFFER_SIZE);
   }, [feed.rows, pendingNewCount, realtimeRows]);
 
   const posts = useMemo(() => {

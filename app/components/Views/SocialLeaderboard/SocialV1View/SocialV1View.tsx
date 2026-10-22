@@ -59,7 +59,6 @@ import {
   SOCIAL_V1_EXPOSURE_METADATA,
   SOCIAL_V1_VARIANTS,
 } from './abTestConfig';
-import EmptyShellTabPage from '../shell/EmptyShellTabPage';
 import LeaderboardShellTabPage from '../shell/LeaderboardShellTabPage';
 import {
   SOCIAL_V1_TAB_ORDER,
@@ -83,6 +82,8 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
@@ -93,6 +94,7 @@ import {
   PostTradeShareOwner,
   usePostTradeShareReopen,
 } from '../PostTradeShareBottomSheet';
+import SocialV1CanonicalTabView from './SocialV1CanonicalTabView';
 
 const LANDING_INDEX = 0;
 const TEMP_DISABLE_SOCIAL_LIVE_PRICES = true;
@@ -174,6 +176,50 @@ const SocialV1ViewContent: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
+  const [quickBuy, setQuickBuy] = useState<{
+    target: QuickBuyTarget;
+    copyTradeOrigin?: CopyTradeOrigin;
+  } | null>(null);
+  const openQuickBuy = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
+      setQuickBuy({ target, copyTradeOrigin }),
+    [],
+  );
+  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
+  );
+  const handleCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+
+      openQuickBuy(
+        {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        commentId ? { commentId } : undefined,
+      );
+    },
+    [openQuickBuy],
+  );
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
@@ -400,31 +446,6 @@ const SocialV1ViewContent: React.FC = () => {
   // appears on that hand-off, never on normal tab visits.
   const [showNotificationsBanner, setShowNotificationsBanner] = useState(
     Boolean(route.params?.showNotificationsBanner),
-  );
-
-  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
-  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
-  // inside a pager page it would be clipped by the collapsing header block and
-  // painted over by the page's own scroll content.
-  const [quickBuy, setQuickBuy] = useState<{
-    target: QuickBuyTarget;
-    copyTradeOrigin?: CopyTradeOrigin;
-  } | null>(null);
-  const openQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
-      setQuickBuy({ target, copyTradeOrigin }),
-    [],
-  );
-  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
-  const handlePostTradeReopen = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      setQuickBuy({ target, copyTradeOrigin });
-    },
-    [],
-  );
-  usePostTradeShareReopen(
-    handlePostTradeReopen,
-    PostTradeShareOwner.socialV1Feed,
   );
 
   useEffect(() => {
@@ -685,12 +706,12 @@ const SocialV1ViewContent: React.FC = () => {
                           pageRef={pageRef}
                           onOpenFilters={handleOpenLiveFeedsFilters}
                           isFilterActive={hasActiveFilters('live')}
+                          onCopyTrade={handleCopyTrade}
                           appliedFilters={applied.live}
                         />
                       ) : (
-                        <EmptyShellTabPage
+                        <SocialV1CanonicalTabView
                           tab={tab}
-                          isActive
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           containerTestID={testIds.container}
@@ -701,10 +722,10 @@ const SocialV1ViewContent: React.FC = () => {
                               : undefined
                           }
                           isFilterActive={hasActiveFilters('following')}
+                          onCopyTrade={handleCopyTrade}
                           appliedFilters={
                             tab === 'following' ? applied.following : undefined
                           }
-                          onQuickBuy={openQuickBuy}
                         />
                       )
                     ) : null}

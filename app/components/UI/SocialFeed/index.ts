@@ -12,6 +12,16 @@ export type {
   SocialFeedState,
   UseSocialFeedOptions,
 } from './data/useSocialFeed';
+export {
+  toSocialFeedSource,
+  useSocialFeedCanonical,
+  type SocialFeedRow,
+} from './data/useSocialFeedCanonical';
+export type {
+  SocialFeedScope,
+  UseSocialFeedCanonicalOptions,
+  UseSocialFeedCanonicalResult,
+} from './data/useSocialFeedCanonical';
 
 export { default as SocialFeedPostShell } from './components/SocialFeedPostShell';
 export type { SocialFeedPostShellProps } from './components/SocialFeedPostShell';
@@ -25,6 +35,13 @@ export { default as SocialFeedSkeleton } from './components/SocialFeedSkeleton';
 export { default as SocialFeedError } from './components/SocialFeedError';
 export { default as SocialFeed } from './components/SocialFeed';
 export type { SocialFeedProps } from './components/SocialFeed';
+export { default as SocialFeedCanonical } from './components/SocialFeedCanonical';
+export type {
+  SocialFeedCanonicalFilters,
+  SocialFeedCanonicalProps,
+  SocialFeedCanonicalScrollHandler,
+  SocialFeedCanonicalScope,
+} from './components/SocialFeedCanonical';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
 export {

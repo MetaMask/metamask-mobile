@@ -32,7 +32,10 @@ import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
-import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedPostShell, {
+  type SocialFeedPostShellProps,
+} from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialFeedCanonical from '../../../UI/SocialFeed/components/SocialFeedCanonical';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
@@ -45,13 +48,13 @@ import FeedItemEntryAnimation, {
   createFeedItemEntryScheduler,
 } from '../FeedView/components/FeedItemEntryAnimation';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
-import { useLiveFeed } from './useLiveFeed';
+import { useSocialFeedCanonical } from '../../../UI/SocialFeed/data/useSocialFeedCanonical';
 import { filterSocialV1FeedPosts } from '../shell/filters/filterSocialV1FeedPosts';
 import { useMyProfile } from '../MyProfileView/hooks';
 
 type AnimatedScrollHandler = ScrollHandlerProcessed;
 
-interface LiveScrollContext {
+interface LiveScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
 }
 
@@ -89,8 +92,6 @@ const areLiveFeedListItemPropsEqual = (
 ): boolean => {
   const previousPost = previous.post;
   const nextPost = next.post;
-  const previousPosition = previousPost.position;
-  const nextPosition = nextPost.position;
 
   return (
     previous.eventId === next.eventId &&
@@ -108,9 +109,7 @@ const areLiveFeedListItemPropsEqual = (
     previousPost.gifUri === nextPost.gifUri &&
     previousPost.userReaction === nextPost.userReaction &&
     areReactionsEqual(previousPost.reactions, nextPost.reactions) &&
-    previousPosition?.eventId === nextPosition?.eventId &&
-    previousPosition?.revision === nextPosition?.revision &&
-    previousPosition?.timestamp === nextPosition?.timestamp
+    previousPost.item.timestamp === nextPost.item.timestamp
   );
 };
 
@@ -149,6 +148,7 @@ export interface LiveViewProps {
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   appliedFilters?: SocialShellFilters;
 }
 
@@ -156,7 +156,7 @@ export interface LiveViewProps {
  * Social Bundle V1 Live feed: the shared feed-all snapshot plus realtime
  * revisions, rendered with the same post shell as the other feed tabs.
  */
-const LiveView: React.FC<LiveViewProps> = ({
+const LegacyLiveView: React.FC<LiveViewProps> = ({
   onScroll,
   pageRef,
   onOpenFilters,
@@ -182,9 +182,11 @@ const LiveView: React.FC<LiveViewProps> = ({
     realtimeEventIds,
     markRealtimeEventAnimated,
     pendingNewCount,
-  } = useLiveFeed({
+  } = useSocialFeedCanonical({
     paused: streamState === 'paused',
     nearTop,
+    realtime: true,
+    scope: 'all',
   });
   const visiblePosts = useMemo(
     () =>
@@ -402,6 +404,104 @@ const LiveView: React.FC<LiveViewProps> = ({
         />
       </Box>
     </SocialFeedSurfaceProvider>
+  );
+};
+
+const LiveView: React.FC<LiveViewProps> = ({
+  onScroll,
+  pageRef,
+  onOpenFilters,
+  isFilterActive = false,
+  onCopyTrade,
+}) => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { profile: myProfile } = useMyProfile();
+  const [streamState, setStreamState] = useState<LiveStreamState>('live');
+
+  const handleStreamToggle = useCallback(() => {
+    setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
+  }, []);
+
+  const handleAuthorPress = useCallback(
+    (post: SocialV1FeedPost) => {
+      playSelection().catch(() => undefined);
+      navigateToSocialV1Profile(navigation, {
+        traderId: post.item.author.id,
+        traderName: post.authorHandle,
+        traderAddress: post.item.author.address,
+        traderAvatarUri:
+          post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
+        source: 'trader_feed',
+        viewerProfileId: myProfile?.profileId ?? undefined,
+        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
+      });
+    },
+    [myProfile, navigation],
+  );
+
+  const handlePositionPress = useCallback(
+    (post: SocialV1FeedPost) => {
+      if (!post.position) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
+        positionId: post.position.positionId,
+        position: post.position,
+        author: post.item.author,
+        comment: post.item.comment,
+        isClosed:
+          post.item.variant === 'perpsClosed' ||
+          post.item.variant === 'spotClosed',
+      });
+    },
+    [navigation],
+  );
+
+  const isLive = streamState === 'live';
+
+  return (
+    <Box twClassName="flex-1 bg-default">
+      <SocialTabFilterBar
+        onOpenFilters={onOpenFilters}
+        isFilterActive={isFilterActive}
+        filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
+      >
+        <FilterButton
+          isSelected
+          variant={FilterButtonVariant.Primary}
+          size={FilterButtonSize.Md}
+          onPress={handleStreamToggle}
+          testID={LiveViewSelectorsIDs.STREAM_BUTTON}
+          accessibilityLabel={strings(
+            isLive
+              ? 'social_leaderboard.feed.live_stream.live'
+              : 'social_leaderboard.feed.live_stream.paused',
+          )}
+          startAccessory={
+            <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
+          }
+        >
+          {strings(
+            isLive
+              ? 'social_leaderboard.feed.live_stream.live'
+              : 'social_leaderboard.feed.live_stream.paused',
+          )}
+        </FilterButton>
+      </SocialTabFilterBar>
+      <SocialFeedCanonical
+        scope="all"
+        scrollMode="virtualized"
+        realtime
+        paused={streamState === 'paused'}
+        location="social_live"
+        onScroll={onScroll}
+        pageRef={pageRef}
+        onAuthorPress={handleAuthorPress}
+        onCopyTrade={onCopyTrade}
+        onPositionPress={handlePositionPress}
+      />
+    </Box>
   );
 };
 
