@@ -26,16 +26,11 @@ const loadCredentialScript = (): string => {
 };
 
 interface RunOptions {
-  requireTestMu: boolean;
   credentials: boolean;
   httpCode?: string;
 }
 
-const runCredentialScript = ({
-  requireTestMu,
-  credentials,
-  httpCode = '200',
-}: RunOptions) => {
+const runCredentialScript = ({ credentials, httpCode = '200' }: RunOptions) => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'testmu-creds-'));
   const binDir = path.join(workDir, 'bin');
   const outputFile = path.join(workDir, 'github-output');
@@ -52,7 +47,6 @@ const runCredentialScript = ({
     env: {
       PATH: `${binDir}:${process.env.PATH}`,
       GITHUB_OUTPUT: outputFile,
-      REQUIRE_TESTMU: String(requireTestMu),
       LT_USERNAME: credentials ? 'user' : '',
       LT_ACCESS_KEY: credentials ? 'key' : '',
     },
@@ -65,59 +59,31 @@ const runCredentialScript = ({
 };
 
 describe('run-performance-e2e check-testmu-credentials', () => {
-  describe('when TestMu is required', () => {
-    it('fails when the credentials are missing', () => {
-      const result = runCredentialScript({
-        requireTestMu: true,
-        credentials: false,
-      });
-
-      expect(result.status).toBe(1);
-      expect(result.output).not.toContain('testmu_ready');
+  it('fails when the credentials are missing', () => {
+    const result = runCredentialScript({
+      credentials: false,
     });
 
-    it('fails when the API rejects the credentials', () => {
-      const result = runCredentialScript({
-        requireTestMu: true,
-        credentials: true,
-        httpCode: '401',
-      });
-
-      expect(result.status).toBe(1);
-      expect(result.output).not.toContain('testmu_ready');
-    });
-
-    it('marks TestMu ready when the API accepts the credentials', () => {
-      const result = runCredentialScript({
-        requireTestMu: true,
-        credentials: true,
-      });
-
-      expect(result.status).toBe(0);
-      expect(result.output).toContain('testmu_ready=true');
-    });
+    expect(result.status).toBe(1);
+    expect(result.output).not.toContain('testmu_ready');
   });
 
-  describe('when TestMu is optional', () => {
-    it('skips TestMu without failing when the credentials are missing', () => {
-      const result = runCredentialScript({
-        requireTestMu: false,
-        credentials: false,
-      });
-
-      expect(result.status).toBe(0);
-      expect(result.output).toContain('testmu_ready=false');
+  it('fails when the API rejects the credentials', () => {
+    const result = runCredentialScript({
+      credentials: true,
+      httpCode: '401',
     });
 
-    it('skips TestMu without failing when the API rejects the credentials', () => {
-      const result = runCredentialScript({
-        requireTestMu: false,
-        credentials: true,
-        httpCode: '401',
-      });
+    expect(result.status).toBe(1);
+    expect(result.output).not.toContain('testmu_ready');
+  });
 
-      expect(result.status).toBe(0);
-      expect(result.output).toContain('testmu_ready=false');
+  it('marks TestMu ready when the API accepts the credentials', () => {
+    const result = runCredentialScript({
+      credentials: true,
     });
+
+    expect(result.status).toBe(0);
+    expect(result.output).toContain('testmu_ready=true');
   });
 });

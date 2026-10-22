@@ -9,6 +9,7 @@ import {
   withIsolationScope,
   startNewTrace,
   SPAN_STATUS_ERROR,
+  SPAN_STATUS_OK,
 } from '@sentry/core';
 import {
   endTrace,
@@ -50,6 +51,7 @@ jest.mock('@sentry/core', () => ({
   withIsolationScope: jest.fn(),
   startNewTrace: jest.fn((fn: () => unknown) => fn()),
   SPAN_STATUS_ERROR: 2,
+  SPAN_STATUS_OK: 1,
 }));
 
 jest.mock('../store/storage-wrapper', () => ({
@@ -737,6 +739,38 @@ describe('Trace', () => {
 
       expect(spanEndMock).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      ['ok', SPAN_STATUS_OK],
+      ['error', SPAN_STATUS_ERROR],
+    ] as const)(
+      'sets the Sentry span status to %s before ending it',
+      (status, code) => {
+        updateCachedConsent(true);
+
+        const spanEndMock = jest.fn();
+        const setStatusMock = jest.fn();
+        const spanMock = {
+          end: spanEndMock,
+          setStatus: setStatusMock,
+          setAttribute: jest.fn(),
+        } as unknown as Span;
+
+        startSpanManualMock.mockImplementationOnce((_, fn) =>
+          fn(spanMock, () => {
+            // Intentionally empty
+          }),
+        );
+
+        trace({ name: NAME_MOCK, id: ID_MOCK });
+        endTrace({ name: NAME_MOCK, id: ID_MOCK, status });
+
+        expect(setStatusMock).toHaveBeenCalledWith({ code });
+        expect(setStatusMock.mock.invocationCallOrder[0]).toBeLessThan(
+          spanEndMock.mock.invocationCallOrder[0],
+        );
+      },
+    );
 
     it('ends Sentry span matching name and default ID', () => {
       updateCachedConsent(true);

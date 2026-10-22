@@ -59,7 +59,7 @@ setupSentry(__DEV__);
 Performance.setupPerformanceObservers();
 
 // Arm Hermes CPU profiling for the whole process. No-op outside the
-// BrowserStack performance APKs, where IS_PERFORMANCE_TEST is baked in.
+// performance-test APKs, where IS_PERFORMANCE_TEST is baked in.
 initializeAppProfiling();
 
 // Ignore all logs

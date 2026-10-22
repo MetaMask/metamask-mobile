@@ -102,31 +102,31 @@ export const DEFAULT_CUSTOM_SNAPSHOT_TIMEOUT = 15;
 // Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
 export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
 
-/** WebDriver HTTP timeout for BrowserStack session creation (grid can take several minutes). */
+/** WebDriver HTTP timeout for TestMu session creation (the grid can take several minutes). */
 export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_TIMEOUT_MS = 300_000;
 
 /**
- * WDIO HTTP request retries for BrowserStack hub calls (including POST /session).
+ * WDIO HTTP request retries for TestMu hub calls (including POST /session).
  * Busy grids often abort session creation once; a higher count recovers without
  * burning a full Playwright test retry.
  */
 export const DEFAULT_BROWSERSTACK_CONNECTION_RETRY_COUNT = 5;
 
 /**
- * Outer attempts in BrowserStackProvider.getDriver() when session creation fails
+ * Outer attempts in TestMuAIProvider.getDriver() when session creation fails
  * with a transient hub/timeout error after WDIO's own connection retries.
  * This is the session-only retry path — Playwright test retries stay at the
  * shared CI default and are not raised for product/threshold failures.
  */
 export const DEFAULT_BROWSERSTACK_SESSION_CREATE_MAX_ATTEMPTS = 5;
 
-/** Backoff between BrowserStackProvider session-create attempts, in ms. */
+/** Backoff between TestMuAIProvider session-create attempts, in ms. */
 export const DEFAULT_BROWSERSTACK_SESSION_CREATE_RETRY_DELAY_MS = 5_000;
 
-/** BrowserStack maximum allowed idle timeout between WebDriver commands, in seconds. */
+/** Maximum allowed idle timeout between WebDriver commands, in seconds. */
 export const DEFAULT_BROWSERSTACK_IDLE_TIMEOUT_SECONDS = 300;
 
-/** Appium new command timeout for BrowserStack sessions, in seconds. */
+/** Appium new command timeout for cloud sessions, in seconds. */
 export const DEFAULT_BROWSERSTACK_NEW_COMMAND_TIMEOUT_SECONDS = 300;
 
 // Port Constants

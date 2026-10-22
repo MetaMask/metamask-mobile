@@ -43,6 +43,7 @@ import {
 import {
   formatPercentage,
   formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 
@@ -672,6 +673,57 @@ describe('PerpsOrderView', () => {
       return submitButton;
     };
 
+    it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
+      const spendableBalance = '250.5';
+      const totalBalance = '5000';
+      const availableLabel = formatPerpsFiat(spendableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsTradeWithAnyTokenIsEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: {
+            ...accountWithBalance(spendableBalance),
+            totalBalance,
+          },
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByLabelText(
+          `${strings('confirm.label.pay_with')}, ${strings(
+            'perps.adjust_margin.perps_balance',
+          )} (${availableLabel})`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    });
+
     it('leaves the sheet for the market page as soon as the order is submitted', async () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       let resolveOrder: (result: { success: boolean }) => void = () =>
@@ -1016,7 +1068,6 @@ describe('PerpsOrderView', () => {
         const placeOrder = jest.mocked(
           Engine.context.PerpsController.placeOrder,
         );
-        let deliver: ((value: OrderBookData) => void) | undefined;
         const blockedBook = book(
           shallow
             ? [bookLevel(2500, 0.001)]
@@ -1026,16 +1077,31 @@ describe('PerpsOrderView', () => {
               ],
           direction,
         );
+        // The live book hook throttles and can resubscribe. Replaying only the
+        // first payload drops a recovered book that arrived inside the throttle
+        // window, so the CTA stays disabled. Keep the latest book and fan it
+        // out to every active subscriber.
+        const subscribers = new Set<(value: OrderBookData) => void>();
+        let latestBook: OrderBookData | undefined =
+          shallow === null ? undefined : blockedBook;
+        const deliver = (value: OrderBookData) => {
+          latestBook = value;
+          subscribers.forEach((subscriber) => {
+            subscriber(value);
+          });
+        };
         jest
           .mocked(Engine.context.PerpsController.subscribeToOrderBook)
           .mockImplementation(({ callback, onError }) => {
-            deliver = callback;
-            if (shallow === null) {
-              onError?.(new Error('order book unavailable'));
+            subscribers.add(callback);
+            if (latestBook) {
+              callback(latestBook);
             } else {
-              callback(blockedBook);
+              onError?.(new Error('order book unavailable'));
             }
-            return () => undefined;
+            return () => {
+              subscribers.delete(callback);
+            };
           });
         const { stream } = renderPerpsOrderView({
           overrides: eligibleOverrides,
@@ -1074,24 +1140,24 @@ describe('PerpsOrderView', () => {
         expect(placeOrder).not.toHaveBeenCalled();
 
         await act(async () => {
-          deliver?.(book([bookLevel(2500, 1)], direction));
+          deliver(book([bookLevel(2500, 1)], direction));
         });
-        await waitFor(() =>
-          expect(screen.getByTestId(submitId)).not.toBeDisabled(),
-        );
+        await waitForEnabledPlaceOrderButton(submitId);
         expect(screen.queryByText(message)).not.toBeOnTheScreen();
         await act(async () => {
           fireEvent.press(screen.getByTestId(submitId));
         });
-        await waitFor(() =>
-          expect(placeOrder).toHaveBeenCalledWith(
-            expect.objectContaining({
-              symbol: 'ETH',
-              isBuy: direction === 'long',
-              orderType: 'market',
-              usdAmount: '120',
-            }),
-          ),
+        await waitFor(
+          () =>
+            expect(placeOrder).toHaveBeenCalledWith(
+              expect.objectContaining({
+                symbol: 'ETH',
+                isBuy: direction === 'long',
+                orderType: 'market',
+                usdAmount: '120',
+              }),
+            ),
+          { timeout: TIMEOUT_MS },
         );
       },
     );

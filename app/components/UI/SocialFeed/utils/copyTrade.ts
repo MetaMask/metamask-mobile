@@ -9,5 +9,8 @@ export const isCopyTradeable = (item: SocialV1FeedItem): boolean => {
   if (item.variant === 'spotShare') {
     return Boolean(item.showCopyTrade);
   }
-  return item.variant === 'perpsOpen' || item.variant === 'spotOpen';
+  if (item.variant === 'perpsOpen') {
+    return item.showCopyTrade !== false;
+  }
+  return item.variant === 'spotOpen';
 };

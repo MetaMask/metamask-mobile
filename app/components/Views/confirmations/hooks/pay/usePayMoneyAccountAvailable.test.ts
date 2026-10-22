@@ -57,6 +57,7 @@ describe('usePayMoneyAccountAvailable', () => {
     expect(render().result.current).toStrictEqual({
       isAvailable: false,
       isPending: false,
+      withdrawableBalance: undefined,
     });
   });
 
@@ -69,6 +70,7 @@ describe('usePayMoneyAccountAvailable', () => {
         expect(render().result.current).toStrictEqual({
           isAvailable: true,
           isPending: false,
+          withdrawableBalance: new BigNumber(100),
         });
       },
     );
@@ -82,6 +84,7 @@ describe('usePayMoneyAccountAvailable', () => {
         expect(render().result.current).toStrictEqual({
           isAvailable: false,
           isPending: false,
+          withdrawableBalance: new BigNumber(0),
         });
       },
     );
@@ -92,6 +95,7 @@ describe('usePayMoneyAccountAvailable', () => {
       expect(render().result.current).toStrictEqual({
         isAvailable: false,
         isPending: true,
+        withdrawableBalance: undefined,
       });
     });
 
@@ -101,6 +105,7 @@ describe('usePayMoneyAccountAvailable', () => {
       expect(render().result.current).toStrictEqual({
         isAvailable: false,
         isPending: false,
+        withdrawableBalance: undefined,
       });
     });
   });
@@ -117,6 +122,7 @@ describe('usePayMoneyAccountAvailable', () => {
       expect(render().result.current).toStrictEqual({
         isAvailable: true,
         isPending: false,
+        withdrawableBalance: undefined,
       });
     });
 
@@ -136,6 +142,7 @@ describe('usePayMoneyAccountAvailable', () => {
       expect(render({ enabled: false }).result.current).toStrictEqual({
         isAvailable: false,
         isPending: false,
+        withdrawableBalance: undefined,
       });
     });
 

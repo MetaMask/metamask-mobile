@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   traderPositionFooter: {
-    paddingTop: 4,
+    paddingTop: 0,
     paddingBottom: 0,
   },
   iconButton: {
@@ -502,7 +502,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     () => ({
       backgroundColor: colors.background.default,
       paddingHorizontal: 16,
-      paddingTop: traderPositionPnl?.isExpanded ? 22 : 8,
+      paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
     [colors.background.default, traderPositionPnl?.isExpanded],
@@ -595,7 +595,6 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
       <Box
         testID="bottomsheetfooter"
         style={[styles.footer, isTokenDetailsV1 && styles.traderPositionFooter]}
-        twClassName={traderPositionPnl ? 'mt-2' : undefined}
       >
         {showSwapButton && !isBuySellLayout && (
           <Button

@@ -6,12 +6,16 @@ import {
   isHardwareAccount,
   isQRHardwareAccount,
 } from '../../../../../util/address';
-import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagController/confirmations';
+import {
+  selectMetaMaskPayFlags,
+  selectMetaMaskPayTokensFlags,
+} from '../../../../../selectors/featureFlagController/confirmations';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBalance';
 import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
+import { AssetType } from '../../types/token';
 import { transactionIdMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useAutomaticMoneyAccountPayToken } from './useAutomaticMoneyAccountPayToken';
 
@@ -25,6 +29,7 @@ jest.mock(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
     selectMetaMaskPayFlags: jest.fn(),
+    selectMetaMaskPayTokensFlags: jest.fn(),
   }),
 );
 jest.mock('../../../../../selectors/moneyAccountController', () => ({
@@ -44,24 +49,24 @@ const MONEY_ACCOUNT_ADDRESS_MOCK = '0xabc1111111111111111111111111111111111111';
 
 function runHook({
   autoSelectFiatPayment = false,
+  availableTokens = [],
   disable = false,
   hasFiatPaymentSelected = false,
-  hasTokenBalance = false,
   payTokenSelected = false,
 }: {
   autoSelectFiatPayment?: boolean;
+  availableTokens?: AssetType[];
   disable?: boolean;
   hasFiatPaymentSelected?: boolean;
-  hasTokenBalance?: boolean;
   payTokenSelected?: boolean;
 } = {}) {
   return renderHookWithProvider(
     () =>
       useAutomaticMoneyAccountPayToken({
         autoSelectFiatPayment,
+        availableTokens,
         disable,
         hasFiatPaymentSelected,
-        hasTokenBalance,
         payTokenSelected,
       }),
     { state: {} },
@@ -75,6 +80,9 @@ describe('useAutomaticMoneyAccountPayToken', () => {
   const isHardwareAccountMock = jest.mocked(isHardwareAccount);
   const isQRHardwareAccountMock = jest.mocked(isQRHardwareAccount);
   const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
+  const selectMetaMaskPayTokensFlagsMock = jest.mocked(
+    selectMetaMaskPayTokensFlags,
+  );
   const selectPrimaryMoneyAccountMock = jest.mocked(selectPrimaryMoneyAccount);
   const selectPaymentOverrideMock = jest.mocked(
     selectPaymentOverrideByTransactionId,
@@ -127,6 +135,11 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     selectMetaMaskPayFlagsMock.mockReturnValue({
       enableMoneyAccountTransactions: {},
     } as never);
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      preferredTokens: { default: [], overrides: {} },
+      minimumRequiredTokenBalance: 10,
+      blockedTokens: { default: { chainIds: [], tokens: [] }, overrides: {} },
+    });
     selectPrimaryMoneyAccountMock.mockReturnValue(undefined);
     useMoneyAccountBalanceMock.mockReturnValue({
       isBalanceLoading: false,
@@ -161,10 +174,72 @@ describe('useAutomaticMoneyAccountPayToken', () => {
     },
   );
 
-  it('does not select money account when the EOA has token balance', () => {
-    mockMoneyAccountPay({ balance: '20' });
+  it('selects money account when it has the highest balance', () => {
+    mockMoneyAccountPay({ balance: '76' });
+    const availableTokens = [
+      {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chainId: '0x1',
+        fiat: { balance: 2 },
+      },
+    ] as AssetType[];
 
-    const { result } = runHook({ hasTokenBalance: true });
+    const { result } = runHook({ availableTokens });
+
+    expect(result.current.shouldSelect).toBe(true);
+    expect(applyMoneyAccountOverrideMock).toHaveBeenCalled();
+  });
+
+  it('keeps the highest-balance preferred token selected', () => {
+    const preferredToken = {
+      address: '0x1234567890abcdef1234567890abcdef12345678',
+      chainId: '0x1',
+      fiat: { balance: 20 },
+    };
+    mockMoneyAccountPay({ balance: '15' });
+    selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+      preferredTokens: {
+        default: [{ ...preferredToken, successRate: 1 }],
+        overrides: {},
+      },
+      minimumRequiredTokenBalance: 10,
+      blockedTokens: { default: { chainIds: [], tokens: [] }, overrides: {} },
+    });
+    const { result } = runHook({
+      availableTokens: [preferredToken] as AssetType[],
+    });
+
+    expect(result.current.shouldSelect).toBe(false);
+    expect(applyMoneyAccountOverrideMock).not.toHaveBeenCalled();
+  });
+
+  it('selects money account above the minimum when the highest token is not preferred', () => {
+    mockMoneyAccountPay({ balance: '10' });
+    const availableTokens = [
+      {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chainId: '0x1',
+        fiat: { balance: 20 },
+      },
+    ] as AssetType[];
+
+    const { result } = runHook({ availableTokens });
+
+    expect(result.current.shouldSelect).toBe(true);
+    expect(applyMoneyAccountOverrideMock).toHaveBeenCalled();
+  });
+
+  it('keeps the highest token selected when money account is below the minimum', () => {
+    mockMoneyAccountPay({ balance: '9.99' });
+    const availableTokens = [
+      {
+        address: '0x1234567890abcdef1234567890abcdef12345678',
+        chainId: '0x1',
+        fiat: { balance: 20 },
+      },
+    ] as AssetType[];
+
+    const { result } = runHook({ availableTokens });
 
     expect(result.current.shouldSelect).toBe(false);
     expect(applyMoneyAccountOverrideMock).not.toHaveBeenCalled();

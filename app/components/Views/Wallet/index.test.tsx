@@ -151,6 +151,16 @@ jest.mock('../../../component-library/hooks/useLiquidGlass', () => ({
 }));
 
 const mockUseWalletHeaderNativeHeader = jest.fn(() => false);
+jest.mock('./components/WalletHeader/WalletHeaderProfileAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
+    './WalletView.testIds',
+  );
+  return {
+    __esModule: true,
+    default: () => <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />,
+  };
+});
 jest.mock('./components/WalletHeader/useWalletHeaderNativeHeader', () => ({
   ...jest.requireActual(
     './components/WalletHeader/useWalletHeaderNativeHeader',
@@ -162,9 +172,20 @@ let mockDiscoveryPillsVariantName = 'control';
 let mockActionButtonsGridVariantName = 'control';
 let mockBalanceBreakdownVariantName = 'unresolved';
 let mockHeaderNavBarVariantName = 'control';
+let mockSocialV1VariantName = 'control';
 jest.mock('../../../hooks', () => ({
   ...jest.requireActual('../../../hooks'),
   useABTest: jest.fn((flagKey: string) => {
+    if (flagKey === 'socialAiTSA1122AbtestSocialBundleV1') {
+      return {
+        variantName: mockSocialV1VariantName,
+        variant: {
+          useSocialV1: mockSocialV1VariantName === 'treatment',
+        },
+        isActive: true,
+      };
+    }
+
     if (flagKey === 'homeTMCU1276AbtestHeaderNavBar') {
       return {
         variantName: mockHeaderNavBarVariantName,
@@ -266,6 +287,11 @@ jest.mock('../../UI/Carousel/selectors/featureFlags', () => ({
 }));
 jest.mock('../../../selectors/featureFlagController/brazeBannerHome', () => ({
   selectBrazeBannerHomeFlag: jest.fn(() => mockBrazeBannerHomeEnabled),
+}));
+
+let mockSocialV1Enabled = false;
+jest.mock('../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
 }));
 
 const BRAZE_BANNER_TEST_ID = 'braze-banner-mock';
@@ -859,6 +885,7 @@ beforeEach(() => {
   mockActionButtonsGridVariantName = 'control';
   mockBalanceBreakdownVariantName = 'unresolved';
   mockHeaderNavBarVariantName = 'control';
+  mockSocialV1VariantName = 'control';
   mockNetworkConnectionBannerVisible = false;
 });
 
@@ -1994,6 +2021,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountEnabled = true;
     mockMoneyAccountVisible = true;
     mockHeaderNavBarVariantName = 'control';
+    mockSocialV1Enabled = false;
     jest
       .mocked(useSelector)
       .mockImplementation((callback: (state: unknown) => unknown) =>
@@ -2006,6 +2034,7 @@ describe('Header and Nav Bar refresh AB test', () => {
     mockMoneyAccountVisible = false;
     mockHeaderNavBarVariantName = 'control';
     mockSearchPasteTreatment = false;
+    mockSocialV1Enabled = false;
     mockUseWalletHeaderNativeHeader.mockReturnValue(false);
   });
 
@@ -2197,7 +2226,9 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT }));
+      ).toEqual(
+        expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT + 16 }),
+      );
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
         HEADER_MIN_HEIGHT,
       );
@@ -2218,7 +2249,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: 72 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 72 + 16 }));
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
       expect(capturedContext.containerScreenY).toBe(72);
     });
@@ -2247,7 +2278,9 @@ describe('Header and Nav Bar refresh AB test', () => {
             .contentContainerStyle,
         ),
       ).toEqual(
-        expect.objectContaining({ paddingTop: 47 + HEADER_MIN_HEIGHT }),
+        expect.objectContaining({
+          paddingTop: 47 + HEADER_MIN_HEIGHT + 16,
+        }),
       );
     });
 
@@ -2292,18 +2325,31 @@ describe('Header and Nav Bar refresh AB test', () => {
           getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
             .contentContainerStyle,
         ),
-      ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     });
 
-    it('insets the balance from the floating header capsule', () => {
+    it('does not stack a second balance inset under the floating header', () => {
       const { getByTestId } = render(Wallet);
 
       expect(
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
+    });
+
+    it('does not add a balance inset when Social V1 is enabled', () => {
+      mockSocialV1Enabled = true;
+
+      const { getByTestId } = render(Wallet);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
+            .props.style,
+        ).paddingTop,
+      ).toBe(0);
     });
 
     it('leaves the balance inset to the native bar when it owns the header', () => {
@@ -2337,6 +2383,10 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
   };
 
+  const enableSocialLayout = () => {
+    mockSocialV1VariantName = 'treatment';
+  };
+
   it('opens the account hub from the treatment avatar', () => {
     mockHeaderNavBarVariantName = 'searchFocused';
 
@@ -2346,6 +2396,18 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
+
+  it('opens the profile drawer from the treatment avatar when Social V1 is enabled', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    mockSocialV1Enabled = true;
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_HUB_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
   });
 
   it('opens rewards from the treatment gift icon', () => {
@@ -2366,6 +2428,91 @@ describe('Header and Nav Bar refresh AB test', () => {
     );
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACCOUNT_HUB_VIEW);
+  });
+
+  it('opens the profile drawer from the account name above the balance when Social V1 is enabled', () => {
+    mockHeaderNavBarVariantName = 'searchFocused';
+    mockSocialV1Enabled = true;
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_NAME_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+  });
+
+  it('opens the profile drawer from the Social header profile button', () => {
+    enableSocialLayout();
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER);
+  });
+
+  it('opens the account selector from the Social header account name', () => {
+    enableSocialLayout();
+
+    const { getByTestId } = renderWithNavigationProp();
+    fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
+      {},
+    );
+  });
+
+  it('does not render the settings menu in the Social header', () => {
+    enableSocialLayout();
+
+    const { queryByTestId } = renderWithNavigationProp();
+    expect(
+      queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+    ).not.toBeOnTheScreen();
+  });
+
+  describe('Social V1 account picker row', () => {
+    beforeEach(() => {
+      mockHeaderNavBarVariantName = 'control';
+      mockSocialV1Enabled = true;
+    });
+
+    it('renders the named account picker under the native bar', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+      const { getByTestId } = renderWithNavigationProp();
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the account selector from the row', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+
+      const { getByTestId } = renderWithNavigationProp();
+
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW_PICKER),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
+        {},
+      );
+    });
+
+    it('does not render the row when Social V1 is disabled', () => {
+      mockUseWalletHeaderNativeHeader.mockReturnValue(true);
+      mockSocialV1Enabled = false;
+
+      const { queryByTestId } = renderWithNavigationProp();
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW),
+      ).not.toBeOnTheScreen();
+    });
   });
 });
 
