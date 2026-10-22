@@ -470,6 +470,134 @@ describe('useCursorPaginatedList', () => {
     }
   });
 
+  it('asks once on the next focus when a later page fails while blurred', async () => {
+    (captureException as jest.Mock).mockClear();
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValueOnce(new Error('boom'))
+      .mockResolvedValueOnce(PAGE_2);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    jest.useFakeTimers();
+    try {
+      act(() => {
+        focusRegistrations.forEach((registration) => {
+          registration.cleanup?.();
+        });
+      });
+
+      act(() => {
+        result.current.loadMore();
+      });
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(result.current.error).toBe('boom');
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+      expect(captureException).not.toHaveBeenCalled();
+
+      act(() => {
+        result.current.loadMore();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+        await Promise.resolve();
+      });
+      expect(fetchPage).toHaveBeenCalledTimes(2);
+
+      await act(async () => {
+        focusRegistrations.forEach((registration) => {
+          const cleanup = registration.effect();
+          if (typeof cleanup === 'function') {
+            registration.cleanup = cleanup;
+          }
+        });
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(fetchPage).toHaveBeenCalledTimes(3);
+      expect(fetchPage).toHaveBeenLastCalledWith({
+        cursor: 'c2',
+        isFirstPage: false,
+        forceFresh: false,
+      });
+      expect(result.current.error).toBeNull();
+      expect(captureException).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('reports a later page the server refused while the screen is blurred', async () => {
+    (captureException as jest.Mock).mockClear();
+    const refused = new RewardsMoneyHttpError('nope', 400);
+    const fetchPage = jest
+      .fn()
+      .mockResolvedValueOnce(PAGE_1)
+      .mockRejectedValue(refused);
+
+    const { result } = renderHook(() =>
+      useCursorPaginatedList<Item>({
+        enabled: true,
+        resetKey: 'key',
+        feature: 'rewards',
+        fetchPage,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.items).toEqual(PAGE_1.results);
+    });
+
+    act(() => {
+      focusRegistrations.forEach((registration) => {
+        registration.cleanup?.();
+      });
+    });
+    act(() => {
+      result.current.loadMore();
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(result.current.error).toBe('nope');
+    expect(captureException).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      focusRegistrations.forEach((registration) => {
+        const cleanup = registration.effect();
+        if (typeof cleanup === 'function') {
+          registration.cleanup = cleanup;
+        }
+      });
+    });
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetchPage).toHaveBeenCalledTimes(2);
+  });
+
   it('does not retry a later page the server refused', async () => {
     (captureException as jest.Mock).mockClear();
     const refused = new RewardsMoneyHttpError('nope', 400);

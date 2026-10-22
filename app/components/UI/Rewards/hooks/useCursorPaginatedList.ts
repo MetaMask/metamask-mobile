@@ -113,10 +113,11 @@ const nonEmpty = <T>(items: T[] | null | undefined): T[] | null =>
  * - Error with cache/rows: keep those rows and still report the error
  * - Error with no rows/cache: surface error and no rows
  * - A failed later page is not asked for again from the list end. It retries
- *   on its own timer, honors `Retry-After`, and stops on a client refusal or
- *   after {@link LATER_PAGE_RETRY_LIMIT} attempts. Blur cancels the wait.
- *   The next focus asks once, instead of leaving the page stuck. The failure
- *   that stops the retries is the one that is reported.
+ * on its own timer, honors `Retry-After`, and stops on a client refusal or
+ * after {@link LATER_PAGE_RETRY_LIMIT} attempts. Blur cancels a wait that
+ * is already running. A retryable failure that lands while blurred is
+ * remembered too, and counts as one attempt, so the next focus asks once.
+ * The failure that stops the retries is the one that is reported.
  */
 export const useCursorPaginatedList = <T>({
   enabled,
@@ -258,7 +259,12 @@ export const useCursorPaginatedList = <T>({
         const retryDelayMs = isFirstPage
           ? null
           : laterPageRetryDelayMs(err, pageRetryAttemptRef.current + 1);
-        if (retryDelayMs !== null && isFocused()) {
+        if (retryDelayMs !== null && !isFocused()) {
+          // Count the ask the next focus will make, so leaving and returning
+          // cannot add a retry past the limit. Nothing is reported yet.
+          pageRetryAttemptRef.current += 1;
+          pendingPageRetryRef.current = { cursor: currentCursor };
+        } else if (retryDelayMs !== null) {
           pageRetryAttemptRef.current += 1;
           pendingPageRetryRef.current = { cursor: currentCursor };
           pageRetryTimerRef.current = setTimeout(() => {
