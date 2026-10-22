@@ -8,8 +8,8 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
-  waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
 import { openPredictWithdrawPayConfirmation } from '../../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
@@ -36,7 +36,8 @@ const PREDICT_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
-  appiumTest.describe.configure({ timeout: 250_000 });
+  // Multi-step MM Pay + Activity path needs CI headroom after Predict-home dismiss.
+  appiumTest.describe.configure({ timeout: 300_000 });
 
   appiumTest(
     'withdraws Predict balance to Polygon pUSD',
@@ -89,7 +90,9 @@ appiumTest.describe(SmokeConfirmations('MM Pay - Predict withdraw'), () => {
           await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
           await PredictHome.tapBackButton();
-          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+          // Residual nested Predict chrome can leave wallet indicators unsatisfied
+          // and burn the Tap Activity retry budget until the suite times out.
+          await dismissToWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
           await TabBarComponent.tapActivity();
 
           await ActivitiesView.tapTypeFilterChip();

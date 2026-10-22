@@ -8,8 +8,8 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
-  waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
 import { openPredictWithdrawPayConfirmation } from '../../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
