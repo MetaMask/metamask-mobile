@@ -392,8 +392,9 @@ Record what happened in Notes and stop.
   - Author checklist: check the items you actually assessed.
 - Add the `team-design-system` label to the PR right after opening it, using
   the PR label tool. `check-pr-has-required-labels` blocks merge without a
-  `team-*` label. If labeling fails, say so in the final reply so a human can
-  add it.
+  `team-*` label. Also assign the PR to `georgewrmarshall` if any available
+  tool supports assignees. If labeling or assigning fails, say so in the final
+  reply so a human can do it.
 - Do not request specific reviewers. CODEOWNERS handles review routing.
 
 ## 9. Update Memories and report
@@ -404,7 +405,8 @@ Record what happened in Notes and stop.
 - Keep `MEMORIES.md` under ~200 lines. Prune "Done" entries older than 60 days
   into a one-line count per owner set.
 - Final reply: PR link (or why none was opened), whether the
-  `team-design-system` label was applied, owner set, what was removed
+  `team-design-system` label and the assignee were applied, owner set, what
+  was removed
   (counts of files, symbols, and style keys), deleted line count, and roughly
   how many candidates of each kind remain for the current owner set.
 ````
