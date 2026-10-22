@@ -29,7 +29,7 @@ import formatFiat from '../../../../../util/formatFiat';
 import { startCase } from 'lodash';
 import { QUOTES_PLACEHOLDER_DATA } from './constants';
 import { useTrackAllQuotesSortedEvent } from '../../hooks/useTrackAllQuotesSortedEvent';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { fromTokenMinimalUnitString } from '../../../../../util/number/bigint';
 import { sumAmounts } from '@metamask/bridge-controller';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
 
@@ -88,7 +88,7 @@ export const QuoteSelectorView = () => {
           ),
           receiveAmount:
             destToken && quote.quote.dest.amount
-              ? fromTokenMinimalUnit(
+              ? fromTokenMinimalUnitString(
                   quote.quote.dest.amount,
                   destToken.decimals,
                 )
