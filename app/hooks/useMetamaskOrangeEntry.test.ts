@@ -58,7 +58,7 @@ describe('useMetamaskOrangeEntry', () => {
     });
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
-    } as ReturnType<typeof useMoneyAnalytics>);
+    } as unknown as ReturnType<typeof useMoneyAnalytics>);
   });
 
   it('stays hidden while the Orange flow is off', () => {
