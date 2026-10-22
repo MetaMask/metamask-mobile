@@ -187,7 +187,6 @@ export const buildOnboardedSocialProfile = (
     shareUrl: profileUrlForHandle(handle),
     winRatePercent: null,
     pnlUsd: null,
-    timesCopied: null,
     linkedAccountId: draft.linkedAccountId,
     linkedAccountAddress: draft.linkedAccountAddress,
     shareTradingActivity: draft.shareTradingActivity,
