@@ -412,7 +412,7 @@ describeForPlatforms('Token Details Orders section', () => {
     expect(
       screen.queryByTestId(
         RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-          MOCK_RECURRING_OPEN_ORDER_3.orderId,
+          MOCK_RECURRING_OPEN_ORDER_3.id,
         ),
       ),
     ).toBeNull();
@@ -500,7 +500,7 @@ describeForPlatforms('Token Details Orders section', () => {
       expect(
         screen.queryByTestId(
           RecurringOrderDetailsViewSelectorsIDs.OPEN_ORDER_ROW(
-            MOCK_RECURRING_OPEN_ORDER_3.orderId,
+            MOCK_RECURRING_OPEN_ORDER_3.id,
           ),
         ),
       ).toBeNull();
