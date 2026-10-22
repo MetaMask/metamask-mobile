@@ -602,4 +602,44 @@ describe('SocialPostComposerView', () => {
     expect(mockShowToast).toHaveBeenCalled();
     expect(mockGoBack).toHaveBeenCalled();
   });
+
+  it('posts a Hyperliquid order id without a transaction hash', async () => {
+    mockRouteParams = {
+      tradeInFlight: {
+        orderId: '42',
+        chain: 'hyperliquid',
+        tokenAddress: 'ETH',
+      },
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+        leverageLabel: '40x',
+      },
+    };
+
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialPostComposerView />
+      </ToastContext.Provider>,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockCreateSwapComment).toHaveBeenCalledWith({
+        commentText: '',
+        tradeInFlight: {
+          orderId: '42',
+          chain: 'hyperliquid',
+          tokenAddress: 'ETH',
+        },
+        source: 'metamask-mobile',
+      });
+    });
+  });
 });
