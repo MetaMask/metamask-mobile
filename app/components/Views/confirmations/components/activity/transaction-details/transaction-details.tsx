@@ -21,8 +21,6 @@ import {
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
-import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
-import { selectMoneyVbaActivityDepositFromAddresses } from '../../../../../UI/Money/selectors/featureFlags';
 import { strings } from '../../../../../../../locales/i18n';
 import { TransactionDetailsFeeSection } from '../transaction-details-fee-section';
 import { TransactionDetailsRetry } from '../transaction-details-retry';
@@ -51,16 +49,7 @@ export function TransactionDetails() {
   const navigation = useNavigation<AppNavigationProp>();
   const { transactionMeta } = useTransactionDetails();
   const isMoneyContext = useIsMoneyAccountContext();
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const moneyVbaActivityDepositFromAddresses = useSelector(
-    selectMoneyVbaActivityDepositFromAddresses,
-  );
-  const title = getTitle(
-    transactionMeta,
-    isMoneyContext,
-    moneyVbaActivityDepositFromAddresses,
-    primaryMoneyAccount?.address,
-  );
+  const title = getTitle(transactionMeta, isMoneyContext);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -110,8 +99,6 @@ export function TransactionDetails() {
 function getTitle(
   transactionMeta: TransactionMeta | undefined,
   isMoneyContext: boolean,
-  moneyVbaActivityDepositFromAddresses: readonly string[] = [],
-  moneyAddress?: string,
 ) {
   if (!transactionMeta) {
     return strings('transaction_details.title.default');
@@ -122,11 +109,7 @@ function getTitle(
   // classifier, so they can never drift out of sync.
   if (isMoneyContext) {
     return moneyActivityLabel(
-      classifyMoneyActivity(
-        transactionMeta,
-        moneyVbaActivityDepositFromAddresses,
-        moneyAddress,
-      ),
+      classifyMoneyActivity(transactionMeta),
       getMoneyActivityStatus(transactionMeta),
     );
   }

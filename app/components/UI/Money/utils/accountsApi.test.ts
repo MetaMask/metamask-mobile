@@ -87,29 +87,6 @@ const inboundTopUpRow = {
   ],
 };
 
-const VBA_TEST_SENDER = '0x1111111111111111111111111111111111111111';
-
-/** Inbound mUSD from an allowlisted VBA / QA test sender. */
-const vbaBankTransferRow = {
-  hash: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
-  timestamp: '2026-10-13T12:00:00.000Z',
-  chainId: 143,
-  from: VBA_TEST_SENDER,
-  to: MONEY_ADDRESS.toLowerCase(),
-  isError: false,
-  transactionType: 'GENERIC_CONTRACT_CALL',
-  valueTransfers: [
-    {
-      from: VBA_TEST_SENDER,
-      to: MONEY_ADDRESS.toLowerCase(),
-      amount: '1000000000',
-      decimal: 6,
-      contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-      symbol: 'mUSD',
-    },
-  ],
-};
-
 describe('parseAccountsApiActivity', () => {
   it('maps a card payment to a card outflow keyed on the leg leaving the money account', () => {
     // Arrange — a card payment alongside an unrelated top-up.
@@ -159,44 +136,6 @@ describe('parseAccountsApiActivity', () => {
         receivedFrom: REWARDER_ADDRESS,
       },
     ]);
-  });
-
-  it('maps inbound mUSD from an allowlisted sender as a bank_transfer deposit', () => {
-    const response = { data: [vbaBankTransferRow, inboundTopUpRow] };
-
-    const result = parseAccountsApiActivity(
-      response,
-      MONEY_ADDRESS,
-      undefined,
-      [VBA_TEST_SENDER],
-    );
-
-    expect(result).toEqual([
-      {
-        kind: 'bank_transfer',
-        hash: vbaBankTransferRow.hash,
-        time: Date.parse('2026-10-13T12:00:00.000Z'),
-        chainId: '0x8f',
-        token: {
-          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          symbol: 'mUSD',
-          decimals: 6,
-        },
-        amount: '1000000000',
-        receivedFrom: VBA_TEST_SENDER,
-      },
-    ]);
-  });
-
-  it('ignores inbound mUSD when the VBA sender allowlist is empty', () => {
-    const result = parseAccountsApiActivity(
-      { data: [vbaBankTransferRow] },
-      MONEY_ADDRESS,
-      undefined,
-      [],
-    );
-
-    expect(result).toEqual([]);
   });
 
   it('parses card and cashback rows from the same response, in input order', () => {
@@ -391,7 +330,7 @@ describe('parseAccountsApiActivity', () => {
     ]);
   });
 
-  it('ignores rows of other transaction types', () => {
+  it('ignores inbound mUSD from any sender because VBA classification comes from the SIWE service', () => {
     expect(
       parseAccountsApiActivity({ data: [inboundTopUpRow] }, MONEY_ADDRESS),
     ).toEqual([]);

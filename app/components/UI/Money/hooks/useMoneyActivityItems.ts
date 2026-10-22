@@ -13,10 +13,12 @@ import {
 import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
 import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyVbaCompletedActivityEnabled,
   selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
@@ -28,6 +30,7 @@ import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
 } from '../utils/neobankActivity';
+import { mapMoneyVbaTransfers } from '../utils/moneyVbaTransfers';
 
 /** The list shown for each activity filter tab. */
 export type MoneyActivityBuckets = Record<
@@ -107,8 +110,8 @@ function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
 }
 
 /**
- * Merge local on-chain Money transactions with Accounts-API activity (card
- * spends and cashback) and NeoBank VBA deposits into a single source-tagged,
+ * Merge local on-chain Money transactions with Accounts-API activity, completed
+ * VBA API deposits, and NeoBank pending rows into a single source-tagged,
  * time-descending list.
  */
 export function mergeMoneyActivity(
@@ -119,8 +122,8 @@ export function mergeMoneyActivity(
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
   const onchain = onchainTransactions
-    // we ignore any on chain data that exists in the accounts API response.
-    .filter((tx) => !(tx.hash && apiHashes.has(tx.hash.toLowerCase())))
+    // Any API match is rendered from its richer data-service activity row.
+    .filter((tx) => !tx.hash || !apiHashes.has(tx.hash.toLowerCase()))
     .map(onchainItem);
   const seenNeoBankIds = new Set<string>();
   const neobank = neobankActivity
@@ -217,6 +220,24 @@ export function useMoneyActivityItems({
   const pendingActivityEnabled = useSelector(
     selectMoneyVbaPendingActivityEnabled,
   );
+  const completedActivityEnabled = useSelector(
+    selectMoneyVbaCompletedActivityEnabled,
+  );
+  const {
+    data: vbaTransfersResponse,
+    isLoading: isVbaTransfersLoading,
+    refetch: refetchVbaTransfers,
+  } = useMoneyVbaTransfers();
+  const completedVbaActivity = useMemo(
+    () =>
+      completedActivityEnabled && moneyAddress
+        ? mapMoneyVbaTransfers(
+            vbaTransfersResponse?.transfers ?? [],
+            moneyAddress,
+          )
+        : [],
+    [completedActivityEnabled, moneyAddress, vbaTransfersResponse],
+  );
   const { activity: neobankActivity, refetch: refetchNeobankActivity } =
     useNeobankAutorampActivity(moneyAddress, pendingActivityEnabled);
   const visibleNeobankActivity = useMemo(
@@ -289,7 +310,7 @@ export function useMoneyActivityItems({
     () =>
       buildMoneyActivityBuckets(
         { all: allTransactions, deposits, transfers },
-        activity,
+        [...activity, ...completedVbaActivity],
         watermark,
         declinedForFeed,
         visibleNeobankActivity,
@@ -299,6 +320,7 @@ export function useMoneyActivityItems({
       deposits,
       transfers,
       activity,
+      completedVbaActivity,
       watermark,
       declinedForFeed,
       visibleNeobankActivity,
@@ -308,7 +330,15 @@ export function useMoneyActivityItems({
   const refetch = useCallback(() => {
     refetchApiActivity();
     refetchNeobankActivity();
-  }, [refetchApiActivity, refetchNeobankActivity]);
+    if (completedActivityEnabled) {
+      refetchVbaTransfers();
+    }
+  }, [
+    completedActivityEnabled,
+    refetchApiActivity,
+    refetchNeobankActivity,
+    refetchVbaTransfers,
+  ]);
 
   // Minimum-viable upfront fetch: pull more pages until the target bucket
   // holds `fill.count` safe rows, the activity is exhausted, or the page
@@ -334,6 +364,7 @@ export function useMoneyActivityItems({
     isLoading ||
     (fillCount === 0 &&
       ((enrichmentEnabled && isEnrichmentSettling) ||
+        (completedActivityEnabled && isVbaTransfersLoading) ||
         wantsMorePages ||
         isLoadingMore));
 

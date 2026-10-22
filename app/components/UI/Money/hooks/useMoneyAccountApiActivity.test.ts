@@ -3,10 +3,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import {
-  selectMoneyCardActivityCashbackMultisendContracts,
-  selectMoneyVbaActivityDepositFromAddresses,
-} from '../selectors/featureFlags';
+import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
 import {
   annotateTrace,
@@ -116,9 +113,6 @@ function setupSelectors(
     }
     if (selector === selectMoneyCardActivityCashbackMultisendContracts) {
       return CASHBACK_MULTISEND_CONTRACTS;
-    }
-    if (selector === selectMoneyVbaActivityDepositFromAddresses) {
-      return [];
     }
     return undefined;
   });

@@ -14,9 +14,10 @@ import {
   AUTO_FILL_MAX_PAGES,
 } from './useMoneyActivityItems';
 import { MoneyActivityFilter } from '../constants/moneyActivity';
-import type { AccountsApiActivity } from '../types/moneyActivity';
+import type { AccountsApiActivity , NeobankBankTransferActivity } from '../types/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
 import { useNeobankAutorampActivity } from './useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
 import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
@@ -24,13 +25,14 @@ import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featu
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyVbaCompletedActivityEnabled,
   selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
-import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 
 jest.mock('./useMoneyAccountTransactions');
 jest.mock('./useMoneyAccountApiActivity');
+jest.mock('./useMoneyVbaTransfers');
 jest.mock('./useNeobankAutorampActivity');
 jest.mock('../../Card/hooks/useCardTransactionIndex', () => ({
   useCardTransactionIndex: jest.fn(),
@@ -47,6 +49,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
 const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 const mockUseCardCapabilities = jest.mocked(useCardCapabilities);
@@ -89,6 +92,9 @@ function mockEnrichmentFlags({
     }
     if (selector === selectMoneyVbaPendingActivityEnabled) {
       return pendingActivity;
+    }
+    if (selector === selectMoneyVbaCompletedActivityEnabled) {
+      return false;
     }
     return false;
   });
@@ -163,6 +169,24 @@ describe('mergeMoneyActivity', () => {
 
     expect(items).toHaveLength(1);
     expect(items[0]).toMatchObject({ kind: 'accountsApi', id: '0xabc123' });
+  });
+
+  it('replaces a local incoming row with the completed VBA bank-transfer row', () => {
+    const hash = `0x${'a'.repeat(64)}` as Hex;
+    const local = onchainTx('local-id', 100, hash);
+    const completed: AccountsApiActivity = {
+      kind: 'bank_transfer',
+      hash,
+      time: 100,
+      chainId: '0x8f',
+      token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
+      amount: '1000000',
+      receivedFrom: '0xsender' as Hex,
+    };
+
+    expect(mergeMoneyActivity([local], [completed])).toEqual([
+      expect.objectContaining({ kind: 'accountsApi', id: hash }),
+    ]);
   });
 
   it('returns an empty list when both sources are empty', () => {
@@ -444,6 +468,10 @@ describe('useMoneyActivityItems', () => {
     jest.clearAllMocks();
     mockUseMoneyAccountTransactions.mockReturnValue(txResult());
     mockUseMoneyAccountApiActivity.mockReturnValue(apiResult());
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: undefined,
+      refetch: jest.fn(),
+    } as never);
     mockUseNeobankAutorampActivity.mockReturnValue({
       activity: [],
       refetch: jest.fn(),
@@ -473,6 +501,84 @@ describe('useMoneyActivityItems', () => {
       result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
     ).toEqual(['0xnew']);
     expect(result.current.hasMore).toBe(true);
+  });
+
+  it('includes completed API deposits in All and Deposits and deduplicates local settlement', () => {
+    const completed = {
+      kind: 'bank_transfer' as const,
+      hash: `0x${'a'.repeat(64)}` as Hex,
+      time: 300,
+      chainId: '0x8f' as Hex,
+      token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
+      amount: '15000000',
+      receivedFrom: '0xsender' as Hex,
+    };
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectMoneyVbaCompletedActivityEnabled) return true;
+      if (selector === selectMoneyVbaPendingActivityEnabled) return true;
+      return false;
+    });
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({
+        allTransactions: [onchainTx('local-duplicate', 300, completed.hash)],
+        deposits: [onchainTx('local-duplicate', 300, completed.hash)],
+      }),
+    );
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          {
+            event_id: 'event-1',
+            transfer_id: 'transfer-1',
+            status: 'confirmed',
+            event_timestamp: '2026-10-21T14:59:26.769Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: completed.hash,
+            },
+          },
+        ],
+      },
+      refetch: jest.fn(),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(result.current.buckets[MoneyActivityFilter.All]).toHaveLength(1);
+    expect(result.current.buckets[MoneyActivityFilter.All][0]).toMatchObject({
+      kind: 'accountsApi',
+      id: completed.hash,
+      tx: { kind: 'bank_transfer', amount: '15000000' },
+    });
+    expect(result.current.buckets[MoneyActivityFilter.Deposits]).toHaveLength(
+      1,
+    );
+    expect(result.current.buckets[MoneyActivityFilter.Deposits][0].id).toBe(
+      completed.hash,
+    );
+    expect(result.current.buckets[MoneyActivityFilter.Transfers]).toEqual([]);
+  });
+
+  it('keeps the empty feed settling while completed activity is still loading', () => {
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectMoneyVbaCompletedActivityEnabled) return true;
+      if (selector === selectMoneyVbaPendingActivityEnabled) return false;
+      return false;
+    });
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      refetch: jest.fn(),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
+
+    expect(result.current.isSettling).toBe(true);
   });
 
   it('does not expose provider rows when pending VBA activity is disabled', () => {
