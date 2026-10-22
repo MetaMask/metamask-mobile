@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 import type { HardwareTier } from '../../../../util/deviceCapability';
 import { playSelection } from '../../../../util/haptics';
@@ -18,11 +18,17 @@ jest.mock('../../../../util/deviceCapability', () => ({
 const optionTestId = (index: number) =>
   `${SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_OPTION}-${index}`;
 
-const renderCarousel = (selectedBackgroundId = 'purple') => {
+const artTestId = (id: string) =>
+  `${SocialProfileOnboardingSelectorsIDs.AVATAR_PREVIEW_ART}-${id}`;
+
+const renderCarousel = (
+  selectedBackgroundId = 'background3',
+  avatarPresetId = 'vr',
+) => {
   const onSelect = jest.fn();
-  render(
+  const { rerender } = render(
     <AvatarBackgroundCarousel
-      avatarPresetId="visor"
+      avatarPresetId={avatarPresetId}
       selectedBackgroundId={selectedBackgroundId}
       onSelect={onSelect}
     />,
@@ -34,7 +40,15 @@ const renderCarousel = (selectedBackgroundId = 'purple') => {
     'layout',
     { nativeEvent: { layout: { width: 390, height: 126 } } },
   );
-  return { onSelect };
+  const selectAvatar = (nextAvatarPresetId: string) =>
+    rerender(
+      <AvatarBackgroundCarousel
+        avatarPresetId={nextAvatarPresetId}
+        selectedBackgroundId={selectedBackgroundId}
+        onSelect={onSelect}
+      />,
+    );
+  return { onSelect, selectAvatar };
 };
 
 describe('hapticBackgroundIndex', () => {
@@ -64,9 +78,28 @@ describe('AvatarBackgroundCarousel', () => {
           `^${SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_OPTION}-`,
         ),
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(7);
     expect(
       screen.getByRole('button', { name: 'Purple background' }),
+    ).toBeSelected();
+  });
+
+  it('labels the colors added with the AvatarSocial palette', () => {
+    renderCarousel();
+
+    expect(
+      screen.getByRole('button', { name: 'Indigo background' }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByRole('button', { name: 'Pale lime background' }),
+    ).toBeOnTheScreen();
+  });
+
+  it('selects a legacy backdrop id by its translated slot', () => {
+    renderCarousel('sky');
+
+    expect(
+      screen.getByRole('button', { name: 'Sky background' }),
     ).toBeSelected();
   });
 
@@ -75,7 +108,7 @@ describe('AvatarBackgroundCarousel', () => {
 
     fireEvent.press(screen.getByTestId(optionTestId(3)));
 
-    expect(onSelect).toHaveBeenCalledWith('lime');
+    expect(onSelect).toHaveBeenCalledWith('background4');
   });
 
   it('selects the centered color when it is tapped again', () => {
@@ -83,7 +116,7 @@ describe('AvatarBackgroundCarousel', () => {
 
     fireEvent.press(screen.getByTestId(optionTestId(2)));
 
-    expect(onSelect).toHaveBeenCalledWith('purple');
+    expect(onSelect).toHaveBeenCalledWith('background3');
     expect(playSelection).not.toHaveBeenCalled();
   });
 
@@ -107,5 +140,90 @@ describe('AvatarBackgroundCarousel', () => {
         SocialProfileOnboardingSelectorsIDs.AVATAR_BACKGROUND_GLOW,
       ),
     ).not.toBeOnTheScreen();
+  });
+
+  describe('avatar crossfade', () => {
+    const flush = (ms = 500) => act(() => jest.advanceTimersByTime(ms));
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('shows only the selected avatar', () => {
+      renderCarousel();
+
+      expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+        opacity: 0,
+      });
+    });
+
+    it('fades the new avatar in and the previous one out', () => {
+      const { selectAvatar } = renderCarousel();
+
+      selectAvatar('royal');
+      flush();
+
+      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+      expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
+        opacity: 0,
+      });
+    });
+
+    it('settles on the last avatar when switching mid-fade', () => {
+      const { selectAvatar } = renderCarousel();
+
+      selectAvatar('royal');
+      flush(150);
+      selectAvatar('goth');
+      flush();
+
+      expect(screen.getByTestId(artTestId('goth'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+        opacity: 0,
+      });
+      expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
+        opacity: 0,
+      });
+    });
+
+    it('shows the translated variant for a legacy preset id', () => {
+      renderCarousel('background3', 'crown');
+
+      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+    });
+
+    it('shows the default avatar for an unknown preset', () => {
+      renderCarousel('background3', 'unknown-preset');
+
+      expect(screen.getByTestId(artTestId('vr'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+    });
+
+    it('mounts only the selected avatar and swaps instantly on low-tier devices', () => {
+      mockGetHardwareTier.mockReturnValue('LOW');
+      const { selectAvatar } = renderCarousel();
+
+      selectAvatar('royal');
+      flush(20);
+
+      expect(screen.getByTestId(artTestId('royal'))).toHaveAnimatedStyle({
+        opacity: 1,
+      });
+      expect(screen.queryByTestId(artTestId('vr'))).not.toBeOnTheScreen();
+    });
   });
 });

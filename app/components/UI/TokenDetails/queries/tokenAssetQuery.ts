@@ -1,13 +1,6 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { TOKEN_API_BASE_URL } from '../../Assets/watchlist/utils/getTokens';
 
-/**
- * TODO: remove this constant and all `baseUrl` overrides once the prod API
- * returns `launchpadData`. Only the TDP V1 surface passes this; every other
- * consumer defaults to {@link TOKEN_API_BASE_URL} (prod).
- */
-export const DEV_TOKEN_API_BASE_URL = 'https://token.dev-api.cx.metamask.io';
-
 export const TOKEN_ASSETS_V2_PATH = '/v2/assets';
 
 const QUERY_STALE_TIME_MS = 30_000;
@@ -18,6 +11,8 @@ export interface TokenAssetMarketData {
   price: string | null;
   pricePercentChange1d: string | null;
   pricePercentChange1h: string | null;
+  pricePercentChange5m?: string | null;
+  pricePercentChange4h?: string | null;
   liquidity: number | null;
   dilutedMarketCap: number | null;
   circulatingSupply: number | null;
@@ -45,6 +40,10 @@ export interface TokenAssetLaunchpadData {
   top10HeldPercent: string | null;
 }
 
+export interface TokenAssetHolders {
+  count: number | null;
+}
+
 export interface TokenAssetRecord {
   assetId: string;
   symbol: string;
@@ -54,6 +53,7 @@ export interface TokenAssetRecord {
   marketData: TokenAssetMarketData | null;
   launchpad: string | null;
   launchpadData: TokenAssetLaunchpadData | null;
+  holders: TokenAssetHolders | null;
 }
 
 export const resolveTokenAssetDetails = (
@@ -68,6 +68,18 @@ const isTokenAssetRecord = (value: unknown): value is TokenAssetRecord =>
   'assetId' in value &&
   typeof (value as { assetId: unknown }).assetId === 'string';
 
+const readHolders = (value: unknown): TokenAssetHolders | null => {
+  if (typeof value !== 'object' || value == null || !('holders' in value)) {
+    return null;
+  }
+  const holders = (value as { holders: unknown }).holders;
+  if (typeof holders !== 'object' || holders == null || !('count' in holders)) {
+    return null;
+  }
+  const count = (holders as { count: unknown }).count;
+  return typeof count === 'number' && Number.isFinite(count) ? { count } : null;
+};
+
 export const fetchTokenAsset = async (
   assetId: string,
   signal?: AbortSignal,
@@ -77,6 +89,7 @@ export const fetchTokenAsset = async (
     assetIds: assetId,
     includeLabels: 'true',
     includeLaunchpadData: 'true',
+    includeTopHolders: 'true',
     includeRwaData: 'true',
     includeMarketData: 'true',
   });
@@ -96,7 +109,13 @@ export const fetchTokenAsset = async (
       isTokenAssetRecord(item) &&
       item.assetId.toLowerCase() === assetId.toLowerCase(),
   );
-  return match ?? null;
+  if (!match) {
+    return null;
+  }
+  return {
+    ...match,
+    holders: readHolders(match),
+  };
 };
 
 export const tokenAssetQueryOptions = (
