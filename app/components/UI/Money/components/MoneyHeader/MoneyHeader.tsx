@@ -52,6 +52,8 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     onPress: onMenuPress,
     accessibilityLabel: 'Menu',
     testID: MoneyHeaderTestIds.MENU_BUTTON,
+    // The icon sits on a glass capsule; the default press fill covers it.
+    twClassName: 'bg-transparent',
   };
 
   if (props.onBack) {

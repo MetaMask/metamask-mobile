@@ -1,3 +1,4 @@
+import { brandColor } from '@metamask/design-tokens';
 import { screen } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
@@ -61,6 +62,39 @@ describe('TraderAvatar', () => {
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('renders the profile preset for a foxicon avatar url', () => {
+    renderWithProvider(
+      <TraderAvatar
+        imageUrl="foxicon://astronaut/sky"
+        address={ADDRESS}
+        size={40}
+        testID="trader-avatar"
+      />,
+    );
+
+    expect(screen.getByTestId('trader-avatar')).toHaveStyle({
+      backgroundColor: brandColor.indigo200,
+    });
+    expect(screen.UNSAFE_getByProps({ name: 'astro', width: 40 })).toBeTruthy();
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+    expect(screen.UNSAFE_queryByType(AvatarAccount)).toBeNull();
+  });
+
+  it('renders the Maskicon fallback for an unrecognized foxicon url', () => {
+    renderWithProvider(
+      <TraderAvatar
+        imageUrl="foxicon://retired/lime"
+        address={ADDRESS}
+        size={32}
+        testID="trader-avatar"
+      />,
+    );
+
+    expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
+    expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+    expect(screen.queryByTestId('trader-avatar-art')).toBeNull();
   });
 
   it('renders the Maskicon fallback without an address', () => {
