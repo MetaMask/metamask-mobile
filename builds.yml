@@ -122,6 +122,11 @@ _main_dev_env: &main_dev_env
   # TODO: Decouple configuration, profile, and build type
   PROFILE: 'development'
   DEV_OAUTH_CONFIG: 'true'
+  # The profile API is not live yet; the dev social API serves a
+  # Redis-backed stand-in under /api. Point back at the profile host once
+  # it ships.
+  PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
+  MM_PROFILE_API_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -484,11 +489,6 @@ builds:
     signing: *signing_dev
     env:
       <<: *main_dev_env
-      # The profile API is not live yet; the dev social API serves a
-      # Redis-backed stand-in under /api. Point back at the profile host once
-      # it ships.
-      PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
-      MM_PROFILE_API_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 

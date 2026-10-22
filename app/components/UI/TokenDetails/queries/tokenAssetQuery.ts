@@ -18,6 +18,8 @@ export interface TokenAssetMarketData {
   price: string | null;
   pricePercentChange1d: string | null;
   pricePercentChange1h: string | null;
+  pricePercentChange5m?: string | null;
+  pricePercentChange4h?: string | null;
   liquidity: number | null;
   dilutedMarketCap: number | null;
   circulatingSupply: number | null;
@@ -41,6 +43,12 @@ export interface TokenAssetLaunchpadData {
   devHeldPercent: number | null;
   insiderHeldPercent: number | null;
   sniperHeldPercent: number | null;
+  holdersCount: number | null;
+  top10HeldPercent: string | null;
+}
+
+export interface TokenAssetHolders {
+  count: number | null;
 }
 
 export interface TokenAssetRecord {
@@ -52,6 +60,7 @@ export interface TokenAssetRecord {
   marketData: TokenAssetMarketData | null;
   launchpad: string | null;
   launchpadData: TokenAssetLaunchpadData | null;
+  holders: TokenAssetHolders | null;
 }
 
 export const resolveTokenAssetDetails = (
@@ -66,6 +75,18 @@ const isTokenAssetRecord = (value: unknown): value is TokenAssetRecord =>
   'assetId' in value &&
   typeof (value as { assetId: unknown }).assetId === 'string';
 
+const readHolders = (value: unknown): TokenAssetHolders | null => {
+  if (typeof value !== 'object' || value == null || !('holders' in value)) {
+    return null;
+  }
+  const holders = (value as { holders: unknown }).holders;
+  if (typeof holders !== 'object' || holders == null || !('count' in holders)) {
+    return null;
+  }
+  const count = (holders as { count: unknown }).count;
+  return typeof count === 'number' && Number.isFinite(count) ? { count } : null;
+};
+
 export const fetchTokenAsset = async (
   assetId: string,
   signal?: AbortSignal,
@@ -75,6 +96,7 @@ export const fetchTokenAsset = async (
     assetIds: assetId,
     includeLabels: 'true',
     includeLaunchpadData: 'true',
+    includeTopHolders: 'true',
     includeRwaData: 'true',
     includeMarketData: 'true',
   });
@@ -94,7 +116,13 @@ export const fetchTokenAsset = async (
       isTokenAssetRecord(item) &&
       item.assetId.toLowerCase() === assetId.toLowerCase(),
   );
-  return match ?? null;
+  if (!match) {
+    return null;
+  }
+  return {
+    ...match,
+    holders: readHolders(match),
+  };
 };
 
 export const tokenAssetQueryOptions = (
