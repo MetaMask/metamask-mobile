@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, RefreshControl, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -9,12 +9,20 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_VALUE,
+  sortMarkets,
+  type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { usePerpsMarketListView } from '../../../UI/Perps/hooks/usePerpsMarketListView';
+import { usePerpsMarkets } from '../../../UI/Perps/hooks/usePerpsMarkets';
+import { usePerpsSorting } from '../../../UI/Perps/hooks/usePerpsSorting';
+import { useNowOnScreenFocus } from '../../../UI/Perps/hooks/useNowOnScreenFocus';
+import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
+import { filterMarketsByCategory } from '../../../UI/Perps/utils/marketCategoryMapping';
+import { isRecentlyListed } from '../../../UI/Perps/utils/time';
+import { getSuggestedWatchlistMarkets } from '../../../UI/Perps/utils/marketUtils';
 import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import PerpsMarketList from '../../../UI/Perps/components/PerpsMarketList';
 import PerpsWatchlistMarkets from '../../../UI/Perps/components/PerpsWatchlistMarkets/PerpsWatchlistMarkets';
@@ -28,8 +36,6 @@ import { trackExploreInteracted } from '../search/analytics';
 import PerpsSectionProvider from '../feeds/perps/PerpsSectionProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import TopTradersSection from '../../Homepage/Sections/TopTraders/TopTradersSection';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { SectionRefreshHandle } from '../../Homepage/types';
 import ModalSafeAreaProvider from '../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { useTheme } from '../../../../util/theme';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -40,12 +46,11 @@ import type { TabProps } from '../hooks/useExploreRefresh';
  * Scrolls away naturally as the FlashList scrolls; the filter bar (rendered
  * as `stickyHeader`) stays pinned.
  */
-const PerpsTabListHeader: React.FC<{
-  showTopTraders: boolean;
-  topTradersRef: React.Ref<SectionRefreshHandle>;
-}> = ({ showTopTraders, topTradersRef }) => (
+const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
+  showTopTraders,
+}) => (
   <Box>
-    {showTopTraders && <TopTradersSection ref={topTradersRef} />}
+    {showTopTraders && <TopTradersSection />}
     {showTopTraders && <SectionDivider />}
     <SectionHeader
       title={strings('trending.perps_trending_lists')}
@@ -54,14 +59,13 @@ const PerpsTabListHeader: React.FC<{
   </Box>
 );
 
-// Pull-to-refresh only refetches top traders (REST). Market prices stream over
-// websockets, so the market list needs no manual refresh.
+// Pull-to-refresh is visual only (consistent with other Explore tabs): market
+// prices stream over websockets and top traders refetch on mount/app focus.
 const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   refreshing,
   onRefresh,
 }) => {
   const { colors } = useTheme();
-  const topTradersRef = useRef<SectionRefreshHandle>(null);
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
@@ -74,21 +78,50 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-  // Hide a persisted watchlist-only filter while the watchlist is disabled
-  // (same override the Perps screen applies).
-  const {
-    markets,
-    marketTypeFilterState,
-    sortState,
-    favoritesState,
-    isLoading,
-  } = usePerpsMarketListView({
-    showWatchlistOnly: isWatchlistEnabled ? undefined : false,
+  // Explore keeps its own category/watchlist/sort state: nothing is restored
+  // from or saved to the Perps screen's preferences. The watchlist and the
+  // categories are mutually exclusive, so they share one selection.
+  const { markets: allMarkets, isLoading } = usePerpsMarkets({
+    showZeroVolume: false,
+    showZeroOpenInterest: false,
   });
-  const { showFavoritesOnly, setShowFavoritesOnly } = favoritesState;
+  const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+  const now = useNowOnScreenFocus();
+  const [selection, setSelection] = useState<MarketTypeFilter | 'watchlist'>(
+    'all',
+  );
+  const { selectedOptionId, sortBy, direction, handleOptionChange } =
+    usePerpsSorting();
 
-  const { marketTypeFilter, setMarketTypeFilter } = marketTypeFilterState;
-  const { selectedOptionId, sortBy, direction, handleOptionChange } = sortState;
+  const showFavoritesOnly = isWatchlistEnabled && selection === 'watchlist';
+  const marketTypeFilter = selection === 'watchlist' ? 'all' : selection;
+  const setShowFavoritesOnly = useCallback(
+    (show: boolean) => setSelection(show ? 'watchlist' : 'all'),
+    [],
+  );
+
+  const markets = useMemo(() => {
+    const byCategory =
+      marketTypeFilter === 'new'
+        ? allMarkets.filter((market) => isRecentlyListed(market.listedAt, now))
+        : filterMarketsByCategory(allMarkets, marketTypeFilter);
+    const visible = showFavoritesOnly
+      ? byCategory.filter((market) => watchlistSymbols.includes(market.symbol))
+      : byCategory;
+    return sortMarkets({ markets: visible, sortBy, direction });
+  }, [
+    allMarkets,
+    marketTypeFilter,
+    now,
+    showFavoritesOnly,
+    watchlistSymbols,
+    sortBy,
+    direction,
+  ]);
+  const suggestedMarkets = useMemo(
+    () => getSuggestedWatchlistMarkets(allMarkets, watchlistSymbols),
+    [allMarkets, watchlistSymbols],
+  );
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -112,12 +145,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
 
   const listHeader = useMemo(
-    () => (
-      <PerpsTabListHeader
-        showTopTraders={isTopTradersEnabled}
-        topTradersRef={topTradersRef}
-      />
-    ),
+    () => <PerpsTabListHeader showTopTraders={isTopTradersEnabled} />,
     [isTopTradersEnabled],
   );
 
@@ -129,37 +157,26 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       showFavoritesOnly ? (
         <PerpsWatchlistMarkets
           markets={markets}
-          suggestedMarkets={favoritesState.suggestedMarkets}
+          suggestedMarkets={suggestedMarkets}
           showHeader={false}
           enableShowMore={false}
           onMarketPress={handleMarketPress}
           displayMetric={sortBy}
         />
       ) : undefined,
-    [
-      showFavoritesOnly,
-      markets,
-      favoritesState.suggestedMarkets,
-      handleMarketPress,
-      sortBy,
-    ],
+    [showFavoritesOnly, markets, suggestedMarkets, handleMarketPress, sortBy],
   );
-
-  const handleRefresh = useCallback(() => {
-    onRefresh();
-    topTradersRef.current?.refresh().catch(() => undefined);
-  }, [onRefresh]);
 
   const refreshControl = useMemo(
     () => (
       <RefreshControl
         refreshing={refreshing}
-        onRefresh={handleRefresh}
+        onRefresh={onRefresh}
         tintColor={colors.icon.default}
         colors={[colors.primary.default]}
       />
     ),
-    [refreshing, handleRefresh, colors],
+    [refreshing, onRefresh, colors],
   );
 
   const stickyHeader = useMemo(
@@ -169,7 +186,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         onSortPress={() => setIsSortSheetVisible(true)}
         sortDirection={direction}
         marketTypeFilter={marketTypeFilter}
-        onCategorySelect={setMarketTypeFilter}
+        onCategorySelect={setSelection}
         marketCount={markets.length}
         showWatchlistBadge={isWatchlistEnabled}
         isWatchlistSelected={showFavoritesOnly}
@@ -183,7 +200,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       selectedOptionId,
       direction,
       marketTypeFilter,
-      setMarketTypeFilter,
+      setSelection,
       markets.length,
       isWatchlistEnabled,
       showFavoritesOnly,
