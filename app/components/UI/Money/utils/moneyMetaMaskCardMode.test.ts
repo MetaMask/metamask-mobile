@@ -207,6 +207,45 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('upsell');
   });
 
+  it('returns manage for a linked Immersve NZ card while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardLinkedToMoneyAccount: true,
+        isCardAuthenticated: true,
+        isImmersveMoneyAccountMode: true,
+      }),
+    ).toBe('manage');
+  });
+
+  it('returns link for an Immersve NZ cardholder while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardholder: true,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        hasMoneyAccountRequirements: true,
+        isImmersveMoneyAccountMode: true,
+      }),
+    ).toBe('link');
+  });
+
+  it('returns upsell for an authenticated Immersve NZ non-cardholder while card state is unresolved', () => {
+    expect(
+      deriveMoneyMetaMaskCardMode({
+        ...baseInput,
+        isCardStateResolved: false,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardholder: false,
+        isImmersveMoneyAccountMode: true,
+      }),
+    ).toBe('upsell');
+  });
+
   it('returns null when the money card section is unavailable, even if card state is unresolved', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
