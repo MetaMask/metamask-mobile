@@ -252,7 +252,7 @@ const WalletHeader = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 px-3"
+            twClassName="gap-1 pl-4 pr-3"
           >
             <Text
               variant={TextVariant.HeadingSm}
