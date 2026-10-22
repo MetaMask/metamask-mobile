@@ -22,6 +22,7 @@ const PERPS_ACCOUNT_SCOPE = 'eip155:1';
 interface PerpsShareRequest {
   position: Position;
   marketPrice?: string;
+  accountAddress?: string;
 }
 
 export interface UsePerpsSharePositionResult {
@@ -83,11 +84,15 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
   } | null>(null);
 
   const openShare = useCallback(
-    ({ position, marketPrice }: PerpsShareRequest) => {
+    ({
+      position,
+      marketPrice,
+      accountAddress: shareAccount,
+    }: PerpsShareRequest) => {
       if (canPostToSocial) {
         navigation.navigate(Routes.PERPS.MODALS.ROOT, {
           screen: Routes.PERPS.MODALS.SHARE_POSITION,
-          params: { position, marketPrice, accountAddress },
+          params: { position, marketPrice, accountAddress: shareAccount },
         });
         return;
       }
@@ -96,7 +101,7 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
         marketPrice,
       });
     },
-    [accountAddress, canPostToSocial, navigation],
+    [canPostToSocial, navigation],
   );
 
   useEffect(() => {
@@ -123,13 +128,14 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
       const isProfileUnresolved =
         shouldLookUpProfile &&
         (isProfileLookupFetching || hasProfileLookupFailed);
+      const request = { position, marketPrice, accountAddress };
       if (!isProfileUnresolved) {
-        openShare({ position, marketPrice });
+        openShare(request);
         return;
       }
       const shouldRetryNow = hasProfileLookupFailed && !isProfileLookupFetching;
       pendingShareRef.current = {
-        request: { position, marketPrice },
+        request,
         hasRetried:
           shouldRetryNow || Boolean(pendingShareRef.current?.hasRetried),
       };
@@ -138,6 +144,7 @@ export const usePerpsSharePosition = (): UsePerpsSharePositionResult => {
       }
     },
     [
+      accountAddress,
       hasProfileLookupFailed,
       isProfileLookupFetching,
       openShare,

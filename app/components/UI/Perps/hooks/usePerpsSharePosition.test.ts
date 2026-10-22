@@ -16,6 +16,8 @@ import {
 import { usePerpsSharePosition } from './usePerpsSharePosition';
 
 const PERPS_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000001';
+const OTHER_ACCOUNT_ADDRESS = '0x0000000000000000000000000000000000000002';
+let mockSelectedAccountAddress = PERPS_ACCOUNT_ADDRESS;
 
 const mockNavigate = jest.fn();
 const mockGetSessionProfile = jest.fn();
@@ -36,7 +38,7 @@ jest.mock('../../../../core/Engine', () => ({
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
   ...jest.requireActual('../../../../selectors/multichainAccounts/accounts'),
   selectSelectedInternalAccountByScope: () => () => ({
-    address: PERPS_ACCOUNT_ADDRESS,
+    address: mockSelectedAccountAddress,
   }),
 }));
 
@@ -158,6 +160,7 @@ const flushQueries = async () => {
 describe('usePerpsSharePosition', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectedAccountAddress = PERPS_ACCOUNT_ADDRESS;
     jest.mocked(getVersion).mockReturnValue('8.17.0');
     mockGetSessionProfile.mockResolvedValue({
       profileId: 'session-profile-id',
@@ -322,6 +325,35 @@ describe('usePerpsSharePosition', () => {
     );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockGetSessionProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the sharing account when the selected account changes during the profile lookup', async () => {
+    const profileLookup = createDeferred<typeof socialProfile>();
+    mockFetchAndUpdateProfile.mockReturnValue(profileLookup.promise);
+    mockSelectedAccountAddress = OTHER_ACCOUNT_ADDRESS;
+    const { result, rerender } = renderWithGates({ hasSocialProfile: false });
+    await waitFor(() => expect(mockFetchAndUpdateProfile).toHaveBeenCalled());
+
+    act(() => {
+      result.current.sharePosition(position, marketPrice);
+    });
+    mockSelectedAccountAddress = PERPS_ACCOUNT_ADDRESS;
+    rerender({});
+    await act(async () => {
+      profileLookup.resolve(socialProfile);
+    });
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.MODALS.ROOT, {
+        screen: Routes.PERPS.MODALS.SHARE_POSITION,
+        params: {
+          position,
+          marketPrice,
+          accountAddress: OTHER_ACCOUNT_ADDRESS,
+        },
+      }),
+    );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('retries a failed session lookup on share and recovers to the sheet', async () => {
