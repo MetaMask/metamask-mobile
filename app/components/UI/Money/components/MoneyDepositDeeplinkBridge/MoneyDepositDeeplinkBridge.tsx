@@ -81,7 +81,12 @@ const MoneyDepositDeeplinkBridge = () => {
       }
     };
 
-    startDeposit();
+    startDeposit().catch((error) => {
+      Logger.error(
+        error as Error,
+        '[MoneyDepositDeeplinkBridge] startDeposit failed',
+      );
+    });
   }, [
     isMoneyAccountFeatureEnabled,
     isMoneyAccountGeoEligible,
