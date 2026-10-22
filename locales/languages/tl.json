@@ -10986,7 +10986,7 @@
       "payment_creation_error": "Nabigong lumikha ng pagbabayad. Subukan muli."
     },
     "order_completed": {
-      "title": "NA-ORDER NA\nANG CARD MO",
+      "title": "Na-order na ang card mo",
       "subtitle": "Darating ito sa loob ng 4 hanggang 6 na linggo.",
       "description": "I-set up ang virtual card mo at idagdag ito sa iyong digital wallet para magsimulang makakuha ng ibabalik na mUSD.",
       "set_up_card_button": "I-set up ang card",

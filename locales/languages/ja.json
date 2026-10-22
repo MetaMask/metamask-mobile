@@ -10986,7 +10986,7 @@
       "payment_creation_error": "支払いの作成に失敗しました。もう一度お試しください。"
     },
     "order_completed": {
-      "title": "カードが\n注文されました",
+      "title": "カードが注文されました",
       "subtitle": "4～6週間後にお届け予定です。",
       "description": "バーチャルカードを設定し、デジタルウォレットに追加して、mUSD還元サービスの利用を始めましょう。",
       "set_up_card_button": "カードを設定",
