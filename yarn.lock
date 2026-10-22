@@ -12406,38 +12406,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:^14.0.1":
-  version: 14.0.2
-  resolution: "@metamask/subscription-controller@npm:14.0.2"
-  dependencies:
-    "@ethersproject/abi": "npm:^5.7.0"
-    "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.1.0"
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/chomp-api-service": "npm:^6.0.1"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/delegation-controller": "npm:^4.0.0"
-    "@metamask/delegation-core": "npm:^2.2.1"
-    "@metamask/delegation-deployments": "npm:^1.4.0"
-    "@metamask/geolocation-controller": "npm:^2.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/money-account-balance-service": "npm:^3.1.2"
-    "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
-    "@metamask/money-account-utils": "npm:^2.1.0"
-    "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
-    "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
-    "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^72.2.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.103.2"
-    bignumber.js: "npm:^9.1.2"
-    fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/788ab76a5035706744ea132fed574f2f112667d542234c9e591da0504c0d9f8600b2c1fe607d0860aa591d8d46506cc8602fb0c1a640a2df049515d01a1ca28d
-  languageName: node
-  linkType: hard
-
 "@metamask/superstruct@npm:^3.1.0, @metamask/superstruct@npm:^3.2.1, @metamask/superstruct@npm:^3.3.0, @metamask/superstruct@npm:^3.4.1":
   version: 3.4.1
   resolution: "@metamask/superstruct@npm:3.4.1"
