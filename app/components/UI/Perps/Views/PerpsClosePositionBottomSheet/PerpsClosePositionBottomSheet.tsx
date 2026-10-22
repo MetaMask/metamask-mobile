@@ -18,10 +18,7 @@ import Keypad from '../../../../Base/Keypad';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsFeesRow from '../../components/PerpsFeesRow';
-import {
-  PerpsInlineFeesInfoScreen,
-  PerpsInlineOrangeFeesInfoScreen,
-} from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
+import { usePerpsInlineFeesInfo } from '../../components/PerpsTradeBottomSheet/usePerpsInlineFeesInfo';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
@@ -162,27 +159,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
   const hasCloseAmount = parseFloat(closeAmountUSDString) > 0;
 
-  const [infoScreen, setInfoScreen] = useState<'fees' | 'orangeFees' | null>(
-    null,
-  );
-  const showFeesInfo = useCallback(() => setInfoScreen('fees'), []);
-  const showOrangeFeesInfo = useCallback(() => setInfoScreen('orangeFees'), []);
-  const hideInfo = useCallback(() => setInfoScreen(null), []);
-  const feesInfoData = useMemo(
-    () => ({
-      metamaskFeeRate: feeResults.metamaskFeeRate,
-      protocolFeeRate: feeResults.protocolFeeRate,
-      originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-      feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      feeSource: feeResults.feeSource,
-    }),
-    [
-      feeResults.metamaskFeeRate,
-      feeResults.protocolFeeRate,
-      feeResults.originalMetamaskFeeRate,
-      feeResults.feeDiscountPercentage,
-      feeResults.feeSource,
-    ],
+  const { showFeesInfo, infoContent } = usePerpsInlineFeesInfo(
+    feeResults,
+    parseFloat(closeAmountUSDString) || undefined,
   );
   const summaryPnlPercentage =
     summaryMargin !== 0
@@ -205,24 +184,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     !hasLimitPriceValue &&
     !isEditingLimitPrice;
 
-  // The fee breakdown replaces this sheet's content, as the adjust margin
-  // sheet does for its explainers, instead of stacking another sheet.
-  if (infoScreen) {
+  if (infoContent) {
     return (
       <BottomSheet
         ref={sheetRef}
         goBack={navigation.goBack}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
       >
-        {infoScreen === 'fees' ? (
-          <PerpsInlineFeesInfoScreen
-            data={feesInfoData}
-            onBack={hideInfo}
-            onOpenOrangeInfo={showOrangeFeesInfo}
-          />
-        ) : (
-          <PerpsInlineOrangeFeesInfoScreen onBack={showFeesInfo} />
-        )}
+        {infoContent}
       </BottomSheet>
     );
   }

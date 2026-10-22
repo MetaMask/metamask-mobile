@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
@@ -40,10 +40,7 @@ import {
 import { PERPS_SLIPPAGE_DEFAULT_BPS } from '../../constants/slippageConfig';
 import { toPerpsEntryAttribution } from '../../utils/perpsAnalyticsAttribution';
 import PerpsFeesRow from '../PerpsFeesRow';
-import {
-  PerpsInlineFeesInfoScreen,
-  PerpsInlineOrangeFeesInfoScreen,
-} from '../PerpsTradeBottomSheet/PerpsTradeNestedScreens';
+import { usePerpsInlineFeesInfo } from '../PerpsTradeBottomSheet/usePerpsInlineFeesInfo';
 import PerpsRebateBanner from '../PerpsRebateBanner';
 import PerpsValidationErrors from '../PerpsValidationErrors';
 import RewardsAnimations, {
@@ -161,28 +158,9 @@ const PerpsFlipPositionConfirmSheet: React.FC<
 
   const vipTier = useVipTier();
 
-  const [infoScreen, setInfoScreen] = useState<'fees' | 'orangeFees' | null>(
-    null,
-  );
-  const showFeesInfo = useCallback(() => setInfoScreen('fees'), []);
-  const showOrangeFeesInfo = useCallback(() => setInfoScreen('orangeFees'), []);
-  const hideInfo = useCallback(() => setInfoScreen(null), []);
-  // Same rates the order view hands its fee breakdown, for the 2x notional.
-  const feesInfoData = useMemo(
-    () => ({
-      metamaskFeeRate: feeResults.metamaskFeeRate,
-      protocolFeeRate: feeResults.protocolFeeRate,
-      originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
-      feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      feeSource: feeResults.feeSource,
-    }),
-    [
-      feeResults.metamaskFeeRate,
-      feeResults.protocolFeeRate,
-      feeResults.originalMetamaskFeeRate,
-      feeResults.feeDiscountPercentage,
-      feeResults.feeSource,
-    ],
+  const { showFeesInfo, infoContent } = usePerpsInlineFeesInfo(
+    feeResults,
+    Number.parseFloat(usdAmount) || undefined,
   );
 
   const handleReverse = useCallback(async () => {
@@ -249,9 +227,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
     [handleReverse, isFlipping, canFlip],
   );
 
-  // The fee breakdown replaces this sheet's content, as the adjust margin
-  // sheet does for its explainers, instead of stacking another sheet.
-  if (infoScreen) {
+  if (infoContent) {
     return (
       <BottomSheet
         ref={sheetRef}
@@ -259,15 +235,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         onClose={externalSheetRef ? onClose : undefined}
         testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
       >
-        {infoScreen === 'fees' ? (
-          <PerpsInlineFeesInfoScreen
-            data={feesInfoData}
-            onBack={hideInfo}
-            onOpenOrangeInfo={showOrangeFeesInfo}
-          />
-        ) : (
-          <PerpsInlineOrangeFeesInfoScreen onBack={showFeesInfo} />
-        )}
+        {infoContent}
       </BottomSheet>
     );
   }
