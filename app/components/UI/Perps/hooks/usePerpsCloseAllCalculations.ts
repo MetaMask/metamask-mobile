@@ -4,6 +4,7 @@ import {
   formatAccountToCaipAccountId,
   type Position,
   type FeeCalculationResult,
+  type PerpsFeeSource,
 } from '@metamask/perps-controller';
 import type {
   EstimatePointsDto,
@@ -29,6 +30,12 @@ export interface CloseAllCalculationsResult {
   totalEstimatedPoints: number | undefined;
   /** Average fee discount percentage across all positions (undefined when unavailable) */
   avgFeeDiscountPercentage: number | undefined;
+  /**
+   * Fee source behind the summary discount, considering only positions whose
+   * fee was actually reduced. `subscription` when any position was, otherwise
+   * `rewards` when any position was, otherwise undefined.
+   */
+  feeSource: PerpsFeeSource | undefined;
   /** Average bonus multiplier in basis points (undefined when unavailable) */
   avgBonusBips: number | undefined;
   /** Average MetaMask fee rate across all positions (undefined when unavailable) */
@@ -351,12 +358,47 @@ export function usePerpsCloseAllCalculations({
         totalFees: undefined,
         totalEstimatedPoints: undefined,
         avgFeeDiscountPercentage: undefined,
+        feeSource: undefined,
         avgBonusBips: undefined,
         avgMetamaskFeeRate: undefined,
         avgProtocolFeeRate: undefined,
         avgOriginalMetamaskFeeRate: undefined,
         shouldShowRewards: false,
       };
+    }
+
+    // Attribute the summary discount to the source that drives most of
+    // avgFeeDiscountPercentage. Uses the same weight and guards as the
+    // fee-weighted average below so the badge and the percentage always
+    // describe the same positions; `default` and 0-bip wins contribute nothing.
+    let subscriptionContribution = 0;
+    let rewardsContribution = 0;
+    perPositionResults.forEach(({ fees }) => {
+      const weight = fees.feeAmount ?? 0;
+      const discountBips = fees.metamaskFeeDiscountBips ?? 0;
+      if (
+        weight <= 0 ||
+        discountBips <= 0 ||
+        fees.metamaskFeeRate === undefined ||
+        fees.protocolFeeRate === undefined
+      ) {
+        return;
+      }
+      if (fees.feeSource === 'subscription') {
+        subscriptionContribution += discountBips * weight;
+      } else if (fees.feeSource === 'rewards') {
+        rewardsContribution += discountBips * weight;
+      }
+    });
+    // Ties go to membership, matching MembershipVipBadge's priority.
+    let feeSource: PerpsFeeSource | undefined;
+    if (
+      subscriptionContribution > 0 &&
+      subscriptionContribution >= rewardsContribution
+    ) {
+      feeSource = 'subscription';
+    } else if (rewardsContribution > 0) {
+      feeSource = 'rewards';
     }
 
     // Sum fees and points
@@ -438,6 +480,7 @@ export function usePerpsCloseAllCalculations({
       totalFees,
       totalEstimatedPoints,
       avgFeeDiscountPercentage,
+      feeSource,
       avgBonusBips,
       avgMetamaskFeeRate,
       avgProtocolFeeRate,
@@ -462,6 +505,7 @@ export function usePerpsCloseAllCalculations({
     receiveAmount,
     totalEstimatedPoints: aggregatedResults.totalEstimatedPoints,
     avgFeeDiscountPercentage: aggregatedResults.avgFeeDiscountPercentage,
+    feeSource: aggregatedResults.feeSource,
     avgBonusBips: aggregatedResults.avgBonusBips,
     avgMetamaskFeeRate: aggregatedResults.avgMetamaskFeeRate,
     avgProtocolFeeRate: aggregatedResults.avgProtocolFeeRate,
