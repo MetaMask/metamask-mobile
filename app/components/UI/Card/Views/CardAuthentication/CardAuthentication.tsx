@@ -599,7 +599,7 @@ const CardAuthentication = () => {
       return;
     }
     setLatestEmailCodeSubmitted(emailCode);
-    performEmailLogin();
+    void performEmailLogin();
   }, [
     emailCode,
     emailCodeSent,
@@ -792,7 +792,7 @@ const CardAuthentication = () => {
 
   const handleResendEmailCode = useCallback(() => {
     if (resendCooldown > 0 || loading) return;
-    handleRequestEmailCode();
+    void handleRequestEmailCode();
   }, [resendCooldown, loading, handleRequestEmailCode]);
 
   const handleForgotPassword = useCallback(() => {
@@ -823,7 +823,7 @@ const CardAuthentication = () => {
     }
     if (view.mode === 'email') {
       if (isBaanxPasswordless && !emailCodeSent) {
-        handleRequestEmailCode();
+        void handleRequestEmailCode();
         return;
       }
       performEmailLogin();
