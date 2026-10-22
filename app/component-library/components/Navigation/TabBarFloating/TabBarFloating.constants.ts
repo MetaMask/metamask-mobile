@@ -81,7 +81,7 @@ export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.5;
 /** Alpha of the hairline drawn around the glass tray. */
 export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;
 
-/** Corner radius of the glass tray. */
+/** Corner radius of the trade tray, on glass, blur or the plain sheet. */
 export const TRADE_TRAY_GLASS_RADIUS = 32;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {

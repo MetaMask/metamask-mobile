@@ -127,6 +127,15 @@ const batchSellIconStyle = {
 // around it need the same curve, or their circular arcs show at each corner.
 const continuousCorners = { borderCurve: 'continuous' } satisfies ViewStyle;
 
+// Every sheet without the notch shares these corners. React Native only hands a
+// visible border to iOS, which honours the curve, when the view clips; otherwise
+// it draws circular arcs itself, as Android always does.
+const trayCorners = {
+  ...continuousCorners,
+  overflow: 'hidden',
+  borderRadius: TRADE_TRAY_GLASS_RADIUS,
+} satisfies ViewStyle;
+
 // The morph surface stays hidden until the rows report the height it grows to.
 const morphStyles = StyleSheet.create({
   hidden: { opacity: 0 },
@@ -188,12 +197,8 @@ function TradeWalletActions() {
     !isGlassSheet && isTradeFocusedArm && isBlurAvailable;
 
   const glassBorderStyle = useMemo(
-    (): ViewStyle => ({
-      ...continuousCorners,
-      // React Native only hands a visible border to iOS, which honours the
-      // curve, when the view clips; otherwise it draws circular arcs itself.
-      overflow: 'hidden',
-      borderRadius: TRADE_TRAY_GLASS_RADIUS,
+    () => ({
+      ...trayCorners,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colorWithOpacity(
         colors.border.muted,
@@ -613,8 +618,8 @@ function TradeWalletActions() {
             tint={tint}
             intensity={BLUR_INTENSITY}
             style={[
-              tw.style('p-4 px-0 rounded-2xl mb-4 overflow-hidden'),
-              continuousCorners,
+              tw.style('p-4 px-0 mb-4'),
+              trayCorners,
               {
                 borderWidth: StyleSheet.hairlineWidth,
                 borderColor: colorWithOpacity(
@@ -629,12 +634,16 @@ function TradeWalletActions() {
         ) : (
           <View
             testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
-            style={tw.style(
-              `${surfaceClass} p-4 px-0 border-alternative`,
-              hasBottomNotch
-                ? 'rounded-t-2xl border-t border-l border-r'
-                : 'rounded-2xl border mb-4',
-            )}
+            style={[
+              tw.style(
+                `${surfaceClass} p-4 px-0 border-alternative`,
+                hasBottomNotch
+                  ? 'rounded-t-2xl border-t border-l border-r'
+                  : 'border mb-4',
+              ),
+              // The notch's bottom edge is an SVG shape cut to the old corners.
+              !hasBottomNotch && trayCorners,
+            ]}
           >
             {actionList}
           </View>

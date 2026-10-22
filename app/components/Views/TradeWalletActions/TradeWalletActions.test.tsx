@@ -745,6 +745,7 @@ describe('TradeWalletActions', () => {
       const blurStyle = StyleSheet.flatten(blurProps.style);
       expect(blurStyle).toMatchObject({
         borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
         borderCurve: 'continuous',
       });
       expect(blurStyle.borderColor).toMatch(
@@ -891,23 +892,41 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
       ).toBeOnTheScreen();
-    });
-
-    it('falls back to the opaque sheet when glass is unavailable', () => {
-      mockIsGlassEnabled = false;
-      mockUseParams.mockReturnValue(nativeTrayParams);
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      expect(mockGlassView).not.toHaveBeenCalled();
+      // The notch's SVG bottom edge is cut to the sheet's original corners.
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
-      ).toBeOnTheScreen();
+      ).not.toHaveStyle({ borderRadius: TRADE_TRAY_GLASS_RADIUS });
     });
+
+    const fallbackPlatforms: (typeof Platform.OS)[] = ['ios', 'android'];
+
+    it.each(fallbackPlatforms)(
+      'falls back to the opaque sheet on the tray corners on %s when glass is unavailable',
+      (os) => {
+        const originalOS = Platform.OS;
+        Platform.OS = os;
+        mockIsGlassEnabled = false;
+        mockUseParams.mockReturnValue(nativeTrayParams);
+
+        try {
+          const { getByTestId } = renderScreen(
+            TradeWalletActions,
+            { name: 'TradeWalletActions' },
+            { state: mockInitialState },
+          );
+
+          expect(mockGlassView).not.toHaveBeenCalled();
+          expect(
+            getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+          ).toHaveStyle({
+            borderRadius: TRADE_TRAY_GLASS_RADIUS,
+            overflow: 'hidden',
+          });
+        } finally {
+          Platform.OS = originalOS;
+        }
+      },
+    );
   });
 
   describe('glass morph menu', () => {
