@@ -208,8 +208,11 @@ describe('createPlatformAdapter', () => {
       const incomingEvent = {
         type: 'track',
         event: 'Swap Completed',
+        properties,
         context: {
+          library: { name: 'analytics-react-native', version: '2.23.0' },
           consent: { categoryPreferences: { product: false } },
+          protocols: { event_version: 1 },
         },
       } as unknown as SegmentEvent;
 
@@ -218,6 +221,7 @@ describe('createPlatformAdapter', () => {
           categoryPreferences: { product: true, marketing: false },
         },
         eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
       });
 
       expect(segmentMockClient.track).toHaveBeenCalledWith(
@@ -226,10 +230,36 @@ describe('createPlatformAdapter', () => {
         expect.any(Function),
       );
       const enrichment = jest.mocked(segmentMockClient.track).mock.calls[0][2];
-      expect(enrichment?.(incomingEvent).context).toEqual({
+      const enrichedEvent = enrichment?.(incomingEvent);
+      expect(enrichedEvent).toEqual(expect.objectContaining({ properties }));
+      expect(enrichedEvent).not.toHaveProperty('properties.protocols');
+      expect(enrichedEvent?.context).toEqual({
+        library: { name: 'analytics-react-native', version: '2.23.0' },
         consent: {
           categoryPreferences: { product: true, marketing: false },
         },
+        eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
+      });
+    });
+
+    it('preserves SDK context without inventing a legacy event version', () => {
+      const adapter = createPlatformAdapter();
+      const { segmentMockClient } =
+        global as unknown as GlobalWithSegmentClient;
+      const incomingEvent = {
+        type: 'track',
+        event: 'Legacy Event',
+        context: {
+          library: { name: 'analytics-react-native', version: '2.23.0' },
+        },
+      } as unknown as SegmentEvent;
+
+      adapter.track('Legacy Event', {}, { eventsConfigVersion: '7' });
+
+      const enrichment = jest.mocked(segmentMockClient.track).mock.calls[0][2];
+      expect(enrichment?.(incomingEvent).context).toEqual({
+        library: { name: 'analytics-react-native', version: '2.23.0' },
         eventsConfigVersion: '7',
       });
     });
@@ -277,6 +307,7 @@ describe('createPlatformAdapter', () => {
           categoryPreferences: { product: true, marketing: false },
         },
         eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
       });
 
       const enrichment = jest.mocked(segmentMockClient.identify).mock
@@ -286,6 +317,7 @@ describe('createPlatformAdapter', () => {
           categoryPreferences: { product: true, marketing: false },
         },
         eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
       });
     });
 
@@ -332,6 +364,7 @@ describe('createPlatformAdapter', () => {
           categoryPreferences: { product: true, marketing: false },
         },
         eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
       });
 
       const enrichment = jest.mocked(segmentMockClient.screen).mock.calls[0][2];
@@ -340,6 +373,7 @@ describe('createPlatformAdapter', () => {
           categoryPreferences: { product: true, marketing: false },
         },
         eventsConfigVersion: '7',
+        protocols: { event_version: 2 },
       });
     });
 
