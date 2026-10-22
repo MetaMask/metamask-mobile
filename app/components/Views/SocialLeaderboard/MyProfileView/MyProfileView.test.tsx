@@ -603,7 +603,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
-    ).toBeOnTheScreen();
+    ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),

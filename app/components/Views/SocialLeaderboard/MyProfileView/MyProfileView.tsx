@@ -672,7 +672,7 @@ const MyProfileView: React.FC = () => {
                 </Button>
               </Box>
             ) : (
-              <Box testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
+              <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSTS_LIST}>
                 <SocialV1FeedPostList
                   posts={posts}
                   dividerKeyPrefix="my-profile"
