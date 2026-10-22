@@ -94,7 +94,11 @@ const buildState = (
 ): RootState =>
   ({
     ...initialRootState,
-    rewardsMoney: { referralMe, earningsSummary },
+    rewardsMoney: {
+      ...initialRootState.rewardsMoney,
+      referralMe,
+      earningsSummary,
+    },
   }) as RootState;
 
 describe('rewardsMoney selectors', () => {
