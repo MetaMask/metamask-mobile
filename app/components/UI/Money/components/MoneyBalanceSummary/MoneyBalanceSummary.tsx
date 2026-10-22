@@ -177,7 +177,7 @@ const MoneyBalanceSummary = ({
   }
 
   // The tab title lives in HeaderRoot, which centers a 32px line in a 56px
-  // bar and leaves 12px under "Money". 8px here makes that gap 20px.
+  // bar and leaves 12px under "Money". 4px here makes that gap 16px.
   return (
     <Box
       twClassName="px-4 pt-1 gap-1"

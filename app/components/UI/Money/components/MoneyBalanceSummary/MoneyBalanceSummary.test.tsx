@@ -371,18 +371,18 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('leaves 20px between the header title and the balance', () => {
+  it('leaves 16px between the header title and the balance', () => {
     const { getByTestId } = render(
       <MoneyBalanceSummary apy={4} displayState={balanceState()} />,
     );
 
     const container = getByTestId(MoneyBalanceSummaryTestIds.CONTAINER);
 
-    // HeaderRoot leaves 12px under the title; 8px of padding completes 20px.
+    // HeaderRoot leaves 12px under the title; 4px of padding completes 16px.
     expect(container).toHaveStyle({
       paddingLeft: 16,
       paddingRight: 16,
-      paddingTop: 8,
+      paddingTop: 4,
     });
   });
 });
