@@ -13,8 +13,10 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 const mockGetHardwareTier = jest.fn<HardwareTier | null, []>(() => 'HIGH');
 const mockUseReducedMotion = jest.fn(() => false);
 const mockSetActive = jest.fn();
-const mockFrame = {
-  callback: (_frame: { timeSincePreviousFrame: number | null }) => undefined,
+const mockFrame: {
+  callback: (frame: { timeSincePreviousFrame: number | null }) => void;
+} = {
+  callback: () => undefined,
 };
 
 jest.mock('../../../../../util/deviceCapability', () => ({
@@ -50,7 +52,7 @@ jest.mock('react-native-reanimated', () => {
 });
 
 describe('shouldScrollMusdEducationTags', () => {
-  const tiers: NetworkTier[] = [
+  const tiers: (NetworkTier | null)[] = [
     'NONE',
     'SLOW_CELLULAR',
     'FAST_CELLULAR',
