@@ -9464,6 +9464,7 @@
       "turn_off_cta": "Turn off",
       "turn_off_verify_description": "Verify it's you to turn off 2-step verification",
       "cancel": "Cancel",
+      "dismiss": "Dismiss",
       "badge_label": "2-step verification is on",
       "toast_on": "2-step verification is on",
       "toast_off": "2-step verification is off",

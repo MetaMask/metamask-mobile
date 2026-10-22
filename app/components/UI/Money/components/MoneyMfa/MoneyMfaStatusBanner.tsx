@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import {
   Box,
   ButtonIcon,
@@ -9,6 +10,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -42,12 +44,25 @@ const MoneyMfaStatusBanner = ({
   onRetry,
 }: MoneyMfaStatusBannerProps) => {
   const isSettingUp = status === 'setting_up';
-  if (!(isSettingUp && !isSettingUpDismissed) && status !== 'failed') {
+  const isVisible =
+    (isSettingUp && !isSettingUpDismissed) || status === 'failed';
+  const title = strings(
+    isSettingUp ? 'money.mfa.setting_up_title' : 'money.mfa.failed_title',
+  );
+
+  useEffect(() => {
+    if (isVisible) {
+      AccessibilityInfo.announceForAccessibility(title);
+    }
+  }, [isVisible, title]);
+
+  if (!isVisible) {
     return null;
   }
 
   return (
     <Box
+      accessibilityLiveRegion="polite"
       twClassName={`mx-4 mt-2 flex-row items-start gap-3 rounded-xl p-4 ${
         isSettingUp ? 'bg-muted' : 'bg-error-muted'
       }`}
@@ -70,35 +85,35 @@ const MoneyMfaStatusBanner = ({
       </Box>
       <Box twClassName="flex-1 gap-1">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {strings(
-            isSettingUp
-              ? 'money.mfa.setting_up_title'
-              : 'money.mfa.failed_title',
-          )}
+          {title}
         </Text>
         {isSettingUp ? (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {strings('money.mfa.setting_up_description')}
           </Text>
         ) : (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {`${strings('money.mfa.failed_description')} `}
+          <Box twClassName="flex-row flex-wrap gap-1">
             <Text
               variant={TextVariant.BodySm}
-              color={TextColor.PrimaryDefault}
+              color={TextColor.TextAlternative}
+            >
+              {strings('money.mfa.failed_description')}
+            </Text>
+            <TextButton
+              variant={TextVariant.BodySm}
               onPress={onRetry}
               testID={MoneyMfaTestIds.FAILED_BANNER_RETRY}
             >
               {strings('money.mfa.failed_retry')}
-            </Text>
-          </Text>
+            </TextButton>
+          </Box>
         )}
       </Box>
       {isSettingUp && (
         <ButtonIcon
           iconName={IconName.Close}
           size={ButtonIconSize.Sm}
-          accessibilityLabel={strings('money.mfa.cancel')}
+          accessibilityLabel={strings('money.mfa.dismiss')}
           onPress={onDismissSettingUp}
           testID={MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE}
         />
