@@ -1,4 +1,5 @@
 import React from 'react';
+import { Text } from 'react-native';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
@@ -564,6 +565,39 @@ describe('MetaMetricsAndDataCollectionSection', () => {
   });
 
   describe('Marketing section', () => {
+    it('renders under its own heading, after the content passed between the sections', () => {
+      const SectionWithChildren = () => (
+        <MetaMetricsAndDataCollectionSection>
+          <Text>Delete MetaMetrics data</Text>
+        </MetaMetricsAndDataCollectionSection>
+      );
+      const { getByText } = renderScreen(
+        SectionWithChildren,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingTrue },
+      );
+
+      expect(getByText('Delete MetaMetrics data')).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.marketing_subheading')),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the marketing heading with the marketing section', () => {
+      const SectionWithoutMarketing = () => (
+        <MetaMetricsAndDataCollectionSection hideMarketingSection />
+      );
+      const { queryByText } = renderScreen(
+        SectionWithoutMarketing,
+        { name: 'MetaMetricsAndDataCollectionSection' },
+        { state: initialStateMarketingTrue },
+      );
+
+      expect(
+        queryByText(strings('app_settings.marketing_subheading')),
+      ).not.toBeOnTheScreen();
+    });
+
     describe('switch', () => {
       it('is on when Marketing is initially enabled', async () => {
         const { findByTestId } = renderScreen(

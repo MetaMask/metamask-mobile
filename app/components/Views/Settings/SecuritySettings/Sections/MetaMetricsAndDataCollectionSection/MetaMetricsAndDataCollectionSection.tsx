@@ -50,6 +50,8 @@ interface MetaMetricsAndDataCollectionSectionProps {
   metaMetricsRef?: React.Ref<View>;
   /** Ref to the marketing data collection sub-section, used as a scroll target. */
   dataCollectionRef?: React.Ref<View>;
+  /** Rendered between the MetaMetrics and the marketing sub-sections. */
+  children?: React.ReactNode;
 }
 
 const MetaMetricsAndDataCollectionSection: React.FC<
@@ -59,6 +61,7 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   analyticsLocation = 'settings',
   metaMetricsRef,
   dataCollectionRef,
+  children,
 }) => {
   const { styles, theme } = useStyles(createStyles, {});
   const { colors } = theme;
@@ -325,7 +328,15 @@ const MetaMetricsAndDataCollectionSection: React.FC<
   return (
     <>
       {renderMetaMetricsSection()}
-      {!hideMarketingSection && renderDataCollectionSection()}
+      {children}
+      {!hideMarketingSection && (
+        <>
+          <Text variant={TextVariant.HeadingMd} style={styles.subHeading}>
+            {strings('app_settings.marketing_subheading')}
+          </Text>
+          {renderDataCollectionSection()}
+        </>
+      )}
       {isOptOutSheetVisible ? (
         <MarketingConsentSheet
           title={strings('marketing_consent_sheet.opt_out_title')}
