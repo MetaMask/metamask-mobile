@@ -5,8 +5,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  IconSize,
   SensitiveText,
   SensitiveTextLength,
+  Tag,
   Text,
   TextColor,
   TextVariant,
@@ -15,11 +17,14 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import DottedUnderline from '../../../DottedUnderline';
 import TextShimmer from '../TextShimmer';
+import PendingSpinner from '../PendingSpinner/PendingSpinner';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
+import { MoneyVaultStatus } from '../../utils/moneyVaultState';
 import { isPositiveNumberOrZero } from '../../utils/number';
 import { MoneyBalanceDisplayState } from '../../types';
 import { useTheme } from '../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
 interface MoneyBalanceSummaryProps {
   displayState: MoneyBalanceDisplayState;
   /**
@@ -45,6 +50,17 @@ interface MoneyBalanceSummaryProps {
    * leaves this unset and keeps its title in the header.
    */
   showTitle?: boolean;
+  /**
+   * When true, shows a Premium tag next to the APY (funds in premium vault).
+   */
+  isPremium?: boolean;
+  /**
+   * In-flight vault migration pill under the APY row. Only Money home should
+   * pass this.
+   */
+  pendingVaultTransition?:
+    | typeof MoneyVaultStatus.Upgrading
+    | typeof MoneyVaultStatus.Downgrading;
 }
 
 const MoneyBalanceSummary = ({
@@ -54,6 +70,8 @@ const MoneyBalanceSummary = ({
   privacyMode = false,
   onBalancePress,
   showTitle = false,
+  isPremium = false,
+  pendingVaultTransition,
 }: MoneyBalanceSummaryProps) => {
   const { colors } = useTheme();
   const tw = useTailwind();
@@ -65,36 +83,65 @@ const MoneyBalanceSummary = ({
   const hasApy = showApy && isPositiveNumberOrZero(apy);
 
   const apyLabel = hasApy ? (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      testID={MoneyBalanceSummaryTestIds.APY}
-    >
-      <Pressable
-        onPress={onApyInfoPress}
-        style={({ pressed }) => pressed && tw.style('opacity-50')}
-        testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
+    <Box twClassName="gap-1">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="gap-2"
+        testID={MoneyBalanceSummaryTestIds.APY}
       >
-        <DottedUnderline color={colors.success.default}>
-          <TextShimmer>
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.SuccessDefault}
-              numberOfLines={1}
-            >
-              {strings('money.apy_label', { percentage: apy })}
-            </Text>
-          </TextShimmer>
-        </DottedUnderline>
-      </Pressable>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-      >
-        {strings('money.apy_currency_suffix')}
-      </Text>
+        <Pressable
+          onPress={onApyInfoPress}
+          style={({ pressed }) => pressed && tw.style('opacity-50')}
+          testID={MoneyBalanceSummaryTestIds.APY_PRESSABLE}
+        >
+          <DottedUnderline color={colors.success.default}>
+            <TextShimmer>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+                numberOfLines={1}
+              >
+                {strings('money.apy_label', { percentage: apy })}
+              </Text>
+            </TextShimmer>
+          </DottedUnderline>
+        </Pressable>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {strings('money.apy_currency_suffix')}
+        </Text>
+        {isPremium ? (
+          <Tag testID={MoneyBalanceSummaryTestIds.PREMIUM_TAG}>
+            {strings('money.apy_premium_tag')}
+          </Tag>
+        ) : null}
+      </Box>
+      {pendingVaultTransition ? (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+          testID={MoneyBalanceSummaryTestIds.UPGRADE_PILL}
+        >
+          <PendingSpinner size={IconSize.Xs} />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {strings(
+              pendingVaultTransition === MoneyVaultStatus.Upgrading
+                ? 'money.apy_upgrading_pill'
+                : 'money.apy_downgrading_pill',
+            )}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   ) : undefined;
 

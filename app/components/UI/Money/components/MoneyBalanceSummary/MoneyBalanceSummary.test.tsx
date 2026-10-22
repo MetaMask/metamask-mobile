@@ -98,6 +98,64 @@ describe('MoneyBalanceSummary', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the Premium tag when isPremium is true', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary apy={7.1} displayState={balanceState()} isPremium />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).toHaveTextContent('Premium');
+  });
+
+  it('hides the Premium tag when isPremium is false', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.PREMIUM_TAG),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the upgrading pill when pendingVaultTransition is upgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={5}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+  });
+
+  it('renders the downgrading pill when pendingVaultTransition is downgrading', () => {
+    const { getByTestId } = render(
+      <MoneyBalanceSummary
+        apy={7.1}
+        displayState={balanceState()}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+  });
+
+  it('hides the pending pill when pendingVaultTransition is omitted', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary apy={5} displayState={balanceState()} />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
