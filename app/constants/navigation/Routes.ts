@@ -434,6 +434,7 @@ const Routes = {
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
       OUTREACH_DETAILS: 'PerpsOutreachDetails',
+      SHARE_POSITION: 'PerpsSharePosition',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',
