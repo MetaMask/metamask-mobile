@@ -1118,6 +1118,10 @@ export const PerpsTradeSheetSelectorsIDs = {
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
 
+export const PerpsFeeDiscountLabelSelectorsIDs = {
+  LABEL: 'perps-fee-discount-label',
+} as const;
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================

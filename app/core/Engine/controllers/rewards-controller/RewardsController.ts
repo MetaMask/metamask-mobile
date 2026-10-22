@@ -112,6 +112,7 @@ import {
   InvalidTimestampError,
   AccountAlreadyRegisteredError,
   SeasonNotFoundError,
+  MAX_PERPS_TRADING_FEE_GRANT_BIPS,
 } from './services/rewards-data-service';
 import { sortAccounts } from './utils/sortAccounts';
 
@@ -143,7 +144,6 @@ const VIP_EQUITY_MULTIPLIER_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
 const VIP_PERPS_FEES_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
-const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
 
 // VIP transactions cache threshold (first page only).
 // Disabled so each first-page read checks the backend last-updated timestamp.
@@ -2047,9 +2047,10 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Fetch an uncached trading-fee grant for the requested Perps route.
+   * Fetch a trading-fee grant for the requested Perps route.
    * Grant lookup is intentionally independent of Rewards and VIP feature
-   * gates, account opt-in, and Rewards subscription state.
+   * gates, account opt-in, and Rewards subscription state. The data service
+   * bounds request latency and briefly caches results per Profile Sync identity.
    */
   async getPerpsTradingFeeGrant(
     scope: PerpsFeeResolverScope,

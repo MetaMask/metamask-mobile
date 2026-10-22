@@ -199,9 +199,10 @@ export type RewardsControllerGetPerpsDiscountForAccountAction = {
 };
 
 /**
- * Fetch an uncached trading-fee grant for the requested Perps route.
+ * Fetch a trading-fee grant for the requested Perps route.
  * Grant lookup is intentionally independent of Rewards and VIP feature
- * gates, account opt-in, and Rewards subscription state.
+ * gates, account opt-in, and Rewards subscription state. The data service
+ * bounds request latency and briefly caches results per Profile Sync identity.
  */
 export type RewardsControllerGetPerpsTradingFeeGrantAction = {
   type: `RewardsController:getPerpsTradingFeeGrant`;

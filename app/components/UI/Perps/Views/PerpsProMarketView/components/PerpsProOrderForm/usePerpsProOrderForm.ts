@@ -869,12 +869,16 @@ export const usePerpsProOrderForm = ({
   const {
     marketData,
     isLoading: isMarketDataLoading,
+    isProviderMetadataAvailable,
     error: marketDataError,
   } = usePerpsMarketData({
     asset: symbol,
     // Aggregated markets list the symbol once per provider; the selected
     // market's restrictions (e.g. isolated-only) decide Cross eligibility.
     providerId: market.providerId,
+    // Terminal v4 omits venue-only margin restrictions. Read provider metadata
+    // so Pro never offers Cross for an isolated-only market.
+    useProviderMetadata: true,
     showErrorToast: false,
   });
   const network = usePerpsNetwork();
@@ -1004,6 +1008,7 @@ export const usePerpsProOrderForm = ({
   // for restrictions from the current source (a refetch keeps stale data).
   const isCrossMarginAvailableForMarket =
     isCrossMarginAvailable &&
+    isProviderMetadataAvailable &&
     !isMarketDataLoading &&
     !!marketData &&
     !marketData.onlyIsolated &&
@@ -1012,6 +1017,7 @@ export const usePerpsProOrderForm = ({
   // Clear the choice only when the gate or fresh metadata rules out Cross.
   const isCrossMarginUnsupported =
     !isCrossMarginAvailable ||
+    !isProviderMetadataAvailable ||
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
@@ -4034,6 +4040,7 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
+    feeResults.feeSource,
     feeResults.feeDiscountKind,
     onSlippagePress,
     isPositionModifyPreviewEnabled,

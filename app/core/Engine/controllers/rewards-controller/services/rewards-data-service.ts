@@ -1,5 +1,6 @@
 import type { Messenger } from '@metamask/messenger';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
+import { bytesToHex, sha256, stringToBytes, type Hex } from '@metamask/utils';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -113,26 +114,19 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
+const TRADING_FEE_GRANT_CACHE_TTL_MS = 30000;
+
+export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function hasExactKeys(
-  value: Record<string, unknown>,
-  expectedKeys: string[],
-): boolean {
-  const keys = Object.keys(value);
-  return (
-    keys.length === expectedKeys.length &&
-    expectedKeys.every((key) => Object.hasOwn(value, key))
-  );
-}
-
 function isTradingFeeGrantResponse(
   value: unknown,
 ): value is TradingFeeGrantResponseDto {
-  if (!isRecord(value) || !hasExactKeys(value, ['grant'])) {
+  if (!isRecord(value) || !Object.hasOwn(value, 'grant')) {
     return false;
   }
   if (value.grant === null) {
@@ -140,12 +134,10 @@ function isTradingFeeGrantResponse(
   }
   if (
     !isRecord(value.grant) ||
-    !hasExactKeys(value.grant, ['programId', 'hyperliquid', 'expiresAt']) ||
     typeof value.grant.programId !== 'string' ||
     typeof value.grant.expiresAt !== 'string' ||
     !Number.isFinite(Date.parse(value.grant.expiresAt)) ||
     !isRecord(value.grant.hyperliquid) ||
-    !hasExactKeys(value.grant.hyperliquid, ['builderCode', 'builderFeeBips']) ||
     typeof value.grant.hyperliquid.builderCode !== 'string' ||
     typeof value.grant.hyperliquid.builderFeeBips !== 'string'
   ) {
@@ -158,8 +150,25 @@ function isTradingFeeGrantResponse(
     /^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/u.test(feeString) &&
     Number.isFinite(fee) &&
     fee >= 0 &&
-    fee <= 999.99
+    fee <= MAX_PERPS_TRADING_FEE_GRANT_BIPS
   );
+}
+
+interface TradingFeeGrantRequest {
+  profileIdentity: Hex;
+  rewardsApiUrl: string;
+  promise: Promise<TradingFeeGrantResponseDto>;
+}
+
+interface TradingFeeGrantCacheEntry {
+  profileIdentity: Hex;
+  rewardsApiUrl: string;
+  response: TradingFeeGrantResponseDto;
+  expiresAt: number;
+}
+
+async function getProfileIdentity(token: string): Promise<Hex> {
+  return bytesToHex(await sha256(stringToBytes(token)));
 }
 
 // Auth endpoint action types
@@ -572,6 +581,10 @@ export class RewardsDataService {
   /** Explicit API URL override; null means use the build-default mapping */
   #rewardsApiUrl: string | null = null;
 
+  #tradingFeeGrantRequest: TradingFeeGrantRequest | null = null;
+
+  #tradingFeeGrantCache: TradingFeeGrantCacheEntry | null = null;
+
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -867,6 +880,7 @@ export class RewardsDataService {
    * Callers should reset all cached controller state after calling this.
    */
   setRewardsEnvUrl(url: string): void {
+    this.#tradingFeeGrantCache = null;
     if (this.canChangeRewardsEnvUrl()) {
       this.#rewardsApiUrl = url;
       Logger.log(`RewardsDataService: env switched to ${url}`);
@@ -1871,8 +1885,9 @@ export class RewardsDataService {
 
   /**
    * Fetch the active profile's trading-fee grant using Profile Sync auth.
-   * The token is checked again after the request so a response cannot cross a
-   * profile-switch boundary.
+   * Successful results are cached briefly and concurrent requests are shared
+   * for the same profile. The token is checked again after a network request
+   * so a response cannot cross a profile-switch boundary.
    */
   async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
     const token = await this.#messenger.call(
@@ -1882,10 +1897,73 @@ export class RewardsDataService {
       throw new Error('Profile Sync bearer token is required');
     }
 
-    const response = await this.makeRequest('/trading-fee-grants', {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const profileIdentity = await getProfileIdentity(token);
+    const rewardsApiUrl = this.getRewardsEnvUrl();
+    const now = Date.now();
+    const cached = this.#tradingFeeGrantCache;
+    if (
+      cached?.profileIdentity === profileIdentity &&
+      cached.rewardsApiUrl === rewardsApiUrl &&
+      now < cached.expiresAt
+    ) {
+      return cached.response;
+    }
+    if (cached) {
+      this.#tradingFeeGrantCache = null;
+    }
+
+    const inFlight = this.#tradingFeeGrantRequest;
+    if (
+      inFlight?.profileIdentity === profileIdentity &&
+      inFlight.rewardsApiUrl === rewardsApiUrl
+    ) {
+      return inFlight.promise;
+    }
+
+    const promise = this.#fetchTradingFeeGrant(token);
+    this.#tradingFeeGrantRequest = {
+      profileIdentity,
+      rewardsApiUrl,
+      promise,
+    };
+
+    try {
+      const result = await promise;
+      const grantExpiresAt = result.grant
+        ? Date.parse(result.grant.expiresAt)
+        : Number.POSITIVE_INFINITY;
+      const expiresAt = Math.min(
+        Date.now() + TRADING_FEE_GRANT_CACHE_TTL_MS,
+        grantExpiresAt,
+      );
+      if (expiresAt > Date.now()) {
+        this.#tradingFeeGrantCache = {
+          profileIdentity,
+          rewardsApiUrl,
+          response: result,
+          expiresAt,
+        };
+      }
+      return result;
+    } finally {
+      if (this.#tradingFeeGrantRequest?.promise === promise) {
+        this.#tradingFeeGrantRequest = null;
+      }
+    }
+  }
+
+  async #fetchTradingFeeGrant(
+    token: string,
+  ): Promise<TradingFeeGrantResponseDto> {
+    const response = await this.makeRequest(
+      '/trading-fee-grants',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      undefined,
+      TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS,
+    );
     if (!response.ok) {
       throw new Error(`Get trading fee grants failed: ${response.status}`);
     }

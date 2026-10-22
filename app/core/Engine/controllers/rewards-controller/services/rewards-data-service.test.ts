@@ -118,7 +118,7 @@ describe('RewardsDataService', () => {
         builderCode: '0xe95a5e31904e005066614247d309e00d8ad753aa',
         builderFeeBips: '2.5',
       },
-      expiresAt: '2026-10-01T00:00:00.000Z',
+      expiresAt: '2099-10-01T00:00:00.000Z',
     };
 
     beforeEach(() => {
@@ -194,9 +194,28 @@ describe('RewardsDataService', () => {
       },
     );
 
+    it('accepts additive response fields', async () => {
+      const response = {
+        grant: {
+          ...grant,
+          hyperliquid: {
+            ...grant.hyperliquid,
+            futureProviderField: true,
+          },
+          futureGrantField: 'value',
+        },
+        futureEnvelopeField: 1,
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => response,
+      } as Response);
+
+      expect(await service.getTradingFeeGrants()).toEqual(response);
+    });
+
     it.each([
       {},
-      { grant: null, extra: true },
       { grant: {} },
       { grant: { ...grant, expiresAt: 'invalid' } },
       ...['', '-1', '1.234', '1000', '2.5oops', 'Infinity'].map(
@@ -214,6 +233,66 @@ describe('RewardsDataService', () => {
       } as Response);
       await expect(service.getTradingFeeGrants()).rejects.toThrow(
         'Invalid trading fee grant',
+      );
+    });
+
+    it('deduplicates concurrent requests and caches the response', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      const [firstResult, secondResult] = await Promise.all([
+        service.getTradingFeeGrants(),
+        service.getTradingFeeGrants(),
+      ]);
+      const cachedResult = await service.getTradingFeeGrants();
+
+      expect(firstResult).toEqual({ grant });
+      expect(secondResult).toEqual({ grant });
+      expect(cachedResult).toEqual({ grant });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not share cached grants across profiles', async () => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant }),
+      } as Response);
+
+      await service.getTradingFeeGrants();
+      mockMessenger.call.mockResolvedValue('next-profile-token');
+      await service.getTradingFeeGrants();
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not cache a grant beyond its expiry', async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date('2026-10-21T12:00:00.000Z'));
+      const expiringGrant = {
+        ...grant,
+        expiresAt: '2026-10-21T12:00:01.000Z',
+      };
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: async () => ({ grant: expiringGrant }),
+      } as Response);
+
+      await service.getTradingFeeGrants();
+      jest.setSystemTime(new Date('2026-10-21T12:00:01.001Z'));
+      await service.getTradingFeeGrants();
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('uses the short request timeout for quote-path lookups', async () => {
+      const abortError = new Error('Aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      await expect(service.getTradingFeeGrants()).rejects.toThrow(
+        'Request timeout after 2000ms',
       );
     });
 

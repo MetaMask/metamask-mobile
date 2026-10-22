@@ -73,6 +73,51 @@ describe('usePerpsMarketData', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
   });
 
+  it('reads provider metadata when venue restrictions are required', async () => {
+    mockGetMarkets.mockResolvedValue([
+      { ...mockMarketData, onlyIsolated: true },
+    ]);
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
+    expect(mockGetMarkets).toHaveBeenCalledWith({
+      symbols: ['BTC'],
+      skipFilters: true,
+    });
+    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
+    expect(result.current.marketData?.onlyIsolated).toBe(true);
+    expect(result.current.isProviderMetadataAvailable).toBe(true);
+  });
+
+  it('keeps allowed market data but marks provider metadata unavailable when its read fails', async () => {
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockRejectedValueOnce(new Error('Provider unavailable'));
+
+    const { result } = renderHook(() =>
+      usePerpsMarketData({
+        asset: 'BTC',
+        useProviderMetadata: true,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    expect(result.current.marketData).toEqual(mockMarketData);
+    expect(result.current.error).toBeNull();
+    expect(result.current.isProviderMetadataAvailable).toBe(false);
+  });
+
   it('should handle asset not found', async () => {
     mockGetMarkets.mockResolvedValue([
       { name: 'ETH', szDecimals: 6, maxLeverage: 40, marginTableId: 2 },

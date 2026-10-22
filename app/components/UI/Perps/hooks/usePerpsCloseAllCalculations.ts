@@ -145,7 +145,7 @@ export function usePerpsCloseAllCalculations({
   const [hasCalculationError, setHasCalculationError] = useState(false);
 
   // Freeze mechanism: Prevent recalculation on WebSocket updates (price changes)
-  // Reset freeze when positions/account/discount changes to allow recalculation
+  // Reset freeze when position or account inputs change to allow recalculation
   const hasValidResultsRef = useRef(false);
 
   // Calculate total margin
@@ -175,7 +175,7 @@ export function usePerpsCloseAllCalculations({
     const currentCalculationId = ++calculationCounterRef.current;
     // Reset freeze when meaningful inputs change (not price updates)
     // This MUST happen synchronously at effect start, before async function runs
-    // Allows recalculation for: new positions, account switch, or discount arrival
+    // Allows recalculation for new positions or an account/network switch
     hasValidResultsRef.current = false;
 
     async function calculatePerPosition() {
@@ -328,7 +328,8 @@ export function usePerpsCloseAllCalculations({
           setHasCalculationError(hasErrors);
 
           // Freeze results after successful calculation to prevent WebSocket price updates
-          // from triggering expensive points API calls. Reset happens on position/account/discount change.
+          // from triggering expensive points API calls. Position or account
+          // dependency changes reset the freeze.
           if (!hasErrors && results.length > 0) {
             hasValidResultsRef.current = true;
           }

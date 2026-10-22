@@ -4,6 +4,7 @@ import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
+  BUILDER_FEE_CONFIG,
   PerpsMeasurementName,
   PerpsTraceNames,
   type PerpsAnalyticsEvent,
@@ -566,7 +567,7 @@ describe('createMobileClientConfig', () => {
     }
   });
 
-  it('returns default config with empty strings and arrays when no env vars are set', () => {
+  it('returns default config when no env vars are set', () => {
     // Arrange is provided by beforeEach.
 
     // Act
@@ -581,7 +582,7 @@ describe('createMobileClientConfig', () => {
       providerCredentials: {
         hyperliquid: {
           builderAddressTestnet: '',
-          builderAddressMainnet: '',
+          builderAddressMainnet: BUILDER_FEE_CONFIG.MainnetBuilder,
         },
         lighter: {
           enabled: false,
@@ -831,6 +832,10 @@ describe('createMobileInfrastructure - terminalApi', () => {
     }
   });
 
+  it('uses the schema-v4 global snapshot route required by Core', () => {
+    expect(TERMINAL_API_PATHS.GLOBAL_SNAPSHOT).toBe('/v4/perpetuals');
+  });
+
   it('includes the production market endpoint in one Terminal config', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
@@ -867,16 +872,16 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'dev',
-        endpoint: '  http://127.0.0.1:9332/v2/perpetuals/global-snapshot  ',
+        endpoint: '  http://127.0.0.1:9332/v4/perpetuals  ',
         host: TERMINAL_API_HOSTS.DEV,
       }),
-    ).toBe('http://127.0.0.1:9332/v2/perpetuals/global-snapshot');
+    ).toBe('http://127.0.0.1:9332/v4/perpetuals');
 
     expect(
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: true,
         environment: 'production',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
         host: TERMINAL_API_HOSTS.PRD,
       }),
     ).toBe(`${TERMINAL_API_HOSTS.PRD}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);
@@ -884,7 +889,7 @@ describe('resolveTerminalGlobalSnapshotUrl', () => {
       resolveTerminalGlobalSnapshotUrl({
         isDevBundle: false,
         environment: 'dev',
-        endpoint: 'http://127.0.0.1:9332/v2/perpetuals/global-snapshot',
+        endpoint: 'http://127.0.0.1:9332/v4/perpetuals',
         host: TERMINAL_API_HOSTS.DEV,
       }),
     ).toBe(`${TERMINAL_API_HOSTS.DEV}${TERMINAL_API_PATHS.GLOBAL_SNAPSHOT}`);

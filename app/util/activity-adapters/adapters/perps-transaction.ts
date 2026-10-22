@@ -278,7 +278,6 @@ export function mapPerpsTransaction({
     // Sign follows the displayed amount: opens show the fee paid (negative),
     // closes show net PnL which can be either sign (liquidations negative).
     const isOpen = kind === 'perpsOpenLong' || kind === 'perpsOpenShort';
-    const hasDisplayAmount = isOpen || fill.pnl !== undefined;
     return {
       type: kind,
       chainId,
@@ -286,9 +285,7 @@ export function mapPerpsTransaction({
       timestamp,
       hash: id,
       data: {
-        ...(hasDisplayAmount &&
-        fill.amountNumber !== undefined &&
-        fill.isPositive !== undefined
+        ...(fill.amountNumber !== undefined && fill.isPositive !== undefined
           ? {
               token: toToken(
                 fill.amountNumber,

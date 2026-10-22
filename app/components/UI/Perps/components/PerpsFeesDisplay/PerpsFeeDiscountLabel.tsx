@@ -7,6 +7,7 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsFeeDiscountLabelProps {
   feeDiscountPercentage?: number;
@@ -28,7 +29,11 @@ const PerpsFeeDiscountLabel = ({
   }
 
   return (
-    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+    <Text
+      variant={TextVariant.BodySm}
+      color={TextColor.TextAlternative}
+      testID={PerpsFeeDiscountLabelSelectorsIDs.LABEL}
+    >
       {strings(
         feeDiscountKind === 'promotional'
           ? 'perps.tooltips.fees.promotional_discount'

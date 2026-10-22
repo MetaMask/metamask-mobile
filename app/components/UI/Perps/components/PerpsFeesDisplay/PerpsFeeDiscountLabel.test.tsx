@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 
 jest.mock('../../../Rewards/hooks/useVipTier', () => ({
@@ -41,6 +42,9 @@ describe('PerpsFeeDiscountLabel', () => {
 
     expect(
       screen.getByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
   });
