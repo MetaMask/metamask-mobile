@@ -9153,7 +9153,7 @@
         "failed": "mUSDへの変換に失敗しました"
       },
       "education": {
-        "heading": "ステーブルコインで\n{{percentage}}%をゲット",
+        "heading": "ステーブルコインで{{percentage}}%をゲット",
         "description": "お持ちのステーブルコインをmUSDに換えて、年換算{{percentage}}%のボーナスを獲得しましょう。",
         "terms_apply": "諸条件が適用されます。",
         "primary_button": "開始",
