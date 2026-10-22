@@ -19,6 +19,8 @@ const TAB_TRACE = {
 } as const satisfies Record<SocialV1FeedTab, 'trending' | 'following'>;
 
 export interface UseSocialV1FeedOptions {
+  /** Gate the query. Unlock state still gates it inside `useSocialFeed`. */
+  enabled?: boolean;
   /**
    * The viewer's social profile id. On Following, their just-written posts
    * are pinned on top until the feed returns them.
@@ -39,7 +41,11 @@ export interface UseSocialV1FeedOptions {
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
-  { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
+  {
+    ownerProfileId,
+    isActive = true,
+    enabled = true,
+  }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
   const source = useMemo(
@@ -60,6 +66,7 @@ export const useSocialV1Feed = (
     refresh: refetch,
     dataUpdatedAt,
   } = useSocialFeed(source, {
+    enabled,
     performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
   });
 

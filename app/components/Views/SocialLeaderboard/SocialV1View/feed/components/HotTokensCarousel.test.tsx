@@ -8,6 +8,29 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+
+const mockSetActive = jest.fn();
+
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual(
+    'react-native-reanimated',
+  ) as typeof import('react-native-reanimated');
+  return {
+    __esModule: true,
+    ...actual,
+    default: actual.default,
+    useFrameCallback: () => ({
+      setActive: mockSetActive,
+      isActive: false,
+      callbackId: 0,
+    }),
+  };
+});
+
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => null),
+}));
 import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
 import { mockHotToken } from '../mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../types';
@@ -42,6 +65,7 @@ const railChipTestIds = () =>
 describe('HotTokensCarousel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(getHardwareTier).mockReturnValue(null);
   });
 
   it('renders a chip per hot token', () => {
@@ -217,6 +241,31 @@ describe('HotTokensCarousel', () => {
     const { toJSON } = renderWithProvider(<HotTokensCarousel />);
 
     expect(toJSON()).toBeNull();
+  });
+
+  it('crawls while the tab is visible and the hardware tier is unknown', () => {
+    arrange([mockHotToken()]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(mockSetActive).toHaveBeenCalledWith(true);
+  });
+
+  it('holds the crawl when the tab is not visible', () => {
+    arrange([mockHotToken()]);
+
+    renderWithProvider(<HotTokensCarousel active={false} />);
+
+    expect(mockSetActive).toHaveBeenCalledWith(false);
+  });
+
+  it('holds the crawl on low-end hardware', () => {
+    jest.mocked(getHardwareTier).mockReturnValue('LOW');
+    arrange([mockHotToken()]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(mockSetActive).toHaveBeenCalledWith(false);
   });
 
   it('duplicates the chips once the track overflows the viewport', () => {

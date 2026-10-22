@@ -16,6 +16,8 @@ import { useFloatingTabBarInset } from '../../../../component-library/components
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
@@ -50,6 +52,14 @@ import type { SocialPerformanceContext } from '../../../../util/social/socialPer
 /** Keeps the refresh spinner up long enough to read as a refresh. */
 const MIN_REFRESH_DURATION_MS = 1000;
 
+const allowAdjacentPrefetch = (
+  hardwareTier: ReturnType<typeof getHardwareTier>,
+  networkTier: ReturnType<typeof useNetworkTier>,
+): boolean =>
+  hardwareTier !== 'LOW' &&
+  networkTier !== 'NONE' &&
+  networkTier !== 'SLOW_CELLULAR';
+
 export interface LeaderboardShellTabPageProps {
   /**
    * Whether this page is the visible tab. The pager mounts every page up
@@ -60,6 +70,10 @@ export interface LeaderboardShellTabPageProps {
    */
   isActive?: boolean;
   performance?: SocialPerformanceContext;
+  /** Neighbor tab. Fetches without painting rows when prefetch is allowed. */
+  prefetch?: boolean;
+  /** After first paint, load rows when the device and network allow it. */
+  prepare?: boolean;
   /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
@@ -84,6 +98,8 @@ export interface LeaderboardShellTabPageProps {
 const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   isActive = true,
   performance,
+  prefetch = false,
+  prepare = false,
   onScroll,
   pageRef,
   containerTestID,
@@ -97,10 +113,16 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const { track } = useSocialLeaderboardAnalytics();
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
 
   // Latches on: once the list has loaded, leaving the tab must not tear it down
   // and refetch on the way back.
-  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  const shouldPrefetch =
+    prefetch && allowAdjacentPrefetch(hardwareTier, networkTier);
+  const prepareRows =
+    prepare && allowAdjacentPrefetch(hardwareTier, networkTier);
+  const [hasBeenActive, setHasBeenActive] = useState(isActive || prepareRows);
   const [ranking, setRanking] = useState<V1LeaderboardRanking>(
     DEFAULT_V1_LEADERBOARD_RANKING,
   );
@@ -111,10 +133,10 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const hasFiredScreenViewedRef = useRef(false);
 
   useEffect(() => {
-    if (isActive) {
+    if (isActive || prepareRows) {
       setHasBeenActive(true);
     }
-  }, [isActive]);
+  }, [isActive, prepareRows]);
 
   useImperativeHandle(
     pageRef,
@@ -224,6 +246,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 filters={filters}
                 showViewerRow
                 performance={performance}
+                enabled={networkTier !== 'NONE'}
+                prefetch={shouldPrefetch}
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

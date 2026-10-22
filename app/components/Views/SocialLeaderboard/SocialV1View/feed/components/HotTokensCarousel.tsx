@@ -22,7 +22,9 @@ import Animated, {
   useAnimatedStyle,
   useFrameCallback,
   useSharedValue,
+  type SharedValue,
 } from 'react-native-reanimated';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
@@ -66,6 +68,17 @@ export interface HotTokensCarouselProps {
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
+  /**
+   * False once this tab is no longer the visible page. Defaults to true so a
+   * rail mounted on its own keeps crawling.
+   */
+  active?: boolean;
+  /**
+   * 1 while the crawl may write `translateX`, 0 while it must hold. The screen
+   * owns this so a hidden Trending page stops committing even when Activity
+   * defers the re-render that would flip `active`.
+   */
+  crawl?: SharedValue<number>;
 }
 
 const HotTokenChip: React.FC<{
@@ -164,6 +177,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isLoading: feedIsLoading = false,
   selectedTokenId = null,
   onTokenPress,
+  active = true,
+  crawl,
 }) => {
   const { tokens, isLoading } = useSocialV1HotTokens(
     posts,
@@ -211,6 +226,13 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   // crawl behind them.
   const isParked = Boolean(selectedTokenId);
   const parked = useSharedValue(isParked);
+  // LOW skips the continuous crawl (light animation). null is unknown, so it
+  // keeps the crawl. A parent `crawl` value wins so the screen can stop the
+  // write without waiting for this hidden page to re-render.
+  const hardwareTier = getHardwareTier();
+  const crawlAllowed = active && hardwareTier !== 'LOW';
+  const ownedCrawl = useSharedValue(crawlAllowed ? 1 : 0);
+  const crawlSv = crawl ?? ownedCrawl;
 
   useEffect(() => {
     parked.value = isParked;
@@ -271,6 +293,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
       const width = trackWidthSv.value;
       const viewport = viewportWidthSv.value;
       if (
+        crawlSv.value === 0 ||
         parked.value ||
         paused.value ||
         width <= 0 ||
@@ -288,10 +311,21 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
         width,
       );
     },
-    [offset, parked, paused, trackWidthSv, viewportWidthSv],
+    [crawlSv, offset, parked, paused, trackWidthSv, viewportWidthSv],
   );
 
-  useFrameCallback(tickMarquee);
+  const marquee = useFrameCallback(tickMarquee, false);
+
+  useEffect(() => {
+    if (crawl) {
+      return;
+    }
+    ownedCrawl.value = crawlAllowed ? 1 : 0;
+  }, [crawl, crawlAllowed, ownedCrawl]);
+
+  useEffect(() => {
+    marquee.setActive(crawlAllowed);
+  }, [crawlAllowed, marquee]);
 
   const trackStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -offset.value }],

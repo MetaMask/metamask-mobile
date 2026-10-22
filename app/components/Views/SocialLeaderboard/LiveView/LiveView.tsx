@@ -15,6 +15,8 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { playSelection } from '../../../../util/haptics';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
@@ -44,6 +46,8 @@ type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
   isActive?: boolean;
+  /** After first paint, mount the feed when device and network allow it. */
+  prepare?: boolean;
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -55,6 +59,7 @@ export interface LiveViewProps {
 
 const LiveView: React.FC<LiveViewProps> = ({
   isActive = true,
+  prepare = false,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -67,6 +72,22 @@ const LiveView: React.FC<LiveViewProps> = ({
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const prepareFeed =
+    prepare &&
+    hardwareTier !== 'LOW' &&
+    networkTier !== 'NONE' &&
+    networkTier !== 'SLOW_CELLULAR';
+  const [hasMountedFeed, setHasMountedFeed] = useState(
+    isActive || prepareFeed,
+  );
+
+  useEffect(() => {
+    if (isActive || prepareFeed) {
+      setHasMountedFeed(true);
+    }
+  }, [isActive, prepareFeed]);
 
   useImperativeHandle(
     pageRef,
@@ -171,22 +192,24 @@ const LiveView: React.FC<LiveViewProps> = ({
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <SocialFeed
-        source={LIVE_FEED_SOURCE}
-        location="social_live"
-        scrollMode="virtualized"
-        realtime={isActive}
-        paused={!isLive}
-        filterPost={filterPost}
-        renderHeader={renderHeader}
-        onScroll={onScroll}
-        pageRef={feedPageRef}
-        onAuthorPress={handleAuthorPress}
-        onCopyTrade={onCopyTrade}
-        onPositionPress={handlePositionPress}
-        testID={LiveViewSelectorsIDs.CONTAINER}
-        scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
-      />
+      {hasMountedFeed ? (
+        <SocialFeed
+          source={LIVE_FEED_SOURCE}
+          location="social_live"
+          scrollMode="virtualized"
+          realtime={isActive}
+          paused={!isLive}
+          filterPost={filterPost}
+          renderHeader={renderHeader}
+          onScroll={onScroll}
+          pageRef={feedPageRef}
+          onAuthorPress={handleAuthorPress}
+          onCopyTrade={onCopyTrade}
+          onPositionPress={handlePositionPress}
+          testID={LiveViewSelectorsIDs.CONTAINER}
+          scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
+        />
+      ) : null}
     </Box>
   );
 };
