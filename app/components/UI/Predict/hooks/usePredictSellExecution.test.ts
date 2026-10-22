@@ -9,6 +9,8 @@ import {
   type PredictExecutionPreviewResult,
 } from '../types';
 import { PredictTradeStatus } from '../constants/eventNames';
+import { PREDICT_ERROR_CODES } from '../constants/errors';
+import { resetPredictSellExecutionLocks } from '../utils/sellExecutionLock';
 import {
   createExecutablePredictExecutionResult,
   createPredictExecutionMetadata,
@@ -64,6 +66,17 @@ function createExecutableResult(
   });
 }
 
+/**
+ * The candidate shown for confirmation: the fresh preview with its worst case
+ * measured from its own price, which Confirm adopts as the new baseline.
+ */
+function expectedCandidate(preview: OrderPreview, worstCase: number) {
+  return {
+    ...preview,
+    minAmountReceivedAfterSlippage: expect.closeTo(worstCase, 9),
+  };
+}
+
 function createDeferred<T>() {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((res) => {
@@ -106,6 +119,7 @@ describe('usePredictSellExecution', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictSellExecutionLocks();
   });
 
   it('auto-submits the exact fresh preview within one tick of the approved baseline', async () => {
@@ -160,7 +174,8 @@ describe('usePredictSellExecution', () => {
     });
 
     expect(result.current.status).toBe('confirm');
-    expect(result.current.quote).toBe(moved.preview);
+    // 10 shares × ceil(0.48 × 0.95 = 0.456) = 10 × 0.46.
+    expect(result.current.quote).toEqual(expectedCandidate(moved.preview, 4.6));
     expect(result.current.execution).toBe(moved.execution);
     expect(result.current.baselinePrice).toBe(0.5);
     expect(mockPlaceOrder).not.toHaveBeenCalled();
@@ -243,7 +258,10 @@ describe('usePredictSellExecution', () => {
     });
 
     expect(result.current.status).toBe('confirm');
-    expect(result.current.quote).toBe(movedAgain.preview);
+    // 10 shares × ceil(0.46 × 0.95 = 0.437) = 10 × 0.44.
+    expect(result.current.quote).toEqual(
+      expectedCandidate(movedAgain.preview, 4.4),
+    );
     expect(result.current.baselinePrice).toBe(0.48);
     expect(mockPlaceOrder).not.toHaveBeenCalled();
   });
@@ -277,7 +295,7 @@ describe('usePredictSellExecution', () => {
 
     expect(result.current.status).toBe('validating');
     expect(result.current.sheetVariant).toBe('price_moved');
-    expect(result.current.quote).toBe(moved.preview);
+    expect(result.current.quote).toEqual(expectedCandidate(moved.preview, 4.6));
     expect(result.current.execution).toBe(moved.execution);
 
     await act(async () => {
@@ -520,6 +538,176 @@ describe('usePredictSellExecution', () => {
 
     expect(mockPlaceOrder).not.toHaveBeenCalled();
     expect(result.current.status).toBe('idle');
+  });
+
+  it('cancels the fetch and releases the lock when the user dismisses during validation', async () => {
+    const stalled = createDeferred<PredictExecutionPreviewResult>();
+    mockPreviewExecutionOrder.mockReturnValueOnce(stalled.promise);
+
+    const { result } = setupHook();
+    await act(async () => {
+      void result.current.handleCashOut();
+    });
+    const { signal } = mockPreviewExecutionOrder.mock.calls[0][0] as {
+      signal: AbortSignal;
+    };
+    expect(signal.aborted).toBe(false);
+
+    act(() => {
+      result.current.handleDismiss();
+    });
+
+    expect(signal.aborted).toBe(true);
+
+    // A new Cash Out starts at once, without waiting for the stalled fetch.
+    mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
+    mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+
+    expect(mockPreviewExecutionOrder).toHaveBeenCalledTimes(2);
+    expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores the close callback of its own settlement close', async () => {
+    mockPreviewExecutionOrder.mockResolvedValueOnce(createExecutableResult());
+    mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+    expect(onCloseBottomSheet).toHaveBeenCalledTimes(1);
+
+    // A new Cash Out starts while the closed sheet is still animating; the
+    // sheet's late close callback must not cancel it.
+    const deferred = createDeferred<PredictExecutionPreviewResult>();
+    mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+    mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+    let flow!: Promise<void>;
+    await act(async () => {
+      flow = result.current.handleCashOut();
+    });
+    act(() => {
+      result.current.handleDismiss();
+    });
+    await act(async () => {
+      deferred.resolve(createExecutableResult());
+      await flow;
+    });
+
+    expect(mockPlaceOrder).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows a pre-flight rejection as an error and submits nothing', async () => {
+    mockPreviewExecutionOrder.mockRejectedValueOnce(
+      new Error(PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS),
+    );
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.error).toEqual(expect.any(String));
+    expect(result.current.error).not.toBe(
+      PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS,
+    );
+    expect(onOpenBottomSheet).not.toHaveBeenCalled();
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        preSubmitDecision: 'unavailable',
+        failureReason: PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS,
+      }),
+    );
+  });
+
+  describe('submitRetryQuote', () => {
+    const retryQuote = createExecutionPreview({ sharePrice: 0.5 });
+
+    it('revalidates the retry quote and places the fresh preview', async () => {
+      const executable = createExecutableResult();
+      mockPreviewExecutionOrder.mockResolvedValueOnce(executable);
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+
+      const { result } = setupHook();
+      let outcome: unknown;
+      await act(async () => {
+        outcome = await result.current.submitRetryQuote(retryQuote);
+      });
+
+      expect(mockPreviewExecutionOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          approvedPrice: 0.5,
+          slippage: SELL_SLIPPAGE,
+        }),
+      );
+      const placedParams = mockPlaceOrder.mock.calls[0][0] as PlaceOrderParams;
+      expect(placedParams.preview).toBe(executable.preview);
+      expect(outcome).toBe(successOutcome);
+      expect(onOpenBottomSheet).not.toHaveBeenCalled();
+    });
+
+    it('returns the moved candidate without placing anything', async () => {
+      const moved = createExecutableResult({
+        preview: createExecutionPreview({ sharePrice: 0.48 }),
+        execution: createExecution({
+          refreshedPrice: 0.48,
+          worstExecutablePrice: 0.48,
+        }),
+      });
+      mockPreviewExecutionOrder.mockResolvedValueOnce(moved);
+
+      const { result } = setupHook();
+      let outcome: unknown;
+      await act(async () => {
+        outcome = await result.current.submitRetryQuote(retryQuote);
+      });
+
+      expect(outcome).toEqual({
+        status: 'price_moved',
+        quote: expectedCandidate(moved.preview, 4.6),
+      });
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [{ status: 'no_match', execution: createExecution() }, 'no_match'],
+      [{ status: 'timeout' }, 'unavailable'],
+      [{ status: 'unavailable' }, 'unavailable'],
+    ] as const)(
+      'maps a %o fetch to %s without placing anything',
+      async (fetchResult, expectedStatus) => {
+        mockPreviewExecutionOrder.mockResolvedValueOnce(fetchResult);
+
+        const { result } = setupHook();
+        let outcome: unknown;
+        await act(async () => {
+          outcome = await result.current.submitRetryQuote(retryQuote);
+        });
+
+        expect(outcome).toEqual({ status: expectedStatus });
+        expect(mockPlaceOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it('returns a pre-flight rejection as an error outcome', async () => {
+      mockPreviewExecutionOrder.mockRejectedValueOnce(
+        new Error(PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION),
+      );
+
+      const { result } = setupHook();
+      let outcome: unknown;
+      await act(async () => {
+        outcome = await result.current.submitRetryQuote(retryQuote);
+      });
+
+      expect(outcome).toEqual({ status: 'error', error: expect.any(String) });
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
   });
 
   describe('pre-submit analytics', () => {

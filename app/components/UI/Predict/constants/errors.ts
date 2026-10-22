@@ -44,6 +44,22 @@ export const PREDICT_ERROR_CODES = {
   PREVIEW_EXECUTION_STALE: 'PREDICT_PREVIEW_EXECUTION_STALE',
 } as const;
 
+/** Provider rejection for an order on a position that is ready to claim. */
+export const PREDICT_CLAIMABLE_POSITION_ORDER_ERROR =
+  'Cannot place orders on claimable positions';
+
+/**
+ * Expected rejections of the sell pre-flight that runs before the pre-submit
+ * order book fetch. They describe the market or position state, so they are
+ * shown to the user as errors and are not reported to Sentry.
+ */
+export const PREDICT_SELL_PREFLIGHT_ERRORS: ReadonlySet<string> = new Set([
+  PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION,
+  PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS,
+  PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED,
+  PREDICT_CLAIMABLE_POSITION_ORDER_ERROR,
+]);
+
 export const PREDICT_BUY_CANCELLATION_REASONS = {
   RETRY_PROMPT_EXPIRED: 'Retry prompt expired after a retryable order failure',
 } as const;

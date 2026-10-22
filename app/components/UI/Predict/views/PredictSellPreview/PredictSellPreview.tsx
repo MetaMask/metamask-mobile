@@ -141,6 +141,36 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     autoRefreshTimeout: 1000,
   });
 
+  const { previewExecutionOrder } = usePredictTrading();
+
+  // Cash Out fetches a live order book and confirms the displayed price
+  // before anything is signed, instead of submitting the polled preview.
+  const {
+    executionSheetRef,
+    sheetVariant: executionSheetVariant,
+    quote: executionQuote,
+    execution: executionMetadata,
+    baselinePrice: executionBaselinePrice,
+    error: executionError,
+    isExecuting,
+    isSubmitting: isExecutionSubmitting,
+    handleCashOut,
+    handleConfirm: handleExecutionConfirm,
+    handleTryAgain: handleExecutionTryAgain,
+    handleDismiss: handleExecutionDismiss,
+    submitRetryQuote,
+  } = usePredictSellExecution({
+    marketId: position.marketId,
+    outcomeId: position.outcomeId,
+    outcomeTokenId: position.outcomeTokenId,
+    size: position.amount,
+    positionId: position.id,
+    preview,
+    previewExecutionOrder,
+    placeOrder,
+    analyticsProperties,
+  });
+
   const {
     retrySheetRef,
     retrySheetVariant,
@@ -154,38 +184,11 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     refetchPreview,
     lastSubmittedPreview,
     placeOrder,
+    submitRetryQuote,
     analyticsProperties,
     isOrderNotFilled,
     resetOrderNotFilled,
     orderState: retryOrderState,
-  });
-
-  const { previewExecutionOrder } = usePredictTrading();
-
-  // Pre-submit sell execution (PRED-484): Cash Out fetches a live order book
-  // and confirms the displayed price before anything is signed, instead of
-  // submitting the polled preview directly.
-  const {
-    executionSheetRef,
-    sheetVariant: executionSheetVariant,
-    quote: executionQuote,
-    execution: executionMetadata,
-    baselinePrice: executionBaselinePrice,
-    isExecuting,
-    handleCashOut,
-    handleConfirm: handleExecutionConfirm,
-    handleTryAgain: handleExecutionTryAgain,
-    handleDismiss: handleExecutionDismiss,
-  } = usePredictSellExecution({
-    marketId: position.marketId,
-    outcomeId: position.outcomeId,
-    outcomeTokenId: position.outcomeTokenId,
-    size: position.amount,
-    positionId: position.id,
-    preview,
-    previewExecutionOrder,
-    placeOrder,
-    analyticsProperties,
   });
 
   // Track screen load performance (position data + preview)
@@ -201,7 +204,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
 
   const errorMessage = isOrderNotFilled
     ? undefined
-    : (previewError ?? placeOrderError);
+    : (executionError ?? previewError ?? placeOrderError);
 
   // Track Predict Trade Transaction with initiated status when screen mounts
   useEffect(() => {
@@ -541,7 +544,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         onConfirm={handleExecutionConfirm}
         onDismiss={handleExecutionDismiss}
         isRetrying={isExecuting}
-        isDismissDisabled={isExecuting}
+        isDismissDisabled={isExecutionSubmitting}
       />
     </Wrapper>
   );

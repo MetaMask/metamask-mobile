@@ -44,6 +44,7 @@ import {
 } from './sportsUtils';
 import {
   fetchWithTimeout,
+  PolymarketRequestCancelledError,
   PolymarketRequestTimeoutError,
 } from './fetchWithTimeout';
 import type {
@@ -104,8 +105,8 @@ import {
   roundToFiveDecimals,
 } from '../../utils/orders';
 import {
-  calculatePredictExecutionDepth,
-  getPredictExecutionBandFloorPrice,
+  PREDICT_EXECUTION_PREVIEW_TIMEOUT_MS,
+  resolvePredictExecutionDepth,
   type PredictExecutionDepth,
 } from '../../utils/execution';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
@@ -410,14 +411,21 @@ export const createApiKey = async ({
 export const priceValid = (price: number, tickSize: TickSize): boolean =>
   price >= parseFloat(tickSize) && price <= 1 - parseFloat(tickSize);
 
+interface PolymarketRequestOptions {
+  timeoutMs?: number;
+  signal?: AbortSignal;
+}
+
 export const getClobMarketInfo = async ({
   conditionId,
   clobVersion = 'v1',
   clobBaseUrl,
+  requestOptions,
 }: {
   conditionId: string;
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
+  requestOptions?: PolymarketRequestOptions;
 }): Promise<ClobMarketInfo> => {
   const clobEndpoint = getClobEndpoint({ clobVersion, clobBaseUrl });
   const cacheKey = `${clobEndpoint}:${conditionId}`;
@@ -431,7 +439,9 @@ export const getClobMarketInfo = async ({
     `${clobEndpoint}/clob-markets/${conditionId}`,
     {
       method: 'GET',
+      signal: requestOptions?.signal,
     },
+    { timeoutMs: requestOptions?.timeoutMs },
   );
 
   if (!response.ok) {
@@ -453,17 +463,27 @@ export const getClobMarketInfoSafe = async ({
   conditionId,
   clobVersion = 'v1',
   clobBaseUrl,
+  requestOptions,
 }: {
   conditionId: string;
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
+  requestOptions?: PolymarketRequestOptions;
 }): Promise<ClobMarketInfo | undefined> => {
   const failureKey = `${getClobEndpoint({ clobVersion, clobBaseUrl })}:${conditionId}`;
 
   try {
-    return await getClobMarketInfo({ conditionId, clobVersion, clobBaseUrl });
+    return await getClobMarketInfo({
+      conditionId,
+      clobVersion,
+      clobBaseUrl,
+      requestOptions,
+    });
   } catch (error) {
-    if (!reportedClobMarketInfoFailures.has(failureKey)) {
+    if (
+      !(error instanceof PolymarketRequestCancelledError) &&
+      !reportedClobMarketInfoFailures.has(failureKey)
+    ) {
       Logger.error(
         ensureClobMarketInfoError(error),
         getClobMarketInfoFailureContext(conditionId),
@@ -661,16 +681,20 @@ export const getOrderBook = async ({
   tokenId,
   clobVersion = 'v1',
   clobBaseUrl,
+  requestOptions,
 }: {
   tokenId: string;
   clobVersion?: 'v1' | 'v2';
   clobBaseUrl?: string;
+  requestOptions?: PolymarketRequestOptions;
 }) => {
   const response = await fetchWithTimeout(
     `${getClobEndpoint({ clobVersion, clobBaseUrl })}/book?token_id=${tokenId}`,
     {
       method: 'GET',
+      signal: requestOptions?.signal,
     },
+    { timeoutMs: requestOptions?.timeoutMs },
   );
   if (!response.ok) {
     const responseData = (await response.json()) as { error: string };
@@ -3103,37 +3127,54 @@ export const previewExecutionOrder = async (
     positionId,
     isV2,
     clobBaseUrl,
+    signal,
   } = params;
 
+  const noOrderBookResult = (): PredictExecutionPreviewResult => ({
+    status: 'no_match',
+    execution: {
+      fetchedAt: Date.now(),
+      requestedSize: size,
+      executableSize: 0,
+      approvedPrice,
+    },
+  });
+
   try {
+    const requestOptions = {
+      timeoutMs: PREDICT_EXECUTION_PREVIEW_TIMEOUT_MS,
+      signal,
+    };
     const [book, marketInfo] = await Promise.all([
       getOrderBook({
         tokenId: outcomeTokenId,
         clobVersion: isV2 ? 'v2' : 'v1',
         clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+        requestOptions,
       }),
       getClobMarketInfoSafe({
         conditionId: outcomeId,
         clobVersion: isV2 ? 'v2' : 'v1',
         clobBaseUrl: isV2 ? clobBaseUrl : undefined,
+        requestOptions,
       }),
     ]);
     if (!book) {
-      throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
+      return noOrderBookResult();
     }
 
     const { tickSize, roundConfig } = getTickSizeRoundConfig({
       tickSize: book.tick_size,
     });
     const numericTickSize = parseFloat(tickSize);
-    const levels = (side === Side.SELL ? book.bids : (book.asks ?? [])).map(
+    const levels = ((side === Side.SELL ? book.bids : book.asks) ?? []).map(
       (level) => ({
         price: parseFloat(level.price),
         size: parseFloat(level.size),
       }),
     );
 
-    const depth = calculatePredictExecutionDepth({
+    const depth = resolvePredictExecutionDepth({
       side,
       approvedPrice,
       slippage,
@@ -3200,22 +3241,7 @@ export const previewExecutionOrder = async (
     if (isNoOrderBookError(error)) {
       // A missing orderbook is a definitive empty-book market state: no
       // executable bids, classified as no_match rather than unavailable.
-      return {
-        status: 'no_match',
-        execution: {
-          fetchedAt: Date.now(),
-          requestedSize: size,
-          executableSize: 0,
-          approvedPrice,
-          bandFloorPrice: getPredictExecutionBandFloorPrice({
-            side,
-            approvedPrice,
-            slippage,
-            tickSize: 0,
-          }),
-          tickSize: 0,
-        },
-      };
+      return noOrderBookResult();
     }
     return { status: 'unavailable' };
   }

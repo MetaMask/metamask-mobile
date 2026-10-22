@@ -1,5 +1,33 @@
-import { Side } from '../types';
+import { Side, type OrderPreview } from '../types';
 import { isValidPrice } from './prices';
+
+/**
+ * Signing freshness window for an execution-checked sell preview: older
+ * previews are never signed directly and force a revalidation.
+ */
+export const PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS = 1_000;
+
+/**
+ * Deadline for the pre-submit order book fetch. Much shorter than the shared
+ * Polymarket request timeout because the user waits on it after pressing
+ * Cash Out or Confirm.
+ */
+export const PREDICT_EXECUTION_PREVIEW_TIMEOUT_MS = 4_000;
+
+/**
+ * True for a sell preview built by the pre-submit execution operation.
+ * Only that operation sets `fetchedAt`, after the market and position
+ * pre-flight checks passed, so ordinary polled previews never match.
+ */
+export const isPredictExecutionCheckedSell = (
+  preview: OrderPreview,
+): preview is OrderPreview & { fetchedAt: number } =>
+  preview.side === Side.SELL && preview.fetchedAt !== undefined;
+
+export const isPredictExecutionPreviewStale = (
+  preview: OrderPreview & { fetchedAt: number },
+  now: number = Date.now(),
+): boolean => now - preview.fetchedAt > PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS;
 
 /**
  * A single normalized order-book level for execution-depth calculations.
@@ -225,5 +253,62 @@ export function calculatePredictExecutionDepth({
     worstExecutablePrice,
     grossAmount,
     isFullyExecutable: remaining <= FILL_EPSILON,
+  };
+}
+
+/**
+ * Execution depth for a pre-submit validation. The band is measured from the
+ * approved price first. When the book moved against the user and that band
+ * cannot fill the full size, the band is measured again from the refreshed
+ * price: a moved price that is fully executable then goes to price consent
+ * (auto-submit within one tick, confirmation beyond it) instead of reporting
+ * no match. On low prices the tick-rounded band is only a tick or two wide,
+ * so without this a small move could never reach the confirmation.
+ */
+export function resolvePredictExecutionDepth(
+  params: PredictExecutionDepthParams,
+): PredictExecutionDepth {
+  const approvedDepth = calculatePredictExecutionDepth(params);
+  const { refreshedPrice } = approvedDepth;
+  if (approvedDepth.isFullyExecutable || refreshedPrice === null) {
+    return approvedDepth;
+  }
+
+  const movedAgainstUser =
+    params.side === Side.SELL
+      ? refreshedPrice < params.approvedPrice - PRICE_COMPARISON_EPSILON
+      : refreshedPrice > params.approvedPrice + PRICE_COMPARISON_EPSILON;
+  if (!movedAgainstUser) {
+    return approvedDepth;
+  }
+
+  const refreshedDepth = calculatePredictExecutionDepth({
+    ...params,
+    approvedPrice: refreshedPrice,
+  });
+  return refreshedDepth.isFullyExecutable ? refreshedDepth : approvedDepth;
+}
+
+/**
+ * Returns the sell preview with its worst case measured from its own share
+ * price. A price-moved candidate is built against the old approved price,
+ * but pressing Confirm adopts the candidate price as the new baseline, so the
+ * order that gets signed uses this lower floor.
+ */
+export function withPredictSellBandFloorFromSharePrice(
+  preview: OrderPreview,
+): OrderPreview {
+  const bandFloorPrice = getPredictExecutionBandFloorPrice({
+    side: Side.SELL,
+    approvedPrice: preview.sharePrice,
+    slippage: preview.slippage,
+    tickSize: preview.tickSize,
+  });
+  if (!Number.isFinite(bandFloorPrice) || bandFloorPrice <= 0) {
+    return preview;
+  }
+  return {
+    ...preview,
+    minAmountReceivedAfterSlippage: preview.maxAmountSpent * bandFloorPrice,
   };
 }

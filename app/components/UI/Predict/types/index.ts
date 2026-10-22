@@ -918,6 +918,8 @@ export interface PreviewExecutionOrderParams {
   slippage: number;
   feePolicy?: PredictFeePolicy;
   positionId?: string;
+  /** Cancels the order book fetch when the user leaves the flow. */
+  signal?: AbortSignal;
 }
 
 export interface PreviewMaxBuyOrderParams {
@@ -951,14 +953,18 @@ export interface PredictExecutionMetadata {
   /** Best book level price (displayed-price convention) from the fresh book. */
   refreshedPrice?: number;
   /**
-   * Worst price still inside the approved slippage band: the lowest
-   * acceptable bid for SELL, the highest acceptable ask for BUY.
+   * Worst price still inside the slippage band, rounded to a valid tick: the
+   * lowest acceptable bid for SELL, the highest acceptable ask for BUY.
+   * Absent when no order book exists, because there is no tick to round to.
    */
-  bandFloorPrice: number;
+  bandFloorPrice?: number;
   /** Deepest in-band book level consumed while filling the requested size. */
   worstExecutablePrice?: number;
-  /** Market tick size from the fresh book; one tick is the consent threshold. */
-  tickSize: number;
+  /**
+   * Market tick size from the fresh book; one tick is the consent threshold.
+   * Absent when no order book exists.
+   */
+  tickSize?: number;
 }
 
 /**

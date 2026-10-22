@@ -19,7 +19,11 @@ import {
   generateTransferData,
   isSmartContractAddress,
 } from '../../../../../util/transactions';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import {
+  PREDICT_CLAIMABLE_POSITION_ORDER_ERROR,
+  PREDICT_CONSTANTS,
+  PREDICT_ERROR_CODES,
+} from '../../constants/errors';
 import {
   PredictEventProperties,
   PredictEventValues,
@@ -30,6 +34,10 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
+import {
+  isPredictExecutionCheckedSell,
+  isPredictExecutionPreviewStale,
+} from '../../utils/execution';
 import {
   CryptoPriceHistoryPoint,
   CryptoPriceSubscriptionOptions,
@@ -193,13 +201,6 @@ import {
 
 /** Page size for Data API v2 paginated reads (positions). */
 const PREDICT_POSITIONS_PAGE_SIZE = 100;
-/**
- * Maximum age of an execution-marked sell preview at signing time. A preview
- * older than this window is rejected before any signing or encoding work so
- * the caller can revalidate with a fresh execution preview; it matches the
- * one-second book polling cadence the user was looking at.
- */
-const PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS = 1_000;
 /**
  * Upper bound on empty-page cursor hops per activity read. Data API v2 has no
  * server-side lost-redeem filter, so a fetched page can map to zero visible
@@ -722,9 +723,8 @@ export class PolymarketProvider implements PredictProvider {
     // encoding work. Ordinary polled previews never set `fetchedAt`, so
     // existing buy and sell flows are unaffected.
     if (
-      preview.side === Side.SELL &&
-      preview.fetchedAt !== undefined &&
-      Date.now() - preview.fetchedAt > PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS
+      isPredictExecutionCheckedSell(preview) &&
+      isPredictExecutionPreviewStale(preview)
     ) {
       throw new Error(PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE);
     }
@@ -2366,6 +2366,20 @@ export class PolymarketProvider implements PredictProvider {
     const { signer, ...previewParams } = params;
     const { feeCollection, fakOrdersEnabled } = this.#getFeatureFlags();
 
+    // Position pre-flight runs before the book fetch so the signing
+    // freshness window covers only work that depends on the book. An
+    // execution-checked sell skips this check at submission.
+    if (params.side === Side.SELL) {
+      const { position: existingPosition } = await this.#findExistingPosition({
+        address: signer.address,
+        outcomeId: params.outcomeId,
+        outcomeTokenId: params.outcomeTokenId,
+      });
+      if (existingPosition?.claimable) {
+        throw new Error(PREDICT_CLAIMABLE_POSITION_ORDER_ERROR);
+      }
+    }
+
     const result = await previewExecutionOrder({
       ...previewParams,
       feeCollection,
@@ -2389,37 +2403,70 @@ export class PolymarketProvider implements PredictProvider {
     };
   }
 
+  /**
+   * Targeted position lookup for the claimable pre-flight. A failed lookup is
+   * not fatal: the order continues without the position.
+   */
+  async #findExistingPosition({
+    address,
+    outcomeId,
+    outcomeTokenId,
+  }: {
+    address: string;
+    outcomeId: string;
+    outcomeTokenId: string;
+  }): Promise<{ position?: PredictPosition; failed: boolean }> {
+    try {
+      const positions = await this.getPositions({
+        address,
+        outcomeId,
+        limit: 5,
+      });
+      return {
+        position: positions.find((p) => p.outcomeTokenId === outcomeTokenId),
+        failed: false,
+      };
+    } catch (error) {
+      DevLogger.log(
+        'PolymarketProvider: Failed to fetch existing position',
+        error,
+      );
+      return { failed: true };
+    }
+  }
+
   public async placeOrder(
     params: PlaceOrderParams & { signer: Signer },
   ): Promise<OrderResult> {
     const { signer, preview } = params;
     const { outcomeTokenId, side, positionId } = preview;
 
-    // Check existing position for both BUY and SELL to validate claimable status
+    // Check existing position for both BUY and SELL to validate claimable status.
+    // An execution-checked sell already passed this check before its book
+    // was fetched, and repeating it here would consume the freshness window.
     let existingPosition: PredictPosition | undefined;
     if (side === Side.BUY) {
       this.#buyOrderInProgressByAddress.set(signer.address, true);
     }
 
-    try {
-      // Use outcomeId for efficient targeted lookup
-      const positions = await this.getPositions({
+    if (!isPredictExecutionCheckedSell(preview)) {
+      const lookup = await this.#findExistingPosition({
         address: signer.address,
         outcomeId: preview.outcomeId,
-        limit: 5,
+        outcomeTokenId,
       });
-      existingPosition = positions.find(
-        (p) => p.outcomeTokenId === outcomeTokenId,
-      );
+      existingPosition = lookup.position;
+      if (lookup.failed && side === Side.BUY) {
+        this.#buyOrderInProgressByAddress.set(signer.address, false);
+      }
 
       // Check if position is claimable - cannot place orders on claimable positions
       // Claimable positions mean the market is closed and API has final state
       if (existingPosition?.claimable) {
-        const error = 'Cannot place orders on claimable positions';
         DevLogger.log(
           'PolymarketProvider: Order blocked on claimable position',
           {
-            error,
+            error: PREDICT_CLAIMABLE_POSITION_ORDER_ERROR,
             outcomeTokenId,
             side,
             claimable: existingPosition.claimable,
@@ -2430,17 +2477,9 @@ export class PolymarketProvider implements PredictProvider {
         }
         return {
           success: false,
-          error,
+          error: PREDICT_CLAIMABLE_POSITION_ORDER_ERROR,
         } as OrderResult;
       }
-    } catch (error) {
-      if (side === Side.BUY) {
-        this.#buyOrderInProgressByAddress.set(signer.address, false);
-      }
-      DevLogger.log(
-        'PolymarketProvider: Failed to fetch existing position',
-        error,
-      );
     }
 
     try {

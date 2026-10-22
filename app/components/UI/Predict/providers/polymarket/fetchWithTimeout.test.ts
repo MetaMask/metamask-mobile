@@ -38,6 +38,34 @@ describe('fetchWithTimeout', () => {
     });
   });
 
+  it('times out at a custom deadline when one is given', async () => {
+    const abortError = new Error('The operation was aborted');
+    abortError.name = 'AbortError';
+    let isAborted = false;
+    mockFetch.mockImplementation(
+      (_input: RequestInfo | URL, init?: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => {
+            isAborted = true;
+            reject(abortError);
+          });
+        }),
+    );
+
+    const request = fetchWithTimeout(
+      'https://example.com',
+      {},
+      { timeoutMs: 4_000 },
+    );
+    jest.advanceTimersByTime(3_999);
+    expect(isAborted).toBe(false);
+    jest.advanceTimersByTime(1);
+
+    await expect(request).rejects.toMatchObject({
+      name: PolymarketRequestTimeoutError.name,
+    });
+  });
+
   it('passes request options and an abort signal to fetch', async () => {
     const response = { ok: true } as Response;
     mockFetch.mockResolvedValue(response);

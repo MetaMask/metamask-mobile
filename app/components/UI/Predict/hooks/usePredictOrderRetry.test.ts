@@ -1,5 +1,8 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { usePredictOrderRetry } from './usePredictOrderRetry';
+import {
+  usePredictOrderRetry,
+  type PredictRetrySubmitOutcome,
+} from './usePredictOrderRetry';
 import Engine from '../../../../core/Engine';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import {
@@ -67,6 +70,9 @@ function createParamsObj(overrides?: Record<string, unknown>) {
     resetOrderNotFilled: jest.fn(),
     isSheetMode: false as boolean | undefined,
     attempt: undefined as PlaceOrderParams['attempt'],
+    submitRetryQuote: undefined as
+      | ((quote: OrderPreview) => Promise<PredictRetrySubmitOutcome>)
+      | undefined,
     ...overrides,
   };
 }
@@ -1037,6 +1043,86 @@ describe('usePredictOrderRetry', () => {
       expect(mockResetOrderNotFilled).toHaveBeenCalledTimes(1);
       expect(result.current.retrySheetVariant).toBe('confirm');
     });
+  });
+
+  describe('submitRetryQuote', () => {
+    const renderNotFilled = async (
+      submitRetryQuote: jest.Mock<Promise<PredictRetrySubmitOutcome>>,
+    ) => {
+      const params = createDefaultParams({ submitRetryQuote });
+      const hook = renderHook(() => usePredictOrderRetry(params));
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        hook.rerender();
+      });
+      return { params, result: hook.result };
+    };
+
+    it('sends the quote to submitRetryQuote instead of placeOrder', async () => {
+      const submitRetryQuote = jest
+        .fn<Promise<PredictRetrySubmitOutcome>, [OrderPreview]>()
+        .mockResolvedValue(createSuccessOutcome());
+      const { params, result } = await renderNotFilled(submitRetryQuote);
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(submitRetryQuote).toHaveBeenCalledWith(
+        expect.objectContaining({ sharePrice: 0.62 }),
+      );
+      expect(params.placeOrder).not.toHaveBeenCalled();
+      expect(params.resetOrderNotFilled).toHaveBeenCalledTimes(1);
+    });
+
+    it('asks for a new confirmation when the price moved beyond one tick', async () => {
+      const movedQuote = createMockPreview({ sharePrice: 0.55 });
+      const submitRetryQuote = jest
+        .fn<Promise<PredictRetrySubmitOutcome>, [OrderPreview]>()
+        .mockResolvedValue({ status: 'price_moved', quote: movedQuote });
+      const { result } = await renderNotFilled(submitRetryQuote);
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('price_moved');
+      expect(result.current.retryQuote).toBe(movedQuote);
+      expect(result.current.retryPreviousPrice).toBe(0.62);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_completed',
+          retryOutcome: 'failed',
+          failureReason: 'price_moved',
+        }),
+      );
+    });
+
+    it.each([
+      ['no_match', 'no_match', 'not_filled'],
+      ['unavailable', 'quote_unavailable', 'failed'],
+    ] as const)(
+      'settles a %s outcome in the %s variant without a quote',
+      async (status, variant, retryOutcome) => {
+        const submitRetryQuote = jest
+          .fn<Promise<PredictRetrySubmitOutcome>, [OrderPreview]>()
+          .mockResolvedValue({ status });
+        const { result } = await renderNotFilled(submitRetryQuote);
+
+        await act(async () => {
+          await result.current.handleRetryConfirm();
+        });
+
+        expect(result.current.retrySheetVariant).toBe(variant);
+        expect(result.current.retryQuote).toBeNull();
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            status: 'retry_completed',
+            retryOutcome,
+          }),
+        );
+      },
+    );
   });
 
   describe('state guard', () => {

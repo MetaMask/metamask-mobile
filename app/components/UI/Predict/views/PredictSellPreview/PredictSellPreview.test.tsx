@@ -803,7 +803,7 @@ describe('PredictSellPreview', () => {
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
-    it('locks the sheet during the Confirm refetch and restores dismissal after settlement', async () => {
+    it('keeps dismissal during the Confirm refetch and locks it while the order is placed', async () => {
       const movedResult = createExecutableResult({
         preview: createExecutionPreview({
           sharePrice: 0.47,
@@ -828,10 +828,12 @@ describe('PredictSellPreview', () => {
         screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
       ).toBeOnTheScreen();
 
-      // The Confirm refetch stays pending: the sheet keeps its candidate
-      // and locks dismissal while the flow is active.
+      // The Confirm refetch stays pending: the sheet keeps its candidate,
+      // and the user can still leave because nothing is signed yet.
       const deferred = createDeferred<PredictExecutionPreviewResult>();
       mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+      const placement = createDeferred<{ status: 'success' }>();
+      mockPlaceOrder.mockReturnValueOnce(placement.promise);
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
@@ -841,11 +843,12 @@ describe('PredictSellPreview', () => {
       expect(screen.getByText('Price moved')).toBeOnTheScreen();
       expect(screen.getByText('Expected fill')).toBeOnTheScreen();
       expect(
-        screen.queryByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
-      ).toBeNull();
+        screen.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeOnTheScreen();
 
       // The refetched quote matches the confirmed 0.47 baseline, so the
-      // exact fresh preview is submitted and the sheet closes.
+      // exact fresh preview is submitted. Dismissal is locked while the order
+      // is placed, and the sheet closes once placement settles.
       const acceptedResult = createExecutableResult({
         preview: createExecutionPreview({
           sharePrice: 0.47,
@@ -867,6 +870,15 @@ describe('PredictSellPreview', () => {
         preview: OrderPreview;
       };
       expect(placedParams.preview).toBe(acceptedResult.preview);
+      expect(
+        screen.queryByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+      ).toBeNull();
+
+      await act(async () => {
+        placement.resolve({ status: 'success' });
+        await flushMicrotasks();
+      });
+
       expect(screen.queryByText('Price moved')).toBeNull();
     });
 

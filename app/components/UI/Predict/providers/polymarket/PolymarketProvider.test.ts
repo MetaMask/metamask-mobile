@@ -23,7 +23,10 @@ import {
   createExecutablePredictExecutionResult,
   createPredictExecutionMetadata,
 } from '../../testUtils/execution';
-import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import {
+  PREDICT_CLAIMABLE_POSITION_ORDER_ERROR,
+  PREDICT_ERROR_CODES,
+} from '../../constants/errors';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
   ACCOUNT_STATE_NOT_DEPLOYED_CACHE_TTL_MS,
@@ -1811,6 +1814,50 @@ describe('PolymarketProvider', () => {
       }),
     );
     expect('preview' in result).toBe(false);
+  });
+
+  it('rejects a sell on a claimable position before it fetches the book', async () => {
+    const provider = createProvider();
+    jest
+      .spyOn(provider, 'getPositions')
+      .mockResolvedValue([
+        createClaimPosition({ outcomeTokenId: basePreview.outcomeTokenId }),
+      ]);
+
+    await expect(
+      provider.previewExecutionOrder({
+        marketId: 'market-1',
+        outcomeId: basePreview.outcomeId,
+        outcomeTokenId: basePreview.outcomeTokenId,
+        side: Side.SELL,
+        size: 10,
+        approvedPrice: 0.5,
+        slippage: 0.05,
+        signer,
+      }),
+    ).rejects.toThrow(PREDICT_CLAIMABLE_POSITION_ORDER_ERROR);
+
+    expect(mockPreviewExecutionOrder).not.toHaveBeenCalled();
+  });
+
+  it('does not look up positions again when it places a fresh execution-checked sell', async () => {
+    const provider = createProvider();
+    const getPositionsSpy = jest
+      .spyOn(provider, 'getPositions')
+      .mockResolvedValue([]);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...basePreview,
+        side: Side.SELL,
+        slippage: 0.05,
+        fetchedAt: Date.now(),
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(getPositionsSpy).not.toHaveBeenCalled();
   });
 
   it('rejects a stale execution-marked sell preview before any signing work', async () => {

@@ -22,6 +22,18 @@ import type {
   PredictOrderRetrySheetVariant,
 } from '../components/PredictOrderRetrySheet';
 
+/**
+ * Outcome of a custom retry submission. Besides the placement outcomes, a
+ * submission that revalidates the quote first can report that the price
+ * moved again (with the new candidate), that the book cannot fill the order,
+ * or that no price is available. Nothing is placed in those cases.
+ */
+export type PredictRetrySubmitOutcome =
+  | PlaceOrderOutcome
+  | { status: 'price_moved'; quote: OrderPreview }
+  | { status: 'no_match' }
+  | { status: 'unavailable' };
+
 interface UsePredictOrderRetryParams {
   preview: OrderPreview | null | undefined;
   /**
@@ -36,6 +48,14 @@ interface UsePredictOrderRetryParams {
    */
   lastSubmittedPreview?: OrderPreview | null;
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
+  /**
+   * Replaces the direct placement of the confirmed retry quote. A sell uses
+   * it to revalidate the quote against a fresh order book before signing,
+   * because the polled retry quote is never signed directly.
+   */
+  submitRetryQuote?: (
+    quote: OrderPreview,
+  ) => Promise<PredictRetrySubmitOutcome>;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
@@ -108,6 +128,7 @@ export function usePredictOrderRetry({
   refetchPreview,
   lastSubmittedPreview,
   placeOrder,
+  submitRetryQuote,
   analyticsProperties,
   isOrderNotFilled,
   resetOrderNotFilled,
@@ -217,12 +238,13 @@ export function usePredictOrderRetry({
       analyticsProperties?.transactionType ===
       PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY;
 
-    const settleFailed = () => {
-      setRetrySheetVariant('failed');
+    const settleVariant = (variant: PredictOrderRetrySheetVariant) => {
+      setRetrySheetVariant(variant);
       if (!isSheetMode) {
         retrySheetRef.current?.onOpenBottomSheet();
       }
     };
+    const settleFailed = () => settleVariant('failed');
 
     let retryOutcome: PredictRetryOutcomeValue | undefined;
     let failureReason: string | undefined;
@@ -240,11 +262,13 @@ export function usePredictOrderRetry({
         });
       }
 
-      const outcome = await placeOrder({
-        analyticsProperties,
-        preview: retryQuote,
-        attempt,
-      });
+      const outcome: PredictRetrySubmitOutcome = submitRetryQuote
+        ? await submitRetryQuote(retryQuote)
+        : await placeOrder({
+            analyticsProperties,
+            preview: retryQuote,
+            attempt,
+          });
 
       if (
         outcome.status === 'success' ||
@@ -253,6 +277,25 @@ export function usePredictOrderRetry({
         retryOutcome = PredictEventValues.RETRY_OUTCOME.SUCCESS;
         retrySheetRef.current?.onCloseBottomSheet();
         resetOrderNotFilled();
+      } else if (outcome.status === 'price_moved') {
+        // Revalidation found a price more than one tick worse: nothing was
+        // placed, and the new price needs an explicit confirmation.
+        retryOutcome = PredictEventValues.RETRY_OUTCOME.FAILED;
+        failureReason = 'price_moved';
+        oneTickDecisionRef.current =
+          PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK;
+        setRetryQuote(outcome.quote);
+        setRetryPreviousPrice(retryQuote.sharePrice);
+        settleVariant('price_moved');
+      } else if (outcome.status === 'no_match') {
+        retryOutcome = PredictEventValues.RETRY_OUTCOME.NOT_FILLED;
+        setRetryQuote(null);
+        settleVariant('no_match');
+      } else if (outcome.status === 'unavailable') {
+        retryOutcome = PredictEventValues.RETRY_OUTCOME.FAILED;
+        failureReason = 'quote_unavailable';
+        setRetryQuote(null);
+        settleVariant('quote_unavailable');
       } else {
         // Bounded: this retry attempt is over. The sheet settles in its
         // failed state and nothing further happens until the user taps
@@ -292,6 +335,7 @@ export function usePredictOrderRetry({
   }, [
     retryQuote,
     placeOrder,
+    submitRetryQuote,
     analyticsProperties,
     attempt,
     resetOrderNotFilled,

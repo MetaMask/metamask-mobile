@@ -24,6 +24,7 @@ export const isExpectedPolymarketRequestAbort = (error: unknown): boolean =>
 export async function fetchWithTimeout(
   input: RequestInfo | URL,
   init: RequestInit = {},
+  { timeoutMs = POLYMARKET_REQUEST_TIMEOUT_MS }: { timeoutMs?: number } = {},
 ): Promise<Response> {
   const controller = new AbortController();
   let didTimeout = false;
@@ -48,7 +49,7 @@ export async function fetchWithTimeout(
       didTimeout = true;
       init.signal?.removeEventListener('abort', abortFromCaller);
       controller.abort();
-    }, POLYMARKET_REQUEST_TIMEOUT_MS);
+    }, timeoutMs);
   }
 
   try {

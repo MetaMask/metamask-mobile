@@ -29,7 +29,7 @@ export const normalizeResolutionStatus = (resolutionStatus?: string) =>
 
 export const getNonBettableMarketErrorCode = (
   market: PredictMarket,
-  preview: OrderPreview,
+  preview: Pick<OrderPreview, 'outcomeId'>,
 ): string | undefined => {
   const outcome = market.outcomes.find(({ id }) => id === preview.outcomeId);
 
@@ -65,7 +65,7 @@ export const validateMarketBettable = async ({
   preview,
 }: {
   provider: Pick<PredictProvider, 'getMarketDetails'>;
-  preview: OrderPreview;
+  preview: Pick<OrderPreview, 'marketId' | 'outcomeId'>;
 }): Promise<void> => {
   let market: PredictMarket;
 

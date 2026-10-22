@@ -6,12 +6,24 @@ import {
   type PredictPreSubmitDecisionValue,
   type PredictReconfirmOutcomeValue,
 } from '../constants/eventNames';
+import {
+  PREDICT_ERROR_CODES,
+  PREDICT_SELL_PREFLIGHT_ERRORS,
+} from '../constants/errors';
 import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
 } from '../components/PredictOrderRetrySheet';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
+import type { PredictRetrySubmitOutcome } from './usePredictOrderRetry';
 import { getPredictPriceConsent } from '../utils/prices';
+import { withPredictSellBandFloorFromSharePrice } from '../utils/execution';
+import {
+  acquirePredictSellExecutionLock,
+  releasePredictSellExecutionLock,
+  type PredictSellExecutionLockToken,
+} from '../utils/sellExecutionLock';
+import { parseErrorMessage } from '../utils/predictErrorHandler';
 import {
   Side,
   type OrderPreview,
@@ -41,8 +53,8 @@ interface PredictSellExecutionState {
   status: PredictSellExecutionStatus;
   /**
    * Candidate quote awaiting explicit confirmation ('confirm' status only).
-   * When submitted, the exact fresh preview is submitted — never a stale
-   * candidate.
+   * Its worst case is measured from its own price, which becomes the new
+   * baseline on Confirm. It is never signed: Confirm revalidates first.
    */
   quote: OrderPreview | null;
   /** Execution facts for the candidate or failed classification, when present. */
@@ -51,6 +63,11 @@ interface PredictSellExecutionState {
   baselinePrice: number | null;
   /** Approved slippage band that goes with `baselinePrice`. */
   baselineSlippage: number | null;
+  /**
+   * Localized message when the sell pre-flight rejected the order (market
+   * closed, pending resolution, claimable position). Shown on the screen.
+   */
+  error: string | null;
 }
 
 const IDLE_STATE: PredictSellExecutionState = {
@@ -59,14 +76,15 @@ const IDLE_STATE: PredictSellExecutionState = {
   execution: null,
   baselinePrice: null,
   baselineSlippage: null,
+  error: null,
 };
 
 /**
  * Classification of one freshly fetched execution preview against the
  * approved baseline: `submit` (price better/equal/within one tick and the
  * full size executable in band), `confirm` (more than one tick worse —
- * requires an explicit re-confirmation), or a terminal market/transport
- * state that submits nothing.
+ * requires an explicit re-confirmation), `blocked` (the pre-flight rejected
+ * the order), or a terminal market/transport state that submits nothing.
  */
 type ExecutionClassification =
   | {
@@ -81,7 +99,20 @@ type ExecutionClassification =
     }
   | { outcome: 'no_match'; execution: PredictExecutionMetadata }
   | { outcome: 'timeout' }
-  | { outcome: 'unavailable' };
+  | { outcome: 'unavailable' }
+  | { outcome: 'blocked'; error: string };
+
+type SettledClassification = Exclude<
+  ExecutionClassification,
+  { outcome: 'submit' }
+>;
+
+/** How one validation-and-submission run ended. */
+type ExecutionFlowResult =
+  | { kind: 'placed'; outcome: PlaceOrderOutcome }
+  | { kind: 'settled'; classification: SettledClassification }
+  | { kind: 'stale_again' }
+  | { kind: 'obsolete' };
 
 interface UsePredictSellExecutionParams {
   /** Active order identity captured for every validation request. */
@@ -107,14 +138,6 @@ interface UsePredictSellExecutionParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
 }
 
-/**
- * Position-scoped single-flight locks shared by every mounted sell surface.
- * A component-local ref prevents same-frame duplicate presses; this registry
- * also prevents two simultaneously mounted instances for the same position
- * (for example, a sheet and a routed screen) from placing duplicate orders.
- */
-const inFlightSellPositions = new Set<string>();
-
 /** Sheet variant for each settled status. Busy phases (validating,
  * submitting) keep the last settled variant so an open sheet keeps its
  * content while a Confirm refetch or placement is in flight.
@@ -138,6 +161,7 @@ const DECISION_FOR_OUTCOME: Record<
   no_match: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
   timeout: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
   unavailable: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
+  blocked: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
 };
 
 /** Stable pre-submit decision value for the sheet state a dismissal fires from. */
@@ -155,6 +179,7 @@ type ExecutionFlowOrigin =
   | 'cash_out'
   | 'confirm'
   | 'try_again'
+  | 'post_failure_retry'
   | 'stale_recovery';
 
 /**
@@ -230,8 +255,17 @@ const trackPreSubmitDecision = ({
     ...(classification.outcome === 'no_match' && {
       failureCategory: PredictEventValues.FAILURE_CATEGORY.NO_MATCH,
     }),
+    ...(classification.outcome === 'blocked' && {
+      failureReason: classification.error,
+    }),
   });
 };
+
+const toPreflightErrorMessage = (errorCode: string): string =>
+  parseErrorMessage({
+    error: new Error(errorCode),
+    defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+  });
 
 /**
  * Pre-submit sell execution orchestration: fetches a live order book,
@@ -270,27 +304,38 @@ export function usePredictSellExecution({
   // Generation identity: bumped on every user action and on dismissal so
   // late responses from an obsolete intent are discarded.
   const intentIdRef = useRef(0);
+  // The in-flight run: its fetch can be cancelled, and its lock released
+  // early, while it is still validating.
+  const activeRunRef = useRef<{
+    abortController: AbortController;
+    lockKey: string;
+    lockToken: PredictSellExecutionLockToken;
+    isSubmitting: boolean;
+  } | null>(null);
+  // Set when the flow closes its own sheet, so the sheet's close callback is
+  // not mistaken for a user dismissal of a newer flow.
+  const isClosingSheetRef = useRef(false);
   const sellPositionKey =
     positionId ?? `${marketId}:${outcomeId}:${outcomeTokenId}`;
 
-  const acquireSubmitLock = useCallback((): boolean => {
-    if (inFlightSellPositions.has(sellPositionKey)) {
-      return false;
+  /** Cancels a run that has not started placement yet. */
+  const cancelValidatingRun = useCallback(() => {
+    const activeRun = activeRunRef.current;
+    if (!activeRun || activeRun.isSubmitting) {
+      return;
     }
-    inFlightSellPositions.add(sellPositionKey);
-    return true;
-  }, [sellPositionKey]);
-
-  const releaseSubmitLock = useCallback(() => {
-    inFlightSellPositions.delete(sellPositionKey);
-  }, [sellPositionKey]);
+    activeRun.abortController.abort();
+    releasePredictSellExecutionLock(activeRun.lockKey, activeRun.lockToken);
+    activeRunRef.current = null;
+  }, []);
 
   useEffect(
     () => () => {
       isMountedRef.current = false;
       intentIdRef.current += 1;
+      cancelValidatingRun();
     },
-    [],
+    [cancelValidatingRun],
   );
 
   const updateState = useCallback(
@@ -304,6 +349,16 @@ export function usePredictSellExecution({
     setState(IDLE_STATE);
   }, []);
 
+  const openSheet = useCallback(() => {
+    isClosingSheetRef.current = false;
+    executionSheetRef.current?.onOpenBottomSheet();
+  }, []);
+
+  const closeSheet = useCallback(() => {
+    isClosingSheetRef.current = true;
+    executionSheetRef.current?.onCloseBottomSheet();
+  }, []);
+
   /**
    * Fetches one fresh execution preview and classifies it against the
    * approved baseline. Never touches state: intent currency is checked by
@@ -313,9 +368,11 @@ export function usePredictSellExecution({
     async ({
       baselinePrice,
       slippage,
+      signal,
     }: {
       baselinePrice: number;
       slippage: number;
+      signal: AbortSignal;
     }): Promise<ExecutionClassification> => {
       let result: PredictExecutionPreviewResult;
       try {
@@ -327,9 +384,16 @@ export function usePredictSellExecution({
           size,
           approvedPrice: baselinePrice,
           slippage,
+          signal,
           ...(positionId ? { positionId } : {}),
         });
-      } catch {
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          PREDICT_SELL_PREFLIGHT_ERRORS.has(error.message)
+        ) {
+          return { outcome: 'blocked', error: error.message };
+        }
         // Unexpected internal error (the controller logs it): settle as
         // unavailable rather than submitting anything.
         return { outcome: 'unavailable' };
@@ -347,7 +411,7 @@ export function usePredictSellExecution({
             side: Side.SELL,
             approvedPrice: baselinePrice,
             refreshedPrice: result.execution.refreshedPrice ?? baselinePrice,
-            tickSize: result.execution.tickSize,
+            tickSize: result.execution.tickSize ?? result.preview.tickSize,
           });
           return consent.withinOneTick
             ? {
@@ -357,7 +421,7 @@ export function usePredictSellExecution({
               }
             : {
                 outcome: 'confirm',
-                preview: result.preview,
+                preview: withPredictSellBandFloorFromSharePrice(result.preview),
                 execution: result.execution,
               };
         }
@@ -374,43 +438,47 @@ export function usePredictSellExecution({
   );
 
   /**
-   * One validation pass: fetch + classify, then submit when acceptable.
-   * Runs at most twice per user action — the second pass is the single
-   * bounded stale-signing recovery against the same approved baseline.
+   * Validation and submission for one user action: fetch + classify, then
+   * submit when acceptable. Runs at most twice — the second pass is the
+   * single bounded stale-signing recovery against the same approved baseline.
    */
-  const runFlow = useCallback(
+  const executeFlow = useCallback(
     async ({
       intentId,
       baselinePrice,
       slippage,
       origin,
+      onValidating,
+      onSubmitting,
     }: {
       intentId: number;
       baselinePrice: number;
       slippage: number;
       origin: Exclude<ExecutionFlowOrigin, 'stale_recovery'>;
-    }) => {
+      onValidating?: () => void;
+      onSubmitting?: (
+        classification: Extract<ExecutionClassification, { outcome: 'submit' }>,
+      ) => void;
+    }): Promise<ExecutionFlowResult> => {
       const isCurrentIntent = () =>
         intentIdRef.current === intentId && isMountedRef.current;
       let staleRecoveryUsed = false;
       let currentOrigin: ExecutionFlowOrigin = origin;
 
       for (;;) {
-        // The candidate quote and execution facts stay visible while an
-        // already-open confirm sheet waits on this fetch; only a new
-        // settled state replaces or clears them.
-        updateState({
-          status: 'validating',
-          baselinePrice,
-          baselineSlippage: slippage,
-        });
+        const activeRun = activeRunRef.current;
+        if (!activeRun) {
+          return { kind: 'obsolete' };
+        }
+        onValidating?.();
 
         const classification = await fetchClassification({
           baselinePrice,
           slippage,
+          signal: activeRun.abortController.signal,
         });
         if (!isCurrentIntent()) {
-          return;
+          return { kind: 'obsolete' };
         }
 
         // Analytics: the pre-submit decision with the exact facts it was
@@ -424,67 +492,28 @@ export function usePredictSellExecution({
           classification,
         });
 
-        switch (classification.outcome) {
-          case 'no_match':
-            updateState({
-              status: 'no_match',
-              quote: null,
-              execution: classification.execution,
-            });
-            executionSheetRef.current?.onOpenBottomSheet();
-            return;
-          case 'timeout':
-            updateState({ status: 'timeout', quote: null, execution: null });
-            executionSheetRef.current?.onOpenBottomSheet();
-            return;
-          case 'unavailable':
-            updateState({
-              status: 'unavailable',
-              quote: null,
-              execution: null,
-            });
-            executionSheetRef.current?.onOpenBottomSheet();
-            return;
-          case 'confirm':
-            updateState({
-              status: 'confirm',
-              quote: classification.preview,
-              execution: classification.execution,
-            });
-            executionSheetRef.current?.onOpenBottomSheet();
-            return;
-          default:
-            break;
+        if (classification.outcome !== 'submit') {
+          return { kind: 'settled', classification };
         }
 
-        // Price consent passed: submit the exact fresh preview.
-        updateState({
-          status: 'submitting',
-          quote: classification.preview,
-          execution: classification.execution,
-        });
+        // Price consent passed: submit the exact fresh preview. From here
+        // the run can no longer be cancelled.
+        activeRun.isSubmitting = true;
+        onSubmitting?.(classification);
         const outcome = await placeOrder({
           analyticsProperties,
           preview: classification.preview,
         });
+        activeRun.isSubmitting = false;
         if (!isCurrentIntent()) {
-          return;
+          return { kind: 'obsolete' };
         }
 
         if (outcome.status !== 'preview_stale') {
-          // Terminal placement outcome: usePredictPlaceOrder owns result UX
-          // (toasts, post-failure retry lifecycle, screen pop); the
-          // pre-submit flow settles and closes its sheet.
-          executionSheetRef.current?.onCloseBottomSheet();
-          settleIdle();
-          return;
+          return { kind: 'placed', outcome };
         }
-
         if (staleRecoveryUsed) {
-          // A second stale rejection settles unavailable: never loop.
-          updateState({ status: 'unavailable', quote: null, execution: null });
-          executionSheetRef.current?.onOpenBottomSheet();
-          return;
+          return { kind: 'stale_again' };
         }
         // One bounded recovery: repeat validation + submission once against
         // the same user-approved baseline.
@@ -492,17 +521,77 @@ export function usePredictSellExecution({
         currentOrigin = 'stale_recovery';
       }
     },
-    [
-      fetchClassification,
-      placeOrder,
-      analyticsProperties,
-      size,
-      updateState,
-      settleIdle,
-    ],
+    [fetchClassification, placeOrder, analyticsProperties, size],
   );
 
-  const runLockedFlow = useCallback(
+  /**
+   * Runs `run` while holding the position lock and owning a cancellable
+   * fetch. Returns null when another flow already holds the lock.
+   */
+  const withLockedRun = useCallback(
+    async <T>(run: (intentId: number) => Promise<T>): Promise<T | null> => {
+      const lockToken = acquirePredictSellExecutionLock(sellPositionKey);
+      if (!lockToken) {
+        return null;
+      }
+      const intentId = ++intentIdRef.current;
+      const activeRun = {
+        abortController: new AbortController(),
+        lockKey: sellPositionKey,
+        lockToken,
+        isSubmitting: false,
+      };
+      activeRunRef.current = activeRun;
+      try {
+        return await run(intentId);
+      } finally {
+        releasePredictSellExecutionLock(sellPositionKey, lockToken);
+        if (activeRunRef.current === activeRun) {
+          activeRunRef.current = null;
+        }
+      }
+    },
+    [sellPositionKey],
+  );
+
+  const settleSheet = useCallback(
+    (classification: SettledClassification) => {
+      switch (classification.outcome) {
+        case 'blocked':
+          closeSheet();
+          setState({
+            ...IDLE_STATE,
+            error: toPreflightErrorMessage(classification.error),
+          });
+          return;
+        case 'confirm':
+          updateState({
+            status: 'confirm',
+            quote: classification.preview,
+            execution: classification.execution,
+          });
+          break;
+        case 'no_match':
+          updateState({
+            status: 'no_match',
+            quote: null,
+            execution: classification.execution,
+          });
+          break;
+        default:
+          updateState({
+            status: classification.outcome,
+            quote: null,
+            execution: null,
+          });
+      }
+      openSheet();
+    },
+    [closeSheet, openSheet, updateState],
+  );
+
+  /** Sheet-driven flow: Cash Out, Confirm, and Try Again entry points. */
+  const runSheetFlow = useCallback(
     async ({
       baselinePrice,
       slippage,
@@ -510,20 +599,59 @@ export function usePredictSellExecution({
     }: {
       baselinePrice: number;
       slippage: number;
-      origin: Exclude<ExecutionFlowOrigin, 'stale_recovery'>;
+      origin: 'cash_out' | 'confirm' | 'try_again';
     }): Promise<void> => {
-      if (!acquireSubmitLock()) {
-        return;
-      }
+      await withLockedRun(async (intentId) => {
+        const result = await executeFlow({
+          intentId,
+          baselinePrice,
+          slippage,
+          origin,
+          // The candidate quote and execution facts stay visible while an
+          // already-open confirm sheet waits on this fetch; only a new
+          // settled state replaces or clears them.
+          onValidating: () =>
+            updateState({
+              status: 'validating',
+              baselinePrice,
+              baselineSlippage: slippage,
+              error: null,
+            }),
+          onSubmitting: (classification) =>
+            updateState({
+              status: 'submitting',
+              quote: classification.preview,
+              execution: classification.execution,
+            }),
+        });
 
-      const intentId = ++intentIdRef.current;
-      try {
-        await runFlow({ intentId, baselinePrice, slippage, origin });
-      } finally {
-        releaseSubmitLock();
-      }
+        switch (result.kind) {
+          case 'obsolete':
+            return;
+          case 'placed':
+            // Terminal placement outcome: usePredictPlaceOrder owns result UX
+            // (toasts, post-failure retry lifecycle, screen pop); the
+            // pre-submit flow settles and closes its sheet.
+            closeSheet();
+            settleIdle();
+            return;
+          case 'stale_again':
+            // A second stale rejection settles unavailable: never loop.
+            settleSheet({ outcome: 'unavailable' });
+            return;
+          case 'settled':
+            settleSheet(result.classification);
+        }
+      });
     },
-    [acquireSubmitLock, releaseSubmitLock, runFlow],
+    [
+      withLockedRun,
+      executeFlow,
+      updateState,
+      closeSheet,
+      settleIdle,
+      settleSheet,
+    ],
   );
 
   /**
@@ -535,12 +663,12 @@ export function usePredictSellExecution({
     if (!preview) {
       return;
     }
-    await runLockedFlow({
+    await runSheetFlow({
       baselinePrice: preview.sharePrice,
       slippage: preview.slippage,
       origin: 'cash_out',
     });
-  }, [preview, runLockedFlow]);
+  }, [preview, runSheetFlow]);
 
   /**
    * Confirm entry point (price-moved sheet). Pressing Confirm adopts the
@@ -552,12 +680,12 @@ export function usePredictSellExecution({
     if (!quote) {
       return;
     }
-    await runLockedFlow({
+    await runSheetFlow({
       baselinePrice: quote.sharePrice,
       slippage: quote.slippage,
       origin: 'confirm',
     });
-  }, [runLockedFlow]);
+  }, [runSheetFlow]);
 
   /**
    * Try Again entry point (no-match / timeout / unavailable sheets).
@@ -568,25 +696,77 @@ export function usePredictSellExecution({
     if (baselinePrice === null || baselineSlippage === null) {
       return;
     }
-    await runLockedFlow({
+    await runSheetFlow({
       baselinePrice,
       slippage: baselineSlippage,
       origin: 'try_again',
     });
-  }, [runLockedFlow]);
+  }, [runSheetFlow]);
 
   /**
-   * Dismissal entry point. Invalidates any in-flight intent, settles idle,
-   * and submits nothing.
+   * Post-failure retry submission (order not filled). The polled retry quote
+   * the user confirmed is the approved baseline; a fresh execution preview
+   * must confirm it before anything is signed. Opens no sheet of its own:
+   * the retry sheet shows the outcome.
+   */
+  const submitRetryQuote = useCallback(
+    async (quote: OrderPreview): Promise<PredictRetrySubmitOutcome> => {
+      const outcome = await withLockedRun(
+        async (intentId): Promise<PredictRetrySubmitOutcome> => {
+          const result = await executeFlow({
+            intentId,
+            baselinePrice: quote.sharePrice,
+            slippage: quote.slippage,
+            origin: 'post_failure_retry',
+          });
+          switch (result.kind) {
+            case 'placed':
+              return result.outcome;
+            case 'settled': {
+              const { classification } = result;
+              switch (classification.outcome) {
+                case 'confirm':
+                  return {
+                    status: 'price_moved',
+                    quote: classification.preview,
+                  };
+                case 'no_match':
+                  return { status: 'no_match' };
+                case 'blocked':
+                  return {
+                    status: 'error',
+                    error: toPreflightErrorMessage(classification.error),
+                  };
+                default:
+                  return { status: 'unavailable' };
+              }
+            }
+            default:
+              return { status: 'unavailable' };
+          }
+        },
+      );
+      return outcome ?? { status: 'unavailable' };
+    },
+    [withLockedRun, executeFlow],
+  );
+
+  /**
+   * Dismissal entry point. Invalidates any in-flight intent, cancels a fetch
+   * that is still validating, settles idle, and submits nothing.
    */
   const handleDismiss = useCallback(() => {
+    if (isClosingSheetRef.current) {
+      // The flow closed its own sheet after it settled: not a user action.
+      isClosingSheetRef.current = false;
+      return;
+    }
     intentIdRef.current += 1;
+    cancelValidatingRun();
     const { status, execution, baselinePrice, baselineSlippage } =
       stateRef.current;
     const preSubmitDecision = DECISION_FOR_STATUS[status];
-    // Dismissal analytics fire only from a settled sheet state: the
-    // programmatic close of a terminal placement settle is not a user
-    // dismissal. No order is submitted either way.
+    // Dismissal analytics fire only from a settled sheet state.
     if (preSubmitDecision) {
       void Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.PRESUBMIT_DISMISSED,
@@ -608,7 +788,7 @@ export function usePredictSellExecution({
       });
     }
     settleIdle();
-  }, [analyticsProperties, size, settleIdle]);
+  }, [analyticsProperties, size, settleIdle, cancelValidatingRun]);
 
   return {
     /** Ref for the pre-submit PredictOrderRetrySheet instance. */
@@ -625,11 +805,16 @@ export function usePredictSellExecution({
     execution: state.execution,
     /** Approved price baseline of the current sheet state. */
     baselinePrice: state.baselinePrice,
+    /** Localized pre-flight rejection to show on the screen, if any. */
+    error: state.error,
     /** True while a validation fetch or placement is in flight. */
     isExecuting: state.status === 'validating' || state.status === 'submitting',
+    /** True while the order is being placed; it can no longer be cancelled. */
+    isSubmitting: state.status === 'submitting',
     handleCashOut,
     handleConfirm,
     handleTryAgain,
     handleDismiss,
+    submitRetryQuote,
   };
 }

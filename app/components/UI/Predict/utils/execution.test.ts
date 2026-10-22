@@ -1,7 +1,12 @@
-import { Side } from '../types';
+import { Side, type OrderPreview } from '../types';
 import {
   calculatePredictExecutionDepth,
   getPredictExecutionBandFloorPrice,
+  isPredictExecutionCheckedSell,
+  isPredictExecutionPreviewStale,
+  PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS,
+  resolvePredictExecutionDepth,
+  withPredictSellBandFloorFromSharePrice,
   type PredictExecutionLevel,
 } from './execution';
 
@@ -302,5 +307,170 @@ describe('calculatePredictExecutionDepth', () => {
     expect(depth.isFullyExecutable).toBe(false);
     // Every share of the in-band level is consumed.
     expect(depth.grossAmount).toBe(50);
+  });
+});
+
+describe('resolvePredictExecutionDepth', () => {
+  it('keeps the approved band when it fills the full size', () => {
+    const depth = resolvePredictExecutionDepth({
+      side: Side.SELL,
+      approvedPrice: 0.6,
+      slippage: SELL_SLIPPAGE,
+      tickSize: 0.01,
+      requestedSize: 10,
+      levels: createLevels([[0.58, 10]]),
+    });
+
+    expect(depth.isFullyExecutable).toBe(true);
+    expect(depth.bandFloorPrice).toBeCloseTo(0.57, 10);
+  });
+
+  it('measures the band from the refreshed price when a low sell price moved one tick', () => {
+    // 0.19 × 0.95 = 0.1805 → 0.19: the approved band is zero ticks wide, so
+    // a one-tick move to 0.18 only fills inside the refreshed band.
+    const depth = resolvePredictExecutionDepth({
+      side: Side.SELL,
+      approvedPrice: 0.19,
+      slippage: SELL_SLIPPAGE,
+      tickSize: 0.01,
+      requestedSize: 10,
+      levels: createLevels([[0.18, 10]]),
+    });
+
+    expect(depth.isFullyExecutable).toBe(true);
+    expect(depth.refreshedPrice).toBe(0.18);
+    // 0.18 × 0.95 = 0.171 → 0.18.
+    expect(depth.bandFloorPrice).toBeCloseTo(0.18, 10);
+    expect(depth.worstExecutablePrice).toBe(0.18);
+  });
+
+  it('measures the band from the refreshed price when a sell below 40 cents moved two ticks', () => {
+    // 0.30 × 0.95 = 0.285 → 0.29: a move to 0.28 is outside the approved band.
+    const depth = resolvePredictExecutionDepth({
+      side: Side.SELL,
+      approvedPrice: 0.3,
+      slippage: SELL_SLIPPAGE,
+      tickSize: 0.01,
+      requestedSize: 10,
+      levels: createLevels([[0.28, 10]]),
+    });
+
+    expect(depth.isFullyExecutable).toBe(true);
+    expect(depth.refreshedPrice).toBe(0.28);
+  });
+
+  it('keeps the approved partial depth when the refreshed band cannot fill either', () => {
+    const depth = resolvePredictExecutionDepth({
+      side: Side.SELL,
+      approvedPrice: 0.3,
+      slippage: SELL_SLIPPAGE,
+      tickSize: 0.01,
+      requestedSize: 10,
+      levels: createLevels([
+        [0.29, 4],
+        [0.28, 2],
+      ]),
+    });
+
+    expect(depth.isFullyExecutable).toBe(false);
+    expect(depth.executableSize).toBe(4);
+    expect(depth.bandFloorPrice).toBeCloseTo(0.29, 10);
+  });
+
+  it('never widens the band when the price moved in the user favor', () => {
+    const depth = resolvePredictExecutionDepth({
+      side: Side.SELL,
+      approvedPrice: 0.3,
+      slippage: SELL_SLIPPAGE,
+      tickSize: 0.01,
+      requestedSize: 10,
+      levels: createLevels([[0.31, 4]]),
+    });
+
+    expect(depth.isFullyExecutable).toBe(false);
+    expect(depth.executableSize).toBe(4);
+  });
+});
+
+describe('withPredictSellBandFloorFromSharePrice', () => {
+  const preview: OrderPreview = {
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcomeTokenId: 'token-1',
+    timestamp: 1,
+    side: Side.SELL,
+    sharePrice: 0.58,
+    maxAmountSpent: 10,
+    minAmountReceived: 5.8,
+    minAmountReceivedAfterSlippage: 5.7,
+    slippage: SELL_SLIPPAGE,
+    tickSize: 0.01,
+    minOrderSize: 1,
+    negRisk: false,
+  };
+
+  it('measures the worst case from the preview share price', () => {
+    // 0.58 × 0.95 = 0.551 → 0.56, so 10 shares have a 5.60 floor.
+    const result = withPredictSellBandFloorFromSharePrice(preview);
+
+    expect(result.minAmountReceivedAfterSlippage).toBeCloseTo(5.6, 10);
+    expect(result.sharePrice).toBe(0.58);
+  });
+
+  it('returns the preview unchanged when no valid floor exists', () => {
+    const result = withPredictSellBandFloorFromSharePrice({
+      ...preview,
+      sharePrice: 0,
+    });
+
+    expect(result.minAmountReceivedAfterSlippage).toBe(5.7);
+  });
+});
+
+describe('execution-checked sell freshness', () => {
+  const sellPreview: OrderPreview = {
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcomeTokenId: 'token-1',
+    timestamp: 1,
+    side: Side.SELL,
+    sharePrice: 0.5,
+    maxAmountSpent: 10,
+    minAmountReceived: 5,
+    slippage: SELL_SLIPPAGE,
+    tickSize: 0.01,
+    minOrderSize: 1,
+    negRisk: false,
+  };
+
+  it('matches only sell previews that carry fetchedAt', () => {
+    expect(isPredictExecutionCheckedSell(sellPreview)).toBe(false);
+    expect(
+      isPredictExecutionCheckedSell({ ...sellPreview, fetchedAt: 1 }),
+    ).toBe(true);
+    expect(
+      isPredictExecutionCheckedSell({
+        ...sellPreview,
+        side: Side.BUY,
+        fetchedAt: 1,
+      }),
+    ).toBe(false);
+  });
+
+  it('reports staleness only after the freshness window', () => {
+    const preview = { ...sellPreview, fetchedAt: 1_000 };
+
+    expect(
+      isPredictExecutionPreviewStale(
+        preview,
+        1_000 + PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS,
+      ),
+    ).toBe(false);
+    expect(
+      isPredictExecutionPreviewStale(
+        preview,
+        1_001 + PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS,
+      ),
+    ).toBe(true);
   });
 });

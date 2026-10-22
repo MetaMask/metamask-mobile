@@ -52,7 +52,15 @@ import {
 } from '../../../../util/trace';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
 import { AssetType } from '../../../Views/confirmations/types/token';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
+import {
+  PREDICT_CONSTANTS,
+  PREDICT_ERROR_CODES,
+  PREDICT_SELL_PREFLIGHT_ERRORS,
+} from '../constants/errors';
+import {
+  isPredictExecutionCheckedSell,
+  isPredictExecutionPreviewStale,
+} from '../utils/execution';
 import {
   MAX_TRACKED_PREDICT_BUY_TERMINALS,
   type PredictBuyTerminalStatus,
@@ -1975,6 +1983,12 @@ export class PredictController extends BaseController<
    * book) come back typed as `no_match` — never thrown — so the caller can
    * show recovery UI without parsing error strings. Only an `executable`
    * result carries a signable, execution-marked preview.
+   *
+   * For sells, the submission pre-flight (fee policy, market state, query
+   * cache refresh, claimable position) runs here, before the book fetch, so
+   * that `placeOrder` can skip it and the signing freshness window covers
+   * only work that depends on the book. A failed pre-flight throws the same
+   * error code that `placeOrder` would have thrown.
    */
   async previewExecutionOrder(
     params: PreviewExecutionOrderParams,
@@ -1982,13 +1996,27 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
-      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+      const [paramsWithFeePolicy] = await Promise.all([
+        this.withPredictFeePolicy(params),
+        ...(params.side === Side.SELL
+          ? [
+              validateMarketBettable({ provider, preview: params }),
+              this.invalidateQueryCache(provider.chainId),
+            ]
+          : []),
+      ]);
 
-      return provider.previewExecutionOrder({
+      return await provider.previewExecutionOrder({
         ...paramsWithFeePolicy,
         signer,
       });
     } catch (error) {
+      if (
+        error instanceof Error &&
+        PREDICT_SELL_PREFLIGHT_ERRORS.has(error.message)
+      ) {
+        throw error;
+      }
       Logger.error(
         ensureError(error),
         this.getErrorContext('previewExecutionOrder', {
@@ -2060,6 +2088,19 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    // An execution-checked sell passed its pre-flight in
+    // `previewExecutionOrder`. A stale one is rejected before any tracking or
+    // state change: nothing was signed, so it is not an order failure.
+    const submittedPreview = params.preview;
+    const isExecutionCheckedSell =
+      isPredictExecutionCheckedSell(submittedPreview);
+    if (
+      isExecutionCheckedSell &&
+      isPredictExecutionPreviewStale(submittedPreview)
+    ) {
+      throw new Error(PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE);
+    }
+
     const activeOrderAddress =
       params.address ?? this.requireEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
@@ -2072,13 +2113,17 @@ export class PredictController extends BaseController<
     let previewWithFeePolicy: OrderPreview;
 
     try {
-      previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
-        await this.withPredictFeePolicy(params.preview),
-      );
-      await validateMarketBettable({
-        provider: this.provider,
-        preview: previewWithFeePolicy,
-      });
+      if (isExecutionCheckedSell) {
+        previewWithFeePolicy = params.preview;
+      } else {
+        previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
+          await this.withPredictFeePolicy(params.preview),
+        );
+        await validateMarketBettable({
+          provider: this.provider,
+          preview: previewWithFeePolicy,
+        });
+      }
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -2324,8 +2369,11 @@ export class PredictController extends BaseController<
 
       for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
         try {
-          // Invalidate before each attempt to avoid nonce issues.
-          await this.invalidateQueryCache(provider.chainId);
+          // Invalidate before each attempt to avoid nonce issues. An
+          // execution-checked sell refreshed it before its book was fetched.
+          if (!isExecutionCheckedSell) {
+            await this.invalidateQueryCache(provider.chainId);
+          }
           result = await provider.placeOrder({
             ...params,
             preview: previewWithFeePolicy,
@@ -2467,6 +2515,13 @@ export class PredictController extends BaseController<
         : undefined;
       const isPostDepositOrderFailure =
         isBuyWithAnyToken && pendingOrder !== undefined;
+
+      if (errorMessage === PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE) {
+        // Rejected by the provider before signing: the caller revalidates,
+        // so this is neither an order failure nor a Sentry error.
+        traceData = { success: false, error: errorMessage };
+        throw new Error(errorMessage);
+      }
 
       if (params.attempt && previewWithFeePolicy.side === Side.BUY) {
         const failure = classifyPredictBuyFailure(

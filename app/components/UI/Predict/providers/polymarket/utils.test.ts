@@ -4043,6 +4043,65 @@ describe('polymarket utils', () => {
       expect('worstExecutablePrice' in result.execution).toBe(false);
     });
 
+    it('classifies a book without a bids field as no_match', async () => {
+      const bookWithoutBids: Partial<typeof orderBook> = { ...orderBook };
+      delete bookWithoutBids.bids;
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(bookWithoutBids),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const result = await previewExecutionOrder(executionSellParams);
+
+      expect(result.status).toBe('no_match');
+    });
+
+    it('builds the preview from the refreshed band when the moved price only fills there', async () => {
+      // Approved 0.30: band floor ceil(0.285) = 0.29, so a full fill at 0.28
+      // is outside it. Measured from 0.28 the floor is ceil(0.266) = 0.27.
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest
+            .fn()
+            .mockResolvedValue(
+              createExecutionBook({ bids: [{ price: '0.28', size: '80' }] }),
+            ),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const result = await previewExecutionOrder({
+        ...executionSellParams,
+        approvedPrice: 0.3,
+      });
+
+      expect(result.status).toBe('executable');
+      if (result.status !== 'executable') {
+        throw new Error('expected an executable result');
+      }
+      expect(result.preview.sharePrice).toBe(0.28);
+      expect(result.preview.minAmountReceivedAfterSlippage).toBeCloseTo(
+        80 * 0.27,
+        6,
+      );
+      expect(result.execution).toEqual(
+        expect.objectContaining({
+          approvedPrice: 0.3,
+          refreshedPrice: 0.28,
+          bandFloorPrice: expect.closeTo(0.27, 10),
+          executableSize: 80,
+        }),
+      );
+    });
+
     it('classifies a missing orderbook as no_match without book facts', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,
@@ -4057,17 +4116,14 @@ describe('polymarket utils', () => {
       if (result.status !== 'no_match') {
         throw new Error('expected a no_match result');
       }
-      expect(result.execution).toEqual(
-        expect.objectContaining({
-          requestedSize: 80,
-          executableSize: 0,
-          approvedPrice: 0.5,
-          // No book was received, so the band stays the unrounded boundary.
-          bandFloorPrice: 0.475,
-          tickSize: 0,
-          fetchedAt: expect.any(Number),
-        }),
-      );
+      // No book was received, so there is no tick size and no tick-rounded
+      // band floor to report.
+      expect(result.execution).toEqual({
+        requestedSize: 80,
+        executableSize: 0,
+        approvedPrice: 0.5,
+        fetchedAt: expect.any(Number),
+      });
     });
 
     it('classifies a request timeout as timeout', async () => {

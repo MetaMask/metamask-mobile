@@ -54,7 +54,10 @@ import {
 import type { PredictFeatureFlags } from '../types/flags';
 
 import { PREDICT_ERROR_CODES } from '../constants/errors';
-import { PredictEventValues } from '../constants/eventNames';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+} from '../constants/eventNames';
 import {
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -10096,6 +10099,170 @@ describe('PredictController', () => {
           }),
         ).rejects.toThrow('Execution preview crashed');
       });
+    });
+
+    it('runs the sell pre-flight before the provider fetches the book', async () => {
+      const calls: string[] = [];
+      mockPolymarketProvider.getMarketDetails.mockImplementation(async () => {
+        calls.push('market');
+        return createPredictMarket();
+      });
+      DEFAULT_NETWORK_CLIENT.blockTracker.checkForLatestBlock.mockImplementation(
+        async () => {
+          calls.push('block');
+        },
+      );
+      mockPolymarketProvider.previewExecutionOrder.mockImplementation(
+        async () => {
+          calls.push('book');
+          return { status: 'timeout' };
+        },
+      );
+
+      await withController(async ({ controller }) => {
+        await controller.previewExecutionOrder({
+          marketId: 'market-1',
+          outcomeId: 'outcome-1',
+          outcomeTokenId: 'token-1',
+          side: Side.SELL,
+          size: 10,
+          approvedPrice: 0.5,
+          slippage: 0.05,
+        });
+      });
+
+      expect(calls).toHaveLength(3);
+      expect(calls[2]).toBe('book');
+      DEFAULT_NETWORK_CLIENT.blockTracker.checkForLatestBlock.mockResolvedValue(
+        undefined,
+      );
+    });
+
+    it('rethrows a non-bettable market without fetching the book or reporting to Sentry', async () => {
+      mockPolymarketProvider.getMarketDetails.mockResolvedValue(
+        createPredictMarket({ status: PredictMarketStatus.CLOSED }),
+      );
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          await expect(
+            controller.previewExecutionOrder({
+              marketId: 'market-1',
+              outcomeId: 'outcome-1',
+              outcomeTokenId: 'token-1',
+              side: Side.SELL,
+              size: 10,
+              approvedPrice: 0.5,
+              slippage: 0.05,
+            }),
+          ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS);
+        });
+
+        expect(
+          mockPolymarketProvider.previewExecutionOrder,
+        ).not.toHaveBeenCalled();
+        expect(errorSpy).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS,
+          }),
+          expect.anything(),
+        );
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+  });
+
+  describe('placeOrder with an execution-checked sell', () => {
+    const successResult = {
+      success: true as const,
+      response: {
+        id: 'order-123',
+        spentAmount: '10',
+        receivedAmount: '5',
+      },
+    };
+
+    it('skips the pre-flight that already ran before the book fetch', async () => {
+      mockPolymarketProvider.placeOrder.mockResolvedValue(successResult);
+      DEFAULT_NETWORK_CLIENT.blockTracker.checkForLatestBlock.mockClear();
+
+      await withController(async ({ controller }) => {
+        const preview = createMockOrderPreview({
+          side: Side.SELL,
+          fetchedAt: Date.now(),
+        });
+
+        await controller.placeOrder({ preview });
+
+        expect(mockPolymarketProvider.placeOrder).toHaveBeenCalledWith(
+          expect.objectContaining({ preview }),
+        );
+      });
+
+      expect(mockPolymarketProvider.getMarketDetails).not.toHaveBeenCalled();
+      expect(
+        DEFAULT_NETWORK_CLIENT.blockTracker.checkForLatestBlock,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('rejects a stale preview before tracking or placing anything', async () => {
+      await withController(async ({ controller }) => {
+        const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+        const preview = createMockOrderPreview({
+          side: Side.SELL,
+          fetchedAt: Date.now() - 2_000,
+        });
+
+        await expect(controller.placeOrder({ preview })).rejects.toThrow(
+          PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE,
+        );
+
+        expect(trackSpy).not.toHaveBeenCalled();
+        expect(controller.state.lastError).toBeNull();
+      });
+
+      expect(mockPolymarketProvider.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('does not report a provider stale rejection as an order failure', async () => {
+      mockPolymarketProvider.placeOrder.mockResolvedValue({
+        success: false,
+        error: PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE,
+      });
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
+          const preview = createMockOrderPreview({
+            side: Side.SELL,
+            fetchedAt: Date.now(),
+          });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE,
+          );
+
+          const statuses = trackSpy.mock.calls.map(([args]) => args.status);
+          expect(statuses).not.toContain(PredictTradeStatus.FAILED);
+          expect(controller.state.lastError).toBeNull();
+        });
+
+        expect(errorSpy).not.toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: PREDICT_ERROR_CODES.PREVIEW_EXECUTION_STALE,
+          }),
+          expect.anything(),
+        );
+      } finally {
+        errorSpy.mockRestore();
+      }
     });
   });
 
