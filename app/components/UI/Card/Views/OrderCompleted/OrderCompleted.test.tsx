@@ -9,7 +9,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockReset = jest.fn();
+const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -24,7 +24,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       dispatch: mockDispatch,
-      reset: mockReset,
+      goBack: mockGoBack,
     }),
     StackActions: {
       replace: jest.fn((routeName, params) => ({
@@ -51,6 +51,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
+  I18nEvents: new (jest.requireActual('events').EventEmitter)(),
   strings: (key: string) => {
     const map: Record<string, string> = {
       'card.order_completed.title': 'YOUR CARD\nIS ORDERED',
@@ -133,6 +136,17 @@ jest.mock('@metamask/design-system-react-native', () => {
       Md: 'Md',
       Lg: 'Lg',
     },
+    HeaderStandard: ({
+      onBack,
+      backButtonProps,
+    }: {
+      onBack?: () => void;
+      backButtonProps?: { testID?: string };
+    }) =>
+      React.createElement(TouchableOpacity, {
+        onPress: onBack,
+        testID: backButtonProps?.testID,
+      }),
   };
 });
 
@@ -230,15 +244,13 @@ describe('OrderCompleted', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('resets the stack to Card Home when "Not now" is pressed', () => {
-      const { getByTestId } = render(<OrderCompleted />);
+    it('goes back from the header', () => {
+      const { getByTestId, queryByText } = render(<OrderCompleted />);
 
-      fireEvent.press(getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON));
+      fireEvent.press(getByTestId(OrderCompletedSelectors.BACK_BUTTON));
 
-      expect(mockReset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [{ name: Routes.CARD.HOME }],
-      });
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByText('card.card_onboarding.not_now_button')).toBeNull();
     });
   });
 });
