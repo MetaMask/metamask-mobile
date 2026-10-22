@@ -5,9 +5,15 @@ import { setDataCollectionForMarketing } from '../../actions/security';
 import { clearAttribution } from '../../core/redux/slices/attribution';
 import { analytics } from '../../util/analytics/analytics';
 import Logger from '../../util/Logger';
-import { selectAnalyticsOptedInToMarketing } from '../../selectors/analyticsController';
+import {
+  selectAnalyticsOptedInToMarketing,
+  selectMarketingConsent,
+} from '../../selectors/analyticsController';
 import { selectAttributionRecord } from '../../selectors/attribution';
-import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
+import {
+  INIT_BG_STATE_KEY,
+  UPDATE_BG_STATE_KEY,
+} from '../../core/EngineService/constants';
 import {
   watchMarketingAttributionOnClearOnboarding,
   watchMarketingAttributionOnConsentChange,
@@ -85,40 +91,38 @@ describe('marketingAttribution sagas', () => {
 
   describe('watchMarketingAttributionOnControllerConsent', () => {
     const attribution = { utm_source: 'source', capturedAt: 1 };
+    const appStart = { type: INIT_BG_STATE_KEY };
     const bgStateUpdate = {
       type: UPDATE_BG_STATE_KEY,
       payload: { key: 'AnalyticsController' },
     };
 
-    it('clears attribution when the controller reports marketing off', async () => {
+    it.each([
+      ['undecided on app start', appStart, null],
+      ['opted out on app start', appStart, false],
+      ['opted out during the session', bgStateUpdate, false],
+    ])('clears attribution when %s', async (_, action, consent) => {
       await expectSaga(watchMarketingAttributionOnControllerConsent)
         .provide([
-          [select(selectAnalyticsOptedInToMarketing), false],
+          [select(selectMarketingConsent), consent],
           [select(selectAttributionRecord), attribution],
         ])
-        .dispatch(bgStateUpdate)
+        .dispatch(action)
         .put(clearAttribution())
         .silentRun(50);
     });
 
-    it('keeps attribution while marketing is on', async () => {
+    it.each([
+      ['opted in on app start', appStart, true],
+      ['opted in during the session', bgStateUpdate, true],
+      ['undecided during the session', bgStateUpdate, null],
+    ])('keeps attribution when %s', async (_, action, consent) => {
       await expectSaga(watchMarketingAttributionOnControllerConsent)
         .provide([
-          [select(selectAnalyticsOptedInToMarketing), true],
+          [select(selectMarketingConsent), consent],
           [select(selectAttributionRecord), attribution],
         ])
-        .dispatch(bgStateUpdate)
-        .not.put(clearAttribution())
-        .silentRun(50);
-    });
-
-    it('waits for controller state before clearing anything', async () => {
-      await expectSaga(watchMarketingAttributionOnControllerConsent)
-        .provide([
-          [select(selectAnalyticsOptedInToMarketing), undefined],
-          [select(selectAttributionRecord), attribution],
-        ])
-        .dispatch(bgStateUpdate)
+        .dispatch(action)
         .not.put(clearAttribution())
         .silentRun(50);
     });
