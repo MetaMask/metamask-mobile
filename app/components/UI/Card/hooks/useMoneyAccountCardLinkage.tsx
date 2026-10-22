@@ -28,7 +28,10 @@ import { useTheme } from '../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/featureFlagController/gasFeesSponsored';
-import { selectCardFeatureFlag , selectCardImmersveConfig } from '../../../../selectors/featureFlagController/card';
+import {
+  selectCardFeatureFlag,
+  selectCardImmersveConfig,
+} from '../../../../selectors/featureFlagController/card';
 import {
   selectCardDelegationSettings,
   selectCardHomeDataStatus,
@@ -62,7 +65,8 @@ import {
   type CardProviderId,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { BAANX_MAX_LIMIT } from '../constants';
-import { isMoneyAccountCardTokenAllowlisted ,
+import {
+  isMoneyAccountCardTokenAllowlisted,
   MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
 } from '../util/vedaToken';
