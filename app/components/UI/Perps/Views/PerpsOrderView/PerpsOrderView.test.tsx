@@ -907,8 +907,8 @@ interface MockTradeScreenProps {
   showPayWith: boolean;
   isPayWithDisabled: boolean;
   isPayWithLoading: boolean;
-  feePercentage?: string;
-  bridgeFee?: string;
+  fee?: number;
+  originalFee?: number;
   isFeeLoading: boolean;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
@@ -959,6 +959,7 @@ let mockTPSLScreenProps: MockTPSLScreenProps | undefined;
 let mockPayWithScreenProps: MockPayWithScreenProps | undefined;
 let mockMarginInfoScreenProps: MockInfoScreenProps | undefined;
 let mockLiquidationInfoScreenProps: MockInfoScreenProps | undefined;
+let mockFeesInfoScreenProps: { data?: Record<string, unknown> } | undefined;
 
 const getMockTradeScreenProps = (): MockTradeScreenProps => {
   if (!mockTradeScreenProps) {
@@ -1023,6 +1024,11 @@ jest.mock(
         ).props;
         mockLiquidationInfoScreenProps = (
           screens.liquidationInfo as React.ReactElement<MockInfoScreenProps>
+        ).props;
+        mockFeesInfoScreenProps = (
+          screens.feesInfo as React.ReactElement<{
+            data?: Record<string, unknown>;
+          }>
         ).props;
         return ReactActual.createElement(View, {
           testID: 'perps-trade-sheet',
@@ -1357,6 +1363,7 @@ describe('PerpsOrderView', () => {
     mockPayWithScreenProps = undefined;
     mockMarginInfoScreenProps = undefined;
     mockLiquidationInfoScreenProps = undefined;
+    mockFeesInfoScreenProps = undefined;
     mockTradeSheetContentSizedScreens = undefined;
     mockTradeWithAnyTokenEnabled = false;
     (useTransactionConfirm as jest.Mock).mockReturnValue({
@@ -1573,6 +1580,8 @@ describe('PerpsOrderView', () => {
       'payWith',
       'marginInfo',
       'liquidationInfo',
+      'feesInfo',
+      'orangeFeesInfo',
     ]);
   });
 
@@ -1924,6 +1933,45 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  it('passes the member fee waiver to the Trade sheet Fees row', () => {
+    const { usePerpsOrderFees } = jest.requireMock('../../hooks') as {
+      usePerpsOrderFees: jest.Mock;
+    };
+    // Restored below: later tests rely on the file-level fee mock.
+    const defaultFeesImplementation = usePerpsOrderFees.getMockImplementation();
+    usePerpsOrderFees.mockReturnValue({
+      totalFee: 4.95,
+      undiscountedTotalFee: 15.95,
+      protocolFee: 4.95,
+      metamaskFee: 0,
+      protocolFeeRate: 0.00045,
+      metamaskFeeRate: 0,
+      originalMetamaskFeeRate: 0.001,
+      feeDiscountPercentage: 100,
+      feeSource: 'subscription',
+      isLoadingMetamaskFee: false,
+      error: null,
+    });
+    useTradeSheetRoute();
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+    usePerpsOrderFees.mockImplementation(defaultFeesImplementation);
+
+    expect(getMockTradeScreenProps()).toEqual(
+      expect.objectContaining({
+        fee: 4.95,
+        originalFee: 15.95,
+        feeSource: 'subscription',
+      }),
+    );
+    expect(mockFeesInfoScreenProps?.data).toEqual(
+      expect.objectContaining({
+        feeSource: 'subscription',
+        feeDiscountPercentage: 100,
+      }),
+    );
+  });
+
   describe('Trade sheet bridge fee', () => {
     const payTotalsWithUsdFee = (usd: string) => ({
       fees: {
@@ -1946,8 +1994,9 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
-      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+      expect(getMockTradeScreenProps().fee).toBeCloseTo(45.15);
+      expect(getMockTradeScreenProps().originalFee).toBeCloseTo(45.15);
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBe('$0.15');
       expect(getMockTradeScreenProps().isFeeLoading).toBe(false);
     });
 
@@ -1958,8 +2007,8 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
-      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBeUndefined();
+      expect(getMockTradeScreenProps().fee).toBe(45);
     });
 
     it('leaves the fee line unchanged for the Money Account', () => {
@@ -1970,8 +2019,8 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
-      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBeUndefined();
+      expect(getMockTradeScreenProps().fee).toBe(45);
     });
 
     it('omits the bridge fee when the deposit fee is zero', () => {
@@ -1981,7 +2030,7 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBeUndefined();
     });
 
     it('omits the bridge fee when the pay quote has no fees', () => {
@@ -1991,7 +2040,7 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBeUndefined();
     });
 
     it('marks the Trade sheet fee as loading while the pay quote loads', () => {
@@ -2013,7 +2062,7 @@ describe('PerpsOrderView', () => {
         wrapper: TestWrapper,
       });
 
-      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBe('$0.15');
 
       mockPayTotals = payTotalsWithUsdFee('0.42');
       rerender(
@@ -2022,7 +2071,8 @@ describe('PerpsOrderView', () => {
         </TestWrapper>,
       );
 
-      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.42');
+      expect(mockFeesInfoScreenProps?.data?.bridgeFeeFormatted).toBe('$0.42');
+      expect(getMockTradeScreenProps().fee).toBeCloseTo(45.42);
     });
   });
 
@@ -2146,7 +2196,7 @@ describe('PerpsOrderView', () => {
     expect(getMockTradeScreenProps()).toEqual(
       expect.objectContaining({
         payWithName: 'perps.adjust_margin.perps_balance',
-        feePercentage: undefined,
+        fee: undefined,
       }),
     );
   });

@@ -255,6 +255,40 @@ describe('PerpsBottomSheetTooltip', () => {
     expect(getByText('0.045%')).toBeTruthy();
   });
 
+  it('opens the Orange fees explainer in place and returns with Got it', async () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={mockOnClose}
+          contentKey="fees"
+          data={{
+            metamaskFeeRate: 0,
+            protocolFeeRate: 0.00045,
+            originalMetamaskFeeRate: 0.001,
+            feeDiscountPercentage: 100,
+            feeSource: 'subscription',
+          }}
+        />
+      </SafeAreaProvider>,
+    );
+
+    fireEvent.press(
+      getByTestId(`${PerpsBottomSheetTooltipSelectorsIDs.CONTENT}-orange-info`),
+    );
+
+    expect(getByText('About Orange fees')).toBeTruthy();
+    expect(getByText(/^Orange covers the MetaMask fee/)).toBeTruthy();
+    expect(queryByText('Provider fee')).toBeNull();
+
+    fireEvent.press(
+      getByTestId(PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON),
+    );
+
+    expect(getByText('Provider fee')).toBeTruthy();
+    expect(mockOnClose).not.toHaveBeenCalled();
+  });
+
   // TAT-3758: this component must NOT wrap itself in a SafeAreaProvider. Many
   // call sites (PerpsOrderView, PerpsAdjustMarginView, PerpsMarketDetailsView,
   // PerpsProOrderFormPanel, ...) render it inline with no Modal. SafeAreaProvider

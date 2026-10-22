@@ -1,5 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
+import { Image } from 'react-native';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
@@ -138,18 +139,93 @@ describe('FeesTooltipContent', () => {
       feeSource: 'subscription' as const,
     };
 
-    it('renders the member badge instead of the VIP badge', () => {
-      // Arrange & Act
+    it('shows the Orange chip and info button instead of the old Member badge', () => {
+      const onOpenNestedInfo = jest.fn();
       const { getByTestId, queryByTestId } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{ ...memberData, feeDiscountPercentage: 100 }}
+          onOpenNestedInfo={onOpenNestedInfo}
+        />,
+      );
+
+      expect(getByTestId('fees-tooltip-orange-chip')).toHaveTextContent(
+        'Orange',
+      );
+      expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      const info = getByTestId('fees-tooltip-orange-info');
+      expect(info.props.accessibilityLabel).toBe('About Orange fees');
+      fireEvent.press(info);
+      expect(onOpenNestedInfo).toHaveBeenCalledWith('orange_fees');
+    });
+
+    it('keeps the full member percentages: struck-through rate then 0%', () => {
+      const { getByText } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{
+            ...memberData,
+            metamaskFeeRate: 0,
+            feeDiscountPercentage: 100,
+          }}
+        />,
+      );
+
+      expect(getByText('1.000%')).toBeTruthy();
+      expect(getByText('0.000%')).toBeTruthy();
+      expect(getByText('0.045%')).toBeTruthy();
+      expect(
+        getByText("You're saving 100% on the MetaMask fee for this trade."),
+      ).toBeTruthy();
+    });
+
+    it('shows the blended MetaMask rate for a partial member waiver', () => {
+      // $2,413 order with $1,000 covered: 0.1% x (1 - 1000 / 2413).
+      const { getByText } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{
+            ...memberData,
+            metamaskFeeRate: 0.0005856,
+            originalMetamaskFeeRate: 0.001,
+            feeDiscountPercentage: 41.44,
+          }}
+        />,
+      );
+
+      expect(getByText('0.100%')).toBeTruthy();
+      expect(getByText('0.059%')).toBeTruthy();
+      expect(
+        getByText("You're saving 41.44% on the MetaMask fee for this trade."),
+      ).toBeTruthy();
+    });
+
+    it('hides the info button when the host cannot open nested info', () => {
+      const { getByTestId, queryByTestId } = render(
+        <FeesTooltipContent
+          testID="fees-tooltip"
+          data={{ ...memberData, feeDiscountPercentage: 100 }}
+        />,
+      );
+
+      expect(getByTestId('fees-tooltip-orange-chip')).toBeTruthy();
+      expect(queryByTestId('fees-tooltip-orange-info')).toBeNull();
+    });
+
+    it('shows the member banner on the neutral muted surface, text only', () => {
+      const { getByTestId, getByText, UNSAFE_queryAllByType } = render(
         <FeesTooltipContent
           testID="fees-tooltip"
           data={{ ...memberData, feeDiscountPercentage: 25 }}
         />,
       );
 
-      // Assert
-      expect(getByTestId('rewards-member-badge')).toBeTruthy();
-      expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(getByTestId('fees-tooltip-orange-banner')).toBeTruthy();
+      expect(
+        getByText("You're saving 25% on the MetaMask fee for this trade."),
+      ).toBeTruthy();
+      expect(UNSAFE_queryAllByType(Image)).toHaveLength(0);
     });
 
     it('shows the member saving message instead of the VIP one', () => {
@@ -162,7 +238,9 @@ describe('FeesTooltipContent', () => {
       );
 
       // Assert
-      expect(getByText("You're saving 25% on fees as a member.")).toBeTruthy();
+      expect(
+        getByText("You're saving 25% on the MetaMask fee for this trade."),
+      ).toBeTruthy();
       expect(queryByText(/as a VIP/)).toBeNull();
     });
 
@@ -175,6 +253,7 @@ describe('FeesTooltipContent', () => {
       // Assert
       expect(queryByTestId('rewards-member-badge')).toBeNull();
       expect(queryByTestId('rewards-vip-badge')).toBeNull();
+      expect(queryByTestId('fees-tooltip-orange-chip')).toBeNull();
       expect(queryByText('1.000%')).toBeNull();
       expect(getByText('0.500%')).toBeTruthy();
       expect(queryByText(/saving/i)).toBeNull();
@@ -192,6 +271,8 @@ describe('FeesTooltipContent', () => {
       // Assert
       expect(getByTestId('rewards-vip-badge')).toBeTruthy();
       expect(queryByTestId('rewards-member-badge')).toBeNull();
+      expect(queryByTestId('fees-tooltip-orange-chip')).toBeNull();
+      expect(queryByTestId('fees-tooltip-orange-banner')).toBeNull();
     });
   });
 

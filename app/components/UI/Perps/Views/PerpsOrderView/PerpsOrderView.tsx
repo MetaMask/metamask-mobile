@@ -95,6 +95,8 @@ import PerpsTradeBottomSheet, {
 } from '../../components/PerpsTradeBottomSheet/PerpsTradeBottomSheet';
 import PerpsTradeScreen from '../../components/PerpsTradeBottomSheet/PerpsTradeScreen';
 import {
+  PerpsTradeFeesInfoScreen,
+  PerpsTradeOrangeFeesInfoScreen,
   PerpsTradeInfoScreen,
   PerpsTradeLeverageScreen,
   PerpsTradePayWithScreen,
@@ -271,6 +273,8 @@ const TRADE_SHEET_SCREEN_DEPTH: Record<PerpsTradeSheetScreen, number> = {
   payWith: 1,
   marginInfo: 1,
   liquidationInfo: 1,
+  feesInfo: 1,
+  orangeFeesInfo: 2,
 };
 /** Nested screens that size to their content instead of the Trade screen height. */
 const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
@@ -278,6 +282,8 @@ const TRADE_SHEET_CONTENT_SIZED_SCREENS: readonly PerpsTradeSheetScreen[] = [
   'payWith',
   'marginInfo',
   'liquidationInfo',
+  'feesInfo',
+  'orangeFeesInfo',
 ];
 
 /**
@@ -2360,19 +2366,28 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   }, []);
 
   if (useBottomSheet) {
-    const totalFeeRate =
-      (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-    const feePercentage =
-      totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
-    // Same formatter as the full-screen fees tooltip. Perps balance and the
-    // Money Account have no bridge, and a missing or zero quote stays on the
-    // trade-fee line.
-    const bridgeFee =
-      hasCustomTokenSelected && !isMoneyAccountSelected && depositFeeUsd > 0
-        ? formatPerpsFiat(depositFeeUsd, {
-            ranges: PRICE_RANGES_MINIMAL_VIEW,
-          })
-        : undefined;
+    // Perps balance and the Money Account have no bridge, so only a token
+    // payment adds the bridge quote to the Fees row total and breakdown.
+    const tradeSheetBridgeFeeUsd =
+      hasCustomTokenSelected && !isMoneyAccountSelected ? depositFeeUsd : 0;
+    // Unavailable rates (an error state) show the placeholder, not "$0".
+    const hasTradeSheetFee =
+      hasValidAmount &&
+      feeResults.protocolFeeRate !== undefined &&
+      feeResults.metamaskFeeRate !== undefined;
+    const tradeSheetFeesInfoData = {
+      metamaskFeeRate: feeResults.metamaskFeeRate,
+      protocolFeeRate: feeResults.protocolFeeRate,
+      originalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
+      feeDiscountPercentage: feeResults.feeDiscountPercentage,
+      feeSource: feeResults.feeSource,
+      ...(tradeSheetBridgeFeeUsd > 0 && {
+        // Same formatter as the full-screen fees tooltip.
+        bridgeFeeFormatted: formatPerpsFiat(tradeSheetBridgeFeeUsd, {
+          ranges: PRICE_RANGES_MINIMAL_VIEW,
+        }),
+      }),
+    };
     let payWithName = payToken?.symbol ?? '';
     if (isPayTokenPerpsBalance) {
       payWithName = strings('perps.adjust_margin.perps_balance');
@@ -2600,8 +2615,16 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 payWithIcon={<PerpsPayTokenIcon />}
                 showPayWith={isPayRowVisible}
                 isPayWithDisabled={isPayWithDisabled}
-                feePercentage={feePercentage}
-                bridgeFee={bridgeFee}
+                fee={
+                  hasTradeSheetFee
+                    ? estimatedFees + tradeSheetBridgeFeeUsd
+                    : undefined
+                }
+                originalFee={
+                  hasTradeSheetFee
+                    ? undiscountedEstimatedFees + tradeSheetBridgeFeeUsd
+                    : undefined
+                }
                 feeDiscountPercentage={rewardsState.feeDiscountPercentage}
                 feeSource={feeResults.feeSource}
                 isSubmitting={isPlacingOrder}
@@ -2666,6 +2689,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             liquidationInfo: (
               <PerpsTradeInfoScreen contentKey="liquidation_price" />
             ),
+            feesInfo: (
+              <PerpsTradeFeesInfoScreen data={tradeSheetFeesInfoData} />
+            ),
+            orangeFeesInfo: <PerpsTradeOrangeFeesInfoScreen />,
           }}
         />
       </>

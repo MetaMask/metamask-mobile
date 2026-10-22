@@ -32,10 +32,6 @@ const createStyles = (params: { theme: Theme }) =>
       marginBottom: 12,
       gap: 8,
     },
-    memberIcon: {
-      width: 14,
-      height: 14,
-    },
     feeValueContainer: {
       flexDirection: 'row',
       alignItems: 'center',

@@ -21,15 +21,19 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { OrderType, PerpsFeeSource } from '@metamask/perps-controller';
+import {
+  PERPS_CONSTANTS,
+  type OrderType,
+  type PerpsFeeSource,
+} from '@metamask/perps-controller';
 import React, { useState } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
+import PerpsFeesRow from '../PerpsFeesRow';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
 import PerpsOICapWarning from '../PerpsOICapWarning';
 import PerpsServiceInterruptionBanner from '../PerpsServiceInterruptionBanner';
@@ -103,9 +107,13 @@ interface PerpsTradeScreenProps {
   payWithIcon?: React.ReactNode;
   showPayWith: boolean;
   isPayWithDisabled: boolean;
-  feePercentage?: string;
-  /** Formatted fiat bridge fee, shown when the user pays with a token. */
-  bridgeFee?: string;
+  /**
+   * Total fee in USD the order is charged, including any bridge fee when the
+   * user pays with a token. Undefined shows the fallback placeholder.
+   */
+  fee?: number;
+  /** Same total before any MetaMask fee discount, shown struck through. */
+  originalFee?: number;
   feeDiscountPercentage?: number;
   feeSource?: PerpsFeeSource;
   isSubmitting: boolean;
@@ -164,12 +172,9 @@ const LIMIT_PRICE_PRESET_BUTTON_CLASS_NAME = 'flex-1 px-1';
 /**
  * Skeletons that stand in for a single line of text take that text's line
  * height. A shorter placeholder makes the layout jump when the value arrives:
- * the header centres its text column, so a shorter price line moved the title,
- * and the fee line sits at the bottom of a bottom-anchored sheet, so a shorter
- * placeholder moved the whole sheet.
+ * the header centres its text column, so a shorter price line moved the title.
  */
 const HEADER_PRICE_SKELETON_HEIGHT = typography.sBodySM.lineHeight;
-const FEE_SKELETON_HEIGHT = typography.sBodyXS.lineHeight;
 
 interface ActionRowProps {
   label: string;
@@ -308,8 +313,8 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   payWithIcon,
   showPayWith,
   isPayWithDisabled,
-  feePercentage,
-  bridgeFee,
+  fee,
+  originalFee,
   feeDiscountPercentage,
   feeSource,
   isSubmitting,
@@ -772,6 +777,20 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   showEndIcon={false}
                   onPress={() => navigateTo('liquidationInfo')}
                 />
+                <PerpsFeesRow
+                  testID={PerpsTradeSheetSelectorsIDs.FEES_ROW}
+                  valueTestID={PerpsTradeSheetSelectorsIDs.FEES_VALUE}
+                  infoButtonTestID={
+                    PerpsTradeSheetSelectorsIDs.FEES_INFO_BUTTON
+                  }
+                  fee={fee}
+                  originalFee={originalFee}
+                  feeDiscountPercentage={feeDiscountPercentage}
+                  feeSource={feeSource}
+                  isLoading={isFeeLoading}
+                  placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
+                  onInfoPress={() => navigateTo('feesInfo')}
+                />
                 {!isAtOICap ? (
                   <PerpsRebateBanner
                     coin={asset}
@@ -895,42 +914,6 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
             >
               {submitLabel ?? directionLabel}
             </ButtonSemantic>
-            {isFeeLoading ? (
-              <Skeleton
-                testID={PerpsTradeSheetSelectorsIDs.FEE_SKELETON}
-                width={112}
-                height={FEE_SKELETON_HEIGHT}
-                twClassName="self-center"
-              />
-            ) : feePercentage ? (
-              <Box
-                accessible={false}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                gap={2}
-              >
-                {(feeDiscountPercentage ?? 0) > 0 ? (
-                  <MembershipVipBadge
-                    hasProEntitlement={feeSource === 'subscription'}
-                  />
-                ) : null}
-                <Text
-                  variant={TextVariant.BodyXs}
-                  color={TextColor.TextAlternative}
-                  testID={PerpsTradeSheetSelectorsIDs.FEE_TEXT}
-                >
-                  {bridgeFee
-                    ? strings('perps.trade_sheet.includes_fee_with_bridge', {
-                        feePercentage,
-                        bridgeFee,
-                      })
-                    : strings('perps.trade_sheet.includes_fee', {
-                        feePercentage,
-                      })}
-                </Text>
-              </Box>
-            ) : null}
           </Box>
         </Box>
       ) : null}

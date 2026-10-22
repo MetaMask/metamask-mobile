@@ -29,7 +29,8 @@ export interface PerpsCloseTotalsProps {
 /**
  * Receive and P&L rows for the close sheet. Deliberately shorter than
  * `PerpsCloseSummary`, which the full-screen close flow uses: the sheet drops
- * the margin, fees, and rewards rows.
+ * the margin and rewards rows, and shows fees in the shared `PerpsFeesRow`
+ * right below these.
  */
 const PerpsCloseTotals: React.FC<PerpsCloseTotalsProps> = ({
   pnl,
