@@ -882,4 +882,21 @@ describe('navigateToVbaOnboardingDestination account create error', () => {
       params: { variant: 'details' },
     });
   });
+
+  it('passes the safe registration fields to contact support', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateDetails',
+      undefined,
+      { httpStatus: 400, traceId: 'moonpay-trace' },
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'details',
+        failure: { httpStatus: 400, traceId: 'moonpay-trace' },
+      },
+    });
+  });
 });

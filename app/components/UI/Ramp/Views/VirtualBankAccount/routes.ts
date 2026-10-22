@@ -1,4 +1,7 @@
-import type { AccountCreateErrorVariant } from './accountCreateError';
+import type {
+  AccountCreateErrorVariant,
+  AccountCreateFailureFields,
+} from './accountCreateError';
 import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
 
 export const VbaOnboardingRoutes = {
@@ -31,6 +34,7 @@ export type VbaOnboardingParamList = {
   VbaAccountProvisioningError: undefined;
   VbaAccountCreateError: {
     variant: AccountCreateErrorVariant;
+    failure?: AccountCreateFailureFields;
   };
   VbaError: undefined;
 };

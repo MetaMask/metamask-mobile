@@ -10,18 +10,19 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import VbaAccountCreateError from '../VbaAccountCreateError';
+import { buildAccountCreateSupportUrl } from '../accountCreateError';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
 
 /**
- * Wires the account-creation error screen into onboarding. Edit details
- * returns to the caller because the bank-details form is not in this flow yet.
+ * Wires the account-creation error screens into onboarding.
+ * `details` asks support to finish setup. `generic` can be retried.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
-  const variant = route.params.variant;
+  const { variant, failure } = route.params;
   const retry = useOpenVbaOnboarding('account-create-error-retry');
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -37,23 +38,16 @@ const VbaAccountCreateErrorAdapter = () => {
   }, [navigation]);
 
   const contactSupport = useCallback(() => {
-    openSupportWithConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
-  }, [openSupportWithConsent]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, failure),
+    );
+  }, [failure, openSupportWithConsent]);
 
   if (variant === 'details') {
     return (
       <VbaAccountCreateError
         variant="details"
-        onPrimary={leave}
-        onBack={leave}
-      />
-    );
-  }
-
-  if (variant === 'blocked') {
-    return (
-      <VbaAccountCreateError
-        variant="blocked"
         onPrimary={contactSupport}
         onSecondary={leave}
         onBack={leave}
@@ -65,7 +59,7 @@ const VbaAccountCreateErrorAdapter = () => {
     <VbaAccountCreateError
       variant="generic"
       onPrimary={() => retry()}
-      onSecondary={contactSupport}
+      onSecondary={leave}
       onBack={leave}
     />
   );

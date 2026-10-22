@@ -65,6 +65,11 @@ export interface VbaOnboardingErrorProps {
    */
   illustration?: React.ReactNode;
   /**
+   * Frame around the header graphic. Defaults to the 88pt slot used by the
+   * checklist screens.
+   */
+  illustrationClassName?: string;
+  /**
    * Overrides the scroll container testID when an existing screen keeps its own id.
    */
   testID?: string;
@@ -111,6 +116,7 @@ const VbaOnboardingError = ({
   primaryAction,
   secondaryAction,
   illustration,
+  illustrationClassName = 'mb-5 h-[88px] w-full',
   testID = VbaOnboardingErrorSelectorsIDs.CONTAINER,
   backButtonTestID = VbaOnboardingErrorSelectorsIDs.BACK_BUTTON,
   onBack,
@@ -193,7 +199,7 @@ const VbaOnboardingError = ({
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.End}
-                twClassName="mb-5 h-[88px] w-full"
+                twClassName={illustrationClassName}
                 testID={VbaOnboardingErrorSelectorsIDs.ILLUSTRATION}
               >
                 {illustration ?? <VbaOnboardingPlaceholder />}

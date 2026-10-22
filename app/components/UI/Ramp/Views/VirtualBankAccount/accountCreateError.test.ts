@@ -1,6 +1,8 @@
+import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import {
   ACCOUNT_CREATE_ERROR_DESTINATION,
   accountCreateErrorVariantForDestination,
+  buildAccountCreateSupportUrl,
   getAccountCreateErrorVariant,
   getAccountCreateFailureLogFields,
   type AccountCreateRegistrationResult,
@@ -16,10 +18,10 @@ describe('accountCreateError', () => {
       [
         'compliance rejection',
         { kind: 'fiat', status: 'AuthorizationFailed' },
-        'blocked',
+        'details',
       ],
-      ['suspended customer', { kind: 'http', status: 403 }, 'blocked'],
-      ['rail unavailable', { kind: 'http', status: 422 }, 'blocked'],
+      ['suspended customer', { kind: 'http', status: 403 }, 'details'],
+      ['rail unavailable', { kind: 'http', status: 422 }, 'details'],
       ['invalid bank details', { kind: 'http', status: 400 }, 'details'],
       [
         'rejected bank details',
@@ -66,6 +68,42 @@ describe('accountCreateError', () => {
           status: 'AuthorizationFailed',
         }),
       ).toEqual({ httpStatus: 200, fiatStatus: 'AuthorizationFailed' });
+    });
+  });
+
+  describe('buildAccountCreateSupportUrl', () => {
+    it('adds the status and trace id and leaves the response body out', () => {
+      const url = new URL(
+        buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, {
+          httpStatus: 400,
+          traceId: 'moonpay-trace',
+        }),
+      );
+
+      expect(url.searchParams.get('http_status')).toBe('400');
+      expect(url.searchParams.get('trace_id')).toBe('moonpay-trace');
+      expect(url.searchParams.get('fiat_status')).toBeNull();
+      expect(url.searchParams.get('utm_source')).toBe('mobile_app');
+      expect(url.toString()).not.toContain('GB29NWBK');
+    });
+
+    it('adds the fiat status for a 200 registration failure', () => {
+      const url = new URL(
+        buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, {
+          httpStatus: 200,
+          fiatStatus: 'RegistrationFailed',
+        }),
+      );
+
+      expect(url.searchParams.get('http_status')).toBe('200');
+      expect(url.searchParams.get('fiat_status')).toBe('RegistrationFailed');
+      expect(url.searchParams.get('trace_id')).toBeNull();
+    });
+
+    it('leaves the help-center URL unchanged when there is no registration', () => {
+      expect(buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL)).toBe(
+        METAMASK_SUPPORT_URL,
+      );
     });
   });
 
