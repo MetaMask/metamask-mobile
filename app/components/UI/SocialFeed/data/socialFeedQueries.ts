@@ -12,19 +12,33 @@ export const SOCIAL_FEED_QUERY_ACTIONS = [
   'SocialService:fetchTraderFeed',
 ] as const satisfies readonly SocialFeedRequest['action'][];
 
+/**
+ * Trailing query-key element for infinite feed queries. `createUIQueryClient`
+ * hydrates any UI query whose key hash matches a data-service cache entry,
+ * and `SocialService` caches each first page under `[action, options]`.
+ * Without this suffix that plain `FeedResponse` overwrites the infinite
+ * `{ pages, pageParams }` data and pagination crashes.
+ */
+export const INFINITE_FEED_QUERY_KEY_SUFFIX = 'pages';
+
 export type SocialFeedQueryKey = [
   SocialFeedRequest['action'],
   SocialFeedRequest['options'] & { limit: number },
+  typeof INFINITE_FEED_QUERY_KEY_SUFFIX,
 ];
 
 /**
- * `[action, request options + page size]`. The page size is part of the key
- * because a 3-item preview and a full list are different first pages.
+ * `[action, request options + page size, suffix]`. The page size is part of
+ * the key because a 3-item preview and a full list are different first pages.
  */
 export const buildSocialFeedQueryKey = (
   request: SocialFeedRequest,
   limit: number,
-): SocialFeedQueryKey => [request.action, { ...request.options, limit }];
+): SocialFeedQueryKey => [
+  request.action,
+  { ...request.options, limit },
+  INFINITE_FEED_QUERY_KEY_SUFFIX,
+];
 
 /**
  * Fetches one feed page for a resolved request.
