@@ -20,6 +20,26 @@ const SOCIAL_FEED_PAGE_SIZE = 30;
 const SOCIAL_FEED_REVEAL_BATCH_SIZE = 2;
 const SOCIAL_FEED_REVEAL_INTERVAL_MS = 16;
 
+/**
+ * Records the highest revision of a feed item evicted from the realtime
+ * buffer, so a later revision does not bring it back as a new row. Holds at
+ * most one buffer's worth of items, dropping the oldest.
+ */
+export const rememberEvictedRevision = (
+  ledger: Map<string, number>,
+  feedItemId: string,
+  revision: number,
+): void => {
+  ledger.set(feedItemId, Math.max(ledger.get(feedItemId) ?? 0, revision));
+  while (ledger.size > SOCIAL_FEED_BUFFER_SIZE) {
+    const oldest = ledger.keys().next().value;
+    if (oldest === undefined) {
+      break;
+    }
+    ledger.delete(oldest);
+  }
+};
+
 export interface SocialFeedRow extends TraderFeedRow {
   stableId: string;
   sortTimestamp: number;
@@ -149,6 +169,7 @@ export const useSocialFeedCanonical = ({
   const realtimeService = Engine.context.SocialRealtimeService;
   const [realtimeRows, setRealtimeRows] = useState<SocialFeedRow[]>([]);
   const pendingEvents = useRef(new Map<string, PendingRealtimeEvent>());
+  const evictedRevisions = useRef(new Map<string, number>());
   const postCache = useRef(new Map<string, CachedFeedPost>());
   const [entrances] = useState(createSocialFeedEntrances);
 
@@ -199,6 +220,21 @@ export const useSocialFeedCanonical = ({
       animate: boolean,
     ) => {
       setRealtimeRows((existing) => {
+        const rowWasEvicted =
+          !row && evictedRevisions.current.has(event.feedItemId);
+        if (rowWasEvicted) {
+          const knownRevision =
+            evictedRevisions.current.get(event.feedItemId) ?? 0;
+          if (event.revision > knownRevision) {
+            evictedRevisions.current.set(event.feedItemId, event.revision);
+          }
+          return existing;
+        }
+
+        if (row) {
+          evictedRevisions.current.delete(event.feedItemId);
+        }
+
         const previous = existing.find(
           (candidate) => candidate.feedItemId === event.feedItemId,
         );
@@ -213,12 +249,32 @@ export const useSocialFeedCanonical = ({
           return existing;
         }
 
-        return [
+        const nextRows = [
           next,
           ...existing.filter(
             (candidate) => candidate.feedItemId !== event.feedItemId,
           ),
         ].slice(0, SOCIAL_FEED_BUFFER_SIZE);
+        const retainedIds = new Set(
+          nextRows.map((candidate) => candidate.feedItemId),
+        );
+        const httpIds = new Set(
+          rowsRef.current.map((candidate) => candidate.core.positionId),
+        );
+        existing.forEach((candidate) => {
+          if (
+            !retainedIds.has(candidate.feedItemId) &&
+            !httpIds.has(candidate.feedItemId) &&
+            candidate.revision !== undefined
+          ) {
+            rememberEvictedRevision(
+              evictedRevisions.current,
+              candidate.feedItemId,
+              candidate.revision,
+            );
+          }
+        });
+        return nextRows;
       });
     },
     [],
@@ -233,6 +289,9 @@ export const useSocialFeedCanonical = ({
       const row = rowsRef.current.find(
         (candidate) => candidate.core.positionId === event.feedItemId,
       );
+      if (!row && evictedRevisions.current.has(event.feedItemId)) {
+        return;
+      }
 
       if (pausedRef.current || !nearTopRef.current) {
         queuePendingEvent(event, !row);

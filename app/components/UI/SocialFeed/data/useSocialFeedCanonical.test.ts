@@ -8,6 +8,7 @@ import {
   applyRealtimeEventToRow,
   getVisiblePendingNewCount,
   mergeRealtimeFeedItem,
+  rememberEvictedRevision,
   shouldDeferPendingNewRow,
   toSocialFeedSource,
   toSocialFeedRow,
@@ -168,5 +169,19 @@ describe('useSocialFeedCanonical helpers', () => {
     expect(shouldDeferPendingNewRow({ animate: true })).toBe(true);
     expect(shouldDeferPendingNewRow({ animate: false })).toBe(false);
     expect(shouldDeferPendingNewRow(undefined)).toBe(false);
+  });
+
+  it('keeps the evicted revision ledger bounded and monotonic', () => {
+    const ledger = new Map<string, number>();
+
+    rememberEvictedRevision(ledger, 'position-1', 3);
+    rememberEvictedRevision(ledger, 'position-1', 2);
+    for (let index = 2; index <= 61; index++) {
+      rememberEvictedRevision(ledger, `position-${index}`, index);
+    }
+
+    expect(ledger.get('position-1')).toBeUndefined();
+    expect(ledger.get('position-61')).toBe(61);
+    expect(ledger.size).toBe(60);
   });
 });
