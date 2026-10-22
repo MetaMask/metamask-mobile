@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -17,7 +17,13 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { useTheme } from '../../../../util/theme';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
@@ -43,7 +49,9 @@ const ADD_OPERATIONS: Record<MfaMethod, string> = {
  */
 const MfaSettings = () => {
   const tw = useTailwind();
+  const theme = useTheme();
   const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const passkeyCount = getActivePasskeys(credentials).length;
   const activeTypes = new Set(
@@ -60,7 +68,20 @@ const MfaSettings = () => {
     enroll({
       method,
       reason: { operation: ADD_OPERATIONS[method] },
-    }).catch(() => undefined);
+    })
+      .then(() => {
+        if (method !== 'totp') {
+          return;
+        }
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [{ label: strings('mfa.settings.totp_added') }],
+          iconName: ToastIconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          hasNoTimeout: false,
+        });
+      })
+      .catch(() => undefined);
   };
 
   const rows: {

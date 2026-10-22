@@ -245,7 +245,8 @@ export type MfaFlowAction =
   | { type: 'resend' }
   | { type: 'retry' }
   | { type: 'dismiss' }
-  | { type: 'cancel' };
+  | { type: 'cancel' }
+  | { type: 'back' };
 
 export interface MfaFlowResult {
   credentials: EnrolledCredential[];

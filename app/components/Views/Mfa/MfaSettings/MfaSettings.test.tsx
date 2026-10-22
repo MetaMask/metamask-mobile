@@ -7,6 +7,7 @@ import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import Routes from '../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaSettings from './MfaSettings';
 
@@ -29,21 +30,33 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
+const mockShowToast = jest.fn();
 
 const renderSettings = (enrolledCredentials: EnrolledCredential[] = []) =>
-  renderWithProvider(<MfaSettings />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AuthenticationController: {
-            ...backgroundState.AuthenticationController,
-            enrolledCredentials,
+  renderWithProvider(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      <MfaSettings />
+    </ToastContext.Provider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              enrolledCredentials,
+            },
           },
         },
       },
     },
-  });
+  );
 
 describe('MfaSettings', () => {
   beforeEach(() => {
@@ -236,6 +249,11 @@ describe('MfaSettings', () => {
       expect.objectContaining({
         request: { kind: 'enroll', method: 'totp' },
         reason: { operation: 'settings.addAuthenticatorApp' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app added' }],
       }),
     );
   });

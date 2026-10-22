@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { Keyboard, Linking, TextInput } from 'react-native';
+import { Keyboard, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
@@ -585,7 +585,7 @@ describe('CodeStep', () => {
       getByText('Open your authenticator app and enter the 6-digit code.'),
     ).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON)).toBeNull();
-    expect(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeDisabled();
+    expect(queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeNull();
 
     fireEvent.changeText(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), '123456');
     expect(onAction).toHaveBeenCalledWith({
@@ -627,7 +627,7 @@ describe('CodeStep', () => {
     ],
     [
       'invalid_code',
-      'That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.',
+      'This code isn’t correct. Try again',
     ],
   ] as const)('words %s for the authenticator app', (error, message) => {
     const { getByText } = renderCode(totpCode, { error });
@@ -742,45 +742,66 @@ describe('TotpSetupStep', () => {
     expect(queryByText(/copied/iu)).toBeNull();
   });
 
-  it('opens the authenticator app with the setup link', async () => {
-    const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
-    const { getByTestId, queryByText } = renderSetup();
+  it('returns to the copy icon after the key was copied', () => {
+    jest.useFakeTimers();
+    try {
+      const { getByTestId, toJSON } = renderSetup();
 
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_OPEN_APP));
-    });
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_COPY_KEY));
+      expect(JSON.stringify(toJSON())).toContain('CopySuccess');
 
-    expect(openURL).toHaveBeenCalledWith(
-      'otpauth://totp/MetaMask?secret=JBSWY3DPEHPK3PXP',
-    );
-    expect(queryByText(/couldn’t open an authenticator app/u)).toBeNull();
+      act(() => {
+        jest.advanceTimersByTime(2000);
+      });
+
+      expect(JSON.stringify(toJSON())).not.toContain('CopySuccess');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
-  it('suggests the setup key when no app opens the link', async () => {
-    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no handler'));
-    const { getByTestId, getByText } = renderSetup();
+  it('copies the setup key from anywhere on its card', () => {
+    const setString = jest.spyOn(Clipboard, 'setString');
+    const { getByText } = renderSetup();
 
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_OPEN_APP));
-    });
+    fireEvent.press(getByText('Setup key'));
 
-    expect(getByText(/couldn’t open an authenticator app/u)).toBeOnTheScreen();
+    expect(setString).toHaveBeenCalledWith('JBSWY3DPEHPK3PXP');
   });
 
-  it('shows the QR code for another device', () => {
+  it('shows the setup instructions without another-device button', () => {
+    const { queryByText, getByText } = renderSetup();
+
+    expect(
+      getByText(
+        'In your authenticator app, add a new account and enter the setup key or scan the QR code.',
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByText('Set up on another device')).toBeNull();
+  });
+
+  it('cancels from the back button', () => {
+    const { onAction, getByTestId } = renderSetup();
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+
+    expect(onAction).toHaveBeenCalledWith({ type: 'cancel' });
+  });
+
+  it('shows the QR code from the header', () => {
     const { getByTestId } = renderSetup();
 
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_OTHER_DEVICE));
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_SHOW_QR));
 
     expect(getByTestId(MfaFlowSelectorsIDs.TOTP_QR_SHEET)).toBeOnTheScreen();
-    expect(getByTestId(MfaFlowSelectorsIDs.TOTP_QR_IMAGE).props.source).toEqual(
-      { uri: 'data:image/png;base64,QR' },
+    expect(getByTestId(MfaFlowSelectorsIDs.TOTP_QR_IMAGE).props.value).toBe(
+      'otpauth://totp/MetaMask?secret=JBSWY3DPEHPK3PXP',
     );
   });
 
   it('continues to the code from the QR code sheet', async () => {
     const { onAction, getByTestId } = renderSetup();
-    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_OTHER_DEVICE));
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_SHOW_QR));
 
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_QR_CONTINUE));
 

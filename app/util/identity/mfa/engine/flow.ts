@@ -59,6 +59,8 @@ export const createMfaFlow = ({
   let recoveredStep: string | undefined;
   let current: CurrentStep | undefined;
   let lastOperation: (() => Promise<void>) | undefined;
+  /** The authenticator setup on screen before its code, so back can return. */
+  let totpSetup: Extract<MfaFlowStep, { name: 'totpSetup' }> | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -261,13 +263,14 @@ export const createMfaFlow = ({
     }
     // Only a setup that started becomes the current step.
     current = { method: 'totp', purpose: 'setup', flowId: challenge.flowId };
-    show({
+    totpSetup = {
       name: 'totpSetup',
       secret: challenge.secret,
       qrCode: challenge.qrCode,
       setupUri: challenge.setupUri,
       isRestart,
-    });
+    };
+    show(totpSetup);
   };
 
   const startVerification = async (
@@ -654,6 +657,18 @@ export const createMfaFlow = ({
       case 'retry':
         if (lastOperation) {
           await run(lastOperation);
+        }
+        return;
+      case 'back':
+        // Only the authenticator setup's code returns to that setup. The
+        // secret stays the one already added to the app.
+        if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'totp' &&
+          totpSetup
+        ) {
+          show(totpSetup);
         }
         return;
       case 'dismiss':

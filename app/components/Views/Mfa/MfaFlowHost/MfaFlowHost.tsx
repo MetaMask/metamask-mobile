@@ -78,27 +78,38 @@ const MfaFlowHost = () => {
 
   const { step } = state;
   const cancel = () => flow.dispatch({ type: 'cancel' });
+  // The authenticator setup's code is the one step with a screen behind it.
+  const goBack = () =>
+    flow.dispatch({
+      type:
+        step.name === 'otp' &&
+        step.purpose === 'setup' &&
+        step.method === 'totp'
+          ? 'back'
+          : 'cancel',
+    });
   const shared = {
-    key: `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`,
     state,
     reason: flow.reason,
     onAction: flow.dispatch,
   };
+  // A new key per flow and step, so nothing typed on one carries to the next.
+  const stepKey = `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`;
 
   const renderStep = () => {
     switch (step.name) {
       case 'intro':
-        return <IntroStep {...shared} step={step} />;
+        return <IntroStep key={stepKey} {...shared} step={step} />;
       case 'emailEntry':
-        return <EmailEntryStep {...shared} step={step} />;
+        return <EmailEntryStep key={stepKey} {...shared} step={step} />;
       case 'totpSetup':
-        return <TotpSetupStep {...shared} step={step} />;
+        return <TotpSetupStep key={stepKey} {...shared} step={step} />;
       case 'otp':
-        return <CodeStep {...shared} step={step} />;
+        return <CodeStep key={stepKey} {...shared} step={step} />;
       case 'passkey':
-        return <PasskeyStep {...shared} step={step} />;
+        return <PasskeyStep key={stepKey} {...shared} step={step} />;
       case 'failure':
-        return <FailureStep {...shared} step={step} />;
+        return <FailureStep key={stepKey} {...shared} step={step} />;
       default:
         return (
           <Box twClassName="flex-1 items-center justify-center">
@@ -120,7 +131,7 @@ const MfaFlowHost = () => {
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: MfaFlowSelectorsIDs.CLOSE_BUTTON }}
         />
-        <PickerStep {...shared} step={step} />
+        <PickerStep key={stepKey} {...shared} step={step} />
       </BottomSheet>
     );
   }
@@ -133,11 +144,14 @@ const MfaFlowHost = () => {
       style={tw.style('flex-1 bg-default')}
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >
-      <HeaderStandard
-        onBack={cancel}
-        backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
+      {/* The authenticator app setup adds a QR code button to its own header. */}
+      {step.name === 'totpSetup' ? null : (
+        <HeaderStandard
+          onBack={goBack}
+          backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
       {renderStep()}
     </Animated.View>
   );
