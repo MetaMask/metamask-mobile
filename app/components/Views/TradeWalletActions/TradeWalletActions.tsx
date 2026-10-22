@@ -123,6 +123,10 @@ const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
 
+// UIKit draws the glass with continuous (squircle) corners; the clips and borders
+// around it need the same curve, or their circular arcs show at each corner.
+const continuousCorners = { borderCurve: 'continuous' } satisfies ViewStyle;
+
 // The morph surface stays hidden until the rows report the height it grows to.
 const morphStyles = StyleSheet.create({
   hidden: { opacity: 0 },
@@ -184,7 +188,11 @@ function TradeWalletActions() {
     !isGlassSheet && isTradeFocusedArm && isBlurAvailable;
 
   const glassBorderStyle = useMemo(
-    () => ({
+    (): ViewStyle => ({
+      ...continuousCorners,
+      // React Native only hands a visible border to iOS, which honours the
+      // curve, when the view clips; otherwise it draws circular arcs itself.
+      overflow: 'hidden',
       borderRadius: TRADE_TRAY_GLASS_RADIUS,
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colorWithOpacity(
@@ -196,6 +204,7 @@ function TradeWalletActions() {
   );
   const glassFillStyle = useMemo(
     () => ({
+      ...continuousCorners,
       borderRadius: TRADE_TRAY_GLASS_RADIUS,
       opacity: TRADE_TRAY_GLASS_FILL_OPACITY,
     }),
@@ -573,13 +582,17 @@ function TradeWalletActions() {
     <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
         {isGlassSheet ? (
-          <View style={[tw.style('mb-4'), glassBorderStyle]}>
+          <View
+            style={[tw.style('mb-4'), glassBorderStyle]}
+            testID={WalletActionsBottomSheetSelectorsIDs.MENU_GLASS_BORDER}
+          >
             <GlassView
               glassEffectStyle="regular"
               colorScheme={glassColorScheme}
               testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
               style={[
                 tw.style('p-4 px-0 overflow-hidden'),
+                continuousCorners,
                 { borderRadius: TRADE_TRAY_GLASS_RADIUS },
               ]}
             >
@@ -601,6 +614,7 @@ function TradeWalletActions() {
             intensity={BLUR_INTENSITY}
             style={[
               tw.style('p-4 px-0 rounded-2xl mb-4 overflow-hidden'),
+              continuousCorners,
               {
                 borderWidth: StyleSheet.hairlineWidth,
                 borderColor: colorWithOpacity(
