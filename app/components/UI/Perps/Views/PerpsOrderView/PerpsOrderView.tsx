@@ -114,7 +114,12 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
+import { toPerpsSizeUnitAnalyticsValue } from '../../utils/perpsSizeDenomination';
+import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
 import { bpsToPercent } from '../../constants/slippageConfig';
 import {
   PerpsOrderProvider,
@@ -374,6 +379,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const hasCustomTokenSelected = !isPayTokenPerpsBalance;
 
   const { track } = usePerpsEventTracking();
+  const { denomination: sizeDenomination } = usePerpsSizeDenomination();
+  const sizeDenominationRef = useRef(sizeDenomination);
+  sizeDenominationRef.current = sizeDenomination;
+  // Full-screen Lite has no coin toggle. Read the arm at event time so a
+  // saved coin unit is not reported for a USD entry.
+  const useBottomSheetRef = useRef(useBottomSheet);
+  useBottomSheetRef.current = useBottomSheet;
   const { openTooltipModal } = useTooltipModal();
 
   // Feature flags
@@ -1070,6 +1082,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: Boolean(orderForm.stopLossPrice),
         [PERPS_EVENT_PROPERTY.LEVERAGE]: orderForm.leverage,
         [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: hasCustomTokenSelected,
+        // Read at fire time. A display-unit toggle is not a new fill, so it
+        // must not reset this debounce or emit a second considered event.
+        // Full-screen Lite has no coin toggle, so that arm always reports USD.
+        [PERPS_ANALYTICS_SIZE_UNIT]: useBottomSheetRef.current
+          ? toPerpsSizeUnitAnalyticsValue(sizeDenominationRef.current)
+          : 'usd',
       };
       if (hasCustomTokenSelected && payToken) {
         consideredProps[PERPS_EVENT_PROPERTY.FROM_TOKEN] = payToken.symbol;
@@ -1719,6 +1737,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             orderForm.direction === 'long'
               ? PERPS_EVENT_VALUE.DIRECTION.LONG
               : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+          [PERPS_ANALYTICS_SIZE_UNIT]: useBottomSheetRef.current
+            ? toPerpsSizeUnitAnalyticsValue(sizeDenominationRef.current)
+            : 'usd',
         });
       }
 

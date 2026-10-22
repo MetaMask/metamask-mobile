@@ -89,7 +89,10 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
-import { PERPS_ANALYTICS_PREVIOUS_LEVERAGE } from '../../constants/perpsAnalytics';
+import {
+  PERPS_ANALYTICS_PREVIOUS_LEVERAGE,
+  PERPS_ANALYTICS_SIZE_UNIT,
+} from '../../constants/perpsAnalytics';
 import PerpsOrderView from './PerpsOrderView';
 import { markPerpsPaymentTokenSelection } from '../../utils/perpsPaymentTokenSelection';
 import { isHardwareAccount } from '../../../../../util/address';
@@ -643,6 +646,7 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockPerpsSizeDenomination: 'usd' | 'asset' = 'usd';
 let mockSelectedEvmAccount: { address: string } | undefined;
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
@@ -655,8 +659,14 @@ jest.mock('react-redux', () => ({
     const { selectPerpsTradeWithAnyTokenEnabledFlag } = jest.requireActual(
       '../../selectors/featureFlags',
     );
+    const { selectPerpsSizeDenomination } = jest.requireActual(
+      '../../selectors/sizeDenomination',
+    );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    if (selector === selectPerpsSizeDenomination) {
+      return mockPerpsSizeDenomination;
     }
     const { selectSelectedInternalAccountByScope } = jest.requireActual(
       '../../../../../selectors/multichainAccounts/accounts',
@@ -1331,6 +1341,7 @@ function applyDefaultHookMocks() {
 
 describe('PerpsOrderView', () => {
   beforeEach(() => {
+    mockPerpsSizeDenomination = 'usd';
     jest.useRealTimers();
     jest.clearAllMocks();
     applyDefaultHookMocks();
@@ -7104,7 +7115,7 @@ describe('PerpsOrderView', () => {
 
     it('emits PERPS_TRANSACTION_CONSIDERED once the filled order form settles (1s debounce)', () => {
       jest.useFakeTimers();
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      const view = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Nothing before the 1s debounce window elapses.
       act(() => {
@@ -7135,10 +7146,92 @@ describe('PerpsOrderView', () => {
           [PERPS_EVENT_PROPERTY.ORDER_HAS_SL]: false,
           [PERPS_EVENT_PROPERTY.LEVERAGE]: 3,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+        }),
+      );
+
+      mockPerpsSizeDenomination = 'asset';
+      act(() => {
+        view.rerender(<PerpsOrderView />);
+        jest.advanceTimersByTime(1000);
+      });
+
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED),
+      ).toHaveLength(1);
+
+      jest.useRealTimers();
+    });
+
+    const placeOrderSizeUnit = () =>
+      eventsOf(MetaMetricsEvents.PERPS_UI_INTERACTION).filter(
+        (event) =>
+          event.props[PERPS_EVENT_PROPERTY.BUTTON_CLICKED] ===
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.PLACE_ORDER,
+      );
+
+    it('reports usd on the full-screen form when coin is saved', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED)[0]?.props,
+      ).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
         }),
       );
 
       jest.useRealTimers();
+      const placeOrderButton = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(placeOrderButton);
+      });
+
+      expect(placeOrderSizeUnit()).toEqual([
+        expect.objectContaining({
+          props: expect.objectContaining({
+            [PERPS_ANALYTICS_SIZE_UNIT]: 'usd',
+          }),
+        }),
+      ]);
+    });
+
+    it('reports coin on the Trade sheet when coin is saved', async () => {
+      mockPerpsSizeDenomination = 'asset';
+      useTradeSheetRoute();
+      jest.useFakeTimers();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+      expect(
+        eventsOf(MetaMetricsEvents.PERPS_TRANSACTION_CONSIDERED)[0]?.props,
+      ).toEqual(
+        expect.objectContaining({
+          [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+        }),
+      );
+
+      jest.useRealTimers();
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(placeOrderSizeUnit()).toEqual([
+        expect.objectContaining({
+          props: expect.objectContaining({
+            [PERPS_ANALYTICS_SIZE_UNIT]: 'coin',
+          }),
+        }),
+      ]);
     });
 
     it('emits PERPS_TRADE_QUOTE_RECEIVED with quote_latency_ms when a pay-token quote completes', () => {
