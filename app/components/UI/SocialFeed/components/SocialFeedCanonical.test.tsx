@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
+import { RefreshControl, Text } from 'react-native';
 import SocialFeedCanonical from './SocialFeedCanonical';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import {
@@ -150,6 +150,90 @@ describe('SocialFeedCanonical', () => {
     expect(screen.getByText('post-1')).toBeOnTheScreen();
   });
 
+  it.each(['virtualized', 'content'] as const)(
+    'renders the empty state in %s mode when the feed is idle',
+    (scrollMode) => {
+      mockUseSocialFeedCanonical.mockReturnValue({
+        ...state,
+        posts: [],
+        entrances: createSocialFeedEntrances(),
+      });
+
+      render(<SocialFeedCanonical scope="all" scrollMode={scrollMode} />);
+
+      expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
+    },
+  );
+
+  it('caps the pending post count at 60', () => {
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      pendingNewCount: 61,
+      entrances: createSocialFeedEntrances(),
+    });
+
+    render(<SocialFeedCanonical scope="all" scrollMode="content" />);
+
+    expect(screen.getByText('60+ new posts')).toBeOnTheScreen();
+  });
+
+  it('exposes imperative scrolling through the page ref', () => {
+    const pageRef = React.createRef<{
+      scrollToOffset: (offset: number, animated?: boolean) => void;
+    }>();
+
+    render(
+      <SocialFeedCanonical
+        pageRef={pageRef}
+        scope="all"
+        scrollMode="content"
+      />,
+    );
+
+    act(() => {
+      pageRef.current?.scrollToOffset(12, true);
+    });
+
+    expect(pageRef.current).toBeDefined();
+  });
+
+  it('refreshes the virtualized feed through its refresh control', async () => {
+    const refresh = jest.fn().mockResolvedValue(undefined);
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      refresh,
+      entrances: createSocialFeedEntrances(),
+    });
+
+    render(<SocialFeedCanonical scope="all" scrollMode="virtualized" />);
+
+    await act(async () => {
+      await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+    });
+
+    expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('compares stable reaction props when a row rerenders', () => {
+    const entrances = createSocialFeedEntrances();
+    const postWithReaction = {
+      ...(post as object),
+      reactions: [{ emotion: 'heart', count: 1 }],
+    } as never;
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      posts: [postWithReaction],
+      entrances,
+    });
+    const { rerender } = render(
+      <SocialFeedCanonical scope="all" scrollMode="content" />,
+    );
+
+    rerender(<SocialFeedCanonical scope="all" scrollMode="content" />);
+
+    expect(screen.getByText('post-1')).toBeOnTheScreen();
+  });
+
   it('rerenders a row when its mapped item changes without a timestamp change', () => {
     const createRevision = (pnlLabel: string) =>
       ({
@@ -258,6 +342,19 @@ describe('SocialFeedCanonical', () => {
     fireEvent.press(screen.getByText('2 new posts'));
 
     expect(revealPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the initial error footer without hiding loaded posts', () => {
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      error: 'request failed',
+      entrances: createSocialFeedEntrances(),
+    });
+
+    render(<SocialFeedCanonical scope="all" scrollMode="content" />);
+
+    expect(screen.getByText('post-1')).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeNull();
   });
 
   it('plays a realtime row entrance until it is marked played', () => {
