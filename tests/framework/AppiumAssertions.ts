@@ -32,7 +32,13 @@ export const matchesAccessibilityLabel = (
   const normalizedActual = normalize(actualLabel);
   const normalizedExpected = normalize(expectedLabel);
   if (exact) {
-    return normalizedActual === normalizedExpected;
+    return (
+      normalizedActual === normalizedExpected ||
+      actualLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part === normalizedExpected)
+    );
   }
 
   if (normalizedActual.includes(normalizedExpected)) {
