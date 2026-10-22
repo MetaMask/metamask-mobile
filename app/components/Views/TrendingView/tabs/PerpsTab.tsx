@@ -171,6 +171,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         onMarketPress={handleMarketPress}
         ListHeaderComponent={listHeader}
         stickyHeader={stickyHeader}
+        keepHeaderHiddenOnReset
         sortBy={sortBy}
         filterKey={marketTypeFilter}
         refreshControl={refreshControl}

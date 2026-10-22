@@ -52,6 +52,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   emptyMessage = strings('perps.home.no_markets'),
   ListHeaderComponent,
   stickyHeader,
+  keepHeaderHiddenOnReset = false,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
@@ -69,8 +70,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   // active category, and — via scrollResetKey — search toggling on/off) so the
   // list header (e.g. the Recently Viewed rail, which sits above the first row)
   // scrolls back into view rather than leaving the user mid-list. Skips the
-  // first render. With a sticky header (Explore) it instead resets to just
-  // below the list header, and only if the user has scrolled past it.
+  // first render. With `keepHeaderHiddenOnReset` (Explore) it instead resets to
+  // just below the list header, and only if the user has scrolled past it.
   //
   // offset 0 targets the very top (above the header); scrollToIndex would only
   // reach the first row and push the header off-screen. This is reliable
@@ -91,7 +92,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       return;
     }
 
-    if (hasStickyHeader) {
+    if (keepHeaderHiddenOnReset && hasStickyHeader) {
       // The sticky row starts where the list header ends. If the user has
       // scrolled past the header, reset to that point so the first rows show
       // under the pinned header without re-revealing the list header (e.g. the
@@ -104,7 +105,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     }
 
     list.scrollToOffset({ offset: 0, animated: true });
-  }, [scrollResetToken, hasStickyHeader]);
+  }, [scrollResetToken, hasStickyHeader, keepHeaderHiddenOnReset]);
 
   const listData = useMemo<MarketListRow[]>(() => {
     const rows: MarketListRow[] = hasStickyHeader ? [STICKY_HEADER_ROW] : [];

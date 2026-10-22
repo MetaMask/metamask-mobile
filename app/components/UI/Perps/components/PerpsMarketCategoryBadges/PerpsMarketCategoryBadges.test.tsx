@@ -46,31 +46,33 @@ describe('PerpsMarketCategoryBadges', () => {
     mockCategories = DEFAULT_CATEGORIES;
   });
 
-  describe('horizontal scroll position', () => {
-    it('restores the last scroll offset when the selection changes or the bar remounts', () => {
+  describe('selected chip scroll position', () => {
+    const layout = (x: number, width: number) => ({
+      nativeEvent: { layout: { x, y: 0, width, height: 32 } },
+    });
+
+    it('scrolls the selected chip into view once layouts are known', () => {
       const scrollToSpy = jest
         .spyOn(ScrollView.prototype, 'scrollTo')
         .mockImplementation(() => undefined);
 
-      const first = render(<PerpsMarketCategoryBadges {...defaultProps} />);
-      fireEvent.scroll(first.getByTestId('category-badges'), {
-        nativeEvent: { contentOffset: { x: 120, y: 0 } },
-      });
-      scrollToSpy.mockClear();
-
-      first.rerender(
+      const { getByTestId } = render(
         <PerpsMarketCategoryBadges
           {...defaultProps}
           selectedCategory="forex"
         />,
       );
-      expect(scrollToSpy).toHaveBeenCalledWith({ x: 120, animated: false });
 
-      scrollToSpy.mockClear();
-      first.unmount();
-      render(<PerpsMarketCategoryBadges {...defaultProps} />);
-      expect(scrollToSpy).toHaveBeenCalledWith({ x: 120, animated: false });
+      fireEvent(getByTestId('category-badges'), 'layout', layout(0, 300));
+      ['all', 'crypto', 'stock', 'commodity', 'forex'].forEach((id, index) =>
+        fireEvent(
+          getByTestId(`category-badges-${id}`),
+          'layout',
+          layout(16 + index * 100, 90),
+        ),
+      );
 
+      expect(scrollToSpy).toHaveBeenCalledWith({ x: 261, animated: false });
       scrollToSpy.mockRestore();
     });
   });

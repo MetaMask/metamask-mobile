@@ -907,9 +907,40 @@ describe('PerpsMarketList', () => {
           markets={mockMarkets}
           onMarketPress={mockOnMarketPress}
           stickyHeader={<View testID="sticky" />}
+          keepHeaderHiddenOnReset
           filterKey={filterKey}
         />
       );
+
+      it('resets to offset 0 when keepHeaderHiddenOnReset is not set (main Perps screen)', () => {
+        mockGetFirstItemOffset.mockReturnValue(300);
+        mockGetAbsoluteLastScrollOffset.mockReturnValue(900);
+        const { rerender } = render(
+          <PerpsMarketList
+            markets={mockMarkets}
+            onMarketPress={mockOnMarketPress}
+            stickyHeader={<View testID="sticky" />}
+            ListHeaderComponent={<View testID="rail" />}
+            scrollResetKey="all|"
+          />,
+        );
+
+        rerender(
+          <PerpsMarketList
+            markets={mockMarkets}
+            onMarketPress={mockOnMarketPress}
+            stickyHeader={<View testID="sticky" />}
+            ListHeaderComponent={<View testID="rail" />}
+            scrollResetKey="crypto|"
+          />,
+        );
+
+        expect(mockScrollToOffset).toHaveBeenCalledTimes(1);
+        expect(mockScrollToOffset).toHaveBeenCalledWith({
+          offset: 0,
+          animated: true,
+        });
+      });
 
       it('scrolls to the list header height when scrolled past it', () => {
         mockGetFirstItemOffset.mockReturnValue(300);
