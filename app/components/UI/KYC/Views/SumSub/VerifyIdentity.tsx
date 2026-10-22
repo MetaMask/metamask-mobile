@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Linking, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -29,6 +29,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
 import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
@@ -91,11 +92,11 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const openTermsSheet = useCallback(() => setIsTermsSheetOpen(true), []);
   const closeTermsSheet = useCallback(() => setIsTermsSheetOpen(false), []);
   const openMetaMaskTerms = useCallback(
-    () => Linking.openURL(METAMASK_TERMS_URL),
+    () => openExternalUrl(METAMASK_TERMS_URL),
     [],
   );
   const openMetaMaskPrivacyPolicy = useCallback(
-    () => Linking.openURL(METAMASK_PRIVACY_POLICY_URL),
+    () => openExternalUrl(METAMASK_PRIVACY_POLICY_URL),
     [],
   );
 
@@ -174,7 +175,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             </Box>
           ) : null}
           <Text
-            variant={TextVariant.BodyXs}
+            variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
@@ -182,7 +183,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
               'virtual_bank_account.verify_identity.footer_agreement_start',
             )}
             <TextButton
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               onPress={openMetaMaskTerms}
               testID={VbaVerifyIdentitySelectorsIDs.METAMASK_TERMS_LINK}
             >
@@ -190,7 +191,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
             </TextButton>
             {strings('virtual_bank_account.verify_identity.footer_and')}
             <TextButton
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               onPress={openMetaMaskPrivacyPolicy}
               testID={
                 VbaVerifyIdentitySelectorsIDs.METAMASK_PRIVACY_POLICY_LINK

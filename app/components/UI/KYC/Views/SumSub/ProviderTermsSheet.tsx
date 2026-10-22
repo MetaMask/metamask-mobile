@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Linking, type GestureResponderEvent } from 'react-native';
+import type { GestureResponderEvent } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -17,15 +17,11 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { openExternalUrl } from '../../utils/openExternalUrl';
 import { strings } from '../../../../../../locales/i18n';
 import { IDOS_PRIVACY_NOTICE_URL } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-
-/** Opens in the system browser; a failed open is ignored so the user can retry. */
-const openExternalUrl = (url: string) => {
-  Linking.openURL(url).catch(() => undefined);
-};
 
 interface TermsLink {
   id: string;
@@ -63,7 +59,7 @@ interface VbaProviderTermsSheetProps {
 /**
  * "Data and privacy" confirm sheet over Verify your identity. idOS needs an
  * explicit, separate biometric consent before any data is collected, so Agree
- * stays disabled until the consent switch is on. Agreeing closes the sheet,
+ * stays disabled until the consent checkbox is ticked. Agreeing closes the sheet,
  * then hands off to the provider step, which records the session consents and
  * launches SumSub back-to-back.
  */
