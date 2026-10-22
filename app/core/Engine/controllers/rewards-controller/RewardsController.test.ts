@@ -3923,18 +3923,32 @@ describe('RewardsController', () => {
       );
     });
 
-    it('is independent of rewards, VIP, and opt-in state', async () => {
+    it('is independent of rewards opt-in and VIP state when Basic Functionality is enabled', async () => {
+      const enabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => false,
+        isVipDisabled: () => true,
+      });
+      mockMessenger.call.mockResolvedValue({ grant });
+
+      await expect(
+        enabledController.getPerpsTradingFeeGrant(scope),
+      ).resolves.toEqual(expect.objectContaining({ feeBips: 2.5 }));
+    });
+
+    it('returns null without a request when Basic Functionality is disabled', async () => {
       const disabledController = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
         isDisabled: () => true,
         isVipDisabled: () => true,
       });
-      mockMessenger.call.mockResolvedValue({ grant });
 
       await expect(
         disabledController.getPerpsTradingFeeGrant(scope),
-      ).resolves.toEqual(expect.objectContaining({ feeBips: 2.5 }));
+      ).resolves.toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it.each([

@@ -116,6 +116,8 @@ const SERVICE_NAME = 'RewardsDataService';
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
 const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
 const TRADING_FEE_GRANT_CACHE_TTL_MS = 30000;
+const TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS = 5000;
+const TRADING_FEE_GRANT_FAILURE_CACHE_MAX_ENTRIES = 10;
 
 export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
 
@@ -169,6 +171,13 @@ interface TradingFeeGrantCacheEntry {
 
 async function getProfileIdentity(token: string): Promise<Hex> {
   return bytesToHex(await sha256(stringToBytes(token)));
+}
+
+function getTradingFeeGrantCacheKey(
+  profileIdentity: Hex,
+  rewardsApiUrl: string,
+): string {
+  return `${profileIdentity}:${rewardsApiUrl}`;
 }
 
 // Auth endpoint action types
@@ -585,6 +594,8 @@ export class RewardsDataService {
 
   #tradingFeeGrantCache: TradingFeeGrantCacheEntry | null = null;
 
+  readonly #tradingFeeGrantFailureCooldowns = new Map<string, number>();
+
   constructor({
     messenger,
     fetch: fetchFunction,
@@ -881,6 +892,7 @@ export class RewardsDataService {
    */
   setRewardsEnvUrl(url: string): void {
     this.#tradingFeeGrantCache = null;
+    this.#tradingFeeGrantFailureCooldowns.clear();
     if (this.canChangeRewardsEnvUrl()) {
       this.#rewardsApiUrl = url;
       Logger.log(`RewardsDataService: env switched to ${url}`);
@@ -1885,9 +1897,8 @@ export class RewardsDataService {
 
   /**
    * Fetch the active profile's trading-fee grant using Profile Sync auth.
-   * Successful results are cached briefly and concurrent requests are shared
-   * for the same profile. The token is checked again after a network request
-   * so a response cannot cross a profile-switch boundary.
+   * Successful results are cached, concurrent requests are shared, and failed
+   * lookups have a short cooldown for the same profile and API environment.
    */
   async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
     const token = await this.#messenger.call(
@@ -1900,6 +1911,19 @@ export class RewardsDataService {
     const profileIdentity = await getProfileIdentity(token);
     const rewardsApiUrl = this.getRewardsEnvUrl();
     const now = Date.now();
+    const cacheKey = getTradingFeeGrantCacheKey(profileIdentity, rewardsApiUrl);
+    const failureCooldownExpiresAt =
+      this.#tradingFeeGrantFailureCooldowns.get(cacheKey);
+    if (
+      failureCooldownExpiresAt !== undefined &&
+      now < failureCooldownExpiresAt
+    ) {
+      return { grant: null };
+    }
+    if (failureCooldownExpiresAt !== undefined) {
+      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
+    }
+
     const cached = this.#tradingFeeGrantCache;
     if (
       cached?.profileIdentity === profileIdentity &&
@@ -1944,7 +1968,27 @@ export class RewardsDataService {
           expiresAt,
         };
       }
+      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
       return result;
+    } catch (error) {
+      this.#tradingFeeGrantFailureCooldowns.delete(cacheKey);
+      this.#tradingFeeGrantFailureCooldowns.set(
+        cacheKey,
+        Date.now() + TRADING_FEE_GRANT_FAILURE_COOLDOWN_MS,
+      );
+      while (
+        this.#tradingFeeGrantFailureCooldowns.size >
+        TRADING_FEE_GRANT_FAILURE_CACHE_MAX_ENTRIES
+      ) {
+        const oldestKey = this.#tradingFeeGrantFailureCooldowns
+          .keys()
+          .next().value;
+        if (oldestKey === undefined) {
+          break;
+        }
+        this.#tradingFeeGrantFailureCooldowns.delete(oldestKey);
+      }
+      throw error;
     } finally {
       if (this.#tradingFeeGrantRequest?.promise === promise) {
         this.#tradingFeeGrantRequest = null;

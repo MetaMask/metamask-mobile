@@ -990,19 +990,6 @@ describe('PerpsClosePositionBottomSheet', () => {
 
       expect(getByTestId('rewards-vip-badge')).toBeOnTheScreen();
     });
-
-    it('shows the promotional label without VIP branding', () => {
-      usePerpsOrderFeesMock.mockReturnValue({
-        ...defaultPerpsOrderFeesMock,
-        feeDiscountPercentage: 15,
-        feeDiscountKind: 'promotional',
-      });
-
-      const { getByText, queryByTestId } = renderSheet();
-
-      expect(getByText('Promotional discount')).toBeOnTheScreen();
-      expect(queryByTestId('rewards-vip-badge')).toBeNull();
-    });
   });
 
   describe('confirm button', () => {

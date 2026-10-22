@@ -1,7 +1,6 @@
 import {
   getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
-  getPerpsFeeDiscountPercentage,
   type PerpsFeeDiscountKind,
 } from '../utils/feeDiscount';
 import { useMemo, useState, useEffect, useRef } from 'react';
@@ -74,12 +73,13 @@ interface UsePerpsCloseAllCalculationsParams {
 interface PerPositionResult {
   position: Position;
   fees: FeeCalculationResult;
-  notionalUsd: number;
+  notionalUsd?: number;
   points: EstimatedPointsDto | null;
   error?: string;
 }
 
 type CompleteFeeResult = PerPositionResult & {
+  notionalUsd: number;
   fees: FeeCalculationResult & {
     protocolFeeRate: number;
     metamaskFeeRate: number;
@@ -91,6 +91,7 @@ function hasCompleteFeeRates(
 ): result is CompleteFeeResult {
   return (
     !result.error &&
+    result.notionalUsd !== undefined &&
     result.fees.protocolFeeRate !== undefined &&
     result.fees.metamaskFeeRate !== undefined
   );
@@ -262,7 +263,6 @@ export function usePerpsCloseAllCalculations({
             } catch (error) {
               return {
                 position: pos,
-                notionalUsd: 0,
                 fees: {
                   feeRate: undefined,
                   feeAmount: undefined,
@@ -408,22 +408,14 @@ export function usePerpsCloseAllCalculations({
     perPositionResults.forEach(({ fees, notionalUsd }) => {
       const weight = notionalUsd;
       if (
+        weight === undefined ||
         weight <= 0 ||
         fees.metamaskFeeRate === undefined ||
         fees.protocolFeeRate === undefined
       ) {
         return;
       }
-      const originalMetamaskFeeRate = getPresentedOriginalMetamaskFeeRate(fees);
-      const derivedDiscountPercentage =
-        originalMetamaskFeeRate === undefined
-          ? undefined
-          : getPerpsFeeDiscountPercentage(
-              originalMetamaskFeeRate,
-              fees.metamaskFeeRate,
-            );
-      const discountBips =
-        fees.metamaskFeeDiscountBips ?? (derivedDiscountPercentage ?? 0) * 100;
+      const discountBips = fees.metamaskFeeDiscountBips ?? 0;
       if (discountBips <= 0) {
         return;
       }
@@ -528,10 +520,6 @@ export function usePerpsCloseAllCalculations({
       hasCompleteFeeSet && totalWeight > 0
         ? originalBuilderTotal / totalWeight
         : undefined;
-    const rateDerivedDiscountPercentage = getPerpsFeeDiscountPercentage(
-      originalBuilderTotal,
-      currentBuilderTotal,
-    );
     const avgFeeDiscountBips =
       weightedDiscountWeight > 0
         ? Math.round(weightedFeeDiscountBips / weightedDiscountWeight)
@@ -541,7 +529,7 @@ export function usePerpsCloseAllCalculations({
         ? avgFeeDiscountBips > 0
           ? avgFeeDiscountBips / 100
           : undefined
-        : rateDerivedDiscountPercentage
+        : undefined
       : undefined;
 
     const feeDiscountKind =

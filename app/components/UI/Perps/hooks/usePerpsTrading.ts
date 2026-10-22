@@ -38,7 +38,6 @@ import {
   type Position,
   type PositionModifyPreviewParams,
   type PositionModifyPreviewResult,
-  type PerpsProviderType,
   type SubscribeOrderFillsParams,
   type SubscribePricesParams,
   type SubscribePositionsParams,
@@ -71,45 +70,6 @@ import {
  * should only describe query intent (symbols, dex, standalone, filters, etc.).
  */
 export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
-
-export type MobileProviderGetMarketsParams = MobileGetMarketsParams & {
-  providerId?: PerpsProviderType;
-};
-
-/**
- * Reads venue-owned market metadata without passing through Core's Terminal
- * market service.
- *
- * @param params - Provider market query and selected venue.
- * @returns Markets returned directly by the selected provider route.
- */
-export async function getPerpsMarketsFromProvider(
-  params: MobileProviderGetMarketsParams,
-): Promise<MarketInfo[]> {
-  const { providerId, ...marketParams } = params;
-  const provider = Engine.context.PerpsController.getActiveProvider();
-  const routesByProviderId = provider.routesOrdersByProviderId === true;
-
-  if (
-    (!providerId && routesByProviderId) ||
-    (providerId && !routesByProviderId && provider.protocolId !== providerId)
-  ) {
-    return [];
-  }
-
-  const markets = await provider.getMarkets(marketParams);
-  if (!providerId) {
-    return markets;
-  }
-
-  return markets.filter(
-    (market) =>
-      market.providerId === providerId ||
-      (!market.providerId &&
-        !routesByProviderId &&
-        provider.protocolId === providerId),
-  );
-}
 
 type MobileCancelOrderParams = CancelOrderParams & {
   skipCufConfirmationTrace?: boolean;

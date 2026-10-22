@@ -105,6 +105,8 @@ describe('usePerpsOrderFees', () => {
       metamaskFeeRate: 0.00025,
       metamaskFeeAmount: 0.25,
       feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      undiscountedMetamaskFeeRate: 0.001,
     });
     const { result } = renderHook(() =>
       usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),

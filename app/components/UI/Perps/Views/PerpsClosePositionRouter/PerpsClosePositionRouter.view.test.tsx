@@ -5,6 +5,8 @@
 import '../../../../../../tests/component-view/mocks';
 
 import { act, screen, waitFor } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
+import { strings } from '../../../../../../locales/i18n';
 import {
   createEthMarketForViews,
   createFundedAccountForViews,
@@ -12,10 +14,12 @@ import {
   createScreenVsBottomSheetAssignmentForViews,
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionRouter } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { ScreenVsBottomSheetVariant } from '../../abTestConfig';
 import {
   PerpsClosePositionBottomSheetSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsFeeDiscountLabelSelectorsIDs,
 } from '../../Perps.testIds';
 
 const TIMEOUT_MS = 5000;
@@ -50,8 +54,12 @@ const renderWithVariant = (variant?: ScreenVsBottomSheetVariant) => {
 };
 
 describe('PerpsClosePositionRouter', () => {
+  const calculateFees = Engine.context.PerpsController
+    .calculateFees as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    calculateFees.mockReset().mockResolvedValue({});
   });
 
   it('renders the full-page close flow when no assignment exists', async () => {
@@ -102,5 +110,30 @@ describe('PerpsClosePositionRouter', () => {
         ),
       ).toBeNull();
     });
+  });
+
+  it('presents a Core grant quote as promotional without a VIP badge', async () => {
+    calculateFees.mockResolvedValue({
+      feeRate: 0.0007,
+      feeAmount: 1.75,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 1.125,
+      metamaskFeeRate: 0.00025,
+      metamaskFeeAmount: 0.625,
+      chargesMetamaskBuilderFee: true,
+      feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      undiscountedMetamaskFeeRate: 0.001,
+    });
+
+    renderWithVariant(ScreenVsBottomSheetVariant.Treatment);
+
+    expect(
+      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
+    expect(calculateFees).toHaveBeenCalled();
   });
 });

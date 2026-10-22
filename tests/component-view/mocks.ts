@@ -5,30 +5,6 @@
 
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
-  const getPerpsMarkets = jest.fn().mockResolvedValue([
-    {
-      symbol: 'ETH',
-      name: 'ETH',
-      maxLeverage: '50x',
-      price: '$2,500',
-      change24h: '$0',
-      change24hPercent: '0%',
-      volume: '$1M',
-      openInterest: '$500K',
-      szDecimals: 2,
-    },
-    {
-      symbol: 'BTC',
-      name: 'BTC',
-      maxLeverage: '50x',
-      price: '$50,000',
-      change24h: '$0',
-      change24hPercent: '0%',
-      volume: '$1M',
-      openInterest: '$500K',
-      szDecimals: 5,
-    },
-  ]);
   const engine = {
     acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
     rejectPendingApproval: jest.fn().mockResolvedValue(undefined),
@@ -556,10 +532,7 @@ jest.mock('../../app/core/Engine', () => {
         init: jest.fn().mockResolvedValue({ success: true }),
         disconnect: jest.fn().mockResolvedValue(undefined),
         getActiveProvider: jest.fn(() => ({
-          protocolId: 'hyperliquid',
-          routesOrdersByProviderId: false,
           ping: jest.fn().mockResolvedValue(true),
-          getMarkets: getPerpsMarkets,
           getOrderFills: jest.fn().mockResolvedValue([]),
         })),
         getActiveProviderOrNull: jest.fn(() => null),
@@ -597,7 +570,30 @@ jest.mock('../../app/core/Engine', () => {
         getTwapOrders: jest.fn().mockResolvedValue([]),
         subscribeToTwapOrders: jest.fn(() => () => undefined),
         getPositions: jest.fn().mockResolvedValue([]),
-        getMarkets: getPerpsMarkets,
+        getMarkets: jest.fn().mockResolvedValue([
+          {
+            symbol: 'ETH',
+            name: 'ETH',
+            maxLeverage: '50x',
+            price: '$2,500',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+            openInterest: '$500K',
+            szDecimals: 2,
+          },
+          {
+            symbol: 'BTC',
+            name: 'BTC',
+            maxLeverage: '50x',
+            price: '$50,000',
+            change24h: '$0',
+            change24hPercent: '0%',
+            volume: '$1M',
+            openInterest: '$500K',
+            szDecimals: 5,
+          },
+        ]),
         getOrders: jest.fn().mockResolvedValue([]),
         getFunding: jest.fn().mockResolvedValue([]),
         getOpenOrders: jest.fn().mockResolvedValue([]),

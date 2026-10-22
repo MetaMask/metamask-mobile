@@ -2048,14 +2048,17 @@ export class RewardsController extends BaseController<
 
   /**
    * Fetch a trading-fee grant for the requested Perps route.
-   * Grant lookup is intentionally independent of Rewards and VIP feature
-   * gates, account opt-in, and Rewards subscription state. The data service
-   * bounds request latency and briefly caches results per Profile Sync identity.
+   * Grant lookup respects Basic Functionality while remaining independent of
+   * Rewards opt-in, VIP feature state, and Rewards subscription state.
    */
   async getPerpsTradingFeeGrant(
     scope: PerpsFeeResolverScope,
   ): Promise<PerpsTradingFeeGrant | null> {
-    if (scope.providerId !== 'hyperliquid' || scope.isTestnet) {
+    if (
+      this.#isDisabled() ||
+      scope.providerId !== 'hyperliquid' ||
+      scope.isTestnet
+    ) {
       return null;
     }
 

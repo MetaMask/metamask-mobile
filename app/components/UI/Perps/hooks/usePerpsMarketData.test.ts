@@ -1,9 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { usePerpsMarketData } from './usePerpsMarketData';
-import {
-  getPerpsMarketsFromProvider,
-  usePerpsTrading,
-} from './usePerpsTrading';
+import { usePerpsTrading } from './usePerpsTrading';
 import usePerpsToasts, { type PerpsToastOptionsConfig } from './usePerpsToasts';
 import { type MarketInfo, wait } from '@metamask/perps-controller';
 
@@ -43,10 +40,6 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
 
 describe('usePerpsMarketData', () => {
   const mockGetMarkets = jest.fn();
-  const mockGetMarketsFromProvider =
-    getPerpsMarketsFromProvider as jest.MockedFunction<
-      typeof getPerpsMarketsFromProvider
-    >;
   const mockMarketData: MarketInfo = {
     name: 'BTC',
     szDecimals: 6,
@@ -81,10 +74,9 @@ describe('usePerpsMarketData', () => {
   });
 
   it('reads provider metadata when venue restrictions are required', async () => {
-    mockGetMarkets.mockResolvedValue([mockMarketData]);
-    mockGetMarketsFromProvider.mockResolvedValue([
-      { ...mockMarketData, onlyIsolated: true },
-    ]);
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockResolvedValueOnce([{ ...mockMarketData, onlyIsolated: true }]);
 
     const { result } = renderHook(() =>
       usePerpsMarketData({
@@ -97,23 +89,20 @@ describe('usePerpsMarketData', () => {
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
-    expect(mockGetMarkets).toHaveBeenCalledWith({ symbols: ['BTC'] });
-    expect(mockGetMarketsFromProvider).toHaveBeenCalledWith({
-      providerId: 'hyperliquid',
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(1, { symbols: ['BTC'] });
+    expect(mockGetMarkets).toHaveBeenNthCalledWith(2, {
       symbols: ['BTC'],
       skipFilters: true,
     });
-    expect(mockGetMarkets).toHaveBeenCalledTimes(1);
-    expect(mockGetMarketsFromProvider).toHaveBeenCalledTimes(1);
+    expect(mockGetMarkets).toHaveBeenCalledTimes(2);
     expect(result.current.marketData?.onlyIsolated).toBe(true);
     expect(result.current.isProviderMetadataAvailable).toBe(true);
   });
 
   it('keeps allowed market data but marks provider metadata unavailable when its read fails', async () => {
-    mockGetMarkets.mockResolvedValue([mockMarketData]);
-    mockGetMarketsFromProvider.mockRejectedValue(
-      new Error('Provider unavailable'),
-    );
+    mockGetMarkets
+      .mockResolvedValueOnce([mockMarketData])
+      .mockRejectedValueOnce(new Error('Provider unavailable'));
 
     const { result } = renderHook(() =>
       usePerpsMarketData({

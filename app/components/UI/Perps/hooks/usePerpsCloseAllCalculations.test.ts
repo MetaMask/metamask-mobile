@@ -122,6 +122,8 @@ describe('usePerpsCloseAllCalculations', () => {
       protocolFeeRate: 0.00045,
       feeRate: 0.0007,
       feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const positions = [createMockPosition()];
     const { result } = renderHook(() =>
@@ -144,6 +146,8 @@ describe('usePerpsCloseAllCalculations', () => {
       feeRate: 0,
       feeSource: 'grant',
       chargesMetamaskBuilderFee: true,
+      metamaskFeeDiscountBips: 10000,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const positions = [createMockPosition()];
     const { result } = renderHook(() =>
@@ -168,6 +172,8 @@ describe('usePerpsCloseAllCalculations', () => {
         protocolFeeRate: 0.00045,
         feeRate: 0.0007,
         feeSource: symbol === 'BTC' ? 'grant' : 'rewards',
+        metamaskFeeDiscountBips: 7500,
+        undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
       }),
     );
     const positions = [
@@ -198,6 +204,8 @@ describe('usePerpsCloseAllCalculations', () => {
           protocolFeeRate: 0.00045,
           feeRate: metamaskFeeRate + 0.00045,
           feeSource: isGrant ? 'grant' : 'default',
+          metamaskFeeDiscountBips: isGrant ? 7500 : 0,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         };
       },
     );
@@ -994,24 +1002,31 @@ describe('usePerpsCloseAllCalculations', () => {
       feeSource: 'subscription',
       metamaskFeeDiscountBips: 10000,
       metamaskFeeRate: 0,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const rewardsFees = createMockFeeResult({
       feeSource: 'rewards',
       metamaskFeeDiscountBips: 2000,
       metamaskFeeRate: 0.0008,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const grantFees = createMockFeeResult({
       feeSource: 'grant',
       metamaskFeeDiscountBips: 7500,
       metamaskFeeRate: 0.00025,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const defaultFees = createMockFeeResult({
       feeSource: 'default',
       metamaskFeeDiscountBips: 0,
+      metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
     const zeroRewardsFees = createMockFeeResult({
       feeSource: 'rewards',
       metamaskFeeDiscountBips: 0,
+      metamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
+      undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
     });
 
     const renderWithFees = async (
@@ -1087,11 +1102,13 @@ describe('usePerpsCloseAllCalculations', () => {
           feeSource: 'subscription',
           metamaskFeeDiscountBips: 10000,
           metamaskFeeRate: 0,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         }),
         createMockFeeResult({
           feeSource: 'rewards',
           metamaskFeeDiscountBips: 2000,
           metamaskFeeRate: 0.0008,
+          undiscountedMetamaskFeeRate: BUILDER_FEE_CONFIG.MaxFeeDecimal,
         }),
         [
           createMockPosition({ symbol: 'BTC' }),

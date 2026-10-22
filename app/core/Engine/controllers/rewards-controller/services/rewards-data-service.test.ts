@@ -177,6 +177,22 @@ describe('RewardsDataService', () => {
       },
     );
 
+    it('briefly suppresses a repeated endpoint request after a failure', async () => {
+      jest.useFakeTimers({ now: new Date('2026-10-22T00:00:00.000Z') });
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(service.getTradingFeeGrants()).rejects.toThrow('500');
+      await expect(service.getTradingFeeGrants()).resolves.toEqual({
+        grant: null,
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      jest.advanceTimersByTime(5001);
+      await expect(service.getTradingFeeGrants()).rejects.toThrow('500');
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
     it.each(['0', '1.25', '999.99'])(
       'preserves a valid fee string of %s',
       async (builderFeeBips) => {

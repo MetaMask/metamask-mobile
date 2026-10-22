@@ -456,22 +456,16 @@ export function usePerpsOrderFees({
           return;
         }
 
-        // calculateFees already prices the charged rate. Prefer the controller's
-        // discount bips when it reports them; otherwise derive presentation from
-        // the attributed source.
+        // calculateFees returns the charged rate and its presentation fields as
+        // one resolved quote.
         const source = coreFeesResult.feeSource;
         const resolvedMetamaskRate = coreFeesResult.metamaskFeeRate;
         const originalRate =
           getPresentedOriginalMetamaskFeeRate(coreFeesResult);
-        const derivedDiscount = getPerpsFeeDiscount({
-          feeSource: source,
-          currentFeeRate: resolvedMetamaskRate,
-          originalFeeRate: originalRate,
-        });
         const discountPercentage =
           coreFeesResult.metamaskFeeDiscountBips !== undefined
             ? coreFeesResult.metamaskFeeDiscountBips / 100
-            : derivedDiscount.percentage;
+            : undefined;
 
         // Step 4: Handle points estimation if user has address and valid amount
         let pointsResult: { points?: number; bonusBips?: number } = {};
