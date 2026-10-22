@@ -34,7 +34,7 @@ _api_prod: &api_prod
   PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
-  IDOS_ENCLAVE_URL: 'https://enclave.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.idos.network'
   IDOS_RELAY_URL: 'https://relay.idos.network'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
