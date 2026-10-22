@@ -21,10 +21,9 @@ import {
   toTokenMinimalUnit,
   weiToFiat,
 } from '../../../../../util/number/bigint';
-import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
+import { Hex, isCaipChainId } from '@metamask/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { isEvmAccountType } from '@metamask/keyring-api';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { EthScope, isEvmAccountType } from '@metamask/keyring-api';
 import { getEvmHexChainId } from '../utils';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectMultichainBalances } from '../../../../../selectors/multichain';
@@ -42,34 +41,6 @@ interface Asset {
   decimals?: number;
   chainId?: string;
   assetId?: string;
-}
-
-/**
- * Ramp chain ids arrive as CAIP (`eip155:1`), decimal (`1`), or hex (`0x1`).
- * Account-group scope lookup only matches CAIP chain ids.
- *
- * @param chainId - Chain id from the selected ramp asset.
- * @returns CAIP chain id, or undefined when the value cannot be parsed.
- */
-function toAssetCaipChainId(chainId?: string): CaipChainId | undefined {
-  if (!chainId) {
-    return undefined;
-  }
-
-  if (isCaipChainId(chainId)) {
-    return chainId;
-  }
-
-  const hexChainId = getEvmHexChainId(chainId);
-  if (!hexChainId) {
-    return undefined;
-  }
-
-  try {
-    return toEvmCaipChainId(hexChainId);
-  } catch {
-    return undefined;
-  }
 }
 
 export default function useBalance(asset?: Asset) {
@@ -108,11 +79,17 @@ export default function useBalance(asset?: Asset) {
   }
 
   // The globally selected account can be a Solana/BTC sibling in the same
-  // account group. Sell must read the account that holds this asset.
-  const assetCaipChainId = toAssetCaipChainId(asset.chainId);
+  // account group. Sell must read the account that holds this asset. The scope
+  // selector matches any `eip155:*` scope to the group's EVM account, so the
+  // EVM wildcard is enough and no chain id conversion is needed.
+  const accountScope = assetEvmChainId
+    ? EthScope.Eoa
+    : isCaipChainId(asset.chainId)
+      ? asset.chainId
+      : undefined;
   const accountForAsset =
-    assetCaipChainId && typeof selectInternalAccountByScope === 'function'
-      ? selectInternalAccountByScope(assetCaipChainId)
+    accountScope && typeof selectInternalAccountByScope === 'function'
+      ? selectInternalAccountByScope(accountScope)
       : undefined;
   const evmAccountForAsset =
     accountForAsset && isEvmAccountType(accountForAsset.type)
