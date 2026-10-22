@@ -21,25 +21,27 @@ import { ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
-import { PostSwapShareBottomSheetSelectorsIDs } from './PostSwapShareBottomSheet.testIds';
+import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
-  clearPostSwapShareSession,
-  getPostSwapShareSession,
-  requestPostSwapShareReopen,
-  subscribePostSwapShareSession,
-} from './postSwapShareSession';
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+  requestPostTradeShareReopen,
+  subscribePostTradeShareSession,
+} from './postTradeShareSession';
 
-const PostSwapShareBottomSheet: React.FC = () => {
+const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
-    subscribePostSwapShareSession,
-    getPostSwapShareSession,
-    getPostSwapShareSession,
+    subscribePostTradeShareSession,
+    getPostTradeShareSession,
+    getPostTradeShareSession,
   );
 
+  const isPerps = session?.product === 'perps';
   const canShare = Boolean(
     session?.status === 'complete' &&
-      session.transactionHash &&
-      session.tradeInFlightChain,
+      (session.product === 'perps'
+        ? session.orderId
+        : session.transactionHash && session.tradeInFlightChain),
   );
 
   const title = useMemo(() => {
@@ -47,16 +49,24 @@ const PostSwapShareBottomSheet: React.FC = () => {
       return '';
     }
     if (session.status === 'pending') {
-      return strings('social_leaderboard.post_swap_share.in_progress');
+      return strings('social_leaderboard.post_trade_share.in_progress');
     }
     if (session.status === 'failed') {
-      return strings('social_leaderboard.post_swap_share.failed');
+      return strings(
+        session.product === 'perps'
+          ? 'social_leaderboard.post_trade_share.order_failed'
+          : 'social_leaderboard.post_trade_share.failed',
+      );
     }
-    return strings('social_leaderboard.post_swap_share.complete');
+    return strings(
+      session.product === 'perps'
+        ? 'social_leaderboard.post_trade_share.order_complete'
+        : 'social_leaderboard.post_trade_share.complete',
+    );
   }, [session]);
 
   const handleClose = useCallback(() => {
-    clearPostSwapShareSession();
+    clearPostTradeShareSession();
   }, []);
 
   const handlePrimary = useCallback(() => {
@@ -64,21 +74,40 @@ const PostSwapShareBottomSheet: React.FC = () => {
       return;
     }
     if (session.status === 'failed') {
-      requestPostSwapShareReopen();
+      if (session.product === 'perps') {
+        clearPostTradeShareSession();
+        return;
+      }
+      requestPostTradeShareReopen();
       return;
     }
-    if (!canShare || !session.transactionHash || !session.tradeInFlightChain) {
+    if (!canShare) {
+      return;
+    }
+    const tradeInFlight =
+      session.product === 'perps' && session.orderId
+        ? {
+            orderId: session.orderId,
+            chain: 'hyperliquid' as const,
+            tokenAddress: session.preview.tokenAddress,
+          }
+        : session.product === 'spot' &&
+            session.transactionHash &&
+            session.tradeInFlightChain
+          ? {
+              transactionHash: session.transactionHash,
+              chain: session.tradeInFlightChain,
+              tokenAddress: session.preview.tokenAddress,
+            }
+          : undefined;
+    if (!tradeInFlight) {
       return;
     }
     const params = {
-      tradeInFlight: {
-        transactionHash: session.transactionHash,
-        chain: session.tradeInFlightChain,
-        tokenAddress: session.preview.tokenAddress,
-      },
+      tradeInFlight,
       preview: session.preview,
     };
-    clearPostSwapShareSession();
+    clearPostTradeShareSession();
     NavigationService.navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
   }, [canShare, session]);
 
@@ -88,8 +117,12 @@ const PostSwapShareBottomSheet: React.FC = () => {
 
   const primaryLabel =
     session.status === 'failed'
-      ? strings('social_leaderboard.post_swap_share.try_again')
-      : strings('social_leaderboard.post_swap_share.share_this_trade');
+      ? strings(
+          isPerps
+            ? 'social_leaderboard.post_trade_share.close'
+            : 'social_leaderboard.post_trade_share.try_again',
+        )
+      : strings('social_leaderboard.post_trade_share.share_this_trade');
   const primaryDisabled =
     session.status === 'pending' ||
     (session.status === 'complete' && !canShare);
@@ -98,7 +131,7 @@ const PostSwapShareBottomSheet: React.FC = () => {
     <BottomSheet
       isFullscreen={false}
       onClose={handleClose}
-      testID={PostSwapShareBottomSheetSelectorsIDs.SHEET}
+      testID={PostTradeShareBottomSheetSelectorsIDs.SHEET}
     >
       <Box twClassName="px-4 pb-6 gap-4">
         <Box
@@ -110,9 +143,9 @@ const PostSwapShareBottomSheet: React.FC = () => {
             iconName={IconName.Close}
             size={ButtonIconSize.Md}
             onPress={handleClose}
-            testID={PostSwapShareBottomSheetSelectorsIDs.CLOSE_BUTTON}
+            testID={PostTradeShareBottomSheetSelectorsIDs.CLOSE_BUTTON}
             accessibilityLabel={strings(
-              'social_leaderboard.post_swap_share.close',
+              'social_leaderboard.post_trade_share.close',
             )}
           />
         </Box>
@@ -134,7 +167,7 @@ const PostSwapShareBottomSheet: React.FC = () => {
           )}
           <Text
             variant={TextVariant.HeadingMd}
-            testID={PostSwapShareBottomSheetSelectorsIDs.TITLE}
+            testID={PostTradeShareBottomSheetSelectorsIDs.TITLE}
           >
             {title}
           </Text>
@@ -142,7 +175,7 @@ const PostSwapShareBottomSheet: React.FC = () => {
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
-              testID={PostSwapShareBottomSheetSelectorsIDs.PAIR}
+              testID={PostTradeShareBottomSheetSelectorsIDs.PAIR}
             >
               {session.pairLabel}
             </Text>
@@ -150,13 +183,15 @@ const PostSwapShareBottomSheet: React.FC = () => {
         </Box>
         <Box
           twClassName="rounded-xl bg-muted p-4"
-          testID={PostSwapShareBottomSheetSelectorsIDs.SHARE_AND_EARN}
+          testID={PostTradeShareBottomSheetSelectorsIDs.SHARE_AND_EARN}
         >
           <Text variant={TextVariant.BodyMd}>
-            {strings('social_leaderboard.post_swap_share.share_and_earn_title')}
+            {strings(
+              'social_leaderboard.post_trade_share.share_and_earn_title',
+            )}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('social_leaderboard.post_swap_share.share_and_earn_body')}
+            {strings('social_leaderboard.post_trade_share.share_and_earn_body')}
           </Text>
         </Box>
         <Button
@@ -165,7 +200,7 @@ const PostSwapShareBottomSheet: React.FC = () => {
           isFullWidth
           isDisabled={primaryDisabled}
           onPress={handlePrimary}
-          testID={PostSwapShareBottomSheetSelectorsIDs.SHARE_BUTTON}
+          testID={PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON}
         >
           {primaryLabel}
         </Button>
@@ -174,4 +209,4 @@ const PostSwapShareBottomSheet: React.FC = () => {
   );
 };
 
-export default PostSwapShareBottomSheet;
+export default PostTradeShareBottomSheet;
