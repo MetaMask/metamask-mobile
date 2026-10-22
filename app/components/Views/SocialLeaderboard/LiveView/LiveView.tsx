@@ -2,11 +2,10 @@ import {
   Box,
   BoxAlignItems,
   ButtonIconVariant,
-  ButtonBase,
-  ButtonBaseSize,
   FilterButton,
   FilterButtonSize,
   FilterButtonVariant,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +21,7 @@ import Animated, {
   type ScrollHandlerProcessed,
   useAnimatedScrollHandler,
   useComposedEventHandler,
+  ZoomIn,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useSelector } from 'react-redux';
@@ -45,6 +45,7 @@ import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
+import PendingPostsButton from './components/PendingPostsButton';
 import LiveStreamControls from './components/LiveStreamControls';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import FeedItemEntryAnimation, {
@@ -69,6 +70,10 @@ const LIVE_FEED_INITIAL_RENDER_COUNT = 6;
 const LIVE_FEED_MAX_RENDER_PER_BATCH = 6;
 const LIVE_FEED_WINDOW_SIZE = 5;
 const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 4;
+const PENDING_POSTS_ENTRY = ZoomIn.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
 
 type LiveStreamState = 'paused' | 'live';
 
@@ -356,14 +361,12 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
             <>
               {pendingNewCount > 0 ? (
                 <Box alignItems={BoxAlignItems.Center} twClassName="py-2">
-                  <ButtonBase
-                    size={ButtonBaseSize.Sm}
-                    onPress={handleRevealPending}
-                  >
-                    {pendingNewCount > 60
-                      ? '60+ new posts'
-                      : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`}
-                  </ButtonBase>
+                  <Animated.View entering={PENDING_POSTS_ENTRY}>
+                    <PendingPostsButton
+                      pendingNewCount={pendingNewCount}
+                      onPress={handleRevealPending}
+                    />
+                  </Animated.View>
                 </Box>
               ) : null}
               <SocialTabFilterBar
@@ -491,15 +494,13 @@ const LiveView: React.FC<LiveViewProps> = ({
             {streamLabel}
           </FilterButton>
           {pendingNewCount > 0 ? (
-            <ButtonBase
-              size={ButtonBaseSize.Sm}
-              onPress={onRevealPending}
-              textProps={{ twClassName: 'text-success-default' }}
-            >
-              {pendingNewCount > 60
-                ? '60+ new posts'
-                : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`}
-            </ButtonBase>
+            <Animated.View entering={PENDING_POSTS_ENTRY}>
+              <PendingPostsButton
+                pendingNewCount={pendingNewCount}
+                onPress={onRevealPending}
+                textColor={TextColor.SuccessDefault}
+              />
+            </Animated.View>
           ) : null}
         </Box>
       </SocialTabFilterBar>
