@@ -10,12 +10,15 @@ import type { SocialV1FeedPost, TraderFeedRow } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import type { SocialFeedSource } from './socialFeedSource';
+import {
+  createSocialFeedEntrances,
+  type SocialFeedEntrances,
+} from './socialFeedEntrances';
 
 export const SOCIAL_FEED_BUFFER_SIZE = 60;
 const SOCIAL_FEED_PAGE_SIZE = 30;
 const SOCIAL_FEED_REVEAL_BATCH_SIZE = 2;
 const SOCIAL_FEED_REVEAL_INTERVAL_MS = 16;
-const noopAnimationComplete = (_eventId: string): void => undefined;
 
 export interface SocialFeedRow extends TraderFeedRow {
   stableId: string;
@@ -104,14 +107,18 @@ export const applyRealtimeEventToRow = (
     stableId,
     sortTimestamp:
       previous?.sortTimestamp ?? row?.item.timestamp ?? mappedItem.timestamp,
-    realtimeEventId:
-      previous?.realtimeEventId ?? (animate ? event.eventId : undefined),
+    realtimeEventId: previous
+      ? previous.realtimeEventId
+      : animate
+        ? event.eventId
+        : undefined,
     feedItemId: event.feedItemId,
     revision: event.revision,
   };
 };
 
 export interface UseSocialFeedCanonicalResult {
+  /** Posts of realtime rows carry the `realtimeEventId` of their entrance. */
   posts: SocialV1FeedPost[];
   isLoading: boolean;
   isFetchingNextPage: boolean;
@@ -119,8 +126,7 @@ export interface UseSocialFeedCanonicalResult {
   loadMore: () => void;
   error: string | null;
   refresh: () => Promise<void>;
-  realtimeEventIds: ReadonlyMap<string, string>;
-  markRealtimeEventAnimated: (eventId: string) => void;
+  entrances: SocialFeedEntrances;
   pendingNewCount: number;
 }
 
@@ -144,6 +150,7 @@ export const useSocialFeedCanonical = ({
   const [realtimeRows, setRealtimeRows] = useState<SocialFeedRow[]>([]);
   const pendingEvents = useRef(new Map<string, PendingRealtimeEvent>());
   const postCache = useRef(new Map<string, CachedFeedPost>());
+  const [entrances] = useState(createSocialFeedEntrances);
 
   const source = useMemo(() => toSocialFeedSource(scope), [scope]);
   const realtimeEnabled = realtime && scope !== 'following';
@@ -329,12 +336,16 @@ export const useSocialFeedCanonical = ({
         cached &&
         cached.core === row.core &&
         cached.item === row.item &&
-        cached.now === now
+        cached.now === now &&
+        cached.post.realtimeEventId === row.realtimeEventId
       ) {
         return cached.post;
       }
 
-      const [post] = toSocialFeedPosts([row], now);
+      const [mappedPost] = toSocialFeedPosts([row], now);
+      const post = row.realtimeEventId
+        ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
+        : mappedPost;
       postCache.current.set(row.stableId, {
         core: row.core,
         item: row.item,
@@ -357,17 +368,16 @@ export const useSocialFeedCanonical = ({
     paused,
     nearTop,
   );
-  const realtimeEventIds = useMemo(
-    () =>
-      new Map(
+  // A played entrance only matters while its row stays in the realtime buffer.
+  useEffect(() => {
+    entrances.retain(
+      new Set(
         realtimeRows.flatMap((row) =>
-          row.realtimeEventId
-            ? [[row.stableId, row.realtimeEventId] as const]
-            : [],
+          row.realtimeEventId ? [row.realtimeEventId] : [],
         ),
       ),
-    [realtimeRows],
-  );
+    );
+  }, [entrances, realtimeRows]);
 
   return {
     posts,
@@ -377,8 +387,7 @@ export const useSocialFeedCanonical = ({
     loadMore: feed.loadMore,
     error: feed.error,
     refresh: feed.refresh,
-    realtimeEventIds,
-    markRealtimeEventAnimated: noopAnimationComplete,
+    entrances,
     pendingNewCount: visiblePendingNewCount,
   };
 };

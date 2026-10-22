@@ -44,6 +44,10 @@ import {
   useSocialFeedCanonical,
   type SocialFeedScope,
 } from '../data/useSocialFeedCanonical';
+import {
+  useSocialFeedEntranceEventId,
+  type SocialFeedEntrances,
+} from '../data/socialFeedEntrances';
 
 export type SocialFeedCanonicalScope = SocialFeedScope;
 
@@ -82,9 +86,8 @@ interface ScrollContext extends Record<string, unknown> {
 }
 
 interface CanonicalRowProps {
-  eventId?: string;
+  entrances: SocialFeedEntrances;
   isFirst: boolean;
-  onAnimationComplete: (eventId: string) => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
@@ -107,14 +110,14 @@ const areCanonicalRowPropsEqual = (
   previous: CanonicalRowProps,
   next: CanonicalRowProps,
 ): boolean =>
-  previous.eventId === next.eventId &&
+  previous.entrances === next.entrances &&
   previous.isFirst === next.isFirst &&
-  previous.onAnimationComplete === next.onAnimationComplete &&
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
   previous.scheduleEntryDelay === next.scheduleEntryDelay &&
   previous.post.id === next.post.id &&
+  previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
   previous.post.authorImageUrl === next.post.authorImageUrl &&
   previous.post.timestampMs === next.post.timestampMs &&
@@ -127,33 +130,38 @@ const areCanonicalRowPropsEqual = (
 
 const CanonicalRow = React.memo(
   ({
-    eventId,
+    entrances,
     isFirst,
-    onAnimationComplete,
     onAuthorPress,
     onCopyTrade,
     onPositionPress,
     post,
     scheduleEntryDelay,
-  }: CanonicalRowProps) => (
-    <FeedItemEntryAnimation
-      eventId={eventId}
-      scheduleEntryDelay={scheduleEntryDelay}
-      onAnimationComplete={onAnimationComplete}
-    >
-      <>
-        {!isFirst ? <Box twClassName="h-px bg-muted" /> : null}
-        <Box twClassName="px-4">
-          <SocialFeedPostShell
-            post={post}
-            onAuthorPress={onAuthorPress}
-            onCopyTrade={onCopyTrade}
-            onPositionPress={post.position ? onPositionPress : undefined}
-          />
-        </Box>
-      </>
-    </FeedItemEntryAnimation>
-  ),
+  }: CanonicalRowProps) => {
+    const eventId = useSocialFeedEntranceEventId(
+      entrances,
+      post.realtimeEventId,
+    );
+    return (
+      <FeedItemEntryAnimation
+        eventId={eventId}
+        scheduleEntryDelay={scheduleEntryDelay}
+        onAnimationComplete={entrances.markPlayed}
+      >
+        <>
+          {!isFirst ? <Box twClassName="h-px bg-muted" /> : null}
+          <Box twClassName="px-4">
+            <SocialFeedPostShell
+              post={post}
+              onAuthorPress={onAuthorPress}
+              onCopyTrade={onCopyTrade}
+              onPositionPress={post.position ? onPositionPress : undefined}
+            />
+          </Box>
+        </>
+      </FeedItemEntryAnimation>
+    );
+  },
   areCanonicalRowPropsEqual,
 );
 
@@ -238,8 +246,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
     loadMore,
     error,
     refresh,
-    realtimeEventIds,
-    markRealtimeEventAnimated,
+    entrances,
     pendingNewCount,
   } = useSocialFeedCanonical({
     nearTop,
@@ -304,9 +311,8 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
   const renderItem = useCallback(
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
       <CanonicalRow
-        eventId={realtimeEventIds.get(item.id)}
+        entrances={entrances}
         isFirst={index === 0}
-        onAnimationComplete={markRealtimeEventAnimated}
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
@@ -315,11 +321,10 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
       />
     ),
     [
-      markRealtimeEventAnimated,
+      entrances,
       onAuthorPress,
       onCopyTrade,
       onPositionPress,
-      realtimeEventIds,
       scheduleEntryDelay,
     ],
   );
@@ -329,9 +334,8 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
       visiblePosts.map((post, index) => (
         <CanonicalRow
           key={post.id}
-          eventId={realtimeEventIds.get(post.id)}
+          entrances={entrances}
           isFirst={index === 0}
-          onAnimationComplete={markRealtimeEventAnimated}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={onPositionPress}
@@ -340,11 +344,10 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
         />
       )),
     [
-      markRealtimeEventAnimated,
+      entrances,
       onAuthorPress,
       onCopyTrade,
       onPositionPress,
-      realtimeEventIds,
       scheduleEntryDelay,
       visiblePosts,
     ],

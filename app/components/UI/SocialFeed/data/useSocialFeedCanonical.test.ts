@@ -135,6 +135,29 @@ describe('useSocialFeedCanonical helpers', () => {
     expect(liveRow?.realtimeEventId).toBe(event.eventId);
   });
 
+  it('keeps the entrance event ID of a Live row across later revisions', () => {
+    const item = mapFeedItem(httpItem);
+    if (!item) {
+      throw new Error('Expected the HTTP item to map');
+    }
+    const row: TraderFeedRow = { core: httpItem, item };
+    const enteredRow = {
+      ...toSocialFeedRow(row),
+      realtimeEventId: 'event-1',
+      revision: 1,
+    };
+
+    const revisedRow = applyRealtimeEventToRow(
+      undefined,
+      event,
+      enteredRow,
+      true,
+    );
+
+    expect(revisedRow?.realtimeEventId).toBe('event-1');
+    expect(revisedRow?.revision).toBe(event.revision);
+  });
+
   it('hides pending count while Live is active at the top', () => {
     expect(getVisiblePendingNewCount(1, false, true)).toBe(0);
     expect(getVisiblePendingNewCount(1, true, true)).toBe(1);

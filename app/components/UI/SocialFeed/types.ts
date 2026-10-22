@@ -186,6 +186,11 @@ export interface SocialV1FeedPost {
    * sheet so it opens without a fetch. Absent on pending and mocked posts.
    */
   position?: Position;
+  /**
+   * Socket event whose entrance this post plays once. Absent on posts that
+   * arrived without one (HTTP snapshot, revisions of rows already shown).
+   */
+  realtimeEventId?: string;
 }
 
 /**

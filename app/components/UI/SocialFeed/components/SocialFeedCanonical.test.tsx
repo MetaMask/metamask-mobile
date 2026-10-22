@@ -1,6 +1,7 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { act, render, screen } from '@testing-library/react-native';
 import SocialFeedCanonical from './SocialFeedCanonical';
+import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
 import { useSocialFeedCanonical } from '../data/useSocialFeedCanonical';
 
 jest.mock('../data/useSocialFeedCanonical', () => ({
@@ -24,7 +25,28 @@ jest.mock(
   '../../../Views/SocialLeaderboard/FeedView/components/FeedItemEntryAnimation',
   () => ({
     __esModule: true,
-    default: ({ children }: { children: React.ReactNode }) => children,
+    default: ({
+      children,
+      eventId,
+    }: {
+      children: React.ReactNode;
+      eventId?: string;
+    }) => {
+      const ReactActual = jest.requireActual('react');
+      const ReactNative = jest.requireActual('react-native');
+      return ReactActual.createElement(
+        ReactActual.Fragment,
+        null,
+        eventId
+          ? ReactActual.createElement(
+              ReactNative.Text,
+              null,
+              `entering ${eventId}`,
+            )
+          : null,
+        children,
+      );
+    },
     createFeedItemEntryScheduler: () => () => 0,
   }),
 );
@@ -59,15 +81,16 @@ const state = {
   loadMore: jest.fn(),
   error: null,
   refresh: jest.fn(),
-  realtimeEventIds: new Map(),
-  markRealtimeEventAnimated: jest.fn(),
   pendingNewCount: 0,
 };
 
 describe('SocialFeedCanonical', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSocialFeedCanonical.mockReturnValue(state);
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      entrances: createSocialFeedEntrances(),
+    });
   });
 
   it('configures the all scope with realtime in virtualized mode', () => {
@@ -102,6 +125,25 @@ describe('SocialFeedCanonical', () => {
       expect.objectContaining({ scope: 'trending', realtime: false }),
     );
     expect(screen.getByTestId('canonical-content')).toBeOnTheScreen();
+    expect(screen.getByText('post-1')).toBeOnTheScreen();
+  });
+
+  it('plays a realtime row entrance until it is marked played', () => {
+    const entrances = createSocialFeedEntrances();
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      posts: [{ ...(post as object), realtimeEventId: 'event-1' } as never],
+      entrances,
+    });
+    render(
+      <SocialFeedCanonical scope="all" scrollMode="virtualized" realtime />,
+    );
+    const wasEntering = screen.queryByText('entering event-1') !== null;
+
+    act(() => entrances.markPlayed('event-1'));
+
+    expect(wasEntering).toBe(true);
+    expect(screen.queryByText('entering event-1')).toBeNull();
     expect(screen.getByText('post-1')).toBeOnTheScreen();
   });
 });

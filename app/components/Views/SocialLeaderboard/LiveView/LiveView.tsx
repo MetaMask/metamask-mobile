@@ -49,6 +49,10 @@ import FeedItemEntryAnimation, {
 } from '../FeedView/components/FeedItemEntryAnimation';
 import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { useSocialFeedCanonical } from '../../../UI/SocialFeed/data/useSocialFeedCanonical';
+import {
+  useSocialFeedEntranceEventId,
+  type SocialFeedEntrances,
+} from '../../../UI/SocialFeed/data/socialFeedEntrances';
 import { filterSocialV1FeedPosts } from '../shell/filters/filterSocialV1FeedPosts';
 import { useMyProfile } from '../MyProfileView/hooks';
 
@@ -66,9 +70,8 @@ const LIVE_FEED_NEAR_TOP_THRESHOLD_PX = 4;
 type LiveStreamState = 'paused' | 'live';
 
 interface LiveFeedListItemProps {
-  eventId?: string;
+  entrances: SocialFeedEntrances;
   isFirst: boolean;
-  onAnimationComplete: (eventId: string) => void;
   onAuthorPress: (post: SocialV1FeedPost) => void;
   onPositionPress: (post: SocialV1FeedPost) => void;
   post: SocialV1FeedPost;
@@ -94,13 +97,13 @@ const areLiveFeedListItemPropsEqual = (
   const nextPost = next.post;
 
   return (
-    previous.eventId === next.eventId &&
+    previous.entrances === next.entrances &&
     previous.isFirst === next.isFirst &&
-    previous.onAnimationComplete === next.onAnimationComplete &&
     previous.onAuthorPress === next.onAuthorPress &&
     previous.onPositionPress === next.onPositionPress &&
     previous.scheduleEntryDelay === next.scheduleEntryDelay &&
     previousPost.id === nextPost.id &&
+    previousPost.realtimeEventId === nextPost.realtimeEventId &&
     previousPost.authorHandle === nextPost.authorHandle &&
     previousPost.authorImageUrl === nextPost.authorImageUrl &&
     previousPost.timestampMs === nextPost.timestampMs &&
@@ -115,31 +118,36 @@ const areLiveFeedListItemPropsEqual = (
 
 const LiveFeedListItem = React.memo(
   ({
-    eventId,
+    entrances,
     isFirst,
-    onAnimationComplete,
     onAuthorPress,
     onPositionPress,
     post,
     scheduleEntryDelay,
-  }: LiveFeedListItemProps) => (
-    <FeedItemEntryAnimation
-      eventId={eventId}
-      scheduleEntryDelay={scheduleEntryDelay}
-      onAnimationComplete={onAnimationComplete}
-    >
-      <>
-        {!isFirst ? <Box twClassName="h-px bg-muted" /> : null}
-        <Box twClassName="px-4">
-          <SocialFeedPostShell
-            post={post}
-            onAuthorPress={onAuthorPress}
-            onPositionPress={post.position ? onPositionPress : undefined}
-          />
-        </Box>
-      </>
-    </FeedItemEntryAnimation>
-  ),
+  }: LiveFeedListItemProps) => {
+    const eventId = useSocialFeedEntranceEventId(
+      entrances,
+      post.realtimeEventId,
+    );
+    return (
+      <FeedItemEntryAnimation
+        eventId={eventId}
+        scheduleEntryDelay={scheduleEntryDelay}
+        onAnimationComplete={entrances.markPlayed}
+      >
+        <>
+          {!isFirst ? <Box twClassName="h-px bg-muted" /> : null}
+          <Box twClassName="px-4">
+            <SocialFeedPostShell
+              post={post}
+              onAuthorPress={onAuthorPress}
+              onPositionPress={post.position ? onPositionPress : undefined}
+            />
+          </Box>
+        </>
+      </FeedItemEntryAnimation>
+    );
+  },
   areLiveFeedListItemPropsEqual,
 );
 
@@ -179,8 +187,7 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
     loadMore,
     error,
     refresh,
-    realtimeEventIds,
-    markRealtimeEventAnimated,
+    entrances,
     pendingNewCount,
   } = useSocialFeedCanonical({
     paused: streamState === 'paused',
@@ -306,27 +313,17 @@ const LegacyLiveView: React.FC<LiveViewProps> = ({
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const renderPost = useCallback(
-    ({ item, index }: { item: SocialV1FeedPost; index: number }) => {
-      const eventId = realtimeEventIds.get(item.id);
-      return (
-        <LiveFeedListItem
-          eventId={eventId}
-          isFirst={index === 0}
-          onAnimationComplete={markRealtimeEventAnimated}
-          onAuthorPress={handleAuthorPress}
-          onPositionPress={handlePositionPress}
-          post={item}
-          scheduleEntryDelay={scheduleEntryDelay}
-        />
-      );
-    },
-    [
-      handleAuthorPress,
-      handlePositionPress,
-      markRealtimeEventAnimated,
-      realtimeEventIds,
-      scheduleEntryDelay,
-    ],
+    ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
+      <LiveFeedListItem
+        entrances={entrances}
+        isFirst={index === 0}
+        onAuthorPress={handleAuthorPress}
+        onPositionPress={handlePositionPress}
+        post={item}
+        scheduleEntryDelay={scheduleEntryDelay}
+      />
+    ),
+    [entrances, handleAuthorPress, handlePositionPress, scheduleEntryDelay],
   );
 
   return (
