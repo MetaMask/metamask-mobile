@@ -1,8 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
-  BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   IconAlertSeverity,
   Text,
@@ -11,6 +9,8 @@ import {
   TitleAlert,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackupConfirmErrorSheetSelectorsIDs } from './ManualBackupConfirmErrorSheet.testIds';
 
@@ -48,7 +48,8 @@ const ManualBackupConfirmErrorSheet = ({
       onClose={onDismiss}
       testID={ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET}
     >
-      <BottomSheetHeader
+      <HeaderStandardGlass
+        isFloating={false}
         onClose={handleClose}
         closeButtonProps={{
           testID:
@@ -74,7 +75,7 @@ const ManualBackupConfirmErrorSheet = ({
           {strings('manual_backup_step_2.error-description')}
         </Text>
       </Box>
-      <BottomSheetFooter
+      <FooterGlass
         primaryButtonProps={{
           children: strings('manual_backup_step_2.error-button'),
           onPress: handleClose,

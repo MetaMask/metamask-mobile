@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { useFloatingTabBarInset } from '../../../../component-library/components/Navigation/TabBarFloating';
 import {
@@ -21,7 +22,6 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectActiveTab,
   selectHasAcceptedVipInvite,
   selectHasAcceptedVipRefereeInvite,
   selectIsVipReferee,
@@ -43,10 +43,15 @@ import {
 } from '../hooks/useRewardDashboardModals';
 import { useBulkLinkState } from '../hooks/useBulkLinkState';
 import { useResumePendingMasSeriesOptIn } from '../hooks/useMoneyAccountSweepstakesOptIn';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectSessionProfileId } from '../../../../selectors/identity';
+import type { RootState } from '../../../../reducers';
+import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
 import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
 import { useReferralDetails } from '../hooks/useReferralDetails';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -88,8 +93,11 @@ const RewardsDashboard: React.FC = () => {
   const hasAcceptedVipRefereeInvite = useSelector(
     selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
-  const activeTab = useSelector(selectActiveTab);
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const profileId = useSelector(selectSessionProfileId);
+  const referralMe = useSelector(
+    (state: RootState) => selectReferralMeEntry(state, profileId)?.data,
+  );
+  const { createEventBuilder } = useAnalytics();
   const hasTrackedDashboardViewed = useRef(false);
 
   const {
@@ -112,7 +120,6 @@ const RewardsDashboard: React.FC = () => {
   }, [isCampaignsFetching]);
   const moneyAccountSeries = useMoneyAccountSweepstakesSeries();
 
-  useTrackRewardsPageView({ page_type: 'home' });
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
@@ -278,7 +285,11 @@ const RewardsDashboard: React.FC = () => {
     bySelectedAccountGroup: optInBySelectedAccountGroup,
     currentAccountGroupPartiallySupported,
     currentAccountGroupOptedInStatus,
+    refresh: refreshOptInSummary,
   } = useRewardOptinSummary();
+  const refreshOptInSummaryRef = useRef(refreshOptInSummary);
+  refreshOptInSummaryRef.current = refreshOptInSummary;
+  const skipNextOptInFocusRefresh = useRef(true);
 
   // Use the bulk link state hook for resuming interrupted opt-in processes
   const { wasInterrupted, isRunning, resumeBulkLink } = useBulkLinkState();
@@ -310,10 +321,28 @@ const RewardsDashboard: React.FC = () => {
   // The saga is idempotent - it re-fetches opt-in status to skip already-linked accounts.
   useFocusEffect(
     useCallback(() => {
-      if (wasInterrupted && !isRunning) {
-        resumeBulkLink();
-      }
+      const handle = runAfterInteractions(() => {
+        if (wasInterrupted && !isRunning) {
+          resumeBulkLink();
+        }
+      });
+      return () => handle.cancel();
     }, [wasInterrupted, isRunning, resumeBulkLink]),
+  );
+
+  // The opt-in summary fetches on mount. Later visits no longer remount the
+  // tab, so refresh when it is focused again, after the shell has painted.
+  useFocusEffect(
+    useCallback(() => {
+      if (skipNextOptInFocusRefresh.current) {
+        skipNextOptInFocusRefresh.current = false;
+        return undefined;
+      }
+      const handle = runAfterInteractions(() => {
+        void refreshOptInSummaryRef.current();
+      });
+      return () => handle.cancel();
+    }, []),
   );
 
   // Auto-trigger dashboard modals based on account/rewards state (session-aware)
@@ -373,12 +402,14 @@ const RewardsDashboard: React.FC = () => {
 
   useEffect(() => {
     if (!hasTrackedDashboardViewed.current) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED).build(),
-      );
+      trackRewardsDashboardViewed(createEventBuilder, {
+        dashboard: RewardsDashboardKind.REWARDS,
+        hasSubscription: Boolean(subscriptionId),
+        referralMe,
+      });
       hasTrackedDashboardViewed.current = true;
     }
-  }, [trackEvent, createEventBuilder]);
+  }, [createEventBuilder, referralMe, subscriptionId]);
 
   // Hidden VIP unlock: 5 taps on the title within 3s, once per dashboard visit,
   // only attempted when the user isn't already VIP. A non-null
@@ -436,7 +467,7 @@ const RewardsDashboard: React.FC = () => {
       vipUnlockTimerRef.current = null;
     }
 
-    (async () => {
+    void (async () => {
       try {
         // The controller flips `subscription.features.vip.enabled` as a side
         // effect when the VIP dashboard fetch returns a non-null payload, so
@@ -470,14 +501,6 @@ const RewardsDashboard: React.FC = () => {
         : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
     );
   }, [hasAcceptedVipRefereeInvite, navigation]);
-
-  useEffect(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.REWARDS_DASHBOARD_TAB_VIEWED)
-        .addProperties({ tab: activeTab })
-        .build(),
-    );
-  }, [activeTab, trackEvent, createEventBuilder]);
 
   const headerEndAccessory = (
     <Box twClassName="flex-row gap-2">
