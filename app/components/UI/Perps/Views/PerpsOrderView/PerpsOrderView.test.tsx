@@ -7410,7 +7410,7 @@ describe('PerpsOrderView', () => {
         throw new Error('usePerpsOrderExecution was not given onError');
       }
       act(() => {
-        options.onError?.('rejected');
+        options.onError?.({ error: 'rejected' });
       });
 
       expect(getPostTradeShareSession()?.status).toBe('failed');
