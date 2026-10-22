@@ -6,7 +6,10 @@ import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
-import { getFollowTradingHomeRoute } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  getFollowTradingHomeRoute,
+  isSocialV1Treatment,
+} from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -128,6 +131,7 @@ export const handleSocialTraderPositionUrl = ({
       originalEntryPoint: 'notification',
       notificationSubtype,
       notificationTemplateVariant,
+      isSocialV1: isSocialV1Treatment(),
     });
   } catch (error) {
     DevLogger.log(

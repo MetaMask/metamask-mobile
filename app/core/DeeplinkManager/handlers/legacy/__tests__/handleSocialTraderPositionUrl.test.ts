@@ -4,6 +4,7 @@ import NavigationService from '../../../../NavigationService';
 import ReactQueryService from '../../../../ReactQueryService';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
 import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl';
+import { isSocialV1Treatment } from '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -34,6 +35,7 @@ jest.mock(
   '../../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation',
   () => ({
     getFollowTradingHomeRoute: () => 'SocialV0View',
+    isSocialV1Treatment: jest.fn(() => false),
   }),
 );
 
@@ -52,11 +54,13 @@ describe('handleSocialTraderPositionUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
   const mockInvalidateQueries = ReactQueryService.queryClient
     .invalidateQueries as jest.Mock;
+  const mockIsSocialV1Treatment = jest.mocked(isSocialV1Treatment);
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockIsSocialV1Treatment.mockReturnValue(false);
   });
 
   it('navigates to TraderPositionView with positionId and forwards notificationSubtype', () => {
@@ -73,6 +77,7 @@ describe('handleSocialTraderPositionUrl', () => {
       originalEntryPoint: 'notification',
       notificationSubtype: 'follow_newtrade_buy',
       notificationTemplateVariant: undefined,
+      isSocialV1: false,
     });
   });
 
@@ -89,7 +94,21 @@ describe('handleSocialTraderPositionUrl', () => {
       originalEntryPoint: 'notification',
       notificationSubtype: undefined,
       notificationTemplateVariant: undefined,
+      isSocialV1: false,
     });
+  });
+
+  it('marks the position as Social V1 when the flag is treatment', () => {
+    mockIsSocialV1Treatment.mockReturnValue(true);
+
+    handleSocialTraderPositionUrl({
+      actionPath: '?positionId=position-1&traderId=trader-1',
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION,
+      expect.objectContaining({ isSocialV1: true }),
+    );
   });
 
   it('decodes encoded positionId, traderId, and subtype values', () => {
@@ -105,6 +124,7 @@ describe('handleSocialTraderPositionUrl', () => {
       originalEntryPoint: 'notification',
       notificationSubtype: 'follow newtrade/buy',
       notificationTemplateVariant: undefined,
+      isSocialV1: false,
     });
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Parsed navigation parameters:',
@@ -228,6 +248,7 @@ describe('handleSocialTraderPositionUrl', () => {
       originalEntryPoint: 'notification',
       notificationSubtype: undefined,
       notificationTemplateVariant: undefined,
+      isSocialV1: false,
     });
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',

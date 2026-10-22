@@ -478,6 +478,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
   [DeepLinkRoute.WHATS_HAPPENING]: extractWhatsHappeningProperties,
   [DeepLinkRoute.TOP_TRADERS]: extractInvalidProperties,
+  [DeepLinkRoute.SOCIAL_TRADER]: extractInvalidProperties,
   [DeepLinkRoute.SOCIAL_TRADER_POSITION]: extractInvalidProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
@@ -623,6 +624,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.WHATS_HAPPENING;
     case ACTIONS.TOP_TRADERS:
       return DeepLinkRoute.TOP_TRADERS;
+    case ACTIONS.SOCIAL_TRADER:
+      return DeepLinkRoute.SOCIAL_TRADER;
     case ACTIONS.SOCIAL_TRADER_POSITION:
       return DeepLinkRoute.SOCIAL_TRADER_POSITION;
     case ACTIONS.CARD_ONBOARDING:
@@ -704,6 +707,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.WHATS_HAPPENING;
       case 'top-traders':
         return DeepLinkRoute.TOP_TRADERS;
+      case 'social-trader':
+        return DeepLinkRoute.SOCIAL_TRADER;
       case 'social-trader-position':
         return DeepLinkRoute.SOCIAL_TRADER_POSITION;
       case 'card-onboarding':

@@ -16,6 +16,7 @@ import Logger from '../../../../util/Logger';
 import handleRampReturnUrl from '../legacy/handleRampReturnUrl';
 import { SHIELD_WEBSITE_URL } from '../../../../constants/shield';
 import { handleSocialLeaderboardUrl } from '../legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from '../legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from '../legacy/handleSocialTraderPositionUrl';
 import { handleWhatsHappeningUrl } from '../legacy/handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../intent/handleSwapUrl';
@@ -91,6 +92,7 @@ jest.mock('../legacy/handleFastOnboarding');
 jest.mock('../intent/handleTrendingUrl');
 jest.mock('../legacy/handleWhatsHappeningUrl');
 jest.mock('../legacy/handleSocialLeaderboardUrl');
+jest.mock('../legacy/handleSocialTraderUrl');
 jest.mock('../legacy/handleSocialTraderPositionUrl');
 jest.mock('../../../redux', () => ({
   __esModule: true,
@@ -1704,7 +1706,37 @@ describe('handleUniversalLink', () => {
       });
 
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledTimes(1);
+      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
+        actionPath: '?ignored=true',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.SOCIAL_TRADER', () => {
+    it('opens a trader profile without showing the interstitial', async () => {
+      const traderUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER}?traderId=trader-1`;
+      const traderUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: traderUrl,
+        pathname: `/${ACTIONS.SOCIAL_TRADER}`,
+        search: '?traderId=trader-1',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: traderUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: traderUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleSocialTraderUrl).toHaveBeenCalledWith({
+        actionPath: '?traderId=trader-1',
+      });
       expect(handled).toHaveBeenCalled();
     });
   });

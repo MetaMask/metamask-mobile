@@ -57,6 +57,7 @@ import {
 } from './intent/handleTrendingUrl';
 import { handleWhatsHappeningUrl } from './legacy/handleWhatsHappeningUrl';
 import { handleSocialLeaderboardUrl } from './legacy/handleSocialLeaderboardUrl';
+import { handleSocialTraderUrl } from './legacy/handleSocialTraderUrl';
 import { handleSocialTraderPositionUrl } from './legacy/handleSocialTraderPositionUrl';
 import { handleEarnMusd } from './legacy/handleEarnMusd';
 import { handleAssetUrl } from './legacy/handleAssetUrl';
@@ -126,6 +127,7 @@ const SUPPORTED_ACTIONS = {
   TRENDING: ACTIONS.TRENDING,
   WHATS_HAPPENING: ACTIONS.WHATS_HAPPENING,
   TOP_TRADERS: ACTIONS.TOP_TRADERS,
+  SOCIAL_TRADER: ACTIONS.SOCIAL_TRADER,
   SOCIAL_TRADER_POSITION: ACTIONS.SOCIAL_TRADER_POSITION,
   SHIELD: ACTIONS.SHIELD,
   EARN_MUSD: ACTIONS.EARN_MUSD,
@@ -168,6 +170,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.TRENDING,
   SUPPORTED_ACTIONS.WHATS_HAPPENING,
   SUPPORTED_ACTIONS.TOP_TRADERS,
+  SUPPORTED_ACTIONS.SOCIAL_TRADER,
   SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION,
   SUPPORTED_ACTIONS.SHIELD,
   SUPPORTED_ACTIONS.EARN_MUSD,
@@ -836,7 +839,15 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.TOP_TRADERS: {
-      handleSocialLeaderboardUrl();
+      handleSocialLeaderboardUrl({
+        actionPath: actionBasedRampPath,
+      });
+      break;
+    }
+    case SUPPORTED_ACTIONS.SOCIAL_TRADER: {
+      handleSocialTraderUrl({
+        actionPath: actionBasedRampPath,
+      });
       break;
     }
     case SUPPORTED_ACTIONS.SOCIAL_TRADER_POSITION: {
