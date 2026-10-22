@@ -395,12 +395,14 @@ export function buildPositionsProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  builderCode,
   signatureType = SignatureType.POLY_GNOSIS_SAFE,
   nowInSeconds = Math.floor(Date.now() / 1000),
 }: {
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  builderCode?: string;
   signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
@@ -409,6 +411,7 @@ export function buildPositionsProtocolUnsignedOrder({
     preview,
     makerAddress,
     signerAddress,
+    builderCode,
     signatureType,
     nowInSeconds,
   });

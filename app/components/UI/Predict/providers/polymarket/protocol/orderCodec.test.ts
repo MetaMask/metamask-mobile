@@ -299,6 +299,8 @@ describe('polymarket protocol order codec', () => {
 
   describe('positions protocol order signing', () => {
     const EXCHANGE_V3 = '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa';
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
 
     it('builds a positions order with the same field shape as the CTF order', () => {
       const order = buildPositionsProtocolUnsignedOrder({
@@ -323,6 +325,29 @@ describe('polymarket protocol order codec', () => {
         'side',
         'signatureType',
       ]);
+    });
+
+    it('uses an explicit per-order builder code for a positions order', () => {
+      const order = buildPositionsProtocolUnsignedOrder({
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+        builderCode: membershipBuilderCode,
+      });
+
+      expect(order.builder).toBe(membershipBuilderCode);
+    });
+
+    it('uses the positions protocol builder when no override is provided', () => {
+      const order = buildPositionsProtocolUnsignedOrder({
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+      });
+
+      expect(order.builder).toBe(
+        POLYMARKET_POSITIONS_PROTOCOL.order.getBuilderCode(),
+      );
     });
 
     it('signs positions orders with domain version 3 against ExchangeV3', async () => {

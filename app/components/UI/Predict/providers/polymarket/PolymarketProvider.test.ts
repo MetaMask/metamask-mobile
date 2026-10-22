@@ -1908,6 +1908,48 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('includes the membership builder code in the signed positions order', async () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...preview,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: membershipBuilderCode,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'Order',
+          message: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      }),
+    );
+  });
+
   it('routes v1 market buys through the CTF path without fetching Gamma at order time', async () => {
     const provider = createProvider();
     const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);

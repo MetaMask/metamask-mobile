@@ -1077,6 +1077,7 @@ export class PolymarketProvider implements PredictProvider {
       signerAddress: isDepositWallet
         ? tradingWalletAddress
         : getAddress(signer.address),
+      builderCode: preview.feePolicy?.builderCode,
       signatureType: isDepositWallet
         ? SignatureType.POLY_1271
         : SignatureType.POLY_GNOSIS_SAFE,
