@@ -1,11 +1,12 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 import VbaVerifyIdentity from './VerifyIdentity';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import {
+  IDOS_PRIVACY_NOTICE_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
@@ -96,6 +97,18 @@ const openTermsSheet = (
   getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
 ) =>
   fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON));
+
+const setBiometricConsent = (
+  getByTestId: ReturnType<typeof renderScreen>['getByTestId'],
+  value: boolean,
+) =>
+  fireEvent(
+    within(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH),
+    ).getByRole('switch'),
+    'valueChange',
+    value,
+  );
 
 describe('VbaVerifyIdentity', () => {
   beforeEach(() => {
@@ -253,9 +266,61 @@ describe('VbaVerifyIdentity', () => {
     ]);
   });
 
-  it('closes the sheet and advances when the user agrees', () => {
+  it('shows the biometric consent switch off and Agree disabled when the sheet opens', () => {
+    const { getByTestId, getByText } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    expect(
+      within(
+        getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH),
+      ).getByRole('switch').props.value,
+    ).toBe(false);
+    expect(
+      getByText(/I explicitly consent to idOS Association processing/),
+    ).toBeOnTheScreen();
+    expect(getByText('Agree')).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+    ).toBeDisabled();
+
+    fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON));
+
+    expect(mockOnSuccess).not.toHaveBeenCalled();
+  });
+
+  it('enables Agree only while the biometric consent switch is on', () => {
+    const { getByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    setBiometricConsent(getByTestId, true);
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+    ).toBeEnabled();
+
+    setBiometricConsent(getByTestId, false);
+    expect(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('opens the idOS Privacy Notice from the biometric consent', () => {
+    const openUrlSpy = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(undefined);
+    const { getByTestId } = renderScreen();
+    openTermsSheet(getByTestId);
+
+    fireEvent.press(
+      getByTestId(VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK),
+    );
+
+    expect(openUrlSpy).toHaveBeenCalledWith(IDOS_PRIVACY_NOTICE_URL);
+  });
+
+  it('closes the sheet and advances when the user consents and agrees', () => {
     const { getByTestId, queryByTestId } = renderScreen();
     openTermsSheet(getByTestId);
+    setBiometricConsent(getByTestId, true);
 
     fireEvent.press(getByTestId(VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON));
 

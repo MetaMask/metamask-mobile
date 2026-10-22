@@ -12,4 +12,6 @@ export const VbaVerifyIdentitySelectorsIDs = {
   METAMASK_TERMS_LINK: 'vba-verify-identity-metamask-terms-link',
   DISCLAIMER_LINK: 'vba-verify-identity-disclaimer-link',
   AGREE_BUTTON: 'vba-verify-identity-agree-button',
+  BIOMETRIC_CONSENT_SWITCH: 'vba-verify-identity-biometric-consent-switch',
+  BIOMETRIC_CONSENT_LINK: 'vba-verify-identity-biometric-consent-link',
 };

@@ -1,9 +1,11 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Linking } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   ButtonSize,
   ContentVariant,
   FontWeight,
@@ -12,13 +14,16 @@ import {
   IconName,
   IconSize,
   ListItem,
+  Switch,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  IDOS_PRIVACY_NOTICE_URL,
   METAMASK_PRIVACY_POLICY_URL,
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
@@ -62,9 +67,11 @@ interface VbaProviderTermsSheetProps {
 }
 
 /**
- * "Data and privacy" confirm sheet over Verify your identity. Agreeing closes
- * the sheet, then hands off to the provider step, which records the session
- * consents and launches SumSub back-to-back.
+ * "Data and privacy" confirm sheet over Verify your identity. idOS needs an
+ * explicit, separate biometric consent before any data is collected, so Agree
+ * stays disabled until the consent switch is on. Agreeing closes the sheet,
+ * then hands off to the provider step, which records the session consents and
+ * launches SumSub back-to-back.
  */
 const VbaProviderTermsSheet = ({
   disclaimers,
@@ -72,6 +79,12 @@ const VbaProviderTermsSheet = ({
   onClose,
 }: VbaProviderTermsSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const [hasBiometricConsent, setHasBiometricConsent] = useState(false);
+
+  const openIdosPrivacyNotice = useCallback(
+    () => Linking.openURL(IDOS_PRIVACY_NOTICE_URL),
+    [],
+  );
 
   const handleAgree = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onAgree);
@@ -111,24 +124,62 @@ const VbaProviderTermsSheet = ({
       testID={VbaVerifyIdentitySelectorsIDs.TERMS_SHEET}
     >
       <Box twClassName="gap-2.5 py-6">
-        <Box twClassName="gap-2 p-4">
+        <Box twClassName="p-4">
           <Text variant={TextVariant.HeadingLg}>
             {strings('virtual_bank_account.verify_identity.terms_sheet_title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Regular}
-            color={TextColor.TextAlternative}
-          >
-            {strings(
-              'virtual_bank_account.verify_identity.terms_sheet_description',
-            )}
           </Text>
         </Box>
         <Box>
           {links.map((link) => (
             <TermsLinkRow key={link.id} link={link} />
           ))}
+        </Box>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
+          twClassName="gap-4 px-4"
+        >
+          <Box twClassName="flex-1 gap-2">
+            <Text variant={TextVariant.BodyMd}>
+              {strings(
+                'virtual_bank_account.verify_identity.biometric_consent_label',
+              )}
+              <TextButton
+                variant={TextVariant.BodyMd}
+                onPress={openIdosPrivacyNotice}
+                accessibilityRole="link"
+                testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_LINK}
+              >
+                {strings(
+                  'virtual_bank_account.verify_identity.biometric_consent_link',
+                )}
+              </TextButton>
+              {strings(
+                'virtual_bank_account.verify_identity.biometric_consent_label_end',
+              )}
+            </Text>
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Regular}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'virtual_bank_account.verify_identity.terms_sheet_description',
+              )}
+            </Text>
+          </Box>
+          <Switch
+            isOn={hasBiometricConsent}
+            onValueChange={setHasBiometricConsent}
+            accessibilityHint={`${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_label',
+            )}${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_link',
+            )}${strings(
+              'virtual_bank_account.verify_identity.biometric_consent_label_end',
+            )}`}
+            testID={VbaVerifyIdentitySelectorsIDs.BIOMETRIC_CONSENT_SWITCH}
+          />
         </Box>
       </Box>
       <BottomSheetFooter
@@ -138,6 +189,7 @@ const VbaProviderTermsSheet = ({
             'virtual_bank_account.verify_identity.terms_sheet_button',
           ),
           size: ButtonSize.Lg,
+          isDisabled: !hasBiometricConsent,
           onPress: handleAgree,
           testID: VbaVerifyIdentitySelectorsIDs.AGREE_BUTTON,
         }}

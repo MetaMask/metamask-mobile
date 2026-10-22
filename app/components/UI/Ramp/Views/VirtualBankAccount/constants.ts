@@ -12,3 +12,7 @@ export const PIX_BRAND_COLOR = '#2CBFB0';
 // `KycController.fetchVendorDisclaimers` (via `useKycDisclaimers`).
 export const METAMASK_PRIVACY_POLICY_URL = AppConstants.URLS.PRIVACY_POLICY;
 export const METAMASK_TERMS_URL = AppConstants.URLS.TERMS_AND_CONDITIONS;
+
+// idOS Privacy Notice linked from the biometric consent on "Data and privacy".
+export const IDOS_PRIVACY_NOTICE_URL =
+  'https://www.idos.network/legal/privacy-notice';
