@@ -70,8 +70,8 @@ describe('OrderCompleted', () => {
         getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON),
       ).toHaveTextContent(strings('card.order_completed.set_up_card_button'));
       expect(
-        getByTestId(OrderCompletedSelectors.BACK_BUTTON),
-      ).toBeOnTheScreen();
+        getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.not_now_button'));
     });
   });
 
@@ -133,12 +133,14 @@ describe('OrderCompleted', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('goes back from the header', () => {
+    it('goes back when Not now is pressed', () => {
       const { getByTestId } = render(<OrderCompleted />);
 
-      fireEvent.press(getByTestId(OrderCompletedSelectors.BACK_BUTTON));
+      fireEvent.press(getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 });
