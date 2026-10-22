@@ -3,18 +3,21 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
-  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
 } from 'react';
 import {
-  ScrollView,
   useWindowDimensions,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+} from '@shopify/flash-list';
+import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -36,7 +39,6 @@ import {
   SocialV1TraderRowSkeleton,
 } from '../../../Views/SocialLeaderboard/TopTradersView/components';
 import { useLeaderboardReveal } from '../../../Views/SocialLeaderboard/TopTradersView/components/useLeaderboardReveal';
-import { RANK_CHANGE_DURATION } from '../../../Views/SocialLeaderboard/TopTradersView/components/useRankChangeAnimation';
 import { getTraderMetricDisplay } from '../../../Views/SocialLeaderboard/TopTradersView/traderMetric';
 import {
   SocialFeedSurfaceProvider,
@@ -60,16 +62,19 @@ import {
 import SocialLeaderboardMessage from './SocialLeaderboardMessage';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
 
-/**
- * Slide a row runs when the ranking reshuffles, matched to the row's own
- * rank-change pulse so both resolve together.
- */
-const rowLayoutTransition = LinearTransition.duration(
-  RANK_CHANGE_DURATION,
-).easing(Easing.out(Easing.ease));
-
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
+
+/** Pixels of list drawn past the viewport. LOW devices keep a short window. */
+const LOW_LIST_DRAW_DISTANCE = 80;
+
+const LeaderboardFlashList = React.forwardRef<
+  FlashListRef<RankedTrader>,
+  FlashListProps<RankedTrader>
+>((props, ref) => <FlashList ref={ref} {...props} />);
+
+const AnimatedLeaderboardList =
+  Animated.createAnimatedComponent(LeaderboardFlashList);
 
 /** Lets a host that owns the scroll view drive pull-to-refresh and offset. */
 export interface SocialLeaderboardHandle {
@@ -109,9 +114,10 @@ export interface SocialLeaderboardProps {
 }
 
 /**
- * Ranked trader list for one source. The fetch is capped at 50, so every row
- * stays mounted. Rows slide to their new position when the ranking changes,
- * and the first paint replays the order the user last saw.
+ * Ranked trader list for one source. The fetch is capped at 50. Rows share
+ * one component and one height, so FlashList recycles them instead of
+ * mounting the whole page. The first paint still replays the order the user
+ * last saw.
  */
 const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   source,
@@ -140,8 +146,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const hardwareTier = getHardwareTier();
   const canAnimate = hardwareTier !== 'LOW';
   const isOffline = networkTier === 'NONE';
-  const listRef = useRef<ScrollView>(null);
-  const hasPaintedRowsRef = useRef(false);
+  const listRef = useRef<FlashListRef<RankedTrader>>(null);
 
   const { timeframe, ranking, cohort } = filters;
   const sort = toLeaderboardSort(ranking);
@@ -166,7 +171,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     () => ({
       refresh,
       scrollToOffset: (offset: number, animated = false) => {
-        listRef.current?.scrollTo({ y: offset, animated });
+        listRef.current?.scrollToOffset({ offset, animated });
       },
     }),
     [refresh],
@@ -269,14 +274,6 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     refresh().catch(() => undefined);
   }, [refresh]);
 
-  // The ref flips after the first visible paint, so a prefetched page does not
-  // slide 50 rows in during the tab change. LOW already skips the transition.
-  useEffect(() => {
-    if (visible && rows.length > 0) {
-      hasPaintedRowsRef.current = true;
-    }
-  }, [rows.length, visible]);
-
   if (!visible || !isEnabled || resolution.status === 'hidden') {
     return null;
   }
@@ -327,15 +324,34 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     !(isLoading && traders.length === 0 && !isShowingSnapshot) &&
     rows.length > 0;
 
+  const renderRow = useCallback(
+    ({ item }: { item: RankedTrader }) => (
+      <SocialV1TraderRow
+        trader={item}
+        metric={item.displayMetric}
+        onFollowPress={handleFollowPress}
+        onTraderPress={handleTraderPress}
+      />
+    ),
+    [handleFollowPress, handleTraderPress],
+  );
+
   return (
     <SocialFeedSurfaceProvider location={location}>
       <Box
         twClassName="flex-1"
         testID={SocialLeaderboardSelectorsIDs.CONTAINER}
       >
-        <Animated.ScrollView
+        <AnimatedLeaderboardList
           ref={listRef}
           style={tw.style('flex-1')}
+          data={showRows ? rows : []}
+          renderItem={renderRow}
+          keyExtractor={(item) => item.id}
+          getItemType={() => 'trader'}
+          drawDistance={
+            hardwareTier === 'LOW' ? LOW_LIST_DRAW_DISTANCE : undefined
+          }
           onScroll={onScroll}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
@@ -345,49 +361,29 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             scrollTestID ??
             (showRows ? SocialLeaderboardSelectorsIDs.ROWS : undefined)
           }
-        >
-          <Box twClassName="gap-2">
-            {listHeader}
-            {title ? (
-              <Text variant={TextVariant.HeadingSm} twClassName="px-4">
-                {title}
-              </Text>
-            ) : null}
-            {viewerRow ? (
-              <SocialV1TraderRow
-                trader={viewerRow.trader}
-                metric={viewerRow.trader.displayMetric}
-                onFollowPress={handleFollowPress}
-                onTraderPress={handleViewerPress}
-                highlighted
-                hideRank={viewerRow.hideRank}
-                testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
-              />
-            ) : null}
-            {showRows ? null : renderBody()}
-          </Box>
-          {/* The fetch never exceeds 50, so every tier mounts the full page.
-              LOW still skips the reorder slide. */}
-          {showRows
-            ? rows.map((trader, index) => (
-                <Animated.View
-                  key={trader.id ?? String(index)}
-                  layout={
-                    canAnimate && hasPaintedRowsRef.current
-                      ? rowLayoutTransition
-                      : undefined
-                  }
-                >
-                  <SocialV1TraderRow
-                    trader={trader}
-                    metric={trader.displayMetric}
-                    onFollowPress={handleFollowPress}
-                    onTraderPress={handleTraderPress}
-                  />
-                </Animated.View>
-              ))
-            : null}
-        </Animated.ScrollView>
+          ListHeaderComponent={
+            <Box twClassName="gap-2">
+              {listHeader}
+              {title ? (
+                <Text variant={TextVariant.HeadingSm} twClassName="px-4">
+                  {title}
+                </Text>
+              ) : null}
+              {viewerRow ? (
+                <SocialV1TraderRow
+                  trader={viewerRow.trader}
+                  metric={viewerRow.trader.displayMetric}
+                  onFollowPress={handleFollowPress}
+                  onTraderPress={handleViewerPress}
+                  highlighted
+                  hideRank={viewerRow.hideRank}
+                  testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
+                />
+              ) : null}
+              {showRows ? null : renderBody()}
+            </Box>
+          }
+        />
       </Box>
     </SocialFeedSurfaceProvider>
   );

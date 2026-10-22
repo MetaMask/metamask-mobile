@@ -9,6 +9,7 @@
  * yarn jest -c jest.config.view.js app/components/Views/SocialLeaderboard/SocialV1View/SocialV1View.view.test.tsx --runInBand --silent --coverage=false
  */
 import '../../../../../tests/component-view/mocks';
+import '../testUtils/flashListViewMock';
 
 import NetInfo from '@react-native-community/netinfo';
 import React from 'react';
