@@ -21,8 +21,6 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2.1.1
-    with:
     uses: MetaMask/action-security-code-scanner/.github/workflows/security-scan.yml@v2
     with:
       scanner-ref: v2
