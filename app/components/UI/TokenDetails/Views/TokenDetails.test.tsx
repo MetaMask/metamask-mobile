@@ -356,9 +356,10 @@ jest.mock('../../../Views/Asset/ActivityHeader', () => ({
 const mockTransactions = jest.fn((_props: Record<string, unknown>) => null);
 jest.mock('../../Transactions', () => ({
   __esModule: true,
-  default: (props: { header?: React.ReactNode }) => {
+  default: (props: { header?: React.ReactNode; loading?: boolean }) => {
     mockTransactions(props);
-    return props.header ?? null;
+    // Mirrors Transactions, which shows only its loader while loading.
+    return props.loading ? null : (props.header ?? null);
   },
 }));
 
@@ -1907,6 +1908,33 @@ describe('TokenDetails', () => {
       expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
         height: 120,
       });
+    });
+
+    it('keeps the transactions loader below the glass header', () => {
+      withBrandRefresh();
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { getByTestId } = render(<TokenDetails />);
+
+      callProp(mockTokenDetailsInlineHeader, 'onLayout', {
+        nativeEvent: { layout: { height: 120 } },
+      });
+
+      expect(getByTestId(TokenDetailsTestIds.HEADER_SPACER)).toHaveStyle({
+        height: 120,
+      });
+    });
+
+    it('adds no spacer above the transactions loader with the plain header', () => {
+      mockUseTokenTransactions.mockReturnValue({
+        ...defaultUseTokenTransactionsReturn,
+        transactionsUpdated: false,
+      });
+      const { queryByTestId } = render(<TokenDetails />);
+
+      expect(queryByTestId(TokenDetailsTestIds.HEADER_SPACER)).toBeNull();
     });
 
     it('renders the Quick Buy sheet above the glass header', () => {

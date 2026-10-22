@@ -645,14 +645,16 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const headerSpacer = headerInset > 0 && (
+    <View
+      style={{ height: headerInset }}
+      testID={TokenDetailsTestIds.HEADER_SPACER}
+    />
+  );
+
   const renderHeader = () => (
     <>
-      {headerInset > 0 && (
-        <View
-          style={{ height: headerInset }}
-          testID={TokenDetailsTestIds.HEADER_SPACER}
-        />
-      )}
+      {headerSpacer}
       <AssetOverviewContent
         token={token}
         balance={balance}
@@ -752,26 +754,30 @@ const TokenDetails: React.FC<{
             refreshControlOffset={headerInset}
           />
         ) : (
-          <Transactions
-            header={renderHeader()}
-            onScrollThroughContent={handleListScrollOffset}
-            assetSymbol={token.symbol}
-            navigation={navigation}
-            transactions={transactions}
-            submittedTransactions={submittedTxs}
-            confirmedTransactions={confirmedTxs}
-            selectedAddress={selectedAddress}
-            conversionRate={conversionRate}
-            currentCurrency={txCurrentCurrency}
-            networkType={token.chainId}
-            loading={!transactionsUpdated}
-            headerHeight={280}
-            tokenChainId={token.chainId}
-            skipScrollOnClick
-            hideEmptyState
-            location={TransactionDetailLocation.AssetDetails}
-            refreshControlOffset={headerInset}
-          />
+          <>
+            {/* Transactions drops its header while loading, so its spinner needs the spacer here. */}
+            {!transactionsUpdated && headerSpacer}
+            <Transactions
+              header={renderHeader()}
+              onScrollThroughContent={handleListScrollOffset}
+              assetSymbol={token.symbol}
+              navigation={navigation}
+              transactions={transactions}
+              submittedTransactions={submittedTxs}
+              confirmedTransactions={confirmedTxs}
+              selectedAddress={selectedAddress}
+              conversionRate={conversionRate}
+              currentCurrency={txCurrentCurrency}
+              networkType={token.chainId}
+              loading={!transactionsUpdated}
+              headerHeight={280}
+              tokenChainId={token.chainId}
+              skipScrollOnClick
+              hideEmptyState
+              location={TransactionDetailLocation.AssetDetails}
+              refreshControlOffset={headerInset}
+            />
+          </>
         )}
       </View>
       {/* Outside the isolated content, so its sheets open above the glass header. */}
