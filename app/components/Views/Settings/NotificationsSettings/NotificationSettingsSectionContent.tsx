@@ -275,7 +275,7 @@ export const NotificationSettingsSectionContent = ({
 }: NotificationSettingsSectionContentProps) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder, identify } = useAnalytics();
   const { preferences, updateSectionChannel } =
     useNotificationStoragePreferences();
   const sectionPrefs = preferences?.[type];
@@ -374,6 +374,7 @@ export const NotificationSettingsSectionContent = ({
       'MarketingConsentController:setMarketingConsent',
       true,
     );
+    identify({ [UserProfileProperty.HAS_MARKETING_CONSENT]: true });
     trackEvent(
       createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
         .addProperties({
@@ -390,6 +391,7 @@ export const NotificationSettingsSectionContent = ({
     )(true);
   }, [
     createEventBuilder,
+    identify,
     pendingMarketingChannel,
     persistInApp,
     persistPush,

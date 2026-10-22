@@ -64,6 +64,7 @@ const IN_APP_TOGGLE =
 
 const mockUpdateSectionChannel = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockIdentify = jest.fn();
 
 const arrangePreferences = ({
   hasPreferences = true,
@@ -138,6 +139,7 @@ describe('NotificationSettingsSectionContent', () => {
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         trackEvent: mockTrackEvent,
+        identify: mockIdentify,
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
@@ -466,6 +468,9 @@ describe('NotificationSettingsSectionContent', () => {
       expect(mockMessengerCall.mock.invocationCallOrder[0]).toBeLessThan(
         mockUpdateSectionChannel.mock.invocationCallOrder[0],
       );
+      expect(mockIdentify).toHaveBeenCalledWith({
+        has_marketing_consent: true,
+      });
       expect(mockTrackEvent).toHaveBeenCalledWith(
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -515,6 +520,7 @@ describe('NotificationSettingsSectionContent', () => {
         screen.getByTestId(MARKETING_CONSENT_SHEET_TEST_ID),
       ).toBeOnTheScreen();
       expect(mockUpdateSectionChannel).not.toHaveBeenCalled();
+      expect(mockIdentify).not.toHaveBeenCalled();
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
