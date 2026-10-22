@@ -36,7 +36,7 @@ export default {
   ],
   argTypes: {
     variant: {
-      options: ToastVariants,
+      options: Object.values(ToastVariants),
       control: {
         type: 'select',
       },

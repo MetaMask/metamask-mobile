@@ -1,6 +1,6 @@
 // Third party dependencies
 import React from 'react';
-import type { Meta, StoryFn } from '@storybook/react';
+import type { ArgTypes, Meta, StoryFn } from '@storybook/react';
 
 // Internal Dependencies
 import AvatarGroup from './AvatarGroup';
@@ -8,9 +8,9 @@ import { AvatarGroupProps } from './AvatarGroup.types';
 import { AvatarSize } from '../Avatar/Avatar.types';
 import { SAMPLE_AVATARGROUP_PROPS } from './AvatarGroup.constants';
 
-const defaultArgTypes = {
+const defaultArgTypes: Partial<ArgTypes<AvatarGroupProps>> = {
   size: {
-    options: AvatarSize,
+    options: Object.values(AvatarSize),
     control: {
       type: 'select',
     },
