@@ -306,11 +306,7 @@ describe('OverviewTab', () => {
 
   it('asks the token API host the remote config names', () => {
     render(
-      <OverviewTab
-        token={token}
-        assetId={'eip155:1/erc20:0xabc' as never}
-        currentCurrency="usd"
-      />,
+      <OverviewTab token={token} assetId={'eip155:1/erc20:0xabc' as never} />,
     );
 
     expect(mockUseTokenAssetDetails).toHaveBeenCalledWith(
