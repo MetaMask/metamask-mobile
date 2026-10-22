@@ -21,7 +21,7 @@ import {
   toTokenMinimalUnit,
   weiToFiat,
 } from '../../../../../util/number/bigint';
-import { Hex, isCaipChainId } from '@metamask/utils';
+import { CaipChainId, Hex, isCaipChainId } from '@metamask/utils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { EthScope, isEvmAccountType } from '@metamask/keyring-api';
 import { getEvmHexChainId } from '../utils';
@@ -41,6 +41,32 @@ interface Asset {
   decimals?: number;
   chainId?: string;
   assetId?: string;
+}
+
+/**
+ * Resolves the account scope to look the holding account up by.
+ *
+ * The scope selector matches any `eip155:*` scope to the account group's EVM
+ * account, so the EVM wildcard is enough for EVM assets. Non-EVM assets need
+ * their own CAIP chain id.
+ *
+ * @param chainId - Chain id from the selected ramp asset.
+ * @param assetEvmChainId - EVM hex chain id resolved from `chainId`, if any.
+ * @returns CAIP chain id to look the account up by, or undefined.
+ */
+function toAccountScope(
+  chainId?: string,
+  assetEvmChainId?: Hex,
+): CaipChainId | undefined {
+  if (assetEvmChainId) {
+    return EthScope.Eoa;
+  }
+
+  if (!chainId || !isCaipChainId(chainId)) {
+    return undefined;
+  }
+
+  return chainId;
 }
 
 export default function useBalance(asset?: Asset) {
@@ -79,14 +105,8 @@ export default function useBalance(asset?: Asset) {
   }
 
   // The globally selected account can be a Solana/BTC sibling in the same
-  // account group. Sell must read the account that holds this asset. The scope
-  // selector matches any `eip155:*` scope to the group's EVM account, so the
-  // EVM wildcard is enough and no chain id conversion is needed.
-  const accountScope = assetEvmChainId
-    ? EthScope.Eoa
-    : isCaipChainId(asset.chainId)
-      ? asset.chainId
-      : undefined;
+  // account group. Sell must read the account that holds this asset.
+  const accountScope = toAccountScope(asset.chainId, assetEvmChainId);
   const accountForAsset =
     accountScope && typeof selectInternalAccountByScope === 'function'
       ? selectInternalAccountByScope(accountScope)
