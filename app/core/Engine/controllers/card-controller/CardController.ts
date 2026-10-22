@@ -95,7 +95,7 @@ import { CardOnboardingStore } from './CardOnboardingStore';
 import { resetCardState } from '../../../redux/slices/card';
 import { isEthAccount } from '../../../Multichain/utils';
 import { pickPrimaryFromReordered, reorderAssets } from './utils/assetPriority';
-import { latestByUpdatedAt } from './utils/cardLinks';
+import { latestByUpdatedAt, pickRoutableCardLink } from './utils/cardLinks';
 import { encodeErc20ApproveCalldata } from './utils/encodeErc20ApproveCalldata';
 import {
   awaitTransactionConfirmed,
@@ -896,7 +896,10 @@ export class CardController extends BaseController<
       '#seedCardLinkIfNeeded',
     );
     if (outcome !== 'skipped') {
-      this.#trackCardLinkSeeded(outcome);
+      this.#trackCardLinkEvent(MetaMetricsEvents.CARD_LINK_SEEDED, {
+        provider: CardProviderIds.Baanx,
+        outcome,
+      });
     }
     if (generation !== this.#cardLinksGeneration) return;
     if (outcome === 'written' || outcome === 'rejected') {
@@ -906,13 +909,14 @@ export class CardController extends BaseController<
     }
   }
 
-  #trackCardLinkSeeded(outcome: 'written' | 'rejected' | 'failed'): void {
+  #trackCardLinkEvent(
+    event: IMetaMetricsEvent,
+    properties: Record<string, string>,
+  ): void {
     try {
       analytics.trackEvent(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.CARD_LINK_SEEDED,
-        )
-          .addProperties({ provider: CardProviderIds.Baanx, outcome })
+        AnalyticsEventBuilder.createEventBuilder(event)
+          .addProperties(properties)
           .build(),
       );
     } catch (error) {
@@ -920,10 +924,59 @@ export class CardController extends BaseController<
         tags: { feature: 'card' },
         context: {
           name: 'CardController',
-          data: { method: '#trackCardLinkSeeded' },
+          data: { method: '#trackCardLinkEvent' },
         },
       });
     }
+  }
+
+  #getLinkedCardProviderId(): CardProviderId | null {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    return pickRoutableCardLink(this.state.cardLinks)?.provider ?? null;
+  }
+
+  /** The account whose hash matches the routable link's `linkedAccountRef`. */
+  async findLinkedAccountAddress(addresses?: string[]): Promise<string | null> {
+    if (!this.#isCardLinkApiEnabled()) return null;
+    const ref = pickRoutableCardLink(this.state.cardLinks)?.linkedAccountRef;
+    if (!ref) return null;
+
+    const candidates =
+      addresses ??
+      Object.values(
+        this.messenger.call('AccountsController:getState').internalAccounts
+          .accounts,
+      )
+        .filter((account) => isEthAccount(account))
+        .map((account) => account.address);
+
+    for (const address of candidates) {
+      if ((await this.#computeLinkedAccountRef(address)) === ref) {
+        return address;
+      }
+    }
+    return null;
+  }
+
+  async #resolveSignInForLinkedProvider(
+    providerId: CardProviderId,
+    deviceAddresses: string[],
+  ): Promise<CardSignInResolution | null> {
+    const provider = this.providers[providerId];
+    if (!provider) return null;
+
+    const option: CardSignInOption = {
+      providerId,
+      method: provider.capabilities.authMethod,
+    };
+    if (option.method === 'email_password') {
+      return { kind: 'email', option };
+    }
+
+    const address = await this.findLinkedAccountAddress(deviceAddresses);
+    return address
+      ? { kind: 'wallet', option, address, source: 'card_link' }
+      : { kind: 'unresolved', options: [option], reason: 'no_match' };
   }
 
   async recordProviderOnboardingStarted({
@@ -1611,6 +1664,37 @@ export class CardController extends BaseController<
     }
   }
 
+  #resolveSignInFromRecord(
+    record: CardSignInLink,
+    walletOption: CardSignInOption,
+    deviceAddresses: string[],
+  ): CardSignInResolution | null {
+    if (!this.#isAddressInList(record.address, deviceAddresses)) {
+      return {
+        kind: 'wallet_account_missing',
+        option: walletOption,
+        address: record.address,
+      };
+    }
+    if (record.status === 'completed' || record.status === 'linked') {
+      return {
+        kind: 'wallet',
+        option: walletOption,
+        address: record.address,
+        source: 'record',
+      };
+    }
+    if (record.status === 'started') {
+      return {
+        kind: 'resume',
+        option: walletOption,
+        address: record.address,
+        stage: record.stage ?? null,
+      };
+    }
+    return null;
+  }
+
   async resolveSignIn({
     country,
     candidateAddresses,
@@ -1633,30 +1717,22 @@ export class CardController extends BaseController<
     const emailOption = options.find((o) => o.method === 'email_password');
 
     if (routingEnabled && record && walletOption) {
-      if (!this.#isAddressInList(record.address, deviceAddresses)) {
-        return {
-          kind: 'wallet_account_missing',
-          option: walletOption,
-          address: record.address,
-        };
-      }
-      if (record.status === 'completed' || record.status === 'linked') {
-        return {
-          kind: 'wallet',
-          option: walletOption,
-          address: record.address,
-          source: 'record',
-        };
-      }
-      if (record.status === 'started') {
-        return {
-          kind: 'resume',
-          option: walletOption,
-          address: record.address,
-          stage: record.stage ?? null,
-        };
-      }
+      const fromRecord = this.#resolveSignInFromRecord(
+        record,
+        walletOption,
+        deviceAddresses,
+      );
+      if (fromRecord) return fromRecord;
     }
+
+    const linkedProviderId = this.#getLinkedCardProviderId();
+    const linkedResolution = linkedProviderId
+      ? await this.#resolveSignInForLinkedProvider(
+          linkedProviderId,
+          deviceAddresses,
+        )
+      : null;
+    if (linkedResolution) return linkedResolution;
 
     if (options.length === 1 && emailOption) {
       return { kind: 'email', option: emailOption };
@@ -1994,6 +2070,17 @@ export class CardController extends BaseController<
       }
 
       if (pid === CardProviderIds.Baanx) {
+        if (
+          this.#isCardLinkApiEnabled() &&
+          this.state.cardLinks?.length === 0
+        ) {
+          this.#trackCardLinkEvent(
+            MetaMetricsEvents.CARD_LINK_MISSED_AT_LOGIN,
+            {
+              provider: pid,
+            },
+          );
+        }
         this.#recordProviderLoginWithLogging(pid, 'active');
       }
 
