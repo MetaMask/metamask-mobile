@@ -61,4 +61,10 @@ export const moneyAccountMigration = {
     status = 'not_started';
     listeners.forEach((listener) => listener());
   },
+  /** Forgets the saved status, e.g. when the wallet is reset. */
+  clear: async () => {
+    status = 'not_started';
+    listeners.forEach((listener) => listener());
+    await StorageWrapper.removeItem(MONEY_ACCOUNT_MIGRATION_STORAGE_KEY);
+  },
 };

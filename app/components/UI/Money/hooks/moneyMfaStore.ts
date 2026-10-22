@@ -54,4 +54,10 @@ export const moneyMfaStore = {
     state = initialState;
     listeners.forEach((listener) => listener());
   },
+  /** Forgets the saved state, e.g. when the wallet is reset. */
+  clear: async () => {
+    state = initialState;
+    listeners.forEach((listener) => listener());
+    await StorageWrapper.removeItem(MONEY_MFA_STORAGE_KEY);
+  },
 };
