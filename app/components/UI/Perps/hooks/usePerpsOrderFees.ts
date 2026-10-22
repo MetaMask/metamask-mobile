@@ -16,6 +16,7 @@ import {
   PERFORMANCE_CONFIG,
   formatAccountToCaipAccountId,
   type OrderType,
+  type PerpsFeeSource,
   type PerpsProviderType,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -62,6 +63,13 @@ export interface OrderFeesResult {
   estimatedPoints?: number;
   /** Bonus multiplier in basis points (100 = 1%) */
   bonusBips?: number;
+  /**
+   * Fee source whose rate the MetaMask fee was priced from: the winner of
+   * the unified fee resolution this quote was computed with. `subscription`
+   * should surface a member badge; `rewards` should surface a VIP badge.
+   * Undefined when the quote was not re-priced from a resolution.
+   */
+  feeSource?: PerpsFeeSource;
 }
 
 interface UsePerpsOrderFeesParams {
@@ -253,6 +261,7 @@ export function usePerpsOrderFees({
   >();
   const [estimatedPoints, setEstimatedPoints] = useState<number | undefined>();
   const [bonusBips, setBonusBips] = useState<number | undefined>();
+  const [feeSource, setFeeSource] = useState<PerpsFeeSource | undefined>();
 
   /**
    * Handle points estimation with caching
@@ -366,6 +375,7 @@ export function usePerpsOrderFees({
       discountPercentage?: number,
       points?: number,
       bonusBipsValue?: number,
+      feeSourceValue?: PerpsFeeSource,
     ) => {
       setProtocolFeeRate(protocolRate);
       setOriginalMetamaskFeeRate(originalMetamaskRate);
@@ -379,6 +389,7 @@ export function usePerpsOrderFees({
       setFeeDiscountPercentage(discountPercentage);
       setEstimatedPoints(points);
       setBonusBips(bonusBipsValue);
+      setFeeSource(feeSourceValue);
     },
     [],
   );
@@ -397,6 +408,7 @@ export function usePerpsOrderFees({
     setFeeDiscountPercentage(undefined);
     setEstimatedPoints(undefined);
     setBonusBips(undefined);
+    setFeeSource(undefined);
   }, []);
 
   // Main effect to orchestrate fee calculation
@@ -485,6 +497,7 @@ export function usePerpsOrderFees({
           discountPercentage,
           pointsResult.points,
           pointsResult.bonusBips,
+          coreFeesResult.feeSource,
         );
       } catch (fetchError) {
         if (isComponentMounted) {
@@ -550,6 +563,7 @@ export function usePerpsOrderFees({
       feeDiscountPercentage,
       estimatedPoints,
       bonusBips,
+      feeSource,
     };
   }, [
     amount,
@@ -562,6 +576,7 @@ export function usePerpsOrderFees({
     feeDiscountPercentage,
     estimatedPoints,
     bonusBips,
+    feeSource,
   ]);
 }
 

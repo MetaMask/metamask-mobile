@@ -9,9 +9,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useState } from 'react';
-import { Image } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import superheroAvatar from '../../../../../../images/socialV1/superhero.png';
+import ProfileAvatar from '../../../MyProfileView/components/ProfileAvatar';
 import {
   COMPOSER_POSTING_DELAY_MS,
   startSocialV1PendingPostCountdown,
@@ -21,6 +20,8 @@ import { SocialFeedPostingBannerSelectorsIDs } from './SocialFeedPostingBanner.t
 export interface SocialFeedPostingBannerProps {
   authorHandle: string;
   authorImageUrl?: string | null;
+  avatarPresetId?: string | null;
+  avatarBackgroundId?: string | null;
   /**
    * When the countdown started, or `null` before it has. Mounting with `null`
    * starts it, which is what keeps the progress bar anchored to the moment it
@@ -32,6 +33,8 @@ export interface SocialFeedPostingBannerProps {
 const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
   authorHandle,
   authorImageUrl,
+  avatarPresetId,
+  avatarBackgroundId,
   startedAtMs,
 }) => {
   const tw = useTailwind();
@@ -81,9 +84,11 @@ const SocialFeedPostingBanner: React.FC<SocialFeedPostingBannerProps> = ({
           gap={2}
           twClassName="flex-1 min-w-0"
         >
-          <Image
-            source={authorImageUrl ? { uri: authorImageUrl } : superheroAvatar}
-            style={tw.style('h-8 w-8 rounded-full')}
+          <ProfileAvatar
+            imageUrl={authorImageUrl}
+            avatarPresetId={avatarPresetId}
+            avatarBackgroundId={avatarBackgroundId}
+            size="sm"
             testID={SocialFeedPostingBannerSelectorsIDs.AVATAR}
           />
           <Text

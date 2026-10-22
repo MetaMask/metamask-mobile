@@ -246,6 +246,22 @@ describeForPlatforms('ActivityScreen', () => {
     );
   };
 
+  const waitForActivityListRow = async (
+    findByTestId: (testId: string) => Promise<unknown>,
+    queryByTestId: (testId: string) => unknown,
+    transactionHash: string,
+  ) => {
+    await waitFor(
+      () => {
+        expect(queryByTestId(ACTIVITY_LIST_LOADING_INDICATOR)).toBeNull();
+      },
+      { timeout: 15000 },
+    );
+    expect(
+      await findByTestId(activityListRowTitleTestId(transactionHash)),
+    ).toBeOnTheScreen();
+  };
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -392,10 +408,11 @@ describeForPlatforms('ActivityScreen', () => {
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitForActivityListLoaded(queryByTestId);
-      expect(
-        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-      ).toBeOnTheScreen();
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
       expect(
         queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
       ).not.toBeOnTheScreen();
@@ -405,10 +422,11 @@ describeForPlatforms('ActivityScreen', () => {
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:59144')));
 
-      await waitForActivityListLoaded(queryByTestId);
-      expect(
-        await findByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
-      ).toBeOnTheScreen();
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        LINEA_ACTIVITY_HASH,
+      );
       expect(
         queryByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
       ).not.toBeOnTheScreen();
@@ -418,10 +436,11 @@ describeForPlatforms('ActivityScreen', () => {
       );
       fireEvent.press(await findByTestId(networkOptionTestId('eip155:1')));
 
-      await waitForActivityListLoaded(queryByTestId);
-      expect(
-        await findByTestId(activityListRowTitleTestId(MAINNET_ACTIVITY_HASH)),
-      ).toBeOnTheScreen();
+      await waitForActivityListRow(
+        findByTestId,
+        queryByTestId,
+        MAINNET_ACTIVITY_HASH,
+      );
       expect(
         queryByTestId(activityListRowTitleTestId(LINEA_ACTIVITY_HASH)),
       ).not.toBeOnTheScreen();

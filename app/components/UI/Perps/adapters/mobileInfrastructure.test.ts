@@ -10,6 +10,7 @@ import {
 } from '@metamask/perps-controller';
 import { setMeasurement as setSentryMeasurement } from '@sentry/react-native';
 import {
+  endTrace as endSharedTrace,
   setTraceMeasurement,
   trace as startTrace,
   TraceName,
@@ -70,6 +71,7 @@ jest.mock('../../../../util/trace', () => ({
   TraceName: {
     PerpsMarketDataPreload: 'Perps Market Data Preload',
     PerpsUserDataPreload: 'Perps User Data Preload',
+    PerpsPlaceOrder: 'Perps Place Order',
   },
 }));
 
@@ -283,6 +285,29 @@ describe('createMobileInfrastructure', () => {
         'millisecond',
       );
       expect(setTraceMeasurement).not.toHaveBeenCalled();
+    });
+
+    it('forwards the Core trade status to the shared trace', () => {
+      const infra = createMobileInfrastructure();
+
+      infra.tracer.trace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        op: 'perps.trade',
+      });
+      infra.tracer.endTrace({
+        name: PerpsTraceNames.PlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
+
+      expect(endSharedTrace).toHaveBeenCalledWith({
+        name: TraceName.PerpsPlaceOrder,
+        id: 'trade-id',
+        status: 'error',
+        data: { success: false },
+      });
     });
   });
 

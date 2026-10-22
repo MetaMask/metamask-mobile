@@ -1,12 +1,12 @@
 import React, { type ComponentType } from 'react';
 import { act, render } from '@testing-library/react-native';
-import VbaKycPending from '../VbaKycPending';
-import VbaKycRejected from '../VbaKycRejected';
+import VbaKycPending from '../../../../KYC/Views/Status/KycPending';
+import VbaKycRejected from '../../../../KYC/Views/Status/KycRejected';
 import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
-import { useVbaKycStatusRedirect } from '../hooks/useVbaKycStatusRedirect';
+import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -15,10 +15,10 @@ import {
 } from './VbaStatusAdapters';
 
 jest.mock('../VbaOnboardingStub');
-jest.mock('../VbaKycPending');
-jest.mock('../VbaKycRejected');
+jest.mock('../../../../KYC/Views/Status/KycPending');
+jest.mock('../../../../KYC/Views/Status/KycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
-jest.mock('../hooks/useVbaKycStatusRedirect');
+jest.mock('../../../../KYC/hooks/useKycStatusRedirect');
 
 const mockVbaOnboardingStub = jest.mocked(VbaOnboardingStub);
 const mockVbaKycPending = jest.mocked(VbaKycPending);

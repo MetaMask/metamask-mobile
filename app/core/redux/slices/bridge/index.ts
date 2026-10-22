@@ -74,6 +74,7 @@ import {
   type RecurringState,
 } from '../../../../components/UI/Bridge/utils/recurringSchedule';
 import type { LimitOrderConfirmationMarketComparison } from '../../../../components/UI/Bridge/components/LimitOrderConfirmationModal/types';
+import type { SwapsLimitOrderExpirationMinutes } from '../../../../components/UI/Bridge/constants/limitOrders';
 
 export const selectBridgeControllerState = (state: RootState) =>
   state.engine.backgroundState?.BridgeController;
@@ -142,6 +143,11 @@ export interface BridgeState {
    */
   limitOrderCostTolerance: string | undefined;
   /**
+   * Expiration preset (in minutes) chosen for limit orders.
+   * `undefined` means the default preset (1 hour) is in effect.
+   */
+  limitOrderExpirationMinutes: SwapsLimitOrderExpirationMinutes | undefined;
+  /**
    * Live market-comparison label for the in-progress limit order (e.g.
    * "(-5% from market)"). `undefined` while at market or before a price is available.
    */
@@ -190,6 +196,7 @@ export const initialState: BridgeState = {
 
   // Limit orders
   limitOrderCostTolerance: undefined,
+  limitOrderExpirationMinutes: undefined,
   limitOrderMarketComparison: undefined,
 
   // Orders (Limit + Recurring, Open + History)
@@ -284,8 +291,13 @@ const slice = createSlice({
     ) => {
       state.selectedDestChainId = action.payload;
     },
-    resetBridgeState: () => ({
+    // Limit-order settings (Expires after, Price tolerance) persist for the
+    // whole app session — they reset only on a fresh launch, not when the
+    // user leaves and re-enters the Bridge flow.
+    resetBridgeState: (state) => ({
       ...initialState,
+      limitOrderCostTolerance: state.limitOrderCostTolerance,
+      limitOrderExpirationMinutes: state.limitOrderExpirationMinutes,
     }),
     resetBridgeTokenInputs: (state) => {
       state.sourceAmount = undefined;
@@ -345,6 +357,12 @@ const slice = createSlice({
       action: PayloadAction<string | undefined>,
     ) => {
       state.limitOrderCostTolerance = action.payload;
+    },
+    setLimitOrderExpirationMinutes: (
+      state,
+      action: PayloadAction<SwapsLimitOrderExpirationMinutes>,
+    ) => {
+      state.limitOrderExpirationMinutes = action.payload;
     },
     setLimitOrderMarketComparison: (
       state,
@@ -856,6 +874,11 @@ export const selectLimitOrderCostTolerance = createSelector(
   (bridgeState) => bridgeState.limitOrderCostTolerance,
 );
 
+export const selectLimitOrderExpirationMinutes = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.limitOrderExpirationMinutes,
+);
+
 export const selectLimitOrderMarketComparison = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.limitOrderMarketComparison,
@@ -1302,6 +1325,7 @@ export const {
   setSlippage,
   setSlippageUserOverride,
   setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
   setLimitOrderMarketComparison,
   setDestAddress,
   setIsSubmittingTx,

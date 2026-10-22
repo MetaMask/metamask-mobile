@@ -38,13 +38,19 @@ export const DetailRow = ({
         alignItems={BoxAlignItems.Center}
         gap={1}
       >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={error ? TextColor.ErrorAlternative : TextColor.TextAlternative}
-          testID={DetailRowSelectorsIDs.LABEL}
-        >
-          {label}
-        </Text>
+        {typeof label === 'string' ? (
+          <Text
+            variant={TextVariant.BodyMd}
+            color={
+              error ? TextColor.ErrorAlternative : TextColor.TextAlternative
+            }
+            testID={DetailRowSelectorsIDs.LABEL}
+          >
+            {label}
+          </Text>
+        ) : (
+          label
+        )}
         {labelAccessory}
       </Box>
       {children}

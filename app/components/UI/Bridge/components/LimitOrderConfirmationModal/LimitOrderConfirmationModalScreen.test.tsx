@@ -5,6 +5,7 @@ import type { Caip19AssetId } from '@metamask/assets-controller';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../../locales/i18n';
 import type { RootState } from '../../../../../reducers';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { merge } from 'lodash';
@@ -23,13 +24,16 @@ import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegat
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
 import { signLimitOrderDelegations } from '../../utils/limitOrders/signLimitOrderDelegations';
 import { ToastSeverity } from '@metamask/design-system-react-native';
+import { OrdersTabKey } from '../OrdersTabs/OrdersTabs.types';
 import { LimitOrderConfirmationModalScreen } from './LimitOrderConfirmationModalScreen';
 import { LimitOrderConfirmationModalSelectorsIDs } from './testIds';
+import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import { TokenAvatarSelectorsIDs } from './TokenAvatar/testIds';
 import type { LimitOrderConfirmationModalParams } from './types';
 
 const mockGoBack = jest.fn();
 const mockToast = jest.fn();
+const mockSetLimitOrdersTab = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -56,6 +60,10 @@ jest.mock('../../hooks/useFiatToUsdRate', () => ({
 
 jest.mock('../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+jest.mock('../../hooks/useBridgeSession', () => ({
+  useBridgeSession: () => ({ setLimitOrdersTab: mockSetLimitOrdersTab }),
 }));
 
 jest.mock('../../api/limitOrders/getDelegations', () => ({
@@ -163,6 +171,7 @@ const mockParams: LimitOrderConfirmationModalParams = {
   sourceToken: mockSourceToken,
   destToken: mockDestToken,
   payingAmount: '0.1 ETH',
+  estReceivingAmount: '341.22 USDC',
   triggerPrice: '$3,412.20',
   triggerToken: mockDestToken,
   expiry: '7 days',
@@ -268,9 +277,10 @@ describe('LimitOrderConfirmationModalScreen', () => {
     mockUseSentinelFeeTokenValidation.mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
-    const { getByTestId } = renderScreen();
+    const { getByTestId, getByText } = renderScreen();
 
     fireEvent.press(
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
@@ -280,6 +290,13 @@ describe('LimitOrderConfirmationModalScreen', () => {
       getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON).props
         .accessibilityState?.disabled,
     ).toBe(true);
+    expect(
+      getByText(
+        strings('bridge.limit.unsupported_fee_token_pair', {
+          supportedTokens: 'ETH, USDC',
+        }),
+      ),
+    ).toBeOnTheScreen();
     expect(mockFetchLimitOrdersDelegations).not.toHaveBeenCalled();
   });
 
@@ -373,6 +390,31 @@ describe('LimitOrderConfirmationModalScreen', () => {
       ).toBeNull();
     });
   });
+
+  it.each([
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+      'bridge.limit.trigger_condition_at_or_above',
+    ],
+    [
+      LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      'bridge.limit.trigger_condition_at_or_below',
+    ],
+  ])(
+    'signs the trigger price of an order placed %s the limit price',
+    (priceComparisonDirection, expectedPrefixKey) => {
+      mockUseParams.mockReturnValue({
+        ...mockParams,
+        triggerInput: { ...mockTriggerInput, priceComparisonDirection },
+      });
+
+      const { getByTestId } = renderScreen();
+
+      expect(
+        getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+      ).toHaveTextContent(strings(expectedPrefixKey));
+    },
+  );
 
   it('displays the cost tolerance from bridge state', () => {
     const { getByText } = renderScreen(
@@ -697,6 +739,20 @@ describe('LimitOrderConfirmationModalScreen', () => {
     });
   });
 
+  it('switches the orders list to the Open orders tab once the order is created', async () => {
+    const { getByTestId } = renderScreen(createBridgeTestState({}));
+
+    fireEvent.press(
+      getByTestId(LimitOrderConfirmationModalSelectorsIDs.PRIMARY_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockSetLimitOrdersTab).toHaveBeenCalledWith(
+        OrdersTabKey.OpenOrders,
+      );
+    });
+  });
+
   it('clears the token amounts and preserves the remaining form state once the order is created', async () => {
     const { getByTestId, store } = renderScreen(
       createBridgeTestState({
@@ -764,6 +820,7 @@ describe('LimitOrderConfirmationModalScreen', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(mockToast).not.toHaveBeenCalled();
+    expect(mockSetLimitOrdersTab).not.toHaveBeenCalled();
     expect(store.getState().bridge.sourceAmount).toBe('0.1');
     expect(store.getState().bridge.destAmount).toBe('341.22');
   });

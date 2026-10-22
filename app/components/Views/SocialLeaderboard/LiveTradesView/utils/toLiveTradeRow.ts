@@ -17,7 +17,11 @@ import {
   buildFeedItemPresentation,
   isFeedItemClosed,
 } from '../../../../UI/SocialFeed/utils/mapFeedItem';
-import { deriveCurrentPrice } from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
+import {
+  deriveAverageEntryPrice,
+  deriveCurrentPrice,
+} from '../../../../UI/SocialFeed/utils/toSocialV1FeedItem';
+import { buildLivePriceSource } from '../../../../UI/SocialFeed/live/buildLivePriceSource';
 import {
   isEntryAction,
   type TradeAction,
@@ -129,6 +133,12 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
   const leverage = core.perpLeverage ?? trade?.perpLeverage ?? null;
   const isClosed = isFeedItemClosed(core);
   const presentation = buildFeedItemPresentation(core, isClosed);
+  // The row quotes spot as a price, never a market cap.
+  const live = buildLivePriceSource(core, isClosed, {
+    snapshotPrice: deriveCurrentPrice(core),
+    entryPrice: deriveAverageEntryPrice(core),
+    marketCapPerPrice: null,
+  });
 
   const author = {
     id: core.actor.profileId,
@@ -169,6 +179,7 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     positionId: core.positionId,
     marketCapUsd,
     position: core,
+    ...(live ? { live } : {}),
   };
 
   if (isPerp) {
