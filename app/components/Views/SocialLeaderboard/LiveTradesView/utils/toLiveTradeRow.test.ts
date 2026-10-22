@@ -256,6 +256,7 @@ describe('toLiveTradeRow', () => {
     expect(row.isClosed).toBe(true);
     expect(row.isPnlPositive).toBe(false);
     expect(row.closedAtMs).toBe(1_700_086_400_000);
+    expect(row.live).toBeUndefined();
   });
 
   it('keeps a reducing fill on the open card', () => {
@@ -282,5 +283,10 @@ describe('toLiveTradeRow', () => {
 
     expect(row.isClosed).toBe(false);
     expect(row.closedAtMs).toBeUndefined();
+    expect(row.live).toMatchObject({
+      key: 'perp:ETH',
+      positionAmount: 3,
+      marketCapPerPrice: null,
+    });
   });
 });
