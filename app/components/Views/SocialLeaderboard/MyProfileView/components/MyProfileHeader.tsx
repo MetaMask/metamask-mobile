@@ -13,17 +13,34 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Linking, Pressable } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import ProfileAvatar from './ProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
+import { LOCAL_SOCIAL_PROFILE_DUMMY_BIO } from '../hooks/localSocialProfileStore';
 import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
+
+const CalendarBlankIcon = () => {
+  const tw = useTailwind();
+
+  return (
+    <Svg
+      viewBox="0 0 256 256"
+      fill="currentColor"
+      style={tw.style(IconColor.IconAlternative, 'w-4 h-4')}
+    >
+      <Path d="M208,32H184V24a8,8,0,0,0-16,0v8H88V24a8,8,0,0,0-16,0v8H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM72,48v8a8,8,0,0,0,16,0V48h80v8a8,8,0,0,0,16,0V48h24V80H48V48ZM208,208H48V96H208V208Z" />
+    </Svg>
+  );
+};
 
 const RANKING_TAG_DISPLAY: Record<
   ProfileRankingTag,
@@ -61,6 +78,8 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
     ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
     : null;
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
+  const thesis =
+    profile.bio?.trim() || (__DEV__ ? LOCAL_SOCIAL_PROFILE_DUMMY_BIO : '');
 
   return (
     <Box paddingHorizontal={4} paddingBottom={4}>
@@ -74,7 +93,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             imageUrl={profile.imageUrl}
             avatarPresetId={profile.avatarPresetId}
             avatarBackgroundId={profile.avatarBackgroundId}
-            size="lg"
+            diameter={56}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}
@@ -84,7 +103,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           <TraderAvatar
             imageUrl={profile.imageUrl}
             address={profile.linkedAccountAddress ?? undefined}
-            size={64}
+            size={56}
             recyclingKey={profile.profileId}
             testID={MyProfileViewSelectorsIDs.AVATAR}
           />
@@ -131,6 +150,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             variant={TextVariant.BodyMd}
             color={TextColor.TextAlternative}
             numberOfLines={1}
+            twClassName="-mt-2"
             testID={MyProfileViewSelectorsIDs.HANDLE}
           >
             @{profile.handle}
@@ -138,21 +158,22 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         </Box>
       </Box>
 
-      {profile.bio ? (
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="pt-4"
-          testID={MyProfileViewSelectorsIDs.BIO}
-        >
-          {profile.bio}
-        </Text>
+      {thesis ? (
+        <Box twClassName="pt-[14px] pb-[10px]">
+          <Text
+            variant={TextVariant.BodyMd}
+            testID={MyProfileViewSelectorsIDs.BIO}
+          >
+            {thesis}
+          </Text>
+        </Box>
       ) : null}
 
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        paddingTop={6}
+        paddingTop={thesis ? 0 : 4}
       >
         <Pressable
           onPress={onFollowersPress}
@@ -169,20 +190,26 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             gap={2}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               testID={MyProfileViewSelectorsIDs.FOLLOWERS_COUNT}
             >
               {overlayedStats.followerCount}
             </Text>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('social_leaderboard.my_profile.followers')}
             </Text>
           </Box>
         </Pressable>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
           ·
         </Text>
         <Pressable
@@ -200,13 +227,15 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             gap={2}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               testID={MyProfileViewSelectorsIDs.FOLLOWING_COUNT}
             >
               {followingCount}
             </Text>
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
             >
               {strings('social_leaderboard.my_profile.following')}
@@ -219,16 +248,16 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={1}
           paddingTop={2}
           testID={MyProfileViewSelectorsIDs.JOINED}
         >
-          <Icon
-            name={IconName.Clock}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <CalendarBlankIcon />
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {joinedLabel}
           </Text>
         </Box>
