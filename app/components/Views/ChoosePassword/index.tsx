@@ -306,6 +306,13 @@ const ChoosePassword = () => {
     resolvedGeolocationLocation,
   ]);
 
+  // An unchecked box the user never touched is not a consent decision, so a
+  // later consent prompt can still ask.
+  const marketingConsentDecision =
+    marketingOptInChecked || marketingOptInTouched
+      ? marketingOptInChecked
+      : null;
+
   const setSelection = useCallback(() => {
     setMarketingOptInTouched(true);
     setIsSelected((prev) => {
@@ -480,7 +487,7 @@ const ChoosePassword = () => {
   }, [navigation]);
 
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData, isMarketingOptedIn: boolean) => {
+    async (authType: AuthData, marketingConsent: boolean | null) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -501,7 +508,9 @@ const ChoosePassword = () => {
       endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
       endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-      dispatch(setDataCollectionForMarketing(isMarketingOptedIn));
+      if (marketingConsent !== null) {
+        dispatch(setDataCollectionForMarketing(marketingConsent));
+      }
 
       const oauthProvider = route.params?.provider;
       const socialAccountType =
@@ -510,8 +519,7 @@ const ChoosePassword = () => {
           : undefined;
 
       const analyticsProperties = {
-        [UserProfileProperty.HAS_MARKETING_CONSENT]:
-          Boolean(isMarketingOptedIn),
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(marketingConsent),
         is_metrics_opted_in: true,
         location: 'onboarding_choosePassword',
         updated_after_onboarding: false,
@@ -659,7 +667,7 @@ const ChoosePassword = () => {
 
       foxRiveLoaderRef.current?.stop();
 
-      await handlePostWalletCreation(authType, marketingOptInChecked);
+      await handlePostWalletCreation(authType, marketingConsentDecision);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
@@ -688,6 +696,7 @@ const ChoosePassword = () => {
       handleWalletCreation,
       handlePostWalletCreation,
       track,
+      marketingConsentDecision,
       marketingOptInChecked,
     ],
   );

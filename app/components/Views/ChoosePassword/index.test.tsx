@@ -90,7 +90,10 @@ import {
   getTraceContext,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
-import { setDataCollectionForMarketing } from '../../../actions/security';
+import {
+  ActionType,
+  setDataCollectionForMarketing,
+} from '../../../actions/security';
 import { captureException } from '@sentry/react-native';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
@@ -1742,6 +1745,106 @@ describe('ChoosePassword', () => {
       });
 
       mockNewWalletAndKeychain.mockRestore();
+    });
+  });
+
+  describe('Marketing consent decision', () => {
+    let newWalletAndKeychainSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      newWalletAndKeychainSpy = jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockResolvedValue(undefined);
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+    });
+
+    afterEach(() => {
+      newWalletAndKeychainSpy.mockRestore();
+    });
+
+    const submitSocialLoginWallet = async (
+      geolocationLocation: string,
+      checkboxPresses: number,
+    ) => {
+      store = mockStore(createInitialState(geolocationLocation));
+      ReduxService.store = store as unknown as ReduxStore;
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      for (let press = 0; press < checkboxPresses; press++) {
+        await act(async () => {
+          fireEvent.press(
+            component.getByTestId(
+              ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+            ),
+          );
+        });
+      }
+      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+    };
+
+    const getMarketingActions = () =>
+      store
+        .getActions()
+        .filter(
+          ({ type }: { type: string }) =>
+            type === ActionType.SET_DATA_COLLECTION_FOR_MARKETING,
+        );
+
+    it('(a) records an opt-out when the box is checked by default and the user unchecks it', async () => {
+      await submitSocialLoginWallet('US', 1);
+
+      expect(getMarketingActions()).toStrictEqual([
+        setDataCollectionForMarketing(false),
+      ]);
+    });
+
+    it('(b) records no decision when the box is unchecked by default and never touched', async () => {
+      await submitSocialLoginWallet('GB', 0);
+
+      expect(getMarketingActions()).toStrictEqual([]);
+    });
+
+    it('(c) records an opt-in when the box is unchecked by default and the user checks it', async () => {
+      await submitSocialLoginWallet('GB', 1);
+
+      expect(getMarketingActions()).toStrictEqual([
+        setDataCollectionForMarketing(true),
+      ]);
+    });
+
+    it('(d) records an opt-in when the box is checked by default and left checked', async () => {
+      await submitSocialLoginWallet('US', 0);
+
+      expect(getMarketingActions()).toStrictEqual([
+        setDataCollectionForMarketing(true),
+      ]);
+    });
+
+    it('records an opt-out when the user checks and then unchecks a box that is unchecked by default', async () => {
+      await submitSocialLoginWallet('GB', 2);
+
+      expect(getMarketingActions()).toStrictEqual([
+        setDataCollectionForMarketing(false),
+      ]);
     });
   });
 
