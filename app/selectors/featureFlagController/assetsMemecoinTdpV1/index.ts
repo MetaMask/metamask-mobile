@@ -5,6 +5,7 @@ import {
   FeatureFlagNames,
 } from '../../../constants/featureFlags';
 import { TOKEN_API_BASE_URL } from '../../../components/UI/Assets/watchlist/utils/getTokens';
+import { PRICE_API_BASE_URL } from '../../../constants/urls';
 import {
   TOKEN_DETAILS_V1_TABS,
   type TokenDetailsV1TabKey,
@@ -16,6 +17,8 @@ interface AssetsMemecoinTdpV1FeatureFlag {
   tabConfigOrder?: unknown;
   /** Token API host the V1 page calls `/v2/assets` on. */
   tokenApiBaseUrl?: unknown;
+  /** Price API host the V1 page's price, chart and market data calls use. */
+  priceApiBaseUrl?: unknown;
 }
 
 /**
@@ -132,5 +135,40 @@ export const selectMemecoinTdpV1TokenApiBaseUrl = createSelector(
     }
 
     return tokenApiBaseUrl;
+  },
+);
+
+/**
+ * Price API host the V1 page's spot-prices, historical-prices and OHLCV
+ * requests use.
+ *
+ * Exists for the same reason as {@link selectMemecoinTdpV1TokenApiBaseUrl}: a
+ * token new enough to be worth opening the V1 page for is often absent from
+ * the prod price API, so the page cannot be exercised end to end without
+ * pointing it somewhere that has the data.
+ *
+ * The value is an origin and nothing more — `https://price.dev-api.cx.metamask.io`
+ * — because callers append their own `/v3/...` path.
+ *
+ * Reaching the callers is the job of `PriceApiHostProvider`, which wraps only
+ * the V1 page. Three requests deliberately ignore this and stay on prod: the
+ * headline price, which goes through a utility Bridge and swaps also use; the
+ * chart's scroll-back pagination, which the WebView's CSP pins to prod; and
+ * the `/latest` candle, whose WebSocket is hosted outside the price API and so
+ * could not follow this anyway.
+ */
+export const selectMemecoinTdpV1PriceApiBaseUrl = createSelector(
+  selectAssetsMemecoinTdpV1Config,
+  (config): string => {
+    const priceApiBaseUrl = config?.priceApiBaseUrl;
+
+    if (
+      typeof priceApiBaseUrl !== 'string' ||
+      !ABSOLUTE_HTTPS_ORIGIN.test(priceApiBaseUrl)
+    ) {
+      return PRICE_API_BASE_URL;
+    }
+
+    return priceApiBaseUrl;
   },
 );
