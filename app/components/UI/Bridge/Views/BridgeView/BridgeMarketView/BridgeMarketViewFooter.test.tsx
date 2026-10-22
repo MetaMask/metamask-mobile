@@ -37,6 +37,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../components/SwapsRebateBanner', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest
     .fn()

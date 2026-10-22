@@ -45,6 +45,7 @@ export const WalletHeaderMenuButton = ({
         hasAccountsMenuAttention ? (
           <BadgeStatus
             status={BadgeStatusStatus.Attention}
+            twClassName="-translate-x-1 translate-y-1 border-transparent"
             testID={WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BADGE}
           />
         ) : null
@@ -67,24 +68,38 @@ export interface WalletHeaderInterimActionsProps
   isMoneyAccountVisible: boolean;
   handleActivityPress: () => void;
   handleSearchPress: () => void;
+  handleRewardsPress?: () => void;
+  isSocialLayout?: boolean;
   twClassName?: string;
 }
 
-/** Activity (where Money is available), Search and Menu, in one tight row. */
+/** Search, Activity/Rewards and Menu, in one tight row. */
 const WalletHeaderInterimActions = ({
   isMoneyAccountVisible,
   handleActivityPress,
   handleSearchPress,
+  handleRewardsPress,
   handleHamburgerPress,
   touchAreaSlop,
+  isSocialLayout = false,
   twClassName = '',
-}: WalletHeaderInterimActionsProps) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName={`gap-2 ${twClassName}`}
-  >
-    {isMoneyAccountVisible && (
+}: WalletHeaderInterimActionsProps) => {
+  let secondaryAction: React.ReactNode = null;
+
+  if (isSocialLayout) {
+    secondaryAction = (
+      <ButtonIcon
+        iconProps={{ color: MMDSIconColor.IconDefault }}
+        onPress={handleRewardsPress}
+        iconName={MMDSIconName.Gift}
+        size={ButtonIconSize.Md}
+        testID={WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON}
+        accessibilityLabel={strings('wallet.rewards_accessibility_label')}
+        hitSlop={touchAreaSlop}
+      />
+    );
+  } else if (isMoneyAccountVisible) {
+    secondaryAction = (
       <ButtonIcon
         iconProps={{ color: MMDSIconColor.IconDefault }}
         onPress={handleActivityPress}
@@ -94,21 +109,33 @@ const WalletHeaderInterimActions = ({
         accessibilityLabel={strings('activity_view.title')}
         hitSlop={touchAreaSlop}
       />
-    )}
-    <ButtonIcon
-      iconProps={{ color: MMDSIconColor.IconDefault }}
-      onPress={() => handleSearchPress()}
-      iconName={MMDSIconName.Search}
-      size={ButtonIconSize.Md}
-      testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
-      accessibilityLabel={strings('wallet.search_accessibility_label')}
-      hitSlop={touchAreaSlop}
-    />
-    <WalletHeaderMenuButton
-      handleHamburgerPress={handleHamburgerPress}
-      touchAreaSlop={touchAreaSlop}
-    />
-  </Box>
-);
+    );
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName={`gap-2 ${twClassName}`}
+    >
+      <ButtonIcon
+        iconProps={{ color: MMDSIconColor.IconDefault }}
+        onPress={() => handleSearchPress()}
+        iconName={MMDSIconName.Search}
+        size={ButtonIconSize.Md}
+        testID={WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON}
+        accessibilityLabel={strings('wallet.search_accessibility_label')}
+        hitSlop={touchAreaSlop}
+      />
+      {secondaryAction}
+      {!isSocialLayout ? (
+        <WalletHeaderMenuButton
+          handleHamburgerPress={handleHamburgerPress}
+          touchAreaSlop={touchAreaSlop}
+        />
+      ) : null}
+    </Box>
+  );
+};
 
 export default WalletHeaderInterimActions;

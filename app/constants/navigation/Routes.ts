@@ -118,6 +118,10 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
+  REWARDS_MONEY_DASHBOARD: 'RewardsMoneyDashboard',
+  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW:
+    'RewardsMoneyReferralAcceptedSplashView',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
@@ -191,6 +195,8 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
+    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -383,6 +389,7 @@ const Routes = {
       LIMIT_ORDER_COST_TOLERANCE_INFO_MODAL: 'LimitOrderCostToleranceInfoModal',
       LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL:
         'LimitOrderAccountUpgradeFeeInfoModal',
+      LIMIT_ORDER_METAMASK_FEE_INFO_MODAL: 'LimitOrderMetaMaskFeeInfoModal',
       OPEN_LIMIT_ORDER_DETAILS_MODAL: 'OpenLimitOrderDetailsModal',
       CANCEL_LIMIT_ORDER_MODAL: 'CancelLimitOrderModal',
       RECURRING_INTERVAL_MODAL: 'RecurringIntervalModal',
@@ -474,7 +481,6 @@ const Routes = {
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
-  LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
   CONFIRMATION_SWITCH_ACCOUNT_TYPE: 'ConfirmationSwitchAccountType',
   CONFIRMATION_PAY_WITH_MODAL: 'ConfirmationPayWithModal',
@@ -669,6 +675,8 @@ const Routes = {
   MFA: {
     FLOW: 'MfaFlow',
     SETTINGS: 'MfaSettings',
+    PASSKEYS: 'MfaPasskeys',
+    METHOD_DETAILS: 'MfaMethodDetails',
   },
   PRO_SUBSCRIPTION: {
     /** Root screen for the MetaMask Pro subscription flow. */

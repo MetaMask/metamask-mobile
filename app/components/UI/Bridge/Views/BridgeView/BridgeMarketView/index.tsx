@@ -30,7 +30,6 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
-  setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectBridgeControllerState,
   selectQuoteStreamComplete,
@@ -51,8 +50,6 @@ import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/Quote
 import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeMarketView.styles';
-import { useInitialSourceToken } from '../../../hooks/useInitialSourceToken';
-import { useInitialDestToken } from '../../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
@@ -232,12 +229,6 @@ const BridgeMarketViewContent = () => {
   // Update native fee-inclusive simulation support for the source chain
   useIsNativeGasIncludedSupported(sourceToken?.chainId);
 
-  const initialSourceToken = route.params?.sourceToken;
-  const initialSourceAmount = route.params?.sourceAmount;
-  const initialDestToken = route.params?.destToken;
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
-
   // Initialize recipient account
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
@@ -267,12 +258,6 @@ const BridgeMarketViewContent = () => {
       }
     }, [navigation, route.params?.scrollToTopOnNav]),
   );
-
-  useEffect(() => {
-    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
-      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
-    }
-  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 

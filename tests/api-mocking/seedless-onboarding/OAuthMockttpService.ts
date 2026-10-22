@@ -393,7 +393,7 @@ export class OAuthMockttpService {
             headers: {
               accept: '*/*',
               'Content-Type': 'application/json',
-              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
+              'byoa-auth-secret': process.env.E2E_BYOA_AUTH_SECRET ?? '',
             },
             body: JSON.stringify(mockRequestBody),
           });
@@ -496,7 +496,7 @@ export class OAuthMockttpService {
             headers: {
               accept: '*/*',
               'Content-Type': 'application/json',
-              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
+              'byoa-auth-secret': process.env.E2E_BYOA_AUTH_SECRET ?? '',
             },
             body: JSON.stringify(mockRequestBody),
           });
@@ -572,7 +572,7 @@ export class OAuthMockttpService {
             headers: {
               accept: '*/*',
               'Content-Type': 'application/json',
-              'byoa-auth-secret': '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42',
+              'byoa-auth-secret': process.env.E2E_BYOA_AUTH_SECRET ?? '',
             },
             body: JSON.stringify(mockRequestBody),
           });
