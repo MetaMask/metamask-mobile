@@ -1,6 +1,9 @@
 import { createSlice, PayloadAction, type Action } from '@reduxjs/toolkit';
 import type {
+  CommissionEntryView,
   EarningsSummaryDto,
+  LedgerEarningEntryDto,
+  ReferralFunnelDto,
   ReferralMeDto,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
 
@@ -14,14 +17,24 @@ export type ReferralMeEntry = ProfileEntry<ReferralMeDto>;
 
 export type EarningsSummaryEntry = ProfileEntry<EarningsSummaryDto>;
 
+export type ReferralFunnelEntry = ProfileEntry<ReferralFunnelDto>;
+
 export interface RewardsMoneyState {
   referralMe: Record<string, ReferralMeEntry>;
   earningsSummary: Record<string, EarningsSummaryEntry>;
+  referralFunnel: Record<string, ReferralFunnelEntry>;
+  /** First page of follow-trade commissions, keyed by Hydra profile id. */
+  commissions: Record<string, CommissionEntryView[]>;
+  /** First page of self-earned cashback ledger rows, keyed by Hydra profile id. */
+  cashbackLedger: Record<string, LedgerEarningEntryDto[]>;
 }
 
 export const initialState: RewardsMoneyState = {
   referralMe: {},
   earningsSummary: {},
+  referralFunnel: {},
+  commissions: {},
+  cashbackLedger: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -125,6 +138,59 @@ const rewardsMoneySlice = createSlice({
       entry.error = false;
       entry.data = action.payload.data;
     },
+    setReferralFunnelLoading: (
+      state,
+      action: PayloadAction<{ profileId: string; loading: boolean }>,
+    ) => {
+      const entry = getOrCreateEntry(
+        state.referralFunnel,
+        action.payload.profileId,
+      );
+      entry.loading = action.payload.loading;
+    },
+    setReferralFunnelError: (
+      state,
+      action: PayloadAction<{ profileId: string; error: boolean }>,
+    ) => {
+      const entry = getOrCreateEntry(
+        state.referralFunnel,
+        action.payload.profileId,
+      );
+      entry.error = action.payload.error;
+    },
+    setReferralFunnel: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        data: ReferralFunnelDto | null;
+      }>,
+    ) => {
+      const entry = getOrCreateEntry(
+        state.referralFunnel,
+        action.payload.profileId,
+      );
+      entry.loading = false;
+      entry.error = false;
+      entry.data = action.payload.data;
+    },
+    setCommissions: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        items: CommissionEntryView[];
+      }>,
+    ) => {
+      state.commissions[action.payload.profileId] = action.payload.items;
+    },
+    setCashbackLedger: (
+      state,
+      action: PayloadAction<{
+        profileId: string;
+        items: LedgerEarningEntryDto[];
+      }>,
+    ) => {
+      state.cashbackLedger[action.payload.profileId] = action.payload.items;
+    },
     resetRewardsMoneyState: () => initialState,
   },
   extraReducers: (builder) => {
@@ -135,6 +201,9 @@ const rewardsMoneySlice = createSlice({
         return {
           referralMe: settleEntries(persisted.referralMe),
           earningsSummary: settleEntries(persisted.earningsSummary),
+          referralFunnel: settleEntries(persisted.referralFunnel),
+          commissions: persisted.commissions ?? {},
+          cashbackLedger: persisted.cashbackLedger ?? {},
         };
       },
     );
@@ -148,6 +217,11 @@ export const {
   setEarningsSummaryLoading,
   setEarningsSummaryError,
   setEarningsSummary,
+  setReferralFunnelLoading,
+  setReferralFunnelError,
+  setReferralFunnel,
+  setCommissions,
+  setCashbackLedger,
   resetRewardsMoneyState,
 } = rewardsMoneySlice.actions;
 
