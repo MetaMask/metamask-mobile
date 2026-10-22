@@ -7,11 +7,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconName,
-  IconSize,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,8 +15,6 @@ import type { Position } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import PositionTokenAvatar from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
-import { MOCK_MARKER } from '../../../../UI/SocialFeed/mockMarker';
-import { useSocialFeedSurface } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../../../../UI/SocialFeed/types';
 import { useFollowToggle } from '../../../../hooks/useFollowToggle';
 import { useFollowWithNotificationSetup } from '../../hooks/useFollowWithNotificationSetup';
@@ -43,7 +37,6 @@ const PositionSheetHeader = ({
   isOwnPost,
 }: PositionSheetHeaderProps) => {
   const tw = useTailwind();
-  const { showMockedFields } = useSocialFeedSurface();
   const { isFollowing, toggleFollow } = useFollowToggle(author.id);
   const { followWithSetup } = useFollowWithNotificationSetup();
 
@@ -106,22 +99,6 @@ const PositionSheetHeader = ({
             username: author.username,
           })}
         </Text>
-        {showMockedFields ? (
-          <>
-            <Icon
-              name={IconName.VerifiedFilled}
-              size={IconSize.Sm}
-              twClassName="text-info-default shrink-0"
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextMuted}
-              twClassName="shrink-0"
-            >
-              {MOCK_MARKER}
-            </Text>
-          </>
-        ) : null}
       </Box>
 
       {isOwnPost ? null : (

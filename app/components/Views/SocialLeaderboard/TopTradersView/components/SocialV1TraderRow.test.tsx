@@ -50,20 +50,7 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByText('Follow')).toBeNull();
   });
 
-  it('hides the invented verified badge unless the surface shows mocked fields', () => {
-    renderWithProvider(
-      <SocialV1TraderRow
-        trader={baseTrader}
-        onFollowPress={mockOnFollowPress}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeNull();
-  });
-
-  it('shows the verified badge on a surface that shows mocked fields', () => {
+  it('never renders a verified badge, including when mocked fields are on', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialV1TraderRow
@@ -74,8 +61,8 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
   });
 
   it('renders the numeric rank for positions outside the podium', () => {
