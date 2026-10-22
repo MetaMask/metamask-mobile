@@ -60,6 +60,8 @@ All descriptors have Venue-qualified keys, semantic invalidation families, expli
 
 `portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
 
+Balance, Positions and Activity are account data: they belong to the authenticated Predict User, not to the wallet. Keys stay Venue-only, and the platform reset — the only event that replaces a Predict User, because a wallet reset or a new wallet runs in process — purges them. `PredictPortfolioService.clearAccountData()` cancels in-flight reads so their callers fail and late responses are discarded, removes the cached entries, and drops the remembered reads so a later invalidation cannot refresh them. The next read refetches. Lock/unlock, account switches, and sign-out/sign-in keep the cache, and the shared app query client that mirrors it is cleared only on that same reset.
+
 ## Order commit (write contract, PRED-1194)
 
 The implemented write contract is one authenticated route: `POST /v1/venues/{venueId}/orders/commit`, carrying the bearer token and a strict `{ previewId }` body — nothing else, so the client cannot alter Market, Outcome, spend, quantity, price, or fee at commit time. The backend derives every executable detail from the stored, expiring Order Preview.
@@ -70,6 +72,7 @@ The implemented write contract is one authenticated route: `POST /v1/venues/{ven
 - `reconciliation_required` means the submission outcome is ambiguous and the backend resolves it by looking up the stable `client_order_id` or the resulting Venue Order; the UI renders it as in-progress and the keep-checking affordance re-POSTs the same Commit. A verified venue absence re-arms exactly one submission; there is never a blind second Order.
 - Pre-operation failures (expired Preview, untradeable Market, insufficient Balance, unavailable venue) are canonical error codes and never create an operation; once an operation exists, every outcome — including rejection and zero Fill — is a receipt, never an error.
 - A terminal receipt invalidates the authoritative Balance, Positions, and Activity reads. Mobile persists nothing about the operation: after a screen closure or app restart the outcome surfaces through those authoritative reads (restart-observation persistence is descoped on PRED-1194).
+- A platform reset abandons observation. `PredictOrderService.abandonCommits()` rejects the in-flight Commit with `UNAUTHENTICATED` immediately, never re-POSTs that Preview again, and ignores a receipt that arrives afterwards instead of invalidating the portfolio reads. A Commit started after the reset is observed normally.
 
 ## Order preview and commit (action contract, PRED-1195)
 
