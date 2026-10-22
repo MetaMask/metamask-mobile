@@ -73,6 +73,7 @@ import {
   COMPOSER_FEED_AUTHOR,
   mapPositionToFeedItem,
 } from './mapPositionToFeedItem';
+import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedItem';
 import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
 import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
@@ -177,6 +178,13 @@ const SocialPostComposerView: React.FC = () => {
 
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
     if (tradeInFlightPreview) {
+      if ('product' in tradeInFlightPreview) {
+        return mapPerpsOrderInFlightToFeedItem(
+          tradeInFlightPreview,
+          text.trim(),
+          { author: composerAuthor },
+        );
+      }
       return mapTradeInFlightToFeedItem(tradeInFlightPreview, text.trim(), {
         author: composerAuthor,
       });

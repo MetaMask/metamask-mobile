@@ -2226,7 +2226,9 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT }));
+      ).toEqual(
+        expect.objectContaining({ paddingTop: HEADER_MIN_HEIGHT + 16 }),
+      );
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(
         HEADER_MIN_HEIGHT,
       );
@@ -2247,7 +2249,7 @@ describe('Header and Nav Bar refresh AB test', () => {
       const scrollView = getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
       expect(
         StyleSheet.flatten(scrollView.props.contentContainerStyle),
-      ).toEqual(expect.objectContaining({ paddingTop: 72 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 72 + 16 }));
       expect(scrollView.props.refreshControl.props.progressViewOffset).toBe(72);
       expect(capturedContext.containerScreenY).toBe(72);
     });
@@ -2276,7 +2278,9 @@ describe('Header and Nav Bar refresh AB test', () => {
             .contentContainerStyle,
         ),
       ).toEqual(
-        expect.objectContaining({ paddingTop: 47 + HEADER_MIN_HEIGHT }),
+        expect.objectContaining({
+          paddingTop: 47 + HEADER_MIN_HEIGHT + 16,
+        }),
       );
     });
 
@@ -2321,21 +2325,21 @@ describe('Header and Nav Bar refresh AB test', () => {
           getByTestId(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW).props
             .contentContainerStyle,
         ),
-      ).toEqual(expect.objectContaining({ paddingTop: 0 }));
+      ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     });
 
-    it('insets the balance from the floating header capsule', () => {
+    it('does not stack a second balance inset under the floating header', () => {
       const { getByTestId } = render(Wallet);
 
       expect(
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
     });
 
-    it('keeps the balance inset unchanged when Social V1 is enabled', () => {
+    it('does not add a balance inset when Social V1 is enabled', () => {
       mockSocialV1Enabled = true;
 
       const { getByTestId } = render(Wallet);
@@ -2344,8 +2348,8 @@ describe('Header and Nav Bar refresh AB test', () => {
         StyleSheet.flatten(
           getByTestId(WalletViewSelectorsIDs.WALLET_PORTFOLIO_HEADER_CLUSTER)
             .props.style,
-        ),
-      ).toEqual(expect.objectContaining({ paddingTop: 14 }));
+        ).paddingTop,
+      ).toBe(0);
     });
 
     it('leaves the balance inset to the native bar when it owns the header', () => {

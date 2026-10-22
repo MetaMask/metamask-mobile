@@ -3,7 +3,10 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
-import { selectAssetsMemecoinTdpV1Enabled } from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
+import {
+  selectAssetsMemecoinTdpV1Enabled,
+  selectMemecoinTdpV1PriceApiBaseUrl,
+} from '../../../../selectors/featureFlagController/assetsMemecoinTdpV1';
 import { selectNativeCurrencyByChainId } from '../../../../selectors/networkController';
 import {
   selectCurrentCurrency,
@@ -29,9 +32,17 @@ export const prefetchTokenDetailsQueries = (
   currentCurrency: string,
   marketDataMissing: boolean,
   hasNativeConversionRate: boolean,
+  priceApiBaseUrl?: string,
 ): void => {
-  prefetchHistoricalPrices(queryClient, token, currentCurrency);
-  prefetchOhlcvChart(queryClient, assetId, currentCurrency);
+  prefetchHistoricalPrices(
+    queryClient,
+    token,
+    currentCurrency,
+    priceApiBaseUrl,
+  );
+  prefetchOhlcvChart(queryClient, assetId, currentCurrency, priceApiBaseUrl);
+  // Not given the host: the spot price goes through a utility Bridge and swaps
+  // share, and is deliberately left on prod.
   prefetchSpotPrice(
     queryClient,
     token,
@@ -51,6 +62,10 @@ export const usePrefetchTokenDetails = (
   const queryClient = useQueryClient();
   const assetId = resolveOhlcvChartAssetId(token);
   const isMemecoinTdpEnabled = useSelector(selectAssetsMemecoinTdpV1Enabled);
+  // Read from the store rather than `usePriceApiHost`, because this runs in
+  // the route wrapper — above the provider, and before the variant that
+  // decides whether the provider renders at all is known.
+  const priceApiBaseUrl = useSelector(selectMemecoinTdpV1PriceApiBaseUrl);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRateByTicker = useSelector(selectCurrencyRates);
   const allTokenMarketData = useSelector(selectTokenMarketData);
@@ -89,6 +104,7 @@ export const usePrefetchTokenDetails = (
       currentCurrency,
       marketDataMissing,
       hasNativeConversionRate,
+      priceApiBaseUrl,
     );
   }, [
     queryClient,
@@ -98,5 +114,6 @@ export const usePrefetchTokenDetails = (
     currentCurrency,
     marketDataMissing,
     hasNativeConversionRate,
+    priceApiBaseUrl,
   ]);
 };

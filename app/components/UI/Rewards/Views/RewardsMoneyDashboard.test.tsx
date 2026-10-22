@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
+import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
   ReferralMeDto,
@@ -12,6 +13,10 @@ import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard'
 import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { analytics } from '../../../../util/analytics/analytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import RewardsMoneyDashboard, {
   REWARDS_MONEY_DASHBOARD_TEST_IDS,
 } from './RewardsMoneyDashboard';
@@ -20,6 +25,12 @@ const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
 
 const mockFetchReferralMe = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn();
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../hooks/useReferralMe', () => ({
   useReferralMe: () => ({
@@ -183,6 +194,7 @@ const renderDashboard = ({
   hasProfileId = true,
   identityReady = true,
   subscriptionId = 'sub-123',
+  candidateSubscriptionId = subscriptionId,
   referralMeEntry,
   earningsSummaryEntry,
 }: {
@@ -191,6 +203,7 @@ const renderDashboard = ({
   /** Primary HD keyring loaded. Locked or not-yet-loaded identity stays a skeleton. */
   identityReady?: boolean;
   subscriptionId?: string | null;
+  candidateSubscriptionId?: string | 'pending' | 'error' | 'retry' | null;
   referralMeEntry?: {
     loading: boolean;
     error: boolean;
@@ -208,7 +221,7 @@ const renderDashboard = ({
   return renderWithProvider(<RewardsMoneyDashboard />, {
     state: {
       rewards: {
-        candidateSubscriptionId: subscriptionId,
+        candidateSubscriptionId,
       },
       engine: {
         backgroundState: {
@@ -268,9 +281,114 @@ const renderDashboard = ({
 describe('RewardsMoneyDashboard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(analytics, 'trackEvent').mockImplementation(() => undefined);
     mockParentNavigatorType = 'tab';
+    mockBuild.mockReturnValue({ event: 'mock-event' });
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseEarningsSummary.mockReturnValue({
       fetchEarningsSummary: jest.fn(),
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks the loaded Money dashboard once', () => {
+      const { rerender } = renderDashboard();
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.REWARDS_DASHBOARD_VIEWED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards-money',
+        has_subscription: true,
+        persona: 'referrer',
+        roles: ['referrer'],
+      });
+      expect(analytics.trackEvent).toHaveBeenCalledWith({
+        event: 'mock-event',
+      });
+
+      mockCreateEventBuilder.mockClear();
+      rerender(<RewardsMoneyDashboard />);
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    });
+
+    it('does not track while the Money dashboard is loading', () => {
+      renderDashboard({
+        referralMeEntry: {
+          loading: true,
+          error: false,
+          data: null,
+        },
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    });
+
+    it('does not track while the candidate subscription is pending', () => {
+      renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
+    });
+
+    it('tracks has_subscription once the candidate subscription resolves', () => {
+      const { store } = renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      act(() => {
+        store.dispatch(setCandidateSubscriptionId('sub-123'));
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards-money',
+        has_subscription: true,
+        persona: 'referrer',
+        roles: ['referrer'],
+      });
+    });
+
+    it('tracks an unsubscribed visit once the candidate lookup finds none', () => {
+      const { store } = renderDashboard({
+        subscriptionId: null,
+        candidateSubscriptionId: 'pending',
+      });
+
+      act(() => {
+        store.dispatch(setCandidateSubscriptionId(null));
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        dashboard: 'rewards-money',
+        has_subscription: false,
+        persona: 'referrer',
+        roles: ['referrer'],
+      });
+    });
+
+    it('does not track the Money dashboard error state', () => {
+      renderDashboard({
+        referralMeEntry: {
+          loading: false,
+          error: false,
+          data: null,
+        },
+      });
+
+      expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     });
   });
 

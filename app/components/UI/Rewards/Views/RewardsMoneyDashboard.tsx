@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -22,6 +22,7 @@ import { useFloatingTabBarInset } from '../../../../component-library/components
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootState } from '../../../../reducers';
+import { selectCandidateSubscriptionId } from '../../../../reducers/rewards/selectors';
 import { selectPrimaryHDKeyring } from '../../../../selectors/keyringController';
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -42,6 +43,11 @@ import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import {
+  RewardsDashboardKind,
+  trackRewardsDashboardViewed,
+} from '../utils/rewardsDashboardViewedTracking';
 
 export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
   CONTAINER: 'rewards-money-dashboard',
@@ -165,6 +171,14 @@ const RewardsMoneyDashboard: React.FC = () => {
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
+  // selectRewardsSubscriptionId hides a candidate still 'pending' or 'retry'
+  // as null. Wait for that lookup, unless the account subscription is already
+  // known, so a subscribed visit is not locked in as unsubscribed.
+  const subscriptionKnown =
+    Boolean(subscriptionId) ||
+    (candidateSubscriptionId !== 'pending' &&
+      candidateSubscriptionId !== 'retry');
   const profileId = useSelector(selectSessionProfileId);
   const identityReady = Boolean(useSelector(selectPrimaryHDKeyring));
   const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
@@ -175,6 +189,8 @@ const RewardsMoneyDashboard: React.FC = () => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const hasTrackedDashboardViewed = useRef(false);
+  const { createEventBuilder } = useAnalytics();
   const showEarningsDot = hasClaimableEarnings(
     earningsSummaryEntry?.data?.claimable,
   );
@@ -182,6 +198,29 @@ const RewardsMoneyDashboard: React.FC = () => {
   const referralMe = referralMeEntry?.data;
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
+
+  useEffect(() => {
+    if (
+      !profileId ||
+      !referralMe ||
+      !subscriptionKnown ||
+      hasTrackedDashboardViewed.current
+    ) {
+      return;
+    }
+    trackRewardsDashboardViewed(createEventBuilder, {
+      dashboard: RewardsDashboardKind.REWARDS_MONEY,
+      hasSubscription: Boolean(subscriptionId),
+      referralMe,
+    });
+    hasTrackedDashboardViewed.current = true;
+  }, [
+    createEventBuilder,
+    profileId,
+    referralMe,
+    subscriptionId,
+    subscriptionKnown,
+  ]);
 
   const tabs = useMemo<TabItem[]>(
     () => [
