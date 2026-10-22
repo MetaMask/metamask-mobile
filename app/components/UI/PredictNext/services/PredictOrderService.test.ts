@@ -12,6 +12,7 @@ import {
   type PredictOrderServiceMessenger,
   PredictOrderService,
 } from './PredictOrderService';
+import type { PredictPortfolioServiceAccountDataClearedEvent } from './PredictPortfolioService';
 import {
   KALSHI_VENUE_ID,
   type PredictBuyOrderReceipt,
@@ -110,18 +111,22 @@ const commitOrder = jest.fn<Promise<PredictOrderReceipt>, []>();
 const invalidateQueries = jest.fn<Promise<void>, []>();
 const trading = { previewOrder, commitOrder };
 
+/**
+ * Builds the service on the Engine messenger wiring: it consumes the portfolio
+ * invalidation action after a terminal receipt and the account-data-cleared
+ * event when the Predict User changes. The returned `clearAccountData` plays
+ * the portfolio service's part by publishing that event.
+ */
 const serviceWith = (observationDelayMs?: number) => {
   const rootMessenger = new Messenger<
     MockAnyNamespace,
     PredictOrderServiceActions,
-    never
+    PredictPortfolioServiceAccountDataClearedEvent
   >({ namespace: MOCK_ANY_NAMESPACE });
   const messenger: PredictOrderServiceMessenger = new Messenger({
     namespace: PREDICT_ORDER_SERVICE_NAME,
     parent: rootMessenger,
   });
-  // Mirror the Engine messenger wiring: the service consumes the portfolio
-  // invalidation action after a terminal receipt.
   invalidateQueries.mockReset();
   invalidateQueries.mockResolvedValue(undefined);
   rootMessenger.registerActionHandler(
@@ -130,15 +135,21 @@ const serviceWith = (observationDelayMs?: number) => {
   );
   rootMessenger.delegate({
     actions: ['PredictPortfolioService:invalidateQueries'],
-    events: [],
+    events: ['PredictPortfolioService:accountDataCleared'],
     messenger,
   });
-  return new PredictOrderService({
+  const service = new PredictOrderService({
     messenger,
     trading,
     venueId: KALSHI_VENUE_ID,
     ...(observationDelayMs === undefined ? {} : { observationDelayMs }),
   });
+  return {
+    service,
+    clearAccountData: () => {
+      rootMessenger.publish('PredictPortfolioService:accountDataCleared');
+    },
+  };
 };
 
 beforeEach(() => {
@@ -147,7 +158,7 @@ beforeEach(() => {
   trading.commitOrder.mockReset();
 });
 
-const service = () => serviceWith(0);
+const service = () => serviceWith(0).service;
 
 const buyQuoteParams = {
   marketId: 'KXTEST-26-A' as PredictEntityId,
@@ -385,6 +396,73 @@ describe('PredictOrderService', () => {
         service().commitPreview(KALSHI_VENUE_ID, 'preview-1'),
       ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
       expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('Predict User changes', () => {
+    it('abandons an observing Commit without re-POSTing or refreshing reads', async () => {
+      const { service: orderService, clearAccountData } = serviceWith(0);
+      trading.commitOrder.mockResolvedValue(receiptWith({ status: 'pending' }));
+
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      // Let the first POST resolve so the loop is in its observation delay.
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+
+      clearAccountData();
+
+      await expect(commit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      // The abandoned Preview is never sent again, and an abandoned Commit
+      // never invalidates the account reads it would have changed.
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+
+    it('abandons a Commit whose response lands after the change', async () => {
+      const { service: orderService, clearAccountData } = serviceWith(0);
+      let resolveCommit: (value: PredictOrderReceipt) => void = () => undefined;
+      trading.commitOrder.mockReturnValue(
+        new Promise<PredictOrderReceipt>((resolve) => {
+          resolveCommit = resolve;
+        }),
+      );
+
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await Promise.resolve();
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+
+      clearAccountData();
+      resolveCommit(receiptWith({ status: 'filled' }));
+
+      await expect(commit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+
+    it('lets a later Commit for the new Predict User run normally', async () => {
+      const { service: orderService, clearAccountData } = serviceWith(0);
+      trading.commitOrder.mockResolvedValue(receiptWith({ status: 'pending' }));
+
+      const abandoned = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        'preview-1',
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+      clearAccountData();
+      await expect(abandoned).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+
+      trading.commitOrder.mockResolvedValue(receiptWith({ status: 'filled' }));
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-2'),
+      ).resolves.toMatchObject({ status: 'filled' });
+      expect(invalidateQueries).toHaveBeenCalledTimes(3);
     });
   });
 });

@@ -31,10 +31,12 @@ export const getPredictOrderServiceMessenger = (
     parent: rootMessenger,
   });
   // The Order workflow invalidates the authoritative portfolio reads (its
-  // consumed action); the cache itself stays owned by the portfolio service.
+  // consumed action) and abandons in-flight Commits when the Predict User
+  // changes (its consumed event); the cache itself stays owned by the
+  // portfolio service.
   rootMessenger.delegate({
     actions: ['PredictPortfolioService:invalidateQueries'],
-    events: [],
+    events: ['PredictPortfolioService:accountDataCleared'],
     messenger,
   });
   return messenger;

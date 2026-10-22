@@ -45,6 +45,20 @@ describe('getPredictOrderServiceMessenger', () => {
     expect(serviceMessenger).toBeDefined();
   });
 
+  it('delegates the account-data-cleared event to the service messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const serviceMessenger = getPredictOrderServiceMessenger(rootMessenger);
+    const listener = jest.fn();
+    serviceMessenger.subscribe(
+      'PredictPortfolioService:accountDataCleared',
+      listener,
+    );
+
+    rootMessenger.publish('PredictPortfolioService:accountDataCleared');
+
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
   it('delegates the portfolio invalidation action to the service messenger', async () => {
     const rootMessenger = getRootMessenger();
     const invalidateQueries = jest.fn().mockResolvedValue(undefined);
