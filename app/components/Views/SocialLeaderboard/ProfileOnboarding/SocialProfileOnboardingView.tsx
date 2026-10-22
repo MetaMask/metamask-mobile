@@ -18,7 +18,13 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +32,7 @@ import {
   ScrollView,
 } from 'react-native';
 import {
+  SafeAreaInsetsContext,
   SafeAreaView,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
@@ -34,6 +41,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
+import MarketingMoment from '../../../UI/MarketingMoment';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
@@ -310,6 +318,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+  const introInsets = useMemo(
+    () => ({ top: 0, bottom: 0, left: insets.left, right: insets.right }),
+    [insets.left, insets.right],
+  );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
   const { checkUsernameAvailability, createProfile } = useProfileController();
@@ -625,40 +637,46 @@ const SocialProfileOnboardingView: React.FC = () => {
       >
         <Box twClassName="flex-1">
           {step === 'intro' ? (
-            <Box
-              twClassName="flex-1"
-              testID={SocialProfileOnboardingSelectorsIDs.INTRO}
-            >
-              <OnboardingTitle twClassName="px-6 pt-4">
-                {strings('social_leaderboard.profile_onboarding.intro_title')}
-              </OnboardingTitle>
-              <ProfileOnboardingIntroAnimation
-                fallback={<LiveActivityFallback />}
-              />
-              <Box paddingHorizontal={4} paddingBottom={4} gap={3}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  startIconName={IconName.X}
-                  onPress={handleConnectX}
-                  testID={SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON}
-                >
-                  {strings('social_leaderboard.profile_onboarding.connect_x')}
-                </Button>
-                <Button
-                  variant={ButtonVariant.Tertiary}
-                  isFullWidth
-                  onPress={handleCreateManually}
-                  testID={
-                    SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON
-                  }
-                >
-                  {strings(
+            <SafeAreaInsetsContext.Provider value={introInsets}>
+              <MarketingMoment
+                testID={SocialProfileOnboardingSelectorsIDs.INTRO}
+                title={strings(
+                  'social_leaderboard.profile_onboarding.intro_title',
+                )}
+                titleProps={{
+                  testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
+                  twClassName: 'px-1',
+                }}
+                artwork={
+                  <ProfileOnboardingIntroAnimation
+                    fallback={<LiveActivityFallback />}
+                  />
+                }
+                artworkWrapperProps={{
+                  alignItems: BoxAlignItems.Stretch,
+                  paddingHorizontal: 0,
+                }}
+                artworkWrapperAnimatedViewProps={{
+                  entering: undefined,
+                }}
+                primaryAction={{
+                  label: strings(
+                    'social_leaderboard.profile_onboarding.connect_x',
+                  ),
+                  startIconName: IconName.X,
+                  onPress: handleConnectX,
+                  testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+                }}
+                secondaryAction={{
+                  label: strings(
                     'social_leaderboard.profile_onboarding.create_manually',
-                  )}
-                </Button>
-              </Box>
-            </Box>
+                  ),
+                  onPress: handleCreateManually,
+                  testID:
+                    SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+                }}
+              />
+            </SafeAreaInsetsContext.Provider>
           ) : (
             <ScrollView
               keyboardShouldPersistTaps="handled"
