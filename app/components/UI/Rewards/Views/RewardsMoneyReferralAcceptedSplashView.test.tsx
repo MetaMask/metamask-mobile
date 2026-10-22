@@ -9,9 +9,9 @@ import type {
   ReferralMeDto,
 } from '../../../../core/Engine/controllers/rewards-money-controller/types';
 import RewardsMoneyReferralAcceptedSplashView, {
-  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS,
   fillInviteAcceptedBodyDate,
 } from './RewardsMoneyReferralAcceptedSplashView';
+import { REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS } from './RewardsMoneyReferralAcceptedSplashView.testIds';
 
 const PROFILE_ID = 'profile-1';
 const KEYRING_ID = 'entropy-source-1';
@@ -242,7 +242,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
   it('renders no hero when invite_hero is absent', () => {
     const { queryByTestId } = renderSplash();
 
-    expect(queryByTestId('theme-image-hero')).toBeNull();
+    expect(queryByTestId('theme-image-hero')).not.toBeOnTheScreen();
   });
 
   it('opens the money dashboard when view rewards is pressed', () => {

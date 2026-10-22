@@ -26,16 +26,7 @@ import RewardsThemeImageComponent from '../components/ThemeImageComponent/Reward
 import { selectSessionProfileId } from '../../../../selectors/identity';
 import { selectReferralMeEntry } from '../../../../reducers/rewardsMoney/selectors';
 import { formatRewardsDateLabel } from '../utils/formatUtils';
-
-export const REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS = {
-  CONTAINER: 'rewards-money-referral-accepted-splash',
-  CLOSE: 'rewards-money-referral-accepted-close',
-  TITLE: 'rewards-money-referral-accepted-title',
-  BODY: 'rewards-money-referral-accepted-body',
-  HERO: 'rewards-money-referral-accepted-hero',
-  START_TRADING: 'rewards-money-referral-accepted-start-trading',
-  VIEW_REWARDS: 'rewards-money-referral-accepted-view-rewards',
-} as const;
+import { REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS } from './RewardsMoneyReferralAcceptedSplashView.testIds';
 
 // The preset has no tracking-* utilities, and the uppercase eyebrow needs the
 // extra letter spacing to stay legible at BodySm.

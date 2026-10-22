@@ -52,7 +52,11 @@ export function createComponentViewQueryClient() {
   });
 }
 
-function QueryClientBoundary({ children }: { children: React.ReactNode }) {
+export function QueryClientBoundary({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [queryClient] = React.useState(createComponentViewQueryClient);
 
   React.useEffect(

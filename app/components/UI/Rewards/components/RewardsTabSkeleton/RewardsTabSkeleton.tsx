@@ -3,12 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Skeleton from '../../../../../component-library/components-temp/Skeleton/Skeleton';
-
-export const REWARDS_TAB_SKELETON_TEST_IDS = {
-  CONTAINER: 'rewards-tab-skeleton',
-  HEADER: 'rewards-tab-skeleton-header',
-  BODY: 'rewards-tab-skeleton-body',
-} as const;
+import { REWARDS_TAB_SKELETON_TEST_IDS } from './RewardsTabSkeleton.testIds';
 
 interface RewardsTabSkeletonProps {
   testID?: string;

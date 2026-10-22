@@ -22,6 +22,7 @@ interface RewardsErrorBannerProps {
   confirmButtonLabel?: string;
   onConfirmLoading?: boolean;
   testID?: string;
+  confirmButtonTestID?: string;
 }
 
 const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
@@ -32,6 +33,7 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
   confirmButtonLabel,
   onConfirmLoading,
   testID,
+  confirmButtonTestID,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -76,6 +78,7 @@ const RewardsErrorBanner: React.FC<RewardsErrorBannerProps> = ({
               size={ButtonSize.Md}
               onPress={onConfirm}
               isLoading={onConfirmLoading}
+              testID={confirmButtonTestID}
             >
               {confirmButtonLabel || 'Confirm'}
             </Button>

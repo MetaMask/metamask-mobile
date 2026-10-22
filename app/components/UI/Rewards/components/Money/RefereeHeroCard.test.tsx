@@ -11,7 +11,8 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
-import RefereeHeroCard, { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard';
+import RefereeHeroCard from './RefereeHeroCard';
+import { REFEREE_HERO_CARD_TEST_IDS } from './RefereeHeroCard.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');

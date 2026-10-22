@@ -10,8 +10,9 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import { useEarningsSummary } from '../../hooks/useEarningsSummary';
 import { useReferralMe } from '../../hooks/useReferralMe';
-import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
-import RefererHeroCard, { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard';
+import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet.testIds';
+import RefererHeroCard from './RefererHeroCard';
+import { REFERER_HERO_CARD_TEST_IDS } from './RefererHeroCard.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
 
 jest.mock('../../hooks/useEarningsSummary');

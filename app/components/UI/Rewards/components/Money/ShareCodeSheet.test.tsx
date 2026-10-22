@@ -12,7 +12,8 @@ import {
   createMockUseAnalyticsHook,
 } from '../../../../../util/test/analyticsMock';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import ShareCodeSheet, { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet';
+import ShareCodeSheet from './ShareCodeSheet';
+import { SHARE_CODE_SHEET_TEST_IDS } from './ShareCodeSheet.testIds';
 
 const TEST_IDS = SHARE_CODE_SHEET_TEST_IDS;
 const CODE = 'ABC123';

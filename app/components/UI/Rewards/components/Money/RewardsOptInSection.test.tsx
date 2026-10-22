@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import RewardsOptInSection, {
-  REWARDS_OPT_IN_SECTION_TEST_IDS,
-} from './RewardsOptInSection';
+import RewardsOptInSection from './RewardsOptInSection';
+import { REWARDS_OPT_IN_SECTION_TEST_IDS } from './RewardsOptInSection.testIds';
 
 let mockAccountGroupAccounts = [{ address: '0xsoftware', type: 'eip155:eoa' }];
 let mockOptinAllowedForGeo: boolean | null = true;
