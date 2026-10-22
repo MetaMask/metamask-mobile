@@ -348,13 +348,12 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     useTokenMarketData(caip19AssetId);
   const traderPositionTokenKey = `${token.chainId ?? ''}:${token.address ?? ''}:${token.symbol ?? ''}`;
 
-  // Feeds both the stat bar and the Security tab. Ten of these figures appear
-  // on both, and deriving them once is what stops the two disagreeing.
   const tokenStats = useTokenStats({
     marketData,
     isMarketDataLoading,
     securityData,
     launchpadData: tokenAsset?.launchpadData,
+    tokenApiHoldersCount: tokenAsset?.holders?.count,
     currentCurrency: selectedCurrency,
   });
 
@@ -646,7 +645,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           <OverviewTab
             token={token}
             assetId={caip19AssetId}
-            currentCurrency={currentCurrency}
             securityData={securityData}
             marketData={marketData}
           />
@@ -684,7 +682,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
       mountedTabs,
       token,
       caip19AssetId,
-      currentCurrency,
       securityData,
       marketData,
       securityFacts,

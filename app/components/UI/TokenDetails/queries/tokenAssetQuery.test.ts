@@ -39,6 +39,7 @@ const asset = {
     holdersCount: null,
     top10HeldPercent: null,
   },
+  holders: null,
 } as TokenAssetRecord;
 
 describe('fetchTokenAsset', () => {
@@ -61,6 +62,7 @@ describe('fetchTokenAsset', () => {
     const url = mockFetch.mock.calls[0][0] as string;
     expect(url).toContain('/v2/assets?');
     expect(url).toContain('includeLaunchpadData=true');
+    expect(url).toContain('includeTopHolders=true');
     expect(url).toContain('includeRwaData=true');
     expect(url).toContain('includeMarketData=true');
     expect(url).toContain(encodeURIComponent(ASSET_ID));
@@ -88,6 +90,41 @@ describe('fetchTokenAsset', () => {
       ASSET_ID,
       TOKEN_API_BASE_URL,
     ]);
+  });
+
+  it('keeps the holder count and drops the holder list', async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          ...asset,
+          holders: {
+            count: 42,
+            top10Percent: '100.000',
+            top: [{ address: '0xabc', balance: '1' }],
+          },
+        },
+      ],
+    });
+
+    const result = await fetchTokenAsset(ASSET_ID);
+
+    expect(result).toStrictEqual({
+      ...asset,
+      holders: { count: 42 },
+    });
+  });
+
+  it('returns null holders when the assets payload omits them', async () => {
+    const { holders: _holders, ...assetWithoutHolders } = asset;
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => [assetWithoutHolders],
+    });
+
+    const result = await fetchTokenAsset(ASSET_ID);
+
+    expect(result?.holders).toBeNull();
   });
 
   it('returns null when the response does not include the asset', async () => {

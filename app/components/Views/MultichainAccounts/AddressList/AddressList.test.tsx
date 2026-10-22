@@ -16,7 +16,10 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { AddressList } from './AddressList';
 import { MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
-import { toFormattedAddress } from '../../../../util/address';
+import {
+  renderShortAddress,
+  toFormattedAddress,
+} from '../../../../util/address';
 import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { strings } from '../../../../../locales/i18n';
@@ -95,7 +98,7 @@ const mockEthEoaAccount = {
   scopes: [EthScope.Eoa],
   groupId: 'entropy:wallet-id-1/1"',
 };
-const shortenedEthAddress = '0x4FeC2...fdcB5';
+const shortenedEthAddress = renderShortAddress(mockEthEoaAccount.address);
 
 const mockSolAccount = {
   ...createMockInternalAccount(
@@ -106,7 +109,7 @@ const mockSolAccount = {
   scopes: [SolScope.Mainnet, SolScope.Testnet, SolScope.Devnet],
   type: SolAccountType.DataAccount,
 };
-const shortenedSolAddress = 'FcdCd3m...GPZgj';
+const shortenedSolAddress = renderShortAddress(mockSolAccount.address);
 
 const mockBtcAccount = {
   ...createMockInternalAccount(
