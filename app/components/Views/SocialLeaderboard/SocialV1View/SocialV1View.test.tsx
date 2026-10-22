@@ -27,6 +27,7 @@ const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
+const mockSocialFeedCanonical = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -56,57 +57,6 @@ jest.mock('./feed/hooks/useSocialV1Feed', () => ({
     .mockUseSocialV1Feed,
 }));
 
-jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const { mockUseSocialV1Feed } = jest.requireActual(
-    './feed/mocks/mockComposedFeedHook',
-  );
-  const SocialFeedPostingBanner = jest.requireActual(
-    './feed/components/SocialFeedPostingBanner',
-  ).default;
-
-  return {
-    __esModule: true,
-    default: ({
-      scope,
-      testID,
-      renderHeader,
-    }: {
-      scope: 'trending' | 'following' | 'all';
-      testID?: string;
-      renderHeader?: (props: {
-        pendingNewCount: number;
-        onRevealPending: () => void;
-      }) => React.ReactNode;
-    }) => {
-      const { pendingPost, posts } = mockUseSocialV1Feed(
-        scope === 'following' ? 'following' : 'trending',
-      );
-      return ReactActual.createElement(
-        View,
-        { testID },
-        renderHeader?.({
-          pendingNewCount: 0,
-          onRevealPending: jest.fn(),
-        }),
-        pendingPost
-          ? ReactActual.createElement(SocialFeedPostingBanner, {
-              authorHandle: pendingPost.authorHandle,
-              startedAtMs: null,
-            })
-          : null,
-        ...posts.map((post: { id: string; item: { id: string } }) =>
-          ReactActual.createElement(View, {
-            key: post.id,
-            testID: `social-v1-feed-card-${post.item.id}`,
-          }),
-        ),
-      );
-    },
-  };
-});
-
 jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(() => ({
     posts: [],
@@ -120,6 +70,40 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
     dataUpdatedAt: undefined,
   })),
 }));
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
+  const ReactActual = jest.requireActual('react') as typeof React;
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+
+  interface MockCanonicalProps {
+    enabled?: boolean;
+    realtime?: boolean;
+    renderHeader?: (props: {
+      pendingNewCount: number;
+      onRevealPending: () => void;
+    }) => React.ReactNode;
+    scrollTestID?: string;
+    testID?: string;
+  }
+
+  return {
+    __esModule: true,
+    default: (props: MockCanonicalProps) => {
+      mockSocialFeedCanonical(props);
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.renderHeader?.({
+          pendingNewCount: 0,
+          onRevealPending: jest.fn(),
+        }),
+        ReactActual.createElement(View, { testID: props.scrollTestID }),
+      );
+    },
+  };
+});
 
 const mockUseABTest = jest.fn();
 jest.mock('../../../../hooks/useABTest', () => ({
@@ -251,9 +235,6 @@ jest.mock('react-native-reanimated', () => {
   return {
     ...Reanimated,
     useReducedMotion: jest.fn(() => false),
-    useComposedEventHandler: jest.fn((handlers: unknown[]) =>
-      handlers.find(Boolean),
-    ),
   };
 });
 
@@ -290,17 +271,6 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 describe('SocialV1View', () => {
-  const openLiveTab = () => {
-    fireEvent.press(
-      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-2`),
-    );
-    act(() => {
-      screen
-        .getByTestId(SocialV1ViewSelectorsIDs.PAGER)
-        .props.onPageSelected({ nativeEvent: { position: 3 } });
-    });
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
@@ -498,7 +468,6 @@ describe('SocialV1View', () => {
 
   it('renders the Live filter icon on the Live page', () => {
     renderWithProvider(<SocialV1View />);
-    openLiveTab();
 
     expect(
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
@@ -508,9 +477,32 @@ describe('SocialV1View', () => {
     ).toBeOnTheScreen();
   });
 
+  it('enables Live realtime only while the Live tab is active', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false, realtime: false }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
+    );
+
+    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true, realtime: true }),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
+    );
+
+    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true, realtime: false }),
+    );
+  });
+
   it('opens the filters bottom sheet from the Live filter button', () => {
     renderWithProvider(<SocialV1View />);
-    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
 
@@ -519,7 +511,6 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when Apply is pressed', () => {
     renderWithProvider(<SocialV1View />);
-    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
@@ -529,7 +520,6 @@ describe('SocialV1View', () => {
 
   it('closes the filters bottom sheet when the backdrop is pressed', () => {
     renderWithProvider(<SocialV1View />);
-    openLiveTab();
 
     fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
@@ -684,7 +674,7 @@ describe('SocialV1View', () => {
 
   it('marks Live filters active after applying a draft change', () => {
     renderWithProvider(<SocialV1View />);
-    openLiveTab();
+
     const filterButton = () =>
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON);
     const inactiveStyle = StyleSheet.flatten(filterButton().props.style);
@@ -733,7 +723,7 @@ describe('SocialV1View', () => {
       screen.getAllByTestId(
         getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
       ),
-    ).toHaveLength(1);
+    ).toHaveLength(2);
   });
 
   it('uses the profile image URL for the header avatar when available', () => {

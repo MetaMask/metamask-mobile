@@ -78,6 +78,7 @@ export interface SocialFeedCanonicalHeaderProps {
 export interface SocialFeedCanonicalProps {
   scope: SocialFeedCanonicalScope;
   scrollMode: 'content' | 'virtualized';
+  enabled?: boolean;
   realtime?: boolean;
   paused?: boolean;
   filters?: SocialFeedCanonicalFilters;
@@ -137,7 +138,10 @@ const areCanonicalRowPropsEqual = (
   previous.post.gifUri === next.post.gifUri &&
   previous.post.userReaction === next.post.userReaction &&
   areReactionsEqual(previous.post.reactions, next.post.reactions) &&
-  previous.post.item.timestamp === next.post.item.timestamp;
+  previous.post.item.timestamp === next.post.item.timestamp &&
+  previous.post.item === next.post.item &&
+  previous.post.marketCapUsd === next.post.marketCapUsd &&
+  previous.post.position === next.post.position;
 
 const CanonicalRow = React.memo(
   ({
@@ -225,12 +229,13 @@ const ContentLoadMoreSentinel: React.FC<{
  *
  * Every feed call site should eventually migrate to this component. It is
  * deliberately scope- and host-agnostic: callers choose the feed scope,
- * scroll ownership, filters, and navigation callbacks while this component
+ * scroll ownership, and navigation callbacks while this component
  * owns feed data, pagination, realtime updates, row identity, and feed states.
  */
 const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
   scope,
   scrollMode,
+  enabled = true,
   realtime = false,
   paused = false,
   location = 'social_feed_screen',
@@ -264,6 +269,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
     pendingNewCount,
     revealPending,
   } = useSocialFeedCanonical({
+    enabled,
     nearTop,
     paused,
     realtime,
@@ -420,7 +426,7 @@ const SocialFeedCanonical: React.FC<SocialFeedCanonicalProps> = ({
             }
             testID={scrollTestID}
             ListHeaderComponent={
-              renderHeader ? customHeader : <>{pendingHeader}</>
+              renderHeader ? <>{customHeader}</> : <>{pendingHeader}</>
             }
             ListEmptyComponent={
               showInitialLoading ? (

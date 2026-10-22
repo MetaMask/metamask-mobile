@@ -24,10 +24,18 @@ jest.mock('./SocialEntryOptionsBottomSheet', () => ({
 
 jest.mock('./SocialFeedPostShell', () => ({
   __esModule: true,
-  default: ({ post }: { post: { id: string } }) => {
+  default: ({
+    post,
+  }: {
+    post: { id: string; item?: { pnlLabel?: string } };
+  }) => {
     const ReactActual = jest.requireActual('react');
     const ReactNative = jest.requireActual('react-native');
-    return ReactActual.createElement(ReactNative.Text, null, post.id);
+    return ReactActual.createElement(
+      ReactNative.Text,
+      null,
+      post.item?.pnlLabel ?? post.id,
+    );
   },
 }));
 
@@ -125,18 +133,44 @@ describe('SocialFeedCanonical', () => {
   it('renders the content mode with non-realtime scope configuration', () => {
     render(
       <SocialFeedCanonical
-        scope="trending"
+        scope="all"
         scrollMode="content"
-        filters={{ profileId: 'profile-1' }}
         testID="canonical-content"
       />,
     );
 
     expect(mockUseSocialFeedCanonical).toHaveBeenCalledWith(
-      expect.objectContaining({ scope: 'trending', realtime: false }),
+      expect.objectContaining({ scope: 'all', realtime: false }),
     );
     expect(screen.getByTestId('canonical-content')).toBeOnTheScreen();
     expect(screen.getByText('post-1')).toBeOnTheScreen();
+  });
+
+  it('rerenders a row when its mapped item changes without a timestamp change', () => {
+    const createRevision = (pnlLabel: string) =>
+      ({
+        id: 'post-1',
+        authorHandle: 'trader',
+        timestampMs: 1,
+        reactions: [],
+        item: {
+          id: 'post-1',
+          author: { id: 'profile-1' },
+          pnlLabel,
+        },
+      }) as never;
+    const { rerender } = render(
+      <SocialFeedCanonical scope="trending" scrollMode="content" />,
+    );
+
+    mockUseSocialFeedCanonical.mockReturnValue({
+      ...state,
+      posts: [createRevision('updated')],
+      entrances: createSocialFeedEntrances(),
+    });
+    rerender(<SocialFeedCanonical scope="trending" scrollMode="content" />);
+
+    expect(screen.getByText('updated')).toBeOnTheScreen();
   });
 
   it.each(['virtualized', 'content'] as const)(

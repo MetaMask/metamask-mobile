@@ -7,6 +7,10 @@
  * uses this handle to bring the incoming page in line with the outgoing one
  * before it becomes visible.
  */
-import type { SocialFeedPageHandle } from '../../../UI/SocialFeed/types';
-
-export type SocialTabPageHandle = SocialFeedPageHandle;
+export interface SocialTabPageHandle {
+  /**
+   * Scrolls the page's list to an absolute content offset, in pixels from the
+   * top. Offsets beyond the scrollable range are clamped by the list itself.
+   */
+  scrollToOffset: (offset: number, animated?: boolean) => void;
+}
