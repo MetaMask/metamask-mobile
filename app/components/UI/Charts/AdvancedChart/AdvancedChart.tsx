@@ -13,6 +13,7 @@ import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../ChartCandleSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
 import {
@@ -107,7 +108,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
       isLoading = false,
-      renderSkeleton,
+      skeletonVariant = 'default',
       subPaneHeightRatio,
       useSubscriptPriceFormat,
       priceDecimals,
@@ -1122,12 +1123,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             mixedContentMode="always"
           />
           {showSkeleton &&
-            (renderSkeleton ? (
+            (skeletonVariant === 'candles' ? (
               <View
                 style={styles.skeletonOverlay}
                 testID="advanced-chart-skeleton"
               >
-                {renderSkeleton({ height })}
+                <ChartCandleSkeleton height={height} />
               </View>
             ) : (
               <Skeleton

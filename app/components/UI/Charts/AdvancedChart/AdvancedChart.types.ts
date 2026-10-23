@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 // ============================================
 // OHLCV data types
 // ============================================
@@ -766,10 +764,10 @@ export interface AdvancedChartProps {
   isLoading?: boolean;
 
   /**
-   * Replaces the default flat skeleton overlay. Omitted keeps the design-system
-   * Skeleton on the same overlay style.
+   * Placeholder drawn while the chart skeleton is showing.
+   * `default` is the flat design-system Skeleton. `candles` is the candle chart.
    */
-  renderSkeleton?: (context: { height: number }) => ReactNode;
+  skeletonVariant?: 'default' | 'candles';
 
   /**
    * Expected visible-range start (Unix ms). After data loads the WebView constrains
