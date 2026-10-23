@@ -19,6 +19,7 @@ export type {
   RewardsDataServiceClaimRewardAction,
   RewardsDataServiceGetVIPDashboardAction,
   RewardsDataServiceGetVipRefereeDashboardAction,
+  RewardsDataServiceGetTradingFeeGrantsAction,
   RewardsDataServiceGetVipFeesAction,
   RewardsDataServiceGetPerpsTradingCampaignPrizePoolAction,
   RewardsDataServiceGetPredictThePitchLeaderboardAction,
