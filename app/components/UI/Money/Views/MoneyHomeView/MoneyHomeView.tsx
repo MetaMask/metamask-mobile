@@ -48,7 +48,8 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -132,6 +133,13 @@ const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 /** Row is Add + Send + Card, plus Details once the VBA account is ready. */
 const ACTION_BUTTON_ROW_BASE_COUNT = 3;
 
+/**
+ * Blocks repeat Details taps until the loading route has had time to present. A
+ * second reset in that window would remount the loading route and start a
+ * second hydrate.
+ */
+const DETAILS_REENTRY_WINDOW_MS = 1000;
+
 const MoneyHomeView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { showBackButton, launchedFrom } = useParams<MoneyHomeParams>();
@@ -208,12 +216,11 @@ const MoneyHomeView = () => {
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
-  // the same eligibility gate the home cards use). Its destination is the same
-  // coordinator the cards use: a complete account lands on the PIX details
-  // screen, everyone else on their first incomplete onboarding module.
+  // the same eligibility gate the home cards use). Like the cards, it opens the
+  // loading screen immediately; that screen hydrates and forwards to the PIX
+  // details screen for a complete account, or the first incomplete module.
   const { isEligible: isVbaEligible } = useVbaEligibility();
-  const openVbaOnboarding = useOpenVbaOnboarding('vba-action-row-details');
-  const [isDetailsOpening, setIsDetailsOpening] = useState(false);
+  const hasPendingDetailsOpenRef = useRef(false);
   const showVbaDetailsButton = isVbaEligible;
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
@@ -563,9 +570,14 @@ const MoneyHomeView = () => {
   ]);
 
   const handleActionButtonDetailsPress = useCallback(() => {
-    if (isDetailsOpening) {
+    if (hasPendingDetailsOpenRef.current) {
       return;
     }
+    hasPendingDetailsOpenRef.current = true;
+    // Self-clears so the button recovers if no navigator presents the route.
+    setTimeout(() => {
+      hasPendingDetailsOpenRef.current = false;
+    }, DETAILS_REENTRY_WINDOW_MS);
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
@@ -576,26 +588,13 @@ const MoneyHomeView = () => {
       button_row_button_count: actionButtonRowCount,
     });
 
-    setIsDetailsOpening(true);
-    // Intentionally not awaited: openVbaOnboarding already routes internal
-    // failures to the recoverable-error screen. Log anything that escapes.
-    openVbaOnboarding()
-      .catch((error) => {
-        Logger.error(error as Error, {
-          tags: { feature: 'money-home' },
-          context: {
-            name: 'MoneyHomeView',
-            data: { step: 'handleActionButtonDetailsPress' },
-          },
-        });
-      })
-      .finally(() => setIsDetailsOpening(false));
-  }, [
-    isDetailsOpening,
-    openVbaOnboarding,
-    trackButtonClicked,
-    actionButtonRowCount,
-  ]);
+    // Route immediately: the loading screen hydrates and replaces itself with
+    // the next destination, so Details never shows an in-place busy state
+    // while status resolves.
+    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+      source: 'vba-action-row-details',
+    });
+  }, [navigation, trackButtonClicked, actionButtonRowCount]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1118,7 +1117,6 @@ const MoneyHomeView = () => {
             showVbaDetailsButton
               ? {
                   onPress: handleActionButtonDetailsPress,
-                  disabled: isDetailsOpening,
                 }
               : undefined
           }
