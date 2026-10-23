@@ -801,6 +801,7 @@ describe('CustomAmountInfo', () => {
     const { getByTestId, getByText } = render();
 
     expect(getByTestId('alert-message-banner')).toBeOnTheScreen();
+    expect(getByTestId('alert-message-banner')).toHaveStyle({ fontSize: 16 });
     expect(getByText('Test Help Text')).toBeDefined();
   });
 

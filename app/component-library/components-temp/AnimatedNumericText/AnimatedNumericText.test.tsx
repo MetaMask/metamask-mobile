@@ -10,8 +10,12 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: jest.fn(() => false),
 }));
 
+const mockTwStyle = jest.fn(() => ({}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: () => ({}) }),
+  useTailwind: () => ({
+    style: (...classes: unknown[]) => mockTwStyle(...classes),
+  }),
 }));
 
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
@@ -25,6 +29,17 @@ describe('AnimatedNumericText', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
+  });
+
+  it('renders glyphs in the Hero face', () => {
+    render(<AnimatedNumericText value="$0" />);
+
+    expect(mockTwStyle).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.stringMatching(/^font-hero/),
+      expect.any(String),
+      undefined,
+    );
   });
 
   it('renders the numeric string', () => {

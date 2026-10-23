@@ -28,7 +28,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   cursor: {
-    marginHorizontal: 5,
     width: 1,
   },
 });
@@ -116,10 +115,10 @@ const AnimatedAmountDisplay = ({
   const defaultCursorStyle = useMemo(
     () => ({
       ...styles.cursor,
-      backgroundColor: colors.primary.default,
+      backgroundColor: colors.text.muted,
       height: 40,
     }),
-    [colors.primary.default],
+    [colors.text.muted],
   );
   const cursorOpacityStyle = useMemo(
     () => ({ opacity: cursorAnimated ? cursorOpacity : 1 }),

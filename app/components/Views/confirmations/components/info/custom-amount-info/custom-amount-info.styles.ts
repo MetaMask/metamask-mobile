@@ -21,6 +21,26 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 14,
     },
 
+    amountBlock: {
+      alignItems: 'center',
+      alignSelf: 'stretch',
+    },
+
+    // Keeps the amount fixed. The caption hangs below it, so swapping the
+    // APY line for an alert does not change the amount's position.
+    amountCaption: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      marginTop: 14,
+      alignItems: 'center',
+    },
+
+    amountAlert: {
+      fontSize: 16,
+    },
+
     // Sits on top of the safe-area inset, so the confirm button and the keypad
     // keep clear of the home indicator / navigation bar on both platforms.
     bottomBlock: {
