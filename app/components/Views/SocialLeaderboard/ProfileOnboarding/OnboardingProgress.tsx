@@ -71,7 +71,7 @@ const ProgressSegment: React.FC<{ filled: boolean; index: number }> = ({
 }) => {
   const tw = useTailwind();
   const reducedMotion = useReducedMotion();
-  const progress = useSharedValue(0);
+  const progress = useSharedValue(reducedMotion && filled ? 1 : 0);
 
   useEffect(() => {
     const target = filled ? 1 : 0;
@@ -120,7 +120,6 @@ const OnboardingProgress: React.FC<{
       flexDirection={BoxFlexDirection.Row}
       gap={1}
       paddingHorizontal={4}
-      paddingBottom={4}
       style={{ paddingTop: topInset + 8 }}
       testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
     >
