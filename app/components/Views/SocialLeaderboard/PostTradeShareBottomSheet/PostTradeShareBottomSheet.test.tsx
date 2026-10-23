@@ -9,8 +9,18 @@ import {
   getPostTradeShareSession,
 } from './postTradeShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
+import { SocialEventValues } from '../analytics';
 
 const mockNavigate = jest.fn();
+const mockTrackInteraction = jest.fn();
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
+}));
 
 jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -105,6 +115,13 @@ describe('PostTradeShareBottomSheet', () => {
         chain: 'base',
         side: 'buy',
       },
+    });
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      screen_name: SocialEventValues.SCREEN_NAME.POST_TRADE_SHARE_SHEET,
+      source: 'trader_feed',
+      outcome: SocialEventValues.OUTCOME.SUCCESS,
+      trade_type: SocialEventValues.TRADE_TYPE.SPOT,
     });
   });
 
@@ -202,6 +219,13 @@ describe('PostTradeShareBottomSheet', () => {
     expect(mockNavigate.mock.calls[0][1].tradeInFlight.transactionHash).toBe(
       undefined,
     );
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      screen_name: SocialEventValues.SCREEN_NAME.POST_TRADE_SHARE_SHEET,
+      source: 'trader_feed',
+      outcome: SocialEventValues.OUTCOME.SUCCESS,
+      trade_type: SocialEventValues.TRADE_TYPE.PERPS,
+    });
   });
 
   it('closes a failed perps order without requesting a retry', () => {

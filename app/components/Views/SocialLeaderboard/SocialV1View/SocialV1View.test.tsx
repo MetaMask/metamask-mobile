@@ -84,9 +84,13 @@ jest.mock('../../../../hooks/useABTest', () => ({
 
 jest.mock('../analytics', () => {
   const events = jest.requireActual('../analytics/socialLeaderboardEvents');
+  const socialEvents = jest.requireActual('../analytics/socialEvents');
   return {
     ...events,
+    ...socialEvents,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useSocialScreenViewed: jest.fn(),
+    useSocialV1Analytics: () => ({ trackInteraction: mockTrack }),
   };
 });
 

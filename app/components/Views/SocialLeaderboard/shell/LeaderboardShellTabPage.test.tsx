@@ -43,6 +43,7 @@ jest.mock(
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  useSocialScreenViewed: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({

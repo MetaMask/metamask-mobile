@@ -37,6 +37,12 @@ import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 export interface SocialFeedPostShellProps {
   post: SocialV1FeedPost;
   onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
+  onCopyTradeInteraction?: (tradeType: 'perps' | 'spot') => void;
+  onReactionInteraction?: (
+    action: 'added' | 'removed',
+    emotion: string,
+  ) => void;
+  onReactionPickerOpened?: () => void;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   /** Opens the position details. The card's own buttons keep their press. */
   onPositionPress?: (post: SocialV1FeedPost) => void;
@@ -45,6 +51,9 @@ export interface SocialFeedPostShellProps {
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   post,
   onCopyTrade: onSpotCopyTrade,
+  onCopyTradeInteraction,
+  onReactionInteraction,
+  onReactionPickerOpened,
   onAuthorPress,
   onPositionPress,
 }) => {
@@ -69,11 +78,12 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
-  const { reactions, userReaction, pickEmotion } = useFeedPostReaction(
-    post.commentId,
-    post.reactions,
-    post.userReaction ?? null,
-  );
+  const { reactions, userReaction, isPending, pickEmotion } =
+    useFeedPostReaction(
+      post.commentId,
+      post.reactions,
+      post.userReaction ?? null,
+    );
   const { onCopyTrade: onPerpsCopyTrade, geoBlockSheet } = useCopyTradeToPerps(
     post.item,
     post.commentId,
@@ -89,6 +99,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       : onSpotCopyTrade
         ? handleSpotCopyTrade
         : undefined;
+  const trackedCopyTradeHandler = useCallback(() => {
+    if (!copyTradeHandler) {
+      return;
+    }
+    onCopyTradeInteraction?.(
+      post.item.variant === 'perpsOpen' ? 'perps' : 'spot',
+    );
+    copyTradeHandler();
+  }, [copyTradeHandler, onCopyTradeInteraction, post.item.variant]);
 
   const chips = visibleReactions(reactions);
 
@@ -100,8 +119,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setPickerAnchor({ x, y, width, height });
       setPickerVisible(true);
+      onReactionPickerOpened?.();
     });
-  }, [ensureSocialProfileOnboarding]);
+  }, [ensureSocialProfileOnboarding, onReactionPickerOpened]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -109,13 +129,23 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const toggleEmotion = useCallback(
     (emotion: string) => {
-      if (!ensureSocialProfileOnboarding()) {
+      if (!ensureSocialProfileOnboarding() || isPending) {
         return;
       }
 
+      onReactionInteraction?.(
+        userReaction === emotion ? 'removed' : 'added',
+        emotion,
+      );
       pickEmotion(emotion).catch(() => undefined);
     },
-    [ensureSocialProfileOnboarding, pickEmotion],
+    [
+      ensureSocialProfileOnboarding,
+      isPending,
+      onReactionInteraction,
+      pickEmotion,
+      userReaction,
+    ],
   );
 
   const handlePick = useCallback(
@@ -180,10 +210,18 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             onPress={handlePositionPress}
             testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
           >
-            <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+            <PositionCardBody
+              item={post.item}
+              onCopyTrade={
+                copyTradeHandler ? trackedCopyTradeHandler : undefined
+              }
+            />
           </Pressable>
         ) : (
-          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
+          <PositionCardBody
+            item={post.item}
+            onCopyTrade={copyTradeHandler ? trackedCopyTradeHandler : undefined}
+          />
         )}
 
         {post.gifUri ? (

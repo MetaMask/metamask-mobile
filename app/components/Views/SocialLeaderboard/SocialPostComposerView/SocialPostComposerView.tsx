@@ -83,6 +83,12 @@ import type { SocialPostComposerViewParams } from './SocialPostComposerView.type
 import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
+import {
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+  type SocialEventSource,
+} from '../analytics';
 
 interface ImageInsertEvent {
   nativeEvent: {
@@ -169,6 +175,19 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
+  const analyticsSource: SocialEventSource | undefined =
+    routeParams?.entryPoint === 'perps'
+      ? SocialEventValues.SOURCE.PERP_ASSET_SCREEN
+      : routeParams?.entryPoint === 'token_details'
+        ? SocialEventValues.SOURCE.ASSET_DETAILS
+        : tradeInFlightParams
+          ? SocialEventValues.SOURCE.TRADER_FEED
+          : undefined;
+  const { trackInteraction } = useSocialV1Analytics();
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+    source: analyticsSource,
+  });
 
   const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
@@ -202,13 +221,25 @@ const SocialPostComposerView: React.FC = () => {
       author: composerAuthor,
     });
   }, [composerAuthor, selectedPosition, text, tradeInFlightPreview]);
+  const analyticsTradeType = previewItem
+    ? previewItem.variant === 'perpsOpen' ||
+      previewItem.variant === 'perpsClosed'
+      ? SocialEventValues.TRADE_TYPE.PERPS
+      : SocialEventValues.TRADE_TYPE.SPOT
+    : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const canSubmit = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+      ...(analyticsSource ? { source: analyticsSource } : {}),
+      outcome: SocialEventValues.OUTCOME.DISMISSED,
+    });
     navigation.goBack();
-  }, [navigation]);
+  }, [analyticsSource, navigation, trackInteraction]);
 
   const handleChangeText = useCallback((next: string) => {
     setText(clipComposerComment(next));
@@ -245,14 +276,27 @@ const SocialPostComposerView: React.FC = () => {
 
   const handleGifChipPress = useCallback(() => {
     setIsShareSheetOpen(false);
-    setIsGifSheetOpen((open) => {
-      const next = !open;
-      if (next) {
-        Keyboard.dismiss();
-      }
-      return next;
+    const next = !isGifSheetOpen;
+    setIsGifSheetOpen(next);
+    if (next) {
+      Keyboard.dismiss();
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.GIF_PICKER_OPENED,
+        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+        ...(analyticsSource ? { source: analyticsSource } : {}),
+      });
+    }
+  }, [analyticsSource, isGifSheetOpen, trackInteraction]);
+
+  const handlePositionChipPress = useCallback(() => {
+    setIsGifSheetOpen(false);
+    setIsShareSheetOpen(true);
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISPLAYED,
+      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
+      ...(analyticsSource ? { source: analyticsSource } : {}),
     });
-  }, []);
+  }, [analyticsSource, trackInteraction]);
 
   const handleSelectGif = useCallback((nextGifUri: string) => {
     setGifUri(nextGifUri);
@@ -357,6 +401,13 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.POST_SUBMITTED,
+        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+        ...(analyticsSource ? { source: analyticsSource } : {}),
+        outcome: SocialEventValues.OUTCOME.SUCCESS,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
@@ -364,6 +415,13 @@ const SocialPostComposerView: React.FC = () => {
         navigation.goBack();
       }
     } catch {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.POST_FAILED,
+        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+        ...(analyticsSource ? { source: analyticsSource } : {}),
+        outcome: SocialEventValues.OUTCOME.FAILED,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: ComponentLibraryIconName.Danger,
@@ -378,6 +436,8 @@ const SocialPostComposerView: React.FC = () => {
     }
   }, [
     authorName,
+    analyticsSource,
+    analyticsTradeType,
     canSubmit,
     colors.error.default,
     colors.success.default,
@@ -389,6 +449,7 @@ const SocialPostComposerView: React.FC = () => {
     profile?.profileId,
     selectedPosition,
     text,
+    trackInteraction,
     toastRef,
     tradeInFlightParams,
   ]);
@@ -547,10 +608,7 @@ const SocialPostComposerView: React.FC = () => {
               <ComposerChip
                 label={strings('social_leaderboard.composer.chip_position')}
                 icon={<Icon name={IconName.Card} size={IconSize.Sm} />}
-                onPress={() => {
-                  setIsGifSheetOpen(false);
-                  setIsShareSheetOpen(true);
-                }}
+                onPress={handlePositionChipPress}
                 testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
               />
             )}

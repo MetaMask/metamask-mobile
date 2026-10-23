@@ -29,12 +29,18 @@ import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
+import {
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
   const { isControllerBacked, disconnectX } = useProfileController();
+  const { trackInteraction } = useSocialV1Analytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const [isDisconnectingX, setIsDisconnectingX] = useState(false);
@@ -87,6 +93,11 @@ const ManageProfileView: React.FC = () => {
 
     try {
       await disconnectX(profile.profileId);
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
+        screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
+        outcome: SocialEventValues.OUTCOME.SUCCESS,
+      });
     } catch {
       setErrorMessage(strings('social_leaderboard.manage_profile.save_error'));
     } finally {
@@ -97,6 +108,7 @@ const ManageProfileView: React.FC = () => {
     isControllerBacked,
     profile?.connectedToX,
     profile?.profileId,
+    trackInteraction,
   ]);
 
   const displayName = profile?.displayName ?? '';
@@ -116,6 +128,10 @@ const ManageProfileView: React.FC = () => {
   const editorsDisabled = !isControllerBacked;
   const socialsDisabled =
     !isControllerBacked || !profile?.connectedToX || isDisconnectingX;
+
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
+  });
 
   return (
     <ManageProfileScreenChrome

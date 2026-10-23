@@ -48,6 +48,11 @@ import {
   useTraderFollowing,
   type FollowerConnection,
 } from './hooks';
+import {
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 const addressesMatch = (
   left: string | undefined,
@@ -80,6 +85,7 @@ const tabIndexFor = (
 
 const FollowConnectionsView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
+  const { trackInteraction } = useSocialV1Analytics();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
   const tw = useTailwind();
@@ -184,12 +190,20 @@ const FollowConnectionsView: React.FC = () => {
   }, []);
 
   const handleConnectionRowPress = useCallback(
-    (connection: {
-      id: string;
-      username: string;
-      address: string;
-      avatarUri?: string;
-    }) => {
+    (
+      connection: {
+        id: string;
+        username: string;
+        address: string;
+        avatarUri?: string;
+      },
+      itemPosition: number,
+    ) => {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.FOLLOW_CONNECTIONS,
+        item_position: itemPosition,
+      });
       const isSelf = isViewerConnection(
         connection,
         viewerProfileId,
@@ -215,19 +229,19 @@ const FollowConnectionsView: React.FC = () => {
         traderAvatarUri: connection.avatarUri,
       });
     },
-    [navigation, viewerAddress, viewerProfileId],
+    [navigation, trackInteraction, viewerAddress, viewerProfileId],
   );
 
   const handleFollowingRowPress = useCallback(
-    (trader: FollowedTrader) => {
-      handleConnectionRowPress(trader);
+    (trader: FollowedTrader, itemPosition: number) => {
+      handleConnectionRowPress(trader, itemPosition);
     },
     [handleConnectionRowPress],
   );
 
   const handleFollowerRowPress = useCallback(
-    (follower: FollowerConnection) => {
-      handleConnectionRowPress(follower);
+    (follower: FollowerConnection, itemPosition: number) => {
+      handleConnectionRowPress(follower, itemPosition);
     },
     [handleConnectionRowPress],
   );
@@ -263,7 +277,7 @@ const FollowConnectionsView: React.FC = () => {
   );
 
   const renderFollowingItem = useCallback(
-    ({ item }: { item: FollowedTrader }) => {
+    ({ item, index }: { item: FollowedTrader; index: number }) => {
       const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
       return (
         <ConnectionRow
@@ -276,7 +290,7 @@ const FollowConnectionsView: React.FC = () => {
           onFollowPress={
             isSelf ? undefined : () => handleFollowingFollowPress(item)
           }
-          onRowPress={() => handleFollowingRowPress(item)}
+          onRowPress={() => handleFollowingRowPress(item, index + 1)}
         />
       );
     },
@@ -291,7 +305,7 @@ const FollowConnectionsView: React.FC = () => {
   );
 
   const renderFollowerItem = useCallback(
-    ({ item }: { item: FollowerConnection }) => {
+    ({ item, index }: { item: FollowerConnection; index: number }) => {
       const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
       return (
         <ConnectionRow
@@ -304,7 +318,7 @@ const FollowConnectionsView: React.FC = () => {
           onFollowPress={
             isSelf ? undefined : () => handleFollowerFollowPress(item)
           }
-          onRowPress={() => handleFollowerRowPress(item)}
+          onRowPress={() => handleFollowerRowPress(item, index + 1)}
         />
       );
     },
@@ -531,6 +545,37 @@ const FollowConnectionsView: React.FC = () => {
       : activeIndex === 2
         ? mutualsContent
         : followersContent;
+  const activeState =
+    activeIndex === 1
+      ? {
+          isLoading: isFollowingLoading,
+          error: followingError,
+          count: following.length,
+        }
+      : activeIndex === 2
+        ? {
+            isLoading: mutualFollowers.isLoading,
+            error: mutualFollowers.error,
+            count: mutualFollowers.followers.length,
+          }
+        : {
+            isLoading: isFollowersLoading,
+            error: followersError,
+            count: followers.length,
+          };
+  const screenOutcome =
+    activeState.isLoading && activeState.count === 0
+      ? null
+      : activeState.error && activeState.count === 0
+        ? SocialEventValues.OUTCOME.ERROR
+        : activeState.count > 0
+          ? SocialEventValues.OUTCOME.CONTENT
+          : SocialEventValues.OUTCOME.EMPTY;
+
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.FOLLOW_CONNECTIONS,
+    outcome: screenOutcome,
+  });
 
   return (
     <SafeAreaView

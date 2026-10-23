@@ -18,8 +18,10 @@ import {
 } from './components/LiveTradeRow.testIds';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 import Routes from '../../../../constants/navigation/Routes';
+import { SocialEventValues } from '../analytics';
 
 const mockNavigate = jest.fn();
+const mockTrackInteraction = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -29,6 +31,14 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string, vars?: Record<string, unknown>) =>
     vars ? `${key}:${JSON.stringify(vars)}` : key,
+}));
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
 }));
 
 jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
@@ -58,6 +68,7 @@ jest.mock('react-native-linear-gradient', () => {
 describe('LiveTradesView', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
+    mockTrackInteraction.mockClear();
   });
   it('renders a single Live stream toggle above the mock feed list', () => {
     renderWithProvider(<LiveTradesView />);
@@ -81,6 +92,23 @@ describe('LiveTradesView', () => {
     expect(
       scroll.getByTestId(LiveTradesViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
+  });
+
+  it('tracks a bounded stream state change after the toggle is accepted', () => {
+    renderWithProvider(<LiveTradesView />);
+
+    fireEvent.press(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
+    );
+
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.STREAM_TOGGLED,
+      screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+      tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+      filter_name: SocialEventValues.FILTER_NAME.STREAM_STATE,
+      filter_value: SocialEventValues.STREAM_STATE.PAUSED,
+      previous_filter_value: SocialEventValues.STREAM_STATE.LIVE,
+    });
   });
 
   it('renders compact live-trade rows for mocked live trades', () => {
@@ -243,6 +271,11 @@ describe('LiveTradesView', () => {
       },
       {},
     );
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+      screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+      tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+    });
   });
 
   it('opens the position details sheet from a trade card tap', () => {
@@ -255,6 +288,15 @@ describe('LiveTradesView', () => {
       positionId: firstItem.positionId,
       position: firstItem.position,
       author: firstItem.author,
+    });
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+      screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+      tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+      trade_type:
+        firstItem.type === 'perps'
+          ? SocialEventValues.TRADE_TYPE.PERPS
+          : SocialEventValues.TRADE_TYPE.SPOT,
     });
   });
 });

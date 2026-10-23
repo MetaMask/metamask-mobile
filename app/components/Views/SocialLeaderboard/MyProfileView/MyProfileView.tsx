@@ -62,6 +62,7 @@ import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurf
 import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
+import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
 import MyProfileCompactStats from './components/MyProfileCompactStats';
@@ -78,6 +79,12 @@ import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
+import {
+  getSocialReactionType,
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 type ProfileContentTab = 'open' | 'closed' | 'posts';
 
@@ -137,6 +144,7 @@ const MyProfileView: React.FC = () => {
   const { colors } = useTheme();
   const { profile: myProfile, isLoading, error, refresh } = useMyProfile();
   const { openComposer } = useOpenSocialPostComposer();
+  const { trackInteraction } = useSocialV1Analytics();
   const isOwner =
     !traderId ||
     traderId === myProfile?.profileId ||
@@ -311,6 +319,12 @@ const MyProfileView: React.FC = () => {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    if (isOwner) {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.REFRESH,
+        screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+      });
+    }
     try {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
@@ -327,7 +341,14 @@ const MyProfileView: React.FC = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [refreshLiveProfile, refreshPosts, refresh, refetchPositions]);
+  }, [
+    isOwner,
+    refresh,
+    refreshLiveProfile,
+    refreshPosts,
+    refetchPositions,
+    trackInteraction,
+  ]);
 
   const handlePositionsRetry = useCallback(() => {
     refetchPositions().catch(() => undefined);
@@ -345,6 +366,15 @@ const MyProfileView: React.FC = () => {
       if (!displayProfile) {
         return;
       }
+      if (isOwner) {
+        trackInteraction({
+          interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+          screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+          trade_type: isPerpPosition(position)
+            ? SocialEventValues.TRADE_TYPE.PERPS
+            : SocialEventValues.TRADE_TYPE.SPOT,
+        });
+      }
       navigation.navigate(Routes.SOCIAL.POSITION, {
         traderId: displayProfile.profileId,
         traderName: displayProfile.displayName,
@@ -357,7 +387,76 @@ const MyProfileView: React.FC = () => {
         isClosed: activeTab === 'closed',
       });
     },
-    [activeTab, displayProfile, navigation, traderAddress],
+    [
+      activeTab,
+      displayProfile,
+      isOwner,
+      navigation,
+      trackInteraction,
+      traderAddress,
+    ],
+  );
+  const handleReactionInteraction = useCallback(
+    (action: 'added' | 'removed', emotion: string) => {
+      if (!isOwner) {
+        return;
+      }
+      const reactionType = getSocialReactionType(emotion);
+      if (!reactionType) {
+        return;
+      }
+      trackInteraction({
+        interaction_type:
+          action === 'added'
+            ? SocialEventValues.INTERACTION_TYPE.REACTION_ADDED
+            : SocialEventValues.INTERACTION_TYPE.REACTION_REMOVED,
+        screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+        reaction_type: reactionType,
+      });
+    },
+    [isOwner, trackInteraction],
+  );
+  const handleReactionPickerOpened = useCallback(() => {
+    if (!isOwner) {
+      return;
+    }
+    trackInteraction({
+      interaction_type:
+        SocialEventValues.INTERACTION_TYPE.REACTION_PICKER_OPENED,
+      screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+    });
+  }, [isOwner, trackInteraction]);
+  const handleCopyTradeInteraction = useCallback(
+    (tradeType: 'perps' | 'spot') => {
+      if (!isOwner) {
+        return;
+      }
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.COPY_TRADE_TAPPED,
+        screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+        trade_type:
+          tradeType === 'perps'
+            ? SocialEventValues.TRADE_TYPE.PERPS
+            : SocialEventValues.TRADE_TYPE.SPOT,
+      });
+    },
+    [isOwner, trackInteraction],
+  );
+  const handleAssetFilterChange = useCallback(
+    (nextFilter: ProfileAssetFilter) => {
+      if (!isOwner || nextFilter === assetFilter) {
+        return;
+      }
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.FILTER_APPLIED,
+        screen_name: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+        filter_name: SocialEventValues.FILTER_NAME.PROFILE_ASSET_TYPE,
+        previous_filter_value: assetFilter,
+        filter_value: nextFilter,
+      });
+      setAssetFilter(nextFilter);
+    },
+    [assetFilter, isOwner, trackInteraction],
   );
 
   const handleScrollSettled = useCallback(
@@ -379,6 +478,20 @@ const MyProfileView: React.FC = () => {
   const showInitialPostSkeletons = isPostsLoading && posts.length === 0;
   const showPostsEmptyState =
     !isPostsLoading && posts.length === 0 && !postsError;
+  const screenOutcome =
+    isLoading && !displayProfile
+      ? null
+      : error && !displayProfile
+        ? SocialEventValues.OUTCOME.ERROR
+        : displayProfile
+          ? SocialEventValues.OUTCOME.CONTENT
+          : SocialEventValues.OUTCOME.EMPTY;
+
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.MY_PROFILE,
+    outcome: screenOutcome,
+    isActive: isOwner,
+  });
 
   return (
     <SocialFeedSurfaceProvider location="my_profile" showMockedFields>
@@ -631,7 +744,7 @@ const MyProfileView: React.FC = () => {
                 }
                 isClosed={activeTab === 'closed'}
                 filter={assetFilter}
-                onFilterChange={setAssetFilter}
+                onFilterChange={handleAssetFilterChange}
                 onPositionPress={handlePositionPress}
                 onRetry={handlePositionsRetry}
               />
@@ -691,7 +804,14 @@ const MyProfileView: React.FC = () => {
                 <SocialV1FeedPostList
                   posts={posts}
                   dividerKeyPrefix="my-profile"
-                  renderPost={(post) => <SocialFeedPostShell post={post} />}
+                  renderPost={(post) => (
+                    <SocialFeedPostShell
+                      post={post}
+                      onCopyTradeInteraction={handleCopyTradeInteraction}
+                      onReactionInteraction={handleReactionInteraction}
+                      onReactionPickerOpened={handleReactionPickerOpened}
+                    />
+                  )}
                 />
               </Box>
             )}

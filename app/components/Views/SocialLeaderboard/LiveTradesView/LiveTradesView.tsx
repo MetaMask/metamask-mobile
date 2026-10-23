@@ -40,6 +40,12 @@ import LiveTradeRow from './components/LiveTradeRow';
 import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+import {
+  SocialEventValues,
+  type SocialEventSource,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -48,6 +54,8 @@ type AnimatedScrollHandler = React.ComponentProps<
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveTradesViewProps {
+  isActive?: boolean;
+  source?: SocialEventSource;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -60,6 +68,8 @@ export interface LiveTradesViewProps {
  * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
+  isActive = true,
+  source,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -104,6 +114,17 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   );
 
   const isLive = streamState === 'live';
+  const { trackInteraction } = useSocialV1Analytics();
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+    tabName: SocialEventValues.TAB_NAME.LIVE_TRADES,
+    source,
+    outcome:
+      visibleItems.length > 0
+        ? SocialEventValues.OUTCOME.CONTENT
+        : SocialEventValues.OUTCOME.EMPTY,
+    isActive,
+  });
   const streamLabel = strings(
     isLive
       ? 'social_leaderboard.feed.live_stream.live'
@@ -111,12 +132,33 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   );
 
   const handleStreamToggle = useCallback(() => {
-    setStreamState((prev) => (prev === 'live' ? 'paused' : 'live'));
-  }, []);
+    const next = isLive ? 'paused' : 'live';
+    setStreamState(next);
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.STREAM_TOGGLED,
+      screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+      tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+      ...(source ? { source } : {}),
+      filter_name: SocialEventValues.FILTER_NAME.STREAM_STATE,
+      filter_value:
+        next === 'live'
+          ? SocialEventValues.STREAM_STATE.LIVE
+          : SocialEventValues.STREAM_STATE.PAUSED,
+      previous_filter_value: isLive
+        ? SocialEventValues.STREAM_STATE.LIVE
+        : SocialEventValues.STREAM_STATE.PAUSED,
+    });
+  }, [isLive, source, trackInteraction]);
 
   const handleTraderPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+        tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+        ...(source ? { source } : {}),
+      });
       navigateToSocialV1Profile(navigation, {
         traderId: item.traderId,
         traderName: item.authorHandle,
@@ -125,19 +167,29 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         source: 'trader_feed',
       });
     },
-    [navigation],
+    [navigation, source, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+        tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
+        ...(source ? { source } : {}),
+        trade_type:
+          item.type === 'perps'
+            ? SocialEventValues.TRADE_TYPE.PERPS
+            : SocialEventValues.TRADE_TYPE.SPOT,
+      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: item.positionId,
         position: item.position,
         author: item.author,
       });
     },
-    [navigation],
+    [navigation, source, trackInteraction],
   );
 
   return (

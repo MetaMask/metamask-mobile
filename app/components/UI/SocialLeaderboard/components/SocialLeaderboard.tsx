@@ -1,6 +1,11 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useImperativeHandle, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { useWindowDimensions } from 'react-native';
 import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
@@ -77,6 +82,8 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  /** Reports the terminal state rendered by the owned data surface. */
+  onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -93,6 +100,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
+  onOutcomeChange,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -221,6 +229,23 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const handleRetry = useCallback(() => {
     refresh().catch(() => undefined);
   }, [refresh]);
+
+  const outcome =
+    resolution.status === 'unavailable'
+      ? 'empty'
+      : isLoading && traders.length === 0 && !isShowingSnapshot
+        ? null
+        : rows.length > 0 || viewerRow
+          ? 'content'
+          : error || (isOffline && !hasFetched)
+            ? 'error'
+            : hasFetched
+              ? 'empty'
+              : null;
+
+  useEffect(() => {
+    onOutcomeChange?.(outcome);
+  }, [onOutcomeChange, outcome]);
 
   if (!isEnabled || resolution.status === 'hidden') {
     return null;

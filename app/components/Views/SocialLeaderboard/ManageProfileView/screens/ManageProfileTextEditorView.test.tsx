@@ -7,6 +7,7 @@ import { ManageProfileEditorSelectorsIDs } from '../ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './manageProfileTextEditorFields';
 import ManageProfileTextEditorView from './ManageProfileTextEditorView';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
+import { SocialEventValues } from '../../analytics';
 
 const mockGoBack = jest.fn();
 const mockUseRoute = jest.fn<
@@ -15,6 +16,7 @@ const mockUseRoute = jest.fn<
 >();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
+const mockTrackInteraction = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -28,6 +30,14 @@ jest.mock('../../MyProfileView/hooks/useMyProfile', () => ({
 
 jest.mock('../hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
+}));
+
+jest.mock('../../analytics', () => ({
+  ...jest.requireActual('../../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
 }));
 
 describe('ManageProfileTextEditorView', () => {
@@ -125,6 +135,11 @@ describe('ManageProfileTextEditorView', () => {
 
     expect(updateProfile).toHaveBeenCalledWith({
       display_name: 'Laser Gains',
+    });
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
+      screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
+      outcome: SocialEventValues.OUTCOME.SUCCESS,
     });
     expect(mockGoBack).toHaveBeenCalled();
   });

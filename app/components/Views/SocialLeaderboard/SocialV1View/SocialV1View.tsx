@@ -40,9 +40,12 @@ import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
+  getSocialEventSource,
+  SocialEventValues,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
+  useSocialV1Analytics,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
@@ -154,6 +157,33 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
   }
 };
 
+const getSocialEventTabContext = (tab: SocialShellTab) => {
+  switch (tab) {
+    case 'trending':
+      return {
+        screenName: SocialEventValues.SCREEN_NAME.TRENDING,
+        tabName: SocialEventValues.TAB_NAME.TRENDING,
+      };
+    case 'following':
+      return {
+        screenName: SocialEventValues.SCREEN_NAME.FOLLOWING,
+        tabName: SocialEventValues.TAB_NAME.FOLLOWING,
+      };
+    case 'liveTrades':
+      return {
+        screenName: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
+        tabName: SocialEventValues.TAB_NAME.LIVE_TRADES,
+      };
+    case 'leaderboard':
+      return {
+        screenName: SocialEventValues.SCREEN_NAME.LEADERBOARD,
+        tabName: SocialEventValues.TAB_NAME.LEADERBOARD,
+      };
+    default:
+      return tab satisfies never;
+  }
+};
+
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
@@ -166,6 +196,7 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+  const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -173,6 +204,7 @@ const SocialV1ViewContent: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction } = useSocialV1Analytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
@@ -193,6 +225,7 @@ const SocialV1ViewContent: React.FC = () => {
     openTab,
     draft,
     applied,
+    hasDraftChanges,
     hasActiveFilters,
     openSheet,
     closeSheet,
@@ -200,6 +233,26 @@ const SocialV1ViewContent: React.FC = () => {
     applyFilters,
     resetDraftToDefaults,
   } = useSocialShellFilters();
+
+  const handleApplyFilters = useCallback(() => {
+    if (openTab && hasDraftChanges) {
+      const { screenName, tabName } = getSocialEventTabContext(openTab);
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.FILTER_APPLIED,
+        screen_name: screenName,
+        tab_name: tabName,
+        ...(analyticsSource ? { source: analyticsSource } : {}),
+        filter_name: SocialEventValues.FILTER_NAME.SOCIAL_FILTERS,
+      });
+    }
+    applyFilters();
+  }, [
+    analyticsSource,
+    applyFilters,
+    hasDraftChanges,
+    openTab,
+    trackInteraction,
+  ]);
 
   const handleOpenLiveTradesFilters = useCallback(() => {
     openSheet('liveTrades');
@@ -679,6 +732,8 @@ const SocialV1ViewContent: React.FC = () => {
                       />
                     ) : tab === 'liveTrades' ? (
                       <LiveTradesView
+                        isActive={activeIndex === liveTradesIndex}
+                        source={analyticsSource}
                         onScroll={scrollHandlers[tab]}
                         pageRef={pageRef}
                         onOpenFilters={handleOpenLiveTradesFilters}
@@ -688,6 +743,7 @@ const SocialV1ViewContent: React.FC = () => {
                     ) : (
                       <EmptyShellTabPage
                         tab={tab}
+                        source={analyticsSource}
                         isActive={
                           tab === 'trending'
                             ? activeIndex === trendingIndex
@@ -721,7 +777,7 @@ const SocialV1ViewContent: React.FC = () => {
             tab={openTab}
             draft={draft}
             onChange={updateDraft}
-            onApply={applyFilters}
+            onApply={handleApplyFilters}
             onReset={resetDraftToDefaults}
             onClose={closeSheet}
           />

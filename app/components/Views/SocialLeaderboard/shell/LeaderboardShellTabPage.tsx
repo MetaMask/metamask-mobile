@@ -27,8 +27,12 @@ import {
 } from '../../../UI/SocialLeaderboard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import {
+  getSocialEventSource,
+  SocialEventValues,
   SocialLeaderboardEventProperties,
+  useSocialScreenViewed,
   useSocialLeaderboardAnalytics,
+  useSocialV1Analytics,
 } from '../analytics';
 import {
   DEFAULT_V1_LEADERBOARD_RANKING,
@@ -92,8 +96,12 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const { colors } = useTheme();
   const floatingTabBarInset = useFloatingTabBarInset();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
+  const analyticsSource =
+    getSocialEventSource(route.params?.source) ??
+    SocialEventValues.SOURCE.NAV_TAB;
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const { track } = useSocialLeaderboardAnalytics();
+  const { trackInteraction } = useSocialV1Analytics();
 
   // Latches on: once the list has loaded, leaving the tab must not tear it down
   // and refetch on the way back.
@@ -103,6 +111,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   );
   const [isRankingSheetOpen, setIsRankingSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [screenOutcome, setScreenOutcome] = useState<
+    'content' | 'empty' | 'error' | null
+  >(null);
   const scrollRef = useRef<ScrollView>(null);
   const leaderboardRef = useRef<SocialLeaderboardHandle>(null);
   const hasFiredScreenViewedRef = useRef(false);
@@ -150,8 +161,22 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     });
   }, [assetClass, hasBeenActive, route.params?.source, track]);
 
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.LEADERBOARD,
+    tabName: SocialEventValues.TAB_NAME.LEADERBOARD,
+    source: analyticsSource,
+    outcome: screenOutcome,
+    isActive,
+  });
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.REFRESH,
+      screen_name: SocialEventValues.SCREEN_NAME.LEADERBOARD,
+      tab_name: SocialEventValues.TAB_NAME.LEADERBOARD,
+      source: analyticsSource,
+    });
     try {
       await Promise.all([
         leaderboardRef.current?.refresh(),
@@ -173,7 +198,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [analyticsSource, trackInteraction]);
 
   const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
   const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
@@ -220,6 +245,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
+                onOutcomeChange={setScreenOutcome}
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

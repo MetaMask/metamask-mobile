@@ -22,6 +22,11 @@ import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import {
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 const styles = StyleSheet.create({
   root: {
@@ -73,16 +78,43 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     () => openPositions.filter((position) => isPerpPosition(position)),
     [openPositions],
   );
+  const { trackInteraction } = useSocialV1Analytics();
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
+    outcome: error
+      ? SocialEventValues.OUTCOME.ERROR
+      : isLoading
+        ? null
+        : positions.length > 0
+          ? SocialEventValues.OUTCOME.CONTENT
+          : SocialEventValues.OUTCOME.EMPTY,
+  });
 
   const handleTabChange = useCallback((value: string) => {
     setTab(value === 'closed' ? 'closed' : 'open');
   }, []);
 
+  const handleClose = useCallback(() => {
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISMISSED,
+      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
+      outcome: SocialEventValues.OUTCOME.DISMISSED,
+    });
+    onClose();
+  }, [onClose, trackInteraction]);
+
   const handleSelect = useCallback(
     (position: Position) => {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
+        trade_type: isPerpPosition(position)
+          ? SocialEventValues.TRADE_TYPE.PERPS
+          : SocialEventValues.TRADE_TYPE.SPOT,
+      });
       onSelect(position, tab === 'closed');
     },
-    [onSelect, tab],
+    [onSelect, tab, trackInteraction],
   );
 
   const emptyMessage = bothEmpty
@@ -151,7 +183,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
@@ -161,16 +193,16 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 StyleSheet.absoluteFill,
                 { backgroundColor: colors.overlay.default },
               ]}
-              onPress={onClose}
+              onPress={handleClose}
               accessibilityRole="button"
               testID={SharePositionBottomSheetSelectorsIDs.BACKDROP}
             />
             <BottomSheet
-              onClose={onClose}
+              onClose={handleClose}
               testID={SharePositionBottomSheetSelectorsIDs.SHEET}
             >
               <BottomSheetHeader
-                onClose={onClose}
+                onClose={handleClose}
                 closeButtonProps={{
                   testID: SharePositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}

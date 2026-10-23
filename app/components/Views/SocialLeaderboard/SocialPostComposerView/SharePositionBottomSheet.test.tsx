@@ -4,6 +4,17 @@ import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { SocialEventValues } from '../analytics';
+
+const mockTrackInteraction = jest.fn();
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
+}));
 
 jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
@@ -161,6 +172,27 @@ describe('SharePositionBottomSheet', () => {
     ).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
+  });
+
+  it('tracks dismissal from the close button', () => {
+    renderWithProvider(
+      <SharePositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISMISSED,
+      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
+      outcome: SocialEventValues.OUTCOME.DISMISSED,
+    });
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   it('selects a closed position from the Closed tab', () => {

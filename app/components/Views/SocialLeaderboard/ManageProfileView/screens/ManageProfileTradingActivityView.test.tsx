@@ -4,9 +4,11 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileTradingActivityView from './ManageProfileTradingActivityView';
+import { SocialEventValues } from '../../analytics';
 
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
+const mockTrackInteraction = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -15,6 +17,14 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
+}));
+
+jest.mock('../../analytics', () => ({
+  ...jest.requireActual('../../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
 }));
 
 jest.mock(
@@ -104,6 +114,11 @@ describe('ManageProfileTradingActivityView', () => {
 
     expect(updateProfile).toHaveBeenCalledWith({
       trading_privacy: 'private',
+    });
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
+      screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
+      outcome: SocialEventValues.OUTCOME.SUCCESS,
     });
     expect(
       screen.getByTestId(ManageProfileTradingActivitySelectorsIDs.SWITCH),

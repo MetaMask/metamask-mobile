@@ -28,6 +28,11 @@ import {
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
 } from './postTradeShareSession';
+import {
+  SocialEventValues,
+  useSocialScreenViewed,
+  useSocialV1Analytics,
+} from '../analytics';
 
 const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
@@ -37,6 +42,24 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const isPerps = session?.product === 'perps';
+  // Perps sessions are created only for copy trades that originated in the
+  // Social V1 feed, so both products retain the same route-origin context.
+  const source = SocialEventValues.SOURCE.TRADER_FEED;
+  const tradeType = isPerps
+    ? SocialEventValues.TRADE_TYPE.PERPS
+    : SocialEventValues.TRADE_TYPE.SPOT;
+  const { trackInteraction } = useSocialV1Analytics();
+  useSocialScreenViewed({
+    screenName: SocialEventValues.SCREEN_NAME.POST_TRADE_SHARE_SHEET,
+    source,
+    outcome:
+      session?.status === 'complete'
+        ? SocialEventValues.OUTCOME.CONTENT
+        : session?.status === 'failed'
+          ? SocialEventValues.OUTCOME.ERROR
+          : null,
+    isActive: session !== null,
+  });
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -66,22 +89,39 @@ const PostTradeShareBottomSheet: React.FC = () => {
   }, [session]);
 
   const handleClose = useCallback(() => {
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISMISSED,
+      screen_name: SocialEventValues.SCREEN_NAME.POST_TRADE_SHARE_SHEET,
+      source,
+      outcome: SocialEventValues.OUTCOME.DISMISSED,
+      trade_type: tradeType,
+    });
     clearPostTradeShareSession();
-  }, []);
+  }, [source, trackInteraction, tradeType]);
 
   const handlePrimary = useCallback(() => {
     if (!session) {
       return;
     }
+    if (session.status !== 'failed' && !canShare) {
+      return;
+    }
+    trackInteraction({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
+      screen_name: SocialEventValues.SCREEN_NAME.POST_TRADE_SHARE_SHEET,
+      source,
+      outcome:
+        session.status === 'failed'
+          ? SocialEventValues.OUTCOME.FAILED
+          : SocialEventValues.OUTCOME.SUCCESS,
+      trade_type: tradeType,
+    });
     if (session.status === 'failed') {
       if (session.product === 'perps') {
         clearPostTradeShareSession();
         return;
       }
       requestPostTradeShareReopen();
-      return;
-    }
-    if (!canShare) {
       return;
     }
     const tradeInFlight =
@@ -109,7 +149,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
     };
     clearPostTradeShareSession();
     NavigationService.navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
-  }, [canShare, session]);
+  }, [canShare, session, source, trackInteraction, tradeType]);
 
   if (!session) {
     return null;

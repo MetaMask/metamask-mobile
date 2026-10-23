@@ -14,12 +14,14 @@ import type { UseMyProfileResult } from '../MyProfileView/hooks/useMyProfile';
 import type { UseProfileControllerResult } from './hooks/useProfileController';
 import ManageProfileView from './ManageProfileView';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
+import { SocialEventValues } from '../analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
 const mockUseLinkableSocialAccounts = jest.fn<LinkableSocialAccount[], []>();
+const mockTrackInteraction = jest.fn();
 
 jest.mock('../hooks/useLinkableSocialAccounts', () => ({
   useLinkableSocialAccounts: () => mockUseLinkableSocialAccounts(),
@@ -36,6 +38,14 @@ jest.mock('../MyProfileView/hooks/useMyProfile', () => ({
 
 jest.mock('./hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
+}));
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialScreenViewed: jest.fn(),
+  useSocialV1Analytics: () => ({
+    trackInteraction: mockTrackInteraction,
+  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -209,6 +219,11 @@ describe('ManageProfileView', () => {
     });
 
     expect(disconnectX).toHaveBeenCalledWith('current-user');
+    expect(mockTrackInteraction).toHaveBeenCalledWith({
+      interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
+      screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
+      outcome: SocialEventValues.OUTCOME.SUCCESS,
+    });
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

@@ -22,6 +22,13 @@ import {
 } from '../../../SocialFeed';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
+import {
+  getSocialReactionType,
+  SocialEventValues,
+  type SocialEventSource,
+  type SocialTradeType,
+  useSocialV1Analytics,
+} from '../../../../Views/SocialLeaderboard/analytics';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 export const PERPS_TRENDING_POST_COUNT = 3;
@@ -36,7 +43,7 @@ interface PerpsSocialTrendingProps {
   /** Scope to one perp market (raw symbol); omit for trending across all perps. */
   symbol?: string;
   postCount?: number;
-  source?: string;
+  source?: Extract<SocialEventSource, 'perps_home' | 'perp_asset_screen'>;
   /** Renders a See more button under the posts when set. */
   onSeeMorePress?: () => void;
 }
@@ -49,6 +56,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const { trackInteraction } = useSocialV1Analytics();
   const feedSource = useMemo<SocialFeedSource>(
     () => (symbol ? { kind: 'perp', symbol } : PERPS_TRENDING_SOURCE),
     [symbol],
@@ -59,6 +67,11 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
+        source,
+      });
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -70,7 +83,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation, myProfile, source],
+    [navigation, myProfile, source, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
@@ -78,6 +91,16 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
       if (!post.position) {
         return;
       }
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
+        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
+        source,
+        trade_type:
+          post.item.variant === 'perpsOpen' ||
+          post.item.variant === 'perpsClosed'
+            ? SocialEventValues.TRADE_TYPE.PERPS
+            : SocialEventValues.TRADE_TYPE.SPOT,
+      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
         position: post.position,
@@ -88,7 +111,47 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation],
+    [navigation, source, trackInteraction],
+  );
+
+  const handleReactionInteraction = useCallback(
+    (action: 'added' | 'removed', emotion: string) => {
+      const reactionType = getSocialReactionType(emotion);
+      if (!reactionType) {
+        return;
+      }
+      trackInteraction({
+        interaction_type:
+          action === 'added'
+            ? SocialEventValues.INTERACTION_TYPE.REACTION_ADDED
+            : SocialEventValues.INTERACTION_TYPE.REACTION_REMOVED,
+        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
+        source,
+        reaction_type: reactionType,
+      });
+    },
+    [source, trackInteraction],
+  );
+
+  const handleReactionPickerOpened = useCallback(() => {
+    trackInteraction({
+      interaction_type:
+        SocialEventValues.INTERACTION_TYPE.REACTION_PICKER_OPENED,
+      screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
+      source,
+    });
+  }, [source, trackInteraction]);
+
+  const handleCopyTradeInteraction = useCallback(
+    (tradeType: SocialTradeType) => {
+      trackInteraction({
+        interaction_type: SocialEventValues.INTERACTION_TYPE.COPY_TRADE_TAPPED,
+        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
+        source,
+        trade_type: tradeType,
+      });
+    },
+    [source, trackInteraction],
   );
 
   const renderPost = useCallback(
@@ -97,9 +160,18 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
         post={post}
         onAuthorPress={handleAuthorPress}
         onPositionPress={post.position ? handlePositionPress : undefined}
+        onReactionInteraction={handleReactionInteraction}
+        onReactionPickerOpened={handleReactionPickerOpened}
+        onCopyTradeInteraction={handleCopyTradeInteraction}
       />
     ),
-    [handleAuthorPress, handlePositionPress],
+    [
+      handleAuthorPress,
+      handleCopyTradeInteraction,
+      handlePositionPress,
+      handleReactionInteraction,
+      handleReactionPickerOpened,
+    ],
   );
 
   if (isLoading && posts.length === 0) {
