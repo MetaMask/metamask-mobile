@@ -130,6 +130,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
           neobankActivity?: NeobankBankTransferActivity;
         }
       | undefined;
+    MoneyAccountStatus: undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
     MoneyModals:
       | NavigatorScreenParams<MoneyModalsNavigationParamList>

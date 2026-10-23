@@ -244,6 +244,7 @@ import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
 import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
+import MoneyAccountStatusView from '../../UI/Money/Views/MoneyAccountStatusView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
 import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
@@ -1399,6 +1400,10 @@ const MainNavigator = () => {
             <NativeStack.Screen
               name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
               component={MoneyApiActivityDetailsView}
+            />
+            <NativeStack.Screen
+              name={Routes.MONEY.ACCOUNT_STATUS}
+              component={MoneyAccountStatusView}
             />
           </NativeStack.Group>
           <NativeStack.Screen
