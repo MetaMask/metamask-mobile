@@ -85,6 +85,14 @@ platform :ios do
     end
     
     UI.message("Uploading IPA to TestFlight: #{ipa_path}")
+
+    # The Appfile app_identifier (io.metamask.MetaMask) would otherwise win over the IPA's own
+    # bundle id, uploading side-by-side apps (io.metamask.MetaMask-Beta) to the wrong App Store Connect app.
+    app_identifier = FastlaneCore::IpaFileAnalyser.fetch_app_identifier(ipa_path)
+    if app_identifier.nil? || app_identifier.to_s.strip.empty?
+      UI.user_error!("Could not read CFBundleIdentifier from IPA: #{ipa_path}")
+    end
+    UI.message("App identifier (from IPA): #{app_identifier}")
     
     # Get API key from environment variables
     api_key_issuer_id = ENV['APP_STORE_CONNECT_API_KEY_ISSUER_ID']
@@ -154,6 +162,7 @@ platform :ios do
     testflight_options = {
       api_key: api_key,
       ipa: ipa_path,
+      app_identifier: app_identifier,
       reject_build_waiting_for_review: false,
       distribute_external: distribute_external,
       groups: groups,

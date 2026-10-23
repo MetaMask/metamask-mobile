@@ -59,6 +59,9 @@ const buildNumber = readNativeBuildNumber();
 const buildType = process.env.METAMASK_BUILD_TYPE;
 const environment = process.env.METAMASK_ENVIRONMENT;
 const configuration = process.env.CONFIGURATION;
+// Set by builds.yml for side-by-side packaging (main-beta-rc → 'beta'); unset for every other build
+const isBetaVariant = process.env.MM_APP_VARIANT === 'beta';
+const artifactBuildType = isBetaVariant ? `${buildType}-beta` : buildType;
 
 if (!buildType || !environment) {
   console.error(
@@ -105,7 +108,7 @@ function renameAndroid() {
   let appFlavor;
   switch (buildType) {
     case 'main':
-      appFlavor = 'prod';
+      appFlavor = isBetaVariant ? 'beta' : 'prod';
       break;
     case 'flask':
       appFlavor = 'flask';
@@ -129,7 +132,7 @@ function renameAndroid() {
   );
 
   // Create new base name: metamask-{environment}-{buildType}-{version}-{buildNumber}
-  const newBaseName = `metamask-${environment}-${buildType}-${appVersion}-${buildNumber}`;
+  const newBaseName = `metamask-${environment}-${artifactBuildType}-${appVersion}-${buildNumber}`;
   console.log(`📝 Renaming artifacts to: ${newBaseName}`);
 
   // Rename APK
@@ -239,13 +242,21 @@ function renameIos() {
       process.exit(1);
   }
 
-  const baseSuffix = `-${environment}-${buildType}-${appVersion}-${buildNumber}`;
+  // The beta variant is the MetaMask target archived through the MetaMask-Beta scheme
+  // with the Release-Beta configuration (see scripts/build.sh buildIos).
+  const archiveName = isBetaVariant ? 'MetaMask-Beta' : appName;
+  const iosConfiguration =
+    isBetaVariant && configuration !== 'Debug'
+      ? 'Release-Beta'
+      : configuration || 'Release';
+
+  const baseSuffix = `-${environment}-${artifactBuildType}-${appVersion}-${buildNumber}`;
   const newSimBaseName = `metamask-simulator${baseSuffix}`;
   const newDeviceBaseName = `metamask-device${baseSuffix}`;
 
   const simProductsDir = path.join(
     __dirname,
-    `../ios/build/Build/Products/${configuration || 'Release'}-iphonesimulator`,
+    `../ios/build/Build/Products/${iosConfiguration}-iphonesimulator`,
   );
   const deviceOutputDir = path.join(__dirname, '../ios/build/output');
 
@@ -298,7 +309,10 @@ function renameIos() {
     setGithubOutput('ios_sourcemap_path', sourcemapPath);
     console.log(`✅ Sourcemap path: ${sourcemapPath}`);
 
-    const oldArchive = path.join(__dirname, `../ios/build/${appName}.xcarchive`);
+    const oldArchive = path.join(
+      __dirname,
+      `../ios/build/${archiveName}.xcarchive`,
+    );
     if (fs.existsSync(oldArchive)) {
       const archiveZip = path.join(
         __dirname,
