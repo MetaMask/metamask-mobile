@@ -652,9 +652,6 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Android Play Store checks: Gradle lint for all main release builds. The lint + Slack report
-      # run for every main release build so RC gets Slack feedback. No bundletool jar is provisioned,
-      # so the script reports bundletool AAB validation as skipped.
       - name: Android Play Store lint and bundle validation (prodRelease, non-blocking)
         if: >-
           success() &&
