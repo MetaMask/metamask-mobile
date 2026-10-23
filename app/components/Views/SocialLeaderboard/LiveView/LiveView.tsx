@@ -14,7 +14,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
-import { playSelection } from '../../../../util/haptics';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
@@ -98,14 +102,26 @@ const LiveView: React.FC<LiveViewProps> = ({
   }, [appliedFilters]);
 
   const handleLiveToggle = useCallback(
-    (onRevealPending: () => void) => {
-      if (streamState === 'paused') {
+    (onRevealPending: () => void, pendingNewCount: number) => {
+      const isResuming = streamState === 'paused';
+      if (isResuming && pendingNewCount > 0) {
+        // Resuming with held posts reloads the feed, like a pull-to-refresh commit.
+        playImpact(ImpactMoment.PullToRefresh).catch(() => undefined);
+      } else {
+        playSelection().catch(() => undefined);
+      }
+      if (isResuming) {
         onRevealPending();
       }
       setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
     },
     [streamState],
   );
+
+  const handlePendingPostsPress = useCallback((onRevealPending: () => void) => {
+    playSelection().catch(() => undefined);
+    onRevealPending();
+  }, []);
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
@@ -156,17 +172,23 @@ const LiveView: React.FC<LiveViewProps> = ({
         <Box twClassName="flex-row items-center gap-2">
           <LiveButton
             isLive={isLive}
-            onPress={() => handleLiveToggle(onRevealPending)}
+            onPress={() => handleLiveToggle(onRevealPending, pendingNewCount)}
           />
           <PendingPostsButton
             pendingNewCount={pendingNewCount}
-            onPress={onRevealPending}
+            onPress={() => handlePendingPostsPress(onRevealPending)}
             textColor={TextColor.SuccessDefault}
           />
         </Box>
       </SocialTabFilterBar>
     ),
-    [handleLiveToggle, isFilterActive, isLive, onOpenFilters],
+    [
+      handleLiveToggle,
+      handlePendingPostsPress,
+      isFilterActive,
+      isLive,
+      onOpenFilters,
+    ],
   );
 
   return (
