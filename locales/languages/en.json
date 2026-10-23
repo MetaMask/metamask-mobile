@@ -9819,7 +9819,13 @@
       "loading": "Loading…",
       "no_account": "No Money account found for this wallet.",
       "address_title": "Money account address",
-      "copy_address": "Copy address",
+      "copy": "Copy {{label}}",
+      "not_available": "Not available",
+      "flag_not_set": "Not set in remote flags",
+      "debug_title": "Debug info",
+      "chomp_api_url": "CHOMP API URL (remote flag)",
+      "metametrics_id": "MetaMetrics ID",
+      "profile_id": "Profile ID",
       "summary_title": "Summary",
       "chomp_registration": "CHOMP registration",
       "summary": {
@@ -9828,7 +9834,7 @@
         "incomplete": "Incomplete",
         "unknown": "Unknown"
       },
-      "request_error": "Some CHOMP requests failed. Pull down to retry.",
+      "request_error": "Some requests failed. Pull down to retry.",
       "signals_title": "Signals",
       "profile_association": "Profile association",
       "account_upgrade": "Account upgrade",

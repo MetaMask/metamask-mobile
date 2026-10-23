@@ -29,6 +29,7 @@ const MONEY_ACCOUNT = {
 interface InitialStateMoneyOptions {
   hasMoneyAccount?: boolean;
   upgradedAccounts?: Record<string, MoneyAccountUpgradeStatus>;
+  remoteFeatureFlags?: Record<string, unknown>;
 }
 
 /**
@@ -38,11 +39,13 @@ interface InitialStateMoneyOptions {
 export const initialStateMoney = ({
   hasMoneyAccount = true,
   upgradedAccounts = {},
+  remoteFeatureFlags = {},
 }: InitialStateMoneyOptions = {}) =>
   createStateFixture()
     .withMinimalAccounts()
     .withMinimalMainnetNetwork()
-    .withRemoteFeatureFlags({})
+    .withMinimalAnalyticsController()
+    .withRemoteFeatureFlags(remoteFeatureFlags)
     .withOverrides({
       engine: {
         backgroundState: {

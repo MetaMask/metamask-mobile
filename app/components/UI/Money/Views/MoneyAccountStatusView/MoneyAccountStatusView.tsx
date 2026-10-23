@@ -29,6 +29,8 @@ import ClipboardManager from '../../../../../core/ClipboardManager';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { selectPrimaryMoneyAccountUpgradeRecord } from '../../../../../selectors/moneyAccountUpgradeController';
+import { selectChompApiBaseUrl } from '../../../../../selectors/featureFlagController/chompApi';
+import { selectAnalyticsId } from '../../../../../selectors/analyticsController';
 import useMoneyAccountChompStatus from '../../hooks/useMoneyAccountChompStatus';
 import {
   getAssociationStatus,
@@ -94,6 +96,73 @@ const SignalRow = ({
   />
 );
 
+const CopyableValueRow = ({
+  label,
+  value,
+  placeholder,
+  testID,
+  copyButtonTestID,
+}: {
+  label: string;
+  value: string | undefined;
+  placeholder: string;
+  testID: string;
+  copyButtonTestID: string;
+}) => {
+  const handleCopy = useCallback(async () => {
+    if (value) {
+      await ClipboardManager.setString(value);
+    }
+  }, [value]);
+
+  return (
+    <Box gap={1}>
+      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+        {label}
+      </Text>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        justifyContent={BoxJustifyContent.Between}
+        gap={2}
+      >
+        <Text
+          testID={testID}
+          variant={TextVariant.BodyMd}
+          color={value ? TextColor.TextDefault : TextColor.TextAlternative}
+          twClassName="flex-1"
+          selectable
+        >
+          {value ?? placeholder}
+        </Text>
+        {value && (
+          <ButtonIcon
+            testID={copyButtonTestID}
+            iconName={IconName.Copy}
+            size={ButtonIconSize.Md}
+            onPress={handleCopy}
+            accessibilityLabel={strings('money.account_status.copy', {
+              label,
+            })}
+          />
+        )}
+      </Box>
+    </Box>
+  );
+};
+
+const getProfileIdPlaceholder = (
+  hasAddress: boolean,
+  hasLoaded: boolean,
+): string => {
+  if (!hasAddress) {
+    return strings('money.account_status.not_available');
+  }
+  return hasLoaded
+    ? strings('money.account_status.signal.unknown')
+    : strings('money.account_status.loading');
+};
+
 const MoneyAccountStatusView = () => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -101,15 +170,11 @@ const MoneyAccountStatusView = () => {
   const navigation = useNavigation();
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const upgradeRecord = useSelector(selectPrimaryMoneyAccountUpgradeRecord);
+  const chompApiBaseUrl = useSelector(selectChompApiBaseUrl);
+  const analyticsId = useSelector(selectAnalyticsId);
   const address = primaryMoneyAccount?.address as Hex | undefined;
   const { signals, isRefreshing, refresh } =
     useMoneyAccountChompStatus(address);
-
-  const handleCopyAddress = useCallback(async () => {
-    if (address) {
-      await ClipboardManager.setString(address);
-    }
-  }, [address]);
 
   const associationStatus = signals
     ? getAssociationStatus(signals.isAddressAssociated)
@@ -127,6 +192,10 @@ const MoneyAccountStatusView = () => {
           intentsStatus,
           localUpgradeStatus,
         ])
+      : undefined;
+  const profileId =
+    signals?.profileId.status === 'success'
+      ? signals.profileId.data
       : undefined;
   const hasRequestError =
     signals !== undefined &&
@@ -167,35 +236,15 @@ const MoneyAccountStatusView = () => {
           />
         ) : (
           <>
-            <Box gap={1}>
-              <SectionHeader
-                title={strings('money.account_status.address_title')}
-              />
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Between}
-                gap={2}
-              >
-                <Text
-                  testID={MoneyAccountStatusViewTestIds.ADDRESS}
-                  variant={TextVariant.BodyMd}
-                  twClassName="flex-1"
-                  selectable
-                >
-                  {address}
-                </Text>
-                <ButtonIcon
-                  testID={MoneyAccountStatusViewTestIds.COPY_ADDRESS_BUTTON}
-                  iconName={IconName.Copy}
-                  size={ButtonIconSize.Md}
-                  onPress={handleCopyAddress}
-                  accessibilityLabel={strings(
-                    'money.account_status.copy_address',
-                  )}
-                />
-              </Box>
-            </Box>
+            <CopyableValueRow
+              label={strings('money.account_status.address_title')}
+              value={address}
+              placeholder={strings('money.account_status.not_available')}
+              testID={MoneyAccountStatusViewTestIds.ADDRESS}
+              copyButtonTestID={
+                MoneyAccountStatusViewTestIds.COPY_ADDRESS_BUTTON
+              }
+            />
 
             <Box gap={1}>
               <SectionHeader
@@ -316,6 +365,40 @@ const MoneyAccountStatusView = () => {
               )}
           </>
         )}
+
+        <Box gap={3}>
+          <SectionHeader title={strings('money.account_status.debug_title')} />
+          <CopyableValueRow
+            label={strings('money.account_status.chomp_api_url')}
+            value={chompApiBaseUrl}
+            placeholder={strings('money.account_status.flag_not_set')}
+            testID={MoneyAccountStatusViewTestIds.CHOMP_API_URL}
+            copyButtonTestID={
+              MoneyAccountStatusViewTestIds.COPY_CHOMP_API_URL_BUTTON
+            }
+          />
+          <CopyableValueRow
+            label={strings('money.account_status.metametrics_id')}
+            value={analyticsId}
+            placeholder={strings('money.account_status.not_available')}
+            testID={MoneyAccountStatusViewTestIds.METAMETRICS_ID}
+            copyButtonTestID={
+              MoneyAccountStatusViewTestIds.COPY_METAMETRICS_ID_BUTTON
+            }
+          />
+          <CopyableValueRow
+            label={strings('money.account_status.profile_id')}
+            value={profileId}
+            placeholder={getProfileIdPlaceholder(
+              Boolean(address),
+              signals !== undefined,
+            )}
+            testID={MoneyAccountStatusViewTestIds.PROFILE_ID}
+            copyButtonTestID={
+              MoneyAccountStatusViewTestIds.COPY_PROFILE_ID_BUTTON
+            }
+          />
+        </Box>
       </ScrollView>
     </Box>
   );

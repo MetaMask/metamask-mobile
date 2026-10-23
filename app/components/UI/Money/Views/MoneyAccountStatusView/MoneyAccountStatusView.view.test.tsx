@@ -43,6 +43,9 @@ const UPGRADE_RECORD = {
   [MONEY_ACCOUNT_ADDRESS]: { configFingerprint: 'abc', completedAt: 1 },
 };
 
+const CHOMP_API_URL = 'https://chomp.example.metamask.io';
+const SESSION_PROFILE_ID = 'session-profile-id';
+
 type ChompResponse = unknown | Error;
 
 const mockChompResponses = ({
@@ -55,10 +58,12 @@ const mockChompResponses = ({
   ],
   upgrades = [UPGRADE],
   intents = [INTENT],
+  sessionProfile = { profileId: SESSION_PROFILE_ID },
 }: {
   associatedAddresses?: ChompResponse;
   upgrades?: ChompResponse;
   intents?: ChompResponse;
+  sessionProfile?: ChompResponse;
 } = {}) => {
   const respond = (response: ChompResponse) =>
     response instanceof Error
@@ -67,6 +72,8 @@ const mockChompResponses = ({
 
   mockMessengerCall.mockImplementation((action: string) => {
     switch (action) {
+      case 'AuthenticationController:getSessionProfile':
+        return respond(sessionProfile);
       case 'ChompApiService:getAssociatedAddresses':
         return respond(associatedAddresses);
       case 'ChompApiService:getUpgrades':
@@ -84,11 +91,14 @@ describeForPlatforms('MoneyAccountStatusView', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the address, every registration signal and the CHOMP entries once loaded', async () => {
+  it('shows the address, debug info, every registration signal and the CHOMP entries once loaded', async () => {
     mockChompResponses();
 
     const { findByTestId, getByTestId } = renderMoneyAccountStatusView({
       upgradedAccounts: UPGRADE_RECORD,
+      remoteFeatureFlags: {
+        moneyAccountChompConfig: { baseUrl: CHOMP_API_URL },
+      },
     });
 
     const summary = await findByTestId(MoneyAccountStatusViewTestIds.SUMMARY);
@@ -98,6 +108,21 @@ describeForPlatforms('MoneyAccountStatusView', () => {
     expect(
       within(getByTestId(MoneyAccountStatusViewTestIds.ADDRESS)).getByText(
         MONEY_ACCOUNT_ADDRESS,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(MoneyAccountStatusViewTestIds.CHOMP_API_URL),
+      ).getByText(CHOMP_API_URL),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(MoneyAccountStatusViewTestIds.METAMETRICS_ID),
+      ).getByText('test-analytics-id'),
+    ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(MoneyAccountStatusViewTestIds.PROFILE_ID)).getByText(
+        SESSION_PROFILE_ID,
       ),
     ).toBeOnTheScreen();
     for (const rowTestId of [
@@ -159,6 +184,33 @@ describeForPlatforms('MoneyAccountStatusView', () => {
         getByTestId(MoneyAccountStatusViewTestIds.LOCAL_RECORD_ROW),
       ).getByText('Missing'),
     ).toBeOnTheScreen();
+  });
+
+  it('shows placeholders without copy buttons when the profile lookup fails and the CHOMP flag is unset', async () => {
+    mockChompResponses({ sessionProfile: new Error('Not signed in') });
+
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderMoneyAccountStatusView();
+
+    expect(
+      await findByTestId(MoneyAccountStatusViewTestIds.ERROR_BANNER),
+    ).toBeOnTheScreen();
+    expect(
+      within(getByTestId(MoneyAccountStatusViewTestIds.PROFILE_ID)).getByText(
+        'Unknown',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyAccountStatusViewTestIds.COPY_PROFILE_ID_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      within(
+        getByTestId(MoneyAccountStatusViewTestIds.CHOMP_API_URL),
+      ).getByText('Not set in remote flags'),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(MoneyAccountStatusViewTestIds.COPY_CHOMP_API_URL_BUTTON),
+    ).not.toBeOnTheScreen();
   });
 
   it('shows the request error and recovers after pull to refresh', async () => {

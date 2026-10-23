@@ -13,4 +13,10 @@ export const MoneyAccountStatusViewTestIds = {
   LOCAL_RECORD_ROW: 'money-account-status-view-local-record',
   UPGRADE_ENTRY: 'money-account-status-view-upgrade-entry',
   INTENT_ENTRY: 'money-account-status-view-intent-entry',
+  CHOMP_API_URL: 'money-account-status-view-chomp-api-url',
+  COPY_CHOMP_API_URL_BUTTON: 'money-account-status-view-copy-chomp-api-url',
+  METAMETRICS_ID: 'money-account-status-view-metametrics-id',
+  COPY_METAMETRICS_ID_BUTTON: 'money-account-status-view-copy-metametrics-id',
+  PROFILE_ID: 'money-account-status-view-profile-id',
+  COPY_PROFILE_ID_BUTTON: 'money-account-status-view-copy-profile-id',
 } as const;
