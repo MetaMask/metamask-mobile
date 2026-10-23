@@ -128,6 +128,7 @@ const PerpsSharePositionView = () => {
     openComposer({
       position: socialPosition,
       entryPoint: 'perps',
+      openFeedAfterPost: true,
     });
     closeSheet();
   }, [closeSheet, eventProperties, openComposer, socialPosition, track]);

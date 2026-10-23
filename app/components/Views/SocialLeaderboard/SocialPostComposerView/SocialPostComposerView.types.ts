@@ -41,12 +41,18 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostComposerPreview;
   position?: never;
   entryPoint?: never;
+  openFeedAfterPost?: never;
 }
 
 interface SocialPostComposerPositionParams {
   /** Fast path: position passed by the host screen. No fetch fires. */
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
+  /**
+   * Ignored: every post lands on the viewer's Posts tab. Kept because the
+   * Perps share screen still passes it.
+   */
+  openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;
 }

@@ -250,6 +250,7 @@ describe('PerpsSharePositionView', () => {
     expect(routeParamsByName[Routes.SOCIAL.POST_COMPOSER]).toEqual({
       position: socialEthLong,
       entryPoint: 'perps',
+      openFeedAfterPost: true,
     });
     await waitFor(() =>
       expect(
