@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { MoneyMfaStatus } from '../../hooks/useMoneyMfa';
@@ -20,6 +21,14 @@ const renderBanner = (status: MoneyMfaStatus, isSettingUpDismissed = false) => {
 };
 
 describe('MoneyMfaStatusBanner', () => {
+  const announce = jest
+    .spyOn(AccessibilityInfo, 'announceForAccessibility')
+    .mockImplementation(() => undefined);
+
+  beforeEach(() => {
+    announce.mockClear();
+  });
+
   describe('setting_up', () => {
     it('renders the setting up copy without a retry button', () => {
       const { getByTestId, getByText, queryByTestId } =
@@ -45,6 +54,15 @@ describe('MoneyMfaStatusBanner', () => {
       expect(onDismissSettingUp).toHaveBeenCalledTimes(1);
     });
 
+    it('labels the close button Dismiss and announces the banner', () => {
+      const { getByLabelText } = renderBanner('setting_up');
+
+      expect(getByLabelText(strings('money.mfa.dismiss'))).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith(
+        strings('money.mfa.setting_up_title'),
+      );
+    });
+
     it('renders nothing once the user closed it', () => {
       const { toJSON } = renderBanner('setting_up', true);
 
@@ -59,12 +77,18 @@ describe('MoneyMfaStatusBanner', () => {
       expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER)).toBeOnTheScreen();
       expect(getByText(strings('money.mfa.failed_title'))).toBeOnTheScreen();
       expect(
-        getByText(
-          `${strings('money.mfa.failed_description')} ${strings(
-            'money.mfa.failed_retry',
-          )}`,
-        ),
+        getByText(strings('money.mfa.failed_description')),
       ).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith(strings('money.mfa.failed_title'));
+    });
+
+    it('offers Try again as its own link', () => {
+      const { getByTestId } = renderBanner('failed');
+
+      expect(getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY)).toHaveProp(
+        'accessibilityRole',
+        'link',
+      );
     });
 
     it('calls onRetry when Try again is pressed', () => {
@@ -91,6 +115,7 @@ describe('MoneyMfaStatusBanner', () => {
       const { toJSON } = renderBanner(status);
 
       expect(toJSON()).toBeNull();
+      expect(announce).not.toHaveBeenCalled();
     },
   );
 });
