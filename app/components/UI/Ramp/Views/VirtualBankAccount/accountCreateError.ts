@@ -32,6 +32,9 @@ export type AccountCreateRegistrationResult =
   | {
       kind: 'fiat';
       status: FiatAddressStatus;
+    }
+  | {
+      kind: 'unknown';
     };
 
 /**
@@ -48,7 +51,43 @@ export class AccountCreateRegistrationError extends Error {
   }
 }
 
-/** Converts a controller registration failure without reading its body. */
+const isFiatAddressStatus = (status: unknown): status is FiatAddressStatus =>
+  typeof status === 'string' &&
+  (FIAT_ADDRESS_STATUSES as readonly string[]).includes(status);
+
+const getTraceId = (
+  context: { traceId?: unknown } | undefined,
+  error: unknown,
+): string | undefined => {
+  if (typeof context?.traceId === 'string') {
+    return context.traceId;
+  }
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+
+  const match = error.message.match(
+    /"(?:traceId|trace_id)"\s*:\s*"([^"\\]{1,200})"/u,
+  );
+  return match?.[1];
+};
+
+/**
+ * Reads a fiat-address status from a controller response without retaining any
+ * other response fields.
+ */
+export const getAccountCreateResultFromResponse = (
+  response: unknown,
+): AccountCreateRegistrationResult | null => {
+  if (!response || typeof response !== 'object') {
+    return null;
+  }
+
+  const status = (response as { status?: unknown }).status;
+  return isFiatAddressStatus(status) ? { kind: 'fiat', status } : null;
+};
+
+/** Converts a controller registration failure without exposing its body. */
 export const getAccountCreateResultFromError = (
   error: unknown,
 ): AccountCreateRegistrationResult => {
@@ -58,10 +97,18 @@ export const getAccountCreateResultFromError = (
 
   const context =
     error && typeof error === 'object'
-      ? (error as { httpStatus?: unknown; traceId?: unknown })
+      ? (error as {
+          httpStatus?: unknown;
+          fiatStatus?: unknown;
+          traceId?: unknown;
+        })
       : undefined;
+  if (context?.httpStatus === 200 && isFiatAddressStatus(context.fiatStatus)) {
+    return { kind: 'fiat', status: context.fiatStatus };
+  }
+
   const status = context?.httpStatus;
-  const supportedStatus =
+  const supportedStatus: AccountCreateHttpStatus | null =
     status === 400 ||
     status === 401 ||
     status === 403 ||
@@ -70,14 +117,17 @@ export const getAccountCreateResultFromError = (
     status === 422 ||
     status === 500
       ? status
-      : 500;
+      : null;
 
+  if (supportedStatus === null) {
+    return { kind: 'unknown' };
+  }
+
+  const traceId = getTraceId(context, error);
   return {
     kind: 'http',
     status: supportedStatus,
-    ...(typeof context?.traceId === 'string'
-      ? { traceId: context.traceId }
-      : {}),
+    ...(traceId ? { traceId } : {}),
   };
 };
 
@@ -109,6 +159,10 @@ export const accountCreateErrorVariantForDestination = (
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorVariant | null => {
+  if (result.kind === 'unknown') {
+    return 'generic';
+  }
+
   if (result.kind === 'fiat') {
     switch (result.status) {
       case 'AuthorizationFailed':
@@ -170,7 +224,11 @@ const SUPPORT_PARAM_TRACE_ID = 'trace_id';
  */
 export const getAccountCreateFailureLogFields = (
   result: AccountCreateRegistrationResult,
-): AccountCreateFailureFields => {
+): AccountCreateFailureFields | undefined => {
+  if (result.kind === 'unknown') {
+    return undefined;
+  }
+
   if (result.kind === 'fiat') {
     return { httpStatus: 200, fiatStatus: result.status };
   }

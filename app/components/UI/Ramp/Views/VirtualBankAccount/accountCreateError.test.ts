@@ -6,6 +6,8 @@ import {
   getAccountCreateErrorVariant,
   getAccountCreateFailureLogFields,
   getAccountCreateErrorPrimaryAction,
+  getAccountCreateResultFromError,
+  getAccountCreateResultFromResponse,
   type AccountCreateRegistrationResult,
 } from './accountCreateError';
 
@@ -32,6 +34,7 @@ describe('accountCreateError', () => {
       ['unauthorized', { kind: 'http', status: 401 }, 'generic'],
       ['missing customer', { kind: 'http', status: 404 }, 'generic'],
       ['registration failure', { kind: 'http', status: 500 }, 'generic'],
+      ['unknown failure', { kind: 'unknown' }, 'generic'],
       [
         'registration still pending',
         { kind: 'fiat', status: 'RegistrationPending' },
@@ -48,6 +51,57 @@ describe('accountCreateError', () => {
 
     it.each(cases)('maps %s', (_label, result, variant) => {
       expect(getAccountCreateErrorVariant(result)).toBe(variant);
+    });
+  });
+
+  describe('registration result extraction', () => {
+    it('reads a fiat failure from a controller response', () => {
+      const result = getAccountCreateResultFromResponse({
+        status: 'RegistrationFailed',
+        account_number: 'sensitive',
+      });
+
+      expect(result).toEqual({
+        kind: 'fiat',
+        status: 'RegistrationFailed',
+      });
+    });
+
+    it('reads a fiat failure from a typed 200 error', () => {
+      const result = getAccountCreateResultFromError({
+        httpStatus: 200,
+        fiatStatus: 'AuthorizationFailed',
+        responseBody: { iban: 'sensitive' },
+      });
+
+      expect(result).toEqual({
+        kind: 'fiat',
+        status: 'AuthorizationFailed',
+      });
+    });
+
+    it('does not relabel an unknown failure as HTTP 500', () => {
+      const result = getAccountCreateResultFromError(new Error('network'));
+
+      expect(result).toEqual({ kind: 'unknown' });
+    });
+
+    it('extracts only the trace id from an HTTP error message', () => {
+      const error = Object.assign(
+        new Error(
+          'request failed - {"traceId":"moonpay-trace","iban":"GB29NWBK"}',
+        ),
+        { httpStatus: 400 },
+      );
+
+      const result = getAccountCreateResultFromError(error);
+
+      expect(result).toEqual({
+        kind: 'http',
+        status: 400,
+        traceId: 'moonpay-trace',
+      });
+      expect(JSON.stringify(result)).not.toContain('GB29NWBK');
     });
   });
 
@@ -68,6 +122,10 @@ describe('accountCreateError', () => {
       expect(getAccountCreateErrorPrimaryAction({ httpStatus })).toBe(
         'contactSupport',
       );
+    });
+
+    it('opens support when no HTTP status is available', () => {
+      expect(getAccountCreateErrorPrimaryAction()).toBe('contactSupport');
     });
   });
 

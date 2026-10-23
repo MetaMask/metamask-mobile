@@ -6,7 +6,6 @@ import {
   findUsableAutoramp,
   resetMusdAutorampSetupGuard,
 } from './ensureMusdAutoramp';
-import { AccountCreateRegistrationError } from './accountCreateError';
 
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
@@ -219,8 +218,8 @@ describe('ensureMusdAutoramp', () => {
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
-      expect.objectContaining<AccountCreateRegistrationError>({
-        result: { kind: 'http', status: 500 },
+      expect.objectContaining({
+        result: { kind: 'unknown' },
       }),
     );
     expect(mockCreate).not.toHaveBeenCalled();
@@ -230,9 +229,32 @@ describe('ensureMusdAutoramp', () => {
     mockCreate.mockRejectedValue(new Error('create failed'));
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
-      expect.objectContaining<AccountCreateRegistrationError>({
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
+  });
+
+  it('preserves an HTTP 500 account-creation error', async () => {
+    mockCreate.mockRejectedValue({ httpStatus: 500 });
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
         result: { kind: 'http', status: 500 },
       }),
     );
   });
+
+  it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
+    'surfaces the %s fiat status returned by account creation',
+    async (status) => {
+      mockCreate.mockResolvedValue({ id: 'ar-new', status });
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'fiat', status },
+        }),
+      );
+    },
+  );
 });

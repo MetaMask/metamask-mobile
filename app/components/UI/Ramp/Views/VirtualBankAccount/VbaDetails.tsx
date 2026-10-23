@@ -292,8 +292,6 @@ const VbaDetails = () => {
           navigateToVbaOnboardingDestination(
             navigation,
             ACCOUNT_CREATE_ERROR_DESTINATION.generic,
-            undefined,
-            { httpStatus: 500 },
           );
           return;
         }
@@ -311,7 +309,7 @@ const VbaDetails = () => {
             navigation,
             ACCOUNT_CREATE_ERROR_DESTINATION.generic,
             undefined,
-            { httpStatus: 500 },
+            undefined,
             sourceCurrency,
           );
           return;
@@ -352,7 +350,7 @@ const VbaDetails = () => {
           navigation,
           ACCOUNT_CREATE_ERROR_DESTINATION.generic,
           undefined,
-          { httpStatus: 500 },
+          undefined,
           sourceCurrency,
         );
         return;

@@ -111,8 +111,22 @@ describe('VbaAccountCreateError', () => {
       ),
     ).toBeOnTheScreen();
     expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.details.description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
       queryByText(
         strings('virtual_bank_account.account_create_error.generic.primary'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings(
+          'virtual_bank_account.account_create_error.generic.description',
+        ),
       ),
     ).not.toBeOnTheScreen();
   });

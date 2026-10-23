@@ -680,8 +680,6 @@ describe('VbaDetails', () => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
         'accountCreateGeneric',
-        undefined,
-        { httpStatus: 500 },
       );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
@@ -697,8 +695,6 @@ describe('VbaDetails', () => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
         'accountCreateGeneric',
-        undefined,
-        { httpStatus: 500 },
       );
     });
     expect(mockHydrate).not.toHaveBeenCalled();
@@ -722,7 +718,7 @@ describe('VbaDetails', () => {
         expect.anything(),
         'accountCreateGeneric',
         undefined,
-        { httpStatus: 500 },
+        undefined,
         'BRL',
       );
     });
@@ -744,7 +740,7 @@ describe('VbaDetails', () => {
         expect.anything(),
         'accountCreateGeneric',
         undefined,
-        { httpStatus: 500 },
+        undefined,
         'BRL',
       );
     });
@@ -929,8 +925,6 @@ describe('VbaDetails', () => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
         'accountCreateGeneric',
-        undefined,
-        { httpStatus: 500 },
       );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
@@ -946,8 +940,6 @@ describe('VbaDetails', () => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
         'accountCreateGeneric',
-        undefined,
-        { httpStatus: 500 },
       );
     });
     expect(mockHydrate).not.toHaveBeenCalled();
@@ -966,11 +958,29 @@ describe('VbaDetails', () => {
         expect.anything(),
         'accountCreateGeneric',
         undefined,
-        { httpStatus: 500 },
+        undefined,
         'BRL',
       );
     });
     expect(mockCreateAutoramp).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps HTTP 500 account creation failures retryable', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
+    mockCreateAutoramp.mockRejectedValue({ httpStatus: 500 });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        { httpStatus: 500 },
+        'BRL',
+      );
+    });
   });
 
   it('shows a load error when account details fail', async () => {

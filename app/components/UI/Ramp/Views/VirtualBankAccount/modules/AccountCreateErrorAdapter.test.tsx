@@ -8,8 +8,18 @@ const mockNavigation = { navigate: jest.fn() };
 const mockOpenCompletedVbaAccount = jest.fn();
 const mockResumeOnboarding = jest.fn();
 const mockOpenSupportWithConsent = jest.fn();
-const mockVbaAccountCreateError = jest.fn(() => null);
+const mockVbaAccountCreateError = jest.fn(
+  (_props: React.ComponentProps<typeof VbaAccountCreateError>) => null,
+);
 let mockRouteParams: VbaOnboardingParamList['VbaAccountCreateError'];
+
+const getErrorScreenProps = () => {
+  const props = mockVbaAccountCreateError.mock.calls[0]?.[0];
+  if (!props) {
+    throw new Error('VbaAccountCreateError was not rendered');
+  }
+  return props;
+};
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
@@ -46,7 +56,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
 
   it('reopens account creation in the failed source currency', () => {
     render(<VbaAccountCreateErrorAdapter />);
-    const props = mockVbaAccountCreateError.mock.calls[0][0];
+    const props = getErrorScreenProps();
 
     props.onPrimary();
     props.onPrimary();
@@ -66,7 +76,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
       failure: { httpStatus: 500 },
     };
     render(<VbaAccountCreateErrorAdapter />);
-    const props = mockVbaAccountCreateError.mock.calls[0][0];
+    const props = getErrorScreenProps();
 
     props.onPrimary();
 
@@ -84,7 +94,23 @@ describe('VbaAccountCreateErrorAdapter', () => {
       sourceCurrency: 'USD',
     };
     render(<VbaAccountCreateErrorAdapter />);
-    const props = mockVbaAccountCreateError.mock.calls[0][0];
+    const props = getErrorScreenProps();
+
+    props.onPrimary();
+
+    expect(props.primaryActionType).toBe('contactSupport');
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
+    expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
+    expect(mockResumeOnboarding).not.toHaveBeenCalled();
+  });
+
+  it('opens support when no HTTP failure status is available', () => {
+    mockRouteParams = {
+      variant: 'generic',
+      sourceCurrency: 'USD',
+    };
+    render(<VbaAccountCreateErrorAdapter />);
+    const props = getErrorScreenProps();
 
     props.onPrimary();
 

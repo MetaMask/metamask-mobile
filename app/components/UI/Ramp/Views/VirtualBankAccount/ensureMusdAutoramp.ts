@@ -5,6 +5,7 @@ import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceC
 import {
   AccountCreateRegistrationError,
   getAccountCreateResultFromError,
+  getAccountCreateResultFromResponse,
 } from './accountCreateError';
 
 /**
@@ -80,10 +81,21 @@ const createAutoramp = async (
   sourceCurrency: VbaSourceCurrency,
 ): Promise<void> => {
   try {
-    await Engine.context.RampsController.createAutoramp(
+    const response = await Engine.context.RampsController.createAutoramp(
       buildMusdAutorampRequest(walletAddress, sourceCurrency),
     );
+    const result = getAccountCreateResultFromResponse(response);
+    if (
+      result?.kind === 'fiat' &&
+      (result.status === 'AuthorizationFailed' ||
+        result.status === 'RegistrationFailed')
+    ) {
+      throw new AccountCreateRegistrationError(result);
+    }
   } catch (error) {
+    if (error instanceof AccountCreateRegistrationError) {
+      throw error;
+    }
     throw new AccountCreateRegistrationError(
       getAccountCreateResultFromError(error),
     );

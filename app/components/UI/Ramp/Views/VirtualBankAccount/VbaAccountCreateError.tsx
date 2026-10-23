@@ -23,8 +23,8 @@ interface VbaAccountCreateErrorProps {
 }
 
 /**
- * Account-creation failure. `details` needs support to finish bank transfers.
- * `generic` can be retried.
+ * Account-creation failure. The variant controls the title, while the action
+ * controls whether the description directs the user to support or to retry.
  */
 const VbaAccountCreateError = ({
   variant,
@@ -37,13 +37,15 @@ const VbaAccountCreateError = ({
     testID={`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-${variant}`}
     backButtonTestID={VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON}
     onBack={onBack}
-    illustration={<VbaAccountCreateFailure />}
+    illustration={<VbaAccountCreateFailure name="vba-account-create-failure" />}
     illustrationClassName="mb-5 w-full"
     title={strings(
       `virtual_bank_account.account_create_error.${variant}.title`,
     )}
     description={strings(
-      `virtual_bank_account.account_create_error.${variant}.description`,
+      primaryActionType === 'retry'
+        ? 'virtual_bank_account.account_create_error.generic.description'
+        : 'virtual_bank_account.account_create_error.details.description',
     )}
     primaryAction={{
       label: strings(
