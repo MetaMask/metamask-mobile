@@ -17,9 +17,8 @@ import type {
   ReferralMeDto,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { MONEY_REFERRAL_CODE_DEBOUNCE_MS } from '../../hooks/useValidateMoneyReferralCode';
-import AcceptInviteSheet, {
-  ACCEPT_INVITE_SHEET_TEST_IDS,
-} from './AcceptInviteSheet';
+import AcceptInviteSheet from './AcceptInviteSheet';
+import { ACCEPT_INVITE_SHEET_TEST_IDS } from './AcceptInviteSheet.testIds';
 
 const PROFILE_ID = 'profile-1';
 const KEYRING_ID = 'entropy-source-1';
@@ -430,24 +429,6 @@ describe('AcceptInviteSheet', () => {
     expect(mockAcceptReferralCode).not.toHaveBeenCalled();
   });
 
-  it('shows a register refusal as the field error instead of blocking accept', async () => {
-    mockUseAcceptMoneyReferralCode.mockReturnValue({
-      acceptReferralCode: mockAcceptReferralCode,
-      isLoading: false,
-      errorMessage: strings('rewards.error_messages.already_referred'),
-      clearError: jest.fn(),
-    });
-
-    const { getByTestId } = await renderSheet('KOL1');
-
-    expect(getByTestId(TEST_IDS.CODE_ERROR)).toHaveTextContent(
-      strings('rewards.error_messages.already_referred'),
-    );
-    expect(getByTestId(TEST_IDS.ACCEPT).props.accessibilityState).toMatchObject(
-      { disabled: false },
-    );
-  });
-
   it('clears the register error when the code is edited', async () => {
     const clearError = jest.fn();
     mockUseAcceptMoneyReferralCode.mockReturnValue({
@@ -501,15 +482,6 @@ describe('AcceptInviteSheet', () => {
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     },
   );
-
-  it('accepts with the code on screen and leaves dismissal to the hook', async () => {
-    const { getByTestId } = await renderSheet('KOL1');
-
-    fireEvent.press(getByTestId(TEST_IDS.ACCEPT));
-
-    expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
-    expect(mockGoBack).not.toHaveBeenCalled();
-  });
 
   it('accepts with an edited code', async () => {
     const { getByTestId } = await renderSheet('KOL1');

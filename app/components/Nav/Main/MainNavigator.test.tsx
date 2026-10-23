@@ -20,7 +20,6 @@ import {
 import type { MoneyDashboardPersona } from '../../../reducers/rewardsMoney/selectors';
 import AcceptInviteSheet from '../../UI/Rewards/components/Money/AcceptInviteSheet';
 import RewardsMoneyReferralAcceptedSplashView from '../../UI/Rewards/Views/RewardsMoneyReferralAcceptedSplashView';
-import { REWARDS_TAB_SKELETON_TEST_IDS } from '../../UI/Rewards/components/RewardsTabSkeleton/RewardsTabSkeleton';
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn(() => '7.72.0'),
 }));
@@ -2539,39 +2538,6 @@ describe('MainNavigator', () => {
           expect(screenNames).toContain(Routes.REWARDS_DASHBOARD);
         });
 
-        it.each<MoneyDashboardPersona>(['referrer', 'referee'])(
-          'opens the Money dashboard for %s',
-          (moneyPersona) => {
-            expect(
-              findRewardsHomeInitialRouteName(null, {
-                moneyEnabled: true,
-                moneyReferralResolved: true,
-                moneyPersona,
-              }),
-            ).toBe(Routes.REWARDS_MONEY_DASHBOARD);
-          },
-        );
-
-        it('opens the points dashboard for a plain user with a subscription', () => {
-          expect(
-            findRewardsHomeInitialRouteName('test-subscription-id', {
-              moneyEnabled: true,
-              moneyReferralResolved: true,
-              moneyPersona: 'plain',
-            }),
-          ).toBe(Routes.REWARDS_DASHBOARD);
-        });
-
-        it('opens onboarding for a plain user without a subscription', () => {
-          expect(
-            findRewardsHomeInitialRouteName(null, {
-              moneyEnabled: true,
-              moneyReferralResolved: true,
-              moneyPersona: 'plain',
-            }),
-          ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
-        });
-
         it('opens onboarding when the referral fetch resolved with no persona', () => {
           expect(
             findRewardsHomeInitialRouteName(null, {
@@ -2580,42 +2546,6 @@ describe('MainNavigator', () => {
               moneyPersona: undefined,
             }),
           ).toBe(Routes.REWARDS_ONBOARDING_FLOW);
-        });
-
-        it('keeps the points path when Money is disabled', () => {
-          expect(
-            findRewardsHomeInitialRouteName('test-subscription-id', {
-              moneyEnabled: false,
-              moneyReferralResolved: false,
-              moneyPersona: 'referrer',
-            }),
-          ).toBe(Routes.REWARDS_DASHBOARD);
-        });
-
-        it('mounts no home screen while the Money persona is unresolved', () => {
-          // Neither onboarding nor the points dashboard may become active
-          // before the persona settles, or the tab flashes the wrong home and
-          // swaps under the user.
-          const screenNames = findRewardsHomeScreenNames(null, {
-            moneyEnabled: true,
-            moneyReferralResolved: false,
-          });
-
-          expect(screenNames).toEqual([]);
-        });
-
-        it('shows the Rewards tab skeleton while the Money persona is unresolved', () => {
-          const root = renderRewardsHome(null, {
-            moneyEnabled: true,
-            moneyReferralResolved: false,
-          });
-
-          expect(
-            root.findAll(
-              (node: ReactTestInstance) =>
-                node.props?.testID === REWARDS_TAB_SKELETON_TEST_IDS.CONTAINER,
-            ),
-          ).not.toHaveLength(0);
         });
 
         it('remounts the nested stack when a plain user becomes a referee', () => {

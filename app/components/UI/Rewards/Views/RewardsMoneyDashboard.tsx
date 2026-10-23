@@ -48,21 +48,7 @@ import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
-
-export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
-  CONTAINER: 'rewards-money-dashboard',
-  LOADING: 'rewards-money-dashboard-loading',
-  ERROR: 'rewards-money-dashboard-error',
-  SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
-  TABS: 'rewards-money-dashboard-tabs',
-  WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
-  EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
-  EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
-  WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
-  EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  CAMPAIGNS_SECTION: 'rewards-money-dashboard-campaigns-section',
-  BENEFITS_SECTION: 'rewards-money-dashboard-benefits-section',
-} as const;
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 type RewardsMoneyTab = 'waysToEarn' | 'earnings';
 
@@ -308,6 +294,7 @@ const RewardsMoneyDashboard: React.FC = () => {
           confirmButtonLabel={strings(
             'rewards.referral_details_error.retry_button',
           )}
+          confirmButtonTestID={REWARDS_MONEY_DASHBOARD_TEST_IDS.RETRY}
         />
       </Box>
     );

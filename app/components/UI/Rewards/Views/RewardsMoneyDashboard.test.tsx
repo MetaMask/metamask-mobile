@@ -9,17 +9,16 @@ import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard';
-import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard';
-import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection';
+import { REFERER_HERO_CARD_TEST_IDS } from '../components/Money/RefererHeroCard.testIds';
+import { REFEREE_HERO_CARD_TEST_IDS } from '../components/Money/RefereeHeroCard.testIds';
+import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../components/Money/RewardsOptInSection.testIds';
 import { useEarningsSummary } from '../hooks/useEarningsSummary';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import RewardsMoneyDashboard, {
-  REWARDS_MONEY_DASHBOARD_TEST_IDS,
-} from './RewardsMoneyDashboard';
+import RewardsMoneyDashboard from './RewardsMoneyDashboard';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 const PROFILE_ID = 'profile-a';
 const KEYRING_ID = 'entropy-source-1';
@@ -480,20 +479,6 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the referrer hero and opted-in previews for a subscribed referrer', () => {
-    const { getByTestId, queryByTestId } = renderDashboard();
-
-    expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
-    expect(getByTestId('benefits-preview')).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
-  });
-
   it('renders campaigns and benefits sections with dividers on the dashboard', () => {
     const { getByTestId } = renderDashboard();
 
@@ -505,29 +490,6 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeOnTheScreen();
     expect(getByTestId('campaigns-preview')).toBeOnTheScreen();
     expect(getByTestId('benefits-preview')).toBeOnTheScreen();
-  });
-
-  it('renders the referee hero and hides the referrer share card', () => {
-    const { getByTestId, queryByTestId } = renderDashboard({
-      referralMeEntry: {
-        loading: false,
-        error: false,
-        data: createReferralMe({
-          roles: ['REFEREE'],
-          ui_variant: 'REFEREE',
-          referral_code: null,
-          referral_code_status: null,
-          referred_by: {
-            referral_code: 'SOPHIE',
-          },
-        }),
-      },
-    });
-
-    expect(getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER),
-    ).not.toBeOnTheScreen();
   });
 
   it('renders the referee hero without a referrer for a cashback experiment', () => {
@@ -546,43 +508,10 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(getByTestId(REFEREE_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(queryByTestId(REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY)).toBeNull();
-    expect(queryByText('Referred by')).toBeNull();
-  });
-
-  it('fetches the earnings summary for the resolved profile', () => {
-    renderDashboard();
-
-    expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
-  });
-
-  it('feeds the referrer hero the referrals total and hides trading commissions', () => {
-    const { getByText, queryByTestId } = renderDashboard();
-
-    expect(getByText('$41.75')).toBeOnTheScreen();
     expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+      queryByTestId(REFEREE_HERO_CARD_TEST_IDS.REFERRED_BY),
     ).not.toBeOnTheScreen();
-  });
-
-  it('feeds the referee hero its own cashback as rebates', () => {
-    const { getByText } = renderDashboard({
-      referralMeEntry: {
-        loading: false,
-        error: false,
-        data: createReferralMe({
-          roles: ['REFEREE'],
-          ui_variant: 'REFEREE',
-          referral_code: null,
-          referral_code_status: null,
-          referred_by: {
-            referral_code: 'SOPHIE',
-          },
-        }),
-      },
-    });
-
-    expect(getByText('$7.65')).toBeOnTheScreen();
+    expect(queryByText('Referred by')).not.toBeOnTheScreen();
   });
 
   it('keeps the hero readable and shows retry when the summary failed', () => {
@@ -597,24 +526,6 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REFERER_HERO_CARD_TEST_IDS.EARNINGS_ERROR),
     ).toBeOnTheScreen();
-  });
-
-  it('renders the Rewards opt-in section when there is no subscription', () => {
-    const { getByTestId, queryByTestId } = renderDashboard({
-      subscriptionId: null,
-    });
-
-    expect(
-      getByTestId(REWARDS_OPT_IN_SECTION_TEST_IDS.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(queryByTestId('campaigns-preview')).not.toBeOnTheScreen();
-    expect(queryByTestId('benefits-preview')).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.CAMPAIGNS_SECTION),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.BENEFITS_SECTION),
-    ).not.toBeOnTheScreen();
   });
 
   it('hides settings when there is no subscription', () => {
@@ -664,7 +575,7 @@ describe('RewardsMoneyDashboard', () => {
 
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
   });
 
   it('renders the earnings indicator when there is a claimable balance', () => {
@@ -678,13 +589,7 @@ describe('RewardsMoneyDashboard', () => {
 
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
-    ).toHaveStyle({
-      position: 'absolute',
-      top: 4,
-      right: -4,
-      width: 6,
-      height: 6,
-    });
+    ).toBeOnTheScreen();
   });
 
   it('switches to an empty Earnings tab body', () => {

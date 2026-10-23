@@ -1,8 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
-import RewardsTabSkeleton, {
-  REWARDS_TAB_SKELETON_TEST_IDS,
-} from './RewardsTabSkeleton';
+import RewardsTabSkeleton from './RewardsTabSkeleton';
+import { REWARDS_TAB_SKELETON_TEST_IDS } from './RewardsTabSkeleton.testIds';
 
 describe('RewardsTabSkeleton', () => {
   it('renders the header row and the card body inside the safe area', () => {

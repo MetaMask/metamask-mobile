@@ -28,12 +28,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import useOptin from '../../hooks/useOptIn';
 import useRewardsToast from '../../hooks/useRewardsToast';
-
-export const REWARDS_OPT_IN_SECTION_TEST_IDS = {
-  CONTAINER: 'rewards-opt-in-section',
-  ICON: 'rewards-opt-in-section-icon',
-  ACTION: 'rewards-opt-in-section-action',
-} as const;
+import { REWARDS_OPT_IN_SECTION_TEST_IDS } from './RewardsOptInSection.testIds';
 
 export interface RewardsOptInSectionProps {
   localizedText: ReferralLocalizedText;

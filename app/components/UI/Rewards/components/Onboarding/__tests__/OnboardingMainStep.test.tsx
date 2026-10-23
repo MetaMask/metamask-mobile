@@ -3,6 +3,7 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import OnboardingMainStep from '../OnboardingMainStep';
+import { ONBOARDING_MAIN_STEP_TEST_IDS } from '../OnboardingMainStep.testIds';
 import { StackActions } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -442,7 +443,9 @@ describe('OnboardingMainStep', () => {
     it('renders the main image', () => {
       renderWithProviders(<OnboardingMainStep />);
 
-      expect(screen.getByTestId('onboarding-main-image')).toBeDefined();
+      expect(
+        screen.getByTestId(ONBOARDING_MAIN_STEP_TEST_IDS.IMAGE),
+      ).toBeOnTheScreen();
     });
 
     it('renders the onboarding step container', () => {
@@ -814,7 +817,9 @@ describe('OnboardingMainStep', () => {
     it('renders step image through renderStepImage prop', () => {
       renderWithProviders(<OnboardingMainStep />);
 
-      expect(screen.getByTestId('onboarding-main-image')).toBeDefined();
+      expect(
+        screen.getByTestId(ONBOARDING_MAIN_STEP_TEST_IDS.IMAGE),
+      ).toBeOnTheScreen();
     });
 
     it('renders legal disclaimer through renderLegalDisclaimer prop', () => {

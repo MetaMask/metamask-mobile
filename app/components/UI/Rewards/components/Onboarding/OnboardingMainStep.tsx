@@ -50,6 +50,7 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
 import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
 import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
+import { ONBOARDING_MAIN_STEP_TEST_IDS } from './OnboardingMainStep.testIds';
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
@@ -321,7 +322,7 @@ const OnboardingMainStep: React.FC = () => {
     <Image
       source={step1Img}
       style={tw.style('w-50 h-50')}
-      testID="onboarding-main-image"
+      testID={ONBOARDING_MAIN_STEP_TEST_IDS.IMAGE}
       resizeMode="contain"
     />
   );
