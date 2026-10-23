@@ -9,7 +9,6 @@ import {
   PerformanceLogin,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
-import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 /*
  * Scenario: Cold Start to Login Screen Performance Test
@@ -42,7 +41,6 @@ perfTest.describe(
               'Wallet account icon should be visible before warm start',
           },
         );
-        await enableHermesAppProfiling({ scope: 'next-process' });
         await AppiumGestures.terminateApp(currentDeviceDetails);
 
         const timer1 = new TimerHelper(
