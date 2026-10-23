@@ -152,8 +152,15 @@ enum WalletExtensionPasses {
             guard let configuration = configuration(for: card) else { return nil }
             // This check is the iPhone secure element. Watch availability comes
             // from the remote pass list, so a card already on iPhone can still
-            // be offered for Apple Watch.
+            // be offered for Apple Watch. A pass that exists but still needs
+            // activation makes canAddSecureElementPass return false; keep that
+            // card so Wallet can show Verification Required.
+            let pendingActivation = ProvisioningLogic.isPendingActivation(
+                card: card,
+                installed: installed.phone
+            )
             if !remote,
+               !pendingActivation,
                let identifier = configuration.primaryAccountIdentifier,
                !identifier.isEmpty,
                !PKPassLibrary().canAddSecureElementPass(primaryAccountIdentifier: identifier) {

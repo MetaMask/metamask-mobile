@@ -119,7 +119,7 @@ final class EncryptorPortTests: XCTestCase {
         XCTAssertEqual(available.map(\.cardId), ["card-1"])
     }
 
-    func testRequiresActivationPassHidesTheCard() {
+    func testRequiresActivationPassKeepsTheCardAvailable() {
         let card = SnapshotCard(
             entryId: "series-1",
             cardId: "card-1",
@@ -139,7 +139,143 @@ final class EncryptorPortTests: XCTestCase {
 
         let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
 
-        XCTAssertTrue(available.isEmpty)
+        XCTAssertEqual(available.map(\.cardId), ["card-1"])
+        XCTAssertTrue(ProvisioningLogic.isPendingActivation(card: card, installed: installed))
+    }
+
+    func testPendingPassMatchedBySuffixKeepsTheCardAndItsPassIdentifier() {
+        let card = SnapshotCard(
+            entryId: "series-new",
+            cardId: "card-new",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-new",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+        let installed = [
+            InstalledPass(
+                primaryAccountIdentifier: "passkit-fpan",
+                primaryAccountNumberSuffix: "1234",
+                activationState: .requiresActivation
+            ),
+        ]
+
+        let available = ProvisioningLogic.cardsAvailable(cards: [card], installed: installed)
+
+        XCTAssertEqual(available.map(\.cardId), ["card-new"])
+        XCTAssertEqual(
+            ProvisioningLogic.provisioningIdentifier(for: card, installed: installed),
+            "passkit-fpan"
+        )
+        XCTAssertTrue(ProvisioningLogic.isPendingActivation(card: card, installed: installed))
+    }
+
+    func testPendingWatchPassStaysAvailableWhenThePhonePassIsActivated() {
+        let card = SnapshotCard(
+            entryId: "series-1",
+            cardId: "card-1",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-1",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+        let phone = [
+            InstalledPass(
+                primaryAccountIdentifier: "passkit-fpan",
+                primaryAccountNumberSuffix: "1234",
+                activationState: .activated
+            ),
+        ]
+        let watch = [
+            InstalledPass(
+                primaryAccountIdentifier: "passkit-fpan",
+                primaryAccountNumberSuffix: "1234",
+                activationState: .requiresActivation
+            ),
+        ]
+
+        XCTAssertTrue(ProvisioningLogic.cardsAvailable(cards: [card], installed: phone).isEmpty)
+        XCTAssertEqual(
+            ProvisioningLogic.cardsAvailable(cards: [card], installed: watch).map(\.cardId),
+            ["card-1"]
+        )
+        XCTAssertTrue(ProvisioningLogic.isPendingActivation(card: card, installed: watch))
+        XCTAssertFalse(ProvisioningLogic.isPendingActivation(card: card, installed: phone))
+    }
+
+    func testActivatingAndSuspendedPassesHideTheCard() {
+        let card = SnapshotCard(
+            entryId: "series-1",
+            cardId: "card-1",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-1",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+
+        for state in [PassPresence.activating, PassPresence.suspended] {
+            let installed = [
+                InstalledPass(
+                    primaryAccountIdentifier: "series-1",
+                    primaryAccountNumberSuffix: "1234",
+                    activationState: state
+                ),
+            ]
+            XCTAssertTrue(ProvisioningLogic.cardsAvailable(cards: [card], installed: installed).isEmpty)
+            XCTAssertFalse(ProvisioningLogic.isPendingActivation(card: card, installed: installed))
+        }
+    }
+
+    func testPendingActivationIsFalseForActivatedDeactivatedOrNoMatch() {
+        let card = SnapshotCard(
+            entryId: "series-1",
+            cardId: "card-1",
+            lastFour: "1234",
+            cardholderName: "Ada",
+            primaryAccountIdentifier: "series-1",
+            title: "MetaMask Card",
+            localizedDescription: "MetaMask Card ending in 1234"
+        )
+
+        XCTAssertFalse(
+            ProvisioningLogic.isPendingActivation(
+                card: card,
+                installed: [
+                    InstalledPass(
+                        primaryAccountIdentifier: "series-1",
+                        primaryAccountNumberSuffix: "1234",
+                        activationState: .activated
+                    ),
+                ]
+            )
+        )
+        XCTAssertFalse(
+            ProvisioningLogic.isPendingActivation(
+                card: card,
+                installed: [
+                    InstalledPass(
+                        primaryAccountIdentifier: "series-1",
+                        primaryAccountNumberSuffix: "1234",
+                        activationState: .deactivated
+                    ),
+                ]
+            )
+        )
+        XCTAssertFalse(
+            ProvisioningLogic.isPendingActivation(
+                card: card,
+                installed: [
+                    InstalledPass(
+                        primaryAccountIdentifier: "other",
+                        primaryAccountNumberSuffix: "9999",
+                        activationState: .requiresActivation
+                    ),
+                ]
+            )
+        )
     }
 
     func testExpiredAccessTokenNeedsRefreshAndSessionGuard() {

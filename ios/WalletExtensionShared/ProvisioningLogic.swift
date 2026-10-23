@@ -7,19 +7,43 @@ enum ProvisioningLogic {
     ) -> [SnapshotCard] {
         cards.filter { card in
             !installed.contains { pass in
-                guard pass.activationState != .deactivated else {
+                guard countsAsInstalled(pass.activationState) else {
                     return false
                 }
-                if
-                    let identifier = card.primaryAccountIdentifier,
-                    !identifier.isEmpty,
-                    pass.primaryAccountIdentifier == identifier
-                {
-                    return true
-                }
-                return pass.primaryAccountNumberSuffix == card.lastFour
+                return passMatches(card, pass)
             }
         }
+    }
+
+    /// A pass that exists but still needs verification is not "already added".
+    /// Wallet should be able to offer it as Verification Required.
+    static func isPendingActivation(
+        card: SnapshotCard,
+        installed: [InstalledPass]
+    ) -> Bool {
+        installed.contains { pass in
+            pass.activationState == .requiresActivation && passMatches(card, pass)
+        }
+    }
+
+    private static func countsAsInstalled(_ state: PassPresence) -> Bool {
+        switch state {
+        case .activated, .activating, .suspended:
+            return true
+        case .requiresActivation, .deactivated:
+            return false
+        }
+    }
+
+    private static func passMatches(_ card: SnapshotCard, _ pass: InstalledPass) -> Bool {
+        if
+            let identifier = card.primaryAccountIdentifier,
+            !identifier.isEmpty,
+            pass.primaryAccountIdentifier == identifier
+        {
+            return true
+        }
+        return pass.primaryAccountNumberSuffix == card.lastFour
     }
 
     static func shouldRefreshAccessToken(_ tokens: CardTokenSet, now: Date = Date()) -> Bool {

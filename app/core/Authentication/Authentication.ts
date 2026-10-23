@@ -51,6 +51,7 @@ import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import Logger from '../../util/Logger';
+import { signOutCardAfterPasswordChange } from '../signOutCardAfterPasswordChange';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { setBrazeResetInProgress } from '../Braze/resetInProgress';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -1708,6 +1709,7 @@ class AuthenticationService {
         globalPassword,
       });
       await KeyringController.changePassword(globalPassword);
+      await signOutCardAfterPasswordChange();
       await this.syncKeyringEncryptionKey();
     } catch (err) {
       // lock app again on error after submitPassword succeeded
