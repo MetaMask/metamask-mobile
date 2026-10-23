@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import {
   useInfiniteQuery,
@@ -30,6 +30,10 @@ import {
   useSocialFeedRealtime,
   type SocialFeedRealtimeState,
 } from './useSocialFeedRealtime';
+import {
+  measureSocialDataFetch,
+  type SocialDataFetchTab,
+} from '../../../../util/social/socialPerformance';
 
 export interface UseSocialFeedOptions {
   /** Gate the query (defaults to enabled). Always additionally gated on unlock. */
@@ -49,6 +53,8 @@ export interface UseSocialFeedOptions {
   nearTop?: boolean;
   /** Holds new posts even at the top; catch-up refreshes still run there. */
   holdNewPosts?: boolean;
+  /** Social V1-only tracing for the first real initial-page request. */
+  performance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
 
 export interface SocialFeedState {
@@ -129,9 +135,11 @@ export const useSocialFeed = (
     paused = false,
     nearTop = true,
     holdNewPosts = false,
+    performance,
   } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
   const queryClient = useQueryClient();
+  const initialRequestAccountedForRef = useRef(false);
 
   const request = useMemo(
     () => (source ? toSocialFeedRequest(source) : null),
@@ -150,10 +158,31 @@ export const useSocialFeed = (
 
   const query = useInfiniteQuery({
     queryKey,
-    queryFn: ({ pageParam }: { pageParam?: string }) =>
-      request
-        ? fetchSocialFeedPage(request, pageSize, pageParam)
-        : Promise.resolve(EMPTY_PAGE),
+    queryFn: ({ pageParam }: { pageParam?: string }) => {
+      const fetchPage = () =>
+        request
+          ? fetchSocialFeedPage(request, pageSize, pageParam)
+          : Promise.resolve(EMPTY_PAGE);
+
+      if (
+        pageParam !== undefined ||
+        !performance ||
+        initialRequestAccountedForRef.current
+      ) {
+        return fetchPage();
+      }
+
+      initialRequestAccountedForRef.current = true;
+      return measureSocialDataFetch({
+        tab: performance.tab,
+        cacheState:
+          queryClient.getQueryData<InfiniteData<FeedResponse>>(queryKey) ===
+          undefined
+            ? 'cold'
+            : 'warm',
+        request: fetchPage,
+      });
+    },
     getNextPageParam: getSocialFeedNextPageParam,
     initialPageParam: undefined as string | undefined,
     enabled: Boolean(request) && enabled && isUnlocked,
@@ -167,6 +196,17 @@ export const useSocialFeed = (
     // who scrolled down; realtime refreshes through its catch-up instead.
     ...(realtimeScope ? { staleTime: Infinity } : {}),
   });
+
+  useEffect(() => {
+    if (
+      performance &&
+      query.data !== undefined &&
+      !query.isFetching &&
+      !initialRequestAccountedForRef.current
+    ) {
+      initialRequestAccountedForRef.current = true;
+    }
+  }, [query.data, query.isFetching, performance]);
 
   const pages = query.data?.pages;
   const isGlobalFeed = request?.action === 'SocialService:fetchFeed';

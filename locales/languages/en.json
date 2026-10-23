@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Sign in with Apple",
     "continue_with_telegram": "Continue with Telegram",
     "sign_in_with_telegram": "Sign in with Telegram",
-    "your_wallet": "You successfully reset your wallet!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase",
@@ -1218,6 +1218,20 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Try again"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
@@ -1429,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "Open",
       "tab_closed": "Closed",
