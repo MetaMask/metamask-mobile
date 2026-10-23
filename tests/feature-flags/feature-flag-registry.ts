@@ -4056,7 +4056,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
   earnMoneyDepositBrazeCampaignEnabled: {
     name: 'earnMoneyDepositBrazeCampaignEnabled',
     type: FeatureFlagType.Remote,
-    inProd: false,
+    inProd: true,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
