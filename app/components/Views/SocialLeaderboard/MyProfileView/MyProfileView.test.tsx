@@ -133,7 +133,6 @@ jest.mock('./hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
   useMyProfileAddress: () => mockUseMyProfileAddress(),
   useMyProfilePosts: () => mockUseMyProfilePosts(),
-  useMyOpenPerpsPositionCount: () => 3,
 }));
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -236,7 +235,6 @@ const profile: UseMyProfileResult['profile'] = {
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
 };
 
 describe('MyProfileView', () => {
@@ -289,15 +287,15 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('renders the mocked owner identity and whale ranking', () => {
+  it('renders the mocked owner identity', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.DISPLAY_NAME),
     ).toHaveTextContent('Giga Whale');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐋 Whale');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');
@@ -448,8 +446,8 @@ describe('MyProfileView', () => {
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐬 Dolphin');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
   });
 
   it('opens followers connections on the followers tab', () => {
@@ -603,7 +601,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
-    ).toBeOnTheScreen();
+    ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),

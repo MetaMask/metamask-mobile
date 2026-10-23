@@ -3,27 +3,22 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   BoxAlignItems,
   BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
   HeaderStandard,
-  IconAlertSeverity,
-  TitleAlert,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   ListItem,
-  TextColor,
-  TextVariant,
+  ListItemVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import VbaOnboardingPlaceholder from './OnboardingPlaceholder';
 
 export const VbaOnboardingErrorSelectorsIDs = {
   CONTAINER: 'vba-onboarding-error-container',
@@ -52,7 +47,7 @@ export interface VbaOnboardingErrorProps {
   title: string;
   description: string;
   /**
-   * Checklist rows in the gray list. Omit this when the view has no rows.
+   * Checklist rows shown under the title. Omit this when the view has no rows.
    */
   items?: VbaOnboardingErrorItem[];
   primaryAction: VbaOnboardingErrorAction;
@@ -61,7 +56,7 @@ export interface VbaOnboardingErrorProps {
    */
   secondaryAction?: VbaOnboardingErrorAction;
   /**
-   * Header graphic. Defaults to a placeholder SVG until a Rive animation replaces it.
+   * Optional header graphic shown above the title.
    */
   illustration?: React.ReactNode;
   /**
@@ -91,16 +86,12 @@ const VbaOnboardingErrorItemRow = ({
   item: VbaOnboardingErrorItem;
 }) => (
   <ListItem
+    variant={ListItemVariant.TwoLines}
     avatar={
-      <Icon name={item.icon} size={IconSize.Md} color={IconColor.IconDefault} />
+      <AvatarIcon iconName={item.icon} severity={AvatarIconSeverity.Neutral} />
     }
     title={item.title}
     description={item.description}
-    descriptionProps={{
-      variant: TextVariant.BodySm,
-      fontWeight: FontWeight.Regular,
-      color: TextColor.TextAlternative,
-    }}
     testID={`${VbaOnboardingErrorSelectorsIDs.ITEM}-${item.id}`}
   />
 );
@@ -181,37 +172,43 @@ const VbaOnboardingError = ({
       />
       <ScrollView
         contentContainerStyle={tw.style(
-          'flex-grow px-4 pb-6',
-          items.length === 0 && 'justify-center',
+          'flex-grow pb-6',
+          illustration ? 'justify-center px-4' : undefined,
         )}
         testID={testID}
       >
-        <TitleAlert
-          {...{
-            severity: IconAlertSeverity.Info,
-            title,
-            description,
-            titleProps: { twClassName: 'text-center' },
-            // TitleAlert draws an IconAlert. These screens replace that glyph
-            // with an 88pt frame. The artwork sits on the bottom edge, and the
-            // 20pt margin plus TitleAlert's 4pt gap is the 24pt space above the title.
-            topAccessory: (
+        {illustration ? (
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            titleProps={{ twClassName: 'text-center' }}
+            titleWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            bottomLabelProps={{ twClassName: 'text-center' }}
+            bottomLabelWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            topAccessory={
               <Box
                 alignItems={BoxAlignItems.Center}
                 justifyContent={BoxJustifyContent.End}
                 twClassName={illustrationClassName}
                 testID={VbaOnboardingErrorSelectorsIDs.ILLUSTRATION}
               >
-                {illustration ?? <VbaOnboardingPlaceholder />}
+                {illustration}
               </Box>
-            ),
-          }}
-        />
+            }
+          />
+        ) : (
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            twClassName="px-4 pb-4"
+          />
+        )}
         {items.length > 0 ? (
-          <Box
-            twClassName="mt-6 overflow-hidden rounded-3xl bg-muted"
-            testID={VbaOnboardingErrorSelectorsIDs.LIST}
-          >
+          <Box testID={VbaOnboardingErrorSelectorsIDs.LIST}>
             {items.map((item) => (
               <VbaOnboardingErrorItemRow key={item.id} item={item} />
             ))}
