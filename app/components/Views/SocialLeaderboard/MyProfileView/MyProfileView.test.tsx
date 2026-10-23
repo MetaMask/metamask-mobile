@@ -21,12 +21,14 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   getLocalSocialProfileSnapshot,
   restoreDefaultLocalSocialProfile,
 } from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
+const mockFocusEffect: { current: (() => void) | null } = { current: null };
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
@@ -113,6 +115,9 @@ jest.mock('@react-navigation/native', () => ({
     push: mockPush,
   }),
   useRoute: () => ({ params: mockProfileRouteParams }),
+  useFocusEffect: (effect: () => void) => {
+    mockFocusEffect.current = effect;
+  },
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -894,6 +899,25 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
     ).toBeNull();
+  });
+
+  it('returns to Posts when focused right after the viewer posts', () => {
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+
+    requestPostsTabFocus();
+    act(() => {
+      mockFocusEffect.current?.();
+    });
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
   });
 
   it('prefetches positions with the viewed profile address', () => {

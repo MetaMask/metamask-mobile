@@ -48,7 +48,10 @@ interface SocialPostComposerPositionParams {
   /** Fast path: position passed by the host screen. No fetch fires. */
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
-  /** On success, replace the composer with Social V1 instead of going back. */
+  /**
+   * Ignored: every post lands on the viewer's Posts tab. Kept because the
+   * Perps share screen still passes it.
+   */
   openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;

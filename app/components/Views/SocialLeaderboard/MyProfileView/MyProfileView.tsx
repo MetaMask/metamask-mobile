@@ -22,6 +22,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
@@ -51,6 +52,7 @@ import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderPositions,
   useTraderProfile,
@@ -185,6 +187,14 @@ const MyProfileView: React.FC = () => {
     traderName,
   ]);
   const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  useFocusEffect(
+    useCallback(() => {
+      // Every new post lands here, on the Posts tab where it is pinned.
+      if (isOwner && consumePostsTabFocus()) {
+        setActiveTab('posts');
+      }
+    }, [isOwner]),
+  );
   const {
     posts,
     isLoading: isPostsLoading,

@@ -23,7 +23,10 @@ export interface OpenComposerOptions {
   position: Position;
   /** Where the share was started from. */
   entryPoint: SocialPostComposerEntryPoint;
-  /** On success, replace the composer with Social V1 instead of going back. */
+  /**
+   * Ignored: every post lands on the viewer's Posts tab. Kept because the
+   * Perps share screen still passes it.
+   */
   openFeedAfterPost?: boolean;
 }
 
