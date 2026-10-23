@@ -1330,11 +1330,16 @@
         "feed": "Feed",
         "trending": "Trending",
         "following": "Following",
-        "live_trades": "Live"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "Paused",
-        "live": "Live"
+        "live": "Live",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Following",
       "all": "All",
@@ -1375,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
+        "live": {
           "title": "No trades yet",
-          "description": "Live trades will show up here."
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
