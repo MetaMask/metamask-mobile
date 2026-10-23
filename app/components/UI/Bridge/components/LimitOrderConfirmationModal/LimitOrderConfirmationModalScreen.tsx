@@ -14,7 +14,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
-import { LIMIT_ORDER_DEFAULT_COST_TOLERANCE } from '../../constants/limitOrders';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
 import { useFetchLimitOrdersDelegations } from '../../api/limitOrders/getDelegations';
 import type { LimitOrderDelegationsResponse } from '../../api/limitOrders/getDelegations/schema';
 import { useCreateLimitOrder } from '../../api/limitOrders/create';
@@ -66,6 +66,9 @@ export const LimitOrderConfirmationModalScreen = () => {
   const params = useParams<LimitOrderConfirmationModalParams>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const costTolerance = useSelector(selectLimitOrderCostTolerance);
+  const defaultCostTolerance = useSelector(
+    selectBridgeLimitOrderDefaultCostTolerance,
+  );
   const triggerComparison = useSelector(selectLimitOrderMarketComparison);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const sourceWalletAddress = useSelector(selectSourceWalletAddress);
@@ -114,8 +117,7 @@ export const LimitOrderConfirmationModalScreen = () => {
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
   // The tolerance the delegations are requested with. The create request has to
   // be given the same one, so both read this single resolved value.
-  const costTolerancePercent =
-    costTolerance ?? LIMIT_ORDER_DEFAULT_COST_TOLERANCE;
+  const costTolerancePercent = costTolerance ?? defaultCostTolerance;
   const { fetchLimitOrdersDelegations } = useFetchLimitOrdersDelegations({
     ...params.order,
     costTolerance: costTolerancePercent,

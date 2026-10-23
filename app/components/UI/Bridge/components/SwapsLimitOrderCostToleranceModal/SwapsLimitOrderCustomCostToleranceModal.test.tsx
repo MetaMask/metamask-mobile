@@ -6,6 +6,7 @@ import {
   selectLimitOrderCostTolerance,
   setLimitOrderCostTolerance,
 } from '../../../../../core/redux/slices/bridge';
+import { selectBridgeLimitOrderDefaultCostTolerance } from '../../../../../selectors/bridge/featureFlags';
 import { SwapsLimitOrderCustomCostToleranceModal } from './SwapsLimitOrderCustomCostToleranceModal';
 import { SwapsLimitOrderCostToleranceModalSelectorsIDs } from './testIds';
 
@@ -53,10 +54,19 @@ jest.mock('../../../../Base/Keypad', () => ({
 }));
 
 describe('SwapsLimitOrderCustomCostToleranceModal', () => {
-  const mockCostTolerance = (costTolerance: string | undefined) =>
-    mockSelector.mockImplementation((selector) =>
-      selector === selectLimitOrderCostTolerance ? costTolerance : undefined,
-    );
+  const mockCostTolerance = (
+    costTolerance: string | undefined,
+    defaultCostTolerance = '3',
+  ) =>
+    mockSelector.mockImplementation((selector) => {
+      if (selector === selectLimitOrderCostTolerance) {
+        return costTolerance;
+      }
+      if (selector === selectBridgeLimitOrderDefaultCostTolerance) {
+        return defaultCostTolerance;
+      }
+      return undefined;
+    });
 
   beforeEach(() => {
     mockCostTolerance('2');
@@ -141,14 +151,26 @@ describe('SwapsLimitOrderCustomCostToleranceModal', () => {
     expect(mockDispatch).toHaveBeenCalledWith(setLimitOrderCostTolerance('2'));
   });
 
-  it('starts from 2% when no cost tolerance is stored', () => {
+  it('starts from the default cost tolerance when no cost tolerance is stored', () => {
     mockCostTolerance(undefined);
 
     const { getByText } = render(<SwapsLimitOrderCustomCostToleranceModal />);
 
     fireEvent.press(getByText(strings('bridge.confirm')));
 
-    expect(mockDispatch).toHaveBeenCalledWith(setLimitOrderCostTolerance('2'));
+    expect(mockDispatch).toHaveBeenCalledWith(setLimitOrderCostTolerance('3'));
+  });
+
+  it('starts from the remote default cost tolerance when no cost tolerance is stored', () => {
+    mockCostTolerance(undefined, '1.5');
+
+    const { getByText } = render(<SwapsLimitOrderCustomCostToleranceModal />);
+
+    fireEvent.press(getByText(strings('bridge.confirm')));
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setLimitOrderCostTolerance('1.5'),
+    );
   });
 
   it('dispatches the incremented value after pressing the stepper plus button', () => {
