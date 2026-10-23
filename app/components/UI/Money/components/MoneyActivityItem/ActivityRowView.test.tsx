@@ -70,4 +70,67 @@ describe('ActivityRowView', () => {
       '•'.repeat(6),
     );
   });
+
+  it('renders only the fiat amount when the primary line is not requested', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityRowView
+        id="received-1"
+        display={{ ...display, showPrimaryAmount: undefined }}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).not.toBeOnTheScreen();
+    expect(getByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT)).toHaveTextContent(
+      '+$12.35',
+    );
+  });
+
+  it('hides an empty fiat line when the primary amount is shown', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityRowView
+        id="card-purchase-1"
+        display={{
+          ...display,
+          label: 'Purchase',
+          description: 'Coffee Shop',
+          primaryAmount: '-$10.00',
+          fiatAmount: '',
+          isIncoming: false,
+          icon: IconName.Card,
+          showPrimaryAmount: true,
+        }}
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('-$10.00');
+    expect(
+      queryByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('masks only the primary amount when the fiat line is empty', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityRowView
+        id="card-purchase-2"
+        display={{
+          ...display,
+          primaryAmount: '-$10.00',
+          fiatAmount: '',
+          showPrimaryAmount: true,
+        }}
+        privacyMode
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyActivityItemTestIds.PRIMARY_AMOUNT),
+    ).toHaveTextContent('•'.repeat(6));
+    expect(
+      queryByTestId(MoneyActivityItemTestIds.FIAT_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
 });
