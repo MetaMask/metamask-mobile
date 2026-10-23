@@ -41,15 +41,12 @@ interface SocialPostComposerTradeParams {
   preview: SocialPostComposerPreview;
   position?: never;
   entryPoint?: never;
-  openFeedAfterPost?: never;
 }
 
 interface SocialPostComposerPositionParams {
   /** Fast path: position passed by the host screen. No fetch fires. */
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
-  /** On success, replace the composer with Social V1 instead of going back. */
-  openFeedAfterPost?: boolean;
   tradeInFlight?: never;
   preview?: never;
 }

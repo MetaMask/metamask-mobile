@@ -21,6 +21,7 @@ import {
   StackActions,
   useNavigation,
   useRoute,
+  type NavigationState,
 } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -70,7 +71,7 @@ import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurf
 import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import {
   addPendingPost,
-  requestFollowingFocus,
+  requestPostsTabFocus,
 } from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
@@ -90,6 +91,19 @@ import type { SocialPostComposerViewParams } from './SocialPostComposerView.type
 import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
+
+type ComposerRoute = NavigationState['routes'][number];
+
+const getPreviousRoute = (
+  state: NavigationState | undefined,
+): ComposerRoute | undefined =>
+  state && state.index > 0 ? state.routes[state.index - 1] : undefined;
+
+/** The viewer's own profile: either profile route, with no foreign trader. */
+const isOwnProfileRoute = (route: ComposerRoute | undefined): boolean =>
+  (route?.name === Routes.SOCIAL.MY_PROFILE ||
+    route?.name === Routes.SOCIAL.V1_PROFILE) &&
+  !(route.params as { traderId?: string } | undefined)?.traderId;
 
 interface ImageInsertEvent {
   nativeEvent: {
@@ -157,7 +171,6 @@ const SocialPostComposerView: React.FC = () => {
   const tradeInFlightParams = routeParams?.tradeInFlight;
   const tradeInFlightPreview = routeParams?.preview;
   const routedPosition = routeParams?.position;
-  const openFeedAfterPost = routeParams?.openFeedAfterPost === true;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
@@ -369,7 +382,6 @@ const SocialPostComposerView: React.FC = () => {
           ownerProfileId: profile.profileId,
           post: pendingPost,
         });
-        requestFollowingFocus();
       } else if (tradeInFlightParams) {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -391,11 +403,13 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
-      if (openFeedAfterPost) {
-        // Replace so Back from the feed skips this already-posted composer.
-        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
-      } else {
+      // Every post lands on the viewer's Posts tab, where it is pinned.
+      requestPostsTabFocus();
+      if (isOwnProfileRoute(getPreviousRoute(navigation.getState()))) {
         navigation.goBack();
+      } else {
+        // Replace so Back from the profile skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
     } catch {
       toastRef?.current?.showToast({
@@ -418,7 +432,6 @@ const SocialPostComposerView: React.FC = () => {
     gifUri,
     isSubmitting,
     navigation,
-    openFeedAfterPost,
     profile?.imageUrl,
     profile?.profileId,
     selectedPosition,
