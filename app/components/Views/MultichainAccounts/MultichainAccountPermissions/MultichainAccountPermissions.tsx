@@ -359,22 +359,10 @@ export const MultichainAccountPermissions = (
                 config as NetworkConfiguration;
               const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
 
-              // For per-dapp network selection, directly set the network for this domain
               Engine.context.SelectedNetworkController.setNetworkClientIdForDomain(
                 hostInfo?.metadata?.origin,
                 networkClientId,
               );
-              // Trigger state update to notify BackgroundBridge and the dapp
-              (
-                Engine.context
-                  .SelectedNetworkController as typeof Engine.context.SelectedNetworkController & {
-                  update: (
-                    fn: (state: { activeDappNetwork: string | null }) => void,
-                  ) => void;
-                }
-              ).update((state: { activeDappNetwork: string | null }) => {
-                state.activeDappNetwork = networkClientId;
-              });
             }
           }
         }

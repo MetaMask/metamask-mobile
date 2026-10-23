@@ -26,6 +26,7 @@ import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
 import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import { useFeedNow } from '../FeedView/hooks/useFeedNow';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
@@ -68,6 +69,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const scrollRef = useRef<ScrollView>(null);
+  const livePrices = useSocialLivePrices();
+  const handleScrollSettled = useCallback(() => {
+    livePrices?.requestVisibilityCheck();
+  }, [livePrices]);
   const now = useFeedNow({ enabled: true });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
@@ -144,9 +149,11 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pb-8')}
+          contentContainerStyle={tw.style('flex-grow pt-[12px] pb-8')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
+          onMomentumScrollEnd={handleScrollSettled}
+          onScrollEndDrag={handleScrollSettled}
           scrollEventThrottle={16}
           testID={LiveTradesViewSelectorsIDs.SCROLL_VIEW}
         >
@@ -154,6 +161,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             onOpenFilters={onOpenFilters}
             isFilterActive={isFilterActive}
             filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+            twClassName="px-4 pb-4"
           >
             <FilterButton
               isSelected

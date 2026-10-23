@@ -1,0 +1,524 @@
+import React from 'react';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { StatusBar } from 'react-native';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import CardWelcome from './CardWelcome';
+import { CardWelcomeSelectors } from './CardWelcome.testIds';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+import {
+  __fireRiveViewError,
+  __resetRiveMocks,
+  RiveErrorType,
+} from '../../../../../__mocks__/rive-app-react-native';
+
+const mockUseCardPostAuthRedirect = jest.fn();
+
+jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  ...jest.requireActual('../../hooks/useCardPostAuthRedirect'),
+  useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
+}));
+
+const mockUseCardEducationAnimationState = jest.fn();
+
+jest.mock('./useCardEducationAnimationState', () => ({
+  useCardEducationAnimationState: () => mockUseCardEducationAnimationState(),
+}));
+
+// Mocks
+type TransitionEndHandler = (event?: { data?: { closing?: boolean } }) => void;
+
+interface MockNavigator {
+  addListener: jest.Mock<() => void, [string, TransitionEndHandler]>;
+  getParent: () => MockNavigator | undefined;
+}
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockAddListener = jest.fn<() => void, [string, TransitionEndHandler]>(
+  () => jest.fn(),
+);
+const mockGetParent = jest.fn<MockNavigator | undefined, []>(() => undefined);
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn();
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const ReactActual = require('react');
+  return {
+    ...actual,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      addListener: mockAddListener,
+      getParent: mockGetParent,
+    }),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = callback();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [callback]);
+    },
+  };
+});
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
+const createTestStore = (
+  initialState: {
+    cardholderAccounts?: string[];
+    signInLink?: Record<string, unknown> | null;
+  } = {},
+) =>
+  configureStore({
+    reducer: {
+      engine: (
+        state = {
+          backgroundState: {
+            CardController: {
+              cardholderAccounts: initialState.cardholderAccounts ?? [],
+              signInLink: initialState.signInLink ?? null,
+            },
+          },
+        },
+      ) => state,
+    },
+  });
+
+describe('CardWelcome', () => {
+  let store: ReturnType<typeof createTestStore>;
+  let setBarStyleSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    __resetRiveMocks();
+    mockUseCardPostAuthRedirect.mockReturnValue(undefined);
+    mockUseCardEducationAnimationState.mockReturnValue('static');
+    mockNavigate.mockClear();
+    mockGoBack.mockClear();
+    mockAddListener.mockClear();
+    mockAddListener.mockImplementation(() => jest.fn());
+    mockGetParent.mockClear();
+    mockGetParent.mockReturnValue(undefined);
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+    setBarStyleSpy = jest
+      .spyOn(StatusBar, 'setBarStyle')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    setBarStyleSpy.mockRestore();
+  });
+
+  /**
+   * Returns the `transitionEnd` handler registered against the first
+   * navigator via `addListener`.
+   */
+  const getTransitionEndHandler = (): TransitionEndHandler => {
+    const call = mockAddListener.mock.calls.find(
+      ([eventType]) => eventType === 'transitionEnd',
+    );
+    return call?.[1] as TransitionEndHandler;
+  };
+
+  describe('Render', () => {
+    beforeEach(() => {
+      store = createTestStore({ cardholderAccounts: [] });
+    });
+
+    it('renders required UI elements', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('displays correct title and description', () => {
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
+      ).toHaveTextContent(strings('card.card_onboarding.title'));
+      expect(
+        getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
+      ).toHaveTextContent(strings('card.card_onboarding.description'));
+      expect(
+        getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.apply_now_button'));
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.not_now_button'));
+    });
+
+    it('tracks view event on mount', () => {
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_VIEWED,
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('Cards animation states', () => {
+    beforeEach(() => {
+      store = createTestStore({ cardholderAccounts: [] });
+    });
+
+    it("renders neither the Rive animation nor the static image while 'pending'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('pending');
+
+      const { queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("renders the Rive animation when the state is 'animate'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(
+        getByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARD_IMAGE),
+      ).not.toBeOnTheScreen();
+    });
+
+    it("renders the static image when the state is 'static'", () => {
+      mockUseCardEducationAnimationState.mockReturnValue('static');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders the title and description in every animation state', () => {
+      (['pending', 'animate', 'static'] as const).forEach((state) => {
+        mockUseCardEducationAnimationState.mockReturnValue(state);
+
+        const { getByTestId, unmount } = render(
+          <Provider store={store}>
+            <CardWelcome />
+          </Provider>,
+        );
+
+        expect(
+          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_TITLE_TEXT),
+        ).toBeOnTheScreen();
+        expect(
+          getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
+        ).toBeOnTheScreen();
+
+        unmount();
+      });
+    });
+  });
+
+  describe('Rive fallback', () => {
+    it('swaps to the static card image when the cards animation reports a Rive error', () => {
+      store = createTestStore({ cardholderAccounts: [] });
+      mockUseCardEducationAnimationState.mockReturnValue('animate');
+
+      const { getByTestId, queryByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      act(() => {
+        __fireRiveViewError({
+          message: 'failed to load',
+          type: RiveErrorType.MalformedFile,
+        });
+      });
+
+      expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
+      expect(
+        queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Interactions', () => {
+    it('navigates back when "Not Now" is pressed', () => {
+      store = createTestStore();
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+  });
+
+  describe('Navigation Flow', () => {
+    it('navigates to onboarding root when verify account button pressed (Non-cardholder)', () => {
+      store = createTestStore({ cardholderAccounts: [] });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ONBOARDING.ROOT,
+        undefined,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+    });
+
+    it('navigates to authentication when verify account button pressed (Cardholder)', () => {
+      store = createTestStore({
+        cardholderAccounts: ['0x1234567890abcdef'],
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+      );
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.CARD_BUTTON_CLICKED,
+      );
+    });
+
+    it('navigates to authentication when a sign-in link exists (non-cardholder)', () => {
+      store = createTestStore({
+        cardholderAccounts: [],
+        signInLink: {
+          providerId: 'immersve',
+          status: 'linked',
+          address: '0xabc',
+          updatedAt: Date.now(),
+        },
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.AUTHENTICATION,
+        undefined,
+      );
+    });
+
+    it('forwards postAuthRedirect to onboarding when opened from Money (non-cardholder)', () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+      store = createTestStore({ cardholderAccounts: [] });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.ONBOARDING.ROOT, {
+        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
+      });
+    });
+
+    it('forwards postAuthRedirect to authentication when opened from Money (cardholder)', () => {
+      mockUseCardPostAuthRedirect.mockReturnValue(MONEY_HOME_CARD_ORIGIN);
+      store = createTestStore({
+        cardholderAccounts: ['0x1234567890abcdef'],
+      });
+      const { getByTestId } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      fireEvent.press(getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.AUTHENTICATION, {
+        postAuthRedirect: MONEY_HOME_CARD_ORIGIN,
+      });
+    });
+  });
+
+  describe('Status bar handling', () => {
+    beforeEach(() => {
+      store = createTestStore();
+    });
+
+    it('applies light status bar and registers a transitionEnd listener on focus', () => {
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('reapplies the light status bar when a non-closing transition ends', () => {
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const handleTransitionEnd = getTransitionEndHandler();
+      setBarStyleSpy.mockClear();
+
+      handleTransitionEnd({ data: { closing: false } });
+
+      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+    });
+
+    it('reapplies the light status bar when transition event has no data', () => {
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const handleTransitionEnd = getTransitionEndHandler();
+      setBarStyleSpy.mockClear();
+
+      handleTransitionEnd();
+
+      expect(setBarStyleSpy).toHaveBeenCalledWith('light-content', true);
+    });
+
+    it('does not reapply the light status bar when the transition is closing', () => {
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      const handleTransitionEnd = getTransitionEndHandler();
+      setBarStyleSpy.mockClear();
+
+      handleTransitionEnd({ data: { closing: true } });
+
+      expect(setBarStyleSpy).not.toHaveBeenCalled();
+    });
+
+    it('registers listeners on parent navigators as well', () => {
+      const parentAddListener = jest.fn<
+        () => void,
+        [string, TransitionEndHandler]
+      >(() => jest.fn());
+      mockGetParent.mockReturnValueOnce({
+        addListener: parentAddListener,
+        getParent: () => undefined,
+      });
+
+      render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      expect(mockAddListener).toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+      expect(parentAddListener).toHaveBeenCalledWith(
+        'transitionEnd',
+        expect.any(Function),
+      );
+    });
+
+    it('unsubscribes listeners and resets the status bar on blur', () => {
+      const unsubscribe = jest.fn();
+      mockAddListener.mockImplementation(() => unsubscribe);
+
+      const { unmount } = render(
+        <Provider store={store}>
+          <CardWelcome />
+        </Provider>,
+      );
+
+      setBarStyleSpy.mockClear();
+      unmount();
+
+      expect(unsubscribe).toHaveBeenCalled();
+      // The fallback theme is light, so the bar resets to dark-content.
+      expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
+    });
+  });
+});

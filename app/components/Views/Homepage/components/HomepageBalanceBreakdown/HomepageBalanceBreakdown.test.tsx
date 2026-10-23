@@ -205,7 +205,7 @@ describe('HomepageBalanceBreakdown', () => {
   });
 
   it('renders the aggregate hero and iconless rows in screenshot order', () => {
-    const { getByTestId, getAllByTestId, queryByTestId } = render(
+    const { getByTestId, getAllByTestId } = render(
       <HomepageBalanceBreakdown />,
     );
 
@@ -250,8 +250,8 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
     ).toHaveTextContent('USD 10.00');
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).not.toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).toHaveTextContent('Add');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -340,7 +340,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('Today');
   });
 
-  it('mutes a partially loaded aggregate hero', () => {
+  it('renders a partially loaded aggregate hero balance', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -351,12 +351,12 @@ describe('HomepageBalanceBreakdown', () => {
 
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
-    });
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
   });
 
-  it('mutes an incomplete aggregate without treating an error as loading', () => {
+  it('renders an incomplete aggregate without treating an error as loading', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -368,9 +368,49 @@ describe('HomepageBalanceBreakdown', () => {
 
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+  });
+
+  it('shows a muted zero without a delta while the aggregate is loading', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        status: 'loading',
+      },
     });
+
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 0.00');
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('rolls every aggregate balance update', () => {
+    const { rerender, getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        totalFiat: 75,
+      },
+    });
+    rerender(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {
@@ -417,11 +457,11 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')),
     ).toBeOnTheScreen();
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
-    ).not.toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
+    ).toHaveTextContent('USD 0.00');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Buy');
+    ).toHaveTextContent('Add');
     expect(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY)).toHaveStyle({
       borderRadius: 9999,
       height: 28,
@@ -429,10 +469,10 @@ describe('HomepageBalanceBreakdown', () => {
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,
-    ).toBe('Money, 0%');
+    ).toBe('Money, USD 0.00, 0%');
   });
 
-  it('initiates a Money deposit when the Buy button is pressed', () => {
+  it('initiates a Money deposit when the Add button is pressed', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -447,7 +487,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockInitiateMoneyDeposit).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the geo-block sheet when Buy is pressed by an ineligible user', () => {
+  it('opens the geo-block sheet when Add is pressed by an ineligible user', () => {
     mockIsMoneyAccountGeoEligible = false;
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -663,7 +703,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
-  it('keeps Money Buy visible while hiding unresolved non-Money rows', () => {
+  it('keeps Money Add visible while hiding unresolved non-Money rows', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -678,7 +718,7 @@ describe('HomepageBalanceBreakdown', () => {
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
-    ).toHaveTextContent('Buy');
+    ).toHaveTextContent('Add');
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
     ).not.toBeOnTheScreen();
@@ -702,6 +742,28 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')).props
         .accessibilityLabel,
     ).toBe('Tokens');
+  });
+
+  it('displays the balance without animation when returning from privacy mode', () => {
+    mockPrivacyMode = true;
+
+    const { getByTestId, rerender } = render(<HomepageBalanceBreakdown />);
+
+    mockPrivacyMode = false;
+    rerender(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+  });
+
+  it('does not expose proportional allocation while privacy mode is enabled', () => {
+    mockPrivacyMode = true;
+
+    const { getByLabelText, getByTestId, queryByTestId } = render(
+      <HomepageBalanceBreakdown />,
+    );
+
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
         .accessibilityLabel,

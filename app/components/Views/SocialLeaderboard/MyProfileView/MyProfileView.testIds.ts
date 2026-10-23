@@ -30,6 +30,7 @@ export const MyProfileViewSelectorsIDs = {
   EDIT_PROFILE_BUTTON: 'my-profile-view-edit-profile-button',
   SHARE_PROFILE_BUTTON: 'my-profile-view-share-profile-button',
   FOLLOW_BUTTON: 'my-profile-view-follow-button',
+  MUTE_CHIP: 'my-profile-view-mute-chip',
   SCROLL: 'my-profile-view-scroll',
   OPEN_TAB: 'my-profile-view-open-tab',
   CLOSED_TAB: 'my-profile-view-closed-tab',

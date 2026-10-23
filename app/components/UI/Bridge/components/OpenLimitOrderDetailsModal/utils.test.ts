@@ -51,9 +51,9 @@ function createOrder({
   srcAmount: string;
   destAsset: LimitOrderAsset;
   destAmount: string;
-  kind: string;
+  kind: LimitOrder['trigger']['kind'];
   price: string;
-  threshold?: string;
+  threshold?: LimitOrder['trigger']['threshold'];
 }): LimitOrder {
   return {
     ...MOCK_LIMIT_OPEN_ORDER,
@@ -107,6 +107,44 @@ describe('getTriggerPrice', () => {
         triggerToken: destinationToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+
+    it('condenses the leading zeros of a sub-cent price instead of showing <$0.01', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000042123456',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe('$0.0₅4212');
+    });
+
+    it('condenses the leading zeros of a sub-cent price in the display currency', () => {
+      const order = createOrder({
+        srcAsset: USDC,
+        srcAmount: '1000000',
+        destAsset: LINK,
+        destAmount: '237000000000000000000000',
+        kind: 'dest_price',
+        price: '0.0000044',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(
+        order,
+        sourceToken,
+        destinationToken,
+        'EUR',
+        1.1,
+      );
+
+      expect(result.triggerPrice).toBe('€0.0₅4');
     });
 
     it('converts a fiat price into the display currency', () => {
@@ -263,6 +301,22 @@ describe('getTriggerPrice', () => {
         triggerToken: sourceToken,
         triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
       });
+    });
+
+    it('condenses the leading zeros of a tiny ratio price', () => {
+      const order = createOrder({
+        srcAsset: BNB,
+        srcAmount: '1000000000000000000',
+        destAsset: BSC_USDT,
+        destAmount: '1746970000',
+        kind: 'ratio',
+        price: '0.00000000174697',
+      });
+      const { sourceToken, destinationToken } = getLimitOrderTokens(order);
+
+      const result = getTriggerPrice(order, sourceToken, destinationToken);
+
+      expect(result.triggerPrice).toBe(quote('0.0₈1746', 'USDT'));
     });
 
     it('quotes a buy at the reported price when it reads per destination token', () => {
@@ -558,6 +612,7 @@ describe('getTriggerPrice', () => {
         destAmount: '220000000',
         kind: 'src_price',
         price: '2200',
+        // @ts-expect-error - this is a test
         threshold: 'crosses',
       });
       const { sourceToken, destinationToken } = getLimitOrderTokens(order);
