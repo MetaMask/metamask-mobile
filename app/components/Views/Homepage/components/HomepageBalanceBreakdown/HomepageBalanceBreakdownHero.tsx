@@ -1,5 +1,4 @@
 import React from 'react';
-import Animated from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -13,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -27,6 +27,12 @@ interface HomepageBalanceBreakdownHeroProps {
   hero: HeroData;
 }
 
+/** BodyMd line box, the same height as the loaded "+$0 Today" row. */
+const DELTA_SKELETON_HEIGHT = typography.sBodyMD.lineHeight;
+/** Fixed so the hero shimmer does not resize as the hidden amount changes. */
+const BALANCE_SKELETON_WIDTH = 92;
+const BALANCE_SKELETON_HEIGHT = typography.sAmountDisplayLg.lineHeight;
+
 const HomepageBalanceBreakdownHero = ({
   hero,
 }: HomepageBalanceBreakdownHeroProps) => {
@@ -34,7 +40,6 @@ const HomepageBalanceBreakdownHero = ({
     accessibilityHint,
     accessibilityLabel,
     amountText,
-    animatedBalanceStyle,
     deltaColor,
     displayBalance,
     isLoading,
@@ -68,13 +73,17 @@ const HomepageBalanceBreakdownHero = ({
       testID={HomepageBalanceBreakdownTestIds.HERO}
       twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
-      <Animated.View style={animatedBalanceStyle}>
+      <Skeleton
+        height={BALANCE_SKELETON_HEIGHT}
+        hideChildren={isLoading || hero.isPartiallyLoaded}
+        testID={HomepageBalanceBreakdownTestIds.HERO_BALANCE_SKELETON}
+        twClassName="rounded-md"
+        width={BALANCE_SKELETON_WIDTH}
+      >
         {privacyMode ? (
           <SensitiveText
             color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
+              hero.hasErroredSlice ? TextColor.TextMuted : TextColor.TextDefault
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
@@ -88,9 +97,7 @@ const HomepageBalanceBreakdownHero = ({
           <AnimatedBalanceText
             accessible={false}
             color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
+              hero.hasErroredSlice ? TextColor.TextMuted : TextColor.TextDefault
             }
             isLoading={isLoading}
             loadingValue={zeroBalance}
@@ -99,9 +106,15 @@ const HomepageBalanceBreakdownHero = ({
             animated={!skipBalanceAnimation}
           />
         )}
-      </Animated.View>
+      </Skeleton>
 
-      {!isLoading && hero.delta && amountText ? (
+      {isLoading ? (
+        <Skeleton
+          height={DELTA_SKELETON_HEIGHT}
+          testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_SKELETON}
+          width={120}
+        />
+      ) : hero.delta && amountText ? (
         <Skeleton>
           <Box
             alignItems={BoxAlignItems.Center}

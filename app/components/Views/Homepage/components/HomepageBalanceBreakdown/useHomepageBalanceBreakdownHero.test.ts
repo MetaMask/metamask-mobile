@@ -1,11 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import {
-  cancelAnimation,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 import I18n from '../../../../../../locales/i18n';
 import { TEST_NETWORK_IDS } from '../../../../../constants/network';
 import Engine from '../../../../../core/Engine';
@@ -16,12 +11,6 @@ import type { HeroData } from '../../BalanceBreakdown/types';
 import { useHomepageBalanceBreakdownHero } from './useHomepageBalanceBreakdownHero';
 
 jest.mock('react-redux', () => ({ useSelector: jest.fn() }));
-jest.mock('react-native-reanimated', () => ({
-  ...jest.requireActual('react-native-reanimated'),
-  cancelAnimation: jest.fn(),
-  withRepeat: jest.fn((animation) => animation),
-  withTiming: jest.fn((value) => value),
-}));
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PreferencesController: {
@@ -159,25 +148,5 @@ describe('useHomepageBalanceBreakdownHero', () => {
 
     expect(result.current.percentText).not.toBe(englishPercentage);
     expect(result.current.percentText).toContain(',');
-  });
-
-  it('pulses only while another slice is loading', () => {
-    const { rerender } = renderHook(
-      ({ isPartiallyLoaded }) =>
-        useHomepageBalanceBreakdownHero({
-          ...baseHero,
-          isPartiallyLoaded,
-        }),
-      { initialProps: { isPartiallyLoaded: true } },
-    );
-
-    expect(withTiming).toHaveBeenCalledWith(0.6, { duration: 900 });
-    expect(withRepeat).toHaveBeenCalled();
-
-    jest.mocked(withRepeat).mockClear();
-    rerender({ isPartiallyLoaded: false });
-
-    expect(cancelAnimation).toHaveBeenCalled();
-    expect(withRepeat).not.toHaveBeenCalled();
   });
 });

@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  cancelAnimation,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
 import { TextColor } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import {
@@ -43,11 +36,7 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   const accountGroupBalance = useSelector(
     selectAccountGroupBalanceForEmptyState,
   );
-  const balanceOpacity = useSharedValue(1);
   const locale = I18n.locale;
-  const animatedBalanceStyle = useAnimatedStyle(() => ({
-    opacity: balanceOpacity.value,
-  }));
   const isLoading = hero.status === 'loading';
   const isCurrentNetworkTestnet = TEST_NETWORK_IDS.includes(selectedChainId);
   const shouldShowEmptyState =
@@ -101,22 +90,6 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
   }, [PreferencesController, privacyMode]);
 
   useEffect(() => {
-    cancelAnimation(balanceOpacity);
-
-    if (hero.isPartiallyLoaded) {
-      balanceOpacity.value = withRepeat(
-        withTiming(0.6, { duration: 900 }),
-        -1,
-        true,
-      );
-    } else {
-      balanceOpacity.value = 1;
-    }
-
-    return () => cancelAnimation(balanceOpacity);
-  }, [balanceOpacity, hero.isPartiallyLoaded]);
-
-  useEffect(() => {
     previousPrivacyMode.current = privacyMode;
   }, [privacyMode]);
 
@@ -124,7 +97,6 @@ export function useHomepageBalanceBreakdownHero(hero: HeroData) {
     accessibilityHint,
     accessibilityLabel,
     amountText,
-    animatedBalanceStyle,
     deltaColor,
     displayBalance,
     isLoading,

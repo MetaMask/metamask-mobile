@@ -130,16 +130,27 @@ jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   return {
     Skeleton: ({
       children,
+      height,
       hideChildren,
       testID,
+      width,
     }: {
       children: React.ReactNode;
+      height?: number;
       hideChildren: boolean;
       testID?: string;
+      width?: number;
     }) =>
       ReactMock.createElement(
         View,
-        { testID, accessibilityState: { busy: hideChildren } },
+        {
+          testID,
+          accessibilityState: { busy: hideChildren },
+          style:
+            height === undefined && width === undefined
+              ? undefined
+              : { height, width },
+        },
         children,
       ),
   };
@@ -340,7 +351,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('Today');
   });
 
-  it('renders a partially loaded aggregate hero balance', () => {
+  it('covers a partially loaded aggregate hero balance with a skeleton', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -352,8 +363,8 @@ describe('HomepageBalanceBreakdown', () => {
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('USD 50.00');
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_BALANCE_SKELETON),
+    ).toHaveProp('accessibilityState', { busy: true });
   });
 
   it('renders an incomplete aggregate without treating an error as loading', () => {
@@ -373,7 +384,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('USD 50.00');
   });
 
-  it('shows a muted zero without a delta while the aggregate is loading', () => {
+  it('covers the balance and delta with skeletons while the aggregate is loading', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -386,10 +397,13 @@ describe('HomepageBalanceBreakdown', () => {
 
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('USD 0.00');
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
     ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_SKELETON),
+    ).toHaveStyle({ height: 24, width: 120 });
   });
 
   it('rolls every aggregate balance update', () => {
