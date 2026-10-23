@@ -1,70 +1,20 @@
 # VBA screen performance Sentry contract
 
-Every customer-facing Virtual Bank Account screen emits an independent screen
-load transaction. VBA-owned screens use `VBA Screen Load` with
-`vba.operation`; KYC-owned screens use `KYC Screen Load` with `kyc.operation`.
-Both are correlated by `flow:vba` and `metric_type:screen_load`.
+The 16 bounded `VBA_SCREEN_ID` and `KYC_SCREEN_ID` screens emit independent
+forced transactions:
 
-## Attributes
+- VBA: `VBA Screen Load` / `vba.operation`; KYC: `KYC Screen Load` /
+  `kyc.operation`.
+- Tags: `flow:vba`, `metric_type:screen_load`, `feature`, `screen_id`,
+  `content_state`, and `success`.
+- Unfinished reasons: `unmounted`, `app_backgrounded`, or `disabled`.
 
-- `feature`: owning feature, `vba` or `kyc`
-- `flow`: always `vba`
-- `metric_type`: always `screen_load`
-- `screen_id`: a value from the owning feature's bounded screen inventory
-- `content_state`: `populated`, `empty`, or `error`
-- `success`: `true` when meaningful content is ready
-- `reason`: `unmounted`, `app_backgrounded`, or `disabled` when content was
-  not reached
-
-No wallet addresses, profile IDs, bank details, fiat amounts, provider response
-bodies, or raw errors are attached.
-
-## Screens
-
-- `onboarding_loading`
-- `vendor_terms`
-- `email_verification`
-- `identity_verification_terms`
-- `identity_verification_provider`
-- `kyc_pending`
-- `identity_verified`
-- `choose_currency`
-- `kyc_rejected`
-- `account_provisioning_error`
-- `account_create_details_error`
-- `account_create_generic_error`
-- `onboarding_error`
-- `account_creation`
-- `account_details`
-- `provider_terms_modal`
-
-The Money entry sheet, global support consent, native MFA and SumSub surfaces,
-post-onboarding transaction details, and debug-only deposit sheet are not
-VBA-owned screens and are not included.
+Wallet/profile IDs, bank details, amounts, provider bodies, and raw errors are
+excluded, as are shared Money, support, native SDK, transaction, and debug UI.
 
 ## Verify locally
 
-Run Metro with development logging and a valid Sentry DSN:
-
-```bash
-SDK_DEV=DEV MM_SENTRY_DSN=<dsn> yarn watch:clean
-```
-
-Accept metrics consent, enter the VBA flow, and verify Metro logs before
-checking Sentry:
-
-```text
-[VbaCUF] VBA Screen Load started {"feature":"vba",...}
-[VbaCUF] VBA Screen Load completed {"success":true,...}
-[KycCUF] KYC Screen Load completed {"success":true,...}
-```
-
-Use Trace Explorer in the `development` environment:
-
-```text
-flow:vba metric_type:screen_load
-```
-
-For latency, add `success:true`, group by `feature` and `screen_id`, and split by
-platform and release. Query `success:false` separately for abandonment and
-group by `reason`; do not include those spans in latency percentiles.
+Run `SDK_DEV=DEV MM_SENTRY_DSN=<dsn> yarn watch:clean`, accept metrics consent,
+exercise the flow, verify `[VbaCUF]` and `[KycCUF]` logs, then query Sentry
+`development` with `flow:vba metric_type:screen_load`. Group successful spans
+by `feature` and `screen_id`, and failures by `reason`.
