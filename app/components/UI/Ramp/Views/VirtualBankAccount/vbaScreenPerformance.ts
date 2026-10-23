@@ -1,13 +1,11 @@
 import { VbaIdentityVerificationRoutes, VbaOnboardingRoutes } from './routes';
 import { KYC_SCREEN_ID } from '../../../KYC/kycScreenPerformance';
-import {
-  SCREEN_CONTENT_STATE,
-  type ScreenContentState,
-} from '../../../../../hooks/useScreenPerformance';
 import { TraceName, TraceOperation } from '../../../../../util/trace';
 
-export const VBA_SCREEN_CONTENT_STATE = SCREEN_CONTENT_STATE;
-export type VbaScreenContentState = ScreenContentState;
+export {
+  SCREEN_CONTENT_STATE as VBA_SCREEN_CONTENT_STATE,
+  type ScreenContentState as VbaScreenContentState,
+} from '../../../../../hooks/useScreenPerformance';
 
 export const VBA_SCREEN_ID = {
   ONBOARDING_LOADING: 'onboarding_loading',

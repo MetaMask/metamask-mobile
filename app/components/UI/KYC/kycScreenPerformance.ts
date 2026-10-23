@@ -1,11 +1,9 @@
-import {
-  SCREEN_CONTENT_STATE,
-  type ScreenContentState,
-} from '../../../hooks/useScreenPerformance';
 import { TraceName, TraceOperation } from '../../../util/trace';
 
-export const KYC_SCREEN_CONTENT_STATE = SCREEN_CONTENT_STATE;
-export type KycScreenContentState = ScreenContentState;
+export {
+  SCREEN_CONTENT_STATE as KYC_SCREEN_CONTENT_STATE,
+  type ScreenContentState as KycScreenContentState,
+} from '../../../hooks/useScreenPerformance';
 
 export const KYC_SCREEN_ID = {
   IDENTITY_VERIFICATION_TERMS: 'identity_verification_terms',
