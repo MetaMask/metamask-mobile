@@ -1,23 +1,21 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
 import { SOCIAL_V1_AB_KEY } from './abTestConfig';
-import { SocialFeedPostingBannerSelectorsIDs } from './feed/components/SocialFeedPostingBanner.testIds';
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
   mockOpenPerpsFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
-  COMPOSER_POSTING_DELAY_MS,
-  resetSocialV1ComposedFeedStore,
-  submitSocialV1ComposedPost,
-} from './feed/store/socialV1ComposedFeedStore';
+  addPendingPost,
+  resetPendingPosts,
+} from '../pendingPosts/pendingPostsStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 
@@ -50,7 +48,7 @@ jest.mock('../utils/socialTabVisit', () => ({
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
 // React Query. This suite covers the V1 chrome, so stand in for both data
-// sources while still driving the real composed-post store the banner tests
+// sources while still driving the real pending-post store the pinning tests
 // depend on.
 jest.mock('./feed/hooks/useSocialV1Feed', () => ({
   useSocialV1Feed: jest.requireActual('./feed/mocks/mockComposedFeedHook')
@@ -146,7 +144,21 @@ jest.mock('react-native-pager-view', () => {
 });
 
 jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
   playSelection: () => mockPlaySelection(),
+  fireImpact: jest.fn(),
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => true,
 }));
 
 jest.mock('../TopTradersView', () => {
@@ -186,6 +198,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },
@@ -241,7 +254,7 @@ describe('SocialV1View', () => {
     jest.clearAllMocks();
     mockRouteParams = {};
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
     mockUseMyProfile.mockReturnValue({
       profile: null,
@@ -253,11 +266,11 @@ describe('SocialV1View', () => {
 
   afterEach(() => {
     act(() => {
-      resetSocialV1ComposedFeedStore();
+      resetPendingPosts();
     });
   });
 
-  it('renders Trending, Following, Leaderboard, and Live trades tabs', () => {
+  it('renders Trending, Following, Leaderboard, and Live tabs', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -377,60 +390,60 @@ describe('SocialV1View', () => {
     ).toBe('transparent');
   });
 
-  it('consumes the focus-trending flag when the screen gains focus', () => {
-    act(() => {
-      submitSocialV1ComposedPost({
-        id: 'composed-focus',
-        authorHandle: 'giga-whale',
-        timestampMs: Date.now(),
-        reactions: [],
-        item: mockOpenPerpsFeedItem({ id: 'focus-item', comment: 'focus me' }),
+  describe('after posting', () => {
+    const PENDING_ITEM_ID = 'pending-item';
+
+    beforeEach(() => {
+      mockUseMyProfile.mockReturnValue({
+        profile: {
+          profileId: 'viewer-profile',
+          displayName: 'Giga Whale',
+          handle: 'giga_whale',
+          shareUrl: '',
+        },
+        isLoading: false,
+        error: null,
+        refresh: mockRefreshMyProfile,
+      });
+      act(() => {
+        addPendingPost({
+          ownerProfileId: 'viewer-profile',
+          post: {
+            id: 'pending-comment-1',
+            commentId: 'comment-1',
+            authorHandle: 'Giga Whale',
+            timestampMs: Date.now(),
+            reactions: [],
+            item: mockOpenPerpsFeedItem({
+              id: PENDING_ITEM_ID,
+              comment: 'this is alpha',
+            }),
+          },
+        });
       });
     });
 
-    renderWithProvider(<SocialV1View />);
+    it('pins the new post on top of Following', () => {
+      renderWithProvider(<SocialV1View />);
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
 
-    expect(
-      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the posting progress banner then prepends the composed post', () => {
-    jest.useFakeTimers();
-    renderWithProvider(<SocialV1View />);
-
-    act(() => {
-      submitSocialV1ComposedPost({
-        id: 'composed-1',
-        authorHandle: 'giga-whale',
-        timestampMs: Date.now(),
-        reactions: [],
-        item: mockOpenPerpsFeedItem({
-          id: 'composed-item',
-          comment: 'this is alpha',
-        }),
-      });
+      const followingCards = within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+      ).getAllByTestId(/^social-v1-feed-card-/);
+      expect(followingCards[0].props.testID).toBe(
+        getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
+      );
     });
 
-    expect(
-      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.PROGRESS),
-    ).toBeOnTheScreen();
+    it('stays on Trending, without the post, when no post was just written', () => {
+      renderWithProvider(<SocialV1View />);
 
-    act(() => {
-      jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
+      expect(
+        screen.queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+      ).toBeNull();
     });
-
-    expect(
-      screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-    ).toBeNull();
-    expect(
-      screen.getByTestId('social-v1-feed-card-composed-item'),
-    ).toBeOnTheScreen();
-
-    jest.useRealTimers();
   });
 
   it('renders the Live trades filter icon on the Live trades page', () => {

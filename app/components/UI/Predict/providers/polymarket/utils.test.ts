@@ -2,6 +2,7 @@ import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { Interface } from 'ethers/lib/utils';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -32,6 +33,7 @@ import {
   clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
+  encodeRouterRedeem,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
@@ -49,11 +51,13 @@ import {
   getRawBalance,
   getTickSizeRoundConfig,
   parsePolymarketEvents,
+  parsePolymarketMarket,
   parsePolymarketActivity,
   parsePolymarketPositions,
   previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
+  toBytes31ConditionId,
 } from './utils';
 import type {
   PolymarketApiActivity,
@@ -4366,5 +4370,227 @@ describe('mapPolymarketActivityV2', () => {
     expect(mapped).toHaveLength(2);
     expect(mapped[0]).toMatchObject({ type: 'TRADE' });
     expect(mapped[1]).toMatchObject({ type: 'REDEEM', usdcSize: 25 });
+  });
+});
+
+describe('parsePolymarketMarket market version', () => {
+  const event = {
+    id: 'event-1',
+    description: 'Description',
+  } as PolymarketApiEvent;
+  const createVersionedMarket = (
+    overrides: Partial<PolymarketApiMarket> = {},
+  ): PolymarketApiMarket => ({
+    ...createPolymarketApiMarket(),
+    clobTokenIds: '["ctf-yes","ctf-no"]',
+    outcomes: '["Yes","No"]',
+    outcomePrices: '["0.5","0.5"]',
+    ...overrides,
+  });
+
+  it('copies the Gamma version onto the parsed market', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.version).toBe('v2');
+  });
+
+  it('uses positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('uses native-array positionIds for outcome token ids on v2 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        positionIds: ['pos-yes', 'pos-no'],
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'pos-yes',
+      'pos-no',
+    ]);
+  });
+
+  it('yields no outcome token ids when a v2 market has no positionIds', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v2' }),
+      event,
+    );
+
+    expect(parsed.tokens).toEqual([]);
+  });
+
+  it('keeps clobTokenIds for v1 markets', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ version: 'v1' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing', () => {
+    const parsed = parsePolymarketMarket(createVersionedMarket(), event);
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds for v1 markets even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v1',
+        positionIds: '["pos-yes","pos-no"]',
+      }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+
+  it('keeps clobTokenIds when the version is missing even when positionIds are present', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({ positionIds: '["pos-yes","pos-no"]' }),
+      event,
+    );
+
+    expect(parsed.tokens.map((token) => token.id)).toEqual([
+      'ctf-yes',
+      'ctf-no',
+    ]);
+  });
+});
+
+describe('calculateFees', () => {
+  it('degrades to standard fees when the waiver lookup fails', async () => {
+    mockFetch.mockRejectedValue(new Error('gamma unavailable'));
+
+    const { fees } = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        collector: '0x9cNcwJegqX3hyKLM8jb9vpxUtqMVBetNhhF97k5Xy',
+        metamaskFee: 0.01,
+        providerFee: 0.02,
+        waiveList: ['some-waived-slug'],
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'some-market',
+      userBetAmount: 10,
+    });
+
+    expect(fees.metamaskFee).toBeCloseTo(0.1);
+    expect(fees.providerFee).toBeCloseTo(0.2);
+    expect(fees.totalFee).toBeCloseTo(0.3);
+  });
+});
+
+describe('toBytes31ConditionId', () => {
+  it('passes a bytes31 condition id through unchanged', () => {
+    const value = `0x${'ab'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('narrows a padded bytes32 condition id when the final byte is zero', () => {
+    expect(toBytes31ConditionId(`0x${'ab'.repeat(31)}00`)).toBe(
+      `0x${'ab'.repeat(31)}`,
+    );
+  });
+
+  it('accepts uppercase hex digits', () => {
+    const value = `0x${'AB'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('throws for a padded bytes32 condition id with a non-zero final byte', () => {
+    expect(() => toBytes31ConditionId(`0x${'ab'.repeat(31)}01`)).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+
+  it('throws for values that are neither bytes31 nor padded bytes32', () => {
+    expect(() => toBytes31ConditionId('0x1234')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+    expect(() => toBytes31ConditionId('not-a-hex-value')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+});
+
+describe('encodeRouterRedeem', () => {
+  const redeemInterface = new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]);
+  const conditionId = `0x${'cd'.repeat(31)}`;
+
+  it('encodes the Router redeem call with a bytes31 condition id, outcome index, and base-unit amount', () => {
+    // Snapshot: selector 0xd217a3cc, bytes31 word right-padded with 00,
+    // outcomeIndex 0, amount 1000000 (0xf4240).
+    const expectedCalldata =
+      '0xd217a3cc' +
+      'cd'.repeat(31) +
+      '00' +
+      '0'.repeat(64) +
+      '0'.repeat(59) +
+      'f4240';
+
+    expect(
+      encodeRouterRedeem({
+        conditionId,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toBe(expectedCalldata);
+  });
+
+  it('narrows a padded bytes32 condition id before encoding', () => {
+    const data = encodeRouterRedeem({
+      conditionId: `${conditionId}00`,
+      outcomeIndex: 1,
+      amount: '2500000',
+    });
+    const [decodedConditionId, outcomeIndex, amount] =
+      redeemInterface.decodeFunctionData('redeem', data);
+
+    expect(decodedConditionId).toBe(conditionId);
+    expect(String(outcomeIndex)).toBe('1');
+    expect(String(amount)).toBe('2500000');
+  });
+
+  it('throws when the condition id cannot be narrowed', () => {
+    expect(() =>
+      encodeRouterRedeem({
+        conditionId: `${conditionId}01`,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toThrow('Cannot narrow condition id to bytes31');
   });
 });

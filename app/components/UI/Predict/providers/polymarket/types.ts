@@ -153,6 +153,14 @@ export interface PolymarketApiMarket {
   umaResolutionStatus: string;
   /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
   version?: string;
+  /**
+   * Protocol V2 outcome token ids (decimal strings), indexed like
+   * `clobTokenIds`. Present on v2 markets; both fields can be present —
+   * the market version decides which field to use. The v2 wire returns
+   * the ids as a native JSON array; the JSON-encoded string form is
+   * accepted for compatibility.
+   */
+  positionIds?: string | string[];
   line?: number;
   cryptoMarketConfig?: {
     twapEnabled?: boolean;
@@ -245,13 +253,14 @@ export interface ContractConfig {
 /**
  * Contracts the positions protocol (Polymarket Protocol V2) needs. Protocol
  * V2 settles on a single exchange, so there is no separate neg-risk exchange
- * contract. The PositionManager owns the positions-protocol outcome balances;
- * selling requires approving it as operator for the exchange.
+ * contract. PositionManager is the ERC-1155 position ledger; the Router
+ * executes split, merge, and redeem against it.
  */
 export interface PositionsProtocolContractConfig {
   exchange: string;
   negRiskExchange: string;
   positionManager: string;
+  router: string;
 }
 
 export interface RoundConfig {
