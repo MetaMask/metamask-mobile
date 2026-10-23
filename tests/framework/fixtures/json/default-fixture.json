@@ -154,7 +154,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],
@@ -970,7 +974,6 @@
     "security": {
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
-      "dataSharingPreference": null,
       "isNFTAutoDetectionModalViewed": false,
       "osAuthEnabled": false,
       "shouldShowConsentSheet": true,
