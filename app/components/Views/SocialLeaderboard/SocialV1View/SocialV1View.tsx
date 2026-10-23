@@ -87,6 +87,7 @@ import { markSocialTabVisited } from '../utils/socialTabVisit';
 import {
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
+  type QuickBuyTradeMode,
 } from '../../../UI/QuickBuy';
 import { useQuickBuySheet } from '../../../UI/QuickBuy/QuickBuySheetHost';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
@@ -402,19 +403,19 @@ const SocialV1ViewContent: React.FC = () => {
     Boolean(route.params?.showNotificationsBanner),
   );
 
-  // The spot QuickBuy sheet must stay outside the PagerView, because the
-  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
-  // inside a pager page it would be clipped by the collapsing header block and
-  // painted over by the page's own scroll content. In the home tabs it renders
-  // in the tab host above the tab bar; as a stack route it renders inline here.
+  // Rendered outside the PagerView, where a page would clip the inline sheet; null inside the home tabs host.
   const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
   const openQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode: QuickBuyTradeMode = 'buy',
+    ) =>
       showQuickBuy({
         target,
         copyTradeOrigin,
         features: TOP_TRADERS_QUICK_BUY_FEATURES,
-        initialTradeMode: 'buy',
+        initialTradeMode: tradeMode,
         analyticsContext: { source: 'trader_feed' },
         postTradeShare: true,
         postTradeShareOwner: PostTradeShareOwner.socialV1Feed,

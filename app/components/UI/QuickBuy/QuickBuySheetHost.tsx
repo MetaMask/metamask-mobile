@@ -14,7 +14,6 @@ import {
 import QuickBuyRoot from './QuickBuyRoot';
 import type { QuickBuyRootProps, QuickBuyTarget } from './types';
 
-/** `QuickBuy.Root` props for one open sheet; visibility and close are owned by the sheet state. */
 export type QuickBuySheetOptions = Omit<
   QuickBuyRootProps,
   'isVisible' | 'target' | 'onClose' | 'children'
@@ -26,7 +25,6 @@ interface QuickBuySheetControls {
 }
 
 interface UseQuickBuySheetResult extends QuickBuySheetControls {
-  /** Render this node in the screen. `null` when the home tabs host renders the sheet. */
   quickBuySheet: React.ReactNode;
 }
 

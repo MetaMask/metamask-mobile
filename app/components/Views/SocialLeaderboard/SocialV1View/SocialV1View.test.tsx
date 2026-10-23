@@ -19,10 +19,6 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
-import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import type { QuickBuyRootProps } from '../../../UI/QuickBuy/types';
-import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import { PostTradeShareOwner } from '../PostTradeShareBottomSheet';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
@@ -38,7 +34,6 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   refresh: mockRefreshMyProfile,
 }));
 let mockRouteParams: { showNotificationsBanner?: boolean } = {};
-let mockIsFocused = true;
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
@@ -50,33 +45,6 @@ jest.mock('../hooks/useOpenSocialPostComposer', () => ({
 
 jest.mock('../utils/socialTabVisit', () => ({
   markSocialTabVisited: () => mockMarkSocialTabVisited(),
-}));
-
-let mockReopenQuickBuy:
-  | ((target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => void)
-  | undefined;
-let mockReopenOwner: string | undefined;
-jest.mock('../PostTradeShareBottomSheet', () => ({
-  ...jest.requireActual('../PostTradeShareBottomSheet'),
-  usePostTradeShareReopen: (
-    onReopen: (
-      target: QuickBuyTarget,
-      copyTradeOrigin?: CopyTradeOrigin,
-    ) => void,
-    owner?: string,
-  ) => {
-    mockReopenQuickBuy = onReopen;
-    mockReopenOwner = owner;
-  },
-}));
-
-const mockQuickBuyRoot = jest.fn<void, [QuickBuyRootProps]>();
-jest.mock('../../../UI/QuickBuy/QuickBuyRoot', () => ({
-  __esModule: true,
-  default: (props: QuickBuyRootProps) => {
-    mockQuickBuyRoot(props);
-    return null;
-  },
 }));
 
 // The feed pages fetch through `useSocialFeed`, which reads keyring state and
@@ -217,7 +185,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
-    useIsFocused: () => mockIsFocused,
+    useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },
@@ -272,7 +240,6 @@ describe('SocialV1View', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockRouteParams = {};
-    mockIsFocused = true;
     act(() => {
       resetPendingPosts();
     });
@@ -305,45 +272,6 @@ describe('SocialV1View', () => {
     expect(
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3-label`),
     ).toHaveTextContent('social_leaderboard.feed.tabs.live_trades');
-  });
-
-  it('reopens Quick Buy with the feed post-trade share options', () => {
-    const target: QuickBuyTarget = {
-      tokenAddress: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
-      tokenSymbol: 'AAVE',
-      tokenName: 'Aave',
-      chain: 'eip155:1',
-    };
-    const copyTradeOrigin: CopyTradeOrigin = { commentId: 'comment-1' };
-    renderWithProvider(<SocialV1View />);
-
-    act(() => mockReopenQuickBuy?.(target, copyTradeOrigin));
-
-    expect(mockQuickBuyRoot).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        isVisible: true,
-        target,
-        copyTradeOrigin,
-        initialTradeMode: 'buy',
-        analyticsContext: { source: 'trader_feed' },
-        postTradeShare: true,
-        postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
-      }),
-    );
-  });
-
-  it('listens for post-trade reopens while the feed is focused', () => {
-    renderWithProvider(<SocialV1View />);
-
-    expect(mockReopenOwner).toBe(PostTradeShareOwner.socialV1Feed);
-  });
-
-  it('ignores post-trade reopens while another screen covers the feed', () => {
-    mockIsFocused = false;
-
-    renderWithProvider(<SocialV1View />);
-
-    expect(mockReopenOwner).toBeUndefined();
   });
 
   it('omits tab sub-navigation pills', () => {

@@ -733,6 +733,14 @@ const HOME_TAB_COMPONENTS = {
   rewards: RewardsHome,
 } satisfies Record<Exclude<HomeTabKey, 'social'>, unknown>;
 
+const HomeTabSheetHosts = ({ children }: { children: React.ReactNode }) => (
+  <PredictPreviewSheetProvider>
+    <TrendingQuickBuySheetProvider>
+      <QuickBuySheetHostProvider>{children}</QuickBuySheetHostProvider>
+    </TrendingQuickBuySheetProvider>
+  </PredictPreviewSheetProvider>
+);
+
 const HomeTabs = () => {
   const { colors } = useTheme();
   const [isKeyboardHidden, setIsKeyboardHidden] = useState(true);
@@ -903,93 +911,71 @@ const HomeTabs = () => {
     />
   );
 
-  /*
-   * PredictPreviewSheetProvider, TrendingQuickBuySheetProvider and
-   * QuickBuySheetHostProvider are mounted here (above Tab.Navigator) so their
-   * BottomSheets render inside the full-viewport Home screen card, over the
-   * tab bar.
-   * BottomSheet uses `absolute inset-0` (see
-   * @metamask/design-system-react-native) and would be clipped by an
-   * individual tab's content area if mounted lower in the tree.
-   *
-   * A nested provider in PredictScreenStack still shadows this one for
-   * usage; the registration stack in PredictPreviewSheetContext keeps only
-   * the innermost (most recently mounted) provider active for state-based
-   * Retry toasts so we don't double-fire when both are mounted.
-   */
   if (isNativeTabBar) {
     return (
-      <PredictPreviewSheetProvider>
-        <TrendingQuickBuySheetProvider>
-          <QuickBuySheetHostProvider>
-            {isMoneyAccountEnabled ? (
-              <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-            ) : null}
-            <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
-              <NativeTab.Navigator
-                initialRouteName={Routes.WALLET.HOME}
-                screenOptions={{
-                  headerShown: false,
-                  // Mount on first visit like the JS navigator; the native
-                  // default renders every tab at launch and never freezes them.
-                  lazy: true,
-                  // UIKit picks the inactive colour.
-                  tabBarActiveTintColor: colors.icon.default,
-                  tabBarMinimizeBehavior: 'onScrollDown',
-                  tabBarStyle: TAB_BAR_VISIBLE_STYLE,
-                  overrideScrollViewContentInsetAdjustmentBehavior: false,
-                }}
-              >
-                {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
-                <NativeTab.Screen
-                  name={systemSlotTab.name}
-                  options={systemSlotTab.options}
-                  listeners={systemSlotTab.listeners}
-                  component={systemSlotTab.component}
-                />
-              </NativeTab.Navigator>
-            </FloatingTabBarInsetContext.Provider>
-          </QuickBuySheetHostProvider>
-        </TrendingQuickBuySheetProvider>
-      </PredictPreviewSheetProvider>
+      <HomeTabSheetHosts>
+        {isMoneyAccountEnabled ? (
+          <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+        ) : null}
+        <FloatingTabBarInsetContext.Provider value={nativeTabBarInset}>
+          <NativeTab.Navigator
+            initialRouteName={Routes.WALLET.HOME}
+            screenOptions={{
+              headerShown: false,
+              // Mount on first visit like the JS navigator; the native
+              // default renders every tab at launch and never freezes them.
+              lazy: true,
+              // UIKit picks the inactive colour.
+              tabBarActiveTintColor: colors.icon.default,
+              tabBarMinimizeBehavior: 'onScrollDown',
+              tabBarStyle: TAB_BAR_VISIBLE_STYLE,
+              overrideScrollViewContentInsetAdjustmentBehavior: false,
+            }}
+          >
+            {tabs.filter((tab) => !tab.isHidden).map(renderNativeTabScreen)}
+            <NativeTab.Screen
+              name={systemSlotTab.name}
+              options={systemSlotTab.options}
+              listeners={systemSlotTab.listeners}
+              component={systemSlotTab.component}
+            />
+          </NativeTab.Navigator>
+        </FloatingTabBarInsetContext.Provider>
+      </HomeTabSheetHosts>
     );
   }
 
   return (
-    <PredictPreviewSheetProvider>
-      <TrendingQuickBuySheetProvider>
-        <QuickBuySheetHostProvider>
-          {isMoneyAccountEnabled ? (
-            <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
-          ) : null}
-          <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
-            <JsTab.Navigator
-              initialRouteName={Routes.WALLET.HOME}
-              tabBar={renderTabBar}
-              screenOptions={{
-                headerShown: false,
-                // Never suspend blurred tabs: react-native-screens' delayed freeze
-                // can drop the activityState commit when a tab is left mid-mount,
-                // leaving the old screen (usually Money) stuck on top.
-                freezeOnBlur: false,
-              }}
-            >
-              {tabs.slice(0, 3).map(renderJsTabScreen)}
+    <HomeTabSheetHosts>
+      {isMoneyAccountEnabled ? (
+        <MoneyTabPressTracker onRegister={registerMoneyTabPressTracker} />
+      ) : null}
+      <FloatingTabBarInsetContext.Provider value={floatingTabBarHeight}>
+        <JsTab.Navigator
+          initialRouteName={Routes.WALLET.HOME}
+          tabBar={renderTabBar}
+          screenOptions={{
+            headerShown: false,
+            // Never suspend blurred tabs: react-native-screens' delayed freeze
+            // can drop the activityState commit when a tab is left mid-mount,
+            // leaving the old screen (usually Money) stuck on top.
+            freezeOnBlur: false,
+          }}
+        >
+          {tabs.slice(0, 3).map(renderJsTabScreen)}
 
-              {isFloatingTabBar ? null : (
-                <JsTab.Screen
-                  name={Routes.MODAL.TRADE_WALLET_ACTIONS}
-                  options={tradeOptions}
-                  component={WalletTabStackFlow}
-                />
-              )}
+          {isFloatingTabBar ? null : (
+            <JsTab.Screen
+              name={Routes.MODAL.TRADE_WALLET_ACTIONS}
+              options={tradeOptions}
+              component={WalletTabStackFlow}
+            />
+          )}
 
-              {tabs.slice(3).map(renderJsTabScreen)}
-            </JsTab.Navigator>
-          </FloatingTabBarInsetContext.Provider>
-        </QuickBuySheetHostProvider>
-      </TrendingQuickBuySheetProvider>
-    </PredictPreviewSheetProvider>
+          {tabs.slice(3).map(renderJsTabScreen)}
+        </JsTab.Navigator>
+      </FloatingTabBarInsetContext.Provider>
+    </HomeTabSheetHosts>
   );
 };
 
