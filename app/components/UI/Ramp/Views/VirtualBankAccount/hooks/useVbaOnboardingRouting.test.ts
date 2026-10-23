@@ -5,6 +5,7 @@ import Logger from '../../../../../../util/Logger';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   navigateToVbaOnboardingDestination,
+  openVbaOnboardingLoading,
   resolveVbaOnboarding,
   useOpenVbaOnboarding,
 } from './useVbaOnboardingRouting';
@@ -123,6 +124,23 @@ jest.mock('../vbaVendorTermsStorage', () => ({
   getVbaVendorTermsAcceptance: (...args: unknown[]) =>
     mockGetVbaVendorTermsAcceptance(...args),
 }));
+
+describe('openVbaOnboardingLoading', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the loading screen immediately and does not hydrate', () => {
+    openVbaOnboardingLoading(navigation, 'vba-action-row-details');
+
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockStartSession).not.toHaveBeenCalled();
+    expectResetTo({
+      name: VbaOnboardingRoutes.LOADING,
+      params: { source: 'vba-action-row-details' },
+    });
+  });
+});
 
 describe('useOpenVbaOnboarding', () => {
   beforeEach(() => {

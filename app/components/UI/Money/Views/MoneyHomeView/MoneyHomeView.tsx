@@ -48,7 +48,7 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { openVbaOnboardingLoading } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -208,12 +208,10 @@ const MoneyHomeView = () => {
   const vbaHomeCard = useVbaHomeCard();
   useVbaHomeCardRefresh();
   // The Details button is live for every VBA-eligible user (flag + IP region,
-  // the same eligibility gate the home cards use). Its destination is the same
-  // coordinator the cards use: a complete account lands on the PIX details
-  // screen, everyone else on their first incomplete onboarding module.
+  // the same eligibility gate the home cards use). It opens the loading
+  // screen on the tap. Hydrate runs there, then a complete account lands on
+  // the PIX details screen and everyone else on their first incomplete module.
   const { isEligible: isVbaEligible } = useVbaEligibility();
-  const openVbaOnboarding = useOpenVbaOnboarding('vba-action-row-details');
-  const [isDetailsOpening, setIsDetailsOpening] = useState(false);
   const showVbaDetailsButton = isVbaEligible;
   const actionButtonRowCount = showVbaDetailsButton
     ? ACTION_BUTTON_ROW_BASE_COUNT + 1
@@ -563,9 +561,6 @@ const MoneyHomeView = () => {
   ]);
 
   const handleActionButtonDetailsPress = useCallback(() => {
-    if (isDetailsOpening) {
-      return;
-    }
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.BANK_DETAILS,
@@ -576,26 +571,10 @@ const MoneyHomeView = () => {
       button_row_button_count: actionButtonRowCount,
     });
 
-    setIsDetailsOpening(true);
-    // Intentionally not awaited: openVbaOnboarding already routes internal
-    // failures to the recoverable-error screen. Log anything that escapes.
-    openVbaOnboarding()
-      .catch((error) => {
-        Logger.error(error as Error, {
-          tags: { feature: 'money-home' },
-          context: {
-            name: 'MoneyHomeView',
-            data: { step: 'handleActionButtonDetailsPress' },
-          },
-        });
-      })
-      .finally(() => setIsDetailsOpening(false));
-  }, [
-    isDetailsOpening,
-    openVbaOnboarding,
-    trackButtonClicked,
-    actionButtonRowCount,
-  ]);
+    // Open first. During KYC processing this used to wait on startSession and
+    // hydrate before leaving Money home.
+    openVbaOnboardingLoading(navigation, 'vba-action-row-details');
+  }, [actionButtonRowCount, navigation, trackButtonClicked]);
 
   const getPressRedirectTargetByMode = useCallback(
     (mode: MoneyMetaMaskCardMode) => {
@@ -1118,7 +1097,6 @@ const MoneyHomeView = () => {
             showVbaDetailsButton
               ? {
                   onPress: handleActionButtonDetailsPress,
-                  disabled: isDetailsOpening,
                 }
               : undefined
           }

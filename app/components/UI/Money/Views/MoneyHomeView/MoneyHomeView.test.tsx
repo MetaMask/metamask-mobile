@@ -86,7 +86,6 @@ import {
   useVbaHomeCardRefresh,
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   useVbaEligibility,
   type VbaEligibility,
@@ -431,11 +430,12 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-const mockOpenVbaOnboarding = jest.fn();
+const mockOpenVbaOnboardingLoading = jest.fn();
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    useOpenVbaOnboarding: jest.fn(() => mockOpenVbaOnboarding),
+    openVbaOnboardingLoading: (...args: unknown[]) =>
+      mockOpenVbaOnboardingLoading(...args),
   }),
 );
 
@@ -805,7 +805,7 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
-    mockOpenVbaOnboarding.mockClear();
+    mockOpenVbaOnboardingLoading.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -1085,17 +1085,12 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
-    it('tracks and opens the same destination as the VBA card on press', async () => {
+    it('tracks and opens the loading screen on press without waiting to hydrate', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
-      mockOpenVbaOnboarding.mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
-        );
-      });
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
 
       expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
@@ -1107,7 +1102,11 @@ describe('MoneyHomeView', () => {
         button_position: 4,
         button_row_button_count: 4,
       });
-      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaOnboardingLoading).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaOnboardingLoading).toHaveBeenCalledWith(
+        expect.anything(),
+        'vba-action-row-details',
+      );
     });
 
     it('counts four buttons in the Add tracking payload when Details is shown', () => {

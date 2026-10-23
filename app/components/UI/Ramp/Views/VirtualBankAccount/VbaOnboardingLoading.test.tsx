@@ -12,11 +12,15 @@ import {
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from './vbaOnboardingSnapshot';
 
 const mockGoBack = jest.fn();
+let mockLoadingSource: string | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     goBack: mockGoBack,
+  }),
+  useRoute: () => ({
+    params: mockLoadingSource ? { source: mockLoadingSource } : undefined,
   }),
 }));
 
@@ -46,6 +50,7 @@ const pending = () =>
 describe('VbaOnboardingLoading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLoadingSource = undefined;
     mockResolve.mockReturnValue(pending());
   });
 
@@ -72,11 +77,27 @@ describe('VbaOnboardingLoading', () => {
     renderWithProvider(<VbaOnboardingLoading />);
 
     await waitFor(() => {
+      expect(mockResolve).toHaveBeenCalledWith('money-add-money-bank-account');
       expect(mockNavigateToDestination).toHaveBeenCalledWith(
         expect.anything(),
         'vendorTerms',
         snapshot,
       );
+    });
+  });
+
+  it('hydrates with the source passed by the screen that opened it', async () => {
+    mockLoadingSource = 'vba-home-card-kyc-pending';
+    mockResolve.mockResolvedValue({
+      status: 'ready',
+      destinationId: 'kycPending',
+      snapshot: { ...EMPTY_VBA_ONBOARDING_SNAPSHOT },
+    });
+
+    renderWithProvider(<VbaOnboardingLoading />);
+
+    await waitFor(() => {
+      expect(mockResolve).toHaveBeenCalledWith('vba-home-card-kyc-pending');
     });
   });
 

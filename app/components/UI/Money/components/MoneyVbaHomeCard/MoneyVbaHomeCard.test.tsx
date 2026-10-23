@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { IconName } from '@metamask/design-system-react-native';
 import MoneyVbaHomeCard from './MoneyVbaHomeCard';
 import {
@@ -8,7 +8,6 @@ import {
 } from './MoneyVbaHomeCardConfig';
 import { MONEY_VBA_HOME_CARD_TEST_IDS } from './MoneyVbaHomeCard.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -20,7 +19,13 @@ import Logger from '../../../../../util/Logger';
 
 const mockTrackButtonClicked = jest.fn();
 const mockTrackComponentViewed = jest.fn();
-const mockOpenVbaOnboarding = jest.fn();
+const mockOpenVbaOnboardingLoading = jest.fn();
+const mockNavigation = { navigate: jest.fn() };
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => mockNavigation,
+}));
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -29,7 +34,8 @@ jest.mock('../../hooks/useMoneyAnalytics', () => ({
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    useOpenVbaOnboarding: jest.fn(),
+    openVbaOnboardingLoading: (...args: unknown[]) =>
+      mockOpenVbaOnboardingLoading(...args),
   }),
 );
 
@@ -41,8 +47,6 @@ jest.mock('../../../../../util/Logger', () => ({
 }));
 
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
-const mockUseOpenVbaOnboarding = jest.mocked(useOpenVbaOnboarding);
-const mockLoggerError = jest.mocked(Logger.error);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
   'get_started',
@@ -100,12 +104,10 @@ const VARIANT_EXPECTATIONS: Record<
 describe('MoneyVbaHomeCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOpenVbaOnboarding.mockResolvedValue(undefined);
     mockUseMoneyAnalytics.mockReturnValue({
       trackButtonClicked: mockTrackButtonClicked,
       trackComponentViewed: mockTrackComponentViewed,
     } as unknown as ReturnType<typeof useMoneyAnalytics>);
-    mockUseOpenVbaOnboarding.mockReturnValue(mockOpenVbaOnboarding);
   });
 
   it.each(VARIANTS)('renders the %s copy, CTA, and test ids', (variant) => {
@@ -135,13 +137,22 @@ describe('MoneyVbaHomeCard', () => {
     expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
   });
 
-  it.each(VARIANTS)('opens VBA onboarding with the %s source', (variant) => {
-    render(<MoneyVbaHomeCard variant={variant} />);
+  it.each(VARIANTS)(
+    'opens the loading screen immediately for %s',
+    (variant) => {
+      const { getByTestId } = render(<MoneyVbaHomeCard variant={variant} />);
 
-    expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith(
-      VARIANT_EXPECTATIONS[variant].source,
-    );
-  });
+      fireEvent.press(
+        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS[variant].CTA_BUTTON),
+      );
+
+      expect(mockOpenVbaOnboardingLoading).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaOnboardingLoading).toHaveBeenCalledWith(
+        mockNavigation,
+        VARIANT_EXPECTATIONS[variant].source,
+      );
+    },
+  );
 
   it.each(VARIANTS)(
     'fires the CTA-tap event and opens VBA onboarding for %s',
@@ -162,7 +173,10 @@ describe('MoneyVbaHomeCard', () => {
           redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
         }),
       );
-      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockOpenVbaOnboardingLoading).toHaveBeenCalledWith(
+        mockNavigation,
+        expectations.source,
+      );
     },
   );
 
@@ -182,127 +196,28 @@ describe('MoneyVbaHomeCard', () => {
         label_key: 'money.vba_home_card.kyc_decision.dismiss',
       }),
     );
-    expect(mockOpenVbaOnboarding).not.toHaveBeenCalled();
+    expect(mockOpenVbaOnboardingLoading).not.toHaveBeenCalled();
   });
 
-  it('logs to Logger.error when opening VBA onboarding rejects', async () => {
+  it('logs to Logger.error when opening the loading screen throws', () => {
     const failure = new Error('open failed');
-    mockOpenVbaOnboarding.mockRejectedValue(failure);
-
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
-
-    await act(async () => {
-      fireEvent.press(
-        getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON),
-      );
+    mockOpenVbaOnboardingLoading.mockImplementation(() => {
+      throw failure;
     });
+
+    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_pending" />);
+
+    fireEvent.press(
+      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_pending.CTA_BUTTON),
+    );
 
     expect(Logger.error).toHaveBeenCalledWith(failure, {
       tags: { feature: 'money-home' },
       context: {
         name: 'MoneyVbaHomeCard',
-        data: { variant: 'get_started', step: 'openVbaOnboarding' },
+        data: { variant: 'kyc_pending', step: 'openVbaOnboardingLoading' },
       },
     });
-  });
-
-  it('shows a busy CTA and ignores repeated taps while opening', () => {
-    // Note: this pins the isLoading-disabled mechanism — RN Pressability
-    // short-circuits presses on a disabled button, so the second press never
-    // reaches onPress. The `isOpening` guard in handleCtaPress is
-    // defense-in-depth for non-disabled entry points.
-    mockOpenVbaOnboarding.mockImplementation(
-      () =>
-        new Promise<void>(() => {
-          /* never settles: the hydrate is in flight */
-        }),
-    );
-
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
-    );
-
-    fireEvent.press(cta);
-    fireEvent.press(cta);
-
-    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
-    expect(cta.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: true, busy: true }),
-    );
-  });
-
-  it('re-enables the CTA once opening settles', async () => {
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(cta);
-    });
-    await act(async () => {
-      fireEvent.press(cta);
-    });
-
-    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(2);
-    expect(cta.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: false }),
-    );
-    expect(cta.props.accessibilityState?.busy).toBeFalsy();
-  });
-
-  it('re-enables the CTA after a rejected open and allows retry', async () => {
-    mockOpenVbaOnboarding.mockRejectedValueOnce(new Error('open failed'));
-
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="get_started" />);
-    const cta = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.get_started.CTA_BUTTON,
-    );
-
-    await act(async () => {
-      fireEvent.press(cta);
-    });
-
-    expect(cta.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: false }),
-    );
-    expect(cta.props.accessibilityState?.busy).toBeFalsy();
-
-    await act(async () => {
-      fireEvent.press(cta);
-    });
-
-    expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(2);
-  });
-
-  it('ignores Dismiss while an open is in flight', () => {
-    mockOpenVbaOnboarding.mockImplementation(
-      () =>
-        new Promise<void>(() => {
-          /* never settles: the hydrate is in flight */
-        }),
-    );
-
-    const { getByTestId } = render(<MoneyVbaHomeCard variant="kyc_decision" />);
-    fireEvent.press(
-      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CTA_BUTTON),
-    );
-
-    const dismiss = getByTestId(
-      MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.DISMISS_BUTTON as string,
-    );
-    fireEvent.press(dismiss);
-
-    expect(
-      getByTestId(MONEY_VBA_HOME_CARD_TEST_IDS.kyc_decision.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(mockTrackButtonClicked).not.toHaveBeenCalledWith(
-      expect.objectContaining({ button_intent: MONEY_BUTTON_INTENTS.DISMISS }),
-    );
-    expect(dismiss.props.accessibilityState).toEqual(
-      expect.objectContaining({ disabled: true }),
-    );
   });
 
   it('offers Dismiss only on the kyc_decision card', () => {

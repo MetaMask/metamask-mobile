@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -16,7 +20,9 @@ import {
   navigateToVbaOnboardingDestination,
   resolveVbaOnboarding,
 } from './hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
 
+/** Source used when Add money opens this screen without a route param. */
 const VBA_LOADING_SOURCE = 'money-add-money-bank-account';
 
 export const VbaOnboardingLoadingSelectorsIDs = {
@@ -32,6 +38,11 @@ export const VbaOnboardingLoadingSelectorsIDs = {
  */
 const VbaOnboardingLoading = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<
+      RouteProp<VbaOnboardingParamList, typeof VbaOnboardingRoutes.LOADING>
+    >();
+  const source = route.params?.source ?? VBA_LOADING_SOURCE;
   const tw = useTailwind();
   const [attempt, setAttempt] = useState(0);
   const [hasError, setHasError] = useState(false);
@@ -46,7 +57,7 @@ const VbaOnboardingLoading = () => {
   useEffect(() => {
     let active = true;
 
-    resolveVbaOnboarding(VBA_LOADING_SOURCE)
+    resolveVbaOnboarding(source)
       .then((resolved) => {
         if (!active) {
           return;
@@ -57,7 +68,7 @@ const VbaOnboardingLoading = () => {
         }
 
         Logger.log('[vba-onboarding] resume', {
-          source: VBA_LOADING_SOURCE,
+          source,
           snapshot: resolved.snapshot,
           destinationId: resolved.destinationId,
         });
@@ -72,7 +83,7 @@ const VbaOnboardingLoading = () => {
           tags: { feature: 'vba-onboarding' },
           context: {
             name: 'VbaOnboardingLoading',
-            data: { source: VBA_LOADING_SOURCE },
+            data: { source },
           },
         });
         if (active) {
@@ -83,7 +94,7 @@ const VbaOnboardingLoading = () => {
     return () => {
       active = false;
     };
-  }, [attempt, navigation]);
+  }, [attempt, navigation, source]);
 
   if (hasError) {
     return <VbaOnboardingStub variant="error" onContinue={handleRetry} />;

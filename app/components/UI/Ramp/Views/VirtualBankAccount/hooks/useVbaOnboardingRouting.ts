@@ -207,6 +207,26 @@ const openRecoverableError = (navigation: AppNavigationProp): void => {
   navigateToVbaOnboardingDestination(navigation, 'error');
 };
 
+/**
+ * Cold entry from Money home. Opens the loading screen on the tap so
+ * `startSession` and `hydrateVbaOnboarding` do not freeze the screen that was
+ * pressed. The loading screen calls {@link resolveVbaOnboarding}.
+ *
+ * In-flow retry and module completion stay on {@link useOpenVbaOnboarding},
+ * which hydrates before navigating.
+ *
+ * @param navigation - Navigation from the screen that opened onboarding.
+ * @param source - Caller/entry point forwarded to hydrate error logs.
+ */
+export const openVbaOnboardingLoading = (
+  navigation: AppNavigationProp,
+  source: string,
+): void => {
+  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+    source,
+  });
+};
+
 export interface OpenVbaOnboardingRequest {
   source?: string;
   /**
@@ -331,8 +351,9 @@ export const resolveVbaOnboarding = async (
 
 /**
  * Hydrates VBA onboarding facts and opens the first incomplete module. Used
- * for in-flow retry and module completion. Cold entry opens the loading screen
- * first and calls {@link resolveVbaOnboarding} there.
+ * for in-flow retry and module completion. Cold entry uses
+ * {@link openVbaOnboardingLoading}, which opens the loading screen first.
+ * That screen calls {@link resolveVbaOnboarding}.
  *
  * @param defaultSource - Caller/entry point for error telemetry.
  * @returns An async callback. Pass a source string, or `{ retryRejectedKyc: true }` from the KYC failure page.
