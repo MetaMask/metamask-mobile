@@ -30,7 +30,6 @@ export function getBridgeControllerMessenger(
       'SnapController:handleRequest',
       'NetworkController:getNetworkClientById',
       'NetworkController:findNetworkClientIdByChainId',
-      'CurrencyRateController:getState',
       'RemoteFeatureFlagController:getState',
       'AuthenticationController:getBearerToken',
       'AssetsController:getExchangeRatesForBridge',

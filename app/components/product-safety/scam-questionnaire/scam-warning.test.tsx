@@ -1,17 +1,20 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { act, fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 
 import { ScamWarning } from './scam-warning';
 import { PROCEED_DELAY_SECONDS } from './scam-questionnaire.constants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
+import renderWithProvider from '../../../util/test/renderWithProvider';
 import {
   confirmSupportConsent,
+  openSupportWithSavedPreference,
   rejectSupportConsent,
 } from '../../../util/support';
 
 jest.mock('../../../util/support', () => ({
   confirmSupportConsent: jest.fn(),
+  openSupportWithSavedPreference: jest.fn().mockReturnValue(false),
   rejectSupportConsent: jest.fn(),
 }));
 
@@ -19,7 +22,7 @@ const setup = () => {
   const onStop = jest.fn();
   const onContactSupport = jest.fn();
   const onProceed = jest.fn();
-  const utils = render(
+  const utils = renderWithProvider(
     <ScamWarning
       onStop={onStop}
       onContactSupport={onContactSupport}
@@ -67,6 +70,20 @@ describe('ScamWarning', () => {
     expect(confirmSupportConsent).not.toHaveBeenCalled();
     expect(rejectSupportConsent).not.toHaveBeenCalled();
     expect(onContactSupport).not.toHaveBeenCalled();
+  });
+
+  it('opens support directly when a saved preference is available', () => {
+    jest.mocked(openSupportWithSavedPreference).mockReturnValueOnce(true);
+    const { getByTestId, queryByTestId, onContactSupport } = setup();
+
+    fireEvent.press(getByTestId('scam-warning-contact-support'));
+
+    expect(openSupportWithSavedPreference).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+      onContactSupport,
+    );
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
   });
 
   it('confirms consent with the tracker as callback and hides the modal', () => {

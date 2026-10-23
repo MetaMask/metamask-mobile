@@ -153,6 +153,9 @@ test-reports/
 appwright/reporters/reports/*
 tests/reporters/reports/
 *.apk
+tmp/hyperexecute/
+tests/hyperexecute/discovered-*.txt
+/.hyperexecuteignore
 
 # anvil binaries
 .metamask/*
@@ -274,3 +277,7 @@ sourcemaps/**/*.js.map
 
 # Regenerated from tests/tags.js and tests/tags.performance.js before Smart E2E analysis
 .ai-pr-analyzer/modes/smart-e2e/catalog.json
+
+# Local planning artifacts. Not team-shared storage.
+.specs/
+.briefs/

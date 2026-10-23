@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import {
   CHAIN_IDS,
   TransactionType,
@@ -5,7 +6,7 @@ import {
   type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import { Interface } from 'ethers/lib/utils';
+import { Interface, parseUnits } from 'ethers/lib/utils';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -15,6 +16,7 @@ import {
   DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
+import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
@@ -30,6 +32,7 @@ import {
   requestDepositWalletCreate,
   resolveDepositWalletAddress,
   syncDepositWalletCollateralBalanceAllowance,
+  syncDepositWalletPositionBalanceAllowance,
   toDepositWalletCalls,
   waitForDepositWalletDeployed,
   waitForDepositWalletTransaction,
@@ -183,6 +186,7 @@ jest.mock('./depositWallet', () => ({
   requestDepositWalletCreate: jest.fn(),
   resolveDepositWalletAddress: jest.fn(),
   syncDepositWalletCollateralBalanceAllowance: jest.fn(),
+  syncDepositWalletPositionBalanceAllowance: jest.fn(),
   toDepositWalletCalls: jest.fn(),
   waitForDepositWalletDeployed: jest.fn(),
   waitForDepositWalletTransaction: jest.fn(),
@@ -272,6 +276,9 @@ const mockBuildDepositMaintenanceTransaction = jest.mocked(
   buildDepositMaintenanceTransaction,
 );
 const mockPlanDepositWalletPreflight = jest.mocked(planDepositWalletPreflight);
+const mockSyncDepositWalletPositionBalanceAllowance = jest.mocked(
+  syncDepositWalletPositionBalanceAllowance,
+);
 const mockBuildLegacySafeMigrationSweepTransaction = jest.mocked(
   buildLegacySafeMigrationSweepTransaction,
 );
@@ -287,6 +294,10 @@ const mockWaitForDepositWalletTransaction = jest.mocked(
   waitForDepositWalletTransaction,
 );
 const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
+// The trade-protocol matchers for the shared preflight planners: the CTF
+// path routes with key 'v2', the positions path with key 'positions'.
+const ctfTradeProtocol = expect.objectContaining({ key: 'v2' });
+const positionsTradeProtocol = expect.objectContaining({ key: 'positions' });
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
@@ -397,6 +408,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictPortfolioEnabled: false,
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
+  isMembershipFeeWaiverEnabled: false,
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -1043,10 +1055,18 @@ describe('PolymarketProvider', () => {
     });
     mockPreviewOrder.mockResolvedValue(basePreview);
     mockPreviewMaxBuyOrder.mockResolvedValue(basePreview);
-    mockBuildTradeAllowancesTx.mockResolvedValue({
-      to: '0x9999999999999999999999999999999999999999',
-      data: '0xallowances',
-    });
+    mockBuildTradeAllowancesTx.mockImplementation(async ({ tradeProtocol }) =>
+      tradeProtocol?.key === 'positions'
+        ? {
+            to: '0x8888888888888888888888888888888888888888',
+            data: '0xpositionsAllowances',
+          }
+        : {
+            to: '0x9999999999999999999999999999999999999999',
+            data: '0xallowances',
+          },
+    );
+    mockSyncDepositWalletPositionBalanceAllowance.mockResolvedValue(undefined);
     mockGenerateTransferData.mockReturnValue('0xtransferData');
     mockIsSmartContractAddress.mockResolvedValue(true);
     mockGetDeployProxyWalletTransaction.mockResolvedValue({
@@ -1679,7 +1699,31 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  // Raw Gamma event fixtures for the version cache: a v1 market carries no
+  // version field and exposes CTF token ids; a v2 market carries version
+  // 'v2' and exposes PositionManager token ids.
+  const v1MarketEvent = {
+    id: 'market-1',
+    markets: [{ clobTokenIds: '["123","456"]' }],
+  };
+  const v2MarketEvent = {
+    id: 'market-1',
+    markets: [{ version: 'v2', positionIds: ['123', '456'] }],
+  };
+
+  // Builds a preview the way production does: the version cache is warm
+  // from market fetches — here the Gamma event fixture stands in for them —
+  // so placeOrder later routes from the cache without fetching.
+  const previewWithWarmVersionCache = async (
+    provider: PolymarketProvider,
+    event: { id: string; markets: unknown[] },
+  ) => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(event as never);
+    return provider.previewOrder({ ...basePreview, size: 10, signer });
+  };
+
   it('previews orders through canonical CLOB v2 with zero fee-rate bps', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v1MarketEvent as never);
     const provider = createProvider();
 
     const preview = await provider.previewOrder({
@@ -1694,7 +1738,32 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('resolves a sell market version from Gamma when building the preview', async () => {
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledWith({
+      marketId: 'market-1',
+    });
+  });
+
+  it('fails the sell preview when the Gamma version lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.previewOrder({
+        ...basePreview,
+        size: 10,
+        side: Side.SELL,
+        signer,
+      }),
+    ).rejects.toThrow('Gamma down');
+  });
+
   it('previews the maximum fully fillable buy through the provider', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v1MarketEvent as never);
     const provider = createProvider();
 
     const preview = await provider.previewMaxBuyOrder({
@@ -1709,6 +1778,7 @@ describe('PolymarketProvider', () => {
       expect.objectContaining({
         maxAmountSpent: basePreview.maxAmountSpent,
         feeRateBps: '0',
+        outcomeVersion: 'v1',
       }),
     );
     expect(mockPreviewMaxBuyOrder).toHaveBeenCalledWith(
@@ -1722,7 +1792,12 @@ describe('PolymarketProvider', () => {
   it('submits orders through the protocol CLOB v2 relayer path', async () => {
     const provider = createProvider();
 
-    const result = await provider.placeOrder({ signer, preview: basePreview });
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview,
+    });
 
     expect(result.success).toBe(true);
     expect(mockCreateApiKey).toHaveBeenCalledWith({ address: signer.address });
@@ -1757,6 +1832,660 @@ describe('PolymarketProvider', () => {
     );
   });
 
+  it('includes the membership builder code in the signed CLOB order', async () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...preview,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: membershipBuilderCode,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'Order',
+          message: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('routes v2 market buys through the positions protocol path', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // the order route itself reads the cache and never fetches.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: {
+          to: '0x8888888888888888888888888888888888888888',
+          data: '0xpositionsAllowances',
+        },
+      }),
+    );
+  });
+
+  it('includes the membership builder code in the signed positions order', async () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: {
+        ...preview,
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: membershipBuilderCode,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    expect(signer.signTypedMessage).toHaveBeenCalledWith(
+      {
+        from: signer.address,
+        data: expect.objectContaining({
+          primaryType: 'Order',
+          message: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      },
+      SignTypedDataVersion.V4,
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            builder: membershipBuilderCode,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('routes v1 market buys through the CTF path without fetching Gamma at order time', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    // The two calls are the preview's version lookup (a cache miss on the
+    // first preview) and the optimistic position update's market fetch —
+    // a third call would mean the route fetched, which it never does.
+    expect(mockGetMarketDetailsFromGammaApi).toHaveBeenCalledTimes(2);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
+    );
+  });
+
+  it('routes sells through the positions path when the event market is v2', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('routes sells through the CTF path when the event market is v1', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
+    );
+  });
+
+  it('resolves the sell market version from Gamma once per market', async () => {
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...preview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The second preview hits the version cache — no second fetch.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('retries the version resolution when the Gamma lookup fails', async () => {
+    mockGetMarketDetailsFromGammaApi.mockRejectedValue(new Error('Gamma down'));
+    const provider = createProvider();
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+    const callsAfterFirstPreview =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await expect(
+      provider.previewOrder({ ...basePreview, size: 10, signer }),
+    ).rejects.toThrow('Gamma down');
+
+    // A failed lookup is not pinned for the session — the next preview
+    // fetches again.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBeGreaterThan(
+      callsAfterFirstPreview,
+    );
+  });
+
+  it('answers a sell preview from the cache warmed by a buy on the same market', async () => {
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+    const callsAfterBuy = mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...preview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The buy preview warmed the cache, so the sell resolves its version
+    // without fetching Gamma at all.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterBuy,
+    );
+  });
+
+  it('populates the version cache when markets are parsed', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v2MarketEvent as never);
+    mockParsePolymarketEvents.mockReturnValue([{ id: 'market-1' }] as never);
+    const provider = createProvider();
+
+    await provider.getMarketDetails({ marketId: 'market-1' });
+    const callsAfterDetailsFetch =
+      mockGetMarketDetailsFromGammaApi.mock.calls.length;
+
+    await provider.previewOrder({
+      ...basePreview,
+      size: 10,
+      side: Side.SELL,
+      signer,
+    });
+
+    // The market detail fetch already cached the token's version — the
+    // sell preview resolves it without fetching.
+    expect(mockGetMarketDetailsFromGammaApi.mock.calls.length).toBe(
+      callsAfterDetailsFetch,
+    );
+  });
+
+  it('routes sells through the positions path when the matching event market is v2 among v1 siblings', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: '["777","778"]' },
+        { version: 'v2', positionIds: ['123', '456'] },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('routes sells through the CTF path when the matching event market is v1 among v2 siblings', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { version: 'v2', positionIds: ['777', '778'] },
+        { clobTokenIds: '["123","456"]' },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
+    );
+  });
+
+  it('skips markets with malformed token ids when warming the version cache', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [
+        { clobTokenIds: 'not-json' },
+        { version: 'v2', positionIds: '{"oops":true}' },
+        { clobTokenIds: '["123","456"]' },
+      ],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    // The malformed markets are skipped, not fatal — the good market still
+    // caches its version and the sell routes through the CTF path.
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ safeAddress: legacySafeAddress }),
+    );
+  });
+
+  it('falls back to the CTF path when no event market matches the sell outcome', async () => {
+    const provider = createProvider();
+    const preview = await previewWithWarmVersionCache(provider, {
+      id: 'market-1',
+      markets: [{ version: 'v2', positionIds: ['777', '778'] }],
+    });
+
+    const result = await provider.placeOrder({ signer, preview });
+
+    // A token the fetched event does not describe is unknown — the CTF
+    // path, same as a market whose payload omits the version.
+    expect(result.success).toBe(true);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: legacySafeAddress,
+        tradeProtocol: ctfTradeProtocol,
+      }),
+    );
+  });
+
+  it.each([
+    ['v1', v1MarketEvent],
+    ['v2', v2MarketEvent],
+  ])(
+    'stamps the %s market version on the order preview',
+    async (version, event) => {
+      const provider = createProvider();
+
+      const preview = await previewWithWarmVersionCache(provider, event);
+
+      expect(preview.outcomeVersion).toBe(version);
+    },
+  );
+
+  it('routes a max-buy preview through the positions path on a cold version cache', async () => {
+    mockGetMarketDetailsFromGammaApi.mockResolvedValue(v2MarketEvent as never);
+    const provider = createProvider();
+
+    const preview = await provider.previewMaxBuyOrder({
+      marketId: 'market-1',
+      outcomeId: 'outcome-1',
+      outcomeTokenId: '123',
+      availableBalance: 100,
+      signer,
+    });
+    const result = await provider.placeOrder({
+      signer,
+      preview: preview as OrderPreview,
+    });
+
+    expect(preview?.outcomeVersion).toBe('v2');
+    expect(result.success).toBe(true);
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('routes from the preview version, not the version cache', async () => {
+    const provider = createProvider();
+    await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...basePreview, outcomeVersion: 'v2' },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: positionsTradeProtocol,
+      }),
+    );
+  });
+
+  it('fails an order whose preview carries no market version', async () => {
+    const provider = createProvider();
+
+    const result = await provider.placeOrder({ signer, preview: basePreview });
+
+    // Every provider preview carries its version — a preview without one is
+    // a programming error, and a loud failure beats silently routing an
+    // unknown version down the CTF path.
+    expect(result.success).toBe(false);
+    expect(result.error).toContain('No market version on the preview');
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+  });
+
+  it('authorizes v2 fees on pUSD through the positions path', async () => {
+    mockCreatePermit2FeeAuthorization.mockResolvedValue({
+      type: 'safe-permit2',
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '100000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    });
+
+    const provider = createProvider({
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x2222222222222222222222222222222222222222'],
+      },
+    });
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    await provider.placeOrder({
+      signer,
+      preview: {
+        ...preview,
+        fees: {
+          metamaskFee: 0.05,
+          providerFee: 0.05,
+          totalFee: 0.1,
+          totalFeePercentage: 1,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        },
+      },
+    });
+
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      }),
+    );
+    expect(mockBuildTradeAllowancesTx).not.toHaveBeenCalledWith(
+      expect.objectContaining({ tradeProtocol: ctfTradeProtocol }),
+    );
+  });
+
+  it('passes the legacy Safe migration sweep as allowancesTx for deposit-wallet v2 orders', async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ data: [] }),
+    });
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    const sweepTransaction: SignedSafeExecution = {
+      params: {
+        to: legacySafeAddress as `0x${string}`,
+        data: '0xsweep' as `0x${string}`,
+      },
+      type: TransactionType.contractInteraction,
+    };
+    mockBuildLegacySafeMigrationSweepTransaction.mockResolvedValue(
+      sweepTransaction,
+    );
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview,
+    });
+
+    expect(result.success).toBe(true);
+    // The sweep keeps the CTF-anchored tokens even on the positions path.
+    expect(mockBuildLegacySafeMigrationSweepTransaction).toHaveBeenCalledWith({
+      signer,
+      legacySafeAddress,
+      depositWalletAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+        allowancesTx: sweepTransaction.params,
+      }),
+    );
+  });
+
+  it('fails a v2 order when the positions allowances transaction cannot be built', async () => {
+    mockBuildTradeAllowancesTx.mockRejectedValueOnce(
+      new Error('allowance build failed'),
+    );
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Failed to prepare positions trade preflight');
+  });
+
+  it('fails a v1 order when the CTF allowances transaction cannot be built', async () => {
+    mockBuildTradeAllowancesTx.mockRejectedValueOnce(
+      new Error('allowance build failed'),
+    );
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview,
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe('Failed to prepare v2 trade preflight');
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledTimes(1);
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith(
+      expect.objectContaining({ tradeProtocol: ctfTradeProtocol }),
+    );
+    expect(mockSubmitProtocolClobOrder).not.toHaveBeenCalled();
+  });
+
+  it('builds v1 Safe trade allowances with the CTF protocol', async () => {
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    await provider.placeOrder({
+      signer,
+      preview: { ...preview, side: Side.SELL },
+    });
+
+    expect(mockBuildTradeAllowancesTx).toHaveBeenCalledWith({
+      signer,
+      safeAddress: legacySafeAddress,
+      protocol: expect.objectContaining({ key: 'v2' }),
+      tradeProtocol: ctfTradeProtocol,
+      safeUsdceBalance: expect.any(BigInt),
+    });
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'v2' }),
+        clobOrder: expect.objectContaining({
+          order: expect.objectContaining({
+            side: Side.SELL,
+            signatureType: SignatureType.POLY_GNOSIS_SAFE,
+          }),
+        }),
+      }),
+    );
+  });
+
+  it('skips the balance sync for deposit-wallet v1 sells when the wallet setup is unchanged', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockPlanDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...preview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+      protocol: ctfTradeProtocol,
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletPositionBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'v2' }),
+      }),
+    );
+  });
+
+  it.each([
+    ['v1', v1MarketEvent],
+    ['v2', v2MarketEvent],
+  ])(
+    'maps relayer rejections to Predict error codes for %s orders',
+    async (_version, event) => {
+      const provider = createProvider();
+      const preview = await previewWithWarmVersionCache(provider, event);
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: "order couldn't be fully filled",
+      } as never);
+      const buyResult = await provider.placeOrder({
+        signer,
+        preview,
+      });
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: "order couldn't be fully filled",
+      } as never);
+      const sellResult = await provider.placeOrder({
+        signer,
+        preview: { ...preview, side: Side.SELL },
+      });
+
+      mockSubmitProtocolClobOrder.mockResolvedValueOnce({
+        success: false,
+        error: 'not available in your region',
+      } as never);
+      const regionResult = await provider.placeOrder({
+        signer,
+        preview,
+      });
+
+      expect(buyResult.error).toBe(
+        PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED,
+      );
+      expect(sellResult.error).toBe(
+        PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED,
+      );
+      expect(regionResult.error).toBe(PREDICT_ERROR_CODES.NOT_ELIGIBLE);
+    },
+  );
+
   it('submits deposit-wallet orders with POLY_1271 payload and no Safe trade preflight fields', async () => {
     const innerSignature = `0x${'11'.repeat(65)}`;
     signer.signTypedMessage.mockResolvedValueOnce(innerSignature);
@@ -1773,10 +2502,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
     const result = await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -1849,9 +2580,13 @@ describe('PolymarketProvider', () => {
       transactions: [repairTransaction],
     });
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -1881,6 +2616,119 @@ describe('PolymarketProvider', () => {
     ).toBeLessThan(mockSubmitProtocolClobOrder.mock.invocationCallOrder[0]);
   });
 
+  it('syncs the CONDITIONAL-V2 position balance for deposit-wallet v2 sells', async () => {
+    const repairTransaction = {
+      to: '0x4444444444444444444444444444444444444444',
+      data: '0xrepair',
+      operation: OperationType.Call,
+      value: '0',
+    };
+    mockIsSmartContractAddress.mockResolvedValue(false);
+    mockPlanDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [
+        {
+          type: 'erc20-allowance',
+          tokenAddress: repairTransaction.to,
+          spender: '0x5555555555555555555555555555555555555555',
+        },
+      ],
+      transactions: [repairTransaction],
+    });
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...preview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+      protocol: positionsTradeProtocol,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('keeps the collateral sync for deposit-wallet v2 buys', async () => {
+    mockIsSmartContractAddress.mockResolvedValue(false);
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview,
+    });
+
+    expect(result.success).toBe(true);
+    expect(
+      mockSyncDepositWalletPositionBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'v2' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+    });
+  });
+
+  it('syncs the position balance for v2 sells even when the wallet setup is unchanged', async () => {
+    // The deposit wallet is already deployed and the positions preflight
+    // plans no repair transactions, so the wallet setup did not change — a
+    // sell still needs the CONDITIONAL-V2 position balance refreshed before
+    // the relayer accepts the order.
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true)
+      .mockResolvedValueOnce(true);
+    mockPlanDepositWalletPreflight.mockResolvedValue({
+      missingRequirements: [],
+      transactions: [],
+    });
+
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v2MarketEvent);
+
+    const result = await provider.placeOrder({
+      signer,
+      preview: { ...preview, side: Side.SELL },
+    });
+
+    expect(result.success).toBe(true);
+    expect(mockPlanDepositWalletPreflight).toHaveBeenCalledWith({
+      walletAddress: depositWalletAddress,
+      protocol: positionsTradeProtocol,
+    });
+    expect(mockSyncDepositWalletPositionBalanceAllowance).toHaveBeenCalledWith({
+      protocol: expect.objectContaining({ key: 'positions' }),
+      signerAddress: signer.address,
+      apiKey: expect.objectContaining({ apiKey: 'api-key' }),
+      tokenId: '123',
+    });
+    expect(
+      mockSyncDepositWalletCollateralBalanceAllowance,
+    ).not.toHaveBeenCalled();
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        protocol: expect.objectContaining({ key: 'positions' }),
+      }),
+    );
+  });
+
   it('passes legacy Safe migration sweep as allowancesTx for deposit-wallet orders', async () => {
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -1902,9 +2750,13 @@ describe('PolymarketProvider', () => {
       sweepTransaction,
     );
 
-    const result = await createProvider().placeOrder({
+    const provider = createProvider();
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    const result = await provider.placeOrder({
       signer,
-      preview: basePreview,
+      preview,
     });
 
     expect(result.success).toBe(true);
@@ -1950,10 +2802,12 @@ describe('PolymarketProvider', () => {
       },
     });
 
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
     await provider.placeOrder({
       signer,
       preview: {
-        ...basePreview,
+        ...preview,
         fees: {
           metamaskFee: 0.05,
           providerFee: 0.05,
@@ -1970,6 +2824,69 @@ describe('PolymarketProvider', () => {
       expect.objectContaining({
         safeAddress: '0x9999999999999999999999999999999999999999',
         tokenAddress: MATIC_CONTRACTS_V2.collateral,
+      }),
+    );
+  });
+
+  it('authorizes the remaining provider fee with pUSD Permit2 for membership orders', async () => {
+    const providerFee = 0.05;
+    const feeAuthorization = {
+      type: 'safe-permit2' as const,
+      authorization: {
+        permit: {
+          permitted: { token: MATIC_CONTRACTS_V2.collateral, amount: '50000' },
+          nonce: '1',
+          deadline: '2',
+        },
+        spender: '0x2222222222222222222222222222222222222222',
+        signature: '0xsig',
+      },
+    };
+    mockCreatePermit2FeeAuthorization.mockResolvedValue(feeAuthorization);
+
+    const provider = createProvider({
+      feeCollection: {
+        ...DEFAULT_FEE_COLLECTION_FLAG,
+        permit2Enabled: true,
+        executors: ['0x2222222222222222222222222222222222222222'],
+      },
+    });
+
+    const preview = await previewWithWarmVersionCache(provider, v1MarketEvent);
+
+    await provider.placeOrder({
+      signer,
+      preview: {
+        ...preview,
+        fees: {
+          metamaskFee: 0,
+          providerFee,
+          totalFee: providerFee,
+          totalFeePercentage: 0.5,
+          collector: '0x3333333333333333333333333333333333333333',
+          executors: ['0x2222222222222222222222222222222222222222'],
+          permit2Enabled: true,
+        },
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode:
+            '0x4444444444444444444444444444444444444444444444444444444444444444',
+        },
+      },
+    });
+
+    expect(mockCreatePermit2FeeAuthorization).toHaveBeenCalledWith(
+      expect.objectContaining({
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        tokenAddress: MATIC_CONTRACTS_V2.collateral,
+        amount: BigInt(parseUnits(providerFee.toString(), 6).toString()),
+        spender: '0x2222222222222222222222222222222222222222',
+      }),
+    );
+    expect(mockSubmitProtocolClobOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        feeAuthorization,
+        executor: '0x2222222222222222222222222222222222222222',
       }),
     );
   });

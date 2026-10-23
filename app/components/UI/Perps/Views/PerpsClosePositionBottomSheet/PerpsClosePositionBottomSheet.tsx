@@ -1,3 +1,4 @@
+import PerpsFeeDiscountLabel from '../../components/PerpsFeesDisplay/PerpsFeeDiscountLabel';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -18,13 +19,12 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
 import PerpsSwapIcon from '../../components/PerpsSwapIcon';
-import { PerpsInlineInfoScreen } from '../../components/PerpsTradeBottomSheet/PerpsTradeNestedScreens';
 import PerpsValidationErrors from '../../components/PerpsValidationErrors';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
@@ -99,7 +99,6 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   );
   const isEditingLimitPrice =
     isLimitPriceKeypadOpen && effectiveOrderType === 'limit';
-  const [isMarginInfoVisible, setIsMarginInfoVisible] = useState(false);
 
   const handleDisplayToggle = useCallback(
     () => setShowTokenAmount((current) => !current),
@@ -160,14 +159,14 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const handleMarginTooltipPress = useCallback(() => {
-    setIsMarginInfoVisible(true);
-  }, []);
-
   const totalFeeRate =
     (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
   const feePercentage =
     totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const summaryPnlPercentage =
+    summaryMargin !== 0
+      ? (summaryPnl / Math.abs(summaryMargin)) * 100
+      : undefined;
 
   const displayedErrors = useMemo(
     () =>
@@ -180,40 +179,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
   // `formatLimitPriceInput` already prefixes `$`, so the row keeps a
   // standalone `$` and shows only the numeric portion next to it.
   const hasLimitPriceValue = Boolean(limitPriceInput.formattedLimitPrice);
-
-  const footerMessages = useMemo(() => {
-    const needsLimitPrice =
-      effectiveOrderType === 'limit' &&
-      !hasLimitPriceValue &&
-      !isEditingLimitPrice;
-
-    return needsLimitPrice
-      ? [
-          ...displayedErrors,
-          strings('perps.order.validation.please_set_a_limit_price'),
-        ]
-      : displayedErrors;
-  }, [
-    displayedErrors,
-    effectiveOrderType,
-    hasLimitPriceValue,
-    isEditingLimitPrice,
-  ]);
-
-  if (isMarginInfoVisible) {
-    return (
-      <BottomSheet
-        ref={sheetRef}
-        goBack={navigation.goBack}
-        testID={PerpsClosePositionBottomSheetSelectorsIDs.CONTAINER}
-      >
-        <PerpsInlineInfoScreen
-          contentKey="margin"
-          onBack={() => setIsMarginInfoVisible(false)}
-        />
-      </BottomSheet>
-    );
-  }
+  const needsLimitPriceHint =
+    effectiveOrderType === 'limit' &&
+    !hasLimitPriceValue &&
+    !isEditingLimitPrice;
 
   return (
     <BottomSheet
@@ -280,11 +249,9 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
 
       {!isEditingLimitPrice && !isInputFocused && (
         <PerpsCloseTotals
-          margin={summaryMargin}
-          marginMode={livePosition.leverage?.type}
           pnl={summaryPnl}
+          pnlPercentage={summaryPnlPercentage}
           receiveAmount={receiveAmount}
-          onMarginTooltipPress={handleMarginTooltipPress}
         />
       )}
 
@@ -295,18 +262,32 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
           keypad is open. */}
       {!isEditingLimitPrice && !isInputFocused && (
         <>
+          <PerpsRebateBanner
+            coin={position.symbol}
+            direction={isLong ? 'short' : 'long'}
+            notionalUsd={closeAmountUSDString}
+            containerTwClassName="px-4 mb-3"
+          />
+
           <SectionDivider marginVertical={1} twClassName="mx-4" />
 
           {/* One BodySm line stays reserved so an error appearing while the
               user drags the slider does not resize the sheet under them. */}
           <PerpsValidationErrors
-            errors={footerMessages}
+            errors={displayedErrors}
             alignment="start"
             twClassName="min-h-[22px] justify-center px-4"
           />
 
           <BottomSheetFooter
-            primaryButtonProps={confirmButtonProps}
+            primaryButtonProps={{
+              ...confirmButtonProps,
+              ...(needsLimitPriceHint && {
+                accessibilityHint: strings(
+                  'perps.order.validation.please_set_a_limit_price',
+                ),
+              }),
+            }}
             twClassName="pt-3"
           />
 
@@ -315,9 +296,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               twClassName="flex-row items-center justify-center gap-2 pt-2"
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <MembershipVipBadge />
-              ) : null}
+              <PerpsFeeDiscountLabel
+                feeDiscountPercentage={feeResults.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
+              />
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}

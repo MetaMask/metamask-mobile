@@ -32,6 +32,7 @@ import type { TransactionActiveAbTestEntry } from '../../../../../../util/transa
 import MembershipVipBadge from '../../../../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../../hooks/useFeeDisclaimer';
+import SwapsRebateBanner from '../../../components/SwapsRebateBanner';
 
 interface Props {
   location: MetaMetricsSwapsEventSource;
@@ -86,6 +87,7 @@ export const BridgeMarketViewFooter = ({
       <Box style={footerContainerStyle}>
         <HardwareWalletSolanaSignUnsupportedBanner />
         <BlockaidErrorBanner />
+        <SwapsRebateBanner quote={activeQuote.quote} />
         <SwapsMarketOrderConfirmButton
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}

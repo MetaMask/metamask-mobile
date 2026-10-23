@@ -1,4 +1,4 @@
-# Compares BrowserStack app profiling for a failed performance scenario against
+# Compares TestMu app profiling for a failed performance scenario against
 # the last green baseline on main, then posts a diff comment on the PR.
 #
 # Automatic: run-performance-e2e.yml posts this for failed PR scenarios.
@@ -253,7 +253,7 @@ jobs:
           set -euo pipefail
 
           ARGS=(
-            node tests/scripts/diff-app-profiling.mjs
+            node .github/scripts/qa-automation/performance-tests/diff-app-profiling.mjs
             --pr "${PR_NUMBER}"
             --run "${CURRENT_RUN_ID}"
             --baseline-branch "${BASELINE_BRANCH:-main}"

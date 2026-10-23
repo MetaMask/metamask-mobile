@@ -2,7 +2,6 @@ import React, { useCallback, useRef } from 'react';
 import {
   BottomSheet,
   BottomSheetFooter,
-  BottomSheetHeader,
   Box,
   ButtonSize,
   ButtonsAlignment,
@@ -62,13 +61,7 @@ const PasswordResetWarningSheet = ({
       onClose={onDismiss}
       testID={PasswordResetWarningSheetSelectorsIDs.SHEET}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: PasswordResetWarningSheetSelectorsIDs.CLOSE_BUTTON,
-        }}
-      />
-      <Box twClassName="px-4 pb-2 gap-2">
+      <Box gap={6} twClassName="px-4 pb-2">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('choose_password.password_warning_title')}
@@ -76,6 +69,7 @@ const PasswordResetWarningSheet = ({
             variant: TextVariant.HeadingMd,
             testID: PasswordResetWarningSheetSelectorsIDs.TITLE,
           }}
+          twClassName="pt-6"
         />
         <Text
           variant={TextVariant.BodyMd}

@@ -7,7 +7,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { FeatureId } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -22,8 +25,13 @@ import { useLimitOrderMinAmount } from '../../../hooks/useLimitOrderMinAmount';
 import { useLimitOrders } from '../../../hooks/useLimitOrders';
 import { useSentinelFeeTokenValidation } from '../../../hooks/useSentinelFeeTokenValidation';
 import { LimitOrderState } from '../../../api/limitOrders/getLimitOrders/types';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../../../util/deviceCapability/types';
 import {
-  LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
+  LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+  LIMIT_ORDERS_REFETCH_INTERVAL,
   LimitOrderExecutionType,
   LimitOrderPriceComparisonDirection,
   getSwapsLimitOrderExpirationLabel,
@@ -33,6 +41,32 @@ import { OrdersTabKey } from '../../../components/OrdersTabs';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { OrderType } from '../../../types/advancedOrders';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    order_type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('order_type');
+};
 
 /**
  * Unit tests for BridgeLimitOrderView orchestration (keypad footer swap,
@@ -52,18 +86,32 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeSession', () => ({
-  useBridgeSession: jest.fn().mockReturnValue({
-    selectedTab: 'limit',
-    renderedTab: 'limit',
-    setSelectedTab: jest.fn(),
-    setRenderedTab: jest.fn(),
-    latestSourceBalance: {
-      displayBalance: '1.0',
-      atomicBalance: undefined,
+let mockInitialLimitOrdersTab = 'openOrders';
+
+jest.mock('../../../hooks/useBridgeSession', () => {
+  const ReactActual = jest.requireActual('react');
+
+  return {
+    useBridgeSession: () => {
+      const [limitOrdersTab, setLimitOrdersTab] = ReactActual.useState(
+        mockInitialLimitOrdersTab,
+      );
+
+      return {
+        selectedTab: 'limit',
+        renderedTab: 'limit',
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        limitOrdersTab,
+        setLimitOrdersTab,
+        latestSourceBalance: {
+          displayBalance: '1.0',
+          atomicBalance: undefined,
+        },
+      };
     },
-  }),
-}));
+  };
+});
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
@@ -120,6 +168,17 @@ jest.mock('../../../hooks/useHasMissingAssetsPriceData', () => ({
 
 jest.mock('../../../hooks/useSentinelFeeTokenValidation', () => ({
   useSentinelFeeTokenValidation: jest.fn(),
+}));
+
+let mockHardwareTier: HardwareTier | null = 'HIGH';
+let mockNetworkTier: NetworkTier | null = 'WIFI';
+
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 const mockNavigate = jest.fn();
@@ -219,11 +278,19 @@ jest.mock('../../../components/SwapsInputs', () => {
 });
 
 let mockOnOrdersTabChange: ((tab: string) => void) | undefined;
+let mockOrdersActiveTab: string | undefined;
 
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
   ...jest.requireActual('../../../components/OrdersTabs'),
-  default: ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
+  default: ({
+    activeTab,
+    onTabChange,
+  }: {
+    activeTab?: string;
+    onTabChange?: (tab: string) => void;
+  }) => {
+    mockOrdersActiveTab = activeTab;
     mockOnOrdersTabChange = onTabChange;
     return null;
   },
@@ -259,11 +326,13 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
       onMarketPresetPress,
       onCustomPresetPress,
       onLimitPriceInputPress,
+      isLimitPriceInputPressDisabled,
     }: {
       hasVisibleBanner: boolean;
       onMarketPresetPress?: () => void;
       onCustomPresetPress?: () => void;
       onLimitPriceInputPress?: () => void;
+      isLimitPriceInputPressDisabled?: boolean;
     }) => (
       <View
         testID={
@@ -275,6 +344,7 @@ jest.mock('../../../components/LimitOrderPriceAdjustCard', () => {
         <View
           testID="limit-order-limit-price-input"
           onTouchEnd={onLimitPriceInputPress}
+          pointerEvents={isLimitPriceInputPressDisabled ? 'none' : 'auto'}
         />
         <View
           testID="limit-order-market-preset"
@@ -339,6 +409,7 @@ const mockHandleCustomPress = jest.fn();
 const mockFocusCustomPercent = jest.fn();
 const mockFocusAmount = jest.fn();
 const mockFocusLimitPrice = jest.fn();
+const mockHandleKeypadClose = jest.fn();
 const mockHandleFlipTokensPress = jest.fn();
 
 let mockIsAmountFocused = false;
@@ -394,6 +465,7 @@ function buildPriceAdjustMock() {
     isLimitFiatMode: false,
     executionType: LimitOrderExecutionType.SELL,
     limitPrice: '1',
+    limitPriceDecimals: 18,
     marketComparison: undefined,
     isTriggerPriceNearMarket: false,
     priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
@@ -415,9 +487,11 @@ function buildKeypadMock() {
     focusLimitPrice: mockFocusLimitPrice,
     handleChange: jest.fn(),
     handleCustomPercentSelectionChange: jest.fn(),
+    handleKeypadClose: mockHandleKeypadClose,
     handleLimitPriceSelectionChange: jest.fn(),
     isAmountFocused: mockIsAmountFocused,
     isCustomPercentFocused: mockIsCustomPercentFocused,
+    isCustomPercentKeypadOpen: mockIsCustomPercentFocused,
     keypadProps: {
       value: mockSourceAmount,
       currency: 'ETH',
@@ -428,24 +502,29 @@ function buildKeypadMock() {
   };
 }
 
+function getLimitOrderView() {
+  return (
+    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
+      <BridgeLimitOrderView
+        location={MetaMetricsSwapsEventSource.TransactionDetails}
+      />
+    </SwapsFeatureIdProvider>
+  );
+}
+
 function renderLimitOrderView(
   bridgeReducerOverrides: NonNullable<
     Parameters<typeof createBridgeTestState>[0]
   >['bridgeReducerOverrides'] = {},
 ) {
-  return renderWithProvider(
-    <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
-      <BridgeLimitOrderView />
-    </SwapsFeatureIdProvider>,
-    {
-      state: createBridgeTestState({
-        bridgeReducerOverrides: {
-          sourceToken: mockSourceToken,
-          ...bridgeReducerOverrides,
-        },
-      }),
-    },
-  );
+  return renderWithProvider(getLimitOrderView(), {
+    state: createBridgeTestState({
+      bridgeReducerOverrides: {
+        sourceToken: mockSourceToken,
+        ...bridgeReducerOverrides,
+      },
+    }),
+  });
 }
 
 describe('BridgeLimitOrderView', () => {
@@ -454,6 +533,10 @@ describe('BridgeLimitOrderView', () => {
     mockIsAmountFocused = false;
     mockIsCustomPercentFocused = false;
     mockSourceAmount = '';
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
+    mockInitialLimitOrdersTab = OrdersTabKey.OpenOrders;
+    mockOrdersActiveTab = undefined;
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -488,6 +571,19 @@ describe('BridgeLimitOrderView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.LIMIT_DEST_TOKEN_INPUT),
     ).toBeOnTheScreen();
+  });
+
+  it('lets the limit price keypad take the decimals the limit price is set with', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPriceDecimals: 11,
+    }));
+
+    renderLimitOrderView();
+
+    expect(useSwapsLimitOrderKeypad).toHaveBeenCalledWith(
+      expect.objectContaining({ limitPriceDecimals: 11 }),
+    );
   });
 
   it('renders the destination amount the source amount buys at the limit price', () => {
@@ -580,6 +676,34 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBe(true);
   });
 
+  it('renders the keypad confirm button when the limit price keypad is focused with a non-zero source amount', () => {
+    mockIsAmountFocused = false;
+    mockIsCustomPercentFocused = false;
+    mockSourceAmount = '2';
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeOnTheScreen();
+  });
+
+  it('disables the keypad confirm button when the limit price is zero', () => {
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD).props
+        .accessibilityState?.disabled,
+    ).toBe(true);
+  });
+
   it('disables the keypad confirm button without a loading state when a traded asset has no price data', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -621,6 +745,7 @@ describe('BridgeLimitOrderView', () => {
     jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
 
@@ -676,6 +801,22 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         ctaDisabled: true,
         ctaLabel: strings('bridge.limit.min_order_amount', { amount: '1' }),
+      }),
+    );
+  });
+
+  it('disables the footer confirm button when the limit price is zero', () => {
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      limitPrice: '0',
+      value: '0',
+    }));
+
+    renderLimitOrderView();
+
+    expect(mockBridgeLimitOrderFooterView).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        ctaDisabled: true,
       }),
     );
   });
@@ -754,6 +895,34 @@ describe('BridgeLimitOrderView', () => {
 
     expect(mockCommitCustomPercent).toHaveBeenCalledTimes(1);
     expect(mockFocusLimitPrice).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables limit price input presses while the custom percent keypad is open', () => {
+    mockIsCustomPercentFocused = true;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId('limit-order-limit-price-input').props.pointerEvents,
+    ).toBe('none');
+  });
+
+  it('tells the keypad hook when the keypad closes', () => {
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent(getByTestId('mock-swaps-keypad'), 'touchEnd');
+
+    expect(mockHandleKeypadClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('enables limit price input presses while the custom percent keypad is closed', () => {
+    mockIsCustomPercentFocused = false;
+
+    const { getByTestId } = renderLimitOrderView();
+
+    expect(
+      getByTestId('limit-order-limit-price-input').props.pointerEvents,
+    ).toBe('auto');
   });
 
   it('does not commit custom percent when source amount is pressed while custom percent is not focused', () => {
@@ -857,23 +1026,30 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays 2% when the cost tolerance is not set', () => {
+  it('displays 3% when the cost tolerance is not set', () => {
     const { getByText } = renderLimitOrderView();
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
   });
 
-  it('resets cost tolerance to the default when navigating to the limit orders screen', () => {
+  it('keeps the session cost tolerance when the limit orders screen mounts', () => {
     const { getByText, store } = renderLimitOrderView({
       limitOrderCostTolerance: '3',
     });
 
+    expect(getByText('3%')).toBeOnTheScreen();
+    expect(store.getState().bridge.limitOrderCostTolerance).toBe('3');
+  });
+
+  it('renders the expiration preset selected earlier in the session', () => {
+    const { getByText, store } = renderLimitOrderView({
+      limitOrderExpirationMinutes: 10080,
+    });
+
     expect(
-      getByText(`${LIMIT_ORDER_DEFAULT_COST_TOLERANCE}%`),
+      getByText(getSwapsLimitOrderExpirationLabel(10080)),
     ).toBeOnTheScreen();
-    expect(store.getState().bridge.limitOrderCostTolerance).toBe(
-      LIMIT_ORDER_DEFAULT_COST_TOLERANCE,
-    );
+    expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
   });
 
   it('navigates to the limit order default cost tolerance modal when the cost tolerance row is pressed', () => {
@@ -910,6 +1086,30 @@ describe('BridgeLimitOrderView', () => {
     });
   });
 
+  it('submits the session expiration to the confirmation modal', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    const { getByTestId } = renderLimitOrderView({
+      limitOrderExpirationMinutes: 10080,
+      limitOrderCostTolerance: '0.5',
+    });
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          expiry: getSwapsLimitOrderExpirationLabel(10080),
+          order: expect.objectContaining({
+            expiresInMinutes: 10080,
+          }),
+        }),
+      }),
+    );
+  });
+
   it('navigates to the confirmation modal with the fiat limit price as entered', () => {
     mockIsAmountFocused = true;
     mockSourceAmount = '2';
@@ -930,6 +1130,7 @@ describe('BridgeLimitOrderView', () => {
       expect.objectContaining({
         screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
         params: expect.objectContaining({
+          triggerPrice: expect.not.stringContaining(mockSourceToken.symbol),
           // Handed over as entered: the confirmation sheet converts it to USD
           // with the rate live when the order is created.
           triggerInput: {
@@ -949,9 +1150,11 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '2';
     jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
       ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
       isLimitFiatMode: false,
       limitPrice: '0.04',
       priceComparisonDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+      value: '0.04',
     }));
 
     const { getByTestId } = renderLimitOrderView();
@@ -962,6 +1165,7 @@ describe('BridgeLimitOrderView', () => {
       Routes.BRIDGE.MODALS.ROOT,
       expect.objectContaining({
         params: expect.objectContaining({
+          triggerPrice: '0.04 USDC',
           triggerInput: expect.objectContaining({
             isLimitFiatMode: false,
             limitPrice: '0.04',
@@ -973,8 +1177,85 @@ describe('BridgeLimitOrderView', () => {
     );
   });
 
+  it('condenses the leading zeros of a tiny limit price quoted in token units', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
+      isLimitFiatMode: false,
+      limitPrice: '0.00000000174697',
+      value: '0.00000000174697',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          triggerPrice: '0.0₈1746 USDC',
+        }),
+      }),
+    );
+  });
+
+  it('condenses the leading zeros of a tiny fiat limit price', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      isLimitFiatMode: true,
+      limitPrice: '0.000003747',
+      value: '0.000003747',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        params: expect.objectContaining({
+          triggerPrice: '$0.0₅3747',
+        }),
+      }),
+    );
+  });
+
+  it('navigates to the confirmation modal with the destination amount estimated at the limit price', () => {
+    mockIsAmountFocused = true;
+    mockSourceAmount = '2';
+    jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+      ...buildPriceAdjustMock(),
+      counterToken: mockDestToken,
+      executionType: LimitOrderExecutionType.SELL,
+      isLimitFiatMode: false,
+      limitPrice: '0.04',
+      value: '0.04',
+    }));
+
+    const { getByTestId } = renderLimitOrderView();
+
+    fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.BRIDGE.MODALS.ROOT,
+      expect.objectContaining({
+        screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_CONFIRMATION_MODAL,
+        params: expect.objectContaining({
+          estReceivingAmount: '0.08 USDC',
+        }),
+      }),
+    );
+  });
+
   it('saves the selected expiration in minutes when the modal selects an option', () => {
-    const { getByTestId, getByText, queryByText } = renderLimitOrderView();
+    const { getByTestId, getByText, queryByText, store } =
+      renderLimitOrderView();
 
     fireEvent(getByTestId('limit-order-details-expiration-row'), 'touchEnd');
 
@@ -989,6 +1270,7 @@ describe('BridgeLimitOrderView', () => {
       getByText(getSwapsLimitOrderExpirationLabel(10080)),
     ).toBeOnTheScreen();
     expect(queryByText(getSwapsLimitOrderExpirationLabel(60))).toBeNull();
+    expect(store.getState().bridge.limitOrderExpirationMinutes).toBe(10080);
   });
 
   it('loads the open orders and the order history in their own states', () => {
@@ -1014,6 +1296,101 @@ describe('BridgeLimitOrderView', () => {
       }),
     );
   });
+
+  it('only enables the orders of the selected orders tab', () => {
+    renderLimitOrderView();
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: false,
+      }),
+    );
+
+    act(() => {
+      mockOnOrdersTabChange?.(OrdersTabKey.History);
+    });
+
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
+      }),
+    );
+    expect(useLimitOrders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Open]),
+        enabled: false,
+      }),
+    );
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+  });
+
+  it('shows the orders tab held in the bridge session', () => {
+    mockInitialLimitOrdersTab = OrdersTabKey.History;
+
+    renderLimitOrderView();
+
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
+      }),
+    );
+  });
+
+  it.each([
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'WIFI',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'FAST_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'HIGH',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: null,
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: null,
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_REFETCH_INTERVAL,
+    },
+    {
+      hardwareTier: 'LOW',
+      networkTier: 'SLOW_CELLULAR',
+      expected: LIMIT_ORDERS_CONSTRAINED_REFETCH_INTERVAL,
+    },
+    { hardwareTier: 'HIGH', networkTier: 'NONE', expected: undefined },
+  ] as {
+    hardwareTier: HardwareTier | null;
+    networkTier: NetworkTier | null;
+    expected: number | undefined;
+  }[])(
+    'refetches the orders every $expected ms on $hardwareTier hardware over $networkTier network',
+    ({ hardwareTier, networkTier, expected }) => {
+      mockHardwareTier = hardwareTier;
+      mockNetworkTier = networkTier;
+
+      renderLimitOrderView();
+
+      const calls = jest.mocked(useLimitOrders).mock.calls;
+      expect(calls.length).toBeGreaterThan(0);
+      calls.forEach(([params]) => {
+        expect(params.refetchInterval).toBe(expected);
+      });
+    },
+  );
 
   describe('pull to refresh', () => {
     beforeEach(() => {
@@ -1065,5 +1442,48 @@ describe('BridgeLimitOrderView', () => {
 
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
     });
+  });
+
+  describe('advanced order events', () => {
+    it.each([
+      {
+        executionType: LimitOrderExecutionType.SELL,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+        expectedType: OrderType.SELL_ABOVE,
+      },
+      {
+        executionType: LimitOrderExecutionType.BUY,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        expectedType: OrderType.BUY_BELOW,
+      },
+    ])(
+      'tracks ADVANCED_ORDER_SUBMITTED with type $expectedType',
+      ({ executionType, priceComparisonDirection, expectedType }) => {
+        mockIsAmountFocused = true;
+        mockSourceAmount = '2';
+        jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+          ...buildPriceAdjustMock(),
+          executionType,
+          priceComparisonDirection,
+        }));
+
+        const { getByTestId } = renderLimitOrderView();
+
+        fireEvent.press(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        );
+
+        expectAdvancedOrderProperties(
+          MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED,
+          {
+            location: 'Transaction Details',
+            feature_id: FeatureId.LIMIT_ORDER,
+            order_type: expectedType,
+          },
+        );
+      },
+    );
   });
 });

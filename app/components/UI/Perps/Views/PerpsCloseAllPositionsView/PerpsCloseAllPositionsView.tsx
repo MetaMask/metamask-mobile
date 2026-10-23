@@ -34,6 +34,7 @@ import usePerpsToasts, {
   type PerpsToastOptions,
 } from '../../hooks/usePerpsToasts';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { createStyles } from './PerpsCloseAllPositionsView.styles';
 import { useTheme } from '../../../../../util/theme';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -93,7 +94,6 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
     positions: positions || [],
     priceData,
   });
-
   // Check opt-in status for rewards
   const { accountOptedIn, account: rewardsAccount } =
     usePerpsRewardAccountOptedIn(calculations?.totalEstimatedPoints);
@@ -392,7 +392,9 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             totalMargin={calculations.totalMargin}
             totalPnl={calculations.totalPnl}
             totalFees={calculations.totalFees}
+            originalTotalFees={calculations.originalTotalFees}
             feeDiscountPercentage={calculations.avgFeeDiscountPercentage}
+            feeDiscountKind={calculations.feeDiscountKind}
             metamaskFeeRate={calculations.avgMetamaskFeeRate}
             protocolFeeRate={calculations.avgProtocolFeeRate}
             originalMetamaskFeeRate={calculations.avgOriginalMetamaskFeeRate}
@@ -406,6 +408,7 @@ const PerpsCloseAllPositionsView: React.FC<PerpsCloseAllPositionsViewProps> = ({
             accountOptedIn={accountOptedIn}
             rewardsAccount={rewardsAccount}
             enableTooltips={false}
+            afterFees={<PerpsRebateBanner containerTwClassName="px-4 mb-3" />}
             testIDs={{
               feesValue: PerpsCloseAllPositionsViewSelectorsIDs.FEES_VALUE,
             }}
