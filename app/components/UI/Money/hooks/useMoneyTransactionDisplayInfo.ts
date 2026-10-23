@@ -57,7 +57,10 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
-  /** Render the primary token amount alongside fiat for completed VBA rows. */
+  /**
+   * Render the primary amount line. Completed VBA deposits and card rows set
+   * this. Other Money rows show `fiatAmount` only.
+   */
   showPrimaryAmount?: boolean;
 }
 

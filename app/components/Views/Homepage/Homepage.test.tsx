@@ -585,7 +585,14 @@ describe('Homepage', () => {
       screen.getByTestId('balance-breakdown-section-mock'),
     ).toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
-      balanceBreakdownSectionProps,
+      expect.objectContaining({
+        ...balanceBreakdownSectionProps,
+        deviceCapability: expect.objectContaining({
+          hardwareTier: expect.anything(),
+          networkTier: expect.anything(),
+          networkTierResolved: expect.any(Boolean),
+        }),
+      }),
     );
   });
 

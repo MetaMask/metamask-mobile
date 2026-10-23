@@ -8,12 +8,13 @@ import { getPositionsAllowanceRequirements } from './positionsAllowanceRequireme
 import { inspectMissingRequirements } from './inspectMissingRequirements';
 import { filterDepositWalletUnsupportedRequirements } from './v2AllowanceRequirements';
 import { POLYMARKET_POSITIONS_PROTOCOL } from '../protocol/definitions';
+import { PERMIT2_ADDRESS } from '../safe/constants';
 
 const { collateral, contracts } = POLYMARKET_POSITIONS_PROTOCOL;
 const ownerAddress = '0x1111111111111111111111111111111111111111';
 
 describe('positions allowance requirements', () => {
-  it('returns the pUSD allowance and the PositionManager operator approval for ExchangeV3', () => {
+  it('returns the pUSD allowance, the PositionManager operator approval for ExchangeV3, and the Permit2 fee allowance', () => {
     const requirements = getPositionsAllowanceRequirements();
 
     expect(requirements).toEqual([
@@ -27,14 +28,19 @@ describe('positions allowance requirements', () => {
         tokenAddress: contracts.positionManager,
         operator: contracts.exchange,
       },
+      {
+        type: 'erc20-allowance',
+        tokenAddress: collateral.feeAuthorizationToken,
+        spender: PERMIT2_ADDRESS,
+      },
     ]);
   });
 
-  it('passes through the deposit-wallet filter untouched', () => {
+  it('drops only the Permit2 allowance through the deposit-wallet filter', () => {
     const requirements = getPositionsAllowanceRequirements();
 
     expect(filterDepositWalletUnsupportedRequirements(requirements)).toEqual(
-      requirements,
+      requirements.slice(0, 2),
     );
   });
 
@@ -53,6 +59,12 @@ describe('positions allowance requirements', () => {
       {
         to: contracts.positionManager,
         data: `setApproval:${contracts.exchange}`,
+        operation: 0,
+        value: '0',
+      },
+      {
+        to: collateral.feeAuthorizationToken,
+        data: `approve:${PERMIT2_ADDRESS}`,
         operation: 0,
         value: '0',
       },
