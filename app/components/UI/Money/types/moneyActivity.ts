@@ -46,7 +46,7 @@ export type AccountsApiActivity =
  * Off-chain VBA / NeoBank autoramp deposit (PIX → mUSD), before or without an
  * Accounts-API on-chain settlement row. Status is MoonPay `transaction_status`.
  */
-export type NeobankBankTransferActivity = {
+export interface NeobankBankTransferActivity {
   id: string;
   autorampId: string;
   /** MoonPay status: Pending, Completed, Failed, Cancelled, … */
@@ -58,7 +58,7 @@ export type NeobankBankTransferActivity = {
   destinationAmount?: string;
   /** On-chain payout hash when MoonPay has one (used to dedupe vs Accounts API). */
   transactionHash?: Hex;
-};
+}
 
 /**
  * One row in the Money activity list, tagged by source.

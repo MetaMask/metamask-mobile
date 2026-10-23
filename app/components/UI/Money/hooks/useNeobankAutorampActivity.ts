@@ -23,13 +23,13 @@ const EMPTY_ACTIVITY: NeobankBankTransferActivity[] = [];
 const neobankActivityQueryKey = (walletKey: string, autorampId: string) =>
   ['money', 'neobankAutorampActivity', walletKey, autorampId] as const;
 
-type PollRegistration = {
+interface PollRegistration {
   subscribers: number;
   timer: ReturnType<typeof setInterval> | null;
   poll: () => Promise<unknown>;
   intervalMs: number;
   inFlight: boolean;
-};
+}
 
 const sharedPolls = new Map<string, PollRegistration>();
 
@@ -94,17 +94,19 @@ function subscribeToSharedPoll(
   };
 }
 
-type ListAutorampTransactions = (autorampId: string) => Promise<
-  Array<{
-    id: string;
-    autorampId: string;
-    status: string;
-    sourceAmount?: string;
-    destinationAmount?: string;
-    createdAt?: string;
-    transactionHash?: string;
-  }>
->;
+interface AutorampActivityTransaction {
+  id: string;
+  autorampId: string;
+  status: string;
+  sourceAmount?: string;
+  destinationAmount?: string;
+  createdAt?: string;
+  transactionHash?: string;
+}
+
+type ListAutorampTransactions = (
+  autorampId: string,
+) => Promise<AutorampActivityTransaction[]>;
 
 function isUsableAutoramp(autoramp: AutorampAccount): boolean {
   return autoramp.status !== 'Rejected' && autoramp.status !== 'Cancelled';
@@ -118,7 +120,7 @@ function isUsableAutoramp(autoramp: AutorampAccount): boolean {
  */
 export function findUsableAutorampForActivity(
   autoramps: readonly AutorampAccount[],
-  walletAddresses: Array<string | null | undefined>,
+  walletAddresses: (string | null | undefined)[],
 ): AutorampAccount | undefined {
   const normalized = new Set(
     walletAddresses
