@@ -1,5 +1,6 @@
 import { test } from '../../../framework/fixtures/playwright';
 import {
+  Performance,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
@@ -15,7 +16,7 @@ import TimerHelper from '../../../framework/TimerHelper';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import { skipHermesCollectionUntilRestart } from '../../helpers/appProfiling';
 
-test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
