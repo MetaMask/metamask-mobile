@@ -7,6 +7,7 @@ import {
   IconColor,
   IconName,
   IconSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import React, {
   useCallback,
@@ -29,7 +30,7 @@ import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
 import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
 import type { SocialV1HotToken } from '../types';
 import {
-  getSocialV1HotTokenCheckTestId,
+  getSocialV1HotTokenCloseTestId,
   getSocialV1HotTokenChipTestId,
   SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID,
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
@@ -71,9 +72,9 @@ const HotTokenChip: React.FC<{
   token: SocialV1HotToken;
   onPress?: (token: SocialV1HotToken) => void;
   testID: string;
-  checkTestID: string;
+  closeTestID: string;
   isSelected?: boolean;
-}> = ({ token, onPress, testID, checkTestID, isSelected = false }) => (
+}> = ({ token, onPress, testID, closeTestID, isSelected = false }) => (
   // ExplorePill sets `shrink` so a wrapping rail can compress labels. The
   // ticker must keep each chip at intrinsic width or the track never overflows
   // the viewport and the marquee never starts.
@@ -81,23 +82,32 @@ const HotTokenChip: React.FC<{
     <ExplorePill
       testID={testID}
       accessibilityState={{ selected: isSelected }}
-      twClassName={isSelected ? 'border-default' : undefined}
+      twClassName={
+        isSelected ? 'bg-icon-default border-transparent' : undefined
+      }
       leading={
-        <PositionTokenAvatar
-          position={token.avatar}
-          size={AvatarTokenSize.Sm}
-        />
+        <Box twClassName="mr-1">
+          <PositionTokenAvatar
+            position={token.avatar}
+            size={AvatarTokenSize.Sm}
+          />
+        </Box>
       }
       title={token.label}
+      titleTextColor={
+        isSelected ? TextColor.InfoInverse : TextColor.TextDefault
+      }
       onPress={() => onPress?.(token)}
       trailing={
         isSelected ? (
-          <Icon
-            name={IconName.Check}
-            size={IconSize.Sm}
-            color={IconColor.IconDefault}
-            testID={checkTestID}
-          />
+          <Box twClassName="ml-1">
+            <Icon
+              name={IconName.Close}
+              size={IconSize.Sm}
+              color={IconColor.IconInverse}
+              testID={closeTestID}
+            />
+          </Box>
         ) : null
       }
     />
@@ -128,7 +138,7 @@ const HotTokenTrack: React.FC<{
           onPress={onPress}
           isSelected={token.id === selectedTokenId}
           testID={getSocialV1HotTokenChipTestId(chipId)}
-          checkTestID={getSocialV1HotTokenCheckTestId(chipId)}
+          closeTestID={getSocialV1HotTokenCloseTestId(chipId)}
         />
       );
     })}
@@ -178,17 +188,10 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     (heldTokenRef.current?.id === selectedTokenId
       ? heldTokenRef.current
       : null);
-  // The selected chip leads the rail. Frequency decides the order until a
-  // filter is on, and then the asset being filtered on has to be the one the
-  // user can see -- the rail is parked at its left edge while a chip is active.
+  // A selected chip is the only chip shown. Frequency decides the order until
+  // a filter is on, then the rail parks at its left edge with a clear action.
   const railTokens = useMemo(
-    () =>
-      selectedToken
-        ? [
-            selectedToken,
-            ...tokens.filter((token) => token.id !== selectedToken.id),
-          ]
-        : tokens,
+    () => (selectedToken ? [selectedToken] : tokens),
     [selectedToken, tokens],
   );
   const offset = useSharedValue(0);
@@ -305,14 +308,20 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     return null;
   }
 
+  // The feed column leaves 24px under this rail. Cancelling 16px of that
+  // leaves 8px, and the first post keeps its own 8px padding, for 16px total.
   if (isLoading) {
-    return <SectionPillsSkeleton rowCount={1} />;
+    return (
+      <Box twClassName="-mb-4">
+        <SectionPillsSkeleton rowCount={1} />
+      </Box>
+    );
   }
 
   return (
     <Box
       onLayout={handleViewportLayout}
-      twClassName="overflow-hidden"
+      twClassName="overflow-hidden -mb-4"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>

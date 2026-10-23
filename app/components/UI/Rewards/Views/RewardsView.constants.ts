@@ -57,6 +57,7 @@ export const REWARDS_VIEW_SELECTORS = {
   TOP_BENEFIT_SECTION: 'rewards-view-top-benefit-section',
   TOP_BENEFIT_DETAILS: 'rewards-view-top-benefit-details',
   TOP_BENEFIT_DETAILS_IMAGE: 'rewards-view-top-benefit-details-image',
+  TOP_BENEFIT_SKELETON: 'rewards-view-top-benefit-skeleton',
   BENEFIT_CARD_FOOTER: 'rewards-view-benefit-card-footer',
   LIST_BENEFIT_VIEW: 'rewards-view-list-benefit-view',
   DETAIL_BENEFIT_VIEW: 'rewards-view-detail-benefit-view',

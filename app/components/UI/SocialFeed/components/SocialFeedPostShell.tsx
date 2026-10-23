@@ -20,6 +20,7 @@ import { strings } from '../../../../../locales/i18n';
 import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
+import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -31,6 +32,7 @@ import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
+import SocialFeedGif from './SocialFeedGif';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -51,6 +53,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -91,11 +94,15 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const chips = visibleReactions(reactions);
 
   const openPicker = useCallback(() => {
+    if (!ensureSocialProfileOnboarding()) {
+      return;
+    }
+
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setPickerAnchor({ x, y, width, height });
       setPickerVisible(true);
     });
-  }, []);
+  }, [ensureSocialProfileOnboarding]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -103,9 +110,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const toggleEmotion = useCallback(
     (emotion: string) => {
+      if (!ensureSocialProfileOnboarding()) {
+        return;
+      }
+
       pickEmotion(emotion).catch(() => undefined);
     },
-    [pickEmotion],
+    [ensureSocialProfileOnboarding, pickEmotion],
   );
 
   const handlePick = useCallback(
@@ -130,7 +141,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   return (
     <Box
-      twClassName="py-2"
+      twClassName={post.isPending ? 'py-2 opacity-60' : 'py-2'}
       testID={`${SocialFeedPostShellSelectorsIDs.CONTAINER}-${post.id}`}
     >
       <SocialTraderIdentityRow
@@ -143,14 +154,21 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
-          verifiedBadge: SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
-          mockMarker: `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
         }}
       >
+        {post.isPending ? (
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            testID={`${SocialFeedPostShellSelectorsIDs.PENDING}-${post.id}`}
+          >
+            {strings('social_leaderboard.composer.posting')}
+          </Text>
+        ) : null}
         {post.item.comment ? (
           <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
             {post.item.comment}
@@ -171,9 +189,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
         {post.gifUri ? (
           <Box twClassName="rounded-2xl overflow-hidden">
-            <Image
-              source={{ uri: post.gifUri }}
-              style={tw.style('w-full aspect-square')}
+            <SocialFeedGif
+              uri={post.gifUri}
               testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
             />
           </Box>

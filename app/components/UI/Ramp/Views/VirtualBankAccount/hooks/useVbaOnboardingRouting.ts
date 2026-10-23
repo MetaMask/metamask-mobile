@@ -25,6 +25,7 @@ import {
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
+import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -121,8 +122,15 @@ export const openAsOnlyOnboardingRoute = (
  * Keeps the original caller under the completed account and removes onboarding
  * from the root stack. Header and native-gesture back actions then return
  * directly to the caller instead of revealing the onboarding loader.
+ *
+ * @param navigation - Navigation from any screen inside or beside onboarding.
+ * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
+ * IP country's currency.
  */
-const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
+export const openCompletedVbaAccount = (
+  navigation: AppNavigationProp,
+  sourceCurrency?: VbaSourceCurrency,
+): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
 
@@ -136,7 +144,12 @@ const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
             getCallerRoute(
               state,
             ) as PartialState<NavigationState>['routes'][number],
-            { name: Routes.RAMP.VBA_DETAILS },
+            sourceCurrency
+              ? {
+                  name: Routes.RAMP.VBA_DETAILS,
+                  params: { sourceCurrency },
+                }
+              : { name: Routes.RAMP.VBA_DETAILS },
           ],
         }),
       );

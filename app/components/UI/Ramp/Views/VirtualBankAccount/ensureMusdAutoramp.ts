@@ -3,16 +3,21 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 
-/** `terminal`: only Rejected or Cancelled autoramps, and no replacement asked. */
+/**
+ * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
+ * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
+ */
 export type MusdAutorampSetupOutcome =
   | 'ready'
   | 'waiting'
+  | 'awaiting_provider'
   | 'failed'
   | 'terminal';
 
 interface AutorampCursor {
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
 
 const setupByWallet = new Map<string, Promise<MusdAutorampSetupOutcome>>();
@@ -28,14 +33,40 @@ const isForWallet = (autoramp: AutorampCursor, walletAddress: string) =>
 const isTerminal = (autoramp: AutorampCursor) =>
   autoramp.status === 'Rejected' || autoramp.status === 'Cancelled';
 
-/** First autoramp for this wallet that is not Rejected or Cancelled. */
+const knownCurrency = (autoramp: AutorampCursor): string | undefined =>
+  autoramp.depositRailsSummary?.currency;
+
+/**
+ * First autoramp for this wallet that is not Rejected or Cancelled.
+ * An exact fiat match wins over an earlier autoramp whose fiat is not known
+ * yet. An autoramp with no fiat still matches when nothing else does, so a
+ * create that has not received deposit rails is not repeated.
+ */
 export const findUsableAutoramp = <T extends AutorampCursor>(
   autoramps: readonly T[],
   walletAddress: string,
-): T | undefined =>
-  autoramps.find(
+  sourceCurrency?: string,
+): T | undefined => {
+  const usable = autoramps.filter(
     (autoramp) => isForWallet(autoramp, walletAddress) && !isTerminal(autoramp),
   );
+  if (!sourceCurrency) {
+    return usable[0];
+  }
+  return (
+    usable.find((autoramp) => knownCurrency(autoramp) === sourceCurrency) ??
+    usable.find((autoramp) => !knownCurrency(autoramp))
+  );
+};
+
+const isTerminalForCurrency = (
+  autoramp: AutorampCursor,
+  walletAddress: string,
+  sourceCurrency: string,
+): boolean =>
+  isForWallet(autoramp, walletAddress) &&
+  isTerminal(autoramp) &&
+  knownCurrency(autoramp) === sourceCurrency;
 
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];
@@ -45,7 +76,7 @@ const runSetup = async (
   sourceCurrency: VbaSourceCurrency,
   replaceTerminal: boolean,
 ): Promise<MusdAutorampSetupOutcome> => {
-  if (findUsableAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 
@@ -55,24 +86,37 @@ const runSetup = async (
     refreshAutoramps: true,
   });
 
-  if (
-    findUsableAutoramp(readAutoramps(), walletAddress) ||
-    snapshot.autorampStatus === 'ready'
-  ) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
+    return 'ready';
+  }
+
+  // Hydrate reports ready when any fiat is usable. A different known fiat
+  // does not satisfy this request, so create one for the requested currency.
+  if (snapshot.autorampStatus === 'ready') {
+    await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
     return 'ready';
   }
 
   if (
     !replaceTerminal &&
-    readAutoramps().some(
-      (autoramp) =>
-        isForWallet(autoramp, walletAddress) && isTerminal(autoramp),
+    readAutoramps().some((autoramp) =>
+      isTerminalForCurrency(autoramp, walletAddress, sourceCurrency),
     )
   ) {
     return 'terminal';
   }
 
-  // Customer not Active yet, or another read is still settling.
+  // IDOS is approved and MoonPay has not activated the customer yet.
+  if (
+    snapshot.autorampStatus === 'not_ready' &&
+    snapshot.kycStatus === 'approved'
+  ) {
+    return 'awaiting_provider';
+  }
+
+  // KYC is still open, or another read is settling.
   if (
     snapshot.autorampStatus === 'not_ready' ||
     snapshot.autorampStatus === 'in_progress'
@@ -96,7 +140,7 @@ const runSetup = async (
     return 'waiting';
   }
 
-  if (findUsableAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 

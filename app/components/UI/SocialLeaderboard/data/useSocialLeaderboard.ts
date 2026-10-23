@@ -71,6 +71,7 @@ export const useSocialLeaderboard = (
     sort,
     timeframe,
     enabled: isEnabled && enabled && isReady,
+    keepPreviousRanking: true,
   });
 
   const { traders: loadedTraders, refresh: refetch } = result;

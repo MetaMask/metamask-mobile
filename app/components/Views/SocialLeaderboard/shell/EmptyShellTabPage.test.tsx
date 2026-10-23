@@ -7,19 +7,20 @@ import {
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
-import { SocialFeedPostingBannerSelectorsIDs } from '../SocialV1View/feed/components/SocialFeedPostingBanner.testIds';
 import {
-  COMPOSER_POSTING_DELAY_MS,
-  resetSocialV1ComposedFeedStore,
-  submitSocialV1ComposedPost,
-} from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+  addPendingPost,
+  resetPendingPosts,
+} from '../pendingPosts/pendingPostsStore';
 import {
   mockUseSocialV1Feed,
   mockUseSocialV1FeedLoading,
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
 import { useSocialFeed } from '../../../UI/SocialFeed/data/useSocialFeed';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
-import { FeedSortFilterSelectorsIDs } from '../components/Filters';
+import {
+  FeedSortFilterSelectorsIDs,
+  getFeedSortFilterOptionTestId,
+} from '../components/Filters';
 import { SOCIAL_FEED_ERROR_TEST_ID } from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
@@ -161,20 +162,22 @@ jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+let mockMyProfile: { profileId: string } | null = null;
 jest.mock('../MyProfileView/hooks', () => ({
-  useMyProfile: () => ({ profile: null }),
+  useMyProfile: () => ({ profile: mockMyProfile }),
 }));
 
 describe('EmptyShellTabPage', () => {
   beforeEach(() => {
     jest.mocked(useSocialV1Feed).mockImplementation(mockUseSocialV1Feed);
     mockNavigate.mockClear();
-    resetSocialV1ComposedFeedStore();
+    mockMyProfile = null;
+    resetPendingPosts();
   });
 
   afterEach(() => {
     jest.useRealTimers();
-    resetSocialV1ComposedFeedStore();
+    resetPendingPosts();
   });
 
   it('holds the mock feed back until the tab is opened', () => {
@@ -302,9 +305,68 @@ describe('EmptyShellTabPage', () => {
     });
   });
 
-  it('shows the posting banner then prepends the composed post on Trending', () => {
-    jest.useFakeTimers();
-    try {
+  describe('pinned posts', () => {
+    const addViewerPost = () =>
+      act(() => {
+        addPendingPost({
+          ownerProfileId: 'viewer-profile',
+          post: {
+            id: 'pending-comment-1',
+            commentId: 'comment-1',
+            authorHandle: 'Giga Whale',
+            timestampMs: Date.now(),
+            reactions: [],
+            item: mockOpenPerpsFeedItem({
+              id: 'pinned-item',
+              comment: 'this is alpha',
+            }),
+          },
+        });
+      });
+
+    beforeEach(() => {
+      mockMyProfile = { profileId: 'viewer-profile' };
+    });
+
+    it('pins the viewer’s new post above the Following feed', () => {
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="following"
+          isActive
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
+        />,
+      );
+
+      addViewerPost();
+
+      expect(
+        screen.getAllByTestId(/^social-v1-feed-card-/)[0].props.testID,
+      ).toBe('social-v1-feed-card-pinned-item');
+    });
+
+    it('keeps the post pinned when Following is sorted by reactions', () => {
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="following"
+          isActive
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
+        />,
+      );
+      addViewerPost();
+
+      fireEvent.press(screen.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR));
+      fireEvent.press(
+        screen.getByTestId(getFeedSortFilterOptionTestId('popular')),
+      );
+
+      expect(
+        screen.getAllByTestId(/^social-v1-feed-card-/)[0].props.testID,
+      ).toBe('social-v1-feed-card-pinned-item');
+    });
+
+    it('never shows the viewer’s new post on Trending', () => {
       renderWithProvider(
         <EmptyShellTabPage
           tab="trending"
@@ -314,36 +376,30 @@ describe('EmptyShellTabPage', () => {
         />,
       );
 
-      act(() => {
-        submitSocialV1ComposedPost({
-          id: 'composed-1',
-          authorHandle: 'giga-whale',
-          timestampMs: Date.now(),
-          reactions: [],
-          item: mockOpenPerpsFeedItem({
-            id: 'composed-item',
-            comment: 'this is alpha',
-          }),
-        });
-      });
+      addViewerPost();
 
       expect(
-        screen.getByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
-
-      act(() => {
-        jest.advanceTimersByTime(COMPOSER_POSTING_DELAY_MS);
-      });
-
-      expect(
-        screen.queryByTestId(SocialFeedPostingBannerSelectorsIDs.CONTAINER),
+        screen.queryByTestId('social-v1-feed-card-pinned-item'),
       ).toBeNull();
+    });
+
+    it('does not pin another profile’s pending post', () => {
+      mockMyProfile = { profileId: 'someone-else' };
+      renderWithProvider(
+        <EmptyShellTabPage
+          tab="following"
+          isActive
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
+        />,
+      );
+
+      addViewerPost();
+
       expect(
-        screen.getByTestId('social-v1-feed-card-composed-item'),
-      ).toBeOnTheScreen();
-    } finally {
-      jest.useRealTimers();
-    }
+        screen.queryByTestId('social-v1-feed-card-pinned-item'),
+      ).toBeNull();
+    });
   });
 
   it('inserts the Popular traders carousel after the first three Trending posts', () => {
@@ -571,8 +627,7 @@ describe('EmptyShellTabPage', () => {
   it('shows the empty state when the tab feed has no posts', () => {
     jest.mocked(useSocialV1Feed).mockImplementation(() => ({
       posts: [],
-      pendingPost: null,
-      pendingStartedAtMs: null,
+      pinnedPosts: [],
       isLoading: false,
       isFetchingNextPage: false,
       hasNextPage: false,
@@ -605,8 +660,7 @@ describe('EmptyShellTabPage', () => {
   it('places the Trending empty state above Popular traders', () => {
     jest.mocked(useSocialV1Feed).mockImplementation(() => ({
       posts: [],
-      pendingPost: null,
-      pendingStartedAtMs: null,
+      pinnedPosts: [],
       isLoading: false,
       isFetchingNextPage: false,
       hasNextPage: false,
@@ -653,8 +707,7 @@ describe('EmptyShellTabPage', () => {
   it('shows the feed error instead of the empty state when the first load fails', () => {
     jest.mocked(useSocialV1Feed).mockImplementation(() => ({
       posts: [],
-      pendingPost: null,
-      pendingStartedAtMs: null,
+      pinnedPosts: [],
       isLoading: false,
       isFetchingNextPage: false,
       hasNextPage: false,
@@ -705,6 +758,40 @@ describe('EmptyShellTabPage', () => {
       screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+  });
+
+  it('keeps the pinned post above the skeletons while Following first loads', () => {
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      ...mockUseSocialV1FeedLoading(),
+      pinnedPosts: [
+        {
+          id: 'pending-comment-1',
+          commentId: 'comment-1',
+          authorHandle: 'Giga Whale',
+          timestampMs: 1,
+          reactions: [],
+          isPending: true,
+          item: mockOpenPerpsFeedItem({ id: 'pinned-item' }),
+        },
+      ],
+    }));
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-pinned-item'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
   });
 
   describe('asset feed for a selected chip', () => {

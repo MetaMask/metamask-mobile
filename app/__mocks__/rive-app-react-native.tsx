@@ -94,10 +94,18 @@ export const __fireRiveTrigger = (path: string): void => {
   triggerCallbacks.get(path)?.forEach((cb) => cb());
 };
 
+let lastRiveViewOnError: ((error: RiveError) => void) | undefined;
+
+/** Fires the `onError` passed to the most recently rendered `RiveView`. */
+export const __fireRiveViewError = (error: RiveError): void => {
+  lastRiveViewOnError?.(error);
+};
+
 export const __resetRiveMocks = (): void => {
   __mockRiveTriggerInput.mockClear();
   __mockRiveImagePropertySet.mockClear();
   lastRiveViewMethods = undefined;
+  lastRiveViewOnError = undefined;
   propertySetters.clear();
   propertyValues.clear();
   propertyListeners.clear();
@@ -136,6 +144,7 @@ export const RiveView = ({
 }: MockRiveViewProps) => {
   const methods = useMemo(() => createRiveViewMethods(), []);
   lastRiveViewMethods = methods;
+  lastRiveViewOnError = onError;
 
   useEffect(() => {
     hybridRef?.f(methods);

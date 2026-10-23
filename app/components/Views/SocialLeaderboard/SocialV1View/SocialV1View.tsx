@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -46,10 +45,6 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import {
-  consumeSocialV1FocusTrending,
-  refreshSocialV1ComposedFeed,
-} from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -85,12 +80,17 @@ import { selectAvatarAccountType } from '../../../../selectors/settings';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { markSocialTabVisited } from '../utils/socialTabVisit';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
 } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
 
@@ -175,6 +175,7 @@ const SocialV1ViewContent: React.FC = () => {
   const programmaticTabChangeRef = useRef(false);
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
+  useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
@@ -412,6 +413,16 @@ const SocialV1ViewContent: React.FC = () => {
     [],
   );
   const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
+  );
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -498,26 +509,6 @@ const SocialV1ViewContent: React.FC = () => {
     [changeTab],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      // Reconcile with the composed-post store on every focus. A store update
-      // that lands while this screen is blurred (the composer is pushed on top
-      // of it) reaches no subscribers, and re-subscribing does not replay it.
-      refreshSocialV1ComposedFeed();
-
-      if (!consumeSocialV1FocusTrending()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(trendingIndex);
-      if (activeIndex !== trendingIndex) {
-        changeTab(trendingIndex);
-      } else {
-        trendingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, trendingIndex]),
-  );
-
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -571,7 +562,7 @@ const SocialV1ViewContent: React.FC = () => {
             </Pressable>
           }
           endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
               <ButtonIcon
                 iconName={IconName.Gift}
                 iconProps={{ color: IconColor.IconDefault }}
@@ -581,6 +572,7 @@ const SocialV1ViewContent: React.FC = () => {
                   'wallet.rewards_accessibility_label',
                 )}
                 testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                twClassName="bg-transparent"
               />
               <ButtonIcon
                 iconName={IconName.Edit}
@@ -588,6 +580,7 @@ const SocialV1ViewContent: React.FC = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                twClassName="bg-transparent"
               />
             </SocialHeaderGlassSurface>
           }
@@ -630,11 +623,11 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
@@ -723,6 +716,8 @@ const SocialV1ViewContent: React.FC = () => {
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
           copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
       </SafeAreaView>
