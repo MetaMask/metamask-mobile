@@ -1,4 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
+import Engine from '../../../../core/Engine';
+import {
+  PredictEventValues,
+  PredictTradeStatus,
+  type PredictPresubmitOutcomeValue,
+} from '../constants/eventNames';
 import type { OrderPreview, PlaceOrderParams } from '../types';
 import { getPredictSellSubmitDecision } from '../utils/prices';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
@@ -17,6 +23,34 @@ export type PredictCashOutSheetVariant = Extract<
 >;
 
 type PriceCheckResult = RefetchPreviewResult | { status: 'timeout' };
+
+const { PRESUBMIT_OUTCOME } = PredictEventValues;
+
+function getPresubmitOutcome(
+  result: PriceCheckResult,
+  approvedPrice: number,
+): PredictPresubmitOutcomeValue {
+  switch (result.status) {
+    case 'timeout':
+      return PRESUBMIT_OUTCOME.TIMEOUT;
+    case 'unavailable':
+      return PRESUBMIT_OUTCOME.QUOTE_UNAVAILABLE;
+    case 'no_match':
+      return PRESUBMIT_OUTCOME.NO_MATCH;
+    case 'ok': {
+      const decision = getPredictSellSubmitDecision({
+        approvedPrice,
+        freshPreview: result.preview,
+      });
+      if (decision === 'submit') {
+        return PRESUBMIT_OUTCOME.SUBMITTED;
+      }
+      return decision === 'price_moved'
+        ? PRESUBMIT_OUTCOME.PRICE_MOVED
+        : PRESUBMIT_OUTCOME.NO_MATCH;
+    }
+  }
+}
 
 async function fetchWithDeadline(
   refetchPreview: () => Promise<RefetchPreviewResult>,
@@ -93,13 +127,14 @@ export function usePredictCashOutSubmit({
   );
 
   const runCashOut = useCallback(
-    async (approvedPrice: number) => {
+    async (approvedPrice: number, reconfirmed = false) => {
       if (isInFlightRef.current) {
         return;
       }
       isInFlightRef.current = true;
       approvedPriceRef.current = approvedPrice;
       const attemptId = ++attemptIdRef.current;
+      const startedAt = Date.now();
       setIsCheckingPrice(true);
 
       try {
@@ -107,36 +142,33 @@ export function usePredictCashOutSubmit({
         if (attemptId !== attemptIdRef.current) {
           return;
         }
-        if (result.status === 'timeout') {
-          showSheet('timeout');
-          return;
-        }
-        if (result.status === 'unavailable') {
-          showSheet('quote_unavailable');
-          return;
-        }
-        if (result.status === 'no_match') {
-          showSheet('no_match');
-          return;
-        }
+        const freshPreview = result.status === 'ok' ? result.preview : null;
+        const outcome = getPresubmitOutcome(result, approvedPrice);
 
-        const freshPreview = result.preview;
-        const decision = getPredictSellSubmitDecision({
+        void Engine.context.PredictController.trackPredictOrderEvent({
+          status: PredictTradeStatus.PRESUBMIT_CHECKED,
+          analyticsProperties,
+          sharePrice: freshPreview?.sharePrice,
+          completionDuration: Date.now() - startedAt,
+          presubmitOutcome: outcome,
           approvedPrice,
-          freshPreview,
+          worstFillPrice: freshPreview?.worstFillPrice,
+          reconfirmed,
         });
-        if (decision === 'no_match') {
-          showSheet('no_match');
-          return;
-        }
-        if (decision === 'price_moved') {
+
+        if (outcome === PRESUBMIT_OUTCOME.SUBMITTED && freshPreview) {
+          sheetRef.current?.onCloseBottomSheet();
+          await placeOrder({ analyticsProperties, preview: freshPreview });
+        } else if (outcome === PRESUBMIT_OUTCOME.PRICE_MOVED && freshPreview) {
           setSheetPreviousPrice(approvedPrice);
           showSheet('price_moved', freshPreview);
-          return;
+        } else if (outcome === PRESUBMIT_OUTCOME.TIMEOUT) {
+          showSheet('timeout');
+        } else if (outcome === PRESUBMIT_OUTCOME.QUOTE_UNAVAILABLE) {
+          showSheet('quote_unavailable');
+        } else {
+          showSheet('no_match');
         }
-
-        sheetRef.current?.onCloseBottomSheet();
-        await placeOrder({ analyticsProperties, preview: freshPreview });
       } finally {
         isInFlightRef.current = false;
         setIsCheckingPrice(false);
@@ -166,7 +198,7 @@ export function usePredictCashOutSubmit({
     if (!sheetQuote) {
       return;
     }
-    await runCashOut(sheetQuote.sharePrice);
+    await runCashOut(sheetQuote.sharePrice, true);
   }, [sheetQuote, runCashOut]);
 
   const dismissCashOut = useCallback(() => {
