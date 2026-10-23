@@ -62,8 +62,8 @@ const getTraceId = (
     return undefined;
   }
 
-  const match = error.message.match(
-    /"(?:traceId|trace_id)"\s*:\s*"([^"\\]{1,200})"/u,
+  const match = /"(?:traceId|trace_id)"\s*:\s*"([^"\\]{1,200})"/u.exec(
+    error.message,
   );
   return match?.[1];
 };
