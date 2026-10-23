@@ -612,8 +612,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   // empty feed does not grow a blank band under the marquee.
   const headerSitsAboveRows =
     listItems.length > 0 &&
-    (showFollowingChrome ||
-      (hasBeenActive && (showHotTokens || pendingPost != null)));
+    (showFollowingChrome || (hasBeenActive && showHotTokens));
 
   const listHeader = (
     <Box twClassName={headerSitsAboveRows ? 'gap-6 pb-6' : 'gap-6'}>
@@ -639,17 +638,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               selectedTokenId={activeHotTokenId}
               onTokenPress={handleHotTokenPress}
             />
-          ) : null}
-          {pendingPost ? (
-            <Box twClassName="px-4">
-              <SocialFeedPostingBanner
-                authorHandle={pendingPost.authorHandle}
-                authorImageUrl={myProfile?.imageUrl}
-                avatarPresetId={myProfile?.avatarPresetId}
-                avatarBackgroundId={myProfile?.avatarBackgroundId}
-                startedAtMs={pendingStartedAtMs}
-              />
-            </Box>
           ) : null}
           {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (
             <SocialFeedSkeleton />
