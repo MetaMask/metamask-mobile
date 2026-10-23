@@ -652,25 +652,9 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
-      # The lint + Slack report run for every main release build so RC gets Slack feedback.
-      # Only production builds produce an AAB. On failure the jar is missing and validation is skipped.
-      - name: Download bundletool (Android Play bundle validation)
-        if: >-
-          success() &&
-          matrix.platform == 'android' &&
-          env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT == 'production'
-        continue-on-error: true
-        env:
-          BUNDLETOOL_URL: https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar
-          BUNDLETOOL_SHA256: a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29
-        run: |
-          curl -fsSL -o "${RUNNER_TEMP}/bundletool-download.jar" "$BUNDLETOOL_URL"
-          echo "${BUNDLETOOL_SHA256}  ${RUNNER_TEMP}/bundletool-download.jar" | sha256sum -c -
-          mv "${RUNNER_TEMP}/bundletool-download.jar" "${RUNNER_TEMP}/bundletool-all.jar"
-
+      # Android Play Store checks: Gradle lint for all main release builds. The lint + Slack report
+      # run for every main release build so RC gets Slack feedback. No bundletool jar is provisioned,
+      # so the script reports bundletool AAB validation as skipped.
       - name: Android Play Store lint and bundle validation (prodRelease, non-blocking)
         if: >-
           success() &&
