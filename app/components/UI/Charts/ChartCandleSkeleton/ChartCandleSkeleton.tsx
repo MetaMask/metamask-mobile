@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../util/theme';
@@ -62,6 +63,59 @@ const HORIZONTAL_GRID: readonly { lineTop: number; pillTop: number }[] = [
 
 const VERTICAL_GRID = [0, 1, 2, 3] as const;
 const TIME_PILLS = [0, 1, 2, 3, 4, 5] as const;
+
+const layout = StyleSheet.create({
+  pricePane: { flex: 1, overflow: 'hidden' },
+  plot: { flex: 1, height: '100%' },
+  fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  flex1: { flex: 1 },
+  verticalGrid: { width: 1, height: '100%' },
+  candleSlot: { height: '100%' },
+  candleColumn: { width: BODY_WIDTH, height: '100%' },
+  yAxis: { width: AXIS_WIDTH, height: '100%' },
+  volumeBand: { height: VOLUME_PANE_PERCENT, flexShrink: 0 },
+  volumeTrack: { flex: 1, height: '100%' },
+  volumeSlot: { height: '100%' },
+  axisSpacer: { width: AXIS_WIDTH, height: '100%' },
+  timeAxis: { height: TIME_PANE_HEIGHT, flexShrink: 0 },
+  timeTrack: { flex: 1, height: TIME_PANE_HEIGHT },
+  timeSpacer: { width: AXIS_WIDTH, height: TIME_PANE_HEIGHT },
+});
+
+const gridStyles = HORIZONTAL_GRID.map((line) =>
+  StyleSheet.create({
+    line: {
+      position: 'absolute',
+      top: percentOf(line.lineTop, PRICE_PANE_HEIGHT),
+      left: 0,
+      right: 0,
+      height: 1,
+    },
+    pill: {
+      position: 'absolute',
+      top: percentOf(line.pillTop, PRICE_PANE_HEIGHT),
+      right: 8,
+      width: Y_PILL_WIDTH,
+      height: percentOf(Y_PILL_HEIGHT, PRICE_PANE_HEIGHT),
+    },
+  }),
+);
+
+const themedStyles = (
+  backgroundColor: string,
+  gridColor: string,
+  height: number,
+) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      height,
+      backgroundColor,
+    },
+    hairline: {
+      backgroundColor: gridColor,
+    },
+  });
 
 interface CandleMark {
   bodyTop: number;
@@ -303,6 +357,27 @@ const CANDLES: readonly CandleMark[] = [
   },
 ];
 
+const candleMarks = CANDLES.map((candle) =>
+  StyleSheet.create({
+    wick: {
+      position: 'absolute',
+      top: percentOf(candle.wickTop, PRICE_PANE_HEIGHT),
+      width: WICK_WIDTH,
+      height: percentOf(candle.wickHeight, PRICE_PANE_HEIGHT),
+    },
+    body: {
+      position: 'absolute',
+      top: percentOf(candle.bodyTop, PRICE_PANE_HEIGHT),
+      width: BODY_WIDTH,
+      height: percentOf(candle.bodyHeight, PRICE_PANE_HEIGHT),
+    },
+    volume: {
+      width: BODY_WIDTH,
+      height: percentOf(candle.volumeHeight, VOLUME_PANE_HEIGHT),
+    },
+  }),
+);
+
 /**
  * Candle-chart loading placeholder. The price pane flexes, the volume band is
  * a percentage of the root, and the time row is fixed, so the skeleton matches
@@ -314,125 +389,74 @@ const ChartCandleSkeleton = ({
   testID = 'chart-candle-skeleton',
 }: ChartCandleSkeletonProps) => {
   const { colors } = useTheme();
-  const gridColor = colors.border.muted;
+  const themed = themedStyles(
+    colors.background.default,
+    colors.border.muted,
+    height,
+  );
 
   return (
     <Box
       testID={testID}
       twClassName="w-full overflow-hidden"
-      style={{
-        flex: 1,
-        height,
-        backgroundColor: colors.background.default,
-      }}
+      style={themed.root}
     >
       <Box
         testID={`${testID}-price`}
         twClassName="flex-row"
-        style={{ flex: 1, overflow: 'hidden' }}
+        style={layout.pricePane}
       >
-        <Box style={{ flex: 1, height: '100%' }}>
-          {HORIZONTAL_GRID.map((line, index) => (
+        <Box style={layout.plot}>
+          {gridStyles.map((grid, index) => (
             <Box
-              key={`grid-h-${line.lineTop}`}
+              key={`grid-h-${index}`}
               testID={`${testID}-grid-h-${index}`}
-              style={{
-                position: 'absolute',
-                top: percentOf(line.lineTop, PRICE_PANE_HEIGHT),
-                left: 0,
-                right: 0,
-                height: 1,
-                backgroundColor: gridColor,
-              }}
+              style={[grid.line, themed.hairline]}
             />
           ))}
-          <Box
-            twClassName="flex-row"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          >
-            <Box style={{ flex: 1 }} />
+          <Box twClassName="flex-row" style={layout.fill}>
+            <Box style={layout.flex1} />
             {VERTICAL_GRID.map((index) => (
               <Box
                 key={`grid-v-slot-${index}`}
                 twClassName="flex-row"
-                style={{ flex: 1 }}
+                style={layout.flex1}
               >
                 <Box
                   testID={`${testID}-grid-v-${index}`}
-                  style={{
-                    width: 1,
-                    height: '100%',
-                    backgroundColor: gridColor,
-                  }}
+                  style={[layout.verticalGrid, themed.hairline]}
                 />
-                <Box style={{ flex: 1 }} />
+                <Box style={layout.flex1} />
               </Box>
             ))}
           </Box>
-          <Box
-            twClassName="flex-row"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-            }}
-          >
-            {CANDLES.map((candle, index) => (
+          <Box twClassName="flex-row" style={layout.fill}>
+            {candleMarks.map((mark, index) => (
               <Box
                 key={`candle-slot-${index}`}
                 twClassName="flex-1 items-center"
-                style={{ height: '100%' }}
+                style={layout.candleSlot}
               >
-                <Box
-                  twClassName="items-center"
-                  style={{ width: BODY_WIDTH, height: '100%' }}
-                >
+                <Box twClassName="items-center" style={layout.candleColumn}>
                   <Skeleton
                     testID={`${testID}-wick-${index}`}
-                    width={WICK_WIDTH}
-                    height={percentOf(candle.wickHeight, PRICE_PANE_HEIGHT)}
-                    style={{
-                      position: 'absolute',
-                      top: percentOf(candle.wickTop, PRICE_PANE_HEIGHT),
-                    }}
+                    style={mark.wick}
                   />
                   <Skeleton
                     testID={`${testID}-candle-${index}`}
-                    width={BODY_WIDTH}
-                    height={percentOf(candle.bodyHeight, PRICE_PANE_HEIGHT)}
-                    style={{
-                      position: 'absolute',
-                      top: percentOf(candle.bodyTop, PRICE_PANE_HEIGHT),
-                    }}
+                    style={mark.body}
                   />
                 </Box>
               </Box>
             ))}
           </Box>
         </Box>
-        <Box
-          testID={`${testID}-y-axis`}
-          style={{ width: AXIS_WIDTH, height: '100%' }}
-        >
-          {HORIZONTAL_GRID.map((line, index) => (
+        <Box testID={`${testID}-y-axis`} style={layout.yAxis}>
+          {gridStyles.map((grid, index) => (
             <Skeleton
-              key={`y-pill-${line.pillTop}`}
+              key={`y-pill-${index}`}
               testID={`${testID}-y-pill-${index}`}
-              width={Y_PILL_WIDTH}
-              height={percentOf(Y_PILL_HEIGHT, PRICE_PANE_HEIGHT)}
-              style={{
-                position: 'absolute',
-                top: percentOf(line.pillTop, PRICE_PANE_HEIGHT),
-                right: 8,
-              }}
+              style={grid.pill}
             />
           ))}
         </Box>
@@ -441,38 +465,31 @@ const ChartCandleSkeleton = ({
       <Box
         testID={`${testID}-volume-band`}
         twClassName="flex-row items-end"
-        style={{ height: VOLUME_PANE_PERCENT, flexShrink: 0 }}
+        style={layout.volumeBand}
       >
-        <Box
-          twClassName="flex-row items-end"
-          style={{ flex: 1, height: '100%' }}
-        >
-          {CANDLES.map((candle, index) => (
+        <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
+          {candleMarks.map((mark, index) => (
             <Box
               key={`volume-slot-${index}`}
               twClassName="flex-1 items-center justify-end"
-              style={{ height: '100%' }}
+              style={layout.volumeSlot}
             >
               <Skeleton
                 testID={`${testID}-volume-${index}`}
-                width={BODY_WIDTH}
-                height={percentOf(candle.volumeHeight, VOLUME_PANE_HEIGHT)}
+                style={mark.volume}
               />
             </Box>
           ))}
         </Box>
-        <Box style={{ width: AXIS_WIDTH, height: '100%' }} />
+        <Box style={layout.axisSpacer} />
       </Box>
 
       <Box
         testID={`${testID}-time-axis`}
         twClassName="flex-row items-center"
-        style={{ height: TIME_PANE_HEIGHT, flexShrink: 0 }}
+        style={layout.timeAxis}
       >
-        <Box
-          twClassName="flex-row items-center"
-          style={{ flex: 1, height: TIME_PANE_HEIGHT }}
-        >
+        <Box twClassName="flex-row items-center" style={layout.timeTrack}>
           {TIME_PILLS.map((index) => (
             <Box key={`x-pill-slot-${index}`} twClassName="flex-1 items-center">
               <Skeleton
@@ -483,7 +500,7 @@ const ChartCandleSkeleton = ({
             </Box>
           ))}
         </Box>
-        <Box style={{ width: AXIS_WIDTH, height: TIME_PANE_HEIGHT }} />
+        <Box style={layout.timeSpacer} />
       </Box>
     </Box>
   );
