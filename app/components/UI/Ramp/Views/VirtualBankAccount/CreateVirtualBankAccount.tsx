@@ -30,6 +30,7 @@ import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
 import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
+import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 
@@ -228,27 +229,49 @@ const CreateVirtualBankAccount = ({
             {strings(
               'virtual_bank_account.create_virtual_bank_account.agreement_prefix',
             )}
-            {disclaimers?.map((disclaimer, index) => (
-              <React.Fragment key={disclaimer.id}>
-                {index > 0
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
-                    )
-                  : ''}
+            {disclaimers?.length ? (
+              <>
+                {/* TRAM-4169: this URL ships with the app instead of coming from
+                    the vendor catalog. It renders with the catalog documents and
+                    waits for them, so loading and error states never show a
+                    partial legal line. */}
                 <TextButton
                   variant={TextVariant.BodyXs}
-                  onPress={() => Linking.openURL(disclaimer.url)}
-                  testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                  onPress={() => Linking.openURL(MOONPAY_PRIVACY_POLICY_URL)}
+                  testID={
+                    CreateVirtualBankAccountSelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK
+                  }
                 >
-                  {disclaimer.display_name}
+                  {strings(
+                    'virtual_bank_account.create_virtual_bank_account.moonpay_privacy_policy_link',
+                  )}
                 </TextButton>
-              </React.Fragment>
-            ))}
-            {disclaimers?.length
-              ? strings(
+                {disclaimers.map((disclaimer) => (
+                  <React.Fragment key={disclaimer.id}>
+                    {strings(
+                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
+                    )}
+                    <TextButton
+                      variant={TextVariant.BodyXs}
+                      onPress={() => Linking.openURL(disclaimer.url)}
+                      testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                    >
+                      {/* A single document carries the MoonPay label
+                          (TRAM-4169); with several, the vendor labels keep each
+                          link distinguishable. */}
+                      {disclaimers.length === 1
+                        ? strings(
+                            'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
+                          )
+                        : disclaimer.display_name}
+                    </TextButton>
+                  </React.Fragment>
+                ))}
+                {strings(
                   'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
-                )
-              : null}
+                )}
+              </>
+            ) : null}
           </Text>
         )}
 
