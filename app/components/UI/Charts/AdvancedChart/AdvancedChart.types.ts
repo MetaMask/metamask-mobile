@@ -694,6 +694,10 @@ export interface AdvancedChartProps {
    * TradingView widget features to disable. Defaults to DEFAULT_DISABLED_FEATURES
    * (a curated mobile-friendly set). Pass a custom array to re-enable native
    * TradingView capabilities like header_widget, timeframes_toolbar, etc.
+   *
+   * Must be referentially stable across renders. AdvancedChart compares this
+   * reference while baking the chart template during render and calls setState
+   * when it changes.
    */
   disabledFeatures?: string[];
 
@@ -803,6 +807,10 @@ export interface AdvancedChartProps {
   /**
    * Optional TV built-in label colors. Omitted fields use theme tokens from the active
    * appearance (`background.section`, `text.default`, `text.muted`).
+   *
+   * Must be referentially stable across renders, as must the theme `colors`
+   * object. AdvancedChart compares these references while baking the chart
+   * template during render and calls setState when one changes.
    */
   labelStyleOverrides?: ChartLabelStyleOverrides;
 
@@ -811,6 +819,10 @@ export interface AdvancedChartProps {
    * the native TradingView legend is hidden and a custom overlay renders
    * indicator labels/values with the specified colors and abbreviations.
    * When omitted or `enabled: false`, the native TV legend is used as-is.
+   *
+   * Must be referentially stable across renders. AdvancedChart compares this
+   * reference while baking the chart template during render and calls setState
+   * when it changes.
    */
   legendOverlay?: LegendOverlayConfig;
 

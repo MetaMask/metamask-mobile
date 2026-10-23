@@ -90,6 +90,10 @@ const openInAppBrowser = (url: string) => {
  * Designed to be consumed by multiple features (Token Details, Perps, etc.)
  * with a composable props API -- each consumer uses only the props it needs.
  *
+ * `disabledFeatures`, `labelStyleOverrides`, `legendOverlay`, and theme
+ * `colors` must be referentially stable. The template bake compares those
+ * references during render and calls setState when one changes.
+ *
  * ATTRIBUTION NOTICE:
  * TradingView Advanced Charts (TM)
  * Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
@@ -224,6 +228,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     };
     const [chartTemplate, setChartTemplate] = useState(nextChartTemplate);
 
+    // Reference check: unstable disabledFeatures, labelStyleOverrides,
+    // legendOverlay, or theme colors call setState on every render.
     if (chartTemplateDepsChanged(chartTemplate, nextChartTemplate)) {
       setChartTemplate(nextChartTemplate);
     }
