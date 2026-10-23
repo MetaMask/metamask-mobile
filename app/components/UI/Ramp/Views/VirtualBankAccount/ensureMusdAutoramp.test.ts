@@ -187,6 +187,30 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
+  it('keeps waiting when the KYC service is unavailable', async () => {
+    const { KycService } = Engine.context;
+    (Engine.context as { KycService?: typeof KycService }).KycService =
+      undefined;
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    try {
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockFetchDisclaimers).not.toHaveBeenCalled();
+      expect(mockCreate).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = KycService;
+    }
+  });
+
   it.each(['USD', 'EUR'] as const)(
     'creates the autoramp in %s',
     async (currency) => {

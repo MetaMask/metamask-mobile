@@ -84,7 +84,11 @@ const resumeMoonpaySignings = async (
       return 'waiting';
     }
 
-    const country = await Engine.context.KycService.getGeoCountry();
+    const kycService = Engine.context.KycService;
+    if (!kycService) {
+      return 'waiting';
+    }
+    const country = await kycService.getGeoCountry();
     const disclaimers =
       await Engine.context.KycController.fetchVendorDisclaimers({
         vendor: VBA_KYC_VENDOR,
