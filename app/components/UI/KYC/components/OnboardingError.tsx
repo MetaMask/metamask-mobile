@@ -6,6 +6,8 @@ import {
   AvatarIcon,
   AvatarIconSeverity,
   Box,
+  BoxAlignItems,
+  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
@@ -21,6 +23,7 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 export const VbaOnboardingErrorSelectorsIDs = {
   CONTAINER: 'vba-onboarding-error-container',
   BACK_BUTTON: 'vba-onboarding-error-back-button',
+  ILLUSTRATION: 'vba-onboarding-error-illustration',
   LIST: 'vba-onboarding-error-list',
   ITEM: 'vba-onboarding-error-item',
   PRIMARY_BUTTON: 'vba-onboarding-error-primary-button',
@@ -52,6 +55,15 @@ export interface VbaOnboardingErrorProps {
    * Optional second button, such as a help action under the primary button.
    */
   secondaryAction?: VbaOnboardingErrorAction;
+  /**
+   * Optional header graphic shown above the title.
+   */
+  illustration?: React.ReactNode;
+  /**
+   * Frame around the header graphic. Defaults to the 88pt slot used by the
+   * checklist screens.
+   */
+  illustrationClassName?: string;
   /**
    * Overrides the scroll container testID when an existing screen keeps its own id.
    */
@@ -94,6 +106,8 @@ const VbaOnboardingError = ({
   items = [],
   primaryAction,
   secondaryAction,
+  illustration,
+  illustrationClassName = 'mb-5 h-[88px] w-full',
   testID = VbaOnboardingErrorSelectorsIDs.CONTAINER,
   backButtonTestID = VbaOnboardingErrorSelectorsIDs.BACK_BUTTON,
   onBack,
@@ -157,14 +171,42 @@ const VbaOnboardingError = ({
         includesTopInset
       />
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow pb-6')}
+        contentContainerStyle={tw.style(
+          'flex-grow pb-6',
+          illustration ? 'justify-center px-4' : undefined,
+        )}
         testID={testID}
       >
-        <TitleStandard
-          title={title}
-          bottomLabel={description}
-          twClassName="px-4 pb-4"
-        />
+        {illustration ? (
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            titleProps={{ twClassName: 'text-center' }}
+            titleWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            bottomLabelProps={{ twClassName: 'text-center' }}
+            bottomLabelWrapperProps={{
+              justifyContent: BoxJustifyContent.Center,
+            }}
+            topAccessory={
+              <Box
+                alignItems={BoxAlignItems.Center}
+                justifyContent={BoxJustifyContent.End}
+                twClassName={illustrationClassName}
+                testID={VbaOnboardingErrorSelectorsIDs.ILLUSTRATION}
+              >
+                {illustration}
+              </Box>
+            }
+          />
+        ) : (
+          <TitleStandard
+            title={title}
+            bottomLabel={description}
+            twClassName="px-4 pb-4"
+          />
+        )}
         {items.length > 0 ? (
           <Box testID={VbaOnboardingErrorSelectorsIDs.LIST}>
             {items.map((item) => (
