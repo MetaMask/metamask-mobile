@@ -367,10 +367,11 @@ describe('appProfiling', () => {
       expect(nativeModule.armProfiling).not.toHaveBeenCalled();
     });
 
-    it('returns false for unrelated URLs', () => {
+    it('returns false for unrelated or missing URLs', () => {
       expect(armMeasuredAppProfilingFromUri('metamask://home', true)).toBe(
         false,
       );
+      expect(armMeasuredAppProfilingFromUri(undefined, true)).toBe(false);
     });
 
     it('arms the running session with the nonce from the URL', async () => {

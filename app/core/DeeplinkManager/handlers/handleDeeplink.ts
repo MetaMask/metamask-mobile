@@ -43,6 +43,10 @@ export function resetDeeplinkDeduplication(): void {
 }
 
 export function handleDeeplink(opts: { uri?: string; source?: string }) {
+  if (armMeasuredAppProfilingFromUri(opts.uri)) {
+    return;
+  }
+
   // This is the earliest JS entry point for deeplinks. We must handle SDKConnectV2
   // links here immediately to establish the WebSocket connection as fast as possible,
   // without waiting for the app to be unlocked or fully onboarded.
@@ -73,10 +77,6 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       }
       lastHandledDeeplinkUri = uri;
       lastHandledDeeplinkAt = now;
-
-      if (armMeasuredAppProfilingFromUri(uri)) {
-        return;
-      }
 
       AppStateEventProcessor.setCurrentDeeplink(uri, source);
       // Start the Navigated clock only if the wallet is already unlocked.

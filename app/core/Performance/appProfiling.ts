@@ -165,14 +165,15 @@ let lastArmNonce: string | null = null;
  * so the URL is handled like any other deeplink there.
  */
 export function armMeasuredAppProfilingFromUri(
-  uri: string,
+  uri: string | undefined,
   enabled: boolean = isPerformanceProfilingEnabled,
 ): boolean {
-  if (!enabled || uri.split('?')[0] !== 'metamask://e2e/profiler/arm') {
+  const [path, query = ''] = uri?.split('?') ?? [];
+  if (!enabled || path !== 'metamask://e2e/profiler/arm') {
     return false;
   }
 
-  const nonce = new URLSearchParams(uri.split('?')[1] ?? '').get('nonce');
+  const nonce = new URLSearchParams(query).get('nonce');
   // Branch and Linking can both deliver the URL; a second arm would wipe the
   // measured window.
   if (!nonce || nonce === lastArmNonce) {
