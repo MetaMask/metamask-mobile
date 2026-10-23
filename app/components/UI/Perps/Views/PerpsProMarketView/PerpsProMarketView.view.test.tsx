@@ -4422,6 +4422,28 @@ describe('PerpsProMarketView header actions', () => {
   });
 });
 
+// TAT-4093 spike: MM_PERPS_NATIVE_TV_CHART_SPIKE is inlined at Babel transform
+// time and chartConfig is not an allowed component-view mock, so only the
+// flag-off screen runs here. The flag-on branch keeps its focused unit test in
+// components/PerpsProChartPanel.test.tsx.
+describe('Pro chart with the native TradingView spike flag off', () => {
+  it('keeps the curated Pro chart and its interval selector', async () => {
+    renderPerpsProMarketView();
+
+    expect(
+      await screen.findByTestId(PerpsProMarketViewSelectorsIDs.CHART_PANEL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsProMarketViewSelectorsIDs.CHART_PERIOD_SELECTOR),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW,
+      ),
+    ).not.toBeOnTheScreen();
+  });
+});
+
 describe('Pro market order liquidity', () => {
   it.each([true, false])(
     'checks the exact fractional MAX close with shallow=%s and recovers when depth returns',

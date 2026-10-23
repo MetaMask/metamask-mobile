@@ -237,6 +237,7 @@ describe('createChartWidget', () => {
 
   it('uses the TradingView Dark theme by default', () => {
     createChartWidget(baseConfig, defaultOptions);
+
     const args = ctor.mock.calls[0][0] as Record<string, unknown>;
     expect(args.theme).toBe('Dark');
   });
@@ -246,7 +247,9 @@ describe('createChartWidget', () => {
       ...baseConfig,
       features: { nativeTradingView: true, lightChrome: true },
     };
+
     createChartWidget(config, defaultOptions);
+
     const args = ctor.mock.calls[0][0] as Record<string, unknown>;
     expect(args.theme).toBe('Light');
   });

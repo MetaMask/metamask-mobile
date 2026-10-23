@@ -24,14 +24,15 @@ import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
 import PerpsProChartPanel from './PerpsProChartPanel';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn().mockReturnValue({
-    navigate: jest.fn(),
+    navigate: (...args: unknown[]) => mockNavigate(...args),
     replace: jest.fn(),
     goBack: jest.fn(),
   }),
@@ -1119,6 +1120,7 @@ describe('PerpsProChartPanel', () => {
 
     it('leaves OHLCV values to the native legend when the spike flag is on', () => {
       mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);
+
       renderChartPanel();
 
       act(() => {
@@ -1142,7 +1144,7 @@ describe('PerpsProChartPanel', () => {
       ),
     );
 
-    expect(useNavigation().navigate).toHaveBeenCalledWith(
+    expect(mockNavigate).toHaveBeenCalledWith(
       Routes.PERPS.PRICE_ALERTS,
       expect.objectContaining({
         mode: 'perps',

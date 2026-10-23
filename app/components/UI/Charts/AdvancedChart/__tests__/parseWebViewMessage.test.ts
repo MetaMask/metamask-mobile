@@ -103,17 +103,7 @@ describe('parseWebViewMessage', () => {
 
   describe('NATIVE_TV_EVENT', () => {
     it('parses a study event with its id and name', () => {
-      expect(
-        parseWebViewMessage({
-          type: 'NATIVE_TV_EVENT',
-          payload: {
-            source: 'study',
-            type: 'create',
-            id: 'st1',
-            name: 'Accelerator Oscillator',
-          },
-        }),
-      ).toEqual({
+      const raw = {
         type: 'NATIVE_TV_EVENT',
         payload: {
           source: 'study',
@@ -121,67 +111,71 @@ describe('parseWebViewMessage', () => {
           id: 'st1',
           name: 'Accelerator Oscillator',
         },
-      });
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual(raw);
     });
 
     it('drops non-string id and name from a drawing event', () => {
-      expect(
-        parseWebViewMessage({
-          type: 'NATIVE_TV_EVENT',
-          payload: { source: 'drawing', type: 'remove', id: 7, name: null },
-        }),
-      ).toEqual({
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'drawing', type: 'remove', id: 7, name: null },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual({
         type: 'NATIVE_TV_EVENT',
         payload: { source: 'drawing', type: 'remove' },
       });
     });
 
     it('returns null for an unknown event source', () => {
-      expect(
-        parseWebViewMessage({
-          type: 'NATIVE_TV_EVENT',
-          payload: { source: 'context_menu', type: 'place_limit' },
-        }),
-      ).toBeNull();
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'context_menu', type: 'place_limit' },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toBeNull();
     });
 
     it('returns null when the event type is missing', () => {
-      expect(
-        parseWebViewMessage({
-          type: 'NATIVE_TV_EVENT',
-          payload: { source: 'study' },
-        }),
-      ).toBeNull();
+      const raw = { type: 'NATIVE_TV_EVENT', payload: { source: 'study' } };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toBeNull();
     });
   });
 
   it('parses a DEBUG breadcrumb message', () => {
-    expect(
-      parseWebViewMessage({
-        type: 'DEBUG',
-        payload: { message: 'modular-bootstrap-ready' },
-      }),
-    ).toEqual({
+    const raw = {
       type: 'DEBUG',
       payload: { message: 'modular-bootstrap-ready' },
-    });
+    };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toEqual(raw);
   });
 
   it('returns null for an INDICATOR_ADDED message without an id', () => {
-    expect(
-      parseWebViewMessage({
-        type: 'INDICATOR_ADDED',
-        payload: { name: 'RSI' },
-      }),
-    ).toBeNull();
+    const raw = { type: 'INDICATOR_ADDED', payload: { name: 'RSI' } };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toBeNull();
   });
 
   it('returns null for a TRADE_MARKER_PRESSED message with an empty id', () => {
-    expect(
-      parseWebViewMessage({
-        type: 'TRADE_MARKER_PRESSED',
-        payload: { id: '' },
-      }),
-    ).toBeNull();
+    const raw = { type: 'TRADE_MARKER_PRESSED', payload: { id: '' } };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toBeNull();
   });
 });
