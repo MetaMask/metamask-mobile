@@ -78,6 +78,7 @@ export function useCardWalletProvisioning(
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
+    hideProvisioningUi,
   } = usePushProvisioning({
     cardId: data?.card?.id,
     walletProvisioning,
@@ -124,13 +125,15 @@ export function useCardWalletProvisioning(
     },
   });
 
-  const walletEntry = resolveWalletEntry({
-    cardStatus: data?.card?.status,
-    isEligibilityLoading: isLoading,
-    canAddToWallet,
-    isCardInWallet,
-    platformWalletSupported,
-  });
+  const walletEntry = hideProvisioningUi
+    ? 'none'
+    : resolveWalletEntry({
+        cardStatus: data?.card?.status,
+        isEligibilityLoading: isLoading,
+        canAddToWallet,
+        isCardInWallet,
+        platformWalletSupported,
+      });
 
   return {
     initiateProvisioning,
