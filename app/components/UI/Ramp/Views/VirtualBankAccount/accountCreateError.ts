@@ -37,10 +37,6 @@ export type AccountCreateRegistrationResult =
       kind: 'unknown';
     };
 
-/**
- * Typed failure from the VBA account-creation request. Production response
- * handling passes through this boundary.
- */
 export class AccountCreateRegistrationError extends Error {
   readonly result: AccountCreateRegistrationResult;
 
@@ -72,10 +68,6 @@ const getTraceId = (
   return match?.[1];
 };
 
-/**
- * Reads a fiat-address status from a controller response without retaining any
- * other response fields.
- */
 export const getAccountCreateResultFromResponse = (
   response: unknown,
 ): AccountCreateRegistrationResult | null => {
@@ -87,7 +79,6 @@ export const getAccountCreateResultFromResponse = (
   return isFiatAddressStatus(status) ? { kind: 'fiat', status } : null;
 };
 
-/** Converts a controller registration failure without exposing its body. */
 export const getAccountCreateResultFromError = (
   error: unknown,
 ): AccountCreateRegistrationResult => {
@@ -148,14 +139,6 @@ export const accountCreateErrorVariantForDestination = (
   }
 };
 
-/**
- * Picks the account-creation screen for a MoonPay registration response.
- * Success, an existing account, email verification, and `RegistrationPending`
- * return null. Pending stays on the creating-account spinner.
- *
- * @param result - HTTP error or 200 fiat-address status.
- * @returns The screen variant, or null when this result is not an error screen.
- */
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorVariant | null => {
@@ -201,11 +184,6 @@ export interface AccountCreateFailureFields {
 
 export type AccountCreateErrorPrimaryAction = 'contactSupport' | 'retry';
 
-/**
- * Only a server-side registration failure is retryable. Authentication,
- * missing-customer, validation, compliance, and rail-access failures require
- * support instead.
- */
 export const getAccountCreateErrorPrimaryAction = (
   fields?: AccountCreateFailureFields,
 ): AccountCreateErrorPrimaryAction =>
@@ -215,13 +193,7 @@ const SUPPORT_PARAM_HTTP_STATUS = 'http_status';
 const SUPPORT_PARAM_FIAT_STATUS = 'fiat_status';
 const SUPPORT_PARAM_TRACE_ID = 'trace_id';
 
-/**
- * Fields safe to log for a registration failure. The response body is omitted
- * because invalid-data errors can echo bank details.
- *
- * @param result - HTTP error or 200 fiat-address status.
- * @returns Status identifiers and `traceId` when MoonPay sent one.
- */
+/** Returns only support-safe failure fields; response bodies stay excluded. */
 export const getAccountCreateFailureLogFields = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateFailureFields | undefined => {
@@ -239,15 +211,7 @@ export const getAccountCreateFailureLogFields = (
   };
 };
 
-/**
- * Adds the safe registration identifiers to the help-center URL. The response
- * body stays off the URL. Consent still adds the app version and customer
- * service token only when the user agrees to share device details.
- *
- * @param baseUrl - Help-center URL, including its existing query string.
- * @param fields - HTTP status, fiat status, and MoonPay trace id.
- * @returns The same URL with those identifiers appended.
- */
+/** Appends support-safe registration identifiers to the help-center URL. */
 export const buildAccountCreateSupportUrl = (
   baseUrl: string,
   fields?: AccountCreateFailureFields,
