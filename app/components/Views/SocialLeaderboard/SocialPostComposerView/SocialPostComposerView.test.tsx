@@ -578,6 +578,28 @@ describe('SocialPostComposerView', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
+  it('replaces the composer with Social V1 when openFeedAfterPost is set', async () => {
+    mockRouteParams = {
+      position: openSpot,
+      entryPoint: 'perps',
+      openFeedAfterPost: true,
+    };
+
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.replace(Routes.SOCIAL.V1),
+      );
+    });
+    expect(getPendingPostsSnapshot()).toHaveLength(1);
+    expect(consumePostsTabFocus()).toBe(false);
+    expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
   it('does not go back to another trader profile after posting', async () => {
     mockNavigationState = {
       index: 1,

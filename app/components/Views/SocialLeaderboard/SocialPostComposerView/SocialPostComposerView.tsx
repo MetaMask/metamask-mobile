@@ -197,6 +197,7 @@ const SocialPostComposerView: React.FC = () => {
   const tradeInFlightParams = routeParams?.tradeInFlight;
   const tradeInFlightPreview = routeParams?.preview;
   const routedPosition = routeParams?.position;
+  const openFeedAfterPost = routeParams?.openFeedAfterPost === true;
   const { toastRef } = useContext(ToastContext);
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { profile } = useMyProfile();
@@ -429,7 +430,12 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
-      // Every post lands on the viewer's Posts tab, where it is pinned.
+      if (openFeedAfterPost) {
+        // Replace so Back from the feed skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
+        return;
+      }
+      // Every other post lands on the viewer's Posts tab, where it is pinned.
       requestPostsTabFocus();
       if (
         isOwnProfileRoute(getPreviousRoute(navigation.getState()), {
@@ -464,6 +470,7 @@ const SocialPostComposerView: React.FC = () => {
     isSubmitting,
     linkedAccountAddress,
     navigation,
+    openFeedAfterPost,
     profile?.imageUrl,
     profile?.profileId,
     selectedPosition,

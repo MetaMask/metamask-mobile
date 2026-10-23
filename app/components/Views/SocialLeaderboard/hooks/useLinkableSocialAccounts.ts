@@ -113,7 +113,6 @@ export const useLinkableSocialAccounts = (): LinkableSocialAccount[] => {
               groupName || accountLabel(account.metadata.name, account.address),
             address: account.address,
             balanceLabel: balanceLabelFor(account.address),
-            // Manage profile reads the first entry as the linked EVM account.
             linkedAddresses: [
               evmCaipId,
               ...groupAddresses.filter((id) => id !== evmCaipId),

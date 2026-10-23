@@ -48,9 +48,11 @@ const ManageProfileLinkedAccountView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const linkedAddress = linkedAddresses[0]
-    ? getLinkedEvmAddress(linkedAddresses[0])
-    : undefined;
+  // The stored order is not guaranteed, so take the first EVM entry wherever
+  // it sits; that is the address each row is matched on.
+  const linkedAddress = linkedAddresses
+    .map(getLinkedEvmAddress)
+    .find((address) => address !== undefined);
   const selectedAccountId = isControllerBacked
     ? accounts.find(
         (account) =>

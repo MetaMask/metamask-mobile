@@ -49,8 +49,8 @@ interface SocialPostComposerPositionParams {
   position: Position;
   entryPoint: SocialPostComposerEntryPoint;
   /**
-   * Ignored: every post lands on the viewer's Posts tab. Kept because the
-   * Perps share screen still passes it.
+   * On success, replace the composer with Social V1 instead of landing on the
+   * viewer's Posts tab. Used by the Perps share screen.
    */
   openFeedAfterPost?: boolean;
   tradeInFlight?: never;

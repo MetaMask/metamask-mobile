@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -40,6 +40,13 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
+    RadioButton: ({ isChecked }: { isChecked: boolean }) => {
+      const { View } = jest.requireActual('react-native');
+      const { createElement } = jest.requireActual('react');
+      return createElement(View, {
+        testID: isChecked ? 'radio-checked' : 'radio-unchecked',
+      });
+    },
   };
 });
 
@@ -111,6 +118,27 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(firstRow).not.toHaveTextContent(
       renderShortAddress(internalAccount1.address),
     );
+  });
+
+  it('selects the linked account even when its Solana address is stored first', () => {
+    mockUseProfileController.mockReturnValue(
+      controllerResult({
+        isControllerBacked: true,
+        linkedAddresses: [
+          `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+          `eip155:1:${internalAccount2.address}`,
+        ],
+      }),
+    );
+
+    renderWithProvider(<ManageProfileLinkedAccountView />, { state });
+
+    expect(
+      within(getRow(internalAccount2.id)).getByTestId('radio-checked'),
+    ).toBeOnTheScreen();
+    expect(
+      within(getRow(internalAccount1.id)).getByTestId('radio-unchecked'),
+    ).toBeOnTheScreen();
   });
 
   it('does not update the profile when not controller backed', () => {
