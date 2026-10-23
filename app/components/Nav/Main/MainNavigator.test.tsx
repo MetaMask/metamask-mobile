@@ -2538,6 +2538,9 @@ describe('MainNavigator', () => {
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+        );
+        expect(screenNames).not.toContain(
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
         );
         expect(screenNames).not.toContain(
@@ -2718,6 +2721,7 @@ describe('MainNavigator', () => {
           expect.arrayContaining([
             Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+            Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
             Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
             Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
             Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,
@@ -2759,6 +2763,7 @@ describe('MainNavigator', () => {
         expect(screenNamesIn(group)).toEqual([
           Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_INFO_SHEET_MODAL,
+          Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
           Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL,
           Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL,
           Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET,

@@ -14,7 +14,6 @@ import {
 import { getSocialFeedPositionCardTestId } from '../../../UI/SocialFeed/components/SocialFeedPositionCard.testIds';
 import {
   addPendingPost,
-  requestFollowingFocus,
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
@@ -145,7 +144,21 @@ jest.mock('react-native-pager-view', () => {
 });
 
 jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
   playSelection: () => mockPlaySelection(),
+  fireImpact: jest.fn(),
+}));
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => true,
 }));
 
 jest.mock('../TopTradersView', () => {
@@ -257,7 +270,7 @@ describe('SocialV1View', () => {
     });
   });
 
-  it('renders Trending, Following, Leaderboard, and Live trades tabs', () => {
+  it('renders Trending, Following, Leaderboard, and Live tabs', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
@@ -410,10 +423,11 @@ describe('SocialV1View', () => {
       });
     });
 
-    it('opens Following with the new post pinned on top', () => {
-      requestFollowingFocus();
-
+    it('pins the new post on top of Following', () => {
       renderWithProvider(<SocialV1View />);
+      fireEvent.press(
+        screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-1`),
+      );
 
       const followingCards = within(
         screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),

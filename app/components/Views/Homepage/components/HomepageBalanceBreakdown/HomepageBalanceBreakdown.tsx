@@ -1,6 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import Animated, { LinearTransition } from 'react-native-reanimated';
 import { Box } from '@metamask/design-system-react-native';
+import { AnimationDuration } from '@metamask/design-tokens';
 import AccountGroupBalance from '../../../../UI/Assets/components/Balance/AccountGroupBalance';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { SLICE_ORDER } from '../../BalanceBreakdown/constants';
@@ -16,6 +18,7 @@ export interface HomepageBalanceBreakdownProps {
   accountGroupBalanceProps?: React.ComponentProps<typeof AccountGroupBalance>;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   children?: React.ReactNode;
+  contentLayoutDuration?: number;
 }
 
 const HomepageBalanceBreakdown = ({
@@ -23,6 +26,7 @@ const HomepageBalanceBreakdown = ({
   accountGroupBalanceProps,
   transactionActiveAbTests,
   children,
+  contentLayoutDuration = AnimationDuration.Regularly,
 }: HomepageBalanceBreakdownProps) => {
   const { hero, slices } = useBalanceBreakdown();
   const { openSlice } = useHomepageBalanceBreakdownNavigation({
@@ -45,7 +49,15 @@ const HomepageBalanceBreakdown = ({
       ) : (
         <HomepageBalanceBreakdownHero hero={hero} />
       )}
-      {children ? <Box twClassName="mt-6 gap-4">{children}</Box> : null}
+      {children ? (
+        <Box twClassName="overflow-hidden">
+          <Animated.View
+            layout={LinearTransition.duration(contentLayoutDuration)}
+          >
+            <Box twClassName="mt-6 gap-4">{children}</Box>
+          </Animated.View>
+        </Box>
+      ) : null}
       {!hideRows ? (
         <Box
           testID={HomepageBalanceBreakdownTestIds.ROWS}

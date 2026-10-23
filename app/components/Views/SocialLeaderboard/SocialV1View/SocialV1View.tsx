@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
   useIsFocused,
   useNavigation,
   useRoute,
@@ -47,7 +46,6 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -95,6 +93,10 @@ import {
   PostTradeShareOwner,
   usePostTradeShareReopen,
 } from '../PostTradeShareBottomSheet';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
 const LANDING_INDEX = 0;
 
@@ -177,6 +179,10 @@ const SocialV1ViewContent: React.FC = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
+  const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const isFocused = useIsFocused();
+  const networkTier = useNetworkTier();
+  const [hardwareTier] = useState(() => getHardwareTier());
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
   useEffect(markSocialTabVisited, []);
@@ -189,6 +195,50 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  const socialPerformanceByTab = useMemo(
+    () =>
+      ({
+        trending: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === trendingIndex,
+          isFocused,
+          networkTier,
+        },
+        following: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === followingIndex,
+          isFocused,
+          networkTier,
+        },
+        leaderboard: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === leaderboardIndex,
+          isFocused,
+          networkTier,
+        },
+        liveTrades: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === liveTradesIndex,
+          isFocused,
+          networkTier,
+        },
+      }) satisfies Record<SocialShellTab, SocialPerformanceContext>,
+    [
+      activeIndex,
+      hardwareTier,
+      isFocused,
+      isSocialV1Treatment,
+      followingIndex,
+      leaderboardIndex,
+      liveTradesIndex,
+      networkTier,
+      trendingIndex,
+    ],
+  );
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
@@ -423,7 +473,6 @@ const SocialV1ViewContent: React.FC = () => {
     [showQuickBuy],
   );
   // The Social tab stays mounted under a pushed feed route; only the visible feed may reopen.
-  const isFocused = useIsFocused();
   usePostTradeShareReopen(
     openQuickBuy,
     isFocused ? PostTradeShareOwner.socialV1Feed : undefined,
@@ -512,22 +561,6 @@ const SocialV1ViewContent: React.FC = () => {
       changeTab(e.nativeEvent.position);
     },
     [changeTab],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      // A post just written from the composer is pinned on Following.
-      if (!consumeFollowingFocus()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(followingIndex);
-      if (activeIndex !== followingIndex) {
-        changeTab(followingIndex);
-      } else {
-        followingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, followingIndex]),
   );
 
   useEffect(() => {
@@ -644,11 +677,11 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
@@ -673,6 +706,7 @@ const SocialV1ViewContent: React.FC = () => {
                     {tab === 'leaderboard' ? (
                       <LeaderboardShellTabPage
                         isActive={activeIndex === leaderboardIndex}
+                        performance={socialPerformanceByTab.leaderboard}
                         onScroll={scrollHandlers[tab]}
                         pageRef={pageRef}
                         containerTestID={testIds.container}
@@ -682,6 +716,7 @@ const SocialV1ViewContent: React.FC = () => {
                       />
                     ) : tab === 'liveTrades' ? (
                       <LiveTradesView
+                        performance={socialPerformanceByTab.liveTrades}
                         onScroll={scrollHandlers[tab]}
                         pageRef={pageRef}
                         onOpenFilters={handleOpenLiveTradesFilters}
@@ -691,6 +726,7 @@ const SocialV1ViewContent: React.FC = () => {
                     ) : (
                       <EmptyShellTabPage
                         tab={tab}
+                        performance={socialPerformanceByTab[tab]}
                         isActive={
                           tab === 'trending'
                             ? activeIndex === trendingIndex
