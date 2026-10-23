@@ -906,6 +906,148 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('Protocol V2 markets kill switch', () => {
+    const events = [{ id: 'event-1', markets: [] }];
+    const markets = [
+      { id: 'market-1', status: 'open', outcomes: [{ id: 'outcome-1' }] },
+    ];
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+    });
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to the category feed',
+      async (disablePolymarketV2Markets) => {
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events,
+          category: 'trending',
+          nextCursor: null,
+        } as never);
+
+        await createProvider({ disablePolymarketV2Markets }).getMarkets({
+          category: 'trending',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to search',
+      async (disablePolymarketV2Markets) => {
+        mockSearchEventsFromPolymarketApi.mockResolvedValue({
+          events,
+          totalResults: 1,
+        } as never);
+
+        await createProvider({ disablePolymarketV2Markets }).searchMarkets({
+          q: 'bitcoin',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to the carousel',
+      async (disablePolymarketV2Markets) => {
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: events[0] },
+        ] as never);
+
+        await createProvider({
+          disablePolymarketV2Markets,
+        }).getCarouselMarkets();
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to market series',
+      async (disablePolymarketV2Markets) => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
+        });
+
+        await createProvider({ disablePolymarketV2Markets }).getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to highlighted markets',
+      async (disablePolymarketV2Markets) => {
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+
+        await createProvider({ disablePolymarketV2Markets }).getMarketsByIds([
+          'event-1',
+        ]);
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it('drops a highlighted market that is hidden because every market is v2', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await expect(
+        createProvider({
+          disablePolymarketV2Markets: true,
+        }).getMarketsByIds(['event-1']),
+      ).resolves.toEqual([]);
+    });
+
+    it('never hides v2 markets in market details', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+
+      await expect(
+        createProvider({
+          disablePolymarketV2Markets: true,
+        }).getMarketDetails({ marketId: 'event-1' }),
+      ).resolves.toEqual(markets[0]);
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        events,
+        expect.objectContaining({ hideV2Markets: false }),
+      );
+    });
+  });
+
   describe('getPrices', () => {
     it('maps Polymarket SELL to the ask (entry.buy) and BUY to the bid (entry.sell)', async () => {
       const provider = createProvider();

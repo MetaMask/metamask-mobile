@@ -385,6 +385,11 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  /** True while the Protocol V2 markets kill switch is on. */
+  #shouldHideV2Markets(): boolean {
+    return this.#getFeatureFlags().disablePolymarketV2Markets;
+  }
+
   #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
     const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
 
@@ -452,6 +457,7 @@ export class PolymarketProvider implements PredictProvider {
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+      hideV2Markets: this.#shouldHideV2Markets(),
     });
 
     if (filterEmptyOutcomes) {
@@ -1048,6 +1054,18 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     marketId: string;
   }): Promise<PredictMarket> {
+    // Details always include v2 markets, so a position or deeplink can still
+    // open one while the kill switch hides it from listings.
+    return this.#getMarketDetails({ marketId, hideV2Markets: false });
+  }
+
+  async #getMarketDetails({
+    marketId,
+    hideV2Markets,
+  }: {
+    marketId: string;
+    hideV2Markets: boolean;
+  }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
@@ -1093,6 +1111,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues,
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets,
       });
 
       if (!parsedMarket) {
@@ -1120,8 +1139,11 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      // Highlights are a listing: with the kill switch on, an all-v2 market
+      // fails to parse and is dropped like any other failed id.
+      const hideV2Markets = this.#shouldHideV2Markets();
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId }).catch((error) => {
+        this.#getMarketDetails({ marketId, hideV2Markets }).catch((error) => {
           DevLogger.log(
             `PolymarketProvider: Failed to fetch market ${marketId}`,
             error,
@@ -1371,6 +1393,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1412,6 +1435,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
