@@ -774,7 +774,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '11.37',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       sinceInceptionQuery: {
@@ -782,7 +781,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '139.02',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       refetchInterest: mockRefetchInterest,
@@ -1163,14 +1161,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1213,13 +1211,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1248,13 +1244,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2438,13 +2432,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2471,13 +2463,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2498,13 +2488,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: { interest_earned_usd: 'invalid' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: 'NaN' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2528,13 +2516,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2554,14 +2540,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,

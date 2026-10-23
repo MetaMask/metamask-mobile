@@ -363,8 +363,8 @@ const MoneyHomeView = () => {
     (sinceInceptionQuery.isError ? undefined : formattedZero);
 
   const isEarningsLoading =
-    last30DaysQuery.isInitialLoading ||
-    sinceInceptionQuery.isInitialLoading ||
+    last30DaysQuery.isLoading ||
+    sinceInceptionQuery.isLoading ||
     (formattedLast30DaysInterest === undefined &&
       (vaultApyQuery.isLoading || isBalanceLoading));
 
