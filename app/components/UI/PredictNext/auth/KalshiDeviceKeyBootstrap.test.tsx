@@ -129,6 +129,33 @@ describe('KalshiDeviceKeyBootstrap', () => {
     });
   });
 
+  it('keeps the loaded key when predict config is a new object with Kalshi still enabled', async () => {
+    const view = render(
+      <KalshiDeviceKeyBootstrap>
+        <View testID="kalshi-child" />
+      </KalshiDeviceKeyBootstrap>,
+    );
+    await waitFor(() => {
+      expect(getKalshiDeviceKey()).not.toBeNull();
+    });
+    const publicKey = getKalshiDeviceKey()?.publicKey;
+
+    selectPredictConfigMock.mockReturnValue({
+      ...enabledConfig,
+      venues: {
+        polymarket: { enabled: false },
+        kalshi: { enabled: true },
+      },
+    });
+    view.rerender(
+      <KalshiDeviceKeyBootstrap>
+        <View testID="kalshi-child" />
+      </KalshiDeviceKeyBootstrap>,
+    );
+
+    expect(getKalshiDeviceKey()?.publicKey).toBe(publicKey);
+  });
+
   it('drops plaintext when Kalshi is turned off and keeps the encrypted key', async () => {
     const view = render(
       <KalshiDeviceKeyBootstrap>

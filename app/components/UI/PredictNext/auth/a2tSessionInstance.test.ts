@@ -3,12 +3,13 @@ import { HandlerType } from '@metamask/snaps-utils';
 import Engine from '../../../../core/Engine';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import {
+  deleteKalshiDeviceKey,
   ensureKalshiDeviceKey,
   getKalshiDeviceKey,
   signWithKalshiDeviceKey,
   type KalshiDevicePublicMaterial,
 } from './kalshiDeviceKey';
-import { a2tSession } from './a2tSessionInstance';
+import { a2tSession, deleteKalshiTradingSession } from './a2tSessionInstance';
 
 jest.mock('react-native-device-info', () => ({
   isEmulatorSync: () => true,
@@ -51,6 +52,8 @@ jest.mock('./kalshiDeviceKey', () => ({
   ensureKalshiDeviceKey: jest.fn(),
   getKalshiDeviceKey: jest.fn(),
   signWithKalshiDeviceKey: jest.fn(),
+  deleteKalshiDeviceKey: jest.fn(),
+  kalshiDeviceKeyCommitment: () => 'device-nonce',
 }));
 
 const SRP_IDENTIFIER = '0xabc';
@@ -69,8 +72,13 @@ const jwtPart = (value: unknown): string =>
     .replace(/\//gu, '_')
     .replace(/[=]+$/u, '');
 
+const ISSUED_AT = 1_700_000_000;
+const EXPIRES_AT = ISSUED_AT + 900;
 const issuedToken = `${jwtPart({ alg: 'ES256', typ: 'JWT' })}.${jwtPart({
   sub: 'profile-1',
+  iat: ISSUED_AT,
+  exp: EXPIRES_AT,
+  nonce: 'device-nonce',
 })}.sig`;
 
 const jsonResponse = (body: unknown): Response =>
@@ -112,7 +120,7 @@ describe('a2tSession', () => {
       .mockResolvedValueOnce(
         jsonResponse({
           a2t: issuedToken,
-          exp: Math.floor(Date.now() / 1000) + 900,
+          exp: EXPIRES_AT,
           profileId: 'profile-1',
         }),
       ) as unknown as typeof fetch;
@@ -149,6 +157,18 @@ describe('a2tSession', () => {
           params: { message: `metamask:nonce-1:${SRP_IDENTIFIER}` },
         },
       },
+    );
+  });
+
+  it('drops the cached A2T before deleting the device key', async () => {
+    const clearSpy = jest.spyOn(a2tSession, 'clear');
+
+    await deleteKalshiTradingSession();
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(deleteKalshiDeviceKey).toHaveBeenCalledTimes(1);
+    expect(clearSpy.mock.invocationCallOrder[0]).toBeLessThan(
+      jest.mocked(deleteKalshiDeviceKey).mock.invocationCallOrder[0],
     );
   });
 });

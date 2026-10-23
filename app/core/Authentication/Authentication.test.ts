@@ -41,6 +41,7 @@ import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { a2tSession } from '../../components/UI/PredictNext/auth/a2tSessionInstance';
 import { KALSHI_DEVICE_KEY_SCOPE } from '../../components/UI/PredictNext/auth/kalshiDeviceKey';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
@@ -297,6 +298,20 @@ jest.mock('../Performance/unlockTraces', () => ({
   resumeUnlockDeeplinkNavigatedAfterOptIn: (...args: unknown[]) =>
     mockResumeUnlockDeeplinkNavigatedAfterOptIn(...args),
 }));
+
+jest.mock('../../components/UI/PredictNext/auth/a2tSessionInstance', () => {
+  const { deleteKalshiDeviceKey } = jest.requireActual(
+    '../../components/UI/PredictNext/auth/kalshiDeviceKey',
+  );
+  const clear = jest.fn();
+  return {
+    a2tSession: { clear },
+    deleteKalshiTradingSession: async () => {
+      clear();
+      await deleteKalshiDeviceKey();
+    },
+  };
+});
 
 jest.mock('../SecureKeychain', () => ({
   getSupportedBiometryType: jest.fn(),
@@ -5157,9 +5172,16 @@ describe('Authentication', () => {
       expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
         KALSHI_DEVICE_KEY_SCOPE,
       );
+      expect(a2tSession.clear).toHaveBeenCalledTimes(1);
       const clearKeyOrder = jest.mocked(SecureKeychain.clearSecureScope).mock
         .invocationCallOrder[0];
-      expect(clearKeyOrder).toBeGreaterThan(
+      const clearSessionOrder = jest.mocked(a2tSession.clear).mock
+        .invocationCallOrder[0];
+      expect(clearSessionOrder).toBeGreaterThan(
+        newWalletAndKeychain.mock.invocationCallOrder[0],
+      );
+      expect(clearSessionOrder).toBeLessThan(clearKeyOrder);
+      expect(clearKeyOrder).toBeLessThan(
         (Engine.context.CardController.resetAll as jest.Mock).mock
           .invocationCallOrder[0],
       );
@@ -5208,6 +5230,22 @@ describe('Authentication', () => {
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
       expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalled();
+      expect(a2tSession.clear).not.toHaveBeenCalled();
+    });
+
+    it('deletes the Kalshi device key when a later reset step throws', async () => {
+      jest
+        .mocked(Engine.context.CardController.resetAll)
+        .mockRejectedValueOnce(new Error('card reset failed'));
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
+        KALSHI_DEVICE_KEY_SCOPE,
+      );
+      expect(a2tSession.clear).toHaveBeenCalledTimes(1);
     });
 
     it('locks the app when deleting the Kalshi device key fails', async () => {

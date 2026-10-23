@@ -1,4 +1,8 @@
-import type { KalshiDevicePublicMaterial } from './kalshiDeviceKey';
+import {
+  kalshiDeviceKeyCommitment,
+  KalshiDeviceKeyUnavailableError,
+  type KalshiDevicePublicMaterial,
+} from './kalshiDeviceKey';
 
 /** Refresh this many seconds before `exp`, matching the issuer PoC. */
 const A2T_REFRESH_MARGIN_SEC = 60;
@@ -59,7 +63,8 @@ interface ReadyA2t {
 
 interface CachedA2t {
   a2t: string;
-  exp: number;
+  /** Local unix seconds: arrival time plus the issuer lifetime `exp - iat`. */
+  expiresAt: number;
   profileId: string;
   canonicalProfileId: string;
   devicePublicKey: string;
@@ -223,6 +228,45 @@ const readNumber = (
   return typeof value === 'number' ? value : undefined;
 };
 
+/**
+ * Accepts an issuance only when it is the profile and device key we asked
+ * for, and only for the issuer's own lifetime. `exp` is an absolute time on
+ * the issuer clock, so the cache uses `receivedAt + (exp - iat)`.
+ */
+const acceptIssued = (
+  value: unknown,
+  ready: ReadyA2t,
+  receivedAtSec: number,
+): A2tIssued & { expiresAt: number } => {
+  const issued = parseIssued(value);
+  if (issued.profileId !== ready.canonicalProfileId) {
+    throw new Error('A2T profile does not match the requested profile');
+  }
+
+  const claims = readJwtObject(issued.a2t.split('.')[1]);
+  const exp = readNumber(claims, 'exp');
+  const iat = readNumber(claims, 'iat');
+  const lifetime =
+    exp !== undefined && iat !== undefined ? exp - iat : Number.NaN;
+  if (exp !== issued.exp || !Number.isFinite(lifetime) || lifetime <= 0) {
+    throw new Error('A2T expiry does not match the token');
+  }
+
+  const nonce = readString(claims, 'nonce');
+  const commitment = kalshiDeviceKeyCommitment(
+    ready.device.publicRaw,
+    ready.device.saltRaw,
+  );
+  if (nonce !== commitment) {
+    throw new Error('A2T nonce does not match the device key');
+  }
+
+  return {
+    ...issued,
+    expiresAt: receivedAtSec + lifetime,
+  };
+};
+
 const readAudience = (value: unknown): string | string[] | undefined => {
   if (typeof value === 'string') {
     return value;
@@ -272,8 +316,9 @@ const bytesToBase64Url = (bytes: Uint8Array): string =>
  * One in-memory A2T session. `ensureA2T` waits until the MetaMask access
  * token, the SRP identifier, and the Kalshi device key are all available,
  * then runs the issuer challenge. Concurrent callers share one flight.
- * The token stays here until shortly before `exp`. It is not written to
- * Redux or component state.
+ * The token stays here until shortly before the issuer lifetime
+ * (`exp - iat`) elapses, measured from when the response arrived. It is
+ * not written to Redux or component state.
  */
 export class A2tSession {
   readonly #deps: A2tSessionDependencies;
@@ -363,7 +408,6 @@ export class A2tSession {
   async #waitUntilReady(generation: number): Promise<ReadyA2t> {
     const deadline = this.#deps.nowMs() + READY_TIMEOUT_MS;
     let lastError: unknown;
-    let failures = 0;
     let accessToken = '';
     let srpIdentifier = '';
 
@@ -387,11 +431,8 @@ export class A2tSession {
           };
         }
       } catch (error) {
+        // Sign-in throws until it finishes. Keep polling until the deadline.
         lastError = error;
-        failures += 1;
-        if (failures >= 3) {
-          throw error;
-        }
       }
 
       if (this.#deps.nowMs() + READY_POLL_MS > deadline) {
@@ -431,34 +472,60 @@ export class A2tSession {
       ready.device.publicKey,
       ready.device.salt,
     );
-    const devicePop = bytesToBase64Url(this.#deps.signDeviceProof(proof));
+    const devicePop = bytesToBase64Url(
+      await this.#signDeviceProof(proof, ready.device.publicKey, generation),
+    );
     if (this.#deps.now() >= receivedAt + parsed.expiresIn) {
       throw new A2tChallengeExpiredError();
     }
 
     this.#assertCurrent(generation);
-    const issued = parseIssued(
-      await this.#postJson<unknown>(
-        issuerUrl,
-        '/venues/kalshi/a2t',
-        ready.accessToken,
-        {
-          challengeId: parsed.challengeId,
-          srpSignature,
-          devicePop,
-        },
-      ),
+    const payload = await this.#postJson<unknown>(
+      issuerUrl,
+      '/venues/kalshi/a2t',
+      ready.accessToken,
+      {
+        challengeId: parsed.challengeId,
+        srpSignature,
+        devicePop,
+      },
     );
+    const issued = acceptIssued(payload, ready, this.#deps.now());
     this.#assertCurrent(generation);
     this.#cached = {
       a2t: issued.a2t,
-      exp: issued.exp,
+      expiresAt: issued.expiresAt,
       profileId: issued.profileId,
       canonicalProfileId: ready.canonicalProfileId,
       devicePublicKey: ready.device.publicKey,
     };
     this.#deps.logIssued(summarizeIssued(issued, this.#deps.now()));
     return issued.a2t;
+  }
+
+  /**
+   * One reload when the key was cleared while the SRP signature was in
+   * flight. A lock or a disabled venue still fails: `getDeviceKey` returns
+   * null, and a different key cannot sign this challenge.
+   */
+  async #signDeviceProof(
+    proof: Uint8Array,
+    publicKey: string,
+    generation: number,
+  ): Promise<Uint8Array> {
+    try {
+      return this.#deps.signDeviceProof(proof);
+    } catch (error) {
+      if (!(error instanceof KalshiDeviceKeyUnavailableError)) {
+        throw error;
+      }
+      const reloaded = await this.#deps.getDeviceKey();
+      this.#assertCurrent(generation);
+      if (!reloaded || reloaded.publicKey !== publicKey) {
+        throw error;
+      }
+      return this.#deps.signDeviceProof(proof);
+    }
   }
 
   async #postJson<T>(
@@ -505,7 +572,7 @@ export class A2tSession {
     ) {
       return undefined;
     }
-    if (cached.exp - this.#deps.now() <= A2T_REFRESH_MARGIN_SEC) {
+    if (cached.expiresAt - this.#deps.now() <= A2T_REFRESH_MARGIN_SEC) {
       return undefined;
     }
     return cached.a2t;

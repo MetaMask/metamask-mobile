@@ -14,6 +14,7 @@ import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolveA2tIssuerUrl } from './a2tIssuerUrl';
 import { A2tSession, type A2tIssuedSummary } from './a2tSession';
 import {
+  deleteKalshiDeviceKey,
   ensureKalshiDeviceKey,
   getKalshiDeviceKey,
   signWithKalshiDeviceKey,
@@ -113,3 +114,9 @@ export const a2tSession = new A2tSession({
     console.log('A2T issued', summary);
   },
 });
+
+/** Wallet reset. Drops the cached A2T, then removes the device key. */
+export const deleteKalshiTradingSession = async (): Promise<void> => {
+  a2tSession.clear();
+  await deleteKalshiDeviceKey();
+};

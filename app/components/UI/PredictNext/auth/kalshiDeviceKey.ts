@@ -115,13 +115,21 @@ export async function deleteKalshiDeviceKey(): Promise<void> {
   }
 }
 
+/** Plaintext key is not loaded. Callers can reload once and sign again. */
+export class KalshiDeviceKeyUnavailableError extends Error {
+  constructor() {
+    super('Kalshi device key is not available');
+    this.name = 'KalshiDeviceKeyUnavailableError';
+  }
+}
+
 /**
  * ECDSA P-256 over SHA-256. Returns 64-byte raw r || s, which is the form
  * Kalshi verifies. `data` is the message, not a precomputed digest.
  */
 export const signWithKalshiDeviceKey = (data: Uint8Array): Uint8Array => {
   if (!stored) {
-    throw new Error('Kalshi device key is not available');
+    throw new KalshiDeviceKeyUnavailableError();
   }
 
   return p256

@@ -115,7 +115,31 @@ describe('KalshiA2tSessionBootstrap', () => {
       expect(selectIsUnlockedMock).toHaveBeenCalled();
     });
     expect(ensureA2TMock).not.toHaveBeenCalled();
-    expect(clearMock).not.toHaveBeenCalled();
+    expect(clearMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the cached A2T when the wallet locks', async () => {
+    const view = render(
+      <KalshiA2tSessionBootstrap>
+        <View />
+      </KalshiA2tSessionBootstrap>,
+    );
+    await waitFor(() => {
+      expect(ensureA2TMock).toHaveBeenCalledTimes(1);
+    });
+    clearMock.mockClear();
+
+    selectIsUnlockedMock.mockReturnValue(false);
+    view.rerender(
+      <KalshiA2tSessionBootstrap>
+        <View />
+      </KalshiA2tSessionBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(clearMock).toHaveBeenCalledTimes(1);
+    });
+    expect(ensureA2TMock).toHaveBeenCalledTimes(1);
   });
 
   it('clears the session when Kalshi is disabled', async () => {
