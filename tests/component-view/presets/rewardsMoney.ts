@@ -390,6 +390,7 @@ export function referralMeFixture(
     earn_rates: EMPTY_EARN_RATES,
     localized_text: REFERRAL_LOCALIZED_TEXT,
     invite_hero: null,
+    excluded_regions: [],
   };
 }
 
