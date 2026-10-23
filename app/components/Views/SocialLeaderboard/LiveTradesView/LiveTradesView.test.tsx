@@ -70,8 +70,11 @@ describe('LiveTradesView', () => {
       scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_STATUS_DOT),
+      scroll.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON),
     ).toBeOnTheScreen();
+    expect(
+      scroll.queryByTestId(LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON),
+    ).not.toBeOnTheScreen();
     expect(
       scroll.getByText('social_leaderboard.feed.live_stream.live'),
     ).toBeOnTheScreen();
@@ -165,6 +168,14 @@ describe('LiveTradesView', () => {
     const onOpenFilters = jest.fn();
     renderWithProvider(<LiveTradesView onOpenFilters={onOpenFilters} />);
 
+    const liveLabelColor = StyleSheet.flatten(
+      screen.getByText('social_leaderboard.feed.live_stream.live').props.style,
+    ).color;
+    const liveIconColor = StyleSheet.flatten(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON).props
+        .style,
+    ).color;
+
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
     );
@@ -173,7 +184,25 @@ describe('LiveTradesView', () => {
       screen.getByText('social_leaderboard.feed.live_stream.paused'),
     ).toBeOnTheScreen();
     expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON),
+    ).toBeOnTheScreen();
+    expect(
+      StyleSheet.flatten(
+        screen.getByText('social_leaderboard.feed.live_stream.paused').props
+          .style,
+      ).color,
+    ).not.toBe(liveLabelColor);
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON).props
+          .style,
+      ).color,
+    ).not.toBe(liveIconColor);
+    expect(
       screen.queryByText('social_leaderboard.feed.live_stream.live'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON),
     ).not.toBeOnTheScreen();
     expect(onOpenFilters).not.toHaveBeenCalled();
   });
@@ -221,6 +250,9 @@ describe('LiveTradesView', () => {
 
     expect(
       screen.getByText('social_leaderboard.feed.live_stream.live'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON),
     ).toBeOnTheScreen();
   });
 

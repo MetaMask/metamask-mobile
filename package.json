@@ -327,7 +327,8 @@
     "metro-core@npm:^0.84.3": "0.84.5",
     "metro-runtime@npm:^0.84.3": "0.84.5",
     "metro-source-map@npm:^0.84.3": "0.84.5",
-    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch"
+    "playwright@npm:1.58.2": "patch:playwright@npm%3A1.58.2#~/.yarn/patches/playwright-npm-1.58.2-0c12daad27.patch",
+    "@metamask/design-system-shared@npm:^0.41.0": "patch:@metamask/design-system-shared@npm%3A0.41.0#~/.yarn/patches/@metamask-design-system-shared-npm-0.41.0-449c74fa4c.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "23.0.0",
@@ -377,7 +378,7 @@
     "@metamask/cryptography": "^1.1.2",
     "@metamask/delegation-controller": "^4.0.0",
     "@metamask/delegation-deployments": "^2.1.0",
-    "@metamask/design-system-react-native": "^0.52.0",
+    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.52.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.52.0-d5b927c710.patch",
     "@metamask/design-system-twrnc-preset": "^0.13.0",
     "@metamask/design-tokens": "^12.0.0",
     "@metamask/earn-controller": "^12.2.5",

@@ -9905,7 +9905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.52.0":
+"@metamask/design-system-react-native@npm:0.52.0":
   version: 0.52.0
   resolution: "@metamask/design-system-react-native@npm:0.52.0"
   dependencies:
@@ -9927,7 +9927,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.41.0":
+"@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.52.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.52.0-d5b927c710.patch":
+  version: 0.52.0
+  resolution: "@metamask/design-system-react-native@patch:@metamask/design-system-react-native@npm%3A0.52.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.52.0-d5b927c710.patch::version=0.52.0&hash=4a4265"
+  dependencies:
+    "@metamask/design-system-shared": "npm:^0.41.0"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.13.0
+    "@metamask/design-tokens": ^12.0.0
+    "@metamask/utils": ^11.12.1
+    expo-image: ">=3.0.0"
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/cd87091de55e1dd73f759045d9288777a55ede592198b92d0b67f807c6cca1484e41af4fc0a6c5b82914b6458ccd3da8cec045b27581a8ba80af151c751912e3
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-shared@npm:0.41.0":
   version: 0.41.0
   resolution: "@metamask/design-system-shared@npm:0.41.0"
   dependencies:
@@ -9935,6 +9957,17 @@ __metadata:
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
   checksum: 10/4639080551ba926806aaa76c24f6b8786711d815114189e83db5c0ce8a5976163d237de25f999ded5b44531fd5bf591b46ef9aa68b178a2734c1a77cf89b9412
+  languageName: node
+  linkType: hard
+
+"@metamask/design-system-shared@patch:@metamask/design-system-shared@npm%3A0.41.0#~/.yarn/patches/@metamask-design-system-shared-npm-0.41.0-449c74fa4c.patch":
+  version: 0.41.0
+  resolution: "@metamask/design-system-shared@patch:@metamask/design-system-shared@npm%3A0.41.0#~/.yarn/patches/@metamask-design-system-shared-npm-0.41.0-449c74fa4c.patch::version=0.41.0&hash=66c4ec"
+  dependencies:
+    "@metamask/utils": "npm:^11.12.1"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/87c0c73d6a3a3ee3fcdc4ee013bad4a994c6cef7ca16d0b4149b014b1c8214315dff4c8407ed01f782c8eac7fe2673864efd38fa4ba18c0bd3c01c557b1a4310
   languageName: node
   linkType: hard
 
@@ -39165,7 +39198,7 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.52.0"
+    "@metamask/design-system-react-native": "patch:@metamask/design-system-react-native@npm%3A0.52.0#~/.yarn/patches/@metamask-design-system-react-native-npm-0.52.0-d5b927c710.patch"
     "@metamask/design-system-twrnc-preset": "npm:^0.13.0"
     "@metamask/design-tokens": "npm:^12.0.0"
     "@metamask/device-mcp": "npm:^0.4.2"

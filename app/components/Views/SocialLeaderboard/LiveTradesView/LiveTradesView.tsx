@@ -3,7 +3,11 @@ import {
   FilterButton,
   FilterButtonSize,
   FilterButtonVariant,
+  IconColor,
+  IconName,
+  IconSize,
   SectionDivider,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
@@ -35,7 +39,6 @@ import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
-import LiveStreamStatusDot from './components/LiveStreamStatusDot';
 import LiveTradeRow from './components/LiveTradeRow';
 import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
@@ -164,13 +167,29 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
           >
             <FilterButton
               isSelected
-              variant={FilterButtonVariant.Primary}
+              variant={FilterButtonVariant.Secondary}
               size={FilterButtonSize.Md}
               onPress={handleStreamToggle}
               testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
               accessibilityLabel={streamLabel}
-              startAccessory={
-                <LiveStreamStatusDot isLive={isLive} onPrimaryButton />
+              startIconName={isLive ? IconName.Play : IconName.Pause}
+              startIconProps={{
+                size: IconSize.Md,
+                testID: isLive
+                  ? LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON
+                  : LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON,
+                color: isLive ? IconColor.IconDefault : IconColor.IconAlternative,
+                twClassName: isLive
+                  ? undefined
+                  : IconColor.IconAlternative,
+              }}
+              textProps={
+                isLive
+                  ? undefined
+                  : {
+                      color: TextColor.TextAlternative,
+                      twClassName: TextColor.TextAlternative,
+                    }
               }
             >
               {streamLabel}
