@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.16.1]
+
 ## [8.16.0]
 
 ### Added
@@ -14439,7 +14441,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.1...HEAD
+[8.16.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...v8.16.1
 [8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.16.0
 [8.15.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...v8.15.0
 [8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
