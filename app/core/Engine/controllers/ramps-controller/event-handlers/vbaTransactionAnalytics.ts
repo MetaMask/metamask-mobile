@@ -27,12 +27,33 @@ const PENDING_TRANSACTION_STATUSES = new Set([
   'PayoutInProgress',
 ]);
 
-const FAILURE_REASONS: { [status: string]: string } = {
-  Failed: 'failed',
-  RejectedAml: 'rejected_aml',
-  RejectedFraud: 'rejected_fraud',
-  RejectedMinAmount: 'rejected_min_amount',
-};
+/**
+ * Terminal vendor statuses that mean the transaction failed. The schema's
+ * `failure_reason` enum has no per-status values, so each one is reported as
+ * `vendor_error`; the raw `transaction_status` carries the specific status.
+ */
+const FAILED_TRANSACTION_STATUSES = new Set([
+  'Failed',
+  'RejectedAml',
+  'RejectedFraud',
+  'RejectedMinAmount',
+]);
+const FAILURE_REASON = 'vendor_error';
+
+/** Entry point of the VBA funnel (`metamask-money-vba-base`). */
+const VBA_ENTRY_POINT = 'add_funds_bank_account';
+/** Vendor allowed by the schema; the KYC controller itself reports `iron`. */
+const VBA_ANALYTICS_VENDOR = 'moonpay';
+/**
+ * A transaction only exists for an approved autoramp, so the autoramp is
+ * `ready` whenever this event fires.
+ */
+const VBA_AUTORAMP_STATUS = 'ready';
+/** Every VBA autoramp delivers mUSD on Monad (CAIP-2 `eip155:143`). */
+const VBA_DESTINATION = {
+  currency_destination_symbol: 'mUSD',
+  token_chain_id: 'eip155:143',
+} as const;
 
 type AnalyticsStatus = 'pending' | 'completed' | 'failed';
 
@@ -64,20 +85,19 @@ export interface MoneyVbaTransactionUpdatedProperties {
   previous_status?: string;
   transaction_id: string;
   autoramp_id: string;
-  source_amount?: string;
-  destination_amount?: string;
+  source_amount?: number;
+  destination_amount?: number;
   seconds_since_created?: number;
   failure_reason?: string;
-  screen_name?: string;
-  entry_point?: string;
+  entry_point: string;
   kyc_status?: string;
-  autoramp_status?: string;
+  autoramp_status: string;
   provider_flow_status?: string;
-  vendor?: string;
+  vendor: string;
   region?: string;
-  fiat_code?: string;
-  currency_destination_symbol?: string;
-  token_chain_id?: string;
+  currency_source?: string;
+  currency_destination_symbol: string;
+  token_chain_id: string;
 }
 
 const mapAnalyticsStatus = (rawStatus: string): AnalyticsStatus | undefined => {
@@ -87,10 +107,25 @@ const mapAnalyticsStatus = (rawStatus: string): AnalyticsStatus | undefined => {
   if (rawStatus === 'Completed') {
     return 'completed';
   }
-  if (Object.hasOwn(FAILURE_REASONS, rawStatus)) {
+  if (FAILED_TRANSACTION_STATUSES.has(rawStatus)) {
     return 'failed';
   }
   return undefined;
+};
+
+/**
+ * Parses a vendor amount string. Returns undefined for a missing or
+ * non-numeric amount so the property is omitted instead of sent as NaN.
+ *
+ * @param amount - Amount string from the transaction summary.
+ * @returns The amount as a number, or undefined.
+ */
+const parseAmount = (amount: string | undefined): number | undefined => {
+  if (amount === undefined || amount.trim() === '') {
+    return undefined;
+  }
+  const parsed = Number(amount);
+  return Number.isFinite(parsed) ? parsed : undefined;
 };
 
 const secondsSinceCreated = (
@@ -145,10 +180,25 @@ const readBackgroundControllers = (): BackgroundControllers | undefined => {
 };
 
 /**
- * VBA properties already known when the transaction event is emitted.
- * Screen and entry point are omitted: this fires from the controller fetch,
- * not from a screen. Destination symbol and chain id are omitted unless a
- * future autoramp record carries them; today's cursor does not.
+ * Lowercase ISO 3166-1 alpha-2 country from the geolocation controller
+ * (`BR-SP` becomes `br`). Absent while the location is unknown.
+ *
+ * @param location - Geolocation controller `location`.
+ * @returns The region, or undefined.
+ */
+const toRegion = (location: unknown): string | undefined => {
+  const country =
+    typeof location === 'string' ? location.split('-')[0] : undefined;
+  return country && country.length === 2 && country !== 'XX'
+    ? country.toLowerCase()
+    : undefined;
+};
+
+/**
+ * VBA properties read from state when the transaction event is emitted.
+ * Screen name is omitted: this fires from the controller fetch, not from a
+ * screen. Constant properties (entry point, vendor, autoramp status and the
+ * mUSD destination) are added by {@link buildMoneyVbaTransactionUpdatedProperties}.
  *
  * @param autorampId - Autoramp whose transaction changed.
  * @param backgroundState - Engine background state, when the store is up.
@@ -159,13 +209,7 @@ export function readVbaTransactionBaseProperties(
   backgroundState: BackgroundControllers | undefined,
 ): Pick<
   MoneyVbaTransactionUpdatedProperties,
-  | 'kyc_status'
-  | 'provider_flow_status'
-  | 'vendor'
-  | 'region'
-  | 'fiat_code'
-  | 'currency_destination_symbol'
-  | 'token_chain_id'
+  'kyc_status' | 'provider_flow_status' | 'region' | 'currency_source'
 > {
   if (!backgroundState) {
     return {};
@@ -176,13 +220,7 @@ export function readVbaTransactionBaseProperties(
   );
   const fiatCode = autoramp?.depositRailsSummary?.currency;
   const kyc = backgroundState.KycController;
-  const location = backgroundState.GeolocationController?.location;
-  const region =
-    typeof location === 'string' &&
-    location.length > 0 &&
-    location.toUpperCase() !== 'UNKNOWN'
-      ? location
-      : undefined;
+  const region = toRegion(backgroundState.GeolocationController?.location);
 
   return {
     ...(kyc
@@ -194,13 +232,10 @@ export function readVbaTransactionBaseProperties(
           ...(kyc.providerFlowStatus
             ? { provider_flow_status: kyc.providerFlowStatus }
             : {}),
-          ...(typeof kyc.vendor === 'string' && kyc.vendor.length > 0
-            ? { vendor: kyc.vendor }
-            : {}),
         }
       : {}),
     ...(region ? { region } : {}),
-    ...(fiatCode ? { fiat_code: fiatCode } : {}),
+    ...(fiatCode ? { currency_source: fiatCode } : {}),
   };
 }
 
@@ -220,8 +255,14 @@ export function buildMoneyVbaTransactionUpdatedProperties(
   const { transaction, previousStatus, autorampId } = payload;
   const status = mapAnalyticsStatus(transaction.status);
   const seconds = secondsSinceCreated(transaction.createdAt, now);
+  const sourceAmount = parseAmount(transaction.sourceAmount);
+  const destinationAmount = parseAmount(transaction.destinationAmount);
 
   return {
+    entry_point: VBA_ENTRY_POINT,
+    vendor: VBA_ANALYTICS_VENDOR,
+    autoramp_status: VBA_AUTORAMP_STATUS,
+    ...VBA_DESTINATION,
     ...base,
     ...(status ? { status } : {}),
     transaction_status: transaction.status,
@@ -230,16 +271,12 @@ export function buildMoneyVbaTransactionUpdatedProperties(
       : { previous_status: previousStatus }),
     transaction_id: transaction.id,
     autoramp_id: autorampId,
-    ...(transaction.sourceAmount === undefined
+    ...(sourceAmount === undefined ? {} : { source_amount: sourceAmount }),
+    ...(destinationAmount === undefined
       ? {}
-      : { source_amount: transaction.sourceAmount }),
-    ...(transaction.destinationAmount === undefined
-      ? {}
-      : { destination_amount: transaction.destinationAmount }),
+      : { destination_amount: destinationAmount }),
     ...(seconds === undefined ? {} : { seconds_since_created: seconds }),
-    ...(status === 'failed'
-      ? { failure_reason: FAILURE_REASONS[transaction.status] }
-      : {}),
+    ...(status === 'failed' ? { failure_reason: FAILURE_REASON } : {}),
   };
 }
 
@@ -269,8 +306,7 @@ export function handleAutorampTransactionStatusChangedForMetrics(
     );
   } catch (error) {
     Logger.error(error as Error, {
-      message:
-        'RampsController: Failed to track Money VBA Transaction Updated',
+      message: 'RampsController: Failed to track Money VBA Transaction Updated',
     });
   }
 }
