@@ -3,7 +3,7 @@ import { Theme } from '../../../../../../util/theme/models';
 
 /** Returns the legacy font size breakpoints used by confirmation amounts. */
 export const getFontSizeForConfirmationAmount = (length: number): number => {
-  if (length <= 8) return 72;
+  if (length <= 8) return 88;
   if (length <= 13) return 40;
   if (length <= 18) return 30;
   return 20;
@@ -21,7 +21,7 @@ const styleSheet = (params: {
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
-      minHeight: 70,
+      minHeight: 88,
     },
     input: {
       textAlign: 'center',

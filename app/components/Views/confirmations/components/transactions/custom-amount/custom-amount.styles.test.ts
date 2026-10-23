@@ -6,7 +6,7 @@ import styleSheet, {
 
 describe('custom-amount.styles', () => {
   it.each([
-    [8, 72],
+    [8, 88],
     [9, 40],
     [13, 40],
     [14, 30],
