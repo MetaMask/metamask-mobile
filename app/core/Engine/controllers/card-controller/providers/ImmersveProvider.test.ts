@@ -1828,6 +1828,7 @@ describe('ImmersveProvider', () => {
         status: 'completed',
         type: 'purchase',
         billingAmount: { value: '314.12', currency: 'USD' },
+        originalAmount: { value: '314.12', currency: 'NZD' },
         feeAmount: { value: '0.12', currency: 'USDC' },
         merchant: {
           name: 'Air NZ Online',
@@ -1863,6 +1864,70 @@ describe('ImmersveProvider', () => {
       const page = await provider.listTransactions({}, TOKENS);
 
       expect(page.items[0].status).toBe('completed');
+    });
+
+    it('omits the merchant amount when the acquirer amount is zero', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            id: 'tx-reversed-brl',
+            description: 'FIME BRAZIL LTDA SAO PAULO BRA',
+            accountId: 'cardholder-1',
+            cardId: 'card-1',
+            amount: '0',
+            currency: 'USD',
+            feeAmount: '0',
+            status: 'reversed' as const,
+            transactionDate: '2026-10-21T16:24:18.523Z',
+            cardAcceptor: {
+              name: 'FIME BRAZIL LTDA',
+              city: 'SAO PAULO',
+              countryCode: 'BRA',
+            },
+            reference: '1000298208517',
+            acquirerAmount: '0',
+            acquirerCurrency: 'BRL',
+            creditDebitIndicator: 'debit' as const,
+            paymentType: 'purchase' as const,
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'reversed',
+        billingAmount: { value: '0', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
+      expect(page.items[0].feeAmount).toBeUndefined();
+    });
+
+    it('maps a holding purchase from minor units without a second currency line', async () => {
+      const { provider, service } = createProvider();
+      service.get.mockResolvedValue({
+        items: [
+          {
+            ...rawTx,
+            id: 'tx-holding-usd',
+            status: 'holding' as const,
+            amount: '50',
+            currency: 'USD',
+            acquirerAmount: '50',
+            acquirerCurrency: 'USD',
+            feeAmount: '0',
+          },
+        ],
+      });
+
+      const page = await provider.listTransactions({}, TOKENS);
+
+      expect(page.items[0]).toMatchObject({
+        status: 'completed',
+        billingAmount: { value: '0.5', currency: 'USD' },
+      });
+      expect(page.items[0].originalAmount).toBeUndefined();
     });
 
     it('throws when cardholderAccountId is missing', async () => {
