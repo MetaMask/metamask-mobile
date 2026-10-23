@@ -96,6 +96,36 @@ describe('usePerpsOrderFees', () => {
     [FeeCalculationParams]
   >();
 
+  it('uses the resolved Core fee once and preserves grant attribution', async () => {
+    mockCalculateFees.mockResolvedValue({
+      feeRate: 0.0007,
+      feeAmount: 0.7,
+      protocolFeeRate: 0.00045,
+      protocolFeeAmount: 0.45,
+      metamaskFeeRate: 0.00025,
+      metamaskFeeAmount: 0.25,
+      feeSource: 'grant',
+      metamaskFeeDiscountBips: 7500,
+      undiscountedMetamaskFeeRate: 0.001,
+    });
+    const { result } = renderHook(() =>
+      usePerpsOrderFees({ orderType: 'market', amount: '1000', symbol: 'BTC' }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.isLoadingMetamaskFee).toBe(false),
+    );
+    expect(result.current.metamaskFee).toBe(0.25);
+    expect(result.current.totalFee).toBeCloseTo(0.7);
+    expect(result.current.undiscountedTotalFee).toBeCloseTo(1.45);
+    expect(result.current.feeDiscountPercentage).toBe(75);
+    expect(result.current.feeSource).toBe('grant');
+    expect(result.current.feeDiscountKind).toBe('promotional');
+    expect(
+      mockEngineContext.RewardsController.getPerpsDiscountForAccount,
+    ).not.toHaveBeenCalled();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     clearRewardsCaches();
@@ -688,6 +718,7 @@ describe('usePerpsOrderFees', () => {
         expect(result.current.metamaskFeeRate).toBe(metamaskFeeRate);
         expect(result.current.metamaskFee).toBeCloseTo(10000 * metamaskFeeRate);
         expect(result.current.feeDiscountPercentage).toBe(discount);
+        expect(result.current.feeDiscountKind).toBe('member');
         expect(result.current.originalMetamaskFeeRate).toBe(
           BUILDER_FEE_CONFIG.MaxFeeDecimal,
         );

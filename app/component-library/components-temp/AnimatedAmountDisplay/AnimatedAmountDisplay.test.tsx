@@ -68,12 +68,63 @@ describe('AnimatedAmountDisplay', () => {
     expect(getByTestId('amount-body')).toHaveProp('adjustsFontSizeToFit', true);
   });
 
-  it('exposes a combined label for a non-pressable amount', () => {
-    const { getByRole } = render(
+  it('omits the container role and label when the row is not accessible', () => {
+    const { getByTestId, queryByRole } = render(
+      <AnimatedAmountDisplay
+        accessible={false}
+        testID="amount-display"
+        value="10"
+      />,
+    );
+    const container = getByTestId('amount-display');
+
+    expect(container).not.toHaveProp('accessibilityRole');
+    expect(container).not.toHaveProp('accessibilityLabel');
+    expect(queryByRole('text', { name: '10' })).not.toBeOnTheScreen();
+    expect(queryByRole('button')).not.toBeOnTheScreen();
+  });
+
+  it('exposes the amount node as text with the value label', () => {
+    const { getByTestId } = render(
+      <AnimatedAmountDisplay
+        amountAccessible
+        amountTestID="amount-body"
+        testID="amount-display"
+        value="10"
+      />,
+    );
+
+    expect(getByTestId('amount-body')).toHaveProp('accessibilityRole', 'text');
+    expect(getByTestId('amount-body')).toHaveProp('accessibilityLabel', '10');
+  });
+
+  it('applies container style and the button role when the row is pressable', () => {
+    const onPress = jest.fn();
+    const containerStyle = { maxWidth: '100%' as const };
+    const { getByRole, getByTestId } = render(
+      <AnimatedAmountDisplay
+        containerStyle={containerStyle}
+        onPress={onPress}
+        testID="amount-display"
+        value="10"
+      />,
+    );
+
+    expect(getByRole('button', { name: '10' })).toBeOnTheScreen();
+    expect(getByTestId('amount-display')).toHaveStyle(containerStyle);
+
+    fireEvent.press(getByTestId('amount-display'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the default text role and combined label', () => {
+    const { getByRole, queryByRole } = render(
       <AnimatedAmountDisplay prefix="$" suffix=" USD" value="10" />,
     );
 
     expect(getByRole('text', { name: '$10 USD' })).toBeOnTheScreen();
+    expect(queryByRole('button')).not.toBeOnTheScreen();
   });
 
   it('uses the supplied label when affixes are elements', () => {

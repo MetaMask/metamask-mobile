@@ -6,9 +6,13 @@ import type {
 import initialRootState from '../../util/test/initial-root-state';
 import rewardsMoneyReducer, {
   resetRewardsMoneyState,
+  setCashbackLedger,
+  setCommissions,
+  setEarningsHistory,
   setEarningsSummary,
   setEarningsSummaryError,
   setEarningsSummaryLoading,
+  setReferralFunnel,
   setReferralMe,
   setReferralMeError,
   setReferralMeLoading,
@@ -41,6 +45,7 @@ const mockReferralMe: ReferralMeDto = {
   },
   localized_text: {} as ReferralMeDto['localized_text'],
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const mockEarningsSummary = {
@@ -80,6 +85,10 @@ describe('rewardsMoneyReducer', () => {
     expect(state).toEqual({
       referralMe: {},
       earningsSummary: {},
+      referralFunnel: {},
+      commissions: {},
+      cashbackLedger: {},
+      earningsHistory: {},
     });
   });
 
@@ -87,6 +96,10 @@ describe('rewardsMoneyReducer', () => {
     expect(initialRootState.rewardsMoney).toEqual({
       referralMe: {},
       earningsSummary: {},
+      referralFunnel: {},
+      commissions: {},
+      cashbackLedger: {},
+      earningsHistory: {},
     });
   });
 
@@ -258,6 +271,73 @@ describe('rewardsMoneyReducer', () => {
             data: mockEarningsSummary,
           },
         },
+        referralFunnel: {
+          [PROFILE_A]: {
+            loading: true,
+            error: true,
+            data: { enrolled: 12, earning_generating: 5 },
+          },
+        },
+        commissions: {
+          [PROFILE_A]: [
+            {
+              id: 'SOCIAL_FOLLOW_TRADE:2026-09-01:perps:BTC',
+              earning_origin_type: 'SOCIAL_FOLLOW_TRADE',
+              day: '2026-09-01',
+              token: {
+                key: 'perps:BTC',
+                symbol: 'BTC',
+                source: 'PERPS',
+              },
+              musd_amount: '2500000',
+              fee_amount_usd: '10.00000000',
+              fill_count: 3,
+              copied_times: 2,
+            },
+          ],
+        },
+        cashbackLedger: {
+          [PROFILE_A]: [
+            {
+              type: 'earning',
+              id: 'earn-1',
+              earning_origin_type: 'SWAPS_FEE_CASHBACK',
+              musd_amount: '1000000',
+              voided_musd_amount: '0',
+              fee_amount_usd: '1',
+              entry_count: 1,
+              transaction_hash: null,
+              chain_id: null,
+              ledger_timestamp: '2026-09-01T00:00:00.000Z',
+              claim_status: 'unclaimed',
+              claimable_at: '2026-09-02T00:00:00.000Z',
+              swaps_source: null,
+              perps_source: null,
+              predict_source: null,
+            },
+          ],
+        },
+        earningsHistory: {
+          [PROFILE_A]: [
+            {
+              type: 'earning' as const,
+              id: 'earn-1',
+              earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+              musd_amount: '1000000',
+              voided_musd_amount: '0',
+              fee_amount_usd: '1',
+              entry_count: 1,
+              transaction_hash: null,
+              chain_id: null,
+              ledger_timestamp: '2026-09-01T00:00:00.000Z',
+              claim_status: 'unclaimed',
+              claimable_at: '2026-09-02T00:00:00.000Z',
+              swaps_source: null,
+              perps_source: null,
+              predict_source: null,
+            },
+          ],
+        },
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -275,6 +355,20 @@ describe('rewardsMoneyReducer', () => {
         error: false,
         data: mockEarningsSummary,
       });
+      expect(state.referralFunnel[PROFILE_A]).toEqual({
+        loading: false,
+        error: false,
+        data: { enrolled: 12, earning_generating: 5 },
+      });
+      expect(state.commissions[PROFILE_A]).toEqual(
+        persisted.commissions[PROFILE_A],
+      );
+      expect(state.cashbackLedger[PROFILE_A]).toEqual(
+        persisted.cashbackLedger[PROFILE_A],
+      );
+      expect(state.earningsHistory[PROFILE_A]).toEqual(
+        persisted.earningsHistory[PROFILE_A],
+      );
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -292,6 +386,10 @@ describe('rewardsMoneyReducer', () => {
       expect(state).toEqual({
         referralMe: {},
         earningsSummary: {},
+        referralFunnel: {},
+        commissions: {},
+        cashbackLedger: {},
+        earningsHistory: {},
       });
     });
   });
@@ -315,7 +413,120 @@ describe('rewardsMoneyReducer', () => {
       expect(state).toEqual({
         referralMe: {},
         earningsSummary: {},
+        referralFunnel: {},
+        commissions: {},
+        cashbackLedger: {},
+        earningsHistory: {},
       });
+    });
+  });
+
+  describe('performance caches', () => {
+    it('writes funnel data under the asked-for profile', () => {
+      const state = rewardsMoneyReducer(
+        initialState,
+        setReferralFunnel({
+          profileId: PROFILE_A,
+          data: { enrolled: 12, earning_generating: 5 },
+        }),
+      );
+
+      expect(state.referralFunnel[PROFILE_A]?.data).toEqual({
+        enrolled: 12,
+        earning_generating: 5,
+      });
+    });
+
+    it('caches the first commissions page by profile', () => {
+      const items = [
+        {
+          id: 'SOCIAL_FOLLOW_TRADE:2026-09-01:perps:BTC',
+          earning_origin_type: 'SOCIAL_FOLLOW_TRADE' as const,
+          day: '2026-09-01',
+          token: { key: 'perps:BTC', symbol: 'BTC', source: 'PERPS' as const },
+          musd_amount: '2500000',
+          fee_amount_usd: '10.00000000',
+          fill_count: 3,
+          copied_times: 2,
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setCommissions({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.commissions[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches cashback ledger rows by profile', () => {
+      const items = [
+        {
+          type: 'earning' as const,
+          id: 'earn-1',
+          earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+          musd_amount: '1000000',
+          voided_musd_amount: '0',
+          fee_amount_usd: '1',
+          entry_count: 1,
+          transaction_hash: null,
+          chain_id: null,
+          ledger_timestamp: '2026-09-01T00:00:00.000Z',
+          claim_status: 'unclaimed',
+          claimable_at: '2026-09-02T00:00:00.000Z',
+          swaps_source: null,
+          perps_source: null,
+          predict_source: null,
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setCashbackLedger({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.cashbackLedger[PROFILE_A]).toEqual(items);
+    });
+
+    it('caches unified earnings history by profile', () => {
+      const items = [
+        {
+          type: 'earning' as const,
+          id: 'earn-1',
+          earning_origin_type: 'SWAPS_FEE_CASHBACK' as const,
+          musd_amount: '1000000',
+          voided_musd_amount: '0',
+          fee_amount_usd: '1',
+          entry_count: 1,
+          transaction_hash: null,
+          chain_id: null,
+          ledger_timestamp: '2026-09-01T00:00:00.000Z',
+          claim_status: 'unclaimed',
+          claimable_at: '2026-09-02T00:00:00.000Z',
+          swaps_source: null,
+          perps_source: null,
+          predict_source: null,
+        },
+        {
+          type: 'claim' as const,
+          id: 'claim-1',
+          route: 'REFERRAL_TRADE_FEE_CASHBACK',
+          gross_amount: '1000000',
+          net_amount: '1000000',
+          withholding_rate_bps: 0,
+          status: 'SETTLED',
+          ledger_timestamp: '2026-09-02T00:00:00.000Z',
+          settled_at: '2026-09-02T00:00:00.000Z',
+          payout_method: 'VOUCHER',
+        },
+      ];
+
+      const state = rewardsMoneyReducer(
+        initialState,
+        setEarningsHistory({ profileId: PROFILE_A, items }),
+      );
+
+      expect(state.earningsHistory[PROFILE_A]).toEqual(items);
     });
   });
 });

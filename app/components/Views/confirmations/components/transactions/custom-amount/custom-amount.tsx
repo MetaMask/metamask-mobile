@@ -10,6 +10,7 @@ import { useConfirmationContext } from '../../../context/confirmation-context';
 import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import { parseAmountWithAssistiveDecimals } from './custom-amount.utils';
+import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
 export interface CustomAmountProps {
   amountFiat: string;
@@ -75,7 +76,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
     <AnimatedAmountDisplay
       accessibilityLabel={`${fiatSymbol}${typedText}${assistiveText}`}
       amountAccessible
-      amountTestID="custom-amount-input-value"
+      amountTestID={TransactionPayComponentIDs.AMOUNT_VALUE}
       animated
       color={amountColor}
       containerStyle={styles.container}

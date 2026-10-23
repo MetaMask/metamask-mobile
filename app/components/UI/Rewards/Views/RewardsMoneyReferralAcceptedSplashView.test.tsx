@@ -72,8 +72,11 @@ jest.mock(
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: () =>
-        ReactActual.createElement(View, { testID: 'theme-image-hero' }),
+      default: ({ accessibilityLabel }: { accessibilityLabel?: string }) =>
+        ReactActual.createElement(View, {
+          testID: 'theme-image-hero',
+          accessibilityLabel,
+        }),
     };
   },
 );
@@ -122,6 +125,7 @@ const buildReferralMe = (
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -237,6 +241,10 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
     );
 
     expect(getByTestId('theme-image-hero')).toBeOnTheScreen();
+    expect(getByTestId('theme-image-hero')).toHaveProp(
+      'accessibilityLabel',
+      'Referral invite illustration',
+    );
   });
 
   it('renders no hero when invite_hero is absent', () => {
