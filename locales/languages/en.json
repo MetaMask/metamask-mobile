@@ -545,7 +545,7 @@
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
     "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "If you have your",
     "forgot_password_point_2_bold": "Secret Recovery Phrase,",
     "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
