@@ -253,13 +253,14 @@ export interface ContractConfig {
 /**
  * Contracts the positions protocol (Polymarket Protocol V2) needs. Protocol
  * V2 settles on a single exchange, so there is no separate neg-risk exchange
- * contract. The PositionManager owns the positions-protocol outcome balances;
- * selling requires approving it as operator for the exchange.
+ * contract. PositionManager is the ERC-1155 position ledger; the Router
+ * executes split, merge, and redeem against it.
  */
 export interface PositionsProtocolContractConfig {
   exchange: string;
   negRiskExchange: string;
   positionManager: string;
+  router: string;
 }
 
 export interface RoundConfig {
