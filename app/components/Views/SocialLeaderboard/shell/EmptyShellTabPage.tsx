@@ -21,7 +21,9 @@ import {
   type NativeSyntheticEvent,
   type ScrollView,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { type SharedValue } from 'react-native-reanimated';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
@@ -52,6 +54,7 @@ import {
 import { useSocialEntryModeration } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { useSocialFeed } from '../../../UI/SocialFeed/data/useSocialFeed';
 import { socialFeedSourceFromAsset } from '../../../UI/SocialFeed/data/socialFeedSource';
+import { usePopularTraders } from '../SocialV1View/feed/hooks/usePopularTraders';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTokens';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
@@ -88,6 +91,15 @@ const REFRESH_MIN_DURATION_MS = 1000;
  */
 const END_REACHED_THRESHOLD_PX = 600;
 
+/** Prefetch unless hardware is LOW or the network is offline or slow. `null` still prefetches. */
+const allowAdjacentPrefetch = (
+  hardwareTier: ReturnType<typeof getHardwareTier>,
+  networkTier: ReturnType<typeof useNetworkTier>,
+): boolean =>
+  hardwareTier !== 'LOW' &&
+  networkTier !== 'NONE' &&
+  networkTier !== 'SLOW_CELLULAR';
+
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
 >['onScroll'];
@@ -101,6 +113,10 @@ export interface EmptyShellTabPageProps {
    * tab is first opened so Trending and Following don't duplicate testIDs.
    */
   isActive?: boolean;
+  /** Neighbor tab. Fetches without painting rows when prefetch is allowed. */
+  prefetch?: boolean;
+  /** After first paint, load rows when the device and network allow it. */
+  prepare?: boolean;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   containerTestID: string;
@@ -117,6 +133,8 @@ export interface EmptyShellTabPageProps {
     target: QuickBuyTarget,
     copyTradeOrigin?: CopyTradeOrigin,
   ) => void;
+  /** 1 while Trending may crawl the hot-token rail, including while this page is hidden. */
+  hotTokenCrawl?: SharedValue<number>;
 }
 
 /**
@@ -127,6 +145,8 @@ export interface EmptyShellTabPageProps {
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
   isActive = true,
+  prefetch = false,
+  prepare = false,
   onScroll,
   pageRef,
   containerTestID,
@@ -135,12 +155,32 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   isFilterActive = false,
   appliedFilters = DEFAULT_FILTERS,
   onQuickBuy,
+  hotTokenCrawl,
 }) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
   const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  const prepareRows =
+    prepare && allowAdjacentPrefetch(hardwareTier, networkTier);
+
+  useEffect(() => {
+    if (isActive || prepareRows) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, prepareRows]);
+
+  // `NONE` skips the fetch. A hidden neighbor prefetches only while idle and allowed.
+  const fetchEnabled =
+    networkTier !== 'NONE' &&
+    (isActive ||
+      hasBeenActive ||
+      (prefetch && allowAdjacentPrefetch(hardwareTier, networkTier)));
+
   const {
     posts,
     pinnedPosts,
@@ -153,7 +193,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   } = useSocialV1Feed(tab, {
     ownerProfileId: myProfile?.profileId,
     isActive,
+    enabled: fetchEnabled,
   });
+  usePopularTraders(tab === 'trending' && fetchEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
   const visiblePosts = useMemo(
     () =>
@@ -205,7 +247,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         : null,
     [selectedToken],
   );
-  const assetFeed = useSocialFeed(assetSource);
+  const assetFeed = useSocialFeed(assetSource, { enabled: fetchEnabled });
   const [feedSort, setFeedSort] = useState<FeedSort>(DEFAULT_FEED_SORT);
   const [isSortSheetOpen, setIsSortSheetOpen] = useState(false);
 
@@ -310,14 +352,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     },
     [livePrices, visibleAssetFeed, hasNextPage, loadMore],
   );
-  const [hasBeenActive, setHasBeenActive] = useState(isActive);
-
-  useEffect(() => {
-    if (isActive) {
-      setHasBeenActive(true);
-    }
-  }, [isActive]);
-
   const newestPinnedPostId = visiblePinnedPosts[0]?.id;
   useEffect(() => {
     if (!newestPinnedPostId) {
@@ -549,6 +583,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   isLoading={isLoading}
                   selectedTokenId={activeHotTokenId}
                   onTokenPress={handleHotTokenPress}
+                  active={isActive}
+                  crawl={hotTokenCrawl}
                 />
               ) : null}
               {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (

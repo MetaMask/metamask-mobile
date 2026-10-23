@@ -29,6 +29,14 @@ import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 
 const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {

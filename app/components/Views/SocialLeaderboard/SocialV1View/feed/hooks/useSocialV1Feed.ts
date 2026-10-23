@@ -4,13 +4,12 @@ import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialF
 import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 
-/** Trending reads the generic `leaderboard` scope, Following the per-user one. */
-const TAB_AUDIENCE = {
-  trending: 'all',
-  following: 'following',
-} as const;
-
 export interface UseSocialV1FeedOptions {
+  /**
+   * Gate the query. Defaults to enabled so existing callers keep fetching.
+   * Always additionally gated on unlock inside `useSocialFeed`.
+   */
+  enabled?: boolean;
   /**
    * The viewer's social profile id. On Following, their just-written posts
    * are pinned on top until the feed returns them.
@@ -19,6 +18,12 @@ export interface UseSocialV1FeedOptions {
   /** Whether the tab is on screen; gates the pending-post refetches. */
   isActive?: boolean;
 }
+
+/** Trending reads the generic `leaderboard` scope, Following the per-user one. */
+const TAB_AUDIENCE = {
+  trending: 'all',
+  following: 'following',
+} as const;
 
 /**
  * V1 feed data source: live trader activity from `SocialService:fetchFeed`,
@@ -31,7 +36,11 @@ export interface UseSocialV1FeedOptions {
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
-  { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
+  {
+    ownerProfileId,
+    isActive = true,
+    enabled = true,
+  }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const source = useMemo(
     (): SocialFeedSource => ({
@@ -49,7 +58,7 @@ export const useSocialV1Feed = (
     loadMore,
     error,
     refresh: refetch,
-  } = useSocialFeed(source);
+  } = useSocialFeed(source, { enabled });
 
   const overlay = usePendingPostsOverlay({
     surface: 'following',

@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import React, {
   Fragment,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -17,6 +18,8 @@ import React, {
 } from 'react';
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
@@ -48,6 +51,13 @@ type AnimatedScrollHandler = React.ComponentProps<
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveTradesViewProps {
+  /** Pauses the clock and holds rows back until this page has been opened. */
+  isActive?: boolean;
+  /**
+   * The landing tab has already painted. Draw this list now when the device
+   * and network can take that work.
+   */
+  prepare?: boolean;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -60,6 +70,8 @@ export interface LiveTradesViewProps {
  * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
+  isActive = true,
+  prepare = false,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -69,11 +81,24 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const scrollRef = useRef<ScrollView>(null);
+  const hardwareTier = getHardwareTier();
+  const networkTier = useNetworkTier();
+  const prepareRows =
+    prepare &&
+    hardwareTier !== 'LOW' &&
+    networkTier !== 'NONE' &&
+    networkTier !== 'SLOW_CELLULAR';
   const livePrices = useSocialLivePrices();
   const handleScrollSettled = useCallback(() => {
     livePrices?.requestVisibilityCheck();
   }, [livePrices]);
-  const now = useFeedNow({ enabled: true });
+  const [hasBeenActive, setHasBeenActive] = useState(isActive);
+  useEffect(() => {
+    if (isActive || prepareRows) {
+      setHasBeenActive(true);
+    }
+  }, [isActive, prepareRows]);
+  const now = useFeedNow({ enabled: isActive });
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const { isEntryHidden } = useSocialEntryModeration();
@@ -177,28 +202,29 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
               {streamLabel}
             </FilterButton>
           </SocialTabFilterBar>
-          {visibleItems.length === 0 ? (
+          {hasBeenActive && visibleItems.length === 0 ? (
             <SocialV1FeedEmptyState tab="liveTrades" />
-          ) : (
-            visibleItems.map((item, index) => (
-              <Fragment key={item.id}>
-                {index > 0 ? (
-                  <SectionDivider
-                    marginVertical={1}
-                    testID={getSocialV1FeedEntryDividerTestId(
-                      `live-trades-${index}`,
-                    )}
+          ) : null}
+          {hasBeenActive
+            ? visibleItems.map((item, index) => (
+                <Fragment key={item.id}>
+                  {index > 0 ? (
+                    <SectionDivider
+                      marginVertical={1}
+                      testID={getSocialV1FeedEntryDividerTestId(
+                        `live-trades-${index}`,
+                      )}
+                    />
+                  ) : null}
+                  <LiveTradeRow
+                    item={item}
+                    now={now}
+                    onPositionPress={handlePositionPress}
+                    onTraderPress={handleTraderPress}
                   />
-                ) : null}
-                <LiveTradeRow
-                  item={item}
-                  now={now}
-                  onPositionPress={handlePositionPress}
-                  onTraderPress={handleTraderPress}
-                />
-              </Fragment>
-            ))
-          )}
+                </Fragment>
+              ))
+            : null}
         </Animated.ScrollView>
       </Box>
     </SocialFeedSurfaceProvider>

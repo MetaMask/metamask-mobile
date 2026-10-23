@@ -112,20 +112,38 @@ describe('useSocialV1Feed', () => {
     it('reads the leaderboard scope on Trending', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'all',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        {
+          kind: 'all',
+          audience: 'all',
+        },
+        { enabled: true },
+      );
     });
 
     // Following must hit its own scope, or both tabs would render one list.
     it('reads the following scope on Following', () => {
       renderHook(() => useSocialV1Feed('following'));
 
-      expect(mockUseSocialFeed).toHaveBeenCalledWith({
-        kind: 'all',
-        audience: 'following',
-      });
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        {
+          kind: 'all',
+          audience: 'following',
+        },
+        { enabled: true },
+      );
+    });
+
+    it('forwards enabled so a hidden tab can stay idle', () => {
+      renderHook(() => useSocialV1Feed('trending', { enabled: false }));
+
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        {
+          kind: 'all',
+          audience: 'all',
+        },
+        { enabled: false },
+      );
     });
 
     // Without these forwarded, the feed stops after page one and a failed
