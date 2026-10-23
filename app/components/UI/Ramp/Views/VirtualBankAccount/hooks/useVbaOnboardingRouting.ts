@@ -18,6 +18,7 @@ import {
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
+import { recordVbaOnboardingSnapshot } from '../vbaAnalytics';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
@@ -312,6 +313,7 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    recordVbaOnboardingSnapshot(snapshot);
     return {
       status: 'ready',
       destinationId: getVbaDestinationForSnapshot(snapshot),

@@ -4,6 +4,9 @@ import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaKycRejected, { VbaKycRejectedSelectorsIDs } from './KycRejected';
 import { VbaOnboardingErrorSelectorsIDs } from '../../components/OnboardingError';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
+
+jest.mock('../../hooks/useTrackKycResultViewed');
 
 const mockGoBack = jest.fn();
 const mockOnRetry = jest.fn();
@@ -73,5 +76,11 @@ describe('VbaKycRejected', () => {
     fireEvent.press(getByTestId(VbaKycRejectedSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('reports the rejected result as viewed', () => {
+    renderWithProvider(<VbaKycRejected onRetry={mockOnRetry} />);
+
+    expect(useTrackKycResultViewed).toHaveBeenCalledWith('rejected');
   });
 });
