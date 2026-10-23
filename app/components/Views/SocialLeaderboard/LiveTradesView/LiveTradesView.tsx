@@ -3,6 +3,9 @@ import {
   FilterButton,
   FilterButtonSize,
   FilterButtonVariant,
+  IconColor,
+  IconName,
+  IconSize,
   SectionDivider,
   TextColor,
 } from '@metamask/design-system-react-native';
@@ -19,11 +22,6 @@ import React, {
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -189,18 +187,17 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
               onPress={handleStreamToggle}
               testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
               accessibilityLabel={streamLabel}
-              startAccessory={
-                <Icon
-                  name={isLive ? IconName.Play : IconName.Pause}
-                  size={IconSize.Md}
-                  color={isLive ? IconColor.Default : IconColor.Alternative}
-                  testID={
-                    isLive
-                      ? LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON
-                      : LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON
-                  }
-                />
-              }
+              startIconName={isLive ? IconName.Play : IconName.Pause}
+              startIconProps={{
+                size: IconSize.Md,
+                testID: isLive
+                  ? LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON
+                  : LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON,
+                color: isLive
+                  ? IconColor.IconDefault
+                  : IconColor.IconAlternative,
+                twClassName: isLive ? undefined : IconColor.IconAlternative,
+              }}
               textProps={
                 isLive
                   ? undefined

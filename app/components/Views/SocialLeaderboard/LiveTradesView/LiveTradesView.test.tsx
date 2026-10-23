@@ -171,9 +171,10 @@ describe('LiveTradesView', () => {
     const liveLabelColor = StyleSheet.flatten(
       screen.getByText('social_leaderboard.feed.live_stream.live').props.style,
     ).color;
-    const liveIconColor = screen.getByTestId(
-      LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON,
-    ).props.color;
+    const liveIconColor = StyleSheet.flatten(
+      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON).props
+        .style,
+    ).color;
 
     fireEvent.press(
       screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_BUTTON),
@@ -192,8 +193,10 @@ describe('LiveTradesView', () => {
       ).color,
     ).not.toBe(liveLabelColor);
     expect(
-      screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON).props
-        .color,
+      StyleSheet.flatten(
+        screen.getByTestId(LiveTradesViewSelectorsIDs.STREAM_PAUSE_ICON).props
+          .style,
+      ).color,
     ).not.toBe(liveIconColor);
     expect(
       screen.queryByText('social_leaderboard.feed.live_stream.live'),
