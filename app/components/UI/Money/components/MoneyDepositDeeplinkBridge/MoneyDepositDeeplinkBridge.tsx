@@ -66,13 +66,14 @@ const MoneyDepositDeeplinkBridge = () => {
     }
 
     if (isOnboardingRedirectNeeded) {
-      navigation.dispatch(
-        StackActions.replace(Routes.MONEY.ONBOARDING, {
+      navigation.dispatch((state) => ({
+        ...StackActions.replace(Routes.MONEY.ONBOARDING, {
           postOnboardingRedirect: {
             type: MoneyPostOnboardingRedirectType.DEPOSIT,
           },
         }),
-      );
+        target: state.key,
+      }));
       return;
     }
 

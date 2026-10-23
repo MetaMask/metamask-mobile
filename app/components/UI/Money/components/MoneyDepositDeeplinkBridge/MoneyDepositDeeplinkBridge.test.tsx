@@ -119,13 +119,20 @@ describe('MoneyDepositDeeplinkBridge', () => {
 
     render(<MoneyDepositDeeplinkBridge />);
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.MONEY.ONBOARDING, {
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+    const dispatchCallback = mockDispatch.mock.calls[0]?.[0] as
+      | ((state: { key: string }) => unknown)
+      | undefined;
+    expect(dispatchCallback).toEqual(expect.any(Function));
+
+    expect(dispatchCallback?.({ key: 'money-stack' })).toEqual({
+      ...StackActions.replace(Routes.MONEY.ONBOARDING, {
         postOnboardingRedirect: {
           type: MoneyPostOnboardingRedirectType.DEPOSIT,
         },
       }),
-    );
+      target: 'money-stack',
+    });
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
   });
 
