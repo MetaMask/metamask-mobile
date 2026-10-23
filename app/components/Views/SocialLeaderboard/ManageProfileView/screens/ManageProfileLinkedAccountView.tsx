@@ -5,11 +5,11 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Checkbox,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  RadioButton,
   Text,
   TextColor,
   TextVariant,
@@ -136,7 +136,13 @@ const ManageProfileLinkedAccountView: React.FC = () => {
                       ) : null}
                     </Box>
                   </Box>
-                  <RadioButton isChecked={isSelected} isReadOnly />
+                  <Checkbox
+                    isSelected={isSelected}
+                    pointerEvents="none"
+                    onChange={() => {
+                      void handleAccountPress(account.linkedAddresses);
+                    }}
+                  />
                 </Box>
               </Pressable>
             );
