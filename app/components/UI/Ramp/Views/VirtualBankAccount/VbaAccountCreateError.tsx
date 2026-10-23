@@ -56,12 +56,15 @@ const VbaAccountCreateError = ({
   );
 
   const handleBack = useCallback(() => {
+    if (pendingAction) {
+      return;
+    }
     if (onBack) {
       onBack();
       return;
     }
     navigation.goBack();
-  }, [navigation, onBack]);
+  }, [navigation, onBack, pendingAction]);
 
   const runAction = useCallback(
     async (pending: PendingAction, action: () => void | Promise<void>) => {
@@ -97,6 +100,7 @@ const VbaAccountCreateError = ({
       <HeaderStandard
         onBack={handleBack}
         backButtonProps={{
+          isDisabled: pendingAction !== null,
           testID: VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON,
         }}
         includesTopInset

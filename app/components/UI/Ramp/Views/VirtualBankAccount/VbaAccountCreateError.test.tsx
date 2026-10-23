@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaAccountCreateError, {
@@ -157,5 +157,36 @@ describe('VbaAccountCreateError', () => {
     fireEvent.press(getByTestId(VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON));
     expect(mockOnBack).toHaveBeenCalledTimes(1);
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  it('disables Back while the primary action is pending', async () => {
+    let resolvePrimary: (() => void) | undefined;
+    mockOnPrimary.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolvePrimary = resolve;
+      }),
+    );
+    const { getByTestId } = renderWithProvider(
+      <VbaAccountCreateError
+        variant="generic"
+        primaryActionType="retry"
+        onPrimary={mockOnPrimary}
+        onSecondary={mockOnSecondary}
+        onBack={mockOnBack}
+      />,
+    );
+    const backButton = getByTestId(
+      VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON,
+    );
+
+    fireEvent.press(
+      getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    );
+    await waitFor(() => expect(backButton).toBeDisabled());
+    fireEvent.press(backButton);
+
+    expect(mockOnBack).not.toHaveBeenCalled();
+    await act(async () => resolvePrimary?.());
+    await waitFor(() => expect(backButton).toBeEnabled());
   });
 });
