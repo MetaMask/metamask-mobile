@@ -140,7 +140,7 @@ export function CustomAmountSkeleton({
     >
       <Skeleton
         animatedViewProps={{ style: styles.skeleton }}
-        height={72}
+        height={88}
         style={styles.skeleton}
         width={80}
       />
