@@ -105,6 +105,7 @@ const VbaEmailAdapter = () => {
           verifyWith: 'email_otp',
           reason: {
             operation: 'vba.verifyEmail',
+            presentation: 'card',
             enrollDescription: strings(
               'virtual_bank_account.kyc_email.enroll_description',
             ),

@@ -148,6 +148,7 @@ describe('VbaEmailAdapter', () => {
         verifyWith: 'email_otp',
         reason: {
           operation: 'vba.verifyEmail',
+          presentation: 'card',
           enrollDescription: 'placeholder for enroll description',
           verifyDescription: 'placeholder for verify description',
         },
