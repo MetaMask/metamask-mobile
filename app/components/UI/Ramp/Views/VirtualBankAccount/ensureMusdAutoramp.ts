@@ -136,7 +136,9 @@ const resumeMoonpaySignings = async (
       return 'needs_acceptance';
     }
 
-    const repostKey = `${walletAddress.toLowerCase()}:${[...disclaimerIds].sort().join(',')}`;
+    const repostKey = `${walletAddress.toLowerCase()}:${[...disclaimerIds]
+      .sort((left, right) => left.localeCompare(right))
+      .join(',')}`;
     if (repostedSignings.has(repostKey)) {
       return 'waiting';
     }
