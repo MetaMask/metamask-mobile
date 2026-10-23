@@ -6,26 +6,16 @@ import React, {
   useState,
 } from 'react';
 import { Nft } from '@metamask/assets-controllers';
-import { TouchableOpacity, View } from 'react-native';
+import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Icon, {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
-import TagBase, {
-  TagShape,
-} from '../../../../../../component-library/base-components/TagBase';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
-import {
-  AnimatedAmountDisplay,
-  getFontSizeForInputLength,
-} from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { AnimatedAmountDisplay } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../hooks/useStyles';
 import Device from '../../../../../../util/device';
@@ -40,14 +30,20 @@ import { useSendContext } from '../../../context/send-context';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { AmountKeyboard } from './amount-keyboard';
-import { styleSheet } from './amount.styles';
+import { getSendAmountFontSize, styleSheet } from './amount.styles';
 import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
+import { getCurrencySymbol } from '../../../../../../util/number/bigint';
 import {
-  Text,
-  TextVariant,
-  TextColor,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontFamily,
   FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
@@ -78,17 +74,20 @@ export const Amount = () => {
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
-  const displaySuffix = fiatMode
-    ? (fiatCurrencySymbol ?? '')
-    : assetDisplaySymbol;
-  const defaultValue = fiatMode ? '0.00' : '0';
+  // Fiat matches Add funds: the symbol leads the digits. Token mode keeps the
+  // ticker after the amount.
+  const fiatSymbol = getCurrencySymbol(
+    (fiatCurrencySymbol ?? '').toLowerCase(),
+  );
+  const displaySuffix = fiatMode ? '' : assetDisplaySymbol;
+  const defaultValue = '0';
   const displayAmount = useMemo(
     () => formatAmountWithCommas(amount.length ? amount : defaultValue),
     [amount, defaultValue],
   );
-  const inputFontSize = getFontSizeForInputLength(
+  const inputFontSize = getSendAmountFontSize(
     displayAmount.length +
-      displaySuffix.length +
+      (fiatMode ? fiatSymbol.length : displaySuffix.length) +
       INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
   );
   const { styles } = useStyles(styleSheet, { inputFontSize });
@@ -174,7 +173,9 @@ export const Amount = () => {
   if (amountError) {
     textColor = TextColor.ErrorDefault;
   }
-  if (!amount.length) {
+  // Fiat placeholder matches the leading symbol. Token mode stays muted until
+  // the user types.
+  if (!amount.length && !fiatMode) {
     textColor = TextColor.TextMuted;
   }
 
@@ -216,14 +217,27 @@ export const Amount = () => {
             <AnimatedAmountDisplay
               amountTestID="send_amount"
               accessibilityLabel={
-                displaySuffix
-                  ? `${displayAmount} ${displaySuffix}`
-                  : displayAmount
+                fiatMode
+                  ? `${fiatSymbol}${displayAmount}`
+                  : displaySuffix
+                    ? `${displayAmount} ${displaySuffix}`
+                    : displayAmount
               }
               color={textColor}
-              cursor={{ animated: true }}
+              cursor={{ animated: true, style: styles.cursor }}
+              prefix={
+                fiatMode ? (
+                  <Text
+                    color={textColor}
+                    fontFamily={FontFamily.Hero}
+                    style={styles.inputText}
+                  >
+                    {fiatSymbol}
+                  </Text>
+                ) : undefined
+              }
               style={styles.inputText}
-              suffix={displaySuffix}
+              suffix={displaySuffix || undefined}
               suffixColor={
                 amountError ? TextColor.ErrorDefault : TextColor.TextMuted
               }
@@ -233,25 +247,24 @@ export const Amount = () => {
             />
           </View>
         </View>
-        {conversionSupportedForAsset && (
-          <TouchableOpacity onPress={toggleFiatMode} testID="fiat_toggle">
-            <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-              <Text color={TextColor.TextAlternative}>
-                {alternateDisplayValue}
-              </Text>
-              <Icon
-                color={IconColor.Alternative}
-                name={IconName.SwapVertical}
-              />
-            </TagBase>
-          </TouchableOpacity>
-        )}
         {isNftLoading ? (
           <Skeleton twClassName="h-4 w-40 rounded self-center mt-4" />
         ) : (
           <Text color={TextColor.TextAlternative} style={styles.balanceText}>
             {balanceDisplayValue}
           </Text>
+        )}
+        {conversionSupportedForAsset && (
+          <Button
+            endIconName={IconName.SwapVertical}
+            onPress={toggleFiatMode}
+            size={ButtonSize.Md}
+            style={styles.currencyTag}
+            testID="fiat_toggle"
+            variant={ButtonVariant.Secondary}
+          >
+            {alternateDisplayValue}
+          </Button>
         )}
       </View>
       <AmountKeyboard

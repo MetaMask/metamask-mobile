@@ -1,11 +1,28 @@
 import { StyleSheet } from 'react-native';
 
+import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Theme } from '../../../../../../util/theme/models';
 import {
   AlignItems,
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
+
+const SEND_LARGE_FONT_SIZE = 88;
+
+/** Large amounts stay at 88px, with line height equal to the font size. Longer values keep the existing shrink curve. */
+export const getSendAmountFontSize = (contentLength: number): number => {
+  if (contentLength <= 10) {
+    return SEND_LARGE_FONT_SIZE;
+  }
+
+  return Math.max(
+    12,
+    Math.round(
+      (getFontSizeForInputLength(contentLength) * SEND_LARGE_FONT_SIZE) / 60,
+    ),
+  );
+};
 
 export const styleSheet = (params: {
   theme: Theme;
@@ -20,7 +37,7 @@ export const styleSheet = (params: {
   return StyleSheet.create({
     balanceText: {
       alignSelf: 'center',
-      marginTop: 16,
+      marginTop: 12,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -30,12 +47,7 @@ export const styleSheet = (params: {
     },
     currencyTag: {
       alignSelf: 'center',
-      backgroundColor: theme.colors.background.section,
-      color: theme.colors.text.alternative,
-      flexDirection: FlexDirection.Row,
-      justifyContent: JustifyContent.center,
-      marginTop: 8,
-      minWidth: 100,
+      marginTop: 16,
     },
     inputSection: {
       flexDirection: FlexDirection.Row,
@@ -45,8 +57,14 @@ export const styleSheet = (params: {
     },
     inputText: {
       fontSize: inputFontSize,
-      lineHeight: 75,
-      fontFamily: 'Inter-Medium',
+      lineHeight: inputFontSize,
+      fontFamily: 'GrotzecCond-Bold',
+    },
+    cursor: {
+      width: 1,
+      height: Math.round(inputFontSize * 0.95),
+      backgroundColor: theme.colors.text.muted,
+      transform: [{ translateY: Math.round(inputFontSize * -0.04) }],
     },
     inputWrapper: {
       alignItems: 'center',
