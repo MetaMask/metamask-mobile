@@ -31,7 +31,7 @@ const flatStyle = (style: unknown): Record<string, unknown> => {
 
 describe('ChartCandleSkeleton', () => {
   const styleOf = (
-    getByTestId: (id: string) => { props: { style: unknown } },
+    getByTestId: ReturnType<typeof render>['getByTestId'],
     suffix: string,
   ) => flatStyle(getByTestId(suffix ? `${ID}-${suffix}` : ID).props.style);
 
