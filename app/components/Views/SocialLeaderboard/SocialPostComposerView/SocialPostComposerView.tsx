@@ -454,7 +454,7 @@ const SocialPostComposerView: React.FC = () => {
         >
           <ScrollView
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
+            contentContainerStyle={tw.style('px-4 pt-8 pb-4')}
             keyboardShouldPersistTaps="always"
           >
             <Box gap={3} twClassName="w-full">
@@ -474,7 +474,7 @@ const SocialPostComposerView: React.FC = () => {
                 autoFocus={isScreenTransitionComplete}
                 showSoftInputOnFocus
                 style={[
-                  tw.style('w-full text-default min-h-24'),
+                  tw.style('w-full text-default p-0'),
                   composerInputTypography,
                 ]}
                 testID={SocialPostComposerViewSelectorsIDs.INPUT}
@@ -485,7 +485,7 @@ const SocialPostComposerView: React.FC = () => {
             </Box>
 
             {previewItem ? (
-              <Box twClassName="relative">
+              <Box twClassName="relative mt-12">
                 <PositionCardBody item={previewItem} />
                 {isTradeInFlightLocked ? null : (
                   <Pressable
@@ -507,7 +507,7 @@ const SocialPostComposerView: React.FC = () => {
             ) : null}
 
             {gifUri ? (
-              <Box twClassName="relative rounded-2xl overflow-hidden">
+              <Box twClassName="relative mt-4 rounded-2xl overflow-hidden">
                 <Image
                   source={{ uri: gifUri }}
                   style={tw.style('w-full aspect-square')}
