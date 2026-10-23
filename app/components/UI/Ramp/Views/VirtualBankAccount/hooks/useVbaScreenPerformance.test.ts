@@ -204,4 +204,32 @@ describe('useVbaScreenPerformance', () => {
     expect(mockTrace).toHaveBeenCalledTimes(1);
     expect(mockEndTrace).toHaveBeenCalledTimes(1);
   });
+
+  it('measures new content after the reset key changes', () => {
+    const { rerender } = renderHook(
+      ({ contentReady, resetKey }) =>
+        useVbaScreenPerformance({
+          screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+          contentReady,
+          resetKey,
+        }),
+      {
+        initialProps: {
+          contentReady: true,
+          resetKey: '0xabc:BRL',
+        },
+      },
+    );
+
+    rerender({ contentReady: false, resetKey: '0xabc:USD' });
+    rerender({ contentReady: true, resetKey: '0xabc:USD' });
+
+    expect(mockTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ success: true }),
+      }),
+    );
+  });
 });

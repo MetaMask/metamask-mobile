@@ -259,6 +259,7 @@ describe('VbaDetails', () => {
     });
     expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:BRL',
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
@@ -944,6 +945,13 @@ describe('VbaDetails', () => {
       return created;
     });
     view.rerender(<VbaDetails />);
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:USD',
+      enabled: false,
+      contentReady: false,
+      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
+    });
     resolvePix(pixInstructions);
 
     await waitFor(() => {
@@ -1085,6 +1093,7 @@ describe('VbaDetails', () => {
     });
     expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:BRL',
       enabled: true,
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.ERROR,

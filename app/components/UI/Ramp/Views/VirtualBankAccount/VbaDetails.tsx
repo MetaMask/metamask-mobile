@@ -245,9 +245,9 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
-  const accountKeyRef = useRef(
-    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
-  );
+  const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+  const accountKeyRef = useRef(accountKey);
+  const [stateAccountKey, setStateAccountKey] = useState(accountKey);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -430,6 +430,7 @@ const VbaDetails = () => {
       return;
     }
     accountKeyRef.current = nextKey;
+    setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     setInstructions(null);
@@ -554,10 +555,12 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const hasCurrentAccountState = stateAccountKey === accountKey;
   useVbaScreenPerformance({
     screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
-    enabled: isApproved,
-    contentReady: rows.length > 0 || loadError,
+    resetKey: accountKey,
+    enabled: isApproved && hasCurrentAccountState,
+    contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
     contentState: loadError
       ? VBA_SCREEN_CONTENT_STATE.ERROR
       : rows.length > 0

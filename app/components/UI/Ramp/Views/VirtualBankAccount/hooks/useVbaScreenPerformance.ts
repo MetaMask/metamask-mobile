@@ -32,6 +32,7 @@ interface UseVbaScreenPerformanceOptions {
   contentReady: boolean;
   contentState?: VbaScreenContentState;
   enabled?: boolean;
+  resetKey?: string;
 }
 
 export function useVbaScreenPerformance({
@@ -39,6 +40,7 @@ export function useVbaScreenPerformance({
   contentReady,
   contentState = VBA_SCREEN_CONTENT_STATE.POPULATED,
   enabled = true,
+  resetKey,
 }: UseVbaScreenPerformanceOptions): void {
   const mountedRef = useRef(true);
   const traceIdRef = useRef<string | null>(null);
@@ -47,6 +49,7 @@ export function useVbaScreenPerformance({
   const contentReadyRef = useRef(contentReady);
   const contentStateRef = useRef(contentState);
   const enabledRef = useRef(enabled);
+  const resetKeyRef = useRef(resetKey);
 
   contentReadyRef.current = contentReady;
   contentStateRef.current = contentState;
@@ -143,6 +146,23 @@ export function useVbaScreenPerformance({
       endActiveTrace(false, VBA_SCREEN_END_REASON.UNMOUNTED);
     };
   }, [endActiveTrace, startScreenTrace]);
+
+  useEffect(() => {
+    if (resetKeyRef.current === resetKey) {
+      return;
+    }
+
+    endActiveTrace(false, VBA_SCREEN_END_REASON.DISABLED);
+    hasReachedContentRef.current = false;
+    resetKeyRef.current = resetKey;
+
+    if (enabledRef.current && AppState.currentState === 'active') {
+      startScreenTrace();
+      if (contentReadyRef.current) {
+        endActiveTrace(true);
+      }
+    }
+  }, [endActiveTrace, resetKey, startScreenTrace]);
 
   useEffect(() => {
     if (!enabled) {
