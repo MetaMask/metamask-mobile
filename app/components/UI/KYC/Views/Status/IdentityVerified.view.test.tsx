@@ -11,7 +11,7 @@ import renderWithProvider, {
   type DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
 import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
@@ -108,7 +108,15 @@ describeForPlatforms('VbaIdentityVerified view', () => {
 
   const render = (
     DetailsScreen: React.ComponentType,
-    { chooseCurrency = false } = {},
+    {
+      chooseCurrency = false,
+      regionCurrencies = { BR: 'BRL', US: 'USD' },
+      defaultCurrency = 'USD',
+    }: {
+      chooseCurrency?: boolean;
+      regionCurrencies?: Record<string, string>;
+      defaultCurrency?: string;
+    } = {},
   ) => {
     const Flow = createFlow(DetailsScreen);
     return renderWithProvider(<Flow />, {
@@ -122,9 +130,9 @@ describeForPlatforms('VbaIdentityVerified view', () => {
                   moneyMovementNeobank: {
                     enabled: true,
                     minimumVersion: '0.0.0',
-                    regions: ['BR', 'US'],
-                    regionCurrencies: { BR: 'BRL', US: 'USD' },
-                    defaultCurrency: 'USD',
+                    regions: ['BR', 'US', 'FR', 'GB'],
+                    regionCurrencies,
+                    defaultCurrency,
                     chooseCurrency,
                   },
                 },
@@ -199,6 +207,33 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     );
   });
 
+  it('stays on Identity verified when chooseCurrency is on and only EUR is configured', async () => {
+    const reason = strings(
+      'virtual_bank_account.identity_verified.no_supported_currency',
+    );
+    const { findByText, getByTestId, queryByTestId, queryByText } = render(
+      VbaDetails,
+      {
+        chooseCurrency: true,
+        regionCurrencies: { FR: 'EUR' },
+        defaultCurrency: 'EUR',
+      },
+    );
+
+    expect(queryByText(reason)).toBeNull();
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await findByText(reason)).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(VbaChooseCurrencySelectorsIDs.CONTAINER)).toBeNull();
+    expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
   it('opens Choose Currency from Continue when chooseCurrency is on', async () => {
     const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
       chooseCurrency: true,
@@ -221,6 +256,55 @@ describeForPlatforms('VbaIdentityVerified view', () => {
       queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
     ).toBeNull();
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
+  });
+
+  it('shows chooser rows when the app locale is not a string', async () => {
+    const previousLocale = I18n.locale;
+    (I18n as { locale: unknown }).locale = undefined;
+
+    try {
+      const { findByTestId, getByTestId } = render(VbaDetails, {
+        chooseCurrency: true,
+      });
+
+      fireEvent.press(
+        getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+      );
+
+      expect(
+        await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+      ).toBeOnTheScreen();
+    } finally {
+      I18n.locale = previousLocale;
+    }
+  });
+
+  it('offers LaunchDarkly currencies the client can render and hides the rest', async () => {
+    const { findByTestId, getByTestId, queryByTestId } = render(VbaDetails, {
+      chooseCurrency: true,
+      regionCurrencies: { BR: 'BRL', FR: 'EUR', GB: 'GBP' },
+      defaultCurrency: 'USD',
+    });
+
+    fireEvent.press(
+      getByTestId(VbaIdentityVerifiedSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await findByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-BRL`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-USD`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-EUR`),
+    ).toBeNull();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-GBP`),
+    ).toBeNull();
+    expect(
+      queryByTestId(`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-JPY`),
+    ).toBeNull();
   });
 
   it('creates the currency picked on Choose Currency', async () => {

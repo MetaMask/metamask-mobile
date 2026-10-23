@@ -42,8 +42,8 @@ import { selectGeolocationLocation } from '../../../../../selectors/geolocationC
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   getVbaSourceCurrencyForCountry,
-  isVbaSourceCurrency,
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+  readVbaRouteSourceCurrency,
+  usesVbaUsBankLayout,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
@@ -205,13 +205,12 @@ const VbaDetails = () => {
         regions,
         defaultCurrency,
       );
-  const requestedCurrency = route.params?.sourceCurrency;
-  // EUR stays out until that deposit layout exists. Ignore anything else too.
-  const pickedCurrency =
-    isVbaSourceCurrency(requestedCurrency) &&
-    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
-      ? requestedCurrency
-      : undefined;
+  // Route params can carry any LaunchDarkly code. Blank and malformed values
+  // are rejected. A code whose rail this client cannot render, including EUR,
+  // fails closed instead of creating an account.
+  const pickedCurrency = readVbaRouteSourceCurrency(
+    route.params?.sourceCurrency,
+  );
   const sourceCurrency = pickedCurrency ?? regionCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
@@ -533,7 +532,7 @@ const VbaDetails = () => {
   const rows = buildDetailRows(instructions);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
-    (!instructions && sourceCurrency === 'USD');
+    (!instructions && usesVbaUsBankLayout(sourceCurrency));
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
   const errorMessage = setupFailed

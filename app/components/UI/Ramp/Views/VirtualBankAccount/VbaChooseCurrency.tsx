@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -17,45 +18,46 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
-  type VbaSourceCurrency,
+  getVbaChoosableCurrencies,
+  getVbaCurrencyRowLabel,
+  type VbaCurrencyCode,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
 import { openCompletedVbaAccount } from './hooks/useVbaOnboardingRouting';
 import { VbaChooseCurrencySelectorsIDs } from './VbaChooseCurrency.testIds';
 
-const CURRENCY_FLAGS: Record<VbaSourceCurrency, string> = {
-  BRL: '🇧🇷',
-  USD: '🇺🇸',
-  EUR: '🇪🇺',
-};
-
-const CURRENCY_NAME_KEYS: Record<VbaSourceCurrency, string> = {
-  BRL: 'virtual_bank_account.choose_currency.currencies.brl',
-  USD: 'virtual_bank_account.choose_currency.currencies.usd',
-  EUR: 'virtual_bank_account.choose_currency.currencies.eur',
-};
-
-const getCurrencyName = (currency: VbaSourceCurrency): string =>
-  strings(CURRENCY_NAME_KEYS[currency]);
-
 /**
  * Lets the user pick the account currency after identity verification. Only
  * shown when `moneyMovementNeobank.chooseCurrency` is true; otherwise the
  * account is created in the IP country's currency.
+ *
+ * Rows come from the enabled flag: deduped `regionCurrencies` values plus
+ * `defaultCurrency`, then only the codes whose deposit details this client
+ * can render. A real display name is the title and the code is the subtitle.
+ * When the name is missing or equal to the code, the row shows the code once.
+ * The bank icon is generic. A currency is not a country.
  */
 const VbaChooseCurrency = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { regionCurrencies, defaultCurrency } = useSelector(
+    selectMoneyMovementNeobank,
+  );
+  const currencies = getVbaChoosableCurrencies(
+    regionCurrencies,
+    defaultCurrency,
+  );
+  const locale = typeof I18n.locale === 'string' ? I18n.locale : undefined;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
   const handleSelect = useCallback(
-    (currency: VbaSourceCurrency) => () => {
+    (currency: VbaCurrencyCode) => () => {
       openCompletedVbaAccount(navigation, currency);
     },
     [navigation],
@@ -95,17 +97,20 @@ const VbaChooseCurrency = () => {
           {strings('virtual_bank_account.choose_currency.description')}
         </Text>
         <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
-          {VBA_CHOOSABLE_SOURCE_CURRENCIES.map((currency) => {
-            const name = getCurrencyName(currency);
+          {currencies.map((currency) => {
+            const row = getVbaCurrencyRowLabel(currency, locale);
+            const accessibilityLabel = row.subtitle
+              ? strings('virtual_bank_account.choose_currency.row_label', {
+                  name: row.title,
+                  code: row.subtitle,
+                })
+              : row.title;
             return (
               <Pressable
                 key={currency}
                 onPress={handleSelect(currency)}
                 accessibilityRole="button"
-                accessibilityLabel={strings(
-                  'virtual_bank_account.choose_currency.row_label',
-                  { name, code: currency },
-                )}
+                accessibilityLabel={accessibilityLabel}
                 testID={`${VbaChooseCurrencySelectorsIDs.CURRENCY_ROW}-${currency}`}
               >
                 <Box
@@ -113,21 +118,26 @@ const VbaChooseCurrency = () => {
                   alignItems={BoxAlignItems.Center}
                   twClassName="gap-3 px-4 py-3"
                 >
-                  <Text
-                    variant={TextVariant.HeadingLg}
+                  <View
                     accessibilityElementsHidden
                     importantForAccessibility="no-hide-descendants"
                   >
-                    {CURRENCY_FLAGS[currency]}
-                  </Text>
+                    <Icon
+                      name={IconName.Bank}
+                      size={IconSize.Lg}
+                      color={IconColor.IconAlternative}
+                    />
+                  </View>
                   <Box twClassName="flex-1">
-                    <Text variant={TextVariant.BodyMd}>{name}</Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {currency}
-                    </Text>
+                    <Text variant={TextVariant.BodyMd}>{row.title}</Text>
+                    {row.subtitle ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.TextAlternative}
+                      >
+                        {row.subtitle}
+                      </Text>
+                    ) : null}
                   </Box>
                   <Icon
                     name={IconName.ArrowRight}
