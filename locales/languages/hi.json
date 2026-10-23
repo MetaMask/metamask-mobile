@@ -1216,8 +1216,8 @@
       "button": "फिर से प्रयास करें"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "फिर से प्रयास करें"
     },
     "vba_details": {
@@ -1648,6 +1648,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "यूज़र",
       "display_name_label": "प्रदर्शित होने वाला नाम",
@@ -10980,7 +10986,7 @@
       "payment_creation_error": "भुगतान बनाना नहीं हो पाया। कृपया फिर से प्रयास करें।"
     },
     "order_completed": {
-      "title": "आपका कार्ड ऑर्डर\nकिया गया है",
+      "title": "आपका कार्ड ऑर्डर किया गया है",
       "subtitle": "यह 4 से 6 हफ्तों में पहुँच जाएगा।",
       "description": "अपना वर्चुअल कार्ड सेटअप करें और इसे अपने डिजिटल वॉलेट में जोड़ें ताकि आप mUSD वापस कमाना शुरू कर सकें।",
       "set_up_card_button": "कार्ड सेट अप करें",
@@ -11023,7 +11029,7 @@
       "try_again": "फिर से प्रयास करें"
     },
     "card_onboarding": {
-      "title": "खर्च करें\nऔर\nकमाएँ",
+      "title": "खर्च करें और कमाएँ",
       "description": "MetaMask कार्ड आपके क्रिप्टो को खर्च करने \nऔर 3% तक mUSD वापस पाने का तेज़ और \nआसान तरीका है।",
       "apply_now_button": "अभी सेट अप करें",
       "login_button": "लॉग इन करें",

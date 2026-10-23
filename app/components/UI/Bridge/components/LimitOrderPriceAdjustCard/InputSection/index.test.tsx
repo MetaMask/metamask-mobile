@@ -157,6 +157,24 @@ describe('InputSection', () => {
     expect(onInputPress).toHaveBeenCalledTimes(1);
   });
 
+  it('lets presses reach the limit price input by default', () => {
+    const { getByTestId } = renderInputSection();
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('auto');
+  });
+
+  it('passes presses through the limit price input when input press is disabled', () => {
+    const { getByTestId } = renderInputSection({ isInputPressDisabled: true });
+
+    expect(
+      getByTestId(LimitOrderPriceAdjustInputSectionSelectorsIDs.INPUT_ROW).props
+        .pointerEvents,
+    ).toBe('none');
+  });
+
   it('appends the unit symbol as a non-editable suffix after the amount', () => {
     const { getByTestId } = renderInputSection({
       isLimitFiatMode: false,
@@ -257,5 +275,62 @@ describe('InputSection', () => {
 
     expect(onDismissKeypad).toHaveBeenCalledTimes(1);
     expect(onAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls amount type toggle and dismiss handlers once when the swap icon is pressed', () => {
+    const onAmountTypeTogglePress = jest.fn();
+    const onDismissKeypad = jest.fn();
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress,
+      onDismissKeypad,
+    });
+
+    fireEvent.press(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ),
+    );
+
+    expect(onDismissKeypad).toHaveBeenCalledTimes(1);
+    expect(onAmountTypeTogglePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('suppresses the iOS press highlight on the amount type toggle', () => {
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress: jest.fn(),
+    });
+
+    expect(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE,
+      ).props.suppressHighlighting,
+    ).toBe(true);
+  });
+
+  it('gives the swap icon its own hit slop', () => {
+    const { getByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+      onAmountTypeTogglePress: jest.fn(),
+    });
+
+    expect(
+      getByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ).props.hitSlop,
+    ).toEqual({ top: 8, bottom: 8, left: 4, right: 4 });
+  });
+
+  it('does not render the swap icon without a toggle handler', () => {
+    const { queryByTestId } = renderInputSection({
+      secondaryValue: '0.05 ETH',
+    });
+
+    expect(
+      queryByTestId(
+        LimitOrderPriceAdjustInputSectionSelectorsIDs.AMOUNT_TYPE_TOGGLE_ICON,
+      ),
+    ).toBeNull();
   });
 });

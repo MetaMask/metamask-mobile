@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 /**
  * Creates a git worktree and runs post-creation commands from .cursor/worktrees.json.
  * Single source of truth for setup is the JSON config (shared with Cursor agent worktrees).
@@ -84,19 +84,6 @@ async function runInteractive(): Promise<{
   from: string | null;
   spawnShell: boolean;
 }> {
-  const { path: pathArg } = await prompts(
-    {
-      type: 'text',
-      name: 'path',
-      message: 'Worktree path',
-      initial: '../metamask-mobile.worktrees/feat/my-feature',
-      validate: (v) => (v.trim().length > 0 ? true : 'Worktree path is required'),
-      stdin: process.stdin,
-      stdout: process.stderr,
-    },
-  );
-  if (pathArg === undefined) throw new Error('cancelled');
-
   const { branch: branchArg } = await prompts(
     {
       type: 'text',
@@ -108,6 +95,20 @@ async function runInteractive(): Promise<{
     },
   );
   if (branchArg === undefined) throw new Error('cancelled');
+  const branchName = branchArg.trim();
+
+  const { path: pathArg } = await prompts(
+    {
+      type: 'text',
+      name: 'path',
+      message: 'Worktree path',
+      initial: `../metamask-mobile.worktrees/${branchName}`,
+      validate: (v) => (v.trim().length > 0 ? true : 'Worktree path is required'),
+      stdin: process.stdin,
+      stdout: process.stderr,
+    },
+  );
+  if (pathArg === undefined) throw new Error('cancelled');
 
   const { createNew } = await prompts(
     {
@@ -151,7 +152,7 @@ async function runInteractive(): Promise<{
 
   return {
     path: pathArg.trim(),
-    branch: branchArg.trim(),
+    branch: branchName,
     from: fromArg,
     spawnShell: goToDir,
   };
@@ -238,7 +239,7 @@ export async function main(): Promise<void> {
   writeStdout(worktreePathAbs + '\n');
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
+if (process.argv[1]?.endsWith('worktree-create.ts')) {
   main().catch((err) => {
     if (err.message !== 'cancelled') {
       writeStderr(chalk.red(err.message + '\n'));

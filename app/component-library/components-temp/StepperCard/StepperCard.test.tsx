@@ -9,6 +9,18 @@ import { GlassView } from 'expo-glass-effect';
 import { GLASS_SURFACE_SHEEN_TEST_ID } from '../BoxGlass';
 import { mockTheme } from '../../../util/theme';
 
+let mockIsGlassEnabled = false;
+jest.mock('../../hooks/useLiquidGlass', () => {
+  const actual = jest.requireActual('../../hooks/useLiquidGlass');
+  return {
+    ...actual,
+    useLiquidGlass: () => ({
+      ...actual.useLiquidGlass(),
+      isGlassEnabled: mockIsGlassEnabled,
+    }),
+  };
+});
+
 jest.mock('@metamask/design-system-twrnc-preset', () => {
   const tw = (..._args: unknown[]) => ({});
   tw.style = jest.fn(() => ({}));
@@ -247,6 +259,14 @@ describe('StepperCard', () => {
   });
 
   describe('glass', () => {
+    beforeEach(() => {
+      mockIsGlassEnabled = true;
+    });
+
+    afterEach(() => {
+      mockIsGlassEnabled = false;
+    });
+
     const stepWithSkip = () =>
       makeStep({ secondaryCta: { text: 'Skip', onPress: jest.fn() } });
 

@@ -133,7 +133,6 @@ jest.mock('./hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
   useMyProfileAddress: () => mockUseMyProfileAddress(),
   useMyProfilePosts: () => mockUseMyProfilePosts(),
-  useMyOpenPerpsPositionCount: () => 3,
 }));
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -236,7 +235,6 @@ const profile: UseMyProfileResult['profile'] = {
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
 };
 
 describe('MyProfileView', () => {
@@ -383,24 +381,15 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('2');
   });
 
-  it('renders mocked headline stats with a fake-data prefix', () => {
+  it('hides the performance section when no live stats are available', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
-    ).toHaveTextContent('*60%');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
-    ).toHaveTextContent('*+$7,100');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_TIMES_COPIED),
-    ).toHaveTextContent('*981');
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.STATS_HOLD_TIME),
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders live trader stats without a fake-data prefix', () => {
+  it('renders live trader stats in the performance section', () => {
     mockUseTraderProfile.mockReturnValue({
       profile: {
         profile: {
@@ -442,11 +431,17 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
+    ).toHaveTextContent('3h');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
+    ).toHaveTextContent('$50,000');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
@@ -493,6 +488,20 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.BACK_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('resets the local profile and opens onboarding from the header', () => {
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    );
+
+    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'debug: reset profile');
   });
 
   it('opens the post composer from the owner profile header', () => {
@@ -592,14 +601,11 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
-    ).toBeOnTheScreen();
+    ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
     ).not.toBeOnTheScreen();
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    ).toBeOnTheScreen();
   });
 
   it('renders the Posts empty state and trade CTA', () => {
@@ -610,6 +616,12 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${MyProfileViewSelectorsIDs.EMPTY_STATE_AVATAR}-art`,
+        { includeHiddenElements: true },
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
@@ -624,17 +636,6 @@ describe('MyProfileView', () => {
     );
 
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
-  });
-
-  it('resets the local profile and opens onboarding from the debug button', () => {
-    renderWithProvider(<MyProfileView />);
-
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON),
-    );
-
-    expect(getLocalSocialProfileSnapshot().profile).toBeNull();
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.PROFILE_ONBOARDING);
   });
 
   it('opens onboarding when the owner has no profile', () => {
@@ -845,11 +846,6 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId(
-        MyProfileViewSelectorsIDs.DEBUG_RESET_PROFILE_BUTTON,
-      ),
     ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),
