@@ -1,7 +1,8 @@
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review, closed]
-    # Product TypeScript only. New non-TS paths do not start this workflow.
+    # Paths match the product .ts and .tsx files the pinned action walks.
+    # analytics.trackEvent in .js joins these globs when that action reads .js.
     # Negated globs replace paths-ignore: GitHub rejects both filters on one event.
     # Test globs stay because tests live under app/.
     paths:
