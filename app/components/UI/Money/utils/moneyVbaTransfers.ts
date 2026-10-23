@@ -59,6 +59,11 @@ export function mapMoneyVbaTransfers(
         autorampId: item.transfer_id,
         status: item.status === 'error' ? 'Failed' : 'Pending',
         time: Date.parse(item.event_timestamp),
+        destinationAmount:
+          transfer.asset.toLowerCase() === 'musd' &&
+          DECIMAL_AMOUNT_PATTERN.test(transfer.amount)
+            ? transfer.amount
+            : undefined,
         transactionHash:
           transfer.transaction_hash &&
           TRANSACTION_HASH_PATTERN.test(transfer.transaction_hash)

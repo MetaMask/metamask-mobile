@@ -173,7 +173,11 @@ const ActivityRowView = ({
           <SensitiveText
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            color={amountColor}
+            color={
+              display.isFiatAmountMuted
+                ? TextColor.TextAlternative
+                : amountColor
+            }
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             twClassName="text-right"

@@ -44,6 +44,8 @@ export function accountsApiActivityDisplayInfo(
     isIncoming,
     icon: activity.kind === 'bank_transfer' ? IconName.Add : IconName.Card,
     status: 'confirmed',
+    showPrimaryAmount: activity.kind === 'bank_transfer',
+    isFiatAmountMuted: activity.kind === 'bank_transfer',
   };
 
   if (activity.kind !== 'card' || !enrichment) {

@@ -61,6 +61,8 @@ export interface MoneyTransactionDisplayInfo {
   pendingStatusLabel?: string;
   /** Dim the primary amount while the transfer is still pending. */
   isPrimaryAmountPending?: boolean;
+  /** Render the fiat line in the alternative text color. */
+  isFiatAmountMuted?: boolean;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
