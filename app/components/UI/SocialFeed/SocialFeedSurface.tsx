@@ -13,6 +13,7 @@ export type SocialSurfaceLocation =
   | 'social_post_composer'
   | 'trader_profile'
   | 'token_details'
+  | 'perps_home'
   | 'perps_market_details'
   | 'social_feed_screen';
 

@@ -22,11 +22,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -48,9 +49,12 @@ import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
+import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
+import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderPositions,
   useTraderProfile,
@@ -154,6 +158,7 @@ const MyProfileView: React.FC = () => {
     toggleFollow,
   } = liveProfile;
   const { followWithSetup } = useFollowWithNotificationSetup();
+  const { isChipMuted, showMuteChip, onMutePress } = useTraderMuteActions();
   const displayProfile = useMemo((): MySocialProfile | null => {
     if (isOwner) {
       return myProfile;
@@ -184,6 +189,18 @@ const MyProfileView: React.FC = () => {
     traderId,
     traderName,
   ]);
+  const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  useFocusEffect(
+    useCallback(() => {
+      // Every new post lands here, pinned at the top of the Posts tab.
+      if (isOwner && consumePostsTabFocus()) {
+        setActiveTab('posts');
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    }, [isOwner]),
+  );
   const {
     posts,
     isLoading: isPostsLoading,
@@ -192,7 +209,10 @@ const MyProfileView: React.FC = () => {
     loadMore,
     error: postsError,
     refresh: refreshPosts,
-  } = useMyProfilePosts(addressOrId);
+  } = useMyProfilePosts(addressOrId, {
+    ownerProfileId: isOwner ? myProfile?.profileId : undefined,
+    isActive: activeTab === 'posts',
+  });
   const {
     openPositions,
     closedPositions,
@@ -202,7 +222,6 @@ const MyProfileView: React.FC = () => {
     closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '');
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const overlayedStats = useMemo(
     () =>
@@ -294,6 +313,13 @@ const MyProfileView: React.FC = () => {
     toggleFollow,
     traderAddress,
   ]);
+
+  const handleMutePress = useCallback(() => {
+    if (!muteProfileId) {
+      return;
+    }
+    onMutePress(muteProfileId);
+  }, [muteProfileId, onMutePress]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -475,6 +501,7 @@ const MyProfileView: React.FC = () => {
           </Box>
         ) : displayProfile && overlayedStats ? (
           <Animated.ScrollView
+            ref={scrollRef}
             testID={MyProfileViewSelectorsIDs.SCROLL}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-grow pb-6')}
@@ -516,31 +543,34 @@ const MyProfileView: React.FC = () => {
                 overlayedStats.performanceCells.length === 0 ? 8 : undefined
               }
             >
-              <Box flexDirection={BoxFlexDirection.Row} gap={2}>
-                {isOwner ? (
-                  <>
-                    <Box twClassName="flex-1">
-                      <Button
-                        variant={ButtonVariant.Secondary}
-                        isFullWidth
-                        onPress={handleEditProfile}
-                        testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
-                      >
-                        {strings('social_leaderboard.my_profile.edit_profile')}
-                      </Button>
-                    </Box>
-                    <Box twClassName="flex-1">
-                      <Button
-                        variant={ButtonVariant.Secondary}
-                        isFullWidth
-                        onPress={handleShareProfile}
-                        testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
-                      >
-                        {strings('social_leaderboard.my_profile.share_profile')}
-                      </Button>
-                    </Box>
-                  </>
-                ) : (
+              {isOwner ? (
+                <Box flexDirection={BoxFlexDirection.Row} gap={2}>
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      onPress={handleEditProfile}
+                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                    >
+                      {strings('social_leaderboard.my_profile.edit_profile')}
+                    </Button>
+                  </Box>
+                  <Box twClassName="flex-1">
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      onPress={handleShareProfile}
+                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                    >
+                      {strings('social_leaderboard.my_profile.share_profile')}
+                    </Button>
+                  </Box>
+                </Box>
+              ) : (
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                >
                   <Box twClassName="flex-1">
                     <Button
                       variant={
@@ -557,8 +587,17 @@ const MyProfileView: React.FC = () => {
                         : strings('social_leaderboard.follow')}
                     </Button>
                   </Box>
-                )}
-              </Box>
+                  {showMuteChip && muteProfileId ? (
+                    <TraderMuteChip
+                      isMuted={isChipMuted(muteProfileId)}
+                      visible={isFollowing}
+                      onPress={handleMutePress}
+                      traderName={displayProfile?.displayName}
+                      testID={MyProfileViewSelectorsIDs.MUTE_CHIP}
+                    />
+                  ) : null}
+                </Box>
+              )}
             </Box>
 
             <MyProfilePerformanceStats

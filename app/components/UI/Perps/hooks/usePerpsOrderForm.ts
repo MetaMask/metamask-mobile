@@ -33,6 +33,30 @@ import {
 import { canonicalizeOrderPrice } from '../utils/triggerOrderValidation';
 import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 
+/**
+ * Price-bearing field the user last focused in the order form.
+ *
+ * An order-book tap fills this field instead of the order type's default.
+ * Scale and Chase fields live in the Pro form and register their own handlers.
+ */
+export type PerpsOrderPriceField =
+  | 'limit'
+  | 'trigger'
+  | 'scaleStart'
+  | 'scaleEnd'
+  | 'chaseMaxDistance';
+
+/**
+ * Commit handlers for price fields this hook does not itself own. Registered
+ * by `usePerpsProOrderForm` (Pro-only scale/chase state) so `commitPriceToField`
+ * can route an order-book tap to them without lifting that state up here.
+ */
+export interface PerpsOrderPriceFieldHandlers {
+  scaleStart?: (price?: string) => void;
+  scaleEnd?: (price?: string) => void;
+  chaseMaxDistance?: (price?: string) => void;
+}
+
 interface UsePerpsOrderFormParams {
   initialAsset?: string;
   initialDirection?: 'long' | 'short';
@@ -81,6 +105,17 @@ export interface UsePerpsOrderFormReturn {
   setTriggerPrice: (price?: string) => void;
   /** Clears price-field interaction state without clearing entered prices. */
   resetPriceInputInteraction: () => void;
+  /** Price field the user last focused; null once order type/asset changes. */
+  activePriceField: PerpsOrderPriceField | null;
+  setActivePriceField: (field: PerpsOrderPriceField | null) => void;
+  /** Lets `usePerpsProOrderForm` expose commit handlers for fields it owns. */
+  registerPriceFieldHandlers: (handlers: PerpsOrderPriceFieldHandlers) => void;
+  /**
+   * Commits an order-book price to `field`. Returns false when `field` has no
+   * registered handler (e.g. a Pro-only field on a Lite surface), letting the
+   * caller fall back to its own order-type-based default.
+   */
+  commitPriceToField: (field: PerpsOrderPriceField, price?: string) => boolean;
   setOrderType: (type: OrderType) => void;
   /** Reduce-only flag restored from the 30s pending draft, if present. */
   pendingReduceOnly: boolean | undefined;
@@ -274,6 +309,15 @@ export function usePerpsOrderForm(
     setHasBlurredLimitPrice(false);
     setHasBlurredTriggerPrice(false);
   }, []);
+  const [activePriceField, setActivePriceField] =
+    useState<PerpsOrderPriceField | null>(null);
+  const priceFieldHandlersRef = useRef<PerpsOrderPriceFieldHandlers>({});
+  const registerPriceFieldHandlers = useCallback(
+    (handlers: PerpsOrderPriceFieldHandlers) => {
+      priceFieldHandlersRef.current = handlers;
+    },
+    [],
+  );
   const effectiveMaxSlippageBps = useMemo(
     () =>
       resolvePerpsMaxSlippageBps({
@@ -481,6 +525,7 @@ export function usePerpsOrderForm(
       }));
       setTriggerPrice(undefined);
       resetPriceInputInteraction();
+      setActivePriceField(null);
     },
     [resetPriceInputInteraction],
   );
@@ -529,10 +574,33 @@ export function usePerpsOrderForm(
     setHasBlurredTriggerPrice(true);
   }, []);
 
+  // A field tied to the previous order type (e.g. a Scale rung) no longer
+  // exists once the type changes, so the selection must not carry over.
   const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
     Engine.context.PerpsController.setSelectedOrderType(type);
+    setActivePriceField(null);
   }, []);
+
+  const commitPriceToField = useCallback(
+    (field: PerpsOrderPriceField, price?: string): boolean => {
+      if (field === 'limit') {
+        commitLimitPrice(price);
+        return true;
+      }
+      if (field === 'trigger') {
+        commitTriggerPrice(price);
+        return true;
+      }
+      const handler = priceFieldHandlersRef.current[field];
+      if (!handler) {
+        return false;
+      }
+      handler(price);
+      return true;
+    },
+    [commitLimitPrice, commitTriggerPrice],
+  );
 
   // Handle percentage-based amount selection (respects custom token amount when set).
   // Clamp to maxPossibleAmount so near-100% values never exceed the buffered max.
@@ -587,6 +655,10 @@ export function usePerpsOrderForm(
       triggerPrice,
       setTriggerPrice: setTriggerPriceValue,
       resetPriceInputInteraction,
+      activePriceField,
+      setActivePriceField,
+      registerPriceFieldHandlers,
+      commitPriceToField,
       setOrderType,
       pendingReduceOnly: pendingConfig?.reduceOnly,
       handlePercentageAmount,
@@ -613,6 +685,10 @@ export function usePerpsOrderForm(
       triggerPrice,
       setTriggerPriceValue,
       resetPriceInputInteraction,
+      activePriceField,
+      setActivePriceField,
+      registerPriceFieldHandlers,
+      commitPriceToField,
       setOrderType,
       pendingConfig?.reduceOnly,
       handlePercentageAmount,

@@ -1,3 +1,4 @@
+import { BigNumber } from 'bignumber.js';
 import type {
   EarningClaimFamily,
   EarningsSummaryDto,
@@ -23,6 +24,32 @@ function familyLifetime(
   family: EarningClaimFamily,
 ): string | null {
   return branch?.by_claim_family?.[family]?.lifetime ?? null;
+}
+
+/**
+ * Base units still owed on a ledger row. `musd_amount` keeps voided money
+ * inside it; `voided_musd_amount` is the part that will never be paid. Family
+ * `lifetime` already leaves voided money out, so it is shown as-is.
+ *
+ * Missing `voided` subtracts nothing. A void larger than the amount floors at
+ * zero, so a row cannot render a negative credit.
+ */
+export function creditedBaseUnits(
+  amount: string | null | undefined,
+  voided?: string | null,
+): string | null {
+  if (amount == null || amount === '') {
+    return null;
+  }
+
+  const total = new BigNumber(amount);
+  if (!total.isFinite()) {
+    return null;
+  }
+
+  const removed = new BigNumber(voided ?? 0);
+  const net = total.minus(removed.isFinite() ? removed : 0);
+  return (net.isNegative() ? new BigNumber(0) : net).toFixed(0);
 }
 
 /** Lifetime the profile earned on its own trades, e.g. its cashback. */

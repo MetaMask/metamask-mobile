@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -46,10 +45,6 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import {
-  consumeSocialV1FocusTrending,
-  refreshSocialV1ComposedFeed,
-} from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -514,26 +509,6 @@ const SocialV1ViewContent: React.FC = () => {
     [changeTab],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      // Reconcile with the composed-post store on every focus. A store update
-      // that lands while this screen is blurred (the composer is pushed on top
-      // of it) reaches no subscribers, and re-subscribing does not replay it.
-      refreshSocialV1ComposedFeed();
-
-      if (!consumeSocialV1FocusTrending()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(trendingIndex);
-      if (activeIndex !== trendingIndex) {
-        changeTab(trendingIndex);
-      } else {
-        trendingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, trendingIndex]),
-  );
-
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -648,11 +623,11 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
