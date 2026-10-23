@@ -151,6 +151,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
+        twClassName="px-4 pt-[12px] pb-4"
       >
         <Box twClassName="flex-row items-center gap-2">
           <LiveButton
