@@ -68,6 +68,9 @@ describe('ChartCandleSkeleton', () => {
     const { getByTestId } = render(<ChartCandleSkeleton />);
 
     expect(
+      flatStyle(getByTestId(`${SKELETON_TEST_ID}-panes`).props.style),
+    ).toEqual(expect.objectContaining({ flex: 1 }));
+    expect(
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-price`).props.style),
     ).toEqual(
       expect.objectContaining({
@@ -79,9 +82,13 @@ describe('ChartCandleSkeleton', () => {
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-price`).props.style).height,
     ).toBeUndefined();
     expect(
-      flatStyle(getByTestId(`${SKELETON_TEST_ID}-volume-band`).props.style)
-        .height,
-    ).toBe(percentOf(VOLUME_PANE_HEIGHT, DETAIL_CHART_HEIGHT));
+      flatStyle(getByTestId(`${SKELETON_TEST_ID}-volume-band`).props.style),
+    ).toEqual(
+      expect.objectContaining({
+        height: '22%',
+        minHeight: 56,
+      }),
+    );
     expect(
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-time-axis`).props.style)
         .height,
@@ -161,7 +168,7 @@ describe('ChartCandleSkeleton', () => {
     expect(flatStyle(firstPricePill.props.style)).toEqual(
       expect.objectContaining({
         width: 44,
-        height: percentOf(10, PRICE_PANE_HEIGHT),
+        height: 10,
         top: percentOf(11, PRICE_PANE_HEIGHT),
       }),
     );

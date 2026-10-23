@@ -24,11 +24,15 @@ const DEFAULT_CHART_HEIGHT = 350;
  */
 const PRICE_PANE_HEIGHT = 250;
 /**
- * Volume band at {@link DEFAULT_CHART_HEIGHT}. 68/350 of the root, which is
- * 68/(350-32) ≈ 21% of the panes above the time row — the loaded chart's
- * ~20–22% volume band.
+ * Pixel basis for volume-bar heights. Bars stay this share of the band.
+ * The band itself is 22% of the price+volume wrapper (min 56), matching
+ * `VOLUME_RATIO` / `MIN_VOLUME_PX` in the chart volume study.
  */
 const VOLUME_PANE_HEIGHT = 68;
+/** Volume band share of the price+volume wrapper. Same ratio as the volume study. */
+const VOLUME_BAND_RATIO = '22%' as const;
+/** Floor from the volume study (`MIN_VOLUME_PX`). */
+const MIN_VOLUME_PX = 56;
 /** Time-axis row. Stays 32px at every chart height. */
 const TIME_PANE_HEIGHT = 32;
 
@@ -41,8 +45,6 @@ const percentOf = (part: number, whole: number): `${number}%` => {
   return `${rounded}%` as `${number}%`;
 };
 
-/** Volume row height. At 350px this is still {@link VOLUME_PANE_HEIGHT}. */
-const VOLUME_PANE_PERCENT = percentOf(VOLUME_PANE_HEIGHT, DEFAULT_CHART_HEIGHT);
 /** Right price-scale column. */
 const AXIS_WIDTH = 66;
 const BODY_WIDTH = 4;
@@ -65,6 +67,7 @@ const VERTICAL_GRID = [0, 1, 2, 3] as const;
 const TIME_PILLS = [0, 1, 2, 3, 4, 5] as const;
 
 const layout = StyleSheet.create({
+  panes: { flex: 1 },
   pricePane: { flex: 1, overflow: 'hidden' },
   plot: { flex: 1, height: '100%' },
   fill: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
@@ -73,7 +76,11 @@ const layout = StyleSheet.create({
   candleSlot: { height: '100%' },
   candleColumn: { width: BODY_WIDTH, height: '100%' },
   yAxis: { width: AXIS_WIDTH, height: '100%' },
-  volumeBand: { height: VOLUME_PANE_PERCENT, flexShrink: 0 },
+  volumeBand: {
+    height: VOLUME_BAND_RATIO,
+    minHeight: MIN_VOLUME_PX,
+    flexShrink: 0,
+  },
   volumeTrack: { flex: 1, height: '100%' },
   volumeSlot: { height: '100%' },
   axisSpacer: { width: AXIS_WIDTH, height: '100%' },
@@ -96,7 +103,7 @@ const gridStyles = HORIZONTAL_GRID.map((line) =>
       top: percentOf(line.pillTop, PRICE_PANE_HEIGHT),
       right: 8,
       width: Y_PILL_WIDTH,
-      height: percentOf(Y_PILL_HEIGHT, PRICE_PANE_HEIGHT),
+      height: Y_PILL_HEIGHT,
     },
   }),
 );
@@ -379,9 +386,9 @@ const candleMarks = CANDLES.map((candle) =>
 );
 
 /**
- * Candle-chart loading placeholder. The price pane flexes, the volume band is
- * a percentage of the root, and the time row is fixed, so the skeleton matches
- * the chart box at any height without measuring it. Grey shapes use the
+ * Candle-chart loading placeholder. Price and volume share a flex wrapper
+ * (volume is 22% of that wrapper, min 56). The time row stays 32px under it.
+ * Grey shapes use the
  * design-system Skeleton pulse.
  */
 const ChartCandleSkeleton = ({
@@ -401,87 +408,89 @@ const ChartCandleSkeleton = ({
       twClassName="w-full overflow-hidden"
       style={themed.root}
     >
-      <Box
-        testID={`${testID}-price`}
-        twClassName="flex-row"
-        style={layout.pricePane}
-      >
-        <Box style={layout.plot}>
-          {gridStyles.map((grid, index) => (
-            <Box
-              key={`grid-h-${index}`}
-              testID={`${testID}-grid-h-${index}`}
-              style={[grid.line, themed.hairline]}
-            />
-          ))}
-          <Box twClassName="flex-row" style={layout.fill}>
-            <Box style={layout.flex1} />
-            {VERTICAL_GRID.map((index) => (
+      <Box testID={`${testID}-panes`} style={layout.panes}>
+        <Box
+          testID={`${testID}-price`}
+          twClassName="flex-row"
+          style={layout.pricePane}
+        >
+          <Box style={layout.plot}>
+            {gridStyles.map((grid, index) => (
               <Box
-                key={`grid-v-slot-${index}`}
-                twClassName="flex-row"
-                style={layout.flex1}
-              >
+                key={`grid-h-${index}`}
+                testID={`${testID}-grid-h-${index}`}
+                style={[grid.line, themed.hairline]}
+              />
+            ))}
+            <Box twClassName="flex-row" style={layout.fill}>
+              <Box style={layout.flex1} />
+              {VERTICAL_GRID.map((index) => (
                 <Box
-                  testID={`${testID}-grid-v-${index}`}
-                  style={[layout.verticalGrid, themed.hairline]}
-                />
-                <Box style={layout.flex1} />
-              </Box>
+                  key={`grid-v-slot-${index}`}
+                  twClassName="flex-row"
+                  style={layout.flex1}
+                >
+                  <Box
+                    testID={`${testID}-grid-v-${index}`}
+                    style={[layout.verticalGrid, themed.hairline]}
+                  />
+                  <Box style={layout.flex1} />
+                </Box>
+              ))}
+            </Box>
+            <Box twClassName="flex-row" style={layout.fill}>
+              {candleMarks.map((mark, index) => (
+                <Box
+                  key={`candle-slot-${index}`}
+                  twClassName="flex-1 items-center"
+                  style={layout.candleSlot}
+                >
+                  <Box twClassName="items-center" style={layout.candleColumn}>
+                    <Skeleton
+                      testID={`${testID}-wick-${index}`}
+                      style={mark.wick}
+                    />
+                    <Skeleton
+                      testID={`${testID}-candle-${index}`}
+                      style={mark.body}
+                    />
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+          <Box testID={`${testID}-y-axis`} style={layout.yAxis}>
+            {gridStyles.map((grid, index) => (
+              <Skeleton
+                key={`y-pill-${index}`}
+                testID={`${testID}-y-pill-${index}`}
+                style={grid.pill}
+              />
             ))}
           </Box>
-          <Box twClassName="flex-row" style={layout.fill}>
+        </Box>
+
+        <Box
+          testID={`${testID}-volume-band`}
+          twClassName="flex-row items-end"
+          style={layout.volumeBand}
+        >
+          <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
             {candleMarks.map((mark, index) => (
               <Box
-                key={`candle-slot-${index}`}
-                twClassName="flex-1 items-center"
-                style={layout.candleSlot}
+                key={`volume-slot-${index}`}
+                twClassName="flex-1 items-center justify-end"
+                style={layout.volumeSlot}
               >
-                <Box twClassName="items-center" style={layout.candleColumn}>
-                  <Skeleton
-                    testID={`${testID}-wick-${index}`}
-                    style={mark.wick}
-                  />
-                  <Skeleton
-                    testID={`${testID}-candle-${index}`}
-                    style={mark.body}
-                  />
-                </Box>
+                <Skeleton
+                  testID={`${testID}-volume-${index}`}
+                  style={mark.volume}
+                />
               </Box>
             ))}
           </Box>
+          <Box style={layout.axisSpacer} />
         </Box>
-        <Box testID={`${testID}-y-axis`} style={layout.yAxis}>
-          {gridStyles.map((grid, index) => (
-            <Skeleton
-              key={`y-pill-${index}`}
-              testID={`${testID}-y-pill-${index}`}
-              style={grid.pill}
-            />
-          ))}
-        </Box>
-      </Box>
-
-      <Box
-        testID={`${testID}-volume-band`}
-        twClassName="flex-row items-end"
-        style={layout.volumeBand}
-      >
-        <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
-          {candleMarks.map((mark, index) => (
-            <Box
-              key={`volume-slot-${index}`}
-              twClassName="flex-1 items-center justify-end"
-              style={layout.volumeSlot}
-            >
-              <Skeleton
-                testID={`${testID}-volume-${index}`}
-                style={mark.volume}
-              />
-            </Box>
-          ))}
-        </Box>
-        <Box style={layout.axisSpacer} />
       </Box>
 
       <Box
