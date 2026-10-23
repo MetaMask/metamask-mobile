@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
@@ -379,6 +380,37 @@ describe('WalletHeader', () => {
           WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('keeps Social header action icons transparent while pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          isSocialLayout
+          handleProfilePress={jest.fn()}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+        'pressIn',
+      );
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+        'pressIn',
+      );
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
     });
 
     it('keeps the Social account name flexible beside the chevron', () => {

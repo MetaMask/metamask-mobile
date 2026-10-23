@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -119,6 +120,7 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
                   <AvatarIcon
                     iconName={step.icon}
                     severity={AvatarIconSeverity.Neutral}
+                    size={AvatarIconSize.Lg}
                   />
                 }
                 title={strings(step.title)}
