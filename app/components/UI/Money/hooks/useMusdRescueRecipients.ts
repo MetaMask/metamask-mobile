@@ -1,4 +1,3 @@
-import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -6,7 +5,10 @@ import {
   type AccountGroupId,
 } from '@metamask/account-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  KeyringAccountEntropyTypeOption,
+} from '@metamask/keyring-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import useMoneyAccountInfo from './useMoneyAccountInfo';

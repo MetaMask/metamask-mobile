@@ -1,4 +1,3 @@
-import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -7,7 +6,10 @@ import {
   toMultichainAccountGroupId,
   toMultichainAccountWalletId,
 } from '@metamask/account-api';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  KeyringAccountEntropyTypeOption,
+} from '@metamask/keyring-api';
 import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
