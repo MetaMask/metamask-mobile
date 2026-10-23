@@ -142,6 +142,8 @@ export interface PolymarketApiMarket {
   liquidity: number;
   negRisk: boolean;
   clobTokenIds: string;
+  /** Gamma market slug. Present on the v2 wire; absent on some v1 payloads. */
+  slug?: string;
   outcomes: string;
   outcomePrices: string;
   closed: boolean;

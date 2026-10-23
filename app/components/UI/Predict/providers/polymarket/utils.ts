@@ -1067,12 +1067,11 @@ export function parseMarketOutcomeTokenIds(
   return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
+// TEMPORARY (PRED-1353 preview): Gamma's v2 markets are public now —
+// include them in the regular parse like every other market instead of
+// filtering them out.
 function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
-  if (market?.active === false) {
-    return false;
-  }
-
-  return !isV2Market(market);
+  return market?.active !== false;
 }
 
 function isUnsupportedProtocolEvent(
@@ -1348,12 +1347,23 @@ const appendCustomQueryParams = (
     : queryParams;
 };
 
+// TEMPORARY (Protocol V2 testing): Gamma's v2 markets sit behind a
+// visibility token while in beta. Send the bearer token from `.js.env`
+// when present so the v2 test feed and market details resolve. Removed
+// at PRED-1353 once v2 is served like every other market.
+const getGammaVisibilityHeaders = (): Record<string, string> | undefined => {
+  const token = process.env.MM_POLYMARKET_GAMMA_VISIBILITY_TOKEN;
+  return token ? { Authorization: `Bearer ${token}` } : undefined;
+};
+
 const fetchKeysetEvents = async (
   endpoint: string,
   errorMessage: string,
   malformedMessage = 'Malformed keyset events response',
 ): Promise<PolymarketApiEventsKeysetResponse> => {
-  const response = await fetchWithTimeout(endpoint);
+  const response = await fetchWithTimeout(endpoint, {
+    headers: getGammaVisibilityHeaders(),
+  });
 
   if (!response.ok) {
     throw new Error(errorMessage);

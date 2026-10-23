@@ -98,6 +98,7 @@ import {
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
   V1_MARKET_VERSION,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -306,6 +307,11 @@ export class PolymarketProvider implements PredictProvider {
    * time, so a hit is always a resolved version.
    */
   #marketVersionsByOutcomeTokenId: Map<string, Promise<string>> = new Map();
+
+  /** TEMPORARY (PRED-1351 testing): slug of every v2 market this session
+   * has parsed, keyed by condition id (normalized decimal form) — logged
+   * for markets with open positions when the positions screen loads. */
+  #v2MarketSlugByConditionId: Map<string, string> = new Map();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
   #optimisticPositionUpdatesByAddress = new Map<
@@ -949,6 +955,12 @@ export class PolymarketProvider implements PredictProvider {
       for (const market of event.markets ?? []) {
         try {
           const version = market.version ?? V1_MARKET_VERSION;
+          if (version === V2_MARKET_VERSION && market.slug) {
+            this.#v2MarketSlugByConditionId.set(
+              BigInt(market.conditionId).toString(),
+              market.slug,
+            );
+          }
           for (const outcomeTokenId of parseMarketOutcomeTokenIds(market)) {
             versions.set(outcomeTokenId, version);
             if (!this.#marketVersionsByOutcomeTokenId.has(outcomeTokenId)) {
@@ -2154,6 +2166,12 @@ export class PolymarketProvider implements PredictProvider {
       }
 
       const positionsUrl = `${dataApiEndpoint}/v2/positions?${queryParams.toString()}`;
+
+      // TEMPORARY (PRED-1351 testing): log the Data API request so it can
+      // be replayed locally. Delete at PRED-1353.
+      // eslint-disable-next-line no-console
+      console.log('[V2 TEST] positions request:', positionsUrl);
+
       const response = await fetchWithTimeout(positionsUrl, {
         method: 'GET',
         headers: {
@@ -2255,6 +2273,55 @@ export class PolymarketProvider implements PredictProvider {
         seenTokenIds.add(row.token_id);
       }
     }
+
+    // TEMPORARY (PRED-1351 testing): slugs of the v2 markets in this result.
+    // The Data API reports a position's condition id in packed form (base
+    // condition id + outcome index * 256), so the index is stripped before
+    // the lookup. Delete at PRED-1353.
+    const v2PositionSlugs = new Set<string>();
+    for (const row of positions) {
+      try {
+        const baseConditionId = (
+          BigInt(row.condition_id) - BigInt(row.outcome_index * 256)
+        ).toString();
+        const slug = this.#v2MarketSlugByConditionId.get(baseConditionId);
+        if (slug) {
+          v2PositionSlugs.add(slug);
+        }
+      } catch {
+        // Malformed condition id — not a v2 market this session parsed.
+      }
+    }
+    // eslint-disable-next-line no-console
+    console.log(
+      '[V2 TEST] v2 markets with positions:',
+      v2PositionSlugs.size,
+      [...v2PositionSlugs].sort(),
+    );
+
+    // TEMPORARY (PRED-1351 testing): every fetched position row with its
+    // wire-level claimability fields, to debug why positions are not
+    // claimable. Delete at PRED-1353.
+    // eslint-disable-next-line no-console
+    console.log(
+      `[V2 TEST] positions fetched (claimable=${String(claimable)}):`,
+      positions.length,
+      JSON.stringify(
+        positions.map((row) => ({
+          title: row.title,
+          outcome: row.outcome,
+          redeemable: row.redeemable,
+          size: row.current_size,
+          currentValue: row.current_value,
+          endDate: row.end_date,
+          negRisk: row.negative_risk,
+          outcomeIndex: row.outcome_index,
+          slug: row.slug,
+        })),
+        null,
+        2,
+      ),
+    );
 
     const parsedPositions = await parsePolymarketPositions({
       positions: mapPolymarketPositionsV2(positions),

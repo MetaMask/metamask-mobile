@@ -34,6 +34,8 @@ import PredictLiveNowSection from './components/PredictLiveNowSection';
 import PredictCategoriesSection from './components/PredictCategoriesSection';
 import PredictPopularTodaySection from './components/PredictPopularTodaySection';
 import PredictTrendingSection from './components/PredictTrendingSection';
+// TEMPORARY (Protocol V2 testing): removed at PRED-1353.
+import PredictV2TestSection from './components/PredictV2TestSection/PredictV2TestSection';
 import { PredictHomeSelectorsIDs } from '../../Predict.testIds';
 import PredictFeedBanner from '../../components/PredictFeedBanner';
 import { PredictFeedBannerPosition } from '../../constants/feedBanner';
@@ -258,6 +260,8 @@ const PredictHome: React.FC = () => {
               >
                 <PredictTrendingSection />
               </Box>
+              {/* TEMPORARY (Protocol V2 testing): removed at PRED-1353. */}
+              <PredictV2TestSection />
               <PredictFeedBanner
                 position={PredictFeedBannerPosition.AfterTrending}
               />
