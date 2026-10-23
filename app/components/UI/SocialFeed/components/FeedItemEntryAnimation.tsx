@@ -61,6 +61,8 @@ export interface FeedItemEntryAnimationProps {
   /** Delay before the entrance starts, used to stagger bursts. */
   scheduleEntryDelay?: () => number;
   onAnimationComplete?: (eventId: string) => void;
+  /** Plays the short fade entrance even when the OS asks for full motion. */
+  reducedMotion?: boolean;
   testID?: string;
 }
 
@@ -74,10 +76,12 @@ const FeedItemEntryAnimation: React.FC<FeedItemEntryAnimationProps> = ({
   eventId,
   scheduleEntryDelay,
   onAnimationComplete,
+  reducedMotion = false,
   testID,
 }) => {
   const tw = useTailwind();
-  const prefersReducedMotion = useReducedMotion();
+  const systemReducedMotion = useReducedMotion();
+  const prefersReducedMotion = systemReducedMotion || reducedMotion;
   const progress = useSharedValue(eventId ? 0 : 1);
   const contentHeight = useSharedValue(0);
   const [isAnimating, setIsAnimating] = useState(Boolean(eventId));

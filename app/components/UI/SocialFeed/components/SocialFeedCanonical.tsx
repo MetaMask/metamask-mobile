@@ -39,7 +39,7 @@ import {
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation, {
   createFeedItemEntryScheduler,
-} from '../../../Views/SocialLeaderboard/FeedView/components/FeedItemEntryAnimation';
+} from './FeedItemEntryAnimation';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import {

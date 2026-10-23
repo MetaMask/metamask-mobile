@@ -238,6 +238,25 @@ describe('FeedItemEntryAnimation', () => {
     });
   });
 
+  it('uses the reduced motion entrance when the caller asks for it', async () => {
+    renderLiveEntry({ reducedMotion: true });
+
+    await layoutContent();
+
+    expect(mockWithTiming).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        duration: EXPECTED_REDUCED_MOTION_DURATION_MS,
+      }),
+      expect.any(Function),
+    );
+    expect(flattenStyle(getMotion())).toEqual({
+      ...PINNED_TO_TOP,
+      opacity: 0,
+      transform: IDENTITY_TRANSFORM,
+    });
+  });
+
   it('waits for the scheduled stagger delay before starting', async () => {
     const scheduleEntryDelay = jest.fn(() => EXPECTED_STAGGER_MS * 2);
     renderLiveEntry({ scheduleEntryDelay });

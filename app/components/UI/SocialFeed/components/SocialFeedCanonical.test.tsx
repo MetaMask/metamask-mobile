@@ -43,35 +43,32 @@ jest.mock('./SocialFeedPostShell', () => ({
   },
 }));
 
-jest.mock(
-  '../../../Views/SocialLeaderboard/FeedView/components/FeedItemEntryAnimation',
-  () => ({
-    __esModule: true,
-    default: ({
+jest.mock('./FeedItemEntryAnimation', () => ({
+  __esModule: true,
+  default: ({
+    children,
+    eventId,
+  }: {
+    children: React.ReactNode;
+    eventId?: string;
+  }) => {
+    const ReactActual = jest.requireActual('react');
+    const ReactNative = jest.requireActual('react-native');
+    return ReactActual.createElement(
+      ReactActual.Fragment,
+      null,
+      eventId
+        ? ReactActual.createElement(
+            ReactNative.Text,
+            null,
+            `entering ${eventId}`,
+          )
+        : null,
       children,
-      eventId,
-    }: {
-      children: React.ReactNode;
-      eventId?: string;
-    }) => {
-      const ReactActual = jest.requireActual('react');
-      const ReactNative = jest.requireActual('react-native');
-      return ReactActual.createElement(
-        ReactActual.Fragment,
-        null,
-        eventId
-          ? ReactActual.createElement(
-              ReactNative.Text,
-              null,
-              `entering ${eventId}`,
-            )
-          : null,
-        children,
-      );
-    },
-    createFeedItemEntryScheduler: () => () => 0,
-  }),
-);
+    );
+  },
+  createFeedItemEntryScheduler: () => () => 0,
+}));
 
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
