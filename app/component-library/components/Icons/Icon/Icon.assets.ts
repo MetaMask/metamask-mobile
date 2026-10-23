@@ -75,7 +75,9 @@ import moreverticalSVG from './assets/more-vertical.svg';
 import musdfilledSVG from './assets/musd-filled.svg';
 import musdSVG from './assets/musd.svg';
 import notificationSVG from './assets/notification.svg';
+import pauseSVG from './assets/pause.svg';
 import plantSVG from './assets/plant.svg';
+import playSVG from './assets/play.svg';
 import plugSVG from './assets/plug.svg';
 import qrcodeSVG from './assets/qr-code.svg';
 import questionSVG from './assets/question.svg';
@@ -185,7 +187,9 @@ export const assetByIconName: AssetByIconName = {
   [IconName.MusdFilled]: musdfilledSVG,
   [IconName.Musd]: musdSVG,
   [IconName.Notification]: notificationSVG,
+  [IconName.Pause]: pauseSVG,
   [IconName.Plant]: plantSVG,
+  [IconName.Play]: playSVG,
   [IconName.Plug]: plugSVG,
   [IconName.QrCode]: qrcodeSVG,
   [IconName.Question]: questionSVG,

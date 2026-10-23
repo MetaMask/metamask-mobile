@@ -19,6 +19,11 @@ import React, {
 import type { ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
@@ -35,7 +40,6 @@ import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
-import LiveStreamGlyph from './components/LiveStreamGlyph';
 import LiveTradeRow from './components/LiveTradeRow';
 import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import type { LiveTradeRowModel } from './types';
@@ -172,8 +176,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
               testID={LiveTradesViewSelectorsIDs.STREAM_BUTTON}
               accessibilityLabel={streamLabel}
               startAccessory={
-                <LiveStreamGlyph
-                  isLive={isLive}
+                <Icon
+                  name={isLive ? IconName.Play : IconName.Pause}
+                  size={IconSize.Md}
+                  color={isLive ? IconColor.Default : IconColor.Alternative}
                   testID={
                     isLive
                       ? LiveTradesViewSelectorsIDs.STREAM_PLAY_ICON
