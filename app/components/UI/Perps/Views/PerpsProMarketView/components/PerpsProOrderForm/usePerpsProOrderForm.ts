@@ -717,6 +717,7 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
+    orderBookSizeFill,
   } = usePerpsOrderContext();
 
   // Restore reduce-only from the 30s pending draft.
@@ -1191,6 +1192,20 @@ export const usePerpsProOrderForm = ({
     orderForm.limitPrice,
     szDecimals,
   );
+  // An order-book row fill sizes the order by the row's exact base size until
+  // the amount or the price it committed changes.
+  const orderBookFillPrice = isLimitExecutionOrderType(orderForm.type)
+    ? normalizedLimitPrice
+    : isTriggerOrderType(orderForm.type)
+      ? normalizedTriggerPrice
+      : undefined;
+  const orderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    orderBookFillPrice !== undefined &&
+    orderBookSizeFill.amount === orderForm.amount &&
+    new BigNumber(orderBookSizeFill.price).eq(orderBookFillPrice)
+      ? orderBookSizeFill.size
+      : undefined;
 
   const effectiveInputPrice = useMemo(
     () =>
@@ -1261,6 +1276,7 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
     preserveAssetIntent: isVenueSizedScale,
+    fillAssetAmount: orderBookFillSize,
   });
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
@@ -1837,6 +1853,7 @@ export const usePerpsProOrderForm = ({
         isBuy: orderForm.direction === 'long',
         maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
+        size: orderBookFillSize,
       }),
     [
       calculationUsdAmount,
@@ -1850,6 +1867,7 @@ export const usePerpsProOrderForm = ({
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
+      orderBookFillSize,
     ],
   );
   const submissionPositionSize =

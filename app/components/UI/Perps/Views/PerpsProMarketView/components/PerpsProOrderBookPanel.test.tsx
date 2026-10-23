@@ -511,9 +511,11 @@ describe('PerpsProOrderBookPanel', () => {
       );
 
       fireEvent.press(getByTestId(`${testID}-bid-row-0`));
+
       expect(onSelectPrice).toHaveBeenCalledWith('50000', '1.5');
 
       fireEvent.press(getByTestId(`${testID}-ask-row-0`));
+
       expect(onSelectPrice).toHaveBeenLastCalledWith('50200', '1.8');
     });
 
@@ -527,9 +529,11 @@ describe('PerpsProOrderBookPanel', () => {
       fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
 
       expect(
-        within(getByTestId(`${testID}-config-sheet-size-on-click`)).getByRole(
-          'switch',
-        ),
+        within(
+          getByTestId(
+            PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+          ),
+        ).getByRole('switch'),
       ).toHaveProp('value', true);
     });
 
@@ -546,7 +550,9 @@ describe('PerpsProOrderBookPanel', () => {
 
       fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
       fireEvent(
-        getByTestId(`${testID}-config-sheet-size-on-click`),
+        getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+        ),
         'valueChange',
         true,
       );
@@ -570,7 +576,9 @@ describe('PerpsProOrderBookPanel', () => {
 
       fireEvent.press(getByTestId(`${testID}-grouping-trigger`));
       fireEvent(
-        getByTestId(`${testID}-config-sheet-size-on-click`),
+        getByTestId(
+          PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH,
+        ),
         'valueChange',
         true,
       );

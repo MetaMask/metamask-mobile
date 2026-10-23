@@ -6,6 +6,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { mockTheme } from '../../../../../../util/theme';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+import { strings } from '../../../../../../../locales/i18n';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   ImpactMoment,
   playImpact,
@@ -472,12 +474,19 @@ describe('PerpsProOrderBookConfigSheet', () => {
   });
 
   describe('size on click', () => {
-    it('renders the switch with its label, off when the setting is off', () => {
-      const { getByTestId, getByText } = renderSheet({ sizeOnClick: false });
+    const SIZE_ON_CLICK_SWITCH =
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH;
 
-      expect(getByText('Set order book size on click')).toBeOnTheScreen();
+    it('renders the switch with its label, off when the setting is off', () => {
+      const label = strings('perps.order_book.size_on_click');
+      const { getByTestId } = renderSheet({ sizeOnClick: false });
+
+      expect(label).not.toMatch(/missing/i);
       expect(
-        within(getByTestId('config-sheet-size-on-click')).getByRole('switch'),
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByText(label),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByRole('switch'),
       ).toHaveProp('value', false);
     });
 
@@ -485,7 +494,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       const { getByTestId } = renderSheet({ sizeOnClick: true });
 
       expect(
-        within(getByTestId('config-sheet-size-on-click')).getByRole('switch'),
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByRole('switch'),
       ).toHaveProp('value', true);
     });
 
@@ -493,7 +502,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       const onApply = jest.fn();
       const { getByTestId } = renderSheet({ onApply });
 
-      fireEvent(getByTestId('config-sheet-size-on-click'), 'valueChange', true);
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
       fireEvent.press(getByTestId('config-sheet-apply'));
 
       expect(onApply).toHaveBeenCalledWith(
@@ -506,7 +515,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       const onApply = jest.fn();
       const { getByTestId } = renderSheet({ onApply });
 
-      fireEvent(getByTestId('config-sheet-size-on-click'), 'valueChange', true);
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
       fireEvent.press(getByTestId('config-sheet-close'));
 
       expect(onApply).not.toHaveBeenCalled();
@@ -519,7 +528,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
         { state: { engine: { backgroundState } } },
       );
 
-      fireEvent(getByTestId('config-sheet-size-on-click'), 'valueChange', true);
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
 
       rerender(
         <PerpsProOrderBookConfigSheet

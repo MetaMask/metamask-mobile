@@ -152,6 +152,7 @@ let mockActivePriceField:
   | 'chaseMaxDistance'
   | null = null;
 const mockSetAmount = jest.fn();
+const mockFillOrderBookSize = jest.fn();
 let mockSizeOnClickPreference = false;
 jest.mock('../../utils/perpsOrderBookSizeOnClickStorage', () => ({
   getPerpsOrderBookSizeOnClickPreference: () => mockSizeOnClickPreference,
@@ -511,6 +512,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     activePriceField: mockActivePriceField,
     commitPriceToField: mockCommitPriceToField,
     setAmount: mockSetAmount,
+    fillOrderBookSize: mockFillOrderBookSize,
   }),
 }));
 
@@ -1650,41 +1652,10 @@ describe('PerpsProMarketView', () => {
       );
     };
 
-    it('fills only the price while the setting is off', () => {
-      pressBid('89950', '1.5');
-
-      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
-      expect(mockSetAmount).not.toHaveBeenCalled();
-    });
-
-    it('fills the price and the row size as USD notional when on', () => {
-      mockSizeOnClickPreference = true;
-
-      pressBid('89950', '1.5');
-
-      expect(mockSetOrderType).toHaveBeenCalledWith('limit');
-      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
-      expect(mockSetAmount).toHaveBeenCalledWith('134925');
-    });
-
-    it('rounds the notional up to the cent so the order keeps the row size', () => {
-      // 0.00185 BTC at 81,870 is $151.4595; rounding down to $151.45 would
-      // derive 0.00184 BTC back from the order amount.
-      mockSizeOnClickPreference = true;
-
-      pressBid('81870', '0.00185');
-
-      expect(mockSetAmount).toHaveBeenCalledWith('151.46');
-    });
-
-    it('raises a row below the market minimum to that minimum', () => {
-      mockSizeOnClickPreference = true;
-
-      pressBid('89950', '0.0001');
-
-      expect(mockSetAmount).toHaveBeenCalledWith('10');
-    });
-
+    // Off/on fills, rounding, the minimum, the margin cap and the submitted
+    // size run through the real order provider in PerpsProMarketView.view.test.tsx.
+    // These stay as focused guards: each malformed venue level would otherwise
+    // need its own full Pro render with a live ladder.
     it('keeps the size untouched when the filled price is missing', () => {
       // With the asset precision known, a blank price canonicalizes to
       // undefined; the size must not be derived from it.
@@ -1695,6 +1666,7 @@ describe('PerpsProMarketView', () => {
 
       expect(mockCommitLimitPrice).toHaveBeenCalledWith(undefined);
       expect(mockSetAmount).not.toHaveBeenCalled();
+      expect(mockFillOrderBookSize).not.toHaveBeenCalled();
     });
 
     it.each(['', 'abc', '0'])(
@@ -1706,6 +1678,7 @@ describe('PerpsProMarketView', () => {
 
         expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
         expect(mockSetAmount).not.toHaveBeenCalled();
+        expect(mockFillOrderBookSize).not.toHaveBeenCalled();
       },
     );
   });
