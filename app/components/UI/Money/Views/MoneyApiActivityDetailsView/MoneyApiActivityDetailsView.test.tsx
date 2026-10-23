@@ -657,7 +657,7 @@ describe('MoneyApiActivityDetailsView', () => {
       );
       expect(
         getByText('money.api_activity_details.you_deposited'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('renders the Steps timeline with bank transfer and Money deposit', () => {
@@ -665,23 +665,23 @@ describe('MoneyApiActivityDetailsView', () => {
         <MoneyApiActivityDetailsView />,
       );
 
-      expect(getByTestId('money-bank-transfer-steps')).toBeTruthy();
+      expect(getByTestId('money-bank-transfer-steps')).toBeOnTheScreen();
       expect(
         getByText('transaction_details.label.steps_completed'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       // Paid-with row + Steps title both use this string.
       expect(
         getAllByText('money.transaction.bank_transfer').length,
       ).toBeGreaterThan(0);
       expect(
         getByText('transaction_details.title.money_account_deposit'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('does not render Steps for cashback rows', () => {
       mockRouteParams = { activity: cashback };
       const { queryByTestId } = render(<MoneyApiActivityDetailsView />);
-      expect(queryByTestId('money-bank-transfer-steps')).toBeNull();
+      expect(queryByTestId('money-bank-transfer-steps')).not.toBeOnTheScreen();
     });
   });
 
@@ -716,22 +716,22 @@ describe('MoneyApiActivityDetailsView', () => {
         queryByText,
       } = render(<MoneyApiActivityDetailsView />);
 
-      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
       // Header title + hero copy both use Depositing.
       expect(
         getAllByText('money.transaction.depositing').length,
       ).toBeGreaterThan(0);
       expect(
         queryByText('money.api_activity_details.you_deposited'),
-      ).toBeNull();
-      expect(queryByText(/\+15\.00/)).toBeNull();
-      expect(getByTestId('money-bank-transfer-steps')).toBeTruthy();
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
+      expect(getByTestId('money-bank-transfer-steps')).toBeOnTheScreen();
       expect(
         getAllByText('money.transaction.bank_transfer').length,
       ).toBeGreaterThan(0);
       expect(
         getByText('transaction_details.title.money_account_deposit'),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
       expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
       expect(getAllByText('transaction.pending').length).toBeGreaterThan(0);
     });
@@ -746,12 +746,12 @@ describe('MoneyApiActivityDetailsView', () => {
       );
 
       // Still awaiting on-chain mUSD — overall status stays Pending.
-      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
       expect(
         queryByText('money.api_activity_details.you_deposited'),
-      ).toBeNull();
-      expect(queryByText(/\+15\.00/)).toBeNull();
-      expect(getByTestId('progress-list-item-success')).toBeTruthy();
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
+      expect(getByTestId('progress-list-item-success')).toBeOnTheScreen();
       expect(getAllByTestId('progress-list-item-warning')).toHaveLength(1);
     });
 
@@ -765,8 +765,8 @@ describe('MoneyApiActivityDetailsView', () => {
         <MoneyApiActivityDetailsView />,
       );
 
-      expect(getByText('money.api_activity_details.pending')).toBeTruthy();
-      expect(queryByText(/\+15\.00/)).toBeNull();
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
       expect(getAllByTestId('progress-list-item-success')).toHaveLength(1);
     });
   });
@@ -814,7 +814,7 @@ describe('MoneyApiActivityDetailsView', () => {
   it('renders status as Completed', () => {
     mockRouteParams = { activity: cashback };
     const { getByText } = render(<MoneyApiActivityDetailsView />);
-    expect(getByText('money.api_activity_details.completed')).toBeTruthy();
+    expect(getByText('money.api_activity_details.completed')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {

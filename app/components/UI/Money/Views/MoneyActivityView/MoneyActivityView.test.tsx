@@ -471,7 +471,9 @@ describe('MoneyActivityView', () => {
     );
 
     expect(getAllByText('money.transaction.deposit_failed')).toHaveLength(2);
-    expect(queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER)).toBeNull();
+    expect(
+      queryByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).not.toBeOnTheScreen();
     expect(getAllByTestId(MoneyActivityViewTestIds.DATE_HEADER)).toHaveLength(
       2,
     );
