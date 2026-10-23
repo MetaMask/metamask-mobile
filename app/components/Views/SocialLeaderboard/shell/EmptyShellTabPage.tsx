@@ -91,10 +91,7 @@ const REFRESH_MIN_DURATION_MS = 1000;
  */
 const END_REACHED_THRESHOLD_PX = 600;
 
-/**
- * Adjacent-tab prefetch is the product default. Skip it on LOW hardware or
- * when the network is known-offline or slow. `null` stays on the prefetch path.
- */
+/** Prefetch unless hardware is LOW or the network is offline or slow. `null` still prefetches. */
 const allowAdjacentPrefetch = (
   hardwareTier: ReturnType<typeof getHardwareTier>,
   networkTier: ReturnType<typeof useNetworkTier>,
@@ -116,15 +113,9 @@ export interface EmptyShellTabPageProps {
    * tab is first opened so Trending and Following don't duplicate testIDs.
    */
   isActive?: boolean;
-  /**
-   * Neighbor of the visible tab. Fetches this feed without painting rows when
-   * the device and network allow an adjacent prefetch.
-   */
+  /** Neighbor tab. Fetches without painting rows when prefetch is allowed. */
   prefetch?: boolean;
-  /**
-   * The landing tab has already painted. Mounting this page now should load
-   * its rows when the device and network can take that work.
-   */
+  /** After first paint, load rows when the device and network allow it. */
   prepare?: boolean;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
@@ -142,10 +133,7 @@ export interface EmptyShellTabPageProps {
     target: QuickBuyTarget,
     copyTradeOrigin?: CopyTradeOrigin,
   ) => void;
-  /**
-   * 1 while Trending may crawl the hot-token rail. The screen updates this
-   * while the page is hidden, so the crawl stops without a re-render.
-   */
+  /** 1 while Trending may crawl the hot-token rail, including while this page is hidden. */
   hotTokenCrawl?: SharedValue<number>;
 }
 
@@ -186,9 +174,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     }
   }, [isActive, prepareRows]);
 
-  // `NONE` is known offline: no fetch. A hidden neighbor prefetches only after
-  // the parent has gone idle and the tiers allow it. Rows stay unpainted until
-  // the tab has actually been opened.
+  // `NONE` skips the fetch. A hidden neighbor prefetches only while idle and allowed.
   const fetchEnabled =
     networkTier !== 'NONE' &&
     (isActive ||

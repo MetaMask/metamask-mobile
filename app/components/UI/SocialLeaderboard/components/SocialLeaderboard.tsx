@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import {
   useWindowDimensions,
+  type RefreshControlProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -101,23 +102,19 @@ export interface SocialLeaderboardProps {
   showViewerRow?: boolean;
   /** Gate the query. Still skipped when the network tier is `NONE`. */
   enabled?: boolean;
-  /**
-   * When false, the query can still run (prefetch) but no rows are painted.
-   */
+  /** When false, the query can still run but no rows are painted. */
   visible?: boolean;
   onScroll?: AnimatedScrollHandler;
   scrollTestID?: string;
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   listHeader?: React.ReactElement | null;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
 /**
- * Ranked trader list for one source. The fetch is capped at 50. Rows share
- * one component and one height, so FlashList recycles them instead of
- * mounting the whole page. The first paint still replays the order the user
- * last saw.
+ * Ranked trader list for one source. Rows share one component and height, so
+ * FlashList recycles them. The first paint still replays the last order.
  */
 const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   source,
@@ -218,10 +215,10 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   );
 
   const skeletonKeys = useMemo(() => {
-    const visible = Math.ceil(
+    const rowsOnScreen = Math.ceil(
       windowHeight / SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
     );
-    const count = Math.min(limit, visible + SKELETON_OVERSCAN);
+    const count = Math.min(limit, rowsOnScreen + SKELETON_OVERSCAN);
     return Array.from({ length: count }, (_, i) => `leaderboard-skeleton-${i}`);
   }, [limit, windowHeight]);
 
@@ -331,6 +328,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
         metric={item.displayMetric}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
+        showLeaderboardDetails
       />
     ),
     [handleFollowPress, handleTraderPress],
@@ -377,6 +375,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
                   onTraderPress={handleViewerPress}
                   highlighted
                   hideRank={viewerRow.hideRank}
+                  showLeaderboardDetails
                   testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
                 />
               ) : null}

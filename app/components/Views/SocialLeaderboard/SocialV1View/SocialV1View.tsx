@@ -107,10 +107,7 @@ interface IdleCallbackGlobals {
   cancelIdleCallback?: (handle: number) => void;
 }
 
-/**
- * Defers adjacent-tab prefetch until the JS thread is idle. Falls back to a
- * macrotask where `requestIdleCallback` is unavailable.
- */
+/** Defers adjacent-tab prefetch until idle, or the next macrotask. */
 const scheduleIdlePrefetch = (task: () => void): (() => void) => {
   const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
 
@@ -218,11 +215,9 @@ const SocialV1ViewContent: React.FC = () => {
   // transition so the native slide is not blocked by the list commit.
   const [contentIndex, setContentIndex] = useState(landingIndex);
   const [idlePrefetch, setIdlePrefetch] = useState(false);
-  // The landing tab is the first render. The other three mount on the
-  // following commit and stay mounted, so a later tab press does not mount them.
+  // Landing tab paints first. The other three mount on the next commit and stay mounted.
   const [deferredTabsMounted, setDeferredTabsMounted] = useState(false);
-  // Their rows wait one more commit. The mount transition stays a shell, and
-  // a tab press still paints that page immediately through `isActive`.
+  // Rows wait one more commit. A tab press still paints that page through `isActive`.
   const [deferredRowsReady, setDeferredRowsReady] = useState(false);
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
@@ -262,9 +257,7 @@ const SocialV1ViewContent: React.FC = () => {
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(landingIndex);
-  // The hot-token crawl commits the shadow tree every frame. 0 holds it.
-  // LOW skips it (light animation). null stays on the crawl. Updated here so
-  // Trending stops writing as soon as another tab is selected.
+  // 0 holds the hot-token crawl. LOW skips it. null keeps it. Another tab sets 0.
   const hotTokenCrawl = useSharedValue(0);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);

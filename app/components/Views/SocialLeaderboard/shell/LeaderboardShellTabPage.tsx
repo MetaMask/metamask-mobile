@@ -60,15 +60,9 @@ export interface LeaderboardShellTabPageProps {
    * use.
    */
   isActive?: boolean;
-  /**
-   * Neighbor of the visible tab. Starts the leaderboard query without painting
-   * rows when the device and network allow an adjacent prefetch.
-   */
+  /** Neighbor tab. Starts the query without painting rows when prefetch is allowed. */
   prefetch?: boolean;
-  /**
-   * The landing tab has already painted. Load this list now when the device
-   * and network allow it. The screen-viewed event still waits for `isActive`.
-   */
+  /** After first paint, load rows when the device and network allow it. */
   prepare?: boolean;
   /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
