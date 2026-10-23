@@ -7,8 +7,21 @@ import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { RefetchPreviewResult } from './usePredictOrderPreview';
 import type { PredictOrderRetrySheetRef } from '../components/PredictOrderRetrySheet';
 import { type OrderPreview, type PlaceOrderParams, Side } from '../types';
+import Engine from '../../../../core/Engine';
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: jest.fn(),
+    },
+  },
+}));
 
 jest.mock('../components/PredictOrderRetrySheet', () => ({}));
+
+const mockTrackEvent = jest.mocked(
+  Engine.context.PredictController.trackPredictOrderEvent,
+);
 
 function createSellPreview(overrides?: Partial<OrderPreview>): OrderPreview {
   return {
@@ -72,6 +85,10 @@ function setup({
 }
 
 describe('usePredictCashOutSubmit', () => {
+  beforeEach(() => {
+    mockTrackEvent.mockClear();
+  });
+
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -358,5 +375,148 @@ describe('usePredictCashOutSubmit', () => {
 
     expect(refetchPreview).not.toHaveBeenCalled();
     expect(placeOrder).not.toHaveBeenCalled();
+  });
+
+  describe('analytics', () => {
+    it.each([
+      {
+        outcome: 'submitted',
+        result: okResult(
+          createSellPreview({ sharePrice: 0.59, worstFillPrice: 0.58 }),
+        ),
+        sharePrice: 0.59,
+        worstFillPrice: 0.58,
+      },
+      {
+        outcome: 'price_moved',
+        result: okResult(
+          createSellPreview({ sharePrice: 0.5, worstFillPrice: 0.49 }),
+        ),
+        sharePrice: 0.5,
+        worstFillPrice: 0.49,
+      },
+      {
+        outcome: 'no_match',
+        result: okResult(
+          createSellPreview({ sharePrice: 0.6, worstFillPrice: 0.5 }),
+        ),
+        sharePrice: 0.6,
+        worstFillPrice: 0.5,
+      },
+      {
+        outcome: 'quote_unavailable',
+        result: { status: 'unavailable' } as const,
+        sharePrice: undefined,
+        worstFillPrice: undefined,
+      },
+    ])(
+      'tracks one presubmit_checked event with outcome $outcome',
+      async ({ outcome, result: fetchResult, sharePrice, worstFillPrice }) => {
+        const { result } = setup({
+          refetchPreview: jest.fn().mockResolvedValue(fetchResult),
+        });
+
+        await act(async () => {
+          await result.current.cashOut();
+        });
+
+        expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+        expect(mockTrackEvent).toHaveBeenCalledWith({
+          status: 'presubmit_checked',
+          analyticsProperties,
+          sharePrice,
+          completionDuration: expect.any(Number),
+          presubmitOutcome: outcome,
+          approvedPrice: 0.6,
+          worstFillPrice,
+          reconfirmed: false,
+        });
+      },
+    );
+
+    it('tracks the timeout outcome', async () => {
+      jest.useFakeTimers();
+      const { result } = setup({
+        refetchPreview: jest.fn(
+          () => new Promise<RefetchPreviewResult>(() => undefined),
+        ),
+      });
+
+      let cashOutPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        cashOutPromise = result.current.cashOut();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(CASH_OUT_PRICE_CHECK_TIMEOUT_MS);
+        await cashOutPromise;
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          presubmitOutcome: 'timeout',
+          completionDuration: CASH_OUT_PRICE_CHECK_TIMEOUT_MS,
+        }),
+      );
+    });
+
+    it('marks the check after a confirmed price move as reconfirmed against the new price', async () => {
+      const refetchPreview = jest
+        .fn()
+        .mockResolvedValueOnce(
+          okResult(createSellPreview({ sharePrice: 0.5, worstFillPrice: 0.5 })),
+        )
+        .mockResolvedValueOnce(
+          okResult(createSellPreview({ sharePrice: 0.5, worstFillPrice: 0.5 })),
+        );
+      const { result } = setup({ refetchPreview });
+
+      await act(async () => {
+        await result.current.cashOut();
+      });
+      await act(async () => {
+        await result.current.confirmCashOut();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          presubmitOutcome: 'submitted',
+          approvedPrice: 0.5,
+          reconfirmed: true,
+        }),
+      );
+    });
+
+    it('tracks nothing when the sheet is dismissed while the price is checked', async () => {
+      let resolveFetch: (value: RefetchPreviewResult) => void = () => undefined;
+      const refetchPreview = jest
+        .fn()
+        .mockResolvedValueOnce({ status: 'unavailable' })
+        .mockImplementationOnce(
+          () =>
+            new Promise<RefetchPreviewResult>((resolve) => {
+              resolveFetch = resolve;
+            }),
+        );
+      const { result } = setup({ refetchPreview });
+
+      await act(async () => {
+        await result.current.cashOut();
+      });
+      mockTrackEvent.mockClear();
+      let retryPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        retryPromise = result.current.retryCashOut();
+      });
+      act(() => {
+        result.current.dismissCashOut();
+      });
+      await act(async () => {
+        resolveFetch(okResult(createSellPreview()));
+        await retryPromise;
+      });
+
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
   });
 });
