@@ -7,7 +7,10 @@ import {
 } from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
-import { handleVerificationStatusChangedForMetrics } from './event-handlers/analytics';
+import {
+  handleKycStatusChangedForMetrics,
+  handleVerificationStatusChangedForMetrics,
+} from './event-handlers/analytics';
 import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
@@ -31,6 +34,7 @@ jest.mock('@metamask/kyc-controller', () => {
 
 jest.mock('./event-handlers/analytics', () => ({
   handleVerificationStatusChangedForMetrics: jest.fn(),
+  handleKycStatusChangedForMetrics: jest.fn(),
 }));
 
 interface MockKycControllerConstructor {
@@ -122,7 +126,7 @@ describe('kycControllerInit', () => {
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
   });
 
-  it('maps verification status events to analytics', () => {
+  it('maps verification and KYC status events to analytics', () => {
     const request = getInitRequestMock();
     const subscribeSpy = jest.spyOn(request.initMessenger, 'subscribe');
 
@@ -131,6 +135,10 @@ describe('kycControllerInit', () => {
     expect(subscribeSpy).toHaveBeenCalledWith(
       'KycController:verificationStatusChanged',
       handleVerificationStatusChangedForMetrics,
+    );
+    expect(subscribeSpy).toHaveBeenCalledWith(
+      'KycController:kycStatusChanged',
+      handleKycStatusChangedForMetrics,
     );
   });
 });

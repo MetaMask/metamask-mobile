@@ -1,30 +1,68 @@
-import type { KycVerificationStatusChangedPayload } from '@metamask/kyc-controller';
-import { trackKycVerificationUpdated } from '../../../../../components/UI/KYC/utils/kycVerificationAnalytics';
-import { handleVerificationStatusChangedForMetrics } from './analytics';
+import {
+  trackKycStatusUpdated,
+  trackKycVerificationUpdated,
+} from '../../../../../components/UI/KYC/utils/kycVerificationAnalytics';
+import {
+  handleKycStatusChangedForMetrics,
+  handleVerificationStatusChangedForMetrics,
+} from './analytics';
 
 jest.mock(
   '../../../../../components/UI/KYC/utils/kycVerificationAnalytics',
-  () => ({ trackKycVerificationUpdated: jest.fn() }),
+  () => ({
+    trackKycVerificationUpdated: jest.fn(),
+    trackKycStatusUpdated: jest.fn(),
+  }),
 );
 
-describe('handleVerificationStatusChangedForMetrics', () => {
-  it('forwards the controller payload to KYC Verification Updated', () => {
-    const payload: KycVerificationStatusChangedPayload = {
-      status: 'succeeded',
-      previousKycStatus: 'pending',
-      kycStatus: 'approved',
+describe('KYC analytics event handlers', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('maps a launch outcome to KYC Verification Updated', () => {
+    handleVerificationStatusChangedForMetrics({
+      status: 'submitted',
+      kycStatus: 'pending',
       providerFlowStatus: 'submitted',
       vendor: 'iron',
-    };
-
-    handleVerificationStatusChangedForMetrics(payload);
+    });
 
     expect(trackKycVerificationUpdated).toHaveBeenCalledWith({
-      status: 'succeeded',
+      status: 'submitted',
+      kycStatus: 'pending',
+      providerFlowStatus: 'submitted',
+    });
+    expect(trackKycStatusUpdated).not.toHaveBeenCalled();
+  });
+
+  it('maps a status change to KYC Status Updated', () => {
+    handleKycStatusChangedForMetrics({
       previousKycStatus: 'pending',
       kycStatus: 'approved',
       providerFlowStatus: 'submitted',
       vendor: 'iron',
+    });
+
+    expect(trackKycStatusUpdated).toHaveBeenCalledWith({
+      previousKycStatus: 'pending',
+      kycStatus: 'approved',
+      providerFlowStatus: 'submitted',
+    });
+    expect(trackKycVerificationUpdated).not.toHaveBeenCalled();
+  });
+
+  it('passes a missing previous status through for a first status', () => {
+    handleKycStatusChangedForMetrics({
+      kycStatus: 'new',
+      providerFlowStatus: 'not_started',
+      vendor: 'iron',
+    });
+
+    expect(trackKycStatusUpdated).toHaveBeenCalledWith({
+      previousKycStatus: undefined,
+      kycStatus: 'new',
+      providerFlowStatus: 'not_started',
     });
   });
 });

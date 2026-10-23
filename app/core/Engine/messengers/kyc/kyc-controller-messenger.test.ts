@@ -37,7 +37,7 @@ describe('getKycControllerMessenger', () => {
 });
 
 describe('getKycControllerInitMessenger', () => {
-  it('delegates the verification status event to the init messenger', () => {
+  it('delegates the verification and KYC status events to the init messenger', () => {
     const rootMessenger = getRootMessenger();
     const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
 
@@ -46,7 +46,10 @@ describe('getKycControllerInitMessenger', () => {
     expect(initMessenger).toBeInstanceOf(Messenger);
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
-        events: ['KycController:verificationStatusChanged'],
+        events: [
+          'KycController:verificationStatusChanged',
+          'KycController:kycStatusChanged',
+        ],
       }),
     );
   });

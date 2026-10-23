@@ -4,7 +4,13 @@ import {
   type KycVerificationEventStatus,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
+import ReduxService from '../../../../core/redux';
+import {
+  MetaMetricsEvents,
+  type IMetaMetricsEvent,
+} from '../../../../core/Analytics';
+import type { RootState } from '../../../../reducers';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
@@ -15,6 +21,11 @@ export const KYC_ANALYTICS_SCREEN_NAME = 'vba_onboarding';
 export const KYC_ANALYTICS_ENTRY_POINT = 'add_funds_bank_account';
 /** Identity verification provider (`metamask-kyc-base`). */
 export const KYC_ANALYTICS_PROVIDER = 'sumsub';
+/**
+ * Vendor reported on KYC events. The schema allows `moonpay`; the KYC
+ * controller itself still reports its own vendor (`iron`).
+ */
+export const KYC_ANALYTICS_VENDOR = 'moonpay';
 
 /** Statuses of `KYC Verification Updated`; mobile fires `started` and `retry_started`. */
 export type KycVerificationUpdatedStatus =
@@ -24,32 +35,54 @@ export type KycVerificationUpdatedStatus =
 
 export type KycRetrySource = 'sumsub_error' | 'kyc_rejected';
 
-export interface KycVerificationUpdatedInput {
-  status: KycVerificationUpdatedStatus;
-  /** Derived KYC status before the change. Only set for controller-emitted statuses. */
-  previousKycStatus?: KycDerivedStatus;
-  /** Where the retry was pressed. Only set when `status` is `retry_started`. */
-  retrySource?: KycRetrySource;
+interface KycStateInput {
   /** Derived KYC status now. Read from controller state when omitted. */
   kycStatus?: KycDerivedStatus;
   /** Provider flow outcome now. Read from controller state when omitted. */
   providerFlowStatus?: string;
-  /** Vendor now. Read from controller state when omitted. */
-  vendor?: string | null;
+}
+
+export interface KycVerificationUpdatedInput extends KycStateInput {
+  status: KycVerificationUpdatedStatus;
+  /** Where the retry was pressed. Only set when `status` is `retry_started`. */
+  retrySource?: KycRetrySource;
+}
+
+export interface KycStatusUpdatedInput extends KycStateInput {
+  /** The KYC status stored before the change. Absent the first time one is stored. */
+  previousKycStatus?: KycDerivedStatus;
 }
 
 /**
- * Builds the `KYC Verification Updated` properties (`metamask-kyc-base` plus
- * the event's own `status`, `previous_kyc_status` and `retry_source`).
+ * Lowercase ISO 3166-1 alpha-2 country of the user, from the geolocation
+ * controller (`BR-SP` becomes `br`). Absent while the location is unknown.
  *
- * Nothing from the session is sent beyond the derived statuses: no session id,
- * email, disclaimer ids or tokens.
- *
- * @param input - The status and any values already known by the caller.
- * @returns The event properties.
+ * @returns The region, or undefined.
  */
-export function buildKycVerificationUpdatedProperties(
-  input: KycVerificationUpdatedInput,
+const readRegion = (): string | undefined => {
+  try {
+    const location = selectGeolocationLocation(
+      ReduxService.store.getState() as RootState,
+    );
+    const country =
+      typeof location === 'string' ? location.split('-')[0] : undefined;
+    return country && country.length === 2 && country !== 'XX'
+      ? country.toLowerCase()
+      : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * Builds the `metamask-kyc-base` properties. Nothing from the session is sent
+ * beyond the derived statuses: no session id, email, disclaimer ids or tokens.
+ *
+ * @param input - Statuses already known by the caller.
+ * @returns The base properties.
+ */
+export function buildKycBaseProperties(
+  input: KycStateInput = {},
 ): Record<string, string> {
   const state = Engine.context.KycController?.state;
   const providerFlowStatus =
@@ -59,42 +92,63 @@ export function buildKycVerificationUpdatedProperties(
     (state && providerFlowStatus
       ? deriveKycStatus(state.sessionStatus, state.providerFlowStatus)
       : undefined);
-  const vendor = input.vendor === undefined ? state?.vendor : input.vendor;
+  const region = readRegion();
 
   return {
     screen_name: KYC_ANALYTICS_SCREEN_NAME,
     entry_point: KYC_ANALYTICS_ENTRY_POINT,
+    vendor: KYC_ANALYTICS_VENDOR,
     kyc_provider: KYC_ANALYTICS_PROVIDER,
-    status: input.status,
-    ...(vendor ? { vendor } : {}),
+    ...(region ? { region } : {}),
     ...(kycStatus ? { kyc_status: kycStatus } : {}),
     ...(providerFlowStatus ? { provider_flow_status: providerFlowStatus } : {}),
-    ...(input.previousKycStatus
-      ? { previous_kyc_status: input.previousKycStatus }
-      : {}),
-    ...(input.retrySource ? { retry_source: input.retrySource } : {}),
   };
 }
 
+const track = (
+  event: IMetaMetricsEvent,
+  properties: Record<string, string>,
+): void => {
+  try {
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(event)
+        .addProperties(properties)
+        .build(),
+    );
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-kyc', event: event.category },
+    });
+  }
+};
+
 /**
- * Fires `KYC Verification Updated`. Analytics failures never reach the caller.
+ * Fires `KYC Verification Updated`, the SumSub webview step. Analytics
+ * failures never reach the caller.
  *
  * @param input - The status and any values already known by the caller.
  */
 export function trackKycVerificationUpdated(
   input: KycVerificationUpdatedInput,
 ): void {
-  try {
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.KYC_VERIFICATION_UPDATED,
-      )
-        .addProperties(buildKycVerificationUpdatedProperties(input))
-        .build(),
-    );
-  } catch (error) {
-    Logger.error(error as Error, {
-      tags: { feature: 'vba-kyc', event: 'KYC Verification Updated' },
-    });
-  }
+  track(MetaMetricsEvents.KYC_VERIFICATION_UPDATED, {
+    ...buildKycBaseProperties(input),
+    status: input.status,
+    ...(input.retrySource ? { retry_source: input.retrySource } : {}),
+  });
+}
+
+/**
+ * Fires `KYC Status Updated`, a change of the stored KYC status. `kyc_status`
+ * is the new status. Analytics failures never reach the caller.
+ *
+ * @param input - The new status, the previous one when known, and the flow status.
+ */
+export function trackKycStatusUpdated(input: KycStatusUpdatedInput): void {
+  track(MetaMetricsEvents.KYC_STATUS_UPDATED, {
+    ...buildKycBaseProperties(input),
+    ...(input.previousKycStatus
+      ? { previous_kyc_status: input.previousKycStatus }
+      : {}),
+  });
 }

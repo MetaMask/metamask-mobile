@@ -4,6 +4,7 @@ import {
   type MessengerEvents,
 } from '@metamask/messenger';
 import type {
+  KycControllerKycStatusChangedEvent,
   KycControllerMessenger,
   KycControllerVerificationStatusChangedEvent,
 } from '@metamask/kyc-controller';
@@ -73,7 +74,8 @@ export type KycControllerInitMessenger = ReturnType<
 
 /**
  * Get the init messenger for the KycController. It only receives the
- * verification status event, which the init function maps to analytics.
+ * verification and KYC status events, which the init function maps to
+ * analytics.
  *
  * @param rootMessenger - The root messenger.
  * @returns The KycControllerInitMessenger.
@@ -82,7 +84,8 @@ export function getKycControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'KycControllerInit',
     never,
-    KycControllerVerificationStatusChangedEvent,
+    | KycControllerVerificationStatusChangedEvent
+    | KycControllerKycStatusChangedEvent,
     RootMessenger
   >({
     namespace: 'KycControllerInit',
@@ -90,7 +93,10 @@ export function getKycControllerInitMessenger(rootMessenger: RootMessenger) {
   });
 
   rootMessenger.delegate({
-    events: ['KycController:verificationStatusChanged'],
+    events: [
+      'KycController:verificationStatusChanged',
+      'KycController:kycStatusChanged',
+    ],
     messenger,
   });
 

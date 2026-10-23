@@ -4,7 +4,10 @@ import {
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
 import type { KycControllerInitMessenger } from '../../messengers/kyc/kyc-controller-messenger';
-import { handleVerificationStatusChangedForMetrics } from './event-handlers/analytics';
+import {
+  handleKycStatusChangedForMetrics,
+  handleVerificationStatusChangedForMetrics,
+} from './event-handlers/analytics';
 import { sumsubLauncher } from './sumSubLauncher';
 
 /**
@@ -14,8 +17,9 @@ import { sumsubLauncher } from './sumSubLauncher';
  * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
  * the injected {@link sumsubLauncher}.
  *
- * Verification outcomes the controller publishes
- * (`KycController:verificationStatusChanged`) are mapped to analytics here.
+ * SumSub launch outcomes (`KycController:verificationStatusChanged`) and KYC
+ * status changes (`KycController:kycStatusChanged`) are mapped to analytics
+ * here.
  *
  * Money-account wallet registration and autoramp creation after KYC approval
  * run in the VBA onboarding coordinator (`resolveVbaOnboarding`), not in
@@ -41,6 +45,10 @@ export const kycControllerInit: MessengerClientInitFunction<
   initMessenger.subscribe(
     'KycController:verificationStatusChanged',
     handleVerificationStatusChangedForMetrics,
+  );
+  initMessenger.subscribe(
+    'KycController:kycStatusChanged',
+    handleKycStatusChangedForMetrics,
   );
 
   return { controller };

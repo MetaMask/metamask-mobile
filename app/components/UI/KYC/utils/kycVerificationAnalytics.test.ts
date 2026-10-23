@@ -1,9 +1,11 @@
 import { deriveKycStatus } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
+import ReduxService from '../../../../core/redux';
 import { analytics } from '../../../../util/analytics/analytics';
 import Logger from '../../../../util/Logger';
 import {
-  buildKycVerificationUpdatedProperties,
+  buildKycBaseProperties,
+  trackKycStatusUpdated,
   trackKycVerificationUpdated,
 } from './kycVerificationAnalytics';
 
@@ -13,6 +15,11 @@ jest.mock('@metamask/kyc-controller', () => ({
 
 jest.mock('../../../../core/Engine', () => ({
   context: { KycController: { state: {} } },
+}));
+
+jest.mock('../../../../core/redux', () => ({
+  __esModule: true,
+  default: { store: { getState: jest.fn() } },
 }));
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -26,19 +33,28 @@ jest.mock('../../../../util/Logger', () => ({
 
 const mockDeriveKycStatus = jest.mocked(deriveKycStatus);
 const mockTrackEvent = jest.mocked(analytics.trackEvent);
+const mockGetState = jest.mocked(ReduxService.store.getState);
 const mockEngine = Engine as unknown as {
   context: { KycController?: { state: Record<string, unknown> } };
 };
 
+const stateWithLocation = (location: string | undefined) =>
+  ({
+    engine: { backgroundState: { GeolocationController: { location } } },
+  }) as never;
+
 const BASE_PROPERTIES = {
   screen_name: 'vba_onboarding',
   entry_point: 'add_funds_bank_account',
+  vendor: 'moonpay',
   kyc_provider: 'sumsub',
+  region: 'br',
 };
 
 describe('kycVerificationAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetState.mockReturnValue(stateWithLocation('BR'));
     mockEngine.context.KycController = {
       state: {
         vendor: 'iron',
@@ -50,35 +66,25 @@ describe('kycVerificationAnalytics', () => {
     mockDeriveKycStatus.mockReturnValue('new');
   });
 
-  describe('buildKycVerificationUpdatedProperties', () => {
-    it('uses the values passed by the caller without reading controller state', () => {
+  describe('buildKycBaseProperties', () => {
+    it('uses the statuses passed by the caller without reading controller state', () => {
       mockEngine.context.KycController = undefined;
 
       expect(
-        buildKycVerificationUpdatedProperties({
-          status: 'succeeded',
-          previousKycStatus: 'pending',
+        buildKycBaseProperties({
           kycStatus: 'approved',
           providerFlowStatus: 'submitted',
-          vendor: 'iron',
         }),
       ).toStrictEqual({
         ...BASE_PROPERTIES,
-        status: 'succeeded',
-        vendor: 'iron',
         kyc_status: 'approved',
         provider_flow_status: 'submitted',
-        previous_kyc_status: 'pending',
       });
     });
 
-    it('reads the derived KYC status, flow status and vendor from controller state', () => {
-      expect(
-        buildKycVerificationUpdatedProperties({ status: 'started' }),
-      ).toStrictEqual({
+    it('reads the derived KYC status and flow status from controller state', () => {
+      expect(buildKycBaseProperties()).toStrictEqual({
         ...BASE_PROPERTIES,
-        status: 'started',
-        vendor: 'iron',
         kyc_status: 'new',
         provider_flow_status: 'not_started',
       });
@@ -88,45 +94,44 @@ describe('kycVerificationAnalytics', () => {
       );
     });
 
-    it('adds retry_source for retries and omits previous_kyc_status', () => {
-      expect(
-        buildKycVerificationUpdatedProperties({
-          status: 'retry_started',
-          retrySource: 'kyc_rejected',
-        }),
-      ).toStrictEqual({
-        ...BASE_PROPERTIES,
-        status: 'retry_started',
-        retry_source: 'kyc_rejected',
-        vendor: 'iron',
-        kyc_status: 'new',
-        provider_flow_status: 'not_started',
-      });
+    it('reports the schema vendor, not the controller vendor', () => {
+      expect(buildKycBaseProperties().vendor).toBe('moonpay');
     });
 
-    it('omits vendor and statuses that are unknown', () => {
+    it.each([
+      ['BR-SP', 'br'],
+      ['us', 'us'],
+    ])('normalizes location %s to region %s', (location, region) => {
+      mockGetState.mockReturnValue(stateWithLocation(location));
+
+      expect(buildKycBaseProperties().region).toBe(region);
+    });
+
+    it.each([[undefined], ['UNKNOWN'], ['XX']])(
+      'omits region for location %s',
+      (location) => {
+        mockGetState.mockReturnValue(stateWithLocation(location));
+
+        expect(buildKycBaseProperties()).not.toHaveProperty('region');
+      },
+    );
+
+    it('omits region when the store is unavailable', () => {
+      mockGetState.mockImplementation(() => {
+        throw new Error('no store');
+      });
+
+      expect(buildKycBaseProperties()).not.toHaveProperty('region');
+    });
+
+    it('omits statuses that are unknown', () => {
       mockEngine.context.KycController = undefined;
 
-      expect(
-        buildKycVerificationUpdatedProperties({ status: 'started' }),
-      ).toStrictEqual({ ...BASE_PROPERTIES, status: 'started' });
-    });
-
-    it('omits a null vendor passed by the caller', () => {
-      expect(
-        buildKycVerificationUpdatedProperties({
-          status: 'abandoned',
-          kycStatus: 'new',
-          providerFlowStatus: 'abandoned',
-          vendor: null,
-        }),
-      ).not.toHaveProperty('vendor');
+      expect(buildKycBaseProperties()).toStrictEqual(BASE_PROPERTIES);
     });
 
     it('never includes session or personal data', () => {
-      const properties = buildKycVerificationUpdatedProperties({
-        status: 'started',
-      });
+      const properties = buildKycBaseProperties();
 
       expect(JSON.stringify(properties)).not.toContain('session-secret');
       expect(JSON.stringify(properties)).not.toContain('user@example.com');
@@ -134,7 +139,7 @@ describe('kycVerificationAnalytics', () => {
   });
 
   describe('trackKycVerificationUpdated', () => {
-    it('tracks KYC Verification Updated with the built properties', () => {
+    it('tracks KYC Verification Updated with the status and base properties', () => {
       trackKycVerificationUpdated({ status: 'started' });
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -142,11 +147,24 @@ describe('kycVerificationAnalytics', () => {
       expect(event.name).toBe('KYC Verification Updated');
       expect(event.properties).toStrictEqual({
         ...BASE_PROPERTIES,
-        status: 'started',
-        vendor: 'iron',
         kyc_status: 'new',
         provider_flow_status: 'not_started',
+        status: 'started',
       });
+    });
+
+    it('adds retry_source for retries and never sends previous_kyc_status', () => {
+      trackKycVerificationUpdated({
+        status: 'retry_started',
+        retrySource: 'kyc_rejected',
+      });
+
+      const { properties } = mockTrackEvent.mock.calls[0][0];
+      expect(properties).toMatchObject({
+        status: 'retry_started',
+        retry_source: 'kyc_rejected',
+      });
+      expect(properties).not.toHaveProperty('previous_kyc_status');
     });
 
     it('logs instead of throwing when tracking fails', () => {
@@ -161,6 +179,45 @@ describe('kycVerificationAnalytics', () => {
       expect(Logger.error).toHaveBeenCalledWith(error, {
         tags: { feature: 'vba-kyc', event: 'KYC Verification Updated' },
       });
+    });
+  });
+
+  describe('trackKycStatusUpdated', () => {
+    it('tracks KYC Status Updated with the new and previous status', () => {
+      trackKycStatusUpdated({
+        previousKycStatus: 'pending',
+        kycStatus: 'approved',
+        providerFlowStatus: 'submitted',
+      });
+
+      const event = mockTrackEvent.mock.calls[0][0];
+      expect(event.name).toBe('KYC Status Updated');
+      expect(event.properties).toStrictEqual({
+        ...BASE_PROPERTIES,
+        kyc_status: 'approved',
+        provider_flow_status: 'submitted',
+        previous_kyc_status: 'pending',
+      });
+    });
+
+    it('omits previous_kyc_status the first time a status is stored', () => {
+      trackKycStatusUpdated({
+        kycStatus: 'new',
+        providerFlowStatus: 'not_started',
+      });
+
+      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
+        'previous_kyc_status',
+      );
+    });
+
+    it('logs instead of throwing when tracking fails', () => {
+      mockTrackEvent.mockImplementationOnce(() => {
+        throw new Error('tracking failed');
+      });
+
+      expect(() => trackKycStatusUpdated({ kycStatus: 'new' })).not.toThrow();
+      expect(Logger.error).toHaveBeenCalledTimes(1);
     });
   });
 });
