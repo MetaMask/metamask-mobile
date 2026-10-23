@@ -1,7 +1,7 @@
 export interface ChartCandleSkeletonProps {
   /**
    * Height of the chart box. Callers pass the chart height so the placeholder
-   * occupies the same space.
+   * occupies the same space. Defaults to the Perps market-details chart height.
    */
   height?: number;
   /** Root test ID. */
