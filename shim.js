@@ -336,6 +336,15 @@ if (enableApiCallLogs || isTestEnvironment) {
     ];
 
     const shouldBypassProxy = (targetUrl) => {
+      // data: URLs (and any other non-HTTP URL) are local. decodeBase64 loads
+      // bytes with fetch("data:..."), and the mock proxy cannot serve that.
+      if (
+        typeof targetUrl === 'string' &&
+        !targetUrl.startsWith('http://') &&
+        !targetUrl.startsWith('https://')
+      ) {
+        return true;
+      }
       if (!isPerformanceTestBuild) {
         return false;
       }
