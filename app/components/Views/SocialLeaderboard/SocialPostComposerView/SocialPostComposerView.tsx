@@ -541,7 +541,7 @@ const SocialPostComposerView: React.FC = () => {
         >
           <ScrollView
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
+            contentContainerStyle={tw.style('px-4 pt-6 pb-4 gap-4')}
             keyboardShouldPersistTaps="always"
             keyboardDismissMode={
               Platform.OS === 'ios' ? 'interactive' : 'on-drag'
