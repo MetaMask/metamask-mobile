@@ -50,6 +50,7 @@ describe('BalanceBreakdownSection', () => {
       expect.objectContaining({
         accountGroupBalanceProps: {},
         children,
+        contentLayoutDuration: AnimationDuration.Regularly,
         hideRows: true,
       }),
     );

@@ -75,7 +75,10 @@ const BalanceBreakdownSection = ({
           paddingBottom={1}
           testID={BALANCE_BREAKDOWN_SECTION_TEST_ID}
         >
-          <HomepageBalanceBreakdown {...props} />
+          <HomepageBalanceBreakdown
+            {...props}
+            contentLayoutDuration={layoutDuration}
+          />
         </Box>
       </Animated.View>
     </Box>
