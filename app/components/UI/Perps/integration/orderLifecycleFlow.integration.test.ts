@@ -1343,6 +1343,7 @@ describe('Perps order lifecycle — FLOW integration', () => {
         maxSlippageBps: 300,
         limitPrice: '81625',
         providerId: 'hyperliquid',
+        trackingData: { totalFee: 0, marketPrice: 81_625, source: 'test' },
       });
 
       // Act
