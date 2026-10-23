@@ -61,7 +61,7 @@ const PasswordResetWarningSheet = ({
       onClose={onDismiss}
       testID={PasswordResetWarningSheetSelectorsIDs.SHEET}
     >
-      <Box gap={3} twClassName="px-4">
+      <Box gap={4} twClassName="px-4">
         <TitleAlert
           severity={IconAlertSeverity.Danger}
           title={strings('choose_password.password_warning_title')}

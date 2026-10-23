@@ -54,6 +54,7 @@ const ManualBackupConfirmErrorSheet = ({
           titleProps={{
             testID: ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_TITLE,
           }}
+          twClassName="pt-6"
         />
         <Text
           variant={TextVariant.BodyMd}
