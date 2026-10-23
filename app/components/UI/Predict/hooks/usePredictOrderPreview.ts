@@ -154,10 +154,9 @@ export function usePredictOrderPreview(
     useCallback(async (): Promise<RefetchPreviewResult> => {
       const result = await refetch();
       if (result.isError) {
-        if (isPredictNoMatchError(result.error)) {
-          return { status: 'no_match' };
-        }
-        return { status: 'unavailable' };
+        return isPredictNoMatchError(result.error)
+          ? { status: 'no_match' }
+          : { status: 'unavailable' };
       }
       if (!result.data) {
         return { status: 'unavailable' };

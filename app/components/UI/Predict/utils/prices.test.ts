@@ -8,7 +8,7 @@ import {
   getDisplayBuyPrice,
   getPredictBuyPrice,
   getPredictMidPrice,
-  getPredictPriceConsent,
+  isPredictPriceWithinOneTick,
   getPredictTicksWorse,
 } from './prices';
 
@@ -236,60 +236,60 @@ describe('getPredictTicksWorse', () => {
   });
 });
 
-describe('getPredictPriceConsent', () => {
-  it('grants consent for a better or equal sell price', () => {
+describe('isPredictPriceWithinOneTick', () => {
+  it('accepts a better or equal sell price', () => {
     expect(
-      getPredictPriceConsent({
+      isPredictPriceWithinOneTick({
         side: Side.SELL,
         approvedPrice: 0.65,
         refreshedPrice: 0.65,
         tickSize: 0.01,
       }),
-    ).toEqual({ ticksWorse: 0, withinOneTick: true });
+    ).toBe(true);
   });
 
-  it('grants consent for exactly one tick worse', () => {
+  it('accepts exactly one tick worse', () => {
     expect(
-      getPredictPriceConsent({
+      isPredictPriceWithinOneTick({
         side: Side.SELL,
         approvedPrice: 0.65,
         refreshedPrice: 0.64,
         tickSize: 0.01,
       }),
-    ).toEqual({ ticksWorse: 1, withinOneTick: true });
+    ).toBe(true);
   });
 
-  it('denies consent beyond one tick', () => {
+  it('rejects a move beyond one tick', () => {
     expect(
-      getPredictPriceConsent({
+      isPredictPriceWithinOneTick({
         side: Side.SELL,
         approvedPrice: 0.65,
         refreshedPrice: 0.62,
         tickSize: 0.01,
       }),
-    ).toEqual({ ticksWorse: 3, withinOneTick: false });
+    ).toBe(false);
   });
 
   it('measures with the fresh tick size on a finer book', () => {
     // 2 ticks of 0.001 stays within one tick only when measured honestly.
     expect(
-      getPredictPriceConsent({
+      isPredictPriceWithinOneTick({
         side: Side.SELL,
         approvedPrice: 0.1,
         refreshedPrice: 0.098,
         tickSize: 0.001,
       }),
-    ).toEqual({ ticksWorse: 2, withinOneTick: false });
+    ).toBe(false);
   });
 
   it('treats a higher price as worse for a buy', () => {
     expect(
-      getPredictPriceConsent({
+      isPredictPriceWithinOneTick({
         side: Side.BUY,
         approvedPrice: 0.6,
         refreshedPrice: 0.63,
         tickSize: 0.01,
       }),
-    ).toEqual({ ticksWorse: 3, withinOneTick: false });
+    ).toBe(false);
   });
 });

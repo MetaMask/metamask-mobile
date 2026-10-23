@@ -3892,7 +3892,6 @@ describe('polymarket utils', () => {
       outcomeId:
         '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       outcomeTokenId: 'token-1',
-      side: Side.SELL,
       size: 80,
       approvedPrice: 0.5,
       slippage: 0.05,
@@ -3972,6 +3971,7 @@ describe('polymarket utils', () => {
         bandFloorPrice: 0.48,
         worstExecutablePrice: 0.48,
         tickSize: 0.01,
+        isOutsideApprovedBand: false,
       });
     });
 
@@ -4142,64 +4142,6 @@ describe('polymarket utils', () => {
       const result = await previewExecutionOrder(executionSellParams);
 
       expect(result).toEqual({ status: 'unavailable' });
-    });
-
-    it('classifies a buy against the 3% band and reports shares received', async () => {
-      // 0.50 × 1.03 = 0.515 → band ceiling 0.51; both asks are in band.
-      mockFetch
-        .mockResolvedValueOnce({
-          ok: true,
-          json: jest.fn().mockResolvedValue(
-            createExecutionBook({
-              asks: [
-                { price: '0.51', size: '100' },
-                { price: '0.50', size: '100' },
-              ],
-            }),
-          ),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: jest.fn().mockResolvedValue({ tags: [] }),
-        });
-
-      const result = await previewExecutionOrder({
-        ...executionSellParams,
-        side: Side.BUY,
-        size: 50, // dollars to spend
-        slippage: 0.03,
-      });
-
-      expect(result.status).toBe('executable');
-      if (result.status !== 'executable') {
-        throw new Error('expected an executable result');
-      }
-
-      // $50 at the best 0.50 ask: 100 shares received.
-      expect(result.preview).toEqual(
-        expect.objectContaining({
-          side: Side.BUY,
-          sharePrice: 0.5,
-          maxAmountSpent: 50,
-          minAmountReceived: 100,
-          slippage: 0.03,
-          tickSize: 0.01,
-          fees: expect.objectContaining({
-            totalFee: 0,
-          }),
-        }),
-      );
-      expect(result.execution).toEqual(
-        expect.objectContaining({
-          requestedSize: 50,
-          executableSize: 50,
-          approvedPrice: 0.5,
-          refreshedPrice: 0.5,
-          bandFloorPrice: 0.51,
-          worstExecutablePrice: 0.5,
-          tickSize: 0.01,
-        }),
-      );
     });
   });
 

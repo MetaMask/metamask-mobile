@@ -149,7 +149,7 @@ jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
 
 let mockRetryNotice: {
   variant: 'no_match';
-  quote: null;
+  preview: null;
   previousPrice: null;
 } | null = null;
 const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
@@ -823,7 +823,7 @@ describe('PredictBuyWithAnyToken', () => {
       mockIsOrderNotFilled = true;
       mockRetryNotice = {
         variant: 'no_match',
-        quote: null,
+        preview: null,
         previousPrice: null,
       };
 

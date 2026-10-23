@@ -141,7 +141,6 @@ describe('usePredictSellExecution', () => {
         marketId: 'market-1',
         outcomeId: 'outcome-1',
         outcomeTokenId: 'token-1',
-        side: Side.SELL,
         size: 10,
         approvedPrice: 0.5,
         slippage: SELL_SLIPPAGE,
@@ -192,6 +191,7 @@ describe('usePredictSellExecution', () => {
         refreshedPrice: 0.49,
         worstExecutablePrice: 0.47,
         bandFloorPrice: 0.47,
+        isOutsideApprovedBand: true,
       }),
     });
     mockPreviewExecutionOrder.mockResolvedValueOnce(moved);
@@ -1027,7 +1027,7 @@ describe('usePredictSellExecution', () => {
       expect(onOpenBottomSheet).not.toHaveBeenCalled();
       expect(result.current.executionNotice).toEqual({
         variant: 'price_moved',
-        quote: expectedCandidate(moved.preview, 4.6),
+        preview: expectedCandidate(moved.preview, 4.6),
         previousPrice: 0.5,
         expectedSize: moved.execution.executableSize,
       });

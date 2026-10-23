@@ -2909,53 +2909,6 @@ export const previewOrder = async (
   return orderPreview;
 };
 
-/**
- * Applies the CLOB market fee and per-dollar service fees to a BUY preview.
- * Shared by the ordinary buy preview and the execution preview so both fee
- * models stay identical.
- */
-function withBuyPreviewFees({
-  preview,
-  marketInfo,
-  effectiveFeesPerDollar,
-  originalFeesPerDollar,
-}: {
-  preview: OrderPreview;
-  marketInfo?: ClobMarketInfo;
-  effectiveFeesPerDollar: PredictFees;
-  originalFeesPerDollar?: PredictFees;
-}): OrderPreview {
-  const makerAmount = preview.maxAmountSpent;
-  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
-  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
-  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
-  const fees = {
-    ...effectiveFeesPerDollar,
-    metamaskFee,
-    providerFee,
-    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
-    marketFee,
-  };
-  const originalFees = originalFeesPerDollar
-    ? {
-        ...fees,
-        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
-        totalFee:
-          Math.round(
-            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
-              1000000,
-          ) / 1000000,
-        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
-      }
-    : undefined;
-
-  return {
-    ...preview,
-    fees,
-    ...(originalFees ? { originalFees } : {}),
-  };
-}
-
 const isPolymarketRequestTimeout = (error: unknown): boolean =>
   error instanceof PolymarketRequestTimeoutError ||
   (error instanceof Error && error.name === PolymarketRequestTimeoutError.name);
@@ -2964,7 +2917,7 @@ const isNoOrderBookError = (error: unknown): boolean =>
   error instanceof Error &&
   error.message === PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK;
 
-interface BuildExecutionPreviewParams {
+interface BuildExecutableSellPreviewParams {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
@@ -2979,55 +2932,6 @@ interface BuildExecutionPreviewParams {
   roundConfig: RoundConfig;
   tickSize: number;
   depth: PredictExecutionDepth;
-}
-
-async function buildExecutableBuyPreview({
-  marketId,
-  outcomeId,
-  outcomeTokenId,
-  approvedPrice,
-  size,
-  slippage,
-  feeCollection,
-  feePolicy,
-  book,
-  marketInfo,
-  roundConfig,
-  tickSize,
-  depth,
-}: BuildExecutionPreviewParams): Promise<OrderPreview> {
-  const makerAmount = roundDown(size, roundConfig.size);
-  const calculatedFees = await calculateFees({
-    feeCollection,
-    feePolicy,
-    marketId,
-    userBetAmount: 1,
-  });
-  const preview: OrderPreview = {
-    marketId,
-    outcomeId,
-    outcomeTokenId,
-    timestamp: new Date(book.timestamp).getTime(),
-    side: Side.BUY,
-    sharePrice: depth.refreshedPrice ?? approvedPrice,
-    maxAmountSpent: makerAmount,
-    minAmountReceived: roundOrderAmount({
-      amount: depth.grossAmount,
-      decimals: roundConfig.amount,
-    }),
-    slippage,
-    tickSize,
-    minOrderSize: parseFloat(book.min_order_size),
-    negRisk: book.neg_risk,
-    feeRateBps: '0',
-  };
-
-  return withBuyPreviewFees({
-    preview,
-    marketInfo,
-    effectiveFeesPerDollar: calculatedFees.fees,
-    originalFeesPerDollar: calculatedFees.originalFees,
-  });
 }
 
 async function buildExecutableSellPreview({
@@ -3045,7 +2949,7 @@ async function buildExecutableSellPreview({
   roundConfig,
   tickSize,
   depth,
-}: BuildExecutionPreviewParams): Promise<OrderPreview> {
+}: BuildExecutableSellPreviewParams): Promise<OrderPreview> {
   const makerAmount = roundDown(size, roundConfig.size);
   const expectedProceeds = roundOrderAmount({
     amount: depth.grossAmount,
@@ -3095,10 +2999,10 @@ async function buildExecutableSellPreview({
 }
 
 /**
- * Pre-submit execution preview: validates one freshly fetched order book
+ * Pre-submit sell execution preview: validates one freshly fetched order book
  * against the price and slippage band the user approved, and builds the
  * signable preview from that same snapshot when the full requested size is
- * executable inside the band.
+ * executable.
  *
  * Expected market outcomes are typed, never thrown: insufficient in-band depth
  * (including an empty book or a missing orderbook) is `no_match` and carries
@@ -3118,7 +3022,6 @@ export const previewExecutionOrder = async (
     marketId,
     outcomeId,
     outcomeTokenId,
-    side,
     size,
     approvedPrice,
     slippage,
@@ -3167,15 +3070,12 @@ export const previewExecutionOrder = async (
       tickSize: book.tick_size,
     });
     const numericTickSize = parseFloat(tickSize);
-    const levels = ((side === Side.SELL ? book.bids : book.asks) ?? []).map(
-      (level) => ({
-        price: parseFloat(level.price),
-        size: parseFloat(level.size),
-      }),
-    );
+    const levels = (book.bids ?? []).map((level) => ({
+      price: parseFloat(level.price),
+      size: parseFloat(level.size),
+    }));
 
     const depth = resolvePredictExecutionDepth({
-      side,
       approvedPrice,
       slippage,
       tickSize: numericTickSize,
@@ -3196,6 +3096,7 @@ export const previewExecutionOrder = async (
         ? { worstExecutablePrice: depth.worstExecutablePrice }
         : {}),
       tickSize: numericTickSize,
+      isOutsideApprovedBand: depth.isOutsideApprovedBand,
     };
 
     if (!depth.isFullyExecutable) {
@@ -3207,7 +3108,7 @@ export const previewExecutionOrder = async (
       };
     }
 
-    const previewParams: BuildExecutionPreviewParams = {
+    const orderPreview = await buildExecutableSellPreview({
       marketId,
       outcomeId,
       outcomeTokenId,
@@ -3222,11 +3123,7 @@ export const previewExecutionOrder = async (
       roundConfig,
       tickSize: numericTickSize,
       depth,
-    };
-    const orderPreview =
-      side === Side.BUY
-        ? await buildExecutableBuyPreview(previewParams)
-        : await buildExecutableSellPreview(previewParams);
+    });
 
     const fetchedAt = Date.now();
     return {
@@ -3346,13 +3243,34 @@ function buildBuyPreviewFromContext({
     negRisk: book.neg_risk,
     feeRateBps: '0',
   };
+  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
+  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
+  const fees = {
+    ...effectiveFeesPerDollar,
+    metamaskFee,
+    providerFee,
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+    marketFee,
+  };
+  const originalFees = originalFeesPerDollar
+    ? {
+        ...fees,
+        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
+        totalFee:
+          Math.round(
+            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
+              1000000,
+          ) / 1000000,
+        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
+      }
+    : undefined;
 
-  return withBuyPreviewFees({
-    preview,
-    marketInfo,
-    effectiveFeesPerDollar,
-    originalFeesPerDollar,
-  });
+  return {
+    ...preview,
+    fees,
+    ...(originalFees ? { originalFees } : {}),
+  };
 }
 
 const getBuyAllInCostInCents = (preview: OrderPreview): number =>

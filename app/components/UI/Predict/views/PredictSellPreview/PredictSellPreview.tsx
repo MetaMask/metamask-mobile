@@ -59,6 +59,7 @@ import {
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet, {
   PredictOrderRetryNotice,
+  type PredictOrderRetryNoticeProps,
 } from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -293,14 +294,29 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   }, [cashPnl]);
 
   // In sheet mode the retry and pre-submit states show inline, and Cash Out
-  // runs their next step.
+  // runs their next step. A post-failure retry state wins over a pre-submit one.
+  let inlineState: {
+    notice: Omit<PredictOrderRetryNoticeProps, 'onDismiss'>;
+    onPrimary: () => Promise<void>;
+    onDismiss: () => void;
+  } | null = null;
+  if (retryNotice) {
+    inlineState = {
+      notice: retryNotice,
+      onPrimary: handleRetryPrimary,
+      onDismiss: resetOrderNotFilled,
+    };
+  } else if (executionNotice) {
+    inlineState = {
+      notice: executionNotice,
+      onPrimary: handleExecutionPrimary,
+      onDismiss: handleExecutionDismiss,
+    };
+  }
+
   const isBusy = isLoading || isExecuting || isRetrying;
   const handleCashOutPress = () => {
-    if (retryNotice) {
-      void handleRetryPrimary();
-      return;
-    }
-    void (isSheetMode ? handleExecutionPrimary() : handleCashOut());
+    void (inlineState ? inlineState.onPrimary() : handleCashOut());
   };
 
   // Cash Out runs the pre-submit execution flow (PRED-484): the displayed
@@ -314,10 +330,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       isFullWidth
-      isDisabled={
-        isBusy ||
-        (!retryNotice && !executionNotice && (!preview || !!previewError))
-      }
+      isDisabled={isBusy || (!inlineState && (!preview || !!previewError))}
       isLoading={isBusy}
       loadingText={strings('predict.order.cashing_out_loading')}
       onPress={handleCashOutPress}
@@ -517,23 +530,11 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               feePolicyDiscountType={preview?.feePolicy?.discountType}
               handleFeesInfoPress={handleFeesInfoPress}
             />
-            {retryNotice ? (
+            {inlineState && (
               <PredictOrderRetryNotice
-                variant={retryNotice.variant}
-                preview={retryNotice.quote}
-                previousPrice={retryNotice.previousPrice}
-                onDismiss={resetOrderNotFilled}
+                {...inlineState.notice}
+                onDismiss={inlineState.onDismiss}
               />
-            ) : (
-              executionNotice && (
-                <PredictOrderRetryNotice
-                  variant={executionNotice.variant}
-                  preview={executionNotice.quote}
-                  previousPrice={executionNotice.previousPrice}
-                  expectedSize={executionNotice.expectedSize}
-                  onDismiss={handleExecutionDismiss}
-                />
-              )
             )}
             <View style={styles.cashOutButtonContainer}>
               {renderCashOutButton()}

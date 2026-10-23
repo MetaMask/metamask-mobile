@@ -655,9 +655,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           )}
           {retryNotice && (
             <PredictOrderRetryNotice
-              variant={retryNotice.variant}
-              preview={retryNotice.quote}
-              previousPrice={retryNotice.previousPrice}
+              {...retryNotice}
               onDismiss={resetOrderNotFilled}
             />
           )}

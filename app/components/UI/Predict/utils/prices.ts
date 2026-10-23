@@ -45,23 +45,13 @@ export const getPredictTicksWorse = ({
   return Math.floor((worseDelta + Number.EPSILON) / tickSize);
 };
 
-export interface PredictPriceConsent {
-  /** Whole ticks the fresh price is worse than the approved price. */
-  ticksWorse: number;
-  /**
-   * True when the fresh price is better, equal, or at most one tick worse —
-   * the one-tick noise band that submits without an extra confirmation.
-   */
-  withinOneTick: boolean;
-}
-
 /**
- * Classifies a fresh displayed price against the price the user approved, by
- * side, using the fresh book's tick size. Shared by the initial pre-submit
- * execution flow and the retry flow so both apply the identical one-tick
- * consent rule.
+ * True when a fresh displayed price is better, equal, or at most one tick
+ * worse than the price the user approved — the one-tick noise band that
+ * submits without an extra confirmation. Shared by the initial pre-submit
+ * execution flow and the retry flow so both apply the identical rule.
  */
-export const getPredictPriceConsent = ({
+export const isPredictPriceWithinOneTick = ({
   side,
   approvedPrice,
   refreshedPrice,
@@ -71,15 +61,13 @@ export const getPredictPriceConsent = ({
   approvedPrice: number;
   refreshedPrice: number;
   tickSize: number;
-}): PredictPriceConsent => {
-  const ticksWorse = getPredictTicksWorse({
+}): boolean =>
+  getPredictTicksWorse({
     side,
     referencePrice: approvedPrice,
     freshPrice: refreshedPrice,
     tickSize,
-  });
-  return { ticksWorse, withinOneTick: ticksWorse <= 1 };
-};
+  }) <= 1;
 
 /**
  * Price to display on a BUY CTA from an already-priced token: the best ask

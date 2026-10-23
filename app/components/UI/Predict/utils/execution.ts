@@ -30,7 +30,7 @@ export const isPredictExecutionPreviewStale = (
 ): boolean => now - preview.fetchedAt > PREDICT_EXECUTION_PREVIEW_MAX_AGE_MS;
 
 /**
- * A single normalized order-book level for execution-depth calculations.
+ * A single normalized order-book bid for execution-depth calculations.
  * `price` is a dollar price per share; `size` is shares at that price.
  */
 export interface PredictExecutionLevel {
@@ -39,10 +39,9 @@ export interface PredictExecutionLevel {
 }
 
 export interface PredictExecutionBandFloorParams {
-  side: Side;
   /** Displayed share price the user approved; the band is measured from it. */
   approvedPrice: number;
-  /** Approved slippage band: 0.05 (sell) / 0.03 (buy). */
+  /** Approved sell slippage band, e.g. 0.05. */
   slippage: number;
   /** Market tick size from the fresh book; valid prices are multiples of it. */
   tickSize: number;
@@ -50,15 +49,9 @@ export interface PredictExecutionBandFloorParams {
 
 export interface PredictExecutionDepthParams
   extends PredictExecutionBandFloorParams {
-  /**
-   * Size the user asked to execute. Unit matches the side: shares to sell for
-   * SELL, dollars to spend for BUY.
-   */
+  /** Shares the user asked to sell. */
   requestedSize: number;
-  /**
-   * Book levels on the order's side: bids for SELL, asks for BUY. Order does
-   * not matter; the best level is consumed first.
-   */
+  /** Bid levels of the book. Order does not matter; the best bid is consumed first. */
   levels: PredictExecutionLevel[];
 }
 
@@ -68,23 +61,27 @@ export interface PredictExecutionDepthParams
  * amounts, the UI decision, and analytics cannot disagree.
  */
 export interface PredictExecutionDepth {
-  /** Unit matches the side: SELL shares, BUY dollars. */
   requestedSize: number;
-  /** Same unit as `requestedSize`; how much is executable inside the band. */
+  /** Shares executable inside the band. */
   executableSize: number;
-  /** Worst price still inside the approved band: SELL floor, BUY ceiling. */
+  /** Lowest bid still inside the band. */
   bandFloorPrice: number;
   /**
-   * Best book level price regardless of band, matching the preview's
-   * displayed share-price convention. Null when no valid level exists.
+   * Best bid regardless of band, matching the preview's displayed
+   * share-price convention. Null when no valid bid exists.
    */
   refreshedPrice: number | null;
-  /** Deepest in-band level consumed while filling; null when nothing consumed. */
+  /** Deepest in-band bid consumed while filling; null when nothing consumed. */
   worstExecutablePrice: number | null;
-  /** SELL: gross dollar proceeds of the in-band fill. BUY: shares received. */
+  /** Gross dollar proceeds of the in-band fill. */
   grossAmount: number;
-  /** True only when the entire requested size fills inside the approved band. */
+  /** True only when the entire requested size fills inside the band. */
   isFullyExecutable: boolean;
+  /**
+   * True when the band was measured from the refreshed price because the
+   * approved band could not fill: the fill goes below the approved band.
+   */
+  isOutsideApprovedBand: boolean;
 }
 
 /**
@@ -108,34 +105,19 @@ const roundUpToTick = (price: number, tickSize: number): number => {
   return snapped * tickSize;
 };
 
-const roundDownToTick = (price: number, tickSize: number): number => {
-  const ticks = price / tickSize;
-  const nearest = Math.round(ticks);
-  const snapped =
-    Math.abs(ticks - nearest) <= TICK_SNAP_EPSILON
-      ? nearest
-      : Math.floor(ticks);
-  return snapped * tickSize;
-};
-
 /**
- * Worst price still inside the approved slippage band, rounded to a valid
- * tick. For SELL the exact floor `approvedPrice × (1 − slippage)` is rounded
- * UP to the next tick so a lower bid is never counted due to rounding; for
- * BUY the ceiling `approvedPrice × (1 + slippage)` is rounded DOWN for the
- * same guarantee. Falls back to the unrounded boundary when the tick size is
- * not usable, so an invalid tick never widens the band.
+ * Lowest bid still inside the approved sell slippage band, rounded to a valid
+ * tick. The exact floor `approvedPrice × (1 − slippage)` is rounded UP to the
+ * next tick so a lower bid is never counted due to rounding. Falls back to
+ * the unrounded floor when the tick size is not usable, so an invalid tick
+ * never widens the band.
  */
 export function getPredictExecutionBandFloorPrice({
-  side,
   approvedPrice,
   slippage,
   tickSize,
 }: PredictExecutionBandFloorParams): number {
-  const rawFloor =
-    side === Side.SELL
-      ? approvedPrice * (1 - slippage)
-      : approvedPrice * (1 + slippage);
+  const rawFloor = approvedPrice * (1 - slippage);
 
   if (!Number.isFinite(rawFloor) || rawFloor <= 0) {
     return rawFloor;
@@ -143,23 +125,19 @@ export function getPredictExecutionBandFloorPrice({
   if (!Number.isFinite(tickSize) || tickSize <= 0) {
     return rawFloor;
   }
-  return side === Side.SELL
-    ? roundUpToTick(rawFloor, tickSize)
-    : roundDownToTick(rawFloor, tickSize);
+  return roundUpToTick(rawFloor, tickSize);
 }
 
 /**
- * Accumulates executable depth from one order-book snapshot, counting only
- * levels inside the approved band. Levels are consumed best-first, so SELL
- * `grossAmount` is the dollar proceeds and BUY `grossAmount` the shares
- * received for filling as much of the requested size as the band allows.
- * A partial in-band fill is reported (`executableSize` below
- * `requestedSize`, `isFullyExecutable` false) — never as a signable order,
- * because partial cash out is out of scope: the caller classifies it as
- * `no_match`.
+ * Accumulates executable sell depth from one order-book snapshot, counting
+ * only bids inside the approved band. Bids are consumed best-first, so
+ * `grossAmount` is the dollar proceeds for filling as much of the requested
+ * size as the band allows. A partial in-band fill is reported
+ * (`executableSize` below `requestedSize`, `isFullyExecutable` false) — never
+ * as a signable order, because partial cash out is out of scope: the caller
+ * classifies it as `no_match`.
  */
 export function calculatePredictExecutionDepth({
-  side,
   approvedPrice,
   slippage,
   tickSize,
@@ -168,18 +146,16 @@ export function calculatePredictExecutionDepth({
 }: PredictExecutionDepthParams): PredictExecutionDepth {
   const validLevels = levels.filter(isValidLevel);
 
-  const refreshedPrice =
-    side === Side.SELL
-      ? validLevels.reduce<number | null>(
-          (best, level) =>
-            best === null || level.price > best ? level.price : best,
-          null,
-        )
-      : validLevels.reduce<number | null>(
-          (best, level) =>
-            best === null || level.price < best ? level.price : best,
-          null,
-        );
+  const refreshedPrice = validLevels.reduce<number | null>(
+    (best, level) => (best === null || level.price > best ? level.price : best),
+    null,
+  );
+
+  const bandFloorPrice = getPredictExecutionBandFloorPrice({
+    approvedPrice,
+    slippage,
+    tickSize,
+  });
 
   const hasValidRequest =
     Number.isFinite(requestedSize) &&
@@ -192,35 +168,18 @@ export function calculatePredictExecutionDepth({
     return {
       requestedSize: Number.isFinite(requestedSize) ? requestedSize : 0,
       executableSize: 0,
-      bandFloorPrice: getPredictExecutionBandFloorPrice({
-        side,
-        approvedPrice,
-        slippage,
-        tickSize,
-      }),
+      bandFloorPrice,
       refreshedPrice,
       worstExecutablePrice: null,
       grossAmount: 0,
       isFullyExecutable: false,
+      isOutsideApprovedBand: false,
     };
   }
 
-  const bandFloorPrice = getPredictExecutionBandFloorPrice({
-    side,
-    approvedPrice,
-    slippage,
-    tickSize,
-  });
-
   const inBand = validLevels
-    .filter((level) =>
-      side === Side.SELL
-        ? level.price >= bandFloorPrice - PRICE_COMPARISON_EPSILON
-        : level.price <= bandFloorPrice + PRICE_COMPARISON_EPSILON,
-    )
-    .sort((a, b) =>
-      side === Side.SELL ? b.price - a.price : a.price - b.price,
-    );
+    .filter((level) => level.price >= bandFloorPrice - PRICE_COMPARISON_EPSILON)
+    .sort((a, b) => b.price - a.price);
 
   let remaining = requestedSize;
   let executableSize = 0;
@@ -231,17 +190,10 @@ export function calculatePredictExecutionDepth({
     if (remaining <= FILL_EPSILON) {
       break;
     }
-    if (side === Side.SELL) {
-      const shares = Math.min(level.size, remaining);
-      executableSize += shares;
-      grossAmount += shares * level.price;
-      remaining -= shares;
-    } else {
-      const dollars = Math.min(level.size * level.price, remaining);
-      executableSize += dollars;
-      grossAmount += dollars / level.price;
-      remaining -= dollars;
-    }
+    const shares = Math.min(level.size, remaining);
+    executableSize += shares;
+    grossAmount += shares * level.price;
+    remaining -= shares;
     worstExecutablePrice = level.price;
   }
 
@@ -253,32 +205,29 @@ export function calculatePredictExecutionDepth({
     worstExecutablePrice,
     grossAmount,
     isFullyExecutable: remaining <= FILL_EPSILON,
+    isOutsideApprovedBand: false,
   };
 }
 
 /**
  * Execution depth for a pre-submit validation. The band is measured from the
- * approved price first. When the book moved against the user and that band
- * cannot fill the full size, the band is measured again from the refreshed
- * price: a moved price that is fully executable then asks for confirmation
- * instead of reporting no match. The caller never auto-submits a fill below
- * the approved band. On low prices the tick-rounded band is only a tick or two wide,
- * so without this a small move could never reach the confirmation.
+ * approved price first. When the price dropped and that band cannot fill the
+ * full size, the band is measured again from the refreshed price: a moved
+ * price that is fully executable is then marked `isOutsideApprovedBand`, so
+ * the caller asks for confirmation instead of reporting no match. On low
+ * prices the tick-rounded band is only a tick or two wide, so without this a
+ * small move could never reach the confirmation.
  */
 export function resolvePredictExecutionDepth(
   params: PredictExecutionDepthParams,
 ): PredictExecutionDepth {
   const approvedDepth = calculatePredictExecutionDepth(params);
   const { refreshedPrice } = approvedDepth;
-  if (approvedDepth.isFullyExecutable || refreshedPrice === null) {
-    return approvedDepth;
-  }
-
-  const movedAgainstUser =
-    params.side === Side.SELL
-      ? refreshedPrice < params.approvedPrice - PRICE_COMPARISON_EPSILON
-      : refreshedPrice > params.approvedPrice + PRICE_COMPARISON_EPSILON;
-  if (!movedAgainstUser) {
+  if (
+    approvedDepth.isFullyExecutable ||
+    refreshedPrice === null ||
+    refreshedPrice >= params.approvedPrice - PRICE_COMPARISON_EPSILON
+  ) {
     return approvedDepth;
   }
 
@@ -286,7 +235,9 @@ export function resolvePredictExecutionDepth(
     ...params,
     approvedPrice: refreshedPrice,
   });
-  return refreshedDepth.isFullyExecutable ? refreshedDepth : approvedDepth;
+  return refreshedDepth.isFullyExecutable
+    ? { ...refreshedDepth, isOutsideApprovedBand: true }
+    : approvedDepth;
 }
 
 /**
@@ -299,7 +250,6 @@ export function withPredictSellBandFloorFromSharePrice(
   preview: OrderPreview,
 ): OrderPreview {
   const bandFloorPrice = getPredictExecutionBandFloorPrice({
-    side: Side.SELL,
     approvedPrice: preview.sharePrice,
     slippage: preview.slippage,
     tickSize: preview.tickSize,

@@ -12,7 +12,7 @@ import type {
   PredictBuyAttempt,
   PredictRetryOrderState,
 } from '../types';
-import { getPredictPriceConsent } from '../utils/prices';
+import { isPredictPriceWithinOneTick } from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
 import { formatSlippageBand } from '../utils/format';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
@@ -108,16 +108,14 @@ function classifyFreshQuote(
       return { outcome: 'unavailable' };
     case 'ok': {
       const freshPreview = fetchResult.preview;
-      const consent =
-        referencePrice === undefined
-          ? null
-          : getPredictPriceConsent({
-              side: freshPreview.side,
-              approvedPrice: referencePrice,
-              refreshedPrice: freshPreview.sharePrice,
-              tickSize: freshPreview.tickSize,
-            });
-      const movedBeyondOneTick = consent ? !consent.withinOneTick : false;
+      const movedBeyondOneTick =
+        referencePrice !== undefined &&
+        !isPredictPriceWithinOneTick({
+          side: freshPreview.side,
+          approvedPrice: referencePrice,
+          refreshedPrice: freshPreview.sharePrice,
+          tickSize: freshPreview.tickSize,
+        });
       return {
         outcome: 'quoted',
         quote: freshPreview,
@@ -434,7 +432,7 @@ export function usePredictOrderRetry({
     retrySheetVariant !== 'busy'
       ? {
           variant: retrySheetVariant,
-          quote: retryQuote,
+          preview: retryQuote,
           previousPrice: retryPreviousPrice,
         }
       : null;

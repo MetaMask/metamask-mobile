@@ -643,9 +643,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           />
           {isSheetMode && retryNotice && (
             <PredictOrderRetryNotice
-              variant={retryNotice.variant}
-              preview={retryNotice.quote}
-              previousPrice={retryNotice.previousPrice}
+              {...retryNotice}
               onDismiss={handleRetryDismiss}
             />
           )}

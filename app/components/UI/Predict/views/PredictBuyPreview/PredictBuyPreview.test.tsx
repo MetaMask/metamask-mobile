@@ -64,7 +64,7 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
 
 let mockRetryNotice: {
   variant: 'no_match';
-  quote: null;
+  preview: null;
   previousPrice: null;
 } | null = null;
 const mockHandleRetryPrimary = jest.fn();
@@ -2424,7 +2424,7 @@ describe('PredictBuyPreview', () => {
       mockIsOrderNotFilled = true;
       mockRetryNotice = {
         variant: 'no_match',
-        quote: null,
+        preview: null,
         previousPrice: null,
       };
 

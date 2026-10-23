@@ -4,3 +4,4 @@ export type {
   PredictOrderRetrySheetVariant,
 } from './PredictOrderRetrySheet';
 export { default as PredictOrderRetryNotice } from './PredictOrderRetryNotice';
+export type { PredictOrderRetryNoticeProps } from './PredictOrderRetryNotice';

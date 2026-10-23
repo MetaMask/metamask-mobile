@@ -1977,15 +1977,15 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Pre-submit execution preview: validates a fresh order book against the
-   * user's approved displayed price and slippage band immediately before
+   * Pre-submit sell execution preview: validates a fresh order book against
+   * the user's approved displayed price and slippage band immediately before
    * submission. Expected market outcomes (insufficient in-band depth, empty
    * book) come back typed as `no_match` — never thrown — so the caller can
    * show recovery UI without parsing error strings. Only an `executable`
    * result carries a signable, execution-marked preview.
    *
-   * For sells, the submission pre-flight (fee policy, market state, query
-   * cache refresh, claimable position) runs here, before the book fetch, so
+   * The submission pre-flight (fee policy, market state, query cache
+   * refresh, claimable position) runs here, before the book fetch, so
    * that `placeOrder` can skip it and the signing freshness window covers
    * only work that depends on the book. A failed pre-flight throws the same
    * error code that `placeOrder` would have thrown.
@@ -1998,12 +1998,8 @@ export class PredictController extends BaseController<
       const signer = this.getSigner();
       const [paramsWithFeePolicy] = await Promise.all([
         this.withPredictFeePolicy(params),
-        ...(params.side === Side.SELL
-          ? [
-              validateMarketBettable({ provider, preview: params }),
-              this.invalidateQueryCache(provider.chainId),
-            ]
-          : []),
+        validateMarketBettable({ provider, preview: params }),
+        this.invalidateQueryCache(provider.chainId),
       ]);
 
       return await provider.previewExecutionOrder({
@@ -2021,7 +2017,7 @@ export class PredictController extends BaseController<
         ensureError(error),
         this.getErrorContext('previewExecutionOrder', {
           providerId: POLYMARKET_PROVIDER_ID,
-          side: params.side,
+          side: Side.SELL,
           marketId: params.marketId,
           outcomeId: params.outcomeId,
         }),

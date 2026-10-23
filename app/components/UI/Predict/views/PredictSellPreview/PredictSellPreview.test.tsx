@@ -616,7 +616,6 @@ describe('PredictSellPreview', () => {
           marketId: 'market-1',
           outcomeId: 'outcome-456',
           outcomeTokenId: 'outcome-token-789',
-          side: 'SELL',
           size: 100,
           approvedPrice: 0.5,
           positionId: 'position-1',

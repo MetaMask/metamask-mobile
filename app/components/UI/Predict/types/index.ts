@@ -901,20 +901,19 @@ export interface PreviewOrderParams {
 }
 
 /**
- * Input to the pre-submit execution-preview operation: the normal preview
- * identity plus the execution intent the user approved — the displayed price
- * and slippage band the fresh book is validated against. `size` follows the
- * side's convention: shares to sell for SELL, dollars to spend for BUY.
+ * Input to the pre-submit sell execution-preview operation: the normal
+ * preview identity plus the execution intent the user approved — the
+ * displayed price and slippage band the fresh book is validated against.
  */
 export interface PreviewExecutionOrderParams {
   marketId: string;
   outcomeId: string;
   outcomeTokenId: string;
-  side: Side;
+  /** Shares to sell. */
   size: number;
   /** Displayed share price when the user approved the order; band and consent measure from it. */
   approvedPrice: number;
-  /** Approved slippage band carried by the preview the user approved (0.05 sell / 0.03 buy). */
+  /** Approved slippage band carried by the preview the user approved. */
   slippage: number;
   feePolicy?: PredictFeePolicy;
   positionId?: string;
@@ -944,20 +943,24 @@ export interface PredictExecutionMetadata {
   fetchedAt: number;
   /** Exchange timestamp of the order-book snapshot the preview was built from. */
   sourceBookTimestamp?: number;
-  /** Unit matches the side: SELL shares, BUY dollars. */
+  /** Shares to sell. */
   requestedSize: number;
-  /** Same unit as `requestedSize`; how much is executable inside the band. */
+  /** Shares executable inside the band. */
   executableSize: number;
   /** Displayed share price the user approved; the band is measured from it. */
   approvedPrice: number;
-  /** Best book level price (displayed-price convention) from the fresh book. */
+  /** Best bid (displayed-price convention) from the fresh book. */
   refreshedPrice?: number;
   /**
-   * Worst price still inside the slippage band, rounded to a valid tick: the
-   * lowest acceptable bid for SELL, the highest acceptable ask for BUY.
+   * Lowest bid still inside the slippage band, rounded to a valid tick.
    * Absent when no order book exists, because there is no tick to round to.
    */
   bandFloorPrice?: number;
+  /**
+   * True when the full size fills only from a band measured from the
+   * refreshed price, below the approved band. Never auto-submitted.
+   */
+  isOutsideApprovedBand?: boolean;
   /** Deepest in-band book level consumed while filling the requested size. */
   worstExecutablePrice?: number;
   /**

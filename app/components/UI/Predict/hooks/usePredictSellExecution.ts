@@ -16,11 +16,8 @@ import type {
 } from '../components/PredictOrderRetrySheet';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { PredictRetrySubmitOutcome } from './usePredictOrderRetry';
-import { getPredictPriceConsent } from '../utils/prices';
-import {
-  getPredictExecutionBandFloorPrice,
-  withPredictSellBandFloorFromSharePrice,
-} from '../utils/execution';
+import { isPredictPriceWithinOneTick } from '../utils/prices';
+import { withPredictSellBandFloorFromSharePrice } from '../utils/execution';
 import {
   acquirePredictSellExecutionLock,
   releasePredictSellExecutionLock,
@@ -121,7 +118,6 @@ type SettledClassification = Exclude<
 type ExecutionFlowResult =
   | { kind: 'placed'; outcome: PlaceOrderOutcome }
   | { kind: 'settled'; classification: SettledClassification }
-  | { kind: 'stale_again' }
   | { kind: 'obsolete' };
 
 interface UsePredictSellExecutionParams {
@@ -168,9 +164,6 @@ const EXECUTION_SHEET_VARIANTS: Partial<
   timeout: 'timeout',
   unavailable: 'quote_unavailable',
 };
-
-/** Absorbs float drift when a book price is compared with a tick-rounded floor. */
-const BAND_COMPARISON_EPSILON = 1e-9;
 
 /** Stable pre-submit decision value for one classification. */
 const getPreSubmitDecision = (
@@ -229,6 +222,34 @@ const getReconfirmOutcome = (
   }
 };
 
+const getClassificationExecution = (
+  classification: ExecutionClassification,
+): PredictExecutionMetadata | null =>
+  'execution' in classification ? classification.execution : null;
+
+/** Execution facts shared by the decision and dismissal analytics. */
+const getExecutionAnalyticsFacts = ({
+  execution,
+  size,
+  baselinePrice,
+  slippage,
+}: {
+  execution: PredictExecutionMetadata | null;
+  size: number;
+  baselinePrice: number | null;
+  slippage: number | null;
+}) => ({
+  quoteAgeMs: execution ? Date.now() - execution.fetchedAt : undefined,
+  requestedSize: size,
+  executableSize: execution?.executableSize,
+  approvedPrice: baselinePrice ?? undefined,
+  refreshedPrice: execution?.refreshedPrice,
+  worstExecutablePrice: execution?.worstExecutablePrice,
+  bandFloorPrice: execution?.bandFloorPrice,
+  tickSize: execution?.tickSize,
+  slippageBand: slippage === null ? undefined : formatSlippageBand(slippage),
+});
+
 /**
  * Emits the pre-submit decision on the existing Predict order lifecycle
  * event: the classification together with the exact facts it was decided
@@ -251,8 +272,6 @@ const trackPreSubmitDecision = ({
   origin: ExecutionFlowOrigin;
   classification: ExecutionClassification;
 }): void => {
-  const execution: PredictExecutionMetadata | null =
-    'execution' in classification ? classification.execution : null;
   void Engine.context.PredictController.trackPredictOrderEvent({
     status: PredictTradeStatus.PRESUBMIT_DECIDED,
     analyticsProperties,
@@ -261,15 +280,12 @@ const trackPreSubmitDecision = ({
       classification.outcome === 'confirm'
         ? classification.preview.sharePrice
         : undefined,
-    quoteAgeMs: execution ? Date.now() - execution.fetchedAt : undefined,
-    requestedSize: size,
-    executableSize: execution?.executableSize,
-    approvedPrice: baselinePrice,
-    refreshedPrice: execution?.refreshedPrice,
-    worstExecutablePrice: execution?.worstExecutablePrice,
-    bandFloorPrice: execution?.bandFloorPrice,
-    tickSize: execution?.tickSize,
-    slippageBand: formatSlippageBand(slippage),
+    ...getExecutionAnalyticsFacts({
+      execution: getClassificationExecution(classification),
+      size,
+      baselinePrice,
+      slippage,
+    }),
     preSubmitDecision: getPreSubmitDecision(classification),
     reconfirmOutcome: getReconfirmOutcome(classification, origin),
     ...((classification.outcome === 'no_match' ||
@@ -408,7 +424,6 @@ export function usePredictSellExecution({
           marketId,
           outcomeId,
           outcomeTokenId,
-          side: Side.SELL,
           size,
           approvedPrice: baselinePrice,
           slippage,
@@ -439,32 +454,20 @@ export function usePredictSellExecution({
           return { outcome: 'unavailable' };
         case 'executable': {
           const { execution } = result;
-          const tickSize = execution.tickSize ?? result.preview.tickSize;
-          const consent = getPredictPriceConsent({
+          const withinOneTick = isPredictPriceWithinOneTick({
             side: Side.SELL,
             approvedPrice: baselinePrice,
             refreshedPrice: execution.refreshedPrice ?? baselinePrice,
-            tickSize,
+            tickSize: execution.tickSize ?? result.preview.tickSize,
           });
-          // The full size can be executable only from a band measured from
-          // the refreshed price. A fill below the approved band is never
-          // auto-submitted, even within one tick.
-          const approvedBandFloor = getPredictExecutionBandFloorPrice({
-            side: Side.SELL,
-            approvedPrice: baselinePrice,
-            slippage,
-            tickSize,
-          });
-          const fillsOutsideApprovedBand =
-            execution.worstExecutablePrice !== undefined &&
-            execution.worstExecutablePrice <
-              approvedBandFloor - BAND_COMPARISON_EPSILON;
-          if (consent.withinOneTick && !fillsOutsideApprovedBand) {
+          // A fill below the approved band is never auto-submitted, even
+          // within one tick.
+          if (withinOneTick && !execution.isOutsideApprovedBand) {
             return { outcome: 'submit', preview: result.preview, execution };
           }
           return {
             outcome: 'confirm',
-            reason: consent.withinOneTick ? 'outside_band' : 'beyond_one_tick',
+            reason: withinOneTick ? 'outside_band' : 'beyond_one_tick',
             preview: withPredictSellBandFloorFromSharePrice(result.preview),
             execution,
           };
@@ -557,7 +560,11 @@ export function usePredictSellExecution({
           return { kind: 'placed', outcome };
         }
         if (staleRecoveryUsed) {
-          return { kind: 'stale_again' };
+          // A second stale rejection settles unavailable: never loop.
+          return {
+            kind: 'settled',
+            classification: { outcome: 'unavailable' },
+          };
         }
         // One bounded recovery: repeat validation + submission once against
         // the same user-approved baseline.
@@ -600,39 +607,21 @@ export function usePredictSellExecution({
 
   const settleSheet = useCallback(
     (classification: SettledClassification) => {
-      switch (classification.outcome) {
-        case 'blocked':
-          closeSheet();
-          setState({
-            ...IDLE_STATE,
-            error: toPreflightErrorMessage(classification.error),
-          });
-          return;
-        case 'confirm':
-          updateState({
-            status: 'confirm',
-            quote: classification.preview,
-            execution: classification.execution,
-            preSubmitDecision: getPreSubmitDecision(classification),
-          });
-          break;
-        case 'no_match':
-        case 'empty_book':
-          updateState({
-            status: classification.outcome,
-            quote: null,
-            execution: classification.execution,
-            preSubmitDecision: getPreSubmitDecision(classification),
-          });
-          break;
-        default:
-          updateState({
-            status: classification.outcome,
-            quote: null,
-            execution: null,
-            preSubmitDecision: getPreSubmitDecision(classification),
-          });
+      if (classification.outcome === 'blocked') {
+        closeSheet();
+        setState({
+          ...IDLE_STATE,
+          error: toPreflightErrorMessage(classification.error),
+        });
+        return;
       }
+      updateState({
+        status: classification.outcome,
+        quote:
+          classification.outcome === 'confirm' ? classification.preview : null,
+        execution: getClassificationExecution(classification),
+        preSubmitDecision: getPreSubmitDecision(classification),
+      });
       openSheet();
     },
     [closeSheet, openSheet, updateState],
@@ -682,10 +671,6 @@ export function usePredictSellExecution({
             // pre-submit flow settles and closes its sheet.
             closeSheet();
             settleIdle();
-            return;
-          case 'stale_again':
-            // A second stale rejection settles unavailable: never loop.
-            settleSheet({ outcome: 'unavailable' });
             return;
           case 'settled':
             settleSheet(result.classification);
@@ -824,18 +809,12 @@ export function usePredictSellExecution({
       void Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.PRESUBMIT_DISMISSED,
         analyticsProperties,
-        quoteAgeMs: execution ? Date.now() - execution.fetchedAt : undefined,
-        requestedSize: size,
-        executableSize: execution?.executableSize,
-        approvedPrice: baselinePrice ?? undefined,
-        refreshedPrice: execution?.refreshedPrice,
-        worstExecutablePrice: execution?.worstExecutablePrice,
-        bandFloorPrice: execution?.bandFloorPrice,
-        tickSize: execution?.tickSize,
-        slippageBand:
-          baselineSlippage === null
-            ? undefined
-            : formatSlippageBand(baselineSlippage),
+        ...getExecutionAnalyticsFacts({
+          execution,
+          size,
+          baselinePrice,
+          slippage: baselineSlippage,
+        }),
         preSubmitDecision,
         reconfirmOutcome: PredictEventValues.RECONFIRM_OUTCOME.DISMISSED,
       });
@@ -865,7 +844,7 @@ export function usePredictSellExecution({
     isSheetMode && settledVariant
       ? {
           variant: settledVariant,
-          quote: state.quote,
+          preview: state.quote,
           previousPrice: state.baselinePrice,
           expectedSize: state.execution?.executableSize ?? null,
         }

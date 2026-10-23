@@ -383,7 +383,7 @@ describe('usePredictOrderRetry', () => {
       expect(onOpen).not.toHaveBeenCalled();
       expect(result.current.retryNotice).toEqual({
         variant: 'confirm',
-        quote: expect.objectContaining({ sharePrice: 0.62 }),
+        preview: expect.objectContaining({ sharePrice: 0.62 }),
         previousPrice: null,
       });
     });

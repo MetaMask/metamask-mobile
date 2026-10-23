@@ -2369,15 +2369,13 @@ export class PolymarketProvider implements PredictProvider {
     // Position pre-flight runs before the book fetch so the signing
     // freshness window covers only work that depends on the book. An
     // execution-checked sell skips this check at submission.
-    if (params.side === Side.SELL) {
-      const { position: existingPosition } = await this.#findExistingPosition({
-        address: signer.address,
-        outcomeId: params.outcomeId,
-        outcomeTokenId: params.outcomeTokenId,
-      });
-      if (existingPosition?.claimable) {
-        throw new Error(PREDICT_CLAIMABLE_POSITION_ORDER_ERROR);
-      }
+    const { position: existingPosition } = await this.#findExistingPosition({
+      address: signer.address,
+      outcomeId: params.outcomeId,
+      outcomeTokenId: params.outcomeTokenId,
+    });
+    if (existingPosition?.claimable) {
+      throw new Error(PREDICT_CLAIMABLE_POSITION_ORDER_ERROR);
     }
 
     const result = await previewExecutionOrder({
