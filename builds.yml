@@ -34,7 +34,7 @@ _api_prod: &api_prod
   PRICE_ALERTS_API_URL: 'https://price-alerts.api.cx.metamask.io'
   COMPLIANCE_API_URL: 'https://compliance.api.cx.metamask.io'
   KYC_API_URL: 'https://kyc-api.api.cx.metamask.io'
-  IDOS_ENCLAVE_URL: 'https://enclave.idos.network'
+  IDOS_ENCLAVE_URL: 'https://enclave.tee.idos.network'
   IDOS_RELAY_URL: 'https://relay.idos.network'
   AUTH_SERVICE_URL: 'https://auth-service.api.cx.metamask.io'
   DIGEST_API_URL: 'https://digest.api.cx.metamask.io/api/v1'
@@ -122,6 +122,11 @@ _main_dev_env: &main_dev_env
   # TODO: Decouple configuration, profile, and build type
   PROFILE: 'development'
   DEV_OAUTH_CONFIG: 'true'
+  # The profile API is not live yet; the dev social API serves a
+  # Redis-backed stand-in under /api. Point back at the profile host once
+  # it ships.
+  PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
+  MM_PROFILE_API_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)
 _secrets: &secrets # Infrastructure
@@ -132,6 +137,7 @@ _secrets: &secrets # Infrastructure
   # API Keys
   MM_INFURA_PROJECT_ID: 'MM_INFURA_PROJECT_ID'
   WALLET_CONNECT_PROJECT_ID: 'WALLET_CONNECT_PROJECT_ID'
+  MM_KLIPY_API_KEY: 'MM_KLIPY_API_KEY'
   MM_FOX_CODE: 'MM_FOX_CODE'
   MM_BRANCH_KEY_LIVE: 'MM_BRANCH_KEY_LIVE'
   MM_BRANCH_KEY_TEST: 'MM_BRANCH_KEY_TEST'
@@ -484,11 +490,6 @@ builds:
     signing: *signing_dev
     env:
       <<: *main_dev_env
-      # The profile API is not live yet; the dev social API serves a
-      # Redis-backed stand-in under /api. Point back at the profile host once
-      # it ships.
-      PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
-      MM_PROFILE_API_ENABLED: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 

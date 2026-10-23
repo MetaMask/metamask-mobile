@@ -256,6 +256,7 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeDiscountKind,
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
@@ -530,6 +531,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
+                    feeDiscountKind,
                   }
                 : undefined
             }

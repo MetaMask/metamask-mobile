@@ -18,6 +18,39 @@ import { createAppiumLogger } from './appiumLogger.ts';
 
 const logger = createAppiumLogger('AppiumAssertions');
 
+export const matchesAccessibilityLabel = (
+  actualLabel: string,
+  expectedLabel: string,
+  exact = false,
+): boolean => {
+  const normalize = (value: string): string =>
+    value
+      .replace(/[\s,]+/g, ' ')
+      .trim()
+      .toLowerCase();
+
+  const normalizedActual = normalize(actualLabel);
+  const normalizedExpected = normalize(expectedLabel);
+  if (exact) {
+    return (
+      normalizedActual === normalizedExpected ||
+      actualLabel
+        .split(',')
+        .map((part) => normalize(part))
+        .every((part) => part === normalizedExpected)
+    );
+  }
+
+  if (normalizedActual.includes(normalizedExpected)) {
+    return true;
+  }
+
+  return expectedLabel
+    .split(',')
+    .map((part) => normalize(part))
+    .every((part) => part.length > 0 && normalizedActual.includes(part));
+};
+
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
 }
@@ -453,31 +486,16 @@ export default class AppiumAssertions {
   static async expectElementToHaveLabel(
     targetElement: AppiumElement | Promise<AppiumElement>,
     expectedLabel: string,
-    options: AssertionOptions = {},
+    options: AssertionOptions & { exact?: boolean } = {},
   ): Promise<void> {
     const timeout = this.getTimeout(options);
     const interval = 300;
     const start = Date.now();
     const el = await targetElement;
+    const { exact = false } = options;
 
-    const normalize = (value: string): string =>
-      value
-        .replace(/[\s,]+/g, ' ')
-        .trim()
-        .toLowerCase();
-
-    const matchesLabel = (actual: string): boolean => {
-      const normalizedActual = normalize(actual);
-      const normalizedExpected = normalize(expectedLabel);
-      if (normalizedActual.includes(normalizedExpected)) {
-        return true;
-      }
-
-      return expectedLabel
-        .split(',')
-        .map((part) => normalize(part))
-        .every((part) => part.length > 0 && normalizedActual.includes(part));
-    };
+    const matchesLabel = (actual: string): boolean =>
+      matchesAccessibilityLabel(actual, expectedLabel, exact);
 
     while (Date.now() - start < timeout) {
       const label = await this.getElementAccessibilityLabel(el);

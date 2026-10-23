@@ -118,6 +118,10 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  /** Rewards Money home, a sibling of REWARDS_DASHBOARD in the Rewards tab. */
+  REWARDS_MONEY_DASHBOARD: 'RewardsMoneyDashboard',
+  REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW:
+    'RewardsMoneyReferralAcceptedSplashView',
   REWARDS_VIP_SPLASH_VIEW: 'RewardsVipSplashView',
   REWARDS_VIP_VIEW: 'RewardsVipView',
   REWARDS_VIP_TIERS_VIEW: 'RewardsVipTiersView',
@@ -125,6 +129,9 @@ const Routes = {
   REWARDS_VIP_REFEREE_SPLASH_VIEW: 'RewardsVipRefereeSplashView',
   REWARDS_VIP_REFEREE_VIEW: 'RewardsVipRefereeView',
   REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
+  REWARDS_TRADING_COMMISSIONS_VIEW: 'RewardsTradingCommissionsView',
+  REWARDS_TRADING_REBATES_VIEW: 'RewardsTradingRebatesView',
+  REWARDS_EARNINGS_HISTORY_VIEW: 'RewardsEarningsHistoryView',
   REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
   REWARDS_ONDO_CAMPAIGN_WINNING_VIEW: 'RewardsOndoCampaignWinning',
   REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
@@ -191,6 +198,8 @@ const Routes = {
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
     REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET: 'EndOfSeasonClaimBottomSheet',
     REWARDS_SELECT_SHEET: 'RewardsSelectSheet',
+    REWARDS_MONEY_INVITE_SHEET: 'RewardsMoneyInviteSheet',
+    REWARDS_MONEY_TERMS_SHEET: 'RewardsMoneyTermsSheet',
     SUPPORT_CONSENT_SHEET: 'SupportConsentSheet',
   },
   ONBOARDING: {
@@ -428,6 +437,7 @@ const Routes = {
       SELECT_PROVIDER: 'PerpsSelectProvider',
       MODE_SELECTION: 'PerpsModeSelection',
       OUTREACH_DETAILS: 'PerpsOutreachDetails',
+      SHARE_POSITION: 'PerpsSharePosition',
     },
     POSITION_TRANSACTION: 'PerpsPositionTransaction',
     ORDER_TRANSACTION: 'PerpsOrderTransaction',

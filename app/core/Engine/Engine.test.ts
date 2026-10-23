@@ -63,7 +63,9 @@ jest.mock('../../store', () => ({
         },
       },
     })),
-    subscribe: jest.fn(),
+    // Redux's subscribe returns an unsubscribe function. BackendWebSocketService
+    // calls it from Engine.destroy, so a bare jest.fn() fails the whole suite.
+    subscribe: jest.fn(() => jest.fn()),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({

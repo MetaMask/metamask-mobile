@@ -79,9 +79,10 @@ export const LIMIT_ORDER_DEFAULT_SLIPPAGE = String(
 
 /**
  * Cost tolerance in % that limit orders start with until the user picks
- * another value.
+ * another value, used when the `swapsLimitOrder.defaultPriceTolerance` remote
+ * flag is missing or invalid.
  */
-export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '2';
+export const LIMIT_ORDER_DEFAULT_COST_TOLERANCE = '3';
 
 export const SWAPS_LIMIT_ORDER_EXPIRATION_OPTIONS_MINUTES = [
   10, 60, 1440, 4320, 10080, 43200,
@@ -126,7 +127,8 @@ export const getSwapsLimitOrderExpirationLabel = (
 
 export const LIMIT_ORDER_DEFAULT_METAMASK_FEE = 0.875;
 
-export const LIMIT_ORDER_METAMASK_FEE_LEARN_MORE_URL = 'https://metamask.io/';
+export const LIMIT_ORDER_METAMASK_FEE_LEARN_MORE_URL =
+  'https://support.metamask.io/trade/metamask-fees/';
 
 export const LIMIT_ORDERS_STALE_TIME = 60 * 60 * 1000;
 export const LIMIT_ORDERS_PAGE_LIMIT = 20;

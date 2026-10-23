@@ -438,6 +438,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
             thresholdVersion: 2,
             value: {
               enabled: true,
+              tabConfigOrder: ['feed', 'holders', 'overview', 'security'],
+              tokenApiBaseUrl: 'https://token.api.cx.metamask.io',
+              priceApiBaseUrl: 'https://price.api.cx.metamask.io',
             },
           },
         ],
@@ -4626,9 +4629,9 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  // Not in the production client-config response yet. inProd stays false so
-  // the weekly registry sync does not treat this as removed from production.
-  // A missing, disabled, or empty value allows no region.
+  // Production client-config snapshot. chooseCurrency is absent until the
+  // chooser is turned on, and a missing value reads as false. A country in
+  // regions with no regionCurrencies entry uses defaultCurrency.
   moneyMovementNeobank: {
     name: 'moneyMovementNeobank',
     type: FeatureFlagType.Remote,
@@ -4983,6 +4986,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '8.17.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  exploreBrandRefresh: {
+    name: 'exploreBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.18.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5631,6 +5645,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rampsOffRampNonEvm: {
+    name: 'rampsOffRampNonEvm',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rampsServiceDisruptionModal: {
     name: 'rampsServiceDisruptionModal',
     type: FeatureFlagType.Remote,
@@ -6086,6 +6111,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  tokenDetailsBrandRefresh: {
+    name: 'tokenDetailsBrandRefresh',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.18.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 

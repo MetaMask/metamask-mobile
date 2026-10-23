@@ -396,6 +396,16 @@ describeForPlatforms('ActivityScreen', () => {
         lineaTx,
       ])
         .withOverrides(activityLineaNetworkOverride)
+        // The All-filter loader also waits on Predict. The flag defaults on
+        // when absent, and this test's accounts nock blocks that fetch, so
+        // the spinner can outlive the EVM rows. This case only asserts EVM
+        // network filtering.
+        .withRemoteFeatureFlags({
+          predictTradingEnabled: {
+            enabled: false,
+            minimumVersion: '0.0.0',
+          },
+        })
         .build();
 
       const { getByTestId, findByTestId, queryByTestId } =
