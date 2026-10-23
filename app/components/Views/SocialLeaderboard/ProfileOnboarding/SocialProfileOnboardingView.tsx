@@ -319,6 +319,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const insets = useSafeAreaInsets();
+  // Zero the insets this screen already accounts for. MarketingMoment pads
+  // from this context, so a second top or bottom inset would lift the actions.
   const introInsets = useMemo(
     () => ({ top: 0, bottom: 0, left: insets.left, right: insets.right }),
     [insets.left, insets.right],

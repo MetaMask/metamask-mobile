@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " and ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "Powered by",
       "button": "Get account details"
     },
@@ -2991,14 +2993,8 @@
       "tabs": {
         "overview": "Overview",
         "feed": "Feed",
-        "top_traders": "Top traders"
+        "top_traders": "Holders"
       },
-      "top_traders_timeframe": {
-        "7d": "This week",
-        "30d": "This month"
-      },
-      "top_traders_scope": "Ranked across all Perps markets",
-      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -10656,9 +10652,9 @@
     "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
-    "account_already_exists": "Wallet already exists",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
-    "account_already_exists_telegram_description": "A wallet is already linked to this Telegram account. Do you want to unlock this wallet?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "Log in",
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
@@ -11648,9 +11644,9 @@
       "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
-      "title": "Sign in to your card",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Finish updating your card",
-      "description": "Sign in to manage your MetaMask Card.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Checking how your card was set up.",
       "description_resume": "Continue where you left off. This account stays linked to your card.",
       "auth_prompt_info": "Log in to your card account to access this feature.",
