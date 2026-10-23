@@ -634,7 +634,9 @@ function NeobankBankTransferDetailsContent({
             {/* No "You deposited" / amount until mUSD is on-chain — this
                 NeoBank detail is only for in-flight VBA deposits. */}
             <Text color={TextColor.TextAlternative}>
-              {strings('money.transaction.depositing')}
+              {failed
+                ? strings('money.transaction.deposit_failed')
+                : strings('money.transaction.depositing')}
             </Text>
             <Box twClassName="flex-row items-center gap-3">
               <Image

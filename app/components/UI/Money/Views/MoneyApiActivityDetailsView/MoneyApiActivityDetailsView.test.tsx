@@ -722,6 +722,9 @@ describe('MoneyApiActivityDetailsView', () => {
         getAllByText('money.transaction.depositing').length,
       ).toBeGreaterThan(0);
       expect(
+        queryByText('money.transaction.deposit_failed'),
+      ).not.toBeOnTheScreen();
+      expect(
         queryByText('money.api_activity_details.you_deposited'),
       ).not.toBeOnTheScreen();
       expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
@@ -734,6 +737,23 @@ describe('MoneyApiActivityDetailsView', () => {
       ).toBeOnTheScreen();
       expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
       expect(getAllByText('transaction.pending').length).toBeGreaterThan(0);
+    });
+
+    it('shows failed hero copy and failure steps for failed transfers', () => {
+      const failedNeobank: NeobankBankTransferActivity = {
+        ...pendingNeobank,
+        status: 'Failed',
+      };
+      mockRouteParams = { neobankActivity: failedNeobank };
+
+      const { getAllByText, getAllByTestId, getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getAllByText('money.transaction.deposit_failed')).toHaveLength(2);
+      expect(queryByText('money.transaction.depositing')).not.toBeOnTheScreen();
+      expect(getByText('money.transaction.failed')).toBeOnTheScreen();
+      expect(getAllByTestId('progress-list-item-error')).toHaveLength(2);
     });
 
     it('marks Bank transfer complete and Money deposit pending after MoonPay Completed', () => {
