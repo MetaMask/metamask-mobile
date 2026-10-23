@@ -149,7 +149,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pb-8')}
+          contentContainerStyle={tw.style('flex-grow pt-[12px] pb-8')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}
@@ -161,6 +161,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             onOpenFilters={onOpenFilters}
             isFilterActive={isFilterActive}
             filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+            twClassName="px-4 pb-4"
           >
             <FilterButton
               isSelected

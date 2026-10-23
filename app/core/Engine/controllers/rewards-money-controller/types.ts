@@ -110,8 +110,12 @@ export type ReferralLocalizedTextKey =
   | 'claimed'
   | 'claimSuccessToast'
   | 'last7Days'
-  | 'recordedEarningsLabel'
+  | 'totalEarningsLabel'
   | 'breakdown'
+  | 'breakdownTrading'
+  | 'breakdownTradingDescription'
+  | 'breakdownReferralsDescription'
+  | 'breakdownSocialDescription'
   | 'tradingRebates'
   | 'history'
   | 'historyReferrals'
@@ -124,7 +128,7 @@ export type ReferralLocalizedTextKey =
   | 'copyLink'
   | 'messages'
   | 'telegram'
-  | 'last30DaysUpdatedDaily'
+  | 'updatedDaily'
   | 'eligibleFees'
   | 'funnelCodeUses'
   | 'funnelCodeUsesDescription'
@@ -202,6 +206,11 @@ export type ReferralMeDto = {
   localized_text: ReferralLocalizedText;
   /** Null when Contentful has no invite hero synced. */
   invite_hero: ThemeImage | null;
+  /**
+   * Program-scoped ISO 3166-1 alpha-2 codes excluded from accepting an invite.
+   * Always present from the API; treat missing as `[]` for older cached payloads.
+   */
+  excluded_regions: string[];
 };
 
 /** `GET /referral/me/funnel` */
@@ -489,7 +498,24 @@ export interface RegisterRefereeDto {
   code: string;
 }
 
-export interface GetEarningsSummaryDto {
+/**
+ * Optional narrowing for `GET /earnings/summary`.
+ *
+ * A window (`from`/`to`, UTC `YYYY-MM-DD`, closed on both ends) is only valid
+ * with `includeClaimable: false`. Claimability is what a claim would pay right
+ * now, so the server refuses it beside a window rather than mixing the two.
+ */
+export interface EarningsSummaryQuery {
+  from?: string;
+  to?: string;
+  /**
+   * When false, the response omits `claimable`, `held` and `blocked`.
+   * Defaults to true, matching the server.
+   */
+  includeClaimable?: boolean;
+}
+
+export interface GetEarningsSummaryDto extends EarningsSummaryQuery {
   originTypes?: EarningOriginType[];
   forceFresh?: boolean;
 }
