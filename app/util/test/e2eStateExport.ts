@@ -6,6 +6,7 @@ import { getCommandQueueServerPortInApp } from './utils';
 const REDACTED_VALUE = '[redacted]';
 const SECRET_VALUE_KEYS = new Set([
   'accesstoken',
+  'authtoken',
   'bearertoken',
   'encryptedkeyringencryptionkey',
   'encryptedseedlessencryptionkey',

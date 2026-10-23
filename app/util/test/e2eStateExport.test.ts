@@ -141,6 +141,40 @@ describe('e2eStateExport', () => {
       expect(result.redux).toEqual({ settings: { name: 'test' } });
     });
 
+    it('omits an opaque node auth token from the raw export', () => {
+      mockedGetState.mockReturnValue({
+        settings: {},
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              nodeAuthTokens: [
+                {
+                  nodeIndex: 1,
+                  nodePubKey: 'e2e-node-pub-key',
+                  authToken: 'opaque-secret',
+                },
+              ],
+            },
+          },
+        },
+      });
+
+      const result = captureAppState();
+
+      expect(result.engine).toEqual({
+        SeedlessOnboardingController: {
+          nodeAuthTokens: [
+            {
+              nodeIndex: 1,
+              nodePubKey: 'e2e-node-pub-key',
+              authToken: null,
+            },
+          ],
+        },
+      });
+      expect(JSON.stringify(result)).not.toContain('opaque-secret');
+    });
+
     it('omits authentication tokens and wallet secrets from exported state', () => {
       mockedGetState.mockReturnValue(stateWithSecrets());
 
