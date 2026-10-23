@@ -1,3 +1,4 @@
+import type { AccountCreateErrorDestinationId } from './accountCreateError';
 import {
   EMPTY_VBA_ONBOARDING_SNAPSHOT,
   type VbaOnboardingSnapshot,
@@ -11,6 +12,7 @@ export type VbaOnboardingDestinationId =
   | 'kycPending'
   | 'kycRejected'
   | 'accountProvisioningError'
+  | AccountCreateErrorDestinationId
   | 'error'
   | 'complete';
 

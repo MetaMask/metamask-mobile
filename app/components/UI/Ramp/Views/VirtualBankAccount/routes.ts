@@ -37,6 +37,7 @@ export type VbaOnboardingParamList = {
     variant: AccountCreateErrorVariant;
     failure?: AccountCreateFailureFields;
     sourceCurrency?: VbaSourceCurrency;
+    retryable?: boolean;
   };
   VbaError: undefined;
 };

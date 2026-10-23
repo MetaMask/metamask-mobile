@@ -86,6 +86,24 @@ describe('VbaAccountCreateErrorAdapter', () => {
     expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
   });
 
+  it('retries a recoverable setup failure without an HTTP status', () => {
+    mockRouteParams = {
+      variant: 'generic',
+      sourceCurrency: 'BRL',
+      retryable: true,
+    };
+    const props = renderAdapter();
+
+    props.onPrimary();
+
+    expect(props.primaryActionType).toBe('retry');
+    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(
+      mockNavigation,
+      'BRL',
+    );
+    expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['generic without status', { variant: 'generic' }, 'generic'],
     [

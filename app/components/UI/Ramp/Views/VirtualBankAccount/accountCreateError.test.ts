@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import {
   AccountCreateRegistrationError,
@@ -10,10 +11,13 @@ import {
   getAccountCreateResultFromError,
   getAccountCreateResultFromResponse,
   isAccountCreateErrorDestination,
+  logAccountCreateFailure,
   type AccountCreateRegistrationResult,
   type AccountCreateHttpStatus,
   type FiatAddressStatus,
 } from './accountCreateError';
+
+jest.mock('../../../../../util/Logger', () => ({ error: jest.fn() }));
 
 const http = (status: AccountCreateHttpStatus, traceId?: string) =>
   ({ kind: 'http', status, ...(traceId ? { traceId } : {}) }) as const;
@@ -130,6 +134,40 @@ describe('accountCreateError', () => {
     const fields = httpStatus === undefined ? undefined : { httpStatus };
 
     expect(getAccountCreateErrorPrimaryAction(fields)).toBe(action);
+  });
+
+  describe('logAccountCreateFailure', () => {
+    beforeEach(() => jest.clearAllMocks());
+
+    it('logs safe fields and skips non-error statuses', () => {
+      expect(
+        logAccountCreateFailure({
+          ...http(500, 'trace-1'),
+          body: 'account number 123456',
+        } as AccountCreateRegistrationResult),
+      ).toBe(ACCOUNT_CREATE_ERROR_DESTINATION.generic);
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        httpStatus: 500,
+        traceId: 'trace-1',
+      });
+      expect(
+        JSON.stringify(jest.mocked(Logger.error).mock.calls),
+      ).not.toContain('123456');
+
+      jest.clearAllMocks();
+      expect(logAccountCreateFailure(fiat('RegistrationPending'))).toBeNull();
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
+    it('logs fiat failures', () => {
+      expect(logAccountCreateFailure(fiat('AuthorizationFailed'))).toBe(
+        ACCOUNT_CREATE_ERROR_DESTINATION.details,
+      );
+      expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), {
+        httpStatus: 200,
+        fiatStatus: 'AuthorizationFailed',
+      });
+    });
   });
 
   describe('safe support fields', () => {
