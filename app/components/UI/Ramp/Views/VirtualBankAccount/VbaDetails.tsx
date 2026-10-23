@@ -55,6 +55,8 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import { openAsOnlyOnboardingRoute } from './hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from './routes';
 import VbaCreatingAccount from './VbaCreatingAccount';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
@@ -184,6 +186,8 @@ const buildDetailRows = (
  */
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const navigationRef = useRef(navigation);
+  navigationRef.current = navigation;
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
@@ -236,6 +240,7 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const openedVendorTermsRef = useRef(false);
   const accountKeyRef = useRef(
     `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
   );
@@ -303,6 +308,19 @@ const VbaDetails = () => {
           sourceCurrency,
         );
         if (!autoramp) {
+          if (outcome === 'signings_required') {
+            // MoonPay is waiting on a terms document this wallet has not
+            // accepted. One redirect per visit; polling keeps trying to create
+            // the account after those terms are stored.
+            if (!openedVendorTermsRef.current) {
+              openedVendorTermsRef.current = true;
+              openAsOnlyOnboardingRoute(
+                navigationRef.current,
+                VbaOnboardingRoutes.VENDOR_TERMS,
+              );
+            }
+            return;
+          }
           setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setSetupFailed(outcome === 'failed');
           setIsTerminal(outcome === 'terminal');
@@ -391,6 +409,7 @@ const VbaDetails = () => {
     accountKeyRef.current = nextKey;
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
+    openedVendorTermsRef.current = false;
     setInstructions(null);
     setLoadError(false);
     setSetupFailed(false);
@@ -472,6 +491,7 @@ const VbaDetails = () => {
 
   const handleRetrySetup = useCallback(() => {
     pollingDoneRef.current = false;
+    openedVendorTermsRef.current = false;
     setSetupFailed(false);
     setLoadError(false);
     setAwaitingProviderApproval(false);
