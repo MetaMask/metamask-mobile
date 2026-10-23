@@ -216,13 +216,6 @@ const VbaEmailAdapter = () => {
       style={tw.style('flex-1 bg-default')}
       testID={VbaEmailAdapterSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{
-          testID: VbaEmailAdapterSelectorsIDs.BACK_BUTTON,
-        }}
-        includesTopInset
-      />
       <Box
         twClassName="flex-1"
         alignItems={BoxAlignItems.Center}
