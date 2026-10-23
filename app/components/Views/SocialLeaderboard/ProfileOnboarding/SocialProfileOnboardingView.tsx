@@ -503,7 +503,16 @@ const SocialProfileOnboardingView: React.FC = () => {
     try {
       const profileId =
         (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
-      await createProfile(buildCreateProfileParams(draft, profileId));
+      const linkedAccount = accounts.find(
+        (account) => account.id === draft.linkedAccountId,
+      );
+      await createProfile(
+        buildCreateProfileParams(
+          draft,
+          profileId,
+          linkedAccount?.linkedAddresses,
+        ),
+      );
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
       navigation.navigate(
         draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
@@ -515,7 +524,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [createProfile, draft, navigation]);
+  }, [accounts, createProfile, draft, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);

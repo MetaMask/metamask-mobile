@@ -369,6 +369,15 @@ function mapImmersveStatus(
   }
 }
 
+/** Minor-unit amounts arrive as numeric strings. `"0"` is present but not a charge. */
+function hasNonZeroMinorAmount(amount?: string): amount is string {
+  if (!amount) {
+    return false;
+  }
+  const numeric = Number(amount);
+  return Number.isFinite(numeric) && numeric !== 0;
+}
+
 function mapImmersveType(
   paymentType: ImmersveTransactionRaw['paymentType'],
 ): CardTransactionType {
@@ -1231,7 +1240,7 @@ export class ImmersveProvider implements ICardProvider {
       },
       originalAmount:
         raw.acquirerCurrency &&
-        raw.acquirerAmount &&
+        hasNonZeroMinorAmount(raw.acquirerAmount) &&
         raw.acquirerCurrency !== billingCurrency
           ? {
               value: minorUnitsToDecimal(
