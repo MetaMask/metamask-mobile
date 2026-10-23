@@ -9,15 +9,39 @@ import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
  * `PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT`. Callers pass the chart
  * height; this default keeps an omitted height aligned with the market-details
  * chart. UI/Charts does not import Perps.
+ *
+ * The root also uses `flex: 1`. A sized parent (chart overlay) wins, so the
+ * skeleton fills that box. An unsized parent keeps this height, so the 350px
+ * detail chart does not collapse.
  */
 const DEFAULT_CHART_HEIGHT = 350;
 
-/** Price plot. Chosen to match the loaded detail chart at 350px. */
+/**
+ * Pixel basis of the price plot at {@link DEFAULT_CHART_HEIGHT}. Marks are
+ * stored in these pixels and rendered as a percentage of the pane, so a 350px
+ * root (volume band + 32px time row) still lands on the same pixels.
+ */
 const PRICE_PANE_HEIGHT = 250;
-/** Volume band under the candles. */
+/**
+ * Volume band at {@link DEFAULT_CHART_HEIGHT}. 68/350 of the root, which is
+ * 68/(350-32) ≈ 21% of the panes above the time row — the loaded chart's
+ * ~20–22% volume band.
+ */
 const VOLUME_PANE_HEIGHT = 68;
-/** Time-axis row. 250 + 68 + 32 is the default chart height. */
+/** Time-axis row. Stays 32px at every chart height. */
 const TIME_PANE_HEIGHT = 32;
+
+/**
+ * Share of `part` within `whole`, as a Yoga percentage length.
+ * Six decimal places drops binary float noise and still lands on the source pixel.
+ */
+const percentOf = (part: number, whole: number): `${number}%` => {
+  const rounded = Math.round((part / whole) * 100 * 1e6) / 1e6;
+  return `${rounded}%` as `${number}%`;
+};
+
+/** Volume row height. At 350px this is still {@link VOLUME_PANE_HEIGHT}. */
+const VOLUME_PANE_PERCENT = percentOf(VOLUME_PANE_HEIGHT, DEFAULT_CHART_HEIGHT);
 /** Right price-scale column. */
 const AXIS_WIDTH = 66;
 const BODY_WIDTH = 4;
@@ -48,8 +72,9 @@ interface CandleMark {
 }
 
 /**
- * 32 candle marks. Tops are pixels from the top of the price pane so the
- * series swings through the plot instead of sitting in one band.
+ * 32 candle marks. Tops and heights are pixels of the 250px price pane (volume
+ * heights are pixels of the 68px band). Render converts them to percentages of
+ * those panes.
  */
 const CANDLES: readonly CandleMark[] = [
   {
@@ -279,8 +304,9 @@ const CANDLES: readonly CandleMark[] = [
 ];
 
 /**
- * Candle-chart loading placeholder. Marks are fixed pixels in flex slots, so
- * the skeleton fills the chart box without measuring it. Grey shapes use the
+ * Candle-chart loading placeholder. The price pane flexes, the volume band is
+ * a percentage of the root, and the time row is fixed, so the skeleton matches
+ * the chart box at any height without measuring it. Grey shapes use the
  * design-system Skeleton pulse.
  */
 const ChartCandleSkeleton = ({
@@ -295,6 +321,7 @@ const ChartCandleSkeleton = ({
       testID={testID}
       twClassName="w-full overflow-hidden"
       style={{
+        flex: 1,
         height,
         backgroundColor: colors.background.default,
       }}
@@ -302,16 +329,16 @@ const ChartCandleSkeleton = ({
       <Box
         testID={`${testID}-price`}
         twClassName="flex-row"
-        style={{ height: PRICE_PANE_HEIGHT }}
+        style={{ flex: 1, overflow: 'hidden' }}
       >
-        <Box style={{ flex: 1, height: PRICE_PANE_HEIGHT }}>
+        <Box style={{ flex: 1, height: '100%' }}>
           {HORIZONTAL_GRID.map((line, index) => (
             <Box
               key={`grid-h-${line.lineTop}`}
               testID={`${testID}-grid-h-${index}`}
               style={{
                 position: 'absolute',
-                top: line.lineTop,
+                top: percentOf(line.lineTop, PRICE_PANE_HEIGHT),
                 left: 0,
                 right: 0,
                 height: 1,
@@ -326,7 +353,7 @@ const ChartCandleSkeleton = ({
               top: 0,
               left: 0,
               right: 0,
-              height: PRICE_PANE_HEIGHT,
+              bottom: 0,
             }}
           >
             <Box style={{ flex: 1 }} />
@@ -340,7 +367,7 @@ const ChartCandleSkeleton = ({
                   testID={`${testID}-grid-v-${index}`}
                   style={{
                     width: 1,
-                    height: PRICE_PANE_HEIGHT,
+                    height: '100%',
                     backgroundColor: gridColor,
                   }}
                 />
@@ -348,28 +375,43 @@ const ChartCandleSkeleton = ({
               </Box>
             ))}
           </Box>
-          <Box twClassName="flex-row" style={{ height: PRICE_PANE_HEIGHT }}>
+          <Box
+            twClassName="flex-row"
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+          >
             {CANDLES.map((candle, index) => (
               <Box
                 key={`candle-slot-${index}`}
                 twClassName="flex-1 items-center"
-                style={{ height: PRICE_PANE_HEIGHT }}
+                style={{ height: '100%' }}
               >
                 <Box
                   twClassName="items-center"
-                  style={{ width: BODY_WIDTH, height: PRICE_PANE_HEIGHT }}
+                  style={{ width: BODY_WIDTH, height: '100%' }}
                 >
                   <Skeleton
                     testID={`${testID}-wick-${index}`}
                     width={WICK_WIDTH}
-                    height={candle.wickHeight}
-                    style={{ position: 'absolute', top: candle.wickTop }}
+                    height={percentOf(candle.wickHeight, PRICE_PANE_HEIGHT)}
+                    style={{
+                      position: 'absolute',
+                      top: percentOf(candle.wickTop, PRICE_PANE_HEIGHT),
+                    }}
                   />
                   <Skeleton
                     testID={`${testID}-candle-${index}`}
                     width={BODY_WIDTH}
-                    height={candle.bodyHeight}
-                    style={{ position: 'absolute', top: candle.bodyTop }}
+                    height={percentOf(candle.bodyHeight, PRICE_PANE_HEIGHT)}
+                    style={{
+                      position: 'absolute',
+                      top: percentOf(candle.bodyTop, PRICE_PANE_HEIGHT),
+                    }}
                   />
                 </Box>
               </Box>
@@ -378,17 +420,17 @@ const ChartCandleSkeleton = ({
         </Box>
         <Box
           testID={`${testID}-y-axis`}
-          style={{ width: AXIS_WIDTH, height: PRICE_PANE_HEIGHT }}
+          style={{ width: AXIS_WIDTH, height: '100%' }}
         >
           {HORIZONTAL_GRID.map((line, index) => (
             <Skeleton
               key={`y-pill-${line.pillTop}`}
               testID={`${testID}-y-pill-${index}`}
               width={Y_PILL_WIDTH}
-              height={Y_PILL_HEIGHT}
+              height={percentOf(Y_PILL_HEIGHT, PRICE_PANE_HEIGHT)}
               style={{
                 position: 'absolute',
-                top: line.pillTop,
+                top: percentOf(line.pillTop, PRICE_PANE_HEIGHT),
                 right: 8,
               }}
             />
@@ -399,33 +441,33 @@ const ChartCandleSkeleton = ({
       <Box
         testID={`${testID}-volume-band`}
         twClassName="flex-row items-end"
-        style={{ height: VOLUME_PANE_HEIGHT }}
+        style={{ height: VOLUME_PANE_PERCENT, flexShrink: 0 }}
       >
         <Box
           twClassName="flex-row items-end"
-          style={{ flex: 1, height: VOLUME_PANE_HEIGHT }}
+          style={{ flex: 1, height: '100%' }}
         >
           {CANDLES.map((candle, index) => (
             <Box
               key={`volume-slot-${index}`}
               twClassName="flex-1 items-center justify-end"
-              style={{ height: VOLUME_PANE_HEIGHT }}
+              style={{ height: '100%' }}
             >
               <Skeleton
                 testID={`${testID}-volume-${index}`}
                 width={BODY_WIDTH}
-                height={candle.volumeHeight}
+                height={percentOf(candle.volumeHeight, VOLUME_PANE_HEIGHT)}
               />
             </Box>
           ))}
         </Box>
-        <Box style={{ width: AXIS_WIDTH, height: VOLUME_PANE_HEIGHT }} />
+        <Box style={{ width: AXIS_WIDTH, height: '100%' }} />
       </Box>
 
       <Box
         testID={`${testID}-time-axis`}
         twClassName="flex-row items-center"
-        style={{ height: TIME_PANE_HEIGHT }}
+        style={{ height: TIME_PANE_HEIGHT, flexShrink: 0 }}
       >
         <Box
           twClassName="flex-row items-center"

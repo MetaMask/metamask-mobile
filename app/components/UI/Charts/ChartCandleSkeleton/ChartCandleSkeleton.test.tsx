@@ -8,6 +8,15 @@ const SKELETON_TEST_ID = 'chart-candle-skeleton';
 const CANDLE_COUNT = 32;
 const Y_PILL_COUNT = 6;
 const X_PILL_COUNT = 6;
+/** Pixel basis of the 350px detail chart. Percentages resolve back to these. */
+const DETAIL_CHART_HEIGHT = 350;
+const PRICE_PANE_HEIGHT = 250;
+const VOLUME_PANE_HEIGHT = 68;
+
+const percentOf = (part: number, whole: number): string => {
+  const rounded = Math.round((part / whole) * 100 * 1e6) / 1e6;
+  return `${rounded}%`;
+};
 
 const flatStyle = (style: unknown): Record<string, unknown> => {
   if (Array.isArray(style)) {
@@ -37,6 +46,7 @@ describe('ChartCandleSkeleton', () => {
 
     expect(flatStyle(getByTestId(SKELETON_TEST_ID).props.style)).toEqual(
       expect.objectContaining({
+        flex: 1,
         height: 240,
         backgroundColor: mockTheme.colors.background.default,
       }),
@@ -46,8 +56,11 @@ describe('ChartCandleSkeleton', () => {
   it('uses the detail-chart height when no height is passed', () => {
     const { getByTestId } = render(<ChartCandleSkeleton />);
 
-    expect(flatStyle(getByTestId(SKELETON_TEST_ID).props.style).height).toBe(
-      350,
+    expect(flatStyle(getByTestId(SKELETON_TEST_ID).props.style)).toEqual(
+      expect.objectContaining({
+        flex: 1,
+        height: DETAIL_CHART_HEIGHT,
+      }),
     );
   });
 
@@ -55,12 +68,20 @@ describe('ChartCandleSkeleton', () => {
     const { getByTestId } = render(<ChartCandleSkeleton />);
 
     expect(
+      flatStyle(getByTestId(`${SKELETON_TEST_ID}-price`).props.style),
+    ).toEqual(
+      expect.objectContaining({
+        flex: 1,
+        overflow: 'hidden',
+      }),
+    );
+    expect(
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-price`).props.style).height,
-    ).toBe(250);
+    ).toBeUndefined();
     expect(
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-volume-band`).props.style)
         .height,
-    ).toBe(68);
+    ).toBe(percentOf(VOLUME_PANE_HEIGHT, DETAIL_CHART_HEIGHT));
     expect(
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-time-axis`).props.style)
         .height,
@@ -110,39 +131,43 @@ describe('ChartCandleSkeleton', () => {
     expect(flatStyle(firstCandle.props.style)).toEqual(
       expect.objectContaining({
         width: 4,
-        height: 27,
-        top: 87,
+        height: percentOf(27, PRICE_PANE_HEIGHT),
+        top: percentOf(87, PRICE_PANE_HEIGHT),
       }),
     );
     expect(flatStyle(lastCandle.props.style)).toEqual(
       expect.objectContaining({
         width: 4,
-        height: 30,
-        top: 108,
+        height: percentOf(30, PRICE_PANE_HEIGHT),
+        top: percentOf(108, PRICE_PANE_HEIGHT),
       }),
     );
     expect(flatStyle(firstWick.props.style)).toEqual(
       expect.objectContaining({
         width: 1,
-        height: 35,
-        top: 83,
+        height: percentOf(35, PRICE_PANE_HEIGHT),
+        top: percentOf(83, PRICE_PANE_HEIGHT),
       }),
     );
     expect(flatStyle(firstVolume.props.style)).toEqual(
       expect.objectContaining({
         width: 4,
-        height: 12,
+        height: percentOf(12, VOLUME_PANE_HEIGHT),
       }),
     );
-    expect(flatStyle(lastVolume.props.style).height).toBe(16);
+    expect(flatStyle(lastVolume.props.style).height).toBe(
+      percentOf(16, VOLUME_PANE_HEIGHT),
+    );
     expect(flatStyle(firstPricePill.props.style)).toEqual(
       expect.objectContaining({
         width: 44,
-        height: 10,
-        top: 11,
+        height: percentOf(10, PRICE_PANE_HEIGHT),
+        top: percentOf(11, PRICE_PANE_HEIGHT),
       }),
     );
-    expect(flatStyle(lastPricePill.props.style).top).toBe(231);
+    expect(flatStyle(lastPricePill.props.style).top).toBe(
+      percentOf(231, PRICE_PANE_HEIGHT),
+    );
     expect(flatStyle(firstTimePill.props.style)).toEqual(
       expect.objectContaining({
         width: 28,
@@ -154,7 +179,7 @@ describe('ChartCandleSkeleton', () => {
       flatStyle(getByTestId(`${SKELETON_TEST_ID}-grid-h-0`).props.style),
     ).toEqual(
       expect.objectContaining({
-        top: 16,
+        top: percentOf(16, PRICE_PANE_HEIGHT),
         height: 1,
         backgroundColor: mockTheme.colors.border.muted,
       }),
