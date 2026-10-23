@@ -149,23 +149,39 @@ const ActivityRowView = ({
             color={amountColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
-            twClassName="text-right"
+            twClassName={
+              display.isPrimaryAmountPending
+                ? 'text-right opacity-30'
+                : 'text-right'
+            }
             testID={MoneyActivityItemTestIds.PRIMARY_AMOUNT}
           >
             {display.primaryAmount}
           </SensitiveText>
         ) : null}
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={amountColor}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
-        >
-          {display.fiatAmount}
-        </SensitiveText>
+        {display.pendingStatusLabel ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            testID={MoneyActivityItemTestIds.PENDING_STATUS}
+          >
+            {display.pendingStatusLabel}
+          </Text>
+        ) : (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={amountColor}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            twClassName="text-right"
+            testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
+          >
+            {display.fiatAmount}
+          </SensitiveText>
+        )}
       </Box>
     </Pressable>
   );

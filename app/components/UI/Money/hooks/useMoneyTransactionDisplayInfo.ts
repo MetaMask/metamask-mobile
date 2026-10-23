@@ -55,8 +55,12 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
-  /** Render the primary token amount alongside fiat for completed VBA rows. */
+  /** Render the primary mUSD amount for a VBA activity row. */
   showPrimaryAmount?: boolean;
+  /** Optional status text shown beneath a pending amount instead of fiat. */
+  pendingStatusLabel?: string;
+  /** Dim the primary amount while the transfer is still pending. */
+  isPrimaryAmountPending?: boolean;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {

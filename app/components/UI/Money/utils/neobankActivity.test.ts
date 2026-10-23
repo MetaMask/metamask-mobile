@@ -1,3 +1,4 @@
+import { strings } from '../../../../../locales/i18n';
 import {
   isNeobankPendingStatus,
   isNeobankVisibleActivityStatus,
@@ -56,11 +57,14 @@ describe('neobankActivity', () => {
       expect(display.label).toBe('Depositing');
       expect(display.description).toBe('Bank transfer');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('');
+      expect(display.primaryAmount).toBe('+15.00 mUSD');
+      expect(display.showPrimaryAmount).toBe(true);
+      expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
+      expect(display.isPrimaryAmountPending).toBe(true);
       expect(display.fiatAmount).toBe('');
     });
 
-    it('shows MoonPay Completed only as the bank-received step, without an amount', () => {
+    it('shows the amount while MoonPay is completed but Money settlement is pending', () => {
       const display = neobankActivityDisplayInfo(
         mapAutorampTransactionToNeobankActivity({
           id: 'c1',
@@ -73,7 +77,10 @@ describe('neobankActivity', () => {
 
       expect(display.label).toBe('Depositing');
       expect(display.status).toBe('pending');
-      expect(display.primaryAmount).toBe('');
+      expect(display.primaryAmount).toBe('+15.00 mUSD');
+      expect(display.showPrimaryAmount).toBe(true);
+      expect(display.pendingStatusLabel).toBe(strings('transaction.pending'));
+      expect(display.isPrimaryAmountPending).toBe(true);
       expect(display.fiatAmount).toBe('');
     });
   });

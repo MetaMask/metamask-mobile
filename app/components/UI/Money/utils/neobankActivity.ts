@@ -1,6 +1,9 @@
 import { IconName } from '@metamask/design-system-react-native';
 import type { Hex } from '@metamask/utils';
-import { strings } from '../../../../../locales/i18n';
+import BigNumber from 'bignumber.js';
+import I18n, { strings } from '../../../../../locales/i18n';
+import { getIntlNumberFormatter } from '../../../../util/intl';
+import { MUSD_TOKEN } from '../../Earn/constants/musd';
 import type { NeobankBankTransferActivity } from '../types/moneyActivity';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 
@@ -67,19 +70,28 @@ export function neobankActivityDisplayInfo(
   const failed = isNeobankFailedStatus(activity.status);
   // NeoBank rows are off-chain only. Even MoonPay `Completed` is still pending
   // from Money's POV until mUSD lands and Accounts API emits bank_transfer.
-  // Amount / "You deposited" copy belong only on the settled Accounts API row.
-  const awaitingMoneyAccount = !failed;
+  const amount = new BigNumber(activity.destinationAmount ?? 'NaN');
+  const hasValidAmount = amount.isFinite() && amount.isGreaterThan(0);
+  const primaryAmount = hasValidAmount
+    ? `+${getIntlNumberFormatter(I18n.locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+        useGrouping: true,
+      }).format(amount.toNumber())} ${MUSD_TOKEN.symbol}`
+    : '';
 
   return {
     description: strings('money.transaction.bank_transfer'),
     label: failed
       ? strings('money.transaction.deposit_failed')
       : strings('money.transaction.depositing'),
-    // Hide amount on the list until on-chain mUSD settles.
-    primaryAmount: '',
+    primaryAmount,
     fiatAmount: '',
     isIncoming: true,
     icon: IconName.Add,
-    status: failed ? 'failed' : awaitingMoneyAccount ? 'pending' : 'confirmed',
+    status: failed ? 'failed' : 'pending',
+    showPrimaryAmount: !failed && Boolean(primaryAmount),
+    pendingStatusLabel: !failed ? strings('transaction.pending') : undefined,
+    isPrimaryAmountPending: !failed && Boolean(primaryAmount),
   };
 }
