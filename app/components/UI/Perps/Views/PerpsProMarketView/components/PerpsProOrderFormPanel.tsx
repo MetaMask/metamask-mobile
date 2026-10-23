@@ -286,9 +286,8 @@ const PerpsProOrderFormPanel = ({
     isCrossMarginAvailable,
   });
 
-  // Order book and order form are siblings inside the same PerpsOrderProvider
-  // (TAT-3643); reading setActivePriceField here lets a focused field be
-  // filled by an order-book row tap without switching order type (TAT-4100).
+  // The order book and form share one provider, so a focused field can be
+  // filled by an order-book tap without switching order type.
   const { setActivePriceField } = usePerpsOrderContext();
 
   const { styles } = useStyles(createStyles, {});
@@ -349,9 +348,8 @@ const PerpsProOrderFormPanel = ({
     realign: onLimitPriceFieldPress,
   } = usePerpsProKeyboardScroll({ onRequestScrollBy, scrollViewRef });
 
-  // Each field sets its own `activePriceField` so an order-book row tap can
-  // fill it directly (TAT-4100), even though limit and trigger share one
-  // keyboard-scroll instance above (only one field is ever visible at a time).
+  // Each price field records itself as the order-book target. Limit and
+  // trigger share one keyboard-scroll instance; stop-limit shows both.
   const onLimitPriceFocus = useCallback(() => {
     setActivePriceField('limit');
     onPriceCardFocus();

@@ -335,7 +335,7 @@ describe('PerpsProOrderForm', () => {
       expect(screen.queryByText('Slippage')).not.toBeOnTheScreen();
     });
 
-    it('forwards Chase max distance focus to onChaseMaxDistanceFocus (TAT-4100)', () => {
+    it('forwards Chase max distance focus to onChaseMaxDistanceFocus', () => {
       const onChaseMaxDistanceFocus = jest.fn();
       renderForm({ orderType: 'chase', onChaseMaxDistanceFocus });
 

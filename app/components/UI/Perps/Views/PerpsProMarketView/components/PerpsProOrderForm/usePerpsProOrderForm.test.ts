@@ -4777,7 +4777,7 @@ describe('usePerpsProOrderForm', () => {
       });
     };
 
-    it('registers order-book price-field handlers for Scale start/end and Chase max distance (TAT-4100)', () => {
+    it('registers order-book price-field handlers for Scale start/end and Chase max distance', () => {
       mockOrderForm.type = 'scale';
       renderProForm();
 
@@ -8686,7 +8686,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.chaseMaxDistance).toBe('');
     });
 
-    it('fills Chase max distance (USD) from a tapped order-book price (TAT-4100)', () => {
+    it('fills Chase max distance (USD) from a tapped order-book price', () => {
       mockOrderForm.type = 'chase';
       mockLivePrice = '90000';
       const { result } = renderProForm();
@@ -8697,12 +8697,53 @@ describe('usePerpsProOrderForm', () => {
       });
 
       expect(result.current.chaseMaxDistanceUnit).toBe('usd');
-      expect(result.current.chaseMaxDistance).toBe(
-        formatHyperLiquidPrice({ price: '1000', szDecimals: mockSizeDecimals }),
-      );
+      expect(result.current.chaseMaxDistance).toBe('1000');
     });
 
-    it('fills Chase max distance (percent) from a tapped order-book price (TAT-4100)', () => {
+    it.each([
+      ['long', '91000'],
+      ['long', '89000'],
+      ['short', '91000'],
+      ['short', '89000'],
+    ] as const)(
+      'stores the absolute Chase USD distance for a %s when the book price is %s',
+      (direction, tappedPrice) => {
+        mockOrderForm.type = 'chase';
+        mockOrderForm.direction = direction;
+        mockLivePrice = '90000';
+        const { result } = renderProForm();
+
+        const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+        act(() => {
+          handlers?.chaseMaxDistance?.(tappedPrice);
+        });
+
+        expect(result.current.chaseMaxDistance).toBe('1000');
+      },
+    );
+
+    it('keeps a half-tick Chase USD distance instead of rounding it to zero', () => {
+      // szDecimals 2 and a reference between ticks: |0.5432 - 0.54325|
+      // canonicalizes to "0" under venue price rounding.
+      mockOrderForm.type = 'chase';
+      mockLivePrice = '0.54325';
+      mockSizeDecimals = 2;
+      const { result } = renderProForm();
+
+      const handlers = mockRegisterPriceFieldHandlers.mock.calls.at(-1)?.[0];
+      act(() => {
+        handlers?.chaseMaxDistance?.('0.5432');
+      });
+
+      expect(result.current.chaseMaxDistance).toBe('0.00005');
+      expect(
+        result.current.notices.find(
+          (notice) => notice.id === 'chase-max-distance',
+        ),
+      ).toBeUndefined();
+    });
+
+    it('fills Chase max distance (percent) from a tapped order-book price', () => {
       mockOrderForm.type = 'chase';
       mockLivePrice = '90000';
       const { result } = renderProForm();

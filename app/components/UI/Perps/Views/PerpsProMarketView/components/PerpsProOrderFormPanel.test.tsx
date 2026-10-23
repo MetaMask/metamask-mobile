@@ -61,7 +61,7 @@ const host = (name: string) => name as unknown as React.ComponentType<unknown>;
 
 // Provider is a passthrough; the orchestration hook is mocked below so the
 // container test focuses purely on prop/sheet wiring. `setActivePriceField`
-// is captured so the panel's focus-composition wiring (TAT-4100) can be
+// is captured so the panel's focus-composition wiring can be
 // asserted without needing a real PerpsOrderProvider.
 const mockSetActivePriceField = jest.fn();
 jest.mock('../../../contexts/PerpsOrderContext', () => ({
@@ -826,7 +826,7 @@ describe('PerpsProOrderFormPanel', () => {
     expect(screen.getByTestId('mock-tooltip-geo_block')).toBeOnTheScreen();
   });
 
-  describe('focused price field composition (TAT-4100)', () => {
+  describe('focused price field composition', () => {
     const getMountedInput = (testID: string) =>
       screen.getByTestId(testID, { includeHiddenElements: true });
 

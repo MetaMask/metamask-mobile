@@ -259,41 +259,23 @@ const coerceScaleSkew = (value: string): string => {
 };
 
 /**
- * Percent offset from a tapped book price to the live reference.
+ * Digit-capped Chase offset. A distance is not a venue price, so this does not
+ * apply price-tick rounding, which can turn a positive sub-tick offset into 0.
  *
- * The Chase field shares the 9-digit input cap, so this keeps every fractional
- * digit that still fits. Rounding to two decimals turns a positive distance
- * below 0.005% into 0 and blocks placement. Core accepts fractional basis points.
- *
- * @param distance - Absolute price distance from the live reference.
- * @param referencePrice - Live reference price, greater than zero.
- * @returns Percent string that stays positive for a positive distance.
+ * @param value - Positive USD distance or percent offset.
+ * @returns Decimal string within the shared 9-digit input cap.
  */
-const formatChaseDistancePercent = (
-  distance: number,
-  referencePrice: number,
-): string => {
-  const percent = new BigNumber(distance)
-    .multipliedBy(100)
-    .dividedBy(referencePrice);
-  const integerDigits = percent
+const formatChaseDistanceValue = (value: BigNumber): string => {
+  const integerDigits = value
     .integerValue(BigNumber.ROUND_DOWN)
     .toFixed(0).length;
   const fractionDigits = Math.max(0, MAX_PERPS_INPUT_DIGITS - integerDigits);
-  let rounded = percent.decimalPlaces(fractionDigits, BigNumber.ROUND_HALF_UP);
-
-  // Half-up can still collapse a tiny positive ratio to zero. Keep the
-  // smallest positive value the digit cap can hold so placement stays enabled.
-  if (rounded.lte(0) && fractionDigits > 0) {
-    rounded = new BigNumber(1).shiftedBy(-fractionDigits);
-  }
-
-  const fixed = rounded.toFixed(fractionDigits);
-  if (!fixed.includes('.')) {
-    return fixed;
-  }
-
-  return fixed.replace(/0+$/u, '').replace(/\.$/u, '');
+  const fixed = value
+    .decimalPlaces(fractionDigits, BigNumber.ROUND_HALF_UP)
+    .toFixed(fractionDigits);
+  const [whole, fraction] = fixed.split('.');
+  const trimmedFraction = (fraction ?? '').replace(/0+$/u, '');
+  return trimmedFraction.length > 0 ? `${whole}.${trimmedFraction}` : whole;
 };
 
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
@@ -4078,16 +4060,9 @@ export const usePerpsProOrderForm = ({
     [scaleAnalyticsProperties, track],
   );
 
-  // Exposes commit handlers for the Pro-only price fields this hook owns
-  // (Scale start/end, Chase max distance) so an order-book row tap can fill
-  // whichever one the user last focused without lifting this state into the
-  // shared order-form context (TAT-4100). The order-book side reads these
-  // through `commitPriceToField`; `activePriceField` decides whether to use
-  // them at all.
-  //
-  // Chase has no absolute "price" field — Max Distance is an offset from the
-  // live reference price — so a tapped book price is converted to that
-  // offset (in the field's current unit) rather than committed verbatim.
+  // Lets an order-book tap fill the last focused Scale or Chase field.
+  // Chase max distance is an unsigned offset from the live reference, in the
+  // field's current unit. Core applies that offset on the adverse side.
   useEffect(() => {
     registerPriceFieldHandlers({
       scaleStart: (price) =>
@@ -4116,19 +4091,25 @@ export const usePerpsProOrderForm = ({
         }),
       chaseMaxDistance: (price) =>
         guardScaleMutation(() => {
-          const tappedPrice = Number.parseFloat(price ?? '');
-          if (!Number.isFinite(tappedPrice) || assetData.price <= 0) {
+          const tappedPrice = new BigNumber(price ?? '');
+          const referencePrice = new BigNumber(assetData.price);
+          if (
+            !tappedPrice.isFinite() ||
+            !referencePrice.isFinite() ||
+            referencePrice.lte(0)
+          ) {
             return;
           }
-          const distance = Math.abs(tappedPrice - assetData.price);
-          if (distance <= 0) {
+          const distance = tappedPrice.minus(referencePrice).abs();
+          if (distance.lte(0)) {
             return;
           }
           const nextValue =
             chaseMaxDistanceUnit === 'percent'
-              ? formatChaseDistancePercent(distance, assetData.price)
-              : (canonicalizeOrderPrice(distance.toString(), szDecimals) ??
-                distance.toString());
+              ? formatChaseDistanceValue(
+                  distance.multipliedBy(100).dividedBy(referencePrice),
+                )
+              : formatChaseDistanceValue(distance);
           setChaseMaxDistance(nextValue);
         }),
     });
@@ -4139,7 +4120,6 @@ export const usePerpsProOrderForm = ({
     chaseMaxDistanceUnit,
     guardScaleMutation,
     registerPriceFieldHandlers,
-    szDecimals,
     trackScaleConfiguration,
   ]);
 

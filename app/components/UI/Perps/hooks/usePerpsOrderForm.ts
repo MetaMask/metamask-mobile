@@ -36,11 +36,8 @@ import { resolvePerpsMaxSlippageBps } from '../constants/slippageConfig';
 /**
  * Price-bearing field the user last focused in the order form.
  *
- * Tracked so an order-book row tap can fill whichever field is active
- * instead of always assuming the order type's default price field (TAT-4100).
- * `scaleStart` / `scaleEnd` / `chaseMaxDistance` are Pro-only fields whose
- * state lives in `usePerpsProOrderForm`, not here — see
- * `registerPriceFieldHandlers`.
+ * An order-book tap fills this field instead of the order type's default.
+ * Scale and Chase fields live in the Pro form and register their own handlers.
  */
 export type PerpsOrderPriceField =
   | 'limit'
@@ -312,14 +309,8 @@ export function usePerpsOrderForm(
     setHasBlurredLimitPrice(false);
     setHasBlurredTriggerPrice(false);
   }, []);
-  const [activePriceField, setActivePriceFieldState] =
+  const [activePriceField, setActivePriceField] =
     useState<PerpsOrderPriceField | null>(null);
-  const setActivePriceField = useCallback(
-    (field: PerpsOrderPriceField | null) => {
-      setActivePriceFieldState(field);
-    },
-    [],
-  );
   const priceFieldHandlersRef = useRef<PerpsOrderPriceFieldHandlers>({});
   const registerPriceFieldHandlers = useCallback(
     (handlers: PerpsOrderPriceFieldHandlers) => {
@@ -534,7 +525,7 @@ export function usePerpsOrderForm(
       }));
       setTriggerPrice(undefined);
       resetPriceInputInteraction();
-      setActivePriceFieldState(null);
+      setActivePriceField(null);
     },
     [resetPriceInputInteraction],
   );
@@ -588,7 +579,7 @@ export function usePerpsOrderForm(
   const setOrderType = useCallback((type: OrderType) => {
     setOrderForm((prev) => ({ ...prev, type }));
     Engine.context.PerpsController.setSelectedOrderType(type);
-    setActivePriceFieldState(null);
+    setActivePriceField(null);
   }, []);
 
   const commitPriceToField = useCallback(

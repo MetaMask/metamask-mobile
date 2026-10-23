@@ -8,17 +8,18 @@ import {
   within,
   waitFor,
 } from '@testing-library/react-native';
-import type {
-  ChaseOrder,
-  OrderBookData,
-  OrderBookLevel,
-  Order,
-  PriceUpdate,
-  TriggerOrderType,
-  PerpsOrderCapabilities,
-  PerpsProviderType,
-  TwapOrder,
-  TwapOrderFill,
+import {
+  AggregatedOrderBookConnection,
+  type ChaseOrder,
+  type OrderBookData,
+  type OrderBookLevel,
+  type Order,
+  type PriceUpdate,
+  type TriggerOrderType,
+  type PerpsOrderCapabilities,
+  type PerpsProviderType,
+  type TwapOrder,
+  type TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
 import type { ComponentType } from 'react';
@@ -616,6 +617,101 @@ const createTwapPickerDate = (hours: number, minutes: number) => {
   return date;
 };
 
+const deliverProOrderBook = (bidPrice: string) => {
+  const level = (price: string): OrderBookLevel => ({
+    price,
+    size: '1.5',
+    total: '1.5',
+    notional: '3750',
+    totalNotional: '3750',
+  });
+  const book: OrderBookData = {
+    bids: [level(bidPrice)],
+    asks: [],
+    spread: '10',
+    spreadPercentage: '0.4',
+    midPrice: '2500',
+    lastUpdated: 1_700_000_000_000,
+    maxTotal: '1.5',
+  };
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(({ callback }) => {
+      callback(book);
+      return () => undefined;
+    });
+  return jest
+    .spyOn(AggregatedOrderBookConnection.prototype, 'subscribe')
+    .mockImplementation((params) => {
+      params.callback(book);
+      return () => undefined;
+    });
+};
+
+const pressTopBid = () =>
+  screen.findByTestId(
+    `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+
+const renderChaseProMarket = () => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue({
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: ['chase'],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
+    });
+  return renderPerpsProMarketView({
+    streamOverrides: { account: createFundedAccountForViews('1000') },
+    overrides: {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+const openChaseOrderForm = async () => {
+  await findSizeInput();
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  await screen.findByTestId(ids.CHASE_FORM, {}, { timeout: TIMEOUT_MS });
+};
+
 const selectTriggeredOrderType = async (
   optionTestID: (typeof triggeredOrderTypeIDs)[number],
 ) => {
@@ -667,6 +763,21 @@ const syncEngineControllerState = (
     [key]: nextState,
   };
   store.dispatch(updateBgState({ key }));
+};
+
+const showOrderBook = (
+  store: ReturnType<typeof renderPerpsProMarketView>['store'],
+) => {
+  const current = store.getState().engine.backgroundState.PerpsController;
+  act(() => {
+    syncEngineControllerState(store, 'PerpsController', {
+      ...current,
+      proLayoutPreferences: {
+        ...current?.proLayoutPreferences,
+        orderBookExpanded: true,
+      },
+    });
+  });
 };
 
 describeForPlatforms('PerpsProMarketView input journeys', () => {
@@ -4266,6 +4377,92 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
         },
         { timeout: TIMEOUT_MS },
       );
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused Scale start price from an order-book tap without switching type',
+    async () => {
+      const bookSpy = deliverProOrderBook('2400');
+      try {
+        const { store } = renderProMarketWithScaleFlag(true);
+        showOrderBook(store);
+        await openScaleOrderForm();
+        fireEvent(screen.getByTestId(ids.SCALE_START_PRICE), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            formatPerpsInput('2400'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.scale.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused Chase percent distance from an order-book tap',
+    async () => {
+      const bookSpy = deliverProOrderBook('2550');
+      try {
+        const { store } = renderChaseProMarket();
+        showOrderBook(store);
+        await openChaseOrderForm();
+        fireEvent.press(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT));
+        fireEvent(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+            'value',
+            formatPerpsInput('2'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            `${strings('perps.order.type.chase.title')}$2500`,
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused stop-limit trigger from an order-book tap and leaves the limit price',
+    async () => {
+      const bookSpy = deliverProOrderBook('2490');
+      try {
+        const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+        showOrderBook(store);
+        await findSizeInput();
+        await selectTriggeredOrderType(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        );
+        const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+        const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+        fireEvent.changeText(limitInput, '2400');
+        fireEvent(triggerInput, 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(triggerInput).toHaveProp('value', formatPerpsInput('2490'));
+          expect(limitInput).toHaveProp('value', formatPerpsInput('2400'));
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.stop_limit.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
     },
   );
 });

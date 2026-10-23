@@ -110,8 +110,8 @@ interface PerpsProOrderBookColumnProps {
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
  * bid/ask row tap can fill the price field the user last focused — Scale
  * start/end, Chase max distance, limit, or trigger — in place, with no
- * order-type switch (TAT-4100). Only when nothing is focused does it fall
- * back to the order type's own default field.
+ * order-type switch. Only when nothing is focused does it fall back to the
+ * order type's own default field.
  */
 const PerpsProOrderBookColumn = ({
   symbol,
@@ -144,11 +144,8 @@ const PerpsProOrderBookColumn = ({
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
-      // A field the user explicitly focused (including Scale/Chase fields,
-      // which have no concept of order type) wins over the type-based
-      // default below — it is filled in place, with no order-type switch
-      // (TAT-4100). Falls through when nothing is focused or the field has
-      // no registered handler (e.g. a stale selection after a type switch).
+      // The last focused field wins over the type-based default below.
+      // Falls through when nothing is focused or the field has no handler.
       if (
         activePriceField &&
         commitPriceToField(activePriceField, selectedPrice)

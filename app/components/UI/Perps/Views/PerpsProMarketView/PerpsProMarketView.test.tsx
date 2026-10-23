@@ -1410,7 +1410,7 @@ describe('PerpsProMarketView', () => {
     expect(mockCommitLimitPrice).not.toHaveBeenCalled();
   });
 
-  describe('focused price field routing (TAT-4100)', () => {
+  describe('focused price field routing', () => {
     const singleBidBook: OrderBookData = {
       bids: [
         {
@@ -1462,8 +1462,7 @@ describe('PerpsProMarketView', () => {
     });
 
     it('falls back to switching to limit when Scale has no field focused', () => {
-      // Reproduces the reported bug (TAT-4100): with nothing focused, a Scale
-      // order-book tap still falls back to Limit by design.
+      // With nothing focused, a Scale order-book tap still falls back to Limit.
       mockOrderFormType = 'scale';
       mockActivePriceField = null;
 
