@@ -145,6 +145,18 @@ export interface AccountCreateFailureFields {
   traceId?: string;
 }
 
+export type AccountCreateErrorPrimaryAction = 'contactSupport' | 'retry';
+
+/**
+ * Only a server-side registration failure is retryable. Authentication,
+ * missing-customer, validation, compliance, and rail-access failures require
+ * support instead.
+ */
+export const getAccountCreateErrorPrimaryAction = (
+  fields?: AccountCreateFailureFields,
+): AccountCreateErrorPrimaryAction =>
+  fields?.httpStatus === 500 ? 'retry' : 'contactSupport';
+
 const SUPPORT_PARAM_HTTP_STATUS = 'http_status';
 const SUPPORT_PARAM_FIAT_STATUS = 'fiat_status';
 const SUPPORT_PARAM_TRACE_ID = 'trace_id';

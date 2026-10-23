@@ -2,7 +2,10 @@ import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import VbaOnboardingError from '../../../KYC/components/OnboardingError';
 import VbaAccountCreateFailure from '../../../KYC/components/assets/vba-account-create-failure.svg';
-import type { AccountCreateErrorVariant } from './accountCreateError';
+import type {
+  AccountCreateErrorPrimaryAction,
+  AccountCreateErrorVariant,
+} from './accountCreateError';
 
 export const VbaAccountCreateErrorSelectorsIDs = {
   CONTAINER: 'vba-account-create-error-container',
@@ -13,6 +16,7 @@ export const VbaAccountCreateErrorSelectorsIDs = {
 
 interface VbaAccountCreateErrorProps {
   variant: AccountCreateErrorVariant;
+  primaryActionType: AccountCreateErrorPrimaryAction;
   onPrimary: () => void | Promise<void>;
   onSecondary: () => void | Promise<void>;
   onBack?: () => void;
@@ -24,6 +28,7 @@ interface VbaAccountCreateErrorProps {
  */
 const VbaAccountCreateError = ({
   variant,
+  primaryActionType,
   onPrimary,
   onSecondary,
   onBack,
@@ -42,7 +47,9 @@ const VbaAccountCreateError = ({
     )}
     primaryAction={{
       label: strings(
-        `virtual_bank_account.account_create_error.${variant}.primary`,
+        primaryActionType === 'retry'
+          ? 'virtual_bank_account.account_create_error.generic.primary'
+          : 'virtual_bank_account.account_create_error.details.primary',
       ),
       onPress: onPrimary,
       testID: VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON,

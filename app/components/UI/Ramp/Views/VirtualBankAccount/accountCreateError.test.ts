@@ -5,6 +5,7 @@ import {
   buildAccountCreateSupportUrl,
   getAccountCreateErrorVariant,
   getAccountCreateFailureLogFields,
+  getAccountCreateErrorPrimaryAction,
   type AccountCreateRegistrationResult,
 } from './accountCreateError';
 
@@ -47,6 +48,26 @@ describe('accountCreateError', () => {
 
     it.each(cases)('maps %s', (_label, result, variant) => {
       expect(getAccountCreateErrorVariant(result)).toBe(variant);
+    });
+  });
+
+  describe('getAccountCreateErrorPrimaryAction', () => {
+    it('retries only a server-side registration failure', () => {
+      expect(getAccountCreateErrorPrimaryAction({ httpStatus: 500 })).toBe(
+        'retry',
+      );
+    });
+
+    it.each([
+      ['invalid bank details', 400],
+      ['unauthorized', 401],
+      ['suspended customer', 403],
+      ['missing customer', 404],
+      ['rail unavailable', 422],
+    ])('opens support for %s', (_label, httpStatus) => {
+      expect(getAccountCreateErrorPrimaryAction({ httpStatus })).toBe(
+        'contactSupport',
+      );
     });
   });
 

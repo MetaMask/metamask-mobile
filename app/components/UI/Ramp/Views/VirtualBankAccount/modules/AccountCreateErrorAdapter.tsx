@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Linking } from 'react-native';
 import {
   useNavigation,
@@ -10,7 +10,10 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import VbaAccountCreateError from '../VbaAccountCreateError';
-import { buildAccountCreateSupportUrl } from '../accountCreateError';
+import {
+  buildAccountCreateSupportUrl,
+  getAccountCreateErrorPrimaryAction,
+} from '../accountCreateError';
 import {
   openCompletedVbaAccount,
   useOpenVbaOnboarding,
@@ -19,13 +22,15 @@ import type { VbaOnboardingParamList } from '../routes';
 
 /**
  * Wires the account-creation error screens into onboarding.
- * `details` asks support to finish setup. `generic` can be retried.
+ * Validation and setup failures open support. Only HTTP 500 can be retried.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
   const { variant, failure, sourceCurrency } = route.params;
+  const primaryActionType = getAccountCreateErrorPrimaryAction(failure);
+  const retryStartedRef = useRef(false);
   const resumeOnboarding = useOpenVbaOnboarding('account-create-error-retry');
   const { openSupportWithConsent } = useSupportConsent();
 
@@ -43,18 +48,24 @@ const VbaAccountCreateErrorAdapter = () => {
     );
   }, [failure, openSupportWithConsent]);
 
-  const retry = useCallback(() => {
+  const retry = useCallback(async () => {
+    if (retryStartedRef.current) {
+      return;
+    }
+    retryStartedRef.current = true;
+
     if (sourceCurrency) {
       openCompletedVbaAccount(navigation, sourceCurrency);
       return;
     }
-    resumeOnboarding();
+    await resumeOnboarding();
   }, [navigation, resumeOnboarding, sourceCurrency]);
 
   if (variant === 'details') {
     return (
       <VbaAccountCreateError
         variant="details"
+        primaryActionType="contactSupport"
         onPrimary={contactSupport}
         onSecondary={leave}
         onBack={leave}
@@ -65,7 +76,8 @@ const VbaAccountCreateErrorAdapter = () => {
   return (
     <VbaAccountCreateError
       variant="generic"
-      onPrimary={retry}
+      primaryActionType={primaryActionType}
+      onPrimary={primaryActionType === 'retry' ? retry : contactSupport}
       onSecondary={leave}
       onBack={leave}
     />

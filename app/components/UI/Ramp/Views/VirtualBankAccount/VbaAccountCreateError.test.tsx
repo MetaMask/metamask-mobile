@@ -30,6 +30,7 @@ describe('VbaAccountCreateError', () => {
     const { getByText, queryByTestId } = renderWithProvider(
       <VbaAccountCreateError
         variant="details"
+        primaryActionType="contactSupport"
         onPrimary={mockOnPrimary}
         onSecondary={mockOnSecondary}
       />,
@@ -64,6 +65,7 @@ describe('VbaAccountCreateError', () => {
     const { getByText } = renderWithProvider(
       <VbaAccountCreateError
         variant="generic"
+        primaryActionType="retry"
         onPrimary={mockOnPrimary}
         onSecondary={mockOnSecondary}
       />,
@@ -93,10 +95,33 @@ describe('VbaAccountCreateError', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows contact support for a generic account setup failure', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <VbaAccountCreateError
+        variant="generic"
+        primaryActionType="contactSupport"
+        onPrimary={mockOnPrimary}
+        onSecondary={mockOnSecondary}
+      />,
+    );
+
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.primary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings('virtual_bank_account.account_create_error.generic.primary'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderWithProvider(
       <VbaAccountCreateError
         variant="generic"
+        primaryActionType="retry"
         onPrimary={mockOnPrimary}
         onSecondary={mockOnSecondary}
         onBack={mockOnBack}

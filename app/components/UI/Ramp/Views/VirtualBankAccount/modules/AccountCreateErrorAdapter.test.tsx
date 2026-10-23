@@ -7,6 +7,7 @@ import VbaAccountCreateErrorAdapter from './AccountCreateErrorAdapter';
 const mockNavigation = { navigate: jest.fn() };
 const mockOpenCompletedVbaAccount = jest.fn();
 const mockResumeOnboarding = jest.fn();
+const mockOpenSupportWithConsent = jest.fn();
 const mockVbaAccountCreateError = jest.fn(() => null);
 let mockRouteParams: VbaOnboardingParamList['VbaAccountCreateError'];
 
@@ -22,7 +23,9 @@ jest.mock('../hooks/useVbaOnboardingRouting', () => ({
 }));
 
 jest.mock('../../../../../hooks/useSupportConsent', () => ({
-  useSupportConsent: () => ({ openSupportWithConsent: jest.fn() }),
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
 }));
 
 jest.mock('../VbaAccountCreateError', () => ({
@@ -46,11 +49,14 @@ describe('VbaAccountCreateErrorAdapter', () => {
     const props = mockVbaAccountCreateError.mock.calls[0][0];
 
     props.onPrimary();
+    props.onPrimary();
 
+    expect(props.primaryActionType).toBe('retry');
     expect(mockOpenCompletedVbaAccount).toHaveBeenCalledWith(
       mockNavigation,
       'USD',
     );
+    expect(mockOpenCompletedVbaAccount).toHaveBeenCalledTimes(1);
     expect(mockResumeOnboarding).not.toHaveBeenCalled();
   });
 
@@ -66,5 +72,25 @@ describe('VbaAccountCreateErrorAdapter', () => {
 
     expect(mockResumeOnboarding).toHaveBeenCalledTimes(1);
     expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['unauthorized', 401],
+    ['missing customer', 404],
+  ])('opens support for %s failures', (_label, httpStatus) => {
+    mockRouteParams = {
+      variant: 'generic',
+      failure: { httpStatus },
+      sourceCurrency: 'USD',
+    };
+    render(<VbaAccountCreateErrorAdapter />);
+    const props = mockVbaAccountCreateError.mock.calls[0][0];
+
+    props.onPrimary();
+
+    expect(props.primaryActionType).toBe('contactSupport');
+    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
+    expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
+    expect(mockResumeOnboarding).not.toHaveBeenCalled();
   });
 });
