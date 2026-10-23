@@ -12,6 +12,7 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
   patchPostTradeShareSession,
+  type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
@@ -99,11 +100,13 @@ export const openPerpsPostTradeShareSession = ({
   direction,
   leverage,
   amountUsd,
+  variant = 'share',
 }: {
   asset: string;
   direction: 'long' | 'short';
   leverage?: number;
   amountUsd?: string;
+  variant?: PostTradeShareVariant;
 }): string => {
   const preview = buildPerpsPostTradePreview({
     asset,
@@ -115,6 +118,7 @@ export const openPerpsPostTradeShareSession = ({
   return beginPostTradeShareSession({
     product: 'perps',
     status: 'pending',
+    variant,
     pairLabel: preview.leverageLabel
       ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
       : `${directionLabel} ${preview.tokenSymbol}`,

@@ -3,10 +3,8 @@ export const PostTradeShareBottomSheetSelectorsIDs = {
   TITLE: 'post-trade-share-title',
   PAIR: 'post-trade-share-pair',
   SHARE_BUTTON: 'post-trade-share-button',
+  VIEW_ACTIVITY_BUTTON: 'post-trade-share-view-activity',
   CLOSE_BUTTON: 'post-trade-share-close',
-  SHARE_AND_EARN: 'post-trade-share-earn',
-  CLAIM_SHEET: 'post-trade-claim-username-sheet',
-  CLAIM_TITLE: 'post-trade-claim-username-title',
-  CLAIM_BUTTON: 'post-trade-claim-username-button',
-  CLAIM_CLOSE_BUTTON: 'post-trade-claim-username-close',
+  CARD: 'post-trade-share-card',
+  CARD_TITLE: 'post-trade-share-card-title',
 };

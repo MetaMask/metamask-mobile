@@ -12,11 +12,11 @@ import {
 import type { Theme } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import ToastService from '../../../core/ToastService';
-import { incrementShareSheetCount } from '../../../util/social/postTradePromptStorage';
 import {
-  openPostTradeClaimUsernamePrompt,
-  patchPostTradeShareSession,
-} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../util/social/postTradePromptStorage';
+import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
@@ -145,8 +145,9 @@ function emitTerminalToast(
     incrementShareSheetCount(prompt.countKey.address, prompt.countKey.product);
   }
   if (isComplete && prompt?.kind === 'claim_sheet') {
-    openPostTradeClaimUsernamePrompt('swap');
-  } else if (trade.postTradeShare && trade.postTradeShareSessionId) {
+    markClaimSheetSeen('swap');
+  }
+  if (trade.postTradeShare && trade.postTradeShareSessionId) {
     const sessionUpdated = patchPostTradeShareSession(
       trade.postTradeShareSessionId,
       {

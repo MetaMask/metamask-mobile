@@ -20,10 +20,6 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
 } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
-import {
-  clearPostTradeClaimUsernamePrompt,
-  getPostTradeClaimUsernamePrompt,
-} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import NavigationService from '../../../core/NavigationService';
 import {
   incrementShareSheetCount,
@@ -410,10 +406,6 @@ describe('resolveQuickBuyTerminalToast', () => {
       side: 'buy' as const,
     };
 
-    afterEach(() => {
-      clearPostTradeClaimUsernamePrompt();
-    });
-
     it('counts a completed share sheet even if the user closed it', () => {
       trackQuickBuyTrade('tx-1', {
         ...buyTrade,
@@ -444,11 +436,28 @@ describe('resolveQuickBuyTerminalToast', () => {
       expect(incrementShareSheetCount).not.toHaveBeenCalled();
     });
 
-    it('opens the claim sheet instead of the complete toast', () => {
+    const trackCreateProfileTrade = () => {
+      const sessionId = beginPostTradeShareSession({
+        variant: 'create_profile',
+        target: {
+          tokenAddress: '0xpepe',
+          tokenSymbol: 'PEPE',
+          tokenName: 'Pepe',
+          chain: 'eip155:1',
+        },
+        tradeMode: 'buy',
+        preview,
+      });
       trackQuickBuyTrade('tx-1', {
         ...buyTrade,
+        postTradeShare: true,
+        postTradeShareSessionId: sessionId,
         postTradePrompt: { kind: 'claim_sheet' },
       });
+    };
+
+    it('completes the create profile sheet and marks it seen', () => {
+      trackCreateProfileTrade();
       mockGetHistoryItem.mockReturnValue(
         historyItemWithStatus(StatusTypes.COMPLETE),
       );
@@ -458,25 +467,25 @@ describe('resolveQuickBuyTerminalToast', () => {
 
       expect(showToast).not.toHaveBeenCalled();
       expect(markClaimSheetSeen).toHaveBeenCalledWith('swap');
-      expect(getPostTradeClaimUsernamePrompt()).toEqual({ product: 'swap' });
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'complete',
+        }),
+      );
       expect(playSuccessNotification).toHaveBeenCalledTimes(1);
     });
 
-    it('keeps the failed toast and the one-time claim sheet on failure', () => {
-      trackQuickBuyTrade('tx-1', {
-        ...buyTrade,
-        postTradePrompt: { kind: 'claim_sheet' },
-      });
+    it('does not mark the create profile sheet seen on failure', () => {
+      trackCreateProfileTrade();
       mockGetHistoryItem.mockReturnValue(
         historyItemWithStatus(StatusTypes.FAILED),
       );
-      const showToast = jest.fn();
 
-      resolveQuickBuyTerminalToast('tx-1', showToast, theme);
+      resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-      expect(showToast).toHaveBeenCalledWith({ kind: 'failed' });
       expect(markClaimSheetSeen).not.toHaveBeenCalled();
-      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
+      expect(getPostTradeShareSession()?.status).toBe('failed');
     });
 
     it('adds Post to feed to the complete toast and opens the composer', () => {

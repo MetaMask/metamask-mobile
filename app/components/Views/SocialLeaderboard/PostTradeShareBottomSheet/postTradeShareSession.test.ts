@@ -1,21 +1,12 @@
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import { markClaimSheetSeen } from '../../../../util/social/postTradePromptStorage';
 import {
   beginPostTradeShareSession,
-  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
   consumePostTradeShareReopen,
-  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
-  openPostTradeClaimUsernamePrompt,
   patchPostTradeShareSession,
   requestPostTradeShareReopen,
-  subscribePostTradeShareSession,
 } from './postTradeShareSession';
-
-jest.mock('../../../../util/social/postTradePromptStorage', () => ({
-  markClaimSheetSeen: jest.fn(),
-}));
 
 const target: QuickBuyTarget = {
   tokenAddress: '0xpump',
@@ -29,24 +20,8 @@ describe('postTradeShareSession', () => {
     clearPostTradeShareSession();
   });
 
-  describe('claim-username prompt', () => {
-    afterEach(() => {
-      clearPostTradeClaimUsernamePrompt();
-    });
-
-    it('opens the prompt, marks it seen, and notifies listeners', () => {
-      const listener = jest.fn();
-      const unsubscribe = subscribePostTradeShareSession(listener);
-
-      openPostTradeClaimUsernamePrompt('perps');
-
-      expect(getPostTradeClaimUsernamePrompt()).toEqual({ product: 'perps' });
-      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
-      expect(listener).toHaveBeenCalled();
-      unsubscribe();
-    });
-
-    it('clears the prompt without touching the share session', () => {
+  describe('variant', () => {
+    it('defaults to share', () => {
       beginPostTradeShareSession({
         target,
         tradeMode: 'buy',
@@ -57,12 +32,34 @@ describe('postTradeShareSession', () => {
           side: 'buy',
         },
       });
-      openPostTradeClaimUsernamePrompt('swap');
 
-      clearPostTradeClaimUsernamePrompt();
+      expect(getPostTradeShareSession()?.variant).toBe('share');
+    });
 
-      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
-      expect(getPostTradeShareSession()).not.toBeNull();
+    it('keeps create_profile across patches', () => {
+      const sessionId = beginPostTradeShareSession({
+        variant: 'create_profile',
+        product: 'perps',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      patchPostTradeShareSession(sessionId, {
+        status: 'complete',
+        orderId: '42',
+      });
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'complete',
+        }),
+      );
     });
   });
 

@@ -1,15 +1,17 @@
 import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
-import {
-  markClaimSheetSeen,
-  type PostTradePromptProduct,
-} from '../../../../util/social/postTradePromptStorage';
 import type {
   SocialPostPerpsPreview,
   SocialPostTradePreview,
 } from '../SocialPostComposerView/SocialPostComposerView.types';
 
 export type PostTradeShareStatus = 'pending' | 'complete' | 'failed';
+
+/**
+ * `share` asks a user with a social profile to post the trade.
+ * `create_profile` asks a user without one to create a profile.
+ */
+export type PostTradeShareVariant = 'share' | 'create_profile';
 
 /**
  * Screen that opened Quick Buy. Try again reopens only that screen, because
@@ -27,6 +29,7 @@ export type PostTradeShareOwnerId =
 interface PostTradeShareSessionBase {
   sessionId: string;
   status: PostTradeShareStatus;
+  variant: PostTradeShareVariant;
   pairLabel?: string;
   tradeInFlightChain?: string;
   reopenRequested: boolean;
@@ -57,18 +60,20 @@ export type PostTradeShareSession =
 
 type BeginSpotPostTradeShareSession = Omit<
   SpotPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product?: 'spot';
+  variant?: PostTradeShareVariant;
 };
 
 type BeginPerpsPostTradeShareSession = Omit<
   PerpsPostTradeShareSession,
-  'reopenRequested' | 'sessionId' | 'status' | 'product'
+  'reopenRequested' | 'sessionId' | 'status' | 'product' | 'variant'
 > & {
   status?: PostTradeShareStatus;
   product: 'perps';
+  variant?: PostTradeShareVariant;
 };
 
 export type BeginPostTradeShareSession =
@@ -90,24 +95,17 @@ export interface PostTradeShareReopen {
   tradeMode: QuickBuyTradeMode;
 }
 
-/** One-time sheet asking a user without a social profile to claim a username. */
-export interface PostTradeClaimUsernamePrompt {
-  product: PostTradePromptProduct;
-}
-
 type Listener = () => void;
 
 const STORE_GLOBAL_KEY = '__mmPostTradeShareSession__';
 
 interface StoreState {
   session: PostTradeShareSession | null;
-  claimPrompt?: PostTradeClaimUsernamePrompt | null;
   listeners: Set<Listener>;
 }
 
 const bootstrap = (): StoreState => ({
   session: null,
-  claimPrompt: null,
   listeners: new Set(),
 });
 
@@ -137,12 +135,14 @@ export const beginPostTradeShareSession = (
 ): string => {
   const sessionId = String(nextSessionId++);
   const status = session.status ?? 'pending';
+  const variant = session.variant ?? 'share';
   if (session.product === 'perps') {
     state.session = {
       ...session,
       product: 'perps',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   } else {
@@ -151,6 +151,7 @@ export const beginPostTradeShareSession = (
       product: 'spot',
       sessionId,
       status,
+      variant,
       reopenRequested: false,
     };
   }
@@ -193,23 +194,6 @@ export const patchPostTradeShareSession = (
 
 export const clearPostTradeShareSession = (): void => {
   state.session = null;
-  notify();
-};
-
-export const getPostTradeClaimUsernamePrompt =
-  (): PostTradeClaimUsernamePrompt | null => state.claimPrompt ?? null;
-
-/** Opens the claim-username sheet and records it as seen for `product`. */
-export const openPostTradeClaimUsernamePrompt = (
-  product: PostTradePromptProduct,
-): void => {
-  markClaimSheetSeen(product);
-  state.claimPrompt = { product };
-  notify();
-};
-
-export const clearPostTradeClaimUsernamePrompt = (): void => {
-  state.claimPrompt = null;
   notify();
 };
 

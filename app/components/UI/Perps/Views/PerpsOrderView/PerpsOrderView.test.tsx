@@ -14,9 +14,7 @@ import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
 import Engine from '../../../../../core/Engine';
 import {
-  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
-  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
 } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 
@@ -7536,14 +7534,12 @@ describe('PerpsOrderView', () => {
 
     beforeEach(() => {
       clearPostTradeShareSession();
-      clearPostTradeClaimUsernamePrompt();
       mockIsPerpsProModeActive = false;
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
     });
 
     afterEach(() => {
       clearPostTradeShareSession();
-      clearPostTradeClaimUsernamePrompt();
       applyDefaultHookMocks();
     });
 
@@ -7582,16 +7578,33 @@ describe('PerpsOrderView', () => {
       expect(showToast).toHaveBeenCalled();
     });
 
-    it('opens the claim sheet instead of the confirmed toast', async () => {
+    it('opens a create profile sheet at submit and marks it seen on fill', async () => {
       mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
       const showToast = await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'pending',
+        }),
+      );
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+
       await fill();
 
-      expect(getPostTradeShareSession()).toBeNull();
-      expect(getPostTradeClaimUsernamePrompt()).toEqual({ product: 'perps' });
+      expect(getPostTradeShareSession()?.status).toBe('complete');
       expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
       expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the create profile sheet seen without an order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      await submitOrder();
+      await fill('');
+
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
     });
 
     it('adds Post to feed to the confirmed toast', async () => {

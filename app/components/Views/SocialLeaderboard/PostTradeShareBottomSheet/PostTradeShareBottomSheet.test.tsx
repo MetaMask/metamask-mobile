@@ -5,20 +5,12 @@ import PostTradeShareBottomSheet from './PostTradeShareBottomSheet';
 import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
   beginPostTradeShareSession,
-  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
-  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
-  openPostTradeClaimUsernamePrompt,
 } from './postTradeShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
-import { markClaimSheetSeen } from '../../../../util/social/postTradePromptStorage';
 
 const mockNavigate = jest.fn();
-
-jest.mock('../../../../util/social/postTradePromptStorage', () => ({
-  markClaimSheetSeen: jest.fn(),
-}));
 
 jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -44,7 +36,6 @@ describe('PostTradeShareBottomSheet', () => {
   afterEach(() => {
     act(() => {
       clearPostTradeShareSession();
-      clearPostTradeClaimUsernamePrompt();
     });
     jest.clearAllMocks();
   });
@@ -57,7 +48,7 @@ describe('PostTradeShareBottomSheet', () => {
     ).toBeNull();
   });
 
-  it('disables Share while the swap is in progress', () => {
+  it('disables Create post while the swap is in progress', () => {
     beginPostTradeShareSession({
       target,
       tradeMode: 'buy',
@@ -75,10 +66,150 @@ describe('PostTradeShareBottomSheet', () => {
 
     expect(
       screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
-    ).toHaveTextContent('social_leaderboard.post_trade_share.in_progress');
+    ).toHaveTextContent('social_leaderboard.post_trade_share.swap_in_progress');
     expect(
-      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
-    ).toBeDisabled();
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.post_and_earn_title',
+    );
+    const primary = screen.getByTestId(
+      PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON,
+    );
+    expect(primary).toHaveTextContent(
+      'social_leaderboard.post_trade_share.create_post',
+    );
+    expect(primary).toBeDisabled();
+  });
+
+  it('shows the perps in-progress title', () => {
+    beginPostTradeShareSession({
+      product: 'perps',
+      preview: {
+        product: 'perps',
+        tokenSymbol: 'ETH',
+        tradeSymbol: 'ETH',
+        tokenAddress: 'ETH',
+        direction: 'long',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.TITLE),
+    ).toHaveTextContent(
+      'social_leaderboard.post_trade_share.order_in_progress',
+    );
+  });
+
+  describe('View activity', () => {
+    it('opens wallet activity for a swap', () => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.VIEW_ACTIVITY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
+      expect(getPostTradeShareSession()).toBeNull();
+    });
+
+    it('opens perps activity for a perps order', () => {
+      beginPostTradeShareSession({
+        product: 'perps',
+        status: 'failed',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.VIEW_ACTIVITY_BUTTON,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('Perps', {
+        screen: 'PerpsActivity',
+        params: { redirectToPerpsTransactions: true, showBackButton: true },
+      });
+      expect(getPostTradeShareSession()).toBeNull();
+    });
+  });
+
+  describe('create profile variant', () => {
+    it('enables Create profile while the trade is in progress', () => {
+      beginPostTradeShareSession({
+        variant: 'create_profile',
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CARD_TITLE),
+      ).toHaveTextContent(
+        'social_leaderboard.post_trade_share.create_profile_title',
+      );
+      const primary = screen.getByTestId(
+        PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON,
+      );
+      expect(primary).toHaveTextContent(
+        'social_leaderboard.post_trade_share.create_profile',
+      );
+      expect(primary).not.toBeDisabled();
+    });
+
+    it('opens profile onboarding and clears the session', () => {
+      beginPostTradeShareSession({
+        variant: 'create_profile',
+        product: 'perps',
+        status: 'complete',
+        orderId: '42',
+        preview: {
+          product: 'perps',
+          tokenSymbol: 'ETH',
+          tradeSymbol: 'ETH',
+          tokenAddress: 'ETH',
+          direction: 'long',
+        },
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(getPostTradeShareSession()).toBeNull();
+    });
   });
 
   it('navigates to the composer with tradeInFlight on Share', () => {
@@ -171,59 +302,6 @@ describe('PostTradeShareBottomSheet', () => {
     );
 
     expect(getPostTradeShareSession()).toBeNull();
-  });
-
-  describe('claim-username sheet', () => {
-    it('renders the swap claim prompt and marks it seen', () => {
-      act(() => {
-        openPostTradeClaimUsernamePrompt('swap');
-      });
-
-      renderWithProvider(<PostTradeShareBottomSheet />);
-
-      expect(markClaimSheetSeen).toHaveBeenCalledWith('swap');
-      expect(
-        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_TITLE),
-      ).toHaveTextContent('social_leaderboard.post_trade_share.complete');
-      expect(
-        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_BUTTON),
-      ).toHaveTextContent('social_leaderboard.post_trade_share.claim_username');
-    });
-
-    it('opens profile onboarding from the CTA', () => {
-      act(() => {
-        openPostTradeClaimUsernamePrompt('perps');
-      });
-
-      renderWithProvider(<PostTradeShareBottomSheet />);
-
-      expect(
-        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_TITLE),
-      ).toHaveTextContent('social_leaderboard.post_trade_share.order_complete');
-
-      fireEvent.press(
-        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_BUTTON),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
-      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
-    });
-
-    it('clears the prompt on close', () => {
-      act(() => {
-        openPostTradeClaimUsernamePrompt('swap');
-      });
-
-      renderWithProvider(<PostTradeShareBottomSheet />);
-
-      fireEvent.press(
-        screen.getByTestId(
-          PostTradeShareBottomSheetSelectorsIDs.CLAIM_CLOSE_BUTTON,
-        ),
-      );
-
-      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
-    });
   });
 
   it('disables Share when a completed session has no transaction hash', () => {

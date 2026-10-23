@@ -3924,7 +3924,11 @@ export const runQuickBuyControllerCases = ({
 
             expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swap');
             expect(getPostTradeShareSession()).toEqual(
-              expect.objectContaining({ product: 'spot', status: 'pending' }),
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'share',
+              }),
             );
             expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
               'pending',
@@ -3939,17 +3943,23 @@ export const runQuickBuyControllerCases = ({
             );
           });
 
-          it('keeps the pending toast and tracks the claim sheet', async () => {
+          it('opens a pending create profile sheet for a user without a profile', async () => {
             mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
 
             await submit();
 
-            expect(getPostTradeShareSession()).toBeNull();
-            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'create_profile',
+              }),
+            );
+            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
             expect(trackQuickBuyTrade).toHaveBeenCalledWith(
               'tx-1',
               expect.objectContaining({
-                postTradeShare: false,
+                postTradeShare: true,
                 postTradePrompt: { kind: 'claim_sheet' },
               }),
             );

@@ -232,12 +232,14 @@ import {
 import { useIsPerpsProModeActive } from '../../utils/perpsModeSwitch';
 import { usePostTradePromptResolver } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import type { PostTradePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/resolvePostTradePrompt';
-import { openPostTradeClaimUsernamePrompt } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import {
   buildPerpsPostTradeComposerParams,
   openPostTradeComposer,
 } from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
-import { incrementShareSheetCount } from '../../../../../util/social/postTradePromptStorage';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../../../util/social/postTradePromptStorage';
 import ToastService from '../../../../../core/ToastService';
 
 // Navigation params interface
@@ -1250,9 +1252,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             prompt.countKey.product,
           );
         }
-        if (!shared && orderId && prompt?.kind === 'claim_sheet') {
-          openPostTradeClaimUsernamePrompt('perps');
-        } else if (!shared) {
+        if (orderId && prompt?.kind === 'claim_sheet') {
+          markClaimSheetSeen('perps');
+        }
+        if (!shared) {
           const confirmedToast = PerpsToastOptions.orderManagement[
             getOrderManagementToastKey(orderForm.type)
           ].confirmed(orderForm.direction, positionSize, orderForm.asset);
@@ -2025,12 +2028,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           })
             ? resolvePostTradePrompt('perps')
             : undefined;
-        if (perpsPostTradePromptRef.current?.kind === 'share_sheet') {
+        const promptKind = perpsPostTradePromptRef.current?.kind;
+        if (promptKind === 'share_sheet' || promptKind === 'claim_sheet') {
           perpsShareSessionIdRef.current = openPerpsPostTradeShareSession({
             asset: orderForm.asset,
             direction: orderForm.direction,
             leverage: orderForm.leverage,
             amountUsd: orderForm.amount,
+            variant: promptKind === 'claim_sheet' ? 'create_profile' : 'share',
           });
         }
         navigateToMarketAfterOrder();

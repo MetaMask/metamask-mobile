@@ -51,6 +51,7 @@ describe('perpsPostTradeShare', () => {
         status: 'pending',
         pairLabel: '5x Short ETH',
         tradeInFlightChain: 'hyperliquid',
+        variant: 'share',
       }),
     );
   });

@@ -1702,11 +1702,15 @@ export function useQuickBuyController(
         preview: sharePreview,
       };
     }
+    const isCreateProfilePrompt =
+      trackedPostTradePrompt?.kind === 'claim_sheet';
     const shouldPostTradeShare =
-      (postTradeShare || trackedPostTradePrompt?.kind === 'share_sheet') &&
-      Boolean(tradeInFlightChain);
+      isCreateProfilePrompt ||
+      ((postTradeShare || trackedPostTradePrompt?.kind === 'share_sheet') &&
+        Boolean(tradeInFlightChain));
     const postTradeShareSessionId = shouldPostTradeShare
       ? beginPostTradeShareSession({
+          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
           target,
           tradeMode,
           pairLabel:
