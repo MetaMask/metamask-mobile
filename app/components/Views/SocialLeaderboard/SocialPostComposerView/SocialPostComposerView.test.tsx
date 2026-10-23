@@ -554,6 +554,30 @@ describe('SocialPostComposerView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
+  it('goes back to the viewer profile when it was opened with their own trader id', async () => {
+    mockNavigationState = {
+      index: 1,
+      routes: [
+        {
+          name: Routes.SOCIAL.V1_PROFILE,
+          params: { traderId: linkedProfile.profileId },
+        },
+        { name: Routes.SOCIAL.POST_COMPOSER },
+      ],
+    };
+    mockRouteParams = { position: openSpot, entryPoint: 'token_details' };
+
+    renderWithProvider(<SocialPostComposerView />);
+    fireEvent.press(
+      screen.getByTestId(SocialPostComposerViewSelectorsIDs.POST_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('does not go back to another trader profile after posting', async () => {
     mockNavigationState = {
       index: 1,

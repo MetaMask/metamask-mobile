@@ -99,11 +99,37 @@ const getPreviousRoute = (
 ): ComposerRoute | undefined =>
   state && state.index > 0 ? state.routes[state.index - 1] : undefined;
 
-/** The viewer's own profile: either profile route, with no foreign trader. */
-const isOwnProfileRoute = (route: ComposerRoute | undefined): boolean =>
-  (route?.name === Routes.SOCIAL.MY_PROFILE ||
-    route?.name === Routes.SOCIAL.V1_PROFILE) &&
-  !(route.params as { traderId?: string } | undefined)?.traderId;
+/**
+ * The viewer's own profile on either profile route, matched the same way
+ * `MyProfileView` decides ownership: no trader, or the viewer's own id or
+ * linked address.
+ */
+const isOwnProfileRoute = (
+  route: ComposerRoute | undefined,
+  viewer: { profileId?: string; linkedAccountAddress?: string | null },
+): boolean => {
+  if (
+    route?.name !== Routes.SOCIAL.MY_PROFILE &&
+    route?.name !== Routes.SOCIAL.V1_PROFILE
+  ) {
+    return false;
+  }
+  const params = route.params as
+    | { traderId?: string; traderAddress?: string }
+    | undefined;
+  if (!params?.traderId) {
+    return true;
+  }
+  return (
+    params.traderId === viewer.profileId ||
+    Boolean(
+      params.traderAddress &&
+        viewer.linkedAccountAddress &&
+        params.traderAddress.toLowerCase() ===
+          viewer.linkedAccountAddress.toLowerCase(),
+    )
+  );
+};
 
 interface ImageInsertEvent {
   nativeEvent: {
@@ -405,7 +431,12 @@ const SocialPostComposerView: React.FC = () => {
       ]);
       // Every post lands on the viewer's Posts tab, where it is pinned.
       requestPostsTabFocus();
-      if (isOwnProfileRoute(getPreviousRoute(navigation.getState()))) {
+      if (
+        isOwnProfileRoute(getPreviousRoute(navigation.getState()), {
+          profileId: profile?.profileId,
+          linkedAccountAddress,
+        })
+      ) {
         navigation.goBack();
       } else {
         // Replace so Back from the profile skips this already-posted composer.
@@ -431,6 +462,7 @@ const SocialPostComposerView: React.FC = () => {
     colors.success.default,
     gifUri,
     isSubmitting,
+    linkedAccountAddress,
     navigation,
     profile?.imageUrl,
     profile?.profileId,
