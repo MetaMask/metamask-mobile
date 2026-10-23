@@ -526,10 +526,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
-      <SocialFeedPostEntrance
-        key={post.id}
-        animate={!seenPostIds.has(post.id)}
-      >
+      <SocialFeedPostEntrance key={post.id} animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
           post={post}
           onCopyTrade={handleCopyTrade}

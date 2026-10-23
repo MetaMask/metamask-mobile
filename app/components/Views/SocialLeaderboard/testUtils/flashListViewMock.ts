@@ -1,5 +1,2 @@
-/**
- * View tests cannot call `jest.mock` except for Engine and device-info.
- * Import this before a Social view that renders FlashList.
- */
+/** View tests import this so FlashList renders through the stand-in. */
 jest.mock('@shopify/flash-list', () => jest.requireActual('./flashListMock'));
