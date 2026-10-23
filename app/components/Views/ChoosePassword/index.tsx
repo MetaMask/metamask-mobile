@@ -6,12 +6,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
-import {
-  AccessibilityInfo,
-  Platform,
-  Keyboard,
-  TextInput,
-} from 'react-native';
+import { AccessibilityInfo, Platform, Keyboard, TextInput } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
