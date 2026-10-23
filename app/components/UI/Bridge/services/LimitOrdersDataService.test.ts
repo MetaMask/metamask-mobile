@@ -84,7 +84,10 @@ describe('LimitOrdersDataService', () => {
   }
 
   it('forwards query parameters to the limit-orders transport', async () => {
-    mockGetLimitOrders.mockResolvedValue({ orders: [MOCK_LIMIT_OPEN_ORDER] });
+    mockGetLimitOrders.mockResolvedValue({
+      orders: [MOCK_LIMIT_OPEN_ORDER],
+      total: 1,
+    });
     const service = buildService();
 
     const result = await service.getLimitOrders(PARAMS);
@@ -101,9 +104,11 @@ describe('LimitOrdersDataService', () => {
       .mockResolvedValueOnce({
         orders: [MOCK_LIMIT_OPEN_ORDER],
         nextCursor: 'next-page',
+        total: 2,
       })
       .mockResolvedValueOnce({
         orders: [MOCK_LIMIT_FILLED_ORDER],
+        total: 2,
       });
     const service = buildService();
 
@@ -135,6 +140,7 @@ describe('LimitOrdersDataService', () => {
       orders: states?.includes(LimitOrderState.Open)
         ? [MOCK_LIMIT_OPEN_ORDER]
         : [],
+      total: states?.includes(LimitOrderState.Open) ? 1 : 0,
     }));
     // Freshness is measured against the clock, which the test setup stubs and
     // `resetAllMocks` leaves returning nothing.
@@ -154,6 +160,7 @@ describe('LimitOrdersDataService', () => {
       orders: states?.includes(LimitOrderState.Cancelled)
         ? [MOCK_LIMIT_CANCELLED_ORDER]
         : [],
+      total: states?.includes(LimitOrderState.Cancelled) ? 1 : 0,
     }));
     await messenger.call('LimitOrdersDataService:invalidateQueries', {
       queryKey: limitOrdersQueries.allOrdersKey(),
@@ -171,6 +178,7 @@ describe('LimitOrdersDataService', () => {
     try {
       mockGetLimitOrders.mockResolvedValue({
         orders: [MOCK_LIMIT_OPEN_ORDER],
+        total: 1,
       });
       const { messenger, setItem } = createMessenger();
       const service = buildService(messenger);

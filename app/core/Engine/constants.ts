@@ -15,7 +15,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SubscriptionDelegationService',
   'ShieldApiService',
   'ClaimsService',
-  'TokenDetectionController',
   'WebSocketService',
   'BackendWebSocketService',
   'AccountActivityService',
@@ -33,6 +32,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'KycService',
   'QrSyncProvisioningService',
   'SocialService',
+  'SocialRealtimeService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
   'MoneyAccountApiDataService',
@@ -51,7 +51,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AccountsController:stateChange',
   'AccountTreeController:stateChange',
-  'AccountTrackerController:stateChange',
   'AddressBookController:stateChange',
   'AnalyticsController:stateChange',
   'AppMetadataController:stateChange',
@@ -59,7 +58,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ConnectivityController:stateChange',
   'ConfigRegistryController:stateChanged',
   'ApprovalController:stateChange',
-  'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
   'GeolocationController:stateChange',
   'KeyringController:stateChange',
@@ -77,8 +75,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'SubscriptionController:stateChange',
   'ShieldController:stateChange',
   'ClaimsController:stateChange',
-  'TokenBalancesController:stateChange',
-  'TokenRatesController:stateChange',
   'TokensController:stateChange',
   'TokenSearchDiscoveryDataController:stateChange',
   'TransactionController:stateChange',
@@ -96,10 +92,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'CronjobController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  'MultichainBalancesController:stateChange',
-  'MultichainAssetsRatesController:stateChange',
-  // TODO: Export this from the assets controller
-  'MultichainAssetsController:stateChange',
   'MultichainTransactionsController:stateChange',
   ///: END:ONLY_INCLUDE_IF
   'BridgeController:stateChange',

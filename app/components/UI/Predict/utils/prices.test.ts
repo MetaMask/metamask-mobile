@@ -1,12 +1,14 @@
-import type {
-  GetPriceResponse,
-  PredictOutcomeToken,
-  PriceUpdate,
+import {
+  Side,
+  type GetPriceResponse,
+  type PredictOutcomeToken,
+  type PriceUpdate,
 } from '../types';
 import {
   getDisplayBuyPrice,
   getPredictBuyPrice,
   getPredictMidPrice,
+  getPredictTicksWorse,
 } from './prices';
 
 const token: PredictOutcomeToken = {
@@ -117,5 +119,118 @@ describe('getDisplayBuyPrice', () => {
 
   it('returns undefined for an undefined token', () => {
     expect(getDisplayBuyPrice(undefined)).toBeUndefined();
+  });
+});
+
+describe('getPredictTicksWorse', () => {
+  it('returns 0 for a better price on a sell', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.68,
+        tickSize: 0.01,
+      }),
+    ).toBe(0);
+  });
+
+  it('returns 0 for an equal price', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.65,
+        tickSize: 0.01,
+      }),
+    ).toBe(0);
+  });
+
+  it('counts whole ticks worse for a sell', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.62,
+        tickSize: 0.01,
+      }),
+    ).toBe(3);
+  });
+
+  it('counts exactly one tick as one', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.64,
+        tickSize: 0.01,
+      }),
+    ).toBe(1);
+  });
+
+  it('treats a lower price as better for a buy', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.BUY,
+        referencePrice: 0.6,
+        freshPrice: 0.58,
+        tickSize: 0.01,
+      }),
+    ).toBe(0);
+  });
+
+  it('counts a higher price as worse for a buy', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.BUY,
+        referencePrice: 0.6,
+        freshPrice: 0.63,
+        tickSize: 0.01,
+      }),
+    ).toBe(3);
+  });
+
+  it('measures with the provided tick size, not a hardcoded cent', () => {
+    // Finer book: 2 ticks of 0.001 would be 0 with a hardcoded $0.01.
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.1,
+        freshPrice: 0.098,
+        tickSize: 0.001,
+      }),
+    ).toBe(2);
+  });
+
+  it('rounds down partial ticks', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.6399,
+        tickSize: 0.01,
+      }),
+    ).toBe(1);
+  });
+
+  it('returns 0 for a non-positive tick size', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: 0.65,
+        freshPrice: 0.62,
+        tickSize: 0,
+      }),
+    ).toBe(0);
+  });
+
+  it('returns 0 for invalid prices', () => {
+    expect(
+      getPredictTicksWorse({
+        side: Side.SELL,
+        referencePrice: Number.NaN,
+        freshPrice: 0.62,
+        tickSize: 0.01,
+      }),
+    ).toBe(0);
   });
 });

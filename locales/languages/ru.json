@@ -1216,8 +1216,8 @@
       "button": "Повторить попытку"
     },
     "error": {
-      "title": "Couldn't continue",
-      "description": "Something went wrong while checking your bank account setup. Try again.",
+      "title": "Couldn't open your account",
+      "description": "We couldn't load your bank account details.",
       "button": "Повторить попытку"
     },
     "vba_details": {
@@ -1648,6 +1648,12 @@
       "seconds_ago": "{{count}}s",
       "connect_x": "Connect X account",
       "create_manually": "Create profile manually",
+      "choose_x_identity": "Choose a MetaMask username and avatar",
+      "choose_x_identity_description": "This is how other traders will know who you are.",
+      "use_x_username": "Use @{{username}} as username",
+      "use_x_avatar": "Use X profile picture",
+      "edit_avatar": "Edit avatar",
+      "view_profile": "View profile",
       "claim_username": "Claim a username",
       "username_label": "Имя пользователя",
       "display_name_label": "Экранное имя",
@@ -1853,7 +1859,7 @@
     "available_balance": "Доступный баланс",
     "margin_used": "Использованная маржа",
     "gtm_content": {
-      "title": "ПЕРПЫ ЗДЕСЬ",
+      "title": "Перпы здесь",
       "title_description": "Длинные или короткие позиции с кредитным плечом до 40x. Пополняйте счёт одним кликом.",
       "not_now": "Не сейчас",
       "try_now": "С чего начать"
@@ -9147,7 +9153,7 @@
         "failed": "Конвертация mUSD не удалась."
       },
       "education": {
-        "heading": "ПОЛУЧИТЕ {{percentage}}% НА\nСТЕЙБЛКОИНЫ",
+        "heading": "Получите {{percentage}}% на стейблкоины",
         "description": "Конвертируйте свои стейблкоины в mUSD и получайте бонус {{percentage}}% годовых.",
         "terms_apply": "Применяются условия.",
         "primary_button": "Начало работы",
@@ -10980,7 +10986,7 @@
       "payment_creation_error": "Не удалось осуществить платеж. Повторите попытку."
     },
     "order_completed": {
-      "title": "ВАША КАРТА ЗАКАЗАНА",
+      "title": "Ваша карта заказана",
       "subtitle": "Доставка должна занять от 4 до 6 недель.",
       "description": "Настройте виртуальную карту и добавьте ее в свой цифровой кошелек, чтобы начать получать кэшбэк в mUSD.",
       "set_up_card_button": "Настроить карту",
@@ -11023,7 +11029,7 @@
       "try_again": "Повторить попытку"
     },
     "card_onboarding": {
-      "title": "Тратьте\nи зарабатывайте",
+      "title": "Тратьте и зарабатывайте",
       "description": "Карта MetaMask Card — это быстрый и\nпростой способ тратить криптовалюту и\nполучать кэшбэк до 3% в mUSD.",
       "apply_now_button": "Настройте сейчас",
       "login_button": "Войти",
@@ -11859,7 +11865,7 @@
       "points_from_referrals_label": "Баллы от рефералов",
       "referrals_label": "VIP-рефералы",
       "tier_benefits_title": "Преимущества уровня",
-      "splash_title": "ДОБРО ПОЖАЛОВАТЬ\nВ GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Добро пожаловать в Gold Fox Collective",
       "splash_description": "Разблокируйте эксклюзивные привилегии, ранние функции и специально подобранные награды. Только по приглашению.",
       "splash_accept_invite": "Принять приглашение",
       "splash_not_now": "Не сейчас",

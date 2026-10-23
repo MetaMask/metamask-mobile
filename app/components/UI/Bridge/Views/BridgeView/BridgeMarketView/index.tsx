@@ -30,7 +30,6 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
-  setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectBridgeControllerState,
   selectQuoteStreamComplete,
@@ -51,8 +50,6 @@ import QuoteDetailsCardSkeleton from '../../../components/QuoteDetailsCard/Quote
 import { useBridgeQuoteRequest } from '../../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { createStyles } from './BridgeMarketView.styles';
-import { useInitialSourceToken } from '../../../hooks/useInitialSourceToken';
-import { useInitialDestToken } from '../../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../../hooks/useIsNetworkEnabled';
@@ -138,7 +135,11 @@ import { useBridgeSession } from '../../../hooks/useBridgeSession';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
-const BridgeMarketViewContent = () => {
+const BridgeMarketViewContent = ({
+  location,
+}: {
+  location: MetaMetricsSwapsEventSource;
+}) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
 
   const { isStockMarketClosed } = useStockMarketHours();
@@ -210,9 +211,6 @@ const BridgeMarketViewContent = () => {
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
-  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location =
-    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -231,12 +229,6 @@ const BridgeMarketViewContent = () => {
 
   // Update native fee-inclusive simulation support for the source chain
   useIsNativeGasIncludedSupported(sourceToken?.chainId);
-
-  const initialSourceToken = route.params?.sourceToken;
-  const initialSourceAmount = route.params?.sourceAmount;
-  const initialDestToken = route.params?.destToken;
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
 
   // Initialize recipient account
   const hasInitializedRecipient = useRef(false);
@@ -267,12 +259,6 @@ const BridgeMarketViewContent = () => {
       }
     }, [navigation, route.params?.scrollToTopOnNav]),
   );
-
-  useEffect(() => {
-    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
-      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
-    }
-  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
 
   const hasDestinationPicker = isEvmNonEvmBridge || isNonEvmNonEvmBridge;
 
@@ -483,8 +469,6 @@ const BridgeMarketViewContent = () => {
       updateQuoteParams();
     }
   }, [isStockMarketClosed, hasValidBridgeInputs, updateQuoteParams]);
-
-  useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -732,31 +716,31 @@ const BridgeMarketViewContent = () => {
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        <SwapsKeypad
-          ref={keypadRef}
-          value={sourceAmountInput.keypadValue}
-          onChange={sourceAmountInput.handleKeypadChange}
-          currency={sourceAmountInput.keypadCurrency}
-          decimals={sourceAmountInput.keypadDecimals}
-        >
-          {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsMarketOrderConfirmButton
-              location={location}
-              transactionActiveAbTests={transactionActiveAbTests}
-              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-            />
-          ) : (
-            <GaslessQuickPickOptions
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              onMaxPress={handleSourceMaxPress}
-              isQuoteSponsored={isQuoteSponsored}
-              onAmountSelect={handleSourcePresetAmountSelect}
-            />
-          )}
-        </SwapsKeypad>
       </Box>
+
+      <SwapsKeypad
+        ref={keypadRef}
+        value={sourceAmountInput.keypadValue}
+        onChange={sourceAmountInput.handleKeypadChange}
+        currency={sourceAmountInput.keypadCurrency}
+        decimals={sourceAmountInput.keypadDecimals}
+      >
+        {sourceAmount && sourceAmount !== '0' ? (
+          <SwapsMarketOrderConfirmButton
+            location={location}
+            transactionActiveAbTests={transactionActiveAbTests}
+            testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+          />
+        ) : (
+          <GaslessQuickPickOptions
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            onMaxPress={handleSourceMaxPress}
+            isQuoteSponsored={isQuoteSponsored}
+            onAmountSelect={handleSourcePresetAmountSelect}
+          />
+        )}
+      </SwapsKeypad>
     </ScreenView>
   );
 };

@@ -1,4 +1,4 @@
-#!/usr/bin/env ts-node
+#!/usr/bin/env tsx
 /**
  * Removes a git worktree. Uses -f because this repo has submodules.
  * Run from repo root or any worktree of the same repo.
@@ -93,7 +93,7 @@ export async function main(): Promise<void> {
   writeStdout(toRemove + '\n');
 }
 
-if (typeof require !== 'undefined' && require.main === module) {
+if (process.argv[1]?.endsWith('worktree-remove.ts')) {
   main().catch((err) => {
     if (err.message !== 'cancelled') {
       writeStderr(chalk.red(err.message + '\n'));

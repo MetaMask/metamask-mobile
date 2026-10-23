@@ -858,7 +858,7 @@ const TraderPositionView = () => {
           originalEntryPoint={quickBuyOriginalEntryPoint}
           isTraderPositionClosed={isClosed}
           onBuyCtaClicked={handleBuyCtaClicked}
-          postSwapShare={isSocialV1 === true}
+          postTradeShare={isSocialV1 === true}
           buyButtonTestID={TraderPositionViewSelectorsIDs.BUY_BUTTON}
         />
       )}

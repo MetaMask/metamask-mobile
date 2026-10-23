@@ -46,6 +46,7 @@ export interface PredictClaimButtonProps {
   disabled?: boolean;
   isLoading?: boolean;
   isHidden?: boolean;
+  isGlass?: boolean;
   testID?: string;
 }
 
