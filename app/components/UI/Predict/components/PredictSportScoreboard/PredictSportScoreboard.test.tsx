@@ -353,6 +353,133 @@ describe('PredictSportScoreboard', () => {
     });
   });
 
+  describe('element testIDs', () => {
+    it('renders scheduled date and time testIDs without scores or live elements', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ status: 'scheduled' })}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-scheduled-date')).toHaveTextContent(
+        /February 8/,
+      );
+      expect(getByTestId('scoreboard-scheduled-time')).toHaveTextContent(/PM/);
+      expect(queryByTestId('scoreboard-home-score')).toBeNull();
+      expect(queryByTestId('scoreboard-away-score')).toBeNull();
+      expect(queryByTestId('scoreboard-status')).toBeNull();
+      expect(queryByTestId('scoreboard-live-label')).toBeNull();
+      expect(queryByTestId('scoreboard-live-dot')).toBeNull();
+    });
+
+    it('renders live label, live dot, status and scores while live', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({
+            league: 'fifwc',
+            status: 'ongoing',
+            period: '2H',
+            elapsed: '25',
+            score: { away: 1, home: 2, raw: '2-1' },
+          })}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-live-label')).toHaveTextContent('LIVE');
+      expect(getByTestId('scoreboard-live-dot')).toBeOnTheScreen();
+      expect(getByTestId('scoreboard-status')).toHaveTextContent('25’');
+      expect(getByTestId('scoreboard-home-score')).toHaveTextContent('2');
+      expect(getByTestId('scoreboard-away-score')).toHaveTextContent('1');
+      expect(queryByTestId('scoreboard-scheduled-date')).toBeNull();
+      expect(queryByTestId('scoreboard-scheduled-time')).toBeNull();
+    });
+
+    it('renders Halftime in the status testID', () => {
+      const { getByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ status: 'ongoing', period: 'HT' })}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-status')).toHaveTextContent('Halftime');
+    });
+
+    it('renders Final in the status testID without live elements once ended', () => {
+      const { getByTestId, queryByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({
+            status: 'ended',
+            score: { away: 109, home: 99, raw: '109-99' },
+          })}
+          testID="scoreboard"
+        />,
+      );
+
+      expect(getByTestId('scoreboard-status')).toHaveTextContent('Final');
+      expect(getByTestId('scoreboard-home-score')).toHaveTextContent('99');
+      expect(getByTestId('scoreboard-away-score')).toHaveTextContent('109');
+      expect(queryByTestId('scoreboard-live-label')).toBeNull();
+      expect(queryByTestId('scoreboard-live-dot')).toBeNull();
+    });
+
+    it('ties score testIDs to team identity for away-home leagues (NFL)', () => {
+      const { getAllByTestId, getByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({
+            league: 'nfl',
+            status: 'ongoing',
+            period: 'Q2',
+            score: { away: 14, home: 7, raw: '7-14' },
+          })}
+          testID="scoreboard"
+        />,
+      );
+
+      const order = getAllByTestId(/-(home|away)-score$/).map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual(['scoreboard-away-score', 'scoreboard-home-score']);
+      expect(getByTestId('scoreboard-home-score')).toHaveTextContent('7');
+      expect(getByTestId('scoreboard-away-score')).toHaveTextContent('14');
+    });
+
+    it('ties score testIDs to team identity for home-away leagues (soccer)', () => {
+      const { getAllByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({
+            league: 'fifwc',
+            status: 'ongoing',
+            period: '1H',
+            elapsed: '10',
+          })}
+          testID="scoreboard"
+        />,
+      );
+
+      const order = getAllByTestId(/-(home|away)-score$/).map(
+        (node) => node.props.testID,
+      );
+      expect(order).toEqual(['scoreboard-home-score', 'scoreboard-away-score']);
+    });
+
+    it('omits element testIDs when no testID is provided', () => {
+      const { queryAllByTestId } = render(
+        <PredictSportScoreboard
+          game={createGame({ status: 'ongoing', period: 'Q1' })}
+        />,
+      );
+
+      expect(
+        queryAllByTestId(
+          /-(home-score|away-score|status|live-label|live-dot)$/,
+        ),
+      ).toHaveLength(0);
+    });
+  });
+
   describe('league-specific rendering', () => {
     it('renders custom team icons for configured leagues (NFL)', () => {
       const { getByTestId } = render(

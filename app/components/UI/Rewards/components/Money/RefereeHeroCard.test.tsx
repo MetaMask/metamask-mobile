@@ -37,7 +37,7 @@ const LOCALIZED_TEXT = {
   invitedReferredBy: 'Referred by',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   termsTitle: 'Terms and Conditions',
 } as unknown as ReferralLocalizedText;
 
@@ -154,6 +154,29 @@ describe('RefereeHeroCard', () => {
       queryByTestId(REFEREE_HERO_CARD_TEST_IDS.TRADING_COMMISSIONS_TOTAL),
     ).not.toBeOnTheScreen();
     expect(queryByRole('button', { name: 'Share' })).not.toBeOnTheScreen();
+  });
+
+  it('shows the rebates lifetime as sent, without subtracting voided again', () => {
+    const { getByText, queryByText } = renderHero({
+      summary: {
+        ...SUMMARY,
+        self_earned: {
+          ...SUMMARY.self_earned,
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              lifetime: '6650000',
+              voided: '1000000',
+              pending: '0',
+              claimed: '0',
+              by_address: [],
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByText('$6.65')).toBeOnTheScreen();
+    expect(queryByText('$5.65')).not.toBeOnTheScreen();
   });
 
   it('renders without totals when the summary has not landed', () => {
