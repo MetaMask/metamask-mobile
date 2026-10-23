@@ -1,11 +1,10 @@
-import type { PredictConfig } from '../../PredictNext/config/predictConfig';
+import type { PredictConfig } from '../../config/predictConfig';
 import {
   hasLegacyMarketListParams,
-  resolveActiveVenue,
+  resolvePinnedVenue,
   resolvePredictMarketListLane,
-  resolvePredictRootLane,
 } from './laneResolution';
-import { createActiveABTestAssignment } from '../../../../util/analytics/activeABTestAssignments';
+import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 
 const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
   enabled: true,
@@ -17,28 +16,6 @@ const config = (polymarket: boolean, kalshi: boolean): PredictConfig => ({
 });
 
 describe('temporary Predict lane resolution', () => {
-  it.each([
-    [false, true, 'kalshi'],
-    [true, false, 'polymarket'],
-    [true, true, 'polymarket'],
-    [false, false, 'polymarket'],
-  ] as const)(
-    'resolves polymarket=%s kalshi=%s to %s',
-    (polymarket, kalshi, expected) => {
-      const result = resolveActiveVenue(config(polymarket, kalshi));
-
-      expect(result).toBe(expected);
-    },
-  );
-
-  it('falls back to Polymarket when the new architecture is disabled', () => {
-    const disabled = { ...config(false, true), enabled: false };
-
-    const result = resolveActiveVenue(disabled);
-
-    expect(result).toBe('polymarket');
-  });
-
   it.each([
     { feedId: 'sports' as const },
     { tabId: 'basketball' },
@@ -77,10 +54,26 @@ describe('temporary Predict lane resolution', () => {
   });
 
   it('keeps a specific child route on Polymarket', () => {
-    const result = resolvePredictRootLane(config(false, true), {
-      screen: 'PredictMarketDetails',
+    const result = resolvePinnedVenue({ screen: 'PredictMarketDetails' });
+
+    expect(result).toBe('polymarket');
+  });
+
+  it('keeps a parameterized root market list on Polymarket', () => {
+    const result = resolvePinnedVenue({
+      screen: 'PredictMarketList',
+      params: { feedId: 'sports' },
     });
 
     expect(result).toBe('polymarket');
   });
+
+  it.each([undefined, {}, { screen: 'PredictMarketList' as const }])(
+    'leaves a generic root entry to the Active Venue',
+    (route) => {
+      const result = resolvePinnedVenue(route);
+
+      expect(result).toBeUndefined();
+    },
+  );
 });
