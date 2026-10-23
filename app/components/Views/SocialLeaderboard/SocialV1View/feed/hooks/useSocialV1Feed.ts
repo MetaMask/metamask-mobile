@@ -60,9 +60,7 @@ export const useSocialV1Feed = (
     refresh: refetch,
     dataUpdatedAt,
   } = useSocialFeed(source, {
-    socialPerformance: isSocialV1Treatment
-      ? { tab: TAB_TRACE[tab] }
-      : undefined,
+    performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
   });
 
   const overlay = usePendingPostsOverlay({

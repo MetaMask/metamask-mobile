@@ -223,7 +223,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
-                socialV1Performance={performance}
+                performance={performance}
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

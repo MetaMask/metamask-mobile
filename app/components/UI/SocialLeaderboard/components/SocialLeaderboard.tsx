@@ -83,7 +83,7 @@ export interface SocialLeaderboardProps {
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
-  socialV1Performance?: SocialPerformanceContext;
+  performance?: SocialPerformanceContext;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -100,7 +100,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
-  socialV1Performance,
+  performance,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -129,7 +129,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     timeframe,
     sort,
     enabled: !isOffline,
-    socialPerformance: socialV1Performance?.enabled
+    performance: performance?.enabled
       ? { tab: SOCIAL_TRACE_TABS.Leaderboard }
       : undefined,
   });
@@ -250,7 +250,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     tab: SOCIAL_TRACE_TABS.Leaderboard,
     contentState: firstContentState,
     hasUsableData: hasFetched || isShowingSnapshot || freshTraders.length > 0,
-    performance: socialV1Performance,
+    performance,
   });
 
   if (!isEnabled || resolution.status === 'hidden') {

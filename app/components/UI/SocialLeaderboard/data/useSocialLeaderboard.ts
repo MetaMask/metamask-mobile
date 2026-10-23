@@ -33,7 +33,7 @@ export interface UseSocialLeaderboardOptions {
   /** Gate the query. Always additionally gated on the feature flag and unlock. */
   enabled?: boolean;
   /** Social V1-only tracing for the first real leaderboard request. */
-  socialPerformance?: Readonly<{ tab: SocialDataFetchTab }>;
+  performance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
 
 export interface SocialLeaderboardState
@@ -54,12 +54,7 @@ export interface SocialLeaderboardState
  */
 export const useSocialLeaderboard = (
   source: SocialLeaderboardSource | null,
-  {
-    timeframe,
-    sort,
-    enabled = true,
-    socialPerformance,
-  }: UseSocialLeaderboardOptions,
+  { timeframe, sort, enabled = true, performance }: UseSocialLeaderboardOptions,
 ): SocialLeaderboardState => {
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -79,7 +74,8 @@ export const useSocialLeaderboard = (
     sort,
     timeframe,
     enabled: isEnabled && enabled && isReady,
-    socialPerformance,
+    performance,
+    keepPreviousRanking: true,
   });
 
   const { traders: loadedTraders, refresh: refetch } = result;

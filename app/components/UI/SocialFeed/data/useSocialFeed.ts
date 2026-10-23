@@ -36,7 +36,7 @@ export interface UseSocialFeedOptions {
   /** Items per page. Part of the cache key. */
   pageSize?: number;
   /** Social V1-only tracing for the first real initial-page request. */
-  socialPerformance?: Readonly<{ tab: SocialDataFetchTab }>;
+  performance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
 
 export interface SocialFeedState {
@@ -107,11 +107,7 @@ export const useSocialFeed = (
   source: SocialFeedSource | null,
   options: UseSocialFeedOptions = {},
 ): SocialFeedState => {
-  const {
-    enabled = true,
-    pageSize = FEED_PAGE_LIMIT,
-    socialPerformance,
-  } = options;
+  const { enabled = true, pageSize = FEED_PAGE_LIMIT, performance } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
   const queryClient = useQueryClient();
   const initialRequestAccountedForRef = useRef(false);
@@ -136,7 +132,7 @@ export const useSocialFeed = (
 
       if (
         pageParam !== undefined ||
-        !socialPerformance ||
+        !performance ||
         initialRequestAccountedForRef.current
       ) {
         return fetchPage();
@@ -144,7 +140,7 @@ export const useSocialFeed = (
 
       initialRequestAccountedForRef.current = true;
       return measureSocialDataFetch({
-        tab: socialPerformance.tab,
+        tab: performance.tab,
         cacheState:
           queryClient.getQueryData<InfiniteData<FeedResponse>>(queryKey) ===
           undefined
@@ -166,14 +162,14 @@ export const useSocialFeed = (
 
   useEffect(() => {
     if (
-      socialPerformance &&
+      performance &&
       query.data !== undefined &&
       !query.isFetching &&
       !initialRequestAccountedForRef.current
     ) {
       initialRequestAccountedForRef.current = true;
     }
-  }, [query.data, query.isFetching, socialPerformance]);
+  }, [query.data, query.isFetching, performance]);
 
   const pages = query.data?.pages;
   const isGlobalFeed = request?.action === 'SocialService:fetchFeed';

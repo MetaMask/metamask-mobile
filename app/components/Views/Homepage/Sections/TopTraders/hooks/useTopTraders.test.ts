@@ -249,7 +249,7 @@ describe('useTopTraders', () => {
       renderHook(() =>
         useTopTraders({
           limit: 50,
-          socialPerformance: { tab: 'leaderboard' },
+          performance: { tab: 'leaderboard' },
         }),
       );
       const queryFn = getLastQueryFn();
@@ -279,7 +279,7 @@ describe('useTopTraders', () => {
       renderHook(() =>
         useTopTraders({
           limit: 50,
-          socialPerformance: { tab: 'leaderboard' },
+          performance: { tab: 'leaderboard' },
         }),
       );
       const queryFn = getLastQueryFn();
@@ -302,7 +302,7 @@ describe('useTopTraders', () => {
       renderHook(() =>
         useTopTraders({
           limit: 50,
-          socialPerformance: { tab: 'leaderboard' },
+          performance: { tab: 'leaderboard' },
         }),
       );
       const queryFn = getLastQueryFn();

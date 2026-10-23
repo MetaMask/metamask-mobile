@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
   useIsFocused,
   useNavigation,
   useRoute,
@@ -47,7 +46,6 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -562,22 +560,6 @@ const SocialV1ViewContent: React.FC = () => {
       changeTab(e.nativeEvent.position);
     },
     [changeTab],
-  );
-
-  useFocusEffect(
-    useCallback(() => {
-      // A post just written from the composer is pinned on Following.
-      if (!consumeFollowingFocus()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(followingIndex);
-      if (activeIndex !== followingIndex) {
-        changeTab(followingIndex);
-      } else {
-        followingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, followingIndex]),
   );
 
   useEffect(() => {

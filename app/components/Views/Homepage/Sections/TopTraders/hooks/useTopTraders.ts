@@ -1,7 +1,7 @@
 import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import { useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQueryClient } from '@tanstack/react-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
@@ -49,7 +49,12 @@ interface UseTopTradersOptions {
   timeframe?: '7d' | '30d';
   enabled?: boolean;
   /** Social V1-only tracing for the first real leaderboard request. */
-  socialPerformance?: Readonly<{ tab: SocialDataFetchTab }>;
+  performance?: Readonly<{ tab: SocialDataFetchTab }>;
+  /**
+   * Keep the previous ranking on screen while a new chain set loads, so the
+   * rows can slide to their new order instead of remounting from a skeleton.
+   */
+  keepPreviousRanking?: boolean;
 }
 
 export const useTopTraders = (
@@ -76,9 +81,9 @@ export const useTopTraders = (
     'SocialService:fetchLeaderboard',
     fetchOptions,
   ];
-  const socialPerformance = options?.socialPerformance;
+  const performance = options?.performance;
   const tracedQueryFn =
-    socialPerformance && fetchOptions
+    performance && fetchOptions
       ? () => {
           const fetchLeaderboard = () =>
             Engine.controllerMessenger.call(
@@ -92,7 +97,7 @@ export const useTopTraders = (
 
           initialRequestAccountedForRef.current = true;
           return measureSocialDataFetch({
-            tab: socialPerformance.tab,
+            tab: performance.tab,
             cacheState:
               queryClient.getQueryData<LeaderboardResponse>(queryKey) ===
               undefined
@@ -116,18 +121,21 @@ export const useTopTraders = (
       enabled: (options?.enabled ?? true) && isUnlocked,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      placeholderData: options?.keepPreviousRanking
+        ? keepPreviousData
+        : undefined,
     });
 
   useEffect(() => {
     if (
-      socialPerformance &&
+      performance &&
       data !== undefined &&
       !isFetching &&
       !initialRequestAccountedForRef.current
     ) {
       initialRequestAccountedForRef.current = true;
     }
-  }, [data, isFetching, socialPerformance]);
+  }, [data, isFetching, performance]);
 
   const leaderboardQueryParams = useMemo(
     () => ({

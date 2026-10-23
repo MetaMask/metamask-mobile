@@ -122,7 +122,7 @@ describe('useSocialV1Feed', () => {
           audience: 'all',
         },
         {
-          socialPerformance: { tab: 'trending' },
+          performance: { tab: 'trending' },
         },
       );
     });
@@ -137,7 +137,7 @@ describe('useSocialV1Feed', () => {
           audience: 'following',
         },
         {
-          socialPerformance: { tab: 'following' },
+          performance: { tab: 'following' },
         },
       );
     });
@@ -149,7 +149,7 @@ describe('useSocialV1Feed', () => {
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
         { kind: 'all', audience: 'all' },
-        { socialPerformance: undefined },
+        { performance: undefined },
       );
     });
 

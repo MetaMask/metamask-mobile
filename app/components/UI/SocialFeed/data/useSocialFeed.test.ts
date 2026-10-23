@@ -409,7 +409,7 @@ describe('useSocialFeed', () => {
       () =>
         useSocialFeed(
           { kind: 'all', audience: 'all' },
-          { socialPerformance: { tab: 'trending' } },
+          { performance: { tab: 'trending' } },
         ),
       { wrapper: createWrapper().wrapper },
     );
@@ -442,7 +442,7 @@ describe('useSocialFeed', () => {
     renderHook(
       () =>
         useSocialFeed(source, {
-          socialPerformance: { tab: 'following' },
+          performance: { tab: 'following' },
         }),
       { wrapper },
     );
@@ -469,7 +469,7 @@ describe('useSocialFeed', () => {
     const { result } = renderHook(
       () =>
         useSocialFeed(source, {
-          socialPerformance: { tab: 'following' },
+          performance: { tab: 'following' },
         }),
       { wrapper },
     );
@@ -486,7 +486,7 @@ describe('useSocialFeed', () => {
     const { result } = renderHook(
       () =>
         useSocialFeed(perpSource, {
-          socialPerformance: { tab: 'trending' },
+          performance: { tab: 'trending' },
         }),
       { wrapper: createWrapper().wrapper },
     );
