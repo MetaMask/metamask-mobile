@@ -601,7 +601,7 @@ describe('SocialPostComposerView', () => {
     ).toBeEnabled();
   });
 
-  it('posts tradeInFlight without a position picker or pending post', async () => {
+  it('posts tradeInFlight without a position picker and pins it to Following and Posts', async () => {
     mockRouteParams = {
       tradeInFlight: {
         transactionHash: '0xabc',
@@ -646,9 +646,20 @@ describe('SocialPostComposerView', () => {
       });
     });
 
-    expect(getPendingPostsSnapshot()).toHaveLength(0);
-    expect(mockShowToast).toHaveBeenCalled();
-    expect(mockGoBack).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+    const [entry] = getPendingPostsSnapshot();
+    expect(entry).toMatchObject({
+      commentId: 'comment-1',
+      positionId: null,
+      post: expect.objectContaining({
+        isPending: true,
+        item: expect.objectContaining({ variant: 'spotShare' }),
+      }),
+    });
+    expect(consumeFollowingFocus()).toBe(true);
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('posts a Hyperliquid order id without a transaction hash', async () => {

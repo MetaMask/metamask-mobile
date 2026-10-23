@@ -13,6 +13,9 @@ import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.tes
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileLinkedAccountView from './ManageProfileLinkedAccountView';
 
+const SOLANA_MAINNET_SCOPE = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const MOCK_SOLANA_ADDRESS = '7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV';
+
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
 const mockUseLinkableSocialAccounts = jest.fn<LinkableSocialAccount[], []>();
@@ -55,12 +58,17 @@ const linkableAccounts: LinkableSocialAccount[] = [
     name: 'Main Wallet',
     address: internalAccount1.address,
     balanceLabel: '$1,234.56',
+    linkedAddresses: [
+      `eip155:1:${internalAccount1.address}`,
+      `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+    ],
   },
   {
     id: internalAccount2.id,
     name: 'Trading',
     address: internalAccount2.address,
     balanceLabel: '',
+    linkedAddresses: [`eip155:1:${internalAccount2.address}`],
   },
 ];
 
@@ -118,7 +126,7 @@ describe('ManageProfileLinkedAccountView', () => {
     expect(updateProfile).not.toHaveBeenCalled();
   });
 
-  it('updates the profile with the selected EVM account', async () => {
+  it('updates the profile with every address in the selected account', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     mockUseProfileController.mockReturnValue(
       controllerResult({ isControllerBacked: true, updateProfile }),
@@ -131,7 +139,10 @@ describe('ManageProfileLinkedAccountView', () => {
     });
 
     expect(updateProfile).toHaveBeenCalledWith({
-      linked_addresses: [`eip155:1:${internalAccount1.address}`],
+      linked_addresses: [
+        `eip155:1:${internalAccount1.address}`,
+        `${SOLANA_MAINNET_SCOPE}:${MOCK_SOLANA_ADDRESS}`,
+      ],
     });
   });
 });
