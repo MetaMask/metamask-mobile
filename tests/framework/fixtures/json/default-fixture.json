@@ -232,6 +232,7 @@
           }
         },
         "MoneyAccountController": {
+          "defaultMoneyAccountId": null,
           "moneyAccounts": {}
         },
         "MoneyAccountUpgradeController": {
