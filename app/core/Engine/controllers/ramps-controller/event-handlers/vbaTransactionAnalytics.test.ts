@@ -49,12 +49,17 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
     ).toMatchInlineSnapshot(`
       {
         "autoramp_id": "ar-1",
-        "destination_amount": "18.00",
+        "autoramp_status": "ready",
+        "currency_destination_symbol": "mUSD",
+        "destination_amount": 18,
+        "entry_point": "add_funds_bank_account",
         "seconds_since_created": 90,
-        "source_amount": "100.00",
+        "source_amount": 100,
         "status": "pending",
+        "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
         "transaction_status": "FundsReviewInProgress",
+        "vendor": "moonpay",
       }
     `);
   });
@@ -76,43 +81,81 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
     expect(
       buildMoneyVbaTransactionUpdatedProperties(
         payload('Completed', 'PayoutInProgress'),
-        { fiat_code: 'BRL', region: 'BR', vendor: 'iron' },
+        { currency_source: 'BRL', region: 'br' },
         NOW,
       ),
     ).toMatchInlineSnapshot(`
       {
         "autoramp_id": "ar-1",
-        "destination_amount": "18.00",
-        "fiat_code": "BRL",
+        "autoramp_status": "ready",
+        "currency_destination_symbol": "mUSD",
+        "currency_source": "BRL",
+        "destination_amount": 18,
+        "entry_point": "add_funds_bank_account",
         "previous_status": "PayoutInProgress",
-        "region": "BR",
+        "region": "br",
         "seconds_since_created": 90,
-        "source_amount": "100.00",
+        "source_amount": 100,
         "status": "completed",
+        "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
         "transaction_status": "Completed",
-        "vendor": "iron",
+        "vendor": "moonpay",
       }
     `);
   });
 
-  it.each([
-    ['Failed', 'failed'],
-    ['RejectedAml', 'rejected_aml'],
-    ['RejectedFraud', 'rejected_fraud'],
-    ['RejectedMinAmount', 'rejected_min_amount'],
-  ])('maps %s to failed with failure_reason %s', (status, failureReason) => {
+  it.each(['Failed', 'RejectedAml', 'RejectedFraud', 'RejectedMinAmount'])(
+    'maps %s to failed with the schema failure_reason and keeps the raw status',
+    (status) => {
+      expect(
+        buildMoneyVbaTransactionUpdatedProperties(
+          payload(status, 'PayoutInProgress'),
+          {},
+          NOW,
+        ),
+      ).toMatchObject({
+        status: 'failed',
+        transaction_status: status,
+        failure_reason: 'vendor_error',
+        previous_status: 'PayoutInProgress',
+      });
+    },
+  );
+
+  it('sends amounts as numbers and omits an amount that is not numeric', () => {
+    const properties = buildMoneyVbaTransactionUpdatedProperties(
+      {
+        autorampId: 'ar-1',
+        transaction: {
+          id: 'tx-1',
+          autorampId: 'ar-1',
+          status: 'Completed',
+          sourceAmount: '100.50',
+          destinationAmount: 'n/a',
+        },
+      },
+      {},
+      NOW,
+    );
+
+    expect(properties.source_amount).toBe(100.5);
+    expect(properties).not.toHaveProperty('destination_amount');
+  });
+
+  it('always sends the constant VBA properties the schema requires', () => {
     expect(
       buildMoneyVbaTransactionUpdatedProperties(
-        payload(status, 'PayoutInProgress'),
+        payload('FundsReviewInProgress'),
         {},
         NOW,
       ),
     ).toMatchObject({
-      status: 'failed',
-      transaction_status: status,
-      failure_reason: failureReason,
-      previous_status: 'PayoutInProgress',
+      entry_point: 'add_funds_bank_account',
+      vendor: 'moonpay',
+      autoramp_status: 'ready',
+      currency_destination_symbol: 'mUSD',
+      token_chain_id: 'eip155:143',
     });
   });
 
@@ -133,9 +176,14 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
     ).toMatchInlineSnapshot(`
       {
         "autoramp_id": "ar-1",
+        "autoramp_status": "ready",
+        "currency_destination_symbol": "mUSD",
+        "entry_point": "add_funds_bank_account",
         "status": "completed",
+        "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
         "transaction_status": "Completed",
+        "vendor": "moonpay",
       }
     `);
   });
@@ -160,18 +208,34 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
     ).toMatchInlineSnapshot(`
       {
         "autoramp_id": "ar-1",
-        "destination_amount": "18.00",
+        "autoramp_status": "ready",
+        "currency_destination_symbol": "mUSD",
+        "destination_amount": 18,
+        "entry_point": "add_funds_bank_account",
         "previous_status": "Completed",
         "seconds_since_created": 90,
-        "source_amount": "100.00",
+        "source_amount": 100,
+        "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
         "transaction_status": "SomethingNew",
+        "vendor": "moonpay",
       }
     `);
   });
 });
 
 describe('readVbaTransactionBaseProperties', () => {
+  it.each([
+    ['BR-SP', 'br'],
+    ['us', 'us'],
+  ])('normalizes location %s to region %s', (location, region) => {
+    expect(
+      readVbaTransactionBaseProperties('ar-1', {
+        GeolocationController: { location },
+      }).region,
+    ).toBe(region);
+  });
+
   it('reads known VBA base properties and skips an unknown region', () => {
     expect(
       readVbaTransactionBaseProperties('ar-1', {
@@ -192,10 +256,9 @@ describe('readVbaTransactionBaseProperties', () => {
       }),
     ).toMatchInlineSnapshot(`
       {
-        "fiat_code": "USD",
+        "currency_source": "USD",
         "kyc_status": "approved",
         "provider_flow_status": "submitted",
-        "vendor": "iron",
       }
     `);
   });
