@@ -91,8 +91,9 @@ const toHomeRouteParams = (
 /**
  * Entry point into the Social Leaderboard feature. Routes a first-time user
  * straight to the onboarding (so no leaderboard/loading frame is shown first),
- * otherwise opens Follow Trading home (legacy or Social V1) with the
- * caller's `source`.
+ * otherwise opens Follow Trading home with the caller's `source`. Social V1
+ * treatment selects the Social tab so the bottom tab bar stays visible; control
+ * pushes the legacy home.
  *
  * @param navigate - The caller's navigate function (React or deeplink).
  * @param params - Params forwarded to the home route when onboarding is skipped.
@@ -101,18 +102,32 @@ export const navigateToSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
+  const isV1Treatment = isSocialV1Treatment();
   if (shouldShowSocialLeaderboardOnboarding()) {
-    navigate(Routes.SOCIAL.ONBOARDING);
+    if (isV1Treatment) {
+      navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
+    } else {
+      navigate(Routes.SOCIAL.ONBOARDING);
+    }
     return;
   }
-  navigate(getFollowTradingHomeRoute(), toHomeRouteParams(params));
+  if (isV1Treatment) {
+    // `pop` closes root-stack screens above the tabs (e.g. Perps), like Money.
+    navigate(
+      Routes.HOME_TABS,
+      { screen: Routes.SOCIAL.TAB, params: toHomeRouteParams(params) },
+      { pop: true },
+    );
+    return;
+  }
+  navigate(Routes.SOCIAL.V0, params);
 };
 
 /**
  * Navbar Social tab entry. Same onboarding gate as
- * `navigateToSocialLeaderboard`, but lands on `SOCIAL.TAB` so the floating
- * bar selects the tab. TSA-1122 chooses V1 vs V0 as that tab's mounted
- * component, not as a root-stack push.
+ * `navigateToSocialLeaderboard`, but always lands on `SOCIAL.TAB` (control
+ * too) so the floating bar selects the tab. TSA-1122 chooses V1 vs V0 as that
+ * tab's mounted component, not as a root-stack push.
  */
 export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
