@@ -86,9 +86,7 @@ const MoneyActivityRow = ({
   }
 
   if (item.kind === 'neobank') {
-    return (
-      <NeobankActivityItem activity={item.tx} privacyMode={privacyMode} />
-    );
+    return <NeobankActivityItem activity={item.tx} privacyMode={privacyMode} />;
   }
 
   return (

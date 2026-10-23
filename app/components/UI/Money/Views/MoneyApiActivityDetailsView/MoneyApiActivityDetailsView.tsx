@@ -201,7 +201,7 @@ type BankTransferStepSeverity = 'success' | 'warning' | 'error';
  *
  * - MoonPay pay-in still open → both steps pending
  * - MoonPay Completed, mUSD not on-chain yet → Bank transfer success,
- *   Deposit to Money Account pending
+ * Deposit to Money Account pending
  * - On-chain settlement (Accounts API) → both success
  */
 function BankTransferActivitySteps({

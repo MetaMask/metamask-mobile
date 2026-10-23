@@ -13,6 +13,7 @@ import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectCardTransactionHistoryEnabled } from '../../../../../selectors/featureFlagController/card';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
+import { useMoneyVbaTransfers } from '../../hooks/useMoneyVbaTransfers';
 import { useNeobankAutorampActivity } from '../../hooks/useNeobankAutorampActivity';
 import { useCardTransactionIndex } from '../../../Card/hooks/useCardTransactionIndex';
 import MONEY_ACTIVITY_TRANSACTIONS from '../../__fixtures__/moneyActivityTransactions';
@@ -221,6 +222,7 @@ const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
+const mockUseMoneyVbaTransfers = jest.mocked(useMoneyVbaTransfers);
 const mockUseNeobankAutorampActivity = jest.mocked(useNeobankAutorampActivity);
 const mockUseCardTransactionIndex = jest.mocked(useCardTransactionIndex);
 
@@ -315,6 +317,11 @@ describe('MoneyActivityView', () => {
     mockedSelectEnrichmentFlag.mockReturnValue(false);
     mockedSelectMoneyAccountFlag.mockReturnValue(false);
     mockedSelectGeoEligible.mockReturnValue(false);
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      refetch: jest.fn(),
+    } as never);
     mockUseNeobankAutorampActivity.mockReturnValue({
       activity: [],
       refetch: jest.fn(),
@@ -425,34 +432,39 @@ describe('MoneyActivityView', () => {
     });
   });
 
-  it('places failed and cancelled NeoBank deposits in date sections, not Pending', () => {
-    const activity = [
-      {
-        id: 'neo-failed',
-        autorampId: 'ar-1',
-        status: 'Failed',
-        time: 1780574031000,
+  it('places failed VBA transfers in date sections, not Pending', () => {
+    const transfer = (id: string, timestamp: string) => ({
+      event_id: `${id}-event`,
+      transfer_id: id,
+      status: 'error' as const,
+      event_timestamp: timestamp,
+      updated_at: timestamp,
+      transfer: {
+        sender_address: '0x0000000000000000000000000000000000000002',
+        recipient_address: '0x0000000000000000000000000000000000000001',
+        network: 'Monad',
+        amount: '15.000000',
+        asset: 'mUSD',
+        transaction_hash: null,
       },
-      {
-        id: 'neo-cancelled',
-        autorampId: 'ar-1',
-        status: 'Cancelled',
-        time: 1780574031001,
-      },
-    ];
+    });
     mockUseMoneyAccountTransactions.mockReturnValue({
-      allTransactions: MOCK_DEPOSITS.filter(
-        (tx) => tx.id === 'money-tx-converted',
-      ),
-      deposits: MOCK_DEPOSITS.filter((tx) => tx.id === 'money-tx-converted'),
+      allTransactions: [],
+      deposits: [],
       transfers: [],
       submittedTransactions: [],
       moneyAddress: '0x0000000000000000000000000000000000000001',
     });
-    mockUseNeobankAutorampActivity.mockReturnValue({
-      activity,
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          transfer('vba-failed', '2026-06-04T12:00:00.000Z'),
+          transfer('vba-error', '2026-06-03T12:00:00.000Z'),
+        ],
+      },
+      isLoading: false,
       refetch: jest.fn(),
-    });
+    } as never);
 
     const { getAllByText, getAllByTestId, queryByTestId } = renderWithProvider(
       <MoneyActivityView />,

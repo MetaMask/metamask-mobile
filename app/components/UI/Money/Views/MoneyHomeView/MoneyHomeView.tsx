@@ -245,12 +245,7 @@ const MoneyHomeView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [
-    refetchBalance,
-    refetchInterest,
-    refreshMusdFiatRate,
-    refetchActivity,
-  ]);
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);

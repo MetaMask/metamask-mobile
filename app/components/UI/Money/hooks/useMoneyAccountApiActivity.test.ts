@@ -342,14 +342,12 @@ describe('useMoneyAccountApiActivity', () => {
       page1,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
-      [],
     );
     expect(mockParse).toHaveBeenNthCalledWith(
       2,
       page2,
       ADDR_A,
       CASHBACK_MULTISEND_CONTRACTS,
-      [],
     );
     expect(result.current.activity).toEqual([CARD]);
   });

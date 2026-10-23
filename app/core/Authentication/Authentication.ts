@@ -2005,12 +2005,12 @@ class AuthenticationService {
         // otherwise survive reset, so Money Activity can show another
         // customer's Pending bank transfer before the new wallet KYCs.
         const rampsController = Engine.context.RampsController as {
-          state?: { autoramps?: Array<{ id: string }> };
+          state?: { autoramps?: { id: string }[] };
           removeAutoramp?: (autorampId: string) => void;
         };
-        const staleAutorampIds = (
-          rampsController.state?.autoramps ?? []
-        ).map((autoramp) => autoramp.id);
+        const staleAutorampIds = (rampsController.state?.autoramps ?? []).map(
+          (autoramp) => autoramp.id,
+        );
         for (const autorampId of staleAutorampIds) {
           rampsController.removeAutoramp?.(autorampId);
         }
