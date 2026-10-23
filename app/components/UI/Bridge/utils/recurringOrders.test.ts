@@ -11,7 +11,7 @@ import {
   formatRecurringTokenAmount,
   getRecurringOrderFilledPercent,
   getRecurringOrderTokens,
-  getOrderTypeFromPriceRange,
+  getOrderTypeFromDraftPriceRange,
   getUsdToCurrentCurrencyRate,
   isRecurringSwapEligibleForAddFunds,
 } from './recurringOrders';
@@ -67,7 +67,8 @@ describe('recurring order formatting', () => {
   });
 
   it('omits average execution price from an unfilled fixture', () => {
-    const result = MOCK_RECURRING_OPEN_ORDER_2.averageExecutionPriceUsd;
+    const result =
+      MOCK_RECURRING_OPEN_ORDER_2.fillData.averageExecutionPriceUsd;
 
     expect(result).toBeUndefined();
   });
@@ -114,7 +115,7 @@ describe('recurring order formatting', () => {
   it('preserves a one-sided historical price range during conversion', () => {
     const result = formatRecurringPriceRange({
       priceRange: {
-        tokenSide: 'dest',
+        side: 'dest',
         currency: 'USD',
         min: '1800',
       },
@@ -145,7 +146,7 @@ describe('recurring order formatting', () => {
   });
 });
 
-describe('getOrderTypeFromPriceRange', () => {
+describe('getOrderTypeFromDraftPriceRange', () => {
   it.each([
     {
       label: 'dest min',
@@ -153,6 +154,7 @@ describe('getOrderTypeFromPriceRange', () => {
         tokenSide: 'dest' as const,
         currency: 'USD' as const,
         min: '1000',
+        max: '',
       },
       expected: OrderType.BUY_ABOVE,
     },
@@ -161,6 +163,7 @@ describe('getOrderTypeFromPriceRange', () => {
       priceRange: {
         tokenSide: 'dest' as const,
         currency: 'USD' as const,
+        min: '',
         max: '2000',
       },
       expected: OrderType.BUY_BELOW,
@@ -170,6 +173,7 @@ describe('getOrderTypeFromPriceRange', () => {
       priceRange: {
         tokenSide: 'source' as const,
         currency: 'USD' as const,
+        min: '',
         max: '2000',
       },
       expected: OrderType.SELL_BELOW,
@@ -180,6 +184,7 @@ describe('getOrderTypeFromPriceRange', () => {
         tokenSide: 'source' as const,
         currency: 'USD' as const,
         min: '1000',
+        max: '',
       },
       expected: OrderType.SELL_ABOVE,
     },
@@ -191,7 +196,7 @@ describe('getOrderTypeFromPriceRange', () => {
   ])(
     'returns $expected for a $label price range',
     ({ priceRange, expected }) => {
-      const result = getOrderTypeFromPriceRange(priceRange);
+      const result = getOrderTypeFromDraftPriceRange(priceRange);
 
       expect(result).toBe(expected);
       expect(result).toEqual(
