@@ -59,7 +59,6 @@ type AnalyticsStatus = 'pending' | 'completed' | 'failed';
 
 interface KycSessionShape {
   finalStatus?: string;
-  kycStatus?: string;
 }
 
 interface BackgroundControllers {
@@ -142,31 +141,25 @@ const secondsSinceCreated = (
   return Math.max(0, Math.round((now - created) / 1000));
 };
 
+const KYC_STATUSES = new Set([
+  'new',
+  'pending',
+  'approved',
+  'rejected',
+  'retry',
+]);
+
+/**
+ * KYC status for analytics: the session's `finalStatus`, or `none` when there
+ * is no session or the value is unknown. Mirrors `getKycAnalyticsStatus` from
+ * `@metamask/kyc-controller`; use that once the package is installed.
+ */
 const resolveKycStatus = (
   session: KycSessionShape | null | undefined,
-  providerFlowStatus: string | undefined,
-): string => {
-  if (!session) {
-    return 'none';
-  }
-  if (session.finalStatus === 'approved' || session.kycStatus === 'approved') {
-    return 'approved';
-  }
-  if (session.finalStatus === 'rejected' || session.finalStatus === 'retry') {
-    return session.finalStatus;
-  }
-  if (
-    session.finalStatus === 'pending' ||
-    session.kycStatus === 'pending' ||
-    providerFlowStatus === 'submitted'
-  ) {
-    return 'pending';
-  }
-  if (session.finalStatus === 'new') {
-    return 'new';
-  }
-  return 'none';
-};
+): string =>
+  session?.finalStatus && KYC_STATUSES.has(session.finalStatus)
+    ? session.finalStatus
+    : 'none';
 
 const readBackgroundControllers = (): BackgroundControllers | undefined => {
   try {
@@ -225,10 +218,7 @@ export function readVbaTransactionBaseProperties(
   return {
     ...(kyc
       ? {
-          kyc_status: resolveKycStatus(
-            kyc.sessionStatus,
-            kyc.providerFlowStatus,
-          ),
+          kyc_status: resolveKycStatus(kyc.sessionStatus),
           ...(kyc.providerFlowStatus
             ? { provider_flow_status: kyc.providerFlowStatus }
             : {}),
