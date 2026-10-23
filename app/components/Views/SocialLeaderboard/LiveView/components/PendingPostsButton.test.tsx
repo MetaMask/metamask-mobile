@@ -1,7 +1,8 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../../../UI/SocialFeed/data/socialFeedRealtime';
 import PendingPostsButton from './PendingPostsButton';
 
 describe('PendingPostsButton', () => {
@@ -21,11 +22,44 @@ describe('PendingPostsButton', () => {
     expect(screen.getByLabelText('2 new posts')).toBeOnTheScreen();
   });
 
-  it('caps the pending post label at 60', () => {
+  it('caps the label at the realtime buffer size', () => {
     renderWithProvider(
-      <PendingPostsButton pendingNewCount={61} onPress={jest.fn()} />,
+      <PendingPostsButton
+        pendingNewCount={SOCIAL_FEED_REALTIME_BUFFER_SIZE}
+        onPress={jest.fn()}
+      />,
     );
 
-    expect(screen.getByLabelText('60+ new posts')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(`${SOCIAL_FEED_REALTIME_BUFFER_SIZE}+ new posts`),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the exact count just under the cap', () => {
+    const count = SOCIAL_FEED_REALTIME_BUFFER_SIZE - 1;
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={count} onPress={jest.fn()} />,
+    );
+
+    expect(screen.getByLabelText(`${count} new posts`)).toBeOnTheScreen();
+  });
+
+  it('renders nothing without pending posts', () => {
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={0} onPress={jest.fn()} />,
+    );
+
+    expect(screen.queryByLabelText(/new post/)).toBeNull();
+  });
+
+  it('calls onPress when pressed', () => {
+    const onPress = jest.fn();
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={3} onPress={onPress} />,
+    );
+
+    fireEvent.press(screen.getByLabelText('3 new posts'));
+
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

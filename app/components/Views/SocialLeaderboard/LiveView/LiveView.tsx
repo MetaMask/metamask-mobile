@@ -1,10 +1,4 @@
-import {
-  Box,
-  FilterButton,
-  FilterButtonSize,
-  FilterButtonVariant,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { Box, TextColor } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -14,20 +8,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import Animated, {
-  type ScrollHandlerProcessed,
-  FadeIn,
-  FadeOut,
-  ZoomIn,
-  ZoomOut,
-} from 'react-native-reanimated';
+import type { ScrollHandlerProcessed } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { playSelection } from '../../../../util/haptics';
-import { strings } from '../../../../../locales/i18n';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
@@ -42,27 +29,10 @@ import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import { matchesLivePost } from '../shell/filters/matchesLivePost';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
 import type { SocialShellFilters } from '../shell/filters/types';
+import LiveButton from './components/LiveButton';
 import PendingPostsButton from './components/PendingPostsButton';
-import LiveStreamControls from './components/LiveStreamControls';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import { useMyProfile } from '../MyProfileView/hooks';
-
-const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
-const PENDING_POSTS_ZOOM_OUT = ZoomOut.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
-const PENDING_POSTS_FADE_IN = FadeIn.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
-const PENDING_POSTS_FADE_OUT = FadeOut.springify()
-  .damping(14)
-  .stiffness(560)
-  .mass(0.4);
 
 const LIVE_FEED_SOURCE: SocialFeedSource = {
   kind: 'all',
@@ -174,11 +144,6 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const isLive = streamState === 'live';
-  const streamLabel = strings(
-    isLive
-      ? 'social_leaderboard.feed.live_stream.live'
-      : 'social_leaderboard.feed.live_stream.paused',
-  );
 
   const renderHeader = useCallback(
     ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
@@ -188,39 +153,19 @@ const LiveView: React.FC<LiveViewProps> = ({
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
       >
         <Box twClassName="flex-row items-center gap-2">
-          <FilterButton
-            isSelected
-            variant={FilterButtonVariant.Secondary}
-            size={FilterButtonSize.Sm}
+          <LiveButton
+            isLive={isLive}
             onPress={() => handleLiveToggle(onRevealPending)}
-            testID={LiveViewSelectorsIDs.STREAM_BUTTON}
-            accessibilityLabel={streamLabel}
-            textProps={isLive ? undefined : { twClassName: 'text-muted' }}
-            startAccessory={<LiveStreamControls isLive={isLive} />}
-          >
-            {streamLabel}
-          </FilterButton>
-          {pendingNewCount > 0 ? (
-            <Animated.View
-              entering={PENDING_POSTS_FADE_IN}
-              exiting={PENDING_POSTS_FADE_OUT}
-            >
-              <Animated.View
-                entering={PENDING_POSTS_ZOOM_IN}
-                exiting={PENDING_POSTS_ZOOM_OUT}
-              >
-                <PendingPostsButton
-                  pendingNewCount={pendingNewCount}
-                  onPress={onRevealPending}
-                  textColor={TextColor.SuccessDefault}
-                />
-              </Animated.View>
-            </Animated.View>
-          ) : null}
+          />
+          <PendingPostsButton
+            pendingNewCount={pendingNewCount}
+            onPress={onRevealPending}
+            textColor={TextColor.SuccessDefault}
+          />
         </Box>
       </SocialTabFilterBar>
     ),
-    [handleLiveToggle, isFilterActive, isLive, onOpenFilters, streamLabel],
+    [handleLiveToggle, isFilterActive, isLive, onOpenFilters],
   );
 
   return (

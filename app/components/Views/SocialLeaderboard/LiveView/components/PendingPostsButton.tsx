@@ -6,8 +6,32 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React from 'react';
-
+import Animated, {
+  FadeIn,
+  FadeOut,
+  ZoomIn,
+  ZoomOut,
+} from 'react-native-reanimated';
+import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
+import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../../../UI/SocialFeed/data/socialFeedRealtime';
+
+const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_ZOOM_OUT = ZoomOut.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_FADE_IN = FadeIn.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
+const PENDING_POSTS_FADE_OUT = FadeOut.springify()
+  .damping(14)
+  .stiffness(560)
+  .mass(0.4);
 
 export interface PendingPostsButtonProps {
   onPress: () => void;
@@ -16,33 +40,52 @@ export interface PendingPostsButtonProps {
 }
 
 export const getPendingPostsLabel = (pendingNewCount: number): string =>
-  pendingNewCount >= 60
-    ? '60+ new posts'
-    : `${pendingNewCount} new post${pendingNewCount === 1 ? '' : 's'}`;
+  pendingNewCount >= SOCIAL_FEED_REALTIME_BUFFER_SIZE
+    ? strings('social_leaderboard.feed.live_stream.new_posts_capped', {
+        count: SOCIAL_FEED_REALTIME_BUFFER_SIZE,
+      })
+    : strings('social_leaderboard.feed.live_stream.new_posts', {
+        count: pendingNewCount,
+      });
 
+/** "N new posts" pill; springs in when posts arrive and out when revealed. */
 const PendingPostsButton = ({
   onPress,
   pendingNewCount,
   textColor = TextColor.TextDefault,
 }: PendingPostsButtonProps) => {
+  if (pendingNewCount <= 0) {
+    return null;
+  }
+
   const label = getPendingPostsLabel(pendingNewCount);
 
   return (
-    <ButtonBase
-      accessibilityLabel={label}
-      size={ButtonBaseSize.Sm}
-      onPress={onPress}
+    <Animated.View
+      entering={PENDING_POSTS_FADE_IN}
+      exiting={PENDING_POSTS_FADE_OUT}
     >
-      <AnimatedBalanceText
-        accessible={false}
-        color={textColor}
-        fontFamily={FontFamily.Default}
-        isLoading={false}
-        loadingValue={label}
-        value={label}
-        variant={TextVariant.BodySm}
-      />
-    </ButtonBase>
+      <Animated.View
+        entering={PENDING_POSTS_ZOOM_IN}
+        exiting={PENDING_POSTS_ZOOM_OUT}
+      >
+        <ButtonBase
+          accessibilityLabel={label}
+          size={ButtonBaseSize.Sm}
+          onPress={onPress}
+        >
+          <AnimatedBalanceText
+            accessible={false}
+            color={textColor}
+            fontFamily={FontFamily.Default}
+            isLoading={false}
+            loadingValue={label}
+            value={label}
+            variant={TextVariant.BodySm}
+          />
+        </ButtonBase>
+      </Animated.View>
+    </Animated.View>
   );
 };
 

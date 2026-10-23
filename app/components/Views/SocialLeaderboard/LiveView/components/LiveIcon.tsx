@@ -36,12 +36,12 @@ export const styles = StyleSheet.create({
   },
 });
 
-export interface LiveStreamControlsProps {
+export interface LiveIconProps {
   isLive: boolean;
   onPrimaryButton?: boolean;
 }
 
-const LiveStreamControls: React.FC<LiveStreamControlsProps> = ({
+const LiveIcon: React.FC<LiveIconProps> = ({
   isLive,
   onPrimaryButton = false,
 }) => {
@@ -79,4 +79,4 @@ const LiveStreamControls: React.FC<LiveStreamControlsProps> = ({
   );
 };
 
-export default LiveStreamControls;
+export default LiveIcon;
