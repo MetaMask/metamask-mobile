@@ -1,5 +1,7 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { render } from '@testing-library/react-native';
+import Routes from '../../../../../../constants/navigation/Routes';
 import VbaAccountCreateError from '../VbaAccountCreateError';
 import type { VbaOnboardingParamList } from '../routes';
 import VbaAccountCreateErrorAdapter from './AccountCreateErrorAdapter';
@@ -13,7 +15,8 @@ const mockVbaAccountCreateError = jest.fn(
 );
 let mockRouteParams: VbaOnboardingParamList['VbaAccountCreateError'];
 
-const getErrorScreenProps = () => {
+const renderAdapter = () => {
+  render(<VbaAccountCreateErrorAdapter />);
   const props = mockVbaAccountCreateError.mock.calls[0]?.[0];
   if (!props) {
     throw new Error('VbaAccountCreateError was not rendered');
@@ -47,6 +50,7 @@ jest.mock('../VbaAccountCreateError', () => ({
 describe('VbaAccountCreateErrorAdapter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(Linking, 'openURL').mockResolvedValue(true);
     mockRouteParams = {
       variant: 'generic',
       failure: { httpStatus: 500 },
@@ -55,8 +59,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
   });
 
   it('reopens account creation in the failed source currency', () => {
-    render(<VbaAccountCreateErrorAdapter />);
-    const props = getErrorScreenProps();
+    const props = renderAdapter();
 
     props.onPrimary();
     props.onPrimary();
@@ -75,8 +78,7 @@ describe('VbaAccountCreateErrorAdapter', () => {
       variant: 'generic',
       failure: { httpStatus: 500 },
     };
-    render(<VbaAccountCreateErrorAdapter />);
-    const props = getErrorScreenProps();
+    const props = renderAdapter();
 
     props.onPrimary();
 
@@ -85,38 +87,49 @@ describe('VbaAccountCreateErrorAdapter', () => {
   });
 
   it.each([
-    ['unauthorized', 401],
-    ['missing customer', 404],
-  ])('opens support for %s failures', (_label, httpStatus) => {
-    mockRouteParams = {
-      variant: 'generic',
-      failure: { httpStatus },
-      sourceCurrency: 'USD',
-    };
-    render(<VbaAccountCreateErrorAdapter />);
-    const props = getErrorScreenProps();
+    ['generic without status', { variant: 'generic' }, 'generic'],
+    [
+      'generic unauthorized',
+      { variant: 'generic', failure: { httpStatus: 401 } },
+      'generic',
+    ],
+    [
+      'details failure',
+      { variant: 'details', failure: { httpStatus: 400 } },
+      'details',
+    ],
+  ] as const)('opens support for %s', async (_label, params, variant) => {
+    mockRouteParams = params;
+    const props = renderAdapter();
 
     props.onPrimary();
 
+    expect(props.variant).toBe(variant);
     expect(props.primaryActionType).toBe('contactSupport');
     expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
     expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
     expect(mockResumeOnboarding).not.toHaveBeenCalled();
+
+    const [openUrl, supportUrl] = mockOpenSupportWithConsent.mock.calls[0];
+    await openUrl('https://support.example/path');
+
+    expect(supportUrl).toContain('https://support.metamask.io/');
+    expect(Linking.openURL).toHaveBeenCalledWith(
+      'https://support.example/path',
+    );
   });
 
-  it('opens support when no HTTP failure status is available', () => {
-    mockRouteParams = {
-      variant: 'generic',
-      sourceCurrency: 'USD',
-    };
-    render(<VbaAccountCreateErrorAdapter />);
-    const props = getErrorScreenProps();
+  it('leaves account creation from Back and Done', () => {
+    mockRouteParams = { variant: 'details' };
+    const props = renderAdapter();
 
-    props.onPrimary();
+    props.onBack?.();
+    props.onSecondary();
 
-    expect(props.primaryActionType).toBe('contactSupport');
-    expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
-    expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
-    expect(mockResumeOnboarding).not.toHaveBeenCalled();
+    expect(mockNavigation.navigate).toHaveBeenCalledTimes(2);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 });

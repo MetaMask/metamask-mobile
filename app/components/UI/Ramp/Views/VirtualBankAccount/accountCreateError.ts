@@ -23,6 +23,23 @@ export type FiatAddressStatus = (typeof FIAT_ADDRESS_STATUSES)[number];
 
 export type AccountCreateHttpStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500;
 
+const ACCOUNT_CREATE_HTTP_STATUSES: readonly number[] = [
+  400, 401, 403, 404, 409, 422, 500,
+];
+
+const ERROR_VARIANTS_BY_HTTP_STATUS: Record<
+  AccountCreateHttpStatus,
+  AccountCreateErrorVariant | null
+> = {
+  400: 'details',
+  401: 'generic',
+  403: 'details',
+  404: 'generic',
+  409: null,
+  422: 'details',
+  500: 'generic',
+};
+
 export type AccountCreateRegistrationResult =
   | {
       kind: 'http';
@@ -50,6 +67,11 @@ export class AccountCreateRegistrationError extends Error {
 const isFiatAddressStatus = (status: unknown): status is FiatAddressStatus =>
   typeof status === 'string' &&
   (FIAT_ADDRESS_STATUSES as readonly string[]).includes(status);
+
+const isAccountCreateHttpStatus = (
+  status: unknown,
+): status is AccountCreateHttpStatus =>
+  typeof status === 'number' && ACCOUNT_CREATE_HTTP_STATUSES.includes(status);
 
 const getTraceId = (
   context: { traceId?: unknown } | undefined,
@@ -99,25 +121,14 @@ export const getAccountCreateResultFromError = (
   }
 
   const status = context?.httpStatus;
-  const supportedStatus: AccountCreateHttpStatus | null =
-    status === 400 ||
-    status === 401 ||
-    status === 403 ||
-    status === 404 ||
-    status === 409 ||
-    status === 422 ||
-    status === 500
-      ? status
-      : null;
-
-  if (supportedStatus === null) {
+  if (!isAccountCreateHttpStatus(status)) {
     return { kind: 'unknown' };
   }
 
   const traceId = getTraceId(context, error);
   return {
     kind: 'http',
-    status: supportedStatus,
+    status,
     ...(traceId ? { traceId } : {}),
   };
 };
@@ -130,14 +141,10 @@ export const isAccountCreateErrorDestination = (
 
 export const accountCreateErrorVariantForDestination = (
   destinationId: AccountCreateErrorDestinationId,
-): AccountCreateErrorVariant => {
-  switch (destinationId) {
-    case ACCOUNT_CREATE_ERROR_DESTINATION.details:
-      return 'details';
-    case ACCOUNT_CREATE_ERROR_DESTINATION.generic:
-      return 'generic';
-  }
-};
+): AccountCreateErrorVariant =>
+  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details
+    ? 'details'
+    : 'generic';
 
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
@@ -147,33 +154,13 @@ export const getAccountCreateErrorVariant = (
   }
 
   if (result.kind === 'fiat') {
-    switch (result.status) {
-      case 'AuthorizationFailed':
-      case 'RegistrationFailed':
-        return 'details';
-      case 'RegistrationPending':
-      case 'AuthorizationRequired':
-      case 'Registered':
-        return null;
-      default:
-        return null;
-    }
+    return result.status === 'AuthorizationFailed' ||
+      result.status === 'RegistrationFailed'
+      ? 'details'
+      : null;
   }
 
-  switch (result.status) {
-    case 400:
-    case 403:
-    case 422:
-      return 'details';
-    case 401:
-    case 404:
-    case 500:
-      return 'generic';
-    case 409:
-      return null;
-    default:
-      return null;
-  }
+  return ERROR_VARIANTS_BY_HTTP_STATUS[result.status];
 };
 
 export interface AccountCreateFailureFields {

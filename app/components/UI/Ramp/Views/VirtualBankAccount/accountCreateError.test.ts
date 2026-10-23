@@ -1,5 +1,6 @@
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import {
+  AccountCreateRegistrationError,
   ACCOUNT_CREATE_ERROR_DESTINATION,
   accountCreateErrorVariantForDestination,
   buildAccountCreateSupportUrl,
@@ -8,50 +9,43 @@ import {
   getAccountCreateErrorPrimaryAction,
   getAccountCreateResultFromError,
   getAccountCreateResultFromResponse,
+  isAccountCreateErrorDestination,
   type AccountCreateRegistrationResult,
+  type AccountCreateHttpStatus,
+  type FiatAddressStatus,
 } from './accountCreateError';
 
+const http = (status: AccountCreateHttpStatus, traceId?: string) =>
+  ({ kind: 'http', status, ...(traceId ? { traceId } : {}) }) as const;
+const fiat = (status: FiatAddressStatus): AccountCreateRegistrationResult => ({
+  kind: 'fiat',
+  status,
+});
+const unknown = { kind: 'unknown' } as const;
+
 describe('accountCreateError', () => {
-  describe('getAccountCreateErrorVariant', () => {
-    const cases: [
+  it.each<
+    [
       string,
       AccountCreateRegistrationResult,
       ReturnType<typeof getAccountCreateErrorVariant>,
-    ][] = [
-      [
-        'compliance rejection',
-        { kind: 'fiat', status: 'AuthorizationFailed' },
-        'details',
-      ],
-      ['suspended customer', { kind: 'http', status: 403 }, 'details'],
-      ['rail unavailable', { kind: 'http', status: 422 }, 'details'],
-      ['invalid bank details', { kind: 'http', status: 400 }, 'details'],
-      [
-        'rejected bank details',
-        { kind: 'fiat', status: 'RegistrationFailed' },
-        'details',
-      ],
-      ['unauthorized', { kind: 'http', status: 401 }, 'generic'],
-      ['missing customer', { kind: 'http', status: 404 }, 'generic'],
-      ['registration failure', { kind: 'http', status: 500 }, 'generic'],
-      ['unknown failure', { kind: 'unknown' }, 'generic'],
-      [
-        'registration still pending',
-        { kind: 'fiat', status: 'RegistrationPending' },
-        null,
-      ],
-      ['existing account', { kind: 'http', status: 409 }, null],
-      ['registered', { kind: 'fiat', status: 'Registered' }, null],
-      [
-        'email verification',
-        { kind: 'fiat', status: 'AuthorizationRequired' },
-        null,
-      ],
-    ];
-
-    it.each(cases)('maps %s', (_label, result, variant) => {
-      expect(getAccountCreateErrorVariant(result)).toBe(variant);
-    });
+    ]
+  >([
+    ['authorization failure', fiat('AuthorizationFailed'), 'details'],
+    ['registration failure', fiat('RegistrationFailed'), 'details'],
+    ['invalid bank details', http(400), 'details'],
+    ['suspended customer', http(403), 'details'],
+    ['rail unavailable', http(422), 'details'],
+    ['unauthorized', http(401), 'generic'],
+    ['missing customer', http(404), 'generic'],
+    ['server failure', http(500), 'generic'],
+    ['unknown failure', unknown, 'generic'],
+    ['existing account', http(409), null],
+    ['pending account', fiat('RegistrationPending'), null],
+    ['registered account', fiat('Registered'), null],
+    ['email verification', fiat('AuthorizationRequired'), null],
+  ])('maps %s', (_label, result, variant) => {
+    expect(getAccountCreateErrorVariant(result)).toBe(variant);
   });
 
   describe('registration result extraction', () => {
@@ -61,10 +55,7 @@ describe('accountCreateError', () => {
         account_number: 'sensitive',
       });
 
-      expect(result).toEqual({
-        kind: 'fiat',
-        status: 'RegistrationFailed',
-      });
+      expect(result).toEqual(fiat('RegistrationFailed'));
     });
 
     it('reads a fiat failure from a typed 200 error', () => {
@@ -74,109 +65,106 @@ describe('accountCreateError', () => {
         responseBody: { iban: 'sensitive' },
       });
 
-      expect(result).toEqual({
-        kind: 'fiat',
-        status: 'AuthorizationFailed',
+      expect(result).toEqual(fiat('AuthorizationFailed'));
+    });
+
+    it('preserves an existing typed registration error', () => {
+      const typed = new AccountCreateRegistrationError({
+        ...http(500),
       });
+
+      expect(getAccountCreateResultFromError(typed)).toEqual(typed.result);
+      expect(typed.name).toBe('AccountCreateRegistrationError');
+      expect(typed.message).toBe('VBA account creation failed');
     });
 
-    it('does not relabel an unknown failure as HTTP 500', () => {
-      const result = getAccountCreateResultFromError(new Error('network'));
+    it.each([400, 401, 403, 404, 409, 422, 500] as const)(
+      'reads supported HTTP %s failures',
+      (status) => {
+        expect(getAccountCreateResultFromError({ httpStatus: status })).toEqual(
+          http(status),
+        );
+      },
+    );
 
-      expect(result).toEqual({ kind: 'unknown' });
-    });
-
-    it('extracts only the trace id from an HTTP error message', () => {
-      const error = Object.assign(
-        new Error(
-          'request failed - {"traceId":"moonpay-trace","iban":"GB29NWBK"}',
+    it('reads direct and serialized trace identifiers without sensitive data', () => {
+      const direct = getAccountCreateResultFromError({
+        httpStatus: 400,
+        traceId: 'direct-trace',
+      });
+      const serialized = getAccountCreateResultFromError(
+        Object.assign(
+          new Error('{"trace_id":"message-trace","iban":"GB29NWBK"}'),
+          { httpStatus: 400 },
         ),
-        { httpStatus: 400 },
       );
 
-      const result = getAccountCreateResultFromError(error);
-
-      expect(result).toEqual({
-        kind: 'http',
-        status: 400,
-        traceId: 'moonpay-trace',
-      });
-      expect(JSON.stringify(result)).not.toContain('GB29NWBK');
-    });
-  });
-
-  describe('getAccountCreateErrorPrimaryAction', () => {
-    it('retries only a server-side registration failure', () => {
-      expect(getAccountCreateErrorPrimaryAction({ httpStatus: 500 })).toBe(
-        'retry',
-      );
+      expect(direct).toEqual(http(400, 'direct-trace'));
+      expect(serialized).toEqual(http(400, 'message-trace'));
+      expect(JSON.stringify(serialized)).not.toContain('GB29NWBK');
     });
 
     it.each([
-      ['invalid bank details', 400],
-      ['unauthorized', 401],
-      ['suspended customer', 403],
-      ['missing customer', 404],
-      ['rail unavailable', 422],
-    ])('opens support for %s', (_label, httpStatus) => {
-      expect(getAccountCreateErrorPrimaryAction({ httpStatus })).toBe(
-        'contactSupport',
-      );
+      null,
+      'network',
+      new Error('network'),
+      { httpStatus: 418 },
+      { httpStatus: 200, fiatStatus: 'Unknown' },
+    ])('returns unknown for unsupported error %p', (error) => {
+      expect(getAccountCreateResultFromError(error)).toEqual(unknown);
     });
 
-    it('opens support when no HTTP status is available', () => {
-      expect(getAccountCreateErrorPrimaryAction()).toBe('contactSupport');
-    });
+    it.each([null, 'response', {}, { status: 3 }, { status: 'Unknown' }])(
+      'ignores response without a fiat status: %p',
+      (response) => {
+        expect(getAccountCreateResultFromResponse(response)).toBeNull();
+      },
+    );
   });
 
-  describe('getAccountCreateFailureLogFields', () => {
-    it('keeps the trace id and drops the response body', () => {
-      expect(
-        getAccountCreateFailureLogFields({
-          kind: 'http',
-          status: 500,
-          traceId: 'trace-1',
-        }),
-      ).toEqual({ httpStatus: 500, traceId: 'trace-1' });
-    });
+  it.each([
+    [500, 'retry'],
+    [400, 'contactSupport'],
+    [undefined, 'contactSupport'],
+  ] as const)('maps HTTP %s to %s', (httpStatus, action) => {
+    const fields = httpStatus === undefined ? undefined : { httpStatus };
 
-    it('records a 200 status name without a body', () => {
-      expect(
-        getAccountCreateFailureLogFields({
-          kind: 'fiat',
-          status: 'AuthorizationFailed',
-        }),
-      ).toEqual({ httpStatus: 200, fiatStatus: 'AuthorizationFailed' });
-    });
+    expect(getAccountCreateErrorPrimaryAction(fields)).toBe(action);
   });
 
-  describe('buildAccountCreateSupportUrl', () => {
-    it('adds the status and trace id and leaves the response body out', () => {
-      const url = new URL(
-        buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, {
-          httpStatus: 400,
-          traceId: 'moonpay-trace',
-        }),
-      );
-
-      expect(url.searchParams.get('http_status')).toBe('400');
-      expect(url.searchParams.get('trace_id')).toBe('moonpay-trace');
-      expect(url.searchParams.get('fiat_status')).toBeNull();
-      expect(url.searchParams.get('utm_source')).toBe('mobile_app');
-      expect(url.toString()).not.toContain('GB29NWBK');
+  describe('safe support fields', () => {
+    it.each([
+      [unknown, undefined],
+      [http(500), { httpStatus: 500 }],
+      [http(500, 'trace-1'), { httpStatus: 500, traceId: 'trace-1' }],
+      [
+        fiat('AuthorizationFailed'),
+        { httpStatus: 200, fiatStatus: 'AuthorizationFailed' },
+      ],
+    ] as const)('extracts fields from %p', (result, fields) => {
+      expect(
+        getAccountCreateFailureLogFields(
+          result as AccountCreateRegistrationResult,
+        ),
+      ).toEqual(fields);
     });
 
-    it('adds the fiat status for a 200 registration failure', () => {
+    it('adds only supplied registration fields to the support URL', () => {
       const url = new URL(
         buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, {
           httpStatus: 200,
           fiatStatus: 'RegistrationFailed',
+          traceId: 'moonpay-trace',
         }),
       );
 
-      expect(url.searchParams.get('http_status')).toBe('200');
-      expect(url.searchParams.get('fiat_status')).toBe('RegistrationFailed');
-      expect(url.searchParams.get('trace_id')).toBeNull();
+      expect(Object.fromEntries(url.searchParams)).toMatchObject({
+        http_status: '200',
+        fiat_status: 'RegistrationFailed',
+        trace_id: 'moonpay-trace',
+      });
+      expect(url.searchParams.get('utm_source')).toBe('mobile_app');
+      expect(url.toString()).not.toContain('GB29NWBK');
     });
 
     it('leaves the help-center URL unchanged when there is no registration', () => {
@@ -186,11 +174,15 @@ describe('accountCreateError', () => {
     });
   });
 
-  it('maps each destination back to its screen', () => {
-    expect(
-      accountCreateErrorVariantForDestination(
-        ACCOUNT_CREATE_ERROR_DESTINATION.details,
-      ),
-    ).toBe('details');
+  it.each([
+    [ACCOUNT_CREATE_ERROR_DESTINATION.details, 'details'],
+    [ACCOUNT_CREATE_ERROR_DESTINATION.generic, 'generic'],
+  ] as const)('maps destination %s to %s', (destination, variant) => {
+    expect(isAccountCreateErrorDestination(destination)).toBe(true);
+    expect(accountCreateErrorVariantForDestination(destination)).toBe(variant);
+  });
+
+  it('rejects unrelated destinations', () => {
+    expect(isAccountCreateErrorDestination('complete')).toBe(false);
   });
 });
