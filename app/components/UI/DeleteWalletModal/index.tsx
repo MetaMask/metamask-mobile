@@ -227,6 +227,7 @@ const DeleteWalletModal: React.FC = () => {
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}
+            gap={4}
           >
             <TitleAlert
               severity={IconAlertSeverity.Danger}
@@ -236,20 +237,12 @@ const DeleteWalletModal: React.FC = () => {
               }}
               twClassName="pt-6"
             />
-            <Box marginTop={6} gap={4}>
+            <Box gap={4}>
               <Text
                 variant={TextVariant.BodyMd}
                 color={TextColor.TextAlternative}
               >
-                {strings('login.reset_wallet_desc')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                >
-                  {strings('login.reset_wallet_desc_bold')}
-                </Text>{' '}
-                {strings('login.reset_wallet_desc_2')}
+                {strings('login.reset_wallet_desc')}
               </Text>
               <Text
                 variant={TextVariant.BodyMd}
