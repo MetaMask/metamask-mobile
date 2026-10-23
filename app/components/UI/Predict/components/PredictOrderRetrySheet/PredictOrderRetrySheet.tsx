@@ -18,35 +18,24 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
-import {
-  formatCents,
-  formatPositionSize,
-  formatPrice,
-  formatSlippageBand,
-} from '../../utils/format';
-import {
-  getPredictExchangeFee,
-  getPredictSellNetProceeds,
-  getPredictSellWorstCaseProceeds,
-} from '../../utils/orders';
-import { getMinAmountReceivedWithSlippage } from '../../providers/polymarket/protocol/slippage';
+import { formatCents } from '../../utils/format';
 import { Side, type OrderPreview } from '../../types';
 import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
 import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
+import {
+  buildPredictRetryQuoteRows,
+  getPredictRetryBody,
+  getPredictRetryTitle,
+  isPredictRetryQuoteVariant,
+  type PredictOrderRetrySheetVariant,
+} from './retryContent';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
-export type PredictOrderRetrySheetVariant =
-  | 'busy'
-  | 'confirm'
-  | 'price_moved'
-  | 'failed'
-  | 'quote_unavailable'
-  | 'no_match'
-  | 'timeout';
+export type { PredictOrderRetrySheetVariant };
 
 interface PredictOrderRetrySheetProps {
   variant: PredictOrderRetrySheetVariant;
@@ -79,121 +68,6 @@ interface PredictOrderRetrySheetProps {
    * active. Dismissal is restored once the flow settles.
    */
   isDismissDisabled?: boolean;
-}
-
-const PRICE_FORMAT = { minimumDecimals: 2, maximumDecimals: 2 };
-
-interface QuoteRow {
-  label: string;
-  value: string;
-}
-
-function buildQuoteRows({
-  preview,
-  expectedSize,
-}: {
-  preview: OrderPreview;
-  expectedSize: number | null;
-}): QuoteRow[] {
-  const feesTotal =
-    (preview.fees?.metamaskFee ?? 0) + getPredictExchangeFee(preview.fees);
-  const priceRow = {
-    label: strings('predict.order.retry_price_label'),
-    value: formatCents(preview.sharePrice),
-  };
-  const worstCaseRow = {
-    label: strings('predict.order.retry_worst_case_label', {
-      band: formatSlippageBand(preview.slippage),
-    }),
-    value:
-      preview.side === Side.SELL
-        ? formatPrice(getPredictSellWorstCaseProceeds(preview), PRICE_FORMAT)
-        : formatPrice(getMinAmountReceivedWithSlippage(preview), PRICE_FORMAT),
-  };
-  const feesRow = {
-    label: strings('predict.order.retry_fees_label'),
-    value: formatPrice(feesTotal, PRICE_FORMAT),
-  };
-
-  if (preview.side === Side.SELL) {
-    return [
-      priceRow,
-      // Read-only expected full fill; partial execution is never offered.
-      ...(expectedSize !== null
-        ? [
-            {
-              label: strings('predict.order.retry_expected_fill_label'),
-              value: strings('predict.order.retry_expected_fill_value', {
-                shares: formatPositionSize(expectedSize, PRICE_FORMAT),
-              }),
-            },
-          ]
-        : []),
-      {
-        label: strings('predict.order.retry_proceeds_label'),
-        value: formatPrice(getPredictSellNetProceeds(preview), PRICE_FORMAT),
-      },
-      worstCaseRow,
-      feesRow,
-    ];
-  }
-
-  return [
-    priceRow,
-    {
-      label: strings('predict.order.retry_payout_label'),
-      value: formatPrice(preview.minAmountReceived, PRICE_FORMAT),
-    },
-    worstCaseRow,
-    feesRow,
-  ];
-}
-
-function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
-  switch (variant) {
-    case 'failed':
-      return strings('predict.order.order_failed_title');
-    case 'quote_unavailable':
-      return strings('predict.order.price_unavailable_title');
-    case 'price_moved':
-      return strings('predict.order.price_moved_title');
-    case 'no_match':
-      return strings('predict.order.no_match_title');
-    case 'timeout':
-      return strings('predict.order.market_timeout_title');
-    default:
-      return strings('predict.order.market_busy_title');
-  }
-}
-
-function getBodyForVariant({
-  variant,
-  previousPrice,
-  currentPrice,
-}: {
-  variant: PredictOrderRetrySheetVariant;
-  previousPrice: number | null | undefined;
-  currentPrice: number | null | undefined;
-}): string {
-  switch (variant) {
-    case 'failed':
-      return strings('predict.order.order_failed_body');
-    case 'quote_unavailable':
-      return strings('predict.order.price_unavailable_body');
-    case 'no_match':
-      return strings('predict.order.no_match_body');
-    case 'timeout':
-      return strings('predict.order.market_timeout_body');
-    case 'busy':
-      return strings('predict.order.getting_price_body');
-    case 'price_moved':
-      return strings('predict.order.price_moved_body', {
-        previousPrice: formatCents(previousPrice ?? 0),
-        currentPrice: formatCents(currentPrice ?? 0),
-      });
-    default:
-      return strings('predict.order.price_updated_body');
-  }
 }
 
 function getConfirmLabelForSide(
@@ -240,7 +114,8 @@ const PredictOrderRetrySheet = forwardRef<
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
 
     const quoteRows = useMemo(
-      () => (preview ? buildQuoteRows({ preview, expectedSize }) : []),
+      () =>
+        preview ? buildPredictRetryQuoteRows({ preview, expectedSize }) : [],
       [preview, expectedSize],
     );
 
@@ -251,16 +126,15 @@ const PredictOrderRetrySheet = forwardRef<
     const isFailed = variant === 'failed';
     const isBusy = variant === 'busy';
     const isNoMatch = variant === 'no_match';
-    const isQuoteShown =
-      (variant === 'confirm' || variant === 'price_moved') && !!preview;
+    const isQuoteShown = isPredictRetryQuoteVariant(variant, preview);
 
     const iconColor = isFailed
       ? IconColor.ErrorDefault
       : IconColor.WarningDefault;
     const iconBg = isFailed ? 'bg-error-muted' : 'bg-warning-muted';
 
-    const title = getTitleForVariant(variant);
-    const body = getBodyForVariant({
+    const title = getPredictRetryTitle(variant);
+    const body = getPredictRetryBody({
       variant,
       previousPrice,
       currentPrice: preview?.sharePrice,

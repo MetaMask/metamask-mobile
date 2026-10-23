@@ -331,6 +331,12 @@ export const PredictOrderRetrySheetSelectorsIDs = {
   CLOSE_BUTTON: 'predict-order-retry-sheet-close-button',
 } as const;
 
+export const PredictOrderRetryNoticeSelectorsIDs = {
+  CONTAINER: 'predict-order-retry-notice-container',
+  TITLE: 'predict-order-retry-notice-title',
+  CLOSE_BUTTON: 'predict-order-retry-notice-close-button',
+} as const;
+
 // ========================================
 // PREDICT CLAIM CONFIRMATION SELECTORS
 // ========================================

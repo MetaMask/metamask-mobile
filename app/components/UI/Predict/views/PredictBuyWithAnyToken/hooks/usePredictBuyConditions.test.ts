@@ -377,6 +377,17 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.canPlaceBet).toBe(false);
     });
 
+    it('returns false when the latest preview poll failed but a preview is cached', () => {
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          previewError: 'Not enough shares available',
+        }),
+      );
+
+      expect(result.current.canPlaceBet).toBe(false);
+    });
+
     it('returns false when isBalanceLoading is true', () => {
       mockIsBalanceLoading = true;
 

@@ -96,9 +96,10 @@ describe('usePredictSellExecution', () => {
     result: { success: true, response: undefined },
   };
 
-  const setupHook = () => {
+  const setupHook = ({ isSheetMode = false } = {}) => {
     const rendered = renderHook(() =>
       usePredictSellExecution({
+        isSheetMode,
         marketId: 'market-1',
         outcomeId: 'outcome-1',
         outcomeTokenId: 'token-1',
@@ -919,6 +920,123 @@ describe('usePredictSellExecution', () => {
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       const statuses = mockTrackEvent.mock.calls.map(([args]) => args.status);
       expect(statuses).not.toContain(PredictTradeStatus.PRESUBMIT_DISMISSED);
+    });
+  });
+  describe('sheet mode', () => {
+    const movedResult = () =>
+      createExecutableResult({
+        preview: createExecutionPreview({ sharePrice: 0.48 }),
+        execution: createExecution({
+          refreshedPrice: 0.48,
+          worstExecutablePrice: 0.48,
+        }),
+      });
+
+    it('shows a settled state inline and opens no sheet', async () => {
+      const moved = movedResult();
+      mockPreviewExecutionOrder.mockResolvedValueOnce(moved);
+
+      const { result } = setupHook({ isSheetMode: true });
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      expect(onOpenBottomSheet).not.toHaveBeenCalled();
+      expect(result.current.executionNotice).toEqual({
+        variant: 'price_moved',
+        quote: expectedCandidate(moved.preview, 4.6),
+        previousPrice: 0.5,
+        expectedSize: moved.execution.executableSize,
+      });
+    });
+
+    it('hides the inline state while the next step validates', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(movedResult());
+      const { result } = setupHook({ isSheetMode: true });
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+      const deferred = createDeferred<PredictExecutionPreviewResult>();
+      mockPreviewExecutionOrder.mockReturnValueOnce(deferred.promise);
+
+      let confirmPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        confirmPromise = result.current.handleExecutionPrimary();
+      });
+
+      expect(result.current.isExecuting).toBe(true);
+      expect(result.current.executionNotice).toBeNull();
+
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+      await act(async () => {
+        deferred.resolve(
+          createExecutableResult({
+            preview: createExecutionPreview({ sharePrice: 0.48 }),
+          }),
+        );
+        await confirmPromise;
+      });
+    });
+
+    it('confirms the candidate from the primary action', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(movedResult());
+      const { result } = setupHook({ isSheetMode: true });
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+      const fresh = createExecutableResult({
+        preview: createExecutionPreview({ sharePrice: 0.48 }),
+      });
+      mockPreviewExecutionOrder.mockResolvedValueOnce(fresh);
+      mockPlaceOrder.mockResolvedValueOnce(successOutcome);
+
+      await act(async () => {
+        await result.current.handleExecutionPrimary();
+      });
+
+      expect(mockPreviewExecutionOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ approvedPrice: 0.48 }),
+      );
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ preview: fresh.preview }),
+      );
+      expect(result.current.executionNotice).toBeNull();
+    });
+
+    it('tries again against the same baseline from the primary action', async () => {
+      mockPreviewExecutionOrder.mockResolvedValue({ status: 'timeout' });
+      const { result } = setupHook({ isSheetMode: true });
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+      expect(result.current.executionNotice?.variant).toBe('timeout');
+
+      await act(async () => {
+        await result.current.handleExecutionPrimary();
+      });
+
+      expect(mockPreviewExecutionOrder).toHaveBeenCalledTimes(2);
+      expect(mockPreviewExecutionOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ approvedPrice: 0.5 }),
+      );
+    });
+
+    it('clears the inline state when the user dismisses it', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({ status: 'timeout' });
+      const { result } = setupHook({ isSheetMode: true });
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      act(() => {
+        result.current.handleDismiss();
+      });
+
+      expect(result.current.status).toBe('idle');
+      expect(result.current.executionNotice).toBeNull();
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'presubmit_dismissed' }),
+      );
     });
   });
 });

@@ -24,6 +24,11 @@ import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 interface UsePredictBuyConditionsParams {
   currentValue: number;
   preview?: OrderPreview | null;
+  /**
+   * Error of the latest preview poll. The last good preview stays cached
+   * after a failed poll, so this blocks a bet on that stale quote.
+   */
+  previewError?: string | null;
   isPreviewCalculating: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
@@ -33,6 +38,7 @@ interface UsePredictBuyConditionsParams {
 
 export const usePredictBuyConditions = ({
   preview,
+  previewError = null,
   currentValue,
   isPreviewCalculating,
   isUserInputChange,
@@ -334,6 +340,7 @@ export const usePredictBuyConditions = ({
       !isBelowMinimum &&
       !isInsufficientBalance &&
       !!preview &&
+      !previewError &&
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading &&
@@ -346,6 +353,7 @@ export const usePredictBuyConditions = ({
       isBelowMinimum,
       isInsufficientBalance,
       preview,
+      previewError,
       isRateLimited,
       isBalanceLoading,
       isPayFeesLoading,

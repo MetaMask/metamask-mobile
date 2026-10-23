@@ -18,7 +18,7 @@ const mockSetCurrentValueUSDString = jest.fn();
 const mockSetIsKeypadOpen = jest.fn();
 const mockSetIsUserInputChange = jest.fn();
 const mockSetIsConfirming = jest.fn();
-const mockHandleRetry = jest.fn();
+const mockHandleRetryPrimary = jest.fn();
 const mockCancelRetryablePredictBuyAttempt = jest.fn();
 let mockRetryableAttempt:
   | {
@@ -147,13 +147,20 @@ jest.mock('../../hooks/usePredictMaxBetAmount', () => ({
   }),
 }));
 
+let mockRetryNotice: {
+  variant: 'no_match';
+  quote: null;
+  previousPrice: null;
+} | null = null;
 const mockUsePredictOrderRetry = jest.fn((..._args: unknown[]) => ({
   retrySheetRef: { current: null },
   retrySheetVariant: 'busy',
   retryQuote: null,
   isRetrying: false,
-  handleRetry: mockHandleRetry,
+  handleRetry: jest.fn(),
   handleRetryConfirm: jest.fn(),
+  handleRetryPrimary: mockHandleRetryPrimary,
+  retryNotice: mockRetryNotice,
 }));
 
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
@@ -387,9 +394,15 @@ jest.mock('../../components/PredictKeypad', () => {
 jest.mock('../../components/PredictOrderRetrySheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
-    <View testID="predict-order-retry-sheet" />
-  ));
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
+      <View testID="predict-order-retry-sheet" />
+    )),
+    PredictOrderRetryNotice: jest.requireActual(
+      '../../components/PredictOrderRetrySheet/PredictOrderRetryNotice',
+    ).default,
+  };
 });
 
 const mockPredictPayWithAnyTokenInfo = jest.fn();
@@ -502,6 +515,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('PredictBuyWithAnyToken', () => {
   beforeEach(() => {
+    mockRetryNotice = null;
     jest.clearAllMocks();
     mockPayWithAnyTokenEnabled = true;
     mockFakOrdersEnabled = false;
@@ -780,7 +794,7 @@ describe('PredictBuyWithAnyToken', () => {
       // other banners the tap dismisses the banner so the normal confirm
       // path is restored, rather than retrying into a silent no-op.
       expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
-      expect(mockHandleRetry).not.toHaveBeenCalled();
+      expect(mockHandleRetryPrimary).not.toHaveBeenCalled();
       expect(mockHandleConfirm).not.toHaveBeenCalled();
     });
 
@@ -796,8 +810,29 @@ describe('PredictBuyWithAnyToken', () => {
 
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
-      expect(mockHandleRetry).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetryPrimary).toHaveBeenCalledTimes(1);
       expect(mockHandleConfirm).not.toHaveBeenCalled();
+    });
+
+    it('shows the inline retry state in place of the banner', () => {
+      mockBuyErrorBanner = {
+        variant: 'price_changed',
+        title: 'Price changed',
+        description: "Couldn't buy at $0.62. Try at market price?",
+      };
+      mockIsOrderNotFilled = true;
+      mockRetryNotice = {
+        variant: 'no_match',
+        quote: null,
+        previousPrice: null,
+      };
+
+      renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
+
+      expect(
+        screen.getByTestId('predict-order-retry-notice-container'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('Price changed')).toBeNull();
     });
 
     it('routes the action button to handleConfirm when no banner is active', () => {
@@ -806,7 +841,7 @@ describe('PredictBuyWithAnyToken', () => {
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
       expect(mockHandleConfirm).toHaveBeenCalledTimes(1);
-      expect(mockHandleRetry).not.toHaveBeenCalled();
+      expect(mockHandleRetryPrimary).not.toHaveBeenCalled();
     });
   });
 
@@ -1017,7 +1052,7 @@ describe('PredictBuyWithAnyToken', () => {
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
       expect(mockHandleConfirm).not.toHaveBeenCalled();
-      expect(mockHandleRetry).not.toHaveBeenCalled();
+      expect(mockHandleRetryPrimary).not.toHaveBeenCalled();
     });
 
     it('shows Retry label (not Change Payment Method) when banner and isChangePaymentMode coexist', () => {
@@ -1050,7 +1085,7 @@ describe('PredictBuyWithAnyToken', () => {
       renderWithProvider(<PredictBuyWithAnyToken {...sheetProps} />);
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
-      expect(mockHandleRetry).toHaveBeenCalledTimes(1);
+      expect(mockHandleRetryPrimary).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalledWith(
         Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET,
       );
@@ -1085,7 +1120,7 @@ describe('PredictBuyWithAnyToken', () => {
       fireEvent.press(screen.getByTestId('predict-buy-action-button'));
 
       expect(mockClearBuyErrorBanner).toHaveBeenCalledTimes(1);
-      expect(mockHandleRetry).not.toHaveBeenCalled();
+      expect(mockHandleRetryPrimary).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

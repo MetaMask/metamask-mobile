@@ -62,6 +62,12 @@ jest.mock('../../hooks/usePredictPlaceOrder', () => ({
   }),
 }));
 
+let mockRetryNotice: {
+  variant: 'no_match';
+  quote: null;
+  previousPrice: null;
+} | null = null;
+const mockHandleRetryPrimary = jest.fn();
 jest.mock('../../hooks/usePredictOrderRetry', () => ({
   usePredictOrderRetry: () => ({
     retrySheetRef: { current: null },
@@ -70,6 +76,8 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
     isRetrying: false,
     handleRetry: jest.fn(),
     handleRetryConfirm: jest.fn(),
+    handleRetryPrimary: mockHandleRetryPrimary,
+    retryNotice: mockRetryNotice,
   }),
 }));
 
@@ -297,6 +305,7 @@ describe('PredictBuyPreview', () => {
     mockPlaceOrderResult = null;
     mockPlaceOrderError = undefined;
     mockIsOrderNotFilled = false;
+    mockRetryNotice = null;
     mockBalance = 1000;
     mockBalanceLoading = false;
     mockMetamaskFee = 0.5;
@@ -2411,6 +2420,29 @@ describe('PredictBuyPreview', () => {
       mockBalanceLoading = false;
     });
 
+    it('shows the retry state inline and runs its next step from the main button', () => {
+      mockIsOrderNotFilled = true;
+      mockRetryNotice = {
+        variant: 'no_match',
+        quote: null,
+        previousPrice: null,
+      };
+
+      renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
+        state: initialState,
+      });
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(
+        screen.getByTestId('predict-order-retry-notice-container'),
+      ).toBeOnTheScreen();
+      fireEvent.press(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      );
+      expect(mockHandleRetryPrimary).toHaveBeenCalledTimes(1);
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
     it('hides the header in sheet mode', () => {
       renderWithProvider(<PredictBuyPreview {...sheetProps} />, {
         state: initialState,
@@ -2638,6 +2670,17 @@ describe('PredictBuyPreview', () => {
       fireEvent.press(doneButton);
 
       expect(screen.queryByText('Order failed')).not.toBeOnTheScreen();
+    });
+
+    it('disables the place bet button while the latest preview poll has failed', () => {
+      mockPreviewError = 'Not enough shares available';
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(
+        screen.getByTestId('predict-buy-preview-place-bet-button'),
+      ).toBeDisabled();
     });
 
     it('displays preview error when order is not the unfilled type', () => {

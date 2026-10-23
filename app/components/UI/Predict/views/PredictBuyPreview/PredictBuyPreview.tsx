@@ -59,7 +59,9 @@ import { getDisplayBuyPrice } from '../../utils/prices';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
-import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictOrderRetrySheet, {
+  PredictOrderRetryNotice,
+} from '../../components/PredictOrderRetrySheet';
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
@@ -215,6 +217,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    handleRetryPrimary,
+    retryNotice,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
@@ -224,6 +228,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     isOrderNotFilled,
     resetOrderNotFilled,
     orderState: retryOrderState,
+    isSheetMode,
+    autoRetryOnNotFilled: true,
   });
 
   // Track screen load performance (balance + initial preview)
@@ -308,9 +314,12 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     ? undefined
     : (previewError ?? placeOrderError ?? insufficientBalanceError);
 
+  // The last good preview stays cached after a failed poll: a preview error
+  // blocks a bet on that stale quote, matching the error shown.
   const canPlaceBet =
     currentValue >= MINIMUM_BET &&
     preview &&
+    !previewError &&
     !isLoading &&
     !isBalanceLoading &&
     !isInsufficientBalance &&
@@ -564,12 +573,13 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       );
     }
 
+    // An inline retry state makes the button run its next step.
     return (
       <ButtonHero
         testID={PredictBuyPreviewSelectorsIDs.PLACE_BET_BUTTON}
-        onPress={onPlaceBet}
-        isDisabled={!canPlaceBet}
-        isLoading={isLoading}
+        onPress={retryNotice ? handleRetryPrimary : onPlaceBet}
+        isDisabled={retryNotice ? false : isRetrying || !canPlaceBet}
+        isLoading={isLoading || isRetrying}
         size={ButtonSizeHero.Lg}
         style={tw.style('w-full')}
       >
@@ -643,6 +653,14 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               {errorMessage}
             </Text>
           )}
+          {retryNotice && (
+            <PredictOrderRetryNotice
+              variant={retryNotice.variant}
+              preview={retryNotice.quote}
+              previousPrice={retryNotice.previousPrice}
+              onDismiss={resetOrderNotFilled}
+            />
+          )}
           <Box twClassName="w-full h-12">{renderActionButton()}</Box>
           <Box twClassName="text-center items-center flex-row gap-1 justify-center flex-wrap">
             <Text
@@ -704,17 +722,21 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
-      <PredictOrderRetrySheet
-        ref={retrySheetRef}
-        variant={retrySheetVariant}
-        preview={retryQuote}
-        previousPrice={retryPreviousPrice}
-        side={Side.BUY}
-        onRetry={handleRetry}
-        onConfirm={handleRetryConfirm}
-        onDismiss={resetOrderNotFilled}
-        isRetrying={isRetrying}
-      />
+      {/* A sheet host shows the retry state inline: a second sheet would
+          render inside it. */}
+      {!isSheetMode && (
+        <PredictOrderRetrySheet
+          ref={retrySheetRef}
+          variant={retrySheetVariant}
+          preview={retryQuote}
+          previousPrice={retryPreviousPrice}
+          side={Side.BUY}
+          onRetry={handleRetry}
+          onConfirm={handleRetryConfirm}
+          onDismiss={resetOrderNotFilled}
+          isRetrying={isRetrying}
+        />
+      )}
     </Wrapper>
   );
 };

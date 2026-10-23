@@ -27,7 +27,10 @@ import {
 } from '../../testUtils/execution';
 import { PredictNavigationParamList } from '../../types/navigation';
 import PredictSellPreview from './PredictSellPreview';
-import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
+import {
+  PredictOrderRetryNoticeSelectorsIDs,
+  PredictOrderRetrySheetSelectorsIDs,
+} from '../../Predict.testIds';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
@@ -963,6 +966,20 @@ describe('PredictSellPreview', () => {
       expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
+    it('disables Cash Out while the latest preview poll has failed', () => {
+      mockPreviewError = 'Not enough liquidity';
+      mockIsCalculating = false;
+
+      renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      expect(screen.getByText('Not enough liquidity')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('predict-sell-preview-cash-out-button'),
+      ).toBeDisabled();
+    });
+
     it('displays preview error message when preview fails', () => {
       mockPreview = null;
       mockPreviewError = 'Network error: Unable to fetch preview data';
@@ -1124,6 +1141,68 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getAllByText('$57.30')).toHaveLength(2);
+    });
+    it('shows a moved price inline and confirms it from Cash Out, with no nested sheet', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.47 }),
+          execution: createExecutionMetadata({
+            refreshedPrice: 0.47,
+            worstExecutablePrice: 0.47,
+          }),
+        }),
+      );
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+      const pressCashOut = () =>
+        act(async () => {
+          fireEvent.press(
+            screen.getByTestId('predict-sell-preview-cash-out-button'),
+          );
+          await flushMicrotasks();
+        });
+
+      await pressCashOut();
+
+      expect(
+        screen.getByTestId(PredictOrderRetryNoticeSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('Price moved')).toBeOnTheScreen();
+      expect(screen.queryByText('Yes, sell at 47¢')).toBeNull();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+
+      mockPreviewExecutionOrder.mockResolvedValueOnce(
+        createExecutableResult({
+          preview: createExecutionPreview({ sharePrice: 0.47 }),
+        }),
+      );
+      await pressCashOut();
+
+      expect(mockPreviewExecutionOrder).toHaveBeenLastCalledWith(
+        expect.objectContaining({ approvedPrice: 0.47 }),
+      );
+      expect(mockPlaceOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears the inline state when its close button is pressed', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({ status: 'timeout' });
+      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
+        state: initialState,
+      });
+      await act(async () => {
+        fireEvent.press(
+          screen.getByTestId('predict-sell-preview-cash-out-button'),
+        );
+        await flushMicrotasks();
+      });
+      expect(screen.getByText('Market timed out')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(PredictOrderRetryNoticeSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(screen.queryByText('Market timed out')).toBeNull();
     });
   });
 

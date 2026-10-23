@@ -33,7 +33,9 @@ import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary'
 import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
-import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictOrderRetrySheet, {
+  PredictOrderRetryNotice,
+} from '../../components/PredictOrderRetrySheet';
 import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import PredictQuickAmounts from './components/PredictQuickAmounts';
@@ -268,6 +270,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   } = usePredictBuyConditions({
     currentValue,
     preview,
+    previewError,
     isPreviewCalculating,
     isUserInputChange,
     isConfirming,
@@ -399,6 +402,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    handleRetryPrimary,
+    retryNotice,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
@@ -453,7 +458,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
     if (isBannerActive) {
       if (isOrderNotFilled) {
-        void handleRetry();
+        void handleRetryPrimary();
       } else {
         // Non-fill banners (order_failed, payment_failed) have no retry
         // episode — the fresh-quote confirm flow is scoped to not-filled
@@ -478,7 +483,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isChangePaymentMode,
     isAddFundsMode,
     isOrderNotFilled,
-    handleRetry,
+    handleRetryPrimary,
     clearBuyErrorBanner,
     handleChangePaymentMethod,
     handleAddFunds,
@@ -636,7 +641,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             rewardsLoadingOverride={isUserChangeTriggeringCalculation}
             handleFeesInfoPress={handleFeesInfoPress}
           />
-          {isSheetMode && buyErrorBanner && (
+          {isSheetMode && retryNotice && (
+            <PredictOrderRetryNotice
+              variant={retryNotice.variant}
+              preview={retryNotice.quote}
+              previousPrice={retryNotice.previousPrice}
+              onDismiss={handleRetryDismiss}
+            />
+          )}
+          {isSheetMode && !retryNotice && buyErrorBanner && (
             <PredictBuyErrorBanner
               variant={buyErrorBanner.variant}
               title={buyErrorBanner.title}
@@ -710,17 +723,21 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           fakOrdersEnabled={fakOrdersEnabled}
         />
       )}
-      <PredictOrderRetrySheet
-        ref={retrySheetRef}
-        variant={retrySheetVariant}
-        preview={retryQuote}
-        previousPrice={retryPreviousPrice}
-        side={Side.BUY}
-        onRetry={handleRetry}
-        onConfirm={handleRetryConfirm}
-        onDismiss={handleRetryDismiss}
-        isRetrying={isRetrying}
-      />
+      {/* A sheet host shows the retry state inline: a second sheet would
+          render inside it. */}
+      {!isSheetMode && (
+        <PredictOrderRetrySheet
+          ref={retrySheetRef}
+          variant={retrySheetVariant}
+          preview={retryQuote}
+          previousPrice={retryPreviousPrice}
+          side={Side.BUY}
+          onRetry={handleRetry}
+          onConfirm={handleRetryConfirm}
+          onDismiss={handleRetryDismiss}
+          isRetrying={isRetrying}
+        />
+      )}
       <PredictPayWithAnyTokenInfo
         currentValue={currentValue}
         preview={preview}

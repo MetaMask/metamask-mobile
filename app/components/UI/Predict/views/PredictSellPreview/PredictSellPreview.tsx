@@ -57,7 +57,9 @@ import {
   getPredictSellNetProceeds,
 } from '../../utils/orders';
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
-import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
+import PredictOrderRetrySheet, {
+  PredictOrderRetryNotice,
+} from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
@@ -158,6 +160,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     handleConfirm: handleExecutionConfirm,
     handleTryAgain: handleExecutionTryAgain,
     handleDismiss: handleExecutionDismiss,
+    handleExecutionPrimary,
+    executionNotice,
     submitRetryQuote,
   } = usePredictSellExecution({
     marketId: position.marketId,
@@ -169,6 +173,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     previewExecutionOrder,
     placeOrder,
     analyticsProperties,
+    isSheetMode,
   });
 
   const {
@@ -179,6 +184,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    handleRetryPrimary,
+    retryNotice,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
@@ -189,6 +196,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isOrderNotFilled,
     resetOrderNotFilled,
     orderState: retryOrderState,
+    isSheetMode,
+    autoRetryOnNotFilled: true,
   });
 
   // Track screen load performance (position data + preview)
@@ -283,20 +292,35 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     return cashPnl > 0 ? '+' : '-';
   }, [cashPnl]);
 
+  // In sheet mode the retry and pre-submit states show inline, and Cash Out
+  // runs their next step.
+  const isBusy = isLoading || isExecuting || isRetrying;
+  const handleCashOutPress = () => {
+    if (retryNotice) {
+      void handleRetryPrimary();
+      return;
+    }
+    void (isSheetMode ? handleExecutionPrimary() : handleCashOut());
+  };
+
   // Cash Out runs the pre-submit execution flow (PRED-484): the displayed
   // price becomes the approved baseline a fresh order book must confirm —
   // with full in-band liquidity and within one tick — before anything is
   // signed. The flow owns its loading state; placement loading still applies.
+  // A failed latest preview disables it, matching the error shown above.
   const renderCashOutButton = () => (
     <Button
       testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       isFullWidth
-      isDisabled={!preview || isLoading || isExecuting}
-      isLoading={isLoading || isExecuting}
+      isDisabled={
+        isBusy ||
+        (!retryNotice && !executionNotice && (!preview || !!previewError))
+      }
+      isLoading={isBusy}
       loadingText={strings('predict.order.cashing_out_loading')}
-      onPress={handleCashOut}
+      onPress={handleCashOutPress}
     >
       {strings('predict.cash_out')}
     </Button>
@@ -493,6 +517,24 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               feePolicyDiscountType={preview?.feePolicy?.discountType}
               handleFeesInfoPress={handleFeesInfoPress}
             />
+            {retryNotice ? (
+              <PredictOrderRetryNotice
+                variant={retryNotice.variant}
+                preview={retryNotice.quote}
+                previousPrice={retryNotice.previousPrice}
+                onDismiss={resetOrderNotFilled}
+              />
+            ) : (
+              executionNotice && (
+                <PredictOrderRetryNotice
+                  variant={executionNotice.variant}
+                  preview={executionNotice.quote}
+                  previousPrice={executionNotice.previousPrice}
+                  expectedSize={executionNotice.expectedSize}
+                  onDismiss={handleExecutionDismiss}
+                />
+              )
+            )}
             <View style={styles.cashOutButtonContainer}>
               {renderCashOutButton()}
               <Text
@@ -519,33 +561,40 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           onClose={handleFeeBreakdownClose}
         />
       )}
-      <PredictOrderRetrySheet
-        ref={retrySheetRef}
-        variant={retrySheetVariant}
-        preview={retryQuote}
-        previousPrice={retryPreviousPrice}
-        side={Side.SELL}
-        onRetry={handleRetry}
-        onConfirm={handleRetryConfirm}
-        onDismiss={resetOrderNotFilled}
-        isRetrying={isRetrying}
-      />
-      {/* Pre-submit execution sheet (PRED-484): price moved, no match,
-          timeout, and unavailable states from the Cash Out validation flow.
-          The post-failure retry sheet above stays a separate lifecycle. */}
-      <PredictOrderRetrySheet
-        ref={executionSheetRef}
-        variant={executionSheetVariant}
-        preview={executionQuote}
-        previousPrice={executionBaselinePrice}
-        expectedSize={executionMetadata?.executableSize ?? null}
-        side={Side.SELL}
-        onRetry={handleExecutionTryAgain}
-        onConfirm={handleExecutionConfirm}
-        onDismiss={handleExecutionDismiss}
-        isRetrying={isExecuting}
-        isDismissDisabled={isExecutionSubmitting}
-      />
+      {/* A sheet host shows these states inline: a second sheet would
+          render inside it. */}
+      {!isSheetMode && (
+        <>
+          <PredictOrderRetrySheet
+            ref={retrySheetRef}
+            variant={retrySheetVariant}
+            preview={retryQuote}
+            previousPrice={retryPreviousPrice}
+            side={Side.SELL}
+            onRetry={handleRetry}
+            onConfirm={handleRetryConfirm}
+            onDismiss={resetOrderNotFilled}
+            isRetrying={isRetrying}
+          />
+          {/* Pre-submit execution sheet (PRED-484): price moved, no match,
+              timeout, and unavailable states from the Cash Out validation
+              flow. The post-failure retry sheet above stays a separate
+              lifecycle. */}
+          <PredictOrderRetrySheet
+            ref={executionSheetRef}
+            variant={executionSheetVariant}
+            preview={executionQuote}
+            previousPrice={executionBaselinePrice}
+            expectedSize={executionMetadata?.executableSize ?? null}
+            side={Side.SELL}
+            onRetry={handleExecutionTryAgain}
+            onConfirm={handleExecutionConfirm}
+            onDismiss={handleExecutionDismiss}
+            isRetrying={isExecuting}
+            isDismissDisabled={isExecutionSubmitting}
+          />
+        </>
+      )}
     </Wrapper>
   );
 };

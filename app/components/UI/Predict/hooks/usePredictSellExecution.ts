@@ -136,6 +136,13 @@ interface UsePredictSellExecutionParams {
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   /** Analytics context forwarded to placement. */
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
+  /**
+   * True when the host screen is itself a bottom sheet. The execution sheet
+   * then never opens, because it would render inside the host sheet: the
+   * host shows `executionNotice` inline and runs `handleExecutionPrimary`
+   * from its main button.
+   */
+  isSheetMode?: boolean;
 }
 
 /** Sheet variant for each settled status. Busy phases (validating,
@@ -286,6 +293,7 @@ export function usePredictSellExecution({
   previewExecutionOrder,
   placeOrder,
   analyticsProperties,
+  isSheetMode = false,
 }: UsePredictSellExecutionParams) {
   const [state, setState] = useState<PredictSellExecutionState>(IDLE_STATE);
   // Mirrors render state so entry callbacks never read a stale closure.
@@ -350,14 +358,20 @@ export function usePredictSellExecution({
   }, []);
 
   const openSheet = useCallback(() => {
+    if (isSheetMode) {
+      return;
+    }
     isClosingSheetRef.current = false;
     executionSheetRef.current?.onOpenBottomSheet();
-  }, []);
+  }, [isSheetMode]);
 
   const closeSheet = useCallback(() => {
+    if (isSheetMode) {
+      return;
+    }
     isClosingSheetRef.current = true;
     executionSheetRef.current?.onCloseBottomSheet();
-  }, []);
+  }, [isSheetMode]);
 
   /**
    * Fetches one fresh execution preview and classifies it against the
@@ -790,6 +804,33 @@ export function usePredictSellExecution({
     settleIdle();
   }, [analyticsProperties, size, settleIdle, cancelValidatingRun]);
 
+  /** Main-button action: the next step of a settled state, else Cash Out. */
+  const handleExecutionPrimary = useCallback(() => {
+    switch (stateRef.current.status) {
+      case 'confirm':
+        return handleConfirm();
+      case 'no_match':
+      case 'timeout':
+      case 'unavailable':
+        return handleTryAgain();
+      default:
+        return handleCashOut();
+    }
+  }, [handleConfirm, handleTryAgain, handleCashOut]);
+
+  const settledVariant = EXECUTION_SHEET_VARIANTS[state.status];
+  // Inline settled state for sheet hosts. Hidden while a fetch or placement
+  // runs, so the host shows its normal content with a loading main button.
+  const executionNotice =
+    isSheetMode && settledVariant
+      ? {
+          variant: settledVariant,
+          quote: state.quote,
+          previousPrice: state.baselinePrice,
+          expectedSize: state.execution?.executableSize ?? null,
+        }
+      : null;
+
   return {
     /** Ref for the pre-submit PredictOrderRetrySheet instance. */
     executionSheetRef,
@@ -815,6 +856,9 @@ export function usePredictSellExecution({
     handleConfirm,
     handleTryAgain,
     handleDismiss,
+    handleExecutionPrimary,
+    /** Settled state to show inline when the host is a sheet, else null. */
+    executionNotice,
     submitRetryQuote,
   };
 }

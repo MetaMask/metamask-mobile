@@ -21,6 +21,7 @@ import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
 } from '../components/PredictOrderRetrySheet';
+import { isPredictRetryQuoteVariant } from '../components/PredictOrderRetrySheet/retryContent';
 
 /**
  * Outcome of a custom retry submission. Besides the placement outcomes, a
@@ -66,11 +67,17 @@ interface UsePredictOrderRetryParams {
    */
   orderState?: PredictRetryOrderState;
   /**
-   * When true, suppresses the dedicated PredictOrderRetrySheet overlay on the
-   * not-filled transition so the inline buy-sheet error banner can handle the
-   * retry UX instead. User-initiated retries always open the sheet.
+   * True when the host screen is itself a bottom sheet. The retry sheet then
+   * never opens, because it would render inside the host sheet: the host
+   * shows `retryNotice` inline and runs `handleRetryPrimary` from its main
+   * button.
    */
   isSheetMode?: boolean;
+  /**
+   * Fetches a fresh quote as soon as the order is not filled. Defaults to
+   * `!isSheetMode`, where the inline buy-sheet banner asks first.
+   */
+  autoRetryOnNotFilled?: boolean;
   attempt?: PredictBuyAttempt;
 }
 
@@ -134,6 +141,7 @@ export function usePredictOrderRetry({
   resetOrderNotFilled,
   orderState = 'unknown',
   isSheetMode = false,
+  autoRetryOnNotFilled = !isSheetMode,
   attempt,
 }: UsePredictOrderRetryParams) {
   const [isRetrying, setIsRetrying] = useState(false);
@@ -171,7 +179,9 @@ export function usePredictOrderRetry({
       return;
     }
     isRetryInFlightRef.current = true;
-    setRetrySheetVariant('busy');
+    // The current state stays visible with a loading action while the fresh
+    // quote is fetched.
+    setIsRetrying(true);
     try {
       const fetchResult = await refetchPreview();
       // The user may have dismissed the error while the fetch was in flight;
@@ -208,13 +218,18 @@ export function usePredictOrderRetry({
       setRetrySheetVariant('quote_unavailable');
     } finally {
       isRetryInFlightRef.current = false;
-      // This is a user-initiated retry: always surface the refreshed quote
-      // sheet so the confirmation is tied to the fresh quote.
-      if (isOrderNotFilledRef.current && !isRetryBlockedRef.current) {
+      setIsRetrying(false);
+      // The confirmation is tied to the fresh quote: surface it in the sheet,
+      // or inline when the host is itself a sheet.
+      if (
+        !isSheetMode &&
+        isOrderNotFilledRef.current &&
+        !isRetryBlockedRef.current
+      ) {
         retrySheetRef.current?.onOpenBottomSheet();
       }
     }
-  }, [refetchPreview, lastSubmittedPreview]);
+  }, [refetchPreview, lastSubmittedPreview, isSheetMode]);
 
   const handleRetryConfirm = useCallback(async () => {
     if (
@@ -360,10 +375,10 @@ export function usePredictOrderRetry({
     if (becameNotFilled) {
       setRetrySheetVariant('busy');
 
-      // Sheet mode renders an inline banner instead of opening the overlay;
-      // the banner CTA drives the fetch + confirm flow.
       if (!isSheetMode) {
         retrySheetRef.current?.onOpenBottomSheet();
+      }
+      if (autoRetryOnNotFilled) {
         void handleRetry();
       }
 
@@ -391,8 +406,34 @@ export function usePredictOrderRetry({
     analyticsProperties,
     preview?.sharePrice,
     isSheetMode,
+    autoRetryOnNotFilled,
     handleRetry,
   ]);
+
+  const isRetryQuoteShown = isPredictRetryQuoteVariant(
+    retrySheetVariant,
+    retryQuote,
+  );
+
+  /** Main-button action for an inline retry state. */
+  const handleRetryPrimary = useCallback(
+    () => (isRetryQuoteShown ? handleRetryConfirm() : handleRetry()),
+    [isRetryQuoteShown, handleRetryConfirm, handleRetry],
+  );
+
+  // Inline retry state for sheet hosts. Hidden while a fetch or submission
+  // runs, so the host shows its normal content with a loading main button.
+  const retryNotice =
+    isSheetMode &&
+    isOrderNotFilled &&
+    !isRetrying &&
+    retrySheetVariant !== 'busy'
+      ? {
+          variant: retrySheetVariant,
+          quote: retryQuote,
+          previousPrice: retryPreviousPrice,
+        }
+      : null;
 
   return {
     retrySheetRef,
@@ -402,5 +443,7 @@ export function usePredictOrderRetry({
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    handleRetryPrimary,
+    retryNotice,
   };
 }

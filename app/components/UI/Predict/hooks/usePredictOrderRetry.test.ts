@@ -70,6 +70,7 @@ function createParamsObj(overrides?: Record<string, unknown>) {
     resetOrderNotFilled: jest.fn(),
     isSheetMode: false as boolean | undefined,
     attempt: undefined as PlaceOrderParams['attempt'],
+    autoRetryOnNotFilled: undefined as boolean | undefined,
     submitRetryQuote: undefined as
       | ((quote: OrderPreview) => Promise<PredictRetrySubmitOutcome>)
       | undefined,
@@ -362,7 +363,7 @@ describe('usePredictOrderRetry', () => {
       expect(params.placeOrder).not.toHaveBeenCalled();
     });
 
-    it('always opens the sheet — even in sheet mode — because it is user-initiated', async () => {
+    it('shows the fresh quote inline and opens no sheet in sheet mode', async () => {
       const params = createDefaultParams({
         isOrderNotFilled: true,
         isSheetMode: true,
@@ -379,7 +380,89 @@ describe('usePredictOrderRetry', () => {
         await result.current.handleRetry();
       });
 
-      expect(onOpen).toHaveBeenCalled();
+      expect(onOpen).not.toHaveBeenCalled();
+      expect(result.current.retryNotice).toEqual({
+        variant: 'confirm',
+        quote: expect.objectContaining({ sharePrice: 0.62 }),
+        previousPrice: null,
+      });
+    });
+
+    it('keeps the current state and reports loading while the quote is fetched', async () => {
+      let resolveFetch: (value: unknown) => void = () => undefined;
+      const params = createDefaultParams({
+        isOrderNotFilled: true,
+        isSheetMode: true,
+        refetchPreview: jest.fn().mockResolvedValueOnce({ status: 'no_match' }),
+      });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+      await act(async () => {
+        await result.current.handleRetry();
+      });
+      expect(result.current.retryNotice?.variant).toBe('no_match');
+
+      params.refetchPreview.mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFetch = resolve;
+        }),
+      );
+      let retryPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        retryPromise = result.current.handleRetry();
+      });
+
+      expect(result.current.isRetrying).toBe(true);
+      expect(result.current.retrySheetVariant).toBe('no_match');
+      expect(result.current.retryNotice).toBeNull();
+
+      await act(async () => {
+        resolveFetch({ status: 'no_match' });
+        await retryPromise;
+      });
+
+      expect(result.current.isRetrying).toBe(false);
+      expect(result.current.retryNotice?.variant).toBe('no_match');
+    });
+
+    it('runs the confirm step from the primary action once a quote is shown', async () => {
+      const params = createDefaultParams({
+        isOrderNotFilled: true,
+        isSheetMode: true,
+      });
+      const { result } = renderHook(() => usePredictOrderRetry(params));
+
+      await act(async () => {
+        await result.current.handleRetryPrimary();
+      });
+      expect(params.placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.handleRetryPrimary();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preview: expect.objectContaining({ sharePrice: 0.62 }),
+        }),
+      );
+    });
+
+    it('fetches on the not-filled edge in sheet mode when auto retry is on', async () => {
+      const params = createDefaultParams({
+        isSheetMode: true,
+        autoRetryOnNotFilled: true,
+      });
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+      expect(result.current.retryNotice?.variant).toBe('confirm');
     });
 
     it('moves to quote_unavailable when the fresh fetch fails', async () => {
