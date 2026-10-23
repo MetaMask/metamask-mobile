@@ -153,7 +153,7 @@ export const waitForOrderScreenVisible = async (
  * control is visible. Each attempt stays short so a late-mounted section can
  * be retried inside the outer budget.
  */
-const openPerpsHomeFromWallet = async (): Promise<void> => {
+export const openPerpsHomeFromWallet = async (): Promise<void> => {
   await Utilities.executeWithRetry(
     async () => {
       if (

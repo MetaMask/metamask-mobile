@@ -293,6 +293,15 @@ describe('RewardsMoneyController', () => {
       expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
     });
 
+    it('keeps default cache maps an older persisted state omits', () => {
+      const restored = new RewardsMoneyController({
+        messenger: mockMessenger,
+        state: { referralMe: {} },
+      });
+
+      expect(restored.state).toEqual(getRewardsMoneyControllerDefaultState());
+    });
+
     it('registers messenger method handlers', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
         controller,
@@ -439,6 +448,17 @@ describe('RewardsMoneyController', () => {
       await expect(controller.getCommissions()).rejects.toThrow(
         'Rewards Money is disabled',
       );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
+    it('does not call data service when flag is off for initiateClaim', async () => {
+      await expect(
+        controller.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toThrow('Rewards Money is disabled');
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         expect.stringMatching(/^RewardsMoneyDataService:/),
       );
@@ -793,6 +813,36 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.claimHistoryFirstPage).toEqual({});
     });
 
+    it('keeps the newer claim history page when an older fetch answers last', async () => {
+      const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => pending.push(resolve));
+        }
+        return Promise.resolve(undefined);
+      });
+      const olderPage = { ...mockClaimHistory, results: [mockClaim] };
+      const newerPage = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+
+      const older = controller.getClaimHistory({ forceFresh: true });
+      const newer = controller.getClaimHistory({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      pending[1](newerPage);
+      await newer;
+      pending[0](olderPage);
+      await older;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]?.payload).toBe(
+        newerPage,
+      );
+    });
+
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
@@ -877,6 +927,38 @@ describe('RewardsMoneyController', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'RewardsMoneyDataService:validateReferralCode',
         'ABC',
+      );
+    });
+  });
+
+  describe('initiateClaim', () => {
+    it('forwards the route and body when enabled', async () => {
+      const authorized = {
+        kind: 'authorized' as const,
+        body: {
+          claim: { id: 'claim-1' },
+          voucher: null,
+          excluded: [],
+          status: 'OPENED' as const,
+        },
+      };
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return authorized;
+        }
+        return undefined;
+      });
+
+      await expect(
+        controller.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toBe(authorized);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:initiateClaim',
+        'referral-rev-share',
+        { money_account_address: '0xmoney' },
       );
     });
   });

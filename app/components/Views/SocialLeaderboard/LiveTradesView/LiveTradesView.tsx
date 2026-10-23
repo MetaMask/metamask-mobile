@@ -40,6 +40,11 @@ import LiveTradeRow from './components/LiveTradeRow';
 import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -48,6 +53,7 @@ type AnimatedScrollHandler = React.ComponentProps<
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveTradesViewProps {
+  performance?: SocialPerformanceContext;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -60,6 +66,7 @@ export interface LiveTradesViewProps {
  * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
+  performance,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -92,6 +99,13 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         }),
     );
   }, [appliedFilters, followingProfileIds, isEntryHidden]);
+
+  useSocialTabFirstContentTrace({
+    tab: SOCIAL_TRACE_TABS.LiveTrades,
+    contentState: visibleItems.length > 0 ? 'content' : 'empty',
+    hasUsableData: false,
+    performance,
+  });
 
   useImperativeHandle(
     pageRef,
@@ -149,7 +163,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pb-8')}
+          contentContainerStyle={tw.style('flex-grow pt-[12px] pb-8')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}
@@ -161,6 +175,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
             onOpenFilters={onOpenFilters}
             isFilterActive={isFilterActive}
             filterTestID={LiveTradesViewSelectorsIDs.FILTER_BUTTON}
+            twClassName="px-4 pb-4"
           >
             <FilterButton
               isSelected
