@@ -209,6 +209,13 @@ export function earningsSummaryFixture(
 
 export const REWARDS_MONEY_EARNINGS_SUMMARY = earningsSummaryFixture();
 
+// Spread, rather than a direct field, so this stays valid on the dashboard-view
+// base. That base's ReferralMeDto does not declare excluded_regions yet.
+// Current main and the earnings stack require the field.
+const EXCLUDED_REGIONS: { excluded_regions: string[] } = {
+  excluded_regions: [],
+};
+
 function referralMeBase(variant: ReferralMeVariant): ReferralMeDto {
   const localizedText = referralLocalizedText();
 
@@ -224,6 +231,7 @@ function referralMeBase(variant: ReferralMeVariant): ReferralMeDto {
       earn_rates: { ...EARN_RATES },
       localized_text: localizedText,
       invite_hero: null,
+      ...EXCLUDED_REGIONS,
     };
   }
 
@@ -239,6 +247,7 @@ function referralMeBase(variant: ReferralMeVariant): ReferralMeDto {
       earn_rates: { ...EARN_RATES },
       localized_text: localizedText,
       invite_hero: null,
+      ...EXCLUDED_REGIONS,
     };
   }
 
@@ -253,6 +262,7 @@ function referralMeBase(variant: ReferralMeVariant): ReferralMeDto {
     earn_rates: { ...NO_EARN_RATES },
     localized_text: localizedText,
     invite_hero: null,
+    ...EXCLUDED_REGIONS,
   };
 }
 
