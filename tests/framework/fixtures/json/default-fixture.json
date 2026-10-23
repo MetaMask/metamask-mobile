@@ -232,8 +232,8 @@
           }
         },
         "MoneyAccountController": {
-          "defaultMoneyAccountId": "640c014d-ebe8-43ce-b74b-fab9c97eb524",
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
