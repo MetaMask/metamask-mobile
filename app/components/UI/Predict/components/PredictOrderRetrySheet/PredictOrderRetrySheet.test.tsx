@@ -110,6 +110,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.order.no_match_title': 'No match',
       'predict.order.no_match_body':
         "There isn't enough liquidity to fill your order right now.",
+      'predict.order.empty_book_title': 'No buyers right now',
+      'predict.order.empty_book_body':
+        'There are no buy orders for this outcome right now.',
       'predict.order.market_timeout_title': 'Market timed out',
       'predict.order.market_timeout_body':
         'The market took too long to respond. Nothing was sold.',
@@ -500,6 +503,39 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(mockCloseSheet).toHaveBeenCalledTimes(1);
       expect(onConfirm).not.toHaveBeenCalled();
+      expect(onRetry).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('empty_book variant', () => {
+    it('renders the empty-book copy distinct from no match', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="empty_book" />,
+      );
+
+      expect(getByText('No buyers right now')).toBeOnTheScreen();
+      expect(
+        getByText('There are no buy orders for this outcome right now.'),
+      ).toBeOnTheScreen();
+      expect(queryByText('No match')).toBeNull();
+      expect(queryByText(/Yes, (buy|sell) at/)).toBeNull();
+    });
+
+    it('offers Try later that dismisses without submitting', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="empty_book"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON),
+      );
+
+      expect(mockCloseSheet).toHaveBeenCalledTimes(1);
       expect(onRetry).not.toHaveBeenCalled();
     });
   });

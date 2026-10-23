@@ -404,7 +404,11 @@ const createExecutionMetadata = (
   createPredictExecutionMetadata({
     requestedSize: 100,
     executableSize: 100,
-    bandFloorPrice: 0.475,
+    // The displayed preview approves 0.50 with a 0.5% band, so the full size
+    // must fill at 0.50 to stay inside the approved band.
+    refreshedPrice: 0.5,
+    worstExecutablePrice: 0.5,
+    bandFloorPrice: 0.5,
     ...overrides,
   });
 

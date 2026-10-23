@@ -969,9 +969,9 @@ export interface PredictExecutionMetadata {
 
 /**
  * Typed outcome of a pre-submit execution-preview fetch. `no_match` covers an
- * empty book and insufficient depth inside the approved band — expected market
- * outcomes, not technical failures — so it still carries `execution` facts
- * (including partial `executableSize`) for analytics.
+ * empty book (no `refreshedPrice`) and insufficient depth inside the approved
+ * band — expected market outcomes, not technical failures — so it still
+ * carries `execution` facts (including partial `executableSize`) for analytics.
  */
 export type PredictExecutionPreviewResult =
   | {

@@ -17,7 +17,10 @@ import type {
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { PredictRetrySubmitOutcome } from './usePredictOrderRetry';
 import { getPredictPriceConsent } from '../utils/prices';
-import { withPredictSellBandFloorFromSharePrice } from '../utils/execution';
+import {
+  getPredictExecutionBandFloorPrice,
+  withPredictSellBandFloorFromSharePrice,
+} from '../utils/execution';
 import {
   acquirePredictSellExecutionLock,
   releasePredictSellExecutionLock,
@@ -37,8 +40,8 @@ import { formatSlippageBand } from '../utils/format';
 /**
  * Pre-submit sell execution flow phase. `validating` and `submitting` are the
  * busy phases (loading CTA / sheet confirm button); `confirm`, `no_match`,
- * `timeout`, and `unavailable` are settled sheet states awaiting a user
- * action; `idle` is the resting state.
+ * `empty_book`, `timeout`, and `unavailable` are settled sheet states
+ * awaiting a user action; `idle` is the resting state.
  */
 export type PredictSellExecutionStatus =
   | 'idle'
@@ -46,6 +49,7 @@ export type PredictSellExecutionStatus =
   | 'submitting'
   | 'confirm'
   | 'no_match'
+  | 'empty_book'
   | 'timeout'
   | 'unavailable';
 
@@ -63,6 +67,8 @@ interface PredictSellExecutionState {
   baselinePrice: number | null;
   /** Approved slippage band that goes with `baselinePrice`. */
   baselineSlippage: number | null;
+  /** Pre-submit decision of the settled sheet state, for dismissal analytics. */
+  preSubmitDecision: PredictPreSubmitDecisionValue | null;
   /**
    * Localized message when the sell pre-flight rejected the order (market
    * closed, pending resolution, claimable position). Shown on the screen.
@@ -76,15 +82,17 @@ const IDLE_STATE: PredictSellExecutionState = {
   execution: null,
   baselinePrice: null,
   baselineSlippage: null,
+  preSubmitDecision: null,
   error: null,
 };
 
 /**
  * Classification of one freshly fetched execution preview against the
  * approved baseline: `submit` (price better/equal/within one tick and the
- * full size executable in band), `confirm` (more than one tick worse —
- * requires an explicit re-confirmation), `blocked` (the pre-flight rejected
- * the order), or a terminal market/transport state that submits nothing.
+ * full size executable in the approved band), `confirm` (more than one tick
+ * worse, or fillable only below the approved band — requires an explicit
+ * re-confirmation), `blocked` (the pre-flight rejected the order), or a
+ * terminal market/transport state that submits nothing.
  */
 type ExecutionClassification =
   | {
@@ -94,10 +102,12 @@ type ExecutionClassification =
     }
   | {
       outcome: 'confirm';
+      reason: 'beyond_one_tick' | 'outside_band';
       preview: OrderPreview;
       execution: PredictExecutionMetadata;
     }
   | { outcome: 'no_match'; execution: PredictExecutionMetadata }
+  | { outcome: 'empty_book'; execution: PredictExecutionMetadata }
   | { outcome: 'timeout' }
   | { outcome: 'unavailable' }
   | { outcome: 'blocked'; error: string };
@@ -154,31 +164,34 @@ const EXECUTION_SHEET_VARIANTS: Partial<
 > = {
   confirm: 'price_moved',
   no_match: 'no_match',
+  empty_book: 'empty_book',
   timeout: 'timeout',
   unavailable: 'quote_unavailable',
 };
 
-/** Stable pre-submit decision value for each classification outcome. */
-const DECISION_FOR_OUTCOME: Record<
-  ExecutionClassification['outcome'],
-  PredictPreSubmitDecisionValue
-> = {
-  submit: PredictEventValues.PRE_SUBMIT_DECISION.WITHIN_ONE_TICK,
-  confirm: PredictEventValues.PRE_SUBMIT_DECISION.BEYOND_ONE_TICK,
-  no_match: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
-  timeout: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
-  unavailable: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
-  blocked: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
-};
+/** Absorbs float drift when a book price is compared with a tick-rounded floor. */
+const BAND_COMPARISON_EPSILON = 1e-9;
 
-/** Stable pre-submit decision value for the sheet state a dismissal fires from. */
-const DECISION_FOR_STATUS: Partial<
-  Record<PredictSellExecutionStatus, PredictPreSubmitDecisionValue>
-> = {
-  confirm: PredictEventValues.PRE_SUBMIT_DECISION.BEYOND_ONE_TICK,
-  no_match: PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH,
-  timeout: PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT,
-  unavailable: PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE,
+/** Stable pre-submit decision value for one classification. */
+const getPreSubmitDecision = (
+  classification: ExecutionClassification,
+): PredictPreSubmitDecisionValue => {
+  switch (classification.outcome) {
+    case 'submit':
+      return PredictEventValues.PRE_SUBMIT_DECISION.WITHIN_ONE_TICK;
+    case 'confirm':
+      return classification.reason === 'outside_band'
+        ? PredictEventValues.PRE_SUBMIT_DECISION.OUTSIDE_BAND
+        : PredictEventValues.PRE_SUBMIT_DECISION.BEYOND_ONE_TICK;
+    case 'no_match':
+      return PredictEventValues.PRE_SUBMIT_DECISION.NO_MATCH;
+    case 'empty_book':
+      return PredictEventValues.PRE_SUBMIT_DECISION.EMPTY_BOOK;
+    case 'timeout':
+      return PredictEventValues.PRE_SUBMIT_DECISION.TIMEOUT;
+    default:
+      return PredictEventValues.PRE_SUBMIT_DECISION.UNAVAILABLE;
+  }
 };
 
 /** Which entry started a validation pass. */
@@ -257,9 +270,10 @@ const trackPreSubmitDecision = ({
     bandFloorPrice: execution?.bandFloorPrice,
     tickSize: execution?.tickSize,
     slippageBand: formatSlippageBand(slippage),
-    preSubmitDecision: DECISION_FOR_OUTCOME[classification.outcome],
+    preSubmitDecision: getPreSubmitDecision(classification),
     reconfirmOutcome: getReconfirmOutcome(classification, origin),
-    ...(classification.outcome === 'no_match' && {
+    ...((classification.outcome === 'no_match' ||
+      classification.outcome === 'empty_book') && {
       failureCategory: PredictEventValues.FAILURE_CATEGORY.NO_MATCH,
     }),
     ...(classification.outcome === 'blocked' && {
@@ -415,29 +429,45 @@ export function usePredictSellExecution({
 
       switch (result.status) {
         case 'no_match':
-          return { outcome: 'no_match', execution: result.execution };
+          // No best bid means the book has no bids at all.
+          return result.execution.refreshedPrice === undefined
+            ? { outcome: 'empty_book', execution: result.execution }
+            : { outcome: 'no_match', execution: result.execution };
         case 'timeout':
           return { outcome: 'timeout' };
         case 'unavailable':
           return { outcome: 'unavailable' };
         case 'executable': {
+          const { execution } = result;
+          const tickSize = execution.tickSize ?? result.preview.tickSize;
           const consent = getPredictPriceConsent({
             side: Side.SELL,
             approvedPrice: baselinePrice,
-            refreshedPrice: result.execution.refreshedPrice ?? baselinePrice,
-            tickSize: result.execution.tickSize ?? result.preview.tickSize,
+            refreshedPrice: execution.refreshedPrice ?? baselinePrice,
+            tickSize,
           });
-          return consent.withinOneTick
-            ? {
-                outcome: 'submit',
-                preview: result.preview,
-                execution: result.execution,
-              }
-            : {
-                outcome: 'confirm',
-                preview: withPredictSellBandFloorFromSharePrice(result.preview),
-                execution: result.execution,
-              };
+          // The full size can be executable only from a band measured from
+          // the refreshed price. A fill below the approved band is never
+          // auto-submitted, even within one tick.
+          const approvedBandFloor = getPredictExecutionBandFloorPrice({
+            side: Side.SELL,
+            approvedPrice: baselinePrice,
+            slippage,
+            tickSize,
+          });
+          const fillsOutsideApprovedBand =
+            execution.worstExecutablePrice !== undefined &&
+            execution.worstExecutablePrice <
+              approvedBandFloor - BAND_COMPARISON_EPSILON;
+          if (consent.withinOneTick && !fillsOutsideApprovedBand) {
+            return { outcome: 'submit', preview: result.preview, execution };
+          }
+          return {
+            outcome: 'confirm',
+            reason: consent.withinOneTick ? 'outside_band' : 'beyond_one_tick',
+            preview: withPredictSellBandFloorFromSharePrice(result.preview),
+            execution,
+          };
         }
       }
     },
@@ -583,13 +613,16 @@ export function usePredictSellExecution({
             status: 'confirm',
             quote: classification.preview,
             execution: classification.execution,
+            preSubmitDecision: getPreSubmitDecision(classification),
           });
           break;
         case 'no_match':
+        case 'empty_book':
           updateState({
-            status: 'no_match',
+            status: classification.outcome,
             quote: null,
             execution: classification.execution,
+            preSubmitDecision: getPreSubmitDecision(classification),
           });
           break;
         default:
@@ -597,6 +630,7 @@ export function usePredictSellExecution({
             status: classification.outcome,
             quote: null,
             execution: null,
+            preSubmitDecision: getPreSubmitDecision(classification),
           });
       }
       openSheet();
@@ -745,7 +779,8 @@ export function usePredictSellExecution({
                     quote: classification.preview,
                   };
                 case 'no_match':
-                  return { status: 'no_match' };
+                case 'empty_book':
+                  return { status: classification.outcome };
                 case 'blocked':
                   return {
                     status: 'error',
@@ -777,11 +812,15 @@ export function usePredictSellExecution({
     }
     intentIdRef.current += 1;
     cancelValidatingRun();
-    const { status, execution, baselinePrice, baselineSlippage } =
-      stateRef.current;
-    const preSubmitDecision = DECISION_FOR_STATUS[status];
+    const {
+      status,
+      execution,
+      baselinePrice,
+      baselineSlippage,
+      preSubmitDecision,
+    } = stateRef.current;
     // Dismissal analytics fire only from a settled sheet state.
-    if (preSubmitDecision) {
+    if (EXECUTION_SHEET_VARIANTS[status] && preSubmitDecision) {
       void Engine.context.PredictController.trackPredictOrderEvent({
         status: PredictTradeStatus.PRESUBMIT_DISMISSED,
         analyticsProperties,
@@ -810,6 +849,7 @@ export function usePredictSellExecution({
       case 'confirm':
         return handleConfirm();
       case 'no_match':
+      case 'empty_book':
       case 'timeout':
       case 'unavailable':
         return handleTryAgain();

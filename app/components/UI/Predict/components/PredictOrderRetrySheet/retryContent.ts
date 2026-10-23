@@ -20,6 +20,7 @@ export type PredictOrderRetrySheetVariant =
   | 'failed'
   | 'quote_unavailable'
   | 'no_match'
+  | 'empty_book'
   | 'timeout';
 
 const PRICE_FORMAT = { minimumDecimals: 2, maximumDecimals: 2 };
@@ -102,6 +103,8 @@ export function getPredictRetryTitle(
       return strings('predict.order.price_moved_title');
     case 'no_match':
       return strings('predict.order.no_match_title');
+    case 'empty_book':
+      return strings('predict.order.empty_book_title');
     case 'timeout':
       return strings('predict.order.market_timeout_title');
     default:
@@ -125,6 +128,8 @@ export function getPredictRetryBody({
       return strings('predict.order.price_unavailable_body');
     case 'no_match':
       return strings('predict.order.no_match_body');
+    case 'empty_book':
+      return strings('predict.order.empty_book_body');
     case 'timeout':
       return strings('predict.order.market_timeout_body');
     case 'busy':

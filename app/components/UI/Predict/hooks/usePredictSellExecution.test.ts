@@ -183,6 +183,33 @@ describe('usePredictSellExecution', () => {
     expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
   });
 
+  it('requires confirmation when a one-tick move fills only below the approved band', async () => {
+    // 0.49 is one tick worse, but the full size fills down to 0.47, below
+    // the approved 0.48 floor (ceil(0.50 × 0.95)).
+    const moved = createExecutableResult({
+      preview: createExecutionPreview({ sharePrice: 0.49 }),
+      execution: createExecution({
+        refreshedPrice: 0.49,
+        worstExecutablePrice: 0.47,
+        bandFloorPrice: 0.47,
+      }),
+    });
+    mockPreviewExecutionOrder.mockResolvedValueOnce(moved);
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+
+    expect(result.current.status).toBe('confirm');
+    expect(result.current.sheetVariant).toBe('price_moved');
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
+    expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({ preSubmitDecision: 'outside_band' }),
+    );
+  });
+
   it('submits the exact fresh quote after Confirm adopts the candidate baseline', async () => {
     // First fetch: the price moved to 0.48 and the sheet opened.
     const moved = createExecutableResult({
@@ -327,6 +354,28 @@ describe('usePredictSellExecution', () => {
     expect(result.current.execution).toEqual(
       expect.objectContaining({ executableSize: 4 }),
     );
+    expect(result.current.quote).toBeNull();
+    expect(mockPlaceOrder).not.toHaveBeenCalled();
+    expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
+  it('settles empty_book when the book has no bids and submits nothing', async () => {
+    mockPreviewExecutionOrder.mockResolvedValueOnce({
+      status: 'no_match',
+      execution: createExecution({
+        executableSize: 0,
+        refreshedPrice: undefined,
+        worstExecutablePrice: undefined,
+      }),
+    });
+
+    const { result } = setupHook();
+    await act(async () => {
+      await result.current.handleCashOut();
+    });
+
+    expect(result.current.status).toBe('empty_book');
+    expect(result.current.sheetVariant).toBe('empty_book');
     expect(result.current.quote).toBeNull();
     expect(mockPlaceOrder).not.toHaveBeenCalled();
     expect(onOpenBottomSheet).toHaveBeenCalledTimes(1);
@@ -677,6 +726,13 @@ describe('usePredictSellExecution', () => {
 
     it.each([
       [{ status: 'no_match', execution: createExecution() }, 'no_match'],
+      [
+        {
+          status: 'no_match',
+          execution: createExecution({ refreshedPrice: undefined }),
+        },
+        'empty_book',
+      ],
       [{ status: 'timeout' }, 'unavailable'],
       [{ status: 'unavailable' }, 'unavailable'],
     ] as const)(
@@ -746,8 +802,8 @@ describe('usePredictSellExecution', () => {
         status: 'no_match',
         execution: createExecution({
           executableSize: 4,
-          refreshedPrice: undefined,
-          worstExecutablePrice: undefined,
+          refreshedPrice: 0.49,
+          worstExecutablePrice: 0.48,
         }),
       });
 
@@ -775,6 +831,33 @@ describe('usePredictSellExecution', () => {
       expect(noMatchArgs.executableSize).toBe(4);
       expect(noMatchArgs.failureCategory).toBe('no_match');
       expect(noMatchArgs.failureReason).toBeUndefined();
+    });
+
+    it('tracks an empty book as a distinct decision', async () => {
+      mockPreviewExecutionOrder.mockResolvedValueOnce({
+        status: 'no_match',
+        execution: createExecution({
+          executableSize: 0,
+          refreshedPrice: undefined,
+          worstExecutablePrice: undefined,
+        }),
+      });
+
+      const { result } = setupHook();
+      await act(async () => {
+        await result.current.handleCashOut();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          preSubmitDecision: 'empty_book',
+          executableSize: 0,
+          failureCategory: 'no_match',
+        }),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ preSubmitDecision: 'no_match' }),
+      );
     });
 
     it.each(['timeout', 'unavailable'] as const)(

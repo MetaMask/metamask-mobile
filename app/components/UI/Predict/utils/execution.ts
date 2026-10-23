@@ -260,9 +260,9 @@ export function calculatePredictExecutionDepth({
  * Execution depth for a pre-submit validation. The band is measured from the
  * approved price first. When the book moved against the user and that band
  * cannot fill the full size, the band is measured again from the refreshed
- * price: a moved price that is fully executable then goes to price consent
- * (auto-submit within one tick, confirmation beyond it) instead of reporting
- * no match. On low prices the tick-rounded band is only a tick or two wide,
+ * price: a moved price that is fully executable then asks for confirmation
+ * instead of reporting no match. The caller never auto-submits a fill below
+ * the approved band. On low prices the tick-rounded band is only a tick or two wide,
  * so without this a small move could never reach the confirmation.
  */
 export function resolvePredictExecutionDepth(

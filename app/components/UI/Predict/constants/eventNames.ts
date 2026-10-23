@@ -217,8 +217,13 @@ export const PredictEventValues = {
     WITHIN_ONE_TICK: 'within_one_tick',
     // Fresh quote more than 1 tick worse: explicit re-confirmation shown.
     BEYOND_ONE_TICK: 'beyond_one_tick',
+    // Fresh quote at most 1 tick worse, but the full size fills only below
+    // the approved band: explicit re-confirmation shown.
+    OUTSIDE_BAND: 'outside_band',
     // In-band depth cannot fill the requested size: terminal market outcome.
     NO_MATCH: 'no_match',
+    // The book has no bids at all: terminal market outcome.
+    EMPTY_BOOK: 'empty_book',
     // The market did not answer the pre-submit fetch in time.
     TIMEOUT: 'timeout',
     // The pre-submit fetch failed or the book was unusable.

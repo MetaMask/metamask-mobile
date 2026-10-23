@@ -125,7 +125,7 @@ const PredictOrderRetrySheet = forwardRef<
 
     const isFailed = variant === 'failed';
     const isBusy = variant === 'busy';
-    const isNoMatch = variant === 'no_match';
+    const isNoMatch = variant === 'no_match' || variant === 'empty_book';
     const isQuoteShown = isPredictRetryQuoteVariant(variant, preview);
 
     const iconColor = isFailed

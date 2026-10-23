@@ -33,6 +33,7 @@ export type PredictRetrySubmitOutcome =
   | PlaceOrderOutcome
   | { status: 'price_moved'; quote: OrderPreview }
   | { status: 'no_match' }
+  | { status: 'empty_book' }
   | { status: 'unavailable' };
 
 interface UsePredictOrderRetryParams {
@@ -302,10 +303,13 @@ export function usePredictOrderRetry({
         setRetryQuote(outcome.quote);
         setRetryPreviousPrice(retryQuote.sharePrice);
         settleVariant('price_moved');
-      } else if (outcome.status === 'no_match') {
+      } else if (
+        outcome.status === 'no_match' ||
+        outcome.status === 'empty_book'
+      ) {
         retryOutcome = PredictEventValues.RETRY_OUTCOME.NOT_FILLED;
         setRetryQuote(null);
-        settleVariant('no_match');
+        settleVariant(outcome.status);
       } else if (outcome.status === 'unavailable') {
         retryOutcome = PredictEventValues.RETRY_OUTCOME.FAILED;
         failureReason = 'quote_unavailable';

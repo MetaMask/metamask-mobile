@@ -1183,6 +1183,7 @@ describe('usePredictOrderRetry', () => {
 
     it.each([
       ['no_match', 'no_match', 'not_filled'],
+      ['empty_book', 'empty_book', 'not_filled'],
       ['unavailable', 'quote_unavailable', 'failed'],
     ] as const)(
       'settles a %s outcome in the %s variant without a quote',

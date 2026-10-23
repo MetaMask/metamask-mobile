@@ -4189,6 +4189,8 @@
       "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
       "no_match_title": "No match",
       "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "empty_book_title": "No buyers right now",
+      "empty_book_body": "There are no buy orders for this outcome right now. Nothing was sold. Try again in a moment.",
       "market_timeout_title": "Market timed out",
       "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to fetch the latest price.",
       "try_later": "Try later",
