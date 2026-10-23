@@ -155,17 +155,21 @@ const ActivityRowView = ({
             {display.primaryAmount}
           </SensitiveText>
         ) : null}
-        <SensitiveText
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          color={amountColor}
-          isHidden={privacyMode}
-          length={SensitiveTextLength.Short}
-          twClassName="text-right"
-          testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
-        >
-          {display.fiatAmount}
-        </SensitiveText>
+        {/* Card rows leave fiat empty unless there is a second currency.
+            Skip that line so privacy mode does not mask a blank amount. */}
+        {display.fiatAmount || !display.showPrimaryAmount ? (
+          <SensitiveText
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={amountColor}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Short}
+            twClassName="text-right"
+            testID={MoneyActivityItemTestIds.FIAT_AMOUNT}
+          >
+            {display.fiatAmount}
+          </SensitiveText>
+        ) : null}
       </Box>
     </Pressable>
   );
