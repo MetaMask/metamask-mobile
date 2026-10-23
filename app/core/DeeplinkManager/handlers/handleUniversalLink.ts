@@ -858,7 +858,7 @@ async function handleUniversalLink({
       break;
     }
     case SUPPORTED_ACTIONS.MONEY: {
-      handleMoney();
+      handleMoney({ actionPath: actionBasedRampPath });
       break;
     }
     case SUPPORTED_ACTIONS.PRIVACY: {

@@ -1,0 +1,16 @@
+export const MoneyAccountStatusViewTestIds = {
+  CONTAINER: 'money-account-status-view-container',
+  BACK_BUTTON: 'money-account-status-view-back',
+  SCROLL_VIEW: 'money-account-status-view-scroll',
+  ADDRESS: 'money-account-status-view-address',
+  COPY_ADDRESS_BUTTON: 'money-account-status-view-copy-address',
+  NO_ACCOUNT_BANNER: 'money-account-status-view-no-account',
+  ERROR_BANNER: 'money-account-status-view-error',
+  SUMMARY: 'money-account-status-view-summary',
+  ASSOCIATION_ROW: 'money-account-status-view-association',
+  UPGRADE_ROW: 'money-account-status-view-upgrade',
+  INTENTS_ROW: 'money-account-status-view-intents',
+  LOCAL_RECORD_ROW: 'money-account-status-view-local-record',
+  UPGRADE_ENTRY: 'money-account-status-view-upgrade-entry',
+  INTENT_ENTRY: 'money-account-status-view-intent-entry',
+} as const;

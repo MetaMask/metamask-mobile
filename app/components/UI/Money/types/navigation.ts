@@ -126,6 +126,7 @@ export type MoneyNavigationParamList = MoneyScreensStackParamList &
           cardTransaction?: CardTransaction;
         }
       | undefined;
+    MoneyAccountStatus: undefined;
     MoneyScreens: NavigatorScreenParams<MoneyScreensStackParamList> | undefined;
     MoneyModals:
       | NavigatorScreenParams<MoneyModalsNavigationParamList>

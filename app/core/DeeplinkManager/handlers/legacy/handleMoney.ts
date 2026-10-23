@@ -100,13 +100,19 @@ const getMoneyAccountFlagStatus = (
     : MoneyAccountFlagStatus.Disabled;
 };
 
+// TODO: Placeholder path until the final deeplink shape is decided.
+export const MONEY_ACCOUNT_STATUS_DEEPLINK_PATH = 'account-status';
+
+const getMoneyDeeplinkPath = (actionPath = '') =>
+  actionPath.split(/[?#]/)[0].replace(/^\/+|\/+$/g, '');
+
 const navigateToDeeplinkModal = (title: string, description: string) =>
   NavigationService.navigation.navigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
     title,
     description,
   });
 
-export const handleMoney = () => {
+export const handleMoney = ({ actionPath }: { actionPath?: string } = {}) => {
   DevLogger.log('[handleMoney] Starting deeplink handling');
 
   try {
@@ -141,6 +147,13 @@ export const handleMoney = () => {
       NavigationService.navigation.navigate(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
       });
+      return;
+    }
+
+    if (
+      getMoneyDeeplinkPath(actionPath) === MONEY_ACCOUNT_STATUS_DEEPLINK_PATH
+    ) {
+      NavigationService.navigation.navigate(Routes.MONEY.ACCOUNT_STATUS);
       return;
     }
 
