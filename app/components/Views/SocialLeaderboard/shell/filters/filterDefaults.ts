@@ -75,10 +75,7 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
 /** Following has no sized cohort left, so the sheet hides this section. */
 export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
 
-export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = [
-  'all',
-  'following',
-];
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
 
 export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
