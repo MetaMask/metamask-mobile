@@ -65,6 +65,16 @@ describeForPlatforms('AccountStatus — Account Already Exists', () => {
       ).toBeOnTheScreen();
 
       expect(
+        await findByTestId(
+          AccountStatusSelectorIDs.ACCOUNT_FOUND_SOCIAL_AVATAR,
+        ),
+      ).toBeOnTheScreen();
+
+      expect(
+        await findByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_FOX_AVATAR),
+      ).toBeOnTheScreen();
+
+      expect(
         await findByTestId(AccountStatusSelectorIDs.ACCOUNT_FOUND_LOGIN_BUTTON),
       ).toBeOnTheScreen();
 

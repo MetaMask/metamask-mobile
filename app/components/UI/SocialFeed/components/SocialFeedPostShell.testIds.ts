@@ -13,4 +13,5 @@ export const SocialFeedPostShellSelectorsIDs = {
   MOCK_MARKER: 'social-v1-feed-post-mock-marker',
   IDENTITY_PRESS: 'social-v1-feed-post-trader',
   POSITION_PRESS: 'social-v1-feed-post-position',
+  PENDING: 'social-v1-feed-post-pending',
 } as const;
