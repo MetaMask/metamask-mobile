@@ -23,6 +23,8 @@ const LOCALIZED_TEXT = {
     'Your activity is empty now. Start trading to earn today!',
   tradingActivityEmptyAction: 'Start trading',
   rebateSwaps: 'Swaps',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebatePerpsVolume: 'Perps volume',
 };
 

@@ -329,11 +329,6 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 >
                   {draft.xDisplayName}
                 </Text>
-                <Icon
-                  name={IconName.VerifiedFilled}
-                  size={IconSize.Sm}
-                  twClassName="text-info-default"
-                />
               </Box>
               <Text
                 variant={TextVariant.BodyMd}

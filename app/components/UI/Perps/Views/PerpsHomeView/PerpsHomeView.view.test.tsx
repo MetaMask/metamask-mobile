@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import React, { type ComponentType } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { Text, View } from 'react-native';
 import {
   act,
@@ -65,12 +66,14 @@ import {
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
 const TIMEOUT_MS = 5000;
 
@@ -701,8 +704,15 @@ describe('PerpsHomeView', () => {
       );
     };
 
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    });
+
     afterEach(() => {
       clearLeaderboardApiMock();
+      netInfoMock.__resetMockNetInfo();
     });
 
     it('shows 3 perps Trending posts by default when Perps social is on', async () => {
@@ -840,9 +850,14 @@ describe('PerpsHomeView', () => {
       });
       await openTopTraders();
 
-      fireEvent.press(
-        await screen.findByText('Retry', {}, { timeout: TIMEOUT_MS }),
-      );
+      expect(
+        await screen.findByTestId(
+          SocialLeaderboardSelectorsIDs.ERROR,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
       expect(
         await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
@@ -1177,7 +1192,7 @@ describe('PerpsHomeView', () => {
         traderName: alpha.name,
         traderAddress: alpha.addresses[0],
         traderAvatarUri: alpha.imageUrl,
-        source: 'perps_home',
+        source: 'leaderboard',
         traderRank: 1,
       });
     });
