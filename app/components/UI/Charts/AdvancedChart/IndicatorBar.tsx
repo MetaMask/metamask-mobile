@@ -13,6 +13,8 @@ import {
   IconSize,
 } from '@metamask/design-system-react-native';
 
+import BoxGlass from '../../../../component-library/components-temp/BoxGlass';
+
 interface IndicatorBarProps {
   /** Label for the MA button (e.g. "MA", "MA5", "MA x2"). */
   maLabel?: string;
@@ -22,6 +24,8 @@ interface IndicatorBarProps {
   activeIndicators?: Set<string>;
   /** Called when an indicator toggle button is pressed. */
   onIndicatorToggle?: (name: string) => void;
+  /** Draws the bar as a brand refresh glass pill. */
+  isGlass?: boolean;
 }
 
 const TOGGLE_INDICATORS: { name: string; showDividerAfter?: boolean }[] = [
@@ -36,17 +40,14 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
   onMAPress,
   activeIndicators,
   onIndicatorToggle,
+  isGlass = false,
 }) => {
   const tw = useTailwind();
 
   const isActive = (name: string) => activeIndicators?.has(name) ?? false;
 
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="w-full border-t border-b border-border-muted px-4 py-2"
-    >
+  const items = (
+    <>
       {/* MA dropdown */}
       <Pressable
         style={({ pressed }) =>
@@ -99,6 +100,28 @@ const IndicatorBar: React.FC<IndicatorBarProps> = ({
           </React.Fragment>
         );
       })}
+    </>
+  );
+
+  if (isGlass) {
+    return (
+      <BoxGlass
+        radiusClassName="rounded-full"
+        containerStyle={tw.style('mx-4')}
+        style={tw.style('flex-row items-center px-4 py-2')}
+      >
+        {items}
+      </BoxGlass>
+    );
+  }
+
+  return (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="w-full border-t border-b border-border-muted px-4 py-2"
+    >
+      {items}
     </Box>
   );
 };
