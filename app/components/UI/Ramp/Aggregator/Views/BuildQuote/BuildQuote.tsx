@@ -1205,13 +1205,6 @@ const BuildQuote = () => {
           testID={BuildQuoteSelectors.AMOUNT_KEYPAD_BOTTOM_SHEET}
           isInteractable={false}
           onClose={handleKeypadClose}
-          onStartShouldSetResponder={() =>
-            // Prevents the native gesture system from bubbling up
-            // the event to BottomSheetDialog, causing keypad to close
-            // when user click anywhere inside the keypad area that is
-            // not a pressable component.
-            true
-          }
         >
           <Box twClassName="content-end px-4 gap-4 pt-4">
             {amount && amount !== '0' ? (

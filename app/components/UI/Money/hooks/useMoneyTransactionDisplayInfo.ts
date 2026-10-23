@@ -55,7 +55,10 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
-  /** Render the primary mUSD amount for a VBA activity row. */
+  /**
+   * Render the primary amount line for completed VBA deposits and card rows.
+   * Other Money rows show `fiatAmount` only.
+   */
   showPrimaryAmount?: boolean;
   /** Optional status text shown beneath a pending amount instead of fiat. */
   pendingStatusLabel?: string;

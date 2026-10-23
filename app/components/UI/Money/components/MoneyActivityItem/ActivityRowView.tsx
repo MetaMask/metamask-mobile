@@ -175,7 +175,7 @@ function ActivityRowAmounts({ display, privacyMode }: ActivityRowAmountsProps) {
         >
           {display.pendingStatusLabel}
         </Text>
-      ) : (
+      ) : display.fiatAmount || !display.showPrimaryAmount ? (
         <SensitiveText
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -189,7 +189,7 @@ function ActivityRowAmounts({ display, privacyMode }: ActivityRowAmountsProps) {
         >
           {display.fiatAmount}
         </SensitiveText>
-      )}
+      ) : null}
     </Box>
   );
 }
