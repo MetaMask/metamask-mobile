@@ -151,13 +151,6 @@ let mockActivePriceField:
   | 'scaleEnd'
   | 'chaseMaxDistance'
   | null = null;
-const mockSetAmount = jest.fn();
-const mockFillOrderBookSize = jest.fn();
-let mockSizeOnClickPreference = false;
-jest.mock('../../utils/perpsOrderBookSizeOnClickStorage', () => ({
-  getPerpsOrderBookSizeOnClickPreference: () => mockSizeOnClickPreference,
-  setPerpsOrderBookSizeOnClickPreference: jest.fn(),
-}));
 let mockOrderFormType:
   | 'market'
   | 'limit'
@@ -511,8 +504,6 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     setTriggerPrice: mockSetTriggerPrice,
     activePriceField: mockActivePriceField,
     commitPriceToField: mockCommitPriceToField,
-    setAmount: mockSetAmount,
-    fillOrderBookSize: mockFillOrderBookSize,
   }),
 }));
 
@@ -603,7 +594,6 @@ describe('PerpsProMarketView', () => {
     mockActivePriceField = null;
     mockCommitPriceToField.mockReset().mockReturnValue(false);
     mockSzDecimals = undefined;
-    mockSizeOnClickPreference = false;
     mockOrderBookPosition = 'left';
     mockIsOrderBookExpanded = true;
     mockSetOrderBookExpanded.mockClear();
@@ -1621,66 +1611,6 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockCommitLimitPrice).toHaveBeenCalledWith('64120');
-  });
-
-  describe('size on click (TAT-4085)', () => {
-    const bookWithBid = (price: string, size: string): OrderBookData => ({
-      ...buildLiveBook(price),
-      bids: [
-        {
-          price,
-          size,
-          total: size,
-          notional: '0',
-          totalNotional: '0',
-        },
-      ],
-    });
-    const pressBid = (price: string, size: string) => {
-      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
-        orderBook: bookWithBid(price, size),
-        isLoading: false,
-        error: null,
-        connectionStatus: 'connected',
-        reconnect: jest.fn(),
-      }));
-      const { getByTestId } = renderView();
-      fireEvent.press(
-        getByTestId(
-          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
-        ),
-      );
-    };
-
-    // Off/on fills, rounding, the minimum, the margin cap and the submitted
-    // size run through the real order provider in PerpsProMarketView.view.test.tsx.
-    // These stay as focused guards: each malformed venue level would otherwise
-    // need its own full Pro render with a live ladder.
-    it('keeps the size untouched when the filled price is missing', () => {
-      // With the asset precision known, a blank price canonicalizes to
-      // undefined; the size must not be derived from it.
-      mockSizeOnClickPreference = true;
-      mockSzDecimals = 5;
-
-      pressBid('', '1.5');
-
-      expect(mockCommitLimitPrice).toHaveBeenCalledWith(undefined);
-      expect(mockSetAmount).not.toHaveBeenCalled();
-      expect(mockFillOrderBookSize).not.toHaveBeenCalled();
-    });
-
-    it.each(['', 'abc', '0'])(
-      'keeps the size untouched when the row size is %p',
-      (size) => {
-        mockSizeOnClickPreference = true;
-
-        pressBid('89950', size);
-
-        expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
-        expect(mockSetAmount).not.toHaveBeenCalled();
-        expect(mockFillOrderBookSize).not.toHaveBeenCalled();
-      },
-    );
   });
 
   describe('Recently viewed tracking', () => {

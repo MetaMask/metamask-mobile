@@ -5020,13 +5020,16 @@ describe('Pro order book size on click', () => {
         formatPerpsInput('722.1'),
       ),
     );
-    expect(await placeAndReadOrder()).toEqual(
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
       expect.objectContaining({
         orderType: 'limit',
         price: '2490',
         size: '0.29',
       }),
     );
+    // Providers re-derive the size from a USD amount, so none is sent.
+    expect(order).not.toHaveProperty('usdAmount');
   });
 
   it('shows the row size in coin and places it', async () => {
@@ -5040,9 +5043,11 @@ describe('Pro order book size on click', () => {
     await waitFor(() =>
       expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', '0.29'),
     );
-    expect(await placeAndReadOrder()).toEqual(
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
       expect.objectContaining({ price: '2490', size: '0.29' }),
     );
+    expect(order).not.toHaveProperty('usdAmount');
   });
 
   it('fills the trigger price and size of a stop-market order', async () => {
@@ -5068,13 +5073,15 @@ describe('Pro order book size on click', () => {
     await waitFor(() =>
       expect(triggerInput).toHaveProp('value', formatPerpsInput('2490')),
     );
-    expect(await placeAndReadOrder()).toEqual(
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
       expect.objectContaining({
         orderType: 'stop_market',
         triggerPrice: '2490',
         size: '0.29',
       }),
     );
+    expect(order).not.toHaveProperty('usdAmount');
   });
 
   it('fills the limit price and size of a stop-limit order', async () => {
@@ -5103,7 +5110,8 @@ describe('Pro order book size on click', () => {
       'value',
       formatPerpsInput('2490'),
     );
-    expect(await placeAndReadOrder()).toEqual(
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
       expect.objectContaining({
         orderType: 'stop_limit',
         price: '2490',
@@ -5111,6 +5119,7 @@ describe('Pro order book size on click', () => {
         size: '0.29',
       }),
     );
+    expect(order).not.toHaveProperty('usdAmount');
   });
 
   it('raises a row below the market minimum to that minimum', async () => {
@@ -5206,9 +5215,85 @@ describe('Pro order book size on click', () => {
 
     // $722.10 at 2,400 covers 0.31 ETH; the row's 0.29 no longer applies.
     expect(await placeAndReadOrder()).toEqual(
-      expect.objectContaining({ price: '2400', size: '0.31' }),
+      expect.objectContaining({
+        price: '2400',
+        size: '0.31',
+        usdAmount: '722.1',
+      }),
     );
   });
+
+  it('sizes a slider preview from the previewed amount after a row fill', async () => {
+    const marginText = () =>
+      within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(/^\$/).props
+        .children;
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('722.1'),
+      ),
+    );
+    const filledMargin = marginText();
+
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'valueChange', 50);
+
+    let previewSize = '';
+    let previewMargin = filledMargin;
+    await waitFor(() => {
+      previewSize = screen.getByTestId(ids.SIZE_INPUT).props.value;
+      previewMargin = marginText();
+      expect(previewSize).not.toBe(formatPerpsInput('722.1'));
+      expect(previewMargin).not.toBe(filledMargin);
+    });
+    fireEvent(screen.getByTestId(ids.SIZE_SLIDER), 'dragEnd', 50);
+
+    // The preview already showed the size and margin the release commits.
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        previewSize,
+      ),
+    );
+    expect(marginText()).toBe(previewMargin);
+  });
+
+  it('fills only the price when the row price is missing', async () => {
+    serveLadder(ladderLevel('', '1.5'));
+    renderProBook();
+    const sizeBefore = (await findSizeInput()).props.value;
+    await turnOnSizeOnClick();
+
+    await tapBid();
+
+    expect(await findPriceInput(ids.LIMIT_PRICE_INPUT)).toHaveProp('value', '');
+    expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp('value', sizeBefore);
+  });
+
+  it.each(['', 'abc', '0'])(
+    'fills only the price when the row size is %p',
+    async (size) => {
+      serveLadder(ladderLevel('2490', size));
+      renderProBook();
+      const sizeBefore = (await findSizeInput()).props.value;
+      await turnOnSizeOnClick();
+
+      await tapBid();
+
+      const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+      await waitFor(() =>
+        expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+      );
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        sizeBefore,
+      );
+    },
+  );
 });
 
 describe('Pro market Lighter limit order take profit and stop loss', () => {
