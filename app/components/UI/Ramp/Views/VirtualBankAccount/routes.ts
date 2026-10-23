@@ -17,7 +17,7 @@ export const VbaOnboardingRoutes = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type VbaOnboardingParamList = {
   VbaVendorTerms: undefined;
-  VbaOnboardingLoading: undefined;
+  VbaOnboardingLoading: { source?: string } | undefined;
   VbaEmail: undefined;
   VbaIdentityVerification: {
     snapshot: VbaOnboardingSnapshot;

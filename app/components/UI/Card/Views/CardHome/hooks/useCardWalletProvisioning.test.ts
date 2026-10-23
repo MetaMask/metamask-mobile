@@ -15,6 +15,7 @@ import {
   useCardWalletProvisioning,
   type WalletEntry,
 } from './useCardWalletProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import {
   CardStatus,
   CardType,
@@ -229,6 +230,32 @@ describe('useCardWalletProvisioning', () => {
       }),
     );
     expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not toast when the pass still needs verification', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onSuccess } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: (result: { activationState: string }) => void;
+    };
+    onSuccess({ activationState: 'requires_activation' });
+
+    expect(showToast).not.toHaveBeenCalled();
+    expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('does not toast when Apple Wallet already showed the error', () => {
+    renderProvisioning(homeData(walletProvisioning));
+
+    const { onError } = mockUsePushProvisioning.mock.calls[0][0] as {
+      onError: (error: { message: string; code: string }) => void;
+    };
+    onError({
+      message: 'An unexpected error occurred. Try again or contact support.',
+      code: ProvisioningErrorCode.WALLET_DECLINED,
+    });
+
+    expect(showToast).not.toHaveBeenCalled();
   });
 
   it('passes null provisioning when the provider has no card', () => {

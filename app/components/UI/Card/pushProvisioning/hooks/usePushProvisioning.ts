@@ -464,11 +464,19 @@ export function usePushProvisioning(
 
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_COMPLETED,
-            { token_id: result.tokenId },
+            {
+              token_id: result.tokenId,
+              ...(result.activationState
+                ? { activation_state: result.activationState }
+                : {}),
+            },
           );
           onSuccessRef.current?.({
             status: 'success',
             tokenId: result.tokenId,
+            ...(result.activationState
+              ? { activationState: result.activationState }
+              : {}),
           });
         } else if (result.status === 'canceled') {
           setStatus('idle');

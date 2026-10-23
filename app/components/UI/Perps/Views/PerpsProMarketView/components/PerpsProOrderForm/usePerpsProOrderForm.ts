@@ -263,6 +263,26 @@ const coerceScaleSkew = (value: string): string => {
     : value;
 };
 
+/**
+ * Digit-capped Chase offset. A distance is not a venue price, so this does not
+ * apply price-tick rounding, which can turn a positive sub-tick offset into 0.
+ *
+ * @param value - Positive USD distance or percent offset.
+ * @returns Decimal string within the shared 9-digit input cap.
+ */
+const formatChaseDistanceValue = (value: BigNumber): string => {
+  const integerDigits = value
+    .integerValue(BigNumber.ROUND_DOWN)
+    .toFixed(0).length;
+  const fractionDigits = Math.max(0, MAX_PERPS_INPUT_DIGITS - integerDigits);
+  const fixed = value
+    .decimalPlaces(fractionDigits, BigNumber.ROUND_HALF_UP)
+    .toFixed(fractionDigits);
+  const [whole, fraction] = fixed.split('.');
+  const trimmedFraction = (fraction ?? '').replace(/0+$/u, '');
+  return trimmedFraction.length > 0 ? `${whole}.${trimmedFraction}` : whole;
+};
+
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
   minPrice > 0 && maxPrice > minPrice
     ? ((maxPrice - minPrice) / minPrice) * 100
@@ -691,6 +711,7 @@ export const usePerpsProOrderForm = ({
     triggerPrice,
     setTriggerPrice,
     resetPriceInputInteraction,
+    registerPriceFieldHandlers,
     setOrderType,
     pendingReduceOnly,
     maxPossibleAmount,
@@ -4060,6 +4081,69 @@ export const usePerpsProOrderForm = ({
     },
     [scaleAnalyticsProperties, track],
   );
+
+  // Lets an order-book tap fill the last focused Scale or Chase field.
+  // Chase max distance is an unsigned offset from the live reference, in the
+  // field's current unit. Core applies that offset on the adverse side.
+  useEffect(() => {
+    registerPriceFieldHandlers({
+      scaleStart: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleStartPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
+          );
+        }),
+      scaleEnd: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleEndPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
+          );
+        }),
+      chaseMaxDistance: (price) =>
+        guardScaleMutation(() => {
+          const tappedPrice = new BigNumber(price ?? '');
+          const referencePrice = new BigNumber(assetData.price);
+          if (
+            !tappedPrice.isFinite() ||
+            !referencePrice.isFinite() ||
+            referencePrice.lte(0)
+          ) {
+            return;
+          }
+          const distance = tappedPrice.minus(referencePrice).abs();
+          if (distance.lte(0)) {
+            return;
+          }
+          const nextValue =
+            chaseMaxDistanceUnit === 'percent'
+              ? formatChaseDistanceValue(
+                  distance.multipliedBy(100).dividedBy(referencePrice),
+                )
+              : formatChaseDistanceValue(distance);
+          setChaseMaxDistance(nextValue);
+        }),
+    });
+
+    return () => registerPriceFieldHandlers({});
+  }, [
+    assetData.price,
+    chaseMaxDistanceUnit,
+    guardScaleMutation,
+    registerPriceFieldHandlers,
+    trackScaleConfiguration,
+  ]);
 
   // Margin reports the whole ladder requirement. With no open position, the
   // liquidation row reports the new position at the ladder's average entry.
