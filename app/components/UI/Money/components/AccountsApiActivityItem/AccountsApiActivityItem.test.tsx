@@ -15,10 +15,13 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
-const mockSelectTransactionMetadataByHash = jest.fn(() => undefined);
+const mockSelectTransactionMetadataByHash = jest.fn<
+  unknown,
+  [unknown, string | undefined]
+>(() => undefined);
 jest.mock('../../../../../selectors/transactionController', () => ({
-  selectTransactionMetadataByHash: (...args: unknown[]) =>
-    mockSelectTransactionMetadataByHash(...args),
+  selectTransactionMetadataByHash: (state: unknown, hash?: string) =>
+    mockSelectTransactionMetadataByHash(state, hash),
 }));
 
 const mockedSelectActivityDetailsFlag = jest.mocked(
@@ -178,7 +181,7 @@ describe('AccountsApiActivityItem', () => {
       id: 'local-deposit-1',
       hash: bankTransfer.hash,
       type: 'moneyAccountDeposit',
-    });
+    } as never);
 
     render(<AccountsApiActivityItem activity={bankTransfer} />);
 
