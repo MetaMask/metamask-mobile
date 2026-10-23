@@ -19,6 +19,7 @@ import {
   type GetClaimHistoryDto,
   type GetCommissionsDto,
   type GetEarningsLedgerDto,
+  type EarningsSummaryQuery,
   type GetEarningsSummaryDto,
   type GetReferralCodesDto,
   type GetReferralFunnelDto,
@@ -129,6 +130,29 @@ export function originTypeScopeKey(originTypes?: EarningOriginType[]): string {
     return 'all';
   }
   return [...originTypes].sort(compareOriginTypes).join(',');
+}
+
+/**
+ * Cache key for an earnings summary.
+ *
+ * The default call — no window, claimability included — stays on the origin-type
+ * key the heroes already read. A windowed lifetime is a different figure and
+ * omits `claimable`, so it must not land in that bucket.
+ */
+export function summaryScopeKey(
+  originTypes?: EarningOriginType[],
+  query?: EarningsSummaryQuery,
+): string {
+  const base = originTypeScopeKey(originTypes);
+  const from = query?.from;
+  const to = query?.to;
+  const hasWindow = Boolean(from || to);
+  const includeClaimable = query?.includeClaimable !== false;
+  if (!hasWindow && includeClaimable) {
+    return base;
+  }
+  const windowPart = hasWindow ? `${from ?? ''}..${to ?? ''}` : 'all-time';
+  return `${base}|window:${windowPart}|claimable:${includeClaimable ? '1' : '0'}`;
 }
 
 /**
@@ -521,10 +545,12 @@ export class RewardsMoneyController extends BaseController<
       throw new Error('Rewards Money is disabled');
     }
 
-    const { originTypes, forceFresh } = params;
+    const { originTypes, forceFresh, from, to, includeClaimable } = params;
+    const query = { from, to, includeClaimable };
     const profileId = await this.#getProfileId();
-    const key = profileCacheKey(profileId, originTypeScopeKey(originTypes));
-    const fetchFresh = () => this.#fetchEarningsSummary(key, originTypes);
+    const key = profileCacheKey(profileId, summaryScopeKey(originTypes, query));
+    const fetchFresh = () =>
+      this.#fetchEarningsSummary(key, originTypes, query);
 
     if (forceFresh) {
       const fresh = await fetchFresh();
@@ -711,6 +737,7 @@ export class RewardsMoneyController extends BaseController<
   #fetchEarningsSummary(
     key: string,
     originTypes: EarningOriginType[] | undefined,
+    query?: EarningsSummaryQuery,
   ): Promise<EarningsSummaryDto> {
     const inFlight = this.#earningsSummaryInFlight.get(key);
     if (inFlight) {
@@ -718,7 +745,7 @@ export class RewardsMoneyController extends BaseController<
     }
 
     const pending = this.messenger
-      .call('RewardsMoneyDataService:getEarningsSummary', originTypes)
+      .call('RewardsMoneyDataService:getEarningsSummary', originTypes, query)
       .finally(() => {
         if (this.#earningsSummaryInFlight.get(key) === pending) {
           this.#earningsSummaryInFlight.delete(key);

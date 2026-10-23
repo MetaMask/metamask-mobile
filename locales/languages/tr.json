@@ -9153,7 +9153,7 @@
         "failed": "mUSD dönüştürme işlemi başarısız oldu"
       },
       "education": {
-        "heading": "STABİL KRİPTO PARALARDA\n%{{percentage}} AL",
+        "heading": "Stabil kripto paralarda %{{percentage}} al",
         "description": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve %{{percentage}} oranında yıllık getiri bonusu kazanın.",
         "terms_apply": "Şartlar uygulanır.",
         "primary_button": "Başlarken",

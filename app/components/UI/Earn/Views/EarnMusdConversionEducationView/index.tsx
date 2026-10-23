@@ -6,34 +6,19 @@ import { setMusdConversionEducationSeen } from '../../../../../actions/user';
 import Logger from '../../../../../util/Logger';
 import musdEducationBackgroundV2Dark from '../../../../../images/musd-conversion-education-screen-v2-dark-3x.png';
 import musdEducationBackgroundV2Light from '../../../../../images/musd-conversion-education-screen-v2-light-3x.png';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MarketingMoment from '../../../MarketingMoment';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
-// component-library TagBase: DSRN Tag has no startAccessory + Rectangle shape support
-import TagBase from '../../../../../component-library/base-components/TagBase';
-import {
-  TagShape,
-  TagSeverity,
-} from '../../../../../component-library/base-components/TagBase/TagBase.types';
-import { TextVariant as ComponentTextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
+import MusdEducationChecklistMarquee from './MusdEducationChecklistMarquee';
 import { strings } from '../../../../../../locales/i18n';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -54,25 +39,6 @@ import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
 import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 40,
-  },
-  heading: {
-    fontFamily: 'MMPoly-Regular',
-    fontSize: 40,
-    lineHeight: 40,
-    paddingVertical: 16,
-    textAlign: 'center',
-  },
-  backgroundImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'contain',
-  },
-});
 
 export interface EarnMusdConversionEducationViewRouteParams {
   /**
@@ -102,6 +68,15 @@ export interface EarnMusdConversionEducationViewRouteParams {
  * Displays educational content before user's first mUSD conversion.
  * Once completed, marks the education as seen and proceeds to conversion flow.
  */
+const COIN_ASPECT_RATIO = 1179 / 1362;
+
+const coinFrameStyle = StyleSheet.create({
+  frame: {
+    aspectRatio: COIN_ASPECT_RATIO,
+    maxHeight: '100%',
+  },
+});
+
 const EarnMusdConversionEducationView = () => {
   const dispatch = useDispatch();
 
@@ -126,6 +101,7 @@ const EarnMusdConversionEducationView = () => {
   const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
+  const tw = useTailwind();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -397,93 +373,59 @@ const EarnMusdConversionEducationView = () => {
   };
 
   return (
-    // Do not remove the top edge as this screen does not have a navbar set in the route options.
-    <SafeAreaView
-      style={styles.container}
-      edges={['top', 'bottom']}
+    <MarketingMoment
       testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.CONTAINER}
-    >
-      <Box twClassName="px-4 items-center">
-        <Text style={styles.heading} numberOfLines={2} adjustsFontSizeToFit>
-          {strings('earn.musd_conversion.education.heading', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
+      title={strings('earn.musd_conversion.education.heading', {
+        percentage: MUSD_CONVERSION_APY,
+      })}
+      titleProps={{
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.TITLE,
+      }}
+      description={strings('earn.musd_conversion.education.description', {
+        percentage: MUSD_CONVERSION_APY,
+      })}
+      descriptionProps={{
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.DESCRIPTION,
+        twClassName: 'text-center px-10',
+      }}
+      artworkWrapperProps={{
+        alignItems: BoxAlignItems.Stretch,
+        justifyContent: BoxJustifyContent.Start,
+      }}
+      artwork={
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-wrap gap-1 mt-4"
+          flexDirection={BoxFlexDirection.Column}
+          twClassName="min-h-0 w-full flex-1"
         >
-          {[
-            'earn.musd_conversion.education.checklist.dollar_backed',
-            'earn.musd_conversion.education.checklist.no_lockups',
-            'earn.musd_conversion.education.checklist.daily_bonus',
-            'earn.musd_conversion.education.checklist.metamask_stablecoins',
-            'earn.musd_conversion.education.checklist.no_metamask_fee',
-          ].map((key) => (
-            <TagBase
-              key={key}
-              shape={TagShape.Rectangle}
-              severity={TagSeverity.Neutral}
-              gap={4}
-              startAccessory={
-                <Icon
-                  name={IconName.CheckBold}
-                  size={IconSize.Sm}
-                  color={IconColor.SuccessDefault}
-                />
-              }
-              textProps={{
-                variant: ComponentTextVariant.BodySMMedium,
-                numberOfLines: 1,
-              }}
-            >
-              {strings(key)}
-            </TagBase>
-          ))}
+          <MusdEducationChecklistMarquee />
+          <Box
+            justifyContent={BoxJustifyContent.Start}
+            twClassName="min-h-0 w-full flex-1"
+          >
+            <Box twClassName="w-full" style={coinFrameStyle.frame}>
+              <Image
+                source={backgroundImage}
+                style={tw.style('absolute inset-0 h-full w-full')}
+                resizeMode="contain"
+                testID={
+                  EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE
+                }
+              />
+            </Box>
+          </Box>
         </Box>
-      </Box>
-      <Box twClassName="flex-1 min-h-[100px]">
-        <Image
-          source={backgroundImage}
-          style={styles.backgroundImage}
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE}
-        />
-      </Box>
-      <Box twClassName="px-4 items-center">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center mt-4 mb-6"
-        >
-          {strings('earn.musd_conversion.education.description', {
-            percentage: MUSD_CONVERSION_APY,
-          })}
-        </Text>
-      </Box>
-
-      <Box twClassName="mx-4 mb-4 gap-2">
-        <Button
-          variant={ButtonVariant.Primary}
-          onPress={handleContinue}
-          size={ButtonSize.Lg}
-          isFullWidth
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
-        >
-          {primaryButtonText}
-        </Button>
-        <Button
-          variant={ButtonVariant.Tertiary}
-          isFullWidth
-          onPress={handleNotNow}
-          testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
-        >
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {strings('earn.musd_conversion.education.secondary_button')}
-          </Text>
-        </Button>
-      </Box>
-    </SafeAreaView>
+      }
+      primaryAction={{
+        label: primaryButtonText,
+        onPress: handleContinue,
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
+      }}
+      secondaryAction={{
+        label: strings('earn.musd_conversion.education.secondary_button'),
+        onPress: handleNotNow,
+        testID: EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+      }}
+    />
   );
 };
 

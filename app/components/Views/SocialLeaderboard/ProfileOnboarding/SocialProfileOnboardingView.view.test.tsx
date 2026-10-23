@@ -782,6 +782,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE,
+      ),
+    ).toHaveTextContent('You can change your linked account every 30 days.');
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
     );

@@ -194,6 +194,9 @@ export type RewardsStackParamList = {
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: undefined;
   RewardsCampaignTourStep: RewardsCampaignTourStepParams;
   RewardsCampaignDetails: RewardsOndoCampaignDetailsParams | undefined;
   RewardsOndoCampaignWinning: RewardsOndoCampaignWinningParams;

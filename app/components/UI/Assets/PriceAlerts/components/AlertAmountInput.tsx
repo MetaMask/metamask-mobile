@@ -6,6 +6,10 @@ import {
   AnimatedAmountDisplay,
   getFontSizeForInputLength,
 } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import {
+  getAlertAmountCursorTestId,
+  getAlertAmountTestId,
+} from './AlertAmountInput.testIds';
 
 const styles = StyleSheet.create({
   container: {
@@ -52,7 +56,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
   return (
     <AnimatedAmountDisplay
       accessible={false}
-      amountTestID={`${testID}-amount`}
+      amountTestID={getAlertAmountTestId(testID)}
       amountAccessible
       animated
       color={hasInput ? TextColor.TextDefault : TextColor.TextAlternative}
@@ -60,7 +64,7 @@ const AlertAmountInput: React.FC<AlertAmountInputProps> = ({
       cursor={{
         animated: true,
         style: [tw.style(cursorTwClassName), styles.cursor],
-        testID: `${testID}-cursor`,
+        testID: getAlertAmountCursorTestId(testID),
       }}
       prefix={prefix}
       style={[

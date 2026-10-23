@@ -12,34 +12,17 @@ const PORTFOLIO_HEADER_GAP = 16;
 const INTER_UPM = 2048;
 const INTER_ASCENDER = 1984;
 const INTER_DESCENDER = 494;
-const INTER_CAP_HEIGHT = 1490;
 
-const inkInset = (
-  fontSize: number,
-  lineHeight: number,
-  edge: 'aboveCap' | 'belowBaseline',
-) => {
+const inkInsetBelowBaseline = (fontSize: number, lineHeight: number) => {
   const ascender = (INTER_ASCENDER / INTER_UPM) * fontSize;
   const descender = (INTER_DESCENDER / INTER_UPM) * fontSize;
-  const capHeight = (INTER_CAP_HEIGHT / INTER_UPM) * fontSize;
   const leadingPad = Math.max(0, (lineHeight - (ascender + descender)) / 2);
 
-  return edge === 'aboveCap'
-    ? leadingPad + (ascender - capHeight)
-    : leadingPad + descender;
+  return leadingPad + descender;
 };
 
-const { fontSize: displaySize, lineHeight: displayLine } =
-  typography.sDisplayLG;
 const { fontSize: changeSize, lineHeight: changeLine } =
   typography.sBodyMDMedium;
-
-/** Space above the balance's cap height that its line box already takes. */
-export const BALANCE_DISPLAY_INK_INSET_ABOVE_CAP = inkInset(
-  displaySize,
-  displayLine,
-  'aboveCap',
-);
 
 const createStyles = () =>
   StyleSheet.create({
@@ -53,7 +36,7 @@ const createStyles = () =>
       marginBottom: Math.round(
         BALANCE_REFERENCE_SPACING -
           PORTFOLIO_HEADER_GAP -
-          inkInset(changeSize, changeLine, 'belowBaseline'),
+          inkInsetBelowBaseline(changeSize, changeLine),
       ),
     },
   });
