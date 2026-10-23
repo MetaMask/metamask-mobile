@@ -429,6 +429,7 @@ const ManualBackupStep2 = ({
         <TitleStandard
           title={strings('manual_backup_step_2.action')}
           bottomLabel={strings('manual_backup_step_2.info')}
+          twClassName="mb-2"
         />
         <Box twClassName="flex-1 gap-4">
           {renderGrid()}
