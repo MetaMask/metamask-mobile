@@ -44,8 +44,13 @@ export default class AppiumMatchers {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
     if (index !== undefined) {
-      const elements = await drv.$$(`~${elementId}`);
-      return wrapElement(elements[index] as unknown as ChainablePromiseElement);
+      // Same fallback as resource-id lookup: an off-screen row is absent from
+      // `$$`, and wrapping that hole makes scrollIntoView throw on iOS.
+      return this.resolveIndexedElementByLocator(
+        `~${elementId}`,
+        index,
+        `accessibility id ${elementId}`,
+      );
     }
     const element = await drv.$(`~${elementId}`);
     return wrapElement(element);

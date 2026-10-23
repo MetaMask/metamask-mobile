@@ -1,12 +1,11 @@
 import React from 'react';
-import {
-  Tag,
-  TagSeverity,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { parseCaipAssetType } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import type { RecurringOrder } from '../../../api/recurringOrders.types';
+import {
+  RecurringOrderStatus,
+  type RecurringOrder,
+} from '../../../api/recurringOrders.types';
 import {
   formatRecurringInterval,
   formatRecurringTokenAmount,
@@ -16,26 +15,6 @@ import {
 import OpenOrderRow from '../../../components/OpenOrderRow';
 import type { OrdersTabConfig } from '../../../components/OrdersTabs';
 import { RecurringOrderDetailsViewSelectorsIDs } from '../../RecurringOrderDetailsView/RecurringOrderDetailsView.testIds';
-
-function getStatusTag(order: RecurringOrder) {
-  if (order.status === 'completed') {
-    return (
-      <Tag severity={TagSeverity.Neutral}>
-        {strings('bridge.recurring.completed')}
-      </Tag>
-    );
-  }
-
-  if (order.status === 'cancelled') {
-    return (
-      <Tag severity={TagSeverity.Danger}>
-        {strings('bridge.recurring.cancelled')}
-      </Tag>
-    );
-  }
-
-  return undefined;
-}
 
 interface RecurringOrderRowProps {
   order: RecurringOrder;
@@ -50,7 +29,10 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
     order.dest.asset.decimals,
   );
   const filledPercent = getRecurringOrderFilledPercent(order);
-  const isOpen = order.status === 'open';
+  const isOpen = order.status === RecurringOrderStatus.Open;
+  const isClosedUnfilled =
+    order.status === RecurringOrderStatus.Cancelled ||
+    order.status === RecurringOrderStatus.Expired;
 
   return (
     <OpenOrderRow
@@ -67,8 +49,12 @@ export function RecurringOrderRow({ order, onPress }: RecurringOrderRowProps) {
       secondaryValue={strings('bridge.recurring.percent_filled', {
         percent: filledPercent,
       })}
-      primaryColor={TextColor.SuccessDefault}
-      titleEndAccessory={getStatusTag(order)}
+      titleColor={
+        isClosedUnfilled ? TextColor.TextAlternative : TextColor.TextDefault
+      }
+      primaryColor={
+        isClosedUnfilled ? TextColor.TextAlternative : TextColor.SuccessDefault
+      }
       onPress={() => onPress(order)}
       testID={
         isOpen

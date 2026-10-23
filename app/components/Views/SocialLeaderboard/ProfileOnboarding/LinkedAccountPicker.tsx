@@ -25,7 +25,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { useTheme } from '../../../../util/theme';
-import type { SocialOnboardingAccount } from './useSocialOnboardingAccounts';
+import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 
 const styles = StyleSheet.create({
@@ -45,9 +45,9 @@ const BENEFIT_KEYS = [
 ] as const;
 
 interface LinkedAccountPickerProps {
-  accounts: SocialOnboardingAccount[];
+  accounts: LinkableSocialAccount[];
   selectedAccountId: string | null;
-  onSelect: (account: SocialOnboardingAccount) => void;
+  onSelect: (account: LinkableSocialAccount) => void;
 }
 
 /**
@@ -71,7 +71,7 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   }, []);
 
   const handleSelect = useCallback(
-    (account: SocialOnboardingAccount) => {
+    (account: LinkableSocialAccount) => {
       onSelect(account);
       setIsSheetOpen(false);
     },
@@ -79,78 +79,83 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   );
 
   return (
-    <Box gap={4}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={strings(
-          'social_leaderboard.profile_onboarding.select_account',
-        )}
-        onPress={() => setIsSheetOpen(true)}
-        testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR}
-      >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          twClassName="bg-muted rounded-xl px-4 py-3"
-          gap={3}
+    <Box twClassName="flex-1">
+      <Box gap={4}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={strings(
+            'social_leaderboard.profile_onboarding.select_account',
+          )}
+          onPress={() => setIsSheetOpen(true)}
+          testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR}
         >
-          {selectedAccount ? (
-            <AvatarAccount
-              address={selectedAccount.address}
-              size={AvatarAccountSize.Md}
-              variant={avatarVariant}
-            />
-          ) : null}
-          <Box twClassName="flex-1 min-w-0">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              numberOfLines={1}
-            >
-              {selectedAccount?.name ??
-                strings('social_leaderboard.profile_onboarding.select_account')}
-            </Text>
-            {selectedAccount?.balanceLabel ? (
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextAlternative}
-              >
-                {selectedAccount.balanceLabel}
-              </Text>
-            ) : null}
-          </Box>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        </Box>
-      </Pressable>
-
-      <Box gap={3}>
-        {BENEFIT_KEYS.map((key) => (
           <Box
-            key={key}
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Start}
+            alignItems={BoxAlignItems.Center}
+            twClassName="bg-muted rounded-xl px-4 py-3"
             gap={3}
           >
+            {selectedAccount ? (
+              <AvatarAccount
+                address={selectedAccount.address}
+                size={AvatarAccountSize.Md}
+                variant={avatarVariant}
+              />
+            ) : null}
+            <Box twClassName="flex-1 min-w-0">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                numberOfLines={1}
+              >
+                {selectedAccount?.name ??
+                  strings(
+                    'social_leaderboard.profile_onboarding.select_account',
+                  )}
+              </Text>
+              {selectedAccount?.balanceLabel ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
+                  {selectedAccount.balanceLabel}
+                </Text>
+              ) : null}
+            </Box>
             <Icon
-              name={IconName.Check}
-              size={IconSize.Md}
-              color={IconColor.SuccessDefault}
+              name={IconName.ArrowDown}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
             />
-            <Text variant={TextVariant.BodyMd} twClassName="flex-1">
-              {strings(key)}
-            </Text>
           </Box>
-        ))}
+        </Pressable>
+
+        <Box gap={3}>
+          {BENEFIT_KEYS.map((key) => (
+            <Box
+              key={key}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Start}
+              gap={3}
+            >
+              <Icon
+                name={IconName.Check}
+                size={IconSize.Md}
+                color={IconColor.SuccessDefault}
+              />
+              <Text variant={TextVariant.BodyMd} twClassName="flex-1">
+                {strings(key)}
+              </Text>
+            </Box>
+          ))}
+        </Box>
       </Box>
 
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
-        twClassName="text-center"
+        twClassName="mt-auto text-center"
+        testID={SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE}
       >
         {strings(
           'social_leaderboard.profile_onboarding.link_account_change_footnote',

@@ -45,7 +45,7 @@ const HomepageBalanceBreakdown = ({
       ) : (
         <HomepageBalanceBreakdownHero hero={hero} />
       )}
-      {children ? <Box twClassName="mt-4 gap-4">{children}</Box> : null}
+      {children ? <Box twClassName="mt-6 gap-4">{children}</Box> : null}
       {!hideRows ? (
         <Box
           testID={HomepageBalanceBreakdownTestIds.ROWS}

@@ -1,4 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
+import { InteractionManager } from 'react-native';
 import {
   useMoneyAccountSweepstakesOptIn,
   useResumePendingMasSeriesOptIn,
@@ -9,6 +10,21 @@ import {
   CampaignType,
   type CampaignDto,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+
+beforeAll(() => {
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation((task) => {
+      if (typeof task === 'function') {
+        task();
+      }
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: () => Promise.resolve(),
+        cancel: jest.fn(),
+      } as ReturnType<typeof InteractionManager.runAfterInteractions>;
+    });
+});
 
 const mockCall = jest.fn();
 const mockDispatch = jest.fn();

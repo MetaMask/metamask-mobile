@@ -38,10 +38,11 @@ import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPos
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
 import SocialFeedSkeleton from '../../../UI/SocialFeed/components/SocialFeedSkeleton';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
-import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import {
   DEFAULT_FEED_SORT,
   FeedSortFilterSelector,
@@ -120,7 +121,8 @@ export interface EmptyShellTabPageProps {
 
 /**
  * Social Bundle V1 Trending / Following page: mocked position cards until the
- * API supplies post/comment fields. Trending also shows locally composed posts.
+ * API supplies post/comment fields. Following also pins the viewer's own new
+ * posts until the feed returns them.
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
@@ -137,18 +139,21 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
     posts,
-    pendingPost,
-    pendingStartedAtMs,
+    pinnedPosts,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
     refresh,
-  } = useSocialV1Feed(tab);
+  } = useSocialV1Feed(tab, {
+    ownerProfileId: myProfile?.profileId,
+    isActive,
+  });
   const { isEntryHidden } = useSocialEntryModeration();
   const visiblePosts = useMemo(
     () =>
@@ -161,6 +166,18 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           }),
       ),
     [isEntryHidden, posts],
+  );
+  const visiblePinnedPosts = useMemo(
+    () =>
+      pinnedPosts.filter(
+        (post) =>
+          !isEntryHidden({
+            postId: post.id,
+            authorId: post.item.author.id,
+            authorHandle: post.authorHandle,
+          }),
+      ),
+    [isEntryHidden, pinnedPosts],
   );
   const shellFilteredPosts = useMemo(
     () =>
@@ -272,6 +289,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
    */
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      livePrices?.requestVisibilityCheck();
       const pageHasNext = visibleAssetFeed
         ? visibleAssetFeed.hasNextPage
         : hasNextPage;
@@ -290,7 +308,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         }
       }
     },
-    [visibleAssetFeed, hasNextPage, loadMore],
+    [livePrices, visibleAssetFeed, hasNextPage, loadMore],
   );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
@@ -300,12 +318,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     }
   }, [isActive]);
 
+  const newestPinnedPostId = visiblePinnedPosts[0]?.id;
   useEffect(() => {
-    if (!pendingPost) {
+    if (!newestPinnedPostId) {
       return;
     }
     scrollRef.current?.scrollTo({ y: 0, animated: true });
-  }, [pendingPost]);
+  }, [newestPinnedPostId]);
 
   // Posts present on the first render are pre-existing feed content and must
   // render at rest; anything that shows up later is a freshly committed
@@ -319,7 +338,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   useEffect(() => {
     posts.forEach((post) => seenPostIds.add(post.id));
-  }, [posts, seenPostIds]);
+    pinnedPosts.forEach((post) => seenPostIds.add(post.id));
+  }, [pinnedPosts, posts, seenPostIds]);
 
   useImperativeHandle(
     pageRef,
@@ -337,9 +357,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const sortedPosts = useMemo(() => {
     if (tab !== 'following' || feedSort === 'most_recent') {
-      return filteredPosts;
+      return [...visiblePinnedPosts, ...filteredPosts];
     }
-    return [...filteredPosts].sort((left, right) => {
+    const byReactions = [...filteredPosts].sort((left, right) => {
       const leftTotal = left.reactions.reduce(
         (sum, reaction) => sum + reaction.count,
         0,
@@ -350,7 +370,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       );
       return rightTotal - leftTotal;
     });
-  }, [feedSort, filteredPosts, tab]);
+    return [...visiblePinnedPosts, ...byReactions];
+  }, [feedSort, filteredPosts, tab, visiblePinnedPosts]);
 
   type FeedBlock =
     | { key: string; kind: 'posts'; posts: SocialV1FeedPost[] }
@@ -454,6 +475,19 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showInitialFeedSkeletons = visibleAssetFeed
     ? visibleAssetFeed.isLoading && visibleAssetFeed.posts.length === 0
     : isLoading && posts.length === 0;
+  // Posting opens Following, often before its first page has loaded: the
+  // viewer's pinned post stays on screen above the skeletons meanwhile.
+  const showPinnedPostsWhileLoading =
+    showInitialFeedSkeletons &&
+    !visibleAssetFeed &&
+    visiblePinnedPosts.length > 0;
+  // The tab feed itself came back empty. A selected token, Following filters,
+  // or hidden posts can also leave the list blank; those stay quiet.
+  const showTrueEmptyFeed =
+    !isLoading &&
+    error == null &&
+    posts.length === 0 &&
+    pinnedPosts.length === 0;
   const visibleError = visibleAssetFeed ? visibleAssetFeed.error : error;
   const visibleFeedEmpty = visibleAssetFeed
     ? visibleAssetFeed.posts.length === 0
@@ -517,41 +551,36 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   onTokenPress={handleHotTokenPress}
                 />
               ) : null}
-              {pendingPost ? (
-                <Box twClassName="px-4">
-                  <SocialFeedPostingBanner
-                    authorHandle={pendingPost.authorHandle}
-                    authorImageUrl={myProfile?.imageUrl}
-                    avatarPresetId={myProfile?.avatarPresetId}
-                    avatarBackgroundId={myProfile?.avatarBackgroundId}
-                    startedAtMs={pendingStartedAtMs}
-                  />
-                </Box>
-              ) : null}
-              {showInitialFeedSkeletons ? (
+              {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (
                 <SocialFeedSkeleton />
               ) : (
-                feedBlocks.map((block, blockIndex) => (
-                  <Fragment key={block.key}>
-                    {blockIndex > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `block-${block.key}`,
-                        )}
-                      />
-                    ) : null}
-                    {block.kind === 'posts' ? (
-                      <SocialV1FeedPostList
-                        posts={block.posts}
-                        dividerKeyPrefix={block.key}
-                        renderPost={renderPost}
-                      />
-                    ) : (
-                      <PopularTradersCarousel />
-                    )}
-                  </Fragment>
-                ))
+                <>
+                  {showTrueEmptyFeed ? (
+                    <SocialV1FeedEmptyState tab={tab} />
+                  ) : null}
+                  {feedBlocks.map((block, blockIndex) => (
+                    <Fragment key={block.key}>
+                      {blockIndex > 0 ? (
+                        <SectionDivider
+                          marginVertical={1}
+                          testID={getSocialV1FeedEntryDividerTestId(
+                            `block-${block.key}`,
+                          )}
+                        />
+                      ) : null}
+                      {block.kind === 'posts' ? (
+                        <SocialV1FeedPostList
+                          posts={block.posts}
+                          dividerKeyPrefix={block.key}
+                          renderPost={renderPost}
+                        />
+                      ) : (
+                        <PopularTradersCarousel />
+                      )}
+                    </Fragment>
+                  ))}
+                  {showPinnedPostsWhileLoading ? <SocialFeedSkeleton /> : null}
+                </>
               )}
               {showNextPageSpinner ? (
                 <Box

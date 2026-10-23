@@ -133,7 +133,6 @@ jest.mock('./hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
   useMyProfileAddress: () => mockUseMyProfileAddress(),
   useMyProfilePosts: () => mockUseMyProfilePosts(),
-  useMyOpenPerpsPositionCount: () => 3,
 }));
 
 jest.mock('../TraderProfileView/hooks', () => ({
@@ -236,7 +235,6 @@ const profile: UseMyProfileResult['profile'] = {
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
 };
 
 describe('MyProfileView', () => {
@@ -289,15 +287,15 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('renders the mocked owner identity and whale ranking', () => {
+  it('renders the mocked owner identity', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.DISPLAY_NAME),
     ).toHaveTextContent('Giga Whale');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐋 Whale');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.HANDLE),
     ).toHaveTextContent('@giga-whale.metamask');
@@ -383,24 +381,15 @@ describe('MyProfileView', () => {
     ).toHaveTextContent('2');
   });
 
-  it('renders mocked headline stats with a fake-data prefix', () => {
+  it('hides the performance section when no live stats are available', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
-    ).toHaveTextContent('*60%');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
-    ).toHaveTextContent('*+$7,100');
-    expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_TIMES_COPIED),
-    ).toHaveTextContent('*981');
-    expect(
-      screen.queryByTestId(MyProfileViewSelectorsIDs.STATS_HOLD_TIME),
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
     ).not.toBeOnTheScreen();
   });
 
-  it('renders live trader stats without a fake-data prefix', () => {
+  it('renders live trader stats in the performance section', () => {
     mockUseTraderProfile.mockReturnValue({
       profile: {
         profile: {
@@ -442,17 +431,23 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_WIN_RATE),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_WIN_RATE),
     ).toHaveTextContent('42%');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.STATS_PNL),
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_PNL),
     ).toHaveTextContent('+$1,200');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_HOLD_TIME),
+    ).toHaveTextContent('3h');
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_VOLUME),
+    ).toHaveTextContent('$50,000');
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOWERS_COUNT),
     ).toHaveTextContent('88');
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
-    ).toHaveTextContent('🐬 Dolphin');
+      screen.queryByTestId(MyProfileViewSelectorsIDs.RANKING_TAG),
+    ).toBeNull();
   });
 
   it('opens followers connections on the followers tab', () => {
@@ -606,7 +601,7 @@ describe('MyProfileView', () => {
 
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_LIST),
-    ).toBeOnTheScreen();
+    ).toHaveStyle({ paddingTop: 16 });
     expect(screen.getByTestId('my-profile-post-post-1')).toBeOnTheScreen();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),

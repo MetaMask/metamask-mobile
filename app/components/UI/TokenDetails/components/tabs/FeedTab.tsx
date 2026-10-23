@@ -7,17 +7,21 @@ import { TokenDetailsFeed } from './TokenDetailsFeed';
 interface TokenDetailsFeedTabProps {
   assetId: CaipAssetType;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
+  /** The visible tab pages alone follow the page scroll for more posts. */
+  isActive?: boolean;
 }
 
 const TokenDetailsFeedTab: React.FC<TokenDetailsFeedTabProps> = ({
   assetId,
   onCopyTrade,
+  isActive,
 }) => (
   <Box twClassName="pt-4">
     <TokenDetailsFeed
       source={{ kind: 'token', assetId }}
       location="token_details"
       onCopyTrade={onCopyTrade}
+      isActive={isActive}
     />
   </Box>
 );

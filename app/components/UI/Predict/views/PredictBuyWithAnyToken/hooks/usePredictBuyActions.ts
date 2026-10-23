@@ -1,6 +1,6 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActiveOrderState,
   OrderPreview,
@@ -208,8 +208,14 @@ export const usePredictBuyActions = ({
     resetSelectedPaymentToken,
   ]);
 
+  const [lastSubmittedPreview, setLastSubmittedPreview] =
+    useState<OrderPreview | null>(null);
+
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+      // Record the preview behind every submit attempt (original order or
+      // retry). The retry flow uses its price as the 1-tick honesty baseline.
+      setLastSubmittedPreview(orderParams.preview);
       try {
         const result = await placeOrder({
           ...orderParams,
@@ -391,5 +397,6 @@ export const usePredictBuyActions = ({
   return {
     handleConfirm,
     placeOrder: handlePlaceOrder,
+    lastSubmittedPreview,
   };
 };

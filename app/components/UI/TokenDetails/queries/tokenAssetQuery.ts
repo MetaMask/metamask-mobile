@@ -11,6 +11,8 @@ export interface TokenAssetMarketData {
   price: string | null;
   pricePercentChange1d: string | null;
   pricePercentChange1h: string | null;
+  pricePercentChange5m?: string | null;
+  pricePercentChange4h?: string | null;
   liquidity: number | null;
   dilutedMarketCap: number | null;
   circulatingSupply: number | null;
@@ -34,6 +36,12 @@ export interface TokenAssetLaunchpadData {
   devHeldPercent: number | null;
   insiderHeldPercent: number | null;
   sniperHeldPercent: number | null;
+  holdersCount: number | null;
+  top10HeldPercent: string | null;
+}
+
+export interface TokenAssetHolders {
+  count: number | null;
 }
 
 export interface TokenAssetRecord {
@@ -45,166 +53,14 @@ export interface TokenAssetRecord {
   marketData: TokenAssetMarketData | null;
   launchpad: string | null;
   launchpadData: TokenAssetLaunchpadData | null;
+  holders: TokenAssetHolders | null;
 }
 
-const defined = <T>(value: T | null | undefined, fallback: T): T =>
-  value == null ? fallback : value;
-
-const PEPE_FIXTURE_DESCRIPTION =
-  'Pepe is a deflationary memecoin launched on Ethereum in 2023 as a tribute to the Pepe the Frog internet character. There is no formal team or roadmap — the token is entirely community-driven.';
-
-const MAINNET_PEPE_ASSET_ID =
-  'eip155:1/erc20:0x6982508145454ce325ddbe47a25d4ec3d2311933';
-
-/**
- * Test-only stand-in for mainnet PEPE. Remove this record when /v2/assets
- * returns real PEPE fields. It must not apply to any other token.
- */
-export const PEPE_ASSET_FIXTURE: TokenAssetRecord = {
-  assetId: MAINNET_PEPE_ASSET_ID,
-  symbol: 'PEPE',
-  name: 'Pepe',
-  decimals: 18,
-  rwaData: null,
-  marketData: {
-    marketCap: 12_400_000,
-    totalVolume: 48_300_000,
-    price: '0.000001',
-    pricePercentChange1d: '3.09',
-    pricePercentChange1h: '-0.52',
-    liquidity: 560_000,
-    dilutedMarketCap: 12_400_000,
-    circulatingSupply: null,
-  },
-  launchpad: null,
-  launchpadData: {
-    protocol: null,
-    deployer: null,
-    launchedAt: null,
-    description: PEPE_FIXTURE_DESCRIPTION,
-    bondingCurve: null,
-    graduationPercent: null,
-    graduationStage: null,
-    devHeldPercent: null,
-    insiderHeldPercent: null,
-    sniperHeldPercent: null,
-  },
-};
-
-const mergeBondingCurve = (
-  base: TokenAssetBondingCurve | null,
-  overlay: TokenAssetBondingCurve | null,
-): TokenAssetBondingCurve | null => {
-  if (overlay == null) {
-    return base;
-  }
-  if (base == null) {
-    return overlay;
-  }
-  return {
-    pool: defined(overlay.pool, base.pool),
-    migratedPool: defined(overlay.migratedPool, base.migratedPool),
-    migratedAt: defined(overlay.migratedAt, base.migratedAt),
-    completedAt: defined(overlay.completedAt, base.completedAt),
-  };
-};
-
-const mergeMarketData = (
-  base: TokenAssetMarketData | null,
-  overlay: TokenAssetMarketData | null,
-): TokenAssetMarketData | null => {
-  if (overlay == null) {
-    return base;
-  }
-  if (base == null) {
-    return overlay;
-  }
-  return {
-    marketCap: defined(overlay.marketCap, base.marketCap),
-    totalVolume: defined(overlay.totalVolume, base.totalVolume),
-    price: defined(overlay.price, base.price),
-    pricePercentChange1d: defined(
-      overlay.pricePercentChange1d,
-      base.pricePercentChange1d,
-    ),
-    pricePercentChange1h: defined(
-      overlay.pricePercentChange1h,
-      base.pricePercentChange1h,
-    ),
-    liquidity: defined(overlay.liquidity, base.liquidity),
-    dilutedMarketCap: defined(overlay.dilutedMarketCap, base.dilutedMarketCap),
-    circulatingSupply: defined(
-      overlay.circulatingSupply,
-      base.circulatingSupply,
-    ),
-  };
-};
-
-const mergeLaunchpadData = (
-  base: TokenAssetLaunchpadData | null,
-  overlay: TokenAssetLaunchpadData | null,
-): TokenAssetLaunchpadData | null => {
-  if (overlay == null) {
-    return base;
-  }
-  if (base == null) {
-    return overlay;
-  }
-  return {
-    protocol: defined(overlay.protocol, base.protocol),
-    deployer: defined(overlay.deployer, base.deployer),
-    launchedAt: defined(overlay.launchedAt, base.launchedAt),
-    description: defined(overlay.description, base.description),
-    bondingCurve: mergeBondingCurve(base.bondingCurve, overlay.bondingCurve),
-    graduationPercent: defined(
-      overlay.graduationPercent,
-      base.graduationPercent,
-    ),
-    graduationStage: defined(overlay.graduationStage, base.graduationStage),
-    devHeldPercent: defined(overlay.devHeldPercent, base.devHeldPercent),
-    insiderHeldPercent: defined(
-      overlay.insiderHeldPercent,
-      base.insiderHeldPercent,
-    ),
-    sniperHeldPercent: defined(
-      overlay.sniperHeldPercent,
-      base.sniperHeldPercent,
-    ),
-  };
-};
-
-export const mergePepeAssetFixture = (
-  record: TokenAssetRecord,
-): TokenAssetRecord => {
-  const fixture = PEPE_ASSET_FIXTURE;
-  return {
-    assetId: defined(record.assetId, fixture.assetId),
-    symbol: defined(record.symbol, fixture.symbol),
-    name: defined(record.name, fixture.name),
-    decimals: defined(record.decimals, fixture.decimals),
-    rwaData: record.rwaData ?? fixture.rwaData,
-    launchpad: record.launchpad ?? fixture.launchpad,
-    marketData: mergeMarketData(fixture.marketData, record.marketData),
-    launchpadData: mergeLaunchpadData(
-      fixture.launchpadData,
-      record.launchpadData,
-    ),
-  };
-};
-
 export const resolveTokenAssetDetails = (
-  assetId: string | null,
+  _assetId: string | null,
   record: TokenAssetRecord | null | undefined,
   isError: boolean,
-): TokenAssetRecord | null => {
-  if (assetId !== MAINNET_PEPE_ASSET_ID) {
-    return isError ? null : (record ?? null);
-  }
-  if (isError || record == null) {
-    return PEPE_ASSET_FIXTURE;
-  }
-  return mergePepeAssetFixture(record);
-};
+): TokenAssetRecord | null => (isError ? null : (record ?? null));
 
 const isTokenAssetRecord = (value: unknown): value is TokenAssetRecord =>
   typeof value === 'object' &&
@@ -212,18 +68,33 @@ const isTokenAssetRecord = (value: unknown): value is TokenAssetRecord =>
   'assetId' in value &&
   typeof (value as { assetId: unknown }).assetId === 'string';
 
+const readHolders = (value: unknown): TokenAssetHolders | null => {
+  if (typeof value !== 'object' || value == null || !('holders' in value)) {
+    return null;
+  }
+  const holders = (value as { holders: unknown }).holders;
+  if (typeof holders !== 'object' || holders == null || !('count' in holders)) {
+    return null;
+  }
+  const count = (holders as { count: unknown }).count;
+  return typeof count === 'number' && Number.isFinite(count) ? { count } : null;
+};
+
 export const fetchTokenAsset = async (
   assetId: string,
   signal?: AbortSignal,
+  baseUrl: string = TOKEN_API_BASE_URL,
 ): Promise<TokenAssetRecord | null> => {
   const params = new URLSearchParams({
     assetIds: assetId,
+    includeLabels: 'true',
     includeLaunchpadData: 'true',
+    includeTopHolders: 'true',
     includeRwaData: 'true',
     includeMarketData: 'true',
   });
   const response = await fetch(
-    `${TOKEN_API_BASE_URL}${TOKEN_ASSETS_V2_PATH}?${params.toString()}`,
+    `${baseUrl}${TOKEN_ASSETS_V2_PATH}?${params.toString()}`,
     { signal },
   );
   if (!response.ok) {
@@ -238,13 +109,22 @@ export const fetchTokenAsset = async (
       isTokenAssetRecord(item) &&
       item.assetId.toLowerCase() === assetId.toLowerCase(),
   );
-  return match ?? null;
+  if (!match) {
+    return null;
+  }
+  return {
+    ...match,
+    holders: readHolders(match),
+  };
 };
 
-export const tokenAssetQueryOptions = (assetId: string) =>
+export const tokenAssetQueryOptions = (
+  assetId: string,
+  baseUrl: string = TOKEN_API_BASE_URL,
+) =>
   queryOptions({
-    queryKey: ['token-details', 'v2-assets', assetId] as const,
-    queryFn: ({ signal }) => fetchTokenAsset(assetId, signal),
+    queryKey: ['token-details', 'v2-assets', assetId, baseUrl] as const,
+    queryFn: ({ signal }) => fetchTokenAsset(assetId, signal, baseUrl),
     retry: false,
     staleTime: QUERY_STALE_TIME_MS,
   });
@@ -257,9 +137,10 @@ export interface UseTokenAssetDetailsResult {
 
 export const useTokenAssetDetails = (
   assetId: string | null,
+  baseUrl?: string,
 ): UseTokenAssetDetailsResult => {
   const query = useQuery({
-    ...tokenAssetQueryOptions(assetId ?? ''),
+    ...tokenAssetQueryOptions(assetId ?? '', baseUrl),
     enabled: Boolean(assetId),
   });
 

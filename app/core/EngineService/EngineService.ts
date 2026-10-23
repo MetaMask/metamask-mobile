@@ -187,6 +187,7 @@ export class EngineService {
 
       // Fire-and-forget: refresh social following state from the server.
       // Non-blocking — persisted state covers the UI until this resolves.
+      // Skipped while the wallet is locked or not signed in.
       hydrateSocialFollowing();
     } catch (error) {
       trackVaultCorruption((error as Error).message, {

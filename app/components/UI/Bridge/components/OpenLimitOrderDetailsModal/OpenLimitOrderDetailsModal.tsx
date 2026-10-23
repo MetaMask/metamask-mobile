@@ -11,6 +11,7 @@ import {
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { LIMIT_ORDER_DIRECTION } from '../../constants/limitOrders';
 import { DetailRow } from '../LimitOrderConfirmationModal/DetailRow';
 import { TokenAmountValue } from '../LimitOrderConfirmationModal/TokenAmountValue';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
@@ -23,6 +24,7 @@ export const OpenLimitOrderDetailsModal = ({
   submittedAmount,
   triggerPrice,
   triggerToken,
+  triggerDirection,
   triggerComparison,
   expiry,
   onCancelOrder,
@@ -80,7 +82,10 @@ export const OpenLimitOrderDetailsModal = ({
           <Box alignItems={BoxAlignItems.End} twClassName="shrink">
             <TokenAmountValue
               amount={triggerPrice}
-              prefix={strings('bridge.limit.trigger_condition_at')}
+              prefix={
+                triggerDirection &&
+                strings(LIMIT_ORDER_DIRECTION[triggerDirection].signKey)
+              }
               token={triggerToken}
             />
             {triggerComparison ? (
