@@ -4,9 +4,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
-  Icon,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -26,12 +23,7 @@ import type { TraderRowProps } from '../../../Homepage/Sections/TopTraders/types
 /* eslint-enable import-x/no-restricted-paths */
 import SocialGradientCardSurface from '../../components/SocialGradientCardSurface';
 import { SocialGradientCardSurfaceSelectorsIDs } from '../../components/SocialGradientCardSurface.testIds';
-import {
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../../../../UI/SocialFeed/utils/traderStats';
 import { formatSignedUsd } from '../../../../UI/SocialFeed/utils/formatters';
-import { useSocialFeedSurface } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const AVATAR_SIZE = 40;
@@ -45,7 +37,7 @@ export const SOCIAL_V1_TRADER_ROW_HEIGHT = 56;
 
 /**
  * Social V1 leaderboard row: position (medals for 1–3), avatar, username,
- * invented verified badge, cohort emoji, and the ranked metric.
+ * and the ranked metric.
  *
  * Accepts shared `TraderRowProps` so `TopTradersView` can inject it in place
  * of the legacy Follow-button row. Follow and mute callbacks are ignored.
@@ -62,9 +54,6 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
   const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = !hideRank && isTopRank(trader.rank);
   const rankChangeStyle = useRankChangeAnimation(trader.rank);
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(trader.pnlValue));
-  // The verified badge is invented until the leaderboard carries the field.
-  const { showMockedFields } = useSocialFeedSurface();
 
   const rowBody = (
     <Box
@@ -114,23 +103,6 @@ const SocialV1TraderRow: React.FC<TraderRowProps> = ({
         >
           {trader.username}
         </Text>
-        {showMockedFields ? (
-          <Icon
-            name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
-            twClassName="text-info-default shrink-0"
-            testID={SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE}
-          />
-        ) : null}
-        {cohortEmoji ? (
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName="shrink-0"
-            testID={SocialV1TraderRowSelectorsIDs.COHORT}
-          >
-            {cohortEmoji}
-          </Text>
-        ) : null}
       </Box>
 
       <Text

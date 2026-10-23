@@ -17,13 +17,11 @@ export interface ChartScale {
   indexAtX: (x: number) => number;
 }
 
-/** Headroom above and below the data range, as a share of the range. */
-const RANGE_PADDING_RATIO = 0.08;
-
 /**
  * Linear index → x and value → y mapping. The y domain covers the line and
  * every reference level, so an entry far from the current price still lands
- * on the chart instead of off its edge.
+ * on the chart instead of off its edge. Vertical breathing room comes from
+ * the frame insets, not from padding the domain.
  */
 export function buildChartScale({
   values,
@@ -45,9 +43,6 @@ export function buildChartScale({
     min -= flatPad;
     max += flatPad;
   }
-  const pad = (max - min) * RANGE_PADDING_RATIO;
-  min -= pad;
-  max += pad;
 
   const plotHeight = frame.height - frame.insetTop - frame.insetBottom;
   const lastIndex = count - 1;

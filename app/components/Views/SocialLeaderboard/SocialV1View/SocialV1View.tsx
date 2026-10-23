@@ -46,10 +46,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import {
-  consumeSocialV1FocusTrending,
-  refreshSocialV1ComposedFeed,
-} from './feed/store/socialV1ComposedFeedStore';
+import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -92,6 +89,10 @@ import {
   type QuickBuyTarget,
 } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../PostTradeShareBottomSheet';
 
 const LANDING_INDEX = 0;
 
@@ -414,6 +415,16 @@ const SocialV1ViewContent: React.FC = () => {
     [],
   );
   const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
+  );
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -502,22 +513,18 @@ const SocialV1ViewContent: React.FC = () => {
 
   useFocusEffect(
     useCallback(() => {
-      // Reconcile with the composed-post store on every focus. A store update
-      // that lands while this screen is blurred (the composer is pushed on top
-      // of it) reaches no subscribers, and re-subscribing does not replay it.
-      refreshSocialV1ComposedFeed();
-
-      if (!consumeSocialV1FocusTrending()) {
+      // A post just written from the composer is pinned on Following.
+      if (!consumeFollowingFocus()) {
         return;
       }
       programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(trendingIndex);
-      if (activeIndex !== trendingIndex) {
-        changeTab(trendingIndex);
+      pagerRef.current?.setPage(followingIndex);
+      if (activeIndex !== followingIndex) {
+        changeTab(followingIndex);
       } else {
-        trendingPageRef.current?.scrollToOffset(0, true);
+        followingPageRef.current?.scrollToOffset(0, true);
       }
-    }, [activeIndex, changeTab, trendingIndex]),
+    }, [activeIndex, changeTab, followingIndex]),
   );
 
   useEffect(() => {
@@ -573,7 +580,7 @@ const SocialV1ViewContent: React.FC = () => {
             </Pressable>
           }
           endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
               <ButtonIcon
                 iconName={IconName.Gift}
                 iconProps={{ color: IconColor.IconDefault }}
@@ -583,6 +590,7 @@ const SocialV1ViewContent: React.FC = () => {
                   'wallet.rewards_accessibility_label',
                 )}
                 testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                twClassName="bg-transparent"
               />
               <ButtonIcon
                 iconName={IconName.Edit}
@@ -590,6 +598,7 @@ const SocialV1ViewContent: React.FC = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                twClassName="bg-transparent"
               />
             </SocialHeaderGlassSurface>
           }
@@ -725,6 +734,8 @@ const SocialV1ViewContent: React.FC = () => {
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
           copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
       </SafeAreaView>
