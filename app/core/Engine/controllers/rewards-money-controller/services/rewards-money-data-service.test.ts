@@ -354,7 +354,7 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = await expect(
+        const pending = expect(
           service.validateReferralCode('ABC123'),
         ).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
@@ -418,7 +418,7 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = await expect(service.getReferralMe()).rejects.toMatchObject({
+        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
@@ -1062,7 +1062,7 @@ describe('RewardsMoneyDataService', () => {
       });
       jest.useFakeTimers();
       try {
-        const busyQuotePending = await expect(
+        const busyQuotePending = expect(
           service.getRebateQuote({ product: 'perps' }),
         ).rejects.toMatchObject({
           status: 503,
