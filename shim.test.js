@@ -261,6 +261,27 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
+    const opened = [];
+    global.WebSocket = function MockWebSocket(url, protocols) {
+      opened.push({ url, protocols });
+    };
+    loadShim();
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+
+    const wsUrl = 'wss://example.com/socket';
+    // eslint-disable-next-line no-new
+    new global.WebSocket(wsUrl);
+
+    expect(opened).toEqual([
+      {
+        url: `ws://localhost:8000/proxy-ws?url=${encodeURIComponent(wsUrl)}`,
+        protocols: undefined,
+      },
+    ]);
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     answerHealthCheck({ ok: true });
