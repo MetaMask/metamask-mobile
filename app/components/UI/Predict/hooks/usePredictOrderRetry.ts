@@ -6,16 +6,21 @@ import {
   PredictTradeStatus,
 } from '../constants/eventNames';
 import Engine from '../../../../core/Engine';
-import type {
-  OrderPreview,
-  PlaceOrderParams,
-  PredictBuyAttempt,
-  PredictRetryOrderState,
+import {
+  Side,
+  type OrderPreview,
+  type PlaceOrderParams,
+  type PredictBuyAttempt,
+  type PredictRetryOrderState,
 } from '../types';
 import { getPredictTicksWorse } from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { RefetchPreviewResult } from './usePredictOrderPreview';
+import {
+  checkPredictSellPrice,
+  getPredictSellBlockedVariant,
+} from './usePredictCashOutSubmit';
 import type {
   PredictOrderRetrySheetRef,
   PredictOrderRetrySheetVariant,
@@ -199,6 +204,149 @@ export function usePredictOrderRetry({
     }
   }, [refetchPreview, lastSubmittedPreview]);
 
+  /**
+   * Sells only: the confirmed quote can be seconds old, so the book is
+   * re-fetched and checked against the confirmed price, exactly like Cash
+   * Out. Returns the fresh preview to submit, or null after moving the sheet
+   * to the state that explains why nothing was submitted.
+   */
+  const recheckSellQuote = useCallback(
+    async (approvedQuote: OrderPreview): Promise<OrderPreview | null> => {
+      const startedAt = Date.now();
+      const { outcome, freshPreview } = await checkPredictSellPrice(
+        refetchPreview,
+        approvedQuote.sharePrice,
+      );
+      // The user may have dismissed the sheet while the check was in flight.
+      if (!isOrderNotFilledRef.current || isRetryBlockedRef.current) {
+        return null;
+      }
+
+      void Engine.context.PredictController.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_CHECKED,
+        analyticsProperties,
+        sharePrice: freshPreview?.sharePrice,
+        completionDuration: Date.now() - startedAt,
+        presubmitOutcome: outcome,
+        approvedPrice: approvedQuote.sharePrice,
+        worstFillPrice: freshPreview?.worstFillPrice,
+        retryReason: PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED,
+        retryCount: retryCountRef.current + 1,
+      });
+
+      const { PRESUBMIT_OUTCOME } = PredictEventValues;
+      if (outcome === PRESUBMIT_OUTCOME.SUBMITTED && freshPreview) {
+        return freshPreview;
+      }
+      if (outcome === PRESUBMIT_OUTCOME.PRICE_MOVED && freshPreview) {
+        // Ask again, measured from the price the user just confirmed.
+        oneTickDecisionRef.current =
+          PredictEventValues.ONE_TICK_DECISION.BEYOND_ONE_TICK;
+        setRetryQuote(freshPreview);
+        setRetryPreviousPrice(approvedQuote.sharePrice);
+        setRetrySheetVariant('price_moved');
+      } else {
+        setRetryQuote(null);
+        setRetrySheetVariant(getPredictSellBlockedVariant(outcome));
+      }
+      return null;
+    },
+    [refetchPreview, analyticsProperties],
+  );
+
+  /** Submits a confirmed quote and settles the sheet on the result. */
+  const submitRetry = useCallback(
+    async (quote: OrderPreview) => {
+      const retryCount = retryCountRef.current + 1;
+      retryCountRef.current = retryCount;
+      const oneTickDecision = oneTickDecisionRef.current;
+      const slippageBand = getSlippageBand(quote.slippage);
+      const retryReason = PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED;
+
+      const isPredictBuy =
+        analyticsProperties?.transactionType ===
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY;
+
+      const settleFailed = () => {
+        setRetrySheetVariant('failed');
+        if (!isSheetMode) {
+          retrySheetRef.current?.onOpenBottomSheet();
+        }
+      };
+
+      let retryOutcome: PredictRetryOutcomeValue | undefined;
+      let failureReason: string | undefined;
+
+      try {
+        if (!isPredictBuy) {
+          void Engine.context.PredictController.trackPredictOrderEvent({
+            status: PredictTradeStatus.RETRY_SUBMITTED,
+            analyticsProperties,
+            sharePrice: quote.sharePrice,
+            retryReason,
+            retryCount,
+            oneTickDecision,
+            slippageBand,
+          });
+        }
+
+        const outcome = await placeOrder({
+          analyticsProperties,
+          preview: quote,
+          attempt,
+        });
+
+        if (
+          outcome.status === 'success' ||
+          outcome.status === 'deposit_required'
+        ) {
+          retryOutcome = PredictEventValues.RETRY_OUTCOME.SUCCESS;
+          retrySheetRef.current?.onCloseBottomSheet();
+          resetOrderNotFilled();
+        } else {
+          // Bounded: this retry attempt is over. The sheet settles in its
+          // failed state and nothing further happens until the user taps
+          // again — no automatic re-submission loop.
+          retryOutcome =
+            outcome.status === 'order_not_filled'
+              ? PredictEventValues.RETRY_OUTCOME.NOT_FILLED
+              : PredictEventValues.RETRY_OUTCOME.FAILED;
+          if (outcome.status === 'error') {
+            failureReason = sanitizePredictFailureReason(outcome.error);
+          }
+          settleFailed();
+        }
+      } catch (error) {
+        // placeOrder implementations catch their own errors; a throw here is
+        // unexpected — settle in the failed state like any other failure.
+        retryOutcome = PredictEventValues.RETRY_OUTCOME.FAILED;
+        failureReason = sanitizePredictFailureReason(error);
+        settleFailed();
+      } finally {
+        if (!isPredictBuy && retryOutcome) {
+          void Engine.context.PredictController.trackPredictOrderEvent({
+            status: PredictTradeStatus.RETRY_COMPLETED,
+            analyticsProperties,
+            sharePrice: quote.sharePrice,
+            retryReason,
+            retryCount,
+            oneTickDecision,
+            slippageBand,
+            retryOutcome,
+            failureReason,
+          });
+        }
+      }
+    },
+    [
+      placeOrder,
+      analyticsProperties,
+      attempt,
+      resetOrderNotFilled,
+      isSheetMode,
+    ],
+  );
+
   const handleRetryConfirm = useCallback(async () => {
     if (
       !retryQuote ||
@@ -211,96 +359,19 @@ export function usePredictOrderRetry({
     // same frame cannot start a second submission.
     isRetryInFlightRef.current = true;
     setIsRetrying(true);
-    const retryCount = retryCountRef.current + 1;
-    retryCountRef.current = retryCount;
-    const oneTickDecision = oneTickDecisionRef.current;
-    const slippageBand = getSlippageBand(retryQuote.slippage);
-    const retryReason = PredictEventValues.RETRY_REASON.ORDER_NOT_FILLED;
-
-    const isPredictBuy =
-      analyticsProperties?.transactionType ===
-      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY;
-
-    const settleFailed = () => {
-      setRetrySheetVariant('failed');
-      if (!isSheetMode) {
-        retrySheetRef.current?.onOpenBottomSheet();
-      }
-    };
-
-    let retryOutcome: PredictRetryOutcomeValue | undefined;
-    let failureReason: string | undefined;
-
     try {
-      if (!isPredictBuy) {
-        void Engine.context.PredictController.trackPredictOrderEvent({
-          status: PredictTradeStatus.RETRY_SUBMITTED,
-          analyticsProperties,
-          sharePrice: retryQuote.sharePrice,
-          retryReason,
-          retryCount,
-          oneTickDecision,
-          slippageBand,
-        });
+      const quote =
+        retryQuote.side === Side.SELL
+          ? await recheckSellQuote(retryQuote)
+          : retryQuote;
+      if (quote) {
+        await submitRetry(quote);
       }
-
-      const outcome = await placeOrder({
-        analyticsProperties,
-        preview: retryQuote,
-        attempt,
-      });
-
-      if (
-        outcome.status === 'success' ||
-        outcome.status === 'deposit_required'
-      ) {
-        retryOutcome = PredictEventValues.RETRY_OUTCOME.SUCCESS;
-        retrySheetRef.current?.onCloseBottomSheet();
-        resetOrderNotFilled();
-      } else {
-        // Bounded: this retry attempt is over. The sheet settles in its
-        // failed state and nothing further happens until the user taps
-        // again — no automatic re-submission loop.
-        retryOutcome =
-          outcome.status === 'order_not_filled'
-            ? PredictEventValues.RETRY_OUTCOME.NOT_FILLED
-            : PredictEventValues.RETRY_OUTCOME.FAILED;
-        if (outcome.status === 'error') {
-          failureReason = sanitizePredictFailureReason(outcome.error);
-        }
-        settleFailed();
-      }
-    } catch (error) {
-      // placeOrder implementations catch their own errors; a throw here is
-      // unexpected — settle in the failed state like any other failure.
-      retryOutcome = PredictEventValues.RETRY_OUTCOME.FAILED;
-      failureReason = sanitizePredictFailureReason(error);
-      settleFailed();
     } finally {
-      if (!isPredictBuy && retryOutcome) {
-        void Engine.context.PredictController.trackPredictOrderEvent({
-          status: PredictTradeStatus.RETRY_COMPLETED,
-          analyticsProperties,
-          sharePrice: retryQuote.sharePrice,
-          retryReason,
-          retryCount,
-          oneTickDecision,
-          slippageBand,
-          retryOutcome,
-          failureReason,
-        });
-      }
       isRetryInFlightRef.current = false;
       setIsRetrying(false);
     }
-  }, [
-    retryQuote,
-    placeOrder,
-    analyticsProperties,
-    attempt,
-    resetOrderNotFilled,
-    isSheetMode,
-  ]);
+  }, [retryQuote, recheckSellQuote, submitRetry]);
 
   useEffect(() => {
     if (isRetryInFlightRef.current) {
