@@ -1,4 +1,6 @@
+import { createSelector } from 'reselect';
 import { object, string, type Infer, create } from '@metamask/superstruct';
+import { selectRemoteFeatureFlags } from '..';
 
 export const ChompApiConfigStruct = object({
   baseUrl: string(),
@@ -23,3 +25,22 @@ export function parseChompApiConfig(
   }
   return create(value, ChompApiConfigStruct);
 }
+
+/**
+ * Selects the CHOMP API base URL from the `moneyAccountChompConfig` remote
+ * feature flag.
+ *
+ * @returns The configured base URL, or `undefined` if the flag is unset or
+ * malformed.
+ */
+export const selectChompApiBaseUrl = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    try {
+      return parseChompApiConfig(remoteFeatureFlags.moneyAccountChompConfig)
+        ?.baseUrl;
+    } catch {
+      return undefined;
+    }
+  },
+);

@@ -19,16 +19,21 @@ const fetchChompSignals = async (
   address: Hex,
 ): Promise<MoneyAccountChompSignals> => {
   const lowercasedAddress = address.toLowerCase();
-  const [associatedAddresses, upgrades, intents] = await Promise.allSettled([
-    Engine.controllerMessenger.call('ChompApiService:getAssociatedAddresses'),
-    Engine.controllerMessenger.call('ChompApiService:getUpgrades', address),
-    Engine.controllerMessenger.call(
-      'ChompApiService:getIntentsByAddress',
-      address,
-    ),
-  ]);
+  const [sessionProfile, associatedAddresses, upgrades, intents] =
+    await Promise.allSettled([
+      Engine.controllerMessenger.call(
+        'AuthenticationController:getSessionProfile',
+      ),
+      Engine.controllerMessenger.call('ChompApiService:getAssociatedAddresses'),
+      Engine.controllerMessenger.call('ChompApiService:getUpgrades', address),
+      Engine.controllerMessenger.call(
+        'ChompApiService:getIntentsByAddress',
+        address,
+      ),
+    ]);
 
   return {
+    profileId: toSignalResult(sessionProfile, (profile) => profile.profileId),
     isAddressAssociated: toSignalResult(associatedAddresses, (entries) =>
       entries.some((entry) => entry.address === lowercasedAddress),
     ),

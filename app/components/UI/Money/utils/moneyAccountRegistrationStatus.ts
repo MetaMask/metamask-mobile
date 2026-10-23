@@ -6,6 +6,7 @@ export type ChompSignalResult<Data> =
   | { status: 'error'; error: Error };
 
 export interface MoneyAccountChompSignals {
+  profileId: ChompSignalResult<string>;
   isAddressAssociated: ChompSignalResult<boolean>;
   upgrades: ChompSignalResult<UpgradeEntry[]>;
   intents: ChompSignalResult<IntentEntry[]>;
