@@ -6,6 +6,14 @@ import type { UseSocialV1FeedResult } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
 } from './EmptyShellTabPage';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => null,
+}));
+
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual('../testUtils/flashListMock'),
+);
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
@@ -46,6 +54,18 @@ jest.mock('../SocialV1View/feed/components', () => ({
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => ({
   __esModule: true,
   default: () => null,
+}));
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(() => ({
+    traders: [],
+    isLoading: false,
+    isFetching: false,
+    hasFetched: false,
+    error: null,
+    refresh: jest.fn(),
+    toggleFollow: jest.fn(),
+  })),
 }));
 
 jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
