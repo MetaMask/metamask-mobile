@@ -136,7 +136,13 @@ const ManageProfileLinkedAccountView: React.FC = () => {
                       ) : null}
                     </Box>
                   </Box>
-                  <Checkbox isSelected={isSelected} pointerEvents="none" />
+                  <Checkbox
+                    isSelected={isSelected}
+                    pointerEvents="none"
+                    onChange={() => {
+                      void handleAccountPress(account.address);
+                    }}
+                  />
                 </Box>
               </Pressable>
             );
