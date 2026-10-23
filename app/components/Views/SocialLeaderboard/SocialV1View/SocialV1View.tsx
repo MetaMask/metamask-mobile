@@ -12,7 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -46,7 +45,6 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import { consumeFollowingFocus } from '../pendingPosts/pendingPostsStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -511,22 +509,6 @@ const SocialV1ViewContent: React.FC = () => {
     [changeTab],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      // A post just written from the composer is pinned on Following.
-      if (!consumeFollowingFocus()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(followingIndex);
-      if (activeIndex !== followingIndex) {
-        changeTab(followingIndex);
-      } else {
-        followingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, followingIndex]),
-  );
-
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -641,11 +623,11 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
