@@ -20,6 +20,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
@@ -27,6 +28,7 @@ import { getActiveCredentials, getActivePasskeys } from '../credentials';
 import { getMethodLabel } from '../labels';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaQaPresets from './MfaQaPresets';
+import MoneyMpcQaPresets from './MoneyMpcQaPresets';
 import { useMoneyMfa } from '../../../UI/Money/hooks/useMoneyMfa';
 
 const ROW_TEST_IDS: Record<MfaMethod, string> = {
@@ -177,6 +179,9 @@ const MfaSettings = () => {
           />
         ))}
         {isMfaKitEnabled() ? <MfaQaPresets /> : null}
+        {isMfaKitEnabled() && isRealMpcMoneyKeyringBuildEnabled() ? (
+          <MoneyMpcQaPresets />
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

@@ -73,6 +73,20 @@ export interface RealMpcMoneyKeyringBuilderOptions {
   getBearerToken: () => Promise<string>;
 }
 
+let twoFactorTokenProvider: (() => Promise<string>) | undefined;
+
+/**
+ * Sets where MPC calls that need 2FA get their token. Without one, they use
+ * the bearer token, which the dev MPC service accepts.
+ *
+ * @param provider - Returns a verification token, or `undefined` to unset.
+ */
+export const setMpcTwoFactorTokenProvider = (
+  provider: (() => Promise<string>) | undefined,
+) => {
+  twoFactorTokenProvider = provider;
+};
+
 const getProfileId = (token: string): string =>
   (
     JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8')) as {
@@ -84,8 +98,8 @@ const getProfileId = (token: string): string =>
  * Build the V1 keyring builder for the real Money MPC keyring, backed by the
  * DKLS23/CL24 libraries from `@metamask/mpc-react-native` and the MPC service.
  *
- * The profile bearer token is used as the profile token: the dev MPC service
- * does not enforce the 2FA claims yet. The backup encryption key is a
+ * The profile bearer token is used as the profile token unless a 2FA token
+ * provider is set: the dev MPC service does not enforce the 2FA claims yet. The backup encryption key is a
  * placeholder derived from the profile id until its source is decided.
  *
  * @param options - Builder options.
@@ -107,7 +121,10 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: () => getBearerToken(),
+      getProfileToken: (options?: { twoFactor?: boolean }) =>
+        options?.twoFactor && twoFactorTokenProvider
+          ? twoFactorTokenProvider()
+          : getBearerToken(),
       // TODO: replace the placeholder once the backup key source is decided.
       getBackupEncryptionKey: async () =>
         sha256(
