@@ -151,6 +151,12 @@ let mockActivePriceField:
   | 'scaleEnd'
   | 'chaseMaxDistance'
   | null = null;
+const mockSetAmount = jest.fn();
+let mockSizeOnClickPreference = false;
+jest.mock('../../utils/perpsOrderBookSizeOnClickStorage', () => ({
+  getPerpsOrderBookSizeOnClickPreference: () => mockSizeOnClickPreference,
+  setPerpsOrderBookSizeOnClickPreference: jest.fn(),
+}));
 let mockOrderFormType:
   | 'market'
   | 'limit'
@@ -504,6 +510,7 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     setTriggerPrice: mockSetTriggerPrice,
     activePriceField: mockActivePriceField,
     commitPriceToField: mockCommitPriceToField,
+    setAmount: mockSetAmount,
   }),
 }));
 
@@ -594,6 +601,7 @@ describe('PerpsProMarketView', () => {
     mockActivePriceField = null;
     mockCommitPriceToField.mockReset().mockReturnValue(false);
     mockSzDecimals = undefined;
+    mockSizeOnClickPreference = false;
     mockOrderBookPosition = 'left';
     mockIsOrderBookExpanded = true;
     mockSetOrderBookExpanded.mockClear();
@@ -1611,6 +1619,95 @@ describe('PerpsProMarketView', () => {
     );
 
     expect(mockCommitLimitPrice).toHaveBeenCalledWith('64120');
+  });
+
+  describe('size on click (TAT-4085)', () => {
+    const bookWithBid = (price: string, size: string): OrderBookData => ({
+      ...buildLiveBook(price),
+      bids: [
+        {
+          price,
+          size,
+          total: size,
+          notional: '0',
+          totalNotional: '0',
+        },
+      ],
+    });
+    const pressBid = (price: string, size: string) => {
+      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+        orderBook: bookWithBid(price, size),
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: jest.fn(),
+      }));
+      const { getByTestId } = renderView();
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+    };
+
+    it('fills only the price while the setting is off', () => {
+      pressBid('89950', '1.5');
+
+      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+      expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+
+    it('fills the price and the row size as USD notional when on', () => {
+      mockSizeOnClickPreference = true;
+
+      pressBid('89950', '1.5');
+
+      expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+      expect(mockSetAmount).toHaveBeenCalledWith('134925');
+    });
+
+    it('rounds the notional up to the cent so the order keeps the row size', () => {
+      // 0.00185 BTC at 81,870 is $151.4595; rounding down to $151.45 would
+      // derive 0.00184 BTC back from the order amount.
+      mockSizeOnClickPreference = true;
+
+      pressBid('81870', '0.00185');
+
+      expect(mockSetAmount).toHaveBeenCalledWith('151.46');
+    });
+
+    it('raises a row below the market minimum to that minimum', () => {
+      mockSizeOnClickPreference = true;
+
+      pressBid('89950', '0.0001');
+
+      expect(mockSetAmount).toHaveBeenCalledWith('10');
+    });
+
+    it('keeps the size untouched when the filled price is missing', () => {
+      // With the asset precision known, a blank price canonicalizes to
+      // undefined; the size must not be derived from it.
+      mockSizeOnClickPreference = true;
+      mockSzDecimals = 5;
+
+      pressBid('', '1.5');
+
+      expect(mockCommitLimitPrice).toHaveBeenCalledWith(undefined);
+      expect(mockSetAmount).not.toHaveBeenCalled();
+    });
+
+    it.each(['', 'abc', '0'])(
+      'keeps the size untouched when the row size is %p',
+      (size) => {
+        mockSizeOnClickPreference = true;
+
+        pressBid('89950', size);
+
+        expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+        expect(mockSetAmount).not.toHaveBeenCalled();
+      },
+    );
   });
 
   describe('Recently viewed tracking', () => {

@@ -18,6 +18,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { AnimationDuration } from '@metamask/design-tokens';
+import BigNumber from 'bignumber.js';
 import {
   useNavigation,
   useIsFocused,
@@ -45,7 +46,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import { CandlePeriodBottomSheet } from '../../../Charts/CandlePeriodSelector';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
-import { usePerpsMarketData } from '../../hooks';
+import { useMinimumOrderAmount, usePerpsMarketData } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -110,7 +111,8 @@ interface PerpsProOrderBookColumnProps {
  * bid/ask row tap can fill the price field the user last focused — Scale
  * start/end, Chase max distance, limit, or trigger — in place, with no
  * order-type switch. Only when nothing is focused does it fall back to the
- * order type's own default field.
+ * order type's own default field. With "Set order book size on click" on,
+ * the tap also fills the order size from the row (TAT-4085).
  */
 const PerpsProOrderBookColumn = ({
   symbol,
@@ -127,13 +129,15 @@ const PerpsProOrderBookColumn = ({
     commitTriggerPrice,
     activePriceField,
     commitPriceToField,
+    setAmount,
   } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
+  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
 
   const handleSelectPrice = useCallback(
-    (price: string) => {
+    (price: string, size?: string) => {
       // Book prices come from the venue already on a valid tick, so canonicalize
       // only once the asset's precision is known. `canonicalizeOrderPrice` falls
       // back to a default `szDecimals` when it is not, which can round a valid
@@ -142,6 +146,22 @@ const PerpsProOrderBookColumn = ({
         marketData?.szDecimals === undefined
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
+
+      if (size !== undefined && selectedPrice !== undefined) {
+        // The form keeps size as USD notional. Round up to the cent so both the
+        // coin display and the submitted size come back to the row's size, and
+        // raise it to the market minimum. Outside Reduce Only the form already
+        // caps the amount at the margin-based maximum for the filled price.
+        const rowAmount = new BigNumber(size).times(selectedPrice);
+        if (rowAmount.isFinite() && rowAmount.gt(0)) {
+          setAmount(
+            BigNumber.max(
+              rowAmount.decimalPlaces(2, BigNumber.ROUND_UP),
+              minimumOrderAmount,
+            ).toFixed(),
+          );
+        }
+      }
 
       // The last focused field wins over the type-based default below.
       // Falls through when nothing is focused or the field has no handler.
@@ -170,7 +190,9 @@ const PerpsProOrderBookColumn = ({
       commitLimitPrice,
       commitTriggerPrice,
       marketData?.szDecimals,
+      minimumOrderAmount,
       orderForm.type,
+      setAmount,
       setOrderType,
     ],
   );
