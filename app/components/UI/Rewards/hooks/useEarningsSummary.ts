@@ -12,6 +12,44 @@ import { reportRewardsMoneyReadFailure } from './reportRewardsMoneyReadFailure';
 import { useOneShotBusyRefetch } from './useOneShotBusyRefetch';
 
 /**
+ * Reads of one profile that are in flight together. `isLoadingRef` is per
+ * hook instance, and the hero and the Earnings tab each mount one, so two
+ * requests for the same profile can overlap. A rejection applies only while
+ * none of those reads has stored a summary.
+ */
+interface EarningsSummaryFlight {
+  pending: number;
+  stored: boolean;
+}
+
+const earningsSummaryFlightsByProfile = new Map<
+  string,
+  EarningsSummaryFlight
+>();
+
+function joinEarningsSummaryFlight(profileId: string): EarningsSummaryFlight {
+  const existing = earningsSummaryFlightsByProfile.get(profileId);
+  if (existing) {
+    existing.pending += 1;
+    return existing;
+  }
+  const created: EarningsSummaryFlight = { pending: 1, stored: false };
+  earningsSummaryFlightsByProfile.set(profileId, created);
+  return created;
+}
+
+function leaveEarningsSummaryFlight(profileId: string): void {
+  const flight = earningsSummaryFlightsByProfile.get(profileId);
+  if (!flight) {
+    return;
+  }
+  flight.pending -= 1;
+  if (flight.pending === 0) {
+    earningsSummaryFlightsByProfile.delete(profileId);
+  }
+}
+
+/**
  * Fetches the unnarrowed `GET /earnings/summary` into the profile-keyed
  * `rewardsMoney` slice, for the hero totals on the Money dashboard.
  *
@@ -36,6 +74,7 @@ export const useEarningsSummary = (
   const fetchRef = useRef<
     (options?: { forceFresh?: boolean; followUp?: boolean }) => Promise<void>
   >(() => Promise.resolve());
+  const isLoadingRef = useRef(false);
 
   const fetchEarningsSummary = useCallback(
     async ({
@@ -45,10 +84,19 @@ export const useEarningsSummary = (
       if (!profileId) {
         return;
       }
+      // This instance skips a second call while its own request is in flight.
+      // Another instance has its own ref, so it can still start a duplicate.
+      if (isLoadingRef.current) {
+        return;
+      }
+      isLoadingRef.current = true;
+      const flight = joinEarningsSummaryFlight(profileId);
 
       cancelBusyRefetch();
+      // Leave a previous error set while this request is in flight. The
+      // Earnings banner reads that flag, and clearing it here unmounts the
+      // banner for the whole retry. A success clears it with the new summary.
       dispatch(setEarningsSummaryLoading({ profileId, loading: true }));
-      dispatch(setEarningsSummaryError({ profileId, error: false }));
 
       try {
         const summary: EarningsSummaryDto =
@@ -56,21 +104,28 @@ export const useEarningsSummary = (
             'RewardsMoneyController:getEarningsSummary',
             { forceFresh },
           );
+        flight.stored = true;
         dispatch(setEarningsSummary({ profileId, data: summary }));
       } catch (error) {
-        reportRewardsMoneyReadFailure(
-          error,
-          'earningsSummary.fetch_failed',
-          followUp,
-          'rewards-money',
-        );
-        dispatch(setEarningsSummaryError({ profileId, error: true }));
-        if (!followUp) {
-          armBusyRefetch(error, () => {
-            void fetchRef.current({ forceFresh: true, followUp: true });
-          });
+        // A faster duplicate already stored this profile's summary. Applying
+        // this rejection would mark that stored read as failed.
+        if (!flight.stored) {
+          reportRewardsMoneyReadFailure(
+            error,
+            'earningsSummary.fetch_failed',
+            followUp,
+            'rewards-money',
+          );
+          dispatch(setEarningsSummaryError({ profileId, error: true }));
+          if (!followUp) {
+            armBusyRefetch(error, () => {
+              void fetchRef.current({ forceFresh: true, followUp: true });
+            });
+          }
         }
       } finally {
+        leaveEarningsSummaryFlight(profileId);
+        isLoadingRef.current = false;
         dispatch(setEarningsSummaryLoading({ profileId, loading: false }));
       }
     },

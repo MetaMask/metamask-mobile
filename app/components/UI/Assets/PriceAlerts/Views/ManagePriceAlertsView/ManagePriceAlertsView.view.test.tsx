@@ -76,7 +76,7 @@ describeForPlatforms('ManagePriceAlertsView', () => {
   });
 
   it('navigates to CreatePriceAlertView with the alert pre-populated when a row is tapped', async () => {
-    const { findByTestId, getByText, queryByTestId } =
+    const { findByTestId, getByRole, getByText, queryByTestId } =
       renderManagePriceAlertsViewWithRoutes();
 
     await waitFor(() => {
@@ -94,7 +94,7 @@ describeForPlatforms('ManagePriceAlertsView', () => {
     await findByTestId(CreatePriceAlertTestIds.CONTAINER);
 
     expect(getByText('Edit ETH price alert')).toBeOnTheScreen();
-    expect(getByText('$3000')).toBeOnTheScreen();
+    expect(getByRole('text', { name: '$3000' })).toBeOnTheScreen();
   });
 
   it('auto-redirects to Create view when no alerts exist for the token', async () => {

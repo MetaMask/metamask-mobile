@@ -1397,6 +1397,27 @@ describe('TokenDetailsV1', () => {
     scrollToSpy.mockRestore();
   });
 
+  it('keeps the tab area tall enough to hold the docked tab bar when a tab is short', () => {
+    const { getByTestId } = render(
+      <TokenDetailsV1
+        token={baseToken}
+        variant={TokenDetailsVariant.Memecoin}
+      />,
+    );
+
+    fireEvent(getByTestId(TOKEN_DETAILS_V1_SCROLL_VIEW_TEST_ID), 'layout', {
+      nativeEvent: { layout: { height: 900 } },
+    });
+    fireEvent(getByTestId('mock-tab-bar'), 'layout', {
+      nativeEvent: { layout: { y: 400, height: 48 } },
+    });
+
+    // Viewport, less the tab bar and the room kept for the sticky footer.
+    expect(getByTestId(TOKEN_DETAILS_V1_TAB_CONTENT_TEST_ID)).toHaveStyle({
+      minHeight: 900 - 48 - 190,
+    });
+  });
+
   it('preserves scroll position when switching tabs before scrolling past the tab bar', () => {
     const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
     const { getByTestId } = render(

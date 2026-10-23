@@ -1,34 +1,43 @@
 import { useSyncExternalStore } from 'react';
 import {
-  getSocialV1ComposedFeedSnapshot,
-  subscribeSocialV1ComposedFeed,
-} from '../store/socialV1ComposedFeedStore';
+  getPendingPostsSnapshot,
+  subscribePendingPosts,
+} from '../../../pendingPosts/pendingPostsStore';
+import { overlayPendingPosts } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 import { wrapMockFeedPosts } from '../../../../../UI/SocialFeed/mocks/wrapMockFeedPosts';
 
 /**
  * Stand-in for `useSocialV1Feed` in suites that cover the feed *chrome* --
- * tabs, carousel, posting banner, entrance animations -- rather than the data
+ * tabs, carousel, pinned posts, entrance animations -- rather than the data
  * layer.
  *
- * The real hook fetches through `useTraderFeed`, which needs keyring state and
+ * The real hook fetches through `useSocialFeed`, which needs keyring state and
  * a React Query provider; standing it up in a chrome test would only test the
- * harness. This keeps the composed-post store real, because the banner and
- * prepend assertions depend on it, and serves the static fixtures as the
+ * harness. This keeps the pending-post store and its merge rules real, because
+ * the pinning assertions depend on them, and serves the static fixtures as the
  * baseline feed so those tests can key off known ids.
  */
 export const mockUseSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
+  { ownerProfileId }: { ownerProfileId?: string } = {},
 ): UseSocialV1FeedResult => {
-  const snapshot = useSyncExternalStore(
-    subscribeSocialV1ComposedFeed,
-    getSocialV1ComposedFeedSnapshot,
-    getSocialV1ComposedFeedSnapshot,
+  const entries = useSyncExternalStore(
+    subscribePendingPosts,
+    getPendingPostsSnapshot,
+    getPendingPostsSnapshot,
+  );
+  const { pinnedPosts, posts } = overlayPendingPosts(
+    'following',
+    entries,
+    tab === 'following' ? ownerProfileId : undefined,
+    wrapMockFeedPosts(),
   );
 
-  const mockPosts = wrapMockFeedPosts();
-  // The fixtures are a single page, so the pagination surface is inert here.
-  const pagination = {
+  return {
+    posts,
+    pinnedPosts,
+    // The fixtures are a single page, so the pagination surface is inert here.
     isLoading: false,
     isFetchingNextPage: false,
     hasNextPage: false,
@@ -36,29 +45,12 @@ export const mockUseSocialV1Feed = (
     error: null,
     refresh: () => Promise.resolve(),
   };
-
-  if (tab === 'following') {
-    return {
-      posts: mockPosts,
-      pendingPost: null,
-      pendingStartedAtMs: null,
-      ...pagination,
-    };
-  }
-
-  return {
-    posts: [...snapshot.composedPosts, ...mockPosts],
-    pendingPost: snapshot.pendingPost,
-    pendingStartedAtMs: snapshot.pendingStartedAtMs,
-    ...pagination,
-  };
 };
 
 /** First-page load with no rows yet — for skeleton chrome tests. */
 export const mockUseSocialV1FeedLoading = (): UseSocialV1FeedResult => ({
   posts: [],
-  pendingPost: null,
-  pendingStartedAtMs: null,
+  pinnedPosts: [],
   isLoading: true,
   isFetchingNextPage: false,
   hasNextPage: false,

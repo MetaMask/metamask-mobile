@@ -78,6 +78,7 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/analytics-controller',
   '@metamask/bridge-controller',
   '@metamask/bridge-status-controller',
+  '@metamask/chain-agnostic-permission',
   '@metamask/client-controller',
   '@metamask/chomp-api-service',
   '@metamask/client-utils',

@@ -26,6 +26,7 @@ import {
 } from '../MyProfileView/hooks/localSocialProfileStore';
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
+import { strings } from '../../../../../locales/i18n';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
@@ -277,6 +278,26 @@ describe('SocialProfileOnboardingView', () => {
   it('shows the static live activity on the intro while offline', () => {
     renderSocialProfileOnboarding();
 
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title'),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.connect_x'),
+    );
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.create_manually'),
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
     ).toBeOnTheScreen();
@@ -761,6 +782,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE,
+      ),
+    ).toHaveTextContent('You can change your linked account every 30 days.');
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
     );

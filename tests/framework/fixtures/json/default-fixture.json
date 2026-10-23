@@ -973,7 +973,8 @@
       "dataSharingPreference": null,
       "isNFTAutoDetectionModalViewed": false,
       "osAuthEnabled": false,
-      "shouldShowConsentSheet": true
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}
