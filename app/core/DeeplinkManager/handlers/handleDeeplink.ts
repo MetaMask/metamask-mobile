@@ -74,8 +74,6 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
       lastHandledDeeplinkUri = uri;
       lastHandledDeeplinkAt = now;
 
-      // Performance specs arm Hermes here. Consumed before attribution and
-      // before checkForDeeplink so the URL cannot open the unsupported-link UI.
       if (armMeasuredAppProfilingFromUri(uri)) {
         return;
       }

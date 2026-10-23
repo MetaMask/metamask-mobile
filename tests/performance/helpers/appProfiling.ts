@@ -17,18 +17,14 @@
  * (the asset row, the Perps header, the Money tab, and the same kind of
  * boundary in every other scenario). That opens `metamask://e2e/profiler/arm`,
  * which the app handles before the unsupported-link UI and uses to drop the
- * setup samples. Launch specs that measure the next process pass
- * `scope: 'next-process'` immediately before `terminateApp`.
+ * setup samples. Launch specs that measure the next process call
+ * `skipHermesCollectionUntilRestart` immediately before `terminateApp`.
  */
 
 /* eslint-disable import-x/no-nodejs-modules */
 import fs from 'fs/promises';
 import path from 'path';
 import type { TestInfo } from '@playwright/test';
-import {
-  buildProfilerArmDeeplink,
-  type ProfilerArmScope,
-} from '../../../app/core/Performance/profilerArmDeeplink.ts';
 import AppiumGestures from '../../framework/AppiumGestures.ts';
 import {
   executeMobileDeepLink,
@@ -40,7 +36,8 @@ const logger = createLogger({ name: 'Performance - AppProfiling' });
 
 const PROFILE_OUTPUT_DIRECTORY = 'tests/reporters/reports/hermes-cpuprofiles';
 const SEGMENT_FILE_PREFIX = 'metamask-performance.segment-';
-// Must match HermesProfilerModule.ARMED_FILE_NAME.
+// Must match armMeasuredAppProfilingFromUri and HermesProfilerModule.armProfiling.
+const PROFILER_ARM_DEEPLINK = 'metamask://e2e/profiler/arm';
 const ARMED_FILE_NAME = 'metamask-performance.armed';
 // The dump is written before the app is allowed to settle in the background,
 // so this only has to cover writing and transferring a multi-megabyte trace.
@@ -92,7 +89,7 @@ let collectedSegmentCount = 0;
 // Artifact names use this counter so the first segment a test keeps is the
 // plain `.cpuprofile`, even when setup segments on the device were skipped.
 let reportedSegmentCount = 0;
-// `next-process` arms consume the terminate-hook collection. The relaunched
+// `skipHermesCollectionUntilRestart` consumes the terminate-hook collection. The relaunched
 // process is what the final collection should save.
 let collectionsToSkip = 0;
 
@@ -320,17 +317,12 @@ function sessionPlatform(appiumDriver: WebdriverIO.Browser): string {
  * implemented, so iOS also no-ops rather than opening a deeplink that can
  * race the next tap.
  *
- * `scope: 'now'` (default) drops samples already in memory and keeps
- * profiling. Call it immediately before the team-specific action, while the
- * app is in the foreground, and outside `TimerHelper.measure`.
- *
- * `scope: 'next-process'` tells this process not to dump, then skips the
- * collection `terminateApp` runs. The relaunched process profiles from JS
- * startup. Call it immediately before `terminateApp`.
+ * Drops samples already in memory and keeps profiling. Call it immediately
+ * before the team-specific action, while the app is in the foreground, and
+ * outside `TimerHelper.measure`.
  */
 export async function enableHermesAppProfiling(
   options: {
-    scope?: ProfilerArmScope;
     markerTimeoutMs?: number;
     markerPollIntervalMs?: number;
   } = {},
@@ -353,9 +345,8 @@ export async function enableHermesAppProfiling(
     );
   }
 
-  const scope = options.scope ?? 'now';
   const nonce = createArmNonce();
-  const url = buildProfilerArmDeeplink({ nonce, scope });
+  const url = `${PROFILER_ARM_DEEPLINK}?nonce=${nonce}`;
   const timeoutMs = options.markerTimeoutMs ?? ARM_MARKER_TIMEOUT_MS;
   const pollIntervalMs =
     options.markerPollIntervalMs ?? ARM_MARKER_POLL_INTERVAL_MS;
@@ -379,11 +370,8 @@ export async function enableHermesAppProfiling(
         if (Number.isInteger(highest) && highest >= 0) {
           collectedSegmentCount = Math.max(collectedSegmentCount, highest);
         }
-        if (scope === 'next-process') {
-          collectionsToSkip += 1;
-        }
         logger.info(
-          `Hermes profiling armed (${scope}) at device segment ${collectedSegmentCount}`,
+          `Hermes profiling armed at device segment ${collectedSegmentCount}`,
         );
         return;
       }
@@ -399,6 +387,35 @@ export async function enableHermesAppProfiling(
       setTimeout(resolve, Math.min(pollIntervalMs, remainingMs));
     });
   }
+}
+
+/**
+ * Discards the profile of the current app process so the test keeps only the
+ * relaunched one, which profiles from JS startup. Call it immediately before
+ * `terminateApp`: the terminate-hook collection is skipped, so the app is never
+ * backgrounded and its setup trace dies with the process. Segments already on
+ * the device are marked as collected.
+ */
+export async function skipHermesCollectionUntilRestart(): Promise<void> {
+  if (!isHermesCpuProfileCollectionEnabled()) {
+    return;
+  }
+
+  const appiumDriver = getDriver();
+  if (sessionPlatform(appiumDriver) !== 'android') {
+    return;
+  }
+
+  const setupSegments = await probeSegmentsFrom(
+    appiumDriver as PullFileDriver,
+    deviceProfileDirectory(appiumDriver),
+    collectedSegmentCount + 1,
+  );
+  collectedSegmentCount += setupSegments.size;
+  collectionsToSkip += 1;
+  logger.info(
+    `Skipping Hermes collection until the app restarts (device segment ${collectedSegmentCount})`,
+  );
 }
 
 /**

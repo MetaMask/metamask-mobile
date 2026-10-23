@@ -122,7 +122,7 @@ describe('handleDeeplink', () => {
   });
 
   it('arms Hermes profiling without opening the unsupported-link flow', () => {
-    const testUri = 'metamask://e2e/profiler/arm?nonce=abc&scope=now';
+    const testUri = 'metamask://e2e/profiler/arm?nonce=abc';
     jest.mocked(armMeasuredAppProfilingFromUri).mockReturnValue(true);
 
     handleDeeplink({ uri: testUri });

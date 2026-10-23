@@ -4,6 +4,7 @@ import {
   collectAppProfiling,
   enableHermesAppProfiling,
   isHermesCpuProfileCollectionEnabled,
+  skipHermesCollectionUntilRestart,
 } from './appProfiling.ts';
 
 const mockExecuteMobileDeepLink = jest.fn();
@@ -197,35 +198,26 @@ describe('enableHermesAppProfiling', () => {
     await enableHermesAppProfiling({ markerPollIntervalMs: 0 });
 
     expect(armedUrl).toContain('metamask://e2e/profiler/arm');
-    expect(armedUrl).toContain('scope=now');
     expect(pullFile).toHaveBeenCalledWith(
       '/sdcard/Android/data/io.metamask/files/Documents/metamask-performance.armed',
     );
   });
 
-  it('skips the next collection when arming the relaunched process', async () => {
+  it('skips the next collection until the app restarts', async () => {
     process.env[envKey] = 'true';
-    let armedUrl = '';
-    mockExecuteMobileDeepLink.mockImplementation(async (url: string) => {
-      armedUrl = url;
-    });
     androidDriver(
       jest.fn(async () => {
-        const nonce = new URL(armedUrl).searchParams.get('nonce');
-        return Buffer.from(`${nonce}\n0\n`, 'utf8').toString('base64');
+        throw new Error('not found');
       }),
     );
 
-    await enableHermesAppProfiling({
-      scope: 'next-process',
-      markerPollIntervalMs: 0,
-    });
-
-    expect(armedUrl).toContain('scope=next-process');
+    await skipHermesCollectionUntilRestart();
     const collected = await collectAppProfiling(
       { title: 'cold start' } as TestInfo,
       'android',
     );
+
+    expect(mockExecuteMobileDeepLink).not.toHaveBeenCalled();
     expect(collected).toBe(0);
     expect(mockGetDriver).toHaveBeenCalledTimes(1);
   });

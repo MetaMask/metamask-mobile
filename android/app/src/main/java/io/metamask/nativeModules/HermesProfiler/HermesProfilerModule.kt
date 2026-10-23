@@ -50,43 +50,19 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
     }
 
     /**
-     * Drops samples taken before the measured flow. The trace is dumped only
-     * so Hermes clears its buffer, then deleted. `disable` is intentionally
-     * not called: the sampler must keep running, and on current RN it is a
-     * no-op anyway.
+     * Opens the measured window: dumps the buffer only to clear it, then writes
+     * `<nonce>\n<highest segment on disk>` to the marker the test waits for.
+     * Both steps run in one call so no segment can land between them.
      */
     @ReactMethod
-    fun discardProfilingSamples(promise: Promise) {
-        val scratchFile =
-            try {
-                File(requireDocumentsDirectory(), SCRATCH_FILE_NAME)
-            } catch (error: Throwable) {
-                promise.reject(ERROR_CODE, error)
-                return
-            }
-
-        try {
-            scratchFile.delete()
-            HermesSamplingProfiler.dumpSampledTraceToFile(scratchFile.absolutePath)
-            promise.resolve(true)
-        } catch (error: Throwable) {
-            promise.reject(ERROR_CODE, error)
-        } finally {
-            scratchFile.delete()
-        }
-    }
-
-    /**
-     * Confirms the measured window is open. The test polls this file instead
-     * of sleeping. The second line is the highest segment already on disk so
-     * those setup traces are not collected.
-     */
-    @ReactMethod
-    fun markProfilingArmed(nonce: String, promise: Promise) {
+    fun armProfiling(nonce: String, promise: Promise) {
         try {
             val documentsDirectory = requireDocumentsDirectory()
-            val marker = File(documentsDirectory, ARMED_FILE_NAME)
-            marker.writeText("$nonce\n${highestSegmentIndex(documentsDirectory)}\n")
+            val scratchFile = File(documentsDirectory, SCRATCH_FILE_NAME)
+            HermesSamplingProfiler.dumpSampledTraceToFile(scratchFile.absolutePath)
+            scratchFile.delete()
+            File(documentsDirectory, "$PROFILE_FILE_PREFIX.armed")
+                .writeText("$nonce\n${nextSegmentIndex(documentsDirectory) - 1}\n")
             promise.resolve(true)
         } catch (error: Throwable) {
             promise.reject(ERROR_CODE, error)
@@ -140,16 +116,17 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
      * that restarts the app profiles each process separately, and the restarted
      * process must not reuse an index whose file the test has not pulled yet.
      */
-    private fun highestSegmentIndex(directory: File): Int =
-        directory
-            .listFiles()
-            ?.mapNotNull {
-                SEGMENT_FILE_PATTERN.matchEntire(it.name)?.groupValues?.get(1)?.toIntOrNull()
-            }
-            ?.maxOrNull()
-            ?: 0
-
-    private fun nextSegmentIndex(directory: File): Int = highestSegmentIndex(directory) + 1
+    private fun nextSegmentIndex(directory: File): Int {
+        val highestExisting =
+            directory
+                .listFiles()
+                ?.mapNotNull {
+                    SEGMENT_FILE_PATTERN.matchEntire(it.name)?.groupValues?.get(1)?.toIntOrNull()
+                }
+                ?.maxOrNull()
+                ?: 0
+        return highestExisting + 1
+    }
 
     private fun segmentFileName(index: Int): String =
         "$PROFILE_FILE_PREFIX.segment-$index.cpuprofile"
@@ -159,7 +136,6 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
         private const val ERROR_CODE = "hermes_profiler_error"
         private const val PROFILE_FILE_PREFIX = "metamask-performance"
         private const val SCRATCH_FILE_NAME = "$PROFILE_FILE_PREFIX.pending"
-        private const val ARMED_FILE_NAME = "$PROFILE_FILE_PREFIX.armed"
         private val SEGMENT_FILE_PATTERN =
             Regex("""metamask-performance\.segment-(\d+)\.cpuprofile""")
     }

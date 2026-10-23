@@ -14,16 +14,7 @@ import { NativeModules, Platform } from 'react-native';
 export interface HermesProfilerNativeModule {
   startProfiling(): Promise<boolean>;
   stopProfilingToAppStorage(): Promise<string>;
-  /**
-   * Clears the sample buffer without writing a segment and without disabling
-   * the sampler.
-   */
-  discardProfilingSamples(): Promise<boolean>;
-  /**
-   * Writes `metamask-performance.armed` so the test can see that the measured
-   * window is open. The file body is `<nonce>\n<highestExistingSegment>`.
-   */
-  markProfilingArmed(nonce: string): Promise<boolean>;
+  armProfiling(nonce: string): Promise<boolean>;
 }
 
 export function getHermesProfilerModule(): HermesProfilerNativeModule | null {

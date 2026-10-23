@@ -58,9 +58,8 @@ setupSentry(__DEV__);
 // Setup Performance observers
 Performance.setupPerformanceObservers();
 
-// Arm Hermes CPU profiling for performance-test APKs. No-op otherwise.
-// Launch specs keep this startup window. Feature specs drop it and open the
-// measured window with metamask://e2e/profiler/arm at the team-specific entry.
+// Arm Hermes CPU profiling for the whole process. No-op outside the
+// performance-test APKs, where IS_PERFORMANCE_TEST is baked in.
 initializeAppProfiling();
 
 // Ignore all logs
