@@ -1,3 +1,5 @@
+import Logger from '../../../../../util/Logger';
+
 export const ACCOUNT_CREATE_ERROR_VARIANTS = ['details', 'generic'] as const;
 
 export type AccountCreateErrorVariant =
@@ -20,6 +22,11 @@ const FIAT_ADDRESS_STATUSES = [
 ] as const;
 
 export type FiatAddressStatus = (typeof FIAT_ADDRESS_STATUSES)[number];
+
+export type AccountCreateFailureFiatStatus = Extract<
+  FiatAddressStatus,
+  'AuthorizationFailed' | 'RegistrationFailed'
+>;
 
 export type AccountCreateHttpStatus = 400 | 401 | 403 | 404 | 409 | 422 | 500;
 
@@ -100,6 +107,13 @@ export const getAccountCreateResultFromResponse = (
   const status = (response as { status?: unknown }).status;
   return isFiatAddressStatus(status) ? { kind: 'fiat', status } : null;
 };
+
+export const getAccountCreateFiatFailureResult = (
+  status: unknown,
+): AccountCreateRegistrationResult | null =>
+  status === 'AuthorizationFailed' || status === 'RegistrationFailed'
+    ? { kind: 'fiat', status }
+    : null;
 
 export const getAccountCreateResultFromError = (
   error: unknown,
@@ -196,6 +210,21 @@ export const getAccountCreateFailureLogFields = (
     httpStatus: result.status,
     ...(result.traceId ? { traceId: result.traceId } : {}),
   };
+};
+
+export const logAccountCreateFailure = (
+  result: AccountCreateRegistrationResult,
+): AccountCreateErrorDestinationId | null => {
+  const variant = getAccountCreateErrorVariant(result);
+  if (!variant) {
+    return null;
+  }
+
+  Logger.error(
+    new Error('VBA account creation failed'),
+    getAccountCreateFailureLogFields(result),
+  );
+  return ACCOUNT_CREATE_ERROR_DESTINATION[variant];
 };
 
 /** Appends support-safe registration identifiers to the help-center URL. */

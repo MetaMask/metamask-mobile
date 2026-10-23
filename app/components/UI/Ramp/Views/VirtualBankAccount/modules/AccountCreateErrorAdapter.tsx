@@ -28,8 +28,10 @@ const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
-  const { variant, failure, sourceCurrency } = route.params;
-  const primaryActionType = getAccountCreateErrorPrimaryAction(failure);
+  const { variant, failure, sourceCurrency, retryable } = route.params;
+  const primaryActionType = retryable
+    ? 'retry'
+    : getAccountCreateErrorPrimaryAction(failure);
   const retryStartedRef = useRef(false);
   const resumeOnboarding = useOpenVbaOnboarding('account-create-error-retry');
   const { openSupportWithConsent } = useSupportConsent();
