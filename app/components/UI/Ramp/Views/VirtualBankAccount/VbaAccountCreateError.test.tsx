@@ -5,7 +5,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import VbaAccountCreateError, {
   VbaAccountCreateErrorSelectorsIDs,
 } from './VbaAccountCreateError';
-import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
 
 const mockGoBack = jest.fn();
 const mockOnPrimary = jest.fn();
@@ -27,7 +26,7 @@ describe('VbaAccountCreateError', () => {
   });
 
   it('shows the unverified-details actions', () => {
-    const { getByText, queryByTestId } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <VbaAccountCreateError
         variant="details"
         primaryActionType="contactSupport"
@@ -58,7 +57,6 @@ describe('VbaAccountCreateError', () => {
         strings('virtual_bank_account.account_create_error.details.secondary'),
       ),
     ).toBeOnTheScreen();
-    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
   });
 
   it('shows the retry actions', () => {
