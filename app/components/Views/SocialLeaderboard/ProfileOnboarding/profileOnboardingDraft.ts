@@ -146,9 +146,14 @@ const avatarUrlForDraft = (draft: ProfileOnboardingDraft): string => {
   return toFoxiconAvatarUrl(draft.avatarPresetId, draft.avatarBackgroundId);
 };
 
+/**
+ * `linkedAddresses` is every address in the chosen account group (EVM,
+ * Solana, ...). Without it, only the draft's EVM address is linked.
+ */
 export const buildCreateProfileParams = (
   draft: ProfileOnboardingDraft,
   profileId: string,
+  linkedAddresses?: CaipAccountId[],
 ): CreateProfileParams => {
   if (!draft.linkedAccountAddress) {
     throw new Error('Profile onboarding requires a linked account');
@@ -159,9 +164,9 @@ export const buildCreateProfileParams = (
     username: normalizeUsername(draft.username),
     display_name: draft.displayName.trim(),
     bio: null,
-    linked_addresses: [
-      `eip155:1:${draft.linkedAccountAddress}` as CaipAccountId,
-    ],
+    linked_addresses: linkedAddresses?.length
+      ? linkedAddresses
+      : [`eip155:1:${draft.linkedAccountAddress}` as CaipAccountId],
     avatar_url: avatarUrlForDraft(draft),
     trading_privacy: draft.shareTradingActivity ? 'public' : 'private',
   };

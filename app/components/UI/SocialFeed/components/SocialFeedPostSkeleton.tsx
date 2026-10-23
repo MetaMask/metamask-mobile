@@ -21,8 +21,6 @@ const PROFILE_AVATAR_BONE = {
 const TOKEN_AVATAR_BONE = { width: 32, height: 32, borderRadius: 16 } as const;
 /** Matches `ButtonIconSize.Sm`. */
 const MORE_BONE = { width: 24, height: 24, borderRadius: 12 } as const;
-/** Matches `IconSize.Sm` on the verified badge. */
-const VERIFIED_BONE = { width: 16, height: 16, borderRadius: 8 } as const;
 
 const AUTHOR_NAME_BONE = { width: 112, height: 16, borderRadius: 4 } as const;
 const TIMESTAMP_BONE = { width: 48, height: 12, borderRadius: 4 } as const;
@@ -86,10 +84,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
             >
               <Item flex={1} gap={4}>
                 <Item flexDirection="row" alignItems="center" gap={8}>
-                  <Item flexDirection="row" alignItems="center" gap={4}>
-                    <Item {...AUTHOR_NAME_BONE} />
-                    <Item {...VERIFIED_BONE} />
-                  </Item>
+                  <Item {...AUTHOR_NAME_BONE} />
                   <Item {...TIMESTAMP_BONE} />
                 </Item>
                 <Item width={96} height={12} borderRadius={4} />
