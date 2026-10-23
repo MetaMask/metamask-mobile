@@ -840,6 +840,18 @@ const ChoosePassword = () => {
     confirmPasswordInputRef.current?.focus();
   }, []);
 
+  const leaveConfirmPasswordField = useCallback(() => {
+    setHasLeftConfirmPasswordField(true);
+    if (passwordRequirementsMet(confirmPassword)) {
+      setConfirmValidationArmed(true);
+    }
+  }, [confirmPassword]);
+
+  const submitConfirmPassword = useCallback(() => {
+    Keyboard.dismiss();
+    leaveConfirmPasswordField();
+  }, [leaveConfirmPasswordField]);
+
   const setConfirmPasswordValue = useCallback(
     (val: string) => {
       setConfirmPassword(val);
@@ -1030,12 +1042,7 @@ const ChoosePassword = () => {
                 inputRef={confirmPasswordInputRef}
                 value={confirmPassword}
                 onChangeText={setConfirmPasswordValue}
-                onBlur={() => {
-                  setHasLeftConfirmPasswordField(true);
-                  if (passwordRequirementsMet(confirmPassword)) {
-                    setConfirmValidationArmed(true);
-                  }
-                }}
+                onBlur={leaveConfirmPasswordField}
                 placeholder={strings(
                   'choose_password.confirm_password_placeholder',
                 )}
@@ -1067,7 +1074,7 @@ const ChoosePassword = () => {
                   accessibilityLabel:
                     ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
                   autoComplete: 'password-new',
-                  onSubmitEditing: Keyboard.dismiss,
+                  onSubmitEditing: submitConfirmPassword,
                   returnKeyType: 'done',
                   autoCapitalize: 'none',
                   keyboardAppearance: themeAppearance,

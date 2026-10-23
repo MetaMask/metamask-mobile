@@ -179,6 +179,43 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
   );
 
   itEach(socialLoginProviders)(
+    'shows the length error after pressing Done on a confirm password below the minimum length for $label login',
+    async ({ provider }) => {
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+      const lengthHelpText = strings('choose_password.must_be_at_least', {
+        number: MIN_PASSWORD_LENGTH,
+      });
+
+      const passwordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      fireEvent.changeText(passwordInput, VALID_PASSWORD);
+      fireEvent.changeText(confirmPasswordInput, 'x');
+
+      expect(queryByText(lengthHelpText)).toBeNull();
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+
+      fireEvent(confirmPasswordInput, 'submitEditing');
+
+      expect(await findByText(lengthHelpText)).toBeOnTheScreen();
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeDisabled();
+    },
+  );
+
+  itEach(socialLoginProviders)(
     'shows a danger mismatch message and keeps create password disabled for $label login',
     async ({ provider }) => {
       const { findByTestId, findByText } = renderChoosePasswordForSocialLogin({
@@ -217,6 +254,39 @@ describeForPlatforms('ChoosePassword — seedless social login', () => {
       );
       expect(mismatchHelp).toBeOnTheScreen();
 
+      expect(
+        await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      ).toBeDisabled();
+    },
+  );
+
+  itEach(socialLoginProviders)(
+    'shows a mismatch error after pressing Done when confirm length differs for $label login',
+    async ({ provider }) => {
+      const { findByTestId, findByText, queryByText } =
+        renderChoosePasswordForSocialLogin({
+          routeParams: {
+            oauthLoginSuccess: true,
+            provider,
+          },
+        });
+
+      fireEvent.changeText(
+        await findByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        VALID_PASSWORD,
+      );
+      const confirmPasswordInput = await findByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      fireEvent.changeText(confirmPasswordInput, `${VALID_PASSWORD}x`);
+
+      expect(queryByText(strings('choose_password.password_error'))).toBeNull();
+
+      fireEvent(confirmPasswordInput, 'submitEditing');
+
+      expect(
+        await findByText(strings('choose_password.password_error')),
+      ).toBeOnTheScreen();
       expect(
         await findByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
       ).toBeDisabled();
