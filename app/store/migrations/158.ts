@@ -4,7 +4,7 @@ import { ensureValidState } from './util';
 
 /**
  * Migration 158: backfill the `defaultMoneyAccountId` state field introduced
- * with `@metamask/money-account-controller@2.0.0`.
+ * with `@metamask/money-account-controller@3.0.0`.
  *
  * The controller sets `defaultMoneyAccountId` when it creates a money
  * account (defaulting to the first one created). Wallets that already have a
