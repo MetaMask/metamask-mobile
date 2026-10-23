@@ -45,6 +45,7 @@ import {
   toLeaderboardTypeFilter,
   type SocialShellFilters,
 } from './filters';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
 /** Keeps the refresh spinner up long enough to read as a refresh. */
 const MIN_REFRESH_DURATION_MS = 1000;
@@ -58,6 +59,7 @@ export interface LeaderboardShellTabPageProps {
    * use.
    */
   isActive?: boolean;
+  performance?: SocialPerformanceContext;
   /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
@@ -81,6 +83,7 @@ export interface LeaderboardShellTabPageProps {
  */
 const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   isActive = true,
+  performance,
   onScroll,
   pageRef,
   containerTestID,
@@ -220,6 +223,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
+                performance={performance}
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>
