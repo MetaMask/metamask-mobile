@@ -54,6 +54,10 @@ const SEGMENT_WAIT_TIMEOUT_MS = 12_000;
 const SEGMENT_POLL_INTERVAL_MS = 2_500;
 const ARM_MARKER_TIMEOUT_MS = 12_000;
 const ARM_MARKER_POLL_INTERVAL_MS = 750;
+// The app dumps from its `'background'` handler, which finishes asynchronously.
+// Left in the background, Android can freeze the process before the trace is
+// renamed into place, so the collector brings the app back to let it finish.
+const COLLECT_BACKGROUND_SECONDS = 3;
 
 /**
  * Hermes `.cpuprofile` harvest is opt-in. PR performance runs skip it (profiles
@@ -408,7 +412,8 @@ export function __resetAppProfilingCollectorForTests(): void {
 }
 
 /**
- * Backgrounds the app so it dumps its in-flight trace, then saves every segment
+ * Backgrounds the app so it dumps its in-flight trace, brings it back so the
+ * dump can finish, then saves every segment
  * the test has not collected yet into `tests/reporters/reports/hermes-cpuprofiles/`
  * and attaches it to the Playwright report.
  *
@@ -460,9 +465,7 @@ export async function collectAppProfiling(
   // Segments are contiguous, so highest index = already collected + new count.
   const highestBeforeBackground = collectedSegmentCount + newSegments.size;
 
-  // A negative duration leaves the app in the background instead of restoring
-  // it, so the dump is not racing a resume.
-  await AppiumGestures.backgroundApp(-1);
+  await AppiumGestures.backgroundApp(COLLECT_BACKGROUND_SECONDS);
 
   const triggeredIndex = highestBeforeBackground + 1;
   let collected = 0;

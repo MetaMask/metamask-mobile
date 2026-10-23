@@ -15,10 +15,20 @@ jest.mock('../../framework/AppiumUtilities.ts', () => ({
   getDriver: () => mockGetDriver(),
 }));
 
+const mockBackgroundApp = jest.fn();
+
 jest.mock('../../framework/AppiumGestures.ts', () => ({
   __esModule: true,
   default: {
-    backgroundApp: jest.fn(),
+    backgroundApp: (...args: unknown[]) => mockBackgroundApp(...args),
+  },
+}));
+
+jest.mock('fs/promises', () => ({
+  __esModule: true,
+  default: {
+    mkdir: jest.fn(async () => undefined),
+    writeFile: jest.fn(async () => undefined),
   },
 }));
 
@@ -80,6 +90,48 @@ describe('collectAppProfiling', () => {
     const collected = await collectAppProfiling(testInfo, 'android');
 
     expect(collected).toBe(0);
+  });
+
+  it('restores the app after backgrounding and saves the triggered segment', async () => {
+    process.env[envKey] = 'true';
+    __resetAppProfilingCollectorForTests();
+    mockBackgroundApp.mockReset();
+    let backgrounded = false;
+    mockBackgroundApp.mockImplementation(async () => {
+      backgrounded = true;
+    });
+    const profile = Buffer.from('{"samples":[1]}', 'utf8').toString('base64');
+    const pullFile = jest.fn(async (remotePath: string) => {
+      if (backgrounded && remotePath.endsWith('segment-1.cpuprofile')) {
+        return profile;
+      }
+      throw new Error('not found');
+    });
+    mockGetDriver.mockReturnValue({
+      capabilities: {
+        platformName: 'Android',
+        'appium:appPackage': 'io.metamask',
+      },
+      pullFile,
+    });
+    const attach = jest.fn();
+    const testInfo = {
+      title: 'swap',
+      retry: 0,
+      project: { name: 'testmu-android' },
+      attach,
+    } as unknown as TestInfo;
+
+    const collected = await collectAppProfiling(testInfo, 'android', {
+      segmentWaitTimeoutMs: 0,
+    });
+
+    expect(collected).toBe(1);
+    expect(mockBackgroundApp).toHaveBeenCalledWith(3);
+    expect(attach).toHaveBeenCalledWith(
+      'testmu-android-swap.cpuprofile',
+      expect.objectContaining({ contentType: 'application/json' }),
+    );
   });
 });
 
