@@ -336,13 +336,10 @@ if (enableApiCallLogs || isTestEnvironment) {
     ];
 
     const shouldBypassProxy = (targetUrl) => {
-      // data: URLs (and any other non-HTTP URL) are local. decodeBase64 loads
-      // bytes with fetch("data:..."), and the mock proxy cannot serve that.
-      if (
-        typeof targetUrl === 'string' &&
-        !targetUrl.startsWith('http://') &&
-        !targetUrl.startsWith('https://')
-      ) {
+      // data: URLs are local. decodeBase64 loads bytes with fetch("data:..."),
+      // and the mock proxy cannot serve that. Leave ws: and wss: alone so
+      // resolveWebSocketTarget can still route them through the mock server.
+      if (typeof targetUrl === 'string' && targetUrl.startsWith('data:')) {
         return true;
       }
       if (!isPerformanceTestBuild) {
