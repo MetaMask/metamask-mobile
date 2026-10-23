@@ -31,14 +31,20 @@ const isCoreFeedItem = (value: unknown): value is CoreFeedItem =>
  * is nothing to show: social-api said no feed will serve this position, or it
  * returned a card the app cannot map.
  *
- * `fallback` covers a social-api that predates `feedItem`.
+ * `fallback` covers a social-api that predates `feedItem`. With
+ * `isTradeInFlight`, it also covers a `null` card: the trade is not indexed
+ * yet, so social-api cannot know which feed will serve it.
  */
 export const buildPendingPost = (
   created: SwapCommentResponse & CreatedSwapCommentExtras,
   fallback: () => SocialV1FeedPost | null,
+  { isTradeInFlight = false }: { isTradeInFlight?: boolean } = {},
 ): (SocialV1FeedPost & { commentId: string }) | null => {
   let post: SocialV1FeedPost | null;
-  if (!('feedItem' in created)) {
+  if (
+    !('feedItem' in created) ||
+    (isTradeInFlight && created.feedItem == null)
+  ) {
     post = fallback();
   } else if (isCoreFeedItem(created.feedItem)) {
     const item = mapFeedItem(created.feedItem);

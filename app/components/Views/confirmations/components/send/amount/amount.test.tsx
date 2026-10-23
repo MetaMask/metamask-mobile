@@ -21,7 +21,7 @@ import { useSendContext } from '../../../context/send-context';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { InitSendLocation } from '../../../constants/send';
 import { Amount } from './amount';
-import { getFontSizeForInputLength } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
+import { getSendAmountFontSize } from './amount.styles';
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -197,22 +197,25 @@ describe('Amount', () => {
     expect(
       StyleSheet.flatten(getByText('LONGTOKEN').props.style),
     ).toMatchObject({
-      fontSize: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
+      fontSize: getSendAmountFontSize(1 + 'LONGTOKEN'.length + 2),
+      fontFamily: 'GrotzecCond-Bold',
     });
 
     fireEvent.press(getByTestId('fiat_toggle'));
 
-    expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
-    expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
-      fontSize: getFontSizeForInputLength(4 + 'USD'.length + 2),
+    expect(getByRole('text', { name: '$0' })).toBeOnTheScreen();
+    expect(StyleSheet.flatten(getByText('$').props.style)).toMatchObject({
+      fontSize: getSendAmountFontSize(1 + '$'.length + 2),
+      fontFamily: 'GrotzecCond-Bold',
     });
   });
 
   it('display default value of amount as placeholder', () => {
-    const { getByTestId } = renderComponent();
+    const { getByTestId, getByText } = renderComponent();
     expect(getByTestId('send_amount')).toHaveTextContent('0');
     fireEvent.press(getByTestId('fiat_toggle'));
-    expect(getByTestId('send_amount')).toHaveTextContent('0.00');
+    expect(getByTestId('send_amount')).toHaveTextContent('0');
+    expect(getByText('$')).toBeOnTheScreen();
   });
 
   it('formats the main input with animated thousands commas', () => {
