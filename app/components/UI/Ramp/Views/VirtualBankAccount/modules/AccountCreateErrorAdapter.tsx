@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Linking } from 'react-native';
 import {
   useNavigation,
@@ -10,26 +10,31 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../../constants/urls';
 import { useSupportConsent } from '../../../../../hooks/useSupportConsent';
 import VbaAccountCreateError from '../VbaAccountCreateError';
-import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
+import {
+  buildAccountCreateSupportUrl,
+  getAccountCreateErrorPrimaryAction,
+} from '../accountCreateError';
+import {
+  openCompletedVbaAccount,
+  useOpenVbaOnboarding,
+} from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
 
 /**
- * Wires the account-creation error screen into onboarding. Edit details
- * returns to the caller because the bank-details form is not in this flow yet.
+ * Wires the account-creation error screens into onboarding.
+ * Validation and setup failures open support. Only HTTP 500 can be retried.
  */
 const VbaAccountCreateErrorAdapter = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
-  const variant = route.params.variant;
-  const retry = useOpenVbaOnboarding('account-create-error-retry');
+  const { variant, failure, sourceCurrency } = route.params;
+  const primaryActionType = getAccountCreateErrorPrimaryAction(failure);
+  const retryStartedRef = useRef(false);
+  const resumeOnboarding = useOpenVbaOnboarding('account-create-error-retry');
   const { openSupportWithConsent } = useSupportConsent();
 
   const leave = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
@@ -37,23 +42,30 @@ const VbaAccountCreateErrorAdapter = () => {
   }, [navigation]);
 
   const contactSupport = useCallback(() => {
-    openSupportWithConsent((url) => Linking.openURL(url), METAMASK_SUPPORT_URL);
-  }, [openSupportWithConsent]);
+    openSupportWithConsent(
+      (url) => Linking.openURL(url),
+      buildAccountCreateSupportUrl(METAMASK_SUPPORT_URL, failure),
+    );
+  }, [failure, openSupportWithConsent]);
+
+  const retry = useCallback(async () => {
+    if (retryStartedRef.current) {
+      return;
+    }
+    retryStartedRef.current = true;
+
+    if (sourceCurrency) {
+      openCompletedVbaAccount(navigation, sourceCurrency);
+      return;
+    }
+    await resumeOnboarding();
+  }, [navigation, resumeOnboarding, sourceCurrency]);
 
   if (variant === 'details') {
     return (
       <VbaAccountCreateError
         variant="details"
-        onPrimary={leave}
-        onBack={leave}
-      />
-    );
-  }
-
-  if (variant === 'blocked') {
-    return (
-      <VbaAccountCreateError
-        variant="blocked"
+        primaryActionType="contactSupport"
         onPrimary={contactSupport}
         onSecondary={leave}
         onBack={leave}
@@ -64,8 +76,9 @@ const VbaAccountCreateErrorAdapter = () => {
   return (
     <VbaAccountCreateError
       variant="generic"
-      onPrimary={() => retry()}
-      onSecondary={contactSupport}
+      primaryActionType={primaryActionType}
+      onPrimary={primaryActionType === 'retry' ? retry : contactSupport}
+      onSecondary={leave}
       onBack={leave}
     />
   );

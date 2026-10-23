@@ -26,6 +26,7 @@ import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import {
   accountCreateErrorVariantForDestination,
   isAccountCreateErrorDestination,
+  type AccountCreateFailureFields,
 } from '../accountCreateError';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
@@ -172,6 +173,8 @@ export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
+  failure?: AccountCreateFailureFields,
+  sourceCurrency?: VbaSourceCurrency,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -198,7 +201,11 @@ export const navigateToVbaOnboardingDestination = (
     openAsOnlyOnboardingRoute(
       navigation,
       VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
-      { variant: accountCreateErrorVariantForDestination(destinationId) },
+      {
+        variant: accountCreateErrorVariantForDestination(destinationId),
+        ...(failure ? { failure } : {}),
+        ...(sourceCurrency ? { sourceCurrency } : {}),
+      },
     );
     return;
   }

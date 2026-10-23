@@ -4,6 +4,7 @@ import {
   RewardsMoneyAuthorizationError,
   RewardsMoneyRebateQuoteError,
   RewardsMoneyHttpError,
+  buildEarningsSummaryQuery,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
 } from './rewards-money-data-service';
@@ -353,7 +354,7 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = expect(
+        const pending = await expect(
           service.validateReferralCode('ABC123'),
         ).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
@@ -417,7 +418,9 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
+        const pending = await expect(
+          service.getReferralMe(),
+        ).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
@@ -559,6 +562,45 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
+    it('sends a window only with claimability turned off', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
+          lifetime_total: '0',
+          window: { from: '2026-09-22', to: '2026-09-28' },
+          pending: '0',
+          claimed: '0',
+          forfeited: '0',
+          minimum_musd_base_units: '0',
+          self_earned: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            forfeited: '0',
+            by_claim_family: {},
+          },
+          earned_by_others: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            forfeited: '0',
+            by_claim_family: {},
+          },
+        }),
+      );
+
+      await service.getEarningsSummary(undefined, {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      });
+
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('from=2026-09-22');
+      expect(url).toContain('to=2026-09-28');
+      expect(url).toContain('include_claimable=false');
+      expect(url).not.toContain('earning_origin_type');
+    });
+
     it('throws when earnings summary fails', async () => {
       mockFetch.mockResolvedValue(notOk(503));
       await expect(service.getEarningsSummary()).rejects.toThrow(
@@ -585,7 +627,7 @@ describe('RewardsMoneyDataService', () => {
       expect(url).not.toContain('cursor=');
     });
 
-    it('sends cursor without origin types on ledger page 2', async () => {
+    it('resends origin types alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({
           results: [],
@@ -600,7 +642,7 @@ describe('RewardsMoneyDataService', () => {
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain('cursor=cursor-1');
       expect(url).toContain('include_claims=true');
-      expect(url).not.toContain('earning_origin_type');
+      expect(url).toContain('earning_origin_type=SWAPS_FEE_CASHBACK');
     });
 
     it('can request accrual-only ledger pages', async () => {
@@ -681,8 +723,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     // The commissions cursor stamps the filter and the server 400s when the
-    // request omits it — the opposite of the ledger, which reads it from the
-    // cursor alone.
+    // request omits it.
     it('resends the mechanism filter alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
@@ -1023,7 +1064,7 @@ describe('RewardsMoneyDataService', () => {
       });
       jest.useFakeTimers();
       try {
-        const busyQuotePending = expect(
+        const busyQuotePending = await expect(
           service.getRebateQuote({ product: 'perps' }),
         ).rejects.toMatchObject({
           status: 503,
@@ -1181,6 +1222,30 @@ describe('RewardsMoneyDataService', () => {
       await expect(
         service.getRebateQuote({ product: 'perps' }),
       ).rejects.toMatchObject({ status: 200, failure: 'FAILED' });
+    });
+  });
+
+  describe('buildEarningsSummaryQuery', () => {
+    it('matches the origin-type query when claimability stays on', () => {
+      expect(buildEarningsSummaryQuery()).toBe('');
+      expect(buildEarningsSummaryQuery(['REFERRAL_REV_SHARE'])).toBe(
+        '?earning_origin_type=REFERRAL_REV_SHARE',
+      );
+      expect(
+        buildEarningsSummaryQuery(undefined, { includeClaimable: true }),
+      ).toBe('');
+    });
+
+    it('appends the window and include_claimable=false together', () => {
+      expect(
+        buildEarningsSummaryQuery(['SWAPS_FEE_CASHBACK'], {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        }),
+      ).toBe(
+        '?earning_origin_type=SWAPS_FEE_CASHBACK&from=2026-09-22&to=2026-09-28&include_claimable=false',
+      );
     });
   });
 });

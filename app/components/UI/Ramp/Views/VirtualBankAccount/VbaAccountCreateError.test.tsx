@@ -26,10 +26,11 @@ describe('VbaAccountCreateError', () => {
     mockOnSecondary.mockResolvedValue(undefined);
   });
 
-  it('shows the blocked account actions', () => {
-    const { getByText, queryByText } = renderWithProvider(
+  it('shows the unverified-details actions', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
       <VbaAccountCreateError
-        variant="blocked"
+        variant="details"
+        primaryActionType="contactSupport"
         onPrimary={mockOnPrimary}
         onSecondary={mockOnSecondary}
       />,
@@ -37,45 +38,13 @@ describe('VbaAccountCreateError', () => {
 
     expect(
       getByText(
-        strings('virtual_bank_account.account_create_error.blocked.title'),
+        strings('virtual_bank_account.account_create_error.details.title'),
       ),
     ).toBeOnTheScreen();
     expect(
       getByText(
         strings(
-          'virtual_bank_account.account_create_error.blocked.description',
-        ),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('virtual_bank_account.account_create_error.blocked.primary'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings('virtual_bank_account.account_create_error.blocked.secondary'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      queryByText(
-        strings(
-          'virtual_bank_account.account_create_error.details.account_number_title',
-        ),
-      ),
-    ).toBeNull();
-  });
-
-  it('shows the bank-detail checklist', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <VbaAccountCreateError variant="details" onPrimary={mockOnPrimary} />,
-    );
-
-    expect(getByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeOnTheScreen();
-    expect(
-      getByText(
-        strings(
-          'virtual_bank_account.account_create_error.details.routing_description',
+          'virtual_bank_account.account_create_error.details.description',
         ),
       ),
     ).toBeOnTheScreen();
@@ -84,12 +53,89 @@ describe('VbaAccountCreateError', () => {
         strings('virtual_bank_account.account_create_error.details.primary'),
       ),
     ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.secondary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+  });
+
+  it('shows the retry actions', () => {
+    const { getByText } = renderWithProvider(
+      <VbaAccountCreateError
+        variant="generic"
+        primaryActionType="retry"
+        onPrimary={mockOnPrimary}
+        onSecondary={mockOnSecondary}
+      />,
+    );
+
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.generic.title'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.generic.description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.generic.primary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.generic.secondary'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows contact support for a generic account setup failure', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <VbaAccountCreateError
+        variant="generic"
+        primaryActionType="contactSupport"
+        onPrimary={mockOnPrimary}
+        onSecondary={mockOnSecondary}
+      />,
+    );
+
+    expect(
+      getByText(
+        strings('virtual_bank_account.account_create_error.details.primary'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(
+        strings(
+          'virtual_bank_account.account_create_error.details.description',
+        ),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings('virtual_bank_account.account_create_error.generic.primary'),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(
+        strings(
+          'virtual_bank_account.account_create_error.generic.description',
+        ),
+      ),
+    ).not.toBeOnTheScreen();
   });
 
   it('calls the primary and secondary actions', async () => {
     const { getByTestId } = renderWithProvider(
       <VbaAccountCreateError
         variant="generic"
+        primaryActionType="retry"
         onPrimary={mockOnPrimary}
         onSecondary={mockOnSecondary}
         onBack={mockOnBack}
@@ -99,15 +145,18 @@ describe('VbaAccountCreateError', () => {
     fireEvent.press(
       getByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
     );
+    await waitFor(() => {
+      expect(mockOnPrimary).toHaveBeenCalledTimes(1);
+    });
+
     fireEvent.press(
       getByTestId(VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON),
     );
-    fireEvent.press(getByTestId(VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON));
-
     await waitFor(() => {
-      expect(mockOnPrimary).toHaveBeenCalledTimes(1);
       expect(mockOnSecondary).toHaveBeenCalledTimes(1);
     });
+
+    fireEvent.press(getByTestId(VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON));
     expect(mockOnBack).toHaveBeenCalledTimes(1);
     expect(mockGoBack).not.toHaveBeenCalled();
   });

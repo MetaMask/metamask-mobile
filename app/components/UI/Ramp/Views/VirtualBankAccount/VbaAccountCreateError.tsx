@@ -1,11 +1,11 @@
 import React from 'react';
-import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import VbaIllustration, {
-  VbaIllustrationSource,
-} from '../../../KYC/components/Illustration';
 import VbaOnboardingError from '../../../KYC/components/OnboardingError';
-import type { AccountCreateErrorVariant } from './accountCreateError';
+import VbaAccountCreateFailure from '../../../KYC/components/assets/vba-account-create-failure.svg';
+import type {
+  AccountCreateErrorPrimaryAction,
+  AccountCreateErrorVariant,
+} from './accountCreateError';
 
 export const VbaAccountCreateErrorSelectorsIDs = {
   CONTAINER: 'vba-account-create-error-container',
@@ -16,50 +16,19 @@ export const VbaAccountCreateErrorSelectorsIDs = {
 
 interface VbaAccountCreateErrorProps {
   variant: AccountCreateErrorVariant;
+  primaryActionType: AccountCreateErrorPrimaryAction;
   onPrimary: () => void | Promise<void>;
-  onSecondary?: () => void | Promise<void>;
+  onSecondary: () => void | Promise<void>;
   onBack?: () => void;
 }
 
-const detailItems = () => [
-  {
-    id: 'account-number',
-    icon: IconName.Card,
-    title: strings(
-      'virtual_bank_account.account_create_error.details.account_number_title',
-    ),
-    description: strings(
-      'virtual_bank_account.account_create_error.details.account_number_description',
-    ),
-  },
-  {
-    id: 'routing',
-    icon: IconName.Info,
-    title: strings(
-      'virtual_bank_account.account_create_error.details.routing_title',
-    ),
-    description: strings(
-      'virtual_bank_account.account_create_error.details.routing_description',
-    ),
-  },
-  {
-    id: 'name',
-    icon: IconName.UserCheck,
-    title: strings(
-      'virtual_bank_account.account_create_error.details.name_title',
-    ),
-    description: strings(
-      'virtual_bank_account.account_create_error.details.name_description',
-    ),
-  },
-];
-
 /**
- * Account-creation failure. `blocked` cannot be fixed in the app, `details`
- * returns the user to their bank details, and `generic` can be retried.
+ * Account-creation failure. The variant controls the title, while the action
+ * controls whether the description directs the user to support or to retry.
  */
 const VbaAccountCreateError = ({
   variant,
+  primaryActionType,
   onPrimary,
   onSecondary,
   onBack,
@@ -68,37 +37,32 @@ const VbaAccountCreateError = ({
     testID={`${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-${variant}`}
     backButtonTestID={VbaAccountCreateErrorSelectorsIDs.BACK_BUTTON}
     onBack={onBack}
-    illustration={
-      <VbaIllustration
-        source={VbaIllustrationSource.hazard}
-        twClassName="h-[65px] w-[71px]"
-      />
-    }
+    illustration={<VbaAccountCreateFailure name="vba-account-create-failure" />}
+    illustrationClassName="mb-5 w-full"
     title={strings(
       `virtual_bank_account.account_create_error.${variant}.title`,
     )}
     description={strings(
-      `virtual_bank_account.account_create_error.${variant}.description`,
+      primaryActionType === 'retry'
+        ? 'virtual_bank_account.account_create_error.generic.description'
+        : 'virtual_bank_account.account_create_error.details.description',
     )}
-    items={variant === 'details' ? detailItems() : undefined}
     primaryAction={{
       label: strings(
-        `virtual_bank_account.account_create_error.${variant}.primary`,
+        primaryActionType === 'retry'
+          ? 'virtual_bank_account.account_create_error.generic.primary'
+          : 'virtual_bank_account.account_create_error.details.primary',
       ),
       onPress: onPrimary,
       testID: VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON,
     }}
-    secondaryAction={
-      onSecondary
-        ? {
-            label: strings(
-              `virtual_bank_account.account_create_error.${variant}.secondary`,
-            ),
-            onPress: onSecondary,
-            testID: VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON,
-          }
-        : undefined
-    }
+    secondaryAction={{
+      label: strings(
+        `virtual_bank_account.account_create_error.${variant}.secondary`,
+      ),
+      onPress: onSecondary,
+      testID: VbaAccountCreateErrorSelectorsIDs.SECONDARY_BUTTON,
+    }}
   />
 );
 

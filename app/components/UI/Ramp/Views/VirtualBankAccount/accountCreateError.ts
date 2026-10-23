@@ -1,16 +1,11 @@
 import Logger from '../../../../../util/Logger';
 
-export const ACCOUNT_CREATE_ERROR_VARIANTS = [
-  'blocked',
-  'details',
-  'generic',
-] as const;
+export const ACCOUNT_CREATE_ERROR_VARIANTS = ['details', 'generic'] as const;
 
 export type AccountCreateErrorVariant =
   (typeof ACCOUNT_CREATE_ERROR_VARIANTS)[number];
 
 export const ACCOUNT_CREATE_ERROR_DESTINATION = {
-  blocked: 'accountCreateBlocked',
   details: 'accountCreateDetails',
   generic: 'accountCreateGeneric',
 } as const;
@@ -39,12 +34,99 @@ export type AccountCreateRegistrationResult =
   | {
       kind: 'fiat';
       status: FiatAddressStatus;
+    }
+  | {
+      kind: 'unknown';
     };
+
+export class AccountCreateRegistrationError extends Error {
+  readonly result: AccountCreateRegistrationResult;
+
+  constructor(result: AccountCreateRegistrationResult) {
+    super('VBA account creation failed');
+    this.name = 'AccountCreateRegistrationError';
+    this.result = result;
+  }
+}
+
+const isFiatAddressStatus = (status: unknown): status is FiatAddressStatus =>
+  typeof status === 'string' &&
+  (FIAT_ADDRESS_STATUSES as readonly string[]).includes(status);
+
+const getTraceId = (
+  context: { traceId?: unknown } | undefined,
+  error: unknown,
+): string | undefined => {
+  if (typeof context?.traceId === 'string') {
+    return context.traceId;
+  }
+  if (!(error instanceof Error)) {
+    return undefined;
+  }
+
+  const match = error.message.match(
+    /"(?:traceId|trace_id)"\s*:\s*"([^"\\]{1,200})"/u,
+  );
+  return match?.[1];
+};
+
+export const getAccountCreateResultFromResponse = (
+  response: unknown,
+): AccountCreateRegistrationResult | null => {
+  if (!response || typeof response !== 'object') {
+    return null;
+  }
+
+  const status = (response as { status?: unknown }).status;
+  return isFiatAddressStatus(status) ? { kind: 'fiat', status } : null;
+};
+
+export const getAccountCreateResultFromError = (
+  error: unknown,
+): AccountCreateRegistrationResult => {
+  if (error instanceof AccountCreateRegistrationError) {
+    return error.result;
+  }
+
+  const context =
+    error && typeof error === 'object'
+      ? (error as {
+          httpStatus?: unknown;
+          fiatStatus?: unknown;
+          traceId?: unknown;
+        })
+      : undefined;
+  if (context?.httpStatus === 200 && isFiatAddressStatus(context.fiatStatus)) {
+    return { kind: 'fiat', status: context.fiatStatus };
+  }
+
+  const status = context?.httpStatus;
+  const supportedStatus: AccountCreateHttpStatus | null =
+    status === 400 ||
+    status === 401 ||
+    status === 403 ||
+    status === 404 ||
+    status === 409 ||
+    status === 422 ||
+    status === 500
+      ? status
+      : null;
+
+  if (supportedStatus === null) {
+    return { kind: 'unknown' };
+  }
+
+  const traceId = getTraceId(context, error);
+  return {
+    kind: 'http',
+    status: supportedStatus,
+    ...(traceId ? { traceId } : {}),
+  };
+};
 
 export const isAccountCreateErrorDestination = (
   destinationId: string,
 ): destinationId is AccountCreateErrorDestinationId =>
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.blocked ||
   destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details ||
   destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.generic;
 
@@ -52,8 +134,6 @@ export const accountCreateErrorVariantForDestination = (
   destinationId: AccountCreateErrorDestinationId,
 ): AccountCreateErrorVariant => {
   switch (destinationId) {
-    case ACCOUNT_CREATE_ERROR_DESTINATION.blocked:
-      return 'blocked';
     case ACCOUNT_CREATE_ERROR_DESTINATION.details:
       return 'details';
     case ACCOUNT_CREATE_ERROR_DESTINATION.generic:
@@ -61,21 +141,16 @@ export const accountCreateErrorVariantForDestination = (
   }
 };
 
-/**
- * Picks the account-creation screen for a MoonPay registration response.
- * Success, an existing account, email verification, and `RegistrationPending`
- * return null. Pending stays on the creating-account spinner.
- *
- * @param result - HTTP error or 200 fiat-address status.
- * @returns The screen variant, or null when this result is not an error screen.
- */
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorVariant | null => {
+  if (result.kind === 'unknown') {
+    return 'generic';
+  }
+
   if (result.kind === 'fiat') {
     switch (result.status) {
       case 'AuthorizationFailed':
-        return 'blocked';
       case 'RegistrationFailed':
         return 'details';
       case 'RegistrationPending':
@@ -88,10 +163,9 @@ export const getAccountCreateErrorVariant = (
   }
 
   switch (result.status) {
+    case 400:
     case 403:
     case 422:
-      return 'blocked';
-    case 400:
       return 'details';
     case 401:
     case 404:
@@ -104,20 +178,31 @@ export const getAccountCreateErrorVariant = (
   }
 };
 
-/**
- * Fields safe to log for a registration failure. The response body is omitted
- * because invalid-data errors can echo bank details.
- *
- * @param result - HTTP error or 200 fiat-address status.
- * @returns Status identifiers and `traceId` when MoonPay sent one.
- */
-export const getAccountCreateFailureLogFields = (
-  result: AccountCreateRegistrationResult,
-): {
+export interface AccountCreateFailureFields {
   httpStatus: number;
   fiatStatus?: FiatAddressStatus;
   traceId?: string;
-} => {
+}
+
+export type AccountCreateErrorPrimaryAction = 'contactSupport' | 'retry';
+
+export const getAccountCreateErrorPrimaryAction = (
+  fields?: AccountCreateFailureFields,
+): AccountCreateErrorPrimaryAction =>
+  fields?.httpStatus === 500 ? 'retry' : 'contactSupport';
+
+const SUPPORT_PARAM_HTTP_STATUS = 'http_status';
+const SUPPORT_PARAM_FIAT_STATUS = 'fiat_status';
+const SUPPORT_PARAM_TRACE_ID = 'trace_id';
+
+/** Returns only support-safe failure fields; response bodies stay excluded. */
+export const getAccountCreateFailureLogFields = (
+  result: AccountCreateRegistrationResult,
+): AccountCreateFailureFields | undefined => {
+  if (result.kind === 'unknown') {
+    return undefined;
+  }
+
   if (result.kind === 'fiat') {
     return { httpStatus: 200, fiatStatus: result.status };
   }
@@ -128,14 +213,6 @@ export const getAccountCreateFailureLogFields = (
   };
 };
 
-/**
- * Logs a registration result that maps to an error screen. Pending, success,
- * an existing account, and email verification are not logged. The payload is
- * only {@link getAccountCreateFailureLogFields}.
- *
- * @param result - HTTP error or 200 fiat-address status.
- * @returns The onboarding destination for that screen, or null when nothing is logged.
- */
 export const logAccountCreateFailure = (
   result: AccountCreateRegistrationResult,
 ): AccountCreateErrorDestinationId | null => {
@@ -148,6 +225,25 @@ export const logAccountCreateFailure = (
     new Error('VBA account creation failed'),
     getAccountCreateFailureLogFields(result),
   );
-
   return ACCOUNT_CREATE_ERROR_DESTINATION[variant];
+};
+
+/** Appends support-safe registration identifiers to the help-center URL. */
+export const buildAccountCreateSupportUrl = (
+  baseUrl: string,
+  fields?: AccountCreateFailureFields,
+): string => {
+  if (!fields) {
+    return baseUrl;
+  }
+
+  const url = new URL(baseUrl);
+  url.searchParams.set(SUPPORT_PARAM_HTTP_STATUS, String(fields.httpStatus));
+  if (fields.fiatStatus) {
+    url.searchParams.set(SUPPORT_PARAM_FIAT_STATUS, fields.fiatStatus);
+  }
+  if (fields.traceId) {
+    url.searchParams.set(SUPPORT_PARAM_TRACE_ID, fields.traceId);
+  }
+  return url.toString();
 };

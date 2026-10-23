@@ -11,6 +11,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
 import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
+import { VbaAccountCreateErrorSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaAccountCreateError';
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
@@ -235,7 +236,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ramps.state = previousState;
   });
 
-  it('shows the account setup error when creating the account fails', async () => {
+  it('opens the support error when setup state cannot be refreshed', async () => {
     netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
     mockHydrateVbaOnboarding
       .mockResolvedValueOnce({
@@ -261,17 +262,14 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     );
 
     expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`,
+      ),
     ).toBeOnTheScreen();
-
-    fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
-
-    await waitFor(() => {
-      expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(3);
-    });
     expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+      await findByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
     ).toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(2);
   });
 
   it('shows the bank account entry only inside enabled regions', async () => {

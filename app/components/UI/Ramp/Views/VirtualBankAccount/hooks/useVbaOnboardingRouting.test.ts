@@ -874,12 +874,52 @@ describe('resolveVbaOnboarding', () => {
 });
 
 describe('navigateToVbaOnboardingDestination account create error', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('opens the bank-details error screen', () => {
     navigateToVbaOnboardingDestination(navigation, 'accountCreateDetails');
 
     expectResetTo({
       name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
       params: { variant: 'details' },
+    });
+  });
+
+  it('passes the safe registration fields to contact support', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateDetails',
+      undefined,
+      { httpStatus: 400, traceId: 'moonpay-trace' },
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'details',
+        failure: { httpStatus: 400, traceId: 'moonpay-trace' },
+      },
+    });
+  });
+
+  it('passes the source currency to the retry screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'USD',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        failure: { httpStatus: 500 },
+        sourceCurrency: 'USD',
+      },
     });
   });
 });

@@ -211,19 +211,50 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).toHaveBeenCalledTimes(1);
   });
 
-  it('fails without creating when wallet lookup is unavailable', async () => {
+  it('surfaces an account-creation error when wallet lookup is unavailable', async () => {
     mockHydrate.mockResolvedValue({
       autorampStatus: 'needs_wallet_registration',
     });
     mockRegister.mockResolvedValue({ type: 'lookupUnavailable' });
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('fails when create throws', async () => {
+  it('surfaces an account-creation error when create throws', async () => {
     mockCreate.mockRejectedValue(new Error('create failed'));
 
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'unknown' },
+      }),
+    );
   });
+
+  it('preserves an HTTP 500 account-creation error', async () => {
+    mockCreate.mockRejectedValue({ httpStatus: 500 });
+
+    await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+      expect.objectContaining({
+        result: { kind: 'http', status: 500 },
+      }),
+    );
+  });
+
+  it.each(['RegistrationFailed', 'AuthorizationFailed'] as const)(
+    'surfaces the %s fiat status returned by account creation',
+    async (status) => {
+      mockCreate.mockResolvedValue({ id: 'ar-new', status });
+
+      await expect(ensureMusdAutoramp('0xabc', 'BRL')).rejects.toEqual(
+        expect.objectContaining({
+          result: { kind: 'fiat', status },
+        }),
+      );
+    },
+  );
 });

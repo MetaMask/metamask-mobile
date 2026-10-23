@@ -296,7 +296,11 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
+    expect(screen.queryByTestId('social-filters-cohort-all')).toBeNull();
     expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -311,6 +315,9 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-cohort-following'),
     ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
