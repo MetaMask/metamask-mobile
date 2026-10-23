@@ -1089,7 +1089,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         applePayLearnMoreUrl: 'https://metamask.io/card',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
-        applePayLearnMoreUrl: 'https://metamask.io/card',
       },
     },
     status: FeatureFlagStatus.Active,

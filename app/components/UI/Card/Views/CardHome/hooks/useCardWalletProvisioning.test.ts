@@ -1,4 +1,5 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { renderHook } from '@testing-library/react-native';
 import {
   IconColor,
@@ -34,7 +35,11 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../pushProvisioning', () => ({
   usePushProvisioning: (...args: unknown[]) => mockUsePushProvisioning(...args),
-  getWalletName: () => 'Apple Wallet',
+  getWalletName: () =>
+    jest.requireActual<typeof import('react-native')>('react-native').Platform
+      .OS === 'ios'
+      ? 'Apple Wallet'
+      : 'Google Wallet',
 }));
 
 jest.mock('../../../../../../component-library/components/Toast', () => {
@@ -124,8 +129,11 @@ function renderProvisioning(
 }
 
 describe('useCardWalletProvisioning', () => {
+  const originalPlatform = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    Platform.OS = 'ios';
     mockUsePushProvisioning.mockReturnValue({
       initiateProvisioning: jest.fn(),
       isProvisioning: false,
@@ -136,6 +144,10 @@ describe('useCardWalletProvisioning', () => {
       canOpenInWallet: true,
       openInWallet: jest.fn(),
     });
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatform;
   });
 
   it('passes wallet provisioning and the card id to the push hook', () => {
@@ -183,6 +195,39 @@ describe('useCardWalletProvisioning', () => {
       Routes.CARD.APPLE_PAY_CONFIRMATION,
     );
     expect(showToast).not.toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows the Google Wallet success toast instead of the Apple Pay confirmation', () => {
+    Platform.OS = 'android';
+    const onSuccess = jest.fn();
+
+    renderProvisioning(homeData(walletProvisioning), undefined, { onSuccess });
+
+    const passedOptions = mockUsePushProvisioning.mock.calls[0][0] as {
+      onSuccess: () => void;
+    };
+    passedOptions.onSuccess();
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [
+          {
+            label: strings('card.push_provisioning.success_message', {
+              walletName: 'Google Wallet',
+            }),
+          },
+        ],
+        startAccessory: expect.objectContaining({
+          props: {
+            name: IconName.Confirmation,
+            color: IconColor.SuccessDefault,
+            size: IconSize.Lg,
+          },
+        }),
+      }),
+    );
     expect(onSuccess).toHaveBeenCalledTimes(1);
   });
 

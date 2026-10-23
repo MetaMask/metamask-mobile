@@ -1,4 +1,5 @@
 import React, { useContext, useMemo } from 'react';
+import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Icon,
@@ -14,6 +15,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import {
+  getWalletName,
   usePushProvisioning,
   type ProvisioningError,
 } from '../../../pushProvisioning';
@@ -89,7 +91,28 @@ export function useCardWalletProvisioning(
     walletProvisioning,
     userAddress: userAddressForProvisioning,
     onSuccess: () => {
-      navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      if (Platform.OS === 'ios') {
+        navigation.replace(Routes.CARD.APPLE_PAY_CONFIRMATION);
+      } else {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('card.push_provisioning.success_message', {
+                walletName: getWalletName(),
+              }),
+            },
+          ],
+          startAccessory: (
+            <Icon
+              name={IconName.Confirmation}
+              color={IconColor.SuccessDefault}
+              size={IconSize.Lg}
+            />
+          ),
+          hasNoTimeout: false,
+        });
+      }
       options?.onSuccess?.();
     },
     onError: (provisioningError: ProvisioningError) => {
