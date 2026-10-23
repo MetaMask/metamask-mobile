@@ -600,6 +600,8 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
       strings('perps.pro_order_form.isolated'),
     );
+    // An unresolved key renders `[missing "en.<key>" translation]` on both sides.
+    expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
   });
 
   it('holds Cross selection and submission until the venue lock resolves', async () => {
