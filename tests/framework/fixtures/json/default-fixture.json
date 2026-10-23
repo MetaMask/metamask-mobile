@@ -952,9 +952,12 @@
     },
     "rewardsMoney": {
       "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
+      "inFlightClaims": {},
       "referralFunnel": {},
       "referralMe": {}
     },

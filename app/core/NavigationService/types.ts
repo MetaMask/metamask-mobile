@@ -708,6 +708,9 @@ export type RootStackParamList = {
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsNavigationParamList['RewardsMoneyClaimsPausedModal']
+    | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
     | undefined;
