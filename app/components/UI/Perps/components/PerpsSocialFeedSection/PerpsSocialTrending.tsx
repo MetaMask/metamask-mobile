@@ -22,8 +22,15 @@ import {
 } from '../../../SocialFeed';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
+import {
+  SocialEvent,
+  type SocialEventSource,
+  useSocialFeedInteractions,
+  useSocialInteraction,
+} from '../../../../Views/SocialLeaderboard/analytics';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
+const { Interaction, Screen, Trade } = SocialEvent;
 export const PERPS_TRENDING_POST_COUNT = 3;
 
 const PERPS_TRENDING_SOURCE: SocialFeedSource = {
@@ -36,7 +43,7 @@ interface PerpsSocialTrendingProps {
   /** Scope to one perp market (raw symbol); omit for trending across all perps. */
   symbol?: string;
   postCount?: number;
-  source?: string;
+  source?: Extract<SocialEventSource, 'perps_home' | 'perp_asset_screen'>;
   /** Renders a See more button under the posts when set. */
   onSeeMorePress?: () => void;
 }
@@ -49,6 +56,10 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const trackInteraction = useSocialInteraction(Screen.TRENDING, { source });
+  const feedInteractions = useSocialFeedInteractions(Screen.TRENDING, {
+    source,
+  });
   const feedSource = useMemo<SocialFeedSource>(
     () => (symbol ? { kind: 'perp', symbol } : PERPS_TRENDING_SOURCE),
     [symbol],
@@ -59,6 +70,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -70,7 +82,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [navigation, myProfile, source],
+    [navigation, myProfile, source, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
@@ -78,6 +90,13 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
       if (!post.position) {
         return;
       }
+      trackInteraction(Interaction.TAP, {
+        trade_type:
+          post.item.variant === 'perpsOpen' ||
+          post.item.variant === 'perpsClosed'
+            ? Trade.PERPS
+            : Trade.SPOT,
+      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
         position: post.position,
@@ -88,18 +107,19 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation],
+    [navigation, trackInteraction],
   );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
+        {...feedInteractions}
         post={post}
         onAuthorPress={handleAuthorPress}
         onPositionPress={post.position ? handlePositionPress : undefined}
       />
     ),
-    [handleAuthorPress, handlePositionPress],
+    [feedInteractions, handleAuthorPress, handlePositionPress],
   );
 
   if (isLoading && posts.length === 0) {

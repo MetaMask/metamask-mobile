@@ -29,12 +29,14 @@ import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
+import { useManageProfileAnalytics } from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
   const { isControllerBacked, disconnectX } = useProfileController();
+  const trackProfileEdited = useManageProfileAnalytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const [isDisconnectingX, setIsDisconnectingX] = useState(false);
@@ -87,6 +89,7 @@ const ManageProfileView: React.FC = () => {
 
     try {
       await disconnectX(profile.profileId);
+      trackProfileEdited();
     } catch {
       setErrorMessage(strings('social_leaderboard.manage_profile.save_error'));
     } finally {
@@ -97,6 +100,7 @@ const ManageProfileView: React.FC = () => {
     isControllerBacked,
     profile?.connectedToX,
     profile?.profileId,
+    trackProfileEdited,
   ]);
 
   const displayName = profile?.displayName ?? '';

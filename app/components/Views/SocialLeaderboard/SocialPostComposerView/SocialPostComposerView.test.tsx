@@ -21,6 +21,12 @@ jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   default: () => true,
 }));
 
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialInteraction: () => jest.fn(),
+  useSocialScreenAnalytics: () => jest.fn(),
+}));
+
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
   const { View } = jest.requireActual('react-native');
   return {

@@ -69,7 +69,14 @@ import type {
   SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  SocialEvent,
+  type SocialEventSource,
+  useSocialFeedInteractions,
+  useSocialScreenAnalytics,
+} from '../analytics';
 
+const { FeedSort, Filter, Interaction, Screen, Tab, Trade } = SocialEvent;
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
@@ -96,6 +103,7 @@ export type SocialFeedShellTab = SocialV1FeedTab;
 
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
+  source?: SocialEventSource;
   /**
    * The pager mounts every page up front. Hold the mock list back until the
    * tab is first opened so Trending and Following don't duplicate testIDs.
@@ -126,6 +134,7 @@ export interface EmptyShellTabPageProps {
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
+  source,
   isActive = true,
   onScroll,
   pageRef,
@@ -188,6 +197,23 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   );
 
   const { colors } = useTheme();
+  const screenName = tab === 'trending' ? Screen.TRENDING : Screen.FOLLOWING;
+  const tabName = tab === 'trending' ? Tab.TRENDING : Tab.FOLLOWING;
+  const analyticsContext = { tab_name: tabName, source };
+  const trackInteraction = useSocialScreenAnalytics(screenName, {
+    tabName,
+    source,
+    state: [
+      isLoading,
+      Boolean(error),
+      posts.length > 0 || pinnedPosts.length > 0,
+    ],
+    isActive,
+  });
+  const feedInteractions = useSocialFeedInteractions(
+    screenName,
+    analyticsContext,
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [selectedToken, setSelectedToken] = useState<SocialV1HotToken | null>(
     null,
@@ -256,6 +282,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    trackInteraction(Interaction.REFRESH);
     try {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
@@ -278,7 +305,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [visibleAssetFeed, refresh]);
+  }, [refresh, trackInteraction, visibleAssetFeed]);
 
   /**
    * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
@@ -425,6 +452,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
       playSelection().catch(() => undefined);
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -436,7 +464,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [myProfile, navigation],
+    [myProfile, navigation, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
@@ -445,6 +473,11 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
+      trackInteraction(Interaction.TAP, {
+        trade_type: post.item.variant.startsWith('perps')
+          ? Trade.PERPS
+          : Trade.SPOT,
+      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
         position: post.position,
@@ -455,13 +488,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation],
+    [navigation, trackInteraction],
   );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
+          {...feedInteractions}
           post={post}
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
@@ -469,7 +503,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         />
       </SocialFeedPostEntrance>
     ),
-    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
+    [
+      handleAuthorPress,
+      handleCopyTrade,
+      feedInteractions,
+      handlePositionPress,
+      seenPostIds,
+    ],
   );
 
   const showInitialFeedSkeletons = visibleAssetFeed
@@ -498,6 +538,20 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showNextPageSpinner = visibleAssetFeed
     ? visibleAssetFeed.isFetchingNextPage
     : isFetchingNextPage;
+  const handleFeedSortChange = useCallback(
+    (nextSort: FeedSort) => {
+      if (nextSort === feedSort) {
+        return;
+      }
+      trackInteraction(Interaction.SORT_APPLIED, {
+        filter_name: Filter.FEED_SORT,
+        previous_filter_value: feedSort,
+        filter_value: nextSort,
+      });
+      setFeedSort(nextSort);
+    },
+    [feedSort, trackInteraction],
+  );
 
   return (
     <SocialFeedSurfaceProvider
@@ -601,7 +655,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           <FeedSortFilterSheet
             isOpen={isSortSheetOpen}
             value={feedSort}
-            onChange={setFeedSort}
+            onChange={handleFeedSortChange}
             onClose={() => setIsSortSheetOpen(false)}
           />
         ) : null}
