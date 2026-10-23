@@ -179,13 +179,11 @@ const runSetup = async (
       return 'ready';
     }
 
-    const snapshot = await Engine.context.RampsController.hydrateVbaOnboarding(
-      {
-        walletAddress,
-        refreshKyc: false,
-        refreshAutoramps: true,
-      },
-    );
+    const snapshot = await Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: false,
+      refreshAutoramps: true,
+    });
 
     if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
       return 'ready';
