@@ -2,6 +2,45 @@ import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+
+/** Destination of every VBA autoramp: mUSD on Monad (CAIP-2 `eip155:143`). */
+const AUTORAMP_DESTINATION = {
+  currency_destination_symbol: 'mUSD',
+  token_chain_id: 'eip155:143',
+} as const;
+
+/**
+ * Creates the fiat to mUSD autoramp and reports the call's outcome as
+ * `Money VBA Autoramp Create Updated`. A failure is reported once and rethrown
+ * for the caller's existing handling.
+ */
+const createAutorampTracked = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<void> => {
+  try {
+    const autoramp = await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+      ...buildVbaBaseProperties({ currencySource: sourceCurrency }),
+      status: 'succeeded',
+      autoramp_id: autoramp.id,
+      ...AUTORAMP_DESTINATION,
+    });
+  } catch (error) {
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+      ...buildVbaBaseProperties({
+        currencySource: sourceCurrency,
+        failureReason: 'vba_create_failed',
+      }),
+      status: 'failed',
+    });
+    throw error;
+  }
+};
 
 /**
  * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active.
@@ -93,9 +132,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await Engine.context.RampsController.createAutoramp(
-      buildMusdAutorampRequest(walletAddress, sourceCurrency),
-    );
+    await createAutorampTracked(walletAddress, sourceCurrency);
     return 'ready';
   }
 
@@ -144,9 +181,7 @@ const runSetup = async (
     return 'ready';
   }
 
-  await Engine.context.RampsController.createAutoramp(
-    buildMusdAutorampRequest(walletAddress, sourceCurrency),
-  );
+  await createAutorampTracked(walletAddress, sourceCurrency);
   return 'ready';
 };
 

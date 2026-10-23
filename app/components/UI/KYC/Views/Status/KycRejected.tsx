@@ -1,6 +1,7 @@
 import React from 'react';
 import { IconName } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import VbaOnboardingError from '../../components/OnboardingError';
 
 export const VbaKycRejectedSelectorsIDs = {
@@ -17,46 +18,50 @@ interface VbaKycRejectedProps {
  * Shown when VBA KYC is rejected. Retry re-enters identity verification
  * instead of refreshing this screen while the session is still rejected.
  */
-const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => (
-  <VbaOnboardingError
-    testID={VbaKycRejectedSelectorsIDs.CONTAINER}
-    backButtonTestID={VbaKycRejectedSelectorsIDs.BACK_BUTTON}
-    title={strings('virtual_bank_account.kyc_rejected.title')}
-    description={strings('virtual_bank_account.kyc_rejected.description')}
-    items={[
-      {
-        id: 'identity-document',
-        icon: IconName.Card,
-        title: strings(
-          'virtual_bank_account.kyc_rejected.identity_document_title',
-        ),
-        description: strings(
-          'virtual_bank_account.kyc_rejected.identity_document_description',
-        ),
-      },
-      {
-        id: 'selfie',
-        icon: IconName.FaceId,
-        title: strings('virtual_bank_account.kyc_rejected.selfie_title'),
-        description: strings(
-          'virtual_bank_account.kyc_rejected.selfie_description',
-        ),
-      },
-      {
-        id: 'details',
-        icon: IconName.UserCheck,
-        title: strings('virtual_bank_account.kyc_rejected.details_title'),
-        description: strings(
-          'virtual_bank_account.kyc_rejected.details_description',
-        ),
-      },
-    ]}
-    primaryAction={{
-      label: strings('virtual_bank_account.kyc_rejected.button'),
-      onPress: onRetry,
-      testID: VbaKycRejectedSelectorsIDs.RETRY_BUTTON,
-    }}
-  />
-);
+const VbaKycRejected = ({ onRetry }: VbaKycRejectedProps) => {
+  useTrackKycResultViewed('rejected');
+
+  return (
+    <VbaOnboardingError
+      testID={VbaKycRejectedSelectorsIDs.CONTAINER}
+      backButtonTestID={VbaKycRejectedSelectorsIDs.BACK_BUTTON}
+      title={strings('virtual_bank_account.kyc_rejected.title')}
+      description={strings('virtual_bank_account.kyc_rejected.description')}
+      items={[
+        {
+          id: 'identity-document',
+          icon: IconName.Card,
+          title: strings(
+            'virtual_bank_account.kyc_rejected.identity_document_title',
+          ),
+          description: strings(
+            'virtual_bank_account.kyc_rejected.identity_document_description',
+          ),
+        },
+        {
+          id: 'selfie',
+          icon: IconName.FaceId,
+          title: strings('virtual_bank_account.kyc_rejected.selfie_title'),
+          description: strings(
+            'virtual_bank_account.kyc_rejected.selfie_description',
+          ),
+        },
+        {
+          id: 'details',
+          icon: IconName.UserCheck,
+          title: strings('virtual_bank_account.kyc_rejected.details_title'),
+          description: strings(
+            'virtual_bank_account.kyc_rejected.details_description',
+          ),
+        },
+      ]}
+      primaryAction={{
+        label: strings('virtual_bank_account.kyc_rejected.button'),
+        onPress: onRetry,
+        testID: VbaKycRejectedSelectorsIDs.RETRY_BUTTON,
+      }}
+    />
+  );
+};
 
 export default VbaKycRejected;

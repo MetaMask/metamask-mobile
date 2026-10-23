@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -33,6 +33,22 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+
+const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
+
+const trackVendorTerms = (
+  status: 'viewed' | 'accepted' | 'failed',
+  failureReason?: string,
+) =>
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_VENDOR_TERMS_UPDATED, {
+    ...buildVbaBaseProperties({
+      screenName: VENDOR_TERMS_SCREEN_NAME,
+      failureReason,
+    }),
+    status,
+  });
 
 const FeatureRow = ({
   icon,
@@ -82,6 +98,17 @@ const CreateVirtualBankAccount = ({
     !error &&
     Boolean(disclaimers?.length);
 
+  useEffect(() => {
+    trackVendorTerms('viewed');
+  }, []);
+
+  // Fires when a load, empty-catalog or save error appears, not on each render.
+  useEffect(() => {
+    if (error) {
+      trackVendorTerms('failed', 'terms_unavailable');
+    }
+  }, [error]);
+
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
   const handleAgreeAndContinue = useCallback(async () => {
@@ -95,6 +122,7 @@ const CreateVirtualBankAccount = ({
       // Persist vendor terms locally. Email creates the vendor session and
       // records these accepted ids before continuing.
       if (await acceptDisclaimers()) {
+        trackVendorTerms('accepted');
         await onSuccess();
         didAdvance = true;
       }

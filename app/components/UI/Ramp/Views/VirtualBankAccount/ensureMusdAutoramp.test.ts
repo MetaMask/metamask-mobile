@@ -1,6 +1,7 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import { flushPromises } from '../../../../../util/test/utils';
+import { trackVbaEvent } from './vbaAnalytics';
 import {
   ensureMusdAutoramp,
   findUsableAutoramp,
@@ -20,6 +21,11 @@ jest.mock('../../../../../core/Engine', () => ({
       createAutoramp: (...args: unknown[]) => mockCreate(...args),
     },
   },
+}));
+
+jest.mock('./vbaAnalytics', () => ({
+  ...jest.requireActual('./vbaAnalytics'),
+  trackVbaEvent: jest.fn(),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -225,5 +231,46 @@ describe('ensureMusdAutoramp', () => {
     mockCreate.mockRejectedValue(new Error('create failed'));
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('failed');
+  });
+
+  it('tracks a succeeded create with the autoramp id and destination', async () => {
+    await ensureMusdAutoramp('0xabc', 'BRL');
+
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    expect(trackVbaEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'Money VBA Autoramp Create Updated',
+      }),
+      expect.objectContaining({
+        status: 'succeeded',
+        autoramp_id: 'ar-new',
+        currency_destination_symbol: 'mUSD',
+        token_chain_id: 'eip155:143',
+        currency_source: 'BRL',
+      }),
+    );
+  });
+
+  it('tracks a failed create once with a failure reason', async () => {
+    mockCreate.mockRejectedValue(new Error('create failed'));
+
+    await ensureMusdAutoramp('0xabc', 'BRL');
+
+    expect(trackVbaEvent).toHaveBeenCalledTimes(1);
+    const [, properties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    expect(properties).toMatchObject({
+      status: 'failed',
+      failure_reason: 'vba_create_failed',
+      currency_source: 'BRL',
+    });
+    expect(properties).not.toHaveProperty('autoramp_id');
+  });
+
+  it('does not track when no create call is made', async () => {
+    setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Approved' }]);
+
+    await ensureMusdAutoramp('0xabc', 'BRL');
+
+    expect(trackVbaEvent).not.toHaveBeenCalled();
   });
 });

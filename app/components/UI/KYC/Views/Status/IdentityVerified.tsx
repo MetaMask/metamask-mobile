@@ -18,6 +18,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
+import { useTrackKycResultViewed } from '../../hooks/useTrackKycResultViewed';
 import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
@@ -38,6 +39,7 @@ export const VbaIdentityVerifiedSelectorsIDs = {
  * Back goes to Money home.
  */
 const VbaIdentityVerified = () => {
+  useTrackKycResultViewed('approved');
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
