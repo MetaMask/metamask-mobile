@@ -89,9 +89,7 @@ export function buildKycBaseProperties(
     input.providerFlowStatus ?? state?.providerFlowStatus;
   const kycStatus =
     input.kycStatus ??
-    (state && providerFlowStatus
-      ? getKycAnalyticsStatus(state.sessionStatus, state.providerFlowStatus)
-      : undefined);
+    (state ? getKycAnalyticsStatus(state.sessionStatus) : undefined);
   const region = readRegion();
 
   return {

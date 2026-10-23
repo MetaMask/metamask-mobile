@@ -31,7 +31,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 
-const mockDeriveKycStatus = jest.mocked(getKycAnalyticsStatus);
+const mockGetKycAnalyticsStatus = jest.mocked(getKycAnalyticsStatus);
 const mockTrackEvent = jest.mocked(analytics.trackEvent);
 const mockGetState = jest.mocked(ReduxService.store.getState);
 const mockEngine = Engine as unknown as {
@@ -63,7 +63,7 @@ describe('kycVerificationAnalytics', () => {
         email: 'user@example.com',
       },
     };
-    mockDeriveKycStatus.mockReturnValue('new');
+    mockGetKycAnalyticsStatus.mockReturnValue('new');
   });
 
   describe('buildKycBaseProperties', () => {
@@ -88,10 +88,10 @@ describe('kycVerificationAnalytics', () => {
         kyc_status: 'new',
         provider_flow_status: 'not_started',
       });
-      expect(mockDeriveKycStatus).toHaveBeenCalledWith(
-        { id: 'session-secret', finalStatus: 'new' },
-        'not_started',
-      );
+      expect(mockGetKycAnalyticsStatus).toHaveBeenCalledWith({
+        id: 'session-secret',
+        finalStatus: 'new',
+      });
     });
 
     it('reports the schema vendor, not the controller vendor', () => {
