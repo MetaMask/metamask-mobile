@@ -41,14 +41,12 @@ describe('VbaOnboardingStub', () => {
     expect(getByTestId(testId)).toBeOnTheScreen();
   });
 
-  it('renders the account details failure as a centered outcome', () => {
-    const { getByTestId, getByText } = renderWithProvider(
+  it('renders the account details failure without checklist rows', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
       <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
     );
 
-    expect(
-      getByTestId(VbaOnboardingErrorSelectorsIDs.ILLUSTRATION),
-    ).toBeOnTheScreen();
+    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
     expect(
       getByText(strings('virtual_bank_account.error.title')),
     ).toBeOnTheScreen();

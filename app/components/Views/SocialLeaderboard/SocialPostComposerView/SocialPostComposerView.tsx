@@ -61,9 +61,13 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+import {
+  addPendingPost,
+  requestFollowingFocus,
+} from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
+import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
@@ -166,14 +170,15 @@ const SocialPostComposerView: React.FC = () => {
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
 
+  const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
     () => ({
       id: profile?.profileId ?? COMPOSER_FEED_AUTHOR.id,
-      username: profile?.handle ?? '',
+      username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
     }),
-    [profile?.handle, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId],
   );
 
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
@@ -301,19 +306,36 @@ const SocialPostComposerView: React.FC = () => {
         return;
       }
       if (selectedPosition && !tradeInFlightParams) {
-        const item = mapPositionToFeedItem(selectedPosition.position, caption, {
-          isClosed: selectedPosition.isClosed,
-          author: composerAuthor,
+        const comment = created;
+        const pendingPost = buildPendingPost(comment, () => {
+          const name = comment.author.name || authorName;
+          const avatarUri = comment.author.images?.sm ?? profile?.imageUrl;
+          return {
+            id: comment.uid,
+            authorHandle: name,
+            authorImageUrl: avatarUri,
+            timestampMs: comment.timestamp * 1000,
+            reactions: [],
+            gifUri: gifUri ?? undefined,
+            item: mapPositionToFeedItem(selectedPosition.position, caption, {
+              isClosed: selectedPosition.isClosed,
+              author: {
+                id: comment.author.id,
+                username: name,
+                avatarUri,
+                winRatePercent: null,
+              },
+            }),
+            position: selectedPosition.position,
+          };
         });
-        submitSocialV1ComposedPost({
-          id: created.uid,
-          authorHandle: profile?.handle ?? '',
-          authorImageUrl: profile?.imageUrl,
-          timestampMs: created.timestamp * 1000,
-          reactions: [],
-          gifUri: gifUri ?? undefined,
-          item,
-        });
+        if (pendingPost && profile?.profileId) {
+          addPendingPost({
+            ownerProfileId: profile.profileId,
+            post: pendingPost,
+          });
+          requestFollowingFocus();
+        }
       } else {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -355,16 +377,16 @@ const SocialPostComposerView: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [
+    authorName,
     canSubmit,
     colors.error.default,
     colors.success.default,
-    composerAuthor,
     gifUri,
     isSubmitting,
     navigation,
     openFeedAfterPost,
-    profile?.handle,
     profile?.imageUrl,
+    profile?.profileId,
     selectedPosition,
     text,
     toastRef,
