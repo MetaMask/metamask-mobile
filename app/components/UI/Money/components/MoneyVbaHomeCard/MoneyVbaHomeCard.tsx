@@ -47,6 +47,17 @@ const HERO_GRADIENT_COLORS = [brandColor.purple300, brandColor.indigo200];
 const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
+interface MoneyVbaHomeCardProps {
+  /** Status variant chosen by {@link useVbaHomeCard}. */
+  variant: MoneyVbaHomeCardVariant;
+  /**
+   * Fired when the user dismisses a dismissible variant. The card hides
+   * itself; the host uses this so other Money home content does not stay
+   * hidden after the card is gone.
+   */
+  onDismiss?: () => void;
+}
+
 /**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
@@ -56,11 +67,7 @@ const HERO_GRADIENT_ANGLE = 224;
  * The card variant is chosen by {@link useVbaHomeCard}; this component only
  * renders and reports.
  */
-const MoneyVbaHomeCard = ({
-  variant,
-}: {
-  variant: MoneyVbaHomeCardVariant;
-}) => {
+const MoneyVbaHomeCard = ({ variant, onDismiss }: MoneyVbaHomeCardProps) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
@@ -116,7 +123,8 @@ const MoneyVbaHomeCard = ({
       label_key: `${config.i18nPrefix}.dismiss`,
     });
     setIsDismissed(true);
-  }, [config, trackButtonClicked]);
+    onDismiss?.();
+  }, [config, onDismiss, trackButtonClicked]);
 
   if (isDismissed) {
     return null;

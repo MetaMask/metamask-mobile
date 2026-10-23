@@ -46,6 +46,7 @@ import MoneyVbaHomeCard from '../../components/MoneyVbaHomeCard';
 import {
   useVbaHomeCard,
   useVbaHomeCardRefresh,
+  type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
@@ -211,7 +212,40 @@ const MoneyHomeView = () => {
   // the same eligibility gate the home cards use). Its destination is the same
   // coordinator the cards use: a complete account lands on the PIX details
   // screen, everyone else on their first incomplete onboarding module.
-  const { isEligible: isVbaEligible } = useVbaEligibility();
+  const {
+    isEligible: isVbaEligible,
+    isLoading: isVbaEligibilityLoading,
+    isFlagEnabled: isVbaFlagEnabled,
+  } = useVbaEligibility();
+  // Dismiss lives on the card, but Money home must know so the onboarding
+  // card can return. Cleared when the variant changes, matching the card
+  // remount (`key={variant}`) that drops in-card dismiss state.
+  const [dismissedVbaVariant, setDismissedVbaVariant] = useState<
+    VbaHomeCard['type'] | null
+  >(null);
+  if (
+    dismissedVbaVariant !== null &&
+    dismissedVbaVariant !== vbaHomeCard.type
+  ) {
+    setDismissedVbaVariant(null);
+  }
+  const vbaHomeCardVariant =
+    vbaHomeCard.type === 'none' ? null : vbaHomeCard.type;
+  const isVbaHomeCardVisible =
+    vbaHomeCardVariant !== null && dismissedVbaVariant !== vbaHomeCardVariant;
+  // `useVbaHomeCard` reports `none` until eligibility resolves. Hold the
+  // onboarding card only while the flag can still produce a VBA card, so it
+  // does not flash and then get replaced. Flag off keeps today's onboarding.
+  const isVbaHomeCardPending =
+    !isVbaHomeCardVisible && isVbaEligibilityLoading && isVbaFlagEnabled;
+  const showMoneyOnboardingCard =
+    !isVbaHomeCardVisible && !isVbaHomeCardPending;
+  const handleVbaCardDismiss = useCallback(() => {
+    if (vbaHomeCardVariant === null) {
+      return;
+    }
+    setDismissedVbaVariant(vbaHomeCardVariant);
+  }, [vbaHomeCardVariant]);
   const openVbaOnboarding = useOpenVbaOnboarding('vba-action-row-details');
   const [isDetailsOpening, setIsDetailsOpening] = useState(false);
   const showVbaDetailsButton = isVbaEligible;
@@ -1123,10 +1157,14 @@ const MoneyHomeView = () => {
               : undefined
           }
         />
-        {vbaHomeCard.type !== 'none' && (
-          <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
+        {isVbaHomeCardVisible && vbaHomeCardVariant !== null && (
+          <MoneyVbaHomeCard
+            key={vbaHomeCardVariant}
+            variant={vbaHomeCardVariant}
+            onDismiss={handleVbaCardDismiss}
+          />
         )}
-        <MoneyOnboardingCard isGlass={isGlass} />
+        {showMoneyOnboardingCard && <MoneyOnboardingCard isGlass={isGlass} />}
         {contentSections.map((section, index) => (
           <React.Fragment key={section.key}>
             {index > 0 && <Divider />}
