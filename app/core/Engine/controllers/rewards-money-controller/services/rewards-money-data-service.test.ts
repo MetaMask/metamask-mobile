@@ -418,7 +418,9 @@ describe('RewardsMoneyDataService', () => {
         const busy = busyReferralMe('2');
         mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
 
-        const pending = await expect(service.getReferralMe()).rejects.toMatchObject({
+        const pending = await expect(
+          service.getReferralMe(),
+        ).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
