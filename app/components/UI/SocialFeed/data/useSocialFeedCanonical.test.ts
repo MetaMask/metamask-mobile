@@ -364,10 +364,6 @@ describe('useSocialFeedCanonical', () => {
     expect(mockSetScopes).toHaveBeenCalledWith(['all']);
     expect(mockAddListener).toHaveBeenCalledTimes(1);
     expect(mockAddReconnectListener).toHaveBeenCalledTimes(1);
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ maxPages: 2 }),
-    );
     unmount();
   });
 

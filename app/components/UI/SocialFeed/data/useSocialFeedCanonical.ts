@@ -187,7 +187,6 @@ export const useSocialFeedCanonical = ({
   const feed = useSocialFeed(source, {
     enabled: enabled && isFocused,
     pageSize: SOCIAL_FEED_PAGE_SIZE,
-    ...(realtimeEnabled ? { maxPages: 2 } : {}),
   });
   const { refresh } = feed;
   const rowsRef = useRef(feed.rows);

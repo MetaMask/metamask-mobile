@@ -8,6 +8,7 @@ import type {
   FetchFeedOptions,
   FetchTokenFeedOptions,
   FetchTraderFeedOptions,
+  SocialFeedRealtimeScope,
   TokenFeedChain,
 } from '@metamask/social-controllers';
 import {
@@ -186,6 +187,24 @@ export const toSocialFeedRequest = (
     default:
       return source satisfies never;
   }
+};
+
+/**
+ * The socket channel that streams a source, or `null` when none does. Only
+ * an unnarrowed `all` source qualifies: socket events are not filtered by
+ * chain, so an asset-class feed would receive rows it should not show.
+ */
+export const toSocialFeedRealtimeScope = (
+  source: SocialFeedSource,
+): SocialFeedRealtimeScope | null => {
+  if (
+    source.kind !== 'all' ||
+    (source.assetClass !== undefined && source.assetClass !== 'all')
+  ) {
+    return null;
+  }
+  const scope = source.scope ?? toFeedScope(source.audience);
+  return scope === 'all' || scope === 'trending' ? scope : null;
 };
 
 /** The asset fields a feed row carries, as the social API names them. */
