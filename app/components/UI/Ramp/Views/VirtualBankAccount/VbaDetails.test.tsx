@@ -11,6 +11,12 @@ import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -94,6 +100,9 @@ jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   navigateToVbaOnboardingDestination: (...args: unknown[]) =>
     mockNavigateToVbaOnboardingDestination(...args),
 }));
+
+jest.mock('../../../../../hooks/useScreenPerformance');
+const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -248,6 +257,14 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:BRL',
+      enabled: true,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
     });
     expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
@@ -930,6 +947,14 @@ describe('VbaDetails', () => {
       return created;
     });
     view.rerender(<VbaDetails />);
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:USD',
+      enabled: false,
+      contentReady: false,
+      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
+    });
     resolvePix(pixInstructions);
 
     await waitFor(() => {
@@ -1068,6 +1093,14 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      resetKey: '0xabc:BRL',
+      enabled: true,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
     });
   });
 });
