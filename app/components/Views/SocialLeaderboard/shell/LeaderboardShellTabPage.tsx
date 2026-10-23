@@ -187,7 +187,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
             style={tw.style('flex-1')}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style(
-              `pb-[${24 + floatingTabBarInset}px]`,
+              `pt-[12px] pb-[${24 + floatingTabBarInset}px]`,
             )}
             onScroll={onScroll}
             scrollEventThrottle={16}
@@ -205,6 +205,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+              twClassName="px-4 pb-4"
             >
               <RankingFilterSelector
                 value={ranking}

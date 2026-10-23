@@ -641,11 +641,11 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}

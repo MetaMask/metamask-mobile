@@ -1316,7 +1316,7 @@
         "feed": "Feed",
         "trending": "Trending",
         "following": "Following",
-        "live_trades": "Live trades"
+        "live_trades": "Live"
       },
       "live_stream": {
         "paused": "Paused",

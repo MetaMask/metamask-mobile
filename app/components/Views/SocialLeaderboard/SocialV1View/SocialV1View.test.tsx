@@ -256,7 +256,7 @@ describe('SocialV1View', () => {
     });
   });
 
-  it('renders Trending, Following, Leaderboard, and Live trades tabs', () => {
+  it('renders Trending, Following, Leaderboard, and Live tabs', () => {
     renderWithProvider(<SocialV1View />);
 
     expect(
