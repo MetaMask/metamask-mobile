@@ -74,6 +74,40 @@ async function fetchWithDeadline(
   }
 }
 
+interface PredictSellPriceCheck {
+  outcome: PredictPresubmitOutcomeValue;
+  /** The re-fetched preview; null when the book could not be fetched. */
+  freshPreview: OrderPreview | null;
+}
+
+/**
+ * Re-fetches the order book (up to CASH_OUT_PRICE_CHECK_TIMEOUT_MS) and
+ * decides a sell against the price the user approved. Never throws.
+ */
+export async function checkPredictSellPrice(
+  refetchPreview: () => Promise<RefetchPreviewResult>,
+  approvedPrice: number,
+): Promise<PredictSellPriceCheck> {
+  const result = await fetchWithDeadline(refetchPreview);
+  return {
+    outcome: getPresubmitOutcome(result, approvedPrice),
+    freshPreview: result.status === 'ok' ? result.preview : null,
+  };
+}
+
+/** The sheet for a check that blocked the sell with no new price to confirm. */
+export function getPredictSellBlockedVariant(
+  outcome: PredictPresubmitOutcomeValue,
+): PredictCashOutSheetVariant {
+  if (outcome === PRESUBMIT_OUTCOME.TIMEOUT) {
+    return 'timeout';
+  }
+  if (outcome === PRESUBMIT_OUTCOME.QUOTE_UNAVAILABLE) {
+    return 'quote_unavailable';
+  }
+  return 'no_match';
+}
+
 interface UsePredictCashOutSubmitParams {
   /** The preview on screen; its price is what the user approves on Cash Out. */
   preview: OrderPreview | null | undefined;
@@ -138,12 +172,13 @@ export function usePredictCashOutSubmit({
       setIsCheckingPrice(true);
 
       try {
-        const result = await fetchWithDeadline(refetchPreview);
+        const { outcome, freshPreview } = await checkPredictSellPrice(
+          refetchPreview,
+          approvedPrice,
+        );
         if (attemptId !== attemptIdRef.current) {
           return;
         }
-        const freshPreview = result.status === 'ok' ? result.preview : null;
-        const outcome = getPresubmitOutcome(result, approvedPrice);
 
         void Engine.context.PredictController.trackPredictOrderEvent({
           status: PredictTradeStatus.PRESUBMIT_CHECKED,
@@ -162,12 +197,8 @@ export function usePredictCashOutSubmit({
         } else if (outcome === PRESUBMIT_OUTCOME.PRICE_MOVED && freshPreview) {
           setSheetPreviousPrice(approvedPrice);
           showSheet('price_moved', freshPreview);
-        } else if (outcome === PRESUBMIT_OUTCOME.TIMEOUT) {
-          showSheet('timeout');
-        } else if (outcome === PRESUBMIT_OUTCOME.QUOTE_UNAVAILABLE) {
-          showSheet('quote_unavailable');
         } else {
-          showSheet('no_match');
+          showSheet(getPredictSellBlockedVariant(outcome));
         }
       } finally {
         isInFlightRef.current = false;
