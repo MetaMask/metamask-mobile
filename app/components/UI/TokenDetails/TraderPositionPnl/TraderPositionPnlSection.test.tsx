@@ -202,7 +202,7 @@ describe('TraderPositionPnlSection', () => {
     });
   });
 
-  it('passes a loading header through before a value arrives', () => {
+  it('hides the position row while loading when there is no value yet', () => {
     mockUseOpenPositionHeader.mockReturnValue({
       sharePosition: null,
       isLoading: true,
@@ -210,9 +210,7 @@ describe('TraderPositionPnlSection', () => {
 
     renderSection();
 
-    expect(positionProp()).toEqual(
-      expect.objectContaining({ isLoading: true, positionValue: undefined }),
-    );
+    expect(positionProp()).toBeUndefined();
   });
 
   it('hides the position row when there is no value and no load in flight', () => {

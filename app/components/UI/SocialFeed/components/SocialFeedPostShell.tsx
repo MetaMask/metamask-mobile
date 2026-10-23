@@ -32,6 +32,7 @@ import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
+import SocialFeedGif from './SocialFeedGif';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -188,9 +189,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
         {post.gifUri ? (
           <Box twClassName="rounded-2xl overflow-hidden">
-            <Image
-              source={{ uri: post.gifUri }}
-              style={tw.style('w-full aspect-square')}
+            <SocialFeedGif
+              uri={post.gifUri}
               testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
             />
           </Box>
