@@ -153,13 +153,15 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         ) : null}
         <Box
           flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
           twClassName="mx-4 mt-4 px-3 py-3 rounded-2xl border border-muted"
-          gap={2}
+          gap={1}
         >
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            twClassName="mt-0.5"
           />
           <Text
             variant={TextVariant.BodySm}
