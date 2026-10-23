@@ -8496,6 +8496,7 @@
       "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
+      "copied": "Setup key copied",
       "show_qr": "Show QR code",
       "qr_title": "Scan QR code",
       "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",

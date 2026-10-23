@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable } from 'react-native';
+import { AccessibilityInfo, Pressable } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import {
@@ -68,6 +68,9 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
 
   const copyKey = () => {
     Clipboard.setString(step.secret);
+    AccessibilityInfo.announceForAccessibility(
+      strings('mfa.totp_setup.copied'),
+    );
     setIsCopied(true);
     clearTimeout(copiedTimer.current);
     copiedTimer.current = setTimeout(
@@ -118,7 +121,10 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
           <Pressable
             onPress={copyKey}
             accessibilityRole="button"
-            accessibilityLabel={strings('mfa.totp_setup.copy')}
+            accessibilityLabel={`${strings(
+              'mfa.totp_setup.setup_key',
+            )}, ${formatSetupKey(step.secret)}`}
+            accessibilityHint={strings('mfa.totp_setup.copy')}
             style={({ pressed }) =>
               tw.style(
                 'flex-row items-center gap-3 rounded-2xl p-4',

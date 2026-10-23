@@ -1,6 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
-import { Keyboard, TextInput } from 'react-native';
+import { AccessibilityInfo, Keyboard, TextInput } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type {
@@ -740,6 +740,29 @@ describe('TotpSetupStep', () => {
     expect(setString).toHaveBeenCalledWith('JBSWY3DPEHPK3PXP');
     // Only the icon turns green: no message.
     expect(queryByText(/copied/iu)).toBeNull();
+  });
+
+  it('includes the setup key in the copy card accessibility label', () => {
+    const { getByTestId } = renderSetup();
+
+    const copyCard = getByTestId(MfaFlowSelectorsIDs.TOTP_COPY_KEY);
+
+    expect(copyCard.props.accessibilityLabel).toBe(
+      'Setup key, JBSW Y3DP EHPK 3PXP',
+    );
+    expect(copyCard.props.accessibilityHint).toBe('Copy setup key');
+  });
+
+  it('announces when the setup key is copied', () => {
+    const announce = jest.spyOn(
+      AccessibilityInfo,
+      'announceForAccessibility',
+    );
+    const { getByTestId } = renderSetup();
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_COPY_KEY));
+
+    expect(announce).toHaveBeenCalledWith('Setup key copied');
   });
 
   it('returns to the copy icon after the key was copied', () => {
