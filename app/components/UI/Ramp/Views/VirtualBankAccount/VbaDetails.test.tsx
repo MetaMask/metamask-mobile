@@ -17,6 +17,13 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+import { TraceName } from '../../../../../util/trace';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -83,6 +90,15 @@ jest.mock('../../../../../util/deviceCapability', () => ({
 jest.mock('../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-child-id'),
+  endVbaCufChildTrace: jest.fn(),
+  endVbaCufJourney: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -230,6 +246,10 @@ describe('VbaDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
     expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
   });
 
@@ -258,6 +278,11 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaPixFetch,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith('vba-child-id', true);
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
