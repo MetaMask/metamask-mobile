@@ -204,7 +204,7 @@ export function useNeobankAutorampActivity(
       [moneyAddress, vbaWalletAddress]
         .filter((address): address is string => Boolean(address))
         .map((address) => address.toLowerCase())
-        .sort()
+        .sort((left, right) => left.localeCompare(right))
         .join('|'),
     [moneyAddress, vbaWalletAddress],
   );

@@ -19,6 +19,111 @@ export interface MappedMoneyVbaTransfers {
   failed: NeobankBankTransferActivity[];
 }
 
+type CompletedBankTransfer = Extract<
+  AccountsApiActivity,
+  { kind: 'bank_transfer' }
+>;
+type CompletedVbaTransfer = VbaTransfer & {
+  status: 'confirmed';
+  transfer: VbaTransfer['transfer'] & { transaction_hash: string };
+};
+
+function isValidTransferRecord(
+  item: VbaTransfer,
+  walletAddress: string,
+): item is VbaTransfer & { transfer_id: string } {
+  return Boolean(
+    item.transfer_id &&
+      Number.isFinite(Date.parse(item.event_timestamp)) &&
+      areAddressesEqual(item.transfer.recipient_address, walletAddress),
+  );
+}
+
+function mapInFlightTransfer(item: VbaTransfer): NeobankBankTransferActivity {
+  const { transfer } = item;
+  const status = item.status === 'error' ? 'Failed' : 'Pending';
+  const destinationAmount =
+    transfer.asset.toLowerCase() === 'musd' &&
+    DECIMAL_AMOUNT_PATTERN.test(transfer.amount)
+      ? transfer.amount
+      : undefined;
+  const transactionHash =
+    transfer.transaction_hash &&
+    TRANSACTION_HASH_PATTERN.test(transfer.transaction_hash)
+      ? (transfer.transaction_hash.toLowerCase() as Hex)
+      : undefined;
+
+  return {
+    id: item.transfer_id,
+    autorampId: item.transfer_id,
+    status,
+    time: Date.parse(item.event_timestamp),
+    destinationAmount,
+    transactionHash,
+  };
+}
+
+function isValidCompletedTransfer(
+  item: VbaTransfer,
+): item is CompletedVbaTransfer {
+  const { transfer } = item;
+  return Boolean(
+    item.status === 'confirmed' &&
+      transfer.asset.toLowerCase() === 'musd' &&
+      transfer.network.toLowerCase() === 'monad' &&
+      transfer.transaction_hash &&
+      TRANSACTION_HASH_PATTERN.test(transfer.transaction_hash) &&
+      DECIMAL_AMOUNT_PATTERN.test(transfer.amount),
+  );
+}
+
+function mapCompletedTransfer(
+  item: VbaTransfer,
+  walletAddress: string,
+): CompletedBankTransfer | undefined {
+  if (!isValidCompletedTransfer(item)) {
+    return undefined;
+  }
+
+  const { transfer } = item;
+  const amount = new BigNumber(transfer.amount);
+  const minimalAmount = amount.shiftedBy(MUSD_DECIMALS);
+  if (
+    !amount.isFinite() ||
+    !amount.isGreaterThan(0) ||
+    !minimalAmount.isInteger()
+  ) {
+    return undefined;
+  }
+
+  return {
+    kind: 'bank_transfer',
+    hash: transfer.transaction_hash.toLowerCase() as Hex,
+    time: Date.parse(item.event_timestamp),
+    chainId: CHAIN_IDS.MONAD,
+    token: {
+      address: MUSD_TOKEN_ADDRESS as Hex,
+      symbol: 'mUSD',
+      decimals: MUSD_DECIMALS,
+    },
+    amount: minimalAmount.toFixed(0),
+    receivedFrom: (transfer.sender_address?.toLowerCase() ??
+      walletAddress.toLowerCase()) as Hex,
+  };
+}
+
+function sortNewestFirst<
+  T extends { time: number; id?: string; hash?: string },
+>(rows: T[]): T[] {
+  const sortedRows = [...rows];
+  sortedRows.sort(
+    (left, right) =>
+      right.time - left.time ||
+      (left.id ?? left.hash ?? '').localeCompare(right.id ?? right.hash ?? ''),
+  );
+  return sortedRows;
+}
+
 /**
  * Maps the service's current VBA transfer records to completed and in-flight
  * Money activity. Only confirmed mUSD settlements become completed deposits;
@@ -40,12 +145,7 @@ export function mapMoneyVbaTransfers(
   const seenTransferIds = new Set<string>();
 
   for (const item of transfers) {
-    const { transfer } = item;
-    if (
-      !item.transfer_id ||
-      !Number.isFinite(Date.parse(item.event_timestamp)) ||
-      !areAddressesEqual(transfer.recipient_address, walletAddress)
-    ) {
+    if (!isValidTransferRecord(item, walletAddress)) {
       continue;
     }
 
@@ -54,83 +154,25 @@ export function mapMoneyVbaTransfers(
         continue;
       }
       seenTransferIds.add(item.transfer_id);
-      const providerActivity: NeobankBankTransferActivity = {
-        id: item.transfer_id,
-        autorampId: item.transfer_id,
-        status: item.status === 'error' ? 'Failed' : 'Pending',
-        time: Date.parse(item.event_timestamp),
-        destinationAmount:
-          transfer.asset.toLowerCase() === 'musd' &&
-          DECIMAL_AMOUNT_PATTERN.test(transfer.amount)
-            ? transfer.amount
-            : undefined,
-        transactionHash:
-          transfer.transaction_hash &&
-          TRANSACTION_HASH_PATTERN.test(transfer.transaction_hash)
-            ? (transfer.transaction_hash.toLowerCase() as Hex)
-            : undefined,
-      };
+      const providerActivity = mapInFlightTransfer(item);
       (isNeobankFailedStatus(providerActivity.status) ? failed : pending).push(
         providerActivity,
       );
       continue;
     }
 
-    if (
-      item.status !== 'confirmed' ||
-      transfer.asset.toLowerCase() !== 'musd' ||
-      transfer.network.toLowerCase() !== 'monad' ||
-      !transfer.transaction_hash ||
-      !TRANSACTION_HASH_PATTERN.test(transfer.transaction_hash) ||
-      !DECIMAL_AMOUNT_PATTERN.test(transfer.amount)
-    ) {
+    const completedActivity = mapCompletedTransfer(item, walletAddress);
+    if (!completedActivity || seenCompletedHashes.has(completedActivity.hash)) {
       continue;
     }
 
-    const amount = new BigNumber(transfer.amount);
-    const minimalAmount = amount.shiftedBy(MUSD_DECIMALS);
-    const time = Date.parse(item.event_timestamp);
-    const hash = transfer.transaction_hash.toLowerCase();
-    if (
-      !amount.isFinite() ||
-      !amount.isGreaterThan(0) ||
-      !minimalAmount.isInteger() ||
-      seenCompletedHashes.has(hash)
-    ) {
-      continue;
-    }
-
-    seenCompletedHashes.add(hash);
-    completed.push({
-      kind: 'bank_transfer',
-      hash: hash as Hex,
-      time,
-      chainId: CHAIN_IDS.MONAD,
-      token: {
-        address: MUSD_TOKEN_ADDRESS as Hex,
-        symbol: 'mUSD',
-        decimals: MUSD_DECIMALS,
-      },
-      amount: minimalAmount.toFixed(0),
-      receivedFrom: (transfer.sender_address?.toLowerCase() ??
-        walletAddress.toLowerCase()) as Hex,
-    });
+    seenCompletedHashes.add(completedActivity.hash);
+    completed.push(completedActivity);
   }
 
-  const newestFirst = <T extends { time: number; id?: string; hash?: string }>(
-    rows: T[],
-  ): T[] =>
-    rows.sort(
-      (left, right) =>
-        right.time - left.time ||
-        (left.id ?? left.hash ?? '').localeCompare(
-          right.id ?? right.hash ?? '',
-        ),
-    );
-
   return {
-    completed: newestFirst(completed),
-    pending: newestFirst(pending),
-    failed: newestFirst(failed),
+    completed: sortNewestFirst(completed),
+    pending: sortNewestFirst(pending),
+    failed: sortNewestFirst(failed),
   };
 }

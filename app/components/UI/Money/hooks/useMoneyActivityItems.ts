@@ -348,7 +348,7 @@ export function useMoneyActivityItems({
   const refetch = useCallback(() => {
     refetchApiActivity();
     if (completedActivityEnabled || pendingActivityEnabled) {
-      refetchVbaTransfers();
+      refetchVbaTransfers().catch(() => undefined);
     }
   }, [
     completedActivityEnabled,

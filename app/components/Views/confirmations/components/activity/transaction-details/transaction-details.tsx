@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { ScrollView, View } from 'react-native';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
 import { Box } from '../../../../../UI/Box/Box';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';

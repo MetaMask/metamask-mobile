@@ -120,11 +120,10 @@ export function MoneyApiActivityDetailsView() {
   const liveRouteActivity = routeNeobankActivity
     ? liveNeobankActivity.find((item) => item.id === routeNeobankActivity.id)
     : undefined;
-  const neobankActivity = currentRouteIsAllowed
-    ? routeNeobankActivity
-      ? (liveRouteActivity ?? routeNeobankActivity)
-      : undefined
-    : undefined;
+  let neobankActivity: NeobankBankTransferActivity | undefined;
+  if (currentRouteIsAllowed && routeNeobankActivity) {
+    neobankActivity = liveRouteActivity ?? routeNeobankActivity;
+  }
 
   useEffect(() => {
     if (routeNeobankActivity && !pendingVbaActivityEnabled) {
@@ -210,10 +209,10 @@ function BankTransferActivitySteps({
   bankTransferSeverity = 'success',
   moneyDepositSeverity = 'success',
 }: {
-  timestamp: number;
-  onOpenExplorer?: () => void;
-  bankTransferSeverity?: BankTransferStepSeverity;
-  moneyDepositSeverity?: BankTransferStepSeverity;
+  readonly timestamp: number;
+  readonly onOpenExplorer?: () => void;
+  readonly bankTransferSeverity?: BankTransferStepSeverity;
+  readonly moneyDepositSeverity?: BankTransferStepSeverity;
 }) {
   const subtitle = formatStepSubtitle(timestamp);
   const completedCount = [bankTransferSeverity, moneyDepositSeverity].filter(
@@ -309,18 +308,18 @@ function useOpenTxOnExplorer(
 }
 
 interface MoneyCardDetailsContentProps {
-  display: MoneyTransactionDisplayInfo;
-  heroCopy: string;
-  dateMs: number;
-  merchant?: CardTransactionMerchant;
-  declineSource?: CardTransaction;
-  transactionId?: string;
-  networkFeeLabel?: string;
-  statusLabel: string;
-  statusColor: TextColor;
-  amountColor: TextColor;
-  explorerChainId?: string;
-  explorerTxHash?: string;
+  readonly display: MoneyTransactionDisplayInfo;
+  readonly heroCopy: string;
+  readonly dateMs: number;
+  readonly merchant?: CardTransactionMerchant;
+  readonly declineSource?: CardTransaction;
+  readonly transactionId?: string;
+  readonly networkFeeLabel?: string;
+  readonly statusLabel: string;
+  readonly statusColor: TextColor;
+  readonly amountColor: TextColor;
+  readonly explorerChainId?: string;
+  readonly explorerTxHash?: string;
 }
 
 function MoneyCardDetailsContent({
@@ -373,11 +372,13 @@ function MoneyCardDetailsContent({
   );
 }
 
+interface MoneyDeclinedCardDetailsContentProps {
+  readonly transaction: CardTransaction;
+}
+
 function MoneyDeclinedCardDetailsContent({
   transaction,
-}: {
-  transaction: CardTransaction;
-}) {
+}: MoneyDeclinedCardDetailsContentProps) {
   const display = useMemo(
     () => cardTransactionDisplayInfo(transaction),
     [transaction],
@@ -406,13 +407,15 @@ function MoneyDeclinedCardDetailsContent({
   );
 }
 
+interface MoneySettledCardDetailsContentProps {
+  readonly activity: Extract<AccountsApiActivity, { kind: 'card' }>;
+  readonly enrichment?: CardTransaction;
+}
+
 function MoneySettledCardDetailsContent({
   activity,
   enrichment,
-}: {
-  activity: Extract<AccountsApiActivity, { kind: 'card' }>;
-  enrichment?: CardTransaction;
-}) {
+}: MoneySettledCardDetailsContentProps) {
   const display = useMemo(
     () => accountsApiActivityDisplayInfo(activity, enrichment),
     [activity, enrichment],
@@ -441,11 +444,13 @@ function MoneySettledCardDetailsContent({
   );
 }
 
+interface MoneyApiActivityDetailsContentProps {
+  readonly activity: Exclude<AccountsApiActivity, { kind: 'card' }>;
+}
+
 function MoneyApiActivityDetailsContent({
   activity,
-}: {
-  activity: Exclude<AccountsApiActivity, { kind: 'card' }>;
-}) {
+}: MoneyApiActivityDetailsContentProps) {
   const tw = useTailwind();
   const { networkName, networkImage } = useNetworkInfo(activity.chainId);
   const handleBack = useGoBack();
@@ -572,11 +577,13 @@ function MoneyApiActivityDetailsContent({
   );
 }
 
+interface NeobankBankTransferDetailsContentProps {
+  readonly activity: NeobankBankTransferActivity;
+}
+
 function NeobankBankTransferDetailsContent({
   activity,
-}: {
-  activity: NeobankBankTransferActivity;
-}) {
+}: NeobankBankTransferDetailsContentProps) {
   const tw = useTailwind();
   const handleBack = useGoBack();
 
@@ -594,11 +601,12 @@ function NeobankBankTransferDetailsContent({
 
   // Provider Completed confirms the bank pay-in only. Main's confirmed on-chain
   // TransactionMeta is displayed separately through the existing flow.
-  const bankTransferSeverity: BankTransferStepSeverity = failed
-    ? 'error'
-    : payinCompleted
-      ? 'success'
-      : 'warning';
+  let bankTransferSeverity: BankTransferStepSeverity = 'warning';
+  if (failed) {
+    bankTransferSeverity = 'error';
+  } else if (payinCompleted) {
+    bankTransferSeverity = 'success';
+  }
   const moneyDepositSeverity: BankTransferStepSeverity = failed
     ? 'error'
     : 'warning';
