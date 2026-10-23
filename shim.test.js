@@ -238,6 +238,29 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('does not proxy data URLs', async () => {
+    underlyingFetch.mockImplementation(async (url) => {
+      if (
+        url === `${MOCK_SERVER_URL}/health-check` ||
+        (typeof url === 'string' && url.startsWith('data:'))
+      ) {
+        return { ok: true };
+      }
+      throw new TypeError('Network request failed');
+    });
+    loadShim();
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(dataUrl)}`,
+      undefined,
+    );
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     answerHealthCheck({ ok: true });
