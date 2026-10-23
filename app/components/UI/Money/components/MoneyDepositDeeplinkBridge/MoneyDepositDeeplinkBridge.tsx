@@ -11,6 +11,7 @@ import { useMoneyOnboardingNavigation } from '../../hooks/useMoneyNavigation';
 import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
 import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
+import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
 
 const MoneyDepositDeeplinkBridge = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -81,6 +82,14 @@ const MoneyDepositDeeplinkBridge = () => {
       try {
         await initiateDeposit({ replaceConfirmation: true });
       } catch (error) {
+        if (
+          isUserRejectedError(
+            error,
+            '[MoneyDepositDeeplinkBridge] Deposit cancelled',
+          )
+        ) {
+          return;
+        }
         Logger.error(
           error as Error,
           '[MoneyDepositDeeplinkBridge] Failed to initiate deposit',

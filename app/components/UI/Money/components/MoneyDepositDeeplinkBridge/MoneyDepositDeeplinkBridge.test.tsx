@@ -10,6 +10,7 @@ import { selectGeolocationStatus } from '../../../../../selectors/geolocationCon
 import { MoneyPostOnboardingRedirectType } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
+import { isUserRejectedError } from '../../../../../util/errorHandling/isUserRejectedError';
 import MoneyDepositDeeplinkBridge from './MoneyDepositDeeplinkBridge';
 
 jest.mock('@react-navigation/native', () => ({
@@ -23,6 +24,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../hooks/useMoneyAccount');
 jest.mock('../../hooks/useMoneyNavigation');
 jest.mock('../../../../../util/Logger');
+jest.mock('../../../../../util/errorHandling/isUserRejectedError');
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
@@ -37,6 +39,7 @@ const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockInitiateDeposit = jest.fn();
 const mockRedirectToOnboardingIfNeeded = jest.fn();
+const mockIsUserRejectedError = jest.mocked(isUserRejectedError);
 
 const arrangeEligibility = ({
   isMoneyAccountFeatureEnabled = true,
@@ -80,6 +83,7 @@ describe('MoneyDepositDeeplinkBridge', () => {
     });
     mockInitiateDeposit.mockResolvedValue(undefined);
     mockRedirectToOnboardingIfNeeded.mockReturnValue(false);
+    mockIsUserRejectedError.mockReturnValue(false);
     arrangeEligibility();
   });
 
@@ -175,6 +179,10 @@ describe('MoneyDepositDeeplinkBridge', () => {
     render(<MoneyDepositDeeplinkBridge />);
 
     await waitFor(() => {
+      expect(mockIsUserRejectedError).toHaveBeenCalledWith(
+        error,
+        '[MoneyDepositDeeplinkBridge] Deposit cancelled',
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
     });
 
@@ -182,5 +190,23 @@ describe('MoneyDepositDeeplinkBridge', () => {
       error,
       '[MoneyDepositDeeplinkBridge] Failed to initiate deposit',
     );
+  });
+
+  it('does not navigate home when deposit is rejected by the user', async () => {
+    const error = new Error('user rejected');
+    mockInitiateDeposit.mockRejectedValue(error);
+    mockIsUserRejectedError.mockReturnValue(true);
+
+    render(<MoneyDepositDeeplinkBridge />);
+
+    await waitFor(() => {
+      expect(mockIsUserRejectedError).toHaveBeenCalledWith(
+        error,
+        '[MoneyDepositDeeplinkBridge] Deposit cancelled',
+      );
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 });
