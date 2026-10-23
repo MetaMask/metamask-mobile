@@ -196,12 +196,12 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
-          gap={2}
+          gap={1}
           paddingTop={2}
           testID={MyProfileViewSelectorsIDs.JOINED}
         >
           <Icon
-            name={IconName.Clock}
+            name={IconName.Calendar}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
           />
