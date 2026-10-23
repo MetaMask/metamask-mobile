@@ -16,9 +16,9 @@ const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
  *
  * PoC local issuer. Remove the loopback rewrite, the physical-device error,
  * and the `http:` allowance once the A2T service has an external URL. Until
- * then: `localhost:4445` reaches the issuer from an iOS simulator, an Android
+ * then: `localhost:3333` reaches the issuer from an iOS simulator, an Android
  * emulator is rewritten to `10.0.2.2`, and a physical phone needs
- * `MM_A2T_URL=http://<mac-lan-address>:4445`. Debug builds already allow
+ * `MM_A2T_URL=http://<mac-lan-address>:3333`. Debug builds already allow
  * cleartext HTTP to local addresses, and iOS allows local networking.
  */
 export const resolveA2tIssuerUrl = (
@@ -51,7 +51,7 @@ export const resolveA2tIssuerUrl = (
       url.hostname = '10.0.2.2';
     } else if (!host.isEmulator) {
       throw new Error(
-        'MM_A2T_URL points at localhost, which is this device. On an Android emulator use http://10.0.2.2:4445. On a physical device use http://<mac-lan-address>:4445.',
+        'MM_A2T_URL points at localhost, which is this device. On an Android emulator use http://10.0.2.2:3333. On a physical device use http://<mac-lan-address>:3333.',
       );
     }
   }

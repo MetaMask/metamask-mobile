@@ -7,34 +7,34 @@ import { resolveA2tIssuerUrl } from './a2tIssuerUrl';
 describe('resolveA2tIssuerUrl', () => {
   it('keeps localhost on an iOS simulator', () => {
     expect(
-      resolveA2tIssuerUrl('http://localhost:4445', {
+      resolveA2tIssuerUrl('http://localhost:3333', {
         os: 'ios',
         isEmulator: true,
       }),
-    ).toBe('http://localhost:4445');
+    ).toBe('http://localhost:3333');
   });
 
   it('rewrites localhost to 10.0.2.2 on an Android emulator', () => {
     expect(
-      resolveA2tIssuerUrl('http://localhost:4445', {
+      resolveA2tIssuerUrl('http://localhost:3333', {
         os: 'android',
         isEmulator: true,
       }),
-    ).toBe('http://10.0.2.2:4445');
+    ).toBe('http://10.0.2.2:3333');
   });
 
   it('keeps an explicit LAN address', () => {
     expect(
-      resolveA2tIssuerUrl('http://192.168.1.20:4445/', {
+      resolveA2tIssuerUrl('http://192.168.1.20:3333/', {
         os: 'ios',
         isEmulator: false,
       }),
-    ).toBe('http://192.168.1.20:4445');
+    ).toBe('http://192.168.1.20:3333');
   });
 
   it('rejects localhost on a physical device', () => {
     expect(() =>
-      resolveA2tIssuerUrl('http://127.0.0.1:4445', {
+      resolveA2tIssuerUrl('http://127.0.0.1:3333', {
         os: 'ios',
         isEmulator: false,
       }),

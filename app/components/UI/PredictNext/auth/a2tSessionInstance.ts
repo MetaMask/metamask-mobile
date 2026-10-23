@@ -24,9 +24,9 @@ const MESSAGE_SIGNING_SNAP_ID: SnapId =
 
 /**
  * PoC local issuer. Remove this default once the A2T service has an external
- * URL. `yarn start:a2t` serves it on port 4444.
+ * URL. `yarn start:a2t` serves it on port 3333.
  */
-const DEV_ISSUER_URL = 'http://localhost:4444';
+const DEV_ISSUER_URL = 'http://localhost:3333';
 
 const configuredIssuerUrl = (): string | undefined => {
   const fromEnv = process.env.MM_A2T_URL;

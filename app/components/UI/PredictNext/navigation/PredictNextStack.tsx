@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { A2tSessionBootstrap } from '../auth/A2tSessionBootstrap';
+import { KalshiA2tSessionBootstrap } from '../auth/KalshiA2tSessionBootstrap';
 import { KalshiDeviceKeyBootstrap } from '../auth/KalshiDeviceKeyBootstrap';
 import { PredictHome } from '../views/PredictHome/PredictHome';
 import { PredictOrderFlowProvider } from '../views/PredictOrderFlow';
@@ -15,7 +15,7 @@ const Stack = createNativeStackNavigator<PredictNextStackParamList>();
 
 const PredictNextStack = () => (
   <KalshiDeviceKeyBootstrap>
-    <A2tSessionBootstrap>
+    <KalshiA2tSessionBootstrap>
       <PredictOrderFlowProvider>
         <Stack.Navigator
           initialRouteName={PredictNextRoutes.HOME}
@@ -40,7 +40,7 @@ const PredictNextStack = () => (
           />
         </Stack.Navigator>
       </PredictOrderFlowProvider>
-    </A2tSessionBootstrap>
+    </KalshiA2tSessionBootstrap>
   </KalshiDeviceKeyBootstrap>
 );
 

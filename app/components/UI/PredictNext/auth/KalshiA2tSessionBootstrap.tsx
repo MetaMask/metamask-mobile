@@ -8,7 +8,7 @@ import { selectPredictConfig } from '../selectors/predictConfig';
 import { a2tSession } from './a2tSessionInstance';
 import { isKalshiDeviceKeyEnabled } from './kalshiDeviceKey';
 
-interface A2tSessionBootstrapProps {
+interface KalshiA2tSessionBootstrapProps {
   children: React.ReactNode;
 }
 
@@ -17,7 +17,9 @@ interface A2tSessionBootstrapProps {
  * the wallet is signed in and unlocked. Page screens do not call this.
  * Remounting joins the in-flight request or reuses the cached token.
  */
-export const A2tSessionBootstrap = ({ children }: A2tSessionBootstrapProps) => {
+export const KalshiA2tSessionBootstrap = ({
+  children,
+}: KalshiA2tSessionBootstrapProps) => {
   const signedIn = useSelector(selectIsSignedIn);
   const walletUnlocked = useSelector(selectIsUnlocked);
   const config = useSelector(selectPredictConfig);

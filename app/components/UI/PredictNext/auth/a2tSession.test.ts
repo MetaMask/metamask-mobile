@@ -79,7 +79,7 @@ const createHarness = (
   const nowSec = { value: NOW_SEC };
   const nowMs = { value: 0 };
   const deps: A2tSessionDependencies = {
-    getIssuerUrl: () => 'http://127.0.0.1:4445',
+    getIssuerUrl: () => 'http://127.0.0.1:3333',
     getAccessToken: async () => 'mm-token',
     getCanonicalProfileId: () => PROFILE_ID,
     getSrpIdentifier: async () => SRP_IDENTIFIER,
@@ -131,7 +131,7 @@ describe('A2tSession', () => {
     expect(deviceReads).toBe(2);
     expect(harness.fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://127.0.0.1:4445/venues/kalshi/a2t/challenge',
+      'http://127.0.0.1:3333/venues/kalshi/a2t/challenge',
       expect.objectContaining({
         method: 'POST',
         headers: expect.objectContaining({
@@ -147,7 +147,7 @@ describe('A2tSession', () => {
     const signature = Uint8Array.from({ length: 64 }, () => 7);
     expect(harness.fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://127.0.0.1:4445/venues/kalshi/a2t',
+      'http://127.0.0.1:3333/venues/kalshi/a2t',
       expect.objectContaining({
         body: JSON.stringify({
           challengeId: CHALLENGE_ID,
@@ -303,7 +303,7 @@ describe('A2tSession', () => {
     expect(a2t).toBe(issuedToken);
     expect(harness.fetchMock).toHaveBeenCalledTimes(3);
     expect(harness.fetchMock.mock.calls[1]?.[0]).toBe(
-      'http://127.0.0.1:4445/venues/kalshi/a2t/challenge',
+      'http://127.0.0.1:3333/venues/kalshi/a2t/challenge',
     );
   });
 

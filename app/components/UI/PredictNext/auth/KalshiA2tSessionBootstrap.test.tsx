@@ -6,7 +6,7 @@ import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import type { PredictConfig } from '../config/predictConfig';
 import { selectPredictConfig } from '../selectors/predictConfig';
-import { A2tSessionBootstrap } from './A2tSessionBootstrap';
+import { KalshiA2tSessionBootstrap } from './KalshiA2tSessionBootstrap';
 import { a2tSession } from './a2tSessionInstance';
 
 jest.mock('react-redux', () => ({
@@ -64,7 +64,7 @@ const disabledConfig: PredictConfig = {
   },
 };
 
-describe('A2tSessionBootstrap', () => {
+describe('KalshiA2tSessionBootstrap', () => {
   beforeEach(() => {
     selectIsSignedInMock.mockReturnValue(true);
     selectIsUnlockedMock.mockReturnValue(true);
@@ -76,9 +76,9 @@ describe('A2tSessionBootstrap', () => {
 
   it('prefetches an A2T when signed in, unlocked, and Kalshi is enabled', async () => {
     render(
-      <A2tSessionBootstrap>
+      <KalshiA2tSessionBootstrap>
         <View testID="predict-child" />
-      </A2tSessionBootstrap>,
+      </KalshiA2tSessionBootstrap>,
     );
 
     await waitFor(() => {
@@ -91,9 +91,9 @@ describe('A2tSessionBootstrap', () => {
     selectIsSignedInMock.mockReturnValue(false);
 
     render(
-      <A2tSessionBootstrap>
+      <KalshiA2tSessionBootstrap>
         <View />
-      </A2tSessionBootstrap>,
+      </KalshiA2tSessionBootstrap>,
     );
 
     await waitFor(() => {
@@ -106,9 +106,9 @@ describe('A2tSessionBootstrap', () => {
     selectIsUnlockedMock.mockReturnValue(false);
 
     render(
-      <A2tSessionBootstrap>
+      <KalshiA2tSessionBootstrap>
         <View />
-      </A2tSessionBootstrap>,
+      </KalshiA2tSessionBootstrap>,
     );
 
     await waitFor(() => {
@@ -122,9 +122,9 @@ describe('A2tSessionBootstrap', () => {
     selectPredictConfigMock.mockReturnValue(disabledConfig);
 
     render(
-      <A2tSessionBootstrap>
+      <KalshiA2tSessionBootstrap>
         <View />
-      </A2tSessionBootstrap>,
+      </KalshiA2tSessionBootstrap>,
     );
 
     await waitFor(() => {

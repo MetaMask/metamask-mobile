@@ -43,7 +43,7 @@ PredictNext/
     a2tSession.ts
     a2tSessionInstance.ts
     a2tIssuerUrl.ts
-    A2tSessionBootstrap.tsx
+    KalshiA2tSessionBootstrap.tsx
 
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
