@@ -9,7 +9,6 @@ import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
-import PerpsChartSkeleton from '../../PerpsChartSkeleton';
 import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
@@ -113,15 +112,10 @@ describe('PerpsAdvancedChart', () => {
     mockUsePerpsAdvancedChartAdapter.mockReturnValue(mockAdapterResult);
   });
 
-  it('passes the candle skeleton into AdvancedChart', () => {
+  it('asks AdvancedChart for the candle skeleton', () => {
     renderChart({ height: 240 });
 
-    const skeletonElement = advancedChartProps().renderSkeleton?.({
-      height: 240,
-    }) as React.ReactElement<{ height: number }>;
-
-    expect(skeletonElement.type).toBe(PerpsChartSkeleton);
-    expect(skeletonElement.props.height).toBe(240);
+    expect(advancedChartProps().skeletonVariant).toBe('candles');
   });
 
   it('forwards Advanced Chart zoom candle counts', () => {

@@ -72,7 +72,7 @@ import {
   CandlePeriodSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import PerpsChartFullscreenModal from '../../components/PerpsChartFullscreenModal/PerpsChartFullscreenModal';
-import PerpsChartSkeleton from '../../components/PerpsChartSkeleton';
+import ChartCandleSkeleton from '../../../Charts/ChartCandleSkeleton';
 import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
@@ -1948,7 +1948,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     shouldShowNewPositionActions && !shouldShowAddFundsCTASection;
 
   let detailChartContent: React.ReactNode = (
-    <PerpsChartSkeleton
+    <ChartCandleSkeleton
       height={PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT}
       testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`}
     />

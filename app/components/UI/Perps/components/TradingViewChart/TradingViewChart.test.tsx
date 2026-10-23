@@ -39,18 +39,18 @@ jest.mock('../../Perps.testIds', () => {
   };
 });
 
-jest.mock('../PerpsChartSkeleton', () => {
+jest.mock('../../../Charts/ChartCandleSkeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  const MockPerpsChartSkeleton = ({
-    testID = 'perps-chart-skeleton',
+  const MockChartCandleSkeleton = ({
+    testID = 'chart-candle-skeleton',
     height,
   }: {
     testID?: string;
     height?: number;
   }) => ReactActual.createElement(View, { testID, style: { height } });
 
-  return { __esModule: true, default: MockPerpsChartSkeleton };
+  return { __esModule: true, default: MockChartCandleSkeleton };
 });
 
 describe('TradingViewChart', () => {

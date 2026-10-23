@@ -3171,7 +3171,6 @@
       "websocket_retry": "Retry"
     },
     "chart": {
-      "loading": "Loading chart",
       "no_data": "No chart data available",
       "candle_intervals": "Candle intervals",
       "candle_period_selector": {

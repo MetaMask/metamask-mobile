@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import PerpsChartSkeleton from '../PerpsChartSkeleton';
+import ChartCandleSkeleton from '../../../Charts/ChartCandleSkeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import { type CandleData } from '@metamask/perps-controller';
@@ -660,7 +660,7 @@ const TradingViewChart = React.forwardRef<
           {/* Candle skeleton covers the WebView until CHART_READY. No delay. */}
           {!isChartReady && (
             <Box style={styles.loadingContainer}>
-              <PerpsChartSkeleton
+              <ChartCandleSkeleton
                 height={height}
                 testID={`${
                   testID || TradingViewChartSelectorsIDs.CONTAINER
