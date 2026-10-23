@@ -197,11 +197,11 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { PredictRoot } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
@@ -1480,7 +1480,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={PredictScreenStack}
+            component={PredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen
