@@ -18,7 +18,10 @@ import {
   sleep,
 } from '../../framework';
 import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
-import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
+import {
+  executeMobileDeepLink,
+  withImplicitWait,
+} from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 /** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
@@ -513,36 +516,60 @@ class Browser {
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
     //
     // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
-    // rescan can mount a new full-screen warning about a second later, which
-    // covers the URL bar again. A 3s editor-dismiss probe before the first read
-    // misses that gap (`Element not visible` for the whole retry). Poll the bar
-    // immediately, and only dismiss the URL editor when Cancel is already up.
+    // rescan can cover the URL bar again about a second later. Awaiting a
+    // getter under the session's 3.5s implicit wait burns that gap (CI: 2
+    // attempts in 12s, last error "not visible after 700ms"). Create each
+    // locator inside a 300ms implicit wait, and read the bar before Cancel.
     await AppiumContextHelpers.switchToNativeContext();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
+    // Same budget as AppiumAssertions poll probes.
+    const probeImplicitWaitMs = 300;
 
     await Utilities.executeWithRetry(
       async () => {
-        if (await Utilities.isElementVisible(this.cancelUrlInputButton, 250)) {
-          await Gestures.waitAndTap(this.cancelUrlInputButton, {
-            elemDescription: 'Cancel URL input (dismiss URL editor)',
-            timeout: 2_000,
-          });
+        const urlText = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const display = await this.urlBarDisplayText;
+            if (
+              !(await display.unwrap().isExisting()) ||
+              !(await display.isVisible())
+            ) {
+              return '';
+            }
+            return (await display.textContent()).trim();
+          },
+        );
+
+        if (urlText && !urlText.includes(text)) {
+          return;
         }
 
-        await Assertions.expectElementToBeVisible(this.urlBarDisplayText, {
-          description:
-            'URL bar display text is visible before not-equal assert',
-          timeout: 700,
-        });
-        const urlText = (
-          await Utilities.getElementText(this.urlBarDisplayText)
-        ).trim();
-        if (!urlText || urlText.includes(text)) {
-          throw new Error(
-            `URL bar still shows the blocked page (got "${urlText}")`,
+        // Display text is opacity 0 while the editor is focused. Dismiss only
+        // when Cancel is already up; a missing Cancel must not wait 3.5s.
+        if (!urlText) {
+          const editorOpen = await withImplicitWait(
+            probeImplicitWaitMs,
+            async () => {
+              const cancel = await this.cancelUrlInputButton;
+              return (
+                (await cancel.unwrap().isExisting()) &&
+                (await cancel.isVisible())
+              );
+            },
           );
+          if (editorOpen) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+              timeout: 2_000,
+            });
+          }
         }
+
+        throw new Error(
+          `URL bar still shows the blocked page (got "${urlText}")`,
+        );
       },
       {
         timeout: 12_000,
