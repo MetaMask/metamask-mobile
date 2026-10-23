@@ -132,6 +132,17 @@ describe('parseWebViewMessage', () => {
       });
     });
 
+    it('parses a TradingView dialog open event', () => {
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'dialog', type: 'open', name: 'indicators-dialog' },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual(raw);
+    });
+
     it('returns null for an unknown event source', () => {
       const raw = {
         type: 'NATIVE_TV_EVENT',

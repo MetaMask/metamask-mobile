@@ -21,6 +21,7 @@ import { endTrace, trace } from '../../../../../../util/trace';
 import { playImpact } from '../../../../../../util/haptics';
 import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
 import { PERPS_NATIVE_TV_DISABLED_FEATURES } from '../../../constants/chartConfig';
+import { getPerpsNativeTradingViewMarkerSelector } from '../../../Perps.testIds';
 
 const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
@@ -959,6 +960,151 @@ describe('PerpsAdvancedChart', () => {
         '[PerpsNativeTV] study create Accelerator Oscillator',
         event,
       );
+    });
+
+    it('marks an open TradingView dialog', () => {
+      const { queryByTestId } = renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'dialog',
+          type: 'open',
+          name: 'indicators-dialog',
+        });
+      });
+
+      expect(
+        queryByTestId(
+          getPerpsNativeTradingViewMarkerSelector(
+            'dialog',
+            'indicators-dialog',
+          ),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('drops the dialog marker once TradingView closes the dialog', () => {
+      const { queryByTestId } = renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'dialog',
+          type: 'open',
+          name: 'indicators-dialog',
+        });
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'dialog',
+          type: 'close',
+          name: 'indicators-dialog',
+        });
+      });
+
+      expect(
+        queryByTestId(
+          getPerpsNativeTradingViewMarkerSelector(
+            'dialog',
+            'indicators-dialog',
+          ),
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('marks a trend line created with the native drawing toolbar', () => {
+      const { queryByTestId } = renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'drawing',
+          type: 'create',
+          id: 'sh1',
+          name: 'trend_line',
+        });
+      });
+
+      expect(
+        queryByTestId(
+          getPerpsNativeTradingViewMarkerSelector('drawing', 'trend_line'),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps a created study marker and drops a removed drawing marker', () => {
+      const studyId = getPerpsNativeTradingViewMarkerSelector(
+        'study',
+        'Accelerator Oscillator',
+      );
+      const drawingId = getPerpsNativeTradingViewMarkerSelector(
+        'drawing',
+        'trend_line',
+      );
+      const { queryByTestId } = renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'study',
+          type: 'create',
+          id: 'st1',
+          name: 'Accelerator Oscillator',
+        });
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'drawing',
+          type: 'create',
+          id: 'sh1',
+          name: 'trend_line',
+        });
+      });
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'drawing',
+          type: 'remove',
+          id: 'sh1',
+        });
+      });
+
+      expect(queryByTestId(studyId)).toBeOnTheScreen();
+      expect(queryByTestId(drawingId)).not.toBeOnTheScreen();
+    });
+
+    it('clears native markers when the chart becomes ready again', () => {
+      const studyId = getPerpsNativeTradingViewMarkerSelector(
+        'study',
+        'Accelerator Oscillator',
+      );
+      const { queryByTestId } = renderChart({ nativeTradingView: true });
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'study',
+          type: 'create',
+          id: 'st1',
+          name: 'Accelerator Oscillator',
+        });
+      });
+
+      act(() => {
+        latestAdvancedChartProps().onChartReady?.();
+      });
+
+      expect(queryByTestId(studyId)).not.toBeOnTheScreen();
+    });
+
+    it('ignores study events without an id or name', () => {
+      const { toJSON } = renderChart({ nativeTradingView: true });
+      const before = JSON.stringify(toJSON());
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'study',
+          type: 'create',
+        });
+        latestAdvancedChartProps().onNativeChartEvent?.({
+          source: 'study',
+          type: 'properties_changed',
+          id: 'st1',
+          name: 'Volume',
+        });
+      });
+
+      expect(JSON.stringify(toJSON())).toBe(before);
     });
 
     it('logs native events that carry no name', () => {

@@ -54,6 +54,11 @@ describe('attachNativeTradingViewBridge', () => {
   afterEach(() => {
     delete (window as unknown as { ReactNativeWebView?: unknown })
       .ReactNativeWebView;
+    // Detach the dialog observers each test attached to the old body.
+    document.documentElement.replaceChild(
+      document.createElement('body'),
+      document.body,
+    );
   });
 
   it('posts a study event with the study name resolved from the chart', () => {
@@ -106,6 +111,30 @@ describe('attachNativeTradingViewBridge', () => {
       {
         type: 'NATIVE_TV_EVENT',
         payload: { source: 'drawing', type: 'remove', id: 'gone' },
+      },
+    ]);
+  });
+
+  it('posts dialog open and close events as TradingView dialogs mount and unmount', async () => {
+    const { widget } = createWidget();
+    attachNativeTradingViewBridge(widget, createChart());
+    const dialog = document.createElement('div');
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('data-name', 'indicators-dialog');
+
+    document.body.appendChild(dialog);
+    await Promise.resolve();
+    dialog.remove();
+    await Promise.resolve();
+
+    expect(postedMessages(bridge)).toEqual([
+      {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'dialog', type: 'open', name: 'indicators-dialog' },
+      },
+      {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'dialog', type: 'close', name: 'indicators-dialog' },
       },
     ]);
   });

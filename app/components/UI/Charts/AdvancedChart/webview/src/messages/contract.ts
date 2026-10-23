@@ -325,12 +325,12 @@ export interface TradeMarkerPressedPayload {
 }
 
 /**
- * A TradingView-native study or drawing lifecycle event. Mirrors
- * `NativeChartEventPayload` on the RN side.
+ * A TradingView-native study or drawing lifecycle event, or a TradingView
+ * dialog opening/closing. Mirrors `NativeChartEventPayload` on the RN side.
  */
 export interface NativeTvEventPayload {
-  source: 'study' | 'drawing';
-  /** TradingView event type (`create`, `remove`, `points_changed`, …). */
+  source: 'study' | 'drawing' | 'dialog';
+  /** TradingView event type (`create`, `remove`, `points_changed`, …) or dialog `open` / `close`. */
   type: string;
   id?: string;
   name?: string;

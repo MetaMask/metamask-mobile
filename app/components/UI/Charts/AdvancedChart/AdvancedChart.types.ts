@@ -415,15 +415,15 @@ export interface ErrorPayload {
 }
 
 /**
- * A TradingView-native study or drawing lifecycle event, forwarded when
- * `nativeTradingView` is on.
+ * A TradingView-native study or drawing lifecycle event, or a TradingView
+ * dialog opening/closing, forwarded when `nativeTradingView` is on.
  */
 export interface NativeChartEventPayload {
-  source: 'study' | 'drawing';
-  /** TradingView event type (`create`, `remove`, `points_changed`, …). */
+  source: 'study' | 'drawing' | 'dialog';
+  /** TradingView event type (`create`, `remove`, `points_changed`, …) or dialog `open` / `close`. */
   type: string;
   id?: string;
-  /** Study or drawing name, e.g. `Relative Strength Index` or `trend_line`. */
+  /** Study, drawing or dialog name, e.g. `Relative Strength Index`, `trend_line` or `indicators-dialog`. */
   name?: string;
 }
 
@@ -615,7 +615,9 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
     case 'NATIVE_TV_EVENT':
       if (
-        (obj.source !== 'study' && obj.source !== 'drawing') ||
+        (obj.source !== 'study' &&
+          obj.source !== 'drawing' &&
+          obj.source !== 'dialog') ||
         typeof obj.type !== 'string'
       ) {
         return null;

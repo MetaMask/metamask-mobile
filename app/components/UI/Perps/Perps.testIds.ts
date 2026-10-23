@@ -717,6 +717,17 @@ export const getPerpsProChaseHandleSelector = (
   handle: string,
 ) => `perps-chase-handle-${symbol}-${handle}`;
 
+/**
+ * Spike (TAT-4093): marker for an open TradingView dialog or a study/drawing
+ * present on the native chart, e.g. `…-dialog-indicators-dialog`,
+ * `…-study-accelerator-oscillator`, `…-drawing-trend-line`.
+ */
+export const getPerpsNativeTradingViewMarkerSelector = (
+  kind: 'dialog' | 'study' | 'drawing',
+  name: string,
+) =>
+  `perps-native-tradingview-${kind}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,
   orderId: string,
