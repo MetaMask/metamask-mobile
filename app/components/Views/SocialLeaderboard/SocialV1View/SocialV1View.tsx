@@ -711,6 +711,7 @@ const SocialV1ViewContent: React.FC = () => {
                         onCopyTrade={handleCopyTrade}
                         onOpenFilters={handleOpenLiveFilters}
                         isFilterActive={hasActiveFilters('live')}
+                        appliedFilters={applied.live}
                       />
                     ) : (
                       <EmptyShellTabPage

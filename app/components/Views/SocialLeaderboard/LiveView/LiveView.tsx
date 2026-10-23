@@ -6,7 +6,14 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import Animated, {
   type ScrollHandlerProcessed,
   FadeIn,
@@ -14,21 +21,30 @@ import Animated, {
   ZoomIn,
   ZoomOut,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { playSelection } from '../../../../util/haptics';
 import { strings } from '../../../../../locales/i18n';
-import SocialFeedCanonical, {
-  type SocialFeedCanonicalHeaderProps,
-  type SocialFeedCanonicalScrollHandler,
-} from '../../../UI/SocialFeed/components/SocialFeedCanonical';
+import SocialFeed, {
+  type SocialFeedHeaderProps,
+  type SocialFeedProps,
+} from '../../../UI/SocialFeed/components/SocialFeed';
+import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSource';
+import type {
+  SocialFeedPageHandle,
+  SocialV1FeedPost,
+} from '../../../UI/SocialFeed/types';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import { matchesLivePost } from '../shell/filters/matchesLivePost';
 import SocialTabFilterBar from '../shell/filters/SocialTabFilterBar';
+import type { SocialShellFilters } from '../shell/filters/types';
 import PendingPostsButton from './components/PendingPostsButton';
 import LiveStreamControls from './components/LiveStreamControls';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
-import type { SocialV1FeedPost } from '../../../UI/SocialFeed/types';
 import { useMyProfile } from '../MyProfileView/hooks';
 
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
@@ -48,16 +64,23 @@ const PENDING_POSTS_FADE_OUT = FadeOut.springify()
   .stiffness(560)
   .mass(0.4);
 
+const LIVE_FEED_SOURCE: SocialFeedSource = {
+  kind: 'all',
+  audience: 'all',
+  scope: 'all',
+};
+
 type LiveStreamState = 'paused' | 'live';
-type AnimatedScrollHandler = SocialFeedCanonicalScrollHandler;
 
 export interface LiveViewProps {
   isActive?: boolean;
-  onScroll?: AnimatedScrollHandler;
+  onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
-  onCopyTrade?: React.ComponentProps<typeof SocialFeedCanonical>['onCopyTrade'];
+  /** Filters committed in the Live filter sheet. */
+  appliedFilters?: SocialShellFilters;
+  onCopyTrade?: SocialFeedProps['onCopyTrade'];
 }
 
 const LiveView: React.FC<LiveViewProps> = ({
@@ -66,13 +89,45 @@ const LiveView: React.FC<LiveViewProps> = ({
   pageRef,
   onOpenFilters,
   isFilterActive = false,
+  appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
+  const feedPageRef = useRef<SocialFeedPageHandle>(null);
 
-  const handleStreamToggle = useCallback(
+  useImperativeHandle(
+    pageRef,
+    () => ({
+      scrollToOffset: (offset: number, animated = false) => {
+        feedPageRef.current?.scrollToOffset(offset, animated);
+      },
+    }),
+    [],
+  );
+
+  const followingProfileIdSet = useMemo(
+    () => new Set(followingProfileIds),
+    [followingProfileIds],
+  );
+  const filterPost = useCallback(
+    (post: SocialV1FeedPost) =>
+      matchesLivePost(post, appliedFilters, followingProfileIdSet),
+    [appliedFilters, followingProfileIdSet],
+  );
+
+  const previousFiltersRef = useRef(appliedFilters);
+  useEffect(() => {
+    if (previousFiltersRef.current === appliedFilters) {
+      return;
+    }
+    previousFiltersRef.current = appliedFilters;
+    feedPageRef.current?.scrollToOffset(0, false);
+  }, [appliedFilters]);
+
+  const handleLiveToggle = useCallback(
     (onRevealPending: () => void) => {
       if (streamState === 'paused') {
         onRevealPending();
@@ -126,7 +181,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const renderHeader = useCallback(
-    ({ pendingNewCount, onRevealPending }: SocialFeedCanonicalHeaderProps) => (
+    ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
       <SocialTabFilterBar
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
@@ -137,7 +192,7 @@ const LiveView: React.FC<LiveViewProps> = ({
             isSelected
             variant={FilterButtonVariant.Secondary}
             size={FilterButtonSize.Sm}
-            onPress={() => handleStreamToggle(onRevealPending)}
+            onPress={() => handleLiveToggle(onRevealPending)}
             testID={LiveViewSelectorsIDs.STREAM_BUTTON}
             accessibilityLabel={streamLabel}
             textProps={isLive ? undefined : { twClassName: 'text-muted' }}
@@ -165,20 +220,21 @@ const LiveView: React.FC<LiveViewProps> = ({
         </Box>
       </SocialTabFilterBar>
     ),
-    [handleStreamToggle, isFilterActive, isLive, onOpenFilters, streamLabel],
+    [handleLiveToggle, isFilterActive, isLive, onOpenFilters, streamLabel],
   );
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <SocialFeedCanonical
-        scope="all"
+      <SocialFeed
+        source={LIVE_FEED_SOURCE}
+        location="social_live"
         scrollMode="virtualized"
         realtime={isActive}
-        paused={streamState === 'paused'}
+        paused={!isLive}
+        filterPost={filterPost}
         renderHeader={renderHeader}
-        location="social_live"
         onScroll={onScroll}
-        pageRef={pageRef}
+        pageRef={feedPageRef}
         onAuthorPress={handleAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={handlePositionPress}

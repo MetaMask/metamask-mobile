@@ -19,6 +19,7 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
+import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
@@ -27,7 +28,7 @@ const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
-const mockSocialFeedCanonical = jest.fn();
+const mockSocialFeed = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   profile: null,
   isLoading: false,
@@ -71,15 +72,15 @@ jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
   })),
 }));
 
-jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
+jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
 
-  interface MockCanonicalProps {
-    enabled?: boolean;
+  interface MockSocialFeedProps {
     realtime?: boolean;
+    filterPost?: (post: unknown) => boolean;
     renderHeader?: (props: {
       pendingNewCount: number;
       onRevealPending: () => void;
@@ -90,8 +91,8 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeedCanonical', () => {
 
   return {
     __esModule: true,
-    default: (props: MockCanonicalProps) => {
-      mockSocialFeedCanonical(props);
+    default: (props: MockSocialFeedProps) => {
+      mockSocialFeed(props);
       return ReactActual.createElement(
         View,
         { testID: props.testID },
@@ -480,7 +481,7 @@ describe('SocialV1View', () => {
   it('enables Live realtime only while the Live tab is active', () => {
     renderWithProvider(<SocialV1View />);
 
-    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+    expect(mockSocialFeed).toHaveBeenLastCalledWith(
       expect.objectContaining({ realtime: false }),
     );
 
@@ -488,7 +489,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-3`),
     );
 
-    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+    expect(mockSocialFeed).toHaveBeenLastCalledWith(
       expect.objectContaining({ realtime: true }),
     );
 
@@ -496,8 +497,22 @@ describe('SocialV1View', () => {
       screen.getByTestId(`${SocialV1ViewSelectorsIDs.TABS}-tab-0`),
     );
 
-    expect(mockSocialFeedCanonical).toHaveBeenLastCalledWith(
+    expect(mockSocialFeed).toHaveBeenLastCalledWith(
       expect.objectContaining({ realtime: false }),
+    );
+  });
+
+  it('filters Live posts with the applied Live filters', () => {
+    renderWithProvider(<SocialV1View />);
+    const filterBeforeApply = mockSocialFeed.mock.lastCall?.[0].filterPost;
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON));
+    fireEvent.press(screen.getByTestId(getFilterChipTestId('type', 'perps')));
+    fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-apply'));
+
+    expect(filterBeforeApply).toEqual(expect.any(Function));
+    expect(mockSocialFeed.mock.lastCall?.[0].filterPost).not.toBe(
+      filterBeforeApply,
     );
   });
 
