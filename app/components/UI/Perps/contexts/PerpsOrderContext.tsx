@@ -1,12 +1,36 @@
-import React, { createContext, useContext, useMemo, ReactNode } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  ReactNode,
+} from 'react';
 import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
 } from '../hooks/usePerpsOrderForm';
 import { OrderType, Position } from '@metamask/perps-controller';
 
+/**
+ * Exact base size an order-book row filled. The form keeps size as USD, which
+ * cannot hold every base size exactly, so the fill applies while the order
+ * still has the `amount` and `price` it set.
+ */
+export interface PerpsOrderBookSizeFill {
+  /** Row size in base units. */
+  size: string;
+  /** USD amount the fill wrote to the form. */
+  amount: string;
+  /** Price the fill committed. */
+  price: string;
+}
+
 interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
   existingPosition?: Position;
+  orderBookSizeFill?: PerpsOrderBookSizeFill;
+  /** Sets the form amount and records the exact size behind it. */
+  fillOrderBookSize: (fill: PerpsOrderBookSizeFill) => void;
 }
 
 const PerpsOrderContext = createContext<PerpsOrderContextType | null>(null);
@@ -47,6 +71,16 @@ export const PerpsOrderProvider = ({
     initialSzDecimals,
     effectiveAvailableBalance,
   });
+  const [orderBookSizeFill, setOrderBookSizeFill] =
+    useState<PerpsOrderBookSizeFill>();
+  const { setAmount } = orderFormState;
+  const fillOrderBookSize = useCallback(
+    (fill: PerpsOrderBookSizeFill) => {
+      setAmount(fill.amount);
+      setOrderBookSizeFill(fill);
+    },
+    [setAmount],
+  );
 
   // orderFormState is itself memoized by usePerpsOrderForm (stable callbacks +
   // changing primitives), so depending on it directly keeps the provider value
@@ -55,8 +89,10 @@ export const PerpsOrderProvider = ({
     () => ({
       ...orderFormState,
       existingPosition,
+      orderBookSizeFill,
+      fillOrderBookSize,
     }),
-    [orderFormState, existingPosition],
+    [orderFormState, existingPosition, orderBookSizeFill, fillOrderBookSize],
   );
 
   return (

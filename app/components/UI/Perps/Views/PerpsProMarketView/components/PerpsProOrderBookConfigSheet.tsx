@@ -24,6 +24,7 @@ import React, {
 } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { ImpactMoment, useHaptics } from '../../../../../../util/haptics';
 import { useTheme } from '../../../../../../util/theme';
 import type { Colors } from '../../../../../../util/theme/models';
@@ -258,6 +259,7 @@ const PerpsProOrderBookConfigSheet = ({
 
   const handleSizeOnClickChange = useCallback(
     (next: boolean) => {
+      // Haptics are best effort; a failure must not block updating the draft.
       playSelection().catch(() => undefined);
       setDraftSizeOnClick(next);
     },
@@ -446,7 +448,9 @@ const PerpsProOrderBookConfigSheet = ({
               label={strings('perps.order_book.size_on_click')}
               isOn={draftSizeOnClick}
               onValueChange={handleSizeOnClickChange}
-              testID={`${testID}-size-on-click`}
+              testID={
+                PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH
+              }
             />
           </Box>
         </Box>

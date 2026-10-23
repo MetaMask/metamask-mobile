@@ -87,6 +87,7 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
+import { getUsdFromAsset } from './components/PerpsProOrderForm/usePerpsProSizeInput';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
 import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
@@ -130,6 +131,7 @@ const PerpsProOrderBookColumn = ({
     activePriceField,
     commitPriceToField,
     setAmount,
+    fillOrderBookSize,
   } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
@@ -148,18 +150,22 @@ const PerpsProOrderBookColumn = ({
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
       if (size !== undefined && selectedPrice !== undefined) {
-        // The form keeps size as USD notional. Round up to the cent so both the
-        // coin display and the submitted size come back to the row's size, and
-        // raise it to the market minimum. Outside Reduce Only the form already
-        // caps the amount at the margin-based maximum for the filled price.
-        const rowAmount = new BigNumber(size).times(selectedPrice);
-        if (rowAmount.isFinite() && rowAmount.gt(0)) {
-          setAmount(
-            BigNumber.max(
-              rowAmount.decimalPlaces(2, BigNumber.ROUND_UP),
-              minimumOrderAmount,
-            ).toFixed(),
-          );
+        // The amount reads as if the trader typed the row size in the size
+        // field. USD cannot hold every base size, so the exact row size rides
+        // along and sizes the order while that amount and price stand. A row
+        // below the market minimum only raises the amount; outside Reduce Only
+        // the form caps the amount at the margin maximum, which drops the fill.
+        const rowAmount = getUsdFromAsset(size, Number(selectedPrice));
+        if (new BigNumber(rowAmount).gt(0)) {
+          if (new BigNumber(rowAmount).lt(minimumOrderAmount)) {
+            setAmount(String(minimumOrderAmount));
+          } else {
+            fillOrderBookSize({
+              size,
+              amount: rowAmount,
+              price: selectedPrice,
+            });
+          }
         }
       }
 
@@ -189,6 +195,7 @@ const PerpsProOrderBookColumn = ({
       commitPriceToField,
       commitLimitPrice,
       commitTriggerPrice,
+      fillOrderBookSize,
       marketData?.szDecimals,
       minimumOrderAmount,
       orderForm.type,
