@@ -154,11 +154,7 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null,
-          "cardLinks": null,
-          "cardLinksFetchedAt": null,
-          "cardLinksSeeded": false,
-          "cardLinkApiBlocked": false
+          "signInLink": null
         },
         "ClaimsController": {
           "claims": [],
@@ -232,8 +228,8 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {},
-          "defaultMoneyAccountId": null
+          "defaultMoneyAccountId": "640c014d-ebe8-43ce-b74b-fab9c97eb524",
+          "moneyAccounts": {}
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -952,7 +948,11 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "cashbackLedger": {},
+      "commissions": {},
+      "earningsHistory": {},
       "earningsSummary": {},
+      "referralFunnel": {},
       "referralMe": {}
     },
     "rpcEvents": {
@@ -970,8 +970,10 @@
     "security": {
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
+      "dataSharingPreference": null,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true
     },
     "securityAlerts": {
       "alerts": {}
