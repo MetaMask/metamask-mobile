@@ -18,7 +18,12 @@ import {
 } from '../../constants/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import type { OrderPreview } from '../types';
-import { Side, type PredictActivity, type PredictPosition } from '../../types';
+import {
+  PredictPositionStatus,
+  Side,
+  type PredictActivity,
+  type PredictPosition,
+} from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
@@ -3416,6 +3421,100 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: undefined },
         }),
       );
+    });
+
+    describe('Protocol V2 markets kill switch', () => {
+      const v1ConditionId = gammaConditionId;
+      const v2ConditionId =
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const v1Position = createClaimPosition({
+        id: 'v1-position',
+        outcomeId: v1ConditionId,
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createClaimPosition({
+        id: 'v2-position',
+        outcomeId: v2ConditionId,
+        status: PredictPositionStatus.WON,
+      });
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+          markets: [
+            { conditionId: v1ConditionId, version: 'v1' },
+            { conditionId: v2ConditionId, version: 'v2' },
+          ],
+        } as never);
+      });
+
+      it('claims only the CTF positions of a mixed batch when the kill switch is on', async () => {
+        const result = await createProvider({
+          disablePolymarketV2Markets: true,
+        }).prepareClaim({ positions: [v1Position, v2Position], signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ positions: [v1Position] }),
+        );
+        expect(result.positions).toEqual([v1Position]);
+      });
+
+      it('throws MARKET_UNAVAILABLE when every position is v2 and the kill switch is on', async () => {
+        await expect(
+          createProvider({ disablePolymarketV2Markets: true }).prepareClaim({
+            positions: [v2Position],
+            signer,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+        expect(mockBuildClaimTransaction).not.toHaveBeenCalled();
+      });
+
+      it('throws MARKET_UNAVAILABLE when only losing CTF positions are left after skipping v2', async () => {
+        const lostV1Position = {
+          ...v1Position,
+          status: PredictPositionStatus.LOST,
+        };
+
+        await expect(
+          createProvider({ disablePolymarketV2Markets: true }).prepareClaim({
+            positions: [lostV1Position, v2Position],
+            signer,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+        expect(mockBuildClaimTransaction).not.toHaveBeenCalled();
+      });
+
+      it('claims a CTF-only batch unchanged when the kill switch is on', async () => {
+        const positions = [v1Position];
+
+        const result = await createProvider({
+          disablePolymarketV2Markets: true,
+        }).prepareClaim({ positions, signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ positions }),
+        );
+        expect(result.positions).toEqual(positions);
+      });
+
+      it('claims every position of a mixed batch when the kill switch is off', async () => {
+        const positions = [v1Position, v2Position];
+
+        const result = await createProvider({
+          disablePolymarketV2Markets: false,
+        }).prepareClaim({ positions, signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions,
+            marketVersions: {
+              [v1ConditionId]: undefined,
+              [v2ConditionId]: 'v2',
+            },
+          }),
+        );
+        expect(result.positions).toBe(positions);
+      });
     });
   });
 

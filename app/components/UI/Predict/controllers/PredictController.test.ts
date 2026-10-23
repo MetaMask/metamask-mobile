@@ -5148,6 +5148,97 @@ describe('PredictController', () => {
       });
     });
 
+    describe('when the provider skips positions', () => {
+      const address = '0x1234567890123456789012345678901234567890';
+      const v1Position = createMockPosition({
+        id: 'v1-position',
+        outcomeId: 'v1-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createMockPosition({
+        id: 'v2-position',
+        outcomeId: 'v2-outcome',
+        status: PredictPositionStatus.WON,
+      });
+
+      const givenClaimablePositions = async (controller: PredictController) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([v1Position, v2Position]);
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: 'claim-batch-1',
+        });
+        await controller.getPositions({ claimable: true });
+      };
+
+      it('keeps only the claimed positions so confirmClaim leaves the skipped ones', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue({ ...mockClaim, positions: [v1Position] });
+
+          await controller.claimWithConfirmation({});
+
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+          ]);
+
+          controller.confirmClaim({ address });
+
+          expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith(
+            expect.objectContaining({ positions: [v1Position] }),
+          );
+        });
+      });
+
+      it.each([
+        ['no positions', undefined],
+        ['every position', [v1Position, v2Position]],
+      ])(
+        'leaves claimable positions untouched when the provider returns %s',
+        async (_label, claimedPositions) => {
+          await withController(async ({ controller }) => {
+            await givenClaimablePositions(controller);
+            const claimableBefore =
+              controller.state.claimablePositions[address];
+            mockPolymarketProvider.prepareClaim = jest
+              .fn()
+              .mockResolvedValue({ ...mockClaim, positions: claimedPositions });
+
+            await controller.claimWithConfirmation({});
+
+            expect(controller.state.claimablePositions[address]).toBe(
+              claimableBefore,
+            );
+          });
+        },
+      );
+
+      it('re-throws MARKET_UNAVAILABLE and releases the pending claim', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockRejectedValue(
+              new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE),
+            );
+
+          await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+            PREDICT_ERROR_CODES.MARKET_UNAVAILABLE,
+          );
+
+          expect(controller.state.pendingClaims[address]).toBeUndefined();
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+            v2Position,
+          ]);
+          expect(addTransactionBatch).not.toHaveBeenCalled();
+        });
+      });
+    });
+
     it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
       const mockBatchId = 'claim-batch-deposit-wallet';
       await withController(async ({ controller }) => {

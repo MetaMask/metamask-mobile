@@ -30,6 +30,7 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   CryptoPriceHistoryPoint,
   CryptoPriceSubscriptionOptions,
@@ -2711,6 +2712,31 @@ export class PolymarketProvider implements PredictProvider {
     return Object.fromEntries(versions);
   }
 
+  /**
+   * While the Protocol V2 kill switch is on, v2 positions stay unclaimed and
+   * the rest are claimed. Throws `MARKET_UNAVAILABLE` when no winning
+   * position is left, so the user is never sent a claim that pays nothing.
+   * With the switch off, every position is claimed.
+   */
+  #excludeV2ClaimPositions(
+    positions: PredictPosition[],
+    marketVersions: ClaimMarketVersions,
+  ): PredictPosition[] {
+    if (!this.#shouldHideV2Markets()) {
+      return positions;
+    }
+
+    const claimPositions = positions.filter(
+      (position) => marketVersions[position.outcomeId] !== V2_MARKET_VERSION,
+    );
+
+    if (!claimPositions.some(isActionableClaimablePosition)) {
+      throw new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+    }
+
+    return claimPositions;
+  }
+
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
@@ -2742,9 +2768,13 @@ export class PolymarketProvider implements PredictProvider {
         protocol,
       });
       const marketVersions = await this.#resolveClaimMarketVersions(positions);
+      const claimPositions = this.#excludeV2ClaimPositions(
+        positions,
+        marketVersions,
+      );
       const claimTransaction = await buildClaimTransaction({
         signer,
-        positions,
+        positions: claimPositions,
         safeAddress,
         protocol,
         marketVersions,
@@ -2754,6 +2784,7 @@ export class PolymarketProvider implements PredictProvider {
       return {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
+        positions: claimPositions,
       };
     } catch (error) {
       // Log error for debugging
