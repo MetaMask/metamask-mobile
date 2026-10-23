@@ -41,6 +41,7 @@ import { TraceName, TraceOperation, type TraceContext } from '../../util/trace';
 import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../Analytics';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
+import { KALSHI_DEVICE_KEY_SCOPE } from '../../components/UI/PredictNext/auth/kalshiDeviceKey';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import { Engine as EngineClass } from '../Engine/Engine';
 import { cancelBulkLink } from '../../store/sagas/rewardsBulkLinkAccountGroups';
@@ -5153,6 +5154,18 @@ describe('Authentication', () => {
       expect(Authentication.lockApp).toHaveBeenCalledWith({
         navigateToLogin: false,
       });
+      expect(SecureKeychain.clearSecureScope).toHaveBeenCalledWith(
+        KALSHI_DEVICE_KEY_SCOPE,
+      );
+      const clearKeyOrder = jest.mocked(SecureKeychain.clearSecureScope).mock
+        .invocationCallOrder[0];
+      expect(clearKeyOrder).toBeGreaterThan(
+        (Engine.context.CardController.resetAll as jest.Mock).mock
+          .invocationCallOrder[0],
+      );
+      expect(clearKeyOrder).toBeLessThan(
+        (Authentication.lockApp as jest.Mock).mock.invocationCallOrder[0],
+      );
     });
 
     it('clears auth state after a later reset step throws', async () => {
@@ -5194,6 +5207,31 @@ describe('Authentication', () => {
         expect.any(Error),
         expect.stringContaining('Failed to createNewVaultAndKeychain'),
       );
+      expect(SecureKeychain.clearSecureScope).not.toHaveBeenCalled();
+    });
+
+    it('locks the app when deleting the Kalshi device key fails', async () => {
+      jest
+        .mocked(SecureKeychain.clearSecureScope)
+        .mockRejectedValueOnce(new Error('keychain failed'));
+      const loggerSpy = jest.spyOn(Logger, 'log');
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(Authentication.lockApp).toHaveBeenCalledWith({
+        navigateToLogin: false,
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'keychain failed' }),
+        'Failed to delete Kalshi device key',
+      );
+      expect(loggerSpy).not.toHaveBeenCalled();
+      expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
+      expect(
+        Engine.context.CardController.setResetInProgress,
+      ).toHaveBeenLastCalledWith(false);
     });
 
     it('dispatches cancelBulkLink action to cancel running bulk link saga', async () => {

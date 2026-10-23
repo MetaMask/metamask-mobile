@@ -2000,15 +2000,6 @@ class AuthenticationService {
 
         await depositResetProviderToken();
 
-        try {
-          await deleteKalshiDeviceKey();
-        } catch (error) {
-          Logger.error(
-            ensureError(error, 'Failed to delete Kalshi device key'),
-            'Failed to delete Kalshi device key during wallet reset',
-          );
-        }
-
         // Cancel any running bulk link saga before resetting rewards state
         ReduxService.store.dispatch(cancelBulkLink());
 
@@ -2016,6 +2007,8 @@ class AuthenticationService {
 
         // Clear all Card auth/session/onboarding data (CARD-431)
         await Engine.context.CardController.resetAll();
+
+        await deleteKalshiDeviceKey();
 
         // Lock the app and navigate to onboarding
         await this.lockApp({ navigateToLogin: false });

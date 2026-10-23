@@ -3,6 +3,7 @@ import { sha256 } from '@noble/hashes/sha2';
 import { clean, concatBytes, randomBytes } from '@noble/hashes/utils';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
+import { ensureError } from '../../../../util/errorUtils';
 import Logger from '../../../../util/Logger';
 import type { PredictConfig } from '../config/predictConfig';
 
@@ -97,13 +98,21 @@ export function clearKalshiDeviceKey(): void {
 /**
  * Removes the encrypted key and the in-memory copy. Wallet reset calls this.
  * The keychain delete waits until any in-flight write finishes, so that write
- * cannot put the key back.
+ * cannot put the key back. A keychain failure is logged and does not reject,
+ * so the caller can keep going.
  */
 export async function deleteKalshiDeviceKey(): Promise<void> {
   clearKalshiDeviceKey();
-  await enqueue(async () => {
-    await SecureKeychain.clearSecureScope(KALSHI_DEVICE_KEY_SCOPE);
-  });
+  try {
+    await enqueue(async () => {
+      await SecureKeychain.clearSecureScope(KALSHI_DEVICE_KEY_SCOPE);
+    });
+  } catch (error) {
+    Logger.error(
+      ensureError(error, 'Failed to delete Kalshi device key'),
+      'Failed to delete Kalshi device key',
+    );
+  }
 }
 
 /**

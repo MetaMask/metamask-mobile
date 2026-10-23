@@ -5,6 +5,7 @@ import { createHash, createPublicKey, verify } from 'crypto';
 import { p256 } from '@noble/curves/nist';
 
 import SecureKeychain from '../../../../core/SecureKeychain';
+import Logger from '../../../../util/Logger';
 import {
   DEFAULT_PREDICT_CONFIG,
   type PredictConfig,
@@ -325,6 +326,25 @@ describe('kalshiDeviceKey', () => {
     const recreated = await ensureKalshiDeviceKey(enabledConfig, true);
     expect(recreated?.publicRaw[0]).toBe(0x04);
     expect(saved).not.toBeNull();
+  });
+
+  it('logs a keychain delete failure and still drops the in-memory key', async () => {
+    await ensureKalshiDeviceKey(enabledConfig, true);
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    (SecureKeychain.clearSecureScope as jest.Mock).mockRejectedValueOnce(
+      new Error('keychain failed'),
+    );
+
+    await expect(deleteKalshiDeviceKey()).resolves.toBeUndefined();
+
+    expect(getKalshiDeviceKey()).toBeNull();
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'keychain failed' }),
+      'Failed to delete Kalshi device key',
+    );
+    errorSpy.mockRestore();
   });
 
   it('signs SHA-256 ECDSA as 64-byte r||s that Node can verify', async () => {
