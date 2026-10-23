@@ -47,6 +47,11 @@ import {
 } from '../types';
 import SocialLeaderboardMessage from './SocialLeaderboardMessage';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 
 /**
  * Slide a row runs when the ranking reshuffles, matched to the row's own
@@ -77,6 +82,8 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  /** Enables treatment-only Social V1 fetch and first-content tracing. */
+  socialV1Performance?: SocialPerformanceContext;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -93,6 +100,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
+  socialV1Performance,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -121,6 +129,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     timeframe,
     sort,
     enabled: !isOffline,
+    socialPerformance: socialV1Performance?.enabled
+      ? { tab: SOCIAL_TRACE_TABS.Leaderboard }
+      : undefined,
   });
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -221,6 +232,26 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const handleRetry = useCallback(() => {
     refresh().catch(() => undefined);
   }, [refresh]);
+
+  const firstContentState =
+    !isEnabled || resolution.status === 'hidden'
+      ? null
+      : resolution.status === 'unavailable'
+        ? 'empty'
+        : rows.length > 0 || viewerRow
+          ? 'content'
+          : error || (isOffline && !hasFetched)
+            ? 'error'
+            : hasFetched
+              ? 'empty'
+              : null;
+
+  useSocialTabFirstContentTrace({
+    tab: SOCIAL_TRACE_TABS.Leaderboard,
+    contentState: firstContentState,
+    hasUsableData: hasFetched || isShowingSnapshot || freshTraders.length > 0,
+    performance: socialV1Performance,
+  });
 
   if (!isEnabled || resolution.status === 'hidden') {
     return null;

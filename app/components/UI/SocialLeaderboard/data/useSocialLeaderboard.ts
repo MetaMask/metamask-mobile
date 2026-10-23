@@ -19,6 +19,7 @@ import {
   type SocialLeaderboardSource,
 } from './socialLeaderboardSource';
 import type { RankedTrader, SocialLeaderboardFilters } from '../types';
+import type { SocialDataFetchTab } from '../../../../util/social/socialPerformance';
 
 /**
  * Rows fetched per ranking. Fixed rather than taken from the host's `limit`,
@@ -31,6 +32,8 @@ export interface UseSocialLeaderboardOptions {
   sort: LeaderboardSort;
   /** Gate the query. Always additionally gated on the feature flag and unlock. */
   enabled?: boolean;
+  /** Social V1-only tracing for the first real leaderboard request. */
+  socialPerformance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
 
 export interface SocialLeaderboardState
@@ -51,7 +54,12 @@ export interface SocialLeaderboardState
  */
 export const useSocialLeaderboard = (
   source: SocialLeaderboardSource | null,
-  { timeframe, sort, enabled = true }: UseSocialLeaderboardOptions,
+  {
+    timeframe,
+    sort,
+    enabled = true,
+    socialPerformance,
+  }: UseSocialLeaderboardOptions,
 ): SocialLeaderboardState => {
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -71,6 +79,7 @@ export const useSocialLeaderboard = (
     sort,
     timeframe,
     enabled: isEnabled && enabled && isReady,
+    socialPerformance,
   });
 
   const { traders: loadedTraders, refresh: refetch } = result;

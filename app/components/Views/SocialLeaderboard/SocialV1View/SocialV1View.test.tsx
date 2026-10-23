@@ -148,6 +148,18 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: () => mockPlaySelection(),
 }));
 
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: () => true,
+}));
+
 jest.mock('../TopTradersView', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -185,6 +197,7 @@ jest.mock('@react-navigation/native', () => {
     ...actual,
     useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
+    useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
       ReactActual.useEffect(() => callback(), [callback]);
     },

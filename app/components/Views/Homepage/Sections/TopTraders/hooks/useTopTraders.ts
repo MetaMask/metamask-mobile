@@ -1,6 +1,7 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { useQueryClient } from '@tanstack/react-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
@@ -16,6 +17,11 @@ import {
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../../util/social/socialServiceTelemetry';
+import Engine from '../../../../../../core/Engine';
+import {
+  measureSocialDataFetch,
+  type SocialDataFetchTab,
+} from '../../../../../../util/social/socialPerformance';
 
 export interface UseTopTradersResult {
   traders: TopTrader[];
@@ -42,12 +48,16 @@ interface UseTopTradersOptions {
    */
   timeframe?: '7d' | '30d';
   enabled?: boolean;
+  /** Social V1-only tracing for the first real leaderboard request. */
+  socialPerformance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
 
 export const useTopTraders = (
   options?: UseTopTradersOptions,
 ): UseTopTradersResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const queryClient = useQueryClient();
+  const initialRequestAccountedForRef = useRef(false);
 
   const hasLimit = options?.limit !== undefined;
   const hasChains = options?.chains !== undefined;
@@ -66,6 +76,32 @@ export const useTopTraders = (
     'SocialService:fetchLeaderboard',
     fetchOptions,
   ];
+  const socialPerformance = options?.socialPerformance;
+  const tracedQueryFn =
+    socialPerformance && fetchOptions
+      ? () => {
+          const fetchLeaderboard = () =>
+            Engine.controllerMessenger.call(
+              'SocialService:fetchLeaderboard',
+              fetchOptions,
+            );
+
+          if (initialRequestAccountedForRef.current) {
+            return fetchLeaderboard();
+          }
+
+          initialRequestAccountedForRef.current = true;
+          return measureSocialDataFetch({
+            tab: socialPerformance.tab,
+            cacheState:
+              queryClient.getQueryData<LeaderboardResponse>(queryKey) ===
+              undefined
+                ? 'cold'
+                : 'warm',
+            request: fetchLeaderboard,
+          });
+        }
+      : undefined;
 
   // Pause while locked so queryFn never reaches SocialService.#getAuthHeaders →
   // AuthenticationController.getBearerToken (throws "wallet is locked").
@@ -76,10 +112,22 @@ export const useTopTraders = (
   const { data, isLoading, isFetching, isFetched, error, refetch } =
     useQuery<LeaderboardResponse>({
       queryKey,
+      ...(tracedQueryFn ? { queryFn: tracedQueryFn } : {}),
       enabled: (options?.enabled ?? true) && isUnlocked,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
     });
+
+  useEffect(() => {
+    if (
+      socialPerformance &&
+      data !== undefined &&
+      !isFetching &&
+      !initialRequestAccountedForRef.current
+    ) {
+      initialRequestAccountedForRef.current = true;
+    }
+  }, [data, isFetching, socialPerformance]);
 
   const leaderboardQueryParams = useMemo(
     () => ({
