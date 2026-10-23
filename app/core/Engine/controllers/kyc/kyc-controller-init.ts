@@ -17,8 +17,8 @@ import { sumsubLauncher } from './sumSubLauncher';
  * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
  * the injected {@link sumsubLauncher}.
  *
- * SumSub launch outcomes (`KycController:verificationStatusChanged`) and KYC
- * status changes (`KycController:kycStatusChanged`) are mapped to analytics
+ * SumSub launch outcomes (`KycController:analyticsVerificationOutcome`) and KYC
+ * status changes (`KycController:analyticsStatusChanged`) are mapped to analytics
  * here.
  *
  * Money-account wallet registration and autoramp creation after KYC approval
@@ -43,11 +43,11 @@ export const kycControllerInit: MessengerClientInitFunction<
   });
 
   initMessenger.subscribe(
-    'KycController:verificationStatusChanged',
+    'KycController:analyticsVerificationOutcome',
     handleVerificationStatusChangedForMetrics,
   );
   initMessenger.subscribe(
-    'KycController:kycStatusChanged',
+    'KycController:analyticsStatusChanged',
     handleKycStatusChangedForMetrics,
   );
 

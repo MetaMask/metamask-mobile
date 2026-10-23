@@ -133,11 +133,11 @@ describe('kycControllerInit', () => {
     kycControllerInit(request);
 
     expect(subscribeSpy).toHaveBeenCalledWith(
-      'KycController:verificationStatusChanged',
+      'KycController:analyticsVerificationOutcome',
       handleVerificationStatusChangedForMetrics,
     );
     expect(subscribeSpy).toHaveBeenCalledWith(
-      'KycController:kycStatusChanged',
+      'KycController:analyticsStatusChanged',
       handleKycStatusChangedForMetrics,
     );
   });

@@ -1,6 +1,6 @@
 import type {
-  KycStatusChangedPayload,
-  KycVerificationStatusChangedPayload,
+  KycAnalyticsStatusChangedPayload,
+  KycAnalyticsVerificationOutcomePayload,
 } from '@metamask/kyc-controller';
 import {
   trackKycStatusUpdated,
@@ -8,13 +8,13 @@ import {
 } from '../../../../../components/UI/KYC/utils/kycVerificationAnalytics';
 
 /**
- * Maps `KycController:verificationStatusChanged` to `KYC Verification Updated`.
+ * Maps `KycController:analyticsVerificationOutcome` to `KYC Verification Updated`.
  * The controller publishes it once per SumSub launch attempt.
  *
  * @param payload - The event payload.
  */
 export function handleVerificationStatusChangedForMetrics(
-  payload: KycVerificationStatusChangedPayload,
+  payload: KycAnalyticsVerificationOutcomePayload,
 ): void {
   trackKycVerificationUpdated({
     status: payload.status,
@@ -24,14 +24,14 @@ export function handleVerificationStatusChangedForMetrics(
 }
 
 /**
- * Maps `KycController:kycStatusChanged` to `KYC Status Updated`. The controller
+ * Maps `KycController:analyticsStatusChanged` to `KYC Status Updated`. The controller
  * publishes it after a write that changes the derived KYC status, and not when
  * an already-decided session is loaded into empty state.
  *
  * @param payload - The event payload.
  */
 export function handleKycStatusChangedForMetrics(
-  payload: KycStatusChangedPayload,
+  payload: KycAnalyticsStatusChangedPayload,
 ): void {
   trackKycStatusUpdated({
     previousKycStatus: payload.previousKycStatus,

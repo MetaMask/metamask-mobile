@@ -4,9 +4,9 @@ import {
   type MessengerEvents,
 } from '@metamask/messenger';
 import type {
-  KycControllerKycStatusChangedEvent,
+  KycControllerAnalyticsStatusChangedEvent,
   KycControllerMessenger,
-  KycControllerVerificationStatusChangedEvent,
+  KycControllerAnalyticsVerificationOutcomeEvent,
 } from '@metamask/kyc-controller';
 import type { RootMessenger } from '../../types';
 
@@ -84,8 +84,8 @@ export function getKycControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'KycControllerInit',
     never,
-    | KycControllerVerificationStatusChangedEvent
-    | KycControllerKycStatusChangedEvent,
+    | KycControllerAnalyticsVerificationOutcomeEvent
+    | KycControllerAnalyticsStatusChangedEvent,
     RootMessenger
   >({
     namespace: 'KycControllerInit',
@@ -94,8 +94,8 @@ export function getKycControllerInitMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     events: [
-      'KycController:verificationStatusChanged',
-      'KycController:kycStatusChanged',
+      'KycController:analyticsVerificationOutcome',
+      'KycController:analyticsStatusChanged',
     ],
     messenger,
   });

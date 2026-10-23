@@ -1,7 +1,7 @@
 import {
-  deriveKycStatus,
-  type KycDerivedStatus,
-  type KycVerificationEventStatus,
+  getKycAnalyticsStatus,
+  type KycAnalyticsStatus,
+  type KycAnalyticsVerificationOutcome,
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux';
@@ -29,15 +29,15 @@ export const KYC_ANALYTICS_VENDOR = 'moonpay';
 
 /** Statuses of `KYC Verification Updated`; mobile fires `started` and `retry_started`. */
 export type KycVerificationUpdatedStatus =
-  | KycVerificationEventStatus
+  | KycAnalyticsVerificationOutcome
   | 'started'
   | 'retry_started';
 
 export type KycRetrySource = 'sumsub_error' | 'kyc_rejected';
 
 interface KycStateInput {
-  /** Derived KYC status now. Read from controller state when omitted. */
-  kycStatus?: KycDerivedStatus;
+  /** Analytics KYC status now. Read from controller state when omitted. */
+  kycStatus?: KycAnalyticsStatus;
   /** Provider flow outcome now. Read from controller state when omitted. */
   providerFlowStatus?: string;
 }
@@ -50,7 +50,7 @@ export interface KycVerificationUpdatedInput extends KycStateInput {
 
 export interface KycStatusUpdatedInput extends KycStateInput {
   /** The KYC status stored before the change. Absent the first time one is stored. */
-  previousKycStatus?: KycDerivedStatus;
+  previousKycStatus?: KycAnalyticsStatus;
 }
 
 /**
@@ -90,7 +90,7 @@ export function buildKycBaseProperties(
   const kycStatus =
     input.kycStatus ??
     (state && providerFlowStatus
-      ? deriveKycStatus(state.sessionStatus, state.providerFlowStatus)
+      ? getKycAnalyticsStatus(state.sessionStatus, state.providerFlowStatus)
       : undefined);
   const region = readRegion();
 

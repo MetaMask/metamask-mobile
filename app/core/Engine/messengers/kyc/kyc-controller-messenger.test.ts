@@ -47,8 +47,8 @@ describe('getKycControllerInitMessenger', () => {
     expect(delegateSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         events: [
-          'KycController:verificationStatusChanged',
-          'KycController:kycStatusChanged',
+          'KycController:analyticsVerificationOutcome',
+          'KycController:analyticsStatusChanged',
         ],
       }),
     );

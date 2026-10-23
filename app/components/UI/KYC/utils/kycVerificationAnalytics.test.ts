@@ -1,4 +1,4 @@
-import { deriveKycStatus } from '@metamask/kyc-controller';
+import { getKycAnalyticsStatus } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import ReduxService from '../../../../core/redux';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -10,7 +10,7 @@ import {
 } from './kycVerificationAnalytics';
 
 jest.mock('@metamask/kyc-controller', () => ({
-  deriveKycStatus: jest.fn(),
+  getKycAnalyticsStatus: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -31,7 +31,7 @@ jest.mock('../../../../util/Logger', () => ({
   default: { error: jest.fn() },
 }));
 
-const mockDeriveKycStatus = jest.mocked(deriveKycStatus);
+const mockDeriveKycStatus = jest.mocked(getKycAnalyticsStatus);
 const mockTrackEvent = jest.mocked(analytics.trackEvent);
 const mockGetState = jest.mocked(ReduxService.store.getState);
 const mockEngine = Engine as unknown as {
