@@ -19,7 +19,6 @@ import ProfileAvatar from './ProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
-import { LOCAL_SOCIAL_PROFILE_DUMMY_BIO } from '../hooks/localSocialProfileStore';
 import type { MySocialProfile } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
@@ -48,8 +47,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   }, [profile.xHandle]);
 
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
-  const thesis =
-    profile.bio?.trim() || (__DEV__ ? LOCAL_SOCIAL_PROFILE_DUMMY_BIO : '');
+  const thesis = profile.bio?.trim() || '';
 
   return (
     <Box paddingHorizontal={4} paddingBottom={4}>
