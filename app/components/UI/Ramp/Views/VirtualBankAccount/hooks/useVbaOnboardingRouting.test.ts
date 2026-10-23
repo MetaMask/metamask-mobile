@@ -1,5 +1,4 @@
 import { renderHook } from '@testing-library/react-native';
-import Engine from '../../../../../../core/Engine';
 import { StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
@@ -72,6 +71,8 @@ const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
+const mockGetSessionProfile = jest.fn();
+const mockGetCustomerByExternalId = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -81,6 +82,13 @@ jest.mock('../../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+    },
+    AuthenticationController: {
+      getSessionProfile: (...args: unknown[]) => mockGetSessionProfile(...args),
+    },
+    NeoBankService: {
+      getCustomerByExternalId: (...args: unknown[]) =>
+        mockGetCustomerByExternalId(...args),
     },
     KycController: {
       get state() {
@@ -321,23 +329,13 @@ describe('useOpenVbaOnboarding', () => {
   });
 
   it('opens KYC pending when MoonPay identification is still required', async () => {
-    const getSessionProfile = jest.fn().mockResolvedValue({
+    mockGetSessionProfile.mockResolvedValue({
       canonicalProfileId: 'profile-1',
     });
-    const getCustomerByExternalId = jest.fn().mockResolvedValue({
+    mockGetCustomerByExternalId.mockResolvedValue({
       id: 'customer-1',
       status: 'IdentificationRequired',
     });
-    const engine = Engine.context as {
-      AuthenticationController?: {
-        getSessionProfile: typeof getSessionProfile;
-      };
-      NeoBankService?: {
-        getCustomerByExternalId: typeof getCustomerByExternalId;
-      };
-    };
-    engine.AuthenticationController = { getSessionProfile };
-    engine.NeoBankService = { getCustomerByExternalId };
     mockHydrate.mockResolvedValue({
       ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
       sessionExists: true,
@@ -352,8 +350,7 @@ describe('useOpenVbaOnboarding', () => {
     await result.current();
 
     expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
-    delete engine.AuthenticationController;
-    delete engine.NeoBankService;
+    expect(mockGetCustomerByExternalId).toHaveBeenCalledWith('profile-1');
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
