@@ -625,10 +625,7 @@ describe('CodeStep', () => {
       'flow_expired',
       'That took too long. Enter the current code from your app.',
     ],
-    [
-      'invalid_code',
-      'This code isn’t correct. Try again',
-    ],
+    ['invalid_code', 'This code isn’t correct. Try again'],
   ] as const)('words %s for the authenticator app', (error, message) => {
     const { getByText } = renderCode(totpCode, { error });
 
@@ -754,10 +751,7 @@ describe('TotpSetupStep', () => {
   });
 
   it('announces when the setup key is copied', () => {
-    const announce = jest.spyOn(
-      AccessibilityInfo,
-      'announceForAccessibility',
-    );
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
     const { getByTestId } = renderSetup();
 
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.TOTP_COPY_KEY));
