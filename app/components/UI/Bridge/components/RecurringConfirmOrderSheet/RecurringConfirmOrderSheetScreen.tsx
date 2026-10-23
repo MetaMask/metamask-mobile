@@ -29,7 +29,7 @@ import {
 import { FeatureId } from '@metamask/bridge-controller';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { getOrderTypeFromPriceRange } from '../../utils/recurringOrders';
+import { getOrderTypeFromDraftPriceRange } from '../../utils/recurringOrders';
 
 export const RecurringConfirmOrderSheetScreen = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -89,7 +89,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_COMPLETED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
-            order_type: getOrderTypeFromPriceRange(priceRange),
+            order_type: getOrderTypeFromDraftPriceRange(priceRange),
           })
           .build(),
       );
@@ -104,7 +104,7 @@ export const RecurringConfirmOrderSheetScreen = () => {
         createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_FAILED)
           .addProperties({
             ...sharedAdvancedOrderProperties,
-            order_type: getOrderTypeFromPriceRange(priceRange),
+            order_type: getOrderTypeFromDraftPriceRange(priceRange),
             error: isAccountUpgraded
               ? (error as Error).message
               : 'delegation_failed',

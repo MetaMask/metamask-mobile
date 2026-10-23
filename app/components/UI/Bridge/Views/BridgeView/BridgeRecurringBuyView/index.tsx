@@ -55,7 +55,7 @@ import {
   FeatureId,
   type MetaMetricsSwapsEventSource,
 } from '@metamask/bridge-controller';
-import { getOrderTypeFromPriceRange } from '../../../utils/recurringOrders';
+import { getOrderTypeFromDraftPriceRange } from '../../../utils/recurringOrders';
 
 const OPEN_ORDER_STATES = [RecurringOrderState.Open];
 const HISTORY_ORDER_STATES = [
@@ -149,7 +149,7 @@ const BridgeRecurringBuyViewContent = ({
         .addProperties({
           location,
           feature_id: FeatureId.RECURRING_ORDER,
-          order_type: getOrderTypeFromPriceRange(priceRange),
+          order_type: getOrderTypeFromDraftPriceRange(priceRange),
         })
         .build(),
     );
