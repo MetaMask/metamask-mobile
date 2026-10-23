@@ -7,6 +7,8 @@ import {
   formatDuration,
   formatRewardsDate,
   formatRewardsDateLabel,
+  formatRewardsRelativeDay,
+  formatRewardsRelativeTime,
   formatRewardsTimeOnly,
   formatTimeRemaining,
   formatNumber,
@@ -195,6 +197,78 @@ describe('formatUtils', () => {
           now,
         ),
       ).toBeNull();
+    });
+  });
+
+  describe('formatRewardsRelativeTime', () => {
+    const now = new Date('2026-09-25T12:00:00.000Z');
+
+    it('returns an empty string for an invalid date', () => {
+      expect(formatRewardsRelativeTime(new Date('not-a-date'), now)).toBe('');
+    });
+
+    it('returns just now when the instant is under a minute ago', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T11:59:30.000Z'), now),
+      ).toBe('just now');
+    });
+
+    it('returns minutes, hours, then days', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T11:55:00.000Z'), now),
+      ).toBe('5m ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-25T09:00:00.000Z'), now),
+      ).toBe('3h ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-21T12:00:00.000Z'), now),
+      ).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(
+        formatRewardsRelativeTime(new Date('2026-09-18T12:00:00.000Z'), now),
+      ).toBe('1w ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-08-26T12:00:00.000Z'), now),
+      ).toBe('1mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2026-06-25T12:00:00.000Z'), now),
+      ).toBe('3mo ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2025-09-25T12:00:00.000Z'), now),
+      ).toBe('1y ago');
+      expect(
+        formatRewardsRelativeTime(new Date('2024-09-25T12:00:00.000Z'), now),
+      ).toBe('2y ago');
+    });
+  });
+
+  describe('formatRewardsRelativeDay', () => {
+    const now = new Date('2026-09-25T23:30:00.000Z');
+
+    it('returns an empty string for a value that is not a UTC day', () => {
+      expect(formatRewardsRelativeDay('2026-09-25T00:00:00.000Z', now)).toBe(
+        '',
+      );
+    });
+
+    it('returns today for the current UTC day', () => {
+      expect(formatRewardsRelativeDay('2026-09-25', now)).toBe('today');
+    });
+
+    it('counts whole UTC days', () => {
+      expect(formatRewardsRelativeDay('2026-09-24', now)).toBe('1d ago');
+      expect(formatRewardsRelativeDay('2026-09-21', now)).toBe('4d ago');
+    });
+
+    it('rolls days into weeks, months, then years', () => {
+      expect(formatRewardsRelativeDay('2026-09-18', now)).toBe('1w ago');
+      expect(formatRewardsRelativeDay('2026-08-27', now)).toBe('4w ago');
+      expect(formatRewardsRelativeDay('2026-08-26', now)).toBe('1mo ago');
+      expect(formatRewardsRelativeDay('2025-09-26', now)).toBe('12mo ago');
+      expect(formatRewardsRelativeDay('2025-09-25', now)).toBe('1y ago');
+      expect(formatRewardsRelativeDay('2024-09-25', now)).toBe('2y ago');
     });
   });
 
@@ -1481,6 +1555,27 @@ describe('formatUtils', () => {
 
     it('returns null for an unparseable amount', () => {
       expect(formatMusdBaseUnits('not-a-number')).toBeNull();
+    });
+
+    it('prefixes a positive amount when signed', () => {
+      expect(formatMusdBaseUnits('41750000', { signed: true })).toBe('+$41.75');
+      expect(formatMusdBaseUnits('-1250000', { signed: true })).toBe('$-1.25');
+      expect(formatMusdBaseUnits('0', { signed: true })).toBe('$0.00');
+    });
+
+    it('pins two decimals when maximumFractionDigits is 2', () => {
+      expect(
+        formatMusdBaseUnits('1000000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$1.00');
+      expect(
+        formatMusdBaseUnits('2500000', {
+          signed: true,
+          maximumFractionDigits: 2,
+        }),
+      ).toBe('+$2.50');
     });
   });
 

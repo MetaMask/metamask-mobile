@@ -37,14 +37,14 @@ Code outside PredictNext imports only from one curated entry point, `app/compone
 
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
-| Proposed API                                                                    | Polymarket branch (transition)                               | Kalshi branch                                | After PRED-1356                          |
-| ------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------- | ---------------------------------------- |
-| `selectPredictAvailability` / `usePredictAvailability()`                        | Existing legacy flag and eligibility logic                   | Kalshi flags, eligibility, kill switch       | Venue availability from the API service  |
-| `openPredict(intent)`, `usePredictEntryActions()`                               | Legacy `usePredictNavigation` and routes                     | PredictNext routes                           | PredictNext routes                       |
-| `PredictHomeSection`, `PredictTrendingFeed`, slot widgets, autocomplete results | Existing Homepage/Trending/Browser Predict code, moved as-is | New Kalshi UI                                | PredictNext UI                           |
-| `usePredictPortfolioValue()`                                                    | `usePredictPortfolio().portfolioValue`                       | Kalshi portfolio read                        | PredictNext portfolio read               |
-| `usePredictActivityItems()` returning `ActivityListItem`, plus details          | Existing `usePredictActivity` and `mapPredictActivity`       | Kalshi Activity mapped to `ActivityListItem` | PredictNext Activity mapped the same way |
-| Analytics constants and entry-point attribution                                 | Existing values, re-exported unchanged                       | Same values                                  | Same values                              |
+| Proposed API                                                                    | Polymarket branch (transition)                               | Kalshi branch                                | After PRED-1356                            |
+| ------------------------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------- | ------------------------------------------ |
+| `selectPredictAvailability` / `usePredictAvailability()`                        | Existing legacy flag and eligibility logic                   | Kalshi flags, eligibility, kill switch       | Venue availability from the API service    |
+| `openPredict(intent)`, `usePredictEntryActions()`                               | Legacy `usePredictNavigation` and routes                     | PredictNext routes                           | PredictNext routes                         |
+| `PredictHomeSection`, `PredictTrendingFeed`, slot widgets, autocomplete results | Existing Homepage/Trending/Browser Predict code, moved as-is | New Kalshi UI                                | PredictNext UI                             |
+| `usePredictPortfolioValue()`                                                    | `usePredictPortfolio().portfolioValue`                       | Kalshi Portfolio Summary `totalValue`        | PredictNext Portfolio Summary `totalValue` |
+| `usePredictActivityItems()` returning `ActivityListItem`, plus details          | Existing `usePredictActivity` and `mapPredictActivity`       | Kalshi Activity mapped to `ActivityListItem` | PredictNext Activity mapped the same way   |
+| Analytics constants and entry-point attribution                                 | Existing values, re-exported unchanged                       | Same values                                  | Same values                                |
 
 Public inputs are intents, consumer-owned types, and callbacks with Venue-neutral arguments. Public outputs never include legacy objects (`PredictMarket`, `PredictPosition`, `PredictActivity`), Venue DTOs, proxy-wallet data, or provider IDs. Canonical PredictNext domain types and data hooks are not public yet. Expose them only when a consumer needs domain data and every supported Venue can supply it truthfully.
 
@@ -84,7 +84,7 @@ These apply to PredictNext's own contract and to the eventual Polymarket backend
 
 - **Displayed Probability is not a quote.** A Venue-provided probability or mark is distinct from the executable Ask and Bid Prices. An absent quote stays absent and never becomes zero.
 - **Decimal share quantities.** Positions and the sell intent use decimal-string shares. Kalshi's whole-contract sell restriction is Kalshi-specific and stays in its implementation (see ADR-0001). Never round holdings at the public boundary.
-- **Neutral Fill copy for Kalshi.** Kalshi's reported `outcomeSide` and matching-leg price do not establish bought or sold direction.
+- **Authoritative Trade direction.** Kalshi's reported `outcomeSide` and matching-leg price do not establish bought or sold direction. Canonical `trade` Activity entries take their buy or sell Action from the backend's own Order records instead. See [the portfolio, Activity, and catalog contract](./canonical-portfolio-activity-catalog-contract.md).
 - **Process-local Order observation.** Order completion observation survives screen closure but not process death. No mobile Order persistence is introduced.
 - **Account caches are purged by the platform reset.** Kalshi account query keys stay Venue-only. Only a wallet reset or a new wallet replaces the Predict User, and both run the platform reset, so `Engine.resetState` cancels in-flight account reads, removes the cached results, and abandons in-flight Order commits. The shared app query client that mirrors those reads is cleared on that reset and on no other event; lock/unlock, account switches, and sign-out/sign-in keep the cache. No raw identity, token, or PII enters a query key. PredictNext does not cache legacy Polymarket account data, so no wallet-scoped Polymarket keys are needed.
 
@@ -102,8 +102,10 @@ PRED-1374 found these legacy client-mapping issues. They belong to the backend a
 - Redemption history can lack a resolution result. Decide whether the backend can join it authoritatively before relaxing the canonical Settlement contract.
 - Existing filters, such as zero-payout redemption exclusion, are current product behavior.
 
+The per-field sources and risks for the canonical Position, Portfolio Summary, and Activity fields are in [the Polymarket feasibility table](./canonical-portfolio-activity-catalog-contract.md#polymarket-feasibility-pred-1356).
+
 ## Resolved questions
 
 - Launch scope: every surface that shows Polymarket today shows Kalshi at launch.
 - Homepage: plan for a Predict-owned `PredictHomeSection`. Confirm with `@MetaMask/mobile-core-ux` when PRED-1382 starts.
-- Venue descriptors: under PRED-1376, the Polymarket descriptor comes from client configuration and implemented behavior during staged delivery. The backend descriptor covers Kalshi until PRED-1356.
+- Venue descriptors: under PRED-1376, the Polymarket descriptor comes from client configuration and implemented behavior during staged delivery. The backend descriptor covers Kalshi until PRED-1356. Its wire shape is the [Venue catalog](./canonical-portfolio-activity-catalog-contract.md#venue-catalog).

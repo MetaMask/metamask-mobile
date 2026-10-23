@@ -6,14 +6,17 @@ import {
 } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   FontWeight,
+  IconName,
+  ListItem,
+  ListItemVariant,
   Text,
   TextColor,
   TextVariant,
   TitleStandard,
-  ListItem,
-  ListItemVariant,
 } from '@metamask/design-system-react-native';
 import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
@@ -41,15 +44,48 @@ import {
 } from '../../../selectors/qrSyncController';
 import { AddDeviceToWalletTestIds } from './AddDeviceToWallet.testIds';
 
-const StepNumber = ({ children }: { children: string }) => (
+const SettingsPathDescription = () => (
   <Text
-    variant={TextVariant.BodyMd}
+    variant={TextVariant.BodySm}
     fontWeight={FontWeight.Medium}
-    color={TextColor.TextDefault}
+    color={TextColor.TextAlternative}
   >
-    {children}
+    {strings('app_settings.add_device.points.two_description_prefix')}{' '}
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Bold}
+      color={TextColor.TextAlternative}
+    >
+      {strings('app_settings.add_device.points.two_description_path')}
+    </Text>
   </Text>
 );
+
+const INSTRUCTIONS: {
+  iconName: IconName;
+  titleKey: string;
+  descriptionKey?: string;
+}[] = [
+  {
+    iconName: IconName.Monitor,
+    titleKey: 'app_settings.add_device.points.one_title',
+    descriptionKey: 'app_settings.add_device.points.one_description',
+  },
+  {
+    iconName: IconName.Setting,
+    titleKey: 'app_settings.add_device.points.two_title',
+  },
+  {
+    iconName: IconName.QrCode,
+    titleKey: 'app_settings.add_device.points.three_title',
+    descriptionKey: 'app_settings.add_device.points.three_description',
+  },
+  {
+    iconName: IconName.Key,
+    titleKey: 'app_settings.add_device.points.four_title',
+    descriptionKey: 'app_settings.add_device.points.four_description',
+  },
+];
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
@@ -136,57 +172,30 @@ const AddDeviceToWallet = () => {
       />
       <Box twClassName="flex-1" style={{ marginTop: headerInset }}>
         <TitleStandard
-          twClassName="px-4"
+          twClassName="mb-6 px-4"
           title={strings('app_settings.add_device.add_device_to_wallet')}
         />
 
-        <ListItem
-          variant={ListItemVariant.OneLine}
-          accessoryGap={4}
-          startAccessory={<StepNumber>1</StepNumber>}
-          title={strings('app_settings.add_device.points.one')}
-        />
-        <ListItem
-          variant={ListItemVariant.OneLine}
-          accessoryGap={4}
-          startAccessory={<StepNumber>2</StepNumber>}
-          title={
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {strings('app_settings.add_device.points.two')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {strings('app_settings.add_device.points.two_bold_one')}
-              </Text>{' '}
-              {strings('app_settings.add_device.points.two_icon')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {strings('app_settings.add_device.points.two_bold_two')}
-              </Text>
-            </Text>
-          }
-        />
-        <ListItem
-          variant={ListItemVariant.OneLine}
-          accessoryGap={4}
-          startAccessory={<StepNumber>3</StepNumber>}
-          title={strings('app_settings.add_device.points.three')}
-        />
-        <ListItem
-          variant={ListItemVariant.OneLine}
-          accessoryGap={4}
-          startAccessory={<StepNumber>4</StepNumber>}
-          title={strings('app_settings.add_device.points.four')}
-        />
+        {INSTRUCTIONS.map((instruction) => (
+          <ListItem
+            key={instruction.titleKey}
+            variant={ListItemVariant.TwoLines}
+            avatar={
+              <AvatarIcon
+                iconName={instruction.iconName}
+                severity={AvatarIconSeverity.Neutral}
+              />
+            }
+            title={strings(instruction.titleKey)}
+            description={
+              instruction.descriptionKey ? (
+                strings(instruction.descriptionKey)
+              ) : (
+                <SettingsPathDescription />
+              )
+            }
+          />
+        ))}
 
         <FooterGlass
           twClassName="mt-auto py-4"
