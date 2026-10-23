@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
+import { keepPreviousData } from '@tanstack/react-query';
 import type {
   LeaderboardResponse,
   FetchLeaderboardOptions,
@@ -42,6 +43,11 @@ interface UseTopTradersOptions {
    */
   timeframe?: '7d' | '30d';
   enabled?: boolean;
+  /**
+   * Keep the previous ranking on screen while a new chain set loads, so the
+   * rows can slide to their new order instead of remounting from a skeleton.
+   */
+  keepPreviousRanking?: boolean;
 }
 
 export const useTopTraders = (
@@ -79,6 +85,9 @@ export const useTopTraders = (
       enabled: (options?.enabled ?? true) && isUnlocked,
       refetchOnWindowFocus: false,
       refetchOnReconnect: false,
+      placeholderData: options?.keepPreviousRanking
+        ? keepPreviousData
+        : undefined,
     });
 
   const leaderboardQueryParams = useMemo(
