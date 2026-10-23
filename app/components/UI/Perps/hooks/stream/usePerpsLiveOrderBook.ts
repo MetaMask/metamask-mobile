@@ -182,6 +182,17 @@ export function usePerpsLiveOrderBook(
     let unsubscribe: (() => void) | null = null;
     let isActive = true;
 
+    // The throttle clock belongs to the previous subscription. Keeping it
+    // queues this generation's first snapshot, and a follow-up resubscribe
+    // clears that timer, so the UI keeps the stale book (order CTA stays
+    // disabled after depth recovers).
+    lastUpdateRef.current = 0;
+    pendingUpdateRef.current = null;
+    if (throttleTimerRef.current) {
+      clearTimeout(throttleTimerRef.current);
+      throttleTimerRef.current = null;
+    }
+
     try {
       if (isAggregated) {
         const connection = getAggregatedOrderBookConnection();

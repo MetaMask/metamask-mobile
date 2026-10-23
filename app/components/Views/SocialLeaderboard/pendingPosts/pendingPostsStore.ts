@@ -14,8 +14,8 @@ export type PendingPostSurface = 'following' | 'posts';
  */
 export const PENDING_POST_CONFIRM_WINDOW_MS = 30_000;
 
-/** How long after posting the feed may still jump to Following. */
-const FOLLOWING_FOCUS_WINDOW_MS = 10_000;
+/** How long after posting the profile may still jump to its Posts tab. */
+const POSTS_TAB_FOCUS_WINDOW_MS = 10_000;
 
 export interface PendingPostEntry {
   commentId: string;
@@ -35,7 +35,7 @@ type Listener = () => void;
 
 interface StoreState {
   entries: readonly PendingPostEntry[];
-  followingFocusRequestedAtMs: number | null;
+  postsTabFocusRequestedAtMs: number | null;
   listeners: Set<Listener>;
 }
 
@@ -48,7 +48,7 @@ const STORE_GLOBAL_KEY = '__mmSocialPendingPostsStore__';
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? {
   entries: [],
-  followingFocusRequestedAtMs: null,
+  postsTabFocusRequestedAtMs: null,
   listeners: new Set(),
 };
 globalScope[STORE_GLOBAL_KEY] = state;
@@ -146,22 +146,22 @@ export const dismissSettledPendingPosts = (
 };
 
 export const resetPendingPosts = (): void => {
-  state.followingFocusRequestedAtMs = null;
+  state.postsTabFocusRequestedAtMs = null;
   if (state.entries.length > 0) {
     setEntries([]);
   }
 };
 
-/** Asks the Social feed to open Following next time it gains focus. */
-export const requestFollowingFocus = (nowMs = Date.now()): void => {
-  state.followingFocusRequestedAtMs = nowMs;
+/** Asks the viewer's profile to open its Posts tab next time it gains focus. */
+export const requestPostsTabFocus = (nowMs = Date.now()): void => {
+  state.postsTabFocusRequestedAtMs = nowMs;
 };
 
-/** Reads and clears a recent {@link requestFollowingFocus}. */
-export const consumeFollowingFocus = (nowMs = Date.now()): boolean => {
-  const requestedAtMs = state.followingFocusRequestedAtMs;
-  state.followingFocusRequestedAtMs = null;
+/** Reads and clears a recent {@link requestPostsTabFocus}. */
+export const consumePostsTabFocus = (nowMs = Date.now()): boolean => {
+  const requestedAtMs = state.postsTabFocusRequestedAtMs;
+  state.postsTabFocusRequestedAtMs = null;
   return (
-    requestedAtMs !== null && nowMs - requestedAtMs <= FOLLOWING_FOCUS_WINDOW_MS
+    requestedAtMs !== null && nowMs - requestedAtMs <= POSTS_TAB_FOCUS_WINDOW_MS
   );
 };
