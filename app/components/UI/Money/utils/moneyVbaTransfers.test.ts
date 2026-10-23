@@ -106,6 +106,7 @@ describe('mapMoneyVbaTransfers', () => {
         autorampId: 'processing-1',
         status: 'Pending',
         time: Date.parse('2026-10-21T14:59:26.769Z'),
+        destinationAmount: '1000.000000',
         transactionHash: undefined,
       },
     ]);
