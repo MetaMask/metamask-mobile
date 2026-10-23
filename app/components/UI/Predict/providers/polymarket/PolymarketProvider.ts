@@ -98,6 +98,7 @@ import {
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
   V1_MARKET_VERSION,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -144,7 +145,6 @@ import {
   previewOrder,
   previewMaxBuyOrder,
   searchEventsFromPolymarketApi,
-  V2_MARKET_VERSION,
 } from './utils';
 import { PredictFeatureFlags } from '../../types/flags';
 import {
