@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import Engine from '../../../../../../core/Engine';
 import { StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Logger from '../../../../../../util/Logger';
@@ -317,6 +318,42 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens KYC pending when MoonPay identification is still required', async () => {
+    const getSessionProfile = jest.fn().mockResolvedValue({
+      canonicalProfileId: 'profile-1',
+    });
+    const getCustomerByExternalId = jest.fn().mockResolvedValue({
+      id: 'customer-1',
+      status: 'IdentificationRequired',
+    });
+    const engine = Engine.context as {
+      AuthenticationController?: {
+        getSessionProfile: typeof getSessionProfile;
+      };
+      NeoBankService?: {
+        getCustomerByExternalId: typeof getCustomerByExternalId;
+      };
+    };
+    engine.AuthenticationController = { getSessionProfile };
+    engine.NeoBankService = { getCustomerByExternalId };
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'not_ready',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+    delete engine.AuthenticationController;
+    delete engine.NeoBankService;
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {

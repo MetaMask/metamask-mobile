@@ -241,6 +241,7 @@ const VbaDetails = () => {
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
   const openedVendorTermsRef = useRef(false);
+  const openedIdentificationRef = useRef(false);
   const accountKeyRef = useRef(
     `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
   );
@@ -317,6 +318,18 @@ const VbaDetails = () => {
               openAsOnlyOnboardingRoute(
                 navigationRef.current,
                 VbaOnboardingRoutes.VENDOR_TERMS,
+              );
+            }
+            return;
+          }
+          if (outcome === 'identification_required') {
+            // MoonPay has not finished identification. The approval spinner
+            // is the wrong screen; the KYC pending screen can be left.
+            if (!openedIdentificationRef.current) {
+              openedIdentificationRef.current = true;
+              openAsOnlyOnboardingRoute(
+                navigationRef.current,
+                VbaOnboardingRoutes.KYC_PENDING,
               );
             }
             return;
@@ -410,6 +423,7 @@ const VbaDetails = () => {
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     openedVendorTermsRef.current = false;
+    openedIdentificationRef.current = false;
     setInstructions(null);
     setLoadError(false);
     setSetupFailed(false);
@@ -492,6 +506,7 @@ const VbaDetails = () => {
   const handleRetrySetup = useCallback(() => {
     pollingDoneRef.current = false;
     openedVendorTermsRef.current = false;
+    openedIdentificationRef.current = false;
     setSetupFailed(false);
     setLoadError(false);
     setAwaitingProviderApproval(false);

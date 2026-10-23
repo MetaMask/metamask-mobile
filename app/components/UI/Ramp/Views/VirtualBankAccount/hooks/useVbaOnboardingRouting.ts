@@ -22,6 +22,7 @@ import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
+import { readMoonpayCustomerStatus } from '../ensureMusdAutoramp';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
@@ -312,9 +313,19 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    let destinationId = getVbaDestinationForSnapshot(snapshot);
+    // A relay-approved session can still have MoonPay identification pending.
+    // That is "finish KYC", not the identity-verified account step.
+    if (
+      destinationId === 'identityVerified' &&
+      snapshot.autorampStatus === 'not_ready' &&
+      (await readMoonpayCustomerStatus()) === 'IdentificationRequired'
+    ) {
+      destinationId = 'kycPending';
+    }
     return {
       status: 'ready',
-      destinationId: getVbaDestinationForSnapshot(snapshot),
+      destinationId,
       snapshot,
     };
   } catch (error) {

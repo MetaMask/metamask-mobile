@@ -90,6 +90,10 @@ describe('ensureMusdAutoramp', () => {
   });
 
   it('waits for MoonPay after KYC, then registers and creates once', async () => {
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'Pending',
+    });
     mockHydrate
       .mockResolvedValueOnce({
         autorampStatus: 'not_ready',
@@ -114,6 +118,21 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       buildMusdAutorampRequest('0xabc', 'BRL'),
     );
+  });
+
+  it('leaves the approval wait when MoonPay still requires identification', async () => {
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+      'identification_required',
+    );
+
+    expect(mockFetchDisclaimers).not.toHaveBeenCalled();
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 
   it('reposts accepted Iron terms and creates the autoramp when MoonPay asks for signings', async () => {

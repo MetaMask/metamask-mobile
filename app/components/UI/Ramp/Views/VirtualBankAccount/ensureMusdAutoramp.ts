@@ -6,15 +6,18 @@ import { VBA_KYC_VENDOR } from './constants';
 import { getVbaVendorTermsAcceptance } from './vbaVendorTermsStorage';
 
 /**
- * `awaiting_provider`: KYC is approved, but MoonPay is still reviewing the
- * customer. `signings_required`: the customer is `SigningsRequired` and the
- * current Iron terms include a document this wallet has not accepted.
+ * `awaiting_provider`: KYC is approved, but the MoonPay customer is not Active
+ * for a reason other than unfinished identification or outstanding terms.
+ * `identification_required`: MoonPay still needs the customer to finish KYC.
+ * `signings_required`: the customer is `SigningsRequired` and the current Iron
+ * terms include a document this wallet has not accepted.
  * `terminal`: only Rejected or Cancelled autoramps, and no replacement asked.
  */
 export type MusdAutorampSetupOutcome =
   | 'ready'
   | 'waiting'
   | 'awaiting_provider'
+  | 'identification_required'
   | 'signings_required'
   | 'failed'
   | 'terminal';
@@ -28,7 +31,11 @@ interface AutorampCursor {
 const setupByWallet = new Map<string, Promise<MusdAutorampSetupOutcome>>();
 const repostedSignings = new Set<string>();
 
-type SigningResume = 'reposted' | 'needs_acceptance' | 'waiting';
+type SigningResume =
+  | 'reposted'
+  | 'needs_acceptance'
+  | 'identification_required'
+  | 'waiting';
 
 /** Clears the in-flight setup guard between tests. */
 export const resetMusdAutorampSetupGuard = (): void => {
@@ -58,27 +65,48 @@ const readCustomerStatus = (customer: unknown): string | null => {
 };
 
 /**
- * MoonPay leaves the customer on `SigningsRequired` when accepted Iron terms
- * were never recorded, or when KYC approval asks for those same terms again.
- * Repost documents this wallet already accepted. A document that is not in
- * that set still needs the vendor-terms screen.
+ * Reads the MoonPay customer lifecycle status for the signed-in profile.
+ * `null` when the profile or customer cannot be read.
+ *
+ * @returns The customer `status`, such as `Active` or `IdentificationRequired`.
  */
-const resumeMoonpaySignings = async (
-  walletAddress: string,
-): Promise<SigningResume> => {
+export const readMoonpayCustomerStatus = async (): Promise<string | null> => {
   try {
     const profile =
       await Engine.context.AuthenticationController.getSessionProfile();
     const externalId = profile ? readExternalCustomerId(profile) : null;
     if (!externalId) {
-      return 'waiting';
+      return null;
     }
-
-    const status = readCustomerStatus(
+    return readCustomerStatus(
       await Engine.context.NeoBankService.getCustomerByExternalId(externalId),
     );
+  } catch (error) {
+    Logger.error(error as Error, {
+      tags: { feature: 'vba-onboarding' },
+      context: { name: 'readMoonpayCustomerStatus', data: {} },
+    });
+    return null;
+  }
+};
+
+/**
+ * MoonPay leaves the customer on `SigningsRequired` when accepted Iron terms
+ * were never recorded, or when KYC approval asks for those same terms again.
+ * Repost documents this wallet already accepted. A document that is not in
+ * that set still needs the vendor-terms screen. `IdentificationRequired` means
+ * KYC is still unfinished, which is not an account-approval wait.
+ */
+const resumeMoonpaySignings = async (
+  walletAddress: string,
+): Promise<SigningResume> => {
+  try {
+    const status = await readMoonpayCustomerStatus();
     if (status === 'Active') {
       return 'reposted';
+    }
+    if (status === 'IdentificationRequired') {
+      return 'identification_required';
     }
     if (status !== 'SigningsRequired') {
       return 'waiting';
@@ -225,6 +253,9 @@ const runSetup = async (
         }
         if (signing === 'needs_acceptance') {
           return 'signings_required';
+        }
+        if (signing === 'identification_required') {
+          return 'identification_required';
         }
       }
       return 'awaiting_provider';

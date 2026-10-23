@@ -642,6 +642,10 @@ describe('VbaDetails', () => {
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'Pending',
+    });
     mockHydrate.mockResolvedValue({
       autorampStatus: 'not_ready',
       kycStatus: 'approved',
@@ -668,6 +672,25 @@ describe('VbaDetails', () => {
       queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
     ).not.toBeOnTheScreen();
     expect(mockOpenVendorTerms).not.toHaveBeenCalled();
+  });
+
+  it('opens the KYC pending screen when MoonPay identification is unfinished', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockOpenVendorTerms).toHaveBeenCalledWith(
+        expect.anything(),
+        'VbaKycPending',
+      );
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
   });
 
   it('opens vendor terms when MoonPay requires a document the wallet has not accepted', async () => {
