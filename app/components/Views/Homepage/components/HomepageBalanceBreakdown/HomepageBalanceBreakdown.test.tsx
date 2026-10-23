@@ -351,7 +351,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('Today');
   });
 
-  it('covers a partially loaded aggregate hero balance with a skeleton', () => {
+  it('covers a partially loaded aggregate hero with skeletons', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -360,11 +360,17 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO_BALANCE_SKELETON),
     ).toHaveProp('accessibilityState', { busy: true });
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_SKELETON),
+    ).toHaveStyle({ height: 24, width: 120 });
   });
 
   it('renders an incomplete aggregate without treating an error as loading', () => {
@@ -380,8 +386,12 @@ describe('HomepageBalanceBreakdown', () => {
     const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('USD 50.00');
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
+        .accessibilityLabel,
+    ).toContain('USD 50.00');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO_BALANCE_SKELETON),
+    ).toHaveProp('accessibilityState', { busy: false });
   });
 
   it('covers the balance and delta with skeletons while the aggregate is loading', () => {
@@ -410,8 +420,9 @@ describe('HomepageBalanceBreakdown', () => {
     const { rerender, getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('USD 50.00');
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
+        .accessibilityLabel,
+    ).toContain('USD 50.00');
 
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
@@ -423,8 +434,9 @@ describe('HomepageBalanceBreakdown', () => {
     rerender(<HomepageBalanceBreakdown />);
 
     expect(
-      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
-    ).toHaveTextContent('USD 75.00');
+      getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
+        .accessibilityLabel,
+    ).toContain('USD 75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {
