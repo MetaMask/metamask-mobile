@@ -95,6 +95,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       hidePaneSeparator = false,
       gridLineColorOverride,
       enableDrawingTools = false,
+      nativeTradingView = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
       onSkeletonHidden,
@@ -106,6 +107,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartInteracted,
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
+      onNativeChartEvent,
       isLoading = false,
       subPaneHeightRatio,
       useSubscriptPriceFormat,
@@ -206,6 +208,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       initialVolumeErrorColorRef.current = volumeErrorColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
+        nativeTradingView,
         disabledFeatures,
         useSubscriptPriceFormat,
         priceDecimals,
@@ -228,6 +231,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     }, [
       theme,
       enableDrawingTools,
+      nativeTradingView,
       disabledFeatures,
       useSubscriptPriceFormat,
       priceDecimals,
@@ -580,6 +584,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
           }
 
+          case 'NATIVE_TV_EVENT':
+            onNativeChartEvent?.(message.payload);
+            break;
+
           case 'ERROR':
             if (!isChartReady) {
               if (onInitFailed) {
@@ -642,6 +650,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onTradeMarkerPress,
         onChartInteracted,
         onVisibleCandleCountChange,
+        onNativeChartEvent,
         handleTradingViewOpen,
         postMessage,
       ],

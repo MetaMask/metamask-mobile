@@ -39,7 +39,10 @@ import { Skeleton } from '../../../../../../component-library/components-temp/Sk
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
-import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
+import {
+  PERPS_CHART_CONFIG,
+  isPerpsNativeTradingViewSpikeEnabled,
+} from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
 import { usePerpsProChartExpanded } from '../../../hooks/usePerpsProChartExpanded';
@@ -66,6 +69,8 @@ import TradingViewChart, {
 import PerpsMarketSummary from '../../../components/PerpsMarketSummary';
 
 const PRO_CHART_HEIGHT = 288;
+/** Spike (TAT-4093): extra room for TradingView's native header and toolbar. */
+const PRO_NATIVE_TV_CHART_HEIGHT = 420;
 /**
  * Typed button-clicked labels for the Pro chart collapse/expand analytics
  * (mirrors the local-constant pattern used by e.g. `COMPETITION_BANNER_BUTTON`),
@@ -145,6 +150,11 @@ const PerpsProChartPanel = ({
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
+  const isNativeTradingView = isPerpsNativeTradingViewSpikeEnabled();
+  const isAdvancedChartActive = isAdvancedChartEnabled || isNativeTradingView;
+  const chartHeight = isNativeTradingView
+    ? PRO_NATIVE_TV_CHART_HEIGHT
+    : PRO_CHART_HEIGHT;
 
   // Pro-only: the Advanced Chart unmounts while collapsed, so drop its last
   // reported close. Symbol/period/flag resets are owned by
@@ -199,7 +209,7 @@ const PerpsProChartPanel = ({
     onResolvedStateChange?.(symbol, 'loading', chartContextKey);
   }, [
     chartContextKey,
-    isAdvancedChartEnabled,
+    isAdvancedChartActive,
     isChartExpanded,
     isMarketContextReady,
     onResolvedStateChange,
@@ -211,7 +221,7 @@ const PerpsProChartPanel = ({
     if (
       isChartExpanded &&
       isMarketContextReady &&
-      !isAdvancedChartEnabled &&
+      !isAdvancedChartActive &&
       candleData?.symbol === symbol &&
       candleData.interval === selectedCandlePeriod &&
       !isLoading
@@ -227,7 +237,7 @@ const PerpsProChartPanel = ({
     candleData?.symbol,
     chartContextKey,
     hasHistoricalData,
-    isAdvancedChartEnabled,
+    isAdvancedChartActive,
     isChartExpanded,
     isLoading,
     isMarketContextReady,
@@ -353,19 +363,20 @@ const PerpsProChartPanel = ({
 
   let chartContent: React.ReactNode = (
     <Skeleton
-      height={PRO_CHART_HEIGHT}
+      height={chartHeight}
       width="100%"
       testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
     />
   );
-  if (isMarketContextReady && isAdvancedChartEnabled) {
+  if (isMarketContextReady && isAdvancedChartActive) {
     chartContent = (
       <PerpsAdvancedChart
         key={`${symbol}|${marketContextKey}|${inlineViewportRevision}`}
         symbol={symbol}
         interval={selectedCandlePeriod}
         visibleCandleCount={visibleCandleCount}
-        height={PRO_CHART_HEIGHT}
+        height={chartHeight}
+        nativeTradingView={isNativeTradingView}
         tpslLines={tpslLines}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
@@ -381,6 +392,16 @@ const PerpsProChartPanel = ({
         paginationDuration={TimeDuration.YearToDate}
       />
     );
+    if (isNativeTradingView) {
+      chartContent = (
+        <Box
+          testID={PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW}
+          twClassName="flex-1"
+        >
+          {chartContent}
+        </Box>
+      );
+    }
   } else if (
     isMarketContextReady &&
     candleData?.symbol === symbol &&
@@ -456,7 +477,11 @@ const PerpsProChartPanel = ({
         >
           <Box
             testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
-            twClassName="my-2 h-[344px] px-2 py-2"
+            twClassName={
+              isNativeTradingView
+                ? 'my-2 h-[476px] px-2 py-2'
+                : 'my-2 h-[344px] px-2 py-2'
+            }
           >
             <Box
               testID={PerpsProMarketViewSelectorsIDs.CHART_CONTENT}
@@ -498,7 +523,7 @@ const PerpsProChartPanel = ({
                 onError={onChartError}
               >
                 <Box twClassName="relative flex-1">
-                  {isMarketContextReady && ohlcData ? (
+                  {isMarketContextReady && ohlcData && !isNativeTradingView ? (
                     <Box twClassName="absolute left-0 right-0 top-0 z-10">
                       <PerpsOHLCVBar
                         open={ohlcData.open}

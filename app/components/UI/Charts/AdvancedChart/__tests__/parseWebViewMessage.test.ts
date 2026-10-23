@@ -100,4 +100,88 @@ describe('parseWebViewMessage', () => {
       ).toBeNull();
     });
   });
+
+  describe('NATIVE_TV_EVENT', () => {
+    it('parses a study event with its id and name', () => {
+      expect(
+        parseWebViewMessage({
+          type: 'NATIVE_TV_EVENT',
+          payload: {
+            source: 'study',
+            type: 'create',
+            id: 'st1',
+            name: 'Accelerator Oscillator',
+          },
+        }),
+      ).toEqual({
+        type: 'NATIVE_TV_EVENT',
+        payload: {
+          source: 'study',
+          type: 'create',
+          id: 'st1',
+          name: 'Accelerator Oscillator',
+        },
+      });
+    });
+
+    it('drops non-string id and name from a drawing event', () => {
+      expect(
+        parseWebViewMessage({
+          type: 'NATIVE_TV_EVENT',
+          payload: { source: 'drawing', type: 'remove', id: 7, name: null },
+        }),
+      ).toEqual({
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'drawing', type: 'remove' },
+      });
+    });
+
+    it('returns null for an unknown event source', () => {
+      expect(
+        parseWebViewMessage({
+          type: 'NATIVE_TV_EVENT',
+          payload: { source: 'context_menu', type: 'place_limit' },
+        }),
+      ).toBeNull();
+    });
+
+    it('returns null when the event type is missing', () => {
+      expect(
+        parseWebViewMessage({
+          type: 'NATIVE_TV_EVENT',
+          payload: { source: 'study' },
+        }),
+      ).toBeNull();
+    });
+  });
+
+  it('parses a DEBUG breadcrumb message', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'DEBUG',
+        payload: { message: 'modular-bootstrap-ready' },
+      }),
+    ).toEqual({
+      type: 'DEBUG',
+      payload: { message: 'modular-bootstrap-ready' },
+    });
+  });
+
+  it('returns null for an INDICATOR_ADDED message without an id', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'INDICATOR_ADDED',
+        payload: { name: 'RSI' },
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null for a TRADE_MARKER_PRESSED message with an empty id', () => {
+    expect(
+      parseWebViewMessage({
+        type: 'TRADE_MARKER_PRESSED',
+        payload: { id: '' },
+      }),
+    ).toBeNull();
+  });
 });

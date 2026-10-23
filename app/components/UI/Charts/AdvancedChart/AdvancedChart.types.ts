@@ -414,6 +414,19 @@ export interface ErrorPayload {
   code?: string;
 }
 
+/**
+ * A TradingView-native study or drawing lifecycle event, forwarded when
+ * `nativeTradingView` is on.
+ */
+export interface NativeChartEventPayload {
+  source: 'study' | 'drawing';
+  /** TradingView event type (`create`, `remove`, `points_changed`, …). */
+  type: string;
+  id?: string;
+  /** Study or drawing name, e.g. `Relative Strength Index` or `trend_line`. */
+  name?: string;
+}
+
 export type WebViewToRNMessage =
   | { type: 'CHART_READY' }
   | { type: 'CHART_LAYOUT_SETTLED' }
@@ -430,7 +443,8 @@ export type WebViewToRNMessage =
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
   | { type: 'DEBUG'; payload: { message: string } }
-  | { type: 'FETCH_OLDER_BARS_REQUEST'; payload: FetchOlderBarsRequest };
+  | { type: 'FETCH_OLDER_BARS_REQUEST'; payload: FetchOlderBarsRequest }
+  | { type: 'NATIVE_TV_EVENT'; payload: NativeChartEventPayload };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -599,6 +613,23 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
       };
     }
 
+    case 'NATIVE_TV_EVENT':
+      if (
+        (obj.source !== 'study' && obj.source !== 'drawing') ||
+        typeof obj.type !== 'string'
+      ) {
+        return null;
+      }
+      return {
+        type,
+        payload: {
+          source: obj.source,
+          type: obj.type,
+          ...(typeof obj.id === 'string' ? { id: obj.id } : {}),
+          ...(typeof obj.name === 'string' ? { name: obj.name } : {}),
+        },
+      };
+
     default:
       return null;
   }
@@ -691,6 +722,13 @@ export interface AdvancedChartProps {
   /** Enable left-side drawing toolbar */
   enableDrawingTools?: boolean;
   /**
+   * Spike (TAT-4093): keep TradingView's native interactions intact (drawing
+   * selection), use TradingView's light chrome in light mode, and forward study
+   * and drawing events through {@link onNativeChartEvent}. Pair with
+   * `enableDrawingTools` and a reduced `disabledFeatures` list.
+   */
+  nativeTradingView?: boolean;
+  /**
    * TradingView widget features to disable. Defaults to DEFAULT_DISABLED_FEATURES
    * (a curated mobile-friendly set). Pass a custom array to re-enable native
    * TradingView capabilities like header_widget, timeframes_toolbar, etc.
@@ -756,6 +794,8 @@ export interface AdvancedChartProps {
    * Native layer opens the URL in the system browser and cancels in-WebView navigation.
    */
   onChartTradingViewClicked?: () => void;
+  /** TradingView-native interaction, only emitted when `nativeTradingView` is true. */
+  onNativeChartEvent?: (event: NativeChartEventPayload) => void;
 
   /**
    * When true, keeps the native skeleton overlay on top of the WebView (in addition to

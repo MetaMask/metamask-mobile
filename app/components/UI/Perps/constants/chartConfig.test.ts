@@ -5,7 +5,11 @@ import {
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
 } from '@metamask/perps-controller';
-import { getCandlestickColors, clampVisibleCandleCount } from './chartConfig';
+import {
+  getCandlestickColors,
+  clampVisibleCandleCount,
+  isPerpsNativeTradingViewSpikeEnabled,
+} from './chartConfig';
 import { mockTheme } from '../../../../util/theme';
 
 describe('chartConfig', () => {
@@ -129,6 +133,32 @@ describe('chartConfig', () => {
         mockTheme.colors.success.default,
       );
       expect(colors).toHaveProperty('negative', mockTheme.colors.error.default);
+    });
+  });
+
+  describe('isPerpsNativeTradingViewSpikeEnabled', () => {
+    it('returns true for a dev build with the spike flag set to true', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('true', true);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for a dev build without the spike flag', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled(undefined, true);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a dev build with the spike flag set to false', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('false', true);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a release build even with the spike flag set', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('true', false);
+
+      expect(result).toBe(false);
     });
   });
 });

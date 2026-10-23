@@ -235,6 +235,22 @@ describe('createChartWidget', () => {
     expect(disabled).not.toContain('left_toolbar');
   });
 
+  it('uses the TradingView Dark theme by default', () => {
+    createChartWidget(baseConfig, defaultOptions);
+    const args = ctor.mock.calls[0][0] as Record<string, unknown>;
+    expect(args.theme).toBe('Dark');
+  });
+
+  it('uses the TradingView Light theme when lightChrome is requested', () => {
+    const config: ChartConfig = {
+      ...baseConfig,
+      features: { nativeTradingView: true, lightChrome: true },
+    };
+    createChartWidget(config, defaultOptions);
+    const args = ctor.mock.calls[0][0] as Record<string, unknown>;
+    expect(args.theme).toBe('Light');
+  });
+
   it('includes custom_themes with palette shades for success/error', () => {
     createChartWidget(baseConfig, defaultOptions);
     const args = ctor.mock.calls[0][0] as Record<string, unknown>;

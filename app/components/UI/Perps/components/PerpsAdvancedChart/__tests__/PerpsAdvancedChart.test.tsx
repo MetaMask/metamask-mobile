@@ -9,13 +9,18 @@ import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
-import type { AdvancedChartProps } from '../../../../Charts/AdvancedChart/AdvancedChart.types';
+import type {
+  AdvancedChartProps,
+  NativeChartEventPayload,
+} from '../../../../Charts/AdvancedChart/AdvancedChart.types';
 import { getPerpsVolumeColors, hexToRgba } from '../../../utils/chartColors';
 import type { TPSLLines } from '../../TradingViewChart/TradingViewChart';
 import type { Colors } from '../../../../../../util/theme/models';
 import { mockTheme } from '../../../../../../util/theme';
 import { endTrace, trace } from '../../../../../../util/trace';
 import { playImpact } from '../../../../../../util/haptics';
+import { DevLogger } from '../../../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_NATIVE_TV_DISABLED_FEATURES } from '../../../constants/chartConfig';
 
 const mockAdvancedChart = jest.fn<React.ReactNode, [unknown]>(() => null);
 const mockUsePerpsAdvancedChartAdapter = jest.fn();
@@ -69,6 +74,10 @@ jest.mock('../../../../../../util/haptics', () => ({
 
 jest.mock('react-native-performance', () => ({
   now: jest.fn(() => 0),
+}));
+
+jest.mock('../../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: { log: jest.fn() },
 }));
 
 const mockAdapterResult = {
@@ -854,6 +863,121 @@ describe('PerpsAdvancedChart', () => {
     });
 
     expect(onFreshDelivery).toHaveBeenCalledTimes(1);
+  });
+
+  describe('native TradingView spike mode', () => {
+    const tpslLines: TPSLLines = {
+      entryPrice: '81993',
+      limitOrders: [{ id: 'order-1', price: '57390', side: 'buy' }],
+    };
+
+    it('keeps the curated feature set and no native callbacks by default', () => {
+      renderChart();
+
+      expect(advancedChartProps()).toEqual(
+        expect.objectContaining({
+          nativeTradingView: false,
+          enableDrawingTools: false,
+          showBuiltInLegend: false,
+          disabledFeatures: undefined,
+          onChartReady: undefined,
+          onNativeChartEvent: undefined,
+        }),
+      );
+    });
+
+    it('enables the native header, drawing toolbar and legend', () => {
+      renderChart({ nativeTradingView: true });
+
+      expect(advancedChartProps()).toEqual(
+        expect.objectContaining({
+          nativeTradingView: true,
+          enableDrawingTools: true,
+          showBuiltInLegend: true,
+          disabledFeatures: PERPS_NATIVE_TV_DISABLED_FEATURES,
+        }),
+      );
+      expect(PERPS_NATIVE_TV_DISABLED_FEATURES).not.toContain('header_widget');
+    });
+
+    it('logs chart readiness and the position lines handed to the chart', () => {
+      renderChart({ nativeTradingView: true, tpslLines });
+
+      act(() => {
+        latestAdvancedChartProps().onChartReady?.();
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith('[PerpsNativeTV] chart ready');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[PerpsNativeTV] position lines sent hasEntry=true hasLimitOrder=true',
+      );
+    });
+
+    it('logs the position lines again after the chart remounts', () => {
+      renderChart({ nativeTradingView: true, tpslLines });
+
+      act(() => {
+        latestAdvancedChartProps().onChartReady?.();
+      });
+      act(() => {
+        latestAdvancedChartProps().onChartReady?.();
+      });
+
+      const linesLogs = (DevLogger.log as jest.Mock).mock.calls.filter(
+        ([message]) =>
+          String(message).startsWith('[PerpsNativeTV] position lines sent'),
+      );
+      expect(linesLogs).toHaveLength(2);
+    });
+
+    it('reports missing entry and orders before any position exists', () => {
+      renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onChartReady?.();
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[PerpsNativeTV] position lines sent hasEntry=false hasLimitOrder=false',
+      );
+    });
+
+    it('logs native study and drawing events with their names', () => {
+      const event: NativeChartEventPayload = {
+        source: 'study',
+        type: 'create',
+        id: 'st1',
+        name: 'Accelerator Oscillator',
+      };
+      renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.(event);
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[PerpsNativeTV] study create Accelerator Oscillator',
+        event,
+      );
+    });
+
+    it('logs native events that carry no name', () => {
+      const event: NativeChartEventPayload = {
+        source: 'drawing',
+        type: 'remove',
+        id: 'sh1',
+      };
+      renderChart({ nativeTradingView: true });
+
+      act(() => {
+        latestAdvancedChartProps().onNativeChartEvent?.(event);
+      });
+
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        '[PerpsNativeTV] drawing remove',
+        event,
+      );
+    });
   });
 });
 

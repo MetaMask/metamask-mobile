@@ -15,10 +15,13 @@ import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
   type CrosshairData,
+  type NativeChartEventPayload,
   type PositionLines,
   type PositionLineColors,
   type ChartRangeSettlePayload,
 } from '../../../Charts/AdvancedChart/AdvancedChart.types';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_NATIVE_TV_DISABLED_FEATURES } from '../../constants/chartConfig';
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
 import {
@@ -68,6 +71,11 @@ export interface PerpsAdvancedChartProps {
   fallbackFetchMoreHistory?: () => void;
   /** Duration used for RN-backed older-bar pagination. */
   paginationDuration?: TimeDuration;
+  /**
+   * Spike (TAT-4093): show TradingView's native header, Indicators dialog,
+   * drawing toolbar and legend, and log native chart events.
+   */
+  nativeTradingView?: boolean;
 }
 
 /**
@@ -230,6 +238,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   fallbackDeliveryRevision = 0,
   fallbackFetchMoreHistory,
   paginationDuration,
+  nativeTradingView = false,
 }) => {
   const {
     ohlcvData,
@@ -540,6 +549,36 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     markSeriesSettled();
   }, [markSeriesSettled]);
 
+  // ---- Native TradingView spike (TAT-4093) ----
+
+  // Counts CHART_READY: the WebView remounts per interval and AdvancedChart
+  // re-sends the position lines after each ready.
+  const [nativeChartReadyCount, setNativeChartReadyCount] = useState(0);
+
+  const handleNativeChartReady = useCallback(() => {
+    DevLogger.log('[PerpsNativeTV] chart ready');
+    setNativeChartReadyCount((count) => count + 1);
+  }, []);
+
+  useEffect(() => {
+    if (!nativeTradingView || nativeChartReadyCount === 0) return;
+    const hasEntry = positionLines?.entryPrice !== undefined;
+    const hasLimitOrder = (positionLines?.limitOrders?.length ?? 0) > 0;
+    DevLogger.log(
+      `[PerpsNativeTV] position lines sent hasEntry=${hasEntry} hasLimitOrder=${hasLimitOrder}`,
+    );
+  }, [nativeChartReadyCount, nativeTradingView, positionLines]);
+
+  const handleNativeChartEvent = useCallback(
+    (event: NativeChartEventPayload) => {
+      DevLogger.log(
+        `[PerpsNativeTV] ${event.source} ${event.type} ${event.name ?? ''}`.trim(),
+        event,
+      );
+    },
+    [],
+  );
+
   // ---- Error fallback ----
 
   const handleError = useCallback(
@@ -643,6 +682,16 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       currentPriceLineColorOverride={positionLineColors.currentPrice}
       volumeSuccessColorOverride={volumeColors.success}
       volumeErrorColorOverride={volumeColors.error}
+      nativeTradingView={nativeTradingView}
+      enableDrawingTools={nativeTradingView}
+      showBuiltInLegend={nativeTradingView}
+      disabledFeatures={
+        nativeTradingView ? PERPS_NATIVE_TV_DISABLED_FEATURES : undefined
+      }
+      onChartReady={nativeTradingView ? handleNativeChartReady : undefined}
+      onNativeChartEvent={
+        nativeTradingView ? handleNativeChartEvent : undefined
+      }
     />
   );
 };
