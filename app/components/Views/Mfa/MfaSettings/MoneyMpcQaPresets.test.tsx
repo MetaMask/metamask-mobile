@@ -32,7 +32,6 @@ jest.mock('../../../UI/Money/hooks/moneyAccountMigration', () => ({
   moneyAccountMigration: {
     reset: jest.fn(),
     start: jest.fn(),
-    clear: jest.fn(),
   },
 }));
 
@@ -145,16 +144,5 @@ describe('MoneyMpcQaPresets', () => {
     expect(
       getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT),
     ).toHaveTextContent(/No MPC Money account, create one first/u);
-  });
-
-  it('resets the migration status', async () => {
-    const { getByText, getByTestId } = render(<MoneyMpcQaPresets />);
-
-    await press(getByText, 'Reset migration status');
-
-    expect(moneyAccountMigration.clear).toHaveBeenCalled();
-    expect(
-      getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT),
-    ).toHaveTextContent('Migration status reset');
   });
 });

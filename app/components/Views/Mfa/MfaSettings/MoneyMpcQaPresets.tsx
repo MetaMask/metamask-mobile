@@ -122,11 +122,6 @@ const MoneyMpcQaPresets = () => {
     },
   ];
 
-  const resetMigration = async () => {
-    await moneyAccountMigration.clear();
-    setResult('Migration status reset');
-  };
-
   return (
     <Box
       twClassName="px-4 pt-4 pb-8 gap-3"
@@ -144,14 +139,6 @@ const MoneyMpcQaPresets = () => {
           {label}
         </Button>
       ))}
-      <Button
-        variant={ButtonVariant.Tertiary}
-        size={ButtonSize.Md}
-        isFullWidth
-        onPress={resetMigration}
-      >
-        Reset migration status
-      </Button>
       {result ? (
         <Text
           variant={TextVariant.BodySm}
