@@ -1,5 +1,9 @@
 import type { QuickBuyTarget, QuickBuyTradeMode } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import {
+  markClaimSheetSeen,
+  type PostTradePromptProduct,
+} from '../../../../util/social/postTradePromptStorage';
 import type {
   SocialPostPerpsPreview,
   SocialPostTradePreview,
@@ -86,17 +90,24 @@ export interface PostTradeShareReopen {
   tradeMode: QuickBuyTradeMode;
 }
 
+/** One-time sheet asking a user without a social profile to claim a username. */
+export interface PostTradeClaimUsernamePrompt {
+  product: PostTradePromptProduct;
+}
+
 type Listener = () => void;
 
 const STORE_GLOBAL_KEY = '__mmPostTradeShareSession__';
 
 interface StoreState {
   session: PostTradeShareSession | null;
+  claimPrompt?: PostTradeClaimUsernamePrompt | null;
   listeners: Set<Listener>;
 }
 
 const bootstrap = (): StoreState => ({
   session: null,
+  claimPrompt: null,
   listeners: new Set(),
 });
 
@@ -182,6 +193,23 @@ export const patchPostTradeShareSession = (
 
 export const clearPostTradeShareSession = (): void => {
   state.session = null;
+  notify();
+};
+
+export const getPostTradeClaimUsernamePrompt =
+  (): PostTradeClaimUsernamePrompt | null => state.claimPrompt ?? null;
+
+/** Opens the claim-username sheet and records it as seen for `product`. */
+export const openPostTradeClaimUsernamePrompt = (
+  product: PostTradePromptProduct,
+): void => {
+  markClaimSheetSeen(product);
+  state.claimPrompt = { product };
+  notify();
+};
+
+export const clearPostTradeClaimUsernamePrompt = (): void => {
+  state.claimPrompt = null;
   notify();
 };
 

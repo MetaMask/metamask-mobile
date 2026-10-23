@@ -1,12 +1,21 @@
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
+import { markClaimSheetSeen } from '../../../../util/social/postTradePromptStorage';
 import {
   beginPostTradeShareSession,
+  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
   consumePostTradeShareReopen,
+  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
+  openPostTradeClaimUsernamePrompt,
   patchPostTradeShareSession,
   requestPostTradeShareReopen,
+  subscribePostTradeShareSession,
 } from './postTradeShareSession';
+
+jest.mock('../../../../util/social/postTradePromptStorage', () => ({
+  markClaimSheetSeen: jest.fn(),
+}));
 
 const target: QuickBuyTarget = {
   tokenAddress: '0xpump',
@@ -18,6 +27,43 @@ const target: QuickBuyTarget = {
 describe('postTradeShareSession', () => {
   afterEach(() => {
     clearPostTradeShareSession();
+  });
+
+  describe('claim-username prompt', () => {
+    afterEach(() => {
+      clearPostTradeClaimUsernamePrompt();
+    });
+
+    it('opens the prompt, marks it seen, and notifies listeners', () => {
+      const listener = jest.fn();
+      const unsubscribe = subscribePostTradeShareSession(listener);
+
+      openPostTradeClaimUsernamePrompt('perps');
+
+      expect(getPostTradeClaimUsernamePrompt()).toEqual({ product: 'perps' });
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
+      expect(listener).toHaveBeenCalled();
+      unsubscribe();
+    });
+
+    it('clears the prompt without touching the share session', () => {
+      beginPostTradeShareSession({
+        target,
+        tradeMode: 'buy',
+        preview: {
+          tokenSymbol: 'PUMP',
+          tokenAddress: '0xpump',
+          chain: 'base',
+          side: 'buy',
+        },
+      });
+      openPostTradeClaimUsernamePrompt('swap');
+
+      clearPostTradeClaimUsernamePrompt();
+
+      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
+      expect(getPostTradeShareSession()).not.toBeNull();
+    });
   });
 
   it('begins a pending session', () => {

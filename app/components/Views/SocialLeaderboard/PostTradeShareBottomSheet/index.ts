@@ -4,7 +4,17 @@ export {
   beginPostTradeShareSession,
   clearPostTradeShareSession,
   getPostTradeShareSession,
+  openPostTradeClaimUsernamePrompt,
   patchPostTradeShareSession,
   PostTradeShareOwner,
 } from './postTradeShareSession';
+export {
+  buildPerpsPostTradeComposerParams,
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from './postTradeComposerParams';
 export type { PostTradeShareOwnerId } from './postTradeShareSession';
+export type {
+  PostTradePrompt,
+  PostTradeShareSheetCountKey,
+} from './resolvePostTradePrompt';

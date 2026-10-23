@@ -1451,7 +1451,11 @@
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
       "try_again": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "claim_title": "Claim your username",
+      "claim_body": "Create a profile to share your trades and earn when others copy them.",
+      "claim_username": "Claim username",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {

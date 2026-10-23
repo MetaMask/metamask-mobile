@@ -5,12 +5,20 @@ import PostTradeShareBottomSheet from './PostTradeShareBottomSheet';
 import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
   beginPostTradeShareSession,
+  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
+  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
+  openPostTradeClaimUsernamePrompt,
 } from './postTradeShareSession';
 import type { QuickBuyTarget } from '../../../UI/QuickBuy';
+import { markClaimSheetSeen } from '../../../../util/social/postTradePromptStorage';
 
 const mockNavigate = jest.fn();
+
+jest.mock('../../../../util/social/postTradePromptStorage', () => ({
+  markClaimSheetSeen: jest.fn(),
+}));
 
 jest.mock('../../../../core/NavigationService', () => ({
   __esModule: true,
@@ -36,6 +44,7 @@ describe('PostTradeShareBottomSheet', () => {
   afterEach(() => {
     act(() => {
       clearPostTradeShareSession();
+      clearPostTradeClaimUsernamePrompt();
     });
     jest.clearAllMocks();
   });
@@ -113,6 +122,7 @@ describe('PostTradeShareBottomSheet', () => {
       target,
       tradeMode: 'buy',
       status: 'failed',
+      owner: 'social-v1-feed',
       preview: {
         tokenSymbol: 'PUMP',
         tokenAddress: '0xpump',
@@ -135,6 +145,85 @@ describe('PostTradeShareBottomSheet', () => {
     );
 
     expect(getPostTradeShareSession()?.reopenRequested).toBe(true);
+  });
+
+  it('closes a failed swap with no owner screen to retry from', () => {
+    beginPostTradeShareSession({
+      target,
+      tradeMode: 'buy',
+      status: 'failed',
+      preview: {
+        tokenSymbol: 'PUMP',
+        tokenAddress: '0xpump',
+        chain: 'base',
+        side: 'buy',
+      },
+    });
+
+    renderWithProvider(<PostTradeShareBottomSheet />);
+
+    expect(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    ).toHaveTextContent('social_leaderboard.post_trade_share.close');
+
+    fireEvent.press(
+      screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(getPostTradeShareSession()).toBeNull();
+  });
+
+  describe('claim-username sheet', () => {
+    it('renders the swap claim prompt and marks it seen', () => {
+      act(() => {
+        openPostTradeClaimUsernamePrompt('swap');
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('swap');
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_TITLE),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.complete');
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_BUTTON),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.claim_username');
+    });
+
+    it('opens profile onboarding from the CTA', () => {
+      act(() => {
+        openPostTradeClaimUsernamePrompt('perps');
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      expect(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_TITLE),
+      ).toHaveTextContent('social_leaderboard.post_trade_share.order_complete');
+
+      fireEvent.press(
+        screen.getByTestId(PostTradeShareBottomSheetSelectorsIDs.CLAIM_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('SocialProfileOnboardingView');
+      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
+    });
+
+    it('clears the prompt on close', () => {
+      act(() => {
+        openPostTradeClaimUsernamePrompt('swap');
+      });
+
+      renderWithProvider(<PostTradeShareBottomSheet />);
+
+      fireEvent.press(
+        screen.getByTestId(
+          PostTradeShareBottomSheetSelectorsIDs.CLAIM_CLOSE_BUTTON,
+        ),
+      );
+
+      expect(getPostTradeClaimUsernamePrompt()).toBeNull();
+    });
   });
 
   it('disables Share when a completed session has no transaction hash', () => {

@@ -23,11 +23,92 @@ import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { PostTradeShareBottomSheetSelectorsIDs } from './PostTradeShareBottomSheet.testIds';
 import {
+  clearPostTradeClaimUsernamePrompt,
   clearPostTradeShareSession,
+  getPostTradeClaimUsernamePrompt,
   getPostTradeShareSession,
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
+  type PostTradeClaimUsernamePrompt,
 } from './postTradeShareSession';
+import {
+  buildPerpsPostTradeComposerParams,
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from './postTradeComposerParams';
+
+const ClaimUsernameSheet: React.FC<{
+  prompt: PostTradeClaimUsernamePrompt;
+}> = ({ prompt }) => {
+  const handleClose = useCallback(() => {
+    clearPostTradeClaimUsernamePrompt();
+  }, []);
+
+  const handleClaim = useCallback(() => {
+    clearPostTradeClaimUsernamePrompt();
+    NavigationService.navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
+  }, []);
+
+  return (
+    <BottomSheet
+      isFullscreen={false}
+      onClose={handleClose}
+      testID={PostTradeShareBottomSheetSelectorsIDs.CLAIM_SHEET}
+    >
+      <Box twClassName="px-4 pb-6 gap-4">
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="justify-end"
+        >
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSize.Md}
+            onPress={handleClose}
+            testID={PostTradeShareBottomSheetSelectorsIDs.CLAIM_CLOSE_BUTTON}
+            accessibilityLabel={strings(
+              'social_leaderboard.post_trade_share.close',
+            )}
+          />
+        </Box>
+        <Box alignItems={BoxAlignItems.Center} twClassName="gap-3">
+          <Icon
+            name={IconName.Check}
+            size={IconSize.Xl}
+            color={IconColor.SuccessDefault}
+          />
+          <Text
+            variant={TextVariant.HeadingMd}
+            testID={PostTradeShareBottomSheetSelectorsIDs.CLAIM_TITLE}
+          >
+            {strings(
+              prompt.product === 'perps'
+                ? 'social_leaderboard.post_trade_share.order_complete'
+                : 'social_leaderboard.post_trade_share.complete',
+            )}
+          </Text>
+        </Box>
+        <Box twClassName="rounded-xl bg-muted p-4">
+          <Text variant={TextVariant.BodyMd}>
+            {strings('social_leaderboard.post_trade_share.claim_title')}
+          </Text>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.post_trade_share.claim_body')}
+          </Text>
+        </Box>
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleClaim}
+          testID={PostTradeShareBottomSheetSelectorsIDs.CLAIM_BUTTON}
+        >
+          {strings('social_leaderboard.post_trade_share.claim_username')}
+        </Button>
+      </Box>
+    </BottomSheet>
+  );
+};
 
 const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
@@ -35,8 +116,14 @@ const PostTradeShareBottomSheet: React.FC = () => {
     getPostTradeShareSession,
     getPostTradeShareSession,
   );
+  const claimPrompt = useSyncExternalStore(
+    subscribePostTradeShareSession,
+    getPostTradeClaimUsernamePrompt,
+    getPostTradeClaimUsernamePrompt,
+  );
 
   const isPerps = session?.product === 'perps';
+  const canRetry = session?.product === 'spot' && Boolean(session.owner);
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -74,7 +161,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
       return;
     }
     if (session.status === 'failed') {
-      if (session.product === 'perps') {
+      if (!canRetry) {
         clearPostTradeShareSession();
         return;
       }
@@ -84,43 +171,38 @@ const PostTradeShareBottomSheet: React.FC = () => {
     if (!canShare) {
       return;
     }
-    const tradeInFlight =
+    const params =
       session.product === 'perps' && session.orderId
-        ? {
+        ? buildPerpsPostTradeComposerParams({
             orderId: session.orderId,
-            chain: 'hyperliquid' as const,
-            tokenAddress: session.preview.tokenAddress,
-          }
+            preview: session.preview,
+          })
         : session.product === 'spot' &&
             session.transactionHash &&
             session.tradeInFlightChain
-          ? {
+          ? buildSpotPostTradeComposerParams({
               transactionHash: session.transactionHash,
               chain: session.tradeInFlightChain,
-              tokenAddress: session.preview.tokenAddress,
-            }
+              preview: session.preview,
+            })
           : undefined;
-    if (!tradeInFlight) {
+    if (!params) {
       return;
     }
-    const params = {
-      tradeInFlight,
-      preview: session.preview,
-    };
     clearPostTradeShareSession();
-    NavigationService.navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
-  }, [canShare, session]);
+    openPostTradeComposer(params);
+  }, [canRetry, canShare, session]);
 
   if (!session) {
-    return null;
+    return claimPrompt ? <ClaimUsernameSheet prompt={claimPrompt} /> : null;
   }
 
   const primaryLabel =
     session.status === 'failed'
       ? strings(
-          isPerps
-            ? 'social_leaderboard.post_trade_share.close'
-            : 'social_leaderboard.post_trade_share.try_again',
+          canRetry
+            ? 'social_leaderboard.post_trade_share.try_again'
+            : 'social_leaderboard.post_trade_share.close',
         )
       : strings('social_leaderboard.post_trade_share.share_this_trade');
   const primaryDisabled =
