@@ -124,6 +124,20 @@ describe('BenefitCard', () => {
       ).toBe(3);
     });
 
+    it('keeps the list-row style when variant is omitted', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-lg p-4 h-[154px]',
+      );
+    });
+
     it('renders benefit image with expected source and format sizing', () => {
       const benefit = createBenefit({
         id: 123,
@@ -240,6 +254,16 @@ describe('BenefitCard', () => {
       expect(touchable.props.activeOpacity).toBe(0.7);
     });
 
+    it('disables the touchable when disabled is set', () => {
+      const benefit = createBenefit();
+
+      const { UNSAFE_getByType } = render(
+        <BenefitCard benefit={benefit} disabled />,
+      );
+
+      expect(UNSAFE_getByType(TouchableOpacity).props.disabled).toBe(true);
+    });
+
     it('keeps navigation payload shape stable', () => {
       const benefit = createBenefit({ id: 999, type: { id: 42, name: 'VIP' } });
       const { getByText } = render(<BenefitCard benefit={benefit} />);
@@ -255,6 +279,44 @@ describe('BenefitCard', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('preview variant', () => {
+    it('sizes the card so the next one peeks in the carousel', () => {
+      const benefit = createBenefit();
+
+      render(<BenefitCard benefit={benefit} variant="preview" />);
+
+      const { useTailwind } = jest.requireMock(
+        '@metamask/design-system-twrnc-preset',
+      );
+
+      expect(useTailwind().style).toHaveBeenCalledWith(
+        'bg-section rounded-xl overflow-hidden',
+        { width: 210, height: 248 },
+      );
+    });
+
+    it('renders the cover image with the benefit thumbnail', () => {
+      const benefit = createBenefit({
+        id: 123,
+        thumbnail: 'https://cdn.example.com/benefit.png',
+      });
+
+      const { getByTestId } = render(
+        <BenefitCard benefit={benefit} variant="preview" />,
+      );
+
+      const image = getByTestId(
+        `${REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}-${benefit.id}`,
+      );
+
+      expect(image).toBeOnTheScreen();
+      expect(image.props.source).toEqual({
+        uri: 'https://cdn.example.com/benefit.png',
+      });
+      expect(image.props.resizeMode).toBe('cover');
     });
   });
 });

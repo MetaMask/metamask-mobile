@@ -31,6 +31,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import {
   PerpsLimitPriceBottomSheetSelectorsIDs,
+  PerpsFeeDiscountLabelSelectorsIDs,
   PerpsOrderHeaderSelectorsIDs,
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -43,10 +44,25 @@ import {
 import {
   formatPercentage,
   formatPerpsFiat,
+  PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 
 const TIMEOUT_MS = 5000;
+
+const GRANT_FEE_QUOTE = {
+  feeRate: 0.0007,
+  feeAmount: 0.7,
+  protocolFeeRate: 0.00045,
+  protocolFeeAmount: 0.45,
+  metamaskFeeRate: 0.00025,
+  metamaskFeeAmount: 0.25,
+  chargesMetamaskBuilderFee: true,
+  feeSource: 'grant',
+  metamaskFeeDiscountBips: 7500,
+  undiscountedMetamaskFeeRate: 0.001,
+} as const;
 
 const account = createFundedAccountForViews('1000');
 const accountWithBalance = createFundedAccountForViews;
@@ -227,6 +243,45 @@ describe('PerpsOrderView', () => {
       { timeout: TIMEOUT_MS },
     );
     await waitForDeferredOrderData();
+  });
+
+  it('shows promotional pricing when Core returns a grant fee quote', async () => {
+    const calculateFees = Engine.context.PerpsController
+      .calculateFees as jest.Mock;
+    calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+    const { stream } = renderPerpsOrderView({
+      overrides: eligibleOverrides,
+      initialParams: {
+        asset: 'ETH',
+        direction: 'long',
+        amount: '1000',
+        leverage: 4,
+      },
+      streamOverrides: {
+        account,
+        positions: [],
+        orders: [],
+        marketData: [ethMarket],
+      },
+    });
+
+    await screen.findByTestId(
+      PerpsOrderHeaderSelectorsIDs.HEADER,
+      {},
+      { timeout: TIMEOUT_MS },
+    );
+    await waitForDeferredOrderData();
+    emitEthPrice(stream);
+
+    expect(
+      await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    expect(
+      screen.getByTestId(PerpsOrderViewSelectorsIDs.ORIGINAL_FEES_VALUE),
+    ).toHaveTextContent('$1.45');
+    expect(
+      screen.queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
+    ).not.toBeOnTheScreen();
   });
 
   it.each([
@@ -671,6 +726,57 @@ describe('PerpsOrderView', () => {
       );
       return submitButton;
     };
+
+    it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
+      const spendableBalance = '250.5';
+      const totalBalance = '5000';
+      const availableLabel = formatPerpsFiat(spendableBalance, {
+        ranges: PRICE_RANGES_MINIMAL_VIEW,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: {
+          ...eligibleOverrides,
+          ...chartPeriodOverrides,
+          engine: {
+            backgroundState: {
+              ...eligibleOverrides.engine.backgroundState,
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsTradeWithAnyTokenIsEnabled: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+        initialParams: tradeSheetParams,
+        streamOverrides: {
+          account: {
+            ...accountWithBalance(spendableBalance),
+            totalBalance,
+          },
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByLabelText(
+          `${strings('confirm.label.pay_with')}, ${strings(
+            'perps.adjust_margin.perps_balance',
+          )} (${availableLabel})`,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+    });
 
     it('leaves the sheet for the market page as soon as the order is submitted', async () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;

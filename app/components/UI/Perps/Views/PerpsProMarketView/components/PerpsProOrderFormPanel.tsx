@@ -20,7 +20,6 @@ import PerpsSlippageBottomSheet from '../../../components/PerpsSlippageBottomShe
 import { PROVIDER_CONFIG } from '../../../constants/perpsConfig';
 import {
   selectPerpsCrossMarginEnabledFlag,
-  selectPerpsTerminalBackendEnabledFlag,
   selectPerpsMobileScaleEnabledFlag,
   selectPerpsMobileChaseEnabledFlag,
   selectPerpsProTriggeredOrdersEnabledFlag,
@@ -90,13 +89,12 @@ const PerpsProOrderFormPanel = ({
   const selectedProviderId =
     market.providerId ??
     (activeProvider === 'aggregated' ? undefined : activeProvider);
-  // Terminal market data drops the no-Cross asset restriction, so Cross stays
-  // off with it. Hyperliquid refuses Cross on HIP-3 dexes (non-null source).
-  const usesTerminal = useSelector(selectPerpsTerminalBackendEnabledFlag);
+  // Hyperliquid refuses Cross on HIP-3 dexes (non-null source). The form then
+  // reads the asset's isolated-only restriction from the venue, whichever
+  // backend serves the market list.
   const isCrossMarginAvailable =
     isProModeActive &&
     isCrossMarginFlagEnabled &&
-    !usesTerminal &&
     selectedProviderId === CROSS_MARGIN_SUPPORTED_PROVIDER &&
     !market.marketSource;
   const isScaleBaseEnabled = isProModeActive && isScaleFlagEnabled;
@@ -256,6 +254,7 @@ const PerpsProOrderFormPanel = ({
     feeProtocolFeeRate,
     feeOriginalMetamaskFeeRate,
     feeDiscountPercentage,
+    feeDiscountKind,
     marginMode,
     isCrossMarginAvailableForMarket,
     isMarginModeLocked,
@@ -530,6 +529,7 @@ const PerpsProOrderFormPanel = ({
                     protocolFeeRate: feeProtocolFeeRate,
                     originalMetamaskFeeRate: feeOriginalMetamaskFeeRate,
                     feeDiscountPercentage,
+                    feeDiscountKind,
                   }
                 : undefined
             }

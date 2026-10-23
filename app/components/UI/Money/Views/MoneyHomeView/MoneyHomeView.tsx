@@ -1079,7 +1079,7 @@ const MoneyHomeView = () => {
           onLayout={isPushed ? handleTitleSectionLayout : undefined}
         >
           {showBalanceUnavailableBanner && (
-            <Box twClassName="px-4 pt-2">
+            <Box twClassName="px-4 pt-2 pb-2">
               <BannerAlert
                 severity={BannerAlertSeverity.Warning}
                 title={strings('money.balance_unavailable')}

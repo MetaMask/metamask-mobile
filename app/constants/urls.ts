@@ -101,6 +101,7 @@ export const buildCardSupportUrl = (
 
 // Perps
 export const PERPS_LEARN_MORE_URL = `https://support.metamask.io/manage-crypto/trade/perps/${MOBILE_UTM}`;
+export const PERPS_TROUBLESHOOT_URL = `https://support.metamask.io/trade/perps/troubleshoot/${MOBILE_UTM}`;
 export const PERPS_ADL_URL = `https://support.metamask.io/manage-crypto/trade/perps/leverage-and-liquidation/${MOBILE_UTM}#what-is-auto-deleveraging-adl`;
 
 // Troubleshooting
@@ -186,6 +187,12 @@ export const GOERLI_DEPRECATED_ARTICLE =
 
 export const ETHEREUM_LOGO =
   'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg';
+
+/**
+ * Price API origin. Callers append their own `/v3/...` path, the same shape as
+ * `TOKEN_API_BASE_URL`.
+ */
+export const PRICE_API_BASE_URL = 'https://price.api.cx.metamask.io';
 
 export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS = `https://support.metamask.io/privacy-and-security/how-to-manage-your-metametrics-settings/${MOBILE_UTM}`;
 export const UNSUPPORTED_BUY_REGION_SUPPORT_URL = `https://support.metamask.io/metamask-portfolio/buy/my-country-region-isnt-supported-for-buying-crypto/${MOBILE_UTM}`;

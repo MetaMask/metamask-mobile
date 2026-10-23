@@ -82,6 +82,11 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   holdTimeLabel?: string;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
+  /**
+   * Composer previews set this to `false` so the card does not offer to copy
+   * the order that was just placed. Absent means the open position is copyable.
+   */
+  showCopyTrade?: boolean;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {

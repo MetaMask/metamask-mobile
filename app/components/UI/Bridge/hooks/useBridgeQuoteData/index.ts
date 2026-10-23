@@ -22,7 +22,7 @@ import {
 } from '@metamask/bridge-controller';
 import { areAddressesEqual } from '../../../../../util/address';
 import { useCallback, useMemo, useEffect, useState, useRef } from 'react';
-import { fromTokenMinimalUnit } from '../../../../../util/number';
+import { fromTokenMinimalUnitString } from '../../../../../util/number/bigint';
 import {
   isQuoteExpired,
   getQuoteRefreshRate,
@@ -214,7 +214,10 @@ export const useBridgeQuoteData = ({
 
   const destTokenAmount =
     activeQuote && destToken && isQuoteSourceTokenMatch && isQuoteDestTokenMatch
-      ? fromTokenMinimalUnit(activeQuote.quote.dest.amount, destToken.decimals)
+      ? fromTokenMinimalUnitString(
+          activeQuote.quote.dest.amount,
+          destToken.decimals,
+        )
       : undefined;
 
   const quoteRate =

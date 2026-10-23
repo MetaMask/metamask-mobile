@@ -297,6 +297,18 @@ describe('EmailEntryStep', () => {
     });
   });
 
+  it('shows an enrollment failure under the email field', () => {
+    const { getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' }, { error: 'server_error' })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
+  });
+
   it('shows the error for an address already in use', () => {
     const { getByText } = render(
       <EmailEntryStep
@@ -370,7 +382,7 @@ describe('CodeStep', () => {
       const blur = jest.spyOn(input, 'blur').mockClear();
       const focus = jest.spyOn(input, 'focus').mockClear();
 
-      fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA));
       expect(blur).toHaveBeenCalledTimes(1);
       jest.runOnlyPendingTimers();
       expect(focus).toHaveBeenCalled();
@@ -384,7 +396,7 @@ describe('CodeStep', () => {
     const blur = jest.spyOn(input, 'blur').mockClear();
     const focus = jest.spyOn(input, 'focus').mockClear();
 
-    fireEvent(getByTestId(MfaFlowSelectorsIDs.CODE_INPUT), 'pressIn');
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CODE_TAP_AREA));
 
     expect(blur).not.toHaveBeenCalled();
     expect(focus).toHaveBeenCalledTimes(1);
