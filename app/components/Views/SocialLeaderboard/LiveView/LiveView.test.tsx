@@ -2,6 +2,11 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import {
@@ -82,8 +87,13 @@ jest.mock('../navigation/navigateToSocialV1Profile', () => ({
 }));
 
 jest.mock('../../../../util/haptics', () => ({
+  ImpactMoment: { PullToRefresh: 'pullToRefresh' },
+  playImpact: jest.fn(() => Promise.resolve()),
   playSelection: jest.fn(() => Promise.resolve()),
 }));
+
+const mockPlayImpact = jest.mocked(playImpact);
+const mockPlaySelection = jest.mocked(playSelection);
 
 const post = (
   overrides: Partial<SocialV1FeedPost> & Pick<SocialV1FeedPost, 'id' | 'item'>,
@@ -263,6 +273,49 @@ describe('LiveView', () => {
     fireEvent.press(screen.getByLabelText('3 new posts'));
 
     expect(mockRevealPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a selection haptic when pausing the feed', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays a selection haptic when resuming without held posts', () => {
+    renderWithProvider(<LiveView />, { state });
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    mockPlaySelection.mockClear();
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays a pull-to-refresh impact when resuming with held posts', () => {
+    mockPendingNewCount = 3;
+    renderWithProvider(<LiveView />, { state });
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    mockPlaySelection.mockClear();
+
+    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
+  });
+
+  it('plays a selection haptic when revealing posts from the pill', () => {
+    mockPendingNewCount = 3;
+    renderWithProvider(<LiveView />, { state });
+
+    fireEvent.press(screen.getByLabelText('3 new posts'));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
   it('hides the pill without pending posts', () => {
