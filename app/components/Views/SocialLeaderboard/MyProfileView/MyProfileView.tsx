@@ -22,11 +22,12 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Position } from '@metamask/social-controllers';
 import {
+  useFocusEffect,
   useNavigation,
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { Fragment, useCallback, useMemo, useState } from 'react';
+import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -53,6 +54,7 @@ import { useFollowedTraders } from '../NotificationPreferences/hooks';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
+import { consumePostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   useTraderPositions,
   useTraderProfile,
@@ -201,6 +203,16 @@ const MyProfileView: React.FC = () => {
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
   const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const scrollRef = useRef<Animated.ScrollView>(null);
+  useFocusEffect(
+    useCallback(() => {
+      // Every new post lands here, pinned at the top of the Posts tab.
+      if (isOwner && consumePostsTabFocus()) {
+        setActiveTab('posts');
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+      }
+    }, [isOwner]),
+  );
   const {
     posts,
     isLoading: isPostsLoading,
@@ -525,6 +537,7 @@ const MyProfileView: React.FC = () => {
           </Box>
         ) : displayProfile && overlayedStats ? (
           <Animated.ScrollView
+            ref={scrollRef}
             testID={MyProfileViewSelectorsIDs.SCROLL}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('flex-grow pb-6')}

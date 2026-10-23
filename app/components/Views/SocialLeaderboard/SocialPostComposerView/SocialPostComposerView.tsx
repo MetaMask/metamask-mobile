@@ -21,6 +21,7 @@ import {
   StackActions,
   useNavigation,
   useRoute,
+  type NavigationState,
 } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -54,16 +55,23 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ReactQueryService from '../../../../core/ReactQueryService';
 import Routes from '../../../../constants/navigation/Routes';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
+import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardHeight';
 import { useTheme } from '../../../../util/theme';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSuccessNotification,
+} from '../../../../util/haptics';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
+import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
 import {
   addPendingPost,
-  requestFollowingFocus,
+  requestPostsTabFocus,
 } from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
@@ -91,6 +99,45 @@ import {
 } from '../analytics';
 
 const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
+type ComposerRoute = NavigationState['routes'][number];
+
+const getPreviousRoute = (
+  state: NavigationState | undefined,
+): ComposerRoute | undefined =>
+  state && state.index > 0 ? state.routes[state.index - 1] : undefined;
+
+/**
+ * The viewer's own profile on either profile route, matched the same way
+ * `MyProfileView` decides ownership: no trader, or the viewer's own id or
+ * linked address.
+ */
+const isOwnProfileRoute = (
+  route: ComposerRoute | undefined,
+  viewer: { profileId?: string; linkedAccountAddress?: string | null },
+): boolean => {
+  if (
+    route?.name !== Routes.SOCIAL.MY_PROFILE &&
+    route?.name !== Routes.SOCIAL.V1_PROFILE
+  ) {
+    return false;
+  }
+  const params = route.params as
+    | { traderId?: string; traderAddress?: string }
+    | undefined;
+  if (!params?.traderId) {
+    return true;
+  }
+  return (
+    params.traderId === viewer.profileId ||
+    Boolean(
+      params.traderAddress &&
+        viewer.linkedAccountAddress &&
+        params.traderAddress.toLowerCase() ===
+          viewer.linkedAccountAddress.toLowerCase(),
+    )
+  );
+};
+
 interface ImageInsertEvent {
   nativeEvent: {
     uri?: string;
@@ -190,6 +237,7 @@ const SocialPostComposerView: React.FC = () => {
   const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
   });
+  const isKeyboardVisible = useKeyboardHeight() > 0;
 
   const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
@@ -319,6 +367,7 @@ const SocialPostComposerView: React.FC = () => {
     }
     const caption = text.trim();
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     try {
       let created;
@@ -337,38 +386,62 @@ const SocialPostComposerView: React.FC = () => {
       } else {
         return;
       }
-      if (selectedPosition && !tradeInFlightParams) {
-        const comment = created;
-        const pendingPost = buildPendingPost(comment, () => {
+      playSuccessNotification().catch(() => undefined);
+      const comment = created;
+      const pendingPost = buildPendingPost(
+        comment,
+        () => {
           const name = comment.author.name || authorName;
           const avatarUri = comment.author.images?.sm ?? profile?.imageUrl;
+          const author = {
+            id: comment.author.id,
+            username: name,
+            avatarUri,
+            winRatePercent: null,
+          };
+          const timestampMs = comment.timestamp * 1000;
+          let item: SocialV1FeedItem;
+          if (tradeInFlightPreview) {
+            item =
+              'product' in tradeInFlightPreview
+                ? mapPerpsOrderInFlightToFeedItem(
+                    tradeInFlightPreview,
+                    caption,
+                    { author, timestamp: timestampMs },
+                  )
+                : mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
+                    author,
+                    timestamp: timestampMs,
+                  });
+          } else if (selectedPosition) {
+            item = mapPositionToFeedItem(selectedPosition.position, caption, {
+              isClosed: selectedPosition.isClosed,
+              author,
+            });
+          } else {
+            return null;
+          }
           return {
             id: comment.uid,
             authorHandle: name,
             authorImageUrl: avatarUri,
-            timestampMs: comment.timestamp * 1000,
+            timestampMs,
             reactions: [],
             gifUri: gifUri ?? undefined,
-            item: mapPositionToFeedItem(selectedPosition.position, caption, {
-              isClosed: selectedPosition.isClosed,
-              author: {
-                id: comment.author.id,
-                username: name,
-                avatarUri,
-                winRatePercent: null,
-              },
-            }),
-            position: selectedPosition.position,
+            item,
+            position: tradeInFlightParams
+              ? undefined
+              : selectedPosition?.position,
           };
+        },
+        { isTradeInFlight: tradeInFlightParams != null },
+      );
+      if (pendingPost && profile?.profileId) {
+        addPendingPost({
+          ownerProfileId: profile.profileId,
+          post: pendingPost,
         });
-        if (pendingPost && profile?.profileId) {
-          addPendingPost({
-            ownerProfileId: profile.profileId,
-            post: pendingPost,
-          });
-          requestFollowingFocus();
-        }
-      } else {
+      } else if (tradeInFlightParams) {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           iconName: ComponentLibraryIconName.Confirmation,
@@ -396,8 +469,20 @@ const SocialPostComposerView: React.FC = () => {
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
-      } else {
+        return;
+      }
+      // Every other post lands on the viewer's Posts tab, where it is pinned.
+      requestPostsTabFocus();
+      if (
+        isOwnProfileRoute(getPreviousRoute(navigation.getState()), {
+          profileId: profile?.profileId,
+          linkedAccountAddress,
+        })
+      ) {
         navigation.goBack();
+      } else {
+        // Replace so Back from the profile skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
     } catch {
       trackInteraction(Interaction.POST_FAILED, {
@@ -424,6 +509,7 @@ const SocialPostComposerView: React.FC = () => {
     colors.success.default,
     gifUri,
     isSubmitting,
+    linkedAccountAddress,
     navigation,
     openFeedAfterPost,
     profile?.imageUrl,
@@ -433,6 +519,7 @@ const SocialPostComposerView: React.FC = () => {
     trackInteraction,
     toastRef,
     tradeInFlightParams,
+    tradeInFlightPreview,
   ]);
 
   return (
@@ -498,6 +585,9 @@ const SocialPostComposerView: React.FC = () => {
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
             keyboardShouldPersistTaps="always"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
           >
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
@@ -550,9 +640,8 @@ const SocialPostComposerView: React.FC = () => {
 
             {gifUri ? (
               <Box twClassName="relative rounded-2xl overflow-hidden">
-                <Image
-                  source={{ uri: gifUri }}
-                  style={tw.style('w-full aspect-square')}
+                <SocialFeedGif
+                  uri={gifUri}
                   testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
                 />
                 <Pressable
@@ -602,6 +691,19 @@ const SocialPostComposerView: React.FC = () => {
                 testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
               />
             )}
+            {isKeyboardVisible ? (
+              <Box twClassName="ml-auto">
+                <ButtonIcon
+                  iconName={IconName.ArrowDown}
+                  size={ButtonIconSize.Md}
+                  onPress={Keyboard.dismiss}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.composer.hide_keyboard',
+                  )}
+                  testID={SocialPostComposerViewSelectorsIDs.HIDE_KEYBOARD}
+                />
+              </Box>
+            ) : null}
           </Box>
           {isGifSheetOpen ? (
             <GifPickerSheet

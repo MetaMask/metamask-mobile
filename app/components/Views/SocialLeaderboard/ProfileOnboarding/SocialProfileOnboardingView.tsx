@@ -524,7 +524,16 @@ const SocialProfileOnboardingView: React.FC = () => {
     try {
       const profileId =
         (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
-      await createProfile(buildCreateProfileParams(draft, profileId));
+      const linkedAccount = accounts.find(
+        (account) => account.id === draft.linkedAccountId,
+      );
+      await createProfile(
+        buildCreateProfileParams(
+          draft,
+          profileId,
+          linkedAccount?.linkedAddresses,
+        ),
+      );
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
       trackInteraction(Interaction.USERNAME_CLAIMED, {
         outcome: Outcome.SUCCESS,
@@ -540,7 +549,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [createProfile, draft, navigation, trackInteraction]);
+  }, [accounts, createProfile, draft, navigation, trackInteraction]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);

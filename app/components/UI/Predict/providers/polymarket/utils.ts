@@ -68,6 +68,7 @@ import {
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -864,9 +865,7 @@ const parsePolymarketMarketOutcomes = (
   event: PolymarketApiEvent,
   game?: PredictMarketGame,
 ): PredictOutcomeToken[] => {
-  const outcomeTokensIds = market.clobTokenIds
-    ? JSON.parse(market.clobTokenIds)
-    : [];
+  const outcomeTokensIds = parseMarketOutcomeTokenIds(market);
   const outcomes = formatOutcomeTitles(market);
   const shortTitles = game ? formatOutcomeShortTitles(market, game) : [];
   const outcomePrices = market.outcomePrices
@@ -1035,6 +1034,7 @@ export const parsePolymarketMarket = (
   tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
   resolutionStatus: market.umaResolutionStatus,
+  version: market.version,
 });
 
 export type PolymarketTeamLookupFn = (
@@ -1042,10 +1042,29 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
-const V2_MARKET_VERSION = 'v2';
-
 function isV2Market(market?: PolymarketApiMarket): boolean {
   return market?.version === V2_MARKET_VERSION;
+}
+
+/**
+ * The Gamma market version decides which field holds the outcome token ids —
+ * never the ids themselves (both id fields can be present on a market). A v2
+ * market without `positionIds` yields no ids rather than falling back to
+ * `clobTokenIds`, so CTF ids can never leak into the Protocol V2 path.
+ */
+export function parseMarketOutcomeTokenIds(
+  market: PolymarketApiMarket,
+): string[] {
+  if (isV2Market(market)) {
+    // The v2 wire returns `positionIds` as a native JSON array; the
+    // JSON-encoded string form is accepted for compatibility.
+    if (Array.isArray(market.positionIds)) {
+      return market.positionIds;
+    }
+    return market.positionIds ? JSON.parse(market.positionIds) : [];
+  }
+  const rawTokenIds = market.clobTokenIds;
+  return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
 function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
@@ -2169,10 +2188,23 @@ async function waiveFees({
   marketId: string;
   waiveList: string[];
 }): Promise<boolean> {
-  const market = await getMarketDetailsFromGammaApi({ marketId });
-  const { tags } = market;
-  const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+  try {
+    const market = await getMarketDetailsFromGammaApi({ marketId });
+    const { tags } = market;
+    const slugs = tags?.map((t) => t.slug);
+    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+  } catch (error) {
+    // A fee-waiver lookup failure must never fail the preview — degrade
+    // to standard (non-waived) fees instead.
+    DevLogger.log(
+      'Polymarket: fee-waiver lookup failed, applying standard fees',
+      {
+        marketId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    return false;
+  }
 }
 
 /**
