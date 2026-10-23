@@ -1,11 +1,14 @@
-import React from 'react';
+import React, { ComponentType } from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import { ThemeContext, mockTheme } from '../../../util/theme';
-import OnboardingSheet from '.';
+import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
+import OnboardingSheet, { OnboardingSheetProps } from '.';
 import { OnboardingSheetSelectorIDs } from './OnboardingSheet.testIds';
+import { AuthConnection } from '../../../../core/OAuthService/OAuthInterface';
+
+const asComponentType = (name: string) => name as unknown as ComponentType;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactNative = jest.requireActual('react-native');
@@ -25,42 +28,20 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-const routeParams: Record<string, unknown> = {};
-
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
   }),
-  useRoute: () => ({
-    params: routeParams,
-  }),
 }));
 
-const Stack = createNativeStackNavigator();
-
-function OnboardingSheetScreen() {
-  return <OnboardingSheet />;
-}
-
 describe('OnboardingSheet', () => {
-  beforeEach(() => {
-    Object.keys(routeParams).forEach((key) => {
-      delete routeParams[key];
-    });
-  });
-
-  const renderSheet = () =>
+  const renderSheet = (props: Partial<OnboardingSheetProps> = {}) =>
     render(
       <ThemeContext.Provider value={mockTheme}>
         <NavigationContainer>
-          <Stack.Navigator>
-            <Stack.Screen
-              name="OnboardingSheet"
-              component={OnboardingSheetScreen}
-            />
-          </Stack.Navigator>
+          <OnboardingSheet onDismiss={jest.fn()} {...props} />
         </NavigationContainer>
       </ThemeContext.Provider>,
     );
@@ -68,12 +49,10 @@ describe('OnboardingSheet', () => {
   it('invokes Telegram login callback with createWallet true', () => {
     const onPressContinueWithTelegram = jest.fn();
 
-    Object.assign(routeParams, {
+    const { getByTestId } = renderSheet({
       onPressContinueWithTelegram,
       createWallet: true,
     });
-
-    const { getByTestId } = renderSheet();
 
     fireEvent.press(
       getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
@@ -85,12 +64,10 @@ describe('OnboardingSheet', () => {
   it('invokes Telegram login callback with createWallet false for import flows', () => {
     const onPressContinueWithTelegram = jest.fn();
 
-    Object.assign(routeParams, {
+    const { getByTestId } = renderSheet({
       onPressContinueWithTelegram,
       createWallet: false,
     });
-
-    const { getByTestId } = renderSheet();
 
     fireEvent.press(
       getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
@@ -100,14 +77,48 @@ describe('OnboardingSheet', () => {
   });
 
   it('does not render the Telegram login button when the callback is omitted', () => {
-    Object.assign(routeParams, {
-      createWallet: true,
-    });
-
-    const { queryByTestId } = renderSheet();
+    const { queryByTestId } = renderSheet({ createWallet: true });
 
     expect(
       queryByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
     ).toBeNull();
+  });
+
+  it('renders the dark Apple icon when the theme is dark', () => {
+    const { getByTestId, UNSAFE_getAllByType } = render(
+      <ThemeContext.Provider
+        value={{ ...mockTheme, themeAppearance: AppThemeKey.dark }}
+      >
+        <NavigationContainer>
+          <OnboardingSheet onDismiss={jest.fn()} />
+        </NavigationContainer>
+      </ThemeContext.Provider>,
+    );
+
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      UNSAFE_getAllByType(asComponentType('SvgMock')).some(
+        (icon) => icon.props.name === 'apple',
+      ),
+    ).toBe(true);
+  });
+
+  it('disables Telegram and Apple while Google login is loading', () => {
+    const { getByTestId } = renderSheet({
+      onPressContinueWithTelegram: jest.fn(),
+      loadingProvider: AuthConnection.Google,
+    });
+
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.APPLE_LOGIN_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+    ).toBeDisabled();
   });
 });
