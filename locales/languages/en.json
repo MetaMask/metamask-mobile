@@ -4127,6 +4127,11 @@
       "webview_title": "Polymarket Terms",
       "button": "Got it"
     },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
+    },
     "deposit": {
       "in_progress": "Deposit in progress",
       "adding_funds": "Adding funds",

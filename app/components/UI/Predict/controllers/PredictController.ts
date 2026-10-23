@@ -2696,6 +2696,29 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by claim preparation');
       }
 
+      // The provider can skip positions (Protocol V2 ones while the kill
+      // switch is on). Keep only the claimed ones, so the confirmation,
+      // beforeSign, publish, and confirmClaim leave the skipped positions
+      // claimable.
+      const claimedPositions = prepareClaimResult.positions;
+      if (
+        claimedPositions &&
+        claimedPositions.length < claimablePositions.length
+      ) {
+        claimablePositions = claimedPositions;
+        this.update((state) => {
+          const addressKey =
+            this.findClaimablePositionsAddress(signer.address) ??
+            signer.address;
+          state.claimablePositions[addressKey] = [...claimedPositions];
+        });
+        this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+          this.buildClaimAnalyticsProperties(
+            analyticsContext,
+            claimedPositions,
+          );
+      }
+
       // Find network client - can fail if chain is not supported
       const networkClientId = this.messenger.call(
         'NetworkController:findNetworkClientIdByChainId',

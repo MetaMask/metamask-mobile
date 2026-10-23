@@ -150,7 +150,14 @@ export interface PolymarketApiMarket {
   resolvedBy: string;
   orderPriceMinTickSize: number | null;
   events?: PolymarketApiEvent[];
+  /** UMA resolution status. Only meaningful for CTF (non-v2) markets. */
   umaResolutionStatus: string;
+  /**
+   * Protocol V2 resolution status: `inactive` (drafted, not on chain),
+   * `active` (deployed, unresolved), or `resolved`. Only set on v2 markets;
+   * null or absent when Gamma has no resolution metadata.
+   */
+  resolutionStatus?: string | null;
   /** Gamma protocol version. `v2` is Protocol V2. A missing value is CTF. */
   version?: string;
   /**
