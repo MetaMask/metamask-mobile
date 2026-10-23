@@ -1,9 +1,23 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import MoneyHeader from './MoneyHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import { FLOATING_HEADER_FADE_TEST_ID } from '../../../../../component-library/components-temp/HeaderGlass';
+
+jest.mock(
+  '../../../../../component-library/components-temp/CapsuleGlass',
+  () => {
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ children }: { children: React.ReactNode }) => (
+        <View testID="capsule">{children}</View>
+      ),
+    };
+  },
+);
 
 const sharedValue = (value: number): SharedValue<number> =>
   ({ value }) as unknown as SharedValue<number>;
@@ -13,11 +27,6 @@ const sharedValue = (value: number): SharedValue<number> =>
 const pushedProps = {
   scrollY: sharedValue(0),
   titleSectionHeight: sharedValue(0),
-};
-
-const proButton = {
-  label: strings('pro_subscription.join_pro'),
-  onPress: jest.fn(),
 };
 
 describe('MoneyHeader', () => {
@@ -46,15 +55,6 @@ describe('MoneyHeader', () => {
     fireEvent.press(getByTestId(MoneyHeaderTestIds.MENU_BUTTON));
 
     expect(mockOnMenuPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('uses the same horizontal padding as the Home page header', () => {
-    const { getByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
-
-    expect(getByTestId(MoneyHeaderTestIds.CONTAINER)).toHaveStyle({
-      paddingLeft: 16,
-      paddingRight: 12,
-    });
   });
 
   describe('back button', () => {
@@ -107,57 +107,57 @@ describe('MoneyHeader', () => {
       );
       expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
     });
-
-    it('keeps the Pro button alongside the back button', () => {
-      const { getByTestId } = render(
-        <MoneyHeader
-          onMenuPress={jest.fn()}
-          proButton={proButton}
-          onBack={jest.fn()}
-          {...pushedProps}
-        />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
-    });
   });
 
-  describe('Pro button', () => {
-    it('is not shown when the page does not provide one', () => {
-      const { queryByTestId, getByTestId } = render(
-        <MoneyHeader onMenuPress={jest.fn()} />,
-      );
+  describe('glass', () => {
+    it('stays in place with plain buttons by default', () => {
+      const { queryByTestId } = render(<MoneyHeader onMenuPress={jest.fn()} />);
 
-      expect(
-        queryByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON),
-      ).not.toBeOnTheScreen();
-      expect(getByTestId(MoneyHeaderTestIds.MENU_BUTTON)).toBeOnTheScreen();
+      expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+      expect(queryByTestId('capsule')).toBeNull();
     });
 
-    it('shows the label the page provides', () => {
-      const { getByTestId, getByLabelText } = render(
-        <MoneyHeader onMenuPress={jest.fn()} proButton={proButton} />,
-      );
-
-      expect(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON)).toHaveTextContent(
-        proButton.label,
-      );
-      expect(getByLabelText(proButton.label)).toBeOnTheScreen();
-    });
-
-    it('calls the page handler when pressed', () => {
-      const onPress = jest.fn();
+    it('floats the tab header on its backdrop with the menu in a capsule', () => {
       const { getByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} isGlass />,
+      );
+
+      expect(getByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeOnTheScreen();
+      expect(
+        within(getByTestId('capsule')).getByTestId(
+          MoneyHeaderTestIds.MENU_BUTTON,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('seats the back and menu buttons in capsules when pushed', () => {
+      const onBack = jest.fn();
+      const { getAllByTestId, getByTestId } = render(
         <MoneyHeader
           onMenuPress={jest.fn()}
-          proButton={{ label: 'Pro', onPress }}
+          onBack={onBack}
+          {...pushedProps}
+          isGlass
         />,
       );
 
-      fireEvent.press(getByTestId(MoneyHeaderTestIds.GET_PRO_BUTTON));
+      expect(getAllByTestId('capsule')).toHaveLength(2);
 
-      expect(onPress).toHaveBeenCalledTimes(1);
+      fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
+
+      expect(onBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the floating header layout so the page can inset its content', () => {
+      const onLayout = jest.fn();
+      const { getByTestId } = render(
+        <MoneyHeader onMenuPress={jest.fn()} isGlass onLayout={onLayout} />,
+      );
+      const event = { nativeEvent: { layout: { height: 103 } } };
+
+      fireEvent(getByTestId(MoneyHeaderTestIds.CONTAINER), 'layout', event);
+
+      expect(onLayout).toHaveBeenCalledWith(event);
     });
   });
 });

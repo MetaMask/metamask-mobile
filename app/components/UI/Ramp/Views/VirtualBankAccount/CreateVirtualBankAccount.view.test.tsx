@@ -1,18 +1,34 @@
 import '../../../../../../tests/component-view/mocks';
-import { waitFor } from '@testing-library/react-native';
-import React from 'react';
+import { StyleSheet } from 'react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
-import Routes from '../../../../../constants/navigation/Routes';
-import { renderComponentViewScreen } from '../../../../../../tests/component-view/render';
-import { createStateFixture } from '../../../../../../tests/component-view/stateFixture';
-import CreateVirtualBankAccount from './CreateVirtualBankAccount';
+import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
+import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import {
+  renderVbaVendorTerms,
+  renderVbaVendorTermsWithCaller,
+  restoreVbaReduxServiceStore,
+  VbaRendererTestIds,
+} from '../../../../../../tests/component-view/renderers/vba';
 import { strings } from '../../../../../../locales/i18n';
 import { getMoneyAccountDepositAssetId } from '../../../Money/utils/moneyAccountTransactions';
-import { MONEY_MOVEMENT_NEOBANK_FLAG_KEY } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
+import { VbaOnboardingRoutes } from './routes';
 
 const mockGetPaymentMethodsForContext = jest.mocked(
   Engine.context.RampsController.getPaymentMethodsForContext,
 );
+const mockHydrateVbaOnboarding = jest.mocked(
+  Engine.context.RampsController.hydrateVbaOnboarding,
+);
+const mockFetchVendorDisclaimers = jest.mocked(
+  Engine.context.KycController.fetchVendorDisclaimers,
+);
+const kycService = Engine.context.KycService;
+if (!kycService) {
+  throw new Error('Component view Engine mock must provide KycService');
+}
+const mockGetGeoCountry = jest.mocked(kycService.getGeoCountry);
 
 const manualBankTransfer = {
   id: '/payments/bank-transfer',
@@ -24,56 +40,27 @@ const manualBankTransfer = {
   delay: [2880, 4320],
 };
 
+// Iron sends only the T&C and its `display_name` does not say "MoonPay";
+// the screen rewords the label client-side.
 const disclaimer = {
   id: 'd-1',
   url: 'https://moonpay.example/terms',
-  display_name: "MoonPay's Terms and Conditions",
+  display_name: 'Terms and Conditions',
 };
 
-/**
- * Renders the intro screen with real hooks and selectors; only Engine is
- * mocked (per the component-view rules). The geolocation location drives
- * `useVbaEligibility`, and the payment-methods spy drives the arrival row.
- * `moneyMovementNeobank` must list the country or the arrival query stays off.
- */
-const renderScreen = ({ location }: { location?: string } = {}) => {
-  const state = createStateFixture()
-    .withMinimalAccounts()
-    .withMinimalMainnetNetwork()
-    .withMinimalKeyringController()
-    .withRemoteFeatureFlags({
-      [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
-        enabled: true,
-        minimumVersion: '0.0.0',
-        regions: ['BR'],
-      },
-    })
-    .withOverrides({
-      engine: {
-        backgroundState: {
-          GeolocationController: { location },
-        },
-      },
-    })
-    .build();
-
-  return renderComponentViewScreen(
-    CreateVirtualBankAccount as unknown as React.ComponentType,
-    { name: Routes.RAMP.VBA_ONBOARDING },
-    { state },
-  );
-};
-
-describe('CreateVirtualBankAccount view', () => {
+describeForPlatforms('CreateVirtualBankAccount view', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // `useKycDisclaimers` is real in view tests; give it deterministic data.
-    (Engine.context as Record<string, unknown>).KycService = {
-      getGeoCountry: jest.fn().mockResolvedValue('BR'),
-    };
-    (Engine.context as Record<string, unknown>).KycController = {
-      fetchVendorDisclaimers: jest.fn().mockResolvedValue([disclaimer]),
-    };
+    mockGetGeoCountry.mockResolvedValue('BR');
+    mockFetchVendorDisclaimers.mockResolvedValue([disclaimer]);
+    mockHydrateVbaOnboarding.mockResolvedValue({
+      sessionExists: false,
+      vendorDisclaimersComplete: false,
+      sessionDisclaimersComplete: false,
+      providerFlowStatus: 'not_started',
+      kycStatus: 'none',
+      autorampStatus: 'not_ready',
+    });
     mockGetPaymentMethodsForContext.mockResolvedValue({
       methods: [manualBankTransfer as never],
       selected: null,
@@ -81,8 +68,12 @@ describe('CreateVirtualBankAccount view', () => {
     });
   });
 
+  afterEach(() => {
+    restoreVbaReduxServiceStore();
+  });
+
   it('shows the live arrival timeframe and queries the catalog for the VBA region', async () => {
-    const { getByText } = renderScreen({ location: 'BR' });
+    const { getByText } = renderVbaVendorTerms({ location: 'BR' });
 
     const liveTitle = strings(
       'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
@@ -112,7 +103,7 @@ describe('CreateVirtualBankAccount view', () => {
   });
 
   it('queries the country-level region code for a country-state geolocation', async () => {
-    renderScreen({ location: 'BR-SP' });
+    renderVbaVendorTerms({ location: 'BR-SP' });
 
     await waitFor(() => {
       expect(mockGetPaymentMethodsForContext).toHaveBeenCalledWith(
@@ -122,7 +113,7 @@ describe('CreateVirtualBankAccount view', () => {
   });
 
   it('keeps the fallback arrival copy and never fetches outside VBA regions', async () => {
-    const { getByText } = renderScreen({ location: 'PT' });
+    const { getByText } = renderVbaVendorTerms({ location: 'PT' });
 
     const fallbackTitle = strings(
       'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
@@ -138,7 +129,9 @@ describe('CreateVirtualBankAccount view', () => {
     mockGetPaymentMethodsForContext.mockRejectedValue(
       new Error('catalog unavailable'),
     );
-    const { getByText, queryByText } = renderScreen({ location: 'BR' });
+    const { getByText, queryByText } = renderVbaVendorTerms({
+      location: 'BR',
+    });
 
     await waitFor(() => {
       expect(
@@ -158,7 +151,9 @@ describe('CreateVirtualBankAccount view', () => {
       selected: null,
       providerIds: [],
     });
-    const { getByText, queryByText } = renderScreen({ location: 'BR' });
+    const { getByText, queryByText } = renderVbaVendorTerms({
+      location: 'BR',
+    });
 
     await waitFor(() => {
       expect(mockGetPaymentMethodsForContext).toHaveBeenCalled();
@@ -172,5 +167,94 @@ describe('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
+  });
+
+  it('renders the vendor policy link without an underline', async () => {
+    const { findByTestId } = renderVbaVendorTerms();
+
+    const link = await findByTestId(
+      `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+    );
+
+    expect(StyleSheet.flatten(link.props.style)?.textDecorationLine).not.toBe(
+      'underline',
+    );
+  });
+
+  it('accepts vendor terms and advances to email', async () => {
+    const { findByTestId, getByTestId } = renderVbaVendorTerms();
+    const continueButton = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+    await waitFor(() => expect(continueButton).toBeEnabled());
+
+    fireEvent.press(continueButton);
+
+    expect(
+      await findByTestId(
+        getRouteProbeTestId(VbaOnboardingRoutes.EMAIL),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(mockHydrateVbaOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        refreshKyc: true,
+        refreshAutoramps: true,
+      }),
+    );
+  });
+
+  it('opens the generic error route when continuing vendor terms fails', async () => {
+    mockHydrateVbaOnboarding.mockRejectedValue(new Error('hydrate failed'));
+    const { findByTestId, getByTestId, queryByTestId } = renderVbaVendorTerms();
+    const continueButton = getByTestId(
+      CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
+    );
+    await waitFor(() => expect(continueButton).toBeEnabled());
+
+    fireEvent.press(continueButton);
+
+    expect(
+      await findByTestId(
+        getRouteProbeTestId(VbaOnboardingRoutes.ERROR),
+        {},
+        { timeout: 3000 },
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('retries loading vendor disclaimers after a request failure', async () => {
+    mockFetchVendorDisclaimers
+      .mockRejectedValueOnce(new Error('catalog unavailable'))
+      .mockResolvedValueOnce([disclaimer]);
+    const { findByTestId } = renderVbaVendorTerms();
+    fireEvent.press(
+      await findByTestId(
+        CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_RETRY,
+      ),
+    );
+
+    expect(
+      await findByTestId(
+        `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+      ),
+    ).toBeOnTheScreen();
+    expect(mockFetchVendorDisclaimers).toHaveBeenCalledTimes(2);
+  });
+
+  it('returns to the caller from the vendor terms back button', async () => {
+    const { getByTestId, findByTestId } = renderVbaVendorTermsWithCaller();
+    fireEvent.press(getByTestId(VbaRendererTestIds.OPEN_VENDOR_TERMS));
+    await findByTestId(CreateVirtualBankAccountSelectorsIDs.CONTAINER);
+
+    fireEvent.press(
+      getByTestId(CreateVirtualBankAccountSelectorsIDs.BACK_BUTTON),
+    );
+
+    expect(await findByTestId(VbaRendererTestIds.CALLER)).toBeOnTheScreen();
   });
 });

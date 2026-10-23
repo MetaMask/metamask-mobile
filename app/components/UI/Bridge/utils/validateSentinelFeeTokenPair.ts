@@ -1,12 +1,35 @@
 import { assetIdsMatch } from '@metamask/bridge-controller';
-import type { CaipAssetType, CaipChainId } from '@metamask/utils';
-import type { SentinelFeeTokensByChain } from '../api/sentinelFeeTokens';
+import {
+  parseCaipAssetType,
+  type CaipAssetType,
+  type CaipChainId,
+} from '@metamask/utils';
+import type {
+  SentinelFeeToken,
+  SentinelFeeTokensByChain,
+} from '../api/sentinelFeeTokens';
 
 interface ValidateSentinelFeeTokenPairParams {
   sentinelFeeTokens: SentinelFeeTokensByChain;
   chainId: CaipChainId;
   sourceAssetId: CaipAssetType;
   destinationAssetId: CaipAssetType;
+}
+
+function tokenMatchesAsset(
+  token: SentinelFeeToken,
+  assetId: CaipAssetType,
+  chainId: CaipChainId,
+): boolean {
+  if (assetIdsMatch(token.assetId, assetId)) return true;
+  if (!token.aliasAddress) return false;
+
+  const parsedAsset = parseCaipAssetType(assetId);
+  return (
+    parsedAsset.chainId === chainId &&
+    parsedAsset.assetReference.toLowerCase() ===
+      token.aliasAddress.toLowerCase()
+  );
 }
 
 /**
@@ -25,8 +48,8 @@ export function validateSentinelFeeTokenPair({
   const tokensForChain = sentinelFeeTokens[chainId] ?? [];
 
   return tokensForChain.some(
-    ({ assetId }) =>
-      assetIdsMatch(assetId, sourceAssetId) ||
-      assetIdsMatch(assetId, destinationAssetId),
+    (token) =>
+      tokenMatchesAsset(token, sourceAssetId, chainId) ||
+      tokenMatchesAsset(token, destinationAssetId, chainId),
   );
 }

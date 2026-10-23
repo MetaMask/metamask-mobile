@@ -10,6 +10,7 @@ import { MOCK_LIMIT_OPEN_ORDER } from '../../api/limitOrders/getLimitOrders/mock
 import { CancelLimitOrderModalSelectorsIDs } from '../CancelLimitOrderModal/testIds';
 import { TokenAmountValueSelectorsIDs } from '../LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
+import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 
 const {
   SHEET,
@@ -35,7 +36,7 @@ const renderDetails = () =>
 const MOCK_USD_PRICE_ORDER = {
   ...MOCK_LIMIT_OPEN_ORDER,
   trigger: { kind: 'src_price', threshold: 'above', price: '2160' },
-};
+} as const;
 
 /**
  * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
@@ -91,7 +92,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(triggerRow).getByText(TRIGGER_PRICE)).toBeOnTheScreen();
     expect(
       within(triggerRow).getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
-    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at'));
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
 
     const expiryRow = getByTestId(EXPIRY);
     expect(
@@ -100,7 +101,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(expiryRow).getByText(EXPIRY_DATE)).toBeOnTheScreen();
   });
 
-  it.each(['src_price', 'dest_price'])(
+  it.each<LimitOrder['trigger']['kind']>(['src_price', 'dest_price'])(
     'shows a %s trigger as a USD price',
     async (kind) => {
       const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
@@ -134,9 +135,26 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(triggerRow).queryByText('€2,000.00')).not.toBeOnTheScreen();
   });
 
+  it('signs the trigger price of an order placed at or below the limit price', async () => {
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: {
+        ...MOCK_LIMIT_OPEN_ORDER,
+        trigger: { kind: 'src_price', threshold: 'below', price: '2160' },
+      },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(
+      within(getByTestId(TRIGGER_CONDITION)).getByTestId(
+        TokenAmountValueSelectorsIDs.PREFIX,
+      ),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_below'));
+  });
+
   it('shows the trigger price of a sell as entered when the API reports it inverted', async () => {
-    // Selling BNB at 817.501762 USDT per BNB, which the API reports as
-    // 1 / 817.501762 BNB per USDT.
+    // Selling BNB at or above 817.501762 USDT per BNB, which the API reports
+    // as at or below 1 / 817.501762 BNB per USDT.
     const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
       order: {
         ...MOCK_LIMIT_OPEN_ORDER,
@@ -164,7 +182,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
         },
         trigger: {
           kind: 'ratio',
-          threshold: 'above',
+          threshold: 'below',
           price: '0.00122323895370393098',
         },
       },
@@ -172,9 +190,11 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
 
     expect(await findByTestId(SHEET)).toBeOnTheScreen();
 
+    const triggerRow = getByTestId(TRIGGER_CONDITION);
+    expect(within(triggerRow).getByText('817.501762 USDT')).toBeOnTheScreen();
     expect(
-      within(getByTestId(TRIGGER_CONDITION)).getByText('817.501762 USDT'),
-    ).toBeOnTheScreen();
+      within(triggerRow).getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
   });
 
   // The orders response carries no market price, so the sheet cannot say how

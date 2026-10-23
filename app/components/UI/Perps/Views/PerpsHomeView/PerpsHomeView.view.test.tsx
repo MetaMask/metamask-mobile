@@ -5,6 +5,7 @@
 import '../../../../../../tests/component-view/mocks';
 
 import React, { type ComponentType } from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import { Text, View } from 'react-native';
 import {
   act,
@@ -65,12 +66,14 @@ import {
 import { getTraderRowTestId } from '../../../../Views/Homepage/Sections/TopTraders/components/TraderRow.testIds';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
+import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   SOCIAL_FEED_EMPTY_TEST_ID,
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
 } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
+import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 
 const TIMEOUT_MS = 5000;
 
@@ -701,8 +704,15 @@ describe('PerpsHomeView', () => {
       );
     };
 
+    const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+    beforeEach(() => {
+      netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    });
+
     afterEach(() => {
       clearLeaderboardApiMock();
+      netInfoMock.__resetMockNetInfo();
     });
 
     it('shows 3 perps Trending posts by default when Perps social is on', async () => {
@@ -766,7 +776,7 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('opens the Social V1 home route from See more with the perps_home source', async () => {
+    it('opens Social V1 on the Leaderboard tab from Top traders See more with the perps_home source', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
@@ -796,6 +806,7 @@ describe('PerpsHomeView', () => {
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
           source: 'perps_home',
+          initialTab: 'leaderboard',
         });
       } finally {
         unwire();
@@ -839,9 +850,14 @@ describe('PerpsHomeView', () => {
       });
       await openTopTraders();
 
-      fireEvent.press(
-        await screen.findByText('Retry', {}, { timeout: TIMEOUT_MS }),
-      );
+      expect(
+        await screen.findByTestId(
+          SocialLeaderboardSelectorsIDs.ERROR,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      fireEvent.press(screen.getByTestId(SocialLeaderboardSelectorsIDs.RETRY));
 
       expect(
         await screen.findByTestId(getTraderRowTestId(topFiveIds[0])),
@@ -1176,7 +1192,7 @@ describe('PerpsHomeView', () => {
         traderName: alpha.name,
         traderAddress: alpha.addresses[0],
         traderAvatarUri: alpha.imageUrl,
-        source: 'perps_home',
+        source: 'leaderboard',
         traderRank: 1,
       });
     });
@@ -1565,8 +1581,106 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
       expect(
         screen.queryByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem(appleMarket.symbol),
         ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(appleMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows suggested markets on an empty Watchlist and adds one', async () => {
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [btcMarket, appleMarket],
+      });
+
+      await userEvent.press(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      );
+
+      expect(
+        screen.queryByText(strings('perps.no_favorites_found')),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_HEADER),
+      ).toBeNull();
+      expect(
+        screen.getByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      ).toBeOnTheScreen();
+
+      await userEvent.press(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.addButton(btcMarket.symbol),
+        ),
+      );
+
+      expect(
+        Engine.context.PerpsController.toggleWatchlistMarket,
+      ).toHaveBeenCalledWith(btcMarket.symbol);
+    });
+
+    it('hides suggestions once the watchlist has five markets', async () => {
+      const savedMarkets = [
+        btcMarket,
+        createEthMarketForViews({ symbol: 'ETH', volume: '$1.8B' }),
+        createEthMarketForViews({ symbol: 'SOL', volume: '$1.2B' }),
+        createEthMarketForViews({ symbol: 'BNB', volume: '$900M' }),
+        createEthMarketForViews({ symbol: 'ARB', volume: '$700M' }),
+      ];
+      const unsavedMarket = createEthMarketForViews({
+        symbol: 'DOGE',
+        volume: '$100M',
+      });
+
+      renderExploreHome({
+        variant: PerpsHomeExploreVariant.Treatment,
+        markets: [...savedMarkets, unsavedMarket],
+        watchlistSymbols: savedMarkets.map((market) => market.symbol),
+      });
+
+      expect(
+        await screen.findByTestId(
+          exploreTab(EXPLORE_WATCHLIST_TAB_ID),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+
+      expectTabSelected(EXPLORE_WATCHLIST_TAB_ID, true);
+      savedMarkets.forEach((market) => {
+        expect(
+          screen.getByTestId(
+            getPerpsMarketRowItemSelector.rowItem(market.symbol),
+          ),
+        ).toBeOnTheScreen();
+      });
+      expect(
+        screen.queryByTestId(
+          getPerpsMarketRowItemSelector.rowItem(unsavedMarket.symbol),
+        ),
+      ).toBeNull();
+      expect(
+        screen.queryByTestId(PerpsWatchlistSelectorsIDs.SUGGESTED_SECTION),
       ).toBeNull();
     });
 

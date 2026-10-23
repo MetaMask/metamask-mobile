@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -26,6 +27,7 @@ import {
   buildPolyHmacSignature,
   calculateConservativeBuyMarketFee,
   calculateConservativeSellMarketFee,
+  calculateFees,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
   createApiKey,
@@ -3175,6 +3177,189 @@ describe('polymarket utils', () => {
     });
   });
 
+  it('waives only the MetaMask fee for a membership policy', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    await expect(
+      calculateFees({
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.03,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: 'predict-pro-builder',
+        },
+        marketId: 'market-1',
+        userBetAmount: 10,
+      }),
+    ).resolves.toEqual({
+      fees: {
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        totalFeePercentage: 3,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      originalFees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+    });
+  });
+
+  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({
+        tags: [{ slug: 'middle-east' }],
+      }),
+    });
+
+    const waivedFees = {
+      metamaskFee: 0,
+      providerFee: 0,
+      totalFee: 0,
+      totalFeePercentage: 0,
+      collector: '0x0',
+      executors: [],
+      permit2Enabled: false,
+    };
+
+    const result = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: ['middle-east'],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        discountType: DiscountType.SUBSCRIPTION,
+        builderCode: 'predict-pro-builder',
+      },
+      marketId: 'market-1',
+      userBetAmount: 10,
+    });
+
+    expect(result).toEqual({
+      fees: waivedFees,
+      originalFees: waivedFees,
+    });
+  });
+
+  it('uses configured service fees when no membership policy is available', async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ tags: [] }),
+    });
+
+    const result = await calculateFees({
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      marketId: 'market-1',
+      userBetAmount: 10,
+    });
+
+    expect(result).toEqual({
+      fees: {
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+    });
+  });
+
+  it('keeps the CLOB market fee in a membership preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        discountType: DiscountType.SUBSCRIPTION,
+        builderCode: 'predict-pro-builder',
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: 0.3,
+        totalFee: 0.3,
+        marketFee: 0.1,
+      }),
+    );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0.2,
+        providerFee: 0.3,
+        totalFee: 0.5,
+        totalFeePercentage: 5,
+        marketFee: 0.1,
+      }),
+    );
+  });
+
   it('previews buy orders with CLOB market fee and zero fee-rate bps', async () => {
     mockFetch
       .mockResolvedValueOnce({
@@ -3214,6 +3399,7 @@ describe('polymarket utils', () => {
         negRisk: false,
       }),
     );
+    expect(preview.originalFees).toBeUndefined();
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/clob-markets/0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa`,
       expect.objectContaining({
@@ -3273,6 +3459,76 @@ describe('polymarket utils', () => {
           (preview?.fees?.marketFee ?? 0),
       ).toBeLessThanOrEqual(100);
       expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('raises the max fillable stake when a membership policy waives the MetaMask fee', async () => {
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            ...orderBook,
+            asks: [
+              { price: '0.75', size: '100' },
+              { price: '0.50', size: '100' },
+            ],
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({
+            fd: { r: 0.02, e: 1, to: true },
+          }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ tags: [] }),
+        });
+
+      const preview = await previewMaxBuyOrder({
+        marketId: 'market-1',
+        outcomeId:
+          '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+        outcomeTokenId: 'token-1',
+        availableBalance: 100,
+        feeCollection: {
+          enabled: true,
+          metamaskFee: 0.02,
+          providerFee: 0.02,
+          waiveList: [],
+          collector: '0x1111111111111111111111111111111111111111',
+          executors: [],
+          permit2Enabled: false,
+        },
+        feePolicy: {
+          discountType: DiscountType.SUBSCRIPTION,
+          builderCode: 'predict-pro-builder',
+        },
+      });
+
+      const stake = preview?.maxAmountSpent ?? 0;
+
+      expect(stake).toBe(97.26);
+      expect(preview?.minAmountReceived).toBeCloseTo(163.0133);
+      expect(preview?.fees).toEqual(
+        expect.objectContaining({
+          metamaskFee: 0,
+          providerFee: expect.closeTo(stake * 0.02, 10),
+        }),
+      );
+      expect(preview?.originalFees).toEqual(
+        expect.objectContaining({
+          metamaskFee: expect.closeTo(stake * 0.02, 10),
+          providerFee: expect.closeTo(stake * 0.02, 10),
+          totalFee: expect.closeTo(stake * 0.04, 10),
+          totalFeePercentage: 4,
+        }),
+      );
+      expect(
+        stake +
+          (preview?.fees?.metamaskFee ?? 0) +
+          (preview?.fees?.providerFee ?? 0) +
+          (preview?.fees?.marketFee ?? 0),
+      ).toBeLessThanOrEqual(100);
     });
 
     it('caps the maximum stake at the fully fillable order-book liquidity', async () => {
@@ -3566,6 +3822,64 @@ describe('polymarket utils', () => {
       expect.objectContaining({
         method: 'GET',
         signal: expect.any(AbortSignal),
+      }),
+    );
+  });
+
+  it('returns original fees for a membership sell preview', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue(orderBook),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.05,
+            e: 1,
+            to: true,
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ tags: [] }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.SELL,
+      size: 10,
+      feeCollection: {
+        enabled: true,
+        metamaskFee: 0.02,
+        providerFee: 0.03,
+        waiveList: [],
+        collector: '0x1111111111111111111111111111111111111111',
+        executors: [],
+        permit2Enabled: false,
+      },
+      feePolicy: {
+        discountType: DiscountType.SUBSCRIPTION,
+        builderCode: 'predict-pro-builder',
+      },
+    });
+
+    expect(preview.fees).toEqual(
+      expect.objectContaining({
+        metamaskFee: 0,
+        providerFee: expect.closeTo(0.147, 10),
+      }),
+    );
+    expect(preview.originalFees).toEqual(
+      expect.objectContaining({
+        metamaskFee: expect.closeTo(0.098, 10),
+        providerFee: expect.closeTo(0.147, 10),
+        totalFee: expect.closeTo(0.245, 10),
       }),
     );
   });

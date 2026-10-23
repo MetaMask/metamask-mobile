@@ -18,6 +18,7 @@ export enum SCREEN_NAMES {
   EARN_SECTION_LIST_VIEW = 'earn_section_list_view',
   PRO_SUBSCRIPTION = 'pro_subscription',
   PRO_HUB = 'pro_hub',
+  ACCOUNTS_MENU = 'accounts_menu',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -127,6 +128,7 @@ export enum COMPONENT_NAMES {
   MONEY_EARN_BANNER = 'money_earn_banner',
   MONEY_MORE = 'money_more',
   MONEY_HEADER = 'money_header',
+  ACCOUNTS_MENU_ORANGE = 'accounts_menu_orange',
 
   // — How It Works / FAQ —
   FAQ_ITEM = 'money_faq_item',

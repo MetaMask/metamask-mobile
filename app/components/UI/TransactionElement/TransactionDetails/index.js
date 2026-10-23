@@ -21,6 +21,7 @@ import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
+import { showSpeedUp } from '../../Transactions/pendingTxActions';
 import StatusText from '../../../Base/StatusText';
 import Text, {
   TextColor,
@@ -389,7 +390,8 @@ class TransactionDetails extends PureComponent {
             {!!renderTxActions &&
               updatedTransactionDetails?.txChainId === chainId && (
                 <View style={styles.transactionActionsContainer}>
-                  {this.renderSpeedUpButton()}
+                  {showSpeedUp(transactionObject.type) &&
+                    this.renderSpeedUpButton()}
                   {this.renderCancelButton()}
                 </View>
               )}

@@ -7,8 +7,6 @@ import {
   IconColor,
   IconName,
   IconSize,
-  Tag,
-  TagSeverity,
   Text,
   TextColor,
   TextVariant,
@@ -21,19 +19,9 @@ import ProfileAvatar from './ProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
-import type { MySocialProfile, ProfileRankingTag } from '../hooks/useMyProfile';
+import type { MySocialProfile } from '../hooks/useMyProfile';
 import { formatJoinedLabel } from '../utils/formatJoinedLabel';
 import type { OverlayedMyProfileStats } from '../utils/overlayMyProfileLiveStats';
-import MyProfileStats from './MyProfileStats';
-
-const RANKING_TAG_DISPLAY: Record<
-  ProfileRankingTag,
-  { emoji: string; label: string }
-> = {
-  shrimp: { emoji: '🦐', label: 'Shrimp' },
-  dolphin: { emoji: '🐬', label: 'Dolphin' },
-  whale: { emoji: '🐋', label: 'Whale' },
-};
 
 interface MyProfileHeaderProps {
   profile: MySocialProfile;
@@ -42,7 +30,6 @@ interface MyProfileHeaderProps {
   isOwner?: boolean;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
-  onStatsPress?: () => void;
 }
 
 const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
@@ -52,7 +39,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   isOwner = true,
   onFollowersPress,
   onFollowingPress,
-  onStatsPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
@@ -60,9 +46,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
     }
   }, [profile.xHandle]);
 
-  const rankingTag = overlayedStats.rankingTag
-    ? RANKING_TAG_DISPLAY[overlayedStats.rankingTag]
-    : null;
   const joinedLabel = formatJoinedLabel(profile.joinedAt);
 
   return (
@@ -108,15 +91,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             >
               {profile.displayName}
             </Text>
-            {rankingTag ? (
-              <Tag
-                severity={TagSeverity.Neutral}
-                testID={MyProfileViewSelectorsIDs.RANKING_TAG}
-                twClassName="mt-2"
-              >
-                {`${rankingTag.emoji} ${rankingTag.label}`}
-              </Tag>
-            ) : null}
             {profile.xHandle ? (
               <Pressable
                 onPress={handleXPress}
@@ -236,8 +210,6 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
           </Text>
         </Box>
       ) : null}
-
-      <MyProfileStats stats={overlayedStats} onPress={onStatsPress} />
     </Box>
   );
 };

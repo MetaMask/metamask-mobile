@@ -142,6 +142,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -946,6 +950,14 @@
       "vipSplashAccepted": {},
       "vipTransactions": {}
     },
+    "rewardsMoney": {
+      "cashbackLedger": {},
+      "commissions": {},
+      "earningsHistory": {},
+      "earningsSummary": {},
+      "referralFunnel": {},
+      "referralMe": {}
+    },
     "rpcEvents": {
       "signingEvent": {
         "eventStage": "idle",
@@ -962,7 +974,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}
