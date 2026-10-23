@@ -1,5 +1,5 @@
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import {
   BottomSheetFooter,
@@ -49,6 +49,7 @@ jest.mock('react-native-reanimated', () =>
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactModule = jest.requireActual('react');
+  const { View: RNView } = jest.requireActual('react-native');
   return {
     ...actual,
     BottomSheet: ReactModule.forwardRef(
@@ -56,9 +57,15 @@ jest.mock('@metamask/design-system-react-native', () => {
         {
           children,
           goBack,
+          style,
+          collapsable,
+          testID,
         }: {
           children: React.ReactNode;
           goBack?: () => void;
+          style?: React.ComponentProps<typeof RNView>['style'];
+          collapsable?: boolean;
+          testID?: string;
         },
         ref: React.Ref<{ onCloseBottomSheet: (cb?: () => void) => void }>,
       ) => {
@@ -68,7 +75,11 @@ jest.mock('@metamask/design-system-react-native', () => {
             cb?.();
           },
         }));
-        return children;
+        return (
+          <RNView testID={testID} style={style} collapsable={collapsable}>
+            {children}
+          </RNView>
+        );
       },
     ),
   };
@@ -194,6 +205,42 @@ describe('PerpsOutreachDetailsView', () => {
     expect(footer.props.buttonsAlignment).toBe(ButtonsAlignment.Horizontal);
     expect(footer.props.secondaryButtonProps.startIconName).toBeUndefined();
     expect(footer.props.primaryButtonProps.startIconName).toBeUndefined();
+  });
+
+  describe('safe area', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('measures the modal window on Android so the footer clears the navigation bar', () => {
+      Platform.OS = 'android';
+
+      const { getByTestId } = render(<PerpsOutreachDetailsView />);
+
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SAFE_AREA),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps the root inset source on iOS', () => {
+      Platform.OS = 'ios';
+
+      const { queryByTestId, getByTestId } = render(
+        <PerpsOutreachDetailsView />,
+      );
+
+      expect(
+        queryByTestId(PerpsOutreachDetailsViewSelectorsIDs.SAFE_AREA),
+      ).toBeNull();
+      expect(
+        getByTestId(PerpsOutreachDetailsViewSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('hides contact actions when the backend omits contact configuration', () => {

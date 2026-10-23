@@ -40,6 +40,7 @@
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
       "isMaxSourceAmount": false,
+      "isNativeGasIncludedSupported": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
       "isSlippageUserOverride": false,
@@ -182,9 +183,11 @@
         },
         "ConfigRegistryController": {
           "configs": {
+            "eventsConfig": null,
             "networks": {}
           },
           "etag": null,
+          "eventsConfigEtag": null,
           "lastFetched": null,
           "version": "0.0.0"
         },
@@ -611,6 +614,20 @@
           "useSafeChainsListValidation": false,
           "useTokenDetection": true,
           "useTransactionSimulations": true
+        },
+        "ProfileController": {
+          "profile": {
+            "avatarUrl": "",
+            "bio": "",
+            "connectedToX": false,
+            "createdAt": "",
+            "displayName": "",
+            "linkedAddresses": [],
+            "profileId": "",
+            "tradingPrivacy": "public",
+            "updatedAt": "",
+            "username": ""
+          }
         },
         "QrSyncController": {
           "connectionStatus": "disconnected",

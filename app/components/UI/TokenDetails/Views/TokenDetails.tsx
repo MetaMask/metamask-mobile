@@ -70,9 +70,12 @@ import { useLivePriceHeaderDescription } from '../hooks/useLivePriceHeaderDescri
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenCaipAssetId } from '../hooks/useTokenCaipAssetId';
+import { isTronNativeToken } from '../utils/isTronNativeToken';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenDetailsVariant } from '../hooks/useTokenDetailsVariant';
+import { usePrefetchTokenDetails } from '../queries/prefetchTokenDetailsQueries';
 import { useTokenPrice } from '../hooks/useTokenPrice';
+import { useFreshTronAssets } from '../hooks/useFreshTronAssets';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
 import Routes from '../../../../constants/navigation/Routes';
@@ -223,6 +226,7 @@ const TokenDetails: React.FC<{
   const navigation = useNavigation<AppNavigationProp>();
   useAddNetworkIfMissingQuery({ chainId: token.chainId });
   const { trackEvent, createEventBuilder } = useAnalytics();
+
   const shareSheetRef = useRef<ShareTokenBottomSheetControllerRef>(null);
   const { variant: quickBuyEntrypointVariant } = useABTest(
     SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_KEY,
@@ -413,6 +417,17 @@ const TokenDetails: React.FC<{
   const handlePriceDirectionChange = useCallback((isPositive: boolean) => {
     setChartPricePositive(isPositive);
   }, []);
+
+  ///: BEGIN:ONLY_INCLUDE_IF(tron)
+  const refreshTronAssets = useFreshTronAssets(token.chainId);
+  useFocusEffect(
+    useCallback(() => {
+      if (isTronNativeToken(token)) {
+        refreshTronAssets().catch(() => undefined);
+      }
+    }, [refreshTronAssets, token]),
+  );
+  ///: END:ONLY_INCLUDE_IF
 
   const {
     balance,
@@ -918,18 +933,26 @@ const TokenDetailsLegacy: React.FC<{ token: TokenDetailsRouteParams }> = ({
   );
 };
 
+export const TokenDetailsLegacyRouteWrapper: React.FC = () => {
+  const route = useRoute();
+  const token = route.params as TokenDetailsRouteParams;
+
+  return <TokenDetailsLegacy token={token} />;
+};
+
 /**
  * TokenDetailsRouteWrapper screen
  *
  * Reads the token from React Navigation route.params and picks the page to
  * render. Swapping component types rather than returning early keeps the two
  * pages' hooks fully independent: neither page's hooks run for the other, and
- * a variant resolving asynchronously remounts instead of changing hook order.
+ * Swapping component types keeps the two pages' hooks fully independent.
  */
 export const TokenDetailsRouteWrapper: React.FC = () => {
   const route = useRoute();
   const token = route.params as TokenDetailsRouteParams;
   const variant = useTokenDetailsVariant(token);
+  usePrefetchTokenDetails(token);
 
   return variant ? (
     <TokenDetailsV1 token={token} variant={variant} />
@@ -938,4 +961,4 @@ export const TokenDetailsRouteWrapper: React.FC = () => {
   );
 };
 
-export { TokenDetailsRouteWrapper as TokenDetails };
+export { TokenDetailsLegacy, TokenDetailsRouteWrapper as TokenDetails };

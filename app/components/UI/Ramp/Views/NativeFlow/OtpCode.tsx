@@ -42,6 +42,7 @@ import { TRANSAK_SUPPORT_URL } from '../../constants';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useTransakController } from '../../hooks/useTransakController';
@@ -176,9 +177,13 @@ const V2OtpCode = () => {
 
   const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
 
+  // On Android, focusing during the navigation transition is dropped, so the
+  // keyboard never opens. Wait for the transition to finish before focusing.
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   useEffect(() => {
+    if (!isScreenTransitionComplete) return;
     inputRef.current?.focus();
-  }, [inputRef]);
+  }, [inputRef, isScreenTransitionComplete]);
 
   useEffect(() => {
     // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS

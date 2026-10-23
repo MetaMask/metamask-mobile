@@ -3,11 +3,17 @@ import {
   type EnrolledCredential,
   type VerificationToken,
 } from '@metamask/profile-sync-controller/sdk';
-import { MfaFlowError, getErrorHandling, getFlowErrorCode } from './errors';
+import {
+  MfaFlowError,
+  getErrorHandling,
+  getFlowErrorCode,
+  isReportable,
+} from './errors';
 import {
   getEnrollmentMaxSessionAgeMs,
   planEnroll,
   planVerifyOrEnroll,
+  toList,
 } from './planner';
 import type {
   MfaFlow,
@@ -21,7 +27,6 @@ import type {
   MfaPurpose,
   Plan,
   PlanContext,
-  VerifyOrEnrollRequest,
 } from './types';
 
 interface CurrentStep {
@@ -31,13 +36,6 @@ interface CurrentStep {
   email?: string;
 }
 
-const toList = (verifyWith: VerifyOrEnrollRequest['verifyWith']) => {
-  if (verifyWith === undefined) {
-    return [];
-  }
-  return Array.isArray(verifyWith) ? verifyWith : [verifyWith];
-};
-
 export const createMfaFlow = ({
   request,
   reason,
@@ -45,6 +43,7 @@ export const createMfaFlow = ({
   controller,
   passkey,
   now = Date.now,
+  reportError,
 }: MfaFlowOptions): MfaFlow => {
   const tokenReason = { operation: reason.operation };
   const completed: MfaMethod[] = [];
@@ -59,7 +58,6 @@ export const createMfaFlow = ({
   let recoveredStep: string | undefined;
   let current: CurrentStep | undefined;
   let lastOperation: (() => Promise<void>) | undefined;
-  let outcome: MfaFlowResult | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -104,7 +102,14 @@ export const createMfaFlow = ({
   const rejectWith = (code: MfaFlowErrorCode) =>
     settle(() => rejectResult(new MfaFlowError(code, [...completed])));
 
-  const fail = (code: MfaFlowErrorCode, canRetry = false) => {
+  const fail = (code: MfaFlowErrorCode, canRetry = false, error?: unknown) => {
+    if (isReportable(code)) {
+      reportError?.(error ?? new MfaFlowError(code), {
+        code,
+        operation: reason.operation,
+        step: state.step.name,
+      });
+    }
     if (!presented && !canRetry) {
       rejectWith(code);
       return;
@@ -142,13 +147,9 @@ export const createMfaFlow = ({
     const wantsToken =
       request.kind === 'verifyOrEnroll' &&
       toList(request.verifyWith).length > 0;
-    outcome = wantsToken && token ? { credentials, token } : { credentials };
-    if (!presented) {
-      const value = outcome;
-      settle(() => resolveResult(value));
-      return;
-    }
-    show({ name: 'success' });
+    const value =
+      wantsToken && token ? { credentials, token } : { credentials };
+    settle(() => resolveResult(value));
   };
 
   const sendEmailCode = async () => {
@@ -228,11 +229,11 @@ export const createMfaFlow = ({
     method: MfaMethod,
     purpose: Exclude<MfaPurpose, 'setup'>,
   ) => {
-    current = { method, purpose };
     if (method === 'passkey') {
-      show({ name: 'passkey', purpose });
+      await startPasskey(purpose);
       return;
     }
+    current = { method, purpose };
     show(
       { name: 'otp', purpose, email: getEmailAddress(), codeSent: false },
       { busy: true },
@@ -279,7 +280,15 @@ export const createMfaFlow = ({
     }
     switch (step.kind) {
       case 'intro':
-        show({ name: 'intro', missing: step.missing }, { progress });
+        show(
+          {
+            name: 'intro',
+            methods: step.methods,
+            missing: step.missing,
+            email: getEmailAddress(),
+          },
+          { progress },
+        );
         return;
       case 'confirm':
       case 'verify': {
@@ -297,11 +306,14 @@ export const createMfaFlow = ({
         return;
       }
       case 'setup':
-        current = { method: step.method, purpose: 'setup' };
+        if (step.method === 'passkey') {
+          setState({ progress });
+          await startPasskey('setup');
+          return;
+        }
+        current = { method: 'email_otp', purpose: 'setup' };
         show(
-          step.method === 'email_otp'
-            ? { name: 'emailEntry', prefillEmail: step.prefillEmail }
-            : { name: 'passkey', purpose: 'setup' },
+          { name: 'emailEntry', prefillEmail: step.prefillEmail },
           { progress },
         );
     }
@@ -428,7 +440,7 @@ export const createMfaFlow = ({
         showInlineError(code);
         return undefined;
       case 'failure':
-        fail(code);
+        fail(code, false, error);
         return undefined;
       default:
         setState({ busy: false, error: code });
@@ -452,17 +464,33 @@ export const createMfaFlow = ({
     }
   };
 
+  /**
+   * Opens the system passkey sheet straight away. The passkey screen only
+   * shows when the sheet fails, with the error and a way to try again.
+   *
+   * A function declaration, as it and `advance` call each other.
+   *
+   * @param purpose - Why the passkey is used.
+   */
+  async function startPasskey(purpose: MfaPurpose) {
+    current = { method: 'passkey', purpose };
+    try {
+      await runPasskey();
+    } catch (error) {
+      show({ name: 'passkey', purpose });
+      throw error;
+    }
+    // The ceremony went through: retrying must not run it again.
+    lastOperation = advance;
+    await advance();
+  }
+
   const continueStep = async (step: MfaFlowStep) => {
     if (step.name === 'intro') {
       introShown = true;
       await run(advance);
     } else if (step.name === 'passkey') {
-      await run(async () => {
-        await runPasskey();
-        // The ceremony went through: retrying must not run it again.
-        lastOperation = advance;
-        await advance();
-      });
+      await run(() => startPasskey(step.purpose));
     }
   };
 
@@ -503,17 +531,14 @@ export const createMfaFlow = ({
   };
 
   /**
-   * Ends the flow from the success or failure screen; anywhere else only a
-   * cancel ends it.
+   * Ends the flow from the failure screen; anywhere else only a cancel ends
+   * it.
    *
    * @param step - The step on screen.
    * @param isCancel - Whether the host is closing the flow.
    */
   const closeFlow = (step: MfaFlowStep, isCancel: boolean) => {
-    if (step.name === 'success' && outcome) {
-      const value = outcome;
-      settle(() => resolveResult(value));
-    } else if (step.name === 'failure') {
+    if (step.name === 'failure') {
       rejectWith(step.code);
     } else if (isCancel) {
       rejectWith('flow_cancelled');

@@ -151,6 +151,7 @@ export function toLiveTradeRow(core: CoreFeedItem): LiveTradeRowModel {
     valueLabel: formatUnsignedFullUsdNoDecimals(core.currentValueUSD),
     positionId: core.positionId,
     marketCapUsd,
+    position: core,
   };
 
   if (isPerp) {

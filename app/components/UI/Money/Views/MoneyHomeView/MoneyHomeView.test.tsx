@@ -290,8 +290,6 @@ jest.mock('../../selectors/visibility', () => ({
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
   isProSubscriptionEnabled: false,
-  variantName: 'control',
-  isActive: false,
 }));
 jest.mock('../../../../../hooks/useProSubscriptionEnabled', () => ({
   useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
@@ -592,8 +590,6 @@ describe('MoneyHomeView', () => {
     mockSelectPrivacyMode.mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
-      variantName: 'control',
-      isActive: false,
     });
     mockUsePlusAccess.mockReturnValue({
       isPlusSubscriber: false,
@@ -2026,7 +2022,7 @@ describe('MoneyHomeView', () => {
       ).toHaveTextContent('+$139.02');
     });
 
-    it('falls back monthly to APY projection and lifetime to zero when interest fails', () => {
+    it('falls back monthly to APY projection and hides lifetime when interest fails', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: undefined,
@@ -2047,14 +2043,43 @@ describe('MoneyHomeView', () => {
         return '$0.01';
       });
 
-      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
 
       expect(
         getByTestId(MoneyEarningsTestIds.LAST_30_DAYS_VALUE),
       ).toHaveTextContent('+$0.01');
       expect(
+        queryByTestId(MoneyEarningsTestIds.SINCE_INCEPTION),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps previously fetched lifetime earnings when a refetch fails', () => {
+      mockUseMoneyAccountInterest.mockReturnValue({
+        last30DaysQuery: {
+          data: undefined,
+          isLoading: false,
+          isInitialLoading: false,
+          isError: false,
+        },
+        sinceInceptionQuery: {
+          data: { interest_earned_usd: '139.02' },
+          isLoading: false,
+          isInitialLoading: false,
+          isError: true,
+        },
+        refetchInterest: mockRefetchInterest,
+      } as unknown as ReturnType<typeof useMoneyAccountInterest>);
+      mockMoneyFormatUsd.mockImplementation((value) =>
+        String(value) === '139.02' ? '$139.02' : '$0.00',
+      );
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
         getByTestId(MoneyEarningsTestIds.SINCE_INCEPTION_VALUE),
-      ).toHaveTextContent(/^\$0\.00$/);
+      ).toHaveTextContent('+$139.02');
     });
 
     it('falls back monthly to projection and lifetime to zero for invalid interest values', () => {
@@ -2901,8 +2926,6 @@ describe('MoneyHomeView', () => {
     beforeEach(() => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
-        variantName: 'treatment',
-        isActive: true,
       });
       mockUsePlusAccess.mockReturnValue({
         isPlusSubscriber: false,
@@ -2929,8 +2952,6 @@ describe('MoneyHomeView', () => {
     it('hides the Pro entry point while the Pro flow is disabled', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: false,
-        variantName: 'control',
-        isActive: false,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(
