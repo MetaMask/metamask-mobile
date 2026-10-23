@@ -74,6 +74,8 @@ import { selectBrowserTabCount } from '../../../../../reducers/browser/selectors
 import { useIsExploreHeaderRefreshEnabled } from '../../hooks/useIsExploreHeaderRefreshEnabled';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import { selectExploreBrandRefreshEnabled } from '../../../../../selectors/featureFlagController/exploreBrandRefresh';
+import { useIsGlassSurfaceEnabled } from '../../../../hooks/useIsGlassSurfaceEnabled';
 import BasicFunctionalityEmptyState from '../../../../UI/BasicFunctionality/BasicFunctionalityEmptyState/BasicFunctionalityEmptyState';
 import { ExploreSearchScreenSelectorsIDs } from './ExploreSearchScreen.testIds';
 import {
@@ -517,6 +519,7 @@ interface ExploreSearchHeaderProps {
   browserTabsCount: number;
   exploreSearchBar: React.ReactNode;
   homeSearchAnimatedStyle: AnimatedStyle<ViewStyle>;
+  isGlass: boolean;
   isHomepageSearch: boolean;
   onBrowserTabsPress: () => void;
   searchOrigin?: SearchOrigin;
@@ -527,6 +530,7 @@ const ExploreSearchHeader = ({
   browserTabsCount,
   exploreSearchBar,
   homeSearchAnimatedStyle,
+  isGlass,
   isHomepageSearch,
   onBrowserTabsPress,
   searchOrigin,
@@ -567,6 +571,7 @@ const ExploreSearchHeader = ({
           tabCount={browserTabsCount}
           onPress={onBrowserTabsPress}
           testID={ExploreSearchScreenSelectorsIDs.BROWSER_TABS_BUTTON}
+          isGlass={isGlass}
         />
       )}
     </Box>
@@ -652,6 +657,9 @@ const ExploreSearchScreen: React.FC = () => {
   // subtree, whose mount blocks the JS thread while the screen slides in.
   const isTransitionComplete = useScreenTransitionComplete();
   const isHeaderRefreshEnabled = useIsExploreHeaderRefreshEnabled();
+  const isSearchGlass = useIsGlassSurfaceEnabled(
+    selectExploreBrandRefreshEnabled,
+  );
   const browserTabsCount = useSelector(selectBrowserTabCount);
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
@@ -758,6 +766,7 @@ const ExploreSearchScreen: React.FC = () => {
       onPastePress={handlePastePress}
       clipboardButtonTestID={ExploreSearchScreenSelectorsIDs.CLIPBOARD_BUTTON}
       rowTwClassName={isHomepageSearch ? 'flex-1' : undefined}
+      isGlass={isSearchGlass}
     />
   );
 
@@ -781,6 +790,7 @@ const ExploreSearchScreen: React.FC = () => {
           browserTabsCount={browserTabsCount}
           exploreSearchBar={exploreSearchBar}
           homeSearchAnimatedStyle={homeSearchAnimatedStyle}
+          isGlass={isSearchGlass}
           isHomepageSearch={isHomepageSearch}
           onBrowserTabsPress={handleBrowserTabsPress}
           searchOrigin={searchOrigin}

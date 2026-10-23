@@ -28,6 +28,7 @@ import { RecurringRepeatInfoSheetSelectorsIDs } from '../../../components/Recurr
 import { PriceRangeRowSelectorsIDs } from '../../../components/PriceRangeRow';
 import { PriceRangeSheetSelectorsIDs } from '../../../components/PriceRangeSheet';
 import { OrdersTabsSelectorsIDs } from '../../../components/OrdersTabs';
+import { OpenOrderRowSelectorsIDs } from '../../../components/OpenOrderRow';
 import { BuildQuoteSelectors } from '../../../../Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import {
   MOCK_RECURRING_CANCELLED_ORDER,
@@ -92,15 +93,6 @@ function renderRecurringPriceRangeView({
     overrides: {
       engine: {
         backgroundState: {
-          CurrencyRateController: {
-            currentCurrency: currentCurrency.toUpperCase(),
-            currencyRates: {
-              ETH: {
-                conversionRate: ethFiatRate,
-                usdConversionRate: ETH_USD_RATE,
-              },
-            },
-          },
           AssetsController: {
             selectedCurrency: currentCurrency,
             assetsInfo: {
@@ -299,17 +291,24 @@ function assertRecurringOrderRow(
     ),
   ).toBeOnTheScreen();
 
-  if (order.status === RecurringOrderStatus.Completed) {
-    expect(
-      row.getByText(strings('bridge.recurring.completed')),
-    ).toBeOnTheScreen();
-  }
+  expect(
+    row.queryByText(strings('bridge.recurring.completed')),
+  ).not.toBeOnTheScreen();
+  expect(
+    row.queryByText(strings('bridge.recurring.cancelled')),
+  ).not.toBeOnTheScreen();
 
-  if (order.status === RecurringOrderStatus.Cancelled) {
-    expect(
-      row.getByText(strings('bridge.recurring.cancelled')),
-    ).toBeOnTheScreen();
-  }
+  const isCancelled = order.status === RecurringOrderStatus.Cancelled;
+  expect(row.getByTestId(OpenOrderRowSelectorsIDs.TITLE)).toHaveStyle({
+    color: isCancelled
+      ? lightTheme.colors.text.alternative
+      : lightTheme.colors.text.default,
+  });
+  expect(row.getByTestId(OpenOrderRowSelectorsIDs.PRIMARY)).toHaveStyle({
+    color: isCancelled
+      ? lightTheme.colors.text.alternative
+      : lightTheme.colors.success.default,
+  });
 }
 
 async function openEveryKeypad(

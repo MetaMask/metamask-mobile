@@ -10,6 +10,21 @@ import {
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
+/**
+ * Gamma market version for Protocol V2 (PositionManager) markets. Every
+ * other value — "v1", missing, or unknown — stays on the CTF path. This is
+ * the Gamma version axis, not the EIP-712 domain version and not the CLOB
+ * deployment version.
+ */
+export const V2_MARKET_VERSION = 'v2';
+
+/**
+ * Gamma market version for Protocol V1 (CTF) markets, threaded explicitly
+ * from a loaded market that carries no Gamma version field so the order
+ * path never re-resolves it. Every non-"v2" value stays on the CTF path.
+ */
+export const V1_MARKET_VERSION = 'v1';
+
 export const POLYMARKET_TERMS_URL = 'https://polymarket.com/tos';
 
 export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
@@ -19,8 +34,6 @@ export const DEFAULT_CLOB_BASE_URL = 'https://clob.polymarket.com';
  */
 export const SLIPPAGE_BUY = 0.03; // 3%
 export const SLIPPAGE_SELL = 0.05; // 5%
-// BUY is floored at maxAmountSpent + tickSize. SELL has no floor — user accepts up to 99% less pUSD.
-export const SLIPPAGE_BEST_AVAILABLE = 0.99; // 99%
 
 export const ORDER_RATE_LIMIT_MS = 5000;
 

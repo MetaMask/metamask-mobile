@@ -1,3 +1,4 @@
+import { DiscountType } from '@metamask/bridge-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
 import { hmacSha256 } from '@metamask/cryptography/hmac';
@@ -21,6 +22,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
   PredictMarketGame,
+  type PredictFeePolicy,
 } from '../../types';
 import { getRecurrence } from '../../utils/format';
 import {
@@ -66,6 +68,7 @@ import {
   SLIPPAGE_BUY,
   SLIPPAGE_SELL,
   SPORTS_MARKET_TYPE_TO_GROUP,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   ApiKeyCreds,
@@ -862,9 +865,7 @@ const parsePolymarketMarketOutcomes = (
   event: PolymarketApiEvent,
   game?: PredictMarketGame,
 ): PredictOutcomeToken[] => {
-  const outcomeTokensIds = market.clobTokenIds
-    ? JSON.parse(market.clobTokenIds)
-    : [];
+  const outcomeTokensIds = parseMarketOutcomeTokenIds(market);
   const outcomes = formatOutcomeTitles(market);
   const shortTitles = game ? formatOutcomeShortTitles(market, game) : [];
   const outcomePrices = market.outcomePrices
@@ -1033,6 +1034,7 @@ export const parsePolymarketMarket = (
   tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
   resolutionStatus: market.umaResolutionStatus,
+  version: market.version,
 });
 
 export type PolymarketTeamLookupFn = (
@@ -1040,10 +1042,29 @@ export type PolymarketTeamLookupFn = (
   abbreviation: string,
 ) => PolymarketApiTeam | undefined;
 
-const V2_MARKET_VERSION = 'v2';
-
 function isV2Market(market?: PolymarketApiMarket): boolean {
   return market?.version === V2_MARKET_VERSION;
+}
+
+/**
+ * The Gamma market version decides which field holds the outcome token ids —
+ * never the ids themselves (both id fields can be present on a market). A v2
+ * market without `positionIds` yields no ids rather than falling back to
+ * `clobTokenIds`, so CTF ids can never leak into the Protocol V2 path.
+ */
+export function parseMarketOutcomeTokenIds(
+  market: PolymarketApiMarket,
+): string[] {
+  if (isV2Market(market)) {
+    // The v2 wire returns `positionIds` as a native JSON array; the
+    // JSON-encoded string form is accepted for compatibility.
+    if (Array.isArray(market.positionIds)) {
+      return market.positionIds;
+    }
+    return market.positionIds ? JSON.parse(market.positionIds) : [];
+  }
+  const rawTokenIds = market.clobTokenIds;
+  return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
 function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
@@ -2166,26 +2187,78 @@ async function waiveFees({
 }: {
   marketId: string;
   waiveList: string[];
-}) {
-  const market = await getMarketDetailsFromGammaApi({ marketId });
-  const { tags } = market;
-  const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+}): Promise<boolean> {
+  try {
+    const market = await getMarketDetailsFromGammaApi({ marketId });
+    const { tags } = market;
+    const slugs = tags?.map((t) => t.slug);
+    return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
+  } catch (error) {
+    // A fee-waiver lookup failure must never fail the preview — degrade
+    // to standard (non-waived) fees instead.
+    DevLogger.log(
+      'Polymarket: fee-waiver lookup failed, applying standard fees',
+      {
+        marketId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+    return false;
+  }
 }
 
-export async function calculateFees({
+/**
+ * Applies the client-side Predict fee policy to the MetaMask service fee only.
+ * Provider fees and CLOB market fees remain unchanged.
+ *
+ * @param feeCollection - Feature-flagged fee configuration.
+ * @param feePolicy - Current per-order Predict fee policy.
+ * @returns Fee configuration with the effective MetaMask fee.
+ */
+const getEffectiveFeeCollection = ({
   feeCollection,
+  feePolicy,
+}: {
+  feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
+}): PredictFeeCollection | undefined => {
+  if (!feeCollection || feePolicy?.discountType !== DiscountType.SUBSCRIPTION) {
+    return feeCollection;
+  }
+
+  return {
+    ...feeCollection,
+    metamaskFee: 0,
+  };
+};
+
+const isMarketFeeWaived = async ({
   marketId,
+  feeCollection,
+}: {
+  marketId: string;
+  feeCollection?: PredictFeeCollection;
+}): Promise<boolean> => {
+  if (!feeCollection?.enabled) {
+    return false;
+  }
+
+  return waiveFees({
+    marketId,
+    waiveList: feeCollection.waiveList,
+  });
+};
+
+const calculateFeesForCollection = ({
+  feeCollection,
+  marketFeeWaived,
   userBetAmount,
 }: {
   feeCollection?: PredictFeeCollection;
-  marketId: string;
+  marketFeeWaived: boolean;
   userBetAmount: number;
-}): Promise<PredictFees> {
-  if (
-    !feeCollection?.enabled ||
-    (await waiveFees({ marketId, waiveList: feeCollection.waiveList }))
-  ) {
+}): PredictFees => {
+  if (!feeCollection?.enabled || marketFeeWaived) {
     return {
       metamaskFee: 0,
       providerFee: 0,
@@ -2197,11 +2270,18 @@ export async function calculateFees({
     };
   }
 
-  const totalFeePercentage =
-    (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
+  const {
+    metamaskFee: metamaskFeeRate,
+    providerFee: providerFeeRate,
+    collector,
+    executors,
+    permit2Enabled,
+  } = feeCollection;
 
-  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  const providerFee = userBetAmount * feeCollection.providerFee;
+  const totalFeePercentage = (metamaskFeeRate + providerFeeRate) * 100;
+
+  const metamaskFee = userBetAmount * metamaskFeeRate;
+  const providerFee = userBetAmount * providerFeeRate;
 
   // Rounded to 6 decimals
   const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
@@ -2211,9 +2291,63 @@ export async function calculateFees({
     providerFee,
     totalFee,
     totalFeePercentage,
-    collector: feeCollection.collector,
-    executors: feeCollection.executors ?? [],
-    permit2Enabled: feeCollection.permit2Enabled ?? false,
+    collector,
+    executors: executors ?? [],
+    permit2Enabled: permit2Enabled ?? false,
+  };
+};
+
+/**
+ * Calculates the fees charged for an order. A subscription policy waives only
+ * the MetaMask fee in `fees` and keeps the unwaived rates in `originalFees`.
+ * The market-fee waiver is resolved once and applied to both results.
+ *
+ * @param feeCollection - Feature-flagged fee configuration.
+ * @param feePolicy - Current per-order Predict fee policy.
+ * @param marketId - Market used to resolve a waived market fee.
+ * @param userBetAmount - Stake or proceeds the service fees apply to.
+ * @returns Effective fees, plus the standard fees when a subscription policy applies.
+ */
+export async function calculateFees({
+  feeCollection,
+  feePolicy,
+  marketId,
+  userBetAmount,
+}: {
+  feeCollection?: PredictFeeCollection;
+  feePolicy?: PredictFeePolicy;
+  marketId: string;
+  userBetAmount: number;
+}): Promise<{
+  fees: PredictFees;
+  /** Standard fees before the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+}> {
+  const effectiveFeeCollection = getEffectiveFeeCollection({
+    feeCollection,
+    feePolicy,
+  });
+  const marketFeeWaived = await isMarketFeeWaived({
+    marketId,
+    feeCollection: effectiveFeeCollection,
+  });
+  const fees = calculateFeesForCollection({
+    feeCollection: effectiveFeeCollection,
+    marketFeeWaived,
+    userBetAmount,
+  });
+
+  if (feePolicy?.discountType !== DiscountType.SUBSCRIPTION) {
+    return { fees };
+  }
+
+  return {
+    fees,
+    originalFees: calculateFeesForCollection({
+      feeCollection,
+      marketFeeWaived,
+      userBetAmount,
+    }),
   };
 }
 
@@ -2655,6 +2789,7 @@ export const previewOrder = async (
     side,
     size,
     feeCollection,
+    feePolicy,
     isV2,
     clobBaseUrl,
   } = params;
@@ -2665,6 +2800,7 @@ export const previewOrder = async (
       outcomeId,
       outcomeTokenId,
       feeCollection,
+      feePolicy,
       isV2,
       clobBaseUrl,
     });
@@ -2719,11 +2855,7 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
-  const serviceFees = await calculateFees({
-    feeCollection,
-    marketId,
-    userBetAmount: takerAmount,
-  });
+
   const preview: OrderPreview = {
     marketId,
     outcomeId,
@@ -2745,19 +2877,40 @@ export const previewOrder = async (
     marketInfo,
   });
 
-  return {
+  const { fees: serviceFees, originalFees: originalServiceFees } =
+    await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId,
+      userBetAmount: takerAmount,
+    });
+
+  const orderPreview: OrderPreview = {
     ...preview,
     fees: {
       ...serviceFees,
       marketFee,
     },
   };
+
+  if (
+    feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
+    originalServiceFees
+  ) {
+    orderPreview.originalFees = {
+      ...originalServiceFees,
+      marketFee,
+    };
+  }
+
+  return orderPreview;
 };
 
 interface BuyPreviewContext {
   book: OrderBook;
   marketInfo?: ClobMarketInfo;
-  serviceFeesPerDollar: PredictFees;
+  effectiveFeesPerDollar: PredictFees;
+  originalFeesPerDollar?: PredictFees;
 }
 
 async function getBuyPreviewContext({
@@ -2765,6 +2918,7 @@ async function getBuyPreviewContext({
   outcomeId,
   outcomeTokenId,
   feeCollection,
+  feePolicy,
   isV2,
   clobBaseUrl,
 }: Omit<PreviewMaxBuyOrderParams, 'availableBalance'> & {
@@ -2792,13 +2946,22 @@ async function getBuyPreviewContext({
     return null;
   }
 
-  const serviceFeesPerDollar = await calculateFees({
+  const calculatedFees = await calculateFees({
     feeCollection,
+    feePolicy,
     marketId,
     userBetAmount: 1,
   });
 
-  return { book, marketInfo, serviceFeesPerDollar };
+  const { fees: effectiveFeesPerDollar, originalFees: originalFeesPerDollar } =
+    calculatedFees;
+
+  return {
+    book,
+    marketInfo,
+    effectiveFeesPerDollar,
+    originalFeesPerDollar,
+  };
 }
 
 function buildBuyPreviewFromContext({
@@ -2810,7 +2973,8 @@ function buildBuyPreviewFromContext({
 }: Omit<PreviewOrderParams, 'side' | 'positionId'> & {
   context: BuyPreviewContext;
 }): OrderPreview | null {
-  const { book, marketInfo, serviceFeesPerDollar } = context;
+  const { book, marketInfo, effectiveFeesPerDollar, originalFeesPerDollar } =
+    context;
   const { tickSize, roundConfig } = getTickSizeRoundConfig({
     tickSize: book.tick_size,
   });
@@ -2823,8 +2987,6 @@ function buildBuyPreviewFromContext({
   }
   const { price: bestPrice, size: shareAmount } = match;
   const makerAmount = roundDown(size, roundConfig.size);
-  const metamaskFee = makerAmount * serviceFeesPerDollar.metamaskFee;
-  const providerFee = makerAmount * serviceFeesPerDollar.providerFee;
   const preview: OrderPreview = {
     marketId,
     outcomeId,
@@ -2843,16 +3005,33 @@ function buildBuyPreviewFromContext({
     negRisk: book.neg_risk,
     feeRateBps: '0',
   };
+  const marketFee = calculateConservativeBuyMarketFee({ preview, marketInfo });
+  const metamaskFee = makerAmount * effectiveFeesPerDollar.metamaskFee;
+  const providerFee = makerAmount * effectiveFeesPerDollar.providerFee;
+  const fees = {
+    ...effectiveFeesPerDollar,
+    metamaskFee,
+    providerFee,
+    totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
+    marketFee,
+  };
+  const originalFees = originalFeesPerDollar
+    ? {
+        ...fees,
+        metamaskFee: makerAmount * originalFeesPerDollar.metamaskFee,
+        totalFee:
+          Math.round(
+            (makerAmount * originalFeesPerDollar.metamaskFee + providerFee) *
+              1000000,
+          ) / 1000000,
+        totalFeePercentage: originalFeesPerDollar.totalFeePercentage,
+      }
+    : undefined;
 
   return {
     ...preview,
-    fees: {
-      ...serviceFeesPerDollar,
-      metamaskFee,
-      providerFee,
-      totalFee: Math.round((metamaskFee + providerFee) * 1000000) / 1000000,
-      marketFee: calculateConservativeBuyMarketFee({ preview, marketInfo }),
-    },
+    fees,
+    ...(originalFees ? { originalFees } : {}),
   };
 }
 

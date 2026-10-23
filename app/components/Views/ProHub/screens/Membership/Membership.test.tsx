@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { AccessibilityInfo } from 'react-native';
+import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import {
   CANCEL_TYPES,
@@ -22,6 +23,8 @@ import { formatSubscriptionFiat } from '../../../../../util/subscription/formatS
 
 let mockGoBack: jest.Mock;
 let mockNavigate: jest.Mock;
+const mockUnCancelSubscription = jest.fn();
+const mockLoggerError = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -32,6 +35,25 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // ─── Tailwind ─────────────────────────────────────────────────────────────────
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      SubscriptionController: {
+        unCancelSubscription: (...args: unknown[]) =>
+          mockUnCancelSubscription(...args),
+      },
+    },
+  },
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
+}));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -103,12 +125,14 @@ const pricing: PricingResponse = {
   paymentMethods: [],
 };
 
-const createStoreState = () =>
+const createStoreState = (
+  membershipSubscription: Subscription = subscription,
+) =>
   ({
     engine: {
       backgroundState: {
         SubscriptionController: {
-          subscriptions: [subscription],
+          subscriptions: [membershipSubscription],
           trialedProducts: [],
           pricing,
         },
@@ -116,9 +140,11 @@ const createStoreState = () =>
     },
   }) as unknown as RootState;
 
-const renderMembership = () =>
+const renderMembership = (
+  membershipSubscription: Subscription = subscription,
+) =>
   render(
-    <Provider store={configureStore(createStoreState())}>
+    <Provider store={configureStore(createStoreState(membershipSubscription))}>
       <Membership />
     </Provider>,
   );
@@ -130,6 +156,7 @@ describe('Membership', () => {
     jest.clearAllMocks();
     mockGoBack = jest.fn();
     mockNavigate = jest.fn();
+    mockUnCancelSubscription.mockResolvedValue(undefined);
   });
 
   // ── Rendering ──────────────────────────────────────────────────────────────
@@ -309,6 +336,141 @@ describe('Membership', () => {
       renderMembership();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resume membership', () => {
+    let announceSpy: jest.SpyInstance;
+
+    const pendingCancellation: Subscription = {
+      ...subscription,
+      cancelAtPeriodEnd: true,
+      // Date.now is stubbed to 123 in test setup. Resume compares new Date().
+      currentPeriodEnd: new Date(
+        new Date().getTime() + 24 * 60 * 60 * 1000,
+      ).toISOString(),
+    };
+
+    beforeEach(() => {
+      announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    });
+
+    afterEach(() => {
+      announceSpy.mockRestore();
+    });
+
+    it('does not announce resuming membership before resume starts', () => {
+      renderMembership(pendingCancellation);
+
+      expect(announceSpy).not.toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+    });
+
+    it('shows resume and uncancels the subscription when the period end is still ahead', async () => {
+      const { getByTestId, queryByTestId } =
+        renderMembership(pendingCancellation);
+
+      expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+      expect(
+        getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW),
+      ).toHaveTextContent(strings('pro_hub.membership.resume_membership'));
+      fireEvent.press(getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW));
+
+      await waitFor(() =>
+        expect(mockUnCancelSubscription).toHaveBeenCalledWith({
+          subscriptionId: pendingCancellation.id,
+        }),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('marks the resume row busy and announces while uncancel is in flight', async () => {
+      let resolveUncancel: () => void = () => undefined;
+      mockUnCancelSubscription.mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveUncancel = resolve;
+          }),
+      );
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      fireEvent.press(getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW).props
+            .accessibilityState,
+        ).toEqual({
+          disabled: true,
+          busy: true,
+        });
+      });
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+
+      resolveUncancel();
+
+      await waitFor(() => {
+        expect(
+          getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW).props
+            .accessibilityState,
+        ).toEqual({
+          disabled: false,
+          busy: false,
+        });
+      });
+    });
+
+    it('hides the membership action when the period end has passed', () => {
+      const { queryByTestId } = renderMembership({
+        ...pendingCancellation,
+        currentPeriodEnd: '2020-01-01T00:00:00.000Z',
+      });
+
+      expect(queryByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW)).toBeNull();
+      expect(queryByTestId(MembershipTestIds.CANCEL_MEMBERSHIP_ROW)).toBeNull();
+    });
+
+    it('shows the resume error and does not navigate when uncancel fails', async () => {
+      mockUnCancelSubscription.mockRejectedValueOnce(
+        new Error('request failed'),
+      );
+      const { getByTestId } = renderMembership(pendingCancellation);
+
+      fireEvent.press(getByTestId(MembershipTestIds.RESUME_MEMBERSHIP_ROW));
+
+      await waitFor(() =>
+        expect(getByTestId(MembershipTestIds.RESUME_ERROR)).toHaveTextContent(
+          strings('pro_hub.membership.resume_failed'),
+        ),
+      );
+      expect(getByTestId(MembershipTestIds.RESUME_ERROR).props).toEqual(
+        expect.objectContaining({
+          accessibilityRole: 'alert',
+          accessibilityLiveRegion: 'polite',
+        }),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_in_progress'),
+      );
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('pro_hub.membership.resume_failed'),
+      );
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          tags: {
+            feature: 'money_account_plus',
+            operation: 'uncancel_subscription',
+          },
+        }),
+      );
     });
   });
 });

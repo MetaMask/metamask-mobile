@@ -4,6 +4,7 @@ import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
 import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
+import type { BridgeState } from '../../core/redux/slices/bridge';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
 import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
@@ -231,6 +232,30 @@ const persistCardTransform = createTransform<
   { whitelist: ['card'] },
 );
 
+// Limit-order settings are session-only. They are also cleared on read because
+// older builds persisted limitOrderCostTolerance.
+type PersistedBridgeState = Omit<
+  BridgeState,
+  'limitOrderCostTolerance' | 'limitOrderExpirationMinutes'
+>;
+
+const persistBridgeTransform = createTransform<
+  BridgeState,
+  PersistedBridgeState
+>(
+  ({
+    limitOrderCostTolerance: _omitCostTolerance,
+    limitOrderExpirationMinutes: _omitExpirationMinutes,
+    ...state
+  }) => state,
+  (state) => ({
+    ...state,
+    limitOrderCostTolerance: undefined,
+    limitOrderExpirationMinutes: undefined,
+  }),
+  { whitelist: ['bridge'] },
+);
+
 const persistConfig = {
   key: 'root',
   version,
@@ -248,6 +273,7 @@ const persistConfig = {
     persistUserTransform,
     persistOnboardingTransform,
     persistCardTransform,
+    persistBridgeTransform,
   ],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {

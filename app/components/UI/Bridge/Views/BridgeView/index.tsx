@@ -27,15 +27,18 @@ import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Engine from '../../../../../core/Engine';
 import {
-  resetBridgeDestToken,
   resetBridgeState,
-  resetBridgeTokenInputs,
   selectBridgeViewMode,
   selectDestAddress,
   selectDestToken,
   selectSlippage,
   selectSourceAmount,
   selectSourceToken,
+  setDestAmount,
+  setSelectedQuoteRequestId,
+  setBridgeViewMode,
+  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -52,6 +55,12 @@ import BridgeRecurringBuyView from './BridgeRecurringBuyView';
 import type { QuoteParams } from '../../providers/SwapQuotesProvider/utils';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
+import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
+import { useInitialDestToken } from '../../hooks/useInitialDestToken';
+import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
+import { OrdersTabKey } from '../../components/OrdersTabs';
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const BridgeView = () => {
   const {
@@ -59,6 +68,8 @@ const BridgeView = () => {
     renderedTab,
     setSelectedTab,
     setRenderedTab,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
     setQuoteParams,
   } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
@@ -80,6 +91,31 @@ const BridgeView = () => {
     selectBridgeRecurringBuyTabEnabledFlag,
   );
   const initialTab = route.params?.initialTab;
+  const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
+  const initialDestToken = route.params?.destToken;
+  const initialLimitOrderExpirationMinutes =
+    route.params?.initialLimitOrderExpirationMinutes;
+  const initialLimitOrderPriceTolerance =
+    route.params?.initialLimitOrderPriceTolerance;
+
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location =
+    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
+
+  useInitialSourceToken(initialSourceToken, initialSourceAmount);
+  useInitialDestToken(initialSourceToken, initialDestToken);
+  useReconcileInputsForNonMarketSwapTab({
+    renderedTab,
+    sourceToken,
+    destToken,
+  });
+
+  useEffect(() => {
+    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
+      dispatch(setBridgeViewMode(route.params.bridgeViewMode));
+    }
+  }, [bridgeViewMode, dispatch, route.params?.bridgeViewMode]);
 
   useLayoutEffect(() => {
     if (!initialTab) {
@@ -88,8 +124,52 @@ const BridgeView = () => {
 
     setSelectedTab(initialTab);
     setRenderedTab(initialTab);
+    if (initialTab === BridgeTabKey.Limit) {
+      setLimitOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
+    if (initialTab === BridgeTabKey.Recurring) {
+      setRecurringOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
     navigation.setParams({ initialTab: undefined });
-  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+  }, [
+    initialTab,
+    navigation,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
+    setRenderedTab,
+    setSelectedTab,
+  ]);
+
+  // Deep-link presets for the Limit tab override the session values exactly
+  // once per deep link. Presets the deep link omits keep whatever the user
+  // already picked this app session. Clearing the route params afterwards
+  // stops a later re-mount (e.g. tab switch) from re-applying the presets.
+  useLayoutEffect(() => {
+    if (
+      initialLimitOrderExpirationMinutes === undefined &&
+      initialLimitOrderPriceTolerance === undefined
+    ) {
+      return;
+    }
+
+    if (initialLimitOrderExpirationMinutes !== undefined) {
+      dispatch(
+        setLimitOrderExpirationMinutes(initialLimitOrderExpirationMinutes),
+      );
+    }
+    if (initialLimitOrderPriceTolerance !== undefined) {
+      dispatch(setLimitOrderCostTolerance(initialLimitOrderPriceTolerance));
+    }
+    navigation.setParams({
+      initialLimitOrderExpirationMinutes: undefined,
+      initialLimitOrderPriceTolerance: undefined,
+    });
+  }, [
+    initialLimitOrderExpirationMinutes,
+    initialLimitOrderPriceTolerance,
+    dispatch,
+    navigation,
+  ]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({
@@ -114,6 +194,8 @@ const BridgeView = () => {
   useEffect(() => {
     setQuoteParams(quoteParams);
   }, [quoteParams, setQuoteParams]);
+
+  useTrackSwapPageViewed(location);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
@@ -251,25 +333,15 @@ const BridgeView = () => {
     }
   }, [tabs, renderedTab, setRenderedTab, setSelectedTab]);
 
-  // Stops any in-flight BridgeController quote polling, clears the amount
-  // inputs and drops the destination token for the tab being left, whenever
-  // the rendered tab changes. The destination goes because each tab anchors
-  // its own source token as it mounts (Market from its route params, Limit to
-  // the default pair of its restricted chains), so a destination kept from the
-  // previous tab would be left on an unrelated chain; clearing it lets the
-  // incoming tab derive the destination from its own source token's default
-  // pair. This intentionally runs as the effect's cleanup rather than eagerly
-  // inside handleTabPress: cleanups fire after React commits the tab switch
-  // (deferred via startTransition above), so the outgoing tab is already gone
-  // by the time this runs instead of visibly flashing back to a reset state
-  // right before it's replaced.
+  // Stop in-flight quote polling and discard quote-only local state on tab
+  // changes without clearing the shared token pair or source amount.
   useEffect(
     () => () => {
       if (Engine.context.BridgeController?.resetState) {
         Engine.context.BridgeController.resetState();
       }
-      dispatch(resetBridgeTokenInputs());
-      dispatch(resetBridgeDestToken());
+      dispatch(setDestAmount(undefined));
+      dispatch(setSelectedQuoteRequestId(undefined));
     },
     [renderedTab, dispatch],
   );
@@ -311,10 +383,14 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <BridgeMarketView location={location} />
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView location={location} />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <BridgeRecurringBuyView location={location} />
           ) : null}
         </Box>
       </GestureDetector>

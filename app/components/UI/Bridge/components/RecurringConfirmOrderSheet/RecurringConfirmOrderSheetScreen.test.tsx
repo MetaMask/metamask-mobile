@@ -13,6 +13,35 @@ import {
   submitRecurringOrder,
 } from './RecurringConfirmOrderSheet.utils';
 import { RecurringConfirmOrderSheetScreen } from './RecurringConfirmOrderSheetScreen';
+import { FeatureId } from '@metamask/bridge-controller';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { OrderType } from '../../types/advancedOrders';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    order_type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('order_type');
+  expect(added).not.toHaveProperty('type');
+  expect(added).not.toHaveProperty('orderType');
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -177,10 +206,6 @@ function renderScreen(
         ...state.engine,
         backgroundState: {
           ...state.engine?.backgroundState,
-          CurrencyRateController: {
-            ...state.engine?.backgroundState?.CurrencyRateController,
-            currentCurrency,
-          },
           AssetsController: {
             ...state.engine?.backgroundState?.AssetsController,
             selectedCurrency: currentCurrency,
@@ -416,5 +441,69 @@ describe('RecurringConfirmOrderSheetScreen', () => {
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.CONFIRMATION_REQUEST_MODAL,
     );
+  });
+
+  describe('advanced order events', () => {
+    it('tracks ADVANCED_ORDER_COMPLETED with an order_type key after the order is submitted', async () => {
+      const { getByTestId } = renderScreen({
+        recurring: configuredRecurringState,
+      });
+
+      fireEvent.press(getByTestId('confirm-order'));
+
+      await waitFor(() => {
+        expect(submitRecurringOrder).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(
+        MetaMetricsEvents.ADVANCED_ORDER_COMPLETED,
+        {
+          location: 'Main View',
+          feature_id: FeatureId.RECURRING_ORDER,
+          order_type: OrderType.SELL_BELOW,
+        },
+      );
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when account auto-upgrade fails', async () => {
+      mockAutoUpgradeEIP7702Account.mockRejectedValue(
+        new Error('Upgrade failed'),
+      );
+      const { getByTestId } = renderScreen({
+        recurring: configuredRecurringState,
+      });
+
+      fireEvent.press(getByTestId('confirm-order'));
+
+      await waitFor(() => {
+        expect(showRecurringAutoUpgradeError).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.RECURRING_ORDER,
+        order_type: OrderType.SELL_BELOW,
+        error: 'delegation_failed',
+      });
+    });
+
+    it('tracks ADVANCED_ORDER_FAILED with an order_type key when the order cannot be submitted', async () => {
+      jest
+        .mocked(submitRecurringOrder)
+        .mockRejectedValue(new Error('Order submission failed'));
+      const { getByTestId } = renderScreen({
+        recurring: configuredRecurringState,
+      });
+
+      fireEvent.press(getByTestId('confirm-order'));
+
+      await waitFor(() => {
+        expect(showRecurringAutoUpgradeError).toHaveBeenCalledTimes(1);
+      });
+      expectAdvancedOrderProperties(MetaMetricsEvents.ADVANCED_ORDER_FAILED, {
+        location: 'Main View',
+        feature_id: FeatureId.RECURRING_ORDER,
+        order_type: OrderType.SELL_BELOW,
+        error: 'Order submission failed',
+      });
+    });
   });
 });
