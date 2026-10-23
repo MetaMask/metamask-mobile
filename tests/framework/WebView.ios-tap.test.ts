@@ -4,6 +4,7 @@
 
 import { getDriver } from './AppiumUtilities.ts';
 import Gestures from './Gestures.ts';
+import Matchers from './Matchers.ts';
 import WebView from './WebView.ts';
 
 jest.mock('./PlatformLocator.ts', () => ({
@@ -55,6 +56,10 @@ const LAVAMOAT_CLICK_ERROR = new Error(
   'LavaMoat - property "self" of globalThis is inaccessible under scuttling mode.',
 );
 
+const LAVAMOAT_FIND_ERROR = new Error(
+  'unknown error: WebDriverError: Remote debugger error with code \'undefined\': Error: LavaMoat - property "navigator" of globalThis is inaccessible under scuttling mode. To learn more visit https://github.com/LavaMoat/LavaMoat/issues/2127. when running "element" with method "POST"',
+);
+
 describe('WebView.tapById on iOS', () => {
   const execute = jest.fn();
 
@@ -77,5 +82,22 @@ describe('WebView.tapById on iOS', () => {
     expect(Gestures.tap).toHaveBeenCalledTimes(1);
     expect(execute).toHaveBeenCalledTimes(1);
     expect(String(execute.mock.calls[0]?.[0])).toContain('signTypedDataV3');
+  });
+
+  it('clicks the HTML id when WebView element find hits LavaMoat scuttling', async () => {
+    jest
+      .mocked(Matchers.getElementByWebID)
+      .mockRejectedValue(LAVAMOAT_FIND_ERROR);
+
+    await WebView.tapById('download_button', {
+      pageUrl: 'http://localhost:8085/download_blob_file.html',
+      description: 'Download File website - Download button (iOS)',
+    });
+
+    expect(Matchers.getElementByWebID).toHaveBeenCalledTimes(1);
+    expect(Gestures.tap).not.toHaveBeenCalled();
+    expect(execute).toHaveBeenCalledTimes(1);
+    expect(String(execute.mock.calls[0]?.[0])).toContain('download_button');
+    expect(String(execute.mock.calls[0]?.[0])).toContain('.click()');
   });
 });

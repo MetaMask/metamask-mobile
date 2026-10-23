@@ -10,7 +10,7 @@ import {
   type AndroidWebViewTapOptions,
 } from './AndroidWebViewNative.ts';
 import Gestures from './Gestures.ts';
-import { tapWebIdFallingBackToDomClick } from './IosWebViewTap.ts';
+import { runRecoveringFromLavaMoatScuttling } from './IosWebViewTap.ts';
 import Matchers from './Matchers.ts';
 import { type AppiumElement } from './AppiumElement.ts';
 import AppiumGestures from './AppiumGestures.ts';
@@ -70,12 +70,18 @@ export default class WebView {
     }
 
     await this.withContext(options.pageUrl, async () => {
-      const webElement = await this.getElementById(webId, options);
-      await Gestures.scrollToWebViewPort(webElement);
-      await tapWebIdFallingBackToDomClick(webId, () =>
-        Gestures.tap(webElement, {
-          elemDescription: options.description ?? `WebView tapById: ${webId}`,
-        }),
+      // Find (`element`) and click (`element/click`) can both hit LavaMoat
+      // scuttling — recover with a page-script click on the same HTML id.
+      await runRecoveringFromLavaMoatScuttling(
+        webId,
+        async () => {
+          const webElement = await this.getElementById(webId, options);
+          await Gestures.scrollToWebViewPort(webElement);
+          await Gestures.tap(webElement, {
+            elemDescription: options.description ?? `WebView tapById: ${webId}`,
+          });
+        },
+        'find/tap',
       );
     });
   }
