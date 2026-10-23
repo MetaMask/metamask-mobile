@@ -106,7 +106,6 @@ describe('useOpenSocialPostComposer', () => {
     const options = {
       position: { positionId: 'btc-perp' } as Position,
       entryPoint: 'perps' as const,
-      openFeedAfterPost: true,
     };
     const { result } = renderHook(() => useOpenSocialPostComposer(), {
       wrapper,
