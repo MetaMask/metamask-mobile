@@ -35,7 +35,13 @@ perfTest.describe(
       ) => {
         await loginToAppPlaywright();
 
-        await WalletView.waitForBalanceToStabilize();
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.totalBalance,
+          {
+            description:
+              'Wallet account icon should be visible before warm start',
+          },
+        );
         await enableHermesAppProfiling({ scope: 'next-process' });
         await AppiumGestures.terminateApp(currentDeviceDetails);
 
