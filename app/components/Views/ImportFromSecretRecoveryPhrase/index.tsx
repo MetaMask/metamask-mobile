@@ -802,7 +802,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-2">
+            <Box twClassName="gap-y-6">
               <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
@@ -849,6 +849,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                 onCurrentWordChange={setCurrentInputWord}
                 autoFocus={false}
                 includeTopMargin={false}
+                showPasteOnlyWithClipboard
               />
             </Box>
           )}

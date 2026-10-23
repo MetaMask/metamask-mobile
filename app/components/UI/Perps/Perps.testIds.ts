@@ -327,7 +327,6 @@ export const PerpsHomeViewSelectorsIDs = {
   SOCIAL_FEED_TOP_TRADERS_PILL: 'perps-home-social-feed-top-traders',
   SOCIAL_FEED_SEE_MORE: 'perps-home-social-feed-see-more',
   SOCIAL_FEED_TRENDING_SEE_MORE: 'perps-social-feed-trending-see-more',
-  SOCIAL_FEED_TOP_TRADERS_EMPTY: 'perps-social-feed-top-traders-empty',
   RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
   RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
   RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
@@ -363,6 +362,7 @@ export const PerpsCloseAllPositionsViewSelectorsIDs = {
   KEEP_BUTTON: 'perps-close-all-positions-keep-button',
   CLOSE_ALL_BUTTON: 'perps-close-all-positions-close-all-button',
   FEES_VALUE: 'perps-close-all-positions-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-close-all-positions-fees-value-original',
 } as const;
 
 export const PerpsCancelAllOrdersViewSelectorsIDs = {
@@ -498,6 +498,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   SOCIAL_TABS: 'perps-market-details-social-tabs',
   FEED_TAB_CONTENT: 'perps-market-details-feed-tab-content',
   TOP_TRADERS_TAB_CONTENT: 'perps-market-details-top-traders-tab-content',
+  TOP_TRADERS_SEE_MORE: 'perps-market-details-top-traders-see-more',
   ABOUT_SECTION: 'perps-market-details-about-section',
   ABOUT_DESCRIPTION: 'perps-market-details-about-description',
   ABOUT_READ_MORE: 'perps-market-details-about-read-more',
@@ -1057,6 +1058,7 @@ export const PerpsOrderViewSelectorsIDs = {
   MARGIN_VALUE: 'perps-order-view-margin-value',
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
+  ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
@@ -1117,6 +1119,10 @@ export const PerpsTradeSheetSelectorsIDs = {
   KEYPAD_DONE_BUTTON: 'perps-trade-sheet-keypad-done-button',
   PLACE_ORDER_BUTTON: 'perps-trade-sheet-place-order-button',
 };
+
+export const PerpsFeeDiscountLabelSelectorsIDs = {
+  LABEL: 'perps-fee-discount-label',
+} as const;
 
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
