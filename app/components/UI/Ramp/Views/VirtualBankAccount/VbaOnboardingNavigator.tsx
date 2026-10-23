@@ -9,6 +9,7 @@ import {
   VbaKycPendingAdapter,
   VbaKycRejectedAdapter,
 } from './modules/VbaStatusAdapters';
+import VbaAccountCreateErrorAdapter from './modules/AccountCreateErrorAdapter';
 import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
@@ -53,6 +54,10 @@ const VbaOnboardingNavigator = () => (
     <Stack.Screen
       name={VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR}
       component={VbaAccountProvisioningErrorAdapter}
+    />
+    <Stack.Screen
+      name={VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR}
+      component={VbaAccountCreateErrorAdapter}
     />
     <Stack.Screen
       name={VbaOnboardingRoutes.ERROR}
