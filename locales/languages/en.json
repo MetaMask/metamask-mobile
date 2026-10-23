@@ -1645,6 +1645,7 @@
       "load_error": "Couldn't load this list",
       "edit_profile": "Edit profile",
       "share_profile": "Share profile",
+      "share_position": "Share position",
       "share_profile_message": "View {{displayName}} on MetaMask Social\n{{profileUrl}}",
       "posts": "Posts",
       "section_tokens": "Tokens",

@@ -4,6 +4,7 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
+import { Share } from 'react-native';
 import React from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
@@ -441,6 +442,24 @@ describe('TraderProfileView', () => {
     expect(
       screen.getByTestId(TraderProfileViewSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('shares the trader profile deeplink from the header', () => {
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+    renderWithProvider(<TraderProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social-trader?traderId=trader-1',
+    });
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share profile');
   });
 
   describe('safe area layout', () => {

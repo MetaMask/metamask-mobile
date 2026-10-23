@@ -47,6 +47,7 @@ import type {
 } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
+import { shareSocialTraderProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import TraderMuteChip from '../components/TraderMuteChip';
@@ -280,6 +281,13 @@ const MyProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
   }, [navigation]);
 
+  const handleShareTraderDeeplink = useCallback(() => {
+    if (!traderId) {
+      return;
+    }
+    shareSocialTraderProfile(traderId);
+  }, [traderId]);
+
   const handleShareProfile = useCallback(() => {
     if (!displayProfile?.shareUrl) {
       return;
@@ -439,7 +447,20 @@ const MyProfileView: React.FC = () => {
           onBack={handleBack}
           backButtonProps={{ testID: MyProfileViewSelectorsIDs.BACK_BUTTON }}
           endAccessory={
-            isOwner && displayProfile ? (
+            !isOwner && traderId ? (
+              <SocialHeaderGlassSurface twClassName="px-1">
+                <ButtonIcon
+                  iconName={IconName.Share}
+                  iconProps={{ color: IconColor.IconDefault }}
+                  size={ButtonIconSize.Md}
+                  onPress={handleShareTraderDeeplink}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.my_profile.share_profile',
+                  )}
+                  testID={MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON}
+                />
+              </SocialHeaderGlassSurface>
+            ) : isOwner && displayProfile ? (
               <SocialHeaderGlassSurface twClassName="gap-1 px-1">
                 <ButtonIcon
                   iconName={IconName.Refresh}
