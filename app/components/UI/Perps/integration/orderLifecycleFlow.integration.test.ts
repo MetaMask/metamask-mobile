@@ -35,6 +35,7 @@ import { HyperliquidError } from '@nktkas/hyperliquid';
 import { ApiRequestError } from '@nktkas/hyperliquid/api/exchange';
 
 import { usePerpsTrading } from '../hooks/usePerpsTrading';
+import { buildPerpsOrderParams } from '../utils/orderParams';
 import Engine from '../../../../core/Engine';
 import { PerpsAnalyticsEvent } from '@metamask/perps-controller/types';
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller/constants/eventNames';
@@ -1364,6 +1365,41 @@ describe('Perps order lifecycle — FLOW integration', () => {
         order_type: 'market',
         number_positions_closed: 2,
       });
+    });
+  });
+
+  describe('placing a Pro order-book row size', () => {
+    it('places the row size, which the Pro form requests without a USD amount', async () => {
+      // Arrange: 0.013 BTC at 81,625 reads as $1,061.13 in the size field,
+      // which the provider would turn into 0.014 BTC.
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '81625' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+      const order = buildPerpsOrderParams({
+        asset: 'BTC',
+        isBuy: true,
+        size: '0.013',
+        orderType: 'limit',
+        effectivePrice: 81_625,
+        leverage: 3,
+        maxSlippageBps: 300,
+        limitPrice: '81625',
+        providerId: 'hyperliquid',
+      });
+
+      // Act
+      await act(async () => {
+        await result.current.placeOrder(order);
+      });
+
+      // Assert
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({ b: true, p: '81625', s: '0.013' }),
+          ],
+        }),
+      );
     });
   });
 });
