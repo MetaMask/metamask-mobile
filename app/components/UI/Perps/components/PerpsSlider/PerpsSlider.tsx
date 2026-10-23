@@ -10,6 +10,8 @@ import { playImpact, ImpactMoment } from '../../../../../util/haptics';
  * Keep in sync if that package's Slider geometry changes.
  */
 const SLIDER_VERTICAL_PADDING = 8;
+/** Horizontal inset passed as `trackInset` (margin). Padding would shrink the track without moving the thumb. */
+export const SLIDER_HORIZONTAL_PADDING = 16;
 const THUMB_SIZE = 32;
 const THUMB_TOP_OFFSET = -13;
 const THUMB_BOTTOM_OFFSET = THUMB_TOP_OFFSET + THUMB_SIZE;
@@ -71,6 +73,12 @@ interface PerpsSliderProps {
    * to the track and thumb only, so this variant never renders range labels.
    */
   variant?: 'default' | 'compact';
+  /**
+   * Horizontal margin on the design-system slider. Use this instead of
+   * padding: the thumb and labels are positioned from the root width, and
+   * padding shrinks the track without shrinking that width.
+   */
+  trackInset?: number;
   testID?: string;
   accessibilityLabel?: string;
 }
@@ -90,6 +98,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
   showPercentageMarkers = true,
   disabled = false,
   variant = 'default',
+  trackInset = SLIDER_HORIZONTAL_PADDING,
   testID,
   accessibilityLabel,
 }) => {
@@ -171,7 +180,7 @@ const PerpsSlider: React.FC<PerpsSliderProps> = ({
       onGrip={handleGrip}
       onMark={handleMark}
       isDisabled={disabled}
-      trackInset={isCompact ? 0 : undefined}
+      trackInset={isCompact ? 0 : trackInset}
       testID={testID}
       accessibilityLabel={accessibilityLabel}
     />

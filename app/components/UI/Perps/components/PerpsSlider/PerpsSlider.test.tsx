@@ -165,11 +165,19 @@ describe('PerpsSlider', () => {
   });
 
   describe('variant', () => {
-    it('defaults to the default variant (no track inset override)', () => {
+    it('uses the default horizontal inset for the default variant', () => {
       render(<PerpsSlider {...defaultProps} />);
 
       expect(getSliderProps()).toMatchObject({
-        trackInset: undefined,
+        trackInset: 16,
+      });
+    });
+
+    it('forwards trackInset for the default variant', () => {
+      render(<PerpsSlider {...defaultProps} trackInset={16} />);
+
+      expect(getSliderProps()).toMatchObject({
+        trackInset: 16,
       });
     });
 

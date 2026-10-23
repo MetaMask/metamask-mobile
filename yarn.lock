@@ -9093,6 +9093,80 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-system-react-native@npm:0.52.0-preview.3026400c":
+  version: 0.52.0-preview.3026400c
+  resolution: "@metamask-previews/design-system-react-native@npm:0.52.0-preview.3026400c"
+  dependencies:
+    "@metamask-previews/design-system-shared": "npm:0.41.0-preview.3026400c"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.13.0
+    "@metamask/design-tokens": ^12.0.0
+    "@metamask/utils": ^11.12.1
+    expo-image: ">=3.0.0"
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/bbd01c551feefd5c260185203325357f20ad2f31b18af3fec5d30cd05da465fcfd8c41362be837bb663e6997c299652a1d24ff38601291f2faa5b07b5acb624f
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch":
+  version: 0.52.0-preview.3026400c
+  resolution: "@metamask-previews/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch::version=0.52.0-preview.3026400c&hash=5ff021"
+  dependencies:
+    "@metamask-previews/design-system-shared": "npm:0.41.0-preview.3026400c"
+    react-native-jazzicon: "npm:^0.1.2"
+  peerDependencies:
+    "@metamask/design-system-twrnc-preset": ^0.13.0
+    "@metamask/design-tokens": ^12.0.0
+    "@metamask/utils": ^11.12.1
+    expo-image: ">=3.0.0"
+    lodash: ^4.17.21
+    react: ">=18.2.0"
+    react-native: ">=0.76.0"
+    react-native-gesture-handler: ">=2.25.0"
+    react-native-reanimated: ">=4.2.0"
+    react-native-safe-area-context: ">=5.0.0"
+    react-native-worklets: ">=0.7.4"
+  checksum: 10/a933abcfe9b83fe222622a1f01bdb9ad01f8de2fdd20b283f2be6bff46c77ee5b9ff75f31111a5771d0a795602a2848e0a7d6840a4438acc624a2fd211f0155b
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-shared@npm:0.41.0-preview.3026400c, @metamask/design-system-shared@npm:@metamask-previews/design-system-shared@0.41.0-preview.3026400c":
+  version: 0.41.0-preview.3026400c
+  resolution: "@metamask-previews/design-system-shared@npm:0.41.0-preview.3026400c"
+  dependencies:
+    "@metamask/utils": "npm:^11.12.1"
+  peerDependencies:
+    react: ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/1ebd402a3dab0d5c71f26be79b042d8a11c5add3bcd0e9e80765138e3ca7be11cdad73baba17587df0b4bdbdabf4ba36a2c0e5d5efcc161947844e8a51afa8dc
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-twrnc-preset@npm:0.13.0-preview.3026400c, @metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.13.0-preview.3026400c":
+  version: 0.13.0-preview.3026400c
+  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.13.0-preview.3026400c"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^12.0.0
+    react: ">=18.2.0"
+  checksum: 10/f5577b7699870374971fa8c826ce1bedf45819edb43fb44dadaa480e38b0f4e5d31b5f0e414d169ec68cc8c955af2473910da2867beb0bccedfe2b1c3c1561b4
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-tokens@npm:12.0.0-preview.3026400c, @metamask/design-tokens@npm:@metamask-previews/design-tokens@12.0.0-preview.3026400c":
+  version: 12.0.0-preview.3026400c
+  resolution: "@metamask-previews/design-tokens@npm:12.0.0-preview.3026400c"
+  checksum: 10/0c33bffff38de91928a9823e662d26913e37a2b99d3d2e16dd9f2b567dc83bf10049cf10872cb638c9f8cda8b19904a181a9e04e139b16db2638ca69c8508722
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/7715-permission-types@npm:1.0.0"
@@ -9905,11 +9979,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.52.0":
-  version: 0.52.0
-  resolution: "@metamask/design-system-react-native@npm:0.52.0"
+"@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch":
+  version: 0.52.0-preview.3026400c
+  resolution: "@metamask/design-system-react-native@patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch::version=0.52.0-preview.3026400c&hash=5ff021"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.41.0"
+    "@metamask-previews/design-system-shared": "npm:0.41.0-preview.3026400c"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
     "@metamask/design-system-twrnc-preset": ^0.13.0
@@ -9923,37 +9997,7 @@ __metadata:
     react-native-reanimated: ">=4.2.0"
     react-native-safe-area-context: ">=5.0.0"
     react-native-worklets: ">=0.7.4"
-  checksum: 10/cd375d5e4513b755cdcefd7049e8ce6ea03ee2f007a3a96eb41a55b5d5eb8370c0e677d839f4d5426d8806a3a6bddbb33c37cc0ea0aa722ec670de7826379855
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-shared@npm:^0.41.0":
-  version: 0.41.0
-  resolution: "@metamask/design-system-shared@npm:0.41.0"
-  dependencies:
-    "@metamask/utils": "npm:^11.12.1"
-  peerDependencies:
-    react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/4639080551ba926806aaa76c24f6b8786711d815114189e83db5c0ce8a5976163d237de25f999ded5b44531fd5bf591b46ef9aa68b178a2734c1a77cf89b9412
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-twrnc-preset@npm:^0.13.0":
-  version: 0.13.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.13.0"
-  dependencies:
-    twrnc: "npm:^4.5.1"
-  peerDependencies:
-    "@metamask/design-tokens": ^12.0.0
-    react: ">=18.2.0"
-  checksum: 10/677144b7a307a61c9989464be117198d7f39543b66fc53c49081cb1a6296e9e5e670ac42e367bbf40f87ce15fcd95927cb44498d3731bb5b754a0a79119340dd
-  languageName: node
-  linkType: hard
-
-"@metamask/design-tokens@npm:^12.0.0":
-  version: 12.0.0
-  resolution: "@metamask/design-tokens@npm:12.0.0"
-  checksum: 10/ef7e51c07ac952ca9280d40ea6b5a1407069d5adca74b8aaaefdeaa9281b9e38389ca396a7957fa79fac4cc2e225cd57939a9aed69e29348122edc981ee4ce43
+  checksum: 10/cc03a09ae351ec5e7498b0b5eb6cd1141038117f6e146ec78506726284070686d9556c6a45ffa26560f09bebe5a8bdff6bd39ad20241cf95a7162a487421d1a3
   languageName: node
   linkType: hard
 
@@ -39143,6 +39187,10 @@ __metadata:
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
     "@margelo/hermes-profile-transformer": "npm:^0.0.10"
+    "@metamask-previews/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch"
+    "@metamask-previews/design-system-shared": "npm:0.41.0-preview.3026400c"
+    "@metamask-previews/design-system-twrnc-preset": "npm:0.13.0-preview.3026400c"
+    "@metamask-previews/design-tokens": "npm:12.0.0-preview.3026400c"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^2.0.0"
     "@metamask/account-tree-controller": "npm:^11.1.0"
@@ -39179,9 +39227,10 @@ __metadata:
     "@metamask/cryptography": "npm:^1.1.2"
     "@metamask/delegation-controller": "npm:^4.0.0"
     "@metamask/delegation-deployments": "npm:^2.1.0"
-    "@metamask/design-system-react-native": "npm:^0.52.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.13.0"
-    "@metamask/design-tokens": "npm:^12.0.0"
+    "@metamask/design-system-react-native": "patch:@metamask-previews/design-system-react-native@npm%3A0.52.0-preview.3026400c#~/.yarn/patches/@metamask-previews-design-system-react-native-npm-0.52.0-preview.3026400c-900c555a6c.patch"
+    "@metamask/design-system-shared": "npm:@metamask-previews/design-system-shared@0.41.0-preview.3026400c"
+    "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.13.0-preview.3026400c"
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@12.0.0-preview.3026400c"
     "@metamask/device-mcp": "npm:^0.4.2"
     "@metamask/earn-controller": "npm:^12.2.5"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
