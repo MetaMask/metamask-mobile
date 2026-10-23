@@ -536,5 +536,36 @@ describe('useSocialFeed', () => {
       const observer = client.getQueryCache().getAll()[0]?.observers[0];
       expect(observer?.options.staleTime).toBe(Infinity);
     });
+
+    it('keeps every loaded page while streaming', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      const oldestItem = mockSpotFeedItem({
+        positionId: 'oldest',
+        timestamp: 1_699_999_000,
+      });
+      mockCall.mockImplementation(
+        (_action: string, options: { olderThan?: string }) => {
+          if (options.olderThan === 'cursor-2') {
+            return Promise.resolve(mockFeedResponse([oldestItem]));
+          }
+          if (options.olderThan === 'cursor-1') {
+            return Promise.resolve(mockFeedResponse([olderItem], 'cursor-2'));
+          }
+          return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
+        },
+      );
+      const { result } = renderHook(
+        () => useSocialFeed(trendingSource, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+      act(() => result.current.loadMore());
+      await waitFor(() => expect(result.current.posts).toHaveLength(2));
+      act(() => result.current.loadMore());
+
+      await waitFor(() => expect(result.current.posts).toHaveLength(3));
+      expect(result.current.hasNextPage).toBe(false);
+    });
   });
 });

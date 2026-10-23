@@ -305,6 +305,18 @@ describe('useSocialFeedRealtime', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   });
 
+  it('keeps holding new posts when asked to, but still catches up on overflow', async () => {
+    const { result } = renderRealtime({ holdNewPosts: true });
+
+    emitMany(SOCIAL_FEED_REALTIME_BUFFER_SIZE + 1);
+
+    expect(result.current?.posts).toEqual([]);
+    expect(result.current?.realtime.pendingNewCount).toBe(
+      SOCIAL_FEED_REALTIME_BUFFER_SIZE,
+    );
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
   it('defers a reconnect catch-up until the list is back at the top', async () => {
     const { rerender } = renderRealtime({ nearTop: false });
     await waitFor(() => expect(reconnectListener).toBeDefined());
