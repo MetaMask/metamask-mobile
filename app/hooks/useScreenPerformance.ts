@@ -7,41 +7,72 @@ import {
 } from 'react';
 import { AppState } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
-import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
+import DevLogger from '../core/SDKConnect/utils/DevLogger';
 import {
   endTrace,
   getPerformanceTimestamp,
   trace,
-  TraceName,
-  TraceOperation,
+  type TraceName,
+  type TraceOperation,
   type TraceValue,
-} from '../../../../../../util/trace';
-import {
-  VBA_SCREEN_CONTENT_STATE,
-  VBA_SCREEN_END_REASON,
-  VBA_SCREEN_FEATURE,
-  VBA_SCREEN_LOG_MARKER,
-  VBA_SCREEN_TAG,
-  type VbaScreenContentState,
-  type VbaScreenEndReason,
-  type VbaScreenId,
-} from '../vbaScreenPerformance';
+} from '../util/trace';
 
-interface UseVbaScreenPerformanceOptions {
-  screenId: VbaScreenId;
+export const SCREEN_CONTENT_STATE = {
+  POPULATED: 'populated',
+  EMPTY: 'empty',
+  ERROR: 'error',
+} as const;
+
+export type ScreenContentState =
+  (typeof SCREEN_CONTENT_STATE)[keyof typeof SCREEN_CONTENT_STATE];
+
+const SCREEN_END_REASON = {
+  UNMOUNTED: 'unmounted',
+  APP_BACKGROUNDED: 'app_backgrounded',
+  DISABLED: 'disabled',
+} as const;
+
+type ScreenEndReason =
+  (typeof SCREEN_END_REASON)[keyof typeof SCREEN_END_REASON];
+
+const SCREEN_TAG = {
+  FEATURE: 'feature',
+  FLOW: 'flow',
+  METRIC_TYPE: 'metric_type',
+  SCREEN_ID: 'screen_id',
+  CONTENT_STATE: 'content_state',
+  SUCCESS: 'success',
+  REASON: 'reason',
+} as const;
+
+const SCREEN_LOAD_METRIC_TYPE = 'screen_load';
+
+export interface ScreenPerformanceConfig<ScreenId extends string = string> {
+  traceName: TraceName;
+  traceOperation: TraceOperation;
+  feature: string;
+  flow?: string;
+  logMarker: string;
+  screenIds: readonly ScreenId[];
+}
+
+interface UseScreenPerformanceOptions<ScreenId extends string> {
+  config: ScreenPerformanceConfig<ScreenId>;
+  screenId: NoInfer<ScreenId>;
   contentReady: boolean;
-  contentState?: VbaScreenContentState;
+  contentState?: ScreenContentState;
   enabled?: boolean;
   resetKey?: string;
 }
 
-export function useVbaScreenPerformance({
+export function useScreenPerformance<ScreenId extends string>({
+  config,
   screenId,
   contentReady,
-  contentState = VBA_SCREEN_CONTENT_STATE.POPULATED,
+  contentState = SCREEN_CONTENT_STATE.POPULATED,
   enabled = true,
   resetKey,
-}: UseVbaScreenPerformanceOptions): void {
+}: UseScreenPerformanceOptions<ScreenId>): void {
   const mountedRef = useRef(true);
   const traceIdRef = useRef<string | null>(null);
   const hasReachedContentRef = useRef(false);
@@ -58,16 +89,16 @@ export function useVbaScreenPerformance({
   const logSpan = useCallback(
     (phase: 'started' | 'completed', fields: Record<string, TraceValue>) => {
       DevLogger?.log?.(
-        `${VBA_SCREEN_LOG_MARKER} ${TraceName.VbaScreenLoad} ${phase} ${JSON.stringify(
+        `${config.logMarker} ${config.traceName} ${phase} ${JSON.stringify(
           fields,
         )}`,
       );
     },
-    [],
+    [config.logMarker, config.traceName],
   );
 
   const endActiveTrace = useCallback(
-    (success: boolean, reason?: VbaScreenEndReason) => {
+    (success: boolean, reason?: ScreenEndReason) => {
       const id = traceIdRef.current;
       if (!id) {
         return;
@@ -75,18 +106,18 @@ export function useVbaScreenPerformance({
 
       const data = {
         ...startTagsRef.current,
-        [VBA_SCREEN_TAG.CONTENT_STATE]: contentStateRef.current,
-        [VBA_SCREEN_TAG.SUCCESS]: success,
-        ...(reason ? { [VBA_SCREEN_TAG.REASON]: reason } : {}),
+        [SCREEN_TAG.CONTENT_STATE]: contentStateRef.current,
+        [SCREEN_TAG.SUCCESS]: success,
+        ...(reason ? { [SCREEN_TAG.REASON]: reason } : {}),
       };
       logSpan('completed', data);
-      endTrace({ name: TraceName.VbaScreenLoad, id, data });
+      endTrace({ name: config.traceName, id, data });
       traceIdRef.current = null;
       if (success) {
         hasReachedContentRef.current = true;
       }
     },
-    [logSpan],
+    [config.traceName, logSpan],
   );
 
   const startScreenTrace = useCallback(() => {
@@ -100,21 +131,30 @@ export function useVbaScreenPerformance({
 
     const id = uuidv4();
     const tags = {
-      [VBA_SCREEN_TAG.FEATURE]: VBA_SCREEN_FEATURE,
-      [VBA_SCREEN_TAG.SCREEN_ID]: screenId,
+      [SCREEN_TAG.FEATURE]: config.feature,
+      ...(config.flow ? { [SCREEN_TAG.FLOW]: config.flow } : {}),
+      [SCREEN_TAG.METRIC_TYPE]: SCREEN_LOAD_METRIC_TYPE,
+      [SCREEN_TAG.SCREEN_ID]: screenId,
     };
     traceIdRef.current = id;
     startTagsRef.current = tags;
     logSpan('started', tags);
     trace({
-      name: TraceName.VbaScreenLoad,
-      op: TraceOperation.VbaOperation,
+      name: config.traceName,
+      op: config.traceOperation,
       id,
       startTime: getPerformanceTimestamp(),
       forceTransaction: true,
       tags,
     });
-  }, [logSpan, screenId]);
+  }, [
+    config.feature,
+    config.flow,
+    config.traceName,
+    config.traceOperation,
+    logSpan,
+    screenId,
+  ]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -124,7 +164,7 @@ export function useVbaScreenPerformance({
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'background') {
-        endActiveTrace(false, VBA_SCREEN_END_REASON.APP_BACKGROUNDED);
+        endActiveTrace(false, SCREEN_END_REASON.APP_BACKGROUNDED);
         return;
       }
       if (
@@ -143,7 +183,7 @@ export function useVbaScreenPerformance({
     return () => {
       mountedRef.current = false;
       subscription.remove();
-      endActiveTrace(false, VBA_SCREEN_END_REASON.UNMOUNTED);
+      endActiveTrace(false, SCREEN_END_REASON.UNMOUNTED);
     };
   }, [endActiveTrace, startScreenTrace]);
 
@@ -152,7 +192,7 @@ export function useVbaScreenPerformance({
       return;
     }
 
-    endActiveTrace(false, VBA_SCREEN_END_REASON.DISABLED);
+    endActiveTrace(false, SCREEN_END_REASON.DISABLED);
     hasReachedContentRef.current = false;
     resetKeyRef.current = resetKey;
 
@@ -166,7 +206,7 @@ export function useVbaScreenPerformance({
 
   useEffect(() => {
     if (!enabled) {
-      endActiveTrace(false, VBA_SCREEN_END_REASON.DISABLED);
+      endActiveTrace(false, SCREEN_END_REASON.DISABLED);
       return;
     }
     if (!hasReachedContentRef.current && AppState.currentState === 'active') {
@@ -178,13 +218,18 @@ export function useVbaScreenPerformance({
   }, [contentReady, contentState, enabled, endActiveTrace, startScreenTrace]);
 }
 
-export function withVbaScreenPerformance<Props extends object>(
+export function withScreenPerformance<
+  Props extends object,
+  ScreenId extends string,
+>(
   Component: ComponentType<Props>,
-  screenId: VbaScreenId,
-  contentState: VbaScreenContentState = VBA_SCREEN_CONTENT_STATE.POPULATED,
+  config: ScreenPerformanceConfig<ScreenId>,
+  screenId: NoInfer<ScreenId>,
+  contentState: ScreenContentState = SCREEN_CONTENT_STATE.POPULATED,
 ): ComponentType<Props> {
-  function InstrumentedVbaScreen(props: Props) {
-    useVbaScreenPerformance({
+  function InstrumentedScreen(props: Props) {
+    useScreenPerformance({
+      config,
       screenId,
       contentReady: true,
       contentState,
@@ -192,8 +237,8 @@ export function withVbaScreenPerformance<Props extends object>(
     return createElement(Component, props);
   }
 
-  InstrumentedVbaScreen.displayName = `VbaScreenPerformance(${
+  InstrumentedScreen.displayName = `ScreenPerformance(${
     Component.displayName ?? Component.name
   })`;
-  return InstrumentedVbaScreen;
+  return InstrumentedScreen;
 }

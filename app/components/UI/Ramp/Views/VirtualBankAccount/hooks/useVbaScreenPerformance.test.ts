@@ -4,8 +4,10 @@ import { endTrace, trace, TraceName } from '../../../../../../util/trace';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenId,
 } from '../vbaScreenPerformance';
-import { useVbaScreenPerformance } from './useVbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
 
 jest.mock('uuid', () => ({
   v4: jest.fn(() => 'vba-screen-trace-id'),
@@ -25,6 +27,16 @@ jest.mock('../../../../../../util/trace', () => ({
 
 const mockTrace = jest.mocked(trace);
 const mockEndTrace = jest.mocked(endTrace);
+const useVbaScreenPerformance = (
+  options: Omit<
+    Parameters<typeof useScreenPerformance<VbaScreenId>>[0],
+    'config'
+  >,
+) =>
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    ...options,
+  });
 
 describe('useVbaScreenPerformance', () => {
   let appState: AppStateStatus;
@@ -75,6 +87,8 @@ describe('useVbaScreenPerformance', () => {
         forceTransaction: true,
         tags: {
           feature: 'vba',
+          flow: 'vba',
+          metric_type: 'screen_load',
           screen_id: VBA_SCREEN_ID.VENDOR_TERMS,
         },
       }),
@@ -84,6 +98,8 @@ describe('useVbaScreenPerformance', () => {
       id: 'vba-screen-trace-id',
       data: {
         feature: 'vba',
+        flow: 'vba',
+        metric_type: 'screen_load',
         screen_id: VBA_SCREEN_ID.VENDOR_TERMS,
         content_state: VBA_SCREEN_CONTENT_STATE.POPULATED,
         success: true,
@@ -147,7 +163,7 @@ describe('useVbaScreenPerformance', () => {
     const { rerender } = renderHook(
       ({ enabled }) =>
         useVbaScreenPerformance({
-          screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+          screenId: VBA_SCREEN_ID.VENDOR_TERMS,
           contentReady: false,
           enabled,
         }),

@@ -1,14 +1,16 @@
 # VBA screen performance Sentry contract
 
-Every customer-facing Virtual Bank Account screen emits an independent
-transaction named `VBA Screen Load` with operation `vba.operation`.
-Transactions use one shared name and are separated by the bounded `screen_id`
-attribute.
+Every customer-facing Virtual Bank Account screen emits an independent screen
+load transaction. VBA-owned screens use `VBA Screen Load` with
+`vba.operation`; KYC-owned screens use `KYC Screen Load` with `kyc.operation`.
+Both are correlated by `flow:vba` and `metric_type:screen_load`.
 
 ## Attributes
 
-- `feature`: always `vba`
-- `screen_id`: a value from `VBA_SCREEN_ID`
+- `feature`: owning feature, `vba` or `kyc`
+- `flow`: always `vba`
+- `metric_type`: always `screen_load`
+- `screen_id`: a value from the owning feature's bounded screen inventory
 - `content_state`: `populated`, `empty`, or `error`
 - `success`: `true` when meaningful content is ready
 - `reason`: `unmounted`, `app_backgrounded`, or `disabled` when content was
@@ -54,14 +56,15 @@ checking Sentry:
 ```text
 [VbaCUF] VBA Screen Load started {"feature":"vba",...}
 [VbaCUF] VBA Screen Load completed {"success":true,...}
+[KycCUF] KYC Screen Load completed {"success":true,...}
 ```
 
 Use Trace Explorer in the `development` environment:
 
 ```text
-span.op:vba.operation span.name:"VBA Screen Load"
+flow:vba metric_type:screen_load
 ```
 
-For latency, add `success:true`, group by `screen_id`, and split by platform and
-release. Query `success:false` separately for abandonment and group by `reason`;
-do not include those spans in latency percentiles.
+For latency, add `success:true`, group by `feature` and `screen_id`, and split by
+platform and release. Query `success:false` separately for abandonment and
+group by `reason`; do not include those spans in latency percentiles.

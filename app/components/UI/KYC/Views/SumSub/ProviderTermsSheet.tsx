@@ -24,8 +24,11 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import type { KycCatalogDisclaimerLink } from '../../hooks/useKycSessionDisclaimers';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
-import { useVbaScreenPerformance } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance';
-import { VBA_SCREEN_ID } from '../../../Ramp/Views/VirtualBankAccount/vbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 
 interface TermsLink {
   id: string;
@@ -75,8 +78,9 @@ const VbaProviderTermsSheet = ({
 }: VbaProviderTermsSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
 
-  useVbaScreenPerformance({
-    screenId: VBA_SCREEN_ID.PROVIDER_TERMS_MODAL,
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
     contentReady: true,
   });
 

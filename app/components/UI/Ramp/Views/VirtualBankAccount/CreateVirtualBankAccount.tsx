@@ -33,10 +33,12 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
-import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
 } from './vbaScreenPerformance';
 
 const FeatureRow = ({
@@ -79,14 +81,16 @@ const CreateVirtualBankAccount = ({
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
-  let vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  let vendorTermsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
   if (disclaimersError) {
     vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
   } else if (disclaimers?.length) {
     vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
   }
 
-  useVbaScreenPerformance({
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId: VBA_SCREEN_ID.VENDOR_TERMS,
     contentReady: !isLoading,
     contentState: vendorTermsContentState,

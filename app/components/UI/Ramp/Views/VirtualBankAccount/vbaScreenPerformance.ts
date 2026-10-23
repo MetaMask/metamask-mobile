@@ -1,29 +1,18 @@
 import { VbaIdentityVerificationRoutes, VbaOnboardingRoutes } from './routes';
+import { KYC_SCREEN_ID } from '../../../KYC/kycScreenPerformance';
+import {
+  SCREEN_CONTENT_STATE,
+  type ScreenContentState,
+} from '../../../../../hooks/useScreenPerformance';
+import { TraceName, TraceOperation } from '../../../../../util/trace';
 
-export const VBA_SCREEN_CONTENT_STATE = {
-  POPULATED: 'populated',
-  EMPTY: 'empty',
-  ERROR: 'error',
-} as const;
-
-export type VbaScreenContentState =
-  (typeof VBA_SCREEN_CONTENT_STATE)[keyof typeof VBA_SCREEN_CONTENT_STATE];
-
-export const VBA_SCREEN_END_REASON = {
-  UNMOUNTED: 'unmounted',
-  APP_BACKGROUNDED: 'app_backgrounded',
-  DISABLED: 'disabled',
-} as const;
-
-export type VbaScreenEndReason =
-  (typeof VBA_SCREEN_END_REASON)[keyof typeof VBA_SCREEN_END_REASON];
+export const VBA_SCREEN_CONTENT_STATE = SCREEN_CONTENT_STATE;
+export type VbaScreenContentState = ScreenContentState;
 
 export const VBA_SCREEN_ID = {
   ONBOARDING_LOADING: 'onboarding_loading',
   VENDOR_TERMS: 'vendor_terms',
   EMAIL_VERIFICATION: 'email_verification',
-  IDENTITY_VERIFICATION_TERMS: 'identity_verification_terms',
-  IDENTITY_VERIFICATION_PROVIDER: 'identity_verification_provider',
   KYC_PENDING: 'kyc_pending',
   IDENTITY_VERIFIED: 'identity_verified',
   CHOOSE_CURRENCY: 'choose_currency',
@@ -34,29 +23,26 @@ export const VBA_SCREEN_ID = {
   ONBOARDING_ERROR: 'onboarding_error',
   ACCOUNT_CREATION: 'account_creation',
   ACCOUNT_DETAILS: 'account_details',
-  PROVIDER_TERMS_MODAL: 'provider_terms_modal',
 } as const;
 
 export type VbaScreenId = (typeof VBA_SCREEN_ID)[keyof typeof VBA_SCREEN_ID];
 
-export const VBA_SCREEN_TAG = {
-  FEATURE: 'feature',
-  SCREEN_ID: 'screen_id',
-  CONTENT_STATE: 'content_state',
-  SUCCESS: 'success',
-  REASON: 'reason',
-} as const;
-
-export const VBA_SCREEN_FEATURE = 'vba';
-export const VBA_SCREEN_LOG_MARKER = '[VbaCUF]';
+export const VBA_SCREEN_PERFORMANCE_CONFIG = {
+  traceName: TraceName.VbaScreenLoad,
+  traceOperation: TraceOperation.VbaOperation,
+  feature: 'vba',
+  flow: 'vba',
+  logMarker: '[VbaCUF]',
+  screenIds: Object.values(VBA_SCREEN_ID),
+};
 
 export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
   [VbaOnboardingRoutes.VENDOR_TERMS]: [VBA_SCREEN_ID.VENDOR_TERMS],
   [VbaOnboardingRoutes.LOADING]: [VBA_SCREEN_ID.ONBOARDING_LOADING],
   [VbaOnboardingRoutes.EMAIL]: [VBA_SCREEN_ID.EMAIL_VERIFICATION],
   [VbaOnboardingRoutes.IDENTITY_VERIFICATION]: [
-    VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
-    VBA_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
+    KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
   ],
   [VbaOnboardingRoutes.KYC_PENDING]: [VBA_SCREEN_ID.KYC_PENDING],
   [VbaOnboardingRoutes.IDENTITY_VERIFIED]: [VBA_SCREEN_ID.IDENTITY_VERIFIED],
@@ -74,9 +60,9 @@ export const VBA_ONBOARDING_ROUTE_SCREEN_IDS = {
 
 export const VBA_IDENTITY_ROUTE_SCREEN_IDS = {
   [VbaIdentityVerificationRoutes.PROVIDER_TERMS]:
-    VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
   [VbaIdentityVerificationRoutes.PROVIDER]:
-    VBA_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
+    KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
 } as const;
 
 export const VBA_DETAILS_SCREEN_IDS = [
@@ -85,5 +71,10 @@ export const VBA_DETAILS_SCREEN_IDS = [
 ] as const;
 
 export const VBA_MODAL_SCREEN_IDS = [
-  VBA_SCREEN_ID.PROVIDER_TERMS_MODAL,
+  KYC_SCREEN_ID.PROVIDER_TERMS_MODAL,
+] as const;
+
+export const VBA_FLOW_SCREEN_IDS = [
+  ...Object.values(VBA_SCREEN_ID),
+  ...Object.values(KYC_SCREEN_ID),
 ] as const;

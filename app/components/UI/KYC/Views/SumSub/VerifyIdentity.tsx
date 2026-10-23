@@ -35,11 +35,13 @@ import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
-import { useVbaScreenPerformance } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
-  VBA_SCREEN_CONTENT_STATE,
-  VBA_SCREEN_ID,
-} from '../../../Ramp/Views/VirtualBankAccount/vbaScreenPerformance';
+  KYC_SCREEN_CONTENT_STATE,
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  type KycScreenContentState,
+} from '../../kycScreenPerformance';
 
 const VERIFICATION_STEPS = [
   {
@@ -79,15 +81,17 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
 
-  let identityTermsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  let identityTermsContentState: KycScreenContentState =
+    KYC_SCREEN_CONTENT_STATE.EMPTY;
   if (error) {
-    identityTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.ERROR;
   } else if (disclaimers?.length) {
-    identityTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.POPULATED;
   }
 
-  useVbaScreenPerformance({
-    screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
     contentReady: !isLoading,
     contentState: identityTermsContentState,
   });

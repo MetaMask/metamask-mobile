@@ -19,10 +19,11 @@ import {
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
-import { useVbaScreenPerformance } from '../hooks/useVbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
 } from '../vbaScreenPerformance';
 
 /**
@@ -34,7 +35,8 @@ const VbaAccountCreateErrorAdapter = () => {
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
   const { variant, failure, sourceCurrency, retryable } = route.params;
-  useVbaScreenPerformance({
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId:
       variant === 'details'
         ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR

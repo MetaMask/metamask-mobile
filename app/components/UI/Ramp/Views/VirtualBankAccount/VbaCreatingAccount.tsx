@@ -12,8 +12,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
-import { VBA_SCREEN_ID } from './vbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
@@ -33,7 +36,8 @@ const VbaCreatingAccount = ({
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
   const tw = useTailwind();
-  useVbaScreenPerformance({
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
     contentReady: true,
   });

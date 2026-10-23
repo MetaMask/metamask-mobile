@@ -14,45 +14,54 @@ import VbaVendorTermsAdapter from './modules/VbaVendorTermsAdapter';
 import VbaOnboardingLoading from './VbaOnboardingLoading';
 import VbaChooseCurrency from './VbaChooseCurrency';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from './routes';
-import { withVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
 
 const Stack = createNativeStackNavigator<VbaOnboardingParamList>();
 
-const InstrumentedLoading = withVbaScreenPerformance(
+const InstrumentedLoading = withScreenPerformance(
   VbaOnboardingLoading,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.ONBOARDING_LOADING,
 );
-const InstrumentedEmail = withVbaScreenPerformance(
+const InstrumentedEmail = withScreenPerformance(
   VbaEmailAdapter,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.EMAIL_VERIFICATION,
 );
-const InstrumentedKycPending = withVbaScreenPerformance(
+const InstrumentedKycPending = withScreenPerformance(
   VbaKycPendingAdapter,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.KYC_PENDING,
 );
-const InstrumentedIdentityVerified = withVbaScreenPerformance(
+const InstrumentedIdentityVerified = withScreenPerformance(
   VbaIdentityVerified,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.IDENTITY_VERIFIED,
 );
-const InstrumentedChooseCurrency = withVbaScreenPerformance(
+const InstrumentedChooseCurrency = withScreenPerformance(
   VbaChooseCurrency,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.CHOOSE_CURRENCY,
 );
-const InstrumentedKycRejected = withVbaScreenPerformance(
+const InstrumentedKycRejected = withScreenPerformance(
   VbaKycRejectedAdapter,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.KYC_REJECTED,
 );
-const InstrumentedAccountProvisioningError = withVbaScreenPerformance(
+const InstrumentedAccountProvisioningError = withScreenPerformance(
   VbaAccountProvisioningErrorAdapter,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.ACCOUNT_PROVISIONING_ERROR,
   VBA_SCREEN_CONTENT_STATE.ERROR,
 );
-const InstrumentedOnboardingError = withVbaScreenPerformance(
+const InstrumentedOnboardingError = withScreenPerformance(
   VbaErrorAdapter,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
   VBA_SCREEN_ID.ONBOARDING_ERROR,
   VBA_SCREEN_CONTENT_STATE.ERROR,
 );

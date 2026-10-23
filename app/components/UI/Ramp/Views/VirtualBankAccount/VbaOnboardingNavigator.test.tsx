@@ -12,10 +12,10 @@ import {
 } from './routes';
 import {
   VBA_DETAILS_SCREEN_IDS,
+  VBA_FLOW_SCREEN_IDS,
   VBA_IDENTITY_ROUTE_SCREEN_IDS,
   VBA_MODAL_SCREEN_IDS,
   VBA_ONBOARDING_ROUTE_SCREEN_IDS,
-  VBA_SCREEN_ID,
 } from './vbaScreenPerformance';
 
 jest.mock('../../../KYC/Views/EmailAdapter', () => () => null);
@@ -31,8 +31,9 @@ jest.mock('./modules/AccountCreateErrorAdapter', () => () => null);
 jest.mock('./modules/VbaVendorTermsAdapter', () => () => null);
 jest.mock('./VbaOnboardingLoading', () => () => null);
 jest.mock('./VbaChooseCurrency', () => () => null);
-jest.mock('./hooks/useVbaScreenPerformance', () => ({
-  withVbaScreenPerformance: (Component: React.ComponentType) => Component,
+jest.mock('../../../../../hooks/useScreenPerformance', () => ({
+  ...jest.requireActual('../../../../../hooks/useScreenPerformance'),
+  withScreenPerformance: (Component: React.ComponentType) => Component,
 }));
 
 describe('VBA screen performance coverage', () => {
@@ -80,9 +81,7 @@ describe('VBA screen performance coverage', () => {
       ...VBA_MODAL_SCREEN_IDS,
     ];
 
-    expect(new Set(mappedScreenIds)).toEqual(
-      new Set(Object.values(VBA_SCREEN_ID)),
-    );
-    expect(mappedScreenIds).toHaveLength(Object.values(VBA_SCREEN_ID).length);
+    expect(new Set(mappedScreenIds)).toEqual(new Set(VBA_FLOW_SCREEN_IDS));
+    expect(mappedScreenIds).toHaveLength(VBA_FLOW_SCREEN_IDS.length);
   });
 });

@@ -32,13 +32,10 @@ jest.mock('../../../../../util/Logger', () => ({
   },
 }));
 
-jest.mock(
-  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance',
-  () => ({
-    useVbaScreenPerformance: jest.fn(),
-    withVbaScreenPerformance: (Component: React.ComponentType) => Component,
-  }),
-);
+jest.mock('../../../../../hooks/useScreenPerformance', () => ({
+  useScreenPerformance: jest.fn(),
+  withScreenPerformance: (Component: React.ComponentType) => Component,
+}));
 
 const mockKycController = Engine.context.KycController as unknown as {
   fetchSessionDisclaimers: jest.Mock<Promise<unknown>, [unknown]>;

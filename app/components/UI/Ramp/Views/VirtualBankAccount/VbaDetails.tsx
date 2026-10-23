@@ -64,10 +64,12 @@ import {
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
-import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   VBA_SCREEN_CONTENT_STATE,
   VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
 } from './vbaScreenPerformance';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
@@ -556,14 +558,16 @@ const VbaDetails = () => {
 
   const rows = buildDetailRows(instructions);
   const hasCurrentAccountState = stateAccountKey === accountKey;
-  let accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  let accountDetailsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
   if (loadError) {
     accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
   } else if (rows.length > 0) {
     accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
   }
 
-  useVbaScreenPerformance({
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
     screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
     resetKey: accountKey,
     enabled: isApproved && hasCurrentAccountState,
