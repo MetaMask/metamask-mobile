@@ -15,7 +15,10 @@ import {
   type PerpsProviderType,
   type PerpsProvider,
 } from '@metamask/perps-controller';
-import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import {
+  LEVERAGE_VALIDATION_CONFIG,
+  PROVIDER_CONFIG,
+} from '../constants/perpsConfig';
 import { formatPerpsFiat } from '../utils/formatUtils';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import {
@@ -59,6 +62,7 @@ interface UsePerpsOrderValidationParams {
   providerId?: PerpsProviderType;
   /** Protocol error codes whose UI is owned by the calling form. */
   suppressedProtocolErrorCodes?: readonly string[];
+  maxLeverage?: number;
 }
 
 interface ValidationState {
@@ -143,6 +147,7 @@ interface ProtocolValidationErrorsInput {
   existingPositionLeverage?: number;
   minimumOrderSize: number;
   suppressedProtocolErrors: ReadonlySet<string>;
+  maxLeverage?: number;
 }
 
 interface BuildValidationOutcomeInput {
@@ -266,17 +271,19 @@ const getProtocolErrorContext = ({
   orderForm,
   existingPositionLeverage,
   minimumOrderSize,
+  maxLeverage,
 }: {
   error?: string;
   orderForm: OrderFormValidationData;
   existingPositionLeverage?: number;
   minimumOrderSize: number;
+  maxLeverage?: number;
 }): Record<string, unknown> => {
   switch (error) {
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_INVALID:
       return {
         min: 1,
-        max: PERPS_CONSTANTS.DefaultMaxLeverage,
+        max: maxLeverage ?? LEVERAGE_VALIDATION_CONFIG.FallbackMaxLeverage,
       };
     case PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION:
       return {
@@ -312,6 +319,7 @@ const getProtocolValidationErrors = ({
   existingPositionLeverage,
   minimumOrderSize,
   suppressedProtocolErrors,
+  maxLeverage,
 }: ProtocolValidationErrorsInput): ErrorsWithInsufficientBalance => {
   const errors: string[] = [];
   const insufficientBalanceErrors: string[] = [];
@@ -334,6 +342,7 @@ const getProtocolValidationErrors = ({
         orderForm,
         existingPositionLeverage,
         minimumOrderSize,
+        maxLeverage,
       }),
     );
     const isDuplicate = localErrors.some((existingError) =>
@@ -451,6 +460,7 @@ export function usePerpsOrderValidation(
     twapRandomize,
     providerId,
     suppressedProtocolErrorCodes = EMPTY_ERRORS,
+    maxLeverage,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -666,6 +676,7 @@ export function usePerpsOrderValidation(
           existingPositionLeverage,
           minimumOrderSize,
           suppressedProtocolErrors,
+          maxLeverage,
         });
 
         return finalizeValidation({
@@ -704,6 +715,7 @@ export function usePerpsOrderValidation(
       triggerPrice,
       twapDuration,
       twapRandomize,
+      maxLeverage,
       providerId,
       suppressedProtocolErrors,
       validateOrder,
