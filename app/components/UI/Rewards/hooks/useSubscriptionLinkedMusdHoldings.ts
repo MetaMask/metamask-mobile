@@ -1,3 +1,4 @@
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import BigNumber from 'bignumber.js';
@@ -98,7 +99,7 @@ export const useSubscriptionLinkedMusdHoldings =
      */
     const moneyAccountGroupEvmAddress = useMemo(() => {
       const entropy = primaryMoneyAccount?.options?.entropy;
-      if (!entropy) {
+      if (entropy?.type !== KeyringAccountEntropyTypeOption.Mnemonic) {
         return undefined;
       }
       const groupId = toMultichainAccountGroupId(

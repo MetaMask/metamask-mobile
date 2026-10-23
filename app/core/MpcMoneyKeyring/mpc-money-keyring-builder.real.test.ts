@@ -25,7 +25,9 @@ const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1'
 
 const buildKeyring = () => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
-  const keyring = buildRealMpcMoneyKeyringBuilder({ getBearerToken })() as {
+  const keyring = buildRealMpcMoneyKeyringBuilder({
+    getBearerToken,
+  })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
   return { options: keyring.options, getBearerToken };

@@ -1,3 +1,4 @@
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
@@ -51,7 +52,10 @@ const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const entropy = primaryMoneyAccount?.options?.entropy;
-  const entropyId = entropy?.id;
+  const entropyId =
+    entropy?.type === KeyringAccountEntropyTypeOption.Mnemonic
+      ? entropy.id
+      : undefined;
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const recipients = useMemo(() => {
