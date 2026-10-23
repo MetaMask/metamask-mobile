@@ -130,6 +130,8 @@ const resolvePerpsSymbol = async (rawSymbol: string): Promise<string> => {
         (marketSymbol) => marketSymbol.toLowerCase() === lowerSymbol,
       ) ?? normalizedSymbol
     );
+    // Market discovery is best-effort: on failure, log and keep the legacy
+    // normalized symbol so the deeplink still opens the market page.
   } catch (error) {
     DevLogger.log('[handlePerpsUrl] Failed to resolve market symbol:', error);
     return normalizedSymbol;
