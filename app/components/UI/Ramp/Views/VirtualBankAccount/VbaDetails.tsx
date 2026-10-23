@@ -64,6 +64,11 @@ import {
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
+import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from './vbaScreenPerformance';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -549,6 +554,16 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  useVbaScreenPerformance({
+    screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+    enabled: isApproved,
+    contentReady: rows.length > 0 || loadError,
+    contentState: loadError
+      ? VBA_SCREEN_CONTENT_STATE.ERROR
+      : rows.length > 0
+        ? VBA_SCREEN_CONTENT_STATE.POPULATED
+        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+  });
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');

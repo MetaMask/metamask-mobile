@@ -35,6 +35,11 @@ import MoonPayLogo from './assets/moonpay-logo.svg';
 import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import { useVbaScreenPerformance } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaScreenPerformance';
 
 const VERIFICATION_STEPS = [
   {
@@ -73,6 +78,16 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
+
+  useVbaScreenPerformance({
+    screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    contentReady: !isLoading,
+    contentState: error
+      ? VBA_SCREEN_CONTENT_STATE.ERROR
+      : disclaimers?.length
+        ? VBA_SCREEN_CONTENT_STATE.POPULATED
+        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+  });
 
   // The sheet can't open without the idOS / SumSub terms to review.
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);

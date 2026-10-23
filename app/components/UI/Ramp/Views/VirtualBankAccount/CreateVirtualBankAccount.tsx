@@ -33,6 +33,11 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from './vbaScreenPerformance';
 
 const FeatureRow = ({
   icon,
@@ -67,19 +72,29 @@ const CreateVirtualBankAccount = ({
     disclaimers,
     isLoading,
     isAccepting,
-    error,
+    error: disclaimersError,
     acceptDisclaimers,
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
+  useVbaScreenPerformance({
+    screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState: disclaimersError
+      ? VBA_SCREEN_CONTENT_STATE.ERROR
+      : disclaimers?.length
+        ? VBA_SCREEN_CONTENT_STATE.POPULATED
+        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+  });
+
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
     !isAccepting &&
     !isAdvancing &&
-    !error &&
+    !disclaimersError &&
     Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -195,7 +210,7 @@ const CreateVirtualBankAccount = ({
       </ScrollView>
 
       <Box twClassName="gap-4 px-4 pt-4 pb-2">
-        {error ? (
+        {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}

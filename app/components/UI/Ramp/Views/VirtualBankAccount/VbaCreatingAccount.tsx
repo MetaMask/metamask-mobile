@@ -12,6 +12,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import { VBA_SCREEN_ID } from './vbaScreenPerformance';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
@@ -31,6 +33,10 @@ const VbaCreatingAccount = ({
   awaitingProviderApproval = false,
 }: VbaCreatingAccountProps) => {
   const tw = useTailwind();
+  useVbaScreenPerformance({
+    screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+    contentReady: true,
+  });
   const title = strings(
     awaitingProviderApproval
       ? 'virtual_bank_account.creating_account.awaiting_provider'

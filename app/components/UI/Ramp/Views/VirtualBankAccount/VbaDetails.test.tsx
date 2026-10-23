@@ -11,6 +11,11 @@ import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useVbaScreenPerformance } from './hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from './vbaScreenPerformance';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -94,6 +99,9 @@ jest.mock('./hooks/useVbaOnboardingRouting', () => ({
   navigateToVbaOnboardingDestination: (...args: unknown[]) =>
     mockNavigateToVbaOnboardingDestination(...args),
 }));
+
+jest.mock('./hooks/useVbaScreenPerformance');
+const mockUseVbaScreenPerformance = jest.mocked(useVbaScreenPerformance);
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -248,6 +256,12 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      enabled: true,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
     });
     expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
@@ -1068,6 +1082,12 @@ describe('VbaDetails', () => {
 
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+    });
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+      enabled: true,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
     });
   });
 });

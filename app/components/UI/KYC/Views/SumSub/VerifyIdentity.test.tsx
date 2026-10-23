@@ -10,9 +10,18 @@ import {
   METAMASK_TERMS_URL,
 } from '../../../Ramp/Views/VirtualBankAccount/constants';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
+import { useVbaScreenPerformance } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from '../../../Ramp/Views/VirtualBankAccount/vbaScreenPerformance';
 
 jest.mock('../../hooks/useKycSessionDisclaimers');
 const mockUseKycSessionDisclaimers = jest.mocked(useKycSessionDisclaimers);
+jest.mock(
+  '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaScreenPerformance',
+);
+const mockUseVbaScreenPerformance = jest.mocked(useVbaScreenPerformance);
 const mockRetry = jest.fn();
 const mockOnSuccess = jest.fn();
 
@@ -136,6 +145,11 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeEnabled();
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
+    });
   });
 
   it('returns to Money home when the header back button is pressed', () => {
@@ -172,6 +186,11 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+      contentReady: false,
+      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
+    });
     expect(
       queryByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
     ).not.toBeOnTheScreen();
@@ -193,6 +212,11 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.CONTINUE_BUTTON),
     ).toBeDisabled();
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
 
     fireEvent.press(
       getByTestId(VbaVerifyIdentitySelectorsIDs.DISCLAIMERS_RETRY),
@@ -208,6 +232,10 @@ describe('VbaVerifyIdentity', () => {
     expect(
       getByTestId(VbaVerifyIdentitySelectorsIDs.TERMS_SHEET),
     ).toBeOnTheScreen();
+    expect(mockUseVbaScreenPerformance).toHaveBeenCalledWith({
+      screenId: VBA_SCREEN_ID.PROVIDER_TERMS_MODAL,
+      contentReady: true,
+    });
     expect(getByText('Data and privacy')).toBeOnTheScreen();
     expect(
       getByText(

@@ -19,6 +19,11 @@ import {
   useOpenVbaOnboarding,
 } from '../hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from '../routes';
+import { useVbaScreenPerformance } from '../hooks/useVbaScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+} from '../vbaScreenPerformance';
 
 /**
  * Wires the account-creation error screens into onboarding.
@@ -29,6 +34,14 @@ const VbaAccountCreateErrorAdapter = () => {
   const route =
     useRoute<RouteProp<VbaOnboardingParamList, 'VbaAccountCreateError'>>();
   const { variant, failure, sourceCurrency, retryable } = route.params;
+  useVbaScreenPerformance({
+    screenId:
+      variant === 'details'
+        ? VBA_SCREEN_ID.ACCOUNT_CREATE_DETAILS_ERROR
+        : VBA_SCREEN_ID.ACCOUNT_CREATE_GENERIC_ERROR,
+    contentReady: true,
+    contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+  });
   const primaryActionType = retryable
     ? 'retry'
     : getAccountCreateErrorPrimaryAction(failure);
