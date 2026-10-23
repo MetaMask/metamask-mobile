@@ -140,7 +140,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
                     isSelected={isSelected}
                     pointerEvents="none"
                     onChange={() => {
-                      void handleAccountPress(account.address);
+                      void handleAccountPress(account.linkedAddresses);
                     }}
                   />
                 </Box>
