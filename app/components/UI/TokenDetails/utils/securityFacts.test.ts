@@ -191,15 +191,16 @@ describe('resolveVerdict', () => {
   /**
    * The regression that matters most.
    *
-   * `renounced` fails on silence, so a token that says nothing about ownership
-   * shows a red cross on that row. The verdict must not follow it: it reads
-   * types off features that are *present*, and silence carries no type.
+   * `renounced` dashes on silence, so a token that says nothing about ownership
+   * shows `unknown` on that row rather than a red cross. The verdict must not
+   * follow the row either way: it reads types off features that are *present*,
+   * and silence carries no type.
    */
-  it('stays screened when a check fails on silence rather than a signal', () => {
+  it('stays screened when a check is unknown on silence rather than a signal', () => {
     const features = [feature('VERIFIED_CONTRACT', 'Benign')];
     const checks = resolveSecurityChecks(features);
 
-    expect(checks[ContractCheckKey.Renounced].outcome).toBe('fail');
+    expect(checks[ContractCheckKey.Renounced].outcome).toBe('unknown');
     expect(verdictFor(features)).toBe('screened');
   });
 });
@@ -476,12 +477,12 @@ describe('resolveSecurityChecks', () => {
     // Still fails closed on silence: the worst case is understating a good
     // token rather than reassuring about a bad one. `resolveVerdict` is what
     // stops that understatement reaching the pill.
-    it('fails rather than dashes when neither feature is present', () => {
+    it('dashes when neither feature is present', () => {
       const checks = resolveSecurityChecks([]);
 
       expect(checks[ContractCheckKey.Renounced]).toStrictEqual({
-        outcome: 'fail',
-        value: 'Not renounced',
+        outcome: 'unknown',
+        value: null,
       });
     });
 

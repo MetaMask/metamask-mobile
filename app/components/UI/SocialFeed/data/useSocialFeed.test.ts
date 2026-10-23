@@ -1,12 +1,18 @@
 import React from 'react';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  hashKey,
+  hydrate,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { useLogSocialQueryError } from '../../../../util/social/socialServiceTelemetry';
-import { FEED_PAGE_LIMIT } from './socialFeedQueries';
+import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
 import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
-import type { SocialFeedSource } from './socialFeedSource';
+import { toSocialFeedRequest, type SocialFeedSource } from './socialFeedSource';
 import { useSocialFeed } from './useSocialFeed';
+import { measureSocialDataFetch } from '../../../../util/social/socialPerformance';
 
 const mockCall = jest.fn();
 
@@ -35,12 +41,19 @@ jest.mock('../../../../util/social/socialServiceTelemetry', () => ({
     error ? (error instanceof Error ? error.message : String(error)) : null,
 }));
 
+jest.mock('../../../../util/social/socialPerformance', () => ({
+  measureSocialDataFetch: jest.fn(
+    ({ request }: { request: () => Promise<unknown> }) => request(),
+  ),
+}));
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseLogSocialQueryError = jest.mocked(useLogSocialQueryError);
+const mockMeasureSocialDataFetch = jest.mocked(measureSocialDataFetch);
 
-const createWrapper = () => {
+const createWrapper = (staleTime = 0) => {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    defaultOptions: { queries: { retry: false, gcTime: 0, staleTime } },
   });
   const wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client }, children);
@@ -316,6 +329,68 @@ describe('useSocialFeed', () => {
     expect(mockCall).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps paginated posts when a plain feed page hydrates under the service key', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+    const { client, wrapper } = createWrapper();
+    const source: SocialFeedSource = {
+      kind: 'trader',
+      addressOrId: '0xabc',
+      commentedOnly: true,
+    };
+    const request = toSocialFeedRequest(source);
+    if (!request) {
+      throw new Error('trader source did not resolve to a feed request');
+    }
+    const infiniteKey = buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT);
+    const serviceKey = [
+      'SocialService:fetchTraderFeed',
+      { addressOrId: '0xabc', commentedOnly: true, limit: FEED_PAGE_LIMIT },
+    ] as const;
+    const hydratedPage = mockFeedResponse([
+      mockSpotFeedItem({ positionId: 'hydrated-page' }),
+    ]);
+
+    const { result } = renderHook(() => useSocialFeed(source), { wrapper });
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+
+    act(() => {
+      hydrate(client, {
+        queries: [
+          {
+            queryHash: hashKey(serviceKey),
+            queryKey: [...serviceKey],
+            dehydratedAt: Date.now() + 60_000,
+            state: {
+              data: hydratedPage,
+              dataUpdateCount: 1,
+              dataUpdatedAt: Date.now() + 60_000,
+              error: null,
+              errorUpdateCount: 0,
+              errorUpdatedAt: 0,
+              fetchFailureCount: 0,
+              fetchFailureReason: null,
+              fetchMeta: null,
+              isInvalidated: false,
+              status: 'success',
+              fetchStatus: 'idle',
+            },
+          },
+        ],
+      });
+    });
+
+    expect(hashKey(serviceKey)).not.toBe(hashKey(infiniteKey));
+    expect(result.current.posts).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+    expect(client.getQueryData(infiniteKey)).toEqual(
+      expect.objectContaining({
+        pages: [expect.objectContaining({ items: expect.any(Array) })],
+      }),
+    );
+    expect(client.getQueryData(serviceKey)).toEqual(hydratedPage);
+  });
+
   it('does nothing on refresh or load-more without a source', async () => {
     const { result } = renderHook(() => useSocialFeed(null), {
       wrapper: createWrapper().wrapper,
@@ -325,5 +400,117 @@ describe('useSocialFeed', () => {
     result.current.loadMore();
 
     expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('measures the first Social V1 initial-page request as cold', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+
+    const { result } = renderHook(
+      () =>
+        useSocialFeed(
+          { kind: 'all', audience: 'all' },
+          { performance: { tab: 'trending' } },
+        ),
+      { wrapper: createWrapper().wrapper },
+    );
+
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+
+    expect(mockMeasureSocialDataFetch).toHaveBeenCalledTimes(1);
+    expect(mockMeasureSocialDataFetch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tab: 'trending',
+        cacheState: 'cold',
+        request: expect.any(Function),
+      }),
+    );
+  });
+
+  it('measures a stale cached Social V1 request as warm', async () => {
+    const source: SocialFeedSource = { kind: 'all', audience: 'following' };
+    const request = toSocialFeedRequest(source);
+    if (!request) {
+      throw new Error('following source did not resolve to a feed request');
+    }
+    const { client, wrapper } = createWrapper();
+    client.setQueryData(buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT), {
+      pages: [mockFeedResponse([mockSpotFeedItem()])],
+      pageParams: [undefined],
+    });
+    mockCall.mockResolvedValue(mockFeedResponse([mockSpotFeedItem()]));
+
+    renderHook(
+      () =>
+        useSocialFeed(source, {
+          performance: { tab: 'following' },
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() =>
+      expect(mockMeasureSocialDataFetch).toHaveBeenCalledWith(
+        expect.objectContaining({ cacheState: 'warm' }),
+      ),
+    );
+  });
+
+  it('emits no data-fetch trace when a fresh cache satisfies the tab', async () => {
+    const source: SocialFeedSource = { kind: 'all', audience: 'following' };
+    const request = toSocialFeedRequest(source);
+    if (!request) {
+      throw new Error('following source did not resolve to a feed request');
+    }
+    const { client, wrapper } = createWrapper(60_000);
+    client.setQueryData(buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT), {
+      pages: [mockFeedResponse([mockSpotFeedItem()])],
+      pageParams: [undefined],
+    });
+
+    const { result } = renderHook(
+      () =>
+        useSocialFeed(source, {
+          performance: { tab: 'following' },
+        }),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.posts).toHaveLength(1));
+
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(mockMeasureSocialDataFetch).not.toHaveBeenCalled();
+  });
+
+  it('does not measure pagination or refresh after the initial request', async () => {
+    mockCall.mockResolvedValue(
+      mockFeedResponse([mockSpotFeedItem()], 'cursor-1'),
+    );
+    const { result } = renderHook(
+      () =>
+        useSocialFeed(perpSource, {
+          performance: { tab: 'trending' },
+        }),
+      { wrapper: createWrapper().wrapper },
+    );
+    await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+    act(() => {
+      result.current.loadMore();
+    });
+    await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(2));
+    await act(async () => {
+      await result.current.refresh();
+    });
+
+    expect(mockMeasureSocialDataFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not measure shared feed requests without Social V1 context', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([]));
+
+    renderHook(() => useSocialFeed(perpSource), {
+      wrapper: createWrapper().wrapper,
+    });
+    await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(1));
+
+    expect(mockMeasureSocialDataFetch).not.toHaveBeenCalled();
   });
 });

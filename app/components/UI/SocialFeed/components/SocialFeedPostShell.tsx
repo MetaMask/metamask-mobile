@@ -32,6 +32,7 @@ import ReactionPickerBalloon, {
   type ReactionPickerAnchor,
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
+import SocialFeedGif from './SocialFeedGif';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -153,9 +154,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}
         testIDs={{
           avatar: `${SocialFeedPostShellSelectorsIDs.AVATAR}-${post.id}`,
-          verifiedBadge: SocialFeedPostShellSelectorsIDs.VERIFIED_BADGE,
           timestamp: `${SocialFeedPostShellSelectorsIDs.TIMESTAMP}-${post.id}`,
-          mockMarker: `${SocialFeedPostShellSelectorsIDs.MOCK_MARKER}-${post.id}`,
           traderStat: SocialFeedPostShellSelectorsIDs.TRADER_STAT,
           more: `${SocialFeedPostShellSelectorsIDs.MORE}-${post.id}`,
           identityPress: `${SocialFeedPostShellSelectorsIDs.IDENTITY_PRESS}-${post.id}`,
@@ -190,9 +189,8 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
         {post.gifUri ? (
           <Box twClassName="rounded-2xl overflow-hidden">
-            <Image
-              source={{ uri: post.gifUri }}
-              style={tw.style('w-full aspect-square')}
+            <SocialFeedGif
+              uri={post.gifUri}
               testID={`${SocialFeedPostShellSelectorsIDs.GIF}-${post.id}`}
             />
           </Box>

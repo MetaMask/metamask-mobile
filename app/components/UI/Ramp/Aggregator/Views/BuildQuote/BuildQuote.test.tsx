@@ -32,6 +32,7 @@ import { createFiatSelectorModalNavigationDetails } from '../../components/FiatS
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { RampIntent } from '../../types';
 import { SolScope } from '@metamask/keyring-api';
+import { BottomSheetDialog } from '@metamask/design-system-react-native';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -869,6 +870,15 @@ describe('BuildQuote View', () => {
       expect(
         screen.queryByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR),
       ).not.toBeOnTheScreen();
+    });
+
+    it('does not claim the native responder for amount keypad touches', () => {
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      const bottomSheet = screen.UNSAFE_getByType(BottomSheetDialog);
+
+      expect(bottomSheet.props.onStartShouldSetResponder).toBeUndefined();
     });
 
     it('replaces quick amounts with Done confirm when an amount is entered', () => {

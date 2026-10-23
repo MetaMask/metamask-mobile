@@ -1,5 +1,6 @@
 import type { RootState } from '..';
 import type {
+  ClaimDto,
   CommissionEntryView,
   LedgerEarningEntryDto,
   LedgerEntryDto,
@@ -7,11 +8,14 @@ import type {
   ReferralMeDto,
   ReferralRole,
 } from '../../core/Engine/controllers/rewards-money-controller/types';
+import { selectGeoLocation } from '../rewards/selectors';
 import type {
+  ClaimLock,
   EarningsSummaryEntry,
   ReferralFunnelEntry,
   ReferralMeEntry,
 } from '.';
+import { isMoneyReferralAllowedForGeo } from './isMoneyReferralAllowedForGeo';
 
 /** Which Rewards home a settled referral-me payload opens. */
 export type MoneyDashboardPersona = 'referrer' | 'referee' | 'plain';
@@ -88,7 +92,7 @@ export function selectReferralMeEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralMe[profileId];
+  return state.rewardsMoney.referralMe?.[profileId];
 }
 
 /**
@@ -115,6 +119,22 @@ export function selectReferralMeLocalizedText(
 }
 
 /**
+ * Whether the current device country may accept a Money referral invite.
+ *
+ * Combines Rewards geo metadata with the program's `excluded_regions` from
+ * referral me. Unknown geo fails open (same as Rewards opt-in on error).
+ */
+export function selectMoneyReferralAllowedForGeo(
+  state: RootState,
+  profileId: string | undefined,
+): boolean {
+  const geoLocation = selectGeoLocation(state);
+  const excludedRegions = selectReferralMeEntry(state, profileId)?.data
+    ?.excluded_regions;
+  return isMoneyReferralAllowedForGeo(geoLocation, excludedRegions);
+}
+
+/**
  * Unnarrowed `GET /earnings/summary` entry for one Hydra profile. Keyed the
  * same way as referral me, for the same reason: a late write for a signed-out
  * profile must not be read as the current one's.
@@ -126,7 +146,7 @@ export function selectEarningsSummaryEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsSummary[profileId];
+  return state.rewardsMoney.earningsSummary?.[profileId];
 }
 
 export function selectReferralFunnelEntry(
@@ -136,7 +156,7 @@ export function selectReferralFunnelEntry(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.referralFunnel[profileId];
+  return state.rewardsMoney.referralFunnel?.[profileId];
 }
 
 export function selectCommissions(
@@ -146,7 +166,7 @@ export function selectCommissions(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.commissions[profileId];
+  return state.rewardsMoney.commissions?.[profileId];
 }
 
 export function selectCashbackLedger(
@@ -156,7 +176,7 @@ export function selectCashbackLedger(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.cashbackLedger[profileId];
+  return state.rewardsMoney.cashbackLedger?.[profileId];
 }
 
 /** First page of the unified earnings ledger for one Hydra profile. */
@@ -167,5 +187,38 @@ export function selectEarningsHistory(
   if (!profileId) {
     return undefined;
   }
-  return state.rewardsMoney.earningsHistory[profileId];
+  return state.rewardsMoney.earningsHistory?.[profileId];
+}
+
+/** First page of open claims for one Hydra profile. */
+export function selectInFlightClaims(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimDto[] | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.inFlightClaims?.[profileId];
+}
+
+/** Epoch ms until Claim is enabled again, after a refusal's `Retry-After`. */
+export function selectClaimWaitingUntil(
+  state: RootState,
+  profileId: string | undefined,
+): number | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimWaitingUntil?.[profileId];
+}
+
+/** Session lock that keeps Claim disabled after the Earnings tab unmounts. */
+export function selectClaimLock(
+  state: RootState,
+  profileId: string | undefined,
+): ClaimLock | undefined {
+  if (!profileId) {
+    return undefined;
+  }
+  return state.rewardsMoney.claimLocks?.[profileId];
 }

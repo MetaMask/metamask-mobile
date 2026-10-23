@@ -329,6 +329,9 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  // Social V1 Performance
+  SocialTabTimeToContent = 'Social Tab Time To Content',
+  SocialTabDataFetch = 'Social Tab Data Fetch',
 }
 
 export enum TraceOperation {
@@ -409,6 +412,8 @@ export enum TraceOperation {
   // Notifications & Braze Performance
   NotificationPerformance = 'notification.performance',
   BrazeBannerPerformance = 'braze_banner.performance',
+  SocialPerformance = 'social.performance',
+  SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
