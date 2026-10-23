@@ -79,14 +79,17 @@ const CreateVirtualBankAccount = ({
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
+  let vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (disclaimersError) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
   useVbaScreenPerformance({
     screenId: VBA_SCREEN_ID.VENDOR_TERMS,
     contentReady: !isLoading,
-    contentState: disclaimersError
-      ? VBA_SCREEN_CONTENT_STATE.ERROR
-      : disclaimers?.length
-        ? VBA_SCREEN_CONTENT_STATE.POPULATED
-        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+    contentState: vendorTermsContentState,
   });
 
   // The user can't agree to disclaimers they haven't been shown.

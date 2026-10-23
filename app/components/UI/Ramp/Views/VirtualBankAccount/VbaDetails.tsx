@@ -556,16 +556,19 @@ const VbaDetails = () => {
 
   const rows = buildDetailRows(instructions);
   const hasCurrentAccountState = stateAccountKey === accountKey;
+  let accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (loadError) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (rows.length > 0) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
   useVbaScreenPerformance({
     screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
     resetKey: accountKey,
     enabled: isApproved && hasCurrentAccountState,
     contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
-    contentState: loadError
-      ? VBA_SCREEN_CONTENT_STATE.ERROR
-      : rows.length > 0
-        ? VBA_SCREEN_CONTENT_STATE.POPULATED
-        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+    contentState: accountDetailsContentState,
   });
   const isBankTransfer =
     instructions?.type === 'UsBank' ||

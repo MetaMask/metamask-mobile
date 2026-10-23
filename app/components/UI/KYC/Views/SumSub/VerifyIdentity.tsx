@@ -79,14 +79,17 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
 
+  let identityTermsContentState = VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (error) {
+    identityTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    identityTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
   useVbaScreenPerformance({
     screenId: VBA_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
     contentReady: !isLoading,
-    contentState: error
-      ? VBA_SCREEN_CONTENT_STATE.ERROR
-      : disclaimers?.length
-        ? VBA_SCREEN_CONTENT_STATE.POPULATED
-        : VBA_SCREEN_CONTENT_STATE.EMPTY,
+    contentState: identityTermsContentState,
   });
 
   // The sheet can't open without the idOS / SumSub terms to review.
