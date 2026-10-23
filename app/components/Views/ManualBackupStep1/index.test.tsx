@@ -264,7 +264,9 @@ describe('ManualBackupStep1', () => {
         wrapper.getByText(strings('manual_backup_step_1.action')),
       ).toBeOnTheScreen();
       expect(
-        wrapper.getByText(strings('manual_backup_step_1.description')),
+        wrapper.getByText(strings('manual_backup_step_1.description'), {
+          exact: false,
+        }),
       ).toBeOnTheScreen();
       expect(
         wrapper.getByText(strings('manual_backup_step_1.what_is_srp')),

@@ -1,6 +1,6 @@
+import { type PerpsFeeDiscountKind } from '../../../utils/feeDiscount';
 import React from 'react';
 import { Image, View } from 'react-native';
-import type { PerpsFeeSource } from '@metamask/perps-controller';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
@@ -21,15 +21,17 @@ interface FeesTooltipContentProps extends TooltipContentProps {
     protocolFeeRate?: number;
     originalMetamaskFeeRate?: number;
     feeDiscountPercentage?: number;
-    /**
-     * Winning source of the fee resolution. Only picks the badge and saving
-     * message variant shown when `feeDiscountPercentage` is positive:
-     * `subscription` shows the member variant, anything else the VIP one.
-     */
-    feeSource?: PerpsFeeSource;
+    feeDiscountKind?: PerpsFeeDiscountKind;
     bridgeFeeFormatted?: string;
   };
 }
+
+const DISCOUNT_MESSAGE_BY_KIND = {
+  member: 'perps.tooltips.fees.member_discount_message',
+  vip: 'perps.tooltips.fees.discount_message',
+  promotional: 'perps.tooltips.fees.promotional_discount_message',
+  generic: 'perps.tooltips.fees.fee_discount_message',
+} as const satisfies Record<PerpsFeeDiscountKind, string>;
 
 const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
@@ -41,30 +43,28 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
 
   const hasDiscount =
     discountPercentage !== undefined && discountPercentage > 0;
-  const isSubscriptionDiscount = data?.feeSource === 'subscription';
+  const isMemberDiscount = hasDiscount && data?.feeDiscountKind === 'member';
+  const isVipDiscount = hasDiscount && data?.feeDiscountKind === 'vip';
+  const discountMessage = data?.feeDiscountKind
+    ? DISCOUNT_MESSAGE_BY_KIND[data.feeDiscountKind]
+    : DISCOUNT_MESSAGE_BY_KIND.generic;
 
   return (
     <View testID={testID}>
       {hasDiscount && (
         <View style={styles.discountBanner}>
-          {isSubscriptionDiscount ? (
+          {isMemberDiscount && (
             <Image
               source={foxIcon}
               style={styles.memberIcon}
               resizeMode="contain"
             />
-          ) : (
-            <VipIcon name="VipIcon" width={14} height={14} />
           )}
+          {isVipDiscount && <VipIcon name="VipIcon" width={14} height={14} />}
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings(
-              isSubscriptionDiscount
-                ? 'perps.tooltips.fees.member_discount_message'
-                : 'perps.tooltips.fees.discount_message',
-              {
-                percentage: discountPercentage.toString(),
-              },
-            )}
+            {strings(discountMessage, {
+              percentage: discountPercentage.toString(),
+            })}
           </Text>
         </View>
       )}
@@ -74,9 +74,9 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
           {strings('perps.tooltips.fees.metamask_fee')}
         </Text>
         <View style={styles.feeValueContainer}>
-          {hasDiscount ? (
-            <MembershipVipBadge hasProEntitlement={isSubscriptionDiscount} />
-          ) : null}
+          {(isMemberDiscount || isVipDiscount) && (
+            <MembershipVipBadge hasProEntitlement={isMemberDiscount} />
+          )}
           {hasDiscount && (
             <Text
               variant={TextVariant.BodyMd}

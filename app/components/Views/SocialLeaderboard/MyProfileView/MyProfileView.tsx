@@ -184,6 +184,7 @@ const MyProfileView: React.FC = () => {
     traderId,
     traderName,
   ]);
+  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const {
     posts,
     isLoading: isPostsLoading,
@@ -192,7 +193,10 @@ const MyProfileView: React.FC = () => {
     loadMore,
     error: postsError,
     refresh: refreshPosts,
-  } = useMyProfilePosts(addressOrId);
+  } = useMyProfilePosts(addressOrId, {
+    ownerProfileId: isOwner ? myProfile?.profileId : undefined,
+    isActive: activeTab === 'posts',
+  });
   const {
     openPositions,
     closedPositions,
@@ -202,7 +206,6 @@ const MyProfileView: React.FC = () => {
     closedError: closedPositionsError,
     refetch: refetchPositions,
   } = useTraderPositions(addressOrId ?? '');
-  const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
   const [assetFilter, setAssetFilter] = useState<ProfileAssetFilter>('all');
   const overlayedStats = useMemo(
     () =>

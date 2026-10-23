@@ -47,7 +47,7 @@ describe('SocialTraderIdentityRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the handle, invented verified badge, and 30-day P&L', () => {
+  it('renders the handle and 30-day P&L without a verified badge or mock marker', () => {
     renderWithProvider(
       <SocialFeedSurfaceProvider showMockedFields>
         <SocialTraderIdentityRow
@@ -65,12 +65,12 @@ describe('SocialTraderIdentityRow', () => {
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.HANDLE),
     ).toHaveTextContent('cented');
     expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
     expect(
-      screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
-    ).toHaveTextContent('*');
-    expect(screen.queryByText('🐬')).toBeNull();
+      screen.queryByTestId(SocialTraderIdentityRowSelectorsIDs.MOCK_MARKER),
+    ).toBeNull();
+    expect(screen.queryByText('*')).toBeNull();
     expect(
       screen.getByTestId(SocialTraderIdentityRowSelectorsIDs.TRADER_STAT),
     ).toHaveTextContent('$50K P&L (30d)');
