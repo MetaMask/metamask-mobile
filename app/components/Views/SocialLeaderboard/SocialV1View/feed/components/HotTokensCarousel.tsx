@@ -68,16 +68,9 @@ export interface HotTokensCarouselProps {
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
-  /**
-   * False once this tab is no longer the visible page. Defaults to true so a
-   * rail mounted on its own keeps crawling.
-   */
+  /** False once this tab is off screen. A rail mounted alone keeps crawling. */
   active?: boolean;
-  /**
-   * 1 while the crawl may write `translateX`, 0 while it must hold. The screen
-   * owns this so a hidden Trending page stops committing even when Activity
-   * defers the re-render that would flip `active`.
-   */
+  /** 1 while the crawl may write `translateX`, 0 while a hidden page must hold. */
   crawl?: SharedValue<number>;
 }
 

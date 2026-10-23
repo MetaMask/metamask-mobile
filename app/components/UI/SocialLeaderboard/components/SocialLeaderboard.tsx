@@ -9,6 +9,7 @@ import React, {
 } from 'react';
 import {
   useWindowDimensions,
+  type RefreshControlProps,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
@@ -121,7 +122,7 @@ export interface SocialLeaderboardProps {
   virtualized?: boolean;
   onScroll?: AnimatedScrollHandler;
   scrollTestID?: string;
-  refreshControl?: React.ReactElement;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
   contentContainerStyle?: StyleProp<ViewStyle>;
   listHeader?: React.ReactElement | null;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */

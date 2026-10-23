@@ -2,10 +2,7 @@ import React from 'react';
 import { FlatList } from 'react-native';
 import type { FlashListProps } from '@shopify/flash-list';
 
-/**
- * Jest stand-in so FlashList renders every row. Production lists stay virtualized.
- * `renderScrollComponent` is a FlashList-only prop FlatList would forward to native.
- */
+/** Jest stand-in. The FlashList test entry throws, so rows render through FlatList. */
 export const FlashList = React.forwardRef(
   (
     {
