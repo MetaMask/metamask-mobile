@@ -84,12 +84,13 @@ import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
+  SocialEvent,
+  useSocialInteraction,
+  useSocialScreenAnalytics,
   type SocialEventSource,
 } from '../analytics';
 
+const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
 interface ImageInsertEvent {
   nativeEvent: {
     uri?: string;
@@ -177,15 +178,16 @@ const SocialPostComposerView: React.FC = () => {
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
   const analyticsSource: SocialEventSource | undefined =
     routeParams?.entryPoint === 'perps'
-      ? SocialEventValues.SOURCE.PERP_ASSET_SCREEN
+      ? Source.PERP_ASSET_SCREEN
       : routeParams?.entryPoint === 'token_details'
-        ? SocialEventValues.SOURCE.ASSET_DETAILS
+        ? Source.ASSET_DETAILS
         : tradeInFlightParams
-          ? SocialEventValues.SOURCE.TRADER_FEED
+          ? Source.TRADER_FEED
           : undefined;
-  const { trackInteraction } = useSocialV1Analytics();
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
+  const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
+    source: analyticsSource,
+  });
+  const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
     source: analyticsSource,
   });
 
@@ -222,24 +224,18 @@ const SocialPostComposerView: React.FC = () => {
     });
   }, [composerAuthor, selectedPosition, text, tradeInFlightPreview]);
   const analyticsTradeType = previewItem
-    ? previewItem.variant === 'perpsOpen' ||
-      previewItem.variant === 'perpsClosed'
-      ? SocialEventValues.TRADE_TYPE.PERPS
-      : SocialEventValues.TRADE_TYPE.SPOT
+    ? previewItem.variant.startsWith('perps')
+      ? Trade.PERPS
+      : Trade.SPOT
     : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const canSubmit = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-      ...(analyticsSource ? { source: analyticsSource } : {}),
-      outcome: SocialEventValues.OUTCOME.DISMISSED,
-    });
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [analyticsSource, navigation, trackInteraction]);
+  }, [navigation, trackInteraction]);
 
   const handleChangeText = useCallback((next: string) => {
     setText(clipComposerComment(next));
@@ -280,23 +276,15 @@ const SocialPostComposerView: React.FC = () => {
     setIsGifSheetOpen(next);
     if (next) {
       Keyboard.dismiss();
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.GIF_PICKER_OPENED,
-        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-        ...(analyticsSource ? { source: analyticsSource } : {}),
-      });
+      trackInteraction(Interaction.GIF_PICKER_OPENED);
     }
-  }, [analyticsSource, isGifSheetOpen, trackInteraction]);
+  }, [isGifSheetOpen, trackInteraction]);
 
   const handlePositionChipPress = useCallback(() => {
     setIsGifSheetOpen(false);
     setIsShareSheetOpen(true);
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISPLAYED,
-      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
-      ...(analyticsSource ? { source: analyticsSource } : {}),
-    });
-  }, [analyticsSource, trackInteraction]);
+    trackShareSheet(Interaction.SHEET_DISPLAYED);
+  }, [trackShareSheet]);
 
   const handleSelectGif = useCallback((nextGifUri: string) => {
     setGifUri(nextGifUri);
@@ -401,11 +389,8 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.POST_SUBMITTED,
-        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-        ...(analyticsSource ? { source: analyticsSource } : {}),
-        outcome: SocialEventValues.OUTCOME.SUCCESS,
+      trackInteraction(Interaction.POST_SUBMITTED, {
+        outcome: Outcome.SUCCESS,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       if (openFeedAfterPost) {
@@ -415,11 +400,8 @@ const SocialPostComposerView: React.FC = () => {
         navigation.goBack();
       }
     } catch {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.POST_FAILED,
-        screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-        ...(analyticsSource ? { source: analyticsSource } : {}),
-        outcome: SocialEventValues.OUTCOME.FAILED,
+      trackInteraction(Interaction.POST_FAILED, {
+        outcome: Outcome.FAILED,
         ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
       });
       toastRef?.current?.showToast({
@@ -436,7 +418,6 @@ const SocialPostComposerView: React.FC = () => {
     }
   }, [
     authorName,
-    analyticsSource,
     analyticsTradeType,
     canSubmit,
     colors.error.default,

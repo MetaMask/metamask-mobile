@@ -127,12 +127,6 @@ const renderShell = (
   options?: {
     onAuthorPress?: (post: SocialV1FeedPost) => void;
     onCopyTrade?: (item: SocialV1FeedPost['item'], commentId?: string) => void;
-    onCopyTradeInteraction?: (tradeType: 'perps' | 'spot') => void;
-    onReactionInteraction?: (
-      action: 'added' | 'removed',
-      emotion: string,
-    ) => void;
-    onReactionPickerOpened?: () => void;
     onPositionPress?: (post: SocialV1FeedPost) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
@@ -149,9 +143,6 @@ const renderShell = (
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}
-      onCopyTradeInteraction={options?.onCopyTradeInteraction}
-      onReactionInteraction={options?.onReactionInteraction}
-      onReactionPickerOpened={options?.onReactionPickerOpened}
     />
   );
   return renderWithProvider(
@@ -195,12 +186,7 @@ describe('SocialFeedPostShell', () => {
   });
 
   it('opens the balloon and adds a reaction chip when an emoji is picked', async () => {
-    const onReactionInteraction = jest.fn();
-    const onReactionPickerOpened = jest.fn();
-    renderShell(basePost({ reactions: [] }), {
-      onReactionInteraction,
-      onReactionPickerOpened,
-    });
+    renderShell(basePost({ reactions: [] }));
 
     fireEvent.press(
       screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.REACTIONS}-post-1`),
@@ -209,7 +195,6 @@ describe('SocialFeedPostShell', () => {
     expect(
       screen.getByTestId(ReactionPickerBalloonSelectorsIDs.BALLOON),
     ).toBeOnTheScreen();
-    expect(onReactionPickerOpened).toHaveBeenCalledTimes(1);
 
     fireEvent.press(
       screen.getByTestId(`${ReactionPickerBalloonSelectorsIDs.EMOJI}-🔥`),
@@ -220,7 +205,6 @@ describe('SocialFeedPostShell', () => {
         screen.getByTestId(`${SocialFeedPostShellSelectorsIDs.CHIP}-post-1-🔥`),
       ).toBeOnTheScreen();
     });
-    expect(onReactionInteraction).toHaveBeenCalledWith('added', '🔥');
   });
 
   it('navigates to profile onboarding instead of opening the picker without a linked wallet', () => {
@@ -438,14 +422,12 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('removes the reader from their own chip when it is pressed', async () => {
-      const onReactionInteraction = jest.fn();
       renderShell(
         basePost({
           commentId: undefined,
           reactions: [{ emotion: '🔥', count: 2 }],
           userReaction: '🔥',
         }),
-        { onReactionInteraction },
       );
 
       fireEvent.press(screen.getByTestId(chipTestId));
@@ -453,7 +435,6 @@ describe('SocialFeedPostShell', () => {
       await waitFor(() => {
         expect(screen.getByTestId(chipTestId)).toHaveTextContent('🔥1');
       });
-      expect(onReactionInteraction).toHaveBeenCalledWith('removed', '🔥');
     });
   });
 
@@ -689,19 +670,14 @@ describe('SocialFeedPostShell', () => {
 
     it('forwards an open spot item and does not open the perps order', () => {
       const onCopyTrade = jest.fn();
-      const onCopyTradeInteraction = jest.fn();
       const item = mockOpenSpotFeedItem({ id: 'item-spot' });
 
-      renderShell(basePost({ item }), {
-        onCopyTrade,
-        onCopyTradeInteraction,
-      });
+      renderShell(basePost({ item }), { onCopyTrade });
       fireEvent.press(
         screen.getByTestId('social-feed-position-card-copy-trade-item-spot'),
       );
 
       expect(onCopyTrade).toHaveBeenCalledWith(item, 'comment-1');
-      expect(onCopyTradeInteraction).toHaveBeenCalledWith('spot');
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

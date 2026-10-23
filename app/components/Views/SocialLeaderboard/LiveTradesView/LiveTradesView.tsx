@@ -41,12 +41,13 @@ import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
 import {
-  SocialEventValues,
+  SocialEvent,
   type SocialEventSource,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
+  useSocialScreenAnalytics,
 } from '../analytics';
 
+const { Filter, Interaction, Outcome, Screen, StreamState, Tab, Trade } =
+  SocialEvent;
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
 >['onScroll'];
@@ -114,15 +115,10 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   );
 
   const isLive = streamState === 'live';
-  const { trackInteraction } = useSocialV1Analytics();
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
-    tabName: SocialEventValues.TAB_NAME.LIVE_TRADES,
+  const trackInteraction = useSocialScreenAnalytics(Screen.LIVE_TRADES, {
+    tabName: Tab.LIVE_TRADES,
     source,
-    outcome:
-      visibleItems.length > 0
-        ? SocialEventValues.OUTCOME.CONTENT
-        : SocialEventValues.OUTCOME.EMPTY,
+    outcome: visibleItems.length > 0 ? Outcome.CONTENT : Outcome.EMPTY,
     isActive,
   });
   const streamLabel = strings(
@@ -134,31 +130,17 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
   const handleStreamToggle = useCallback(() => {
     const next = isLive ? 'paused' : 'live';
     setStreamState(next);
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.STREAM_TOGGLED,
-      screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
-      tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
-      ...(source ? { source } : {}),
-      filter_name: SocialEventValues.FILTER_NAME.STREAM_STATE,
-      filter_value:
-        next === 'live'
-          ? SocialEventValues.STREAM_STATE.LIVE
-          : SocialEventValues.STREAM_STATE.PAUSED,
-      previous_filter_value: isLive
-        ? SocialEventValues.STREAM_STATE.LIVE
-        : SocialEventValues.STREAM_STATE.PAUSED,
+    trackInteraction(Interaction.STREAM_TOGGLED, {
+      filter_name: Filter.STREAM_STATE,
+      filter_value: next === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+      previous_filter_value: isLive ? StreamState.LIVE : StreamState.PAUSED,
     });
-  }, [isLive, source, trackInteraction]);
+  }, [isLive, trackInteraction]);
 
   const handleTraderPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
-        tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
-        ...(source ? { source } : {}),
-      });
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: item.traderId,
         traderName: item.authorHandle,
@@ -167,21 +149,14 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         source: 'trader_feed',
       });
     },
-    [navigation, source, trackInteraction],
+    [navigation, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
     (item: LiveTradeRowModel) => {
       playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
-        tab_name: SocialEventValues.TAB_NAME.LIVE_TRADES,
-        ...(source ? { source } : {}),
-        trade_type:
-          item.type === 'perps'
-            ? SocialEventValues.TRADE_TYPE.PERPS
-            : SocialEventValues.TRADE_TYPE.SPOT,
+      trackInteraction(Interaction.TAP, {
+        trade_type: item.type === 'perps' ? Trade.PERPS : Trade.SPOT,
       });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: item.positionId,
@@ -189,7 +164,7 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         author: item.author,
       });
     },
-    [navigation, source, trackInteraction],
+    [navigation, trackInteraction],
   );
 
   return (

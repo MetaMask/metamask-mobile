@@ -14,7 +14,6 @@ import type {
   UseFollowersResult,
   UseTraderFollowingResult,
 } from './hooks';
-import { SocialEventValues } from '../analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -27,7 +26,6 @@ const mockRefreshMutuals = jest.fn().mockResolvedValue(undefined);
 const mockUseFollowedTraders = jest.fn<UseFollowedTradersResult, []>();
 const mockUseFollowers = jest.fn<UseFollowersResult, [UseFollowersOptions?]>();
 const mockUseTraderFollowing = jest.fn<UseTraderFollowingResult, []>();
-const mockTrackInteraction = jest.fn();
 let mockRouteParams: {
   initialTab?: 'followers' | 'following' | 'mutuals';
   addressOrId?: string;
@@ -59,14 +57,6 @@ jest.mock('../../../hooks/useFollowToggle', () => ({
   useFollowToggleMany: () => ({
     isFollowing: (id: string) => mockIsFollowing(id),
     toggleFollow: mockToggleFollow,
-  }),
-}));
-
-jest.mock('../analytics', () => ({
-  ...jest.requireActual('../analytics'),
-  useSocialScreenViewed: jest.fn(),
-  useSocialV1Analytics: () => ({
-    trackInteraction: mockTrackInteraction,
   }),
 }));
 
@@ -183,11 +173,6 @@ describe('FollowConnectionsView', () => {
       traderName: 'Moon Rabbit',
       traderAddress: '0x3333333333333333333333333333333333333333',
       traderAvatarUri: 'https://example.com/moon.png',
-    });
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-      screen_name: SocialEventValues.SCREEN_NAME.FOLLOW_CONNECTIONS,
-      item_position: 1,
     });
   });
 

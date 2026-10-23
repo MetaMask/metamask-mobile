@@ -41,11 +41,11 @@ import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
   getSocialEventSource,
-  SocialEventValues,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
-  useSocialV1Analytics,
+  useSocialInteraction,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
@@ -97,6 +97,7 @@ import {
   usePostTradeShareReopen,
 } from '../PostTradeShareBottomSheet';
 
+const { Filter, Interaction, Screen, Tab } = SocialEvent;
 const LANDING_INDEX = 0;
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
@@ -157,32 +158,12 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
   }
 };
 
-const getSocialEventTabContext = (tab: SocialShellTab) => {
-  switch (tab) {
-    case 'trending':
-      return {
-        screenName: SocialEventValues.SCREEN_NAME.TRENDING,
-        tabName: SocialEventValues.TAB_NAME.TRENDING,
-      };
-    case 'following':
-      return {
-        screenName: SocialEventValues.SCREEN_NAME.FOLLOWING,
-        tabName: SocialEventValues.TAB_NAME.FOLLOWING,
-      };
-    case 'liveTrades':
-      return {
-        screenName: SocialEventValues.SCREEN_NAME.LIVE_TRADES,
-        tabName: SocialEventValues.TAB_NAME.LIVE_TRADES,
-      };
-    case 'leaderboard':
-      return {
-        screenName: SocialEventValues.SCREEN_NAME.LEADERBOARD,
-        tabName: SocialEventValues.TAB_NAME.LEADERBOARD,
-      };
-    default:
-      return tab satisfies never;
-  }
-};
+const SOCIAL_EVENT_TAB_CONTEXT = {
+  trending: [Screen.TRENDING, Tab.TRENDING],
+  following: [Screen.FOLLOWING, Tab.FOLLOWING],
+  liveTrades: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
+  leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
+} as const;
 
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
@@ -204,7 +185,6 @@ const SocialV1ViewContent: React.FC = () => {
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const { openComposer } = useOpenSocialPostComposer();
   const { track } = useSocialLeaderboardAnalytics();
-  const { trackInteraction } = useSocialV1Analytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
 
@@ -233,26 +213,21 @@ const SocialV1ViewContent: React.FC = () => {
     applyFilters,
     resetDraftToDefaults,
   } = useSocialShellFilters();
+  const [filterScreen, filterTab] =
+    SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
+  const trackFilter = useSocialInteraction(filterScreen, {
+    tab_name: filterTab,
+    source: analyticsSource,
+  });
 
   const handleApplyFilters = useCallback(() => {
     if (openTab && hasDraftChanges) {
-      const { screenName, tabName } = getSocialEventTabContext(openTab);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.FILTER_APPLIED,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(analyticsSource ? { source: analyticsSource } : {}),
-        filter_name: SocialEventValues.FILTER_NAME.SOCIAL_FILTERS,
+      trackFilter(Interaction.FILTER_APPLIED, {
+        filter_name: Filter.SOCIAL_FILTERS,
       });
     }
     applyFilters();
-  }, [
-    analyticsSource,
-    applyFilters,
-    hasDraftChanges,
-    openTab,
-    trackInteraction,
-  ]);
+  }, [applyFilters, hasDraftChanges, openTab, trackFilter]);
 
   const handleOpenLiveTradesFilters = useCallback(() => {
     openSheet('liveTrades');

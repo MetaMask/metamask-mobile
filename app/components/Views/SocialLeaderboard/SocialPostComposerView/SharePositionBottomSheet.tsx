@@ -22,12 +22,9 @@ import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -78,39 +75,26 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     () => openPositions.filter((position) => isPerpPosition(position)),
     [openPositions],
   );
-  const { trackInteraction } = useSocialV1Analytics();
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
-    outcome: error
-      ? SocialEventValues.OUTCOME.ERROR
-      : isLoading
-        ? null
-        : positions.length > 0
-          ? SocialEventValues.OUTCOME.CONTENT
-          : SocialEventValues.OUTCOME.EMPTY,
-  });
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.SHARE_POSITION_SHEET,
+    {
+      state: [isLoading, Boolean(error), positions.length > 0],
+    },
+  );
 
   const handleTabChange = useCallback((value: string) => {
     setTab(value === 'closed' ? 'closed' : 'open');
   }, []);
 
   const handleClose = useCallback(() => {
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISMISSED,
-      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
-      outcome: SocialEventValues.OUTCOME.DISMISSED,
-    });
+    trackInteraction(Interaction.SHEET_DISMISSED, Outcome.DISMISSED);
     onClose();
   }, [onClose, trackInteraction]);
 
   const handleSelect = useCallback(
     (position: Position) => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
-        trade_type: isPerpPosition(position)
-          ? SocialEventValues.TRADE_TYPE.PERPS
-          : SocialEventValues.TRADE_TYPE.SPOT,
+      trackInteraction(Interaction.TAP, {
+        trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
       });
       onSelect(position, tab === 'closed');
     },

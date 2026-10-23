@@ -75,13 +75,9 @@ import {
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-  type SocialOnboardingStep,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Step } = SocialEvent;
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
@@ -93,15 +89,6 @@ const USERNAME_CHECK_DEBOUNCE_MS = 400;
  * not the same as the name being taken, and callers must not replace the draft.
  */
 type UsernameCheckOutcome = 'available' | 'unavailable' | 'superseded';
-
-const ANALYTICS_STEP_BY_ONBOARDING_STEP = {
-  intro: SocialEventValues.ONBOARDING_STEP.INTRO,
-  username: SocialEventValues.ONBOARDING_STEP.USERNAME,
-  'x-identity': SocialEventValues.ONBOARDING_STEP.X_IDENTITY,
-  avatar: SocialEventValues.ONBOARDING_STEP.AVATAR,
-  account: SocialEventValues.ONBOARDING_STEP.ACCOUNT,
-  ready: SocialEventValues.ONBOARDING_STEP.READY,
-} as const satisfies Record<ProfileOnboardingStep, SocialOnboardingStep>;
 
 const LIVE_ACTIVITY = [
   {
@@ -272,10 +259,8 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
-  const { trackInteraction } = useSocialV1Analytics();
-  const analyticsStep = ANALYTICS_STEP_BY_ONBOARDING_STEP[step];
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
+  const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
   });
   const usernameCheckId = useRef(0);
@@ -291,11 +276,7 @@ const SocialProfileOnboardingView: React.FC = () => {
   useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
 
   useEffect(() => {
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.STEP_VIEWED,
-      screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-      step: analyticsStep,
-    });
+    trackInteraction(Interaction.STEP_VIEWED);
   }, [analyticsStep, trackInteraction]);
 
   useEffect(() => {
@@ -315,14 +296,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [accounts]);
 
   const handleClose = useCallback(() => {
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-      outcome: SocialEventValues.OUTCOME.DISMISSED,
-      step: analyticsStep,
-    });
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [analyticsStep, navigation, trackInteraction]);
+  }, [navigation, trackInteraction]);
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -409,11 +385,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.USERNAME_SHUFFLED,
-      screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-      step: SocialEventValues.ONBOARDING_STEP.USERNAME,
-    });
+    trackInteraction(Interaction.USERNAME_SHUFFLED);
     const claimGeneratedUsername = async () => {
       let username = generateUsername();
       applyUsername(username);
@@ -443,11 +415,7 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.AVATAR_CHANGED,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-        step: SocialEventValues.ONBOARDING_STEP.AVATAR,
-      });
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarPresetId: presetId }));
     },
     [draft.avatarPresetId, playSelection, trackInteraction],
@@ -455,17 +423,10 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleAvatarBackgroundSelect = useCallback(
     (backgroundId: string) => {
-      if (backgroundId === draft.avatarBackgroundId) {
-        return;
-      }
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.AVATAR_CHANGED,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-        step: SocialEventValues.ONBOARDING_STEP.AVATAR,
-      });
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
     },
-    [draft.avatarBackgroundId, trackInteraction],
+    [trackInteraction],
   );
 
   const handleConnectX = useCallback(() => {
@@ -514,11 +475,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       if (enabled === draft.useXAvatar) {
         return;
       }
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.AVATAR_CHANGED,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-        step: SocialEventValues.ONBOARDING_STEP.X_IDENTITY,
-      });
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, useXAvatar: enabled }));
     },
     [draft.useXAvatar, playSelection, trackInteraction],
@@ -561,24 +518,6 @@ const SocialProfileOnboardingView: React.FC = () => {
     step,
   ]);
 
-  const handleLinkedAccountSelect = useCallback(
-    (account: (typeof accounts)[number]) => {
-      playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type:
-          SocialEventValues.INTERACTION_TYPE.LINKED_ACCOUNT_SELECTED,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-        step: SocialEventValues.ONBOARDING_STEP.ACCOUNT,
-      });
-      setDraft((current) => ({
-        ...current,
-        linkedAccountId: account.id,
-        linkedAccountAddress: account.address,
-      }));
-    },
-    [playSelection, trackInteraction],
-  );
-
   const handleFinish = useCallback(async () => {
     setFinishError(null);
     setIsSubmitting(true);
@@ -587,14 +526,9 @@ const SocialProfileOnboardingView: React.FC = () => {
         (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
       await createProfile(buildCreateProfileParams(draft, profileId));
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.USERNAME_CLAIMED,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILE_ONBOARDING,
-        outcome: SocialEventValues.OUTCOME.SUCCESS,
-        step:
-          draft.path === 'x'
-            ? SocialEventValues.ONBOARDING_STEP.X_IDENTITY
-            : SocialEventValues.ONBOARDING_STEP.USERNAME,
+      trackInteraction(Interaction.USERNAME_CLAIMED, {
+        outcome: Outcome.SUCCESS,
+        step: draft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
       });
       navigation.navigate(
         draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
@@ -896,7 +830,15 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
-                    onSelect={handleLinkedAccountSelect}
+                    onSelect={(account) => {
+                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        linkedAccountId: account.id,
+                        linkedAccountAddress: account.address,
+                      }));
+                    }}
                   />
                 </Box>
               ) : null}

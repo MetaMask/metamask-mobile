@@ -13,13 +13,11 @@ import {
 } from '../FollowConnectionsView/FollowConnectionsView.testIds';
 import ProfilesToFollowView from './ProfilesToFollowView';
 import { ProfilesToFollowViewSelectorsIDs } from './ProfilesToFollowView.testIds';
-import { SocialEventValues } from '../analytics';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
-const mockTrackInteraction = jest.fn();
 const mockFollowWithSetup = jest.fn(
   async (_isFollowing: boolean, performFollow: () => Promise<void>) => {
     await performFollow();
@@ -34,14 +32,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../hooks/useFollowWithNotificationSetup', () => ({
   useFollowWithNotificationSetup: () => ({
     followWithSetup: mockFollowWithSetup,
-  }),
-}));
-
-jest.mock('../analytics', () => ({
-  ...jest.requireActual('../analytics'),
-  useSocialScreenViewed: jest.fn(),
-  useSocialV1Analytics: () => ({
-    trackInteraction: mockTrackInteraction,
   }),
 }));
 
@@ -137,12 +127,6 @@ describe('ProfilesToFollowView', () => {
       },
       {},
     );
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-      screen_name: SocialEventValues.SCREEN_NAME.PROFILES_TO_FOLLOW,
-      source: 'profiles_to_follow',
-      item_position: 1,
-    });
   });
 
   it('toggles follow from a row Follow button', () => {

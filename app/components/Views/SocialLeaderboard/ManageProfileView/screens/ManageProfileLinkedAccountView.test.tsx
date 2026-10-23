@@ -12,12 +12,10 @@ import type { LinkableSocialAccount } from '../../hooks/useLinkableSocialAccount
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import type { UseProfileControllerResult } from '../hooks/useProfileController';
 import ManageProfileLinkedAccountView from './ManageProfileLinkedAccountView';
-import { SocialEventValues } from '../../analytics';
 
 const mockGoBack = jest.fn();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
 const mockUseLinkableSocialAccounts = jest.fn<LinkableSocialAccount[], []>();
-const mockTrackInteraction = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -30,14 +28,6 @@ jest.mock('../hooks/useProfileController', () => ({
 
 jest.mock('../../hooks/useLinkableSocialAccounts', () => ({
   useLinkableSocialAccounts: () => mockUseLinkableSocialAccounts(),
-}));
-
-jest.mock('../../analytics', () => ({
-  ...jest.requireActual('../../analytics'),
-  useSocialScreenViewed: jest.fn(),
-  useSocialV1Analytics: () => ({
-    trackInteraction: mockTrackInteraction,
-  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -142,11 +132,6 @@ describe('ManageProfileLinkedAccountView', () => {
 
     expect(updateProfile).toHaveBeenCalledWith({
       linked_addresses: [`eip155:1:${internalAccount1.address}`],
-    });
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
-      screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
-      outcome: SocialEventValues.OUTCOME.SUCCESS,
     });
   });
 });

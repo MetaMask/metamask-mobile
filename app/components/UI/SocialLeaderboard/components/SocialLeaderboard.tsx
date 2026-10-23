@@ -82,7 +82,6 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
-  /** Reports the terminal state rendered by the owned data surface. */
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }

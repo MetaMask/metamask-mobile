@@ -70,13 +70,13 @@ import type {
 } from '../SocialV1View/feed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
-  getSocialReactionType,
-  SocialEventValues,
+  SocialEvent,
   type SocialEventSource,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
+  useSocialFeedInteractions,
+  useSocialScreenAnalytics,
 } from '../analytics';
 
+const { FeedSort, Filter, Interaction, Screen, Tab, Trade } = SocialEvent;
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
@@ -197,15 +197,23 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   );
 
   const { colors } = useTheme();
-  const { trackInteraction } = useSocialV1Analytics();
-  const screenName =
-    tab === 'trending'
-      ? SocialEventValues.SCREEN_NAME.TRENDING
-      : SocialEventValues.SCREEN_NAME.FOLLOWING;
-  const tabName =
-    tab === 'trending'
-      ? SocialEventValues.TAB_NAME.TRENDING
-      : SocialEventValues.TAB_NAME.FOLLOWING;
+  const screenName = tab === 'trending' ? Screen.TRENDING : Screen.FOLLOWING;
+  const tabName = tab === 'trending' ? Tab.TRENDING : Tab.FOLLOWING;
+  const analyticsContext = { tab_name: tabName, source };
+  const trackInteraction = useSocialScreenAnalytics(screenName, {
+    tabName,
+    source,
+    state: [
+      isLoading,
+      Boolean(error),
+      posts.length > 0 || pinnedPosts.length > 0,
+    ],
+    isActive,
+  });
+  const feedInteractions = useSocialFeedInteractions(
+    screenName,
+    analyticsContext,
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [selectedToken, setSelectedToken] = useState<SocialV1HotToken | null>(
     null,
@@ -274,12 +282,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    trackInteraction({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.REFRESH,
-      screen_name: screenName,
-      tab_name: tabName,
-      ...(source ? { source } : {}),
-    });
+    trackInteraction(Interaction.REFRESH);
     try {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
@@ -302,14 +305,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [
-    refresh,
-    screenName,
-    source,
-    tabName,
-    trackInteraction,
-    visibleAssetFeed,
-  ]);
+  }, [refresh, trackInteraction, visibleAssetFeed]);
 
   /**
    * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
@@ -456,12 +452,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
       playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(source ? { source } : {}),
-      });
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -473,7 +464,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [myProfile, navigation, screenName, source, tabName, trackInteraction],
+    [myProfile, navigation, trackInteraction],
   );
 
   const handlePositionPress = useCallback(
@@ -482,16 +473,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(source ? { source } : {}),
-        trade_type:
-          post.item.variant === 'perpsOpen' ||
-          post.item.variant === 'perpsClosed'
-            ? SocialEventValues.TRADE_TYPE.PERPS
-            : SocialEventValues.TRADE_TYPE.SPOT,
+      trackInteraction(Interaction.TAP, {
+        trade_type: post.item.variant.startsWith('perps')
+          ? Trade.PERPS
+          : Trade.SPOT,
       });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
@@ -503,62 +488,16 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation, screenName, source, tabName, trackInteraction],
-  );
-
-  const handleReactionInteraction = useCallback(
-    (action: 'added' | 'removed', emotion: string) => {
-      const reactionType = getSocialReactionType(emotion);
-      if (!reactionType) {
-        return;
-      }
-      trackInteraction({
-        interaction_type:
-          action === 'added'
-            ? SocialEventValues.INTERACTION_TYPE.REACTION_ADDED
-            : SocialEventValues.INTERACTION_TYPE.REACTION_REMOVED,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(source ? { source } : {}),
-        reaction_type: reactionType,
-      });
-    },
-    [screenName, source, tabName, trackInteraction],
-  );
-  const handleReactionPickerOpened = useCallback(() => {
-    trackInteraction({
-      interaction_type:
-        SocialEventValues.INTERACTION_TYPE.REACTION_PICKER_OPENED,
-      screen_name: screenName,
-      tab_name: tabName,
-      ...(source ? { source } : {}),
-    });
-  }, [screenName, source, tabName, trackInteraction]);
-  const handleCopyTradeInteraction = useCallback(
-    (tradeType: 'perps' | 'spot') => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.COPY_TRADE_TAPPED,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(source ? { source } : {}),
-        trade_type:
-          tradeType === 'perps'
-            ? SocialEventValues.TRADE_TYPE.PERPS
-            : SocialEventValues.TRADE_TYPE.SPOT,
-      });
-    },
-    [screenName, source, tabName, trackInteraction],
+    [navigation, trackInteraction],
   );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
+          {...feedInteractions}
           post={post}
           onCopyTrade={handleCopyTrade}
-          onCopyTradeInteraction={handleCopyTradeInteraction}
-          onReactionInteraction={handleReactionInteraction}
-          onReactionPickerOpened={handleReactionPickerOpened}
           onAuthorPress={handleAuthorPress}
           onPositionPress={post.position ? handlePositionPress : undefined}
         />
@@ -567,10 +506,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     [
       handleAuthorPress,
       handleCopyTrade,
-      handleCopyTradeInteraction,
+      feedInteractions,
       handlePositionPress,
-      handleReactionInteraction,
-      handleReactionPickerOpened,
       seenPostIds,
     ],
   );
@@ -601,40 +538,19 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showNextPageSpinner = visibleAssetFeed
     ? visibleAssetFeed.isFetchingNextPage
     : isFetchingNextPage;
-  const screenOutcome =
-    isLoading && posts.length === 0 && pinnedPosts.length === 0
-      ? null
-      : error && posts.length === 0 && pinnedPosts.length === 0
-        ? SocialEventValues.OUTCOME.ERROR
-        : posts.length > 0 || pinnedPosts.length > 0
-          ? SocialEventValues.OUTCOME.CONTENT
-          : SocialEventValues.OUTCOME.EMPTY;
-
-  useSocialScreenViewed({
-    screenName,
-    tabName,
-    source,
-    outcome: screenOutcome,
-    isActive,
-  });
-
   const handleFeedSortChange = useCallback(
     (nextSort: FeedSort) => {
       if (nextSort === feedSort) {
         return;
       }
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.SORT_APPLIED,
-        screen_name: screenName,
-        tab_name: tabName,
-        ...(source ? { source } : {}),
-        filter_name: SocialEventValues.FILTER_NAME.FEED_SORT,
+      trackInteraction(Interaction.SORT_APPLIED, {
+        filter_name: Filter.FEED_SORT,
         previous_filter_value: feedSort,
         filter_value: nextSort,
       });
       setFeedSort(nextSort);
     },
-    [feedSort, screenName, source, tabName, trackInteraction],
+    [feedSort, trackInteraction],
   );
 
   return (

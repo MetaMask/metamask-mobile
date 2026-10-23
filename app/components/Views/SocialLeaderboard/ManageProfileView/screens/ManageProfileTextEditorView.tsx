@@ -12,11 +12,7 @@ import ManageProfileTextEditor from '../components/ManageProfileTextEditor';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { useProfileController } from '../hooks/useProfileController';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-} from '../../analytics';
+import { useManageProfileAnalytics } from '../../analytics';
 
 const ManageProfileTextEditorView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -25,13 +21,10 @@ const ManageProfileTextEditorView: React.FC = () => {
   const { profile } = useMyProfile();
   const { isControllerBacked, updateProfile, checkUsernameAvailability } =
     useProfileController();
-  const { trackInteraction } = useSocialV1Analytics();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const config = MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG[route.params.field];
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
-  });
 
   const handleSave = useCallback(
     async (value: string): Promise<void> => {
@@ -68,11 +61,7 @@ const ManageProfileTextEditorView: React.FC = () => {
             break;
         }
 
-        trackInteraction({
-          interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
-          screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
-          outcome: SocialEventValues.OUTCOME.SUCCESS,
-        });
+        trackProfileEdited();
         navigation.goBack();
       } catch {
         setErrorMessage(
@@ -88,7 +77,7 @@ const ManageProfileTextEditorView: React.FC = () => {
       navigation,
       profile?.handle,
       route.params.field,
-      trackInteraction,
+      trackProfileEdited,
       updateProfile,
     ],
   );

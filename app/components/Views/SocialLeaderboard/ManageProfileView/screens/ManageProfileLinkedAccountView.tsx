@@ -26,11 +26,7 @@ import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-} from '../../analytics';
+import { useManageProfileAnalytics } from '../../analytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
   try {
@@ -50,12 +46,9 @@ const ManageProfileLinkedAccountView: React.FC = () => {
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { isControllerBacked, linkedAddresses, updateProfile } =
     useProfileController();
-  const { trackInteraction } = useSocialV1Analytics();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
-  });
 
   const linkedAddress = linkedAddresses[0]
     ? getLinkedEvmAddress(linkedAddresses[0])
@@ -80,11 +73,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         await updateProfile({
           linked_addresses: [`eip155:1:${address}` as CaipAccountId],
         });
-        trackInteraction({
-          interaction_type: SocialEventValues.INTERACTION_TYPE.PROFILE_EDITED,
-          screen_name: SocialEventValues.SCREEN_NAME.MANAGE_PROFILE,
-          outcome: SocialEventValues.OUTCOME.SUCCESS,
-        });
+        trackProfileEdited();
       } catch {
         setErrorMessage(
           strings('social_leaderboard.manage_profile.save_error'),
@@ -93,7 +82,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, trackInteraction, updateProfile],
+    [isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (

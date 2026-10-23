@@ -48,12 +48,9 @@ import {
   useTraderFollowing,
   type FollowerConnection,
 } from './hooks';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Screen } = SocialEvent;
 const addressesMatch = (
   left: string | undefined,
   right: string | undefined,
@@ -85,7 +82,6 @@ const tabIndexFor = (
 
 const FollowConnectionsView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
-  const { trackInteraction } = useSocialV1Analytics();
   const route =
     useRoute<RouteProp<RootStackParamList, 'FollowConnectionsView'>>();
   const tw = useTailwind();
@@ -148,6 +144,19 @@ const FollowConnectionsView: React.FC = () => {
   const { isFollowing, toggleFollow } = useFollowToggleMany();
   const { profileId: viewerProfileId } = useSessionProfileId();
   const viewerAddress = useSelector(selectSelectedInternalAccountAddress);
+  const [activeLoading, activeError, activeCount] =
+    activeIndex === 1
+      ? [isFollowingLoading, followingError, following.length]
+      : activeIndex === 2
+        ? [
+            mutualFollowers.isLoading,
+            mutualFollowers.error,
+            mutualFollowers.followers.length,
+          ]
+        : [isFollowersLoading, followersError, followers.length];
+  const trackInteraction = useSocialScreenAnalytics(Screen.FOLLOW_CONNECTIONS, {
+    state: [activeLoading, Boolean(activeError), activeCount > 0],
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -190,20 +199,13 @@ const FollowConnectionsView: React.FC = () => {
   }, []);
 
   const handleConnectionRowPress = useCallback(
-    (
-      connection: {
-        id: string;
-        username: string;
-        address: string;
-        avatarUri?: string;
-      },
-      itemPosition: number,
-    ) => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.FOLLOW_CONNECTIONS,
-        item_position: itemPosition,
-      });
+    (connection: {
+      id: string;
+      username: string;
+      address: string;
+      avatarUri?: string;
+    }) => {
+      trackInteraction(Interaction.TAP);
       const isSelf = isViewerConnection(
         connection,
         viewerProfileId,
@@ -233,15 +235,15 @@ const FollowConnectionsView: React.FC = () => {
   );
 
   const handleFollowingRowPress = useCallback(
-    (trader: FollowedTrader, itemPosition: number) => {
-      handleConnectionRowPress(trader, itemPosition);
+    (trader: FollowedTrader) => {
+      handleConnectionRowPress(trader);
     },
     [handleConnectionRowPress],
   );
 
   const handleFollowerRowPress = useCallback(
-    (follower: FollowerConnection, itemPosition: number) => {
-      handleConnectionRowPress(follower, itemPosition);
+    (follower: FollowerConnection) => {
+      handleConnectionRowPress(follower);
     },
     [handleConnectionRowPress],
   );
@@ -277,7 +279,7 @@ const FollowConnectionsView: React.FC = () => {
   );
 
   const renderFollowingItem = useCallback(
-    ({ item, index }: { item: FollowedTrader; index: number }) => {
+    ({ item }: { item: FollowedTrader }) => {
       const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
       return (
         <ConnectionRow
@@ -290,7 +292,7 @@ const FollowConnectionsView: React.FC = () => {
           onFollowPress={
             isSelf ? undefined : () => handleFollowingFollowPress(item)
           }
-          onRowPress={() => handleFollowingRowPress(item, index + 1)}
+          onRowPress={() => handleFollowingRowPress(item)}
         />
       );
     },
@@ -305,7 +307,7 @@ const FollowConnectionsView: React.FC = () => {
   );
 
   const renderFollowerItem = useCallback(
-    ({ item, index }: { item: FollowerConnection; index: number }) => {
+    ({ item }: { item: FollowerConnection }) => {
       const isSelf = isViewerConnection(item, viewerProfileId, viewerAddress);
       return (
         <ConnectionRow
@@ -318,7 +320,7 @@ const FollowConnectionsView: React.FC = () => {
           onFollowPress={
             isSelf ? undefined : () => handleFollowerFollowPress(item)
           }
-          onRowPress={() => handleFollowerRowPress(item, index + 1)}
+          onRowPress={() => handleFollowerRowPress(item)}
         />
       );
     },
@@ -545,38 +547,6 @@ const FollowConnectionsView: React.FC = () => {
       : activeIndex === 2
         ? mutualsContent
         : followersContent;
-  const activeState =
-    activeIndex === 1
-      ? {
-          isLoading: isFollowingLoading,
-          error: followingError,
-          count: following.length,
-        }
-      : activeIndex === 2
-        ? {
-            isLoading: mutualFollowers.isLoading,
-            error: mutualFollowers.error,
-            count: mutualFollowers.followers.length,
-          }
-        : {
-            isLoading: isFollowersLoading,
-            error: followersError,
-            count: followers.length,
-          };
-  const screenOutcome =
-    activeState.isLoading && activeState.count === 0
-      ? null
-      : activeState.error && activeState.count === 0
-        ? SocialEventValues.OUTCOME.ERROR
-        : activeState.count > 0
-          ? SocialEventValues.OUTCOME.CONTENT
-          : SocialEventValues.OUTCOME.EMPTY;
-
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.FOLLOW_CONNECTIONS,
-    outcome: screenOutcome,
-  });
-
   return (
     <SafeAreaView
       edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}

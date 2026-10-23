@@ -1,6 +1,9 @@
 export { useSocialLeaderboardAnalytics } from './useSocialLeaderboardAnalytics';
 export {
-  useSocialScreenViewed,
+  useManageProfileAnalytics,
+  useSocialFeedInteractions,
+  useSocialInteraction,
+  useSocialScreenAnalytics,
   useSocialV1Analytics,
 } from './useSocialV1Analytics';
 export {
@@ -15,23 +18,9 @@ export {
 export {
   getSocialEventSource,
   getSocialReactionType,
-  SocialEventProperties,
-  SocialEventValues,
+  SocialEvent,
 } from './socialEvents';
-export type {
-  SocialEventOutcome,
-  SocialEventSource,
-  SocialFilterName,
-  SocialFilterValue,
-  SocialInteractionType,
-  SocialOnboardingStep,
-  SocialReactionType,
-  SocialScreenName,
-  SocialScreenViewedProperties,
-  SocialTabName,
-  SocialTradeType,
-  SocialUIInteractionProperties,
-} from './socialEvents';
+export type { SocialEventSource } from './socialEvents';
 export type {
   FollowTradingTokenSource,
   LeaderboardScreenViewedSource,

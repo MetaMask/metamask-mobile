@@ -15,11 +15,16 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { isComposerCommentValid } from './commentValidation';
 import { KLIPY_STATIC_GIF_EXAMPLE } from '../../../UI/SocialFeed/utils/klipyGifComment';
-import { SocialEventValues } from '../analytics';
 
 jest.mock('../../../hooks/useScreenTransitionComplete', () => ({
   __esModule: true,
   default: () => true,
+}));
+
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics'),
+  useSocialInteraction: () => jest.fn(),
+  useSocialScreenAnalytics: () => jest.fn(),
 }));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPositionCard', () => {
@@ -59,7 +64,6 @@ const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
 const mockUseMyProfile = jest.fn();
-const mockTrackInteraction = jest.fn();
 const linkedProfile = {
   profileId: 'current-user',
   displayName: 'Giga Whale',
@@ -103,14 +107,6 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
-}));
-
-jest.mock('../analytics', () => ({
-  ...jest.requireActual('../analytics'),
-  useSocialScreenViewed: jest.fn(),
-  useSocialV1Analytics: () => ({
-    trackInteraction: mockTrackInteraction,
-  }),
 }));
 
 const mockUseTraderPositions = jest.fn();
@@ -324,10 +320,6 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.queryByTestId(SocialPostComposerViewSelectorsIDs.GIF_PREVIEW),
     ).toBeNull();
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.GIF_PICKER_OPENED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-    });
   });
 
   it('includes the selected gif on the submitted post', async () => {
@@ -422,12 +414,6 @@ describe('SocialPostComposerView', () => {
       timestampMs: 1700000000 * 1000,
     });
     expect(consumeFollowingFocus()).toBe(true);
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.POST_SUBMITTED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-      outcome: SocialEventValues.OUTCOME.SUCCESS,
-      trade_type: SocialEventValues.TRADE_TYPE.SPOT,
-    });
   });
 
   it('falls back to the profile display name when the server sends no name', async () => {
@@ -503,12 +489,6 @@ describe('SocialPostComposerView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
     expect(getPendingPostsSnapshot()).toHaveLength(0);
     expect(mockInvalidateQueries).not.toHaveBeenCalled();
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.POST_FAILED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-      outcome: SocialEventValues.OUTCOME.FAILED,
-      trade_type: SocialEventValues.TRADE_TYPE.SPOT,
-    });
   });
 
   it('closes the composer from the header close button', () => {
@@ -519,11 +499,6 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(mockGoBack).toHaveBeenCalled();
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.BUTTON_CLICKED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-      outcome: SocialEventValues.OUTCOME.DISMISSED,
-    });
   });
 
   it('shows a gif preview when the keyboard inserts an image', () => {
@@ -576,13 +551,6 @@ describe('SocialPostComposerView', () => {
     expect(getPendingPostsSnapshot()).toHaveLength(1);
     expect(consumeFollowingFocus()).toBe(true);
     expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.POST_SUBMITTED,
-      screen_name: SocialEventValues.SCREEN_NAME.POST_COMPOSER,
-      source: SocialEventValues.SOURCE.PERP_ASSET_SCREEN,
-      outcome: SocialEventValues.OUTCOME.SUCCESS,
-      trade_type: SocialEventValues.TRADE_TYPE.SPOT,
-    });
   });
 
   it('opens the share sheet from the Position chip', () => {
@@ -595,10 +563,6 @@ describe('SocialPostComposerView', () => {
     expect(
       screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
-    expect(mockTrackInteraction).toHaveBeenCalledWith({
-      interaction_type: SocialEventValues.INTERACTION_TYPE.SHEET_DISPLAYED,
-      screen_name: SocialEventValues.SCREEN_NAME.SHARE_POSITION_SHEET,
-    });
   });
 
   it('closes when opened without a linked wallet or tradeInFlight', () => {

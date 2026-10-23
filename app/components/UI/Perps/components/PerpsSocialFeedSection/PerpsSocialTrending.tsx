@@ -23,14 +23,14 @@ import {
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
 import {
-  getSocialReactionType,
-  SocialEventValues,
+  SocialEvent,
   type SocialEventSource,
-  type SocialTradeType,
-  useSocialV1Analytics,
+  useSocialFeedInteractions,
+  useSocialInteraction,
 } from '../../../../Views/SocialLeaderboard/analytics';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
+const { Interaction, Screen, Trade } = SocialEvent;
 export const PERPS_TRENDING_POST_COUNT = 3;
 
 const PERPS_TRENDING_SOURCE: SocialFeedSource = {
@@ -56,7 +56,10 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
-  const { trackInteraction } = useSocialV1Analytics();
+  const trackInteraction = useSocialInteraction(Screen.TRENDING, { source });
+  const feedInteractions = useSocialFeedInteractions(Screen.TRENDING, {
+    source,
+  });
   const feedSource = useMemo<SocialFeedSource>(
     () => (symbol ? { kind: 'perp', symbol } : PERPS_TRENDING_SOURCE),
     [symbol],
@@ -67,11 +70,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
 
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
-        source,
-      });
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -91,15 +90,12 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
       if (!post.position) {
         return;
       }
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
-        source,
+      trackInteraction(Interaction.TAP, {
         trade_type:
           post.item.variant === 'perpsOpen' ||
           post.item.variant === 'perpsClosed'
-            ? SocialEventValues.TRADE_TYPE.PERPS
-            : SocialEventValues.TRADE_TYPE.SPOT,
+            ? Trade.PERPS
+            : Trade.SPOT,
       });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
@@ -111,67 +107,19 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation, source, trackInteraction],
-  );
-
-  const handleReactionInteraction = useCallback(
-    (action: 'added' | 'removed', emotion: string) => {
-      const reactionType = getSocialReactionType(emotion);
-      if (!reactionType) {
-        return;
-      }
-      trackInteraction({
-        interaction_type:
-          action === 'added'
-            ? SocialEventValues.INTERACTION_TYPE.REACTION_ADDED
-            : SocialEventValues.INTERACTION_TYPE.REACTION_REMOVED,
-        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
-        source,
-        reaction_type: reactionType,
-      });
-    },
-    [source, trackInteraction],
-  );
-
-  const handleReactionPickerOpened = useCallback(() => {
-    trackInteraction({
-      interaction_type:
-        SocialEventValues.INTERACTION_TYPE.REACTION_PICKER_OPENED,
-      screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
-      source,
-    });
-  }, [source, trackInteraction]);
-
-  const handleCopyTradeInteraction = useCallback(
-    (tradeType: SocialTradeType) => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.COPY_TRADE_TAPPED,
-        screen_name: SocialEventValues.SCREEN_NAME.TRENDING,
-        source,
-        trade_type: tradeType,
-      });
-    },
-    [source, trackInteraction],
+    [navigation, trackInteraction],
   );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostShell
+        {...feedInteractions}
         post={post}
         onAuthorPress={handleAuthorPress}
         onPositionPress={post.position ? handlePositionPress : undefined}
-        onReactionInteraction={handleReactionInteraction}
-        onReactionPickerOpened={handleReactionPickerOpened}
-        onCopyTradeInteraction={handleCopyTradeInteraction}
       />
     ),
-    [
-      handleAuthorPress,
-      handleCopyTradeInteraction,
-      handlePositionPress,
-      handleReactionInteraction,
-      handleReactionPickerOpened,
-    ],
+    [feedInteractions, handleAuthorPress, handlePositionPress],
   );
 
   if (isLoading && posts.length === 0) {

@@ -91,23 +91,21 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
+    onCopyTradeInteraction?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
-  }, [onSpotCopyTrade, post.item, post.commentId]);
+  }, [onCopyTradeInteraction, onSpotCopyTrade, post.item, post.commentId]);
+  const handlePerpsCopyTrade = useCallback(() => {
+    onCopyTradeInteraction?.('perps');
+    onPerpsCopyTrade?.();
+  }, [onCopyTradeInteraction, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
+        ? handlePerpsCopyTrade
+        : undefined
       : onSpotCopyTrade
         ? handleSpotCopyTrade
         : undefined;
-  const trackedCopyTradeHandler = useCallback(() => {
-    if (!copyTradeHandler) {
-      return;
-    }
-    onCopyTradeInteraction?.(
-      post.item.variant === 'perpsOpen' ? 'perps' : 'spot',
-    );
-    copyTradeHandler();
-  }, [copyTradeHandler, onCopyTradeInteraction, post.item.variant]);
 
   const chips = visibleReactions(reactions);
 
@@ -210,18 +208,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
             onPress={handlePositionPress}
             testID={`${SocialFeedPostShellSelectorsIDs.POSITION_PRESS}-${post.id}`}
           >
-            <PositionCardBody
-              item={post.item}
-              onCopyTrade={
-                copyTradeHandler ? trackedCopyTradeHandler : undefined
-              }
-            />
+            <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
           </Pressable>
         ) : (
-          <PositionCardBody
-            item={post.item}
-            onCopyTrade={copyTradeHandler ? trackedCopyTradeHandler : undefined}
-          />
+          <PositionCardBody item={post.item} onCopyTrade={copyTradeHandler} />
         )}
 
         {post.gifUri ? (

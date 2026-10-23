@@ -23,6 +23,7 @@ import type { UseMyProfileResult } from '../MyProfileView/hooks';
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
+const mockFeedInteractions = {};
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
@@ -89,8 +90,9 @@ jest.mock('../analytics', () => {
     ...events,
     ...socialEvents,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
-    useSocialScreenViewed: jest.fn(),
-    useSocialV1Analytics: () => ({ trackInteraction: mockTrack }),
+    useSocialFeedInteractions: () => mockFeedInteractions,
+    useSocialInteraction: () => mockTrack,
+    useSocialScreenAnalytics: () => mockTrack,
   };
 });
 

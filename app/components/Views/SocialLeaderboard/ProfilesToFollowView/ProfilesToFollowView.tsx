@@ -26,12 +26,9 @@ import { usePopularTraders } from '../SocialV1View/feed/hooks/usePopularTraders'
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { ProfilesToFollowViewSelectorsIDs } from './ProfilesToFollowView.testIds';
-import {
-  SocialEventValues,
-  useSocialScreenViewed,
-  useSocialV1Analytics,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Screen, Source } = SocialEvent;
 /**
  * Full-screen list of the same leaderboard top 10 shown in the Trending
  * Popular traders carousel. Follow and profile navigation match the rail.
@@ -40,7 +37,6 @@ const ProfilesToFollowView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { followWithSetup } = useFollowWithNotificationSetup();
-  const { trackInteraction } = useSocialV1Analytics();
   const {
     traders,
     isLoading,
@@ -54,15 +50,9 @@ const ProfilesToFollowView: React.FC = () => {
   const isInFlight = isLoading || isFetching;
   const showLoading = isInFlight && traders.length === 0 && !hasFetched;
   const showError = Boolean(error) && traders.length === 0 && !isInFlight;
-  useSocialScreenViewed({
-    screenName: SocialEventValues.SCREEN_NAME.PROFILES_TO_FOLLOW,
-    outcome: showLoading
-      ? null
-      : showError
-        ? SocialEventValues.OUTCOME.ERROR
-        : traders.length > 0
-          ? SocialEventValues.OUTCOME.CONTENT
-          : SocialEventValues.OUTCOME.EMPTY,
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILES_TO_FOLLOW, {
+    source: Source.PROFILES_TO_FOLLOW,
+    state: [showLoading, showError, traders.length > 0],
   });
 
   const handleBack = useCallback(() => {
@@ -70,13 +60,8 @@ const ProfilesToFollowView: React.FC = () => {
   }, [navigation]);
 
   const handleRowPress = useCallback(
-    (trader: TopTrader, itemPosition: number) => {
-      trackInteraction({
-        interaction_type: SocialEventValues.INTERACTION_TYPE.TAP,
-        screen_name: SocialEventValues.SCREEN_NAME.PROFILES_TO_FOLLOW,
-        source: SocialEventValues.SOURCE.PROFILES_TO_FOLLOW,
-        item_position: itemPosition,
-      });
+    (trader: TopTrader) => {
+      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: trader.id,
         traderName: trader.username,
@@ -105,7 +90,7 @@ const ProfilesToFollowView: React.FC = () => {
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: TopTrader; index: number }) => (
+    ({ item }: { item: TopTrader }) => (
       <ConnectionRow
         id={item.id}
         username={item.username}
@@ -116,7 +101,7 @@ const ProfilesToFollowView: React.FC = () => {
         onFollowPress={() => {
           handleFollowPress(item).catch(() => undefined);
         }}
-        onRowPress={() => handleRowPress(item, index + 1)}
+        onRowPress={() => handleRowPress(item)}
       />
     ),
     [handleFollowPress, handleRowPress],
