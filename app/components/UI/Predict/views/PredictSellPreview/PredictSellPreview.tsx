@@ -58,6 +58,7 @@ import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
+import { usePredictCashOutSubmit } from '../../hooks/usePredictCashOutSubmit';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
 import styleSheet from './PredictSellPreview.styles';
 import { PREDICT_SELL_PREVIEW_TEST_IDS } from './PredictSellPreview.testIds';
@@ -158,6 +159,23 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     orderState: retryOrderState,
   });
 
+  const {
+    cashOut,
+    isCheckingPrice,
+    sheetRef: cashOutSheetRef,
+    sheetVariant: cashOutSheetVariant,
+    sheetQuote: cashOutSheetQuote,
+    sheetPreviousPrice: cashOutSheetPreviousPrice,
+    retryCashOut,
+    confirmCashOut,
+    dismissCashOut,
+  } = usePredictCashOutSubmit({
+    preview,
+    refetchPreview,
+    placeOrder,
+    analyticsProperties,
+  });
+
   // Track screen load performance (position data + preview)
   usePredictMeasurement({
     traceName: TraceName.PredictSellPreviewView,
@@ -250,25 +268,16 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     return cashPnl > 0 ? '+' : '-';
   }, [cashPnl]);
 
-  const onCashOut = useCallback(async () => {
-    if (!preview) return;
-
-    await placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, placeOrder, analyticsProperties]);
-
   const renderCashOutButton = () => (
     <Button
       testID={PredictCashOutSelectorsIDs.SELL_PREVIEW_CASH_OUT_BUTTON}
       variant={ButtonVariant.Primary}
       size={ButtonSize.Lg}
       isFullWidth
-      isDisabled={!preview || isLoading}
-      isLoading={isLoading}
+      isDisabled={!preview || isLoading || isCheckingPrice}
+      isLoading={isLoading || isCheckingPrice}
       loadingText={strings('predict.order.cashing_out_loading')}
-      onPress={onCashOut}
+      onPress={cashOut}
     >
       {strings('predict.cash_out')}
     </Button>
@@ -501,6 +510,17 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
+      />
+      <PredictOrderRetrySheet
+        ref={cashOutSheetRef}
+        variant={cashOutSheetVariant}
+        preview={cashOutSheetQuote}
+        previousPrice={cashOutSheetPreviousPrice}
+        side={Side.SELL}
+        onRetry={retryCashOut}
+        onConfirm={confirmCashOut}
+        onDismiss={dismissCashOut}
+        isRetrying={isCheckingPrice}
       />
     </Wrapper>
   );

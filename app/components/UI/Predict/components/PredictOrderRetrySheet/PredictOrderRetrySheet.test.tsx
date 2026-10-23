@@ -91,6 +91,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
         "Here's the latest price. Confirm to try again:",
       'predict.order.retry_price_label': 'Price',
       'predict.order.retry_proceeds_label': 'You receive',
+      'predict.order.retry_expected_fill_label': 'Expected fill',
+      'predict.order.retry_expected_fill_value': `${params?.shares ?? ''} shares`,
+      'predict.order.market_timeout_title': 'Market timed out',
+      'predict.order.market_timeout_body':
+        'The market took too long to respond. Nothing was sold.',
       'predict.order.retry_payout_label': 'To win',
       'predict.order.retry_worst_case_label': `Worst case (${params?.band ?? ''} band)`,
       'predict.order.retry_fees_label': 'Fees',
@@ -117,6 +122,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../utils/format', () => ({
   formatCents: (value: number) => `${Math.round(value * 100)}¢`,
   formatPrice: (value: number) => `$${value.toFixed(2)}`,
+  formatPositionSize: (value: number) => value.toFixed(2),
 }));
 
 function createMockPreview(overrides?: Partial<OrderPreview>): OrderPreview {
@@ -243,6 +249,8 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(getByText('You receive')).toBeOnTheScreen();
       expect(getByText('$6.00')).toBeOnTheScreen();
+      expect(getByText('Expected fill')).toBeOnTheScreen();
+      expect(getByText('9.50 shares')).toBeOnTheScreen();
       expect(getByText('Worst case (5% band)')).toBeOnTheScreen();
       expect(getByText('$5.69')).toBeOnTheScreen();
       expect(getByText('Fees')).toBeOnTheScreen();
@@ -379,6 +387,35 @@ describe('PredictOrderRetrySheet', () => {
         <PredictOrderRetrySheet
           {...defaultProps}
           variant="quote_unavailable"
+          onRetry={onRetry}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON),
+      );
+
+      expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('timeout variant', () => {
+    it('renders the timeout copy without quote rows', () => {
+      const { getByText, queryByText } = render(
+        <PredictOrderRetrySheet {...defaultProps} variant="timeout" />,
+      );
+
+      expect(getByText('Market timed out')).toBeOnTheScreen();
+      expect(getByText(/took too long to respond/)).toBeOnTheScreen();
+      expect(queryByText('Price')).not.toBeOnTheScreen();
+    });
+
+    it('calls onRetry when Try again is pressed', () => {
+      const onRetry = jest.fn();
+      const { getByTestId } = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="timeout"
           onRetry={onRetry}
         />,
       );
