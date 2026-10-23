@@ -45,6 +45,11 @@ import { MOCK_LIVE_TRADES_ITEMS } from './mocks/liveTradesFeed.mock';
 import type { LiveTradeRowModel } from './types';
 import { filterLiveTrades } from './utils/filterLiveTrades';
 import { LiveTradesViewSelectorsIDs } from './LiveTradesView.testIds';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
 type AnimatedScrollHandler = React.ComponentProps<
   typeof Animated.ScrollView
@@ -53,6 +58,7 @@ type AnimatedScrollHandler = React.ComponentProps<
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveTradesViewProps {
+  performance?: SocialPerformanceContext;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -65,6 +71,7 @@ export interface LiveTradesViewProps {
  * the websocket stream replaces the static fixtures.
  */
 const LiveTradesView: React.FC<LiveTradesViewProps> = ({
+  performance,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -97,6 +104,13 @@ const LiveTradesView: React.FC<LiveTradesViewProps> = ({
         }),
     );
   }, [appliedFilters, followingProfileIds, isEntryHidden]);
+
+  useSocialTabFirstContentTrace({
+    tab: SOCIAL_TRACE_TABS.LiveTrades,
+    contentState: visibleItems.length > 0 ? 'content' : 'empty',
+    hasUsableData: false,
+    performance,
+  });
 
   useImperativeHandle(
     pageRef,
