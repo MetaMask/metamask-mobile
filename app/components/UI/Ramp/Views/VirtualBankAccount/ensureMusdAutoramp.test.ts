@@ -10,6 +10,12 @@ import {
 const mockHydrate = jest.fn();
 const mockRegister = jest.fn();
 const mockCreate = jest.fn();
+const mockGetSessionProfile = jest.fn();
+const mockGetCustomer = jest.fn();
+const mockGetGeoCountry = jest.fn();
+const mockFetchDisclaimers = jest.fn();
+const mockRecordDisclaimers = jest.fn();
+const mockGetTerms = jest.fn();
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -19,7 +25,26 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) => mockRegister(...args),
       createAutoramp: (...args: unknown[]) => mockCreate(...args),
     },
+    AuthenticationController: {
+      getSessionProfile: (...args: unknown[]) => mockGetSessionProfile(...args),
+    },
+    NeoBankService: {
+      getCustomerByExternalId: (...args: unknown[]) => mockGetCustomer(...args),
+    },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
+    },
+    KycController: {
+      fetchVendorDisclaimers: (...args: unknown[]) =>
+        mockFetchDisclaimers(...args),
+      recordVendorDisclaimers: (...args: unknown[]) =>
+        mockRecordDisclaimers(...args),
+    },
   },
+}));
+
+jest.mock('./vbaVendorTermsStorage', () => ({
+  getVbaVendorTermsAcceptance: (...args: unknown[]) => mockGetTerms(...args),
 }));
 
 jest.mock('../../../../../util/Logger', () => ({
@@ -50,9 +75,25 @@ describe('ensureMusdAutoramp', () => {
     mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
     mockRegister.mockResolvedValue({ type: 'alreadyRegistered' });
     mockCreate.mockResolvedValue({ id: 'ar-new', status: 'Created' });
+    mockGetSessionProfile.mockResolvedValue({
+      canonicalProfileId: 'profile-1',
+      profileId: 'fallback-profile',
+    });
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'IdentificationRequired',
+    });
+    mockGetGeoCountry.mockResolvedValue('USA');
+    mockFetchDisclaimers.mockResolvedValue([{ id: 'terms-1' }]);
+    mockRecordDisclaimers.mockResolvedValue([]);
+    mockGetTerms.mockResolvedValue({ disclaimerIds: ['terms-1'] });
   });
 
   it('waits for MoonPay after KYC, then registers and creates once', async () => {
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'Pending',
+    });
     mockHydrate
       .mockResolvedValueOnce({
         autorampStatus: 'not_ready',
@@ -66,6 +107,9 @@ describe('ensureMusdAutoramp', () => {
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe(
       'awaiting_provider',
     );
+    expect(mockGetCustomer).toHaveBeenCalledWith('profile-1');
+    expect(mockFetchDisclaimers).not.toHaveBeenCalled();
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
     expect(mockCreate).not.toHaveBeenCalled();
 
     await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
@@ -74,6 +118,116 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).toHaveBeenCalledWith(
       buildMusdAutorampRequest('0xabc', 'BRL'),
     );
+  });
+
+  it('leaves the approval wait when MoonPay still requires identification', async () => {
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+      'identification_required',
+    );
+
+    expect(mockFetchDisclaimers).not.toHaveBeenCalled();
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('reposts accepted Iron terms and creates the autoramp when MoonPay asks for signings', async () => {
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate
+      .mockResolvedValueOnce({
+        autorampStatus: 'not_ready',
+        kycStatus: 'approved',
+      })
+      .mockResolvedValueOnce({
+        autorampStatus: 'needs_wallet_registration',
+        kycStatus: 'approved',
+      });
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
+
+    expect(mockFetchDisclaimers).toHaveBeenCalledWith({
+      vendor: 'iron',
+      country: 'USA',
+    });
+    expect(mockRecordDisclaimers).toHaveBeenCalledWith({
+      disclaimerIds: ['terms-1'],
+    });
+    expect(mockRegister).toHaveBeenCalledWith({ address: '0xabc' });
+    expect(mockCreate).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks for vendor terms when MoonPay requires a document this wallet has not accepted', async () => {
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+    mockFetchDisclaimers.mockResolvedValue([
+      { id: 'terms-1' },
+      { id: 'us-terms' },
+    ]);
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+      'signings_required',
+    );
+
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('does not repost the same accepted terms on the next poll', async () => {
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+      'awaiting_provider',
+    );
+    await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+      'awaiting_provider',
+    );
+
+    expect(mockRecordDisclaimers).toHaveBeenCalledTimes(1);
+    expect(mockCreate).not.toHaveBeenCalled();
+  });
+
+  it('keeps waiting when the KYC service is unavailable', async () => {
+    const { KycService } = Engine.context;
+    (Engine.context as { KycService?: typeof KycService }).KycService =
+      undefined;
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    try {
+      await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe(
+        'awaiting_provider',
+      );
+      expect(mockFetchDisclaimers).not.toHaveBeenCalled();
+      expect(mockCreate).not.toHaveBeenCalled();
+    } finally {
+      Engine.context.KycService = KycService;
+    }
   });
 
   it.each(['USD', 'EUR'] as const)(

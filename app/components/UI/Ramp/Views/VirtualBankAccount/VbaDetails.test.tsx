@@ -20,6 +20,13 @@ const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
 const mockCreateAutoramp = jest.fn();
+const mockGetSessionProfile = jest.fn();
+const mockGetCustomer = jest.fn();
+const mockGetGeoCountry = jest.fn();
+const mockFetchDisclaimers = jest.fn();
+const mockRecordDisclaimers = jest.fn();
+const mockGetTerms = jest.fn();
+const mockOpenVendorTerms = jest.fn();
 let mockWalletAddress: string | null = '0xabc';
 let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
@@ -89,6 +96,15 @@ jest.mock('./vbaDepositDebug', () => ({
   isVbaDepositDebugEnabled: () => mockDebugEnv === 'true',
 }));
 
+jest.mock('./hooks/useVbaOnboardingRouting', () => ({
+  openAsOnlyOnboardingRoute: (...args: unknown[]) =>
+    mockOpenVendorTerms(...args),
+}));
+
+jest.mock('./vbaVendorTermsStorage', () => ({
+  getVbaVendorTermsAcceptance: (...args: unknown[]) => mockGetTerms(...args),
+}));
+
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     RampsController: {
@@ -107,11 +123,24 @@ jest.mock('../../../../../core/Engine', () => ({
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
     },
+    AuthenticationController: {
+      getSessionProfile: (...args: unknown[]) => mockGetSessionProfile(...args),
+    },
+    KycService: {
+      getGeoCountry: (...args: unknown[]) => mockGetGeoCountry(...args),
+    },
+    KycController: {
+      fetchVendorDisclaimers: (...args: unknown[]) =>
+        mockFetchDisclaimers(...args),
+      recordVendorDisclaimers: (...args: unknown[]) =>
+        mockRecordDisclaimers(...args),
+    },
     NeoBankService: {
       getDepositInstructions: (...args: unknown[]) =>
         mockGetDepositInstructions(...args),
       listAutorampTransactions: (...args: unknown[]) =>
         mockListTransactions(...args),
+      getCustomerByExternalId: (...args: unknown[]) => mockGetCustomer(...args),
     },
   },
 }));
@@ -147,6 +176,7 @@ interface EngineContextMock {
   NeoBankService?: {
     getDepositInstructions: typeof mockGetDepositInstructions;
     listAutorampTransactions: typeof mockListTransactions;
+    getCustomerByExternalId: typeof mockGetCustomer;
   };
 }
 
@@ -154,6 +184,7 @@ const restoreNeoBankService = () => {
   (Engine.context as unknown as EngineContextMock).NeoBankService = {
     getDepositInstructions: mockGetDepositInstructions,
     listAutorampTransactions: mockListTransactions,
+    getCustomerByExternalId: mockGetCustomer,
   };
 };
 
@@ -180,6 +211,17 @@ describe('VbaDetails', () => {
       walletAddress: '0xabc',
       status: 'Created',
     });
+    mockGetSessionProfile.mockResolvedValue({
+      canonicalProfileId: 'profile-1',
+    });
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'IdentificationRequired',
+    });
+    mockGetGeoCountry.mockResolvedValue('USA');
+    mockFetchDisclaimers.mockResolvedValue([{ id: 'terms-1' }]);
+    mockRecordDisclaimers.mockResolvedValue([]);
+    mockGetTerms.mockResolvedValue({ disclaimerIds: ['terms-1'] });
     setAutoramps([{ ...approvedAutoramp }]);
     restoreNeoBankService();
   });
@@ -600,6 +642,10 @@ describe('VbaDetails', () => {
 
   it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
     setAutoramps([]);
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'Pending',
+    });
     mockHydrate.mockResolvedValue({
       autorampStatus: 'not_ready',
       kycStatus: 'approved',
@@ -625,6 +671,54 @@ describe('VbaDetails', () => {
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
     ).not.toBeOnTheScreen();
+    expect(mockOpenVendorTerms).not.toHaveBeenCalled();
+  });
+
+  it('opens the KYC pending screen when MoonPay identification is unfinished', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockOpenVendorTerms).toHaveBeenCalledWith(
+        expect.anything(),
+        'VbaKycPending',
+      );
+    });
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
+  });
+
+  it('opens vendor terms when MoonPay requires a document the wallet has not accepted', async () => {
+    setAutoramps([]);
+    mockGetCustomer.mockResolvedValue({
+      id: 'customer-1',
+      status: 'SigningsRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+    mockFetchDisclaimers.mockResolvedValue([
+      { id: 'terms-1' },
+      { id: 'us-terms' },
+    ]);
+    mockGetTerms.mockResolvedValue({ disclaimerIds: ['terms-1'] });
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockOpenVendorTerms).toHaveBeenCalledWith(
+        expect.anything(),
+        'VbaVendorTerms',
+      );
+    });
+    expect(mockRecordDisclaimers).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {

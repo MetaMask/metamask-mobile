@@ -71,6 +71,8 @@ const mockGetVbaVendorTermsAcceptance = jest.fn();
 const mockRecordVendorDisclaimers = jest.fn();
 const mockReadSessionStatus = jest.fn();
 const mockStartSession = jest.fn();
+const mockGetSessionProfile = jest.fn();
+const mockGetCustomerByExternalId = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -80,6 +82,13 @@ jest.mock('../../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+    },
+    AuthenticationController: {
+      getSessionProfile: (...args: unknown[]) => mockGetSessionProfile(...args),
+    },
+    NeoBankService: {
+      getCustomerByExternalId: (...args: unknown[]) =>
+        mockGetCustomerByExternalId(...args),
     },
     KycController: {
       get state() {
@@ -317,6 +326,31 @@ describe('useOpenVbaOnboarding', () => {
       }),
     );
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('opens KYC pending when MoonPay identification is still required', async () => {
+    mockGetSessionProfile.mockResolvedValue({
+      canonicalProfileId: 'profile-1',
+    });
+    mockGetCustomerByExternalId.mockResolvedValue({
+      id: 'customer-1',
+      status: 'IdentificationRequired',
+    });
+    mockHydrate.mockResolvedValue({
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved',
+      autorampStatus: 'not_ready',
+    });
+
+    const { result } = renderHook(() => useOpenVbaOnboarding());
+
+    await result.current();
+
+    expectResetTo({ name: VbaOnboardingRoutes.KYC_PENDING });
+    expect(mockGetCustomerByExternalId).toHaveBeenCalledWith('profile-1');
   });
 
   it('opens identity verified without signing or creating when no usable autoramp exists', async () => {
