@@ -5,41 +5,18 @@ import { Skeleton } from '../../../../component-library/components-temp/Skeleton
 import { useTheme } from '../../../../util/theme';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
 
-/**
- * Default box height. Same value as
- * `PERPS_CHART_CONFIG.LAYOUT.DETAIL_VIEW_HEIGHT`. Callers pass the chart
- * height; this default keeps an omitted height aligned with the market-details
- * chart. UI/Charts does not import Perps.
- *
- * The root also uses `flex: 1`. A sized parent (chart overlay) wins, so the
- * skeleton fills that box. An unsized parent keeps this height, so the 350px
- * detail chart does not collapse.
- */
+/** Fallback height when the parent does not stretch. Same as the Perps detail chart. */
 const DEFAULT_CHART_HEIGHT = 350;
-
-/**
- * Pixel basis of the price plot at {@link DEFAULT_CHART_HEIGHT}. Marks are
- * stored in these pixels and rendered as a percentage of the pane, so a 350px
- * root (volume band + 32px time row) still lands on the same pixels.
- */
+/** Price-pane pixel basis. Mark tops/heights are a percentage of this pane. */
 const PRICE_PANE_HEIGHT = 250;
-/**
- * Pixel basis for volume-bar heights. Bars stay this share of the band.
- * The band itself is 22% of the price+volume wrapper (min 56), matching
- * `VOLUME_RATIO` / `MIN_VOLUME_PX` in the chart volume study.
- */
+/** Volume-bar pixel basis. Bar height is this share of the volume band. */
 const VOLUME_PANE_HEIGHT = 68;
-/** Volume band share of the price+volume wrapper. Same ratio as the volume study. */
+/** Share of the price+volume wrapper. Matches VOLUME_RATIO in the volume study. */
 const VOLUME_BAND_RATIO = '22%' as const;
-/** Floor from the volume study (`MIN_VOLUME_PX`). */
+/** Floor for the volume band. Matches MIN_VOLUME_PX in the volume study. */
 const MIN_VOLUME_PX = 56;
-/** Time-axis row. Stays 32px at every chart height. */
 const TIME_PANE_HEIGHT = 32;
 
-/**
- * Share of `part` within `whole`, as a Yoga percentage length.
- * Six decimal places drops binary float noise and still lands on the source pixel.
- */
 const percentOf = (part: number, whole: number): `${number}%` => {
   const rounded = Math.round((part / whole) * 100 * 1e6) / 1e6;
   return `${rounded}%` as `${number}%`;
@@ -124,245 +101,51 @@ const themedStyles = (
     },
   });
 
-interface CandleMark {
-  bodyTop: number;
-  bodyHeight: number;
-  wickTop: number;
-  wickHeight: number;
-  volumeHeight: number;
-}
+/** [bodyTop, bodyHeight, wickTop, wickHeight, volumeHeight] px of the 250/68 panes. */
+const CANDLE_PX = [
+  [87, 27, 83, 35, 12],
+  [96, 30, 77, 65, 17],
+  [106, 29, 90, 55, 13],
+  [125, 30, 99, 87, 32],
+  [139, 30, 123, 66, 14],
+  [149, 30, 132, 64, 19],
+  [163, 29, 153, 46, 13],
+  [124, 30, 99, 74, 17],
+  [113, 4, 106, 23, 8],
+  [81, 30, 64, 66, 14],
+  [81, 30, 73, 45, 14],
+  [71, 30, 48, 73, 19],
+  [41, 17, 25, 42, 20],
+  [49, 30, 34, 66, 16],
+  [66, 21, 53, 50, 11],
+  [86, 30, 62, 77, 22],
+  [145, 30, 126, 65, 17],
+  [154, 29, 139, 55, 13],
+  [167, 30, 148, 74, 29],
+  [184, 25, 171, 54, 12],
+  [139, 30, 121, 66, 19],
+  [125, 29, 115, 46, 13],
+  [115, 30, 90, 74, 17],
+  [71, 30, 59, 59, 15],
+  [66, 29, 53, 58, 13],
+  [53, 30, 37, 62, 29],
+  [44, 30, 31, 52, 14],
+  [91, 30, 61, 84, 19],
+  [114, 21, 108, 41, 11],
+  [113, 4, 100, 32, 8],
+  [115, 30, 111, 39, 13],
+  [108, 30, 90, 63, 16],
+] as const;
 
-/**
- * 32 candle marks. Tops and heights are pixels of the 250px price pane (volume
- * heights are pixels of the 68px band). Render converts them to percentages of
- * those panes.
- */
-const CANDLES: readonly CandleMark[] = [
-  {
-    bodyTop: 87,
-    bodyHeight: 27,
-    wickTop: 83,
-    wickHeight: 35,
-    volumeHeight: 12,
-  },
-  {
-    bodyTop: 96,
-    bodyHeight: 30,
-    wickTop: 77,
-    wickHeight: 65,
-    volumeHeight: 17,
-  },
-  {
-    bodyTop: 106,
-    bodyHeight: 29,
-    wickTop: 90,
-    wickHeight: 55,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 125,
-    bodyHeight: 30,
-    wickTop: 99,
-    wickHeight: 87,
-    volumeHeight: 32,
-  },
-  {
-    bodyTop: 139,
-    bodyHeight: 30,
-    wickTop: 123,
-    wickHeight: 66,
-    volumeHeight: 14,
-  },
-  {
-    bodyTop: 149,
-    bodyHeight: 30,
-    wickTop: 132,
-    wickHeight: 64,
-    volumeHeight: 19,
-  },
-  {
-    bodyTop: 163,
-    bodyHeight: 29,
-    wickTop: 153,
-    wickHeight: 46,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 124,
-    bodyHeight: 30,
-    wickTop: 99,
-    wickHeight: 74,
-    volumeHeight: 17,
-  },
-  {
-    bodyTop: 113,
-    bodyHeight: 4,
-    wickTop: 106,
-    wickHeight: 23,
-    volumeHeight: 8,
-  },
-  {
-    bodyTop: 81,
-    bodyHeight: 30,
-    wickTop: 64,
-    wickHeight: 66,
-    volumeHeight: 14,
-  },
-  {
-    bodyTop: 81,
-    bodyHeight: 30,
-    wickTop: 73,
-    wickHeight: 45,
-    volumeHeight: 14,
-  },
-  {
-    bodyTop: 71,
-    bodyHeight: 30,
-    wickTop: 48,
-    wickHeight: 73,
-    volumeHeight: 19,
-  },
-  {
-    bodyTop: 41,
-    bodyHeight: 17,
-    wickTop: 25,
-    wickHeight: 42,
-    volumeHeight: 20,
-  },
-  {
-    bodyTop: 49,
-    bodyHeight: 30,
-    wickTop: 34,
-    wickHeight: 66,
-    volumeHeight: 16,
-  },
-  {
-    bodyTop: 66,
-    bodyHeight: 21,
-    wickTop: 53,
-    wickHeight: 50,
-    volumeHeight: 11,
-  },
-  {
-    bodyTop: 86,
-    bodyHeight: 30,
-    wickTop: 62,
-    wickHeight: 77,
-    volumeHeight: 22,
-  },
-  {
-    bodyTop: 145,
-    bodyHeight: 30,
-    wickTop: 126,
-    wickHeight: 65,
-    volumeHeight: 17,
-  },
-  {
-    bodyTop: 154,
-    bodyHeight: 29,
-    wickTop: 139,
-    wickHeight: 55,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 167,
-    bodyHeight: 30,
-    wickTop: 148,
-    wickHeight: 74,
-    volumeHeight: 29,
-  },
-  {
-    bodyTop: 184,
-    bodyHeight: 25,
-    wickTop: 171,
-    wickHeight: 54,
-    volumeHeight: 12,
-  },
-  {
-    bodyTop: 139,
-    bodyHeight: 30,
-    wickTop: 121,
-    wickHeight: 66,
-    volumeHeight: 19,
-  },
-  {
-    bodyTop: 125,
-    bodyHeight: 29,
-    wickTop: 115,
-    wickHeight: 46,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 115,
-    bodyHeight: 30,
-    wickTop: 90,
-    wickHeight: 74,
-    volumeHeight: 17,
-  },
-  {
-    bodyTop: 71,
-    bodyHeight: 30,
-    wickTop: 59,
-    wickHeight: 59,
-    volumeHeight: 15,
-  },
-  {
-    bodyTop: 66,
-    bodyHeight: 29,
-    wickTop: 53,
-    wickHeight: 58,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 53,
-    bodyHeight: 30,
-    wickTop: 37,
-    wickHeight: 62,
-    volumeHeight: 29,
-  },
-  {
-    bodyTop: 44,
-    bodyHeight: 30,
-    wickTop: 31,
-    wickHeight: 52,
-    volumeHeight: 14,
-  },
-  {
-    bodyTop: 91,
-    bodyHeight: 30,
-    wickTop: 61,
-    wickHeight: 84,
-    volumeHeight: 19,
-  },
-  {
-    bodyTop: 114,
-    bodyHeight: 21,
-    wickTop: 108,
-    wickHeight: 41,
-    volumeHeight: 11,
-  },
-  {
-    bodyTop: 113,
-    bodyHeight: 4,
-    wickTop: 100,
-    wickHeight: 32,
-    volumeHeight: 8,
-  },
-  {
-    bodyTop: 115,
-    bodyHeight: 30,
-    wickTop: 111,
-    wickHeight: 39,
-    volumeHeight: 13,
-  },
-  {
-    bodyTop: 108,
-    bodyHeight: 30,
-    wickTop: 90,
-    wickHeight: 63,
-    volumeHeight: 16,
-  },
-];
+const CANDLES = CANDLE_PX.map(
+  ([bodyTop, bodyHeight, wickTop, wickHeight, volumeHeight]) => ({
+    bodyTop,
+    bodyHeight,
+    wickTop,
+    wickHeight,
+    volumeHeight,
+  }),
+);
 
 const candleMarks = CANDLES.map((candle) =>
   StyleSheet.create({
@@ -385,12 +168,7 @@ const candleMarks = CANDLES.map((candle) =>
   }),
 );
 
-/**
- * Candle-chart loading placeholder. Price and volume share a flex wrapper
- * (volume is 22% of that wrapper, min 56). The time row stays 32px under it.
- * Grey shapes use the
- * design-system Skeleton pulse.
- */
+/** Candle-chart placeholder. Price flexes, volume is 22% of that wrapper, time row is 32px. */
 const ChartCandleSkeleton = ({
   height = DEFAULT_CHART_HEIGHT,
   testID = 'chart-candle-skeleton',
