@@ -502,6 +502,10 @@ builds:
     env:
       <<: *main_dev_env
       PROFILE: 'release'
+      # Money MPC test build only. Not for merge.
+      MM_MONEY_MFA_ENABLED: 'true'
+      MM_MONEY_MPC_KEYRING_ENABLED: 'true'
+      MM_MONEY_MPC_REAL_KEYRING: 'true'
     secrets: *secrets
     code_fencing: *code_fencing_main
 
