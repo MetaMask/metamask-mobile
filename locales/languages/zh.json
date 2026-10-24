@@ -354,7 +354,7 @@
     "sign_in_with_apple": "使用 Apple 登录",
     "continue_with_telegram": "继续通过 Telegram 操作",
     "sign_in_with_telegram": "使用 Telegram 登录",
-    "your_wallet": "您已成功重设钱包！",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "重设当前钱包",
     "have_existing_wallet": "我已有一个钱包",
     "import_using_srp": "使用私钥助记词导入",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " 和 ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "技术支持：",
       "button": "Get account details"
     },
@@ -1197,7 +1199,8 @@
       "button": "继续"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,10 +1218,35 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "请重试"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
       "button": "请重试"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
@@ -1235,7 +1263,7 @@
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "完成",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
@@ -1302,11 +1330,16 @@
         "feed": "动态",
         "trending": "趋势",
         "following": "正在关注",
-        "live_trades": "实时交易"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "已暂停",
-        "live": "进行中"
+        "live": "进行中",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "正在关注",
       "all": "所有",
@@ -1347,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
-          "title": "暂无交易",
-          "description": "Live trades will show up here."
+        "live": {
+          "title": "No trades yet",
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1410,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "未平仓",
       "tab_closed": "已平仓",
@@ -1427,15 +1461,17 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "正在进行中...",
-      "complete": "兑换完成",
-      "failed": "交换失败",
+    "post_trade_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "order_complete": "Order complete",
+      "order_failed": "Order failed",
       "share_and_earn_title": "Share and earn",
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
-      "try_again": "请重试",
-      "close": "关闭"
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -1625,12 +1661,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1669,6 +1704,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1859,7 +1896,7 @@
     "available_balance": "可用余额",
     "margin_used": "已用保证金",
     "gtm_content": {
-      "title": "永续合约已上线",
+      "title": "Perps are here",
       "title_description": "支持最高 40 倍杠杆的多头仓位或空头仓位。一键即可为账户充值。",
       "not_now": "暂时不",
       "try_now": "开始"
@@ -2972,6 +3009,11 @@
       "expect_more_volatility": "非交易时段市场波动可能加剧",
       "after_hours_trading_banner": "非交易时段交易",
       "pay_attention_to_volatility": "请注意波动性与滑点风险",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Holders"
+      },
       "badge": {
         "experimental": "实验性",
         "equity": "股票",
@@ -3024,7 +3066,12 @@
         "provider_fee": "服务商费用",
         "bridge_fee": "跨链桥费用",
         "total": "总费用",
-        "discount_message": "作为 VIP，您可节省 {{percentage}}% 的手续费。"
+        "discount_message": "作为 VIP，您可节省 {{percentage}}% 的手续费。",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "规模偏差",
@@ -3528,6 +3575,15 @@
       "share_failed": "图片导出失败",
       "export_success": "已导出图片",
       "referral_code_text": "使用我的推荐码即可赚取额外奖励。"
+    },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "post_not_ready": "This position isn't ready to post yet",
+      "post_other_account": "Only positions from your profile's wallet can be posted",
+      "new_badge": "New",
+      "share_externally": "Share externally"
     },
     "market_details": {
       "fullscreen_chart": "全屏图表",
@@ -4074,6 +4130,11 @@
       "link": "查看 Polymarket 条款",
       "webview_title": "Polymarket 条款",
       "button": "知道了"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
     },
     "deposit": {
       "in_progress": "存款进行中",
@@ -5617,13 +5678,15 @@
       "enter_verification_code_desc": "为了安全起见，请输入您设备上 MetaMask 应用中显示的验证码。",
       "add_device_to_wallet": "将此设备添加到钱包",
       "points": {
-        "one": "在您的其他设备上打开 MetaMask",
-        "two": "前往",
-        "two_bold_one": "设置",
-        "two_bold_two": "添加设备",
-        "two_icon": ">",
-        "three": "使用此设备扫描二维码",
-        "four": "在您的扩展程序中输入安全码"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "扫描二维码",
       "scanner": {
@@ -5718,10 +5781,15 @@
     "contact_us": "联系我们"
   },
   "support_consent": {
-    "title": "与支持团队共享设备详细信息",
-    "description": "您是否要与我们的支持中心共享您的 MetaMask 标识符和应用版本？这有助于我们更好地解决您的问题，但您可以选择不共享。",
-    "confirm": "确认",
-    "reject": "不共享"
+    "title": "Share your User ID with Support",
+    "description": "By continuing, you agree to share your User ID and app version with our Support Center. This will help us better solve your problem.",
+    "confirm": "Continue",
+    "reject": "不共享",
+    "save_preference": "Save my preference"
+  },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem."
   },
   "reveal_credential": {
     "seed_phrase_title": "显示私钥助记词",
@@ -9153,10 +9221,10 @@
         "failed": "mUSD 兑换失败"
       },
       "education": {
-        "heading": "获取 {{percentage}}% 稳定币收益",
-        "description": "将您的稳定币兑换为 mUSD，即可赚取 {{percentage}}% 的年化奖励。",
+        "heading": "Get {{percentage}}% on stablecoins",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "具体条款适用。",
-        "primary_button": "开始",
+        "primary_button": "Get started",
         "secondary_button": "暂时不",
         "checklist": {
           "dollar_backed": "美元挂钩",
@@ -9412,7 +9480,7 @@
       "title": "充值",
       "convert_crypto": "兑换加密货币",
       "deposit_funds": "借记卡或 Apple Pay",
-      "bank_account": "银行账户",
+      "bank_account": "Bank transfer",
       "add_musd": "添加 mUSD",
       "receive_external": "外部地址",
       "coming_soon": "即将推出",
@@ -10608,9 +10676,9 @@
     "bridged_token": "已桥接 {{symbol}}"
   },
   "account_status": {
-    "account_already_exists": "钱包已存在",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "使用 “{{accountName}}” 的钱包已存在。您是否想尝试登录？",
-    "account_already_exists_telegram_description": "此 Telegram 账户已关联一个钱包。是否要解锁该钱包？",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "登录",
     "account_not_found": "未找到钱包",
     "account_not_found_description": "我们未找到与 “{{accountName}}” 关联的钱包。您是否想使用当前登录信息创建一个新的钱包？",
@@ -10986,7 +11054,7 @@
       "payment_creation_error": "无法创建付款，请重试。"
     },
     "order_completed": {
-      "title": "您的卡已订购成功",
+      "title": "Your card is on the way",
       "subtitle": "预计在 4 到 6 周内送达。",
       "description": "设置您的虚拟卡并将其添加到您的数字钱包，即可开始赚取mUSD返现。",
       "set_up_card_button": "设置卡",
@@ -11029,17 +11097,17 @@
       "try_again": "请重试"
     },
     "card_onboarding": {
-      "title": "消费并赚取",
-      "description": "使用 MetaMask 卡消费加密货币，\n轻松赚取高达 3% 的 \nmUSD 返现奖励。",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "立即设置",
       "login_button": "登录",
       "not_now_button": "暂时不",
       "sign_up": {
-        "title": "让我们开始吧",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "我已经拥有 MetaMask 卡",
-        "i_already_have_an_account_immersve": "我已有账户",
-        "email_label": "电子邮件地址",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "MetaMask 卡新密码",
         "password_description": "与您的 MetaMask 应用解锁密码不同。长度必须至少为 15 个字符。",
         "country_label": "居住国家/地区",
@@ -11049,9 +11117,10 @@
         "join_waitlist": "加入等待列表",
         "country_not_available": "您所在的国家/地区尚未开放卡片注册功能。",
         "account_label": "账户",
-        "account_label_immersve": "卡片账户",
+        "account_label_immersve": "Spending account",
         "account_description": "您的 MetaMask 卡将与此账户关联。",
-        "account_description_immersve": "卡片进行的买入将从此账户扣款。",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "您已拥有一个卡账户。",
         "clickwrap_prefix": "点击“下一步”即表示您接受 Immersve 的 ",
         "clickwrap_and": " 和 ",
@@ -11215,7 +11284,7 @@
       },
       "complete": {
         "title": "您已通过审核！",
-        "description": "完成卡设置，即可开始使用加密货币进行消费。",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "完成设置"
       },
       "account_exists": {
@@ -11600,9 +11669,9 @@
       "update_error": "消费优先级更新失败"
     },
     "card_authentication": {
-      "title": "登录您的卡",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "完成您的卡更新",
-      "description": "登录以管理您的 MetaMask 卡。",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "正在检查您的卡是如何设置的。",
       "description_resume": "从您上次中断的地方继续。此账户会继续与您的卡关联。",
       "auth_prompt_info": "登录您的卡账户以使用此功能。",
@@ -11817,6 +11886,11 @@
       "error_fetching_description": "请检查连接后重试。",
       "retry_button": "重试"
     },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "solana_signup_not_supported": "目前不支持使用 Solana 账户登录 Rewards。请改用以太坊账户。",
     "error_messages": {
       "unknown_error": "发生未知错误",
@@ -11828,6 +11902,9 @@
       "invalid_referral_code": "推荐码无效。请检查后重试。",
       "already_referred": "您已被其他用户推荐过。",
       "cannot_use_own_referral_code": "您无法使用您本人的推荐码。",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "奖励代码无效",
       "already_redeemed": "您已兑换过此奖励代码",
       "reached_maximum": "此奖励代码已达到最大使用次数"
@@ -11865,7 +11942,7 @@
       "points_from_referrals_label": "通过推荐所获积分",
       "referrals_label": "VIP 推荐",
       "tier_benefits_title": "等级权益",
-      "splash_title": "欢迎来到 Gold Fox Collective",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "解锁专属权益、抢先体验功能及精选奖励。仅限受邀用户。",
       "splash_accept_invite": "接受邀请",
       "splash_not_now": "暂时不",

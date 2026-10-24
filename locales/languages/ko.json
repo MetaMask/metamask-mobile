@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Apple로 로그인",
     "continue_with_telegram": "Telegram으로 계속하기",
     "sign_in_with_telegram": "Telegram으로 로그인",
-    "your_wallet": "지갑이 초기화되었습니다!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "현재 지갑 초기화",
     "have_existing_wallet": "기존 지갑이 있습니다",
     "import_using_srp": "비밀복구구문을 사용하여 가져오기",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " 및 ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "제공자:",
       "button": "Get account details"
     },
@@ -1197,7 +1199,8 @@
       "button": "계속"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,10 +1218,35 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "다시 시도"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
       "button": "다시 시도"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
@@ -1235,7 +1263,7 @@
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "완료",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
@@ -1302,11 +1330,16 @@
         "feed": "피드",
         "trending": "인기",
         "following": "팔로우 중",
-        "live_trades": "실시간 거래"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "일시 중지됨",
-        "live": "진행 중"
+        "live": "진행 중",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "팔로우 중",
       "all": "모두",
@@ -1347,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
-          "title": "아직 거래가 없습니다",
-          "description": "Live trades will show up here."
+        "live": {
+          "title": "No trades yet",
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1410,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "미체결",
       "tab_closed": "닫힘",
@@ -1427,15 +1461,17 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "진행 중...",
-      "complete": "스왑 완료",
-      "failed": "스왑 실패",
+    "post_trade_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "order_complete": "Order complete",
+      "order_failed": "Order failed",
       "share_and_earn_title": "Share and earn",
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
-      "try_again": "다시 시도",
-      "close": "닫기"
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -1625,12 +1661,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1669,6 +1704,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1859,7 +1896,7 @@
     "available_balance": "사용 가능한 잔액",
     "margin_used": "사용된 마진",
     "gtm_content": {
-      "title": "이제 무기한 선물을 지원합니다",
+      "title": "Perps are here",
       "title_description": "최대 40배 레버리지로 롱 또는 숏 포지션을 취하세요. 한 번의 클릭으로 계정에 자금을 충전할 수 있습니다.",
       "not_now": "나중에",
       "try_now": "시작하기"
@@ -2972,6 +3009,11 @@
       "expect_more_volatility": "정규 시장 시간 외에는 변동성이 커질 수 있습니다",
       "after_hours_trading_banner": "시간 외 거래",
       "pay_attention_to_volatility": "변동성과 슬리피지에 주의하세요",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Holders"
+      },
       "badge": {
         "experimental": "실험적",
         "equity": "주식",
@@ -3024,7 +3066,12 @@
         "provider_fee": "공급자 수수료",
         "bridge_fee": "브릿지 수수료",
         "total": "총 수수료",
-        "discount_message": "VIP 혜택으로 수수료 {{percentage}}% 할인이 적용됩니다."
+        "discount_message": "VIP 혜택으로 수수료 {{percentage}}% 할인이 적용됩니다.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "사이즈 스큐",
@@ -3528,6 +3575,15 @@
       "share_failed": "이미지 내보내기 실패",
       "export_success": "이미지 내보내기 완료",
       "referral_code_text": "추천 코드를 사용하여 추가 리워드를 받으세요."
+    },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "post_not_ready": "This position isn't ready to post yet",
+      "post_other_account": "Only positions from your profile's wallet can be posted",
+      "new_badge": "New",
+      "share_externally": "Share externally"
     },
     "market_details": {
       "fullscreen_chart": "전체 화면 차트",
@@ -4074,6 +4130,11 @@
       "link": "Polymarket 이용약관 보기",
       "webview_title": "Polymarket 약관",
       "button": "컨펌"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
     },
     "deposit": {
       "in_progress": "예치 진행 중",
@@ -5617,13 +5678,15 @@
       "enter_verification_code_desc": "보안을 위해 기기의 MetaMask 앱에 표시된 코드를 입력하세요.",
       "add_device_to_wallet": "지갑에 이 기기 추가",
       "points": {
-        "one": "다른 기기에서 MetaMask 열기",
-        "two": "다음으로 이동:",
-        "two_bold_one": "설정",
-        "two_bold_two": "기기 추가",
-        "two_icon": ">",
-        "three": "이 기기로 QR 코드 스캔",
-        "four": "확장 프로그램에 보안 코드 입력"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "QR 코드 스캔",
       "scanner": {
@@ -5718,10 +5781,15 @@
     "contact_us": "문의하기"
   },
   "support_consent": {
-    "title": "고객 지원팀에 기기 세부 정보 공유",
-    "description": "MetaMask 식별자 및 앱 버전을 지원 센터와 공유하시겠습니까? 문제를 해결하는 데 도움이 될 수 있으며, 선택 사항입니다.",
-    "confirm": "컨펌",
-    "reject": "공유하지 않음"
+    "title": "Share your User ID with Support",
+    "description": "By continuing, you agree to share your User ID and app version with our Support Center. This will help us better solve your problem.",
+    "confirm": "Continue",
+    "reject": "공유하지 않음",
+    "save_preference": "Save my preference"
+  },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem."
   },
   "reveal_credential": {
     "seed_phrase_title": "비밀 복구 구문 보기",
@@ -9153,10 +9221,10 @@
         "failed": "mUSD 전환 실패"
       },
       "education": {
-        "heading": "스테이블 코인 {{percentage}}% 혜택",
-        "description": "스테이블코인을 mUSD로 전환하면 연 {{percentage}}% 보너스를 받을 수 있습니다.",
+        "heading": "Get {{percentage}}% on stablecoins",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "약관이 적용됩니다.",
-        "primary_button": "시작하기",
+        "primary_button": "Get started",
         "secondary_button": "나중에",
         "checklist": {
           "dollar_backed": "달러 연동",
@@ -9412,7 +9480,7 @@
       "title": "자금 추가",
       "convert_crypto": "암호자산 전환",
       "deposit_funds": "직불카드 또는 Apple Pay",
-      "bank_account": "은행 계좌",
+      "bank_account": "Bank transfer",
       "add_musd": "mUSD 추가",
       "receive_external": "외부 주소",
       "coming_soon": "곧 추가 예정",
@@ -10608,9 +10676,9 @@
     "bridged_token": "{{symbol}} 브릿지 완료"
   },
   "account_status": {
-    "account_already_exists": "이미 존재하는 지갑",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "'{{accountName}}'을(를) 사용하는 지갑이 이미 존재합니다. 로그인하시겠습니까?",
-    "account_already_exists_telegram_description": "지갑이 이미 이 Telegram 계정에 연결되어 있습니다. 이 지갑의 잠금을 해제하시겠습니까?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "로그인",
     "account_not_found": "지갑을 찾을 수 없음",
     "account_not_found_description": "'{{accountName}}'에 대한 지갑을 찾을 수 없습니다. 로그인한 상태에서 새 지갑을 만드시겠습니까?",
@@ -10986,7 +11054,7 @@
       "payment_creation_error": "결제를 생성하지 못했습니다. 다시 시도해 주세요."
     },
     "order_completed": {
-      "title": "카드 주문이 완료되었습니다",
+      "title": "Your card is on the way",
       "subtitle": "4~6주 내에 배송될 예정입니다.",
       "description": "가상 카드를 설정하고 디지털 지갑에 추가하여 mUSD 캐시백을 받으세요.",
       "set_up_card_button": "카드 설정",
@@ -11029,17 +11097,17 @@
       "try_again": "다시 시도"
     },
     "card_onboarding": {
-      "title": "결제와 동시에 수익 창출",
-      "description": "MetaMask 카드로 암호자산을\n쉽고 빠르게 결제에 사용하고 최대 \n3% mUSD 캐시백을 받을 수 있습니다.",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "설정하기",
       "login_button": "로그인",
       "not_now_button": "나중에",
       "sign_up": {
-        "title": "지금 시작하세요",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "이미 MetaMask 카드를 보유하고 있습니다",
-        "i_already_have_an_account_immersve": "이미 계정이 있습니다",
-        "email_label": "이메일 주소",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "MetaMask Card의 새로운 비밀번호",
         "password_description": "MetaMask 앱의 잠금해제 비밀번호와 일치하지 않습니다. 15자 이상이어야 합니다.",
         "country_label": "거주 국가",
@@ -11049,9 +11117,10 @@
         "join_waitlist": "대기자 명단 등록",
         "country_not_available": "현재 거주 국가에서는 아직 카드 가입이 지원되지 않습니다.",
         "account_label": "계정",
-        "account_label_immersve": "카드 계정",
+        "account_label_immersve": "Spending account",
         "account_description": "MetaMask 카드가 이 계정과 연결됩니다.",
-        "account_description_immersve": "카드 사용 금액이 이 계정으로 청구됩니다.",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "이미 카드 계정이 있습니다.",
         "clickwrap_prefix": "'다음'을 누르면 사용자는 Immersve의 다음 항목에 동의하게 됩니다 ",
         "clickwrap_and": " 및 ",
@@ -11215,7 +11284,7 @@
       },
       "complete": {
         "title": "가입이 완료되었습니다!",
-        "description": "암호화폐를 사용하려면 카드 설정을 마무리하세요.",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "설정 종료"
       },
       "account_exists": {
@@ -11600,9 +11669,9 @@
       "update_error": "지출 우선순위 변경 실패"
     },
     "card_authentication": {
-      "title": "카드에 로그인",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "카드 업데이트 완료하기",
-      "description": "MetaMask Card를 관리하려면 로그인하세요.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "카드 설정 방식을 확인하고 있습니다.",
       "description_resume": "중단한 지점부터 계속하세요. 이 계정은 카드에 계속 연결된 상태로 유지됩니다.",
       "auth_prompt_info": "이 기능을 사용하려면 카드 계정에 로그인하세요.",
@@ -11817,6 +11886,11 @@
       "error_fetching_description": "연결 상태를 확인하고 다시 시도하세요.",
       "retry_button": "다시 시도"
     },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "solana_signup_not_supported": "솔라나 계정으로 보상에 로그인하는 기능은 아직 지원되지 않습니다. 이더리움 계정을 대신 사용해 주세요.",
     "error_messages": {
       "unknown_error": "알 수 없는 오류가 발생했습니다",
@@ -11828,6 +11902,9 @@
       "invalid_referral_code": "잘못된 추천 코드입니다. 확인 후 다시 시도해 주세요.",
       "already_referred": "이미 다른 사용자의 추천을 받았습니다.",
       "cannot_use_own_referral_code": "본인의 추천 코드는 사용할 수 없습니다.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "잘못된 보너스 코드",
       "already_redeemed": "이미 이 보너스 코드를 사용하셨습니다",
       "reached_maximum": "이 보너스 코드는 최대 사용 한도에 도달했습니다"
@@ -11865,7 +11942,7 @@
       "points_from_referrals_label": "추천으로 얻은 포인트",
       "referrals_label": "VIP 추천",
       "tier_benefits_title": "티어 혜택",
-      "splash_title": "골드 폭스 컬렉티브에\n오신 것을 \n환영합니다",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "독점적 혜택, 우선 이용 가능한 기능, 엄선된 보상을 만나보세요. 초대받은 사용자만 이용할 수 있습니다.",
       "splash_accept_invite": "초대 수락",
       "splash_not_now": "나중에",

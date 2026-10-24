@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Inicia sesión con Apple",
     "continue_with_telegram": "Continuar con Telegram",
     "sign_in_with_telegram": "Iniciar sesión con Telegram",
-    "your_wallet": "¡Restableciste tu billetera correctamente!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "Restablecer la billetera actual",
     "have_existing_wallet": "Tengo una billetera existente",
     "import_using_srp": "Importar usando la frase secreta de recuperación",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " y ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "Impulsado por",
       "button": "Get account details"
     },
@@ -1197,7 +1199,8 @@
       "button": "Continuar"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,10 +1218,35 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Inténtalo de nuevo"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
       "button": "Inténtalo de nuevo"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
@@ -1235,7 +1263,7 @@
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "Hecho",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
@@ -1302,11 +1330,16 @@
         "feed": "Feed",
         "trending": "Tendencias",
         "following": "Siguiendo",
-        "live_trades": "Operaciones reales"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "Suspendida",
-        "live": "En vivo"
+        "live": "En vivo",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Siguiendo",
       "all": "Todas",
@@ -1347,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
-          "title": "Aún no hay operaciones",
-          "description": "Live trades will show up here."
+        "live": {
+          "title": "No trades yet",
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1410,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "Abierto",
       "tab_closed": "Cerrado",
@@ -1427,15 +1461,17 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "En curso...",
-      "complete": "Canje finalizado",
-      "failed": "Error al canjear",
+    "post_trade_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "order_complete": "Order complete",
+      "order_failed": "Order failed",
       "share_and_earn_title": "Share and earn",
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
-      "try_again": "Inténtalo de nuevo",
-      "close": "Cerrar"
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -1625,12 +1661,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1669,6 +1704,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1859,7 +1896,7 @@
     "available_balance": "Saldo disponible",
     "margin_used": "Margen utilizado",
     "gtm_content": {
-      "title": "Llegaron los Perps",
+      "title": "Perps are here",
       "title_description": "Opera en largo o corto con un apalancamiento de hasta 40x. Deposita fondos en tu cuenta con un solo clic.",
       "not_now": "Ahora no",
       "try_now": "Comenzar"
@@ -2972,6 +3009,11 @@
       "expect_more_volatility": "Se espera una mayor volatilidad fuera del horario del mercado",
       "after_hours_trading_banner": "Operaciones fuera del horario del mercado",
       "pay_attention_to_volatility": "Presta atención a la volatilidad y al deslizamiento",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Holders"
+      },
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "ACCIÓN",
@@ -3024,7 +3066,12 @@
         "provider_fee": "Tarifa del proveedor",
         "bridge_fee": "Tarifa de puente",
         "total": "Tarifas totales",
-        "discount_message": "Estás ahorrando un {{percentage}} % en tarifas como VIP."
+        "discount_message": "Estás ahorrando un {{percentage}} % en tarifas como VIP.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "Sesgo de tamaño",
@@ -3528,6 +3575,15 @@
       "share_failed": "Error al exportar la imagen",
       "export_success": "Imagen exportada",
       "referral_code_text": "Usa mi código de recomendación para ganar recompensas adicionales."
+    },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "post_not_ready": "This position isn't ready to post yet",
+      "post_other_account": "Only positions from your profile's wallet can be posted",
+      "new_badge": "New",
+      "share_externally": "Share externally"
     },
     "market_details": {
       "fullscreen_chart": "Gráfico en pantalla completa",
@@ -4074,6 +4130,11 @@
       "link": "Ver los términos de Polymarket",
       "webview_title": "Términos de Polymarket",
       "button": "Entendido"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
     },
     "deposit": {
       "in_progress": "Depósito en curso",
@@ -5617,13 +5678,15 @@
       "enter_verification_code_desc": "Por seguridad, ingresa el código que aparece en la aplicación MetaMask de tu dispositivo.",
       "add_device_to_wallet": "Agrega este dispositivo a la billetera",
       "points": {
-        "one": "Abre MetaMask en tu otro dispositivo",
-        "two": "Ve a",
-        "two_bold_one": "Configuración",
-        "two_bold_two": "Agregar dispositivo",
-        "two_icon": ">",
-        "three": "Escanea el código QR con este dispositivo",
-        "four": "Ingresa el código de seguridad en tu extensión"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "Escanear código QR",
       "scanner": {
@@ -5718,10 +5781,15 @@
     "contact_us": "Contáctanos"
   },
   "support_consent": {
-    "title": "Compartir información del dispositivo con soporte técnico",
-    "description": "¿Quieres compartir tu identificador de MetaMask y la versión de la aplicación con nuestro centro de soporte técnico? Esto puede ayudarnos a resolver mejor tu problema, pero es opcional.",
-    "confirm": "Confirmar",
-    "reject": "No compartir"
+    "title": "Share your User ID with Support",
+    "description": "By continuing, you agree to share your User ID and app version with our Support Center. This will help us better solve your problem.",
+    "confirm": "Continue",
+    "reject": "No compartir",
+    "save_preference": "Save my preference"
+  },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem."
   },
   "reveal_credential": {
     "seed_phrase_title": "Revelar frase secreta de recuperación",
@@ -9153,10 +9221,10 @@
         "failed": "Conversión de mUSD fallida"
       },
       "education": {
-        "heading": "Obtén {{percentage}} % en monedas estables",
-        "description": "Convierte tus monedas estables a mUSD y gana un bono anualizado del {{percentage}} %.",
+        "heading": "Get {{percentage}}% on stablecoins",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Se aplican términos y condiciones.",
-        "primary_button": "Comenzar",
+        "primary_button": "Get started",
         "secondary_button": "Ahora no",
         "checklist": {
           "dollar_backed": "Respaldado por dólares",
@@ -9412,7 +9480,7 @@
       "title": "Agregar fondos",
       "convert_crypto": "Convertir criptomonedas",
       "deposit_funds": "Tarjeta de débito o Apple Pay",
-      "bank_account": "Cuenta bancaria",
+      "bank_account": "Bank transfer",
       "add_musd": "Agregar mUSD",
       "receive_external": "Dirección externa",
       "coming_soon": "Próximamente",
@@ -10608,9 +10676,9 @@
     "bridged_token": "{{symbol}} puenteado"
   },
   "account_status": {
-    "account_already_exists": "La billetera ya existe",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "Ya existe una billetera que usa \"{{accountName}}\". ¿Quieres intentar iniciar sesión en su lugar?",
-    "account_already_exists_telegram_description": "Ya hay una billetera vinculada a esta cuenta de Telegram. ¿Quieres desbloquear esta billetera?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "Iniciar sesión",
     "account_not_found": "Billetera no encontrada",
     "account_not_found_description": "No pudimos encontrar una billetera para \"{{accountName}}\". ¿Quieres crear una nueva con este inicio de sesión?",
@@ -10986,7 +11054,7 @@
       "payment_creation_error": "Error al crear el pago. Inténtalo de nuevo."
     },
     "order_completed": {
-      "title": "Tu tarjeta ha sido solicitada",
+      "title": "Your card is on the way",
       "subtitle": "Debería llegar en un plazo de 4 a 6 semanas.",
       "description": "Configura tu tarjeta virtual y añádela a tu billetera digital para comenzar a ganar cashback en mUSD.",
       "set_up_card_button": "Configurar tarjeta",
@@ -11029,17 +11097,17 @@
       "try_again": "Inténtalo de nuevo"
     },
     "card_onboarding": {
-      "title": "Gasta y gana",
-      "description": "La tarjeta MetaMask es la forma rápida y\nfácil de gastar tus criptomonedas y\nganar hasta un 3 % de cashback en mUSD.",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "Configurar ahora",
       "login_button": "Iniciar sesión",
       "not_now_button": "Ahora no",
       "sign_up": {
-        "title": "Comencemos",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "Ya tengo una Tarjeta MetaMask",
-        "i_already_have_an_account_immersve": "Ya tengo una cuenta",
-        "email_label": "Dirección de correo electrónico",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "Nueva contraseña para la Tarjeta MetaMask",
         "password_description": "Es diferente de la contraseña de desbloqueo de tu aplicación MetaMask. Debe tener al menos 15 caracteres.",
         "country_label": "País de residencia",
@@ -11049,9 +11117,10 @@
         "join_waitlist": "Únete a la lista de espera",
         "country_not_available": "El registro para la tarjeta aún no está disponible en tu país.",
         "account_label": "Cuenta",
-        "account_label_immersve": "Cuenta de tarjeta",
+        "account_label_immersve": "Spending account",
         "account_description": "Tu tarjeta MetaMask se asociará con esta cuenta.",
-        "account_description_immersve": "Las compras realizadas con tarjeta se cargarán a esta cuenta.",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "Ya tienes una cuenta de tarjeta.",
         "clickwrap_prefix": "Al pulsar \"Siguiente\", aceptas los términos de Immersve",
         "clickwrap_and": " y ",
@@ -11215,7 +11284,7 @@
       },
       "complete": {
         "title": "¡Todo listo!",
-        "description": "Finaliza la configuración de tu tarjeta para poder comenzar a gastar tus criptomonedas.",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Finalizar configuración"
       },
       "account_exists": {
@@ -11600,9 +11669,9 @@
       "update_error": "No se pudo actualizar la prioridad de gasto"
     },
     "card_authentication": {
-      "title": "Inicia sesión en tu tarjeta",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Termina de actualizar tu tarjeta",
-      "description": "Inicia sesión para gestionar tu tarjeta MetaMask.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Comprobando cómo se configuró tu tarjeta.",
       "description_resume": "Continúa donde lo dejaste. Esta cuenta permanece vinculada a tu tarjeta.",
       "auth_prompt_info": "Inicia sesión en la cuenta de tu tarjeta para acceder a esta función.",
@@ -11817,6 +11886,11 @@
       "error_fetching_description": "Comprueba tu conexión y vuelve a intentarlo.",
       "retry_button": "Reintentar"
     },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "solana_signup_not_supported": "Aún no se admite el inicio de sesión en Recompensas con cuentas de Solana. Utiliza una cuenta Ethereum en su lugar.",
     "error_messages": {
       "unknown_error": "Ocurrió un error desconocido",
@@ -11828,6 +11902,9 @@
       "invalid_referral_code": "Código de recomendación no válido. Compruébalo e inténtalo de nuevo.",
       "already_referred": "Ya otro usuario te ha recomendado.",
       "cannot_use_own_referral_code": "No puedes usar tu propio código de recomendación.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "Código de bono no válido",
       "already_redeemed": "Ya canjeaste este código de bono",
       "reached_maximum": "Este código de bono alcanzó su número máximo de usos"
@@ -11865,7 +11942,7 @@
       "points_from_referrals_label": "Puntos por referidos",
       "referrals_label": "Referidos VIP",
       "tier_benefits_title": "Beneficios del nivel",
-      "splash_title": "Bienvenido a Gold Fox Collective",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Desbloquea ventajas exclusivas, funciones anticipadas y recompensas seleccionadas. Solo por invitación.",
       "splash_accept_invite": "Aceptar invitación",
       "splash_not_now": "Ahora no",
