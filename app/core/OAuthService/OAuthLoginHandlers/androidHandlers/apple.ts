@@ -87,6 +87,7 @@ export class AndroidAppleLoginHandler
       state,
       extraParams: {
         response_mode: 'form_post',
+        ...(this.hasCallerNonce ? { nonce: this.nonce } : {}),
       },
     });
 

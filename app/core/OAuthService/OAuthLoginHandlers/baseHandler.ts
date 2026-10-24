@@ -1,4 +1,5 @@
 import {
+  AuthAccessType,
   AuthConnection,
   OAuthLoginUserInfo,
   AuthRequestParams,
@@ -36,13 +37,14 @@ export async function getAuthTokens(
   params: AuthRequestParams,
   pathname: string,
   authServerUrl: string,
+  accessType: AuthAccessType = 'offline',
 ): Promise<AuthResponse> {
   const res = await fetch(`${authServerUrl}/${pathname}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ ...params, access_type: 'offline' }),
+    body: JSON.stringify({ ...params, access_type: accessType }),
   });
 
   if (res.status === 200 || res.status === 201) {
@@ -65,6 +67,11 @@ export interface BaseHandlerOptions {
   authServerUrl: string;
   clientId: string;
   web3AuthNetwork: string;
+  /**
+   * Caller-supplied OIDC nonce. MFA recovery binds a proof key into the ID
+   * token through this value, so it must reach the provider unchanged.
+   */
+  nonce?: string;
 }
 
 /**
@@ -74,6 +81,8 @@ export abstract class BaseLoginHandler {
   public options: BaseHandlerOptions;
 
   public nonce: string;
+
+  protected readonly hasCallerNonce: boolean;
 
   protected readonly CODE_CHALLENGE_METHOD = 'S256';
 
@@ -91,7 +100,8 @@ export abstract class BaseLoginHandler {
 
   constructor(options: BaseHandlerOptions) {
     this.options = options;
-    this.nonce = this.generateNonce();
+    this.hasCallerNonce = options.nonce !== undefined;
+    this.nonce = options.nonce ?? this.generateNonce();
   }
 
   /**
@@ -111,14 +121,25 @@ export abstract class BaseLoginHandler {
    *
    * @param params - The params from the login handler
    * @param authServerUrl - The url of the auth server
+   * @param accessType - `online` skips issuing a refresh token
    * @returns Promise resolving to the auth response
    */
-  getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
+  getAuthTokens(
+    params: HandleFlowParams,
+    authServerUrl: string,
+    accessType: AuthAccessType = 'offline',
+  ) {
     const requestData = this.getAuthTokenRequestData(params);
     const authConnection = this.authConnection;
 
     return retryWithDelay(
-      () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
+      () =>
+        getAuthTokens(
+          requestData,
+          this.authServerPath,
+          authServerUrl,
+          accessType,
+        ),
       {
         maxRetries: 3,
         baseDelayMs: 500,
