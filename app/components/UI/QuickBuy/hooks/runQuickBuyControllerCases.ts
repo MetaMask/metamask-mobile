@@ -71,6 +71,7 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
 import { useAddPopularNetwork } from '../../../hooks/useAddPopularNetwork';
 import { PopularList } from '../../../../util/networks/customNetworks';
 import { getTokenExchangeRate } from '../../Bridge/utils/exchange-rates';
@@ -116,6 +117,7 @@ const mockToAssetId = toAssetId as jest.MockedFunction<typeof toAssetId>;
 const mockRecordSocialTrade = recordSocialTrade as jest.MockedFunction<
   typeof recordSocialTrade
 >;
+const mockResolvePostTradePrompt = jest.fn();
 
 const mockAddPopularNetwork = jest.fn();
 const mockTrackAmountSelected = jest.fn();
@@ -328,6 +330,10 @@ export const setupDefaultMocks = () => {
     addPopularNetwork: mockAddPopularNetwork,
   });
   (getTokenExchangeRate as jest.Mock).mockResolvedValue(undefined);
+  mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+  (usePostTradePromptResolver as jest.Mock).mockReturnValue(
+    mockResolvePostTradePrompt,
+  );
 };
 
 export const runQuickBuyControllerCases = ({
@@ -3886,6 +3892,111 @@ export const runQuickBuyControllerCases = ({
             theme: expect.any(Object),
           });
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+        });
+
+        describe('post-trade prompt', () => {
+          const submit = async (postTradeShare?: boolean) => {
+            mockUsableQuote();
+            (
+              Engine.context.BridgeStatusController.submitTx as jest.Mock
+            ).mockResolvedValue({ id: 'tx-1', hash: '0xabc' });
+            const { result } = renderHook(
+              createTarget(),
+              jest.fn(),
+              undefined,
+              undefined,
+              'buy',
+              postTradeShare,
+            );
+            await act(async () => {
+              await result.current.handleConfirm();
+            });
+          };
+
+          it('opens a pending share sheet that counts toward the limit', async () => {
+            const countKey = { address: '0xlinked', product: 'swap' };
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'share_sheet',
+              countKey,
+            });
+
+            await submit();
+
+            expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('swap');
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'share',
+              }),
+            );
+            expect(buildQuickBuyToastOptions).not.toHaveBeenCalledWith(
+              'pending',
+              expect.anything(),
+            );
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: { kind: 'share_sheet', countKey },
+              }),
+            );
+          });
+
+          it('opens a pending create profile sheet for a user without a profile', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+            await submit();
+
+            expect(getPostTradeShareSession()).toEqual(
+              expect.objectContaining({
+                product: 'spot',
+                status: 'pending',
+                variant: 'create_profile',
+              }),
+            );
+            expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: { kind: 'claim_sheet' },
+              }),
+            );
+          });
+
+          it('tracks the post-to-feed toast with the composer preview', async () => {
+            mockResolvePostTradePrompt.mockReturnValue({
+              kind: 'post_to_feed_toast',
+            });
+
+            await submit();
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradePrompt: expect.objectContaining({
+                  kind: 'post_to_feed_toast',
+                  tradeInFlightChain: 'ethereum',
+                  preview: expect.objectContaining({ side: 'buy' }),
+                }),
+              }),
+            );
+          });
+
+          it('skips the prompt for copy-trades', async () => {
+            await submit(true);
+
+            expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: true,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
         });
 
         it('tracks an EVM swap with isNonEvmSwap false and the tx hash as the signature', async () => {

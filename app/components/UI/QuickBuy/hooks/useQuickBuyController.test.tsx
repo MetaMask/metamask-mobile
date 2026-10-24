@@ -274,6 +274,11 @@ jest.mock('../resolveQuickBuyTerminalToast', () => ({
   resolveQuickBuyTerminalToast: jest.fn(),
 }));
 
+jest.mock(
+  '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: jest.fn() }),
+);
+
 jest.mock('../../../../util/haptics', () => ({
   playImpact: jest.fn(),
   playErrorNotification: jest.fn(),

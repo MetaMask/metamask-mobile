@@ -55,7 +55,9 @@ import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMap
 import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
-} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -134,6 +136,7 @@ import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
+  type TrackedQuickBuyPostTradePrompt,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
@@ -295,6 +298,7 @@ export function useQuickBuyController(
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1675,9 +1679,38 @@ export function useQuickBuyController(
     );
     const previewChain =
       caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
-    const shouldPostTradeShare = postTradeShare && Boolean(tradeInFlightChain);
+    const sharePreview: SocialPostTradePreview = {
+      tokenSymbol: target.tokenSymbol,
+      tokenAddress: target.tokenAddress,
+      chain: previewChain,
+      side: tradeMode,
+      costLabel: tradeToastInfo.fiatAmountLabel,
+      entryPriceLabel: formattedRate,
+    };
+    // Copy-trades always share. Other swaps get the prompt chosen from the
+    // linked profile and how many share sheets it has already completed.
+    const prompt = postTradeShare ? undefined : resolvePostTradePrompt('swap');
+    let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
+    if (prompt?.kind === 'claim_sheet') {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'share_sheet' && tradeInFlightChain) {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'post_to_feed_toast' && tradeInFlightChain) {
+      trackedPostTradePrompt = {
+        kind: 'post_to_feed_toast',
+        tradeInFlightChain,
+        preview: sharePreview,
+      };
+    }
+    const isCreateProfilePrompt =
+      trackedPostTradePrompt?.kind === 'claim_sheet';
+    const shouldPostTradeShare =
+      isCreateProfilePrompt ||
+      ((postTradeShare || trackedPostTradePrompt?.kind === 'share_sheet') &&
+        Boolean(tradeInFlightChain));
     const postTradeShareSessionId = shouldPostTradeShare
       ? beginPostTradeShareSession({
+          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
           target,
           tradeMode,
           pairLabel:
@@ -1687,14 +1720,7 @@ export function useQuickBuyController(
           tradeInFlightChain,
           copyTradeOrigin,
           owner: postTradeShareOwner,
-          preview: {
-            tokenSymbol: target.tokenSymbol,
-            tokenAddress: target.tokenAddress,
-            chain: previewChain,
-            side: tradeMode,
-            costLabel: tradeToastInfo.fiatAmountLabel,
-            entryPriceLabel: formattedRate,
-          },
+          preview: sharePreview,
         })
       : undefined;
     if (shouldPostTradeShare) {
@@ -1778,6 +1804,7 @@ export function useQuickBuyController(
           txSignature: txHash,
           postTradeShare: shouldPostTradeShare,
           postTradeShareSessionId,
+          postTradePrompt: trackedPostTradePrompt,
         });
         if (postTradeShareSessionId && txHash) {
           patchPostTradeShareSession(postTradeShareSessionId, {
@@ -1879,6 +1906,7 @@ export function useQuickBuyController(
     markTradeSubmitted,
     submitStartedAtRef,
     postTradeShare,
+    resolvePostTradePrompt,
     copyTradeOrigin,
     postTradeShareOwner,
     sourceTokenAmount,

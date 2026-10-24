@@ -644,6 +644,33 @@ let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
 let mockSelectedEvmAccount: { address: string } | undefined;
+let mockIsPerpsProModeActive = false;
+const mockResolvePostTradePrompt = jest.fn();
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+);
+
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../../utils/perpsModeSwitch'),
+  useIsPerpsProModeActive: () => mockIsPerpsProModeActive,
+}));
+
+jest.mock('../../../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+  markClaimSheetSeen: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+  () => ({
+    ...jest.requireActual(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    ),
+    openPostTradeComposer: jest.fn(),
+  }),
+);
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -7454,6 +7481,167 @@ describe('PerpsOrderView', () => {
         getOnSuccess()(undefined, { success: true, orderId: '42' }),
       ).not.toThrow();
       expect(mockMessengerCall).toHaveBeenCalled();
+    });
+  });
+
+  describe('post-trade prompt', () => {
+    const { incrementShareSheetCount, markClaimSheetSeen } = jest.requireMock(
+      '../../../../../util/social/postTradePromptStorage',
+    );
+    const { openPostTradeComposer } = jest.requireMock(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    );
+    const countKey = { address: '0xlinked', product: 'perps' };
+
+    const getOnSuccess = () => {
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onSuccess) {
+        throw new Error('usePerpsOrderExecution was not given onSuccess');
+      }
+      return options.onSuccess;
+    };
+
+    const submitOrder = async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({ stayOnCurrentScreen: true });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+      showToast.mockClear();
+      return showToast;
+    };
+
+    const fill = async (orderId: string | undefined = '42') => {
+      await act(async () => {
+        await getOnSuccess()(undefined, {
+          success: true,
+          orderId,
+          averagePrice: '3200',
+        });
+      });
+    };
+
+    beforeEach(() => {
+      clearPostTradeShareSession();
+      mockIsPerpsProModeActive = false;
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+      applyDefaultHookMocks();
+    });
+
+    it('opens a counted share sheet for a Lite market order', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(getPostTradeShareSession()?.status).toBe('pending');
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(incrementShareSheetCount).toHaveBeenCalledWith(
+        '0xlinked',
+        'perps',
+      );
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not count a share sheet when the fill has no order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill('');
+
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('opens a create profile sheet at submit and marks it seen on fill', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'pending',
+        }),
+      );
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the create profile sheet seen without an order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      await submitOrder();
+      await fill('');
+
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+    });
+
+    it('adds Post to feed to the confirmed toast', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      const toast = showToast.mock.calls.at(-1)?.[0];
+      expect(toast.linkButtonOptions.label).toBe(
+        'social_leaderboard.post_trade_share.post_to_feed',
+      );
+
+      toast.linkButtonOptions.onPress();
+
+      expect(openPostTradeComposer).toHaveBeenCalledWith({
+        tradeInFlight: expect.objectContaining({
+          orderId: '42',
+          chain: 'hyperliquid',
+        }),
+        preview: expect.objectContaining({ product: 'perps' }),
+      });
+    });
+
+    it('skips the prompt in Pro mode', async () => {
+      mockIsPerpsProModeActive = true;
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      await submitOrder();
+
+      expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
     });
   });
 });
