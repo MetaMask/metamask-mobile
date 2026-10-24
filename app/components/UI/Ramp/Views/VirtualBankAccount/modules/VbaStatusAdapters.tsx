@@ -6,6 +6,7 @@ import VbaOnboardingStub, {
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
+import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 
 interface VbaStatusAdapterProps {
   variant: VbaOnboardingStubVariant;
@@ -26,10 +27,13 @@ export const VbaKycPendingAdapter = () => {
 
 export const VbaKycRejectedAdapter = () => {
   const openOnboarding = useOpenVbaOnboarding('kyc_rejected-retry');
-  const handleRetry = useCallback(
-    () => openOnboarding({ retryRejectedKyc: true }),
-    [openOnboarding],
-  );
+  const handleRetry = useCallback(() => {
+    trackKycVerificationUpdated({
+      status: 'retry_started',
+      retrySource: 'kyc_rejected',
+    });
+    return openOnboarding({ retryRejectedKyc: true });
+  }, [openOnboarding]);
 
   return <VbaKycRejected onRetry={handleRetry} />;
 };

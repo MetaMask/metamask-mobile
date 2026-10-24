@@ -1,5 +1,8 @@
 import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
-import { getKycControllerMessenger } from './kyc-controller-messenger';
+import {
+  getKycControllerInitMessenger,
+  getKycControllerMessenger,
+} from './kyc-controller-messenger';
 
 const getRootMessenger = () =>
   new Messenger({
@@ -28,6 +31,25 @@ describe('getKycControllerMessenger', () => {
           'AuthenticatedUserStorageService:putIdentitySharingConsent',
           'AuthenticationController:getPartnerIdentityToken',
         ]),
+      }),
+    );
+  });
+});
+
+describe('getKycControllerInitMessenger', () => {
+  it('delegates the verification and KYC status events to the init messenger', () => {
+    const rootMessenger = getRootMessenger();
+    const delegateSpy = jest.spyOn(rootMessenger, 'delegate');
+
+    const initMessenger = getKycControllerInitMessenger(rootMessenger);
+
+    expect(initMessenger).toBeInstanceOf(Messenger);
+    expect(delegateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        events: [
+          'KycController:analyticsVerificationOutcome',
+          'KycController:analyticsStatusChanged',
+        ],
       }),
     );
   });

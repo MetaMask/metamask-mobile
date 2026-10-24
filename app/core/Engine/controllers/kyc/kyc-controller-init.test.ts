@@ -1,8 +1,16 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { getKycControllerMessenger } from '../../messengers/kyc/kyc-controller-messenger';
+import {
+  getKycControllerInitMessenger,
+  getKycControllerMessenger,
+  type KycControllerInitMessenger,
+} from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
+import {
+  handleKycStatusChangedForMetrics,
+  handleVerificationStatusChangedForMetrics,
+} from './event-handlers/analytics';
 import { sumsubLauncher } from './sumSubLauncher';
 import {
   KycController,
@@ -24,6 +32,11 @@ jest.mock('@metamask/kyc-controller', () => {
   return { KycController: MockKycController };
 });
 
+jest.mock('./event-handlers/analytics', () => ({
+  handleVerificationStatusChangedForMetrics: jest.fn(),
+  handleKycStatusChangedForMetrics: jest.fn(),
+}));
+
 interface MockKycControllerConstructor {
   lastConstructorArgs: Record<string, unknown>[];
 }
@@ -38,7 +51,9 @@ function getInitRequestMock(
   overrides: {
     persistedState?: { KycController?: Partial<KycControllerState> };
   } = {},
-): jest.Mocked<MessengerClientInitRequest<KycControllerMessenger>> {
+): jest.Mocked<
+  MessengerClientInitRequest<KycControllerMessenger, KycControllerInitMessenger>
+> {
   const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
@@ -48,6 +63,7 @@ function getInitRequestMock(
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getKycControllerMessenger(baseMessenger),
+    initMessenger: getKycControllerInitMessenger(baseMessenger),
     persistedState,
   };
 
@@ -108,5 +124,21 @@ describe('kycControllerInit', () => {
     kycControllerInit(getInitRequestMock());
 
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
+  });
+
+  it('maps verification and KYC status events to analytics', () => {
+    const request = getInitRequestMock();
+    const subscribeSpy = jest.spyOn(request.initMessenger, 'subscribe');
+
+    kycControllerInit(request);
+
+    expect(subscribeSpy).toHaveBeenCalledWith(
+      'KycController:analyticsVerificationOutcome',
+      handleVerificationStatusChangedForMetrics,
+    );
+    expect(subscribeSpy).toHaveBeenCalledWith(
+      'KycController:analyticsStatusChanged',
+      handleKycStatusChangedForMetrics,
+    );
   });
 });

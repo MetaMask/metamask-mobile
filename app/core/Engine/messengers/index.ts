@@ -150,7 +150,10 @@ import { getQrSyncProvisioningServiceMessenger } from './qr-sync-provisioning-se
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 import { getKycServiceMessenger } from './kyc/kyc-service-messenger';
-import { getKycControllerMessenger } from './kyc/kyc-controller-messenger';
+import {
+  getKycControllerMessenger,
+  getKycControllerInitMessenger,
+} from './kyc/kyc-controller-messenger';
 import {
   getChompApiServiceMessenger,
   getChompApiServiceInitMessenger,
@@ -497,7 +500,7 @@ export const MESSENGER_FACTORIES = {
   },
   KycController: {
     getMessenger: getKycControllerMessenger,
-    getInitMessenger: noop,
+    getInitMessenger: getKycControllerInitMessenger,
   },
   ChompApiService: {
     getMessenger: getChompApiServiceMessenger,

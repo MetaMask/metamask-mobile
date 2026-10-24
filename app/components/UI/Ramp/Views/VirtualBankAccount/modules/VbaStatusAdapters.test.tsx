@@ -7,6 +7,7 @@ import VbaOnboardingStub, {
 } from '../VbaOnboardingStub';
 import { useOpenVbaOnboarding } from '../hooks/useVbaOnboardingRouting';
 import { useVbaKycStatusRedirect } from '../../../../KYC/hooks/useKycStatusRedirect';
+import { trackKycVerificationUpdated } from '../../../../KYC/utils/kycVerificationAnalytics';
 import {
   VbaAccountProvisioningErrorAdapter,
   VbaErrorAdapter,
@@ -19,6 +20,9 @@ jest.mock('../../../../KYC/Views/Status/KycPending');
 jest.mock('../../../../KYC/Views/Status/KycRejected');
 jest.mock('../hooks/useVbaOnboardingRouting');
 jest.mock('../../../../KYC/hooks/useKycStatusRedirect');
+jest.mock('../../../../KYC/utils/kycVerificationAnalytics', () => ({
+  trackKycVerificationUpdated: jest.fn(),
+}));
 
 const mockVbaOnboardingStub = jest.mocked(VbaOnboardingStub);
 const mockVbaKycPending = jest.mocked(VbaKycPending);
@@ -87,5 +91,20 @@ describe('VbaStatusAdapters', () => {
 
     expect(mockUseOpenVbaOnboarding).toHaveBeenCalledWith('kyc_rejected-retry');
     expect(mockAdvance).toHaveBeenCalledWith({ retryRejectedKyc: true });
+  });
+
+  it('tracks retry_started with the kyc_rejected source before reopening identity verification', async () => {
+    render(<VbaKycRejectedAdapter />);
+    const rejectedProps = mockVbaKycRejected.mock.calls[0][0];
+
+    await act(rejectedProps.onRetry);
+
+    expect(trackKycVerificationUpdated).toHaveBeenCalledWith({
+      status: 'retry_started',
+      retrySource: 'kyc_rejected',
+    });
+    expect(
+      jest.mocked(trackKycVerificationUpdated).mock.invocationCallOrder[0],
+    ).toBeLessThan(mockAdvance.mock.invocationCallOrder[0]);
   });
 });
