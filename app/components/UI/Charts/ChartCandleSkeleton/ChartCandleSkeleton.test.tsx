@@ -1,0 +1,161 @@
+import React from 'react';
+import { render } from '@testing-library/react-native';
+import { mockTheme } from '../../../../util/theme';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from './ChartCandleSkeleton';
+
+const ID = 'chart-candle-skeleton';
+const CANDLES = 32;
+const Y_PILLS = 6;
+const X_PILLS = 6;
+const PRICE = 250;
+const VOLUME = 68;
+
+const percentOf = (part: number, whole: number): string => {
+  const rounded = Math.round((part / whole) * 100 * 1e6) / 1e6;
+  return `${rounded}%`;
+};
+
+const flatStyle = (style: unknown): Record<string, unknown> => {
+  if (Array.isArray(style)) {
+    return style.reduce<Record<string, unknown>>(
+      (merged, item) => ({ ...merged, ...flatStyle(item) }),
+      {},
+    );
+  }
+  if (style && typeof style === 'object') {
+    return style as Record<string, unknown>;
+  }
+  return {};
+};
+
+describe('ChartCandleSkeleton', () => {
+  const styleOf = (
+    getByTestId: ReturnType<typeof render>['getByTestId'],
+    suffix: string,
+  ) => flatStyle(getByTestId(suffix ? `${ID}-${suffix}` : ID).props.style);
+
+  it('leaves accessibility to the design-system Skeleton', () => {
+    const { getByTestId, queryByRole } = render(<ChartCandleSkeleton />);
+
+    expect(queryByRole('progressbar')).toBeNull();
+    expect(getByTestId(ID).props.accessibilityLabel).toBeUndefined();
+  });
+
+  it.each([
+    ['a passed height', 240, 240],
+    ['the detail-chart fallback', undefined, 350],
+  ] as const)('fills %s', (_label, height, expected) => {
+    const { getByTestId } = render(
+      height === undefined ? (
+        <ChartCandleSkeleton />
+      ) : (
+        <ChartCandleSkeleton height={height} />
+      ),
+    );
+
+    expect(flatStyle(getByTestId(ID).props.style)).toEqual(
+      expect.objectContaining({
+        flex: 1,
+        height: expected,
+        backgroundColor: mockTheme.colors.background.default,
+      }),
+    );
+  });
+
+  it('splits the chart into panes, a volume band, and a time row', () => {
+    const { getByTestId } = render(<ChartCandleSkeleton />);
+
+    expect(styleOf(getByTestId, 'panes')).toEqual(
+      expect.objectContaining({ flex: 1 }),
+    );
+    expect(styleOf(getByTestId, 'price')).toEqual(
+      expect.objectContaining({ flex: 1, overflow: 'hidden' }),
+    );
+    expect(styleOf(getByTestId, 'price').height).toBeUndefined();
+    expect(styleOf(getByTestId, 'volume-band')).toEqual(
+      expect.objectContaining({ height: '22%', minHeight: 56 }),
+    );
+    expect(styleOf(getByTestId, 'time-axis').height).toBe(32);
+    expect(styleOf(getByTestId, 'y-axis').width).toBe(66);
+  });
+
+  it('lays out skinny candles, wicks, volume bars, and axis pills', () => {
+    const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
+      <ChartCandleSkeleton />,
+    );
+    const mark = (suffix: string) => styleOf(getByTestId, suffix);
+
+    expect(queryByTestId(`${ID}-candle-${CANDLES}`)).toBeNull();
+    expect(queryByTestId(`${ID}-y-pill-${Y_PILLS}`)).toBeNull();
+    expect(queryByTestId(`${ID}-x-pill-${X_PILLS}`)).toBeNull();
+    expect(getByTestId(`${ID}-grid-h-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${ID}-grid-h-5`)).toBeOnTheScreen();
+    expect(getByTestId(`${ID}-grid-v-0`)).toBeOnTheScreen();
+    expect(getByTestId(`${ID}-grid-v-3`)).toBeOnTheScreen();
+    expect(mark('candle-0')).toEqual(
+      expect.objectContaining({
+        width: 4,
+        height: percentOf(27, PRICE),
+        top: percentOf(87, PRICE),
+      }),
+    );
+    expect(mark('candle-31')).toEqual(
+      expect.objectContaining({
+        width: 4,
+        height: percentOf(30, PRICE),
+        top: percentOf(108, PRICE),
+      }),
+    );
+    expect(mark('wick-0')).toEqual(
+      expect.objectContaining({
+        width: 1,
+        height: percentOf(35, PRICE),
+        top: percentOf(83, PRICE),
+      }),
+    );
+    expect(mark('volume-0')).toEqual(
+      expect.objectContaining({ width: 4, height: percentOf(12, VOLUME) }),
+    );
+    expect(mark('volume-31').height).toBe(percentOf(16, VOLUME));
+    expect(mark('y-pill-0')).toEqual(
+      expect.objectContaining({
+        width: 44,
+        height: 10,
+        top: percentOf(11, PRICE),
+      }),
+    );
+    expect(mark('y-pill-5').top).toBe(percentOf(231, PRICE));
+    expect(mark('x-pill-0')).toEqual(
+      expect.objectContaining({ width: 28, height: 8 }),
+    );
+    expect(getByTestId(`${ID}-x-pill-5`)).toBeOnTheScreen();
+    expect(mark('grid-h-0')).toEqual(
+      expect.objectContaining({
+        top: percentOf(16, PRICE),
+        height: 1,
+        backgroundColor: mockTheme.colors.border.muted,
+      }),
+    );
+    expect(UNSAFE_getAllByType(Skeleton)).toHaveLength(
+      CANDLES + CANDLES + CANDLES + Y_PILLS + X_PILLS,
+    );
+  });
+
+  it.each([
+    ['perps-market-details-view-chart-skeleton', true],
+    ['perps-market-details-view-tradingview-chart-skeleton', false],
+  ] as const)('keeps caller test id %s', (testID, checksMarks) => {
+    const { getByTestId } = render(<ChartCandleSkeleton testID={testID} />);
+
+    expect(getByTestId(testID)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-candle-0`)).toBeOnTheScreen();
+    if (!checksMarks) {
+      return;
+    }
+    expect(getByTestId(`${testID}-wick-31`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-volume-31`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-y-pill-5`)).toBeOnTheScreen();
+    expect(getByTestId(`${testID}-x-pill-5`)).toBeOnTheScreen();
+  });
+});

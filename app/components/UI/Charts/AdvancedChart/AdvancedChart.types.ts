@@ -694,6 +694,10 @@ export interface AdvancedChartProps {
    * TradingView widget features to disable. Defaults to DEFAULT_DISABLED_FEATURES
    * (a curated mobile-friendly set). Pass a custom array to re-enable native
    * TradingView capabilities like header_widget, timeframes_toolbar, etc.
+   *
+   * Must be referentially stable across renders. AdvancedChart compares this
+   * reference while baking the chart template during render and calls setState
+   * when it changes.
    */
   disabledFeatures?: string[];
 
@@ -764,6 +768,12 @@ export interface AdvancedChartProps {
   isLoading?: boolean;
 
   /**
+   * Placeholder drawn while the chart skeleton is showing.
+   * `default` is the flat design-system Skeleton. `candles` is the candle chart.
+   */
+  skeletonVariant?: 'default' | 'candles';
+
+  /**
    * Expected visible-range start (Unix ms). After data loads the WebView constrains
    * the viewport to `[visibleFromMs, lastBarTime]` via `chart.setVisibleRange()`.
    * The user can still scroll left to reveal older/paginated data.
@@ -797,6 +807,10 @@ export interface AdvancedChartProps {
   /**
    * Optional TV built-in label colors. Omitted fields use theme tokens from the active
    * appearance (`background.section`, `text.default`, `text.muted`).
+   *
+   * Must be referentially stable across renders, as must the theme `colors`
+   * object. AdvancedChart compares these references while baking the chart
+   * template during render and calls setState when one changes.
    */
   labelStyleOverrides?: ChartLabelStyleOverrides;
 
@@ -805,6 +819,10 @@ export interface AdvancedChartProps {
    * the native TradingView legend is hidden and a custom overlay renders
    * indicator labels/values with the specified colors and abbreviations.
    * When omitted or `enabled: false`, the native TV legend is used as-is.
+   *
+   * Must be referentially stable across renders. AdvancedChart compares this
+   * reference while baking the chart template during render and calls setState
+   * when it changes.
    */
   legendOverlay?: LegendOverlayConfig;
 

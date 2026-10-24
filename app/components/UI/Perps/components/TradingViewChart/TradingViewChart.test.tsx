@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import {
   CandlePeriod,
   TimeDuration,
@@ -29,11 +29,29 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
 }));
 
 // Mock selectors
-jest.mock('../../Perps.testIds', () => ({
-  TradingViewChartSelectorsIDs: {
-    CONTAINER: 'tradingview-chart-container',
-  },
-}));
+jest.mock('../../Perps.testIds', () => {
+  const actual = jest.requireActual('../../Perps.testIds');
+  return {
+    ...actual,
+    TradingViewChartSelectorsIDs: {
+      CONTAINER: 'tradingview-chart-container',
+    },
+  };
+});
+
+jest.mock('../../../Charts/ChartCandleSkeleton', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockChartCandleSkeleton = ({
+    testID = 'chart-candle-skeleton',
+    height,
+  }: {
+    testID?: string;
+    height?: number;
+  }) => ReactActual.createElement(View, { testID, style: { height } });
+
+  return { __esModule: true, default: MockChartCandleSkeleton };
+});
 
 describe('TradingViewChart', () => {
   const mockCandleData: CandleData = {
@@ -82,6 +100,26 @@ describe('TradingViewChart', () => {
       const { getByTestId } = render(<TradingViewChart />);
 
       expect(getByTestId('tradingview-chart-container')).toBeOnTheScreen();
+    });
+
+    it('renders the candle skeleton until the chart webview is ready', () => {
+      const { getByTestId, queryByTestId } = render(
+        <TradingViewChart testID="tradingview-chart-container" height={350} />,
+      );
+
+      expect(
+        getByTestId('tradingview-chart-container-skeleton'),
+      ).toBeOnTheScreen();
+
+      act(() => {
+        getByTestId('tradingview-chart-container-webview').props.onMessage({
+          nativeEvent: { data: JSON.stringify({ type: 'CHART_READY' }) },
+        });
+      });
+
+      expect(
+        queryByTestId('tradingview-chart-container-skeleton'),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders with custom testID', () => {

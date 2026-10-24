@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
+import ChartCandleSkeleton from '../../ChartCandleSkeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -62,6 +64,45 @@ describe('AdvancedChart', () => {
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
+  it.each(['omitted', 'default'] as const)(
+    'keeps the flat skeleton overlay when skeletonVariant is %s',
+    (variant) => {
+      const { UNSAFE_getByType, getByTestId, UNSAFE_queryByType } = render(
+        <AdvancedChart
+          ohlcvData={MOCK_BARS}
+          height={240}
+          {...(variant === 'default' ? { skeletonVariant: 'default' } : {})}
+        />,
+      );
+
+      const skeleton = UNSAFE_getByType(Skeleton);
+
+      expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+      expect(skeleton.props.height).toBe(240);
+      expect(skeleton.props.width).toBe('100%');
+      expect(skeleton.props.testID).toBe('advanced-chart-skeleton');
+      expect(UNSAFE_queryByType(ChartCandleSkeleton)).toBeNull();
+    },
+  );
+
+  it('renders the candle skeleton inside the overlay when skeletonVariant is candles', () => {
+    const { UNSAFE_getByType, getByTestId, UNSAFE_queryAllByType } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        height={240}
+        skeletonVariant="candles"
+      />,
+    );
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(UNSAFE_getByType(ChartCandleSkeleton).props.height).toBe(240);
+    expect(
+      UNSAFE_queryAllByType(Skeleton).some(
+        (node) => node.props.testID === 'advanced-chart-skeleton',
+      ),
+    ).toBe(false);
+  });
+
   it('serializes configured price decimals into the WebView template', () => {
     const { getByTestId } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} priceDecimals={4} />,
@@ -70,6 +111,50 @@ describe('AdvancedChart', () => {
     const webView = getByTestId('mock-webview');
 
     expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
+  });
+
+  it('keeps the baked line color when only the override changes', () => {
+    const bakedLineColor = mockTheme.colors.success.default;
+    const nextLineColor = mockTheme.colors.error.default;
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        lineColorOverride={bakedLineColor}
+      />,
+    );
+    const html = getByTestId('mock-webview').props.source.html as string;
+
+    rerender(
+      <AdvancedChart ohlcvData={MOCK_BARS} lineColorOverride={nextLineColor} />,
+    );
+
+    expect(html).toContain(`lineColor: '${bakedLineColor}'`);
+    expect(getByTestId('mock-webview').props.source.html).toBe(html);
+  });
+
+  it('bakes the latest line color when the template rebuilds', () => {
+    const bakedLineColor = mockTheme.colors.success.default;
+    const nextLineColor = mockTheme.colors.error.default;
+    const { getByTestId, rerender } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        lineColorOverride={bakedLineColor}
+        priceDecimals={2}
+      />,
+    );
+
+    rerender(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        lineColorOverride={nextLineColor}
+        priceDecimals={4}
+      />,
+    );
+
+    const html = getByTestId('mock-webview').props.source.html as string;
+
+    expect(html).toContain(`lineColor: '${nextLineColor}'`);
+    expect(html).toMatch(/priceDecimals:\s*4/);
   });
 
   it('keeps loading overlay while isLoading until parent clears it', () => {

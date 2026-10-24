@@ -13,6 +13,7 @@ import type { WebViewOpenWindowEvent } from '@metamask/react-native-webview/lib/
 import { Text, TextVariant } from '@metamask/design-system-react-native';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../ChartCandleSkeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
 import {
@@ -32,6 +33,36 @@ import {
   type OHLCVPaginationConfig,
   type RNToWebViewMessage,
 } from './AdvancedChart.types';
+
+function chartTemplateDepsChanged<
+  T extends {
+    theme: { themeAppearance: unknown; colors: unknown };
+    enableDrawingTools: unknown;
+    disabledFeatures: unknown;
+    useSubscriptPriceFormat: unknown;
+    priceDecimals: unknown;
+    labelStyleOverrides: unknown;
+    hidePaneSeparator: unknown;
+    gridLineColorOverride: unknown;
+    legendOverlay: unknown;
+    showBuiltInLegend: unknown;
+  },
+>(baked: T, next: T): boolean {
+  // A new theme object with the same colors must not rebuild the WebView.
+  return (
+    baked.theme.themeAppearance !== next.theme.themeAppearance ||
+    baked.theme.colors !== next.theme.colors ||
+    baked.enableDrawingTools !== next.enableDrawingTools ||
+    baked.disabledFeatures !== next.disabledFeatures ||
+    baked.useSubscriptPriceFormat !== next.useSubscriptPriceFormat ||
+    baked.priceDecimals !== next.priceDecimals ||
+    baked.labelStyleOverrides !== next.labelStyleOverrides ||
+    baked.hidePaneSeparator !== next.hidePaneSeparator ||
+    baked.gridLineColorOverride !== next.gridLineColorOverride ||
+    baked.legendOverlay !== next.legendOverlay ||
+    baked.showBuiltInLegend !== next.showBuiltInLegend
+  );
+}
 
 const openInAppBrowser = (url: string) => {
   const fallback = () => {
@@ -58,6 +89,10 @@ const openInAppBrowser = (url: string) => {
  * Renders a professional charting widget inside a WebView.
  * Designed to be consumed by multiple features (Token Details, Perps, etc.)
  * with a composable props API -- each consumer uses only the props it needs.
+ *
+ * `disabledFeatures`, `labelStyleOverrides`, `legendOverlay`, and theme
+ * `colors` must be referentially stable. The template bake compares those
+ * references during render and calls setState when one changes.
  *
  * ATTRIBUTION NOTICE:
  * TradingView Advanced Charts (TM)
@@ -107,6 +142,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onVisibleCandleCountChange,
       onChartTradingViewClicked,
       isLoading = false,
+      skeletonVariant = 'default',
       subPaneHeightRatio,
       useSubscriptPriceFormat,
       priceDecimals,
@@ -166,81 +202,62 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const skeletonHiddenReportedRef = useRef(false);
     const resolvedWebViewKey = webViewInstanceKey ?? ohlcvSeriesKey ?? '';
 
-    // Track the color overrides baked into the current HTML template so the
-    // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
-    // Refs are updated synchronously inside the useMemo below (not in a post-render
-    // effect) so the snapshot is always in sync with what was actually baked, even
-    // when multiple deps change in the same render cycle.
-    const initialLineColorRef = useRef(lineColorOverride);
-    const initialSuccessColorRef = useRef(successColorOverride);
-    const initialErrorColorRef = useRef(errorColorOverride);
-    const initialCurrentPriceColorRef = useRef(
-      resolveCurrentPriceColor({
-        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-        currentPriceLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        themeSuccessDefault: theme.colors.success.default,
-      }),
-    );
-    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
-    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
     const themeColorsSentRef = useRef(false);
 
-    const htmlContent = useMemo(() => {
-      // Snapshot current color-override prop values at the moment the template
-      // is created so the SET_THEME_COLORS effect can skip a redundant send on
-      // mount. Must happen inside useMemo (not a post-render effect) to avoid
-      // a stale-color race when multiple deps change in the same render cycle.
-      initialLineColorRef.current = lineColorOverride;
-      initialSuccessColorRef.current = successColorOverride;
-      initialErrorColorRef.current = errorColorOverride;
-      initialCurrentPriceColorRef.current = resolveCurrentPriceColor({
-        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
-        currentPriceLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        themeSuccessDefault: theme.colors.success.default,
-      });
-      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
-      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
-      return createAdvancedChartTemplate(theme, {
-        enableDrawingTools,
-        disabledFeatures,
-        useSubscriptPriceFormat,
-        priceDecimals,
-        hidePaneSeparator,
-        gridLineColorOverride,
-        lineColorOverride,
-        successColorOverride,
-        errorColorOverride,
-        currentPriceLineColorOverride,
-        labelStyleOverrides,
-        legendOverlay,
-        showBuiltInLegend,
-        volumeSuccessColorOverride,
-        volumeErrorColorOverride,
-      });
-      // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
-      // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
-      // rebuilding the WebView.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [
+    // Color overrides are captured only when a template input changes, so a
+    // color-only update hot-swaps via SET_THEME_COLORS and does not rebuild
+    // the WebView. Refreshing during render keeps the bake aligned with the
+    // HTML committed for this render.
+    const nextChartTemplate = {
       theme,
       enableDrawingTools,
       disabledFeatures,
       useSubscriptPriceFormat,
       priceDecimals,
-      labelStyleOverrides,
       hidePaneSeparator,
       gridLineColorOverride,
+      lineColorOverride,
+      successColorOverride,
+      errorColorOverride,
+      currentPriceLineColorOverride,
+      labelStyleOverrides,
       legendOverlay,
       showBuiltInLegend,
-    ]);
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
+    };
+    const [chartTemplate, setChartTemplate] = useState(nextChartTemplate);
+
+    // Reference check: unstable disabledFeatures, labelStyleOverrides,
+    // legendOverlay, or theme colors call setState on every render.
+    if (chartTemplateDepsChanged(chartTemplate, nextChartTemplate)) {
+      setChartTemplate(nextChartTemplate);
+    }
+
+    const htmlContent = useMemo(
+      () =>
+        createAdvancedChartTemplate(chartTemplate.theme, {
+          enableDrawingTools: chartTemplate.enableDrawingTools,
+          disabledFeatures: chartTemplate.disabledFeatures,
+          useSubscriptPriceFormat: chartTemplate.useSubscriptPriceFormat,
+          priceDecimals: chartTemplate.priceDecimals,
+          hidePaneSeparator: chartTemplate.hidePaneSeparator,
+          gridLineColorOverride: chartTemplate.gridLineColorOverride,
+          lineColorOverride: chartTemplate.lineColorOverride,
+          successColorOverride: chartTemplate.successColorOverride,
+          errorColorOverride: chartTemplate.errorColorOverride,
+          currentPriceLineColorOverride:
+            chartTemplate.currentPriceLineColorOverride,
+          labelStyleOverrides: chartTemplate.labelStyleOverrides,
+          legendOverlay: chartTemplate.legendOverlay,
+          showBuiltInLegend: chartTemplate.showBuiltInLegend,
+          volumeSuccessColorOverride: chartTemplate.volumeSuccessColorOverride,
+          volumeErrorColorOverride: chartTemplate.volumeErrorColorOverride,
+        }),
+      [chartTemplate],
+    );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.
-    // Color refs are intentionally omitted here — they are snapshotted synchronously
-    // inside the useMemo above.
     useEffect(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
@@ -258,7 +275,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvSeriesKeyRef.current = undefined;
       ohlcvSeriesStaleSnapshotRef.current = null;
       themeColorsSentRef.current = false;
-    }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [htmlContent]);
 
     // ---- Helpers ----
 
@@ -735,13 +752,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColorOverride,
           themeSuccessDefault: theme.colors.success.default,
         });
+        const bakedCurrentPriceColor = resolveCurrentPriceColor({
+          lastValuePillColor:
+            chartTemplate.labelStyleOverrides?.lastValuePillColor,
+          currentPriceLineColorOverride:
+            chartTemplate.currentPriceLineColorOverride,
+          lineColorOverride: chartTemplate.lineColorOverride,
+          successColorOverride: chartTemplate.successColorOverride,
+          themeSuccessDefault: chartTemplate.theme.colors.success.default,
+        });
         const colorsMatch =
-          lineColorOverride === initialLineColorRef.current &&
-          successColorOverride === initialSuccessColorRef.current &&
-          errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
-          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
-          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
+          lineColorOverride === chartTemplate.lineColorOverride &&
+          successColorOverride === chartTemplate.successColorOverride &&
+          errorColorOverride === chartTemplate.errorColorOverride &&
+          effectiveCurrentPriceColor === bakedCurrentPriceColor &&
+          volumeSuccessColorOverride ===
+            chartTemplate.volumeSuccessColorOverride &&
+          volumeErrorColorOverride === chartTemplate.volumeErrorColorOverride;
         themeColorsSentRef.current = true;
         if (
           colorsMatch &&
@@ -789,6 +816,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       webViewLoaded,
       chartReadyCount,
       postMessage,
+      chartTemplate,
       theme.colors.success.default,
       theme.colors.error.default,
     ]);
@@ -1120,14 +1148,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {showSkeleton && (
-            <Skeleton
-              height={height}
-              width="100%"
-              style={styles.skeletonOverlay}
-              testID="advanced-chart-skeleton"
-            />
-          )}
+          {showSkeleton &&
+            (skeletonVariant === 'candles' ? (
+              <View
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              >
+                <ChartCandleSkeleton height={height} />
+              </View>
+            ) : (
+              <Skeleton
+                height={height}
+                width="100%"
+                style={styles.skeletonOverlay}
+                testID="advanced-chart-skeleton"
+              />
+            ))}
         </View>
       </View>
     );
