@@ -21,6 +21,10 @@ import { Interface } from 'ethers/lib/utils';
 
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
+import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../utils/predictNetworkError';
 import { analytics } from '../../../../util/analytics/analytics';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
 import {
@@ -343,6 +347,7 @@ describe('PredictController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
 
     // Create mock PolymarketProvider with required methods
     mockPolymarketProvider = {
@@ -3628,6 +3633,37 @@ describe('PredictController', () => {
           expect(logSpy).toHaveBeenCalledWith(
             'Predict geoblock request ended by expected timeout/cancellation:',
             timeoutError.message,
+            expect.any(Object),
+          );
+          expect(errorSpy).not.toHaveBeenCalled();
+        });
+      } finally {
+        logSpy.mockRestore();
+        errorSpy.mockRestore();
+      }
+    });
+
+    it('records connectivity failures during eligibility refresh as breadcrumbs', async () => {
+      const cronetError = new Error(
+        'java.lang.RuntimeException: Cronet failed: Exception in CronetUrlRequest: net::ERR_CONNECTION_TIMED_OUT, ErrorCode=6, InternalErrorCode=-118, Retryable=true',
+      );
+      mockPolymarketProvider.isEligible.mockRejectedValue(cronetError);
+
+      const logSpy = jest
+        .spyOn(Logger, 'log')
+        .mockImplementation(() => undefined);
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          const result = await controller.refreshEligibility();
+
+          expect(result).toEqual({ status: 'unavailable', eligible: false });
+          expect(logSpy).toHaveBeenCalledWith(
+            PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+            cronetError.message,
             expect.any(Object),
           );
           expect(errorSpy).not.toHaveBeenCalled();

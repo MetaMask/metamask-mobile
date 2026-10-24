@@ -197,6 +197,7 @@ import {
   fetchWithTimeout,
   isExpectedPolymarketRequestAbort,
 } from './fetchWithTimeout';
+import { logPredictError } from '../../utils/predictNetworkError';
 
 /** Page size for Data API v2 paginated reads (positions). */
 const PREDICT_POSITIONS_PAGE_SIZE = 100;
@@ -1161,8 +1162,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error fetching markets by IDs:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('getMarketsByIds', {
           marketIdsCount: marketIds.length,
         }),
@@ -1240,10 +1241,7 @@ export class PolymarketProvider implements PredictProvider {
           errorContext,
         );
       } else {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          errorContext,
-        );
+        logPredictError(error, errorContext);
       }
 
       throw error;
@@ -1266,8 +1264,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error listing markets via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('listMarkets', {
           hasAfterCursor: Boolean(params?.afterCursor),
         }),
@@ -1295,8 +1293,8 @@ export class PolymarketProvider implements PredictProvider {
       // an empty list so the UI can keep static filters and hide dynamic ones.
       DevLogger.log('Error listing filter options via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('listFilterOptions', {
           source: params.source,
           slug,
@@ -1332,8 +1330,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error searching markets via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('searchMarkets', {
           hasSearchQuery: Boolean(query),
         }),
@@ -1399,8 +1397,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('getMarketSeries', {
           seriesId: params.seriesId,
         }),
@@ -1461,10 +1459,7 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error fetching carousel markets:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getCarouselMarkets', {}),
-      );
+      logPredictError(error, this.getErrorContext('getCarouselMarkets', {}));
 
       return [];
     }
@@ -1527,8 +1522,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('getPriceHistory', {
           marketId,
           fidelity,
@@ -1619,7 +1614,7 @@ export class PolymarketProvider implements PredictProvider {
           errorContext,
         );
       } else {
-        Logger.error(normalizedError, errorContext);
+        logPredictError(normalizedError, errorContext);
       }
 
       throw error;
@@ -1745,8 +1740,8 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting prices via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
+      logPredictError(
+        error,
         this.getErrorContext('getPrices', {
           queriesCount: queries.length,
         }),
@@ -2391,10 +2386,7 @@ export class PolymarketProvider implements PredictProvider {
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('fetchActivity'),
-      );
+      logPredictError(error, this.getErrorContext('fetchActivity'));
 
       throw error;
     }

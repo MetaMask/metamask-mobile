@@ -3,12 +3,12 @@ import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { Side } from '../types';
 import {
   ensureError,
-  isNetworkError,
   isPredictNoMatchError,
   showDepositErrorToast,
   parseErrorMessage,
   checkPlaceOrderError,
 } from './predictErrorHandler';
+import { isNetworkError } from './predictNetworkError';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../util/Logger';
 
@@ -130,6 +130,47 @@ describe('predictErrorHandler', () => {
     it('returns false for null/undefined', () => {
       expect(isNetworkError(null)).toBe(false);
       expect(isNetworkError(undefined)).toBe(false);
+    });
+
+    // Real iOS nitro-fetch (URLSession) messages from METAMASK-MOBILE-5ZC0.
+    it.each([
+      ['-1001', 'The request timed out.'],
+      ['-1003', 'A server with the specified hostname could not be found.'],
+      ['-1004', 'Could not connect to the server.'],
+      ['-1005', 'The network connection was lost.'],
+      ['-1009', 'The Internet connection appears to be offline.'],
+      ['-1020', 'A data connection is not currently allowed.'],
+      ['-1200', 'A TLS error caused the secure connection to fail.'],
+    ])(
+      'returns true for iOS NSURLErrorDomain connectivity code %s',
+      (code, description) => {
+        const message = `Error Domain=NSURLErrorDomain Code=${code} "${description}" UserInfo={NSUnderlyingError=0x15d8c4e40 {Error Domain=kCFErrorDomainCFNetwork Code=${code} "(null)"}, NSLocalizedDescription=${description}}`;
+        expect(isNetworkError(new Error(message))).toBe(true);
+      },
+    );
+
+    it('matches NSURLErrorDomain codes regardless of the localized description', () => {
+      expect(
+        isNetworkError(
+          new Error(
+            'Error Domain=NSURLErrorDomain Code=-1005 "La conexión de red se perdió."',
+          ),
+        ),
+      ).toBe(true);
+    });
+
+    it.each([
+      // Cancellation, bad URL, bad server response, auth: actionable.
+      'Error Domain=NSURLErrorDomain Code=-999 "cancelled"',
+      'Error Domain=NSURLErrorDomain Code=-1002 "unsupported URL"',
+      'Error Domain=NSURLErrorDomain Code=-1011 "bad server response"',
+      'Error Domain=NSURLErrorDomain Code=-1013 "User authentication required."',
+      // Same code in a different domain is not a URL-loading error.
+      'Error Domain=NSCocoaErrorDomain Code=-1009 "Something else"',
+      // Bare code without the domain anchor.
+      'Code=-1009',
+    ])('returns false for non-connectivity NSError: %s', (message) => {
+      expect(isNetworkError(new Error(message))).toBe(false);
     });
   });
 
