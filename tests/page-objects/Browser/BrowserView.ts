@@ -5,6 +5,7 @@ import {
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { PhishingModalSelectorsIDs } from '../../../app/components/UI/PhishingModal/PhishingModal.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import type { AppiumElement } from '../../framework/AppiumElement';
@@ -17,7 +18,10 @@ import {
   sleep,
 } from '../../framework';
 import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
-import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
+import {
+  executeMobileDeepLink,
+  withImplicitWait,
+} from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 /** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
@@ -101,8 +105,8 @@ class Browser {
   }
 
   get backToSafetyButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+    return Matchers.getElementByID(
+      PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON,
     );
   }
 
@@ -510,10 +514,70 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    //
+    // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
+    // rescan can cover the URL bar again about a second later. Awaiting a
+    // getter under the session's 3.5s implicit wait burns that gap (CI: 2
+    // attempts in 12s, last error "not visible after 700ms"). Create each
+    // locator inside a 300ms implicit wait, and read the bar before Cancel.
     await AppiumContextHelpers.switchToNativeContext();
-    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    const assertionDescription =
+      description ?? `URL input box text is not "${text}"`;
+    // Same budget as AppiumAssertions poll probes.
+    const probeImplicitWaitMs = 300;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const urlText = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const display = await this.urlBarDisplayText;
+            if (
+              !(await display.unwrap().isExisting()) ||
+              !(await display.isVisible())
+            ) {
+              return '';
+            }
+            return (await display.textContent()).trim();
+          },
+        );
+
+        if (urlText && !urlText.includes(text)) {
+          return;
+        }
+
+        // Display text is opacity 0 while the editor is focused. Dismiss only
+        // when Cancel is already up; a missing Cancel must not wait 3.5s.
+        if (!urlText) {
+          const editorOpen = await withImplicitWait(
+            probeImplicitWaitMs,
+            async () => {
+              const cancel = await this.cancelUrlInputButton;
+              return (
+                (await cancel.unwrap().isExisting()) &&
+                (await cancel.isVisible())
+              );
+            },
+          );
+          if (editorOpen) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+              timeout: 2_000,
+            });
+          }
+        }
+
+        throw new Error(
+          `URL bar still shows the blocked page (got "${urlText}")`,
+        );
+      },
+      {
+        timeout: 12_000,
+        interval: 200,
+        description: assertionDescription,
+        elemDescription: 'browser URL bar',
+      },
+    );
   }
 
   /**
