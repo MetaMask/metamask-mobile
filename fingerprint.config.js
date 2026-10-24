@@ -203,7 +203,6 @@ const config = {
     '.github/workflows/release-branch-sync.yml',
     '.github/workflows/stable-branch-sync.yml',
     '.github/workflows/update-release-changelog.yml',
-    '.github/workflows/changelog-check.yml',
 
     // Release bug-report issue bookkeeping.
     '.github/workflows/close-bug-report.yml',
