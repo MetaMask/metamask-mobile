@@ -52,12 +52,15 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   emptyMessage = strings('perps.home.no_markets'),
   ListHeaderComponent,
   stickyHeader,
+  keepHeaderHiddenOnReset = false,
+  emptyComponent,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   sortBy = 'volume',
   showBadge = true,
   contentContainerStyle,
   filterKey,
   scrollResetKey,
+  refreshControl,
   testID = 'perps-market-list',
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -68,7 +71,8 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   // active category, and — via scrollResetKey — search toggling on/off) so the
   // list header (e.g. the Recently Viewed rail, which sits above the first row)
   // scrolls back into view rather than leaving the user mid-list. Skips the
-  // first render.
+  // first render. With `keepHeaderHiddenOnReset` (Explore) it instead resets to
+  // just below the list header, and only if the user has scrolled past it.
   //
   // offset 0 targets the very top (above the header); scrollToIndex would only
   // reach the first row and push the header off-screen. This is reliable
@@ -84,8 +88,25 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
     }
     // Ref is null when the new filter has no rows and no list header (empty
     // state rendered instead), so this safely no-ops in that case.
-    listRef.current?.scrollToOffset({ offset: 0, animated: true });
-  }, [scrollResetToken]);
+    const list = listRef.current;
+    if (!list) {
+      return;
+    }
+
+    if (keepHeaderHiddenOnReset && hasStickyHeader) {
+      // The sticky row starts where the list header ends. If the user has
+      // scrolled past the header, reset to that point so the first rows show
+      // under the pinned header without re-revealing the list header (e.g. the
+      // Explore top traders). If the header is still visible, don't scroll.
+      const headerHeight = list.getFirstItemOffset();
+      if (list.getAbsoluteLastScrollOffset() > headerHeight) {
+        list.scrollToOffset({ offset: headerHeight, animated: true });
+      }
+      return;
+    }
+
+    list.scrollToOffset({ offset: 0, animated: true });
+  }, [scrollResetToken, hasStickyHeader, keepHeaderHiddenOnReset]);
 
   const listData = useMemo<MarketListRow[]>(() => {
     const rows: MarketListRow[] = hasStickyHeader ? [STICKY_HEADER_ROW] : [];
@@ -125,14 +146,15 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
   const getItemType = useCallback((item: MarketListRow) => item.type, []);
 
   const renderEmpty = useCallback(
-    () => (
-      <View style={styles.emptyContainer} testID={`${testID}-empty`}>
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-          {emptyMessage}
-        </Text>
-      </View>
-    ),
-    [styles.emptyContainer, emptyMessage, testID],
+    () =>
+      emptyComponent ?? (
+        <View style={styles.emptyContainer} testID={`${testID}-empty`}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
+            {emptyMessage}
+          </Text>
+        </View>
+      ),
+    [emptyComponent, styles.emptyContainer, emptyMessage, testID],
   );
 
   if (markets.length === 0 && !ListHeaderComponent && !hasStickyHeader) {
@@ -156,7 +178,9 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // non-empty list and ListEmptyComponent never runs. Render the empty
       // copy as a footer in that case.
       ListFooterComponent={
-        markets.length === 0 && hasStickyHeader ? renderEmpty : undefined
+        markets.length === 0 && hasStickyHeader
+          ? (emptyComponent ?? renderEmpty)
+          : undefined
       }
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       // Disabled so the scroll-to-top on filter change reliably reaches the
@@ -164,6 +188,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // snapshot with per-row live-price updates, so there are no above-viewport
       // insertions for it to protect against.
       maintainVisibleContentPosition={{ disabled: true }}
+      refreshControl={refreshControl}
       removeClippedSubviews
       showsVerticalScrollIndicator={false}
       testID={testID}

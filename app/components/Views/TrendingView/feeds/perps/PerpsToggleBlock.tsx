@@ -42,7 +42,7 @@ export interface PerpsToggleBlockProps {
 
 /**
  * Shared perps section that renders a pill-toggled list of perp rows with
- * a "See all" header. Used by MacroTab and RwasTab.
+ * a "See all" header. Used by RwasTab.
  */
 const PerpsToggleBlock: React.FC<PerpsToggleBlockProps> = ({
   title,

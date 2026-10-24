@@ -92,7 +92,7 @@ export interface ExploreSearchInteractedProperties {
 
 export type ExploreTabName =
   | 'Now'
-  | 'Macro'
+  | 'Perps'
   | 'RWAs'
   | 'Crypto'
   | 'Sports'

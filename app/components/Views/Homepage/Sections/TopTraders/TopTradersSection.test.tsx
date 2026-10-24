@@ -299,6 +299,19 @@ describe('TopTradersSection', () => {
     );
   });
 
+  it('fetches immediately outside the homepage even though the viewport hook never reports visible', () => {
+    mockUseSectionViewportVisible.mockReturnValue({
+      isVisible: false,
+      onLayout: jest.fn(),
+    });
+
+    renderWithProvider(<TopTradersSection />);
+
+    expect(mockUseTopTraders).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('keeps a measurable skeleton mounted before the first query', () => {
     mockUseSectionViewportVisible.mockReturnValue({
       isVisible: false,

@@ -23,6 +23,7 @@ import PerpsSentimentSatisfiedIcon, {
   PERPS_SENTIMENT_ICON_SIZE_SM,
 } from '../PerpsSentimentSatisfiedIcon/PerpsSentimentSatisfiedIcon';
 import { useTheme } from '../../../../../util/theme';
+import { useChipScrollList } from '../../../Predict/components/PredictChipList/useChipScrollList';
 
 const WATCHLIST_FILTER_VALUE = 'watchlist';
 
@@ -46,7 +47,6 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
   const { colors } = useTheme();
-
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
     [categories, hasNewMarkets],
@@ -55,6 +55,23 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const groupValue = isWatchlistSelected
     ? WATCHLIST_FILTER_VALUE
     : selectedCategory;
+
+  // Chip order must match the render order below. The hook scrolls the selected
+  // chip into view on mount and on selection change, so a persisted right-hand
+  // category is visible, and both copies of the bar (in-flow and FlashList's
+  // pinned sticky overlay) land on the same chip when one swaps for the other.
+  const chipIds = useMemo(
+    () => [
+      ...(showWatchlistBadge ? [WATCHLIST_FILTER_VALUE] : []),
+      'all',
+      ...displayCategories.map((category) => category.id),
+    ],
+    [showWatchlistBadge, displayCategories],
+  );
+  const { scrollViewRef, handleScrollViewLayout, handleChipLayout } =
+    useChipScrollList(chipIds.length, {
+      activeChipIndex: chipIds.indexOf(groupValue),
+    });
 
   const handleFilterChange = useCallback(
     (value: string) => {
@@ -106,6 +123,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
             />
           ) : undefined
         }
+        onLayout={(event) =>
+          handleChipLayout(chipIds.indexOf(category.id), event)
+        }
         testID={testID ? `${testID}-${category.id}` : undefined}
       >
         {category.label}
@@ -115,6 +135,10 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
 
   return (
     <FilterButtonGroup
+      // `ref` is forwarded to the inner ScrollView at runtime (React 19) but is
+      // missing from FilterButtonGroup's published types; spread it to bypass.
+      {...{ ref: scrollViewRef }}
+      onLayout={handleScrollViewLayout}
       value={groupValue}
       onChange={handleFilterChange}
       variant={FilterButtonVariant.Primary}
@@ -126,13 +150,20 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
           value={WATCHLIST_FILTER_VALUE}
           startIconName={IconName.StarFilled}
           accessibilityLabel={strings('perps.watchlist.filter_badge_label')}
+          onLayout={(event) =>
+            handleChipLayout(chipIds.indexOf(WATCHLIST_FILTER_VALUE), event)
+          }
           testID={testID ? `${testID}-watchlist` : undefined}
           contentWrapperProps={{ gap: 0 }}
         >
           {null}
         </FilterButton>
       )}
-      <FilterButton value="all" testID={testID ? `${testID}-all` : undefined}>
+      <FilterButton
+        value="all"
+        onLayout={(event) => handleChipLayout(chipIds.indexOf('all'), event)}
+        testID={testID ? `${testID}-all` : undefined}
+      >
         {strings('perps.home.tabs.all')}
       </FilterButton>
       {displayCategories.map(renderCategoryFilterButton)}
