@@ -463,6 +463,50 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
+    it('surfaces a continueWithQuote rejection that arrives after a dependency changed mid-flight', async () => {
+      let rejectDeferred: ((error: Error) => void) | undefined;
+      mockContinueWithQuote.mockImplementation(
+        () =>
+          new Promise((_resolve, reject) => {
+            rejectDeferred = reject;
+          }),
+      );
+      let setPaymentMethods:
+        | ((paymentMethods: { id: string; name: string }[]) => void)
+        | undefined;
+      mockUseRampsPaymentMethods.mockImplementation(() => {
+        const [paymentMethods, setState] = React.useState<
+          { id: string; name: string }[] | undefined
+        >(undefined);
+        setPaymentMethods = setState;
+        return { paymentMethods };
+      });
+      const quote = buildNativeQuote();
+      const session = seedSession(quote);
+      const callbacks = session.callbacks;
+      renderHost({ headlessSessionId: session.id });
+      await waitFor(() =>
+        expect(mockContinueWithQuote).toHaveBeenCalledTimes(1),
+      );
+
+      await act(async () => {
+        setPaymentMethods?.([
+          { id: '/payments/debit-credit-card', name: 'Debit / Credit Card' },
+        ]);
+      });
+      await act(async () => {
+        rejectDeferred?.(new Error('widget url failed'));
+      });
+
+      expect(mockContinueWithQuote).toHaveBeenCalledTimes(1);
+      expect(callbacks.onError).toHaveBeenCalledWith({
+        code: 'UNKNOWN',
+        message: 'widget url failed',
+      });
+      expect(mockDismissHeadlessFlow).toHaveBeenCalledTimes(1);
+      expect(getSession(session.id)).toBeUndefined();
+    });
+
     it('forwards a nativeFlowError param as onError(AUTH_FAILED, ...) and closes the session', () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
