@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
 import {
   Box,
   Button,
@@ -13,6 +13,7 @@ import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { bytesToHex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { setMpcTwoFactorTokenProvider } from '../../../../core/MpcMoneyKeyring/mpc-money-keyring-builder';
+import { describeError } from '../../../../util/describeError';
 import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { moneyAccountMigration } from '../../../UI/Money/hooks/moneyAccountMigration';
@@ -66,52 +67,25 @@ const signTestMessage = async (): Promise<string> => {
   }`;
 };
 
-interface CallSite {
-  getFunctionName: () => string | null;
-  getFileName: () => string | null;
-  getLineNumber: () => number | null;
-  getColumnNumber: () => number | null;
-}
-
-type PrepareStackTrace = (error: Error, frames: CallSite[]) => string;
-
-const StackError = Error as ErrorConstructor & {
-  prepareStackTrace?: PrepareStackTrace;
-};
-
-// Another library's prepareStackTrace turns release stacks into
-// "[object CallSite]", so format the frames while a preset runs.
-const formatStack: PrepareStackTrace = (error, frames) =>
-  [
-    `${error.name}: ${error.message}`,
-    ...frames.map(
-      (frame) =>
-        `  at ${frame.getFunctionName() ?? '<anonymous>'} (${
-          frame.getFileName()?.split('/').pop() ?? '?'
-        }:${frame.getLineNumber()}:${frame.getColumnNumber()})`,
-    ),
-  ].join('\n');
-
 /**
  * Non-production buttons that create the MPC Money account and sign with it.
  */
 const MoneyMpcQaPresets = () => {
   const mfa = useMfa();
   const [result, setResult] = useState<string>();
+  const lastMigrationError = useSyncExternalStore(
+    moneyAccountMigration.subscribe,
+    moneyAccountMigration.getLastError,
+  );
 
   const run = async (label: string, action: () => Promise<string>) => {
     setResult(`${label}: running`);
     const startedAt = Date.now();
-    const previousPrepareStackTrace = StackError.prepareStackTrace;
-    StackError.prepareStackTrace = formatStack;
     try {
       const output = await action();
       setResult(`${label}: done in ${Date.now() - startedAt}ms\n${output}`);
     } catch (error) {
-      const { name, message, stack } = error as Error;
-      setResult(`${label}: failed. ${name}: ${message}\n${stack ?? ''}`);
-    } finally {
-      StackError.prepareStackTrace = previousPrepareStackTrace;
+      setResult(`${label}: failed. ${describeError(error)}`);
     }
   };
 
@@ -178,6 +152,16 @@ const MoneyMpcQaPresets = () => {
           testID={MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT}
         >
           {result}
+        </Text>
+      ) : null}
+      {lastMigrationError ? (
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          selectable
+          testID={MfaSettingsSelectorsIDs.MONEY_MPC_QA_LAST_MIGRATION_ERROR}
+        >
+          {`Last migration error: ${lastMigrationError}`}
         </Text>
       ) : null}
     </Box>

@@ -32,6 +32,8 @@ jest.mock('../../../UI/Money/hooks/moneyAccountMigration', () => ({
   moneyAccountMigration: {
     reset: jest.fn(),
     start: jest.fn(),
+    subscribe: jest.fn(() => jest.fn()),
+    getLastError: jest.fn(),
   },
 }));
 
@@ -144,5 +146,17 @@ describe('MoneyMpcQaPresets', () => {
     expect(
       getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT),
     ).toHaveTextContent(/Error: No MPC Money account, create one first/u);
+  });
+
+  it('shows the last migration error', () => {
+    jest
+      .mocked(moneyAccountMigration.getLastError)
+      .mockReturnValue('Error: relayer timeout');
+
+    const { getByTestId } = render(<MoneyMpcQaPresets />);
+
+    expect(
+      getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_LAST_MIGRATION_ERROR),
+    ).toHaveTextContent('Last migration error: Error: relayer timeout');
   });
 });
