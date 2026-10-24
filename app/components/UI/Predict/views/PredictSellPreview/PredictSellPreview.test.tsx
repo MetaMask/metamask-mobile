@@ -157,6 +157,7 @@ interface MockPreview {
   timestamp: number;
   side: string;
   sharePrice: number;
+  worstFillPrice?: number;
   maxAmountSpent: number;
   minAmountReceived: number;
   slippage: number;
@@ -200,12 +201,15 @@ let mockPreview: MockPreview | null = {
 };
 let mockPreviewError: string | null = null;
 let mockIsCalculating = false;
+// Cash Out re-fetches the book before submitting; resolves with the fresh preview.
+const mockRefetchPreview = jest.fn();
 jest.mock('../../hooks/usePredictOrderPreview', () => ({
   usePredictOrderPreview: () => ({
     preview: mockPreview,
     isCalculating: mockIsCalculating,
     isLoading: mockPreview === null && !mockPreviewError && mockIsCalculating,
     error: mockPreviewError,
+    refetchPreview: mockRefetchPreview,
   }),
 }));
 
@@ -345,6 +349,10 @@ describe('PredictSellPreview', () => {
     // Reset mock functions
     mockPlaceOrder.mockReset();
     mockReset.mockReset();
+    mockRefetchPreview.mockImplementation(async () => ({
+      status: 'ok',
+      preview: { ...mockPreview, worstFillPrice: mockPreview?.sharePrice },
+    }));
   });
 
   afterEach(() => {
@@ -442,7 +450,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('user interactions', () => {
-    it('invokes placeOrder with correct parameters when cash out button pressed', () => {
+    it('re-fetches the order book and invokes placeOrder with the fresh preview when cash out button pressed', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -455,8 +463,11 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      fireEvent.press(cashOutButton);
+      await act(async () => {
+        fireEvent.press(cashOutButton);
+      });
 
+      expect(mockRefetchPreview).toHaveBeenCalledTimes(1);
       expect(mockPlaceOrder).toHaveBeenCalledWith({
         analyticsProperties: expect.objectContaining({
           marketId: 'market-123',
@@ -475,11 +486,49 @@ describe('PredictSellPreview', () => {
           outcomeTokenId: 'outcome-token-789',
           side: 'SELL',
           minAmountReceived: 60,
+          worstFillPrice: 0.5,
         }),
       });
       rerender(<PredictSellPreview />);
 
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
+    });
+
+    it('asks to confirm the new price instead of submitting when the price moved more than one tick', async () => {
+      mockRefetchPreview.mockResolvedValue({
+        status: 'ok',
+        preview: { ...mockPreview, sharePrice: 0.45, worstFillPrice: 0.45 },
+      });
+      const { getByTestId, findByText } = renderWithProvider(
+        <PredictSellPreview />,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+      });
+
+      expect(
+        await findByText(strings('predict.order.price_moved_title')),
+      ).toBeOnTheScreen();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('shows no match without submitting when the order book cannot fill the position', async () => {
+      mockRefetchPreview.mockResolvedValue({ status: 'no_match' });
+      const { getByTestId, findByText } = renderWithProvider(
+        <PredictSellPreview />,
+        { state: initialState },
+      );
+
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+      });
+
+      expect(
+        await findByText(strings('predict.order.no_match_title')),
+      ).toBeOnTheScreen();
+      expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
     it('shows loading text when order executes', () => {
@@ -564,7 +613,7 @@ describe('PredictSellPreview', () => {
   });
 
   describe('navigation after successful order', () => {
-    it('dispatches navigation pop action when placeOrder succeeds', () => {
+    it('dispatches navigation pop action when placeOrder succeeds', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -577,7 +626,9 @@ describe('PredictSellPreview', () => {
       );
       const cashOutButton = getByTestId('predict-sell-preview-cash-out-button');
 
-      fireEvent.press(cashOutButton);
+      await act(async () => {
+        fireEvent.press(cashOutButton);
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalled();
       rerender(<PredictSellPreview />);

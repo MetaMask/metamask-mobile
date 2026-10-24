@@ -17,7 +17,11 @@ import BottomSheet from '../../../../../component-library/components/BottomSheet
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
 import { strings } from '../../../../../../locales/i18n';
-import { formatCents, formatPrice } from '../../utils/format';
+import {
+  formatCents,
+  formatPositionSize,
+  formatPrice,
+} from '../../utils/format';
 import {
   getPredictExchangeFee,
   getPredictSellNetProceeds,
@@ -40,6 +44,7 @@ export type PredictOrderRetrySheetVariant =
   | 'price_moved'
   | 'failed'
   | 'quote_unavailable'
+  | 'timeout'
   | 'no_match';
 
 interface PredictOrderRetrySheetProps {
@@ -72,6 +77,8 @@ function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
       return strings('predict.order.order_failed_title');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_title');
+    case 'timeout':
+      return strings('predict.order.market_timeout_title');
     case 'price_moved':
       return strings('predict.order.price_moved_title');
     case 'no_match':
@@ -95,6 +102,8 @@ function getBodyForVariant({
       return strings('predict.order.order_failed_body');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_body');
+    case 'timeout':
+      return strings('predict.order.market_timeout_body');
     case 'no_match':
       return strings('predict.order.no_match_body');
     case 'busy':
@@ -186,6 +195,15 @@ const PredictOrderRetrySheet = forwardRef<
       if (preview.side === Side.SELL) {
         return [
           priceRow,
+          {
+            label: strings('predict.order.retry_expected_fill_label'),
+            value: strings('predict.order.retry_expected_fill_value', {
+              shares: formatPositionSize(preview.maxAmountSpent, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            }),
+          },
           {
             label: strings('predict.order.retry_proceeds_label'),
             value: formatPrice(getPredictSellNetProceeds(preview), {
