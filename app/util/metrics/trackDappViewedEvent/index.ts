@@ -5,6 +5,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import { analytics } from '../../../util/analytics/analytics';
 import { prefixUrlWithProtocol } from '../../browser';
 import { selectInternalAccounts } from '../../../selectors/accountsController';
+import { selectActiveTabEntryPointForOrigin } from '../../../reducers/browser/selectors';
 
 /**
  * Tracks Dapp viewed event
@@ -27,6 +28,10 @@ const trackDappViewedEvent = ({
   const isFirstVisit = !visitedDappsByHostname?.[hostname];
   const internalAccounts = selectInternalAccounts(store.getState());
   const numberOfWalletAccounts = Object.keys(internalAccounts).length;
+  const entryPoint = selectActiveTabEntryPointForOrigin(
+    store.getState(),
+    hostname,
+  );
 
   // Add Dapp hostname to viewed dapps
   store.dispatch(addToViewedDapp(hostname));
@@ -39,6 +44,7 @@ const trackDappViewedEvent = ({
         number_of_accounts: numberOfWalletAccounts,
         number_of_accounts_connected: numberOfConnectedAccounts,
         source: 'in-app browser',
+        ...(entryPoint ? { entry_point: entryPoint } : {}),
       })
       .build(),
   );

@@ -11,6 +11,7 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
+import { useOriginEntryPoint } from '../../hooks/useOriginEntryPoint';
 import { SourceType } from '../../hooks/useAnalytics/useAnalytics.types';
 import AppConstants from '../../../core/AppConstants';
 import {
@@ -31,6 +32,9 @@ jest.mock('../../Views/MultichainAccounts/shared', () => ({
 }));
 
 jest.mock('../../hooks/useOriginSource');
+jest.mock('../../hooks/useOriginEntryPoint', () => ({
+  useOriginEntryPoint: jest.fn(),
+}));
 jest.mock('../../hooks/useSDKV2Connection', () => ({
   useSDKV2Connection: jest.fn(() => undefined),
 }));
@@ -138,6 +142,7 @@ describe('PermissionApproval', () => {
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
+    jest.mocked(useOriginEntryPoint).mockReturnValue(undefined);
     (useOriginSource as jest.Mock).mockImplementation(() => ({
       source: SourceType.IN_APP_BROWSER,
       requestSource: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
@@ -223,6 +228,26 @@ describe('PermissionApproval', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
+  });
+
+  it('adds entry_point when the request comes from a tab opened by Search', async () => {
+    jest.mocked(useOriginEntryPoint).mockReturnValue('explore_search');
+    mockApprovalRequest({
+      type: ApprovalTypes.REQUEST_PERMISSIONS,
+      requestData: HOST_INFO_MOCK,
+      // TODO: Replace "any" with type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any);
+    mockCreateMultichainAccountConnectNavDetails(NAV_DETAILS_MOCK);
+
+    render(<PermissionApproval navigation={{ navigate: jest.fn() }} />);
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      entry_point: 'explore_search',
+      source: SourceType.IN_APP_BROWSER,
+      request_source: AppConstants.REQUEST_SOURCES.IN_APP_BROWSER,
+    });
   });
 
   it('does not navigate if no approval request', async () => {
