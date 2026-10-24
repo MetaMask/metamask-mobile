@@ -10,11 +10,13 @@
  * Reference: tests/integration/AGENTS.md · tests/integration/harnesses/perps/perps.ts
  */
 
-import { buildPerpsIntegrationHarness } from '../../../../../tests/integration/harnesses/perps/perps';
+import {
+  buildPerpsDepositHarness,
+  buildPerpsIntegrationHarness,
+} from '../../../../../tests/integration/harnesses/perps/perps';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
   PERPS_ERROR_CODES,
-  PerpsController,
   USDC_ARBITRUM_MAINNET_ADDRESS,
   USDC_ARBITRUM_TESTNET_ADDRESS,
   getBridgeInfo,
@@ -23,7 +25,6 @@ import {
   getSupportedPaths,
   validateAssetSupport,
 } from '@metamask/perps-controller/utils/hyperLiquidValidation';
-import { createMockMessenger } from '../__mocks__/serviceMocks';
 
 // Circle USDC on Arbitrum Sepolia: the testnet asset before 22.0.0.
 const PREVIOUS_TESTNET_USDC_ASSET_ID =
@@ -33,39 +34,6 @@ const actualValidation = jest.requireActual<{
   getSupportedPaths: typeof getSupportedPaths;
   validateAssetSupport: typeof validateAssetSupport;
 }>('@metamask/perps-controller/utils/hyperLiquidValidation');
-
-function buildDepositController(isTestnet: boolean) {
-  const { mocks } = buildPerpsIntegrationHarness({ isTestnet });
-  const messenger = createMockMessenger();
-  const defaultCall = messenger.call.getMockImplementation();
-  const addTransaction = jest.fn().mockResolvedValue({
-    // The confirmation never settles in these tests.
-    result: new Promise(() => undefined),
-    transactionMeta: { id: 'deposit-transaction' },
-  });
-  const findNetworkClientIdByChainId = jest
-    .fn()
-    .mockReturnValue('deposit-network-client');
-  messenger.call.mockImplementation((...args) => {
-    const [action, ...params] = args;
-    if (action === 'TransactionController:addTransaction') {
-      return addTransaction(...params);
-    }
-    if (action === 'NetworkController:findNetworkClientIdByChainId') {
-      return findNetworkClientIdByChainId(...params);
-    }
-    return defaultCall?.(...args);
-  });
-
-  const controller = new PerpsController({
-    messenger,
-    state: { activeProvider: 'hyperliquid', isTestnet, isEligible: true },
-    infrastructure: mocks.infrastructure,
-    deferEligibilityCheck: true,
-  });
-
-  return { controller, addTransaction, findNetworkClientIdByChainId };
-}
 
 describe('Perps funds routing — integration', () => {
   beforeEach(() => {
@@ -155,8 +123,12 @@ describe('Perps funds routing — integration', () => {
       'adds a $network USDC transfer to the Hyperliquid bridge',
       async ({ isTestnet, chainId, token }) => {
         // Arrange
-        const { controller, addTransaction, findNetworkClientIdByChainId } =
-          buildDepositController(isTestnet);
+        const {
+          controller,
+          addTransaction,
+          findNetworkClientIdByChainId,
+          networkClientId,
+        } = buildPerpsDepositHarness({ isTestnet });
         await controller.init();
 
         try {
@@ -172,7 +144,7 @@ describe('Perps funds routing — integration', () => {
               data: expect.stringContaining(bridge.slice(2).toLowerCase()),
             }),
             expect.objectContaining({
-              networkClientId: 'deposit-network-client',
+              networkClientId,
               type: 'perpsDeposit',
             }),
           );
