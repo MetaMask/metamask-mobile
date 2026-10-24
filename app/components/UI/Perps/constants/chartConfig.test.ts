@@ -5,7 +5,12 @@ import {
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
 } from '@metamask/perps-controller';
-import { getCandlestickColors, clampVisibleCandleCount } from './chartConfig';
+import {
+  getCandlestickColors,
+  clampVisibleCandleCount,
+  isPerpsNativeTradingViewSpikeEnabled,
+  shouldUsePerpsNativeTradingView,
+} from './chartConfig';
 import { mockTheme } from '../../../../util/theme';
 
 describe('chartConfig', () => {
@@ -129,6 +134,77 @@ describe('chartConfig', () => {
         mockTheme.colors.success.default,
       );
       expect(colors).toHaveProperty('negative', mockTheme.colors.error.default);
+    });
+  });
+
+  describe('isPerpsNativeTradingViewSpikeEnabled', () => {
+    it('returns true for a dev build with the spike flag set to true', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('true', true);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false for a dev build without the spike flag', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled(undefined, true);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a dev build with the spike flag set to false', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('false', true);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false for a release build even with the spike flag set', () => {
+      const result = isPerpsNativeTradingViewSpikeEnabled('true', false);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('shouldUsePerpsNativeTradingView', () => {
+    it.each([
+      ['HIGH', 'WIFI'],
+      ['MID', 'SLOW_CELLULAR'],
+      ['LOW', null],
+      [null, 'FAST_CELLULAR'],
+      [null, null],
+    ] as const)(
+      'renders the native chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        const result = shouldUsePerpsNativeTradingView(
+          true,
+          hardwareTier,
+          networkTier,
+        );
+
+        expect(result).toBe(true);
+      },
+    );
+
+    it.each([
+      ['HIGH', 'NONE'],
+      [null, 'NONE'],
+      ['LOW', 'SLOW_CELLULAR'],
+      ['LOW', 'WIFI'],
+    ] as const)(
+      'keeps the existing chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        const result = shouldUsePerpsNativeTradingView(
+          true,
+          hardwareTier,
+          networkTier,
+        );
+
+        expect(result).toBe(false);
+      },
+    );
+
+    it('keeps the existing chart when the spike flag is off', () => {
+      const result = shouldUsePerpsNativeTradingView(false, 'HIGH', 'WIFI');
+
+      expect(result).toBe(false);
     });
   });
 });

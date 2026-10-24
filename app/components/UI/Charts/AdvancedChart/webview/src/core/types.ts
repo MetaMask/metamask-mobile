@@ -45,6 +45,10 @@ export interface ChartFeaturesConfig {
   disabledFeatures?: string[];
   hidePaneSeparator?: boolean;
   showBuiltInLegend?: boolean;
+  /** Forward TradingView's own study and drawing events to RN. */
+  nativeTradingView?: boolean;
+  /** Use TradingView's Light theme so native header/toolbar match a light app. */
+  lightChrome?: boolean;
 }
 
 /**
@@ -136,11 +140,24 @@ export interface TVTimeRange {
 
 export type TVWidgetEvent = 'mouse_down' | 'mouse_up' | 'panes_height_changed';
 
+/** Widget events whose callbacks receive `(entityId, eventType)`. */
+export type TVEntityEvent = 'study_event' | 'drawing_event';
+
+/** `{ id, name }` pair returned by `getAllStudies` / `getAllShapes`. */
+export interface TVEntityInfo {
+  id: string;
+  name: string;
+}
+
 export interface TVChartingLibraryWidget {
   onChartReady(cb: () => void): void;
   activeChart(): TVActiveChart;
   applyOverrides(overrides: Record<string, unknown>): void;
   subscribe(event: TVWidgetEvent, handler: () => void): void;
+  subscribe(
+    event: TVEntityEvent,
+    handler: (entityId: string, eventType: string) => void,
+  ): void;
   resize(): void;
   remove(): void;
   resetCache?(): void;
@@ -274,6 +291,8 @@ export interface TVActiveChart {
   removeEntity(id: StudyId | TVShapeId): void;
   getStudyById(id: StudyId): TVStudy | null;
   getShapeById?(id: TVShapeId): TVShape | null;
+  getAllStudies?(): TVEntityInfo[];
+  getAllShapes?(): TVEntityInfo[];
   getAllPanesHeight(): number[];
   setAllPanesHeight(heights: number[]): void;
   exportData(options: TVExportDataOptions): Promise<TVExportData>;

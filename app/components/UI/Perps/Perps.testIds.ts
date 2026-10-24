@@ -539,6 +539,7 @@ export const PerpsProMarketViewSelectorsIDs = {
   CHART_OHLCV: 'perps-pro-market-chart-ohlcv',
   CHART_SKELETON: 'perps-pro-market-chart-skeleton',
   CHART_LIGHTWEIGHT: 'perps-pro-market-chart-lightweight',
+  CHART_NATIVE_TRADINGVIEW: 'perps-pro-market-chart-native-tradingview',
   CHART_NAV: 'perps-pro-market-chart-nav',
   CHART_PERIOD_SELECTOR: 'perps-pro-market-chart-period-selector',
   CHART_MORE_PERIODS_SHEET: 'perps-pro-market-chart-more-periods-sheet',
@@ -715,6 +716,17 @@ export const getPerpsProChaseHandleSelector = (
   symbol: string,
   handle: string,
 ) => `perps-chase-handle-${symbol}-${handle}`;
+
+/**
+ * Spike (TAT-4093): marker for an open TradingView dialog or a study/drawing
+ * present on the native chart, e.g. `…-dialog-indicators-dialog`,
+ * `…-study-accelerator-oscillator`, `…-drawing-trend-line`.
+ */
+export const getPerpsNativeTradingViewMarkerSelector = (
+  kind: 'dialog' | 'study' | 'drawing',
+  name: string,
+) =>
+  `perps-native-tradingview-${kind}-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
 const getPerpsProTwapIdentitySelectorSuffix = (
   providerId: string,

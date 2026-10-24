@@ -9,6 +9,10 @@
  */
 import type { Theme } from '@metamask/design-tokens';
 import { ChartInterval, TimeDuration } from '@metamask/perps-controller';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../util/deviceCapability/types';
 
 type Colors = Theme['colors'];
 
@@ -103,3 +107,58 @@ export const getCandlestickColors = (colors: Colors) => ({
   positive: PERPS_CHART_CONFIG.POSITIVE_CANDLE_COLOR(colors),
   negative: PERPS_CHART_CONFIG.NEGATIVE_CANDLE_COLOR(colors),
 });
+
+/**
+ * Spike (TAT-4093): dev-only switch that renders the Pro chart with
+ * TradingView's native Advanced Charts UI (header, Indicators dialog, drawing
+ * toolbar, legend). Always false in release builds.
+ */
+export const isPerpsNativeTradingViewSpikeEnabled = (
+  spikeFlag: string | undefined = process.env.MM_PERPS_NATIVE_TV_CHART_SPIKE,
+  isDevBuild: boolean = __DEV__,
+): boolean => isDevBuild && spikeFlag === 'true';
+
+/**
+ * Spike (TAT-4093): device-capability gate for the native chart UI
+ * (app/util/deviceCapability/README.md). Offline stays local-only, and LOW
+ * hardware skips the extra native chrome on mount unless the network is
+ * unknown. When false, the existing Pro chart path renders.
+ */
+export const shouldUsePerpsNativeTradingView = (
+  isSpikeEnabled: boolean,
+  hardwareTier: HardwareTier | null,
+  networkTier: NetworkTier | null,
+): boolean => {
+  if (!isSpikeEnabled || networkTier === 'NONE') {
+    return false;
+  }
+  return hardwareTier !== 'LOW' || networkTier === null;
+};
+
+/**
+ * TradingView features kept off in the native spike. Everything else uses
+ * TradingView defaults. Symbol search, compare, resolutions and the date-range
+ * bar stay off because the RN-backed datafeed serves one symbol at the
+ * RN-selected interval; screenshots need a `snapshot_url` upload endpoint.
+ */
+export const PERPS_NATIVE_TV_DISABLED_FEATURES: string[] = [
+  'use_localstorage_for_settings',
+  'header_symbol_search',
+  'symbol_search_hot_key',
+  'header_compare',
+  'header_resolutions',
+  'header_screenshot',
+  'header_fullscreen_button',
+  'timeframes_toolbar',
+  'go_to_date',
+  'symbol_info',
+  'display_market_status',
+  'control_bar',
+  'border_around_the_chart',
+  'popup_hints',
+  'create_volume_indicator_by_default',
+  'show_zoom_and_move_buttons_on_touch',
+  'shift_visible_range_on_new_bar',
+  // Vertical drags keep scrolling the Pro screen.
+  'vert_touch_drag_scroll',
+];

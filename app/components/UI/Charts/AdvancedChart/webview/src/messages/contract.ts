@@ -253,6 +253,7 @@ export type OutboundMessageType =
   | 'LEGEND_RENDERED'
   | 'TRADE_MARKER_PRESSED'
   | 'FETCH_OLDER_BARS_REQUEST'
+  | 'NATIVE_TV_EVENT'
   | 'ERROR'
   | 'DEBUG';
 
@@ -323,6 +324,18 @@ export interface TradeMarkerPressedPayload {
   id: string;
 }
 
+/**
+ * A TradingView-native study or drawing lifecycle event, or a TradingView
+ * dialog opening/closing. Mirrors `NativeChartEventPayload` on the RN side.
+ */
+export interface NativeTvEventPayload {
+  source: 'study' | 'drawing' | 'dialog';
+  /** TradingView event type (`create`, `remove`, `points_changed`, …) or dialog `open` / `close`. */
+  type: string;
+  id?: string;
+  name?: string;
+}
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
@@ -335,6 +348,7 @@ export interface OutboundPayloads {
   LEGEND_RENDERED: LegendRenderedPayload;
   TRADE_MARKER_PRESSED: TradeMarkerPressedPayload;
   FETCH_OLDER_BARS_REQUEST: FetchOlderBarsRequestPayload;
+  NATIVE_TV_EVENT: NativeTvEventPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }

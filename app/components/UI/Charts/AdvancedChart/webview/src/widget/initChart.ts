@@ -195,7 +195,7 @@ export function createChartWidget(
     timezone: options.timezone ?? resolveUserTimezone(),
     fullscreen: false,
     autosize: true,
-    theme: 'Dark',
+    theme: features.lightChrome ? 'Light' : 'Dark',
     disabled_features: disabledFeatures,
     enabled_features: resolveEnabledFeatures(features),
     custom_themes: {

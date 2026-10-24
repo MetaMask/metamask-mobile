@@ -15,10 +15,15 @@ import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import {
   ChartType,
   type CrosshairData,
+  type NativeChartEventPayload,
   type PositionLines,
   type PositionLineColors,
   type ChartRangeSettlePayload,
 } from '../../../Charts/AdvancedChart/AdvancedChart.types';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PERPS_NATIVE_TV_DISABLED_FEATURES } from '../../constants/chartConfig';
+import { getPerpsNativeTradingViewMarkerSelector } from '../../Perps.testIds';
+import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import type { Colors } from '../../../../../util/theme/models';
 import {
@@ -68,6 +73,11 @@ export interface PerpsAdvancedChartProps {
   fallbackFetchMoreHistory?: () => void;
   /** Duration used for RN-backed older-bar pagination. */
   paginationDuration?: TimeDuration;
+  /**
+   * Spike (TAT-4093): show TradingView's native header, Indicators dialog,
+   * drawing toolbar and legend, and log native chart events.
+   */
+  nativeTradingView?: boolean;
 }
 
 /**
@@ -162,6 +172,46 @@ export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
   };
 }
 
+/** Spike (TAT-4093): TradingView state observed through NATIVE_TV_EVENT. */
+interface NativeChartMarkers {
+  /** `data-name` of the open TradingView dialog, e.g. `indicators-dialog`. */
+  dialog: string | null;
+  /** Studies and drawings on the chart, keyed by TradingView entity id. */
+  entities: Record<string, { kind: 'study' | 'drawing'; name: string }>;
+}
+
+const EMPTY_NATIVE_CHART_MARKERS: NativeChartMarkers = {
+  dialog: null,
+  entities: {},
+};
+
+function applyNativeChartEvent(
+  markers: NativeChartMarkers,
+  event: NativeChartEventPayload,
+): NativeChartMarkers {
+  if (event.source === 'dialog') {
+    return {
+      ...markers,
+      dialog: event.type === 'open' ? (event.name ?? null) : null,
+    };
+  }
+  if (!event.id) return markers;
+  if (event.type === 'remove') {
+    const { [event.id]: _removed, ...entities } = markers.entities;
+    return { ...markers, entities };
+  }
+  if (event.type === 'create' && event.name) {
+    return {
+      ...markers,
+      entities: {
+        ...markers.entities,
+        [event.id]: { kind: event.source, name: event.name },
+      },
+    };
+  }
+  return markers;
+}
+
 type PerpsChartTransitionType = 'initial_load' | 'interval_change';
 type PerpsChartSurface = 'market_detail' | 'full_screen_chart';
 
@@ -230,6 +280,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   fallbackDeliveryRevision = 0,
   fallbackFetchMoreHistory,
   paginationDuration,
+  nativeTradingView = false,
 }) => {
   const {
     ohlcvData,
@@ -540,6 +591,44 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     markSeriesSettled();
   }, [markSeriesSettled]);
 
+  // ---- Native TradingView spike (TAT-4093) ----
+
+  // Counts CHART_READY: the WebView remounts per interval and AdvancedChart
+  // re-sends the position lines after each ready.
+  const [nativeChartReadyCount, setNativeChartReadyCount] = useState(0);
+  // Rendered as test markers so recipes can wait on TradingView's own state
+  // (open dialog, created study or drawing) inside the WebView.
+  const [nativeChartMarkers, setNativeChartMarkers] = useState(
+    EMPTY_NATIVE_CHART_MARKERS,
+  );
+
+  const handleNativeChartReady = useCallback(() => {
+    DevLogger.log('[PerpsNativeTV] chart ready');
+    setNativeChartReadyCount((count) => count + 1);
+    // A ready chart is a new widget: earlier studies and drawings are gone.
+    setNativeChartMarkers(EMPTY_NATIVE_CHART_MARKERS);
+  }, []);
+
+  useEffect(() => {
+    if (!nativeTradingView || nativeChartReadyCount === 0) return;
+    const hasEntry = positionLines?.entryPrice !== undefined;
+    const hasLimitOrder = (positionLines?.limitOrders?.length ?? 0) > 0;
+    DevLogger.log(
+      `[PerpsNativeTV] position lines sent hasEntry=${hasEntry} hasLimitOrder=${hasLimitOrder}`,
+    );
+  }, [nativeChartReadyCount, nativeTradingView, positionLines]);
+
+  const handleNativeChartEvent = useCallback(
+    (event: NativeChartEventPayload) => {
+      DevLogger.log(
+        `[PerpsNativeTV] ${event.source} ${event.type} ${event.name ?? ''}`.trim(),
+        event,
+      );
+      setNativeChartMarkers((markers) => applyNativeChartEvent(markers, event));
+    },
+    [],
+  );
+
   // ---- Error fallback ----
 
   const handleError = useCallback(
@@ -608,7 +697,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         symbol={symbol}
         onNeedMoreHistory={fallbackFetchMoreHistory}
         onOhlcDataChange={onCrosshairDataChange}
-        showOverlay={false}
+        // Native mode hides the parent's RN OHLCV bar, so the fallback keeps
+        // its own legend.
+        showOverlay={nativeTradingView}
         coloredVolume
         onVisibleCandleCountChange={onVisibleCandleCountChange}
       />
@@ -616,34 +707,69 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   }
 
   return (
-    <AdvancedChart
-      ohlcvData={ohlcvData}
-      ohlcvSeriesKey={ohlcvSeriesKey}
-      webViewInstanceKey={webViewInstanceKey}
-      realtimeBar={realtimeBar}
-      height={height}
-      chartType={ChartType.Candles}
-      showVolume
-      volumeOverlay={false}
-      hidePaneSeparator
-      priceDecimals={priceDecimals}
-      gridLineColorOverride={colors.border.muted}
-      isLoading={isLoading}
-      positionLines={positionLines}
-      positionLineColors={positionLineColors}
-      rnBackedPagination={{ enabled: true }}
-      onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
-      onCrosshairMove={handleCrosshairMove}
-      onError={handleError}
-      onSkeletonHidden={handleSkeletonHidden}
-      onChartLayoutSettled={handleChartLayoutSettled}
-      onVisibleCandleCountChange={onVisibleCandleCountChange}
-      visibleFromMs={visibleFromMs}
-      visibleToMs={visibleToMs}
-      currentPriceLineColorOverride={positionLineColors.currentPrice}
-      volumeSuccessColorOverride={volumeColors.success}
-      volumeErrorColorOverride={volumeColors.error}
-    />
+    <>
+      <AdvancedChart
+        ohlcvData={ohlcvData}
+        ohlcvSeriesKey={ohlcvSeriesKey}
+        webViewInstanceKey={webViewInstanceKey}
+        realtimeBar={realtimeBar}
+        height={height}
+        chartType={ChartType.Candles}
+        showVolume
+        volumeOverlay={false}
+        hidePaneSeparator
+        priceDecimals={priceDecimals}
+        gridLineColorOverride={colors.border.muted}
+        isLoading={isLoading}
+        positionLines={positionLines}
+        positionLineColors={positionLineColors}
+        rnBackedPagination={{ enabled: true }}
+        onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
+        onCrosshairMove={handleCrosshairMove}
+        onError={handleError}
+        onSkeletonHidden={handleSkeletonHidden}
+        onChartLayoutSettled={handleChartLayoutSettled}
+        onVisibleCandleCountChange={onVisibleCandleCountChange}
+        visibleFromMs={visibleFromMs}
+        visibleToMs={visibleToMs}
+        currentPriceLineColorOverride={positionLineColors.currentPrice}
+        volumeSuccessColorOverride={volumeColors.success}
+        volumeErrorColorOverride={volumeColors.error}
+        nativeTradingView={nativeTradingView}
+        enableDrawingTools={nativeTradingView}
+        showBuiltInLegend={nativeTradingView}
+        disabledFeatures={
+          nativeTradingView ? PERPS_NATIVE_TV_DISABLED_FEATURES : undefined
+        }
+        onChartReady={nativeTradingView ? handleNativeChartReady : undefined}
+        onNativeChartEvent={
+          nativeTradingView ? handleNativeChartEvent : undefined
+        }
+      />
+      {nativeTradingView ? (
+        <Box pointerEvents="none" twClassName="absolute left-0 top-0 opacity-0">
+          {nativeChartMarkers.dialog ? (
+            <Box
+              testID={getPerpsNativeTradingViewMarkerSelector(
+                'dialog',
+                nativeChartMarkers.dialog,
+              )}
+              twClassName="h-px w-px"
+            />
+          ) : null}
+          {Object.entries(nativeChartMarkers.entities).map(([id, entity]) => (
+            <Box
+              key={id}
+              testID={getPerpsNativeTradingViewMarkerSelector(
+                entity.kind,
+                entity.name,
+              )}
+              twClassName="h-px w-px"
+            />
+          ))}
+        </Box>
+      ) : null}
+    </>
   );
 };
 

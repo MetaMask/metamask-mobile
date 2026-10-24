@@ -80,6 +80,7 @@ interface ChartFeatures {
   volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
   showBuiltInLegend?: boolean;
+  nativeTradingView?: boolean;
 }
 
 const createConfigScript = (
@@ -140,7 +141,9 @@ window.CONFIG = {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
     hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'},
-    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'}
+    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'},
+    nativeTradingView: ${features.nativeTradingView ? 'true' : 'false'},
+    lightChrome: ${features.nativeTradingView && theme.themeAppearance === AppThemeKey.light ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},

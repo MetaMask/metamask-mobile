@@ -72,6 +72,51 @@ describe('AdvancedChart', () => {
     expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
   });
 
+  it('serializes the native TradingView spike flag into the WebView template', () => {
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} nativeTradingView />,
+    );
+
+    const webView = getByTestId('mock-webview');
+
+    expect(webView.props.source.html).toMatch(/nativeTradingView:\s*true/);
+  });
+
+  it('forwards NATIVE_TV_EVENT messages to onNativeChartEvent', () => {
+    const onNativeChartEvent = jest.fn();
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        nativeTradingView
+        onNativeChartEvent={onNativeChartEvent}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'NATIVE_TV_EVENT',
+            payload: {
+              source: 'drawing',
+              type: 'create',
+              id: 'sh1',
+              name: 'trend_line',
+            },
+          }),
+        },
+      });
+    });
+
+    expect(onNativeChartEvent).toHaveBeenCalledWith({
+      source: 'drawing',
+      type: 'create',
+      id: 'sh1',
+      name: 'trend_line',
+    });
+  });
+
   it('keeps loading overlay while isLoading until parent clears it', () => {
     const { getByTestId, queryByTestId, rerender } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,
