@@ -156,6 +156,41 @@ import { PredictAnalytics } from './PredictAnalytics';
 import type { PredictControllerMethodActions } from './PredictController-method-action-types';
 import { withTrace, type TraceableController } from './utils/withTrace';
 
+export const PREDICT_BLOCK_TRACKER_TIMEOUT_MS = 10_000;
+export const PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS = 60_000;
+
+/**
+ * Rejects an operation that does not settle within its deadline.
+ *
+ * @param request - Promise returned by the underlying operation.
+ * @param timeoutMs - Maximum time to wait.
+ * @param timeoutMessage - Error message used when the deadline expires.
+ * @returns The operation result.
+ */
+async function withTimeout<T>(
+  request: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      request,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error(timeoutMessage)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
+
 /**
  * State shape for PredictController
  */
@@ -829,7 +864,11 @@ export class PredictController extends BaseController<
       networkClientId,
     );
     try {
-      await networkClient.blockTracker.checkForLatestBlock();
+      await withTimeout(
+        networkClient.blockTracker.checkForLatestBlock(),
+        PREDICT_BLOCK_TRACKER_TIMEOUT_MS,
+        `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
+      );
     } catch (error) {
       DevLogger.log('PredictController: Error invalidating query cache', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1390,10 +1429,14 @@ export class PredictController extends BaseController<
       },
       async () => {
         try {
-          return await this.provider.getPositions({
-            ...params,
-            address: selectedAddress,
-          });
+          return await withTimeout(
+            this.provider.getPositions({
+              ...params,
+              address: selectedAddress,
+            }),
+            PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+            `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+          );
         } catch (error) {
           this.update((state) => {
             state.lastError =
@@ -4586,7 +4629,11 @@ export class PredictController extends BaseController<
         }
 
         await this.invalidateQueryCache(this.provider.chainId);
-        return this.provider.getBalance({ ...params, address });
+        return withTimeout(
+          this.provider.getBalance({ ...params, address }),
+          PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+          `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+        );
       },
     );
   }

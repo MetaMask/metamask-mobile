@@ -46,6 +46,8 @@ import {
 import {
   getDefaultPredictControllerState,
   OPTIMISTIC_BALANCE_MAX_AGE_MS,
+  PREDICT_BLOCK_TRACKER_TIMEOUT_MS,
+  PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -11764,6 +11766,31 @@ describe('PredictController', () => {
         );
       });
     });
+
+    it('rejects when the positions provider does not settle', async () => {
+      jest.useFakeTimers();
+      mockPolymarketProvider.getPositions.mockImplementation(
+        () => new Promise<PredictPosition[]>(() => undefined),
+      );
+
+      try {
+        const request = withController(({ controller }) =>
+          controller.getPositions({ address: MOCK_ADDRESS }),
+        );
+        const settledRequest = request.catch((error: unknown) => error);
+
+        await jest.advanceTimersByTimeAsync(
+          PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+        );
+
+        const error = await settledRequest;
+        expect(error).toMatchObject({
+          message: `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   describe('invalidateQueryCache', () => {
@@ -11925,6 +11952,41 @@ describe('PredictController', () => {
             getNetworkClientById: mockGetNetworkClientById,
           },
         },
+      );
+    });
+
+    it('continues execution when block tracker update times out', async () => {
+      const mockCheckForLatestBlock = jest.fn(
+        () => new Promise<void>(() => undefined),
+      );
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+
+      const invalidation = withController(
+        ({ controller }) =>
+          // eslint-disable-next-line dot-notation
+          controller['invalidateQueryCache'](137),
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
+
+      jest.advanceTimersByTime(PREDICT_BLOCK_TRACKER_TIMEOUT_MS);
+
+      await expect(invalidation).resolves.toBeUndefined();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PredictController: Error invalidating query cache',
+        expect.objectContaining({
+          error: `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
+        }),
       );
     });
   });
@@ -12449,6 +12511,23 @@ describe('PredictController', () => {
         // Assert
         expect(result).toBe(1000);
         expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+      });
+    });
+
+    it('rejects when the balance provider does not settle', async () => {
+      mockPolymarketProvider.getBalance.mockImplementation(
+        () => new Promise<number>(() => undefined),
+      );
+      const request = withController(({ controller }) =>
+        controller.getBalance({}),
+      );
+      const settledRequest = request.catch((error: unknown) => error);
+
+      await jest.advanceTimersByTimeAsync(PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS);
+
+      const error = await settledRequest;
+      expect(error).toMatchObject({
+        message: `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
       });
     });
 
