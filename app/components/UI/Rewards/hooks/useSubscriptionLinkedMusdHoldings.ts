@@ -6,7 +6,10 @@ import {
   toMultichainAccountGroupId,
   toMultichainAccountWalletId,
 } from '@metamask/account-api';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  KeyringAccountEntropyTypeOption,
+} from '@metamask/keyring-api';
 import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
@@ -98,7 +101,7 @@ export const useSubscriptionLinkedMusdHoldings =
      */
     const moneyAccountGroupEvmAddress = useMemo(() => {
       const entropy = primaryMoneyAccount?.options?.entropy;
-      if (!entropy) {
+      if (entropy?.type !== KeyringAccountEntropyTypeOption.Mnemonic) {
         return undefined;
       }
       const groupId = toMultichainAccountGroupId(

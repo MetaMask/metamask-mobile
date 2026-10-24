@@ -1,3 +1,4 @@
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import { createSelector } from 'reselect';
 import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
 import { RootState } from '../../reducers';
@@ -38,7 +39,9 @@ export const selectPrimaryMoneyAccount = createSelector(
       return undefined;
     }
     return Object.values(moneyAccounts).find(
-      (account) => account.options.entropy.id === primaryKeyringId,
+      ({ options: { entropy } }) =>
+        entropy.type === KeyringAccountEntropyTypeOption.Mnemonic &&
+        entropy.id === primaryKeyringId,
     );
   },
 );

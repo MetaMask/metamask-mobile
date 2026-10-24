@@ -5,7 +5,10 @@ import {
   type AccountGroupId,
 } from '@metamask/account-api';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import {
+  isEvmAccountType,
+  KeyringAccountEntropyTypeOption,
+} from '@metamask/keyring-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
@@ -51,7 +54,10 @@ const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const entropy = primaryMoneyAccount?.options?.entropy;
-  const entropyId = entropy?.id;
+  const entropyId =
+    entropy?.type === KeyringAccountEntropyTypeOption.Mnemonic
+      ? entropy.id
+      : undefined;
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const recipients = useMemo(() => {
