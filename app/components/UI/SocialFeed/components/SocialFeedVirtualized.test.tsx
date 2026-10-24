@@ -157,7 +157,7 @@ describe('SocialFeedVirtualized', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders posts with a divider above every post but the first', () => {
+  it('renders posts with a divider below every post but the last', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({ posts: [post('one'), post('two')] }),
     );
@@ -167,13 +167,43 @@ describe('SocialFeedVirtualized', () => {
     expect(screen.getByText('one')).toBeOnTheScreen();
     expect(screen.getByText('two')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-two')),
+      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-one')),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getSocialV1FeedEntryDividerTestId('social_live-two'),
+      ),
+    ).toBeNull();
+  });
+
+  it('keeps the existing first post divider-free when a post lands on top', () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+    const { rerender } = renderFeed();
+    const dividerBeforeInsert = screen.queryByTestId(
+      getSocialV1FeedEntryDividerTestId('social_live-one'),
+    );
+
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('new'), post('one')] }),
+    );
+    rerender(
+      <SocialFeedVirtualized
+        source={source}
+        location="social_live"
+        scrollMode="virtualized"
+        scrollTestID="feed-scroll"
+      />,
+    );
+
+    expect(dividerBeforeInsert).toBeNull();
     expect(
       screen.queryByTestId(
         getSocialV1FeedEntryDividerTestId('social_live-one'),
       ),
     ).toBeNull();
+    expect(
+      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-new')),
+    ).toBeOnTheScreen();
   });
 
   it('hides posts the viewer hid', () => {

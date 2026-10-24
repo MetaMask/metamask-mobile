@@ -193,12 +193,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   const entrances = live?.entrances;
+  const lastIndex = visiblePosts.length - 1;
   const renderItem = useCallback(
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
       <SocialFeedRow
         post={item}
         dividerTestID={
-          index > 0
+          index < lastIndex
             ? getSocialV1FeedEntryDividerTestId(
                 `${location}-${keyExtractor(item)}`,
               )
@@ -215,6 +216,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [
       entrances,
       isLowHardware,
+      lastIndex,
       location,
       onAuthorPress,
       onCopyTrade,
