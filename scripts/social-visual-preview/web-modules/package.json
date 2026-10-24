@@ -1,0 +1,9 @@
+{
+  "name": "social-visual-preview-web",
+  "private": true,
+  "dependencies": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native-web": "0.21.2"
+  }
+}

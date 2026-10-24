@@ -1345,6 +1345,8 @@
       "all": "All",
       "trade": "Trade",
       "just_now": "Just now",
+      "translate": "Translate",
+      "show_original": "Show original",
       "age": {
         "minutes": "{{count}} min ago",
         "hours": "{{count}} hr ago",

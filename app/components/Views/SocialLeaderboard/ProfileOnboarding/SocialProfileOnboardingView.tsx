@@ -7,13 +7,9 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
-  TextField,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -73,7 +69,7 @@ import {
   generateUsernameWithNumber,
 } from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
-import UsernameShuffleDie from './UsernameShuffleDie';
+import UsernameClaimStep from './UsernameClaimStep';
 import XProfileIdentityStep from './XProfileIdentityStep';
 
 const AVATAR_TILE_SIZE = 60;
@@ -632,124 +628,15 @@ const SocialProfileOnboardingView: React.FC = () => {
               ) : null}
 
               {step === 'username' ? (
-                <Box
-                  gap={4}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STEP}
-                >
-                  <OnboardingTitle twClassName="pt-2">
-                    {strings(
-                      'social_leaderboard.profile_onboarding.claim_username',
-                    )}
-                  </OnboardingTitle>
-                  <Box gap={2}>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings(
-                        'social_leaderboard.profile_onboarding.username_label',
-                      )}
-                    </Text>
-                    <TextField
-                      value={draft.username}
-                      onChangeText={handleUsernameChange}
-                      isError={
-                        usernameStatus === 'invalid' ||
-                        Boolean(usernameClaimError)
-                      }
-                      startAccessory={
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          color={TextColor.TextAlternative}
-                        >
-                          @
-                        </Text>
-                      }
-                      endAccessory={
-                        <UsernameShuffleDie
-                          onPress={handleShuffleUsername}
-                          accessibilityLabel={strings(
-                            'social_leaderboard.profile_onboarding.shuffle_username',
-                          )}
-                          testID={
-                            SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON
-                          }
-                        />
-                      }
-                      inputProps={{
-                        autoCapitalize: 'none',
-                        autoCorrect: false,
-                        testID:
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
-                      }}
-                    />
-                    {usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameClaimError}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'available' && !usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.SuccessDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'invalid' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_invalid',
-                        )}
-                      </Text>
-                    ) : null}
-                  </Box>
-                  <Box gap={2}>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      color={TextColor.TextAlternative}
-                    >
-                      {strings(
-                        'social_leaderboard.profile_onboarding.display_name_label',
-                      )}
-                    </Text>
-                    <TextField
-                      value={draft.displayName}
-                      onChangeText={handleDisplayNameChange}
-                      endAccessory={
-                        draft.displayName.trim() ? (
-                          <Icon
-                            name={IconName.Check}
-                            size={IconSize.Sm}
-                            color={IconColor.PrimaryDefault}
-                          />
-                        ) : undefined
-                      }
-                      inputProps={{
-                        autoCapitalize: 'words',
-                        testID:
-                          SocialProfileOnboardingSelectorsIDs.DISPLAY_NAME_INPUT,
-                      }}
-                    />
-                  </Box>
-                </Box>
+                <UsernameClaimStep
+                  username={draft.username}
+                  displayName={draft.displayName}
+                  usernameStatus={usernameStatus}
+                  usernameClaimError={usernameClaimError}
+                  onUsernameChange={handleUsernameChange}
+                  onDisplayNameChange={handleDisplayNameChange}
+                  onShuffleUsername={handleShuffleUsername}
+                />
               ) : null}
 
               {step === 'avatar' ? (

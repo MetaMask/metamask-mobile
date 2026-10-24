@@ -76,6 +76,8 @@ const newOverrides = [
       'app/components/UI/Ramp/hooks/useRampTokens.test.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.ts',
       'app/components/Views/confirmations/hooks/pay/useTransactionPayWithdraw.test.ts',
+      'app/selectors/featureFlagController/socialPostTranslation/index.ts',
+      'app/selectors/featureFlagController/socialPostTranslation/index.test.ts',
       'app/selectors/featureFlagController/moneyAccount/index.ts',
       'app/selectors/featureFlagController/moneyAccount/index.test.ts',
       'app/selectors/featureFlagController/card/index.ts',

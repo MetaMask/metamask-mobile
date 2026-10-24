@@ -1,6 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
-import { strings } from '../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
+import I18n, { strings } from '../../../../../locales/i18n';
+import { selectSocialPostTranslationEnabled } from '../../../../selectors/featureFlagController/socialPostTranslation';
+import { normalizeLocale } from '../translation/postLanguage';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
 import { useLiveCardHeader } from '../live/useLiveCardHeader';
 import type { SocialV1FeedItem } from '../types';
@@ -243,6 +246,8 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
   now,
 }) => {
   const { onCopyTrade, geoBlockSheet } = useCopyTradeToPerps(item);
+  const translationEnabled = useSelector(selectSocialPostTranslationEnabled);
+  const locale = normalizeLocale(I18n?.locale);
 
   return (
     <>
@@ -252,6 +257,8 @@ const SocialFeedPositionCard: React.FC<SocialFeedPositionCardProps> = ({
         timestamp={item.timestamp}
         comment={item.comment}
         now={now}
+        translationEnabled={translationEnabled}
+        locale={locale}
       >
         <PositionCardBody item={item} onCopyTrade={onCopyTrade} />
       </FeedPost>

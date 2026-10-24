@@ -16,6 +16,9 @@ export const getSocialFeedPostWinRateTestId = (id: string) =>
 export const getSocialFeedPostAgeTestId = (id: string) =>
   `social-v1-feed-post-age-${id}`;
 
+export const getSocialFeedPostTranslateTestId = (id: string) =>
+  `social-v1-feed-post-translate-${id}`;
+
 export const getSocialFeedPositionCardCopyTradeTestId = (id: string) =>
   `social-v1-feed-card-copy-trade-${id}`;
 

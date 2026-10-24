@@ -1,4 +1,8 @@
 /scripts/inpage-bridge
+# react-native-web screenshot harness. The CJS stubs exist so esbuild can
+# see named exports; they are not app code.
+/scripts/social-visual-preview/**/*.js
+/scripts/social-visual-preview/**/*.cjs
 /app/core/InpageBridgeWeb3.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogic.js
 /app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts

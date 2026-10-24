@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import I18n from '../../../../../locales/i18n';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialFeedPositionCard, {
   PositionCardBody,
@@ -28,6 +29,7 @@ import {
   getSocialFeedPostAgeTestId,
   getSocialFeedPostAuthorTestId,
   getSocialFeedPostAvatarTestId,
+  getSocialFeedPostTranslateTestId,
   getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
 import { MINUTE } from '../../../../constants/time';
@@ -81,6 +83,8 @@ jest.mock('./TraderAvatar', () => {
 });
 
 jest.mock('../../../../../locales/i18n', () => ({
+  __esModule: true,
+  default: { locale: 'en' },
   strings: (key: string) => key,
 }));
 
@@ -164,6 +168,57 @@ describe('SocialFeedPositionCard', () => {
     expect(statValue(item.id, 'entry')).toBe('$107,675');
     expect(statValue(item.id, 'holdTime')).toBe('1d 18h');
     expect(statValue(item.id, 'cost')).toBe('$212,000.00');
+  });
+
+  it('shows Translate for a caption in another language when the env flag is on', () => {
+    const originalFlag = process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED;
+    process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED = 'true';
+    const item = mockOpenPerpsFeedItem({
+      comment: 'El mercado todavía no descuenta esta tesis.',
+    });
+
+    renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+    expect(
+      screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id)),
+    ).toHaveTextContent('El mercado todavía no descuenta esta tesis.');
+    fireEvent.press(
+      screen.getByTestId(getSocialFeedPostTranslateTestId(item.id)),
+    );
+
+    expect(
+      screen.getByTestId(getSocialFeedPositionCardCommentTestId(item.id)),
+    ).toHaveTextContent('The market still has not priced in this thesis.');
+    expect(
+      screen.getByTestId(getSocialFeedPostTranslateTestId(item.id)),
+    ).toHaveTextContent('social_leaderboard.feed.show_original');
+
+    if (originalFlag === undefined) {
+      delete process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED;
+    } else {
+      process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED = originalFlag;
+    }
+  });
+
+  it('hides Translate when the caption matches the viewer locale', () => {
+    const originalFlag = process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED;
+    const originalLocale = I18n.locale;
+    process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED = 'true';
+    I18n.locale = 'en';
+    const item = mockOpenPerpsFeedItem();
+
+    renderWithProvider(<SocialFeedPositionCard item={item} />);
+
+    expect(
+      screen.queryByTestId(getSocialFeedPostTranslateTestId(item.id)),
+    ).toBeNull();
+
+    I18n.locale = originalLocale;
+    if (originalFlag === undefined) {
+      delete process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED;
+    } else {
+      process.env.MM_SOCIAL_POST_TRANSLATION_ENABLED = originalFlag;
+    }
   });
 
   it('drops the auto-close row from the open perps card', () => {

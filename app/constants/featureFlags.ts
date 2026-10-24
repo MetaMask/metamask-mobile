@@ -51,6 +51,7 @@ export enum FeatureFlagNames {
   moneyBrandRefresh = 'moneyBrandRefresh',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  socialPostTranslationEnabled = 'socialPostTranslationEnabled',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -78,4 +79,8 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.socialPostTranslationEnabled]: {
+    enabled: false,
+    minimumVersion: '7.72.0',
+  },
 };

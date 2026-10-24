@@ -12,13 +12,14 @@ import TraderAvatar from './TraderAvatar';
 import WinRateTag from './WinRateTag';
 import { formatFeedPostAge } from '../utils/formatters';
 import type { SocialV1FeedAuthor } from '../types';
-import PositionCardComment from './PositionCardComment';
+import PostTranslationComment from './PostTranslationComment';
 import {
   getSocialFeedPositionCardCommentTestId,
   getSocialFeedPositionCardTestId,
   getSocialFeedPostAgeTestId,
   getSocialFeedPostAuthorTestId,
   getSocialFeedPostAvatarTestId,
+  getSocialFeedPostTranslateTestId,
   getSocialFeedPostWinRateTestId,
 } from './SocialFeedPositionCard.testIds';
 
@@ -38,6 +39,15 @@ export interface FeedPostProps {
   now?: number;
   /** The post body -- typically a `PositionCardShell`. */
   children: React.ReactNode;
+  /**
+   * Shows Translate on captions written in another language. The flag is
+   * resolved by the caller.
+   */
+  translationEnabled?: boolean;
+  /** Viewer locale used to decide whether the caption needs translation. */
+  locale?: string;
+  /** Opens the caption on its translation. The feed leaves this off. */
+  initiallyTranslated?: boolean;
 }
 
 /**
@@ -56,6 +66,9 @@ const FeedPost: React.FC<FeedPostProps> = ({
   comment,
   now,
   children,
+  translationEnabled = false,
+  locale = 'en',
+  initiallyTranslated = false,
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
@@ -111,9 +124,13 @@ const FeedPost: React.FC<FeedPostProps> = ({
         </Text>
       </Box>
 
-      <PositionCardComment
+      <PostTranslationComment
         comment={comment}
         testID={getSocialFeedPositionCardCommentTestId(id)}
+        translateTestID={getSocialFeedPostTranslateTestId(id)}
+        enabled={translationEnabled}
+        locale={locale}
+        initiallyTranslated={initiallyTranslated}
       />
 
       {children}
