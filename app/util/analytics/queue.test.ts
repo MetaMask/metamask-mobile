@@ -5,10 +5,14 @@ import {
 } from './queue';
 import type { RootExtendedMessenger } from '../../core/Engine/types';
 import type {
+  AnalyticsContext,
   AnalyticsEventProperties,
   AnalyticsUserTraits,
 } from '@metamask/analytics-controller';
-import type { AnalyticsTrackingEvent } from './AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from './AnalyticsEventBuilder';
 import Logger from '../Logger';
 
 // Mock Logger
@@ -44,6 +48,69 @@ describe('createAnalyticsQueueManager', () => {
   });
 
   describe('queueOperation', () => {
+    it('forwards event context to the controller', async () => {
+      const event: AnalyticsTrackingEvent = {
+        name: 'versioned_event',
+        properties: {},
+        sensitiveProperties: {},
+        get isAnonymous(): boolean {
+          return false;
+        },
+        get hasProperties(): boolean {
+          return false;
+        },
+      };
+      const context: AnalyticsContext = {
+        protocols: { event_version: 2 },
+      };
+
+      await queueManager.queueOperation('trackEvent', event, context);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
+        context,
+      );
+    });
+
+    it('retains event context until Engine becomes ready', async () => {
+      let resolveReady = (): void => {
+        throw new Error('Readiness resolver not initialized');
+      };
+      const ready = new Promise<void>((resolve) => {
+        resolveReady = resolve;
+      });
+      mockWhenEngineReady.mockReturnValue(ready);
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('Test Event').build();
+      const context: AnalyticsContext = { protocols: { event_version: 2 } };
+
+      const pending = queueManager.queueOperation('trackEvent', event, context);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+      expect(queueManager.getQueueLength()).toBe(1);
+      resolveReady();
+      await pending;
+
+      expect(mockMessenger.call).toHaveBeenCalledTimes(1);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
+        context,
+      );
+    });
+
+    it('omits explicitly undefined context from the controller call', async () => {
+      const event =
+        AnalyticsEventBuilder.createEventBuilder('Test Event').build();
+
+      await queueManager.queueOperation('trackEvent', event, undefined);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AnalyticsController:trackEvent',
+        event,
+      );
+    });
+
     it('adds operation to queue when messenger is not ready', async () => {
       mockGetEngineMessenger.mockReturnValue(null);
       let whenEngineReadyResolve: (() => void) | null = null;
