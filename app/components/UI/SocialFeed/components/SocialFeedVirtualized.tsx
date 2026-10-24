@@ -43,6 +43,14 @@ const LIST_WINDOW = {
   low: { initialNumToRender: 4, windowSize: 3 },
 } as const;
 
+/**
+ * Rows FlatList adds per render pass. A post inserted at the top leaves the
+ * row that drops out of the window with a stale measurement, and the list
+ * renders one extra batch past its window until the rows are re-measured, then
+ * unmounts it. One row keeps that churn to a single card per insertion.
+ */
+const MAX_TO_RENDER_PER_BATCH = 1;
+
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
 }
@@ -238,7 +246,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           contentContainerStyle={tw.style('flex-grow pb-8')}
           showsVerticalScrollIndicator={false}
           initialNumToRender={listWindow.initialNumToRender}
-          maxToRenderPerBatch={listWindow.initialNumToRender}
+          maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
           windowSize={listWindow.windowSize}
           onScroll={scrollHandler}
           scrollEventThrottle={16}

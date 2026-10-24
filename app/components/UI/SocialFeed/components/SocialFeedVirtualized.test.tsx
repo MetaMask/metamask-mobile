@@ -253,7 +253,11 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(getList().props).toEqual(
-      expect.objectContaining({ initialNumToRender: 4, windowSize: 3 }),
+      expect.objectContaining({
+        initialNumToRender: 4,
+        maxToRenderPerBatch: 1,
+        windowSize: 3,
+      }),
     );
     expect(mockFeedItemEntryAnimation.mock.lastCall?.[0]).toEqual(
       expect.objectContaining({ reducedMotion: true }),
@@ -266,7 +270,11 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(getList().props).toEqual(
-      expect.objectContaining({ initialNumToRender: 6, windowSize: 5 }),
+      expect.objectContaining({
+        initialNumToRender: 6,
+        maxToRenderPerBatch: 1,
+        windowSize: 5,
+      }),
     );
     expect(
       screen.getByTestId(getSocialFeedPostSkeletonTestId(3)),
