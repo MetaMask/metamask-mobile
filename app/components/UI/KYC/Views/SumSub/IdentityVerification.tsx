@@ -16,6 +16,11 @@ import {
   VbaOnboardingRoutes,
 } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import type { VbaOnboardingSnapshot } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
+import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
@@ -45,6 +50,12 @@ const ProviderStep = () => {
   return <VbaSumSubKyc onSubmitted={handleSubmitted} />;
 };
 
+const InstrumentedProviderStep = withScreenPerformance(
+  ProviderStep,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
+);
+
 type Props = NativeStackScreenProps<
   VbaOnboardingParamList,
   typeof VbaOnboardingRoutes.IDENTITY_VERIFICATION
@@ -73,7 +84,7 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
       />
       <Stack.Screen
         name={VbaIdentityVerificationRoutes.PROVIDER}
-        component={ProviderStep}
+        component={InstrumentedProviderStep}
       />
     </Stack.Navigator>
   );

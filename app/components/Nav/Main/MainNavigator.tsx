@@ -197,11 +197,11 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { PredictRoot } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
@@ -243,6 +243,7 @@ import ActivityDetails from '../../Views/ActivityDetails';
 import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsInfoSheetModal from '../../UI/Rewards/components/RewardsInfoSheetModal';
+import RewardsMoneyClaimsPausedModal from '../../UI/Rewards/components/Money/RewardsMoneyClaimsPausedModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
 import EndOfSeasonClaimBottomSheet from '../../UI/Rewards/components/EndOfSeasonClaimBottomSheet/EndOfSeasonClaimBottomSheet';
@@ -1130,6 +1131,10 @@ const MainNavigator = () => {
           component={RewardsInfoSheetModal as ScreenComponent}
         />
         <NativeStack.Screen
+          name={Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL}
+          component={RewardsMoneyClaimsPausedModal as ScreenComponent}
+        />
+        <NativeStack.Screen
           name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
           component={RewardsClaimBottomSheetModal as ScreenComponent}
         />
@@ -1475,7 +1480,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={PredictScreenStack}
+            component={PredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen

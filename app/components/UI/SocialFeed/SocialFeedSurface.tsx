@@ -7,7 +7,7 @@ import React, { useContext, useMemo } from 'react';
 export type SocialSurfaceLocation =
   | 'social_trending'
   | 'social_following'
-  | 'social_live_trades'
+  | 'social_live'
   | 'social_leaderboard'
   | 'my_profile'
   | 'social_post_composer'
