@@ -398,6 +398,38 @@ describe('fixture-validation', () => {
       const diff: FixtureSchemaDiff = { ...emptyDiff, newKeys: ['a'] };
       expect(formatSchemaDiff(diff)).toContain('mergeFixtureChanges()');
     });
+
+    it('leaves secret values out of the fixture diff report', () => {
+      const jwt =
+        'eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJlMmUtZml4dHVyZSJ9.e2e-signature';
+      const vault = 'e2e-vault-cipher';
+      const diff: FixtureSchemaDiff = {
+        ...emptyDiff,
+        valueMismatches: [
+          {
+            key: 'engine.backgroundState.AuthenticationController.jwt',
+            expected: 'fixture-placeholder',
+            received: jwt,
+          },
+          {
+            key: 'engine.backgroundState.KeyringController.vault',
+            expected: vault,
+            received: 'redacted',
+          },
+        ],
+      };
+
+      const output = formatSchemaDiff(diff);
+
+      expect(output).toContain(
+        'engine.backgroundState.AuthenticationController.jwt',
+      );
+      expect(output).toContain(
+        'engine.backgroundState.KeyringController.vault',
+      );
+      expect(output).not.toContain(jwt);
+      expect(output).not.toContain(vault);
+    });
   });
 
   describe('readFixtureFile', () => {
