@@ -13,6 +13,7 @@ import {
   FontWeight,
   HeaderBase,
   IconName,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -223,11 +224,34 @@ const ProfileDrawer = () => {
             </Box>
           </Pressable>
         ) : isLoading ? (
+          // Mirrors the create profile block so the menu rows don't shift once
+          // loading settles.
           <Box
+            alignItems={BoxAlignItems.Center}
             twClassName="px-4 pb-6 pt-2"
             accessible={false}
             testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING}
-          />
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <Skeleton hideChildren twClassName="rounded-full">
+                <AvatarIcon
+                  iconName={IconName.UserCircleAdd}
+                  size={AvatarIconSize.Xl}
+                  severity={AvatarIconSeverity.Neutral}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR}
+                />
+              </Skeleton>
+              <Skeleton hideChildren>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING}
+                >
+                  {strings('profile_drawer.create_profile')}
+                </Text>
+              </Skeleton>
+            </Box>
+          </Box>
         ) : (
           <Pressable
             onPress={handleCreateProfile}

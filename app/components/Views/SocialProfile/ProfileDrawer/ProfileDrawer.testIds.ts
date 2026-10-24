@@ -7,6 +7,8 @@ export const ProfileDrawerSelectorsIDs = {
   CREATE_PROFILE: 'profile-drawer-create-profile',
   CREATE_PROFILE_AVATAR: 'profile-drawer-create-profile-avatar',
   PROFILE_LOADING: 'profile-drawer-profile-loading',
+  PROFILE_LOADING_AVATAR: 'profile-drawer-profile-loading-avatar',
+  PROFILE_LOADING_HEADING: 'profile-drawer-profile-loading-heading',
   PROFILE_IDENTITY: 'profile-drawer-profile-identity',
   PROFILE_AVATAR: 'profile-drawer-profile-avatar',
   PROFILE_HANDLE: 'profile-drawer-profile-handle',

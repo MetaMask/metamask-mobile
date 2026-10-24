@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 
 import ProfileDrawer from './ProfileDrawer';
@@ -37,6 +38,10 @@ const profileResult = (
   error: null,
   refresh: jest.fn(),
 });
+
+const flattenStyle = (node: {
+  props: { style?: StyleProp<TextStyle> };
+}): TextStyle => StyleSheet.flatten(node.props.style);
 
 jest.mock('../../SocialLeaderboard/MyProfileView/hooks/useMyProfile', () => ({
   useMyProfile: jest.fn(),
@@ -173,6 +178,49 @@ describe('ProfileDrawer', () => {
     expect(
       queryByTestId(ProfileDrawerSelectorsIDs.PROFILE_IDENTITY),
     ).toBeNull();
+  });
+
+  it('sizes the loading placeholder like the create profile block so the menu rows do not shift', () => {
+    mockUseMyProfile.mockReturnValue(profileResult(null, true));
+    const loadingView = renderWithProvider(<ProfileDrawer />);
+    const loadingContainerStyle = flattenStyle(
+      loadingView.getByTestId(ProfileDrawerSelectorsIDs.PROFILE_LOADING),
+    );
+    // Skeleton hides its children from screen readers.
+    const loadingAvatarStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR,
+        { includeHiddenElements: true },
+      ),
+    );
+    const loadingHeadingStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING,
+        { includeHiddenElements: true },
+      ),
+    );
+    loadingView.unmount();
+    mockUseMyProfile.mockReturnValue(profileResult(null));
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    const createProfile = getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE);
+    expect(createProfile).toHaveStyle({
+      paddingTop: loadingContainerStyle.paddingTop,
+      paddingBottom: loadingContainerStyle.paddingBottom,
+    });
+    expect(
+      getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR),
+    ).toHaveStyle({
+      width: loadingAvatarStyle.width,
+      height: loadingAvatarStyle.height,
+    });
+    expect(
+      within(createProfile).getByText(strings('profile_drawer.create_profile')),
+    ).toHaveStyle({
+      fontSize: loadingHeadingStyle.fontSize,
+      lineHeight: loadingHeadingStyle.lineHeight,
+    });
   });
 
   it('renders the handle, account name, and foxicon when a profile exists', () => {
