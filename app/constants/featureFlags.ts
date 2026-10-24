@@ -28,7 +28,6 @@ export function isMpcMoneyKeyringBuildEnabled(): boolean {
  */
 export enum FeatureFlagNames {
   otaUpdatesEnabled = 'otaUpdatesEnabled',
-  fullPageAccountList = 'fullPageAccountList',
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   assetsMemecoinTdpV1 = 'assetsMemecoinTdpV1',
   defiControllerV2 = 'defiControllerV2',
