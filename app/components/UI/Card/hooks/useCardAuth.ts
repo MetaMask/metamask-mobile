@@ -54,6 +54,12 @@ export const useCardAuth = () => {
     retry: false,
   });
 
+  const requestEmailCode = useMutation({
+    mutationKey: cardQueries.auth.keys.requestEmailCode(),
+    mutationFn: (email: string) => getController().requestEmailLoginCode(email),
+    retry: false,
+  });
+
   const logout = useMutation({
     mutationKey: cardQueries.auth.keys.logout(),
     mutationFn: () => getController().logout(),
@@ -69,13 +75,15 @@ export const useCardAuth = () => {
     initiate.reset();
     submit.reset();
     stepAction.reset();
-  }, [initiate, submit, stepAction]);
+    requestEmailCode.reset();
+  }, [initiate, submit, stepAction, requestEmailCode]);
 
   return {
     currentStep,
     initiate,
     submit,
     stepAction,
+    requestEmailCode,
     logout,
     resetToLogin,
     getErrorMessage: getCardProviderErrorMessage,

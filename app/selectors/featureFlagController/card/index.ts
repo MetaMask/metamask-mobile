@@ -193,6 +193,19 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
   },
 );
 
+/** Selects the Baanx email-code sign-in flow. Off keeps email and password. */
+export const selectCardBaanxPasswordlessLoginEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_CARD_BAANX_PASSWORDLESS_LOGIN_ENABLED === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.cardBaanxPasswordlessLogin as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectCardFiatCreditFeatureEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

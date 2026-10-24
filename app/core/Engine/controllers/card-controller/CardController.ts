@@ -2017,6 +2017,23 @@ export class CardController extends BaseController<
     await provider.executeStepAction?.(this.currentSession);
   }
 
+  async requestEmailLoginCode(email: string): Promise<void> {
+    if (!this.currentSession) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: no active auth session',
+      );
+    }
+    const provider = this.getActiveProvider();
+    if (!provider.requestEmailLoginCode) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'requestEmailLoginCode: provider does not support email codes',
+      );
+    }
+    await provider.requestEmailLoginCode(email);
+  }
+
   async logout(): Promise<void> {
     const pid = this.state.activeProviderId;
     if (!pid) return;
