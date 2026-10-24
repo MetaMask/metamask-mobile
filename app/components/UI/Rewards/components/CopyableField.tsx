@@ -11,7 +11,7 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 
 interface CopyableFieldProps {
   label?: string;
