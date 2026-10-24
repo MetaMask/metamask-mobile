@@ -451,40 +451,53 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
-          <CustomAmount
-            amountFiat={amountFiat}
-            currency={currency}
-            hasAlert={hasAlert}
-            isLoading={
-              !hasAccountNoFunds &&
-              stage !== CustomAmountStage.AmountInput &&
-              (isPrefillPending || isDepositPrefillLoading)
-            }
-            // Editable amounts remain an escape hatch from stalled quotes.
-            onPress={isMembershipSubscription ? undefined : handleAmountPress}
-            disabled={!hasPaymentOption}
-            showCursor={
-              !isMembershipSubscription &&
-              stage === CustomAmountStage.AmountInput
-            }
-          />
-          {hasAlert && (
-            <AlertMessage content={alertContent} alertMessage={alertMessage} />
-          )}
-          {!hidePayTokenAmount &&
-            disablePay !== true &&
-            !hasAlert &&
-            (isMembershipSubscription ? (
-              <MembershipInfo amountFiat={amountFiat} />
-            ) : isMoneyAccountDeposit ? (
-              <BalanceProjection amountFiat={amountFiat} projectedYears={1} />
-            ) : (
-              <PayTokenAmount
-                amountHuman={amountHuman}
-                disabled={!hasPaymentOption || isAccountSelectionNeeded}
-              />
-            ))}
-          {!hidePayTokenAmount && !hasAlert && children}
+          <Box style={styles.amountBlock}>
+            <CustomAmount
+              amountFiat={amountFiat}
+              currency={currency}
+              hasAlert={hasAlert}
+              isLoading={
+                !hasAccountNoFunds &&
+                stage !== CustomAmountStage.AmountInput &&
+                (isPrefillPending || isDepositPrefillLoading)
+              }
+              // Editable amounts remain an escape hatch from stalled quotes.
+              onPress={isMembershipSubscription ? undefined : handleAmountPress}
+              disabled={!hasPaymentOption}
+              showCursor={
+                !isMembershipSubscription &&
+                stage === CustomAmountStage.AmountInput
+              }
+            />
+            <Box style={styles.amountCaption}>
+              {hasAlert ? (
+                <AlertMessage
+                  content={alertContent}
+                  alertMessage={alertMessage}
+                  style={styles.amountAlert}
+                />
+              ) : (
+                <>
+                  {!hidePayTokenAmount &&
+                    disablePay !== true &&
+                    (isMembershipSubscription ? (
+                      <MembershipInfo amountFiat={amountFiat} />
+                    ) : isMoneyAccountDeposit ? (
+                      <BalanceProjection
+                        amountFiat={amountFiat}
+                        projectedYears={1}
+                      />
+                    ) : (
+                      <PayTokenAmount
+                        amountHuman={amountHuman}
+                        disabled={!hasPaymentOption || isAccountSelectionNeeded}
+                      />
+                    ))}
+                  {!hidePayTokenAmount && children}
+                </>
+              )}
+            </Box>
+          </Box>
         </Box>
         <Box
           gap={16}
