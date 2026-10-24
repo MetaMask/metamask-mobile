@@ -66,6 +66,32 @@ const signTestMessage = async (): Promise<string> => {
   }`;
 };
 
+interface CallSite {
+  getFunctionName: () => string | null;
+  getFileName: () => string | null;
+  getLineNumber: () => number | null;
+  getColumnNumber: () => number | null;
+}
+
+type PrepareStackTrace = (error: Error, frames: CallSite[]) => string;
+
+const StackError = Error as ErrorConstructor & {
+  prepareStackTrace?: PrepareStackTrace;
+};
+
+// Another library's prepareStackTrace turns release stacks into
+// "[object CallSite]", so format the frames while a preset runs.
+const formatStack: PrepareStackTrace = (error, frames) =>
+  [
+    `${error.name}: ${error.message}`,
+    ...frames.map(
+      (frame) =>
+        `  at ${frame.getFunctionName() ?? '<anonymous>'} (${
+          frame.getFileName()?.split('/').pop() ?? '?'
+        }:${frame.getLineNumber()}:${frame.getColumnNumber()})`,
+    ),
+  ].join('\n');
+
 /**
  * Non-production buttons that create the MPC Money account and sign with it.
  */
@@ -76,12 +102,16 @@ const MoneyMpcQaPresets = () => {
   const run = async (label: string, action: () => Promise<string>) => {
     setResult(`${label}: running`);
     const startedAt = Date.now();
+    const previousPrepareStackTrace = StackError.prepareStackTrace;
+    StackError.prepareStackTrace = formatStack;
     try {
       const output = await action();
       setResult(`${label}: done in ${Date.now() - startedAt}ms\n${output}`);
     } catch (error) {
       const { name, message, stack } = error as Error;
       setResult(`${label}: failed. ${name}: ${message}\n${stack ?? ''}`);
+    } finally {
+      StackError.prepareStackTrace = previousPrepareStackTrace;
     }
   };
 
