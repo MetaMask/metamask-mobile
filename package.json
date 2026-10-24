@@ -722,7 +722,7 @@
     "@metamask/platform-api-docs": "^0.2.1",
     "@metamask/providers": "^18.3.1",
     "@metamask/skills": "^0.3.1",
-    "@metamask/test-dapp": "9.5.0",
+    "@metamask/test-dapp": "9.9.0",
     "@metamask/test-dapp-bitcoin": "^0.2.0",
     "@metamask/test-dapp-multichain": "^0.17.1",
     "@metamask/test-dapp-solana": "^0.3.0",
