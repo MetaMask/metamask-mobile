@@ -1,108 +1,78 @@
 /**
- * Performance tab through the real cashback ledger hook.
+ * Performance tab through the real funnel, ledger, and commissions reads.
  *
- * Run with:
- * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.view.test.tsx --runInBand --silent --coverage=false
+ * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
-import React from 'react';
-import { waitFor } from '@testing-library/react-native';
-import Engine from '../../../../../../core/Engine';
-import type { LedgerEarningEntryDto } from '../../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { renderComponentViewScreen } from '../../../../../../../tests/component-view/render';
-import { createStateFixture } from '../../../../../../../tests/component-view/stateFixture';
-import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
-import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton.testIds';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
+import { getRouteProbeTestId } from '../../../../../../../tests/component-view/render';
+import { renderPerformanceTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
+import { REFERRER_FUNNEL_SUMMARY } from '../../../../../../../tests/component-view/presets/rewardsMoney';
 
-const PROFILE_ID = 'profile-a';
-
-const LOCALIZED_TEXT = {
-  tradingRebates: 'Trading rebates',
-  tradingActivityEmptyDescription:
-    'Your activity is empty now. Start trading to earn today!',
-  tradingActivityEmptyAction: 'Start trading',
-  rebateSwaps: 'Swaps',
-  rebateSwapsVolume: 'Swaps volume',
-  rebatePredictions: 'Predictions',
-  rebatePerpsVolume: 'Perps volume',
-};
-
-function earningRow(index: number): LedgerEarningEntryDto {
-  return {
-    type: 'earning',
-    id: `earn-${index}`,
-    earning_origin_type: 'SWAPS_FEE_CASHBACK',
-    musd_amount: '1000000',
-    voided_musd_amount: '0',
-    fee_amount_usd: '1',
-    entry_count: 1,
-    transaction_hash: null,
-    chain_id: null,
-    ledger_timestamp: '2026-09-01T00:00:00.000Z',
-    claim_status: 'unclaimed',
-    claimable_at: '2026-09-02T00:00:00.000Z',
-    swaps_source: null,
-    perps_source: null,
-    predict_source: null,
-  };
-}
-
-function RefereePerformanceTab() {
-  return <PerformanceTab profileId={PROFILE_ID} persona="referee" active />;
-}
-
-function renderRefereeTab() {
-  const state = createStateFixture()
-    .withMinimalAccounts()
-    .withMinimalMainnetNetwork()
-    .withOverrides({
-      rewardsMoney: {
-        referralMe: {
-          [PROFILE_ID]: {
-            loading: false,
-            error: false,
-            data: {
-              localized_text: LOCALIZED_TEXT,
-            },
-          },
-        },
-        earningsSummary: {},
-        referralFunnel: {},
-        commissions: {},
-        cashbackLedger: {},
-      },
-    })
-    .build();
-
-  return renderComponentViewScreen(
-    RefereePerformanceTab as unknown as React.ComponentType,
-    { name: 'PerformanceTab' },
-    { state },
-  );
+function callsFor(engine: jest.Mock, action: string): unknown[][] {
+  return engine.mock.calls.filter((call) => call[0] === action);
 }
 
 describe('PerformanceTab', () => {
-  const mockCall = Engine.controllerMessenger.call as jest.Mock;
+  it('shows the referrer funnel and leaves commissions and rebates off', async () => {
+    const {
+      findByText,
+      getByTestId,
+      getByText,
+      queryByTestId,
+      queryByText,
+      engine,
+    } = renderPerformanceTab({
+      persona: 'referrer',
+      summary: REFERRER_FUNNEL_SUMMARY,
+    });
 
-  beforeEach(() => {
-    jest.clearAllMocks();
+    expect(await findByText('Confirmed referrals')).toBeOnTheScreen();
+    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
+    expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
+    expect(getByText('People who confirmed your code')).toBeOnTheScreen();
+    expect(getByText('Referrals that generated fees')).toBeOnTheScreen();
+    expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Eligible fees')).toBeOnTheScreen();
+    expect(getByText('Updated daily')).toBeOnTheScreen();
+    expect(getByText('12')).toBeOnTheScreen();
+    expect(getByText('5')).toBeOnTheScreen();
+    expect(queryByText('Last 30 days · Updated daily')).not.toBeOnTheScreen();
+    expect(queryByText('Code uses')).not.toBeOnTheScreen();
+    expect(queryByText('Active referrals')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS),
+    ).not.toBeOnTheScreen();
+    expect(queryByText('Trade commissions')).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER),
+    ).not.toBeOnTheScreen();
+
+    await waitFor(() => {
+      expect(
+        callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),
+      ).toEqual([
+        ['RewardsMoneyController:getReferralFunnel', { forceFresh: undefined }],
+      ]);
+    });
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getCommissions'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
+    ).toHaveLength(0);
   });
 
   it('shows five rebate rows when the ledger returns eight', async () => {
-    mockCall.mockImplementation((action: string) => {
-      if (action === 'RewardsMoneyController:getEarningsLedger') {
-        return Promise.resolve({
-          results: Array.from({ length: 8 }, (_, index) => earningRow(index)),
-          has_more: false,
-          cursor: null,
-          window: null,
-        });
-      }
-      return Promise.resolve(undefined);
-    });
-
-    const { getAllByTestId, queryByTestId } = renderRefereeTab();
+    const { getAllByTestId, getAllByText, queryByTestId, queryByText, engine } =
+      renderPerformanceTab({ persona: 'referee' });
 
     await waitFor(() => {
       expect(
@@ -111,29 +81,103 @@ describe('PerformanceTab', () => {
         ),
       ).toHaveLength(5);
     });
+    expect(getAllByText('Swaps volume')).toHaveLength(5);
+    expect(getAllByText('+$1.00')).toHaveLength(5);
     expect(
       queryByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-earn-5`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS),
+    ).not.toBeOnTheScreen();
+    expect(queryByText('Trading commissions')).not.toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getCommissions'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
+    ).toEqual(
+      expect.arrayContaining([
+        [
+          'RewardsMoneyController:getEarningsLedger',
+          expect.objectContaining({ includeClaims: false }),
+        ],
+      ]),
+    );
   });
 
   it('shows the rebate skeleton while the first page is in flight', async () => {
-    mockCall.mockImplementation((action: string) => {
-      if (action === 'RewardsMoneyController:getEarningsLedger') {
-        return new Promise(() => undefined);
-      }
-      return Promise.resolve(undefined);
+    const { findByTestId, queryByTestId } = renderPerformanceTab({
+      persona: 'referee',
+      cashback: 'pending',
     });
-
-    const { findByTestId, queryByTestId } = renderRefereeTab();
 
     expect(
       await findByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
-    ).toBeNull();
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the funnel skeleton while the funnel read is in flight', async () => {
+    const { findByTestId, queryByTestId } = renderPerformanceTab({
+      persona: 'referrer',
+      summary: REFERRER_FUNNEL_SUMMARY,
+      funnel: 'pending',
+    });
+
+    expect(
+      await findByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not read funnel, commissions, or the ledger while another tab is selected', async () => {
+    const { engine } = renderPerformanceTab({
+      persona: 'referrer',
+      summary: REFERRER_FUNNEL_SUMMARY,
+      active: false,
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getCommissions'),
+    ).toHaveLength(0);
+    expect(
+      callsFor(engine, 'RewardsMoneyController:getEarningsLedger'),
+    ).toHaveLength(0);
+  });
+
+  it('opens the rebates route from the section header', async () => {
+    const { findByTestId } = renderPerformanceTab({
+      persona: 'referee',
+    });
+
+    fireEvent.press(
+      await findByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER),
+    );
+
+    expect(
+      await findByTestId(
+        getRouteProbeTestId(Routes.REWARDS_TRADING_REBATES_VIEW),
+      ),
+    ).toBeOnTheScreen();
   });
 });

@@ -13,8 +13,9 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
+import PerformanceTab from './PerformanceTab';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -192,66 +193,6 @@ describe('PerformanceTab', () => {
     jest.clearAllMocks();
   });
 
-  it('shows the two-stage funnel for a referrer, not commissions or rebates', () => {
-    const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderTab('referrer');
-
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
-    expect(getByText('Confirmed referrals')).toBeOnTheScreen();
-    expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
-    expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('Eligible fees')).toBeOnTheScreen();
-    expect(getByText('Updated daily')).toBeOnTheScreen();
-    expect(queryByText('Last 30 days · Updated daily')).toBeNull();
-    expect(queryByText('Code uses')).toBeNull();
-    expect(queryByText('Active referrals')).toBeNull();
-    expect(getByText('12')).toBeOnTheScreen();
-    expect(getByText('5')).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
-    expect(queryByText('Trade commissions')).toBeNull();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeNull();
-    expect(
-      queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER),
-    ).toBeNull();
-    expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: true,
-    });
-    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: false,
-    });
-  });
-
-  it('shows rebates for a referee, not the funnel or commissions', () => {
-    const { getByTestId, getByText, queryByTestId, queryByText } =
-      renderTab('referee');
-
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeNull();
-    expect(queryByText('Trading commissions')).toBeNull();
-    expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES)).toBeOnTheScreen();
-    expect(getByText('Swaps volume')).toBeOnTheScreen();
-    expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: false,
-    });
-    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: true,
-    });
-  });
-
-  it('does not fetch while another Money tab is selected', () => {
-    renderTab('referrer', { active: false });
-
-    expect(useReferralFunnel).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: false,
-    });
-    expect(useCommissions).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: false,
-    });
-    expect(useCashbackLedger).toHaveBeenCalledWith(PROFILE_ID, {
-      enabled: false,
-    });
-  });
-
   it('shows an empty message in rebates when there are no rows', () => {
     const { getAllByText, getByTestId, queryByRole, queryByTestId } = renderTab(
       'referee',
@@ -311,18 +252,6 @@ describe('PerformanceTab', () => {
     expect(
       queryByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER),
     ).toBeNull();
-  });
-
-  it('shows a funnel row skeleton while the funnel is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
-      funnelData: null,
-      funnelLoading: true,
-    });
-
-    expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
   });
 
   it('keeps cached funnel data without an error banner', () => {
@@ -444,16 +373,5 @@ describe('PerformanceTab', () => {
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(queryByText('Referrals')).toBeNull();
     expect(queryByText('Trade commissions')).toBeNull();
-  });
-
-  it('navigates to the rebates list from the section header', () => {
-    const { getByTestId } = renderTab('referee');
-
-    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
-
-    expect(navigateToRewardsRoute).toHaveBeenCalledWith(
-      expect.anything(),
-      Routes.REWARDS_TRADING_REBATES_VIEW,
-    );
   });
 });

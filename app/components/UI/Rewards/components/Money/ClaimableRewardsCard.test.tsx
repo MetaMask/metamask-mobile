@@ -2,10 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import ClaimableRewardsCard, {
-  CLAIMABLE_REWARDS_CARD_TEST_IDS,
-  claimButtonState,
-} from './ClaimableRewardsCard';
+import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
