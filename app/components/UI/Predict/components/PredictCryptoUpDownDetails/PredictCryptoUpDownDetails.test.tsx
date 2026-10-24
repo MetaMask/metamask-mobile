@@ -404,7 +404,7 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(mockUseCryptoTargetPrice).toHaveBeenCalledWith(
       expect.objectContaining({
         enabled: true,
-        twapWindowSeconds: 30,
+        twapWindowSeconds: 60,
       }),
     );
 
@@ -422,7 +422,7 @@ describe('PredictCryptoUpDownDetails', () => {
     expect(screen.getByText('How this market settles')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        "This market settles on BTC's average price over 30 seconds, not the price at the exact moment it closes.",
+        "This market settles on BTC's average price over 60 seconds, not the price at the exact moment it closes.",
       ),
     ).toBeOnTheScreen();
   });
