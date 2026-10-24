@@ -5122,54 +5122,58 @@ describe('Pro order book size on click', () => {
     expect(order).not.toHaveProperty('usdAmount');
   });
 
-  it('raises a row below the market minimum to that minimum', async () => {
-    const market = {
-      ...createBtcMarketForViews(),
-      providerId: 'hyperliquid' as const,
-      szDecimals: 5,
-    };
-    serveLadder(ladderLevel('49990', '0.0001'), '50000');
-    renderPerpsProMarketView({
-      initialParams: { market },
-      streamOverrides: {
-        account: createFundedAccountForViews('1000'),
-        marketData: [market],
-        prices: {
-          BTC: {
-            symbol: 'BTC',
-            price: '50000',
-            markPrice: '50000',
-            percentChange24h: '0',
-            timestamp: Date.now(),
-            isTradable: true,
-          },
-        },
-      },
-      overrides: {
-        engine: {
-          backgroundState: {
-            PerpsController: {
-              proLayoutPreferences: { orderBookExpanded: true },
+  // 0.0002 BTC at 49,990 is $9.998, which reads as $10.00 once rounded to cents.
+  it.each(['0.0001', '0.0002'])(
+    'raises a %s BTC row below the market minimum to that minimum',
+    async (rowSize) => {
+      const market = {
+        ...createBtcMarketForViews(),
+        providerId: 'hyperliquid' as const,
+        szDecimals: 5,
+      };
+      serveLadder(ladderLevel('49990', rowSize), '50000');
+      renderPerpsProMarketView({
+        initialParams: { market },
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+          marketData: [market],
+          prices: {
+            BTC: {
+              symbol: 'BTC',
+              price: '50000',
+              markPrice: '50000',
+              percentChange24h: '0',
+              timestamp: Date.now(),
+              isTradable: true,
             },
           },
         },
-      },
-    });
-    await findSizeInput();
-    await turnOnSizeOnClick();
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      await findSizeInput();
+      await turnOnSizeOnClick();
 
-    await tapBid();
+      await tapBid();
 
-    await waitFor(() =>
-      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
-        'value',
-        formatPerpsInput('10'),
-      ),
-    );
-    expect(await placeAndReadOrder()).toEqual(
-      expect.objectContaining({ price: '49990', usdAmount: '10' }),
-    );
-  });
+      await waitFor(() =>
+        expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+          'value',
+          formatPerpsInput('10'),
+        ),
+      );
+      expect(await placeAndReadOrder()).toEqual(
+        expect.objectContaining({ price: '49990', usdAmount: '10' }),
+      );
+    },
+  );
 
   it('caps a row above the margin limit at the maximum size', async () => {
     // 2 ETH at 2,490 is $4,980, above what $1,000 of margin can open.

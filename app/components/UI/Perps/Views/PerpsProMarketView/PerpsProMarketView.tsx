@@ -157,7 +157,9 @@ const PerpsProOrderBookColumn = ({
         // the form caps the amount at the margin maximum, which drops the fill.
         const rowAmount = getUsdFromAsset(size, Number(selectedPrice));
         if (new BigNumber(rowAmount).gt(0)) {
-          if (new BigNumber(rowAmount).lt(minimumOrderAmount)) {
+          // Compare the unrounded notional: cents rounding can lift a row just
+          // under the minimum onto it, and the exact size would then be refused.
+          if (new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)) {
             setAmount(String(minimumOrderAmount));
           } else {
             fillOrderBookSize({
