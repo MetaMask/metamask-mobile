@@ -2,6 +2,10 @@ import {
   overrideXMLHttpRequest,
   restoreXMLHttpRequest,
 } from './xmlHttpRequestOverride';
+import {
+  registerBasicFunctionalityGateReader,
+  resetBasicFunctionalityGateReader,
+} from '../../util/basicFunctionality/basicFunctionalityRequestPolicy';
 
 const blockedURLs = [
   'https://example.com/price-api?foo=bar',
@@ -49,16 +53,18 @@ describe('overrideXMLHttpRequest', () => {
   );
 
   notBlockedURLs.forEach((url) =>
-    it(`does not block requests to non blocked URL ${url} when enabled`, (done) => {
+    it(`blocks ${url} because it is not the selected RPC`, (done) => {
       const logSpy = jest.spyOn(console, 'error');
       overrideXMLHttpRequest();
       const req = new global.XMLHttpRequest();
-      req.onload = () => {
-        expect(logSpy.mock.calls.length).toBe(0);
-        done();
-      };
       req.open('POST', url);
       req.send('{"foo": "bar"}');
+      setImmediate(() => {
+        expect(logSpy.mock.calls[0][0].message).toMatch(
+          `Disallowed URL: ${url}`,
+        );
+        done();
+      });
     }),
   );
 });
@@ -82,6 +88,50 @@ describe('restoreXMLHttpRequest', () => {
       req.send('{"foo": "bar"}');
     }),
   );
+});
+
+describe('selected RPC while basic functionality is off', () => {
+  beforeEach(() => {
+    jest.resetAllMocks();
+    registerBasicFunctionalityGateReader(() => ({
+      enabled: false,
+      selectedRpcUrls: ['https://mainnet.infura.io/v3/{infuraProjectId}'],
+    }));
+  });
+
+  afterEach(() => {
+    restoreXMLHttpRequest();
+    resetBasicFunctionalityGateReader();
+  });
+
+  it('allows the selected Infura RPC', (done) => {
+    const logSpy = jest.spyOn(console, 'error');
+    overrideXMLHttpRequest();
+    const req = new global.XMLHttpRequest();
+
+    req.onload = () => {
+      expect(logSpy).not.toHaveBeenCalled();
+      done();
+    };
+    req.open('POST', 'https://mainnet.infura.io/v3/project-id');
+    req.send('{"jsonrpc":"2.0","method":"eth_getBalance","params":[],"id":1}');
+  });
+
+  it('blocks a different Infura host', (done) => {
+    const logSpy = jest.spyOn(console, 'error');
+    overrideXMLHttpRequest();
+    const req = new global.XMLHttpRequest();
+
+    req.open('POST', 'https://linea-mainnet.infura.io/v3/project-id');
+    req.send();
+
+    setImmediate(() => {
+      expect(logSpy.mock.calls[0][0].message).toMatch(
+        'Disallowed URL: https://linea-mainnet.infura.io/v3/project-id',
+      );
+      done();
+    });
+  });
 });
 
 describe('handleBlockedRequest behavior', () => {

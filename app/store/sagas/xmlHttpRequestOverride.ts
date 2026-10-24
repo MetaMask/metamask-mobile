@@ -1,4 +1,7 @@
-import AppConstants from '../../../app/core/AppConstants';
+import {
+  getBasicFunctionalityGateState,
+  isBasicFunctionalityRequestBlocked,
+} from '../../util/basicFunctionality/basicFunctionalityRequestPolicy';
 
 if (process.env.JEST_WORKER_ID !== undefined) {
   // monkeypatch for Jest
@@ -37,8 +40,9 @@ export function overrideXMLHttpRequest() {
   // Only known "good" URLs should be explicitly allowed, as opposed to only "bad" ones disallowed
   // see https://github.com/MetaMask/metamask-mobile/issues/10391
   const shouldBlockRequest = (url: string) =>
-    AppConstants.BASIC_FUNCTIONALITY_BLOCK_LIST.some((blockedUrl) =>
-      url.includes(blockedUrl),
+    isBasicFunctionalityRequestBlocked(
+      url,
+      getBasicFunctionalityGateState().selectedRpcUrls,
     );
 
   const handleBlockedRequest = (xhr: XMLHttpRequest) => {
