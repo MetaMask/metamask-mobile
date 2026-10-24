@@ -11,6 +11,7 @@ coverage
 ios
 jest.preprocessor.js
 node_modules
+hydromancer-orderbook-relay
 CHANGELOG.md
 /app/util/test/testSetup.js
 /tests/scripts/ai-e2e-tags-selector.ts
