@@ -30,6 +30,8 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -66,6 +68,20 @@ const mockUseMoneyAccountPlusBenefits = jest.mocked(
 jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   ...jest.requireActual('./hooks/useMoneyAccountPlusBenefits'),
   useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
+const mockUseMoneyPremiumAccountInterest = jest.mocked(
+  useMoneyPremiumAccountInterest,
+);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumAccountInterest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
 }));
 
 const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
@@ -120,7 +136,8 @@ const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
   createPlusSubscription(SUBSCRIPTION_STATUSES.active),
 );
 
-// Earnings are still mock data. Access and benefits still depend on the
+// The money-balance row is covered by mocking useMoneyPremiumAccountInterest
+// and useMoneyPremiumVaultRate. Access and benefits still depend on the
 // subscriptions query, so this screen test mocks those hooks. The banner
 // model and the displayed-subscription selector have their own unit tests.
 
@@ -140,6 +157,20 @@ describe('ProHub', () => {
       resetsOn: 'Sep 15',
       retry: jest.fn(),
     });
+    mockUseMoneyPremiumAccountInterest.mockReturnValue({
+      sinceInceptionQuery: {
+        data: { interest_earned_usd: '12.5' },
+      },
+      sinceInceptionInterest: '+$12.50',
+    } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: {
+        data: { rate: '0.041' },
+      },
+      rate: '0.041',
+      ratePercent: 4.1,
+      ratePercentFormatted: '4.1%',
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
     mockUseMembershipBannerModel.mockReturnValue({
       model: ACTIVE_MEMBERSHIP_BANNER,
       subscription: undefined,
@@ -289,10 +320,11 @@ describe('ProHub', () => {
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.money_balance', {
-            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+            apy: '4.1%',
           }),
         ),
       );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$12.50'));
       expect(musdBackRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.musd_back', {
@@ -315,6 +347,27 @@ describe('ProHub', () => {
       expect(lock).toBeOnTheScreen();
       expect(musdBackRow).toContainElement(lock);
       expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
+    });
+
+    it('shows placeholders while premium interest and vault rate are unavailable', () => {
+      mockUseMoneyPremiumAccountInterest.mockReturnValue({
+        sinceInceptionQuery: { data: undefined },
+        sinceInceptionInterest: '$0.00',
+      } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
+
+      const { getByTestId } = renderProHub();
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(strings('pro_hub.money_balance', { apy: '—' })),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('$0.00'));
     });
 
     it('renders an active plan without a membership alert', () => {
