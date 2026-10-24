@@ -22,6 +22,22 @@ const CODE_SIGNING_KEYIDS = {
   rc: 'rc',
 };
 
+const IS_FLASK = process.env.METAMASK_BUILD_TYPE === 'flask';
+// MM_APP_VARIANT=beta is the side-by-side main-beta-rc app (see builds.yml)
+const IS_BETA_VARIANT = !IS_FLASK && process.env.MM_APP_VARIANT === 'beta';
+
+const ANDROID_PACKAGE = IS_FLASK
+  ? 'io.metamask.flask'
+  : IS_BETA_VARIANT
+    ? 'io.metamask.beta'
+    : 'io.metamask';
+
+const IOS_BUNDLE_IDENTIFIER = IS_FLASK
+  ? 'io.metamask.MetaMask-Flask'
+  : IS_BETA_VARIANT
+    ? 'io.metamask.MetaMask-Beta'
+    : 'io.metamask.MetaMask';
+
 module.exports = {
   name: 'MetaMask',
   displayName: 'MetaMask',
@@ -79,16 +95,10 @@ module.exports = {
     '@react-native-community/datetimepicker',
   ],
   android: {
-    package:
-      process.env.METAMASK_BUILD_TYPE === 'flask'
-        ? 'io.metamask.flask'
-        : 'io.metamask', // Required for @expo/repack-app Android repacking
+    package: ANDROID_PACKAGE, // Required for @expo/repack-app Android repacking
   },
   ios: {
-    bundleIdentifier:
-      process.env.METAMASK_BUILD_TYPE === 'flask'
-        ? 'io.metamask.MetaMask-Flask'
-        : 'io.metamask.MetaMask', // Required for @expo/repack-app iOS repacking
+    bundleIdentifier: IOS_BUNDLE_IDENTIFIER, // Required for @expo/repack-app iOS repacking
     usesAppleSignIn: true,
     jsEngine: 'hermes',
   },

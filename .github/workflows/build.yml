@@ -89,6 +89,7 @@ on:
           - main-prod
           - main-beta
           - main-rc
+          - main-beta-rc
           - main-test
           - main-e2e
           - main-exp
@@ -657,12 +658,14 @@ jobs:
           path: ${{ runner.temp }}/bundletool-all.jar
           key: bundletool-1.18.3-jar
 
+      # Skipped for the side-by-side beta app (MM_APP_VARIANT=beta): it builds betaRelease, not prodRelease.
       - name: Android Play Store lint and bundle validation (prodRelease, non-blocking)
         if: >-
           success() &&
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main'
+          env.METAMASK_BUILD_TYPE == 'main' &&
+          env.MM_APP_VARIANT != 'beta'
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: true
         run: node scripts/android-play-store-check-slack.mjs

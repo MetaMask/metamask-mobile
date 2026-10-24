@@ -189,7 +189,7 @@ _secrets: &secrets # Infrastructure
 
 # Signing config (AWS Secrets Manager) - omit for dev/simulator builds
 # android_keystore_path: filename in android/keystores/ (build.gradle expects fixed paths)
-# GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer; build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
+# GH Environments vs AWS: build-production=prod signer; build-rc & build-beta=rc signer (main-beta-rc: rc role, beta-rc secret); build-uat/build-e2e/build-exp=uat signer; build-flask-prod=flask prod; build-flask-uat/build-flask-e2e=flask uat
 _signing_prod: &signing_prod
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-prod-signer'
   aws_secret: 'metamask-mobile-main-prod-signer-v2'
@@ -197,6 +197,11 @@ _signing_prod: &signing_prod
 _signing_rc: &signing_rc
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
   aws_secret: 'metamask-mobile-main-rc-signer'
+  android_keystore_path: 'rc.keystore'
+# Same RC certificate and keystore as signing_rc; IOS_SIGNING_PROFILE is the io.metamask.MetaMask-Beta App Store profile
+_signing_beta_rc: &signing_beta_rc
+  aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-rc-signer'
+  aws_secret: 'metamask-mobile-beta-rc-signer'
   android_keystore_path: 'rc.keystore'
 _signing_uat: &signing_uat
   aws_role: 'arn:aws:iam::363762752069:role/metamask-mobile-uat-signer'
@@ -296,6 +301,23 @@ builds:
       METAMASK_ENVIRONMENT: 'rc'
       METAMASK_BUILD_TYPE: 'main'
     secrets: *secrets
+    code_fencing: *code_fencing_main
+
+  # Same app as main-rc, installed beside production as io.metamask.MetaMask-Beta (iOS)
+  # and io.metamask.beta (Android). MM_APP_VARIANT only selects native packaging in
+  # build.sh / rename-artifacts.js; the JS bundle is identical to main-rc.
+  main-beta-rc:
+    script_name: main-rc
+    github_environment: build-rc
+    signing: *signing_beta_rc
+    env:
+      <<: *public_envs
+      METAMASK_ENVIRONMENT: 'rc'
+      METAMASK_BUILD_TYPE: 'main'
+      MM_APP_VARIANT: 'beta'
+    secrets:
+      <<: *secrets
+      GOOGLE_SERVICES_B64_IOS: 'GOOGLE_SERVICES_B64_IOS_BETA'
     code_fencing: *code_fencing_main
 
   # BrowserStack performance builds — seedless onboarding (E2E_MOCK_OAUTH baked in)

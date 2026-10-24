@@ -10,7 +10,7 @@ on:
         required: true
         type: string
       environment:
-        description: 'Build environment / track (dev, exp, beta, rc)'
+        description: 'Build environment / track (dev, exp, beta, rc, beta-rc). beta-rc is the side-by-side MetaMask Beta app (main-beta-rc).'
         required: true
         type: string
       testflight_group:
@@ -63,6 +63,7 @@ on:
           - exp
           - beta
           - rc
+          - beta-rc
         default: rc
       testflight_group:
         description: 'TestFlight external testing group'
@@ -139,6 +140,7 @@ jobs:
       build_commit_sha: ${{ needs.build.outputs.built_commit_sha }}
       build_version: ${{ needs.build.outputs.semantic_version }}
       build_number: ${{ needs.build.outputs.ios_version_code }}
-      distribute_external: ${{ inputs.distribute_external }}
+      # The MetaMask Beta App Store Connect app has no external group yet; beta-rc uploads stay internal-only.
+      distribute_external: ${{ inputs.environment != 'beta-rc' && inputs.distribute_external }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit

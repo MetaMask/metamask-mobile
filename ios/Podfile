@@ -18,6 +18,9 @@ setup_permissions(['Bluetooth'])
 # Ensures that versions from Gemfile is respected
 ensure_bundler!
 
+# Release-Beta is the side-by-side beta app (MetaMask-Beta scheme); Pods must build it as Release
+project 'MetaMask', 'Debug' => :debug, 'Release' => :release, 'Release-Beta' => :release
+
 install! 'cocoapods',
   :deterministic_uuids => false
 
