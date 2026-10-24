@@ -80,7 +80,8 @@ const MoneyMpcQaPresets = () => {
       const output = await action();
       setResult(`${label}: done in ${Date.now() - startedAt}ms\n${output}`);
     } catch (error) {
-      setResult(`${label}: failed. ${(error as Error).message}`);
+      const { name, message, stack } = error as Error;
+      setResult(`${label}: failed. ${name}: ${message}\n${stack ?? ''}`);
     }
   };
 
@@ -143,6 +144,7 @@ const MoneyMpcQaPresets = () => {
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
+          selectable
           testID={MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT}
         >
           {result}
