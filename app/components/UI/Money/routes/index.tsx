@@ -21,6 +21,12 @@ import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import { useUpgradeMoneyAccountOnFocus } from '../hooks/useUpgradeMoneyAccountOnFocus';
 import MoneyGeoBlockSheet from '../components/MoneyGeoBlockSheet/MoneyGeoBlockSheet';
+import {
+  MoneyMfaEnabledSheet,
+  MoneyMfaPromptSheet,
+  MoneyMfaSettingUpSheet,
+  MoneyMfaTurnOffSheet,
+} from '../components/MoneyMfa';
 import type {
   MoneyConfirmationsNavigationParamList,
   MoneyModalsNavigationParamList,
@@ -151,6 +157,26 @@ const MoneyModalStack = () => {
       <ModalStack.Screen
         name={Routes.MONEY.MODALS.GEO_BLOCK_SHEET}
         component={MoneyGeoBlockSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MFA_PROMPT_SHEET}
+        component={MoneyMfaPromptSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MFA_ENABLED_SHEET}
+        component={MoneyMfaEnabledSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET}
+        component={MoneyMfaSettingUpSheet}
+        options={{ headerShown: false }}
+      />
+      <ModalStack.Screen
+        name={Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET}
+        component={MoneyMfaTurnOffSheet}
         options={{ headerShown: false }}
       />
     </ModalStack.Navigator>

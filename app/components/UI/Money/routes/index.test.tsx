@@ -338,4 +338,17 @@ describe('MoneyModalStack', () => {
 
     expect(getByTestId('money-screen-MoneyGeoBlockSheet')).toBeOnTheScreen();
   });
+
+  it.each([
+    'MoneyMfaPromptSheet',
+    'MoneyMfaEnabledSheet',
+    'MoneyMfaSettingUpSheet',
+    'MoneyMfaTurnOffSheet',
+  ])('registers the %s 2-step verification sheet as a modal screen', (name) => {
+    const { getByTestId } = renderWithProvider(<MoneyModalStack />, {
+      theme: themeWithCustomBackground,
+    });
+
+    expect(getByTestId(`money-screen-${name}`)).toBeOnTheScreen();
+  });
 });

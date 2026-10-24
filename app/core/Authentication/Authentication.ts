@@ -114,6 +114,7 @@ import { captureException } from '@sentry/react-native';
 import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
+import { clearMoneyMfaDeviceState } from '../../components/UI/Money/hooks/clearMoneyMfaDeviceState';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
 import {
   clearUnlockAppStartType,
@@ -1942,6 +1943,7 @@ class AuthenticationService {
     await this.deleteUser();
     // Clear metrics opt-in UI state and reset onboarding Redux state
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
+    await clearMoneyMfaDeviceState();
     ReduxService.store.dispatch(clearOnboarding());
   };
 

@@ -1,11 +1,17 @@
 import React from 'react';
 import type { LayoutChangeEvent } from 'react-native';
-import { IconName } from '@metamask/design-system-react-native';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor,
+  IconName,
+} from '@metamask/design-system-react-native';
 import type { SharedValue } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import HeaderRootGlass from '../../../../../component-library/components-temp/HeaderRootGlass';
 import HeaderStandardAnimatedGlass from '../../../../../component-library/components-temp/HeaderStandardAnimatedGlass';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 
 interface MoneyHeaderCommonProps {
   /**
@@ -19,6 +25,10 @@ interface MoneyHeaderCommonProps {
   isGlass?: boolean;
   /** Reports the floating header's height; pair with `useHeaderGlassInset`. */
   onLayout?: (event: LayoutChangeEvent) => void;
+  /** Shows the green shield next to the title when 2-step verification is on. */
+  isMfaEnabled?: boolean;
+  /** Opens the 2-step verification sheet from the shield. */
+  onMfaBadgePress?: () => void;
 }
 
 /**
@@ -44,8 +54,16 @@ interface MoneyHeaderTabProps {
 export type MoneyHeaderProps = MoneyHeaderCommonProps &
   (MoneyHeaderPushedProps | MoneyHeaderTabProps);
 
+const MFA_BADGE_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
 const MoneyHeader = (props: MoneyHeaderProps) => {
-  const { onMenuPress, isGlass = false, onLayout } = props;
+  const {
+    onMenuPress,
+    isGlass = false,
+    onLayout,
+    isMfaEnabled,
+    onMfaBadgePress,
+  } = props;
 
   const menuButtonProps = {
     iconName: IconName.MoreVertical,
@@ -91,6 +109,19 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
       titleProps={{
         testID: MoneyHeaderTestIds.TITLE,
       }}
+      titleAccessory={
+        isMfaEnabled ? (
+          <ButtonIcon
+            iconName={IconName.SecurityTick}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.SuccessDefault }}
+            onPress={onMfaBadgePress}
+            hitSlop={MFA_BADGE_HIT_SLOP}
+            accessibilityLabel={strings('money.mfa.badge_label')}
+            testID={MoneyMfaTestIds.HEADER_BADGE}
+          />
+        ) : undefined
+      }
       endButtonIconProps={[menuButtonProps]}
     />
   );
