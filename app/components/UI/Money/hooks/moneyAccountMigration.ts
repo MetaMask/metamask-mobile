@@ -2,6 +2,7 @@ import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
 import Engine from '../../../../core/Engine';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import Logger from '../../../../util/Logger';
+import { describeError } from '../../../../util/describeError';
 
 export type MoneyAccountMigrationStatus =
   | 'not_started'
@@ -25,6 +26,7 @@ const readPersisted = (): MoneyAccountMigrationStatus => {
 };
 
 let status: MoneyAccountMigrationStatus = readPersisted();
+let lastError: string | undefined;
 const listeners = new Set<() => void>();
 
 const setStatus = (next: MoneyAccountMigrationStatus) => {
@@ -42,6 +44,8 @@ const setStatus = (next: MoneyAccountMigrationStatus) => {
  */
 export const moneyAccountMigration = {
   getStatus: (): MoneyAccountMigrationStatus => status,
+  /** The last failure's name, message and stack, for QA tools. */
+  getLastError: (): string | undefined => lastError,
   subscribe: (listener: () => void) => {
     listeners.add(listener);
     return () => {
@@ -58,6 +62,7 @@ export const moneyAccountMigration = {
       });
       MoneyAccountController.setDefaultMoneyAccount(account.id);
     } catch (error) {
+      lastError = describeError(error);
       Logger.error(error as Error, 'Money account migration failed');
       setStatus('failed');
       throw error;

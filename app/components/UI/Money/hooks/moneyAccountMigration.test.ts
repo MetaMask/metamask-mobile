@@ -99,6 +99,18 @@ describe('moneyAccountMigration', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('keeps the last failure for QA tools', async () => {
+    mockMoneyAccountController.createMoneyAccount.mockRejectedValueOnce(
+      new Error('MPC service unavailable'),
+    );
+
+    await expect(moneyAccountMigration.start()).rejects.toThrow();
+
+    expect(moneyAccountMigration.getLastError()).toMatch(
+      /^Error: MPC service unavailable\n {2}at /u,
+    );
+  });
+
   it('saves each status and notifies subscribers', async () => {
     const listener = jest.fn();
     moneyAccountMigration.subscribe(listener);
