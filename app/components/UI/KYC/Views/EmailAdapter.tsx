@@ -90,16 +90,11 @@ const VbaEmailAdapter = () => {
     let active = true;
 
     const verifyEmail = async () => {
-      const existingSession =
-        await Engine.context.KycController.getSessionStatusForVendor(
-          VBA_KYC_VENDOR,
-        );
-      if (!active) {
-        return;
-      }
+      const existingActiveSession =
+        Engine.context.KycController.readSessionStatus();
 
       let aal2Token: string | undefined;
-      if (!existingSession) {
+      if (!existingActiveSession) {
         const result = await verifyOrEnroll({
           methods: ['email_otp'],
           verifyWith: 'email_otp',
