@@ -717,6 +717,8 @@ export const usePerpsProOrderForm = ({
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
+    orderBookSizeFill,
+    clearOrderBookSizeFill,
   } = usePerpsOrderContext();
 
   // Restore reduce-only from the 30s pending draft.
@@ -1191,6 +1193,27 @@ export const usePerpsProOrderForm = ({
     orderForm.limitPrice,
     szDecimals,
   );
+  // An order-book row fill sizes the order by the row's exact base size until
+  // the amount or the price it committed changes.
+  const orderBookFillPrice = isLimitExecutionOrderType(orderForm.type)
+    ? normalizedLimitPrice
+    : isTriggerOrderType(orderForm.type)
+      ? normalizedTriggerPrice
+      : undefined;
+  const orderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    orderBookFillPrice !== undefined &&
+    orderBookSizeFill.amount === orderForm.amount &&
+    new BigNumber(orderBookSizeFill.price).eq(orderBookFillPrice)
+      ? orderBookSizeFill.size
+      : undefined;
+  // Once the amount or price moves off the fill, drop it: setting them back
+  // is a new entry and sizes from the amount.
+  useEffect(() => {
+    if (orderBookSizeFill !== undefined && orderBookFillSize === undefined) {
+      clearOrderBookSizeFill();
+    }
+  }, [clearOrderBookSizeFill, orderBookFillSize, orderBookSizeFill]);
 
   const effectiveInputPrice = useMemo(
     () =>
@@ -1261,7 +1284,16 @@ export const usePerpsProOrderForm = ({
     keepSizeEmpty: keepReduceOnlySizeEmpty,
     preserveMaxIntent: orderForm.type === 'chase',
     preserveAssetIntent: isVenueSizedScale,
+    fillAssetAmount: orderBookFillSize,
   });
+  // A slider preview or typed draft is a new size intent, so the row size only
+  // sizes, validates and places the order while the amount in use is the
+  // filled one.
+  const exactOrderBookFillSize =
+    orderBookSizeFill !== undefined &&
+    new BigNumber(effectiveUsdAmount).eq(orderBookSizeFill.amount)
+      ? orderBookFillSize
+      : undefined;
   const isTwapOrder = orderForm.type === 'twap';
   const isChaseOrder = orderForm.type === 'chase';
   const orderProviderId = isTwapOrder
@@ -1837,6 +1869,7 @@ export const usePerpsProOrderForm = ({
         isBuy: orderForm.direction === 'long',
         maxSlippageBps: resolvedMaxSlippageBps,
         isLoadingMarketData,
+        size: exactOrderBookFillSize,
       }),
     [
       calculationUsdAmount,
@@ -1850,6 +1883,7 @@ export const usePerpsProOrderForm = ({
       szDecimals,
       isLoadingMarketData,
       resolvedMaxSlippageBps,
+      exactOrderBookFillSize,
     ],
   );
   const submissionPositionSize =
@@ -2080,8 +2114,11 @@ export const usePerpsProOrderForm = ({
       isReduceOnlyPositionLoading ||
       (orderForm.type === 'chase' &&
         (!isChaseEnabled || chaseProviderId === null)),
+    // Providers re-derive the size from a USD amount, so exact sizes omit it.
     originalUsdAmount:
-      isExactFullClose || isScaleOrder ? undefined : effectiveUsdAmount,
+      isExactFullClose || isScaleOrder || exactOrderBookFillSize !== undefined
+        ? undefined
+        : effectiveUsdAmount,
     reduceOnly,
     isFullClose: reduceOnlyValidation.isFullClose || isExactFullClose,
     providerId:
@@ -3317,7 +3354,10 @@ export const usePerpsProOrderForm = ({
         orderType: placementOrderForm.type,
         effectivePrice: placementEffectivePrice,
         leverage: placementOrderForm.leverage,
-        usdAmount: placementIsExactFullClose ? undefined : placementUsdAmount,
+        usdAmount:
+          placementIsExactFullClose || exactOrderBookFillSize !== undefined
+            ? undefined
+            : placementUsdAmount,
         maxSlippageBps: resolvedMaxSlippageBps,
         limitPrice: finalizedLimitPrice,
         chaseMaxDistanceBps: latestChaseMaxDistanceBps,
