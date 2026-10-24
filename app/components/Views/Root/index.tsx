@@ -24,10 +24,6 @@ import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 ///: BEGIN:ONLY_INCLUDE_IF(snaps)
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
-///: BEGIN:ONLY_INCLUDE_IF(lighter)
-import { LighterSignerWebView } from '../../UI/Perps/Lighter/LighterSignerWebView';
-import { isLighterProviderEnabled } from '../../UI/Perps/utils/lighterFeatureFlags';
-///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
@@ -37,6 +33,16 @@ import {
   createUIMessenger,
   UIMessenger,
 } from '../../../messengers/ui-messenger';
+
+// Only enabled via `MM_PERPS_LIGHTER_PROVIDER_ENABLED=true`; otherwise the
+// embedded signer is dead-code-eliminated out of release bundles (and resolved
+// to an empty module in dev bundles, see metro.config.js).
+const LighterSignerWebView: React.ComponentType | null =
+  process.env.MM_PERPS_LIGHTER_PROVIDER_ENABLED === 'true'
+    ? // eslint-disable-next-line @typescript-eslint/no-require-imports, global-require -- intentional dead-code-eliminated lazy load; keeps the ~10 MB embedded signer out of bundles that don't opt in
+      require('../../UI/Perps/Lighter/LighterSignerWebView')
+        .LighterSignerWebView
+    : null;
 
 const styles = StyleSheet.create({
   gestureRoot: {
@@ -119,12 +125,8 @@ const Root = ({ foxCode }: RootProps) => {
                       <NavigationProvider>
                         <ControllersGate>
                           {
-                            ///: BEGIN:ONLY_INCLUDE_IF(lighter)
                             // The signer observes the initialized keyring's lock lifecycle.
-                            isLighterProviderEnabled() && (
-                              <LighterSignerWebView />
-                            )
-                            ///: END:ONLY_INCLUDE_IF
+                            LighterSignerWebView && <LighterSignerWebView />
                           }
                           <UIMessengerProvider value={uiMessenger}>
                             <ToastContextWrapper>
