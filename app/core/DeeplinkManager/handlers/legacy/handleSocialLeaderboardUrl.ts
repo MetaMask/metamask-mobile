@@ -33,6 +33,8 @@ const parseInitialTab = (actionPath: string): SocialShellTab | undefined => {
  * Social home deeplink.
  *
  * Supported URL formats:
+ * - https://link.metamask.io/social
+ * - https://link.metamask.io/social?tab=trending|following|leaderboard|live-trades
  * - https://link.metamask.io/top-traders
  * - https://link.metamask.io/top-traders?tab=trending|following|leaderboard|live-trades
  *

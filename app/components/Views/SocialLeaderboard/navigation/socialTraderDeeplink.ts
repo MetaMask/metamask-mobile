@@ -1,6 +1,10 @@
 import { Platform, Share } from 'react-native';
 import { ACTIONS, PROTOCOLS } from '../../../../constants/deeplinks';
 import AppConstants from '../../../../core/AppConstants';
+import {
+  SOCIAL_TRADER_POSITION_SUBPATH,
+  SOCIAL_TRADER_SUBPATH,
+} from '../../../../core/DeeplinkManager/util/deeplinks/socialDeeplinkPath';
 
 /**
  * Universal link for a trader profile. The same URL opens Social V0 or V1
@@ -8,7 +12,7 @@ import AppConstants from '../../../../core/AppConstants';
  */
 export const buildSocialTraderDeeplink = (traderId: string): string => {
   const url = new URL(
-    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER}`,
+    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_TRADER_SUBPATH}`,
   );
   url.searchParams.set('traderId', traderId);
   return url.toString();
@@ -29,7 +33,7 @@ export const buildSocialTraderPositionDeeplink = (
   traderId: string,
 ): string => {
   const url = new URL(
-    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}`,
+    `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/${SOCIAL_TRADER_POSITION_SUBPATH}`,
   );
   url.searchParams.set('positionId', positionId);
   url.searchParams.set('traderId', traderId);

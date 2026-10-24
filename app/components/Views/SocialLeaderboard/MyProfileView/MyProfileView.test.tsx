@@ -889,7 +889,7 @@ describe('MyProfileView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/social-trader?traderId=trader-1',
+      url: 'https://link.metamask.io/social/trader?traderId=trader-1',
     });
   });
 

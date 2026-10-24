@@ -52,7 +52,8 @@ const navigateToFallback = () => {
 /**
  * Handles notification-approved TraderPosition deeplinks.
  *
- * Supported URL format:
+ * Supported URL formats:
+ * - https://link.metamask.io/social/trader/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  */
 export const handleSocialTraderPositionUrl = ({

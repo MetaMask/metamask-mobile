@@ -5,31 +5,31 @@ import {
   buildSocialTraderShareContent,
 } from './socialTraderDeeplink';
 
-const PROFILE_URL = 'https://link.metamask.io/social-trader?traderId=trader-1';
+const PROFILE_URL = 'https://link.metamask.io/social/trader?traderId=trader-1';
 
 describe('buildSocialTraderDeeplink', () => {
-  it('builds the social-trader universal link for a trader id', () => {
+  it('builds the social trader universal link for a trader id', () => {
     expect(buildSocialTraderDeeplink('trader-1')).toBe(PROFILE_URL);
   });
 
   it('encodes reserved characters in the trader id', () => {
     expect(buildSocialTraderDeeplink('trader id/a?b')).toBe(
-      'https://link.metamask.io/social-trader?traderId=trader+id%2Fa%3Fb',
+      'https://link.metamask.io/social/trader?traderId=trader+id%2Fa%3Fb',
     );
   });
 });
 
 describe('buildSocialTraderPositionDeeplink', () => {
-  it('builds the social-trader-position universal link', () => {
+  it('builds the social trader position universal link', () => {
     expect(buildSocialTraderPositionDeeplink('position-1', 'trader-1')).toBe(
-      'https://link.metamask.io/social-trader-position?positionId=position-1&traderId=trader-1',
+      'https://link.metamask.io/social/trader/position?positionId=position-1&traderId=trader-1',
     );
   });
 });
 
 describe('buildSocialTraderPositionShareContent', () => {
   const positionUrl =
-    'https://link.metamask.io/social-trader-position?positionId=position-1&traderId=trader-1';
+    'https://link.metamask.io/social/trader/position?positionId=position-1&traderId=trader-1';
 
   it('shares the position URL on iOS', () => {
     expect(

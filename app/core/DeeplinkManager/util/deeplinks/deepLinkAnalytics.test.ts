@@ -468,6 +468,7 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.CREATE_ACCOUNT, DeepLinkRoute.CREATE_ACCOUNT],
       [ACTIONS.WHATS_HAPPENING, DeepLinkRoute.WHATS_HAPPENING],
       [ACTIONS.TOP_TRADERS, DeepLinkRoute.TOP_TRADERS],
+      [ACTIONS.SOCIAL, DeepLinkRoute.TOP_TRADERS],
       [ACTIONS.SOCIAL_TRADER, DeepLinkRoute.SOCIAL_TRADER],
       [ACTIONS.SOCIAL_TRADER_POSITION, DeepLinkRoute.SOCIAL_TRADER_POSITION],
     ] as const)(
@@ -574,6 +575,30 @@ describe('deepLinkAnalytics', () => {
         'https://link.metamask.io/social-trader?traderId=trader-1',
       );
       expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER);
+    });
+
+    it('extracts social home from the nested social path', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social?tab=trending',
+      );
+
+      expect(result).toBe(DeepLinkRoute.TOP_TRADERS);
+    });
+
+    it('extracts the trader profile route from /social/trader', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social/trader?traderId=trader-1',
+      );
+
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER);
+    });
+
+    it('extracts the trader position route from /social/trader/position', () => {
+      const result = extractRouteFromUrl(
+        'https://link.metamask.io/social/trader/position?positionId=position-1',
+      );
+
+      expect(result).toBe(DeepLinkRoute.SOCIAL_TRADER_POSITION);
     });
 
     it('extract social trader position route', () => {

@@ -30,7 +30,8 @@ const navigateToFallback = () => {
  * Trader profile deeplink. The same URL opens Social V0 or Social V1 from
  * `socialAiTSA1122AbtestSocialBundleV1`.
  *
- * Supported URL format:
+ * Supported URL formats:
+ * - https://link.metamask.io/social/trader?traderId=<traderId>
  * - https://link.metamask.io/social-trader?traderId=<traderId>
  */
 export const handleSocialTraderUrl = ({
