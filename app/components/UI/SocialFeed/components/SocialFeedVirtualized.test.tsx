@@ -67,6 +67,8 @@ jest.mock('./FeedItemEntryAnimation', () => ({
     <>{children}</>
   )),
   createFeedItemEntryScheduler: () => () => 0,
+  FEED_ROW_LAYOUT_TRANSITION: 'row-layout-transition',
+  FEED_ROW_LAYOUT_TRANSITION_LOW: 'row-layout-transition-low',
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -257,6 +259,7 @@ describe('SocialFeedVirtualized', () => {
         initialNumToRender: 4,
         maxToRenderPerBatch: 1,
         windowSize: 3,
+        itemLayoutAnimation: 'row-layout-transition-low',
       }),
     );
     expect(mockFeedItemEntryAnimation.mock.lastCall?.[0]).toEqual(
@@ -274,6 +277,7 @@ describe('SocialFeedVirtualized', () => {
         initialNumToRender: 6,
         maxToRenderPerBatch: 1,
         windowSize: 5,
+        itemLayoutAnimation: 'row-layout-transition',
       }),
     );
     expect(

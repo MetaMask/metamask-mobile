@@ -21,7 +21,11 @@ import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
-import { createFeedItemEntryScheduler } from './FeedItemEntryAnimation';
+import {
+  FEED_ROW_LAYOUT_TRANSITION,
+  FEED_ROW_LAYOUT_TRANSITION_LOW,
+  createFeedItemEntryScheduler,
+} from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type { SocialFeedVirtualizedProps } from './SocialFeed.types';
 import {
@@ -248,6 +252,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           initialNumToRender={listWindow.initialNumToRender}
           maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
           windowSize={listWindow.windowSize}
+          itemLayoutAnimation={
+            isLowHardware
+              ? FEED_ROW_LAYOUT_TRANSITION_LOW
+              : FEED_ROW_LAYOUT_TRANSITION
+          }
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollSettled}

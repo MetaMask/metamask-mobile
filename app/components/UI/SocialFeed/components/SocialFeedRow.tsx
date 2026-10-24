@@ -16,7 +16,7 @@ export interface SocialFeedRowProps {
   dividerTestID?: string;
   /** Realtime entrances; rows without one never animate. */
   entrances?: SocialFeedEntrances;
-  scheduleEntryDelay?: () => number;
+  scheduleEntryDelay?: (eventId: string) => number;
   reducedMotion?: boolean;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
@@ -89,10 +89,10 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       onAnimationComplete={entrances.markPlayed}
       reducedMotion={reducedMotion}
     >
-      {dividerTestID ? (
-        <SectionDivider marginVertical={1} testID={dividerTestID} />
-      ) : null}
       <Box twClassName="px-4">
+        {dividerTestID ? (
+          <SectionDivider marginVertical={1} testID={dividerTestID} />
+        ) : null}
         <SocialFeedPostShell
           post={post}
           onAuthorPress={onAuthorPress}
