@@ -1,3 +1,4 @@
+import { HomepageBalanceBreakdownTestIds } from '../../../app/components/Views/Homepage/components/HomepageBalanceBreakdown/HomepageBalanceBreakdown.testIds';
 import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
@@ -6,12 +7,63 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 import { isPerformanceSuiteActive } from '../../framework/ai-locator/PerformanceLocatorRecovery.ts';
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
+
+/** How long to look for the homepage breakdown hero before using the account balance. */
+const BALANCE_SURFACE_PROBE_MS = 2_000;
+
+function throwBalanceDidNotStabilize(
+  maxWaitTime: number,
+  lastObservedBalance: string,
+): never {
+  const observed =
+    lastObservedBalance.length > 0 ? `"${lastObservedBalance}"` : 'none';
+  throw new Error(
+    `Balance did not stabilize within ${maxWaitTime}ms (last observed balance: ${observed})`,
+  );
+}
+
+/** Prints when the observed text changes so the Playwright run shows it live. */
+function logObservedBalance(source: string, balance: string): void {
+  const shown = balance.length > 0 ? balance : '<empty>';
+  console.log(`[balance-stabilize] ${source}: ${shown}`);
+}
+
+/**
+ * The balance container's content description is the formatted total, then the
+ * 24h delta joined with `, `. A thousands separator has no trailing space
+ * (`$1,234.56`), so the first `, ` is the delta boundary.
+ */
+function balanceFromContainerLabel(label: string): string {
+  const trimmed = label.trim();
+  const deltaSeparator = trimmed.indexOf(', ');
+  if (deltaSeparator === -1) {
+    return trimmed;
+  }
+  return trimmed.slice(0, deltaSeparator);
+}
+
+/**
+ * The visible amount is a TextView without a test id. The parent that owns
+ * the id exposes that amount on its accessibility label.
+ */
+async function readBalanceFromContainer(
+  container: Promise<AppiumElement>,
+): Promise<string> {
+  const el = await container;
+  const described = PlatformDetector.isIOS()
+    ? ((await el.getAttribute('label')) ??
+      (await el.getAttribute('name')) ??
+      '')
+    : ((await el.getAttribute('content-desc')) ?? '');
+  return balanceFromContainerLabel(described);
+}
 
 class WalletView extends WalletHomeSectionsBase {
   get container(): Promise<AppiumElement> {
@@ -115,6 +167,15 @@ class WalletView extends WalletHomeSectionsBase {
 
   get totalBalance(): Promise<AppiumElement> {
     return Matchers.getElementByID(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+  }
+
+  /**
+   * Treatment homepage. Its accessibility label carries the aggregate total.
+   * `total-balance-text` is also rendered here, on the animated digit slots,
+   * which do not expose that total to Appium.
+   */
+  get balanceBreakdownHero(): Promise<AppiumElement> {
+    return Matchers.getElementByID(HomepageBalanceBreakdownTestIds.HERO);
   }
 
   get accountNameLabelText(): Promise<AppiumElement> {
@@ -385,62 +446,97 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
+  /**
+   * Treatment renders the breakdown hero. Control keeps the account balance.
+   * The probe is short so a missing hero does not sit on the session implicit wait.
+   */
+  private async isBalanceBreakdownHeroShown(
+    timeoutMs: number,
+  ): Promise<boolean> {
+    return isOptionalElementVisible(() => this.balanceBreakdownHero, timeoutMs);
+  }
+
   async waitForBalanceToStabilize(
     options: {
       maxWaitTime?: number;
       pollInterval?: number;
       sameResultTimeout?: number;
+      surfaceProbeTimeout?: number;
     } = {},
   ): Promise<string> {
     const {
       maxWaitTime = 60000,
       pollInterval = 100,
       sameResultTimeout = 8000,
+      surfaceProbeTimeout = BALANCE_SURFACE_PROBE_MS,
     } = options;
+
+    const usingHero =
+      await this.isBalanceBreakdownHeroShown(surfaceProbeTimeout);
+    const balanceSource = usingHero ? 'homepage-hero' : 'account-balance';
+    logObservedBalance('surface', balanceSource);
+    // The amount TextView has no test id. Read the labeled parent instead.
+    const readBalance = usingHero
+      ? async () => readBalanceFromContainer(this.balanceBreakdownHero)
+      : async () => readBalanceFromContainer(this.eyeSlashIcon);
 
     const startTime = Date.now();
     const isIOS = PlatformDetector.isIOS();
+    let lastLoggedBalance: string | undefined;
+
+    const recordBalance = (balance: string): void => {
+      if (balance === lastLoggedBalance) {
+        return;
+      }
+      lastLoggedBalance = balance;
+      logObservedBalance(balanceSource, balance);
+    };
 
     if (isIOS) {
       // iOS: Element lookups are extremely slow (15-30s each).
       // Skip stability loop and just wait for a valid balance once.
-      let previousBalance = '';
+      let lastObservedBalance = '';
       while (Date.now() - startTime < maxWaitTime) {
         try {
-          const balance = (
-            await Utilities.getElementText(this.totalBalance)
-          ).trim();
-          previousBalance = balance;
+          const balance = await readBalance();
+          lastObservedBalance = balance;
+          recordBalance(balance);
 
           if (balance && balance !== '' && balance !== '$0.00') {
             return balance;
           }
-        } catch {
-          // Element not found yet, retry
+        } catch (error) {
+          const message =
+            error instanceof Error ? error.message : String(error);
+          recordBalance(`<read failed: ${message}>`);
         }
         await new Promise((r) => setTimeout(r, 1000));
       }
-      return previousBalance;
+      throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
     }
 
     // Android: Fast element lookups, use stability polling
+    let lastObservedBalance = '';
     let previousBalance = '';
     let sameResultStartTime: number | null = null;
 
     while (true) {
       if (Date.now() - startTime > maxWaitTime) {
-        return previousBalance;
+        throwBalanceDidNotStabilize(maxWaitTime, lastObservedBalance);
       }
 
       let currentBalance: string;
       try {
-        currentBalance = (
-          await Utilities.getElementText(this.totalBalance)
-        ).trim();
-      } catch {
+        currentBalance = await readBalance();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        recordBalance(`<read failed: ${message}>`);
         await new Promise((r) => setTimeout(r, pollInterval));
         continue;
       }
+
+      lastObservedBalance = currentBalance;
+      recordBalance(currentBalance);
 
       if (
         !currentBalance ||
