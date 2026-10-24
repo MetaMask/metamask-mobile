@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import { InteractionManager, UIManager } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -59,7 +60,7 @@ const DeleteWalletModal: React.FC = () => {
 
   const dispatch = useDispatch();
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state: RootState) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
 
   const [isDeletingWallet, setIsDeletingWallet] = useState<boolean>(false);
