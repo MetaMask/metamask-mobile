@@ -1402,5 +1402,60 @@ describe('Perps order lifecycle — FLOW integration', () => {
         }),
       );
     });
+
+    // 0.0002 BTC at 49,990 is $9.998, under the $10 minimum.
+    const buildRowOrder = (size: string, usdAmount?: string) =>
+      buildPerpsOrderParams({
+        asset: 'BTC',
+        isBuy: true,
+        size,
+        orderType: 'limit',
+        effectivePrice: 49_990,
+        leverage: 3,
+        usdAmount,
+        maxSlippageBps: 300,
+        limitPrice: '49990',
+        providerId: 'hyperliquid',
+        trackingData: { totalFee: 0, marketPrice: 49_990, source: 'test' },
+      });
+
+    it('refuses a row size just under the minimum sent without a USD amount', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '49990' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+      let placement: OrderResult | null = null;
+
+      // Act
+      await act(async () => {
+        placement = await result.current.placeOrder(buildRowOrder('0.0002'));
+      });
+
+      // Assert
+      expect(placement).toMatchObject({
+        success: false,
+        error: PERPS_ERROR_CODES.ORDER_SIZE_MIN,
+      });
+      expect(perps.harness.mocks.exchangeClient.order).not.toHaveBeenCalled();
+    });
+
+    it('places that row raised to the minimum, which the Pro form requests as a USD amount', async () => {
+      // Arrange
+      const perps = buildPerpsFlowHarness({ cachedPrices: { BTC: '49990' } });
+      perps.harness.setupTradingReady();
+      const { result } = perps.renderHookWithFlow(() => usePerpsTrading());
+
+      // Act
+      await act(async () => {
+        await result.current.placeOrder(buildRowOrder('0.00021', '10'));
+      });
+
+      // Assert
+      expect(perps.harness.mocks.exchangeClient.order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [expect.objectContaining({ b: true, p: '49990' })],
+        }),
+      );
+    });
   });
 });
