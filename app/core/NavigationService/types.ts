@@ -1028,6 +1028,7 @@ export type RootStackParamList = {
   PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
+  PredictMarketUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes

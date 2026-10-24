@@ -540,6 +540,7 @@ import {
 } from '@metamask/client-controller';
 import {
   SocialController,
+  SocialRealtimeService,
   SocialService,
   type SocialControllerActions,
   type SocialControllerEvents,
@@ -1031,6 +1032,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  SocialRealtimeService: SocialRealtimeService;
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
@@ -1238,6 +1240,7 @@ export type MessengerClientsToInitialize =
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
+  | 'SocialRealtimeService'
   | 'SocialController'
   | 'ProfileService'
   | 'ProfileController'

@@ -483,6 +483,7 @@ const Routes = {
       BUY_PREVIEW: 'PredictBuyPreview',
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
+      MARKET_UNAVAILABLE: 'PredictMarketUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
