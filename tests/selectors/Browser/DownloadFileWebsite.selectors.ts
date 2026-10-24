@@ -11,10 +11,6 @@ export const DownloadFileWebsiteSelectorsText = {
   DOWNLOAD_BUTTON: '.text("Download").clickable(true)',
 } as const;
 
-export const DownloadFileWebsiteSelectorsXPath = {
-  DOWNLOAD_BUTTON: `//button[@id='${DownloadFileWebsiteSelectorsIDs.DOWNLOAD_BUTTON}']`,
-} as const;
-
 export type DownloadFileWebsiteSelectorsIDsType =
   typeof DownloadFileWebsiteSelectorsIDs;
 export type DownloadFileWebsiteSelectorsTextType =

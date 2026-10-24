@@ -22,12 +22,12 @@ function readErrorMessage(error: unknown): string {
 
 /**
  * True when an Appium WebView command failed because LavaMoat scuttling blocked
- * the remote-debugger script.
+ * the remote-debugger script (find or click atoms can both hit this).
  *
  * @param error - Rejection from an Appium WebView command.
  * @returns Whether the error is LavaMoat scuttling.
  */
-function isLavaMoatScuttlingError(error: unknown): boolean {
+export function isLavaMoatScuttlingError(error: unknown): boolean {
   return LAVAMOAT_SCUTTLING_PATTERN.test(readErrorMessage(error));
 }
 
@@ -35,11 +35,12 @@ function isLavaMoatScuttlingError(error: unknown): boolean {
  * Click an element by HTML id in the current WebView context.
  *
  * Uses `driver.execute`, which this suite already uses to read the same page.
- * That path does not run the `element/click` atom that touches `globalThis.self`.
+ * That path does not run the remote-debugger `element` / `element/click` atoms
+ * that touch scuttled `globalThis` properties (`navigator`, `self`, …).
  *
  * @param webId - HTML id of the control to click.
  */
-async function clickWebIdViaDom(webId: string): Promise<void> {
+export async function clickWebIdViaDom(webId: string): Promise<void> {
   const clicked = await getDriver().execute(`return (() => {
     const el = document.getElementById(${JSON.stringify(webId)});
     if (!el || typeof el.click !== 'function') {
@@ -55,6 +56,35 @@ async function clickWebIdViaDom(webId: string): Promise<void> {
 }
 
 /**
+ * Run a WebView action; on LavaMoat scuttling, click `#webId` via page script.
+ *
+ * Covers find (`element`) and click (`element/click`) failures — both can hit
+ * scuttling under LavaMoat (e.g. `navigator` / `self` inaccessible).
+ *
+ * @param webId - HTML id used for the DOM-click fallback.
+ * @param action - Appium WebView find/scroll/tap (or click-only) path.
+ * @param failureContext - Short label for debug logs (`find/tap`, `click`, …).
+ */
+export async function runRecoveringFromLavaMoatScuttling(
+  webId: string,
+  action: () => Promise<void>,
+  failureContext = 'action',
+): Promise<void> {
+  try {
+    await action();
+  } catch (error) {
+    if (!isLavaMoatScuttlingError(error)) {
+      throw error;
+    }
+
+    logger.debug(
+      `Appium WebView ${failureContext} hit LavaMoat scuttling for #${webId}; clicking via page script`,
+    );
+    await clickWebIdViaDom(webId);
+  }
+}
+
+/**
  * Tap a WebView control. When Appium's element click is blocked by LavaMoat
  * scuttling, click the same HTML id from page script.
  *
@@ -65,16 +95,5 @@ export async function tapWebIdFallingBackToDomClick(
   webId: string,
   tap: () => Promise<void>,
 ): Promise<void> {
-  try {
-    await tap();
-  } catch (error) {
-    if (!isLavaMoatScuttlingError(error)) {
-      throw error;
-    }
-
-    logger.debug(
-      `Appium WebView click hit LavaMoat scuttling for #${webId}; clicking via page script`,
-    );
-    await clickWebIdViaDom(webId);
-  }
+  await runRecoveringFromLavaMoatScuttling(webId, tap, 'click');
 }
