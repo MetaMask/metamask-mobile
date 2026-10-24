@@ -178,15 +178,16 @@ Rules:
 
 Choose state by lifetime and authority:
 
-| State                                               | Owner                                         |
-| --------------------------------------------------- | --------------------------------------------- |
-| Server read models                                  | Shared query/data-service cache               |
-| Cross-screen workflow projection                    | The service/controller that owns the workflow |
-| Durable remote setup/financial operation            | MetaMask Predict backend                      |
-| Transport, retry, in-flight, subscription internals | Private service fields                        |
-| Form input and visual interaction                   | React local state                             |
+| State                                               | Owner                                            |
+| --------------------------------------------------- | ------------------------------------------------ |
+| Server read models                                  | Shared query/data-service cache                  |
+| Cross-screen workflow projection                    | The service/controller that owns the workflow    |
+| Durable remote setup/financial operation            | MetaMask Predict backend                         |
+| Transport, retry, in-flight, subscription internals | Private service fields                           |
+| Form input and visual interaction                   | React local state                                |
+| Kalshi device P-256 key and its salt                | SecureKeychain ciphertext, memory while unlocked |
 
-Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. Cache/query keys must contain no sensitive identity or payload data.
+Credentials, bearer tokens, OTPs, raw Venue sessions, PII/KYC values, and transfer-authorization material are never Redux or persisted product state. The Kalshi device private key and salt are the exception stored as SecureKeychain ciphertext, and their plaintext exists only while the wallet is unlocked. Cache/query keys must contain no sensitive identity or payload data.
 
 ## Failure boundaries
 

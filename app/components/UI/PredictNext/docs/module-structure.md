@@ -43,6 +43,14 @@ PredictNext/
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
 
+  auth/                        # Kalshi P-256 device key and in-memory A2T session
+    kalshiDeviceKey.ts
+    KalshiDeviceKeyBootstrap.tsx
+    a2tSession.ts
+    a2tSessionInstance.ts
+    a2tIssuerUrl.ts
+    KalshiA2tSessionBootstrap.tsx
+
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
