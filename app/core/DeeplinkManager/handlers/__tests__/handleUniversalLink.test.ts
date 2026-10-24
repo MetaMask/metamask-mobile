@@ -1714,104 +1714,43 @@ describe('handleUniversalLink', () => {
   });
 
   describe('ACTIONS.SOCIAL', () => {
-    it('opens social home from /social without showing the interstitial', async () => {
-      const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}?tab=following`;
-      const socialUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: socialUrl,
-        pathname: `/${ACTIONS.SOCIAL}`,
-        search: '?tab=following',
-      };
+    it.each([
+      ['?tab=following', handleSocialLeaderboardUrl],
+      ['/trader?traderId=trader-1', handleSocialTraderUrl],
+      [
+        '/trader/position?positionId=position-1&traderId=trader-1',
+        handleSocialTraderPositionUrl,
+      ],
+      ['/feed', handleSocialLeaderboardUrl],
+    ])(
+      'routes /social%s without showing the interstitial',
+      async (actionPath, handler) => {
+        const queryIndex = actionPath.indexOf('?');
+        const path =
+          queryIndex === -1 ? actionPath : actionPath.slice(0, queryIndex);
+        const search = queryIndex === -1 ? '' : actionPath.slice(queryIndex);
+        const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}${actionPath}`;
 
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: socialUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: socialUrl,
-        source: 'test-source',
-      });
+        await handleUniversalLink({
+          instance,
+          handled,
+          urlObj: {
+            ...urlObj,
+            hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+            href: socialUrl,
+            pathname: `/${ACTIONS.SOCIAL}${path}`,
+            search,
+          },
+          browserCallBack: mockBrowserCallBack,
+          url: socialUrl,
+          source: 'test-source',
+        });
 
-      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
-        actionPath: '?tab=following',
-      });
-      expect(handled).toHaveBeenCalled();
-    });
-
-    it('opens a trader profile from /social/trader', async () => {
-      const traderUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/trader?traderId=trader-1`;
-      const traderUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: traderUrl,
-        pathname: `/${ACTIONS.SOCIAL}/trader`,
-        search: '?traderId=trader-1',
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: traderUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: traderUrl,
-        source: 'test-source',
-      });
-
-      expect(handleSocialTraderUrl).toHaveBeenCalledWith({
-        actionPath: '/trader?traderId=trader-1',
-      });
-      expect(handleSocialLeaderboardUrl).not.toHaveBeenCalled();
-    });
-
-    it('opens a trader position from /social/trader/position', async () => {
-      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/trader/position?positionId=position-1&traderId=trader-1`;
-      const positionUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: positionUrl,
-        pathname: `/${ACTIONS.SOCIAL}/trader/position`,
-        search: '?positionId=position-1&traderId=trader-1',
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: positionUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: positionUrl,
-        source: 'test-source',
-      });
-
-      expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
-        actionPath: '/trader/position?positionId=position-1&traderId=trader-1',
-      });
-    });
-
-    it('opens social home for an unrecognized social subpath', async () => {
-      const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}/feed`;
-      const socialUrlObj = {
-        ...urlObj,
-        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-        href: socialUrl,
-        pathname: `/${ACTIONS.SOCIAL}/feed`,
-        search: '',
-      };
-
-      await handleUniversalLink({
-        instance,
-        handled,
-        urlObj: socialUrlObj,
-        browserCallBack: mockBrowserCallBack,
-        url: socialUrl,
-        source: 'test-source',
-      });
-
-      expect(handleSocialLeaderboardUrl).toHaveBeenCalledWith({
-        actionPath: '/feed',
-      });
-    });
+        expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+        expect(handler).toHaveBeenCalledWith({ actionPath });
+        expect(handled).toHaveBeenCalled();
+      },
+    );
   });
 
   describe('ACTIONS.SOCIAL_TRADER', () => {
