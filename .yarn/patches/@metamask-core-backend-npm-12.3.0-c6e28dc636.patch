@@ -1,0 +1,53 @@
+diff --git a/dist/api/accounts/client.js b/dist/api/accounts/client.js
+index 412a7e4bbc5a2af65d90cfc18cf5a109bfd2f1cd..db8e58950654224ff8d2647b4e993357ac0f51cb 100644
+--- a/dist/api/accounts/client.js
++++ b/dist/api/accounts/client.js
+@@ -293,6 +293,7 @@ export class AccountsApiClient extends BaseApiClient {
+      * @returns TanStack Query options for use with useQuery, useSuspenseQuery, etc.
+      */
+     getV5MultiAccountBalancesQueryOptions(accountIds, queryOptions, options) {
++        console.log('AccountsApiClient: getV5MultiAccountBalancesQueryOptions url', this.apiUrls.ACCOUNTS);
+         return {
+             queryKey: [
+                 'accounts',
+@@ -369,6 +370,7 @@ export class AccountsApiClient extends BaseApiClient {
+      * @returns TanStack Query options for use with useQuery, useSuspenseQuery, etc.
+      */
+     getV6MultiAccountBalancesQueryOptions(accountIds, queryOptions, options) {
++        console.log('AccountsApiClient: getV6MultiAccountBalancesQueryOptions url', this.apiUrls.ACCOUNTS);
+         return {
+             queryKey: [
+                 'accounts',
+diff --git a/dist/ws/AccountActivityService.js b/dist/ws/AccountActivityService.js
+index 445d8de1e086888b2ce3fbf00a043d091ddcab21..47572858d8ab7828f3277d607673be040d1b79ce 100644
+--- a/dist/ws/AccountActivityService.js
++++ b/dist/ws/AccountActivityService.js
+@@ -164,6 +164,7 @@ export class AccountActivityService {
+             if (channels.length === 0) {
+                 return;
+             }
++            console.log('AccountActivityService: subscribe', channels);
+             // Create subscription using the proper subscribe method (this will be stored in WebSocketService's internal tracking)
+             await this.#messenger.call('BackendWebSocketService:subscribe', {
+                 channels,
+@@ -197,6 +198,8 @@ export class AccountActivityService {
+      */
+     #handleAccountActivityUpdate(payload) {
+         const { address, tx, updates } = payload;
++
++        console.log('AccountActivityService: handleAccountActivityUpdate', JSON.stringify(updates, null, 2));
+         // Calculate time elapsed between transaction time and message receipt
+         const txTimestampMs = tx.timestamp * 1000; // Convert Unix timestamp (seconds) to milliseconds
+         const elapsedMs = Date.now() - txTimestampMs;
+diff --git a/dist/ws/BackendWebSocketService.js b/dist/ws/BackendWebSocketService.js
+index e094d4db10022f47c3cc21836d2700a5df15a5c8..7e5e009c15be9f0f0c34b5554f267f6070a0bab3 100644
+--- a/dist/ws/BackendWebSocketService.js
++++ b/dist/ws/BackendWebSocketService.js
+@@ -756,6 +756,7 @@ export class BackendWebSocketService {
+             return new Promise((resolve, reject) => {
+                 // eslint-disable-next-line no-restricted-globals
+                 const ws = new WebSocket(wsUrl);
++                console.log('BackendWebSocketService: establishConnection wsUrl', wsUrl);
+                 this.#connectionTimeout = setTimeout(() => {
+                     log('WebSocket connection timeout - forcing close', {
+                         timeout: this.#options.timeout,
