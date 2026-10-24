@@ -16,10 +16,10 @@ import {
 } from './quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from './resolveQuickBuyTerminalToast';
 import {
-  beginPostSwapShareSession,
-  clearPostSwapShareSession,
-  getPostSwapShareSession,
-} from '../../Views/SocialLeaderboard/PostSwapShareBottomSheet';
+  beginPostTradeShareSession,
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
 
 jest.mock('./quickBuyToastOptions', () => ({
   buildQuickBuyToastOptions: jest.fn((kind: string) => ({ kind })),
@@ -91,7 +91,7 @@ describe('resolveQuickBuyTerminalToast', () => {
     jest.clearAllMocks();
     getTrackedQuickBuyTradeIds().forEach(untrackQuickBuyTrade);
     clearSettledQuickBuyTrades();
-    clearPostSwapShareSession();
+    clearPostTradeShareSession();
     Engine.context.MultichainTransactionsController.state.nonEvmTransactions =
       {};
   });
@@ -258,7 +258,7 @@ describe('resolveQuickBuyTerminalToast', () => {
   });
 
   it('updates the post-swap share session instead of showing a toast', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -275,8 +275,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
@@ -289,11 +289,11 @@ describe('resolveQuickBuyTerminalToast', () => {
     expect(showToast).not.toHaveBeenCalled();
     expect(buildQuickBuyToastOptions).not.toHaveBeenCalled();
     expect(playSuccessNotification).toHaveBeenCalledTimes(1);
-    expect(getPostSwapShareSession()?.status).toBe('complete');
+    expect(getPostTradeShareSession()?.status).toBe('complete');
   });
 
   it('backfills the post-swap share transaction hash from bridge history', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -310,8 +310,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
@@ -320,11 +320,15 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostSwapShareSession()?.transactionHash).toBe('0xbridge-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xbridge-hash');
   });
 
   it('falls back to the source-chain hash in bridge status', () => {
-    const sessionId = beginPostSwapShareSession({
+    const sessionId = beginPostTradeShareSession({
       target: {
         tokenAddress: '0xpepe',
         tokenSymbol: 'PEPE',
@@ -341,8 +345,8 @@ describe('resolveQuickBuyTerminalToast', () => {
     });
     trackQuickBuyTrade('tx-1', {
       ...buyTrade,
-      postSwapShare: true,
-      postSwapShareSessionId: sessionId,
+      postTradeShare: true,
+      postTradeShareSessionId: sessionId,
     });
     mockGetHistoryItem.mockReturnValue({
       ...historyItemWithStatus(StatusTypes.COMPLETE),
@@ -354,11 +358,15 @@ describe('resolveQuickBuyTerminalToast', () => {
 
     resolveQuickBuyTerminalToast('tx-1', jest.fn(), theme);
 
-    expect(getPostSwapShareSession()?.transactionHash).toBe('0xsource-hash');
+    const session = getPostTradeShareSession();
+    if (session?.product !== 'spot') {
+      throw new Error('post-trade share session is not a spot session');
+    }
+    expect(session.transactionHash).toBe('0xsource-hash');
   });
 
   it('shows the normal terminal toast when the share session was dismissed', () => {
-    trackQuickBuyTrade('tx-1', { ...buyTrade, postSwapShare: true });
+    trackQuickBuyTrade('tx-1', { ...buyTrade, postTradeShare: true });
     mockGetHistoryItem.mockReturnValue(
       historyItemWithStatus(StatusTypes.COMPLETE),
     );

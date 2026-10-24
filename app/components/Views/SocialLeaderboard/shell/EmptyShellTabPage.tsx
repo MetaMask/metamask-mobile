@@ -29,6 +29,7 @@ import { playSelection } from '../../../../util/haptics';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
+import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { HotTokensCarousel } from '../SocialV1View/feed/components';
@@ -37,10 +38,12 @@ import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPos
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
 import SocialFeedSkeleton from '../../../UI/SocialFeed/components/SocialFeedSkeleton';
+import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
 import SocialFeedPostingBanner from '../SocialV1View/feed/components/SocialFeedPostingBanner';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import {
   DEFAULT_FEED_SORT,
   FeedSortFilterSelector,
@@ -109,8 +112,12 @@ export interface EmptyShellTabPageProps {
   /**
    * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
    * hosted by the parent view, outside the pager — see `SocialV1View`.
+   * `copyTradeOrigin` is set when the post has a comment to attribute to.
    */
-  onQuickBuy?: (target: QuickBuyTarget) => void;
+  onQuickBuy?: (
+    target: QuickBuyTarget,
+    copyTradeOrigin?: CopyTradeOrigin,
+  ) => void;
 }
 
 /**
@@ -132,6 +139,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
     posts,
@@ -267,6 +275,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
    */
   const handleScrollSettled = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      livePrices?.requestVisibilityCheck();
       const pageHasNext = visibleAssetFeed
         ? visibleAssetFeed.hasNextPage
         : hasNextPage;
@@ -285,7 +294,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         }
       }
     },
-    [visibleAssetFeed, hasNextPage, loadMore],
+    [livePrices, visibleAssetFeed, hasNextPage, loadMore],
   );
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
 
@@ -372,7 +381,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   }, [showPopularTraders, sortedPosts]);
 
   const handleCopyTrade = useCallback(
-    (item: SocialV1FeedItem) => {
+    (item: SocialV1FeedItem, commentId?: string) => {
       if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
         return;
       }
@@ -383,12 +392,15 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
 
-      onQuickBuy?.({
-        tokenAddress,
-        tokenSymbol: item.asset.symbol,
-        tokenName: item.asset.name ?? item.asset.symbol,
-        chain,
-      });
+      onQuickBuy?.(
+        {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        commentId ? { commentId } : undefined,
+      );
     },
     [onQuickBuy],
   );
@@ -446,6 +458,10 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showInitialFeedSkeletons = visibleAssetFeed
     ? visibleAssetFeed.isLoading && visibleAssetFeed.posts.length === 0
     : isLoading && posts.length === 0;
+  // The tab feed itself came back empty. A selected token, Following filters,
+  // or hidden posts can also leave the list blank; those stay quiet.
+  const showTrueEmptyFeed =
+    !isLoading && error == null && posts.length === 0 && pendingPost == null;
   const visibleError = visibleAssetFeed ? visibleAssetFeed.error : error;
   const visibleFeedEmpty = visibleAssetFeed
     ? visibleAssetFeed.posts.length === 0
@@ -513,7 +529,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <Box twClassName="px-4">
                   <SocialFeedPostingBanner
                     authorHandle={pendingPost.authorHandle}
-                    authorImageUrl={pendingPost.authorImageUrl}
+                    authorImageUrl={myProfile?.imageUrl}
+                    avatarPresetId={myProfile?.avatarPresetId}
+                    avatarBackgroundId={myProfile?.avatarBackgroundId}
                     startedAtMs={pendingStartedAtMs}
                   />
                 </Box>
@@ -521,27 +539,32 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               {showInitialFeedSkeletons ? (
                 <SocialFeedSkeleton />
               ) : (
-                feedBlocks.map((block, blockIndex) => (
-                  <Fragment key={block.key}>
-                    {blockIndex > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `block-${block.key}`,
-                        )}
-                      />
-                    ) : null}
-                    {block.kind === 'posts' ? (
-                      <SocialV1FeedPostList
-                        posts={block.posts}
-                        dividerKeyPrefix={block.key}
-                        renderPost={renderPost}
-                      />
-                    ) : (
-                      <PopularTradersCarousel />
-                    )}
-                  </Fragment>
-                ))
+                <>
+                  {showTrueEmptyFeed ? (
+                    <SocialV1FeedEmptyState tab={tab} />
+                  ) : null}
+                  {feedBlocks.map((block, blockIndex) => (
+                    <Fragment key={block.key}>
+                      {blockIndex > 0 ? (
+                        <SectionDivider
+                          marginVertical={1}
+                          testID={getSocialV1FeedEntryDividerTestId(
+                            `block-${block.key}`,
+                          )}
+                        />
+                      ) : null}
+                      {block.kind === 'posts' ? (
+                        <SocialV1FeedPostList
+                          posts={block.posts}
+                          dividerKeyPrefix={block.key}
+                          renderPost={renderPost}
+                        />
+                      ) : (
+                        <PopularTradersCarousel />
+                      )}
+                    </Fragment>
+                  ))}
+                </>
               )}
               {showNextPageSpinner ? (
                 <Box

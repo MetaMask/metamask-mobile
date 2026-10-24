@@ -7,6 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import BoxGlass from '../BoxGlass';
+import { useLiquidGlass } from '../../hooks/useLiquidGlass';
 import { useTheme } from '../../../util/theme';
 
 export type ButtonGlassVariant =
@@ -15,16 +16,21 @@ export type ButtonGlassVariant =
   | typeof ButtonVariant.Tertiary;
 
 export type ButtonGlassProps = ButtonBaseProps & {
-  /** False renders the plain `Button` in the same variant. */
+  /** The screen's flag. False, or an OS without glass, renders the plain `Button`. */
   isGlass?: boolean;
-  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: clear glass. */
+  /** Primary: tinted with its fill. Secondary: brand sheen. Tertiary: the plain button. */
   variant?: ButtonGlassVariant;
   containerStyle?: StyleProp<ViewStyle>;
+  /** Optional prop to show the danger state of the button. */
+  isDanger?: boolean;
+  /** Optional prop to show the inverse state of the button, reserved for buttons on colored backgrounds. */
+  isInverse?: boolean;
 };
 
 /**
  * The design-system `Button` drawn on Liquid Glass, kept out of the package
- * until the design system takes it. Callers gate `isGlass` on their screen flag.
+ * until the design system takes it. Callers pass their screen flag as `isGlass`.
+ * Tertiary stays the plain button: a ghost control has no glass container.
  */
 const ButtonGlass = ({
   isGlass = true,
@@ -34,8 +40,9 @@ const ButtonGlass = ({
   ...props
 }: ButtonGlassProps) => {
   const { colors } = useTheme();
+  const { isGlassEnabled } = useLiquidGlass();
 
-  if (!isGlass) {
+  if (!isGlass || !isGlassEnabled || variant === ButtonVariant.Tertiary) {
     return (
       <Button
         {...props}

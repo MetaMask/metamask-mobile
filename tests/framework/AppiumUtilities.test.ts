@@ -1,4 +1,9 @@
-import AppiumUtilities, { executeMobileDeepLink } from './AppiumUtilities';
+import AppiumUtilities, {
+  executeMobileDeepLink,
+  isOptionalElementVisible,
+} from './AppiumUtilities';
+import Utilities from './Utilities';
+import type { AppiumElement } from './AppiumElement';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { setDeviceInfo } from './DeviceInfoCache.ts';
 
@@ -295,5 +300,119 @@ describe('executeMobileDeepLink', () => {
     expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
       url: 'dapp://example.com',
     });
+  });
+});
+
+describe('AppiumUtilities.resolveDeviceAccount', () => {
+  it.each([
+    ['Google Pixel 8 Pro', 'Account 1'],
+    ['Pixel 8 Pro', 'Account 1'],
+    ['pixel 8 pro', 'Account 1'],
+    ['iPhone 16 Pro Max', 'Account 4'],
+    ['iPhone 12', 'Account 5'],
+  ])('maps the device %s to %s', (deviceName, expected) => {
+    const result = AppiumUtilities.resolveDeviceAccount(deviceName);
+
+    expect(result).toBe(expected);
+  });
+
+  it('returns undefined for a device that is not in the matrix', () => {
+    const result = AppiumUtilities.resolveDeviceAccount('Nokia 3310');
+
+    expect(result).toBeUndefined();
+  });
+
+  it('does not match a device by a partial name', () => {
+    const result = AppiumUtilities.resolveDeviceAccount('Pixel 8');
+
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('isOptionalElementVisible', () => {
+  const setTimeoutMock = jest.fn();
+  const fakeElement = {} as AppiumElement;
+  let isVisibleSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-01-01T00:00:00Z'));
+    setTimeoutMock.mockReset().mockResolvedValue(undefined);
+    isVisibleSpy = jest
+      .spyOn(Utilities, 'isElementVisible')
+      .mockResolvedValue(false);
+    globalThis.driver = {
+      setTimeout: setTimeoutMock,
+    } as unknown as WebdriverIO.Browser;
+  });
+
+  afterEach(() => {
+    delete globalThis.driver;
+    isVisibleSpy.mockRestore();
+    jest.useRealTimers();
+  });
+
+  it('creates the locator under a short implicit wait and restores the default', async () => {
+    const locator = jest.fn(async () => {
+      expect(setTimeoutMock).toHaveBeenCalledTimes(1);
+      expect(setTimeoutMock).toHaveBeenLastCalledWith({ implicit: 300 });
+      return fakeElement;
+    });
+
+    await isOptionalElementVisible(locator);
+
+    expect(locator).toHaveBeenCalledTimes(1);
+    expect(setTimeoutMock).toHaveBeenCalledTimes(2);
+    expect(setTimeoutMock).toHaveBeenLastCalledWith({ implicit: 3500 });
+  });
+
+  it('returns true when the element becomes visible', async () => {
+    isVisibleSpy.mockResolvedValue(true);
+
+    const result = await isOptionalElementVisible(async () => fakeElement);
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when the element is absent', async () => {
+    isVisibleSpy.mockResolvedValue(false);
+
+    const result = await isOptionalElementVisible(async () => fakeElement);
+
+    expect(result).toBe(false);
+  });
+
+  it('polls with what is left of the budget after the lookups', async () => {
+    const locator = async () => {
+      jest.advanceTimersByTime(600);
+      return fakeElement;
+    };
+
+    await isOptionalElementVisible(locator, 2000);
+
+    // 2000 budget - 600 lookups - 300 reserved for restoring the implicit wait
+    expect(isVisibleSpy).toHaveBeenCalledWith(expect.anything(), 1100);
+  });
+
+  it('still gives an element that is already there 300ms to be seen when the lookups used the whole budget', async () => {
+    const locator = async () => {
+      jest.advanceTimersByTime(5000);
+      return fakeElement;
+    };
+
+    await isOptionalElementVisible(locator, 2000);
+
+    expect(isVisibleSpy).toHaveBeenCalledWith(expect.anything(), 300);
+  });
+
+  it('restores the default implicit wait and rethrows when the locator fails', async () => {
+    const locator = async (): Promise<AppiumElement> => {
+      throw new Error('lookup failed');
+    };
+
+    const result = isOptionalElementVisible(locator);
+
+    await expect(result).rejects.toThrow('lookup failed');
+    expect(setTimeoutMock).toHaveBeenLastCalledWith({ implicit: 3500 });
   });
 });
