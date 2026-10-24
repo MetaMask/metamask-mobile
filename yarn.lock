@@ -11378,9 +11378,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/perps-controller@npm:^21.0.0":
-  version: 21.0.0
-  resolution: "@metamask/perps-controller@npm:21.0.0"
+"@metamask/perps-controller@npm:^22.0.0":
+  version: 22.0.0
+  resolution: "@metamask/perps-controller@npm:22.0.0"
   dependencies:
     "@metamask/abi-utils": "npm:^2.0.4"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11392,7 +11392,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.3.0"
     uuid: "npm:^11.1.1"
-  checksum: 10/535b307a13ed2fc2c1102c5568e6c84ca4622cf9a2f74ece27d7c6867250cca7d8cdbeb0f7eb763c8fbd948080cafd930f3ea3359b2557818eef8b86f5b623cc
+  checksum: 10/429c1afbe531ee9a96517b91db6c572936fa69ea21c40525d7d4f09685c81455293a1633a984d4c0c85b62e302fa6abc0eb989611eb00fac8611951a2304a159
   languageName: node
   linkType: hard
 
@@ -39244,7 +39244,7 @@ __metadata:
     "@metamask/notification-services-controller": "npm:^29.0.3"
     "@metamask/object-multiplex": "npm:^1.1.0"
     "@metamask/permission-controller": "npm:^14.0.0"
-    "@metamask/perps-controller": "npm:^21.0.0"
+    "@metamask/perps-controller": "npm:^22.0.0"
     "@metamask/phishing-controller": "npm:^18.2.1"
     "@metamask/platform-api-docs": "npm:^0.2.1"
     "@metamask/post-message-stream": "npm:^10.0.0"
