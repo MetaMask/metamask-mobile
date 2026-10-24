@@ -43,6 +43,8 @@ export interface CardPostAuthRedirect {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardScreensStackParamList = {
   CardHome: { fromCardOnboarding?: boolean } | undefined;
+  CardApplePaySplash: undefined;
+  CardApplePayConfirmation: undefined;
   CardWelcome: undefined;
   ChooseYourCard: ChooseYourCardParams | undefined;
   ReviewOrder: ReviewOrderParams | undefined;
@@ -145,6 +147,7 @@ export type CardModalsNavigationParamList = {
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
   CardDigitalWalletInstructionsModal: undefined;
+  CardApplePayUsageSheet: undefined;
   CardSignInHelpModal: undefined;
 };
 
