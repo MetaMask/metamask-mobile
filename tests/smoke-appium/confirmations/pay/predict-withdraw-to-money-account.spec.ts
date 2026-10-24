@@ -8,8 +8,8 @@ import {
 } from '../../../framework/fixtures/mmpay-token-holdings-registry.js';
 import { SmokeConfirmations } from '../../../tags.js';
 import {
+  dismissToWalletHomePlaywright,
   loginToAppPlaywright,
-  waitForWalletHomePlaywright,
 } from '../../../flows/wallet.flow.js';
 import { openPredictWithdrawPayConfirmation } from '../../../flows/predict.flow.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
@@ -109,7 +109,9 @@ appiumTest.describe(
             await FooterActions.tapConfirmAndExpectConfirmationUnmount();
 
             await PredictHome.tapBackButton();
-            await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+            await dismissToWalletHomePlaywright(
+              resolveE2EWaitTimeoutMs(30_000),
+            );
             await TabBarComponent.tapActivity();
 
             await ActivitiesView.tapTypeFilterChip();
