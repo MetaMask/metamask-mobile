@@ -5227,6 +5227,60 @@ describe('Pro order book size on click', () => {
     );
   });
 
+  it('sizes from the amount after the size is typed away and back', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SIZE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('722.1'),
+      ),
+    );
+
+    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '600');
+    fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
+    fireEvent.changeText(screen.getByTestId(ids.SIZE_INPUT), '722.1');
+    fireEvent(screen.getByTestId(ids.SIZE_INPUT), 'blur');
+
+    // Typed back to $722.10, the amount sizes the order, not the row's 0.29.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2490',
+        size: '0.30',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('sizes from the amount after the price is changed away and back', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    renderProBook();
+    await findSizeInput();
+    await turnOnSizeOnClick();
+    await tapBid();
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    await waitFor(() =>
+      expect(limitInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+
+    fireEvent.changeText(limitInput, '2400');
+    fireEvent(limitInput, 'blur');
+    fireEvent.changeText(limitInput, '2490');
+    fireEvent(limitInput, 'blur');
+
+    // Back at 2,490, the amount sizes the order, not the row's 0.29.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2490',
+        size: '0.30',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
   it('sizes a slider preview from the previewed amount after a row fill', async () => {
     const marginText = () =>
       within(screen.getByTestId(ids.SUMMARY_MARGIN)).getByText(/^\$/).props
