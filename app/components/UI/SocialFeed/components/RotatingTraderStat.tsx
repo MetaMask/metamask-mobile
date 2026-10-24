@@ -4,12 +4,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { subscribeToTraderStatRotation } from '../utils/traderStatRotationClock';
 import { TRADER_STAT_ROTATION_MS } from '../utils/traderStats';
 
 /** Length of each half of the cross-fade (out, then in). */
@@ -33,8 +34,9 @@ export interface RotatingTraderStatProps {
  * at the midpoint of the fade, while the text is invisible -- switching on the
  * interval alone would pop the new string in at full opacity.
  *
- * A single stat never animates and no timer is started: there is nothing to
- * rotate to, and an idle interval per feed row is a cost with no payoff.
+ * Every rotating stat follows one shared clock, so the whole feed swaps in a
+ * single React commit. A single stat never subscribes: there is nothing to
+ * rotate to.
  */
 const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
   labels,
@@ -43,9 +45,6 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
 }) => {
   const [index, setIndex] = useState(0);
   const opacity = useSharedValue(1);
-  // The timers outlive any single render, so they are cleared on unmount
-  // rather than left to fire against a gone component.
-  const fadeInTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const count = labels.length;
   const shouldRotate = count > 1;
@@ -60,20 +59,22 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
       return undefined;
     }
 
-    const rotation = setInterval(() => {
-      opacity.value = withTiming(0, { duration: TRADER_STAT_FADE_MS });
-      fadeInTimer.current = setTimeout(() => {
-        setIndex((current) => (current + 1) % count);
-        opacity.value = withTiming(1, { duration: TRADER_STAT_FADE_MS });
-      }, TRADER_STAT_FADE_MS);
-    }, intervalMs);
+    const unsubscribe = subscribeToTraderStatRotation(
+      intervalMs,
+      TRADER_STAT_FADE_MS,
+      {
+        fadeOut: () => {
+          opacity.value = withTiming(0, { duration: TRADER_STAT_FADE_MS });
+        },
+        swap: () => {
+          setIndex((current) => (current + 1) % count);
+          opacity.value = withTiming(1, { duration: TRADER_STAT_FADE_MS });
+        },
+      },
+    );
 
     return () => {
-      clearInterval(rotation);
-      if (fadeInTimer.current) {
-        clearTimeout(fadeInTimer.current);
-        fadeInTimer.current = null;
-      }
+      unsubscribe();
       opacity.value = 1;
     };
   }, [shouldRotate, count, intervalMs, opacity]);

@@ -65,6 +65,32 @@ describe('RotatingTraderStat', () => {
     expect(screen.getByTestId(TEST_ID)).toHaveTextContent('$50K P&L (30d)');
   });
 
+  it('rotates stats mounted at different times together', () => {
+    const first = renderWithProvider(
+      <RotatingTraderStat labels={LABELS} testID="first-stat" />,
+    );
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+    const second = renderWithProvider(
+      <RotatingTraderStat labels={LABELS} testID="second-stat" />,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(INTERVAL_MS - 1000);
+    });
+    act(() => {
+      jest.advanceTimersByTime(TRADER_STAT_FADE_MS);
+    });
+
+    expect(first.getByTestId('first-stat')).toHaveTextContent(
+      '17.2K followers',
+    );
+    expect(second.getByTestId('second-stat')).toHaveTextContent(
+      '17.2K followers',
+    );
+  });
+
   it('never rotates a lone stat', () => {
     renderWithProvider(
       <RotatingTraderStat labels={['92% win rate']} testID={TEST_ID} />,
