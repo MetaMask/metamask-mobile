@@ -85,10 +85,11 @@ import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
-  QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
+  type QuickBuyTradeMode,
 } from '../../../UI/QuickBuy';
+import { useQuickBuySheet } from '../../../UI/QuickBuy/QuickBuySheetHost';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
   PostTradeShareOwner,
@@ -449,29 +450,29 @@ const SocialV1ViewContent: React.FC = () => {
     Boolean(route.params?.showNotificationsBanner),
   );
 
-  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
-  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
-  // inside a pager page it would be clipped by the collapsing header block and
-  // painted over by the page's own scroll content.
-  const [quickBuy, setQuickBuy] = useState<{
-    target: QuickBuyTarget;
-    copyTradeOrigin?: CopyTradeOrigin;
-  } | null>(null);
+  // Rendered outside the PagerView, where a page would clip the inline sheet; null inside the home tabs host.
+  const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
   const openQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
-      setQuickBuy({ target, copyTradeOrigin }),
-    [],
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode: QuickBuyTradeMode = 'buy',
+    ) =>
+      showQuickBuy({
+        target,
+        copyTradeOrigin,
+        features: TOP_TRADERS_QUICK_BUY_FEATURES,
+        initialTradeMode: tradeMode,
+        analyticsContext: { source: 'trader_feed' },
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
+      }),
+    [showQuickBuy],
   );
-  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
-  const handlePostTradeReopen = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      setQuickBuy({ target, copyTradeOrigin });
-    },
-    [],
-  );
+  // The Social tab stays mounted under a pushed feed route; only the visible feed may reopen.
   usePostTradeShareReopen(
-    handlePostTradeReopen,
-    PostTradeShareOwner.socialV1Feed,
+    openQuickBuy,
+    isFocused ? PostTradeShareOwner.socialV1Feed : undefined,
   );
   const handleCopyTrade = useCallback(
     (item: SocialV1FeedItem, commentId?: string) => {
@@ -787,17 +788,7 @@ const SocialV1ViewContent: React.FC = () => {
           />
         ) : null}
 
-        <QuickBuy.Root
-          isVisible={quickBuy !== null}
-          target={quickBuy?.target ?? null}
-          onClose={closeQuickBuy}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          initialTradeMode="buy"
-          analyticsContext={{ source: 'trader_feed' }}
-          postTradeShare
-          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
-          copyTradeOrigin={quickBuy?.copyTradeOrigin}
-        />
+        {quickBuySheet}
       </SafeAreaView>
     </SocialEntryOptionsProvider>
   );
