@@ -145,6 +145,49 @@ describe('E2E network shim', () => {
     );
   });
 
+  it('does not proxy data URLs', async () => {
+    underlyingFetch.mockImplementation(async (url) => {
+      if (
+        url === `${MOCK_SERVER_URL}/health-check` ||
+        (typeof url === 'string' && url.startsWith('data:'))
+      ) {
+        return { ok: true };
+      }
+      throw new TypeError('Network request failed');
+    });
+    loadShim();
+    await flushPromises();
+
+    const dataUrl = 'data:application/octet-stream;base64,Zm9v';
+    await global.fetch(dataUrl);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(dataUrl, undefined);
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(dataUrl)}`,
+      undefined,
+    );
+  });
+
+  it('still routes unmatched WebSocket URLs through the mock proxy', async () => {
+    const opened = [];
+    global.WebSocket = function MockWebSocket(url, protocols) {
+      opened.push({ url, protocols });
+    };
+    loadShim();
+    await flushPromises();
+
+    const wsUrl = 'wss://example.com/socket';
+    // eslint-disable-next-line no-new
+    new global.WebSocket(wsUrl);
+
+    expect(opened).toEqual([
+      {
+        url: `ws://localhost:8000/proxy-ws?url=${encodeURIComponent(wsUrl)}`,
+        protocols: undefined,
+      },
+    ]);
+  });
+
   it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
     loadShim();
     await flushPromises();
