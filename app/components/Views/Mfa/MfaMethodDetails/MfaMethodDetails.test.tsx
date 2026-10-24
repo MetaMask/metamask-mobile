@@ -148,6 +148,58 @@ describe('MfaMethodDetails', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
+  it('centers the authenticator app removal sheet titles', () => {
+    const authenticatorApp: EnrolledCredential = {
+      type: 'totp',
+      status: 'active',
+    };
+    const { getByTestId, getByText, getAllByText } = renderDetails(
+      { method: 'totp', index: 0 },
+      [authenticatorApp, email],
+    );
+
+    fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+    expect(
+      getAllByText('Remove authenticator app').map((node) =>
+        JSON.stringify(node.props.style),
+      ),
+    ).toEqual(expect.arrayContaining([expect.stringContaining('"center"')]));
+
+    fireEvent.press(getByText('Cancel'));
+    const { getByTestId: getLastByTestId, getByText: getLastByText } =
+      renderDetails({ method: 'totp', index: 0 }, [authenticatorApp]);
+    fireEvent.press(
+      getLastByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
+    );
+    expect(
+      JSON.stringify(
+        getLastByText('Authenticator app can’t be removed').props.style,
+      ),
+    ).toContain('"center"');
+
+    const { getByTestId: getEmailByTestId, getAllByText: getEmailByText } =
+      renderDetails({ method: 'email_otp', index: 0 }, [email, passkey]);
+    fireEvent.press(
+      getEmailByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
+    );
+    expect(
+      getEmailByText('Remove email').some((node) =>
+        JSON.stringify(node.props.style).includes('"center"'),
+      ),
+    ).toBe(true);
+
+    const { getByTestId: getPasskeyByTestId, getAllByText: getPasskeyByText } =
+      renderDetails({ method: 'passkey', index: 0 }, [passkey]);
+    fireEvent.press(
+      getPasskeyByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
+    );
+    expect(
+      getPasskeyByText('Passkey can’t be deleted').some((node) =>
+        JSON.stringify(node.props.style).includes('"center"'),
+      ),
+    ).toBe(true);
+  });
+
   it('describes an authenticator app without an app name', () => {
     const { getAllByText, getByText } = renderDetails(
       { method: 'totp', index: 0 },

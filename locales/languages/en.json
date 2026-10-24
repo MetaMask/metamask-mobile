@@ -8547,14 +8547,15 @@
     },
     "totp_setup": {
       "title": "Set up authenticator app",
-      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
+      "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
       "open_app": "Open authenticator app",
       "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
-      "other_device": "Set up on another device",
+      "copied": "Setup key copied",
+      "show_qr": "Show QR code",
       "qr_title": "Scan QR code",
-      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
+      "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",
       "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
       "continue": "Continue"
     },
@@ -8581,14 +8582,14 @@
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "Something went wrong. Try again.",
       "code_expired": "Your verification code expired, get a new code.",
-      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
+      "invalid_totp_code": "This code isn’t correct. Try again",
       "totp_expired": "That took too long. Enter the current code from your app.",
       "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
       "totp_taken": "An authenticator app is already set up for this account."
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Used to confirm it's you before sensitive actions.",
+      "description": "Adds protection to Money account transactions.",
       "manage": "Manage",
       "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
       "add": "Add",
@@ -8619,6 +8620,7 @@
       "got_it": "Got it",
       "passkey_removed": "Passkey removed",
       "email_removed": "Email verification removed",
+      "totp_added": "Authenticator app added",
       "totp_removed": "Authenticator app removed",
       "remove_failed": "Couldn’t remove this method. Try again later."
     }
