@@ -511,7 +511,7 @@ const SocialPostComposerView: React.FC = () => {
             >
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
                 testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
               >
                 {strings('social_leaderboard.composer.character_count', {
