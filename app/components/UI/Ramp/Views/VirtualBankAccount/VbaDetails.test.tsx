@@ -621,30 +621,55 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
+  it('shows the Pix details skeleton when KYC is approved and MoonPay has not activated the customer', async () => {
     setAutoramps([]);
     mockHydrate.mockResolvedValue({
       autorampStatus: 'not_ready',
       kycStatus: 'approved',
     });
 
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+    const view = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockHydrate).toHaveBeenCalled();
+      expect(
+        view.getByTestId(VbaDetailsSelectorsIDs.LOADING),
+      ).toBeOnTheScreen();
     });
     expect(
-      getByText(
-        strings('virtual_bank_account.creating_account.awaiting_provider'),
-      ),
-    ).toBeOnTheScreen();
+      view.queryByText('Waiting for MoonPay to approve your account'),
+    ).toBeNull();
     expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+      view.queryByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+    ).toBeNull();
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+    fireEvent.press(view.getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(view.toJSON()).toMatchSnapshot();
+  });
+
+  it('shows the bank transfer details skeleton when KYC is approved and the USD customer is not active', async () => {
+    mockRouteParams = { sourceCurrency: 'USD' };
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
+    });
+
+    const view = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(
+        view.getByTestId(VbaDetailsSelectorsIDs.LOADING),
+      ).toBeOnTheScreen();
+    });
+    expect(view.getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.bank_transfer_title'),
+    );
+    expect(
+      view.queryByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
+    ).toBeNull();
+    expect(view.toJSON()).toMatchSnapshot();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {
