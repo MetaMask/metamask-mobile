@@ -284,6 +284,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added animated amount entry and keypad feedback to Send (#37067)
 - Added support for provider-supported advanced Perps orders, improved Lighter trading-key recovery and order-loading retries, and displayed unavailable fill PnL as Unknown (#37161)
 - Added a success screen after Pro checkout before opening Pro Hub (#37026)
+- Added suggested markets to the Perps Explore watchlist when fewer than five markets are saved (#37730)
+- Added a reserve banner to swap and bridge quotes that require a native or non-native token reserve (#37821)
+- Added memo-required detection for Stellar addresses listed in the StellarExpert SEP-37 directory (#37809)
 
 ### Changed
 
@@ -316,6 +319,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated limit order expiry to apply on selection and clarified price tolerance and account upgrade fees (#37273)
 - Updated token selector network filter chips to fully rounded pills (#37367)
 - Updated Perps Lite chart period chips to match Pro (1m, 5m, 15m, 1h, 1d) (#37368)
+- Updated the homepage balance breakdown Money row to always show a secondary Add button instead of Buy (#37920)
+- Updated the Perps outage banner contact support link to open the MetaMask help center (#37879)
+- Updated the Perps outage banner FAQ link to open the troubleshoot article (#38045)
 
 ### Removed
 
@@ -352,7 +358,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed grammar in the Arc usage notice (#35976)
 - Fixed non-EVM send amount validation getting stuck after correcting the amount (#37549)
 - Fixed the Activity back button returning to the Send flow after completing a non-EVM transaction (#37590)
-- Fixed card activity amounts by converting vmUSD shares using historical vault rates (#37564)
 - Fixed virtual bank account onboarding by resuming existing identity sessions before loading onboarding (#37540)
 - Fixed transaction nonce selection when the network transaction count lagged behind a confirmed transaction (#37577)
 - Fixed network selector pills being misaligned with larger text sizes (#37163)
@@ -382,11 +387,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the add-to-wallet option appearing after a card was already added (#36678)
 - Fixed Money Account withdrawal refunds being sent to the wallet instead of the Money Account (#37121)
 - Fixed duplicate transaction links in Money Account deposit details (#37045)
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#37891)
+- Fixed missing Perps balances on the homepage for geo-blocked users (#37728)
+- Fixed tapping a transaction toast opening an outdated details modal instead of the Activity details screen (#37762)
+- Fixed the keyboard not opening on the Transak OTP code screen on Android (#37916)
+- Fixed the Back to account option appearing when users could not use it (#37928)
+- Fixed the Perps Trade sheet pay-with row to show the available balance (#37990)
+- Fixed keypad buttons not responding on Android in flows that use the custom amount keypad (#38020)
+- Fixed spacing between Explore category pills and the market list (#37676)
 
 ### Security
 
 - Strengthened keyring vault encryption by increasing password-based key derivation iterations to 600,000 (#37433)
 - Fixed malicious and suspicious token warnings not appearing in Swaps when destination tokens were opened from deeplinks, Watchlist, Token Details, and other entry points (#37554)
+
+## [8.16.1]
+
+### Fixed
+
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#38110)
 
 ## [8.16.0]
 
@@ -462,6 +481,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Money Account withdraw refunds returning to the wallet instead of the Money Account (#37121)
 - Fixed duplicate transaction links on Money Account deposit details (#37045)
 - Fixed Swap to clear previously saved details before opening a new swap (#37243)
+
+## [8.15.1]
+
+### Fixed
+
+- Fixed Money Account deposits getting stuck loading a quote for some users who previously used an older app version (#38109)
 
 ## [8.15.0]
 
@@ -14835,8 +14860,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...HEAD
 [8.18.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.0...v8.18.0
-[8.17.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...v8.17.0
-[8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.16.0
+[8.17.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.1...v8.17.0
+[8.16.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...v8.16.1
+[8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.1...v8.16.0
+[8.15.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.0...v8.15.1
 [8.15.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.14.0...v8.15.0
 [8.14.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.1...v8.14.0
 [8.13.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.13.0...v8.13.1
