@@ -2,6 +2,11 @@ import { EthAccountType, SolAccountType } from '@metamask/keyring-api';
 import Engine from './Engine';
 
 import { getSeedPhrase, recreateVaultsWithNewPassword } from './Vault';
+import {
+  SEEDLESS_PASSWORD_CHANGE_KILL_AFTER,
+  resetSeedlessPasswordChangeKillSwitchForTests,
+  setSeedlessPasswordChangeKillAfter,
+} from './Authentication/seedlessPasswordChangeKillSwitch';
 import { KeyringSelector, KeyringTypes } from '@metamask/keyring-controller';
 import {
   createMockInternalAccount,
@@ -161,7 +166,7 @@ jest.mock('./Engine', () => ({
         mockExportAccount(password, account),
       importAccountWithStrategy: (strategy: string, accounts: string[]) =>
         mockImportAccountWithStrategy(strategy, accounts),
-      exportEncryptionKey: jest.fn(),
+      exportEncryptionKey: jest.fn().mockResolvedValue('enc-key'),
       state: {
         get keyrings() {
           return [
@@ -181,9 +186,9 @@ jest.mock('./Engine', () => ({
     SeedlessOnboardingController: {
       changePassword: jest.fn(),
       storeKeyringEncryptionKey: jest.fn(),
-      loadKeyringEncryptionKey: jest.fn(),
-      submitGlobalPassword: jest.fn(),
-      checkIsPasswordOutdated: jest.fn(),
+      loadKeyringEncryptionKey: jest.fn().mockResolvedValue('enc-key'),
+      markPasswordChangeKeySyncPending: jest.fn(),
+      completePasswordChange: jest.fn(),
     },
   },
   setSelectedAddress: jest.fn(),
@@ -207,6 +212,17 @@ jest.mock('../util/trace', () => ({
 describe('Vault', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetSeedlessPasswordChangeKillSwitchForTests();
+    mockEngine.context.SeedlessOnboardingController.changePassword = jest
+      .fn()
+      .mockResolvedValue(undefined);
+    mockEngine.context.KeyringController.changePassword = jest
+      .fn()
+      .mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   describe('getSeedPhrase', () => {
@@ -225,7 +241,7 @@ describe('Vault', () => {
   });
 
   describe('recreateVaultWithNewPassword', () => {
-    it('should submit old password, change password, and set selected address', async () => {
+    it('changes the keyring password and sets the selected address', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -256,7 +272,7 @@ describe('Vault', () => {
       expect(mockEngine.setSelectedAddress).toHaveBeenCalledWith('0x123');
     });
 
-    it('should call seedlessChangePassword and syncKeyringEncryptionKey if seedless onboarding flow is active', async () => {
+    it('calls seedless changePassword then marks, stores, and completes key sync', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -294,9 +310,16 @@ describe('Vault', () => {
         mockEngine.context.SeedlessOnboardingController
           .storeKeyringEncryptionKey,
       ).toHaveBeenCalled();
+      expect(
+        mockEngine.context.SeedlessOnboardingController
+          .markPasswordChangeKeySyncPending,
+      ).toHaveBeenCalledTimes(1);
+      expect(
+        mockEngine.context.SeedlessOnboardingController.completePasswordChange,
+      ).toHaveBeenCalledTimes(1);
     });
 
-    it('should restore when seedless change password failed if seedless onboarding flow is active', async () => {
+    it('leaves the keyring password unchanged when seedless changePassword throws', async () => {
       // mock redux state
       const mockReduxState: RecursivePartial<RootState> = {
         engine: {
@@ -333,6 +356,71 @@ describe('Vault', () => {
       ).toHaveBeenCalled();
 
       expect(mockEngine.setSelectedAddress).not.toHaveBeenCalledWith('0x123');
+    });
+
+    it('halts after seedless changePassword before the keyring hop', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'valid vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+      setSeedlessPasswordChangeKillAfter(
+        SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.SeedlessChangePassword,
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).rejects.toThrow(
+        /SEEDLESS_E2E_KILL_HALT:after_seedless_change_password/,
+      );
+
+      expect(
+        mockEngine.context.SeedlessOnboardingController.changePassword,
+      ).toHaveBeenCalled();
+      expect(
+        mockEngine.context.KeyringController.changePassword,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('halts after the keyring hop before key sync', async () => {
+      const mockReduxState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'valid vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockReduxState),
+      } as unknown as ReduxStore);
+      setSeedlessPasswordChangeKillAfter(
+        SEEDLESS_PASSWORD_CHANGE_KILL_AFTER.KeyringChange,
+      );
+
+      await expect(
+        recreateVaultsWithNewPassword('old-password', 'new-password', '0x123'),
+      ).rejects.toThrow(/SEEDLESS_E2E_KILL_HALT:after_keyring_change/);
+
+      expect(
+        mockEngine.context.KeyringController.changePassword,
+      ).toHaveBeenCalledWith('new-password');
+      expect(
+        mockEngine.context.SeedlessOnboardingController
+          .markPasswordChangeKeySyncPending,
+      ).not.toHaveBeenCalled();
     });
   });
 });

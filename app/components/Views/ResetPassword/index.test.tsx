@@ -1393,12 +1393,17 @@ describe('ResetPassword', () => {
       expect(spyLockApp).toHaveBeenCalled();
     });
 
-    it('shows change password error and navigates to security settings on confirm', async () => {
+    it('shows change password error and locks the app on confirm', async () => {
+      const spyLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+
       await setupSeedlessErrorTest(
         SeedlessOnboardingControllerErrorMessage.InvalidAccessToken,
       );
 
       expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
+      expect(spyLockApp).toHaveBeenCalledWith({ locked: true });
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
@@ -1413,22 +1418,38 @@ describe('ResetPassword', () => {
           }),
         }),
       );
-
-      const errorSheetCall = mockNavigation.navigate.mock.calls[1];
-      const onErrorSheetPrimaryButtonPress =
-        errorSheetCall[1].params.onPrimaryButtonPress;
-      await act(async () => {
-        await onErrorSheetPrimaryButtonPress();
-      });
-      expect(mockNavigation.replace).toHaveBeenCalledWith(
+      expect(mockNavigation.replace).not.toHaveBeenCalledWith(
         Routes.SETTINGS.SECURITY_SETTINGS,
+      );
+    });
+
+    it('locks the app then shows the change password error when recreateVault rejects a keyring error', async () => {
+      const spyLockApp = jest
+        .spyOn(Authentication, 'lockApp')
+        .mockResolvedValue(undefined);
+
+      await setupSeedlessErrorTest(
+        'KeyringController - change password failed',
+      );
+
+      expect(spyLockApp).toHaveBeenCalledWith({ locked: true });
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+          }),
+        }),
       );
     });
 
     it('navigates to change password error modal when lockApp rejects after outdated password', async () => {
       jest
         .spyOn(Authentication, 'lockApp')
-        .mockRejectedValueOnce(new Error('lock failed'));
+        .mockRejectedValue(new Error('lock failed'));
 
       await setupSeedlessErrorTest(
         SeedlessOnboardingControllerErrorMessage.OutdatedPassword,
