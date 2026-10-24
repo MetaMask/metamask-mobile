@@ -27,6 +27,7 @@ import { RootState } from '../../reducers';
 import { NetworkStatus } from '@metamask/network-controller';
 import { EthScope } from '@metamask/keyring-api';
 import { TraceName } from '../trace';
+import { beginNavigationInitializationAppStart } from './navigationInitializationAppStart';
 import { store } from '../../store';
 import extractEthJsErrorMessage from '../extractEthJsErrorMessage';
 import { Performance } from '../../core/Performance';
@@ -70,6 +71,10 @@ jest.mock('../trace', () => ({
   hasMetricsConsent: jest.fn().mockResolvedValue(true),
   // Only TraceName.UIStartup is used in utils.ts (excludeEvents filter)
   TraceName: { UIStartup: 'UIStartup' },
+}));
+
+jest.mock('./navigationInitializationAppStart', () => ({
+  beginNavigationInitializationAppStart: jest.fn(),
 }));
 
 jest.mock('../../constants/ota', () => ({
@@ -255,6 +260,12 @@ describe('excludeEvents', () => {
     const event = { transaction: 'Login' };
     const eventExcluded = excludeEvents(event);
     expect(eventExcluded).toBe(event);
+  });
+
+  it('drops the NavigationChildren wrapper transaction', async () => {
+    const event = { transaction: 'NavigationChildren' };
+    const eventExcluded = excludeEvents(event);
+    expect(eventExcluded).toBeNull();
   });
 
   it('returns performance event null if empty', async () => {
@@ -1429,6 +1440,7 @@ describe('setupSentry', () => {
   beforeEach(() => {
     mockedInit.mockClear();
     mockedSetTag.mockClear();
+    jest.mocked(beginNavigationInitializationAppStart).mockClear();
     process.env.MM_SENTRY_DSN = 'https://test@sentry.io/1';
   });
 
@@ -1494,5 +1506,18 @@ describe('setupSentry', () => {
       tags: {},
     });
     expect(result).toBeNull();
+  });
+
+  it('enables standalone app start tracing so app start survives the dropped wrapper transaction', async () => {
+    await setupSentry();
+
+    const initOptions = mockedInit.mock.calls[0][0] as {
+      _experiments?: { enableStandaloneAppStartTracing?: boolean };
+    };
+
+    expect(initOptions._experiments?.enableStandaloneAppStartTracing).toBe(
+      true,
+    );
+    expect(beginNavigationInitializationAppStart).toHaveBeenCalledTimes(1);
   });
 });
