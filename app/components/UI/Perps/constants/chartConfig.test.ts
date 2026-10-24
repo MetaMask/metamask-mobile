@@ -9,6 +9,7 @@ import {
   getCandlestickColors,
   clampVisibleCandleCount,
   isPerpsNativeTradingViewSpikeEnabled,
+  shouldUsePerpsNativeTradingView,
 } from './chartConfig';
 import { mockTheme } from '../../../../util/theme';
 
@@ -157,6 +158,51 @@ describe('chartConfig', () => {
 
     it('returns false for a release build even with the spike flag set', () => {
       const result = isPerpsNativeTradingViewSpikeEnabled('true', false);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('shouldUsePerpsNativeTradingView', () => {
+    it.each([
+      ['HIGH', 'WIFI'],
+      ['MID', 'SLOW_CELLULAR'],
+      ['LOW', null],
+      [null, 'FAST_CELLULAR'],
+      [null, null],
+    ] as const)(
+      'renders the native chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        const result = shouldUsePerpsNativeTradingView(
+          true,
+          hardwareTier,
+          networkTier,
+        );
+
+        expect(result).toBe(true);
+      },
+    );
+
+    it.each([
+      ['HIGH', 'NONE'],
+      [null, 'NONE'],
+      ['LOW', 'SLOW_CELLULAR'],
+      ['LOW', 'WIFI'],
+    ] as const)(
+      'keeps the existing chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        const result = shouldUsePerpsNativeTradingView(
+          true,
+          hardwareTier,
+          networkTier,
+        );
+
+        expect(result).toBe(false);
+      },
+    );
+
+    it('keeps the existing chart when the spike flag is off', () => {
+      const result = shouldUsePerpsNativeTradingView(false, 'HIGH', 'WIFI');
 
       expect(result).toBe(false);
     });

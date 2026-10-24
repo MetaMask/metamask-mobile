@@ -697,7 +697,9 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         symbol={symbol}
         onNeedMoreHistory={fallbackFetchMoreHistory}
         onOhlcDataChange={onCrosshairDataChange}
-        showOverlay={false}
+        // Native mode hides the parent's RN OHLCV bar, so the fallback keeps
+        // its own legend.
+        showOverlay={nativeTradingView}
         coloredVolume
         onVisibleCandleCountChange={onVisibleCandleCountChange}
       />

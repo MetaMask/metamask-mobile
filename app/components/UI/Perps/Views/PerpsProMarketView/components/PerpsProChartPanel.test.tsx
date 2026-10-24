@@ -23,6 +23,8 @@ import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsCh
 import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import PerpsProChartPanel from './PerpsProChartPanel';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -44,6 +46,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../../util/haptics');
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(),
+}));
 
 interface MockLivePriceHeaderProps {
   currentPrice: number;
@@ -281,6 +289,8 @@ describe('PerpsProChartPanel', () => {
     jest.clearAllMocks();
     mockVisibleCandleCount = 30;
     mockIsNativeTradingViewSpikeEnabled.mockReturnValue(false);
+    jest.mocked(getHardwareTier).mockReturnValue('HIGH');
+    jest.mocked(useNetworkTier).mockReturnValue('WIFI');
     jest.mocked(playSelection).mockClear();
     mockUsePerpsLiveCandles.mockReturnValue({
       candleData: MOCK_CANDLE_DATA,
@@ -1117,6 +1127,29 @@ describe('PerpsProChartPanel', () => {
       );
       expect(mockTradingViewChart).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['HIGH', 'NONE'],
+      ['LOW', 'WIFI'],
+    ] as const)(
+      'renders the standard Advanced Chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);
+        jest.mocked(getHardwareTier).mockReturnValue(hardwareTier);
+        jest.mocked(useNetworkTier).mockReturnValue(networkTier);
+
+        renderChartPanel();
+
+        expect(
+          screen.queryByTestId(
+            PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW,
+          ),
+        ).not.toBeOnTheScreen();
+        expect(getLastAdvancedChartProps()).toEqual(
+          expect.objectContaining({ nativeTradingView: false, height: 288 }),
+        );
+      },
+    );
 
     it('leaves OHLCV values to the native legend when the spike flag is on', () => {
       mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);

@@ -901,6 +901,22 @@ describe('PerpsAdvancedChart', () => {
       expect(PERPS_NATIVE_TV_DISABLED_FEATURES).not.toContain('header_widget');
     });
 
+    it('keeps the fallback chart legend after a native chart error', () => {
+      const onCrosshairDataChange = jest.fn();
+      renderChart({ nativeTradingView: true, onCrosshairDataChange });
+
+      act(() => {
+        advancedChartProps().onError?.('chart failed');
+      });
+
+      expect(mockTradingViewChart).toHaveBeenCalledWith(
+        expect.objectContaining({
+          onOhlcDataChange: onCrosshairDataChange,
+          showOverlay: true,
+        }),
+      );
+    });
+
     it('logs chart readiness and the position lines handed to the chart', () => {
       renderChart({ nativeTradingView: true, tpslLines });
 

@@ -37,11 +37,14 @@ import type { AppNavigationProp } from '../../../../../../core/NavigationService
 import { selectPerpsPriceAlertsEnabledFlag } from '../../../selectors/featureFlags';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useHaptics } from '../../../../../../util/haptics';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   PERPS_CHART_CONFIG,
   isPerpsNativeTradingViewSpikeEnabled,
+  shouldUsePerpsNativeTradingView,
 } from '../../../constants/chartConfig';
 import { usePerpsMarketData } from '../../../hooks';
 import type { PerpsMarketDetailSectionState } from '../../../hooks/usePerpsMarketDetailSession';
@@ -150,7 +153,12 @@ const PerpsProChartPanel = ({
   const chartRef = useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const chartContextKey = `${symbol}|${marketContextKey}|${selectedCandlePeriod}|${configuredChartLibrary}`;
-  const isNativeTradingView = isPerpsNativeTradingViewSpikeEnabled();
+  const networkTier = useNetworkTier();
+  const isNativeTradingView = shouldUsePerpsNativeTradingView(
+    isPerpsNativeTradingViewSpikeEnabled(),
+    getHardwareTier(),
+    networkTier,
+  );
   const isAdvancedChartActive = isAdvancedChartEnabled || isNativeTradingView;
   const chartHeight = isNativeTradingView
     ? PRO_NATIVE_TV_CHART_HEIGHT

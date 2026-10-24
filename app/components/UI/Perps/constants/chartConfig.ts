@@ -9,6 +9,10 @@
  */
 import type { Theme } from '@metamask/design-tokens';
 import { ChartInterval, TimeDuration } from '@metamask/perps-controller';
+import type {
+  HardwareTier,
+  NetworkTier,
+} from '../../../../util/deviceCapability/types';
 
 type Colors = Theme['colors'];
 
@@ -113,6 +117,23 @@ export const isPerpsNativeTradingViewSpikeEnabled = (
   spikeFlag: string | undefined = process.env.MM_PERPS_NATIVE_TV_CHART_SPIKE,
   isDevBuild: boolean = __DEV__,
 ): boolean => isDevBuild && spikeFlag === 'true';
+
+/**
+ * Spike (TAT-4093): device-capability gate for the native chart UI
+ * (app/util/deviceCapability/README.md). Offline stays local-only, and LOW
+ * hardware skips the extra native chrome on mount unless the network is
+ * unknown. When false, the existing Pro chart path renders.
+ */
+export const shouldUsePerpsNativeTradingView = (
+  isSpikeEnabled: boolean,
+  hardwareTier: HardwareTier | null,
+  networkTier: NetworkTier | null,
+): boolean => {
+  if (!isSpikeEnabled || networkTier === 'NONE') {
+    return false;
+  }
+  return hardwareTier !== 'LOW' || networkTier === null;
+};
 
 /**
  * TradingView features kept off in the native spike. Everything else uses
