@@ -1,5 +1,9 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import { BackHandler, Platform, Settings } from 'react-native';
+import { pinTslibHelpers } from './app/core/pinTslibHelpers';
+
+// Before WalletConnect loads tslib 1, which overwrites the global helpers.
+pinTslibHelpers();
 
 // RN 0.74+ removed `BackHandler.removeEventListener`. Some third-party
 // libraries (notably `@metamask/design-system-react-native`'s `BottomSheet`)
