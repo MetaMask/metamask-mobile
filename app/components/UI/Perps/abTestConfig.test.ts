@@ -1,14 +1,19 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
+import { PerpsMode } from '@metamask/perps-controller';
 import { AB_TEST_ANALYTICS_MAPPINGS } from '../../../util/analytics/abTestAnalyticsRegistry';
 import {
   BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   BUTTON_COLOR_VARIANTS,
   ButtonColorVariant,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
+  PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HEADER_AB_TEST_KEY,
+  PERPS_HEADER_NAV_VARIANTS,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_VARIANTS,
   PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+  PerpsHeaderNavVariant,
   PerpsHomeExploreVariant,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_VARIANTS,
@@ -126,6 +131,57 @@ describe('Perps abTestConfig', () => {
         EVENT_NAME.PERPS_TRADE_QUOTE_RECEIVED,
         EVENT_NAME.PERPS_TRADE_TRANSACTION,
       ]);
+    });
+  });
+
+  describe('PERPS_HEADER_AB_TEST_KEY', () => {
+    it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
+      expect(PERPS_HEADER_AB_TEST_KEY).toBe(
+        'perpsTAT4021AbtestPerpsHeaderMarketList',
+      );
+      expect(PERPS_HEADER_AB_TEST_KEY).toMatch(
+        /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
+      );
+    });
+  });
+
+  describe('PERPS_HEADER_NAV_VARIANTS', () => {
+    it('includes a control variant that keeps the last-viewed market', () => {
+      expect(PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Control]).toEqual({
+        destination: 'lastViewedMarket',
+      });
+    });
+
+    it('maps treatment to the market list', () => {
+      expect(
+        PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Treatment],
+      ).toEqual({ destination: 'marketList' });
+    });
+  });
+
+  describe('PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING', () => {
+    it('enriches pro-mode tap-through and trade events only', () => {
+      expect(PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING).toEqual({
+        flagKey: PERPS_HEADER_AB_TEST_KEY,
+        validVariants: [
+          PerpsHeaderNavVariant.Control,
+          PerpsHeaderNavVariant.Treatment,
+        ],
+        eventNames: [
+          EVENT_NAME.PERPS_UI_INTERACTION,
+          EVENT_NAME.PERPS_SCREEN_VIEWED,
+          EVENT_NAME.PERPS_TRADE_TRANSACTION,
+        ],
+        injectWhenPropertiesMatch: {
+          perps_mode: PerpsMode.Pro,
+        },
+      });
+    });
+
+    it('is registered for shared-path active_ab_tests enrichment', () => {
+      expect(AB_TEST_ANALYTICS_MAPPINGS).toContain(
+        PERPS_HEADER_AB_TEST_ANALYTICS_MAPPING,
+      );
     });
   });
 

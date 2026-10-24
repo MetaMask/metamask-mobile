@@ -10,7 +10,10 @@ import { createActiveABTestAssignment } from './activeABTestAssignments';
 import { enrichWithABTests } from './enrichWithABTests';
 import { CHAIN_VALUE_ORDER_AB_KEY } from '../../components/UI/Bridge/components/BridgeTokenSelector/abTestConfig';
 import { SWAP_DISCOVERY_FEED_REVAMP_AB_KEY } from '../../components/UI/Bridge/components/SwapDiscoveryFeed/abTestConfig';
-import { PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY } from '../../components/UI/Perps/abTestConfig';
+import {
+  PERPS_HEADER_AB_TEST_KEY,
+  PERPS_SCREEN_VS_BOTTOM_SHEET_AB_TEST_KEY,
+} from '../../components/UI/Perps/abTestConfig';
 import { EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_KEY } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { COMPONENT_NAMES } from '../../components/UI/Money/constants/moneyEventLocations';
 
@@ -586,6 +589,38 @@ describe('enrichWithABTests', () => {
 
       const result = enrichWithABTests(event, {
         [PERPS_SECTION_PRIORITY_AB_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toBeUndefined();
+    });
+  });
+
+  describe('Perps header market list', () => {
+    it('attaches the assignment to pro-mode screen and trade events', () => {
+      const screenViewed = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      )
+        .addProperties({ perps_mode: 'pro', source: 'home_section' })
+        .build();
+
+      const result = enrichWithABTests(screenViewed, {
+        [PERPS_HEADER_AB_TEST_KEY]: 'treatment',
+      });
+
+      expect(result.properties.active_ab_tests).toEqual([
+        createActiveABTestAssignment(PERPS_HEADER_AB_TEST_KEY, 'treatment'),
+      ]);
+    });
+
+    it('does not attach the assignment to lite-mode Perps events', () => {
+      const screenViewed = AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+      )
+        .addProperties({ perps_mode: 'lite', source: 'home_section' })
+        .build();
+
+      const result = enrichWithABTests(screenViewed, {
+        [PERPS_HEADER_AB_TEST_KEY]: 'treatment',
       });
 
       expect(result.properties.active_ab_tests).toBeUndefined();
