@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Đăng nhập bằng Apple",
     "continue_with_telegram": "Tiếp tục với Telegram",
     "sign_in_with_telegram": "Đăng nhập bằng Telegram",
-    "your_wallet": "Bạn đã đặt lại ví thành công!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "Đặt lại ví hiện tại",
     "have_existing_wallet": "Tôi đã có ví",
     "import_using_srp": "Nhập bằng Cụm Từ Khôi Phục Bí Mật",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " và ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "Được cung cấp bởi",
       "button": "Get account details"
     },
@@ -1197,7 +1199,8 @@
       "button": "Tiếp tục"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,10 +1218,35 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Thử lại"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
       "button": "Thử lại"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
@@ -1235,7 +1263,7 @@
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "Hoàn tất",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
@@ -1302,11 +1330,16 @@
         "feed": "Bảng tin",
         "trending": "Xu hướng",
         "following": "Đang theo dõi",
-        "live_trades": "Giao dịch trực tiếp"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "Đã tạm dừng",
-        "live": "Đang diễn ra"
+        "live": "Đang diễn ra",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Đang theo dõi",
       "all": "Tất cả",
@@ -1347,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
-          "title": "Chưa có giao dịch",
-          "description": "Live trades will show up here."
+        "live": {
+          "title": "No trades yet",
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1410,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "Mở",
       "tab_closed": "Đã đóng",
@@ -1427,15 +1461,17 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
-      "in_progress": "Đang xử lý...",
-      "complete": "Hoán đổi hoàn tất",
-      "failed": "Hoán đổi không thành công",
+    "post_trade_share": {
+      "in_progress": "In progress...",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "order_complete": "Order complete",
+      "order_failed": "Order failed",
       "share_and_earn_title": "Share and earn",
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
-      "try_again": "Thử lại",
-      "close": "Đóng"
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -1625,12 +1661,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1669,6 +1704,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1859,7 +1896,7 @@
     "available_balance": "Số dư khả dụng",
     "margin_used": "Ký quỹ đã sử dụng",
     "gtm_content": {
-      "title": "Hợp đồng vĩnh cửu đã ra mắt",
+      "title": "Perps are here",
       "title_description": "Mua khống hoặc bán khống với đòn bẩy lên đến 40x. Nạp tiền vào tài khoản chỉ với một cú nhấp.",
       "not_now": "Không phải bây giờ",
       "try_now": "Bắt đầu"
@@ -2972,6 +3009,11 @@
       "expect_more_volatility": "Dự kiến sẽ có biến động mạnh hơn ngoài giờ giao dịch",
       "after_hours_trading_banner": "Giao dịch ngoài giờ",
       "pay_attention_to_volatility": "Chú ý đến biến động và trượt giá",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Holders"
+      },
       "badge": {
         "experimental": "THỬ NGHIỆM",
         "equity": "CỔ PHIẾU",
@@ -3024,7 +3066,12 @@
         "provider_fee": "Phí nhà cung cấp",
         "bridge_fee": "Phí cầu nối",
         "total": "Tổng phí",
-        "discount_message": "Bạn đang tiết kiệm {{percentage}}% phí khi là thành viên VIP."
+        "discount_message": "Bạn đang tiết kiệm {{percentage}}% phí khi là thành viên VIP.",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "Độ lệch kích thước",
@@ -3528,6 +3575,15 @@
       "share_failed": "Xuất hình ảnh thất bại",
       "export_success": "Đã xuất hình ảnh",
       "referral_code_text": "Sử dụng mã giới thiệu của tôi để nhận thêm phần thưởng."
+    },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "post_not_ready": "This position isn't ready to post yet",
+      "post_other_account": "Only positions from your profile's wallet can be posted",
+      "new_badge": "New",
+      "share_externally": "Share externally"
     },
     "market_details": {
       "fullscreen_chart": "Biểu đồ toàn màn hình",
@@ -4074,6 +4130,11 @@
       "link": "Xem điều khoản của Polymarket",
       "webview_title": "Điều khoản của Polymarket",
       "button": "Tôi đã hiểu"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
     },
     "deposit": {
       "in_progress": "Đang nạp tiền",
@@ -5617,13 +5678,15 @@
       "enter_verification_code_desc": "Để bảo mật, hãy nhập mã được hiển thị trong ứng dụng MetaMask trên thiết bị của bạn.",
       "add_device_to_wallet": "Thêm thiết bị này vào ví",
       "points": {
-        "one": "Mở MetaMask trên thiết bị khác",
-        "two": "Đi đến",
-        "two_bold_one": "Cài đặt",
-        "two_bold_two": "Thêm thiết bị",
-        "two_icon": ">",
-        "three": "Quét mã QR bằng thiết bị này",
-        "four": "Nhập mã bảo mật trên tiện ích mở rộng"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "Quét mã QR",
       "scanner": {
@@ -5718,10 +5781,15 @@
     "contact_us": "Liên hệ với chúng tôi"
   },
   "support_consent": {
-    "title": "Chia sẻ thông tin thiết bị với bộ phận hỗ trợ",
-    "description": "Bạn có muốn chia sẻ Mã định danh MetaMask và phiên bản ứng dụng của mình với Trung tâm hỗ trợ không? Điều này có thể giúp chúng tôi giải quyết vấn đề của bạn hiệu quả hơn, nhưng không bắt buộc.",
-    "confirm": "Xác nhận",
-    "reject": "Không chia sẻ"
+    "title": "Share your User ID with Support",
+    "description": "By continuing, you agree to share your User ID and app version with our Support Center. This will help us better solve your problem.",
+    "confirm": "Continue",
+    "reject": "Không chia sẻ",
+    "save_preference": "Save my preference"
+  },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem."
   },
   "reveal_credential": {
     "seed_phrase_title": "Tiết lộ Cụm Từ Khôi Phục Bí Mật",
@@ -9153,10 +9221,10 @@
         "failed": "Chuyển đổi mUSD thất bại"
       },
       "education": {
-        "heading": "Nhận {{percentage}}% đồng ổn định",
-        "description": "Chuyển đổi đồng ổn định của bạn sang mUSD và nhận thưởng quy đổi theo năm {{percentage}}%.",
+        "heading": "Get {{percentage}}% on stablecoins",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "Áp dụng điều khoản.",
-        "primary_button": "Bắt đầu",
+        "primary_button": "Get started",
         "secondary_button": "Không phải bây giờ",
         "checklist": {
           "dollar_backed": "Được đảm bảo bằng đồng đô la Mỹ",
@@ -9412,7 +9480,7 @@
       "title": "Nạp tiền",
       "convert_crypto": "Chuyển đổi tiền mã hóa",
       "deposit_funds": "Thẻ ghi nợ hoặc Apple Pay",
-      "bank_account": "Tài khoản ngân hàng",
+      "bank_account": "Bank transfer",
       "add_musd": "Nạp mUSD",
       "receive_external": "Địa chỉ bên ngoài",
       "coming_soon": "Sắp ra mắt",
@@ -10608,9 +10676,9 @@
     "bridged_token": "Đã chuyển {{symbol}} qua cầu nối"
   },
   "account_status": {
-    "account_already_exists": "Ví đã tồn tại",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "Đã tồn tại một ví sử dụng \"{{accountName}}\". Bạn có muốn thử đăng nhập không?",
-    "account_already_exists_telegram_description": "Một ví đã được liên kết với tài khoản Telegram này. Bạn có muốn mở khóa ví này không?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "Đăng nhập",
     "account_not_found": "Không tìm thấy ví",
     "account_not_found_description": "Chúng tôi không thể tìm thấy ví cho \"{{accountName}}\". Bạn có muốn tạo ví mới với thông tin đăng nhập này không?",
@@ -10986,7 +11054,7 @@
       "payment_creation_error": "Không thể tạo thanh toán. Hãy thử lại."
     },
     "order_completed": {
-      "title": "Thẻ của bạn đã được đặt",
+      "title": "Your card is on the way",
       "subtitle": "Thẻ sẽ được gửi đến trong vòng 4 đến 6 tuần.",
       "description": "Thiết lập thẻ ảo và thêm vào ví kỹ thuật số để bắt đầu nhận hoàn tiền bằng mUSD.",
       "set_up_card_button": "Thiết lập thẻ",
@@ -11029,17 +11097,17 @@
       "try_again": "Thử lại"
     },
     "card_onboarding": {
-      "title": "Chi tiêu và nhận thưởng",
-      "description": "MetaMask Card là cách nhanh chóng\nvà dễ dàng để chi tiêu tiền mã hóa của bạn\nvà nhận hoàn tiền lên đến 3% bằng mUSD.",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "Thiết lập ngay",
       "login_button": "Đăng nhập",
       "not_now_button": "Không phải bây giờ",
       "sign_up": {
-        "title": "Bắt đầu nào",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "Tôi đã có Thẻ MetaMask",
-        "i_already_have_an_account_immersve": "Tôi đã có tài khoản",
-        "email_label": "Địa chỉ email",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "Mật khẩu mới cho Thẻ MetaMask",
         "password_description": "Khác với mật khẩu mở khóa ứng dụng MetaMask của bạn. Phải có ít nhất 15 ký tự.",
         "country_label": "Quốc gia cư trú",
@@ -11049,9 +11117,10 @@
         "join_waitlist": "Tham gia danh sách chờ",
         "country_not_available": "Đăng ký thẻ hiện chưa khả dụng tại quốc gia của bạn.",
         "account_label": "Tài khoản",
-        "account_label_immersve": "Tài khoản thẻ",
+        "account_label_immersve": "Spending account",
         "account_description": "MetaMask Card của bạn sẽ được liên kết với tài khoản này.",
-        "account_description_immersve": "Các giao dịch mua hàng bằng thẻ sẽ được tính vào tài khoản này.",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "Bạn đã có một tài khoản thẻ.",
         "clickwrap_prefix": "Bằng cách nhấn \"Tiếp theo\", bạn chấp nhận các điều khoản của Immersve về ",
         "clickwrap_and": " và ",
@@ -11215,7 +11284,7 @@
       },
       "complete": {
         "title": "Bạn đã sẵn sàng!",
-        "description": "Hoàn tất thiết lập thẻ để bạn có thể bắt đầu chi tiêu tiền mã hóa của mình.",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "Hoàn tất thiết lập"
       },
       "account_exists": {
@@ -11600,9 +11669,9 @@
       "update_error": "Cập nhật mức ưu tiên chi tiêu thất bại"
     },
     "card_authentication": {
-      "title": "Đăng nhập vào thẻ của bạn",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Hoàn tất cập nhật thẻ của bạn",
-      "description": "Đăng nhập để quản lý MetaMask Card của bạn.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Đang kiểm tra cách thiết lập thẻ của bạn.",
       "description_resume": "Tiếp tục từ nơi bạn đã dừng lại. Tài khoản này vẫn được liên kết với thẻ của bạn.",
       "auth_prompt_info": "Đăng nhập vào tài khoản thẻ của bạn để truy cập tính năng này.",
@@ -11817,6 +11886,11 @@
       "error_fetching_description": "Kiểm tra kết nối của bạn và thử lại.",
       "retry_button": "Thử lại"
     },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "solana_signup_not_supported": "Phần thưởng chưa hỗ trợ đăng nhập bằng tài khoản Solana. Hãy sử dụng tài khoản Ethereum.",
     "error_messages": {
       "unknown_error": "Đã xảy ra lỗi không xác định",
@@ -11828,6 +11902,9 @@
       "invalid_referral_code": "Mã giới thiệu không hợp lệ. Hãy kiểm tra và thử lại.",
       "already_referred": "Bạn đã được người dùng khác giới thiệu.",
       "cannot_use_own_referral_code": "Bạn không thể sử dụng mã giới thiệu của chính mình.",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "Mã thưởng không hợp lệ",
       "already_redeemed": "Bạn đã đổi mã thưởng này",
       "reached_maximum": "Mã thưởng này đã đạt đến số lượt sử dụng tối đa"
@@ -11865,7 +11942,7 @@
       "points_from_referrals_label": "Điểm từ giới thiệu",
       "referrals_label": "Giới thiệu VIP",
       "tier_benefits_title": "Quyền lợi bậc",
-      "splash_title": "Chào mừng đến với Gold Fox Collective",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "Mở khóa các đặc quyền độc quyền, tính năng sớm và phần thưởng được tuyển chọn. Chỉ dành cho người được mời.",
       "splash_accept_invite": "Chấp nhận lời mời",
       "splash_not_now": "Không phải bây giờ",

@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Apple के साथ साइन इन करें",
     "continue_with_telegram": "टेलीग्राम के साथ जारी रखें",
     "sign_in_with_telegram": "टेलीग्राम के साथ साइन इन करें",
-    "your_wallet": "आपने अपना वॉलेट सफलतापूर्वक रीसेट कर लिया है!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "वर्तमान वॉलेट रीसेट करें",
     "have_existing_wallet": "मेरे पास एक मौजूदा वॉलेट है",
     "import_using_srp": "सीक्रेट रिकवरी फ्रेज़ का उपयोग करके इंपोर्ट करें",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " और ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "के द्वारा पावर्ड",
       "button": "Get account details"
     },
@@ -1197,7 +1199,8 @@
       "button": "जारी रखें"
     },
     "creating_account": {
-      "title": "Creating your bank account"
+      "title": "Creating your bank account",
+      "awaiting_provider": "Waiting for MoonPay to approve your account"
     },
     "kyc_rejected": {
       "title": "We couldn’t verify your identity",
@@ -1215,10 +1218,35 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "फिर से प्रयास करें"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
       "button": "फिर से प्रयास करें"
+    },
+    "choose_currency": {
+      "title": "Choose your currency",
+      "description": "Pick the currency your bank will send. We'll show you the account details to transfer to.",
+      "footnote": "All funds are converted to mUSD when they arrive in your Money account.",
+      "row_label": "{{name}}, {{code}}",
+      "currencies": {
+        "brl": "Brazilian real",
+        "usd": "US dollar",
+        "eur": "Euro"
+      }
     },
     "vba_details": {
       "title": "Add money with Pix",
@@ -1235,7 +1263,7 @@
       "copy_label": "Copy {{field}}",
       "copied_label": "Copied {{field}}",
       "button": "हो गया",
-      "waiting_for_details": "Your account details appear here once the account is approved.",
+      "waiting_for_details": "Your account details will appear here shortly.",
       "loading_details": "Loading account details",
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
@@ -1302,11 +1330,16 @@
         "feed": "फीड",
         "trending": "ट्रेंडिंग",
         "following": "फ़ॉलो कर रहे हैं",
-        "live_trades": "लाइव ट्रेड्स"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "रोका गया",
-        "live": "लाइव"
+        "live": "लाइव",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "फ़ॉलो कर रहे हैं",
       "all": "सभी",
@@ -1347,9 +1380,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
-          "title": "अभी तक कोई ट्रेड नहीं हुआ",
-          "description": "Live trades will show up here."
+        "live": {
+          "title": "No trades yet",
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1410,6 +1443,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "ओपन",
       "tab_closed": "बंद किया गया",
@@ -1427,15 +1461,17 @@
       "showing_linked_account": "Showing positions from {{account}}",
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
-    "post_swap_share": {
+    "post_trade_share": {
       "in_progress": "In progress...",
-      "complete": "स्वैप पूरा हुआ",
-      "failed": "स्वैप नहीं हो पाया",
+      "complete": "Swap complete",
+      "failed": "Swap failed",
+      "order_complete": "Order complete",
+      "order_failed": "Order failed",
       "share_and_earn_title": "Share and earn",
       "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
       "share_this_trade": "Share this trade",
-      "try_again": "फिर से प्रयास करें",
-      "close": "बंद करें"
+      "try_again": "Try again",
+      "close": "Close"
     },
     "shell": {
       "subnav": {
@@ -1625,12 +1661,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1669,6 +1704,8 @@
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
       "avatar_background_purple": "Purple background",
+      "avatar_background_indigo": "Indigo background",
+      "avatar_background_pale_lime": "Pale lime background",
       "avatar_background_lime": "Lime background",
       "link_account": "Pick an account to link with your profile",
       "link_account_description": "Activity from this account will appear on your profile starting today.",
@@ -1859,7 +1896,7 @@
     "available_balance": "उपलब्ध बैलेंस",
     "margin_used": "उपयोग किया गया मार्जिन",
     "gtm_content": {
-      "title": "पर्प्स आ गए हैं",
+      "title": "Perps are here",
       "title_description": "40x तक लीवरेज के साथ लॉन्ग या शॉर्ट। सिर्फ़ एक क्लिक में अपना अकाउंट फंड करें।",
       "not_now": "अभी नहीं",
       "try_now": "शुरू करें"
@@ -2972,6 +3009,11 @@
       "expect_more_volatility": "मार्केट घंटों के बाहर अधिक उतार-चढ़ाव की उम्मीद करें",
       "after_hours_trading_banner": "आफ्टर-आवर्स ट्रेडिंग",
       "pay_attention_to_volatility": "उतार-चढ़ाव और स्लिपेज (slippage) पर ध्यान दें",
+      "tabs": {
+        "overview": "Overview",
+        "feed": "Feed",
+        "top_traders": "Holders"
+      },
       "badge": {
         "experimental": "एक्सपेरिमेंटल",
         "equity": "स्टॉक",
@@ -3024,7 +3066,12 @@
         "provider_fee": "प्रदाता फीस",
         "bridge_fee": "ब्रिज फीस",
         "total": "कुल फीस",
-        "discount_message": "वीआईपी होने के नाते आप फीस में {{percentage}}% की बचत कर रहे हैं।"
+        "discount_message": "वीआईपी होने के नाते आप फीस में {{percentage}}% की बचत कर रहे हैं।",
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "साइज़ स्क्यू",
@@ -3528,6 +3575,15 @@
       "share_failed": "इमेज एक्सपोर्ट नहीं हो पाया",
       "export_success": "एक्सपोर्ट किया गया इमेज",
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
+    },
+    "share_position": {
+      "title": "Share position",
+      "post_to_metamask": "Post to MetaMask",
+      "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
+      "post_not_ready": "This position isn't ready to post yet",
+      "post_other_account": "Only positions from your profile's wallet can be posted",
+      "new_badge": "New",
+      "share_externally": "Share externally"
     },
     "market_details": {
       "fullscreen_chart": "फुलस्क्रीन चार्ट",
@@ -4074,6 +4130,11 @@
       "link": "पॉलीमार्केट की शर्तें देखें",
       "webview_title": "पॉलीमार्केट की शर्तें",
       "button": "समझ गए"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
+      "button": "Got it"
     },
     "deposit": {
       "in_progress": "डिपॉज़िट प्रगति में है",
@@ -5617,13 +5678,15 @@
       "enter_verification_code_desc": "सुरक्षा के लिए, अपने डिवाइस पर MetaMask ऐप में दिखाया गया कोड दर्ज करें।",
       "add_device_to_wallet": "इस डिवाइस को वॉलेट में जोड़ें",
       "points": {
-        "one": "अपने दूसरे डिवाइस पर MetaMask खोलें",
-        "two": "यहां जाएं",
-        "two_bold_one": "सेटिंग्स",
-        "two_bold_two": "डिवाइस जोड़ें",
-        "two_icon": ">",
-        "three": "इस डिवाइस से QR कोड स्कैन करें",
-        "four": "अपने एक्सटेंशन पर सिक्योरिटी कोड डालें"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "QR कोड स्कैन करें",
       "scanner": {
@@ -5718,10 +5781,15 @@
     "contact_us": "हमसे संपर्क करें"
   },
   "support_consent": {
-    "title": "सपोर्ट के साथ डिवाइस की जानकारी साझा करें",
-    "description": "क्या आप अपना MetaMask आइडेंटिफ़ायर और ऐप वर्शन हमारे सपोर्ट सेंटर के साथ साझा करना चाहते हैं? इससे हमें आपकी समस्या को बेहतर ढंग से हल करने में मदद मिल सकती है, लेकिन यह वैकल्पिक है।",
-    "confirm": "कन्फर्म करें",
-    "reject": "साझा न करें"
+    "title": "Share your User ID with Support",
+    "description": "By continuing, you agree to share your User ID and app version with our Support Center. This will help us better solve your problem.",
+    "confirm": "Continue",
+    "reject": "साझा न करें",
+    "save_preference": "Save my preference"
+  },
+  "support_consent_preference": {
+    "title": "Remember my support preference",
+    "description": "When enabled, MetaMask remembers whether you want to share your User ID and app version with our Support Center. Sharing this information will help us better solve your problem."
   },
   "reveal_credential": {
     "seed_phrase_title": "सीक्रेट रिकवरी फ्रेज प्रकट करें",
@@ -9153,10 +9221,10 @@
         "failed": "mUSD कन्वर्शन नहीं हो पाया"
       },
       "education": {
-        "heading": "स्टेबलकॉइन्स पर {{percentage}}% पाएं",
-        "description": "अपने स्टेबलकॉइन्स को mUSD में बदलें और {{percentage}}% वार्षिक बोनस कमाएं।",
+        "heading": "Get {{percentage}}% on stablecoins",
+        "description": "Convert your stablecoins to mUSD and earn a {{percentage}}% annualized bonus.",
         "terms_apply": "नियम लागू।",
-        "primary_button": "शुरू करें",
+        "primary_button": "Get started",
         "secondary_button": "अभी नहीं",
         "checklist": {
           "dollar_backed": "डॉलर-समर्थित",
@@ -9412,7 +9480,7 @@
       "title": "फंड जोड़ें",
       "convert_crypto": "क्रिप्टो को कन्वर्ट करें",
       "deposit_funds": "डेबिट कार्ड या Apple Pay",
-      "bank_account": "बैंक अकाउंट",
+      "bank_account": "Bank transfer",
       "add_musd": "mUSD जोड़ें",
       "receive_external": "बाहरी पता",
       "coming_soon": "जल्द आ रहा है",
@@ -10608,9 +10676,9 @@
     "bridged_token": "ब्रिज किया गया {{symbol}}"
   },
   "account_status": {
-    "account_already_exists": "वॉलेट पहले से मौजूद है",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "\"{{accountName}}\" का उपयोग करने वाला एक वॉलेट पहले से मौजूद है। क्या आप इसके बजाय लॉग इन करना चाहेंगे?",
-    "account_already_exists_telegram_description": "इस टेलीग्राम अकाउंट में पहले से ही एक वॉलेट जुड़ा हुआ है। क्या आप इस वॉलेट को अनलॉक करना चाहते हैं?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "लॉग इन करें",
     "account_not_found": "वॉलेट नहीं मिला",
     "account_not_found_description": "हमें \"{{accountName}}\" के लिए कोई वॉलेट नहीं मिला। क्या आप इस लॉगिन से एक नया वॉलेट बनाना चाहते हैं?",
@@ -10986,7 +11054,7 @@
       "payment_creation_error": "भुगतान बनाना नहीं हो पाया। कृपया फिर से प्रयास करें।"
     },
     "order_completed": {
-      "title": "आपका कार्ड ऑर्डर किया गया है",
+      "title": "Your card is on the way",
       "subtitle": "यह 4 से 6 हफ्तों में पहुँच जाएगा।",
       "description": "अपना वर्चुअल कार्ड सेटअप करें और इसे अपने डिजिटल वॉलेट में जोड़ें ताकि आप mUSD वापस कमाना शुरू कर सकें।",
       "set_up_card_button": "कार्ड सेट अप करें",
@@ -11029,17 +11097,17 @@
       "try_again": "फिर से प्रयास करें"
     },
     "card_onboarding": {
-      "title": "खर्च करें और कमाएँ",
-      "description": "MetaMask कार्ड आपके क्रिप्टो को खर्च करने \nऔर 3% तक mUSD वापस पाने का तेज़ और \nआसान तरीका है।",
+      "title": "Spend and earn",
+      "description": "The MetaMask Card is the fast and easy way to spend your crypto and earn up to 3% mUSD back.",
       "apply_now_button": "अभी सेट अप करें",
       "login_button": "लॉग इन करें",
       "not_now_button": "अभी नहीं",
       "sign_up": {
-        "title": "आइए शुरू करें",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "मेरे पास पहले से ही एक MetaMask कार्ड है",
-        "i_already_have_an_account_immersve": "मेरे पास पहले से एक अकाउंट है",
-        "email_label": "मेल पता",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "MetaMask कार्ड के लिए नया पासवर्ड",
         "password_description": "आपके MetaMask ऐप अनलॉक पासवर्ड से अलग है। कम से कम 15 कैरेक्टर का होना चाहिए।",
         "country_label": "निवास देश",
@@ -11049,9 +11117,10 @@
         "join_waitlist": "प्रतीक्षा सूची में शामिल हों",
         "country_not_available": "आपके देश में अभी कार्ड पंजीकरण की सुविधा उपलब्ध नहीं है।",
         "account_label": "अकाउंट",
-        "account_label_immersve": "कार्ड अकाउंट",
+        "account_label_immersve": "Spending account",
         "account_description": "आपका MetaMask कार्ड इस अकाउंट से जुड़ जाएगा।",
-        "account_description_immersve": "कार्ड से की गई खरीदारी का खर्च इसी अकाउंट से लिया जाएगा।",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "आपके पास पहले से एक कार्ड अकाउंट है।",
         "clickwrap_prefix": "\"अगला\" दबाकर, आप Immersve की  को स्वीकार करते हैं ",
         "clickwrap_and": " और ",
@@ -11215,7 +11284,7 @@
       },
       "complete": {
         "title": "आप तैयार हैं!",
-        "description": "अपना कार्ड सेटअप पूरा करें ताकि आप अपनी क्रिप्टो का खर्च करना शुरू कर सकें।",
+        "description": "Finish setting up your MetaMask card so you can start spending your crypto.",
         "confirm_button": "सेटअप पूरा करें"
       },
       "account_exists": {
@@ -11600,9 +11669,9 @@
       "update_error": "खर्च प्राथमिकता अपडेट करना नहीं हो पाया"
     },
     "card_authentication": {
-      "title": "अपने कार्ड में साइन इन करें",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "अपने कार्ड को अपडेट करना पूरा करें",
-      "description": "अपना MetaMask कार्ड मैनेज करने के लिए साइन इन करें।",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "जांच की जा रही है कि आपका कार्ड कैसे सेट अप किया गया था।",
       "description_resume": "जहां आपने छोड़ा था वहीं से जारी रखें। यह अकाउंट आपके कार्ड से लिंक रहता है।",
       "auth_prompt_info": "इस फ़ीचर को एक्सेस करने के लिए अपने कार्ड अकाउंट में लॉग इन करें।",
@@ -11817,6 +11886,11 @@
       "error_fetching_description": "अपना कनेक्शन जांचें और फिर से प्रयास करें।",
       "retry_button": "फिर से प्रयास करें"
     },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
     "solana_signup_not_supported": "Solana अकाउंट्स के साथ रिवॉर्ड्स में साइन इन करना अभी सपोर्टेड नहीं है। इसके बजाय Ethereum अकाउंट उपयोग करें।",
     "error_messages": {
       "unknown_error": "अज्ञात गड़बड़ी हुई",
@@ -11828,6 +11902,9 @@
       "invalid_referral_code": "रेफरल कोड ग़लत है। जांचें और फिर से प्रयास करें।",
       "already_referred": "आप पहले ही किसी अन्य उपयोगकर्ता द्वारा रेफर किए जा चुके हैं।",
       "cannot_use_own_referral_code": "आप अपना स्वयं का रेफरल कोड उपयोग नहीं कर सकते।",
+      "referrer_cannot_be_referred": "You cannot be referred by someone else.",
+      "active_trader_cannot_be_referred": "You cannot be referred because of recent trading activity.",
+      "rate_limited": "Too many tries. Wait a moment.",
       "invalid_bonus_code": "बोनस कोड ग़लत है",
       "already_redeemed": "आपने यह बोनस कोड पहले ही रिडीम कर लिया है",
       "reached_maximum": "इस बोनस कोड का अधिकतम उपयोग संख्या पूरी हो गई है"
@@ -11865,7 +11942,7 @@
       "points_from_referrals_label": "रेफरल से पॉइंट्स",
       "referrals_label": "वीआईपी रेफरल",
       "tier_benefits_title": "टियर लाभ",
-      "splash_title": "गोल्ड फॉक्स\nकलेक्टिव में\nआपका स्वागत है",
+      "splash_title": "Welcome to Gold Fox Collective",
       "splash_description": "विशेष लाभ, नए फीचर्स तक जल्दी पहुँच और चुने हुए रिवॉर्ड्स अनलॉक करें। केवल आमंत्रण द्वारा।",
       "splash_accept_invite": "आमंत्रण स्वीकार करें",
       "splash_not_now": "अभी नहीं",
