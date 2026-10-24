@@ -188,9 +188,11 @@ const buildDetailRows = (
  * wallet and creates the autoramp, in the fiat mapped from the effective
  * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
  * IP country).
- * Until the autoramp is Approved it shows the creating state. Polling stops
- * once deposit details load or the autoramp is Rejected or Cancelled; only
- * Retry creates a replacement. Pushed on the root stack
+ * Until the autoramp is Approved it shows the creating state. KYC-approved
+ * customers who are still waiting for MoonPay activation stay on this screen
+ * and see the Pix or bank-transfer layout with the details skeleton. Polling
+ * stops once deposit details load or the autoramp is Rejected or Cancelled;
+ * only Retry creates a replacement. Pushed on the root stack
  * (`Routes.RAMP.VBA_DETAILS`) with the same horizontal transition as
  * onboarding. PIX or US bank details come from
  * `NeoBankService.getDepositInstructions`.
@@ -583,13 +585,8 @@ const VbaDetails = () => {
     ? strings('virtual_bank_account.vba_details.load_error')
     : null;
 
-  if (!isApproved) {
-    return (
-      <VbaCreatingAccount
-        onBack={handleDone}
-        awaitingProviderApproval={awaitingProviderApproval}
-      />
-    );
+  if (!isApproved && !awaitingProviderApproval) {
+    return <VbaCreatingAccount onBack={handleDone} />;
   }
 
   return (
