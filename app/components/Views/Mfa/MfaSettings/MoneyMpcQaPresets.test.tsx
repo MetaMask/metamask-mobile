@@ -143,6 +143,6 @@ describe('MoneyMpcQaPresets', () => {
     ).not.toHaveBeenCalled();
     expect(
       getByTestId(MfaSettingsSelectorsIDs.MONEY_MPC_QA_RESULT),
-    ).toHaveTextContent(/No MPC Money account, create one first/u);
+    ).toHaveTextContent(/Error: No MPC Money account, create one first/u);
   });
 });
