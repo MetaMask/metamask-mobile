@@ -27,6 +27,8 @@ function getBitcoinTestDappBaseUrl(
 
 const DAPP_LOAD_TIMEOUT_MS = 30_000;
 const CONNECT_TIMEOUT_MS = 30_000;
+/** Refresh reconnect needs more budget than initial connect (provider remount). */
+const RECONNECT_TIMEOUT_MS = 45_000;
 const CLICK_TIMEOUT_MS = 15_000;
 const POLL_MS = 300;
 
@@ -134,13 +136,18 @@ class BitcoinTestDapp {
    * sheet when it is visible, and otherwise re-drive Connect from the dapp.
    * "No wallet available" means the mount captured wallets=[] — reload once
    * while the header is still readable so the next mount sees the provider.
+   *
+   * Post-#37325 residual: when Connect + modal never yield a wallet option
+   * (timeout, not only empty), escalate to the initial-connect provider-ready
+   * remount path before the outer deadline.
    */
   private async waitForReconnect(
-    timeoutMs = CONNECT_TIMEOUT_MS,
+    timeoutMs = RECONNECT_TIMEOUT_MS,
   ): Promise<void> {
     const deadline = Date.now() + timeoutMs;
     let lastNativeConnectAttemptAt = 0;
     let lastDappConnectAttemptAt = 0;
+    let lastProviderRemountAt = 0;
     let actual: string | null = null;
 
     while (Date.now() < deadline) {
@@ -167,11 +174,26 @@ class BitcoinTestDapp {
       // Native sheet never appeared — re-open wallet selection from the dapp.
       if (
         actual === 'Not connected' &&
-        Date.now() - lastDappConnectAttemptAt >= 5_000 &&
+        Date.now() - lastDappConnectAttemptAt >= 4_000 &&
         deadline - Date.now() > 0
       ) {
         lastDappConnectAttemptAt = Date.now();
         await this.attemptDappReconnectBestEffort(deadline);
+        actual = await this.getConnectionStatus();
+        if (actual === 'Connected') return;
+      }
+
+      // Light reconnect still stalled — same provider-ready remount as initial
+      // connect (wait for registration, remount, Connect → approve).
+      if (
+        actual === 'Not connected' &&
+        Date.now() - lastProviderRemountAt >= 12_000 &&
+        deadline - Date.now() > 12_000
+      ) {
+        lastProviderRemountAt = Date.now();
+        await this.reconnectWithProviderReadyRemount(deadline);
+        actual = await this.getConnectionStatus();
+        if (actual === 'Connected') return;
       }
 
       await wait(POLL_MS);
@@ -180,6 +202,32 @@ class BitcoinTestDapp {
     throw new Error(
       `Timed out waiting for reconnect: expected "Connected", got "${actual}"`,
     );
+  }
+
+  /**
+   * Escalation after light reconnect stalls: wait for wallet-standard
+   * registration, remount the dapp, then drive Connect → wallet → standard →
+   * native approve within the remaining reconnect budget.
+   */
+  private async reconnectWithProviderReadyRemount(
+    deadline: number,
+  ): Promise<void> {
+    const remaining = () => Math.max(0, deadline - Date.now());
+    if (remaining() <= 0) {
+      return;
+    }
+
+    await this.waitForBitcoinWalletRegistered(Math.min(10_000, remaining()));
+    if (remaining() <= 0) {
+      return;
+    }
+
+    const reloaded = await this.reloadDappWithin(Math.min(10_000, remaining()));
+    if (!reloaded || remaining() <= 0) {
+      return;
+    }
+
+    await this.attemptDappReconnectBestEffort(deadline);
   }
 
   /**
@@ -202,6 +250,9 @@ class BitcoinTestDapp {
     const standardSelector = `button${sel(walletSelectionModal.standardButton)}`;
     const connectSelector = `button${sel(header.connect)}`;
 
+    // Prefer provider registration before Connect so the mount effect is less
+    // likely to capture wallets=[] (same shape as openWalletSelectionModal).
+    await this.waitForBitcoinWalletRegistered(Math.min(5_000, remaining()));
     if (remaining() <= 0 || !(await this.clickInPage(connectSelector))) {
       return;
     }
@@ -211,14 +262,16 @@ class BitcoinTestDapp {
       Math.min(8_000, remaining()),
     );
 
-    if (outcome === 'empty') {
+    // Empty modal OR no modal (timeout) — remount after registration so the
+    // next Connect sees a non-empty wallets list (#37325 residual).
+    if (outcome === 'empty' || outcome === 'timeout') {
       const stillLoaded = await this.getConnectionStatus();
       if (!stillLoaded || remaining() <= 0) {
         return;
       }
 
       const registered = await this.waitForBitcoinWalletRegistered(
-        Math.min(5_000, remaining()),
+        Math.min(8_000, remaining()),
       );
       await this.closeWalletSelectionModalBestEffort();
       if (!registered || remaining() <= 0) {
