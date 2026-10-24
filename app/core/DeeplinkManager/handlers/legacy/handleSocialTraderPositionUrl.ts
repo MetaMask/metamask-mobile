@@ -6,7 +6,10 @@ import NavigationService from '../../../NavigationService';
 import ReactQueryService from '../../../ReactQueryService';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import { SocialLeaderboardEventProperties } from '../../../../components/Views/SocialLeaderboard/analytics/socialLeaderboardEvents';
-import { getFollowTradingHomeRoute } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  getFollowTradingHomeRoute,
+  isSocialV1Treatment,
+} from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -49,7 +52,8 @@ const navigateToFallback = () => {
 /**
  * Handles notification-approved TraderPosition deeplinks.
  *
- * Supported URL format:
+ * Supported URL formats:
+ * - https://link.metamask.io/social/trader/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  */
 export const handleSocialTraderPositionUrl = ({
@@ -128,6 +132,7 @@ export const handleSocialTraderPositionUrl = ({
       originalEntryPoint: 'notification',
       notificationSubtype,
       notificationTemplateVariant,
+      isSocialV1: isSocialV1Treatment(),
     });
   } catch (error) {
     DevLogger.log(
