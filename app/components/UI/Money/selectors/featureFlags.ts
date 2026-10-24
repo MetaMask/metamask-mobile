@@ -244,6 +244,19 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
 );
 
 /**
+ * Selects whether the Money deposit Braze campaign can emit its trigger event.
+ */
+export const selectIsMoneyDepositBrazeCampaignEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyDepositBrazeCampaignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Kill-switch for the first-time deposit Rive animation.
  * Defaults to ON (true).
  */

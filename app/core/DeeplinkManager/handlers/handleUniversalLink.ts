@@ -99,6 +99,10 @@ import Logger from '../../../util/Logger';
 import type { DeeplinkParseMode } from '../utils/parseDeeplink';
 import type { DeeplinkIntent } from '../types/DeeplinkIntent';
 import { handleMoney } from './legacy/handleMoney';
+import {
+  createMoneyDepositDeeplinkIntent,
+  handleMoneyDeposit,
+} from './intent/handleMoneyDeposit';
 
 const SUPPORTED_ACTIONS = {
   DAPP: ACTIONS.DAPP,
@@ -134,6 +138,7 @@ const SUPPORTED_ACTIONS = {
   ON_RAMP: ACTIONS.ON_RAMP,
   PRIVACY: ACTIONS.PRIVACY,
   NOTIFICATIONS_SETTINGS: ACTIONS.NOTIFICATIONS_SETTINGS,
+  MONEY_ACCOUNT_DEPOSIT: ACTIONS.MONEY_ACCOUNT_DEPOSIT,
   // MetaMask SDK specific actions
   ANDROID_SDK: ACTIONS.ANDROID_SDK,
   CONNECT: ACTIONS.CONNECT,
@@ -174,6 +179,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.AGENTIC_CLI,
   SUPPORTED_ACTIONS.ON_RAMP,
   SUPPORTED_ACTIONS.MONEY,
+  SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT,
   SUPPORTED_ACTIONS.ASSET,
   SUPPORTED_ACTIONS.NOTIFICATIONS_SETTINGS,
 ];
@@ -325,6 +331,10 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
       createNotificationsSettingsDeeplinkIntent({
         notificationsSettingsPath: actionBasedRampPath,
       }),
+  },
+  [SUPPORTED_ACTIONS.MONEY_ACCOUNT_DEPOSIT]: {
+    execute: () => handleMoneyDeposit(),
+    resolve: () => createMoneyDepositDeeplinkIntent(),
   },
 };
 
