@@ -244,14 +244,13 @@ describe('ProfileDrawer', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
   });
 
-  it('navigates to the settings list when the settings row is pressed', () => {
+  it('navigates to the accounts menu when the settings row is pressed', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.SETTINGS_ROW));
 
-    // SettingsFlow opens on the accounts menu, so the nested screen is named.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   });
 

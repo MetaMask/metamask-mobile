@@ -79,9 +79,8 @@ const ProfileDrawer = () => {
   }, [navigation]);
 
   const handleSettings = useCallback(() => {
-    // SettingsFlow opens on the accounts menu, so name the nested screen.
     navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   }, [navigation]);
 
