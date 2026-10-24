@@ -122,6 +122,19 @@ describe('useEarningsSummary', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
+  it('does not call the controller while disabled', async () => {
+    const { result } = renderHook(() =>
+      useEarningsSummary(PROFILE_A, { enabled: false }),
+    );
+    await flushPromises();
+
+    await expect(
+      result.current.fetchEarningsSummary({ forceFresh: true }),
+    ).resolves.toBeUndefined();
+    expect(mockEngineCall).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('records a failure as an error and settles loading', async () => {
     mockEngineCall.mockRejectedValue(new Error('network'));
 
