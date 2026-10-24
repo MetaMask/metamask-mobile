@@ -17,6 +17,8 @@ import {
   resolveVbaOnboarding,
 } from './hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from './routes';
+import { endVbaCufJourney } from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const VBA_LOADING_SOURCE = 'money-add-money-bank-account';
 
@@ -47,7 +49,10 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   const [attempt, setAttempt] = useState(0);
   const [hasError, setHasError] = useState(false);
 
-  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+  const handleBack = useCallback(() => {
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
+    navigation.goBack();
+  }, [navigation]);
 
   const handleRetry = useCallback(() => {
     setHasError(false);
@@ -95,6 +100,12 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
       active = false;
     };
   }, [attempt, navigation, source]);
+
+  useEffect(() => {
+    if (hasError) {
+      endVbaCufJourney(false, VBA_CUF_END_REASON.ERROR);
+    }
+  }, [hasError]);
 
   if (hasError) {
     return <VbaOnboardingStub variant="error" onContinue={handleRetry} />;
