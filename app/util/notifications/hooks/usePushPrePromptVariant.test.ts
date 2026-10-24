@@ -450,17 +450,15 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.nativeOsPermissionEnabled).toBeNull();
   });
 
-  it('does not return the marketing consent prompt when MetaMetrics is off', async () => {
-    // OS push is granted, no marketing consent, but MetaMetrics is off —
-    // the marketing-consent sheet must never appear in this state.
+  it('returns the marketing consent prompt when MetaMetrics is off', async () => {
+    // Marketing consent is independent of MetaMetrics.
     arrangeSelectors({ isMetaMetricsEnabled: false });
 
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
-      expect(result.current.isResolving).toBe(false);
+      expect(result.current.variant).toBe('marketing_consent');
     });
-    expect(result.current.variant).toBeNull();
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
   });
 

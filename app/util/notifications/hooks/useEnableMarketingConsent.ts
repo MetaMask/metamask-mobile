@@ -32,12 +32,6 @@ export function useEnableMarketingConsent({
       [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
     };
 
-    // Never toggle MetaMetrics from the push onboarding sheets. If metrics is
-    // off, leave both metrics and data collection off.
-    if (!analytics.isEnabled()) {
-      return;
-    }
-
     if (hasMarketingConsent) {
       return;
     }

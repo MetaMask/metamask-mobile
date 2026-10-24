@@ -280,7 +280,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         });
       });
 
-      it('alerts and disables marketing when turned off', async () => {
+      it('alerts and keeps marketing on when turned off', async () => {
         (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -306,7 +306,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
         await waitFor(() => {
           expect(metaMetricsSwitch.props.value).toBe(false);
-          expect(marketingSwitch.props.value).toBe(false);
+          expect(marketingSwitch.props.value).toBe(true);
           expect(mockAnalytics.optOut).toHaveBeenCalled();
           expect(mockAlert).toHaveBeenCalled();
           expect(mockAnalytics.identify).not.toHaveBeenCalled();
@@ -615,7 +615,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
           });
         });
 
-        it('disables social login metrics and disables marketing when toggling MetaMetrics switch off', async () => {
+        it('disables social login metrics and keeps marketing on when toggling MetaMetrics switch off', async () => {
           (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
 
           const { findByTestId } = renderScreen(
@@ -642,7 +642,7 @@ describe('MetaMetricsAndDataCollectionSection', () => {
 
           await waitFor(() => {
             expect(metaMetricsSwitch.props.value).toBe(false);
-            expect(marketingSwitch.props.value).toBe(false);
+            expect(marketingSwitch.props.value).toBe(true);
             expect(mockAnalytics.optOut).toHaveBeenCalled();
             expect(mockAlert).toHaveBeenCalled();
             expect(mockAnalytics.identify).not.toHaveBeenCalled();
@@ -751,11 +751,8 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         expect(marketingSwitch.props.value).toBe(false);
       });
 
-      // testing the interaction between MetaMetrics and Marketing switches
-      const testMarketingSwitchWithMetaMetricsSwitch = async (
-        metaMetricsInitiallyEnabled: boolean,
-      ) => {
-        mockMetrics.isEnabled.mockReturnValue(metaMetricsInitiallyEnabled);
+      const turnMarketingOn = async (metaMetricsEnabled: boolean) => {
+        mockMetrics.isEnabled.mockReturnValue(metaMetricsEnabled);
 
         const { findByTestId } = renderScreen(
           MetaMetricsAndDataCollectionSection,
@@ -766,65 +763,41 @@ describe('MetaMetricsAndDataCollectionSection', () => {
         const metaMetricsSwitch = await findByTestId(
           SecurityPrivacyViewSelectorsIDs.METAMETRICS_SWITCH,
         );
-
         const marketingSwitch = await findByTestId(
           SecurityPrivacyViewSelectorsIDs.DATA_COLLECTION_SWITCH,
         );
 
-        expect(metaMetricsSwitch).toBeTruthy();
-        expect(marketingSwitch).toBeTruthy();
-
-        expect(metaMetricsSwitch.props.value).toBe(metaMetricsInitiallyEnabled);
-        expect(marketingSwitch.props.value).toBe(false);
-
         fireEvent(marketingSwitch, 'valueChange', true);
+
+        return { metaMetricsSwitch, marketingSwitch };
+      };
+
+      it('turns marketing on without turning MetaMetrics on', async () => {
+        const { metaMetricsSwitch, marketingSwitch } =
+          await turnMarketingOn(false);
+
+        await waitFor(() => {
+          expect(marketingSwitch.props.value).toBe(true);
+          expect(metaMetricsSwitch.props.value).toBe(false);
+          expect(mockAnalytics.optIn).not.toHaveBeenCalled();
+          expect(mockAnalytics.identify).not.toHaveBeenCalled();
+          expect(mockAnalytics.trackEvent).not.toHaveBeenCalled();
+        });
+      });
+
+      it('keeps MetaMetrics switch on, adds traits to user and tracks event when turned on', async () => {
+        const { metaMetricsSwitch, marketingSwitch } =
+          await turnMarketingOn(true);
 
         await waitFor(() => {
           expect(marketingSwitch.props.value).toBe(true);
           expect(metaMetricsSwitch.props.value).toBe(true);
-
           expect(mockAlert).not.toHaveBeenCalled();
-
-          // Not called when MetaMetrics is initially enabled
-          if (!metaMetricsInitiallyEnabled) {
-            expect(mockAnalytics.optIn).toHaveBeenCalled();
-            expect(mockAnalytics.identify).toHaveBeenNthCalledWith(1, {
-              deviceProp: 'Device value',
-              userProp: 'User value',
-            });
-            expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-              1,
-              expect.objectContaining({
-                name: MetaMetricsEvents.METRICS_OPT_IN.category,
-                properties: expect.objectContaining({
-                  location: 'settings',
-                  updated_after_onboarding: true,
-                }),
-              }),
-            );
-            expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-              2,
-              expect.objectContaining({
-                name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
-                properties: expect.objectContaining({
-                  is_metrics_opted_in: true,
-                  location: 'settings',
-                  updated_after_onboarding: true,
-                }),
-              }),
-            );
-          }
-
-          expect(mockAnalytics.identify).toHaveBeenNthCalledWith(
-            // if MetaMetrics is initially disabled, identify is called twice and this is 2nd call
-            !metaMetricsInitiallyEnabled ? 2 : 1,
-            {
-              has_marketing_consent: true,
-            },
-          );
-          expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
-            // if MetaMetrics is initially disabled, marketing consent is the 3rd trackEvent
-            !metaMetricsInitiallyEnabled ? 3 : 1,
+          expect(mockAnalytics.optIn).not.toHaveBeenCalled();
+          expect(mockAnalytics.identify).toHaveBeenCalledWith({
+            has_marketing_consent: true,
+          });
+          expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
             expect.objectContaining({
               name: MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED.category,
               properties: expect.objectContaining({
@@ -835,14 +808,6 @@ describe('MetaMetricsAndDataCollectionSection', () => {
             }),
           );
         });
-      };
-
-      it('change MetaMetrics switch to on, adds traits to user and tracks event when turned on', async () => {
-        await testMarketingSwitchWithMetaMetricsSwitch(false);
-      });
-
-      it('keeps MetaMetrics switch on, adds traits to user and tracks event when turned on', async () => {
-        await testMarketingSwitchWithMetaMetricsSwitch(true);
       });
 
       it('keeps MetaMetrics switch on and display modal when turned off', async () => {
