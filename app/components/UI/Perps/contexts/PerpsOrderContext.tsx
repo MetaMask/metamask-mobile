@@ -31,6 +31,8 @@ interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
   orderBookSizeFill?: PerpsOrderBookSizeFill;
   /** Sets the form amount and records the exact size behind it. */
   fillOrderBookSize: (fill: PerpsOrderBookSizeFill) => void;
+  /** Drops the recorded fill, so sizing works from the amount again. */
+  clearOrderBookSizeFill: () => void;
 }
 
 const PerpsOrderContext = createContext<PerpsOrderContextType | null>(null);
@@ -81,6 +83,10 @@ export const PerpsOrderProvider = ({
     },
     [setAmount],
   );
+  const clearOrderBookSizeFill = useCallback(
+    () => setOrderBookSizeFill(undefined),
+    [],
+  );
 
   // orderFormState is itself memoized by usePerpsOrderForm (stable callbacks +
   // changing primitives), so depending on it directly keeps the provider value
@@ -91,8 +97,15 @@ export const PerpsOrderProvider = ({
       existingPosition,
       orderBookSizeFill,
       fillOrderBookSize,
+      clearOrderBookSizeFill,
     }),
-    [orderFormState, existingPosition, orderBookSizeFill, fillOrderBookSize],
+    [
+      orderFormState,
+      existingPosition,
+      orderBookSizeFill,
+      fillOrderBookSize,
+      clearOrderBookSizeFill,
+    ],
   );
 
   return (

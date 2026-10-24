@@ -137,6 +137,7 @@ describe('PerpsOrderContext', () => {
       expect(result.current).toEqual({
         ...mockOrderFormReturn,
         fillOrderBookSize: expect.any(Function),
+        clearOrderBookSizeFill: expect.any(Function),
       });
     });
 
@@ -150,6 +151,23 @@ describe('PerpsOrderContext', () => {
 
       expect(mockOrderFormReturn.setAmount).toHaveBeenCalledWith('331.66');
       expect(result.current.orderBookSizeFill).toEqual(fill);
+    });
+
+    it('drops a recorded order-book fill when cleared', () => {
+      const { result } = renderHookWithProvider(() => usePerpsOrderContext());
+      act(() => {
+        result.current.fillOrderBookSize({
+          size: '0.29',
+          amount: '722.1',
+          price: '2490',
+        });
+      });
+
+      act(() => {
+        result.current.clearOrderBookSizeFill();
+      });
+
+      expect(result.current.orderBookSizeFill).toBeUndefined();
     });
 
     it('passes through all properties from usePerpsOrderForm', () => {
@@ -212,6 +230,7 @@ describe('PerpsOrderContext', () => {
       expect(result.current).toEqual({
         ...mockOrderFormReturn,
         fillOrderBookSize: expect.any(Function),
+        clearOrderBookSizeFill: expect.any(Function),
       });
       expect(result.current.orderForm.asset).toBe('BTC');
       expect(result.current.orderForm.direction).toBe('long');

@@ -718,6 +718,7 @@ export const usePerpsProOrderForm = ({
     setMaxPossibleAmountOverride,
     balanceForValidation: spendableBalance,
     orderBookSizeFill,
+    clearOrderBookSizeFill,
   } = usePerpsOrderContext();
 
   // Restore reduce-only from the 30s pending draft.
@@ -1206,6 +1207,13 @@ export const usePerpsProOrderForm = ({
     new BigNumber(orderBookSizeFill.price).eq(orderBookFillPrice)
       ? orderBookSizeFill.size
       : undefined;
+  // Once the amount or price moves off the fill, drop it: setting them back
+  // is a new entry and sizes from the amount.
+  useEffect(() => {
+    if (orderBookSizeFill !== undefined && orderBookFillSize === undefined) {
+      clearOrderBookSizeFill();
+    }
+  }, [clearOrderBookSizeFill, orderBookFillSize, orderBookSizeFill]);
 
   const effectiveInputPrice = useMemo(
     () =>
