@@ -4,6 +4,8 @@ export const HomepageBalanceBreakdownTestIds = {
   CONTAINER: 'homepage-balance-breakdown',
   HERO: 'homepage-balance-breakdown-hero',
   HERO_CONTENT: 'homepage-balance-breakdown-hero-content',
+  HERO_BALANCE_SKELETON: 'homepage-balance-breakdown-hero-balance-skeleton',
+  HERO_DELTA_SKELETON: 'homepage-balance-breakdown-hero-delta-skeleton',
   HERO_DELTA_AMOUNT: 'homepage-balance-breakdown-hero-delta-amount',
   HERO_DELTA_PERCENT: 'homepage-balance-breakdown-hero-delta-percent',
   HERO_PERIOD: 'homepage-balance-breakdown-hero-period',
