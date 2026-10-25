@@ -664,6 +664,31 @@ describe('handlePerpsUrl', () => {
       );
     });
 
+    it('resolves the startup intent at the fetch deadline when getMarkets stalls', async () => {
+      mockGetMarkets.mockReturnValue(new Promise(() => undefined));
+      const onIntent = jest.fn();
+
+      const pendingIntent = createPerpsDeeplinkIntent({
+        perpsPath: 'perps?screen=asset&symbol=BTC',
+      }).then(onIntent);
+      await jest.advanceTimersByTimeAsync(1_999);
+
+      expect(onIntent).not.toHaveBeenCalled();
+
+      await jest.advanceTimersByTimeAsync(1);
+      await pendingIntent;
+
+      expect(onIntent).toHaveBeenCalledWith({
+        target: expect.objectContaining({
+          params: expect.objectContaining({
+            params: expect.objectContaining({
+              market: expect.objectContaining({ symbol: 'BTC' }),
+            }),
+          }),
+        }),
+      });
+    });
+
     it('returns the canonical market in the startup intent', async () => {
       mockGetCachedMarketDataForActiveProvider.mockReturnValue([
         { symbol: 'kPEPE' },

@@ -97,12 +97,18 @@ const parseHip3Symbol = (
 };
 
 /**
+ * Deadline for the standalone market fetch. The startup deeplink awaits this
+ * intent after unlock, so a slow or stalled request must not hold navigation.
+ */
+const MARKET_FETCH_TIMEOUT_MS = 2_000;
+
+/**
  * Resolve a deeplink symbol to its canonical market symbol. Market symbols are
  * case-sensitive (e.g. 'kPEPE', 'kLUNC'), so match the market list
  * case-insensitively: the preloaded list when available, otherwise a
  * standalone fetch that works before Perps is initialized (e.g. cold start).
  * Falls back to the normalized symbol (lowercase dex, uppercase asset) when
- * the list is unavailable or has no match.
+ * the list is unavailable, the fetch misses its deadline, or nothing matches.
  * @param rawSymbol The asset symbol from the deeplink (may include a dex prefix for HIP-3)
  */
 const resolvePerpsSymbol = async (rawSymbol: string): Promise<string> => {
@@ -117,12 +123,20 @@ const resolvePerpsSymbol = async (rawSymbol: string): Promise<string> => {
         .getCachedMarketDataForActiveProvider({ skipTTL: true })
         ?.map((market) => market.symbol) ??
       (
-        await controller.getMarkets({
-          standalone: true,
-          useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
-            ReduxService.store.getState(),
+        await Promise.race([
+          controller.getMarkets({
+            standalone: true,
+            useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
+              ReduxService.store.getState(),
+            ),
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Market fetch timeout')),
+              MARKET_FETCH_TIMEOUT_MS,
+            ),
           ),
-        })
+        ])
       ).map((market) => market.name);
 
     return (
