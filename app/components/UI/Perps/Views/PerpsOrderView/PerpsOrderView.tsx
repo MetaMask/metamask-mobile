@@ -465,6 +465,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handlePercentageAmount,
     handleMaxAmount,
     maxPossibleAmount,
+    setEstimatedFeeRate,
     balanceForValidation: spendableBalance,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
@@ -793,6 +794,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       : undefined,
   });
 
+  // Size the max off the same resolved quote that drives the displayed fee.
+  const quotedFeeRate =
+    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
+  useEffect(() => {
+    setEstimatedFeeRate(quotedFeeRate);
+  }, [quotedFeeRate, setEstimatedFeeRate]);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Deposit/bridge fees from transaction pay (when paying with custom token)

@@ -716,6 +716,7 @@ export const usePerpsProOrderForm = ({
     pendingReduceOnly,
     maxPossibleAmount,
     setMaxPossibleAmountOverride,
+    setEstimatedFeeRate,
     balanceForValidation: spendableBalance,
   } = usePerpsOrderContext();
 
@@ -1708,6 +1709,12 @@ export const usePerpsProOrderForm = ({
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
+  // Size the max off the same resolved quote that drives the displayed fee.
+  const quotedFeeRate =
+    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
+  useEffect(() => {
+    setEstimatedFeeRate(quotedFeeRate);
+  }, [quotedFeeRate, setEstimatedFeeRate]);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Scale endpoints are compared against the side of the book they would hit:

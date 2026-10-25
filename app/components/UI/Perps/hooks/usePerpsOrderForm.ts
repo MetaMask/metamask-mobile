@@ -23,7 +23,6 @@ import {
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
-import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsSelector } from './usePerpsSelector';
 import { selectPerpsMode } from '../selectors/perpsController';
 import {
@@ -129,6 +128,8 @@ export interface UsePerpsOrderFormReturn {
    * the open position notional). Pass `null` to restore the margin-based cap.
    */
   setMaxPossibleAmountOverride: (amount: number | null) => void;
+  /** Reserves the quoted trading fee (fraction of notional) in the margin-based max. */
+  setEstimatedFeeRate: (rate: number) => void;
   /** Balance to use for validation and UI (Perps balance or selected token amount in USD when paying with custom token) */
   balanceForValidation: number;
 }
@@ -319,35 +320,11 @@ export function usePerpsOrderForm(
     },
     [],
   );
-  // Total taker fee rate (protocol + MetaMask) as a fraction of notional. Fees
-  // are charged on top of margin, so the max size must leave room for them.
-  const { calculateFees } = usePerpsTrading();
-  const [totalFeeRate, setTotalFeeRate] = useState(0);
-  const totalFeeRateRef = useRef(0);
-  useEffect(() => {
-    let isMounted = true;
-    calculateFees({
-      orderType: orderForm.type,
-      isMaker: false,
-      symbol: initialAsset,
-    })
-      .then(({ protocolFeeRate, metamaskFeeRate }) => {
-        if (!isMounted) return;
-        const nextRate =
-          protocolFeeRate === undefined || metamaskFeeRate === undefined
-            ? 0
-            : protocolFeeRate + metamaskFeeRate;
-        if (nextRate === totalFeeRateRef.current) return;
-        totalFeeRateRef.current = nextRate;
-        setTotalFeeRate(nextRate);
-      })
-      .catch(() => {
-        // Keep the last known rate; the exchange still validates the order.
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [calculateFees, orderForm.type, initialAsset]);
+  // Fee rate (protocol + MetaMask) as a fraction of notional, pushed in by the
+  // order surface from its own resolved fee quote (`usePerpsOrderFees`), so the
+  // max size and the displayed fee never diverge. Fees are charged on top of
+  // margin, so the max size must leave room for them.
+  const [estimatedFeeRate, setEstimatedFeeRate] = useState(0);
 
   const effectiveMaxSlippageBps = useMemo(
     () =>
@@ -365,7 +342,7 @@ export function usePerpsOrderForm(
   const marginBasedMaxPossibleAmount = useMemo(() => {
     // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
     const feeAdjustedBalance =
-      balanceForMax / (1 + totalFeeRate * orderForm.leverage);
+      balanceForMax / (1 + estimatedFeeRate * orderForm.leverage);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -413,7 +390,7 @@ export function usePerpsOrderForm(
     });
   }, [
     balanceForMax,
-    totalFeeRate,
+    estimatedFeeRate,
     currentPrice?.price,
     orderForm.type,
     orderForm.direction,
@@ -701,6 +678,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      setEstimatedFeeRate,
       balanceForValidation: balanceForMax,
     }),
     [
@@ -731,6 +709,7 @@ export function usePerpsOrderForm(
       handleMinAmount,
       maxPossibleAmount,
       setMaxPossibleAmountOverride,
+      setEstimatedFeeRate,
       balanceForMax,
     ],
   );

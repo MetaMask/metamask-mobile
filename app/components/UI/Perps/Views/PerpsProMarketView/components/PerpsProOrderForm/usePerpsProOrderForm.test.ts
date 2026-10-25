@@ -156,6 +156,7 @@ const mockContextValue = {
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 500,
 };
 

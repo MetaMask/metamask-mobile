@@ -1044,6 +1044,164 @@ describe('PerpsOrderView', () => {
     });
   });
 
+  describe('fee-adjusted max size', () => {
+    const LEVERAGE = 4;
+    const BALANCE = 1000;
+    // Far above the ceiling, so the form settles on the max (the 100% slider).
+    const ABOVE_MAX_AMOUNT = '100000';
+
+    const renderAtMax = async () => {
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: ABOVE_MAX_AMOUNT,
+          leverage: LEVERAGE,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+    };
+
+    const placeOrderAndReadAmount = async () => {
+      const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
+      const button = await waitForEnabledPlaceOrderButton();
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(placeOrder).toHaveBeenCalledTimes(1));
+      return Number(placeOrder.mock.calls[0][0].usdAmount);
+    };
+
+    const expectNoBalanceError = () => {
+      expect(screen.queryByText(/^Insufficient balance\./)).toBeNull();
+      expect(
+        screen.queryByText(
+          strings('perps.order.validation.insufficient_funds_to_cover_trade'),
+        ),
+      ).toBeNull();
+    };
+
+    it('sizes the max so margin plus fee fits the balance and keeps the CTA enabled', async () => {
+      const feeRate = 0.005;
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue({
+        protocolFeeRate: 0.0045,
+        metamaskFeeRate: 0.0005,
+      });
+
+      await renderAtMax();
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount / LEVERAGE + usdAmount * feeRate).toBeLessThanOrEqual(
+        BALANCE,
+      );
+      expect(usdAmount).toBeGreaterThan(3800);
+      expectNoBalanceError();
+    });
+
+    it('keeps a partial size untouched by the fee reservation', async () => {
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue({
+        protocolFeeRate: 0.0045,
+        metamaskFeeRate: 0.0005,
+      });
+      const { stream } = renderPerpsOrderView({
+        overrides: eligibleOverrides,
+        initialParams: {
+          asset: 'ETH',
+          direction: 'long',
+          amount: '2000',
+          leverage: LEVERAGE,
+        },
+        streamOverrides: {
+          account,
+          positions: [],
+          orders: [],
+          marketData: [ethMarket],
+        },
+        extraRoutes: [marketDetailsRoute],
+      });
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBe(2000);
+      expectNoBalanceError();
+    });
+
+    it('shrinks the max again when a refreshed quote raises the fee while at max', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      // The first quote is for the oversized amount; every later quote (after
+      // the amount settles on the max) carries a higher fee.
+      calculateFees.mockImplementation(
+        async ({ amount }: { amount: string }) =>
+          amount === ABOVE_MAX_AMOUNT
+            ? { protocolFeeRate: 0.0004, metamaskFeeRate: 0.0001 }
+            : { protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 },
+      );
+
+      await renderAtMax();
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+      expectNoBalanceError();
+    });
+
+    it('holds the unreserved max while the quote is pending and shrinks it once it resolves', async () => {
+      let resolveQuote: (quote: object) => void = () => undefined;
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveQuote = resolve;
+          }),
+      );
+      await renderAtMax();
+      await waitForDeferredOrderData();
+      expect(
+        screen.getByTestId(PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        resolveQuote({ protocolFeeRate: 0.0095, metamaskFeeRate: 0.0005 });
+      });
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount / LEVERAGE + usdAmount * 0.01).toBeLessThanOrEqual(
+        BALANCE,
+      );
+      expectNoBalanceError();
+    });
+
+    it('falls back to the unreserved max when the quote is rejected', async () => {
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockRejectedValue(new Error('fee quote unavailable'));
+
+      await renderAtMax();
+      const usdAmount = await placeOrderAndReadAmount();
+
+      expect(usdAmount).toBeGreaterThan(3900);
+      expectNoBalanceError();
+    });
+  });
+
   it('routes cross-margin positions to the warning modal instead of placing an order', async () => {
     const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
     const { stream } = renderPerpsOrderView({
