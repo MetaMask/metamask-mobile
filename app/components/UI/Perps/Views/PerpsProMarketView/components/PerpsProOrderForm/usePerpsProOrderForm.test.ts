@@ -320,6 +320,7 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
+  usePerpsQuotedFeeReservation: jest.fn(),
   usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
     mockOrderValidationParams = params;
     if (mockValidateCalculatedMargin && params) {

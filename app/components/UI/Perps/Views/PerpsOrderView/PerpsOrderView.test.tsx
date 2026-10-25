@@ -357,11 +357,13 @@ jest.mock('../../hooks', () => {
     })),
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
+    usePerpsQuotedFeeReservation: jest.fn(),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
       protocolFee: 45,
       metamaskFee: 0,
+      totalFeeRate: 0.00045,
       protocolFeeRate: 0.00045,
       metamaskFeeRate: 0,
       isLoadingMetamaskFee: false,
