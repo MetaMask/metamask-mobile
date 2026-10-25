@@ -204,6 +204,18 @@ describe('SocialLeaderboard', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps row details in the opt-in virtualized list', () => {
+    mockQueryResult({
+      traders: [buildTrader({ id: 'virtualized', percentageChange: 7.76 })],
+    });
+
+    renderLeaderboard({ virtualized: true });
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeOnTheScreen();
+  });
+
   it('fetches spot chains for the tokens asset class', () => {
     renderLeaderboard({ source: { kind: 'all', assetClass: 'tokens' } });
 

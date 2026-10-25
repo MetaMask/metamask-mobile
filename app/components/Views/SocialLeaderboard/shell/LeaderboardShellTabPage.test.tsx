@@ -12,13 +12,15 @@ const mockLeaderboardProps = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 let mockIsPerpsEnabled = true;
+let mockHardwareTier: 'LOW' | 'HIGH' | null = null;
+let mockNetworkTier: 'WIFI' | 'NONE' | 'SLOW_CELLULAR' | null = null;
 
 jest.mock('../../../../util/deviceCapability', () => ({
-  getHardwareTier: () => null,
+  getHardwareTier: () => mockHardwareTier,
 }));
 
 jest.mock('../../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => null,
+  useNetworkTier: () => mockNetworkTier,
 }));
 
 jest.mock('../../../UI/SocialLeaderboard', () => {
@@ -90,6 +92,8 @@ describe('LeaderboardShellTabPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
+    mockHardwareTier = null;
+    mockNetworkTier = null;
   });
 
   it('renders the combined ranking with the viewer card by default', () => {
@@ -102,6 +106,7 @@ describe('LeaderboardShellTabPage', () => {
         source: { kind: 'all', assetClass: 'all' },
         location: 'social_leaderboard',
         showViewerRow: true,
+        virtualized: true,
         filters: { timeframe: '7d', ranking: 'pnl', cohort: 'all' },
       }),
     );
@@ -173,6 +178,27 @@ describe('LeaderboardShellTabPage', () => {
     rerender(
       <LeaderboardShellTabPage
         isActive={false}
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    expect(screen.getByTestId(LEADERBOARD_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('keeps prepared rows mounted if capability later degrades', () => {
+    const { rerender } = renderWithProvider(
+      <LeaderboardShellTabPage
+        isActive={false}
+        prepare
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    mockHardwareTier = 'LOW';
+    rerender(
+      <LeaderboardShellTabPage
+        isActive={false}
+        prepare
         containerTestID="leaderboard-page"
       />,
     );

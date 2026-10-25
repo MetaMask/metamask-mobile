@@ -122,6 +122,7 @@ describe('useSocialV1Feed', () => {
           audience: 'all',
         },
         {
+          enabled: true,
           performance: { tab: 'trending' },
         },
       );
@@ -137,6 +138,7 @@ describe('useSocialV1Feed', () => {
           audience: 'following',
         },
         {
+          enabled: true,
           performance: { tab: 'following' },
         },
       );
@@ -149,7 +151,16 @@ describe('useSocialV1Feed', () => {
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
         { kind: 'all', audience: 'all' },
-        { performance: undefined },
+        { enabled: true, performance: undefined },
+      );
+    });
+
+    it('forwards the deferred fetch gate', () => {
+      renderHook(() => useSocialV1Feed('trending', { enabled: false }));
+
+      expect(mockUseSocialFeed).toHaveBeenCalledWith(
+        { kind: 'all', audience: 'all' },
+        { enabled: false, performance: { tab: 'trending' } },
       );
     });
 

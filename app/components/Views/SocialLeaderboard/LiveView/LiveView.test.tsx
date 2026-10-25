@@ -39,6 +39,16 @@ const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
 const mockFeedScrollToOffset = jest.fn();
 const mockRevealPending = jest.fn();
 let mockPendingNewCount = 0;
+let mockHardwareTier: 'LOW' | 'HIGH' | null = 'HIGH';
+let mockNetworkTier: 'WIFI' | 'NONE' | 'SLOW_CELLULAR' | null = 'WIFI';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
@@ -142,6 +152,8 @@ describe('LiveView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPendingNewCount = 0;
+    mockHardwareTier = 'HIGH';
+    mockNetworkTier = 'WIFI';
   });
 
   it('renders the all-traders feed in virtualized realtime mode', () => {
@@ -161,9 +173,31 @@ describe('LiveView', () => {
   });
 
   it('turns realtime off while the tab is inactive', () => {
-    renderWithProvider(<LiveView isActive={false} />, { state });
+    const { rerender } = renderWithProvider(<LiveView />, { state });
+
+    rerender(<LiveView isActive={false} />);
 
     expect(lastFeedProps().realtime).toBe(false);
+  });
+
+  it('prepares the feed without starting realtime', () => {
+    renderWithProvider(<LiveView isActive={false} prepare />, { state });
+
+    expect(lastFeedProps().realtime).toBe(false);
+  });
+
+  it('waits for activation before preparing on low-tier hardware', () => {
+    mockHardwareTier = 'LOW';
+    const { rerender } = renderWithProvider(
+      <LiveView isActive={false} prepare />,
+      { state },
+    );
+
+    expect(mockSocialFeed).not.toHaveBeenCalled();
+
+    rerender(<LiveView isActive prepare />);
+
+    expect(lastFeedProps().realtime).toBe(true);
   });
 
   it('keeps every post with the default filters', () => {

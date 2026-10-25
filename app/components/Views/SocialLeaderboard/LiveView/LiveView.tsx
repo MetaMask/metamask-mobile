@@ -79,9 +79,7 @@ const LiveView: React.FC<LiveViewProps> = ({
     hardwareTier !== 'LOW' &&
     networkTier !== 'NONE' &&
     networkTier !== 'SLOW_CELLULAR';
-  const [hasMountedFeed, setHasMountedFeed] = useState(
-    isActive || prepareFeed,
-  );
+  const [hasMountedFeed, setHasMountedFeed] = useState(isActive || prepareFeed);
 
   useEffect(() => {
     if (isActive || prepareFeed) {

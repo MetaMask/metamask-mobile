@@ -186,10 +186,9 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   }, [isActive, prepareRows]);
 
   const fetchEnabled =
-    networkTier !== 'NONE' &&
-    (isActive ||
-      hasBeenActive ||
-      (prefetch && allowAdjacentPrefetch(hardwareTier, networkTier)));
+    isActive ||
+    hasBeenActive ||
+    (prefetch && allowAdjacentPrefetch(hardwareTier, networkTier));
 
   const {
     posts,

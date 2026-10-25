@@ -120,6 +120,10 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     hardwareTier !== 'LOW' &&
     networkTier !== 'NONE' &&
     networkTier !== 'SLOW_CELLULAR';
+  const paintPrepared = prepare && allowPrefetch;
+  const [hasMountedRows, setHasMountedRows] = useState(
+    isActive || paintPrepared,
+  );
   const hasFiredScreenViewedRef = useRef(false);
 
   useEffect(() => {
@@ -127,6 +131,12 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
       setHasBeenActive(true);
     }
   }, [isActive]);
+
+  useEffect(() => {
+    if (isActive || paintPrepared) {
+      setHasMountedRows(true);
+    }
+  }, [isActive, paintPrepared]);
 
   useImperativeHandle(
     pageRef,
@@ -192,10 +202,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
 
   const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
   const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
-  const paintPrepared = prepare && allowPrefetch;
-  const shouldMount =
-    isActive || hasBeenActive || paintPrepared || (prefetch && allowPrefetch);
-  const isVisible = isActive || hasBeenActive || paintPrepared;
+  const shouldMount = hasMountedRows || (prefetch && allowPrefetch);
+  const isVisible = hasMountedRows;
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>

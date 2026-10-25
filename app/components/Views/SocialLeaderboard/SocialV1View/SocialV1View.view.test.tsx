@@ -12,12 +12,7 @@ import '../../../../../tests/component-view/mocks';
 import '../testUtils/flashListViewMock';
 
 import React from 'react';
-import {
-  fireEvent,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react-native';
+import { fireEvent, screen, within } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
@@ -242,9 +237,7 @@ describe('SocialV1View initial tab', () => {
     expect(
       await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).toBeOnTheScreen();
-    await waitFor(() =>
-      expect(getCalledActions()).toContain('SocialService:fetchFeed'),
-    );
+    expect(getCalledActions()).not.toContain('SocialService:fetchFeed');
     const trendingPage = within(
       screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
     );
