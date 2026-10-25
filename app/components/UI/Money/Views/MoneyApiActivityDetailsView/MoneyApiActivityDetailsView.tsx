@@ -249,7 +249,7 @@ function BankTransferActivitySteps({
           title={strings('money.transaction.bank_transfer')}
           subtitle={subtitle}
           severity={bankTransferSeverity}
-          buttonIcon={ComponentIconName.Export}
+          buttonIcon={ComponentIconName.ArrowSquareOut}
           onButtonPress={onOpenExplorer}
         />
         {failed ? null : (
@@ -258,7 +258,7 @@ function BankTransferActivitySteps({
             title={strings('transaction_details.title.musd_conversion')}
             subtitle={subtitle}
             severity={convertedSeverity}
-            buttonIcon={ComponentIconName.Export}
+            buttonIcon={ComponentIconName.ArrowSquareOut}
             onButtonPress={onOpenExplorer}
           />
         )}
@@ -268,7 +268,7 @@ function BankTransferActivitySteps({
             title={strings('transaction_details.title.money_account_deposit')}
             subtitle={subtitle}
             severity={moneyDepositSeverity}
-            buttonIcon={ComponentIconName.Export}
+            buttonIcon={ComponentIconName.ArrowSquareOut}
             onButtonPress={onOpenExplorer}
           />
         )}
