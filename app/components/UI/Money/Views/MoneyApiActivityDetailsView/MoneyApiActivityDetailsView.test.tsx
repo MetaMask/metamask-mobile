@@ -57,6 +57,7 @@ const bankTransfer: AccountsApiActivity = {
   token,
   amount: '15009500',
   receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+  status: 'confirmed',
 };
 
 const declinedCardTransaction: CardTransaction = {
@@ -676,6 +677,30 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(
         getByText('transaction_details.title.money_account_deposit'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders both legs completed for a confirmed API transfer', () => {
+      const { getAllByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getAllByTestId('progress-list-item-success')).toHaveLength(2);
+    });
+
+    it('renders both legs pending for a processing API transfer', () => {
+      mockRouteParams = {
+        activity: { ...bankTransfer, status: 'processing' },
+      };
+      const { getAllByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
+    });
+
+    it('renders both legs failed for an errored API transfer', () => {
+      mockRouteParams = {
+        activity: { ...bankTransfer, status: 'error' },
+      };
+      const { getAllByTestId } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getAllByTestId('progress-list-item-error')).toHaveLength(2);
     });
 
     it('does not render Steps for cashback rows', () => {

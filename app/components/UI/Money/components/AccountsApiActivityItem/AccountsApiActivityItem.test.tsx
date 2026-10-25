@@ -86,6 +86,7 @@ const bankTransfer: AccountsApiActivity = {
   token,
   amount: '15009500',
   receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+  status: 'confirmed',
 };
 
 const enrichment: CardTransaction = {
