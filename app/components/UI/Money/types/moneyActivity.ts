@@ -1,5 +1,4 @@
 import type { TransactionMeta } from '@metamask/transaction-controller';
-import type { VbaTransfer } from '@metamask/money-account-api-data-service';
 import type { Hex } from '@metamask/utils';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
@@ -41,8 +40,12 @@ export type AccountsApiActivity =
       /** VBA / Iron (or QA test-wallet) mUSD credit to the Money Account. */
       kind: 'bank_transfer';
       receivedFrom: Hex;
-      /** Money Account API transfer status, used for the off-chain leg. */
-      status: VbaTransfer['status'];
+      /**
+       * Money Account API transfer status. Only `confirmed` transfers with an
+       * on-chain hash become completed API activity; in-flight and errored
+       * transfers stay NeoBank rows.
+       */
+      status: 'confirmed';
     });
 
 /**

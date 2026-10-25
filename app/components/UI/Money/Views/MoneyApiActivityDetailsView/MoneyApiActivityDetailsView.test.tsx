@@ -685,24 +685,6 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getAllByTestId('progress-list-item-success')).toHaveLength(2);
     });
 
-    it('renders both legs pending for a processing API transfer', () => {
-      mockRouteParams = {
-        activity: { ...bankTransfer, status: 'processing' },
-      };
-      const { getAllByTestId } = render(<MoneyApiActivityDetailsView />);
-
-      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
-    });
-
-    it('renders both legs failed for an errored API transfer', () => {
-      mockRouteParams = {
-        activity: { ...bankTransfer, status: 'error' },
-      };
-      const { getAllByTestId } = render(<MoneyApiActivityDetailsView />);
-
-      expect(getAllByTestId('progress-list-item-error')).toHaveLength(2);
-    });
-
     it('does not render Steps for cashback rows', () => {
       mockRouteParams = { activity: cashback };
       const { queryByTestId } = render(<MoneyApiActivityDetailsView />);

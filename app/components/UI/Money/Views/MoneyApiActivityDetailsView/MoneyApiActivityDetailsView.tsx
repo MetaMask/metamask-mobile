@@ -6,7 +6,6 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { VbaTransfer } from '@metamask/money-account-api-data-service';
 import {
   AvatarNetwork,
   AvatarNetworkSize,
@@ -202,8 +201,7 @@ type BankTransferStepSeverity = 'success' | 'warning' | 'error';
  * - MoonPay pay-in still open → both steps pending
  * - MoonPay Completed, mUSD not on-chain yet → Bank transfer success,
  * Deposit to Money Account pending
- * - Accounts API transfer status → confirmed: both success; processing: both
- * pending; error: both failed
+ * - Accounts API completed (confirmed settlement) → both success
  */
 function BankTransferActivitySteps({
   timestamp,
@@ -251,24 +249,6 @@ function BankTransferActivitySteps({
       </ProgressList>
     </Box>
   );
-}
-
-/**
- * Maps the Money Account API VBA transfer status to the two-leg deposit
- * timeline. The mUSD deposit is only complete once the on-chain settlement is
- * confirmed; in-flight or errored transfers never mark that leg successful.
- */
-function getApiBankTransferSeverities(status: VbaTransfer['status']): {
-  bankTransferSeverity: BankTransferStepSeverity;
-  moneyDepositSeverity: BankTransferStepSeverity;
-} {
-  if (status === 'error') {
-    return { bankTransferSeverity: 'error', moneyDepositSeverity: 'error' };
-  }
-  if (status === 'processing') {
-    return { bankTransferSeverity: 'warning', moneyDepositSeverity: 'warning' };
-  }
-  return { bankTransferSeverity: 'success', moneyDepositSeverity: 'success' };
 }
 
 function merchantLocationLabel(
@@ -572,10 +552,11 @@ function MoneyApiActivityDetailsContent({
           {activity.kind === 'bank_transfer' ? (
             <>
               <TransactionDetailDivider />
+              {/* Completed API bank transfers are confirmed settlements, so
+                  both the off-chain transfer and the mUSD deposit are done. */}
               <BankTransferActivitySteps
                 timestamp={activity.time}
                 onOpenExplorer={handleViewOnExplorer}
-                {...getApiBankTransferSeverities(activity.status)}
               />
             </>
           ) : null}
