@@ -1,40 +1,25 @@
-export interface TraderStatRotationListener {
-  /** Start hiding the current stat. */
-  fadeOut: () => void;
-  /** Show the next stat. Fires `fadeMs` after `fadeOut`, while it is hidden. */
-  swap: () => void;
-}
+type RotationListener = () => void;
 
 interface RotationClock {
-  joinedAt: Map<TraderStatRotationListener, number>;
+  joinedAt: Map<RotationListener, number>;
   interval: ReturnType<typeof setInterval>;
-  swapTimer?: ReturnType<typeof setTimeout>;
 }
 
-const clocks = new Map<string, RotationClock>();
+const clocks = new Map<number, RotationClock>();
 
-const startClock = (intervalMs: number, fadeMs: number): RotationClock => {
-  const joinedAt = new Map<TraderStatRotationListener, number>();
-  const clock: RotationClock = {
+const startClock = (intervalMs: number): RotationClock => {
+  const joinedAt = new Map<RotationListener, number>();
+  return {
     joinedAt,
     interval: setInterval(() => {
       const now = Date.now();
       // A stat that has only just appeared, e.g. on a row still entering,
       // holds through this tick rather than flipping right away.
-      const rotating = [...joinedAt]
+      [...joinedAt]
         .filter(([, at]) => now - at >= intervalMs / 2)
-        .map(([listener]) => listener);
-      rotating.forEach((listener) => listener.fadeOut());
-      clock.swapTimer = setTimeout(() => {
-        rotating.forEach((listener) => {
-          if (joinedAt.has(listener)) {
-            listener.swap();
-          }
-        });
-      }, fadeMs);
+        .forEach(([listener]) => listener());
     }, intervalMs),
   };
-  return clock;
 };
 
 /**
@@ -44,20 +29,17 @@ const startClock = (intervalMs: number, fadeMs: number): RotationClock => {
  */
 export const subscribeToTraderStatRotation = (
   intervalMs: number,
-  fadeMs: number,
-  listener: TraderStatRotationListener,
+  onRotate: RotationListener,
 ): (() => void) => {
-  const key = `${intervalMs}:${fadeMs}`;
-  const clock = clocks.get(key) ?? startClock(intervalMs, fadeMs);
-  clocks.set(key, clock);
-  clock.joinedAt.set(listener, Date.now());
+  const clock = clocks.get(intervalMs) ?? startClock(intervalMs);
+  clocks.set(intervalMs, clock);
+  clock.joinedAt.set(onRotate, Date.now());
 
   return () => {
-    clock.joinedAt.delete(listener);
+    clock.joinedAt.delete(onRotate);
     if (clock.joinedAt.size === 0) {
       clearInterval(clock.interval);
-      clearTimeout(clock.swapTimer);
-      clocks.delete(key);
+      clocks.delete(intervalMs);
     }
   };
 };
