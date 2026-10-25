@@ -15,10 +15,7 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -279,16 +276,9 @@ function BankTransferActivitySteps({
 
 function PaidByMetaMaskValue() {
   return (
-    <Box twClassName="flex-row items-center gap-1">
-      <Icon
-        name={IconName.CheckBold}
-        size={IconSize.Xs}
-        color={IconColor.SuccessDefault}
-      />
-      <Text color={TextColor.SuccessDefault}>
-        {strings('money.api_activity_details.paid_by_metamask')}
-      </Text>
-    </Box>
+    <Text color={TextColor.SuccessDefault}>
+      {strings('money.api_activity_details.paid_by_metamask')}
+    </Text>
   );
 }
 
