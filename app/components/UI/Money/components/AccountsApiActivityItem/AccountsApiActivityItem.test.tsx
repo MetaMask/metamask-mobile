@@ -176,7 +176,7 @@ describe('AccountsApiActivityItem', () => {
     });
   });
 
-  it('opens MoneyTransactionDetails when bank_transfer matches a local deposit', () => {
+  it('opens the custom details even when bank_transfer matches a local deposit', () => {
     mockSelectTransactionMetadataByHash.mockReturnValue({
       id: 'local-deposit-1',
       hash: bankTransfer.hash,
@@ -187,8 +187,9 @@ describe('AccountsApiActivityItem', () => {
 
     lastRowProps().onPress?.(bankTransfer.hash);
 
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyTransactionDetails', {
-      transactionId: 'local-deposit-1',
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: bankTransfer,
+      enrichment: undefined,
     });
   });
 
@@ -200,6 +201,22 @@ describe('AccountsApiActivityItem', () => {
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: bankTransfer,
       enrichment: undefined,
+    });
+  });
+
+  it('keeps local Money deposit details for non-VBA activity with a matching deposit', () => {
+    mockSelectTransactionMetadataByHash.mockReturnValue({
+      id: 'local-deposit-2',
+      hash: card.hash,
+      type: 'moneyAccountDeposit',
+    } as never);
+
+    render(<AccountsApiActivityItem activity={card} />);
+
+    lastRowProps().onPress?.(card.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyTransactionDetails', {
+      transactionId: 'local-deposit-2',
     });
   });
 

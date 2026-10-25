@@ -40,13 +40,16 @@ const AccountsApiActivityItem = ({
   );
 
   const handlePress = useCallback(() => {
-    // Prefer local Money deposit details (full Steps / fiat timeline) when the
-    // Accounts API bank_transfer hash matches a TransactionController deposit.
+    // VBA bank transfers always use the custom API details view so the
+    // off-chain transfer and mUSD deposit render as two distinct legs, even
+    // when the settlement hash matches a local Money deposit.
     if (
-      activity.kind === 'bank_transfer' &&
+      activity.kind !== 'bank_transfer' &&
       localDepositTx &&
       isMoneyActivityDeposit(localDepositTx)
     ) {
+      // Non-VBA Accounts API activity keeps its previous preference for local
+      // Money deposit details (full Steps / fiat timeline).
       navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
         transactionId: localDepositTx.id,
       });
