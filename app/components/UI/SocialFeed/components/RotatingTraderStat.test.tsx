@@ -2,6 +2,7 @@ import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import RotatingTraderStat from './RotatingTraderStat';
+import { TraderStatRotationContext } from './TraderStatRotationContext';
 
 const TEST_ID = 'trader-stat';
 const INTERVAL_MS = 5000;
@@ -73,6 +74,23 @@ describe('RotatingTraderStat', () => {
     expect(second.getByTestId('second-stat')).toHaveTextContent(
       '17.2K followers',
     );
+  });
+
+  it('rotates only while its page is on screen', () => {
+    const renderOnPage = (onScreen: boolean) => (
+      <TraderStatRotationContext.Provider value={onScreen}>
+        <RotatingTraderStat labels={LABELS} testID={TEST_ID} />
+      </TraderStatRotationContext.Provider>
+    );
+    const { rerender } = renderWithProvider(renderOnPage(false));
+
+    advance(INTERVAL_MS);
+    const labelWhileOffScreen = screen.queryByText('$50K P&L (30d)') !== null;
+    rerender(renderOnPage(true));
+    advance(INTERVAL_MS);
+
+    expect(labelWhileOffScreen).toBe(true);
+    expect(screen.getByTestId(TEST_ID)).toHaveTextContent('17.2K followers');
   });
 
   it('never rotates a lone stat', () => {

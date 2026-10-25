@@ -5,7 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Animated, {
   Easing,
   LayoutAnimationConfig,
@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { subscribeToTraderStatRotation } from '../utils/traderStatRotationClock';
 import { TRADER_STAT_ROTATION_MS } from '../utils/traderStats';
+import { TraderStatRotationContext } from './TraderStatRotationContext';
 
 /** Length of the swipe that replaces one stat with the next. */
 export const TRADER_STAT_SWIPE_MS = 100;
@@ -27,7 +28,7 @@ const SWIPE_TIMING = {
 };
 
 /** The incoming stat lands with a small overshoot past its slot. */
-const SWIPE_IN_SPRING = { duration: 250, dampingRatio: 0.6 };
+const SWIPE_IN_SPRING = { duration: 250, dampingRatio: 0.7 };
 
 const swipeIn = (values: EntryAnimationsValues): LayoutAnimation => {
   'worklet';
@@ -75,7 +76,8 @@ export interface RotatingTraderStatProps {
  * runs in the mounting layer instead of committing the shadow tree on every
  * frame. Every rotating stat follows one shared clock, so the whole feed
  * swaps in a single React commit. A single stat never subscribes: there is
- * nothing to rotate to.
+ * nothing to rotate to, and neither does one under an inactive
+ * `TraderStatRotationContext`.
  */
 const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
   labels,
@@ -83,9 +85,10 @@ const RotatingTraderStat: React.FC<RotatingTraderStatProps> = ({
   testID,
 }) => {
   const [index, setIndex] = useState(0);
+  const isOnScreen = useContext(TraderStatRotationContext);
 
   const count = labels.length;
-  const shouldRotate = count > 1;
+  const shouldRotate = count > 1 && isOnScreen;
 
   useEffect(() => {
     setIndex((current) => (current < count ? current : 0));
