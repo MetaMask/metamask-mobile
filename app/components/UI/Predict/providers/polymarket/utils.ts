@@ -1033,7 +1033,11 @@ export const parsePolymarketMarket = (
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
-  resolutionStatus: market.umaResolutionStatus,
+  // Protocol V2 markets report resolution in `resolutionStatus`; CTF markets
+  // keep their UMA status.
+  resolutionStatus: isV2Market(market)
+    ? (market.resolutionStatus ?? undefined)
+    : market.umaResolutionStatus,
   version: market.version,
 });
 
@@ -1067,15 +1071,18 @@ export function parseMarketOutcomeTokenIds(
   return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
-function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
+function isVisiblePolymarketMarket(
+  market: PolymarketApiMarket,
+  hideV2Markets: boolean,
+): boolean {
   if (market?.active === false) {
     return false;
   }
 
-  return !isV2Market(market);
+  return !hideV2Markets || !isV2Market(market);
 }
 
-function isUnsupportedProtocolEvent(
+function isHiddenV2Event(
   event: PolymarketApiEvent,
   visibleMarkets: PolymarketApiMarket[],
 ): boolean {
@@ -1092,6 +1099,12 @@ export interface ParsePolymarketEventsOptions {
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
   enabledSportsMarketTypes?: string[];
+  /**
+   * Drops Protocol V2 markets, and events left empty because every market
+   * was v2. Set from the `predictDisablePolymarketV2Markets` kill switch on
+   * listing paths only. Defaults to false: v2 markets are shown.
+   */
+  hideV2Markets?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1109,6 +1122,7 @@ export const parsePolymarketEvents = (
     teamLookup,
     extendedSportsMarketsLeagues,
     enabledSportsMarketTypes,
+    hideV2Markets = false,
   } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
@@ -1133,9 +1147,9 @@ export const parsePolymarketEvents = (
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter(isVisiblePolymarketMarket);
+      }).filter((market) => isVisiblePolymarketMarket(market, hideV2Markets));
 
-      if (isUnsupportedProtocolEvent(event, markets)) {
+      if (hideV2Markets && isHiddenV2Event(event, markets)) {
         return [];
       }
 
@@ -2179,6 +2193,56 @@ export function encodeClaim(
     conditionId,
     amounts,
   });
+}
+
+const BYTES31_HEX_PATTERN = /^0x[a-fA-F0-9]{62}$/u;
+const BYTES32_HEX_PATTERN = /^0x[a-fA-F0-9]{64}$/u;
+
+/**
+ * Narrows a condition id to the `bytes31` shape the Protocol V2 Router
+ * expects. A padded `bytes32` value is accepted only when its final byte is
+ * zero; anything else is rejected rather than silently truncated.
+ */
+export function toBytes31ConditionId(conditionId: string): Hex {
+  if (BYTES31_HEX_PATTERN.test(conditionId)) {
+    return conditionId as Hex;
+  }
+
+  if (
+    BYTES32_HEX_PATTERN.test(conditionId) &&
+    conditionId.slice(-2).toLowerCase() === '00'
+  ) {
+    return conditionId.slice(0, -2) as Hex;
+  }
+
+  throw new Error(
+    `Cannot narrow condition id to bytes31 — expected a bytes31 value or a bytes32 value with a zero final byte, got: ${conditionId}`,
+  );
+}
+
+/**
+ * Encodes the Protocol V2 Router claim call:
+ * `redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)`.
+ * The Router pulls the position from the caller and returns pUSD in the same
+ * transaction, so no pre-transfer is needed. The amount is in 6-decimal base
+ * units and the outcome index is 0 for YES or 1 for NO.
+ */
+export function encodeRouterRedeem({
+  conditionId,
+  outcomeIndex,
+  amount,
+}: {
+  conditionId: string;
+  outcomeIndex: number;
+  amount: bigint | string | number;
+}): Hex {
+  return new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]).encodeFunctionData('redeem', [
+    toBytes31ConditionId(conditionId),
+    outcomeIndex,
+    amount,
+  ]) as Hex;
 }
 
 async function waiveFees({
