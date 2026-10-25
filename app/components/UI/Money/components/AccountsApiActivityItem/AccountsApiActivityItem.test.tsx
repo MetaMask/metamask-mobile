@@ -15,15 +15,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
-const mockSelectTransactionMetadataByHash = jest.fn<
-  unknown,
-  [unknown, string | undefined]
->(() => undefined);
-jest.mock('../../../../../selectors/transactionController', () => ({
-  selectTransactionMetadataByHash: (state: unknown, hash?: string) =>
-    mockSelectTransactionMetadataByHash(state, hash),
-}));
-
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
@@ -121,7 +112,6 @@ describe('AccountsApiActivityItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
-    mockSelectTransactionMetadataByHash.mockReturnValue(undefined);
   });
 
   it('feeds a card spend (outgoing amount) into the row view', () => {
@@ -177,13 +167,7 @@ describe('AccountsApiActivityItem', () => {
     });
   });
 
-  it('opens the custom details even when bank_transfer matches a local deposit', () => {
-    mockSelectTransactionMetadataByHash.mockReturnValue({
-      id: 'local-deposit-1',
-      hash: bankTransfer.hash,
-      type: 'moneyAccountDeposit',
-    } as never);
-
+  it('opens the custom details for a bank_transfer', () => {
     render(<AccountsApiActivityItem activity={bankTransfer} />);
 
     lastRowProps().onPress?.(bankTransfer.hash);
@@ -191,33 +175,6 @@ describe('AccountsApiActivityItem', () => {
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: bankTransfer,
       enrichment: undefined,
-    });
-  });
-
-  it('opens MoneyCardTransactionDetails for bank_transfer without a local deposit', () => {
-    render(<AccountsApiActivityItem activity={bankTransfer} />);
-
-    lastRowProps().onPress?.(bankTransfer.hash);
-
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
-      activity: bankTransfer,
-      enrichment: undefined,
-    });
-  });
-
-  it('keeps local Money deposit details for non-VBA activity with a matching deposit', () => {
-    mockSelectTransactionMetadataByHash.mockReturnValue({
-      id: 'local-deposit-2',
-      hash: card.hash,
-      type: 'moneyAccountDeposit',
-    } as never);
-
-    render(<AccountsApiActivityItem activity={card} />);
-
-    lastRowProps().onPress?.(card.hash);
-
-    expect(mockNavigate).toHaveBeenCalledWith('MoneyTransactionDetails', {
-      transactionId: 'local-deposit-2',
     });
   });
 
