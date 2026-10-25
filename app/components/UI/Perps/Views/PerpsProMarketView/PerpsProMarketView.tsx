@@ -57,6 +57,7 @@ import {
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import type { PerpsOrderPriceField } from '../../hooks/usePerpsOrderForm';
 import { usePerpsProOrderBookExpanded } from '../../hooks/usePerpsProOrderBookExpanded';
 import { usePerpsProOrderBookPosition } from '../../hooks/usePerpsProOrderBookPosition';
 import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
@@ -149,6 +150,31 @@ const PerpsProOrderBookColumn = ({
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
+      // The last focused field wins over the type-based default below.
+      // Falls through when nothing is focused or the field has no handler.
+      const commitSelectedPrice = (): PerpsOrderPriceField => {
+        if (
+          activePriceField &&
+          commitPriceToField(activePriceField, selectedPrice)
+        ) {
+          return activePriceField;
+        }
+
+        if (isTriggerOrderType(orderForm.type)) {
+          if (isLimitExecutionOrderType(orderForm.type)) {
+            commitLimitPrice(selectedPrice);
+            return 'limit';
+          }
+          commitTriggerPrice(selectedPrice);
+          return 'trigger';
+        }
+
+        setOrderType('limit');
+        commitLimitPrice(selectedPrice);
+        return 'limit';
+      };
+      const filledField = commitSelectedPrice();
+
       if (size !== undefined && selectedPrice !== undefined) {
         // The amount reads as if the trader typed the row size in the size
         // field. USD cannot hold every base size, so the exact row size rides
@@ -166,31 +192,11 @@ const PerpsProOrderBookColumn = ({
               size,
               amount: rowAmount,
               price: selectedPrice,
+              field: filledField,
             });
           }
         }
       }
-
-      // The last focused field wins over the type-based default below.
-      // Falls through when nothing is focused or the field has no handler.
-      if (
-        activePriceField &&
-        commitPriceToField(activePriceField, selectedPrice)
-      ) {
-        return;
-      }
-
-      if (isTriggerOrderType(orderForm.type)) {
-        if (isLimitExecutionOrderType(orderForm.type)) {
-          commitLimitPrice(selectedPrice);
-          return;
-        }
-        commitTriggerPrice(selectedPrice);
-        return;
-      }
-
-      setOrderType('limit');
-      commitLimitPrice(selectedPrice);
     },
     [
       activePriceField,

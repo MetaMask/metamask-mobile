@@ -142,7 +142,12 @@ describe('PerpsOrderContext', () => {
     });
 
     it('sets the amount and keeps the exact size of an order-book fill', () => {
-      const fill = { size: '0.00406', amount: '331.66', price: '81690' };
+      const fill = {
+        size: '0.00406',
+        amount: '331.66',
+        price: '81690',
+        field: 'limit' as const,
+      };
       const { result } = renderHookWithProvider(() => usePerpsOrderContext());
 
       act(() => {
@@ -160,6 +165,7 @@ describe('PerpsOrderContext', () => {
           size: '0.29',
           amount: '722.1',
           price: '2490',
+          field: 'limit',
         });
       });
 

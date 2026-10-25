@@ -5122,6 +5122,145 @@ describe('Pro order book size on click', () => {
     expect(order).not.toHaveProperty('usdAmount');
   });
 
+  // A sell stop-limit at 2,400 with its trigger focused takes the 2,490 tap.
+  const tapIntoFocusedStopLimitTrigger = async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await selectTriggeredOrderType(
+      PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+    );
+    fireEvent.press(screen.getByTestId(ids.DIRECTION_SHORT));
+    const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+    fireEvent.changeText(limitInput, '2400');
+    fireEvent(limitInput, 'blur');
+    const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+    fireEvent(triggerInput, 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(triggerInput).toHaveProp('value', formatPerpsInput('2490')),
+    );
+    expect(limitInput).toHaveProp('value', formatPerpsInput('2400'));
+    return triggerInput;
+  };
+
+  it('keeps the row size when the tap fills a focused stop-limit trigger', async () => {
+    await tapIntoFocusedStopLimitTrigger();
+
+    // $722.10 at the 2,400 limit would size 0.31 ETH through the amount alone.
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({
+        orderType: 'stop_limit',
+        isBuy: false,
+        price: '2400',
+        triggerPrice: '2490',
+        size: '0.29',
+      }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
+  it('sizes from the amount again once the filled trigger changes', async () => {
+    const triggerInput = await tapIntoFocusedStopLimitTrigger();
+
+    fireEvent.changeText(triggerInput, '2480');
+    fireEvent(triggerInput, 'blur');
+
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        price: '2400',
+        triggerPrice: '2480',
+        size: '0.31',
+        usdAmount: '722.1',
+      }),
+    );
+  });
+
+  it('keeps the row size when the tap fills a focused Scale start price', async () => {
+    serveLadder(ladderLevel('2490', '0.29'));
+    const { store } = renderProMarketWithScaleFlag(true);
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await openScaleOrderForm();
+    fireEvent(screen.getByTestId(ids.SCALE_START_PRICE), 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+        'value',
+        formatPerpsInput('2490'),
+      ),
+    );
+    fireEvent.press(screen.getByTestId(`${ids.SCALE_END_PRICE}-field`));
+    fireEvent.changeText(screen.getByTestId(ids.SCALE_END_PRICE), '2990');
+    fireEvent.press(screen.getByTestId(`${ids.SCALE_TOTAL_ORDERS}-field`));
+    fireEvent.changeText(screen.getByTestId(ids.SCALE_TOTAL_ORDERS), '3');
+
+    // $722.10 over a 2,490 to 2,990 ladder would size 0.27 ETH from the amount.
+    expect(await placeAndReadOrder()).toEqual(
+      expect.objectContaining({
+        orderType: 'scale',
+        scaleMinPrice: '2490',
+        scaleMaxPrice: '2990',
+        scaleNumOrders: 3,
+        size: '0.29',
+      }),
+    );
+  });
+
+  it('keeps the row size when the tap fills a focused Chase distance', async () => {
+    serveLadder(ladderLevel('2400', '0.29'));
+    const { store } = renderChaseProMarket();
+    unwireController = wirePerpsControllerForStore(store);
+    await findSizeInput();
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsProMarketViewSelectorsIDs.ORDER_BOOK_EXPAND_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    await turnOnSizeOnClick();
+    await openChaseOrderForm();
+    fireEvent(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+    await tapBid();
+
+    await waitFor(() =>
+      expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+        'value',
+        formatPerpsInput('100'),
+      ),
+    );
+    // $696.00 at the 2,500 live price would size 0.28 ETH from the amount.
+    const order = await placeAndReadOrder();
+    expect(order).toEqual(
+      expect.objectContaining({ orderType: 'chase', size: '0.29' }),
+    );
+    expect(order).not.toHaveProperty('usdAmount');
+  });
+
   // 0.0002 BTC at 49,990 is $9.998, which reads as $10.00 once rounded to cents.
   it.each(['0.0001', '0.0002'])(
     'raises a %s BTC row below the market minimum to that minimum',

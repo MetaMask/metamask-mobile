@@ -9,13 +9,14 @@ import React, {
 import {
   usePerpsOrderForm,
   UsePerpsOrderFormReturn,
+  PerpsOrderPriceField,
 } from '../hooks/usePerpsOrderForm';
 import { OrderType, Position } from '@metamask/perps-controller';
 
 /**
  * Exact base size an order-book row filled. The form keeps size as USD, which
  * cannot hold every base size exactly, so the fill applies while the order
- * still has the `amount` and `price` it set.
+ * still has the `amount` it set and `field` still holds `price`.
  */
 export interface PerpsOrderBookSizeFill {
   /** Row size in base units. */
@@ -24,6 +25,8 @@ export interface PerpsOrderBookSizeFill {
   amount: string;
   /** Price the fill committed. */
   price: string;
+  /** Price field the tap filled: the focused one or the type's default. */
+  field: PerpsOrderPriceField;
 }
 
 interface PerpsOrderContextType extends UsePerpsOrderFormReturn {
