@@ -361,6 +361,10 @@ describeForPlatforms('Perps Pro order ticket combinations', () => {
       .spyOn(PerpsConnectionManager, 'subscribeToInitializedUserContext')
       .mockImplementation(() => () => undefined);
     validateOrderMock().mockReset().mockResolvedValue({ isValid: true });
+    jest
+      .mocked(Engine.context.PerpsController.calculateFees)
+      .mockReset()
+      .mockResolvedValue({});
     placeOrderMock()
       .mockReset()
       .mockResolvedValue({ success: true, orderId: 'component-view-order' });
