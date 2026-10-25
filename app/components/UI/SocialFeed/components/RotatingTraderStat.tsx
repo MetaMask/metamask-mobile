@@ -28,7 +28,7 @@ const SWIPE_TIMING = {
 };
 
 /** The incoming stat lands with a small overshoot past its slot. */
-const SWIPE_IN_SPRING = { duration: 250, dampingRatio: 0.7 };
+const SWIPE_IN_SPRING = { duration: 250, dampingRatio: 0.8 };
 
 const swipeIn = (values: EntryAnimationsValues): LayoutAnimation => {
   'worklet';
