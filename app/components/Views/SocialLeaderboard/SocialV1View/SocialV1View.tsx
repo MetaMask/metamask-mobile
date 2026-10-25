@@ -221,9 +221,6 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
-  // Chrome updates immediately; page content follows in a transition so the
-  // native slide is not blocked by the list commit.
-  const [contentIndex, setContentIndex] = useState(landingIndex);
   const [idlePrefetch, setIdlePrefetch] = useState(false);
   const [deferredTabsMounted, setDeferredTabsMounted] = useState(false);
   const [deferredRowsReady, setDeferredRowsReady] = useState(false);
@@ -312,8 +309,8 @@ const SocialV1ViewContent: React.FC = () => {
   const liveIndexSv = useSharedValue(liveIndex);
   useEffect(() => {
     hotTokenCrawl.value =
-      contentIndex === trendingIndex && hardwareTier !== 'LOW' ? 1 : 0;
-  }, [contentIndex, hardwareTier, hotTokenCrawl, trendingIndex]);
+      activeIndex === trendingIndex && hardwareTier !== 'LOW' ? 1 : 0;
+  }, [activeIndex, hardwareTier, hotTokenCrawl, trendingIndex]);
 
   const scrollY = useDerivedValue(() => {
     if (activeIndexSv.value === trendingIndexSv.value) {
@@ -594,9 +591,6 @@ const SocialV1ViewContent: React.FC = () => {
       syncIncomingPageScroll(index);
       activeIndexSv.value = index;
       setActiveIndex(index);
-      startTransition(() => {
-        setContentIndex(index);
-      });
       livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
     },
     [
@@ -649,7 +643,7 @@ const SocialV1ViewContent: React.FC = () => {
     return scheduleIdlePrefetch(() => {
       setIdlePrefetch(true);
     });
-  }, [contentIndex]);
+  }, [activeIndex]);
 
   const title = strings('homepage.sections.top_traders');
 
@@ -781,12 +775,12 @@ const SocialV1ViewContent: React.FC = () => {
                       : tab === 'live'
                         ? livePageRef
                         : leaderboardPageRef;
-                const pageIsActive = contentIndex === pageIndex;
+                const pageIsActive = activeIndex === pageIndex;
                 const mountPage = pageIsActive || deferredTabsMounted;
                 const prefetch =
                   idlePrefetch &&
                   !pageIsActive &&
-                  Math.abs(pageIndex - contentIndex) === 1;
+                  Math.abs(pageIndex - activeIndex) === 1;
                 return (
                   <View
                     key={tab}
