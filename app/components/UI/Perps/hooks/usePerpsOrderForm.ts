@@ -23,6 +23,7 @@ import {
 import { usePerpsMarketData } from './usePerpsMarketData';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsMaxSlippage } from './usePerpsMaxSlippage';
+import { usePerpsTrading } from './usePerpsTrading';
 import { usePerpsSelector } from './usePerpsSelector';
 import { selectPerpsMode } from '../selectors/perpsController';
 import {
@@ -318,6 +319,36 @@ export function usePerpsOrderForm(
     },
     [],
   );
+  // Total taker fee rate (protocol + MetaMask) as a fraction of notional. Fees
+  // are charged on top of margin, so the max size must leave room for them.
+  const { calculateFees } = usePerpsTrading();
+  const [totalFeeRate, setTotalFeeRate] = useState(0);
+  const totalFeeRateRef = useRef(0);
+  useEffect(() => {
+    let isMounted = true;
+    calculateFees({
+      orderType: orderForm.type,
+      isMaker: false,
+      symbol: initialAsset,
+    })
+      .then(({ protocolFeeRate, metamaskFeeRate }) => {
+        if (!isMounted) return;
+        const nextRate =
+          protocolFeeRate === undefined || metamaskFeeRate === undefined
+            ? 0
+            : protocolFeeRate + metamaskFeeRate;
+        if (nextRate === totalFeeRateRef.current) return;
+        totalFeeRateRef.current = nextRate;
+        setTotalFeeRate(nextRate);
+      })
+      .catch(() => {
+        // Keep the last known rate; the exchange still validates the order.
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [calculateFees, orderForm.type, initialAsset]);
+
   const effectiveMaxSlippageBps = useMemo(
     () =>
       resolvePerpsMaxSlippageBps({
@@ -332,6 +363,9 @@ export function usePerpsOrderForm(
   // For priced placements, use the prospective execution price so the 100% slider
   // correctly reflects the max order size at the user-specified price
   const marginBasedMaxPossibleAmount = useMemo(() => {
+    // Margin + fee <= balance, with fee = rate * notional = rate * margin * leverage.
+    const feeAdjustedBalance =
+      balanceForMax / (1 + totalFeeRate * orderForm.leverage);
     const marketPrice = Number.parseFloat(currentPrice?.price) || 0;
     const sizeDecimals = assetSzDecimals;
     const canonicalLimitPrice = canonicalizeOrderPrice(
@@ -363,7 +397,7 @@ export function usePerpsOrderForm(
 
     if (triggerMarketCapPrice !== undefined) {
       return getMaxAllowedAmountAtExecutionPrice({
-        spendableBalance: balanceForMax,
+        spendableBalance: feeAdjustedBalance,
         sizePrice: effectiveAssetPrice,
         executionPrice: triggerMarketCapPrice,
         assetSzDecimals: sizeDecimals,
@@ -372,13 +406,14 @@ export function usePerpsOrderForm(
     }
 
     return getMaxAllowedAmount({
-      spendableBalance: balanceForMax,
+      spendableBalance: feeAdjustedBalance,
       assetPrice: effectiveAssetPrice,
       assetSzDecimals,
       leverage: orderForm.leverage,
     });
   }, [
     balanceForMax,
+    totalFeeRate,
     currentPrice?.price,
     orderForm.type,
     orderForm.direction,

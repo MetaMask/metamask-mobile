@@ -3,7 +3,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import type { AnyAction } from 'redux';
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, act, waitFor } from '@testing-library/react-native';
 import { usePerpsOrderForm } from './usePerpsOrderForm';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsNetwork } from './usePerpsNetwork';
@@ -27,6 +27,10 @@ jest.mock('./stream/usePerpsLiveAccount');
 jest.mock('./stream/usePerpsLivePrices');
 jest.mock('./stream/usePerpsLivePositions');
 jest.mock('./usePerpsMarketData');
+const mockCalculateFees = jest.fn();
+jest.mock('./usePerpsTrading', () => ({
+  usePerpsTrading: () => ({ calculateFees: mockCalculateFees }),
+}));
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -200,6 +204,10 @@ describe('usePerpsOrderForm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCalculateFees.mockResolvedValue({
+      protocolFeeRate: 0,
+      metamaskFeeRate: 0,
+    });
     mockUsePerpsNetwork.mockReturnValue('mainnet');
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
@@ -1254,6 +1262,74 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.amount).toBe(initialAmount);
+    });
+  });
+
+  describe('fee-adjusted max amount', () => {
+    const feeRate = 0.0045;
+
+    const renderWithFeeRate = async (rate: number) => {
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: rate / 3,
+        metamaskFeeRate: (rate * 2) / 3,
+      });
+      const hook = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      await waitFor(() =>
+        expect(hook.result.current.maxPossibleAmount).toBeGreaterThan(0),
+      );
+      return hook;
+    };
+
+    it('reserves the trading fee so margin plus fee fits the balance at 100%', async () => {
+      const { result } = await renderWithFeeRate(feeRate);
+      await waitFor(() =>
+        expect(result.current.maxPossibleAmount).toBeLessThan(2985),
+      );
+
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+        1000,
+      );
+    });
+
+    it('recalculates the max when the fee rate changes', async () => {
+      const { result, rerender } = await renderWithFeeRate(feeRate);
+      await waitFor(() =>
+        expect(result.current.maxPossibleAmount).toBeLessThan(2985),
+      );
+      const lowFeeMax = result.current.maxPossibleAmount;
+
+      mockCalculateFees.mockResolvedValue({
+        protocolFeeRate: 0.01,
+        metamaskFeeRate: 0.01,
+      });
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+      rerender({});
+
+      await waitFor(() =>
+        expect(result.current.maxPossibleAmount).toBeLessThan(lowFeeMax),
+      );
+    });
+
+    it('keeps the unreserved max when the fee rate is unavailable', async () => {
+      mockCalculateFees.mockResolvedValue({});
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => expect(mockCalculateFees).toHaveBeenCalled());
+
+      expect(result.current.maxPossibleAmount).toBe(2985);
     });
   });
 
