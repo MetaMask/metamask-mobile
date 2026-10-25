@@ -588,7 +588,9 @@ describe('TransactionDetails', () => {
               moneyAccounts: {
                 account: {
                   address: recipient,
-                  options: { entropy: { id: 'primary-keyring' } },
+                  options: {
+                    entropy: { type: 'mnemonic', id: 'primary-keyring' },
+                  },
                 },
               },
             },

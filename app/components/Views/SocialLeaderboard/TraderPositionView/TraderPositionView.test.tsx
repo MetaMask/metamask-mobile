@@ -312,6 +312,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),

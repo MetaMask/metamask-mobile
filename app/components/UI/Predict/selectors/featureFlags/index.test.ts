@@ -14,6 +14,7 @@ import {
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
   selectPredictSportCardLivePricesEnabledFlag,
+  selectPredictDisablePolymarketV2MarketsFlag,
   selectPredictHomeCategoriesConfig,
   selectPredictSportsFeedConfig,
   selectPredictUpDownEnabledFlag,
@@ -1884,6 +1885,67 @@ describe('Predict Feature Flag Selectors', () => {
       };
 
       expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPredictDisablePolymarketV2MarketsFlag', () => {
+    const createState = (
+      flag: { enabled: boolean; minimumVersion: string } | string,
+    ) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              predictDisablePolymarketV2Markets: flag,
+            },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('defaults to false when the remote flag is missing', () => {
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(mockedEmptyFlagsState),
+      ).toBe(false);
+    });
+
+    it('returns true when the remote flag is enabled and the version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: true, minimumVersion: '1.0.0' }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: false, minimumVersion: '1.0.0' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the version requirement is not met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(
+          createState({ enabled: true, minimumVersion: '99.0.0' }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when the remote flag is malformed', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      expect(
+        selectPredictDisablePolymarketV2MarketsFlag(createState('enabled')),
+      ).toBe(false);
     });
   });
 

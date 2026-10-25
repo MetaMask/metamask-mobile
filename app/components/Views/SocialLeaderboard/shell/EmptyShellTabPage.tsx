@@ -75,6 +75,11 @@ import {
   useSocialFeedInteractions,
   useSocialScreenAnalytics,
 } from '../analytics';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
 const { FeedSort, Filter, Interaction, Screen, Tab, Trade } = SocialEvent;
 /** Insert the Popular traders rail after this many Trending posts. */
@@ -101,6 +106,11 @@ type AnimatedScrollHandler = React.ComponentProps<
 
 export type SocialFeedShellTab = SocialV1FeedTab;
 
+const FEED_TRACE_TABS = {
+  trending: SOCIAL_TRACE_TABS.Trending,
+  following: SOCIAL_TRACE_TABS.Following,
+} as const satisfies Record<SocialFeedShellTab, 'trending' | 'following'>;
+
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
   source?: SocialEventSource;
@@ -109,6 +119,7 @@ export interface EmptyShellTabPageProps {
    * tab is first opened so Trending and Following don't duplicate testIDs.
    */
   isActive?: boolean;
+  performance?: SocialPerformanceContext;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   containerTestID: string;
@@ -136,6 +147,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
   source,
   isActive = true,
+  performance,
   onScroll,
   pageRef,
   containerTestID,
@@ -159,6 +171,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     loadMore,
     error,
     refresh,
+    dataUpdatedAt,
   } = useSocialV1Feed(tab, {
     ownerProfileId: myProfile?.profileId,
     isActive,
@@ -552,6 +565,22 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     },
     [feedSort, trackInteraction],
   );
+  const firstContentState = !hasBeenActive
+    ? null
+    : sortedPosts.length > 0
+      ? 'content'
+      : visibleError && visibleFeedEmpty
+        ? 'error'
+        : showTrueEmptyFeed
+          ? 'empty'
+          : null;
+
+  useSocialTabFirstContentTrace({
+    tab: FEED_TRACE_TABS[tab],
+    contentState: firstContentState,
+    hasUsableData: dataUpdatedAt !== undefined,
+    performance,
+  });
 
   return (
     <SocialFeedSurfaceProvider

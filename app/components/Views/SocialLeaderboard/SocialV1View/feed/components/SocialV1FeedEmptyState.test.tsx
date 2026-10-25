@@ -36,16 +36,14 @@ describe('SocialV1FeedEmptyState', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Live trades copy', () => {
-    renderWithProvider(<SocialV1FeedEmptyState tab="liveTrades" />);
+  it('renders the Live copy', () => {
+    renderWithProvider(<SocialV1FeedEmptyState tab="live" />);
 
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.liveTrades.title'),
+      screen.getByText('social_leaderboard.feed.v1_empty.live.title'),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText(
-        'social_leaderboard.feed.v1_empty.liveTrades.description',
-      ),
+      screen.getByText('social_leaderboard.feed.v1_empty.live.description'),
     ).toBeOnTheScreen();
   });
 });
