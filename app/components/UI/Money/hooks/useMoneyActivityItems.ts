@@ -25,7 +25,10 @@ import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
 import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
-import { isNeobankVisibleActivityStatus } from '../utils/neobankActivity';
+import {
+  isNeobankPendingStatus,
+  isNeobankVisibleActivityStatus,
+} from '../utils/neobankActivity';
 import { mapMoneyVbaTransfers } from '../utils/moneyVbaTransfers';
 
 /** The list shown for each activity filter tab. */
@@ -91,7 +94,10 @@ export interface UseMoneyActivityItemsOptions {
  * rows now would let older activity pop in above them on the next page load.
  * The gate is strict (`>`): timestamps are second-resolution, so the next
  * un-fetched page can open with rows at exactly the watermark whose id
- * tiebreak would sort them above an already-rendered row.
+ * tiebreak would sort them above an already-rendered row. In-flight VBA rows
+ * are exempt: they are pinned at the top of the list, so the gate cannot
+ * reorder them, and withholding one would hide a deposit already known to be
+ * in progress.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -100,7 +106,11 @@ function safeItems(
   if (watermark === Number.NEGATIVE_INFINITY) {
     return items;
   }
-  return items.filter((item) => item.time > watermark);
+  return items.filter(
+    (item) =>
+      item.time > watermark ||
+      (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)),
+  );
 }
 
 /** Drops Accounts-API rows, keeping only locally-known on-chain activity. */
@@ -132,10 +142,13 @@ export function mergeMoneyActivity(
   const seenNeoBankIds = new Set<string>();
   const neobank = neobankActivity
     .filter((item) => isNeobankVisibleActivityStatus(item.status))
+    // A settlement hash can already be rendered from the richer Accounts-API
+    // row (including a completed VBA transfer), so dedupe against both sets.
     .filter(
       (item) =>
         !item.transactionHash ||
-        !onchainHashes.has(item.transactionHash.toLowerCase()),
+        (!onchainHashes.has(item.transactionHash.toLowerCase()) &&
+          !apiHashes.has(item.transactionHash.toLowerCase())),
     )
     .filter((item) => {
       if (seenNeoBankIds.has(item.id)) {

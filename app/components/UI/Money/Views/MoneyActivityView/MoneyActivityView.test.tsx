@@ -320,7 +320,7 @@ describe('MoneyActivityView', () => {
     mockUseMoneyVbaTransfers.mockReturnValue({
       data: undefined,
       isLoading: false,
-      refetch: jest.fn(),
+      refetch: jest.fn().mockResolvedValue(undefined),
     } as never);
     mockUseNeobankAutorampActivity.mockReturnValue({
       activity: [],

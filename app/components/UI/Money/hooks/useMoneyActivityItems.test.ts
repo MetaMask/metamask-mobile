@@ -193,6 +193,33 @@ describe('mergeMoneyActivity', () => {
     expect(mergeMoneyActivity([], [])).toEqual([]);
   });
 
+  it('drops an in-flight provider row already rendered from the Accounts API', () => {
+    const hash = `0x${'b'.repeat(64)}` as Hex;
+    const completed: AccountsApiActivity = {
+      kind: 'bank_transfer',
+      hash,
+      time: 100,
+      chainId: '0x8f',
+      token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
+      amount: '1000000',
+      receivedFrom: '0xsender' as Hex,
+    };
+    const neobank: NeobankBankTransferActivity[] = [
+      {
+        id: 'neo-1',
+        autorampId: 'ar-1',
+        status: 'Pending',
+        time: 100,
+        destinationAmount: '15',
+        transactionHash: hash,
+      },
+    ];
+
+    expect(mergeMoneyActivity([], [completed], [], neobank)).toEqual([
+      expect.objectContaining({ kind: 'accountsApi', id: hash }),
+    ]);
+  });
+
   it('merges pending NeoBank bank transfers into the feed', () => {
     const neobank: NeobankBankTransferActivity[] = [
       {
@@ -370,6 +397,33 @@ describe('buildMoneyActivityBuckets', () => {
     ]);
   });
 
+  it('keeps in-flight VBA rows below the watermark', () => {
+    // Pending provider rows are pinned to the top of the list, so the
+    // watermark cannot reorder them; withholding one would hide a deposit
+    // already known to be in progress.
+    const neobank: NeobankBankTransferActivity[] = [
+      { id: 'pending-old', autorampId: 'ar-1', status: 'Pending', time: 50 },
+      { id: 'failed-old', autorampId: 'ar-1', status: 'Failed', time: 40 },
+    ];
+
+    const buckets = buildMoneyActivityBuckets(
+      onchain,
+      [card, cashback],
+      100,
+      [],
+      neobank,
+    );
+
+    expect(buckets[MoneyActivityFilter.All].map((i) => i.id)).toEqual([
+      '0xback',
+      '0xcard',
+      'pending-old',
+    ]);
+    expect(buckets[MoneyActivityFilter.Deposits].map((i) => i.id)).toEqual([
+      'pending-old',
+    ]);
+  });
+
   it('shows everything when the watermark is -Infinity (fully loaded)', () => {
     const buckets = buildMoneyActivityBuckets(
       onchain,
@@ -470,7 +524,7 @@ describe('useMoneyActivityItems', () => {
     mockUseMoneyAccountApiActivity.mockReturnValue(apiResult());
     mockUseMoneyVbaTransfers.mockReturnValue({
       data: undefined,
-      refetch: jest.fn(),
+      refetch: jest.fn().mockResolvedValue(undefined),
     } as never);
     mockUseCardTransactionIndex.mockReturnValue(defaultIndexResult);
     mockUseCardCapabilities.mockReturnValue(null);
