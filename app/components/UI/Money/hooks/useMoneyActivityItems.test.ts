@@ -614,6 +614,64 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.buckets[MoneyActivityFilter.Transfers]).toEqual([]);
   });
 
+  it('keeps the local settlement when the completed VBA row is below the watermark', () => {
+    // The transfer was initiated before the paging boundary and confirmed
+    // after it. Its row is stamped with the older event time and withheld by
+    // the watermark, so it must not suppress the newer local settlement row.
+    const hash = `0x${'a'.repeat(64)}` as Hex;
+    const settlementTime = Date.parse('2026-10-22T12:00:00.000Z');
+    mockUseSelector.mockImplementation((selector: unknown) => {
+      if (selector === selectMoneyVbaCompletedActivityEnabled) return true;
+      if (selector === selectMoneyVbaPendingActivityEnabled) return true;
+      return false;
+    });
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xnew' as Hex, settlementTime + 1000)],
+        watermark: Date.parse('2026-10-22T00:00:00.000Z'),
+        isComplete: false,
+        hasMore: true,
+      }),
+    );
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({
+        allTransactions: [onchainTx('local-settlement', settlementTime, hash)],
+        deposits: [onchainTx('local-settlement', settlementTime, hash)],
+      }),
+    );
+    mockUseMoneyVbaTransfers.mockReturnValue({
+      data: {
+        transfers: [
+          {
+            event_id: 'event-1',
+            transfer_id: 'transfer-1',
+            status: 'confirmed',
+            event_timestamp: '2026-10-21T14:59:26.769Z',
+            updated_at: '2026-10-22T12:00:00.000Z',
+            transfer: {
+              sender_address: '0xsender',
+              recipient_address: '0xmoney',
+              network: 'Monad',
+              amount: '15.000000',
+              asset: 'mUSD',
+              transaction_hash: hash,
+            },
+          },
+        ],
+      },
+      refetch: jest.fn(),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((item) => item.id),
+    ).toEqual(['0xnew', 'local-settlement']);
+    expect(
+      result.current.buckets[MoneyActivityFilter.Deposits].map((i) => i.id),
+    ).toEqual(['local-settlement']);
+  });
+
   it('keeps the empty feed settling while completed activity is still loading', () => {
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectMoneyVbaCompletedActivityEnabled) return true;

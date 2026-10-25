@@ -267,6 +267,14 @@ export function useMoneyActivityItems({
         : EMPTY_API_ACTIVITY,
     [completedActivityEnabled, mappedVbaTransfers.completed],
   );
+  // A completed VBA row is stamped with its event time, which can sit below the
+  // Accounts-API watermark while its on-chain settlement is newer. Merging it
+  // would drop that local row as a duplicate, and `safeItems` would then
+  // withhold the VBA row too, hiding the deposit from every bucket.
+  const mergeableCompletedVbaActivity = useMemo(
+    () => completedVbaActivity.filter((item) => item.time > watermark),
+    [completedVbaActivity, watermark],
+  );
   const visibleVbaActivity = useMemo(
     () =>
       pendingActivityEnabled
@@ -341,7 +349,7 @@ export function useMoneyActivityItems({
     () =>
       buildMoneyActivityBuckets(
         { all: allTransactions, deposits, transfers },
-        [...activity, ...completedVbaActivity],
+        [...activity, ...mergeableCompletedVbaActivity],
         watermark,
         declinedForFeed,
         visibleVbaActivity,
@@ -351,7 +359,7 @@ export function useMoneyActivityItems({
       deposits,
       transfers,
       activity,
-      completedVbaActivity,
+      mergeableCompletedVbaActivity,
       watermark,
       declinedForFeed,
       visibleVbaActivity,
