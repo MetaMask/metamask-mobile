@@ -32,18 +32,6 @@ import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
 
-const filterBarPadding = (button: ReactTestInstance) => {
-  let current: ReactTestInstance | null = button.parent;
-  while (current) {
-    const style = StyleSheet.flatten(current.props.style);
-    if (style?.paddingLeft === 16 && typeof style.paddingBottom === 'number') {
-      return style;
-    }
-    current = current.parent;
-  }
-  throw new Error('Filter bar padding was not found');
-};
-
 const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {
   if (typeof node.props.testID === 'string') {
     ids.push(node.props.testID);
@@ -495,8 +483,9 @@ describe('EmptyShellTabPage', () => {
       ),
     ).toEqual(expect.objectContaining({ paddingTop: 16 }));
     expect(
-      filterBarPadding(
-        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR).props
+          .style,
       ),
     ).toEqual(expect.objectContaining({ paddingBottom: 8 }));
   });

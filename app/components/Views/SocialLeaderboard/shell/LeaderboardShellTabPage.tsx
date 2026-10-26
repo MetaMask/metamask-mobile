@@ -208,6 +208,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+              testID={TopTradersViewSelectorsIDs.FILTER_BAR}
               twClassName="px-4 pb-4"
             >
               <RankingFilterSelector

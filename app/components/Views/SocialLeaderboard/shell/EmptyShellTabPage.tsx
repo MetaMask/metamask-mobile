@@ -558,6 +558,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
+              testID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR}
               twClassName="px-4 pb-2"
             >
               <FeedSortFilterSelector

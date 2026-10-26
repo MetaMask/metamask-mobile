@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ReactTestInstance } from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
@@ -127,18 +126,6 @@ const state = {
   },
 };
 
-const filterBarPadding = (button: ReactTestInstance) => {
-  let current: ReactTestInstance | null = button.parent;
-  while (current) {
-    const style = StyleSheet.flatten(current.props.style);
-    if (style?.paddingLeft === 16 && typeof style.paddingBottom === 'number') {
-      return style;
-    }
-    current = current.parent;
-  }
-  throw new Error('Filter bar padding was not found');
-};
-
 const lastFeedProps = (): MockSocialFeedProps => {
   const props = mockSocialFeed.mock.lastCall?.[0];
   if (!props) {
@@ -162,7 +149,9 @@ describe('LiveView', () => {
     renderWithProvider(<LiveView />, { state });
 
     expect(
-      filterBarPadding(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON)),
+      StyleSheet.flatten(
+        screen.getByTestId(LiveViewSelectorsIDs.FILTER_BAR).props.style,
+      ),
     ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
   });
 
