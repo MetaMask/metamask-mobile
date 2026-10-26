@@ -9,6 +9,7 @@ interface EditableProfileAvatarProps {
   imageUrl?: string | null;
   avatarPresetId?: string | null;
   avatarBackgroundId?: string | null;
+  diameter?: number;
   onPress: () => void;
   avatarTestID: string;
   editTestID: string;
@@ -23,6 +24,7 @@ const EditableProfileAvatar: React.FC<EditableProfileAvatarProps> = ({
   imageUrl,
   avatarPresetId,
   avatarBackgroundId,
+  diameter,
   onPress,
   avatarTestID,
   editTestID,
@@ -45,7 +47,7 @@ const EditableProfileAvatar: React.FC<EditableProfileAvatarProps> = ({
         imageUrl={imageUrl}
         avatarPresetId={avatarPresetId}
         avatarBackgroundId={avatarBackgroundId}
-        size="lg"
+        diameter={diameter}
       />
       <View
         pointerEvents="none"
