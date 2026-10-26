@@ -266,6 +266,7 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
@@ -1432,6 +1433,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
         component={MoneyDeeplinkModal}
+        options={transparentModalStackOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MONEY.DEPOSIT_DEEPLINK}
+        component={MoneyDepositDeeplinkBridge}
         options={transparentModalStackOptions}
       />
       <NativeStack.Screen

@@ -7,8 +7,9 @@ import {
 
 const StoryBookStack = createNativeStackNavigator();
 
-const withNavigation = (story: any) => {
-  const StorybookScreen = () => story();
+const withNavigation = (Story: React.ComponentType) => {
+  const StorybookScreen = () => <Story />;
+
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
