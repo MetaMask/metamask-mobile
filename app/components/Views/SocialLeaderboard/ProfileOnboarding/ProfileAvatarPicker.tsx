@@ -9,7 +9,7 @@ import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingVi
 import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 
 const AVATAR_TILE_SIZE = 60;
-/** Four 60pt tiles with 20pt gaps. */
+/** Width of four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
 
 interface ProfileAvatarPickerProps {
@@ -17,13 +17,14 @@ interface ProfileAvatarPickerProps {
   avatarBackgroundId: string;
   onSelectPreset: (presetId: string) => void;
   onSelectBackground: (backgroundId: string) => void;
-  /** LOW hardware skips the carousel entrance glide and glow. */
+  /**
+   * Skips the carousel entrance glide and glow on LOW hardware.
+   */
   isLowTier?: boolean;
 }
 
 /**
- * Avatar and backdrop picker shared by profile onboarding and later edits.
- * The tiles are local foxicons, so this view does not fetch images.
+ * Avatar and background picker shared by onboarding and profile edits.
  */
 const ProfileAvatarPicker: React.FC<ProfileAvatarPickerProps> = ({
   avatarPresetId,

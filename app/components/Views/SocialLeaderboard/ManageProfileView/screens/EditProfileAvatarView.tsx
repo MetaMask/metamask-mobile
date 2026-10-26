@@ -28,6 +28,7 @@ import { useProfileController } from '../hooks/useProfileController';
 import { canSaveProfileAvatarEdit } from './canSaveProfileAvatarEdit';
 import { EditProfileAvatarSelectorsIDs } from './EditProfileAvatarView.testIds';
 
+/** Screen for changing the signed-in profile avatar. */
 const EditProfileAvatarView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();

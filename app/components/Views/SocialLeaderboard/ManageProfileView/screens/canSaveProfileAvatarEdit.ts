@@ -1,9 +1,10 @@
 import type { NetworkTier } from '../../../../../util/deviceCapability/types';
 
 /**
- * Saving an avatar writes to the profile API. Offline skips that write.
- * Unknown network stays on the product path. Hardware tier does not gate the
- * save; the picker carousel already lightens motion on LOW devices.
+ * Whether an avatar edit can be written to the profile API.
+ *
+ * @param networkTier - Current network tier. `null` still allows a save.
+ * @returns False when the network tier is `NONE`.
  */
 export const canSaveProfileAvatarEdit = (
   networkTier: NetworkTier | null,

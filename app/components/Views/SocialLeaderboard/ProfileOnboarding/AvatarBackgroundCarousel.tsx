@@ -375,8 +375,8 @@ interface AvatarBackgroundCarouselProps {
   selectedBackgroundId: string;
   onSelect: (backgroundId: string) => void;
   /**
-   * When the parent already read `getHardwareTier()`, pass LOW here so this
-   * strip does not read RAM again. Omitted callers keep the internal read.
+   * Skips the entrance glide and glow when the device is LOW hardware.
+   * When omitted, the carousel reads the hardware tier itself.
    */
   isLowTier?: boolean;
 }

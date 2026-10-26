@@ -16,8 +16,8 @@ interface EditableProfileAvatarProps {
 }
 
 /**
- * Owner avatar with the onboarding pencil. ProfileAvatar itself stays a plain
- * image so the drawer, ready animation, and empty posts keep their look.
+ * Owner avatar with an edit pencil. The pencil is decorative; the whole
+ * image is the control.
  */
 const EditableProfileAvatar: React.FC<EditableProfileAvatarProps> = ({
   imageUrl,
