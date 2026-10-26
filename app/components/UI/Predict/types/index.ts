@@ -4,7 +4,10 @@ import { Hex } from '@metamask/utils';
 import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
-import type { PredictPaymentMethodValue } from '../constants/eventNames';
+import type {
+  PredictMarketVersionValue,
+  PredictPaymentMethodValue,
+} from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -621,6 +624,7 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
+  marketVersion?: PredictMarketVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;

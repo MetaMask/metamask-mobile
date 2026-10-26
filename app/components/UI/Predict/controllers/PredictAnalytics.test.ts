@@ -486,6 +486,33 @@ describe('PredictAnalytics', () => {
       expect(event.properties).not.toHaveProperty('predict_feed_tab');
       expect(event.properties).not.toHaveProperty('predict_screen');
     });
+
+    it('includes market_version when marketVersion is provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: {
+          marketId: 'test',
+          entryPoint: 'predict_feed',
+          marketVersion: PredictEventValues.MARKET_VERSION.V2,
+        },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties.market_version).toBe('v2');
+      expect(event.sensitiveProperties).not.toHaveProperty('market_version');
+    });
+
+    it('omits market_version when marketVersion is not provided', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.FAILED,
+        analyticsProperties: { marketId: 'test', entryPoint: 'predict_feed' },
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).not.toHaveProperty('market_version');
+    });
   });
 
   describe('trackBetslipDismissed', () => {
