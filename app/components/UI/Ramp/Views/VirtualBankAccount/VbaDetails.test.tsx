@@ -510,6 +510,20 @@ describe('VbaDetails', () => {
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
 
+  it('keeps one Pix fetch trace across a null response and retry', async () => {
+    mockGetDepositInstructions
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(pixInstructions);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockGetDepositInstructions).toHaveBeenCalledTimes(2);
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith('vba-child-id', true);
+  });
+
   it('does not fetch Pix instructions while offline', () => {
     mockNetworkTier = 'NONE';
 

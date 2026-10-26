@@ -134,6 +134,7 @@ const clearJourneyState = (): void => {
   isBackgrounded = false;
 };
 
+/** Starts one VBA journey or returns the active journey identifier. */
 export const startVbaCufJourney = (
   entrySurface: VbaCufEntrySurface,
 ): string => {
@@ -161,6 +162,7 @@ export const startVbaCufJourney = (
   return id;
 };
 
+/** Ends the active VBA journey once and clears its lifecycle resources. */
 export function endVbaCufJourney(
   success: boolean,
   reason?: VbaCufEndReason,
@@ -191,6 +193,7 @@ export function endVbaCufJourney(
   settleVbaCufLifecycleContext();
 }
 
+/** Starts a forced operation transaction, linked to the active journey if any. */
 export const startVbaCufChildTrace = (name: VbaCufChildTraceName): string => {
   const id = nextOperationId(name);
   const tags = buildStartTags();
@@ -209,6 +212,7 @@ export const startVbaCufChildTrace = (name: VbaCufChildTraceName): string => {
   return id;
 };
 
+/** Ends an open VBA operation transaction once. */
 export const endVbaCufChildTrace = (
   id: string,
   success: boolean,
@@ -227,8 +231,10 @@ export const endVbaCufChildTrace = (
   endTrace({ name, id, data });
 };
 
+/** Returns whether a VBA journey is currently open. */
 export const hasActiveVbaCufJourney = (): boolean => journeyId !== null;
 
+/** Clears module state and open operations between tests. */
 export const resetVbaCufTraceForTests = (): void => {
   clearJourneyState();
   openChildren.clear();

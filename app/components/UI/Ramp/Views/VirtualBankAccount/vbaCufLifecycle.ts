@@ -10,6 +10,7 @@ let hasEnteredForegroundOnce = false;
 let hasBackgroundedSinceLastActive = false;
 let subscription: { remove: () => void } | undefined;
 
+/** Updates the shared lifecycle context while preserving iOS background state. */
 export const handleVbaCufAppStateChange = (nextState: AppStateStatus): void => {
   if (nextState === 'background') {
     hasBackgroundedSinceLastActive = true;
@@ -40,15 +41,18 @@ const initializeLifecycleTracking = (): void => {
   );
 };
 
+/** Returns the current VBA lifecycle context and initializes tracking lazily. */
 export const getVbaCufLifecycleContext = (): VbaCufLifecycleContext => {
   initializeLifecycleTracking();
   return currentContext;
 };
 
+/** Marks subsequent foreground work as warm after a journey settles. */
 export const settleVbaCufLifecycleContext = (): void => {
   currentContext = VBA_CUF_LIFECYCLE_CONTEXT.WARM;
 };
 
+/** Resets lifecycle state and removes the listener between tests. */
 export const resetVbaCufLifecycleContextForTests = (): void => {
   currentContext = VBA_CUF_LIFECYCLE_CONTEXT.COLD_PROCESS;
   hasEnteredForegroundOnce = false;
