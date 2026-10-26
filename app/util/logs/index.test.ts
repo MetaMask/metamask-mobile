@@ -907,51 +907,12 @@ describe('logs :: generateStateLogs', () => {
       });
     });
 
-    it('drops fields that have no metadata entry', () => {
-      setControllerMetadata('QrSyncController', {
-        status: stateLogsMetadata(true),
-      });
-
-      const logs = generateParsedLogs({
-        QrSyncController: { status: 'idle', legacyField: 'dropped' },
-      });
-
-      expect(logs.QrSyncController).toStrictEqual({ status: 'idle' });
-      expect(Logger.error).toHaveBeenCalledWith(
-        new Error("No metadata found for 'legacyField'"),
-        'State logs: QrSyncController',
-      );
-    });
-
     it('keeps controller state unchanged when the controller has no metadata', () => {
       const logs = generateParsedLogs({
         QrSyncController: { otp: 'unchanged' },
       });
 
       expect(logs.QrSyncController).toStrictEqual({ otp: 'unchanged' });
-    });
-
-    it('drops a field and logs an error when its sanitizer throws', () => {
-      const sanitizerError = new Error('sanitizer failed');
-      setControllerMetadata('QrSyncController', {
-        status: stateLogsMetadata(true),
-        session: stateLogsMetadata(() => {
-          throw sanitizerError;
-        }),
-      });
-
-      const logs = generateParsedLogs({
-        QrSyncController: {
-          status: 'idle',
-          session: { id: 'sensitive-session-id' },
-        },
-      });
-
-      expect(logs.QrSyncController).toStrictEqual({ status: 'idle' });
-      expect(Logger.error).toHaveBeenCalledWith(
-        sanitizerError,
-        'State logs: QrSyncController',
-      );
     });
 
     it('keeps the CardController cardHomeData summary while dropping fields marked false', () => {

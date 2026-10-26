@@ -3,7 +3,6 @@ import {
   type StateConstraint,
   type StateMetadata,
 } from '@metamask/base-controller';
-import { isObject, type Json } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -82,34 +81,6 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
   };
 };
 
-const hasStateMetadata = (
-  controller: unknown,
-): controller is { metadata: StateMetadata<StateConstraint> } =>
-  isObject(controller) && isObject(controller.metadata);
-
-const applyStateLogsMetadataToBackgroundState = (
-  backgroundState: Record<string, Json>,
-) =>
-  Object.fromEntries(
-    Object.entries(backgroundState).map(([controllerName, controllerState]) => {
-      const controller: unknown =
-        Engine.context[controllerName as keyof typeof Engine.context];
-      if (!hasStateMetadata(controller) || !isObject(controllerState)) {
-        return [controllerName, controllerState];
-      }
-
-      return [
-        controllerName,
-        deriveStateFromMetadata(
-          controllerState as StateConstraint,
-          controller.metadata,
-          'includeInStateLogs',
-          (error) => Logger.error(error, `State logs: ${controllerName}`),
-        ),
-      ];
-    }),
-  );
-
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
@@ -125,11 +96,18 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
 
-  const rawCardControllerState =
-    fullState.engine.backgroundState.CardController;
-  fullState.engine.backgroundState = applyStateLogsMetadataToBackgroundState(
-    fullState.engine.backgroundState,
-  );
+  const { backgroundState } = fullState.engine;
+  const rawCardControllerState = backgroundState.CardController;
+  for (const [name, controller] of Object.entries(Engine.context)) {
+    if (backgroundState[name] && 'metadata' in controller) {
+      backgroundState[name] = deriveStateFromMetadata(
+        backgroundState[name],
+        controller.metadata as StateMetadata<StateConstraint>,
+        'includeInStateLogs',
+        (error) => Logger.error(error, `State logs: ${name}`),
+      );
+    }
+  }
 
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {
