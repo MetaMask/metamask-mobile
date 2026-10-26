@@ -14,6 +14,7 @@ import {
 import React, { useCallback } from 'react';
 import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
 import EditableProfileAvatar from './EditableProfileAvatar';
 
@@ -44,7 +45,11 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
-      Linking.openURL(`https://x.com/${profile.xHandle}`);
+      Linking.openURL(`https://x.com/${profile.xHandle}`).catch(
+        (error: Error) => {
+          Logger.error(error, 'MyProfileHeader: failed to open the X profile');
+        },
+      );
     }
   }, [profile.xHandle]);
 

@@ -21,6 +21,7 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   getLocalSocialProfileSnapshot,
@@ -238,10 +239,14 @@ jest.mock('../NotificationPreferences/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  openURL: jest.fn(),
+  openURL: jest.fn(() => Promise.resolve()),
   canOpenURL: jest.fn(),
   getInitialURL: jest.fn(),
 }));
@@ -532,6 +537,21 @@ describe('MyProfileView', () => {
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.X_LINK));
 
     expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/giga-whale');
+  });
+
+  it('logs when the owner X profile cannot be opened', async () => {
+    const error = new Error('Cannot open URL');
+    jest.mocked(Linking.openURL).mockRejectedValueOnce(error);
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.X_LINK));
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'MyProfileHeader: failed to open the X profile',
+      );
+    });
   });
 
   it('returns to SocialV1 from the MMDS back button', () => {
