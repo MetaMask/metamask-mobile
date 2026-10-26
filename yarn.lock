@@ -9622,24 +9622,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/claims-controller@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@metamask/claims-controller@npm:1.0.3"
-  dependencies:
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/keyring-controller": "npm:^28.1.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.0"
-    "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.103.2"
-  checksum: 10/4add0f1aa7e125300ebe1d8eb8bef3c9e66a320bb7107a80bdd71578877a91ed1a3aa166b890528922676acf5b79fcc2c37f4039c878f8d07c70703b509ddca7
-  languageName: node
-  linkType: hard
-
-"@metamask/claims-controller@npm:^1.0.4":
+"@metamask/claims-controller@npm:^1.0.3, @metamask/claims-controller@npm:^1.0.4":
   version: 1.0.4
   resolution: "@metamask/claims-controller@npm:1.0.4"
   dependencies:
@@ -11906,25 +11889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/shield-controller@npm:^7.0.4":
-  version: 7.0.4
-  resolution: "@metamask/shield-controller@npm:7.0.4"
-  dependencies:
-    "@metamask/base-controller": "npm:^10.0.0"
-    "@metamask/base-data-service": "npm:^2.1.0"
-    "@metamask/controller-utils": "npm:^13.0.0"
-    "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.0"
-    "@metamask/signature-controller": "npm:^40.0.0"
-    "@metamask/transaction-controller": "npm:^72.1.0"
-    "@metamask/utils": "npm:^12.0.0"
-    "@tanstack/query-core": "npm:^5.103.2"
-    cockatiel: "npm:^3.2.1"
-  checksum: 10/0ff0cc17f0eff64dc1f64e48fac8cf50ec69aa4d6e183a1b56befd6d3c9281f4e71d1bee71a312a86f9e62d2e4393115a2fe50ad7e917f25a94f9dd4907f9b3c
-  languageName: node
-  linkType: hard
-
-"@metamask/shield-controller@npm:^7.0.5":
+"@metamask/shield-controller@npm:^7.0.4, @metamask/shield-controller@npm:^7.0.5":
   version: 7.0.5
   resolution: "@metamask/shield-controller@npm:7.0.5"
   dependencies:
