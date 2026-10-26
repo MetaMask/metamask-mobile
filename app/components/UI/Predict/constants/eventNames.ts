@@ -27,6 +27,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  OUTCOME_VERSION: 'outcome_version',
   ORDER_TYPE: 'order_type',
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
@@ -172,6 +173,7 @@ export const PredictEventValues = {
     INSUFFICIENT_GAS: 'insufficient_gas',
     NETWORK_ERROR: 'network_error',
     USER_REJECTED: 'user_rejected',
+    MARKET_UNAVAILABLE: 'market_unavailable',
     UNKNOWN: 'unknown',
   },
   PAYMENT_METHOD: {
@@ -216,6 +218,11 @@ export const PredictEventValues = {
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
+  },
+  OUTCOME_VERSION: {
+    V1: 'v1',
+    V2: 'v2',
+    MIXED: 'mixed',
   },
   MARKET_DETAILS_TAB: {
     ABOUT: 'about',
@@ -319,6 +326,9 @@ export type PredictRetryOutcomeValue =
 
 export type PredictPresubmitOutcomeValue =
   (typeof PredictEventValues.PRESUBMIT_OUTCOME)[keyof typeof PredictEventValues.PRESUBMIT_OUTCOME];
+
+export type PredictOutcomeVersionValue =
+  (typeof PredictEventValues.OUTCOME_VERSION)[keyof typeof PredictEventValues.OUTCOME_VERSION];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event
