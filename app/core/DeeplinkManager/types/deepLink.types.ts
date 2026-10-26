@@ -176,6 +176,7 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.MMSDK,
   ACTIONS.ANDROID_SDK,
   ACTIONS.MONEY,
+  ACTIONS.MONEY_ACCOUNT_DEPOSIT,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

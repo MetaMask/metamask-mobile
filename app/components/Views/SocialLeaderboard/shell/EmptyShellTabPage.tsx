@@ -69,6 +69,11 @@ import type {
   SocialV1HotToken,
 } from '../SocialV1View/feed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
@@ -94,6 +99,11 @@ type AnimatedScrollHandler = React.ComponentProps<
 
 export type SocialFeedShellTab = SocialV1FeedTab;
 
+const FEED_TRACE_TABS = {
+  trending: SOCIAL_TRACE_TABS.Trending,
+  following: SOCIAL_TRACE_TABS.Following,
+} as const satisfies Record<SocialFeedShellTab, 'trending' | 'following'>;
+
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
   /**
@@ -101,6 +111,7 @@ export interface EmptyShellTabPageProps {
    * tab is first opened so Trending and Following don't duplicate testIDs.
    */
   isActive?: boolean;
+  performance?: SocialPerformanceContext;
   onScroll?: AnimatedScrollHandler;
   pageRef?: React.Ref<SocialTabPageHandle>;
   containerTestID: string;
@@ -127,6 +138,7 @@ export interface EmptyShellTabPageProps {
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
   isActive = true,
+  performance,
   onScroll,
   pageRef,
   containerTestID,
@@ -150,6 +162,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     loadMore,
     error,
     refresh,
+    dataUpdatedAt,
   } = useSocialV1Feed(tab, {
     ownerProfileId: myProfile?.profileId,
     isActive,
@@ -498,6 +511,22 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showNextPageSpinner = visibleAssetFeed
     ? visibleAssetFeed.isFetchingNextPage
     : isFetchingNextPage;
+  const firstContentState = !hasBeenActive
+    ? null
+    : sortedPosts.length > 0
+      ? 'content'
+      : visibleError && visibleFeedEmpty
+        ? 'error'
+        : showTrueEmptyFeed
+          ? 'empty'
+          : null;
+
+  useSocialTabFirstContentTrace({
+    tab: FEED_TRACE_TABS[tab],
+    contentState: firstContentState,
+    hasUsableData: dataUpdatedAt !== undefined,
+    performance,
+  });
 
   return (
     <SocialFeedSurfaceProvider
@@ -549,6 +578,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   isLoading={isLoading}
                   selectedTokenId={activeHotTokenId}
                   onTokenPress={handleHotTokenPress}
+                  isActive={isActive}
                 />
               ) : null}
               {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (

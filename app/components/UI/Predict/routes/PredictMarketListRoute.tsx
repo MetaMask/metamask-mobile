@@ -6,7 +6,7 @@ import { selectPredictHomeRedesignEnabledFlag } from '../selectors/featureFlags'
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { PredictStackParamList } from '../types/navigation';
 import { selectPredictConfig } from '../../PredictNext/selectors/predictConfig';
-import { resolvePredictMarketListLane } from '../root/laneResolution';
+import { resolvePredictMarketListLane } from '../../PredictNext/navigation/root/laneResolution';
 import PredictNextStack from '../../PredictNext/navigation/PredictNextStack';
 
 /**
