@@ -1,8 +1,7 @@
 import React from 'react';
-import { render, act } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { render, act, within } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
-import ChartCandleSkeleton from '../../ChartCandleSkeleton';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { getTokenDetailsLegendOverlay } from '../indicatorColors';
 import { AppThemeKey } from '../../../../../util/theme/models';
 import {
@@ -49,6 +48,8 @@ jest.mock('@metamask/react-native-webview', () => {
   return { WebView: MockWebView };
 });
 
+const CANDLE_SKELETON_ID = 'chart-candle-skeleton';
+
 const MOCK_BARS: OHLCVBar[] = [
   { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
   { time: 1000300, open: 11, high: 13, low: 10, close: 12, volume: 200 },
@@ -67,7 +68,7 @@ describe('AdvancedChart', () => {
   it.each(['omitted', 'default'] as const)(
     'keeps the flat skeleton overlay when skeletonVariant is %s',
     (variant) => {
-      const { UNSAFE_getByType, getByTestId, UNSAFE_queryByType } = render(
+      const { getByTestId, queryByTestId } = render(
         <AdvancedChart
           ohlcvData={MOCK_BARS}
           height={240}
@@ -75,18 +76,15 @@ describe('AdvancedChart', () => {
         />,
       );
 
-      const skeleton = UNSAFE_getByType(Skeleton);
-
-      expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
-      expect(skeleton.props.height).toBe(240);
-      expect(skeleton.props.width).toBe('100%');
-      expect(skeleton.props.testID).toBe('advanced-chart-skeleton');
-      expect(UNSAFE_queryByType(ChartCandleSkeleton)).toBeNull();
+      expect(
+        StyleSheet.flatten(getByTestId('advanced-chart-skeleton').props.style),
+      ).toEqual(expect.objectContaining({ height: 240, width: '100%' }));
+      expect(queryByTestId(CANDLE_SKELETON_ID)).not.toBeOnTheScreen();
     },
   );
 
   it('renders the candle skeleton inside the overlay when skeletonVariant is candles', () => {
-    const { UNSAFE_getByType, getByTestId, UNSAFE_queryAllByType } = render(
+    const { getByTestId } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         height={240}
@@ -94,13 +92,11 @@ describe('AdvancedChart', () => {
       />,
     );
 
-    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
-    expect(UNSAFE_getByType(ChartCandleSkeleton).props.height).toBe(240);
-    expect(
-      UNSAFE_queryAllByType(Skeleton).some(
-        (node) => node.props.testID === 'advanced-chart-skeleton',
-      ),
-    ).toBe(false);
+    const candleSkeleton = within(
+      getByTestId('advanced-chart-skeleton'),
+    ).getByTestId(CANDLE_SKELETON_ID);
+
+    expect(StyleSheet.flatten(candleSkeleton.props.style).height).toBe(240);
   });
 
   it('swaps the candle skeleton for the chart once the chart is ready', () => {
