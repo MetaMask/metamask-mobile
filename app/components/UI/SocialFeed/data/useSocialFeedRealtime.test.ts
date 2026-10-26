@@ -354,6 +354,18 @@ describe('useSocialFeedRealtime', () => {
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   });
 
+  it('catches up when a filter change widens the feed', async () => {
+    const rejectAll = () => false;
+    const { rerender } = renderRealtime({ filterPost: rejectAll });
+    emit(buildEvent('pos-a'));
+    const refreshedBeforeFilterChange = refresh.mock.calls.length;
+
+    rerender({ filterPost: () => true });
+
+    expect(refreshedBeforeFilterChange).toBe(0);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
   it('catches up when it becomes active again with loaded rows', async () => {
     const rows = [buildRow({ positionId: 'pos-a' })];
     const { rerender } = renderRealtime({

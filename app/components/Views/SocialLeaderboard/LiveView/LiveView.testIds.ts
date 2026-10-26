@@ -3,4 +3,5 @@ export const LiveViewSelectorsIDs = {
   SCROLL_VIEW: 'live-view-scroll-view',
   STREAM_BUTTON: 'live-view-stream-button',
   FILTER_BUTTON: 'live-view-filter-button',
+  FILTER_BAR: 'live-view-filter-bar',
 } as const;

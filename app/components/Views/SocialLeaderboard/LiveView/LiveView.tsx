@@ -33,6 +33,13 @@ import LiveButton from './components/LiveButton';
 import PendingPostsButton from './components/PendingPostsButton';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import { useMyProfile } from '../MyProfileView/hooks';
+import {
+  SocialEvent,
+  type SocialEventSource,
+  useSocialInteraction,
+} from '../analytics';
+
+const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
 
 const LIVE_FEED_SOURCE: SocialFeedSource = {
   kind: 'all',
@@ -44,6 +51,7 @@ type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
   isActive?: boolean;
+  source?: SocialEventSource;
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
@@ -55,6 +63,7 @@ export interface LiveViewProps {
 
 const LiveView: React.FC<LiveViewProps> = ({
   isActive = true,
+  source,
   onScroll,
   pageRef,
   onOpenFilters,
@@ -89,6 +98,11 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const previousFiltersRef = useRef(appliedFilters);
+  const trackInteraction = useSocialInteraction(
+    Screen.LIVE_TRADES,
+    { tab_name: Tab.LIVE_TRADES, source },
+    isActive,
+  );
   useEffect(() => {
     if (previousFiltersRef.current === appliedFilters) {
       return;
@@ -102,9 +116,16 @@ const LiveView: React.FC<LiveViewProps> = ({
       if (streamState === 'paused') {
         onRevealPending();
       }
-      setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
+      const next = streamState === 'live' ? 'paused' : 'live';
+      setStreamState(next);
+      trackInteraction(Interaction.STREAM_TOGGLED, {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: next === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+        previous_filter_value:
+          streamState === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+      });
     },
-    [streamState],
+    [streamState, trackInteraction],
   );
 
   const handleAuthorPress = useCallback(
@@ -151,7 +172,8 @@ const LiveView: React.FC<LiveViewProps> = ({
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
-        twClassName="px-4 pt-[12px] pb-4"
+        testID={LiveViewSelectorsIDs.FILTER_BAR}
+        twClassName="px-4 pt-4 pb-2"
       >
         <Box twClassName="flex-row items-center gap-2">
           <LiveButton
@@ -174,6 +196,8 @@ const LiveView: React.FC<LiveViewProps> = ({
       <SocialFeed
         source={LIVE_FEED_SOURCE}
         location="social_live"
+        analyticsSource={source}
+        isActive={isActive}
         scrollMode="virtualized"
         realtime={isActive}
         paused={!isLive}

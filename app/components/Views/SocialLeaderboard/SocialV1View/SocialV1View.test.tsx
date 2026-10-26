@@ -23,6 +23,7 @@ import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.t
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
+const mockFeedInteractions = {};
 const mockNavigate = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
@@ -119,9 +120,14 @@ jest.mock('../../../../hooks/useABTest', () => ({
 
 jest.mock('../analytics', () => {
   const events = jest.requireActual('../analytics/socialLeaderboardEvents');
+  const socialEvents = jest.requireActual('../analytics/socialEvents');
   return {
     ...events,
+    ...socialEvents,
     useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+    useSocialFeedInteractions: () => mockFeedInteractions,
+    useSocialInteraction: () => mockTrack,
+    useSocialScreenAnalytics: () => mockTrack,
   };
 });
 
