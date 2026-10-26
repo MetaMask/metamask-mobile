@@ -6,9 +6,11 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export interface SocialTabFilterBarProps {
   children: React.ReactNode;
@@ -38,11 +40,24 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
     <Box twClassName="flex-1 min-w-0">{children}</Box>
     <ButtonIcon
       iconName={IconName.Filter}
-      size={ButtonIconSize.Md}
-      onPress={onOpenFilters}
+      size={ButtonIconSize.Lg}
+      // Large buttons map to a 32px glyph. This control stays at 24px.
+      iconProps={{ size: IconSize.Lg }}
+      onPress={
+        onOpenFilters
+          ? () => {
+              fireImpact(ImpactMoment.SecondaryCTA);
+              onOpenFilters();
+            }
+          : undefined
+      }
       testID={filterTestID}
       accessibilityLabel={strings('social_leaderboard.shell.filters.title')}
-      twClassName={isFilterActive ? 'bg-background-muted' : undefined}
+      twClassName={
+        isFilterActive
+          ? 'rounded-full bg-primary-muted'
+          : 'rounded-full bg-background-muted'
+      }
     />
   </Box>
 );

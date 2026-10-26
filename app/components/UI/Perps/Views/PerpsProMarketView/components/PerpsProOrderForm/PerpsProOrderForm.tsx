@@ -240,7 +240,7 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
-  feeSource,
+  feeDiscountKind,
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
@@ -326,7 +326,7 @@ const OrderSummary = ({
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
-          feeSource={feeSource}
+          feeDiscountKind={feeDiscountKind}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
@@ -509,6 +509,7 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   chaseMaxDistance = '',
   onChaseMaxDistanceChange = () => undefined,
+  onChaseMaxDistanceFocus,
   chaseMaxDistanceUnit = 'usd',
   onChaseMaxDistanceUnitChange = () => undefined,
   chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -911,6 +912,7 @@ const PerpsProOrderForm = ({
                   label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
+                  onFocus={onChaseMaxDistanceFocus}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
                   isDisabled={isScaleFormLocked}
                   variant="inline-labeled"

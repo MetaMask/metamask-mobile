@@ -8,6 +8,7 @@ import type { AccountGroupId } from '@metamask/account-api';
 import type { SeasonRewardType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 import type { RewardsInfoSheetModalParams } from '../components/RewardsInfoSheetModal';
+import type { RewardsMoneyClaimsPausedModalParams } from '../components/Money/RewardsMoneyClaimsPausedModal';
 
 export interface RewardsOndoCampaignDetailsParams {
   campaignId?: string;
@@ -194,6 +195,9 @@ export type RewardsStackParamList = {
   RewardsVipRefereeSplashView: undefined;
   RewardsVipRefereeView: undefined;
   RewardsCampaignsView: undefined;
+  RewardsTradingCommissionsView: undefined;
+  RewardsTradingRebatesView: undefined;
+  RewardsEarningsHistoryView: undefined;
   RewardsCampaignTourStep: RewardsCampaignTourStepParams;
   RewardsCampaignDetails: RewardsOndoCampaignDetailsParams | undefined;
   RewardsOndoCampaignWinning: RewardsOndoCampaignWinningParams;
@@ -235,6 +239,9 @@ export type RewardsNavigationParamList = RewardsStackParamList & {
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
   RewardsBottomSheetModal: RewardsBottomSheetModalParams | undefined;
   RewardsInfoSheetModal: RewardsInfoSheetModalParams | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsMoneyClaimsPausedModalParams
+    | undefined;
   RewardsClaimBottomSheetModal: RewardsClaimBottomSheetModalParams | undefined;
   RewardOptInAccountGroupModal: RewardOptInAccountGroupModalParams | undefined;
   EndOfSeasonClaimBottomSheet: EndOfSeasonClaimBottomSheetParams | undefined;

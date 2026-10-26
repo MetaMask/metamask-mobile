@@ -227,7 +227,7 @@ export const PredictHome = () => {
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}
-            isError={balanceQuery.isError}
+            error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
           <PortfolioActions

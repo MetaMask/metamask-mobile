@@ -354,7 +354,7 @@
     "sign_in_with_apple": "Sign in with Apple",
     "continue_with_telegram": "Continue with Telegram",
     "sign_in_with_telegram": "Sign in with Telegram",
-    "your_wallet": "You successfully reset your wallet!",
+    "your_wallet": "You successfully reset your wallet.",
     "delete_current": "Reset current wallet",
     "have_existing_wallet": "I have an existing wallet",
     "import_using_srp": "Import using Secret Recovery Phrase",
@@ -1148,6 +1148,8 @@
       "agreement_prefix": "By continuing, you are acknowledging that you have read and agreed to ",
       "agreement_separator": " and ",
       "agreement_suffix": ".",
+      "moonpay_privacy_policy_link": "MoonPay's Privacy Policy",
+      "moonpay_terms_link": "MoonPay's Terms and Conditions",
       "powered_by": "Powered by",
       "button": "Get account details"
     },
@@ -1216,6 +1218,20 @@
       "description": "Your identity is verified, but we couldn't finish creating your account.",
       "button": "Try again"
     },
+    "account_create_error": {
+      "details": {
+        "title": "We couldn't verify your details",
+        "description": "Contact support to finish setting up bank transfers.",
+        "primary": "Contact support",
+        "secondary": "Done"
+      },
+      "generic": {
+        "title": "Something went wrong",
+        "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
+        "primary": "Try again",
+        "secondary": "Done"
+      }
+    },
     "error": {
       "title": "Couldn't open your account",
       "description": "We couldn't load your bank account details.",
@@ -1252,6 +1268,11 @@
       "load_error": "Couldn't refresh the deposit. We'll try again.",
       "setup_error": "Couldn't create your account.",
       "retry": "Try again"
+    }
+  },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
     }
   },
   "social_leaderboard": {
@@ -1314,11 +1335,16 @@
         "feed": "Feed",
         "trending": "Trending",
         "following": "Following",
-        "live_trades": "Live trades"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "Paused",
-        "live": "Live"
+        "live": "Live",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Following",
       "all": "All",
@@ -1359,9 +1385,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
+        "live": {
           "title": "No trades yet",
-          "description": "Live trades will show up here."
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1422,6 +1448,7 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
+      "hide_keyboard": "Hide keyboard",
       "share_position_title": "Share a position",
       "tab_open": "Open",
       "tab_closed": "Closed",
@@ -1639,12 +1666,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -2991,14 +3017,8 @@
       "tabs": {
         "overview": "Overview",
         "feed": "Feed",
-        "top_traders": "Top traders"
+        "top_traders": "Holders"
       },
-      "top_traders_timeframe": {
-        "7d": "This week",
-        "30d": "This month"
-      },
-      "top_traders_scope": "Ranked across all Perps markets",
-      "top_traders_empty": "No top traders yet",
       "badge": {
         "experimental": "EXPERIMENTAL",
         "equity": "STOCK",
@@ -3052,7 +3072,11 @@
         "bridge_fee": "Bridge fee",
         "total": "Total fees",
         "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
-        "member_discount_message": "You're saving {{percentage}}% on fees as a member."
+        "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
+        "promotional_discount": "Promotional discount",
+        "fee_discount": "Fee discount",
+        "promotional_discount_message": "Promotional discount: {{percentage}}% off the MetaMask fee.",
+        "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."
       },
       "size_skew": {
         "title": "Size skew",
@@ -3624,6 +3648,7 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
     "event": {
       "your_positions": "Your positions"
@@ -4110,6 +4135,11 @@
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "webview_title": "Polymarket Terms",
+      "button": "Got it"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
       "button": "Got it"
     },
     "deposit": {
@@ -5654,13 +5684,15 @@
       "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
       "add_device_to_wallet": "Add this device to wallet",
       "points": {
-        "one": "Open MetaMask on your other device",
-        "two": "Go to",
-        "two_bold_one": "Settings",
-        "two_bold_two": "Add device",
-        "two_icon": ">",
-        "three": "Scan the QR code with this device",
-        "four": "Enter the security code on your extension"
+        "one_title": "Open MetaMask",
+        "one_description": "On your other device.",
+        "two_title": "Add device",
+        "two_description_prefix": "Go to",
+        "two_description_path": "Settings > Add device",
+        "three_title": "Scan the QR code",
+        "three_description": "Point this device's camera at the code.",
+        "four_title": "Enter the security code",
+        "four_description": "Type it on your other device to confirm"
       },
       "scan_qr_code_button": "Scan QR code",
       "scanner": {
@@ -9454,7 +9486,7 @@
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
-      "bank_account": "Bank account",
+      "bank_account": "Bank transfer",
       "add_musd": "Add mUSD",
       "receive_external": "External address",
       "coming_soon": "Coming soon",
@@ -9605,7 +9637,13 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date"
+      "date": "Date",
+      "paid_with": "Paid with",
+      "you_deposited": "You deposited",
+      "transaction_fees": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "total": "Total",
+      "pending": "Pending"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -9716,6 +9754,7 @@
     "staked_balance": "Staked balance",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
+    "withdrawal_details_unavailable": "We couldn't load your withdrawal details. Try again. If the problem persists, contact MetaMask Support.",
     "stake_more": "Stake more",
     "claim": "Claim",
     "staking": "Staking",
@@ -10650,9 +10689,9 @@
     "bridged_token": "Bridged {{symbol}}"
   },
   "account_status": {
-    "account_already_exists": "Wallet already exists",
+    "account_already_exists": "You already have a wallet",
     "account_already_exists_description": "A wallet using \"{{accountName}}\" already exists. Do you want to try logging in instead?",
-    "account_already_exists_telegram_description": "A wallet is already linked to this Telegram account. Do you want to unlock this wallet?",
+    "account_already_exists_telegram_description": "We found a wallet linked to this Telegram account. Unlock it to continue.",
     "log_in": "Log in",
     "account_not_found": "Wallet not found",
     "account_not_found_description": "We couldn’t find a wallet for \"{{accountName}}\". Do you want to create a new one with this login?",
@@ -11077,11 +11116,11 @@
       "login_button": "Log in",
       "not_now_button": "Not now",
       "sign_up": {
-        "title": "Let's get started",
-        "description": "Create an account with our card provider to set up your MetaMask Card. MetaMask does not see or store your personal data.",
+        "title": "Set up your MetaMask Card",
+        "description": "We need a few details to get your card ready.",
         "i_already_have_an_account": "I already have a MetaMask Card",
-        "i_already_have_an_account_immersve": "I already have an account",
-        "email_label": "Email address",
+        "i_already_have_an_account_immersve": "I already have a MetaMask Card",
+        "email_label": "Email",
         "password_label": "New password for MetaMask Card",
         "password_description": "Different from your MetaMask app unlock password. Must be at least 15 characters long.",
         "country_label": "Country of residence",
@@ -11091,9 +11130,10 @@
         "join_waitlist": "Join waitlist",
         "country_not_available": "Card sign-up isn't available in your country yet.",
         "account_label": "Account",
-        "account_label_immersve": "Card account",
+        "account_label_immersve": "Spending account",
         "account_description": "Your MetaMask Card will be associated with this account.",
-        "account_description_immersve": "Card purchases will be charged to this account.",
+        "account_description_immersve": "Card purchases will come from this account.",
+        "phone_number_label_immersve": "Phone number",
         "account_exists_toast": "You already have a card account.",
         "clickwrap_prefix": "By pressing \"Next\", you accept Immersve's ",
         "clickwrap_and": " and ",
@@ -11642,9 +11682,9 @@
       "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
-      "title": "Sign in to your card",
+      "title": "Sign in to MetaMask Card",
       "title_resume": "Finish updating your card",
-      "description": "Sign in to manage your MetaMask Card.",
+      "description": "View your balance and transactions, and manage your card settings.",
       "description_resolving": "Checking how your card was set up.",
       "description_resume": "Continue where you left off. This account stays linked to your card.",
       "auth_prompt_info": "Log in to your card account to access this feature.",
@@ -11856,6 +11896,11 @@
     },
     "active_activity_error": {
       "error_fetching_title": "Activity couldn’t be loaded",
+      "error_fetching_description": "Check your connection and try again.",
+      "retry_button": "Retry"
+    },
+    "trading_activity_error": {
+      "error_fetching_title": "Error loading your transactions",
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
@@ -13025,6 +13070,8 @@
       },
       "resets_on": "Resets on {{date}}",
       "load_error": "Couldn't load your allowances.",
+      "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
+      "unavailable": "Member pricing isn't available right now.",
       "retry": "Try again"
     },
     "physical_card": {

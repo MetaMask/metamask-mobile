@@ -59,9 +59,14 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 export interface StakingBalanceProps {
   asset: TokenI;
+  /** Draws the stake buttons on brand refresh glass. */
+  isGlass?: boolean;
 }
 
-const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
+const StakingBalanceContent = ({
+  asset,
+  isGlass = false,
+}: StakingBalanceProps) => {
   const theme = useTheme();
 
   const [
@@ -211,6 +216,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           }
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
+          isGlass={isGlass}
         />
       </>
     );
@@ -280,9 +286,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 };
 
-export const StakingBalance = ({ asset }: StakingBalanceProps) => (
+export const StakingBalance = ({ asset, isGlass }: StakingBalanceProps) => (
   <StakeSDKProvider>
-    <StakingBalanceContent asset={asset} />
+    <StakingBalanceContent asset={asset} isGlass={isGlass} />
   </StakeSDKProvider>
 );
 

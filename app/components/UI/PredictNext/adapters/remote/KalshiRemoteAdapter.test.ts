@@ -298,13 +298,13 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('maps HTTP 429 to RATE_LIMITED without response data', async () => {
+  it('maps HTTP 429 to RATE_LIMITED keeping only the status from the response', async () => {
     client.fetchFeed.mockRejectedValue(new PredictHttpError(429));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
       expect.objectContaining({
         code: PredictErrorCode.RATE_LIMITED,
-        metadata: undefined,
+        metadata: { status: 429 },
       }),
     );
   });
@@ -319,19 +319,53 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it.each([500, 502, 504])('maps HTTP %s to NETWORK_ERROR', async (status) => {
-    client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+  it.each([500, 502, 504])(
+    'maps HTTP %s to NETWORK_ERROR with the status',
+    async (status) => {
+      client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+
+      await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.NETWORK_ERROR,
+          metadata: { status },
+        }),
+      );
+    },
+  );
+
+  it.each([403, 451])(
+    'maps HTTP %s to GEO_BLOCKED with the status',
+    async (status) => {
+      client.fetchFeed.mockRejectedValue(new PredictHttpError(status));
+
+      await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.GEO_BLOCKED,
+          metadata: { status },
+        }),
+      );
+    },
+  );
+
+  it('maps an unhandled HTTP status to INVALID_RESPONSE with the status', async () => {
+    client.fetchFeed.mockRejectedValue(new PredictHttpError(404));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.NETWORK_ERROR }),
+      expect.objectContaining({
+        code: PredictErrorCode.INVALID_RESPONSE,
+        metadata: { status: 404 },
+      }),
     );
   });
 
-  it('maps other transport failures to INVALID_RESPONSE', async () => {
+  it('maps other transport failures to INVALID_RESPONSE without their details', async () => {
     client.fetchFeed.mockRejectedValue(new Error('network detail'));
 
     await expect(adapter.marketData.fetchFeed(feedId, {})).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.INVALID_RESPONSE }),
+      expect.objectContaining({
+        code: PredictErrorCode.INVALID_RESPONSE,
+        metadata: undefined,
+      }),
     );
   });
 
@@ -396,11 +430,22 @@ describe('KalshiRemoteAdapter', () => {
     );
   });
 
-  it('maps Balance HTTP 401 to UNAUTHENTICATED', async () => {
+  it('maps Balance HTTP 401 to UNAUTHENTICATED with the status', async () => {
     client.fetchBalance.mockRejectedValue(new PredictHttpError(401));
 
     await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
-      expect.objectContaining({ code: PredictErrorCode.UNAUTHENTICATED }),
+      expect.objectContaining({
+        code: PredictErrorCode.UNAUTHENTICATED,
+        metadata: { status: 401 },
+      }),
+    );
+  });
+
+  it('maps Balance HTTP 451 to GEO_BLOCKED', async () => {
+    client.fetchBalance.mockRejectedValue(new PredictHttpError(451));
+
+    await expect(adapter.portfolio.fetchBalance()).rejects.toEqual(
+      expect.objectContaining({ code: PredictErrorCode.GEO_BLOCKED }),
     );
   });
 
@@ -731,7 +776,23 @@ describe('KalshiRemoteAdapter', () => {
       );
 
       await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
-        expect.objectContaining({ code: PredictErrorCode.MARKET_NOT_FOUND }),
+        expect.objectContaining({
+          code: PredictErrorCode.MARKET_NOT_FOUND,
+          metadata: { status: 404, bodyCode: 'market_not_found' },
+        }),
+      );
+    });
+
+    it('maps an unknown backend preview code by status, keeping the code', async () => {
+      client.fetchOrderPreview.mockRejectedValue(
+        new PredictHttpError(400, 'invalid_request'),
+      );
+
+      await expect(adapter.trading.previewOrder(previewParams)).rejects.toEqual(
+        expect.objectContaining({
+          code: PredictErrorCode.INVALID_RESPONSE,
+          metadata: { status: 400, bodyCode: 'invalid_request' },
+        }),
       );
     });
 

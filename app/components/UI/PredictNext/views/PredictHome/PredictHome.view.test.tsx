@@ -8,6 +8,7 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictError, PredictErrorCode } from '../../errors';
 import type {
   PredictEntityId,
   PredictFeedId,
@@ -157,6 +158,24 @@ describe('PredictHome', () => {
     expect(
       await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
     ).toHaveTextContent('$5.00');
+  });
+
+  it('shows region copy without a retry when Balance is geo-blocked', async () => {
+    const callFixture = messengerCall.getMockImplementation();
+    messengerCall.mockImplementation((action: string, ...params: unknown[]) =>
+      action === 'PredictPortfolioService:getBalance'
+        ? Promise.reject(PredictError.from(PredictErrorCode.GEO_BLOCKED))
+        : callFixture?.(action, ...params),
+    );
+    const view = renderPredictNext();
+
+    expect(
+      await view.findByTestId(PredictHomeTestIds.BALANCE_GEO_BLOCKED),
+    ).toHaveTextContent('Not available in your region');
+    expect(view.queryByText('Balance unavailable')).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(PredictHomeTestIds.BALANCE_RETRY),
+    ).not.toBeOnTheScreen();
   });
 
   it('uses the 60-second Balance focus revalidation window', async () => {

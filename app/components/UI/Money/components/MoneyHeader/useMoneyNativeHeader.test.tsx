@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import { fireEvent, render, renderHook } from '@testing-library/react-native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
@@ -84,5 +85,18 @@ describe('useMoneyNativeHeader', () => {
 
     expect(rightItems).toHaveLength(1);
     expect(baseParams.onMenuPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the menu button transparent while pressed', () => {
+    const { rightItems } = renderItems();
+    const { getByTestId } = renderCustom(rightItems[0]);
+
+    fireEvent(getByTestId(MoneyHeaderTestIds.MENU_BUTTON), 'pressIn');
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(MoneyHeaderTestIds.MENU_BUTTON).props.style,
+      ).backgroundColor,
+    ).toBe('transparent');
   });
 });

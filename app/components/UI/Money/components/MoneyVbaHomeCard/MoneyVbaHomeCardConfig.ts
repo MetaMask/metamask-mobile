@@ -23,7 +23,7 @@ interface MoneyVbaHomeCardHeroArt {
 interface MoneyVbaHomeCardConfig {
   /** `component_name` on the card-shown and CTA-tap events. */
   componentName: COMPONENT_NAMES;
-  /** Telemetry source passed to `useOpenVbaOnboarding`. */
+  /** Telemetry source forwarded to the onboarding loading screen. */
   source: string;
   /** Card reads `${i18nPrefix}.title`, `.description` and `.cta`. */
   i18nPrefix: string;
