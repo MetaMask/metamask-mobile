@@ -478,17 +478,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
           isLoading ? (
             <Box twClassName="h-[18px] w-24 rounded bg-muted" />
           ) : hasAmounts ? (
-            formatWithThreshold(
-              Number(order.fiatAmount ?? 0),
-              0,
-              I18n.locale,
-              {
-                style: 'currency',
-                currency: fiatCurrencyCode,
-                minimumFractionDigits: fiatDecimals,
-                maximumFractionDigits: fiatDecimals,
-              },
-            )
+            formatWithThreshold(Number(order.fiatAmount ?? 0), 0, I18n.locale, {
+              style: 'currency',
+              currency: fiatCurrencyCode,
+              minimumFractionDigits: fiatDecimals,
+              maximumFractionDigits: fiatDecimals,
+            })
           ) : (
             AMOUNT_PLACEHOLDER
           )
