@@ -58,7 +58,5 @@ if (
   process.argv[1] &&
   import.meta.url === pathToFileURL(process.argv[1]).href
 ) {
-  process.stdout.write(
-    prepareCommentResultJson(process.env.RESULT_JSON ?? ''),
-  );
+  process.stdout.write(prepareCommentResultJson(process.env.RESULT_JSON ?? ''));
 }

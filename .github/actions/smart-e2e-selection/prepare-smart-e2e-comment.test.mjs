@@ -29,10 +29,7 @@ describe('prepareCommentResultJson', () => {
       JSON.stringify({ selected_tags: ['', '   '] }),
     );
 
-    assert.equal(
-      JSON.parse(commentJson).selected_tags,
-      NO_E2E_TESTS_SELECTED,
-    );
+    assert.equal(JSON.parse(commentJson).selected_tags, NO_E2E_TESTS_SELECTED);
   });
 
   it('drops performance tags from a real E2E selection', () => {

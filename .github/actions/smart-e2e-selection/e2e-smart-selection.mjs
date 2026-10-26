@@ -8,7 +8,10 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mapSmartE2eOutputs, parseResultJson } from './map-smart-e2e-outputs.mjs';
+import {
+  mapSmartE2eOutputs,
+  parseResultJson,
+} from './map-smart-e2e-outputs.mjs';
 
 const env = {
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',

@@ -22,10 +22,5 @@
       "description": "Why these E2E tags were selected"
     }
   },
-  "required": [
-    "selected_tags",
-    "risk_level",
-    "confidence",
-    "reasoning"
-  ]
+  "required": ["selected_tags", "risk_level", "confidence", "reasoning"]
 }
