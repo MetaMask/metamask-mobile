@@ -647,8 +647,12 @@ export function CustomAmountInfoSkeleton() {
   return (
     <Box style={styles.container}>
       <Box style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <PayTokenAmountSkeleton />
+        <Box style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <Box style={styles.amountCaption} testID="custom-amount-caption">
+            <PayTokenAmountSkeleton />
+          </Box>
+        </Box>
       </Box>
       <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
@@ -664,8 +668,12 @@ export function PrefillCustomAmountInfoSkeleton() {
   return (
     <View style={styles.container} testID="prefill-custom-amount-info-skeleton">
       <View style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <Skeleton height={20} width={200} />
+        <View style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <View style={styles.amountCaption} testID="custom-amount-caption">
+            <Skeleton height={20} width={200} />
+          </View>
+        </View>
       </View>
       <View style={styles.bottomBlock}>
         <View style={styles.skeletonRow}>
@@ -713,8 +721,12 @@ export function AdvancedCustomAmountInfoSkeleton() {
       testID="advanced-custom-amount-info-skeleton"
     >
       <View style={styles.inputContainer}>
-        <CustomAmountSkeleton />
-        <PayTokenAmountSkeleton />
+        <View style={styles.amountBlock}>
+          <CustomAmountSkeleton />
+          <View style={styles.amountCaption} testID="custom-amount-caption">
+            <PayTokenAmountSkeleton />
+          </View>
+        </View>
       </View>
       <View style={styles.bottomBlock}>
         {!hideAccountRows && (
