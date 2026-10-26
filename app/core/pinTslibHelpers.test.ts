@@ -39,13 +39,6 @@ const pinned = () => {
 };
 
 describe('pinTslibHelpers', () => {
-  afterEach(() => {
-    const globalTarget = globalThis as unknown as Record<string, unknown>;
-    for (const name of HELPER_NAMES) {
-      delete globalTarget[name];
-    }
-  });
-
   it.each(HELPER_NAMES)('pins tslib 2 %s', (name) => {
     expect(pinned()[name]).toBe(TSLIB_HELPERS[name]);
   });
@@ -57,6 +50,22 @@ describe('pinTslibHelpers', () => {
     target.__classPrivateFieldGet = tslib1ClassPrivateFieldGet;
 
     expect(target.__classPrivateFieldGet).toBe(helper);
+  });
+
+  it('cannot be redefined', () => {
+    const target = pinned();
+
+    expect(() =>
+      Object.defineProperty(target, '__classPrivateFieldGet', {
+        value: tslib1ClassPrivateFieldGet,
+      }),
+    ).toThrow(TypeError);
+  });
+
+  it('can run again without throwing', () => {
+    const target = pinned();
+
+    expect(() => pinTslibHelpers(target)).not.toThrow();
   });
 
   it('reads private methods after tslib 1 loads', () => {
