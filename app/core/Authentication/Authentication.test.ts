@@ -26,6 +26,7 @@ import {
   setExistingUser,
   logIn,
   passwordSet,
+  setMoneyOnboardingSeen,
 } from '../../actions/user';
 import { clearOnboarding } from '../../actions/onboarding';
 import {
@@ -224,6 +225,11 @@ jest.mock('../Engine', () => ({
 
     KycController: {
       clearState: jest.fn(),
+    },
+
+    RampsController: {
+      state: { autoramps: [] },
+      removeAutoramp: jest.fn(),
     },
 
     SeedlessOnboardingController: {
@@ -4979,6 +4985,9 @@ describe('Authentication', () => {
       expect(createDataDeletionTaskMock).toHaveBeenCalledTimes(1);
       expect(removeItemSpy).toHaveBeenCalledWith(OPTIN_META_METRICS_UI_SEEN);
       expect(deleteWalletMockDispatch).toHaveBeenCalledWith(clearOnboarding());
+      expect(deleteWalletMockDispatch).toHaveBeenCalledWith(
+        setMoneyOnboardingSeen(false),
+      );
       expect(EngineClass.disableAutomaticVaultBackup).toBe(false);
     });
   });
@@ -5062,6 +5071,24 @@ describe('Authentication', () => {
 
       // Assert
       expect(Engine.context.KycController.clearState).toHaveBeenCalledTimes(1);
+    });
+
+    it('removes VBA autoramp cursors so Money Activity cannot show a prior wallet deposit', async () => {
+      const removeAutoramp = jest.fn();
+      Engine.context.RampsController = {
+        state: {
+          autoramps: [{ id: 'ar-stale-1' }, { id: 'ar-stale-2' }],
+        },
+        removeAutoramp,
+      } as unknown as (typeof Engine.context)['RampsController'];
+
+      await (
+        Authentication as unknown as { resetWalletState: () => Promise<void> }
+      ).resetWalletState();
+
+      expect(removeAutoramp).toHaveBeenCalledTimes(2);
+      expect(removeAutoramp).toHaveBeenCalledWith('ar-stale-1');
+      expect(removeAutoramp).toHaveBeenCalledWith('ar-stale-2');
     });
 
     it('calls vault backup clear before creating temporary wallet', async () => {

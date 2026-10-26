@@ -15,6 +15,7 @@ import {
   passwordSet,
   setExistingUser,
   setIsConnectionRemoved,
+  setMoneyOnboardingSeen,
 } from '../../actions/user';
 import {
   clearOnboarding,
@@ -1951,6 +1952,9 @@ class AuthenticationService {
     await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
     ReduxService.store.dispatch(clearOnboarding());
     await resetFailedUnlockAttempts();
+    // `moneyOnboardingSeen` lives in persisted user state and is not wiped by
+    // Engine rebuild — without this, Money splash is skipped after reset.
+    ReduxService.store.dispatch(setMoneyOnboardingSeen(false));
   };
 
   /**
@@ -2004,6 +2008,20 @@ class AuthenticationService {
         Engine.context.SeedlessOnboardingController.clearState();
 
         Engine.context.KycController.clearState();
+
+        // Drop VBA autoramp cursors. They are not keyed by wallet profile and
+        // otherwise survive reset, so Money Activity can show another
+        // customer's Pending bank transfer before the new wallet KYCs.
+        const rampsController = Engine.context.RampsController as {
+          state?: { autoramps?: { id: string }[] };
+          removeAutoramp?: (autorampId: string) => void;
+        };
+        const staleAutorampIds = (rampsController.state?.autoramps ?? []).map(
+          (autoramp) => autoramp.id,
+        );
+        for (const autorampId of staleAutorampIds) {
+          rampsController.removeAutoramp?.(autorampId);
+        }
 
         await depositResetProviderToken();
 

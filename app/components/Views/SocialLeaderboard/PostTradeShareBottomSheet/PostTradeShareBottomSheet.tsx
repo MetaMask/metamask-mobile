@@ -28,7 +28,9 @@ import {
   requestPostTradeShareReopen,
   subscribePostTradeShareSession,
 } from './postTradeShareSession';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
@@ -37,6 +39,21 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const isPerps = session?.product === 'perps';
+  const source = Source.TRADER_FEED;
+  const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.POST_TRADE_SHARE_SHEET,
+    {
+      source,
+      outcome:
+        session?.status === 'complete'
+          ? Outcome.CONTENT
+          : session?.status === 'failed'
+            ? Outcome.ERROR
+            : null,
+      isActive: session !== null,
+    },
+  );
   const canShare = Boolean(
     session?.status === 'complete' &&
       (session.product === 'perps'
@@ -66,22 +83,30 @@ const PostTradeShareBottomSheet: React.FC = () => {
   }, [session]);
 
   const handleClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, {
+      outcome: Outcome.DISMISSED,
+      trade_type: tradeType,
+    });
     clearPostTradeShareSession();
-  }, []);
+  }, [trackInteraction, tradeType]);
 
   const handlePrimary = useCallback(() => {
     if (!session) {
       return;
     }
+    if (session.status !== 'failed' && !canShare) {
+      return;
+    }
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: session.status === 'failed' ? Outcome.FAILED : Outcome.SUCCESS,
+      trade_type: tradeType,
+    });
     if (session.status === 'failed') {
       if (session.product === 'perps') {
         clearPostTradeShareSession();
         return;
       }
       requestPostTradeShareReopen();
-      return;
-    }
-    if (!canShare) {
       return;
     }
     const tradeInFlight =
@@ -109,7 +134,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
     };
     clearPostTradeShareSession();
     NavigationService.navigation.navigate(Routes.SOCIAL.POST_COMPOSER, params);
-  }, [canShare, session]);
+  }, [canShare, session, trackInteraction, tradeType]);
 
   if (!session) {
     return null;

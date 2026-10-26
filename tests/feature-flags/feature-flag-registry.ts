@@ -1089,7 +1089,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         applePayLearnMoreUrl: 'https://metamask.io/card',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
-        applePayLearnMoreUrl: 'https://metamask.io/card',
       },
     },
     status: FeatureFlagStatus.Active,
@@ -4065,6 +4064,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyDepositBrazeCampaignEnabled: {
+    name: 'earnMoneyDepositBrazeCampaignEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   musd1313AbtestEarnSectionOnHomepage: {
     name: 'musd1313AbtestEarnSectionOnHomepage',
     type: FeatureFlagType.Remote,
@@ -4705,6 +4715,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
       '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
     ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaCompletedActivityEnabled: {
+    name: 'moneyVbaCompletedActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaPendingActivityEnabled: {
+    name: 'moneyVbaPendingActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -8578,17 +8610,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyDepositBrazeCampaignEnabled: {
-    name: 'earnMoneyDepositBrazeCampaignEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   homeTMCU1209AbtestHomepageBalanceBreakdownV2: {
     name: 'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
     type: FeatureFlagType.Remote,
@@ -8619,16 +8640,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyVbaActivityDepositFromAddresses: {
-    name: 'moneyVbaActivityDepositFromAddresses',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

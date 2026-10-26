@@ -12,6 +12,8 @@
  *     mapping, all in-memory state transitions
  *   - `buildPerpsFeeResolutionHarness` additionally runs PerpsController's
  *     real fee resolver and provider pricing path
+ *   - `buildPerpsDepositHarness` additionally runs PerpsController's real
+ *     deposit preparation up to the TransactionController messenger call
  *
  * MOCKED (the I/O boundary — never makes real network/SDK calls):
  *   - HyperLiquidClientService     — SDK clients, network mode
@@ -340,6 +342,16 @@ export interface PerpsFeeResolutionHarness {
   getPerpsTradingFeeGrant: jest.MockedFunction<GetPerpsTradingFeeGrant>;
 }
 
+export interface PerpsDepositHarness {
+  controller: PerpsController;
+  /** `TransactionController:addTransaction`; its confirmation never settles. */
+  addTransaction: jest.Mock;
+  /** `NetworkController:findNetworkClientIdByChainId`. */
+  findNetworkClientIdByChainId: jest.Mock;
+  /** The network client id `findNetworkClientIdByChainId` returns. */
+  networkClientId: string;
+}
+
 export function buildPerpsIntegrationHarness(
   options: PerpsHarnessOptions = {},
 ): PerpsIntegrationHarness {
@@ -516,6 +528,28 @@ export function buildPerpsIntegrationHarness(
   };
 }
 
+function buildHarnessController(
+  infrastructure: jest.Mocked<PerpsPlatformDependencies>,
+  {
+    isTestnet = false,
+    messenger = createMockMessenger(),
+  }: {
+    isTestnet?: boolean;
+    messenger?: ReturnType<typeof createMockMessenger>;
+  } = {},
+): PerpsController {
+  return new PerpsController({
+    messenger,
+    state: {
+      activeProvider: 'hyperliquid',
+      isTestnet,
+      isEligible: true,
+    },
+    infrastructure,
+    deferEligibilityCheck: true,
+  });
+}
+
 /**
  * Builds a real PerpsController around the Shape A I/O mocks so fee previews
  * exercise Core's RewardsIntegrationService and provider fee calculation.
@@ -538,19 +572,51 @@ export function buildPerpsFeeResolutionHarness(
   mockGetPerpsDiscountForAccount.mockResolvedValue(null);
   mockGetPerpsTradingFeeGrant.mockResolvedValue(grant);
 
-  const controller = new PerpsController({
-    messenger: createMockMessenger(),
-    state: {
-      activeProvider: 'hyperliquid',
-      isTestnet: false,
-      isEligible: true,
-    },
-    infrastructure: mocks.infrastructure,
-    deferEligibilityCheck: true,
+  return {
+    controller: buildHarnessController(mocks.infrastructure),
+    getPerpsTradingFeeGrant: mockGetPerpsTradingFeeGrant,
+  };
+}
+
+/**
+ * Builds a real PerpsController around the Shape A I/O mocks whose deposit
+ * flow stops at mocked NetworkController and TransactionController messenger
+ * calls, so tests observe the prepared transaction without submitting it.
+ * Route validation stays stubbed by this module; restore `getSupportedPaths`
+ * for real deposit routes.
+ */
+export function buildPerpsDepositHarness(
+  options: Pick<PerpsHarnessOptions, 'isTestnet'> = {},
+): PerpsDepositHarness {
+  const { mocks } = buildPerpsIntegrationHarness(options);
+  const networkClientId = 'deposit-network-client';
+  const addTransaction = jest.fn().mockResolvedValue({
+    result: new Promise(() => undefined),
+    transactionMeta: { id: 'deposit-transaction' },
+  });
+  const findNetworkClientIdByChainId = jest
+    .fn()
+    .mockReturnValue(networkClientId);
+  const messenger = createMockMessenger();
+  const defaultCall = messenger.call.getMockImplementation();
+  messenger.call.mockImplementation((...args) => {
+    const [action, ...params] = args;
+    if (action === 'TransactionController:addTransaction') {
+      return addTransaction(...params);
+    }
+    if (action === 'NetworkController:findNetworkClientIdByChainId') {
+      return findNetworkClientIdByChainId(...params);
+    }
+    return defaultCall?.(...args);
   });
 
   return {
-    controller,
-    getPerpsTradingFeeGrant: mockGetPerpsTradingFeeGrant,
+    controller: buildHarnessController(mocks.infrastructure, {
+      isTestnet: options.isTestnet,
+      messenger,
+    }),
+    addTransaction,
+    findNetworkClientIdByChainId,
+    networkClientId,
   };
 }

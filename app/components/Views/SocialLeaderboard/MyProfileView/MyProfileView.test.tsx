@@ -21,12 +21,34 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   getLocalSocialProfileSnapshot,
   restoreDefaultLocalSocialProfile,
 } from './hooks/localSocialProfileStore';
 
 const mockGoBack = jest.fn();
+const mockFocusEffect: { current: (() => void) | null } = { current: null };
+const mockScrollTo = jest.fn();
+
+// The RN test ScrollView exposes no instance, so stand in one with `scrollTo`.
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  const { forwardRef, createElement, useImperativeHandle } =
+    jest.requireActual('react');
+  const { ScrollView } = jest.requireActual('react-native');
+  const MockAnimatedScrollView = forwardRef(
+    (props: Record<string, unknown>, ref: unknown) => {
+      useImperativeHandle(ref, () => ({ scrollTo: mockScrollTo }));
+      return createElement(ScrollView, props);
+    },
+  );
+  return {
+    ...actual,
+    __esModule: true,
+    default: { ...actual.default, ScrollView: MockAnimatedScrollView },
+  };
+});
 const mockNavigate = jest.fn();
 const mockPush = jest.fn();
 const mockOpenComposer = jest.fn();
@@ -113,6 +135,9 @@ jest.mock('@react-navigation/native', () => ({
     push: mockPush,
   }),
   useRoute: () => ({ params: mockProfileRouteParams }),
+  useFocusEffect: (effect: () => void) => {
+    mockFocusEffect.current = effect;
+  },
 }));
 
 jest.mock('../../../../util/haptics', () => ({
@@ -847,6 +872,35 @@ describe('MyProfileView', () => {
     });
   });
 
+  it('shares the profile deeplink from another profile header', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
+    );
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+    });
+  });
+
+  it('hides the trader deeplink share button on the owner profile', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
+    ).toBeNull();
+  });
+
   it('hides owner actions and shows follow for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
@@ -1022,6 +1076,36 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
     ).toBeNull();
+  });
+
+  it('returns to Posts when focused right after the viewer posts', () => {
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+
+    requestPostsTabFocus();
+    act(() => {
+      mockFocusEffect.current?.();
+    });
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+  });
+
+  it('scrolls back to the top when focused right after the viewer posts', () => {
+    renderWithProvider(<MyProfileView />);
+
+    requestPostsTabFocus();
+    act(() => {
+      mockFocusEffect.current?.();
+    });
+
+    expect(mockScrollTo).toHaveBeenCalledWith({ y: 0, animated: true });
   });
 
   it('prefetches positions with the viewed profile address', () => {

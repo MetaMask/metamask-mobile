@@ -195,6 +195,7 @@ const Routes = {
     PNA25_NOTICE_BOTTOM_SHEET: 'Pna25BottomSheet',
     REWARDS_BOTTOM_SHEET_MODAL: 'RewardsBottomSheetModal',
     REWARDS_INFO_SHEET_MODAL: 'RewardsInfoSheetModal',
+    REWARDS_MONEY_CLAIMS_PAUSED_MODAL: 'RewardsMoneyClaimsPausedModal',
     REWARDS_CLAIM_BOTTOM_SHEET_MODAL: 'RewardsClaimBottomSheetModal',
     REWARDS_OPTIN_ACCOUNT_GROUP_MODAL: 'RewardOptInAccountGroupModal',
     OTA_UPDATES_MODAL: 'OTAUpdatesModal',
@@ -484,6 +485,7 @@ const Routes = {
       BUY_PREVIEW: 'PredictBuyPreview',
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
+      MARKET_UNAVAILABLE: 'PredictMarketUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
@@ -539,6 +541,7 @@ const Routes = {
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
+    DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',
