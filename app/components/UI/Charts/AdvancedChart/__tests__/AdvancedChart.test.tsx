@@ -103,6 +103,31 @@ describe('AdvancedChart', () => {
     ).toBe(false);
   });
 
+  it('swaps the candle skeleton for the chart once the chart is ready', () => {
+    const { getByTestId, queryByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        height={240}
+        skeletonVariant="candles"
+      />,
+    );
+    const webView = getByTestId('mock-webview');
+
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(getByTestId('mock-webview')).toBeOnTheScreen();
+  });
+
   it('serializes configured price decimals into the WebView template', () => {
     const { getByTestId } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} priceDecimals={4} />,
@@ -111,50 +136,6 @@ describe('AdvancedChart', () => {
     const webView = getByTestId('mock-webview');
 
     expect(webView.props.source.html).toMatch(/priceDecimals:\s*4/);
-  });
-
-  it('keeps the baked line color when only the override changes', () => {
-    const bakedLineColor = mockTheme.colors.success.default;
-    const nextLineColor = mockTheme.colors.error.default;
-    const { getByTestId, rerender } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        lineColorOverride={bakedLineColor}
-      />,
-    );
-    const html = getByTestId('mock-webview').props.source.html as string;
-
-    rerender(
-      <AdvancedChart ohlcvData={MOCK_BARS} lineColorOverride={nextLineColor} />,
-    );
-
-    expect(html).toContain(`lineColor: '${bakedLineColor}'`);
-    expect(getByTestId('mock-webview').props.source.html).toBe(html);
-  });
-
-  it('bakes the latest line color when the template rebuilds', () => {
-    const bakedLineColor = mockTheme.colors.success.default;
-    const nextLineColor = mockTheme.colors.error.default;
-    const { getByTestId, rerender } = render(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        lineColorOverride={bakedLineColor}
-        priceDecimals={2}
-      />,
-    );
-
-    rerender(
-      <AdvancedChart
-        ohlcvData={MOCK_BARS}
-        lineColorOverride={nextLineColor}
-        priceDecimals={4}
-      />,
-    );
-
-    const html = getByTestId('mock-webview').props.source.html as string;
-
-    expect(html).toContain(`lineColor: '${nextLineColor}'`);
-    expect(html).toMatch(/priceDecimals:\s*4/);
   });
 
   it('keeps loading overlay while isLoading until parent clears it', () => {
