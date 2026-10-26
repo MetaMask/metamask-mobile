@@ -7,10 +7,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
-import PositionCardShell, {
-  POSITION_CARD_RADIUS_PX,
-  type PositionCardTone,
-} from './PositionCardShell';
+import PositionCardShell, { type PositionCardTone } from './PositionCardShell';
 
 const CARD_TEST_ID = 'position-card-shell-body';
 
@@ -56,9 +53,9 @@ describe('PositionCardShell', () => {
     expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
   });
 
-  it('rounds open and closed cards to 16px', () => {
+  it('rounds open and closed cards with the 16px radius token', () => {
     renderShell('positive');
-    expect(cardStyleOf()?.borderRadius).toBe(POSITION_CARD_RADIUS_PX);
+    expect(cardStyleOf()?.borderRadius).toBe(16);
 
     renderShell('negative', true);
     expect(cardStyleOf()?.borderRadius).toBe(16);
@@ -74,7 +71,7 @@ describe('PositionCardShell', () => {
     expect(clipStyle?.position).toBe('absolute');
     expect(clipStyle?.top).toBe(0);
     expect(clipStyle?.overflow).toBe('hidden');
-    expect(clipStyle?.borderRadius).toBe(16);
+    expect(clipStyle?.borderRadius).toBe(cardStyleOf()?.borderRadius);
     expect(cardStyleOf()?.paddingTop).toBeUndefined();
     expect(cardStyleOf()?.gap).toBeUndefined();
     expect(contentStyle?.paddingTop).toBe(12);

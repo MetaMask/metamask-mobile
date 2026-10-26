@@ -1,4 +1,5 @@
 import { Box } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
@@ -11,9 +12,6 @@ import { AppThemeKey } from '../../../../util/theme/models';
  * to move together, and they live in different components.
  */
 export const POSITION_CARD_BLEED_TW_CLASS = '-mx-3';
-
-/** Shared by the open and closed layouts. */
-export const POSITION_CARD_RADIUS_PX = 16;
 
 /**
  * Wash hue. Follows the position's P&L on both open and closed cards. Neutral
@@ -112,6 +110,8 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
   children,
 }) => {
   const { colors, themeAppearance } = useTheme();
+  const tw = useTailwind();
+  const clipRadius = StyleSheet.flatten(tw.style('rounded-2xl')).borderRadius;
   const showWash = themeAppearance === AppThemeKey.dark && tone !== 'neutral';
   const colorsForWash =
     tone === 'positive'
@@ -123,13 +123,13 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
   return (
     <Box
       testID="position-card-shell"
-      twClassName={`rounded-[${POSITION_CARD_RADIUS_PX}px] overflow-hidden ${borderClassName(tone, emphasizeBorder)}`}
+      twClassName={`rounded-2xl overflow-hidden ${borderClassName(tone, emphasizeBorder)}`}
     >
       {showWash && colorsForWash ? (
         <View
           pointerEvents="none"
           collapsable={false}
-          style={[styles.clip, { borderRadius: POSITION_CARD_RADIUS_PX }]}
+          style={[styles.clip, { borderRadius: clipRadius }]}
         >
           <LinearGradient
             colors={colorsForWash}

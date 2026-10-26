@@ -2,7 +2,6 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
-import { POSITION_CARD_RADIUS_PX } from './PositionCardShell';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import { SocialFeedSkeletonPlaceholder } from './SocialFeedSkeletonPlaceholder';
 
@@ -64,7 +63,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
 }) => {
   const tw = useTailwind();
   const cardChromeStyle = tw.style(
-    `rounded-[${POSITION_CARD_RADIUS_PX}px] border border-muted p-3 gap-2 bg-background-alternative`,
+    'rounded-2xl border border-muted p-3 gap-2 bg-background-alternative',
   ) as Record<string, unknown>;
   const dividerStyle = tw.style('bg-border-muted') as Record<string, unknown>;
 
