@@ -58,6 +58,7 @@ describe('handleSocialTraderPositionUrl', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInvalidateQueries.mockResolvedValue(undefined);
     mockBuild.mockReturnValue({ event: 'mocked' });
     mockAddProperties.mockReturnValue({ build: mockBuild });
     mockIsSocialV1Treatment.mockReturnValue(false);
@@ -232,10 +233,8 @@ describe('handleSocialTraderPositionUrl', () => {
     });
   });
 
-  it('still navigates when invalidation throws', () => {
-    mockInvalidateQueries.mockImplementationOnce(() => {
-      throw new Error('cache failure');
-    });
+  it('still navigates when invalidation rejects', async () => {
+    mockInvalidateQueries.mockRejectedValueOnce(new Error('cache failure'));
 
     handleSocialTraderPositionUrl({
       actionPath: '?positionId=position-1&traderId=trader-1',
@@ -250,6 +249,9 @@ describe('handleSocialTraderPositionUrl', () => {
       notificationTemplateVariant: undefined,
       isSocialV1: false,
     });
+
+    await Promise.resolve();
+
     expect(DevLogger.log).toHaveBeenCalledWith(
       '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
       expect.any(Error),

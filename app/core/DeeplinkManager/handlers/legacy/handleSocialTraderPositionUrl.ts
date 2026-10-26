@@ -49,6 +49,13 @@ const navigateToFallback = () => {
   );
 };
 
+const logPositionQueryInvalidationError = (invalidationError: unknown) => {
+  DevLogger.log(
+    '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
+    invalidationError,
+  );
+};
+
 /**
  * Handles notification-approved TraderPosition deeplinks.
  *
@@ -92,22 +99,19 @@ export const handleSocialTraderPositionUrl = ({
     }
 
     // Defense-in-depth: invalidate cached positions for this trader so the
-    // profile view fetches fresh data the next time it mounts. Failures
-    // here must not block navigation.
-    try {
-      const fetchOptions = { addressOrId: traderId };
-      ReactQueryService.queryClient.invalidateQueries({
+    // profile view fetches fresh data the next time it mounts. Rejections
+    // are logged and do not block navigation.
+    const fetchOptions = { addressOrId: traderId };
+    void ReactQueryService.queryClient
+      .invalidateQueries({
         queryKey: ['SocialService:fetchOpenPositions', fetchOptions],
-      });
-      ReactQueryService.queryClient.invalidateQueries({
+      })
+      .catch(logPositionQueryInvalidationError);
+    void ReactQueryService.queryClient
+      .invalidateQueries({
         queryKey: ['SocialService:fetchClosedPositions', fetchOptions],
-      });
-    } catch (invalidationError) {
-      DevLogger.log(
-        '[handleSocialTraderPositionUrl] Failed to invalidate position queries:',
-        invalidationError,
-      );
-    }
+      })
+      .catch(logPositionQueryInvalidationError);
 
     if (notificationSubtype !== undefined) {
       const event = AnalyticsEventBuilder.createEventBuilder(
