@@ -39,6 +39,7 @@ export enum ACTIONS {
   BATCH_SELL = 'batch-sell',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
+  X_OAUTH_REDIRECT = 'x-oauth-redirect',
   CREATE_ACCOUNT = 'create-account',
   PERPS = 'perps',
   PERPS_MARKETS = 'perps-markets',
@@ -59,6 +60,7 @@ export enum ACTIONS {
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
   MONEY = 'money',
+  MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
 }
 
 export const PREFIXES = {
@@ -76,6 +78,7 @@ export const PREFIXES = {
   [ACTIONS.BUY_CRYPTO]: '',
   [ACTIONS.SELL_CRYPTO]: '',
   [ACTIONS.OAUTH_REDIRECT]: '',
+  [ACTIONS.X_OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
   [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
@@ -101,6 +104,7 @@ export const PREFIXES = {
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
   [ACTIONS.MONEY]: '',
+  [ACTIONS.MONEY_ACCOUNT_DEPOSIT]: '',
   [ACTIONS.NOTIFICATIONS_SETTINGS]: '',
   METAMASK: 'metamask://',
 };

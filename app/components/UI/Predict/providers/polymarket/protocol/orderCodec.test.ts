@@ -9,14 +9,12 @@ import {
   POLYMARKET_V2_PROTOCOL,
 } from './definitions';
 import {
-  buildPositionsProtocolUnsignedOrder,
   buildProtocolUnsignedOrder,
   encodeWrap,
   getPreviewFeeRateBpsForProtocol,
   getProtocolOrderTypedData,
   getProtocolVerifyingContract,
   serializeProtocolRelayerOrder,
-  signPositionsProtocolOrder,
   signProtocolOrder,
 } from './orderCodec';
 import { getMinAmountReceivedWithSlippage } from './slippage';
@@ -102,6 +100,21 @@ describe('polymarket protocol order codec', () => {
       'side',
       'signatureType',
     ]);
+  });
+
+  it('uses an explicit per-order builder code instead of the protocol default', () => {
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
+
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview,
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
+      builderCode: membershipBuilderCode,
+    });
+
+    expect(order.builder).toBe(membershipBuilderCode);
   });
 
   it('builds a v2 order with 0.0025 tick size from ROUNDING_CONFIG', () => {
@@ -284,9 +297,12 @@ describe('polymarket protocol order codec', () => {
 
   describe('positions protocol order signing', () => {
     const EXCHANGE_V3 = '0xe3333700cA9d93003F00f0F71f8515005F6c00Aa';
+    const membershipBuilderCode =
+      '0x4444444444444444444444444444444444444444444444444444444444444444';
 
     it('builds a positions order with the same field shape as the CTF order', () => {
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -310,9 +326,35 @@ describe('polymarket protocol order codec', () => {
       ]);
     });
 
+    it('uses an explicit per-order builder code for a positions order', () => {
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+        builderCode: membershipBuilderCode,
+      });
+
+      expect(order.builder).toBe(membershipBuilderCode);
+    });
+
+    it('uses the positions protocol builder when no override is provided', () => {
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
+        preview,
+        makerAddress: safeAddress,
+        signerAddress: ownerAddress,
+      });
+
+      expect(order.builder).toBe(
+        POLYMARKET_POSITIONS_PROTOCOL.order.getBuilderCode(),
+      );
+    });
+
     it('signs positions orders with domain version 3 against ExchangeV3', async () => {
       const { signer, signTypedMessage } = createMockSigner();
-      const order = buildPositionsProtocolUnsignedOrder({
+      const order = buildProtocolUnsignedOrder({
+        protocol: POLYMARKET_POSITIONS_PROTOCOL,
         preview,
         makerAddress: safeAddress,
         signerAddress: ownerAddress,
@@ -320,7 +362,8 @@ describe('polymarket protocol order codec', () => {
       });
 
       await expect(
-        signPositionsProtocolOrder({
+        signProtocolOrder({
+          protocol: POLYMARKET_POSITIONS_PROTOCOL,
           signer,
           order,
           verifyingContract: EXCHANGE_V3,

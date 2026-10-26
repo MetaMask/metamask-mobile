@@ -74,6 +74,7 @@ const transformHermesProfile =
 
 const DEFAULT_REPO = 'MetaMask/metamask-mobile';
 const DEFAULT_WORKFLOW = 'run-performance-e2e-manual.yml';
+const ANALYSIS_WORKFLOW = 'analyze-app-profiling.yml';
 const DEFAULT_BRANCH = 'main';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const MAX_PROFILE_BYTES = 50 * 1024 * 1024;
@@ -106,7 +107,7 @@ const KNOWN_PROJECTS = [
   'testmu-android',
 ];
 // The TestMu runner publishes profiles and raw results under a `testmu-he-`
-// prefix (performance-test-runner-testmu.yml).
+// prefix (performance-test-runner.yml).
 const HERMES_PROFILE_ARTIFACT_PATTERN = 'testmu-he-hermes-cpuprofiles-*';
 const RAW_RESULTS_ARTIFACT_PATTERN = 'testmu-he-*-test-results-*';
 const SKILL_ANALYZER_CANDIDATES = [
@@ -500,7 +501,7 @@ function tryReadCollectedReport(repo, analysisRunId) {
   }
 }
 
-function listCompletedAnalysisRuns(repo) {
+function listWorkflowRunsForCollection(repo, workflow, branch = null) {
   return JSON.parse(
     runGh([
       'run',
@@ -508,12 +509,37 @@ function listCompletedAnalysisRuns(repo) {
       '--repo',
       repo,
       '--workflow',
-      'analyze-app-profiling.yml',
+      workflow,
+      ...(branch ? ['--branch', branch] : []),
       '--limit',
       '80',
       '--json',
       'databaseId,conclusion,createdAt,status',
     ]) || '[]',
+  );
+}
+
+/**
+ * Runs that may hold an `app-profiling-analysis` artifact, newest first.
+ * Chained analyses run inside the performance run they analyze, so their
+ * report lives there; that run can still fail (a flaky scenario) after a
+ * valid report was uploaded. Standalone analyses (Monday, manual dispatch,
+ * and reports from before the analysis was chained) live in
+ * `analyze-app-profiling.yml` runs and only count when they succeeded.
+ */
+function listCompletedAnalysisRuns(
+  repo,
+  { listRuns = listWorkflowRunsForCollection } = {},
+) {
+  const standalone = listRuns(repo, ANALYSIS_WORKFLOW).map((run) => ({
+    ...run,
+    requiresSuccess: true,
+  }));
+  const chained = listRuns(repo, DEFAULT_WORKFLOW, DEFAULT_BRANCH).map(
+    (run) => ({ ...run, requiresSuccess: false }),
+  );
+  return [...standalone, ...chained].sort(
+    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
   );
 }
 
@@ -530,7 +556,8 @@ function loadCollectedReports(
   for (const analysisRun of analysisRuns) {
     if (
       analysisRun.status !== 'completed' ||
-      analysisRun.conclusion !== 'success'
+      (analysisRun.requiresSuccess !== false &&
+        analysisRun.conclusion !== 'success')
     ) {
       continue;
     }
@@ -3056,6 +3083,7 @@ export {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  listCompletedAnalysisRuns,
   loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,

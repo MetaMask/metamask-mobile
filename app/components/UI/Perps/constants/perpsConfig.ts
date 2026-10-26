@@ -17,7 +17,6 @@ import {
 import { TokenI } from '../../Tokens/types';
 import {
   PERPS_ADL_URL,
-  PERPS_LEARN_MORE_URL,
   PERPS_TROUBLESHOOT_URL,
   METAMASK_SUPPORT_URL,
 } from '../../../../constants/urls';
@@ -388,14 +387,15 @@ export const SUPPORT_CONFIG = {
 
 /**
  * Service interruption (outage) banner configuration
- * The FAQ link points users at the Perps help-center hub while trading is
- * degraded. The support link opens the Perps troubleshoot article through
- * the consent flow, separate from the general contact-support button.
+ * The FAQ link opens the Perps disruption article so users can manage
+ * positions while trading is degraded. The support link opens the MetaMask
+ * help center through the consent flow, the same destination as the general
+ * contact-support button.
  */
 export const SERVICE_INTERRUPTION_CONFIG = {
-  FaqUrl: PERPS_LEARN_MORE_URL,
+  FaqUrl: PERPS_TROUBLESHOOT_URL,
   FaqTitleKey: 'perps.service_interruption.faq_title',
-  SupportUrl: PERPS_TROUBLESHOOT_URL,
+  SupportUrl: METAMASK_SUPPORT_URL,
 } as const;
 
 /**

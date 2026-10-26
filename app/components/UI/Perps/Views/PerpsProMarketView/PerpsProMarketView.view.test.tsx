@@ -8,20 +8,23 @@ import {
   within,
   waitFor,
 } from '@testing-library/react-native';
-import type {
-  ChaseOrder,
-  OrderBookData,
-  OrderBookLevel,
-  Order,
-  PriceUpdate,
-  TriggerOrderType,
-  PerpsOrderCapabilities,
-  PerpsProviderType,
-  TwapOrder,
-  TwapOrderFill,
+import {
+  AggregatedOrderBookConnection,
+  type ChaseOrder,
+  type OrderBookData,
+  type OrderBookLevel,
+  type Order,
+  type PriceUpdate,
+  type TriggerOrderType,
+  type PerpsOrderCapabilities,
+  type PerpsProviderType,
+  type TwapOrder,
+  type TwapOrderFill,
 } from '@metamask/perps-controller';
 import { Platform } from 'react-native';
+import type { ComponentType } from 'react';
 import { renderPerpsProMarketView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
+import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import {
   describeForPlatforms,
   itForPlatforms,
@@ -33,6 +36,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { analytics } from '../../../../../util/analytics/analytics';
@@ -50,6 +54,7 @@ import {
   PerpsOrderTypeBottomSheetSelectorsIDs,
   PerpsProOrderFormSelectorsIDs,
   PerpsProMarketViewSelectorsIDs,
+  PerpsTPSLViewSelectorsIDs,
   getPerpsProChaseDistanceSelector,
   getPerpsProChaseHandleSelector,
   getPerpsProChaseRepriceSelector,
@@ -70,8 +75,10 @@ import {
 } from '../../utils/formatUtils';
 import { getTwapOrderProviderId } from '../../utils/twapOrderUtils';
 import { readPerpsUiObservations } from '../../utils/perpsUiObservations';
+import PerpsTPSLView from '../PerpsTPSLView/PerpsTPSLView';
 
 const ids = PerpsProOrderFormSelectorsIDs;
+const orderBookValueHeaderId = `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-column-header-value`;
 const TIMEOUT_MS = 5000;
 const activeChase: ChaseOrder = {
   handle: 'chase-view-1',
@@ -283,7 +290,15 @@ const resetPerpsControllerMocks = () => {
     .mockResolvedValue({ isValid: true });
 };
 
+const engineWithState = Engine as unknown as {
+  state?: Record<string, unknown>;
+};
+let engineStateBeforeTest: Record<string, unknown> | undefined;
+
 beforeEach(() => {
+  // Identity journeys publish controller updates through Engine.state. Snapshot
+  // it so a later preference write cannot reuse that copy and collapse the book.
+  engineStateBeforeTest = engineWithState.state;
   issuedTwapReadPromises.clear();
   activeTwapSubscriptions.clear();
   settledChaseReadPromises.clear();
@@ -349,6 +364,7 @@ afterEach(async () => {
     // assertion cannot leak a frozen clock into the next test.
     dateNowSpy?.mockRestore();
     dateNowSpy = undefined;
+    engineWithState.state = engineStateBeforeTest;
   }
 });
 
@@ -612,6 +628,101 @@ const createTwapPickerDate = (hours: number, minutes: number) => {
   return date;
 };
 
+const deliverProOrderBook = (bidPrice: string) => {
+  const level = (price: string): OrderBookLevel => ({
+    price,
+    size: '1.5',
+    total: '1.5',
+    notional: '3750',
+    totalNotional: '3750',
+  });
+  const book: OrderBookData = {
+    bids: [level(bidPrice)],
+    asks: [],
+    spread: '10',
+    spreadPercentage: '0.4',
+    midPrice: '2500',
+    lastUpdated: 1_700_000_000_000,
+    maxTotal: '1.5',
+  };
+  jest
+    .mocked(Engine.context.PerpsController.subscribeToOrderBook)
+    .mockImplementation(({ callback }) => {
+      callback(book);
+      return () => undefined;
+    });
+  return jest
+    .spyOn(AggregatedOrderBookConnection.prototype, 'subscribe')
+    .mockImplementation((params) => {
+      params.callback(book);
+      return () => undefined;
+    });
+};
+
+const pressTopBid = () =>
+  screen.findByTestId(
+    `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+    {},
+    { timeout: TIMEOUT_MS },
+  );
+
+const renderChaseProMarket = () => {
+  jest
+    .mocked(Engine.context.PerpsController.getOrderCapabilities)
+    .mockResolvedValue({
+      status: 'ready',
+      providerId: 'hyperliquid',
+      supportedStrategies: ['chase'],
+      supportedTriggerOrderTypes: [
+        'stop_market',
+        'stop_limit',
+        'take_profit_market',
+        'take_profit_limit',
+      ],
+    });
+  return renderPerpsProMarketView({
+    streamOverrides: { account: createFundedAccountForViews('1000') },
+    overrides: {
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsProModeEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              perpsMobileChase: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+};
+
+const openChaseOrderForm = async () => {
+  await findSizeInput();
+  fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.ADVANCED_TAB,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.CHASE_OPTION,
+      {},
+      { timeout: TIMEOUT_MS },
+    ),
+  );
+  await screen.findByTestId(ids.CHASE_FORM, {}, { timeout: TIMEOUT_MS });
+};
+
 const selectTriggeredOrderType = async (
   optionTestID: (typeof triggeredOrderTypeIDs)[number],
 ) => {
@@ -655,14 +766,26 @@ const syncEngineControllerState = (
     | 'RemoteFeatureFlagController',
   nextState: Record<string, unknown>,
 ) => {
-  const engineWithState = Engine as unknown as {
-    state?: Record<string, unknown>;
-  };
   engineWithState.state = {
     ...(engineWithState.state ?? {}),
     [key]: nextState,
   };
   store.dispatch(updateBgState({ key }));
+};
+
+const showOrderBook = (
+  store: ReturnType<typeof renderPerpsProMarketView>['store'],
+) => {
+  const current = store.getState().engine.backgroundState.PerpsController;
+  act(() => {
+    syncEngineControllerState(store, 'PerpsController', {
+      ...current,
+      proLayoutPreferences: {
+        ...current?.proLayoutPreferences,
+        orderBookExpanded: true,
+      },
+    });
+  });
 };
 
 describeForPlatforms('PerpsProMarketView input journeys', () => {
@@ -3173,6 +3296,119 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
   );
 
   itForPlatforms(
+    'opens the size field and order book in the saved coin denomination',
+    async () => {
+      renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                orderBookPreferences: { currency: 'base', metric: 'total' },
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      await findSizeInput();
+      await screen.findByTestId(
+        orderBookValueHeaderId,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+
+      expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+        'Size (ETH)',
+      );
+      expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+        'Total (ETH)',
+      );
+    },
+  );
+
+  itForPlatforms(
+    'keeps the size field and order book on the same denomination',
+    async () => {
+      const mounted = renderPerpsProMarketView({
+        streamOverrides: {
+          account: createFundedAccountForViews('1000'),
+        },
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: {
+                proLayoutPreferences: { orderBookExpanded: true },
+              },
+            },
+          },
+        },
+      });
+      const unwire = wirePerpsControllerForStore(mounted.store);
+
+      try {
+        const sizeInput = await findSizeInput();
+        await screen.findByTestId(
+          orderBookValueHeaderId,
+          {},
+          { timeout: TIMEOUT_MS },
+        );
+
+        expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+          'Size (USD)',
+        );
+        expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+          'Total ($)',
+        );
+
+        fireEvent.changeText(sizeInput, '100');
+        await waitFor(() => expect(sizeInput).toHaveProp('value', '100'));
+        fireEvent.press(screen.getByTestId(ids.SIZE_UNIT_BUTTON));
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '0.04');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (ETH)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total (ETH)',
+          );
+        });
+
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-grouping-trigger`,
+          ),
+        );
+        fireEvent.press(
+          await screen.findByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-currency-usd`,
+          ),
+        );
+        fireEvent.press(
+          screen.getByTestId(
+            `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-config-sheet-apply`,
+          ),
+        );
+
+        await waitFor(() => {
+          expect(sizeInput).toHaveProp('value', '100');
+          expect(screen.getByTestId(ids.SIZE_UNIT_LABEL)).toHaveTextContent(
+            'Size (USD)',
+          );
+          expect(screen.getByTestId(orderBookValueHeaderId)).toHaveTextContent(
+            'Total ($)',
+          );
+        });
+      } finally {
+        unwire();
+      }
+    },
+  );
+
+  itForPlatforms(
     'keeps asset sizing available when Scale ladder prices differ from the market',
     async () => {
       renderProMarketWithScaleFlag(true);
@@ -4264,6 +4500,92 @@ describeForPlatforms('PerpsProMarketView input journeys', () => {
       );
     },
   );
+
+  itForPlatforms(
+    'fills a focused Scale start price from an order-book tap without switching type',
+    async () => {
+      const bookSpy = deliverProOrderBook('2400');
+      try {
+        const { store } = renderProMarketWithScaleFlag(true);
+        showOrderBook(store);
+        await openScaleOrderForm();
+        fireEvent(screen.getByTestId(ids.SCALE_START_PRICE), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.SCALE_START_PRICE)).toHaveProp(
+            'value',
+            formatPerpsInput('2400'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.scale.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused Chase percent distance from an order-book tap',
+    async () => {
+      const bookSpy = deliverProOrderBook('2550');
+      try {
+        const { store } = renderChaseProMarket();
+        showOrderBook(store);
+        await openChaseOrderForm();
+        fireEvent.press(screen.getByTestId(ids.CHASE_MAX_DISTANCE_UNIT));
+        fireEvent(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT), 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(screen.getByTestId(ids.CHASE_MAX_DISTANCE_INPUT)).toHaveProp(
+            'value',
+            formatPerpsInput('2'),
+          );
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            `${strings('perps.order.type.chase.title')}$2500`,
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
+
+  itForPlatforms(
+    'fills a focused stop-limit trigger from an order-book tap and leaves the limit price',
+    async () => {
+      const bookSpy = deliverProOrderBook('2490');
+      try {
+        const { store } = renderProMarketWithTriggeredOrdersFlag(true);
+        showOrderBook(store);
+        await findSizeInput();
+        await selectTriggeredOrderType(
+          PerpsOrderTypeBottomSheetSelectorsIDs.STOP_LIMIT_OPTION,
+        );
+        const limitInput = await findPriceInput(ids.LIMIT_PRICE_INPUT);
+        const triggerInput = await findPriceInput(ids.TRIGGER_PRICE_INPUT);
+        fireEvent.changeText(limitInput, '2400');
+        fireEvent(triggerInput, 'focus');
+
+        fireEvent.press(await pressTopBid());
+
+        await waitFor(() => {
+          expect(triggerInput).toHaveProp('value', formatPerpsInput('2490'));
+          expect(limitInput).toHaveProp('value', formatPerpsInput('2400'));
+          expect(screen.getByTestId(ids.ORDER_TYPE_BUTTON)).toHaveTextContent(
+            strings('perps.order.type.stop_limit.title'),
+          );
+        });
+      } finally {
+        bookSpy.mockRestore();
+      }
+    },
+  );
 });
 
 describe('PerpsProMarketView header actions', () => {
@@ -4566,5 +4888,74 @@ describe('Pro market order liquidity', () => {
     expect(
       screen.queryByText(strings('perps.slippage.cannot_fill')),
     ).not.toBeOnTheScreen();
+  });
+});
+
+describe('Pro market Lighter limit order take profit and stop loss', () => {
+  it('blocks a limit order with both TP and SL on a providerless market while Lighter is active', async () => {
+    const market = createEthMarketForViews();
+    renderPerpsProMarketView({
+      initialParams: { market },
+      streamOverrides: {
+        marketData: [market],
+        account: createFundedAccountForViews('1000'),
+      },
+      overrides: {
+        engine: {
+          backgroundState: {
+            PerpsController: { activeProvider: 'lighter' },
+          },
+        },
+      },
+      extraRoutes: [
+        {
+          name: Routes.PERPS.TPSL,
+          Component: PerpsTPSLView as unknown as ComponentType<unknown>,
+        },
+      ],
+    });
+
+    fireEvent.changeText(await findSizeInput(), '10');
+    fireEvent.press(screen.getByTestId(ids.ORDER_TYPE_BUTTON));
+    fireEvent.press(
+      await screen.findByTestId(
+        PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+        {},
+        { timeout: TIMEOUT_MS },
+      ),
+    );
+    fireEvent.changeText(await findPriceInput(ids.LIMIT_PRICE_INPUT), '2600');
+    const submit = screen.getByTestId(ids.PLACE_ORDER_BUTTON);
+    await waitFor(() => expect(submit).toBeEnabled());
+
+    fireEvent.press(screen.getByTestId(ids.TPSL));
+    fireEvent.changeText(
+      await screen.findByTestId(
+        PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT,
+      ),
+      '2800',
+    );
+    fireEvent.changeText(
+      screen.getByTestId(PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT),
+      '2400',
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).toBeEnabled(),
+    );
+    fireEvent.press(screen.getByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON));
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      ).not.toBeOnTheScreen(),
+    );
+
+    expect(
+      await screen.findByText(
+        strings('perps.order.validation.lighter_limit_tpsl_unsupported'),
+      ),
+    ).toBeOnTheScreen();
+    await waitFor(() => expect(submit).toBeDisabled());
   });
 });

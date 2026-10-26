@@ -6,4 +6,6 @@ export const MoneyActivityItemTestIds = {
   NETWORK_BADGE: 'money-activity-item-network-badge',
   PENDING_SPINNER: 'money-activity-item-pending-spinner',
   FIAT_AMOUNT: 'money-activity-item-fiat-amount',
+  PRIMARY_AMOUNT: 'money-activity-item-primary-amount',
+  PENDING_STATUS: 'money-activity-item-pending-status',
 };

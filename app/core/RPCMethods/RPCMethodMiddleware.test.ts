@@ -17,7 +17,6 @@ import {
 import type { TransactionParams } from '@metamask/transaction-controller';
 import Engine from '../Engine';
 import { store } from '../../store';
-import { getPermittedAccounts } from '../Permissions';
 import {
   checkActiveAccountAndChainId,
   getRpcMethodMiddleware,
@@ -111,11 +110,14 @@ jest.mock('../Engine', () => ({
       getNetworkConfigurationByNetworkClientId: jest
         .fn()
         .mockImplementation(() => ({ chainId: '0x1' })),
-      getNetworkClientById: () => ({
+      getNetworkClientById: jest.fn().mockImplementation(() => ({
         configuration: {
           chainId: '0x1',
         },
-      }),
+      })),
+    },
+    AccountsController: {
+      getAccountByAddress: jest.fn(),
     },
     KeyringController: {
       isUnlocked: jest.fn().mockReturnValue(true),
@@ -141,12 +143,36 @@ const mockStore = store as unknown as {
   dispatch: jest.Mock;
 };
 
-jest.mock('../Permissions', () => ({
-  ...jest.requireActual('../Permissions'),
-  getPermittedAccounts: jest.fn(),
-}));
-const mockGetPermittedAccounts = getPermittedAccounts as jest.Mock;
 const mockAddTransaction = addTransaction as jest.Mock;
+
+/**
+ * Mock the CAIP-25 caveat returned by the `PermissionController`.
+ *
+ * @param permittedAccounts - Permitted account addresses, keyed by origin.
+ * @param scope - The CAIP-2 scope that the accounts are permitted for.
+ */
+function mockPermittedAccounts(
+  permittedAccounts: Record<string, string[]>,
+  scope = 'eip155:1',
+) {
+  MockEngine.context.PermissionController.getCaveat.mockImplementation(
+    (origin) => ({
+      type: Caip25CaveatType,
+      value: {
+        requiredScopes: {},
+        optionalScopes: {
+          [scope]: {
+            accounts: (permittedAccounts[origin] ?? []).map(
+              (address) => `${scope}:${address}`,
+            ),
+          },
+        },
+        sessionProperties: {},
+        isMultichainOrigin: false,
+      },
+    }),
+  );
+}
 
 /**
  * This is used to build JSON-RPC requests. It is defined here for convenience, so that we don't
@@ -326,9 +352,7 @@ function setupGlobalState({
     }));
   }
   if (permittedAccounts) {
-    mockGetPermittedAccounts.mockImplementation(
-      (hostname) => permittedAccounts[hostname] || [],
-    );
+    mockPermittedAccounts(permittedAccounts);
   }
 }
 
@@ -773,7 +797,7 @@ describe('getRpcMethodMiddleware', () => {
         },
       };
 
-      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+      mockPermittedAccounts({ [mockOrigin]: [addressMock] });
       MockEngine.context.PermissionController.requestPermissions.mockImplementation(
         async () => [
           /**
@@ -862,7 +886,7 @@ describe('getRpcMethodMiddleware', () => {
         },
       };
 
-      mockGetPermittedAccounts.mockImplementation(() => [addressMock]);
+      mockPermittedAccounts({ [mockOrigin]: [addressMock] });
       MockEngine.context.PermissionController.getPermissions.mockImplementation(
         () => mockPermission,
       );
@@ -903,7 +927,7 @@ describe('getRpcMethodMiddleware', () => {
         Engine.context.PermissionController,
         'requestPermissions',
       );
-      mockGetPermittedAccounts.mockReturnValue([addressMock]);
+      mockPermittedAccounts({ 'example.metamask.io': [addressMock] });
 
       const middleware = getRpcMethodMiddleware({
         ...getMinimalOptions(),
@@ -931,9 +955,18 @@ describe('getRpcMethodMiddleware', () => {
         Engine.context.PermissionController,
         'requestPermissions',
       );
-      mockGetPermittedAccounts
-        .mockReturnValueOnce([])
-        .mockReturnValue([addressMock]);
+      MockEngine.context.PermissionController.getCaveat.mockImplementationOnce(
+        () => ({
+          type: Caip25CaveatType,
+          value: {
+            requiredScopes: {},
+            optionalScopes: {},
+            sessionProperties: {},
+            isMultichainOrigin: false,
+          },
+        }),
+      );
+      mockPermittedAccounts({ 'example.metamask.io': [addressMock] });
 
       const mockPermission = {
         [Caip25EndowmentPermissionName]: {
@@ -2045,7 +2078,7 @@ describe('checkActiveAccountAndChainId', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetPermittedAccounts.mockReturnValue([]);
+    mockPermittedAccounts({});
   });
 
   describe('chainId validation', () => {

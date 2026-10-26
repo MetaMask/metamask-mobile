@@ -16,6 +16,11 @@ import {
   VbaOnboardingRoutes,
 } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import type { VbaOnboardingSnapshot } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
+import { withScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+} from '../../kycScreenPerformance';
 
 const Stack = createNativeStackNavigator<VbaIdentityVerificationParamList>();
 
@@ -25,9 +30,7 @@ type IdentityVerificationNavigation =
 export const replaceProviderTermsWithProvider = (
   navigation: IdentityVerificationNavigation,
 ): void => {
-  navigation.replace(VbaIdentityVerificationRoutes.PROVIDER, {
-    initialNeedsMoreInfo: false,
-  });
+  navigation.replace(VbaIdentityVerificationRoutes.PROVIDER);
 };
 
 const ProviderTermsStep = () => {
@@ -40,22 +43,18 @@ const ProviderTermsStep = () => {
   return <VerifyIdentity onSuccess={handleSuccess} />;
 };
 
-type ProviderStepProps = NativeStackScreenProps<
-  VbaIdentityVerificationParamList,
-  typeof VbaIdentityVerificationRoutes.PROVIDER
->;
-
-const ProviderStep = ({ route }: ProviderStepProps) => {
+const ProviderStep = () => {
   const advance = useOpenVbaOnboarding('identity-verification-submitted');
   const handleSubmitted = useCallback(() => advance(), [advance]);
 
-  return (
-    <VbaSumSubKyc
-      onSubmitted={handleSubmitted}
-      initialNeedsMoreInfo={route.params.initialNeedsMoreInfo}
-    />
-  );
+  return <VbaSumSubKyc onSubmitted={handleSubmitted} />;
 };
+
+const InstrumentedProviderStep = withScreenPerformance(
+  ProviderStep,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  KYC_SCREEN_ID.IDENTITY_VERIFICATION_PROVIDER,
+);
 
 type Props = NativeStackScreenProps<
   VbaOnboardingParamList,
@@ -68,12 +67,6 @@ export const getVbaIdentityVerificationInitialRoute = (
   snapshot.sessionDisclaimersComplete
     ? VbaIdentityVerificationRoutes.PROVIDER
     : VbaIdentityVerificationRoutes.PROVIDER_TERMS;
-
-export const getVbaIdentityVerificationInitialProviderParams = (
-  snapshot: VbaOnboardingSnapshot,
-): VbaIdentityVerificationParamList['VbaIdentityVerificationProvider'] => ({
-  initialNeedsMoreInfo: snapshot.providerFlowStatus === 'abandoned',
-});
 
 const VbaIdentityVerificationModule = ({ route }: Props) => {
   const initialRouteName = getVbaIdentityVerificationInitialRoute(
@@ -91,10 +84,7 @@ const VbaIdentityVerificationModule = ({ route }: Props) => {
       />
       <Stack.Screen
         name={VbaIdentityVerificationRoutes.PROVIDER}
-        component={ProviderStep}
-        initialParams={getVbaIdentityVerificationInitialProviderParams(
-          route.params.snapshot,
-        )}
+        component={InstrumentedProviderStep}
       />
     </Stack.Navigator>
   );

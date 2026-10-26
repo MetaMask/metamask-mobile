@@ -15,6 +15,15 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsFlag: jest.fn(),
 }));
 
+const mockSelectTransactionMetadataByHash = jest.fn<
+  unknown,
+  [unknown, string | undefined]
+>(() => undefined);
+jest.mock('../../../../../selectors/transactionController', () => ({
+  selectTransactionMetadataByHash: (state: unknown, hash?: string) =>
+    mockSelectTransactionMetadataByHash(state, hash),
+}));
+
 const mockedSelectActivityDetailsFlag = jest.mocked(
   selectMoneyEnableActivityDetailsFlag,
 );
@@ -22,7 +31,7 @@ const mockedSelectActivityDetailsFlag = jest.mocked(
 // Selectors are stubbed to plain getters and useSelector just invokes them, so
 // the component's currency/rate wiring runs without a full redux store.
 jest.mock('react-redux', () => ({
-  useSelector: (selector: () => unknown) => selector(),
+  useSelector: (selector: (state?: unknown) => unknown) => selector({}),
 }));
 
 const mockNavigate = jest.fn();
@@ -69,6 +78,16 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const bankTransfer: AccountsApiActivity = {
+  kind: 'bank_transfer',
+  hash: '0xbank' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f',
+  token,
+  amount: '15009500',
+  receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+};
+
 const enrichment: CardTransaction = {
   id: 'baanx-1',
   providerId: 'baanx',
@@ -101,6 +120,7 @@ describe('AccountsApiActivityItem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockedSelectActivityDetailsFlag.mockReturnValue(true);
+    mockSelectTransactionMetadataByHash.mockReturnValue(undefined);
   });
 
   it('feeds a card spend (outgoing amount) into the row view', () => {
@@ -152,6 +172,33 @@ describe('AccountsApiActivityItem', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
       activity: cashback,
+      enrichment: undefined,
+    });
+  });
+
+  it('opens MoneyTransactionDetails when bank_transfer matches a local deposit', () => {
+    mockSelectTransactionMetadataByHash.mockReturnValue({
+      id: 'local-deposit-1',
+      hash: bankTransfer.hash,
+      type: 'moneyAccountDeposit',
+    } as never);
+
+    render(<AccountsApiActivityItem activity={bankTransfer} />);
+
+    lastRowProps().onPress?.(bankTransfer.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyTransactionDetails', {
+      transactionId: 'local-deposit-1',
+    });
+  });
+
+  it('opens MoneyCardTransactionDetails for bank_transfer without a local deposit', () => {
+    render(<AccountsApiActivityItem activity={bankTransfer} />);
+
+    lastRowProps().onPress?.(bankTransfer.hash);
+
+    expect(mockNavigate).toHaveBeenCalledWith('MoneyCardTransactionDetails', {
+      activity: bankTransfer,
       enrichment: undefined,
     });
   });

@@ -24,7 +24,9 @@ jest.mock('../../hooks/usePerpsSocialEnabled', () => ({
 
 jest.mock('./PerpsSocialTrending', () => () => null);
 
-jest.mock('./PerpsSocialTopTraders', () => () => null);
+jest.mock('../../../SocialLeaderboard', () => ({
+  SocialLeaderboard: () => null,
+}));
 
 const mockNavigateToSocialLeaderboard = jest.mocked(
   navigateToSocialLeaderboard,
@@ -47,7 +49,7 @@ describe('PerpsSocialFeedSection', () => {
     ).toBeNull();
   });
 
-  it('opens Social from the header', () => {
+  it('opens Social on Trending from the header while Trending is selected', () => {
     renderWithProvider(<PerpsSocialFeedSection />);
 
     fireEvent.press(
@@ -57,6 +59,26 @@ describe('PerpsSocialFeedSection', () => {
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(1);
     expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
       source: 'perps_home',
+      initialTab: 'trending',
+    });
+  });
+
+  it('opens Social on Leaderboard from the header while Top traders is selected', () => {
+    renderWithProvider(<PerpsSocialFeedSection />);
+    fireEvent.press(
+      screen.getByTestId(
+        PerpsHomeViewSelectorsIDs.SOCIAL_FEED_TOP_TRADERS_PILL,
+      ),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.SOCIAL_FEED_HEADER),
+    );
+
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledTimes(1);
+    expect(mockNavigateToSocialLeaderboard).toHaveBeenCalledWith(mockNavigate, {
+      source: 'perps_home',
+      initialTab: 'leaderboard',
     });
   });
 });
