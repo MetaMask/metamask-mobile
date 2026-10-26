@@ -254,23 +254,24 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('leaves the flow when the back arrow is tapped on the intro', async () => {
-    renderSocialProfileOnboarding([], {
-      previousRoute: Routes.SOCIAL.MY_PROFILE,
-    });
-    const backButton = await screen.findByTestId(
-      SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-    );
+  it('hides the back arrow on the intro and shows it on later steps', () => {
+    renderSocialProfileOnboarding();
 
-    fireEvent.press(backButton);
-
-    await waitFor(() =>
-      expect(
-        screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.CONTAINER),
-      ).not.toBeOnTheScreen(),
-    );
     expect(
-      screen.getByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
     ).toBeOnTheScreen();
   });
 

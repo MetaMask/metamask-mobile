@@ -10,17 +10,12 @@
  */
 
 import '../mocks';
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { SolAccountType, SolScope } from '@metamask/keyring-api';
 import type { DeepPartial } from '../../../app/util/test/renderWithProvider';
 import type { RootState } from '../../../app/reducers';
-import {
-  getRouteProbeTestId,
-  renderComponentViewScreen,
-  renderScreenWithRoutes,
-} from '../render';
+import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import Routes from '../../../app/constants/navigation/Routes';
 import ReduxService from '../../../app/core/redux/ReduxService';
 import type { ReduxStore } from '../../../app/core/redux/types';
@@ -258,7 +253,7 @@ export const SECOND_ONBOARDING_EVM_ACCOUNT = {
  */
 export function renderSocialProfileOnboarding(
   extraRoutes: { name: string; Component?: React.ComponentType<object> }[] = [],
-  options: { includeSecondEvmAccount?: boolean; previousRoute?: string } = {},
+  options: { includeSecondEvmAccount?: boolean } = {},
 ) {
   const state = createStateFixture()
     .withMinimalAccounts()
@@ -334,30 +329,6 @@ export function renderSocialProfileOnboarding(
       },
     })
     .build();
-
-  const { previousRoute } = options;
-  if (previousRoute) {
-    const PreviousRouteHarness = () => {
-      const navigation = useNavigation();
-      useEffect(() => {
-        navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
-      }, [navigation]);
-      return <View testID={getRouteProbeTestId(previousRoute)} />;
-    };
-
-    return renderScreenWithRoutes(
-      PreviousRouteHarness,
-      { name: previousRoute },
-      [
-        {
-          name: Routes.SOCIAL.PROFILE_ONBOARDING,
-          Component: SocialProfileOnboardingView as React.ComponentType<object>,
-        },
-        ...extraRoutes,
-      ],
-      { state },
-    );
-  }
 
   return renderScreenWithRoutes(
     SocialProfileOnboardingView as unknown as React.ComponentType,
