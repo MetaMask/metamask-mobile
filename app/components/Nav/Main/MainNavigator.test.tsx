@@ -137,7 +137,6 @@ jest.mock('../../UI/Perps', () => ({
 jest.mock('../../UI/Predict', () => {
   const { Fragment } = jest.requireActual('react');
   return {
-    PredictScreenStack: () => 'PredictScreenStack',
     PredictModalStack: () => 'PredictModalStack',
     PredictPreviewSheetProvider: ({
       children,
@@ -148,6 +147,10 @@ jest.mock('../../UI/Predict', () => {
       mockSelectPredictEnabledFlag(state),
   };
 });
+
+jest.mock('../../UI/PredictNext', () => ({
+  PredictRoot: () => 'PredictRoot',
+}));
 
 jest.mock('../../UI/Trending/contexts', () => {
   const { Fragment } = jest.requireActual('react');

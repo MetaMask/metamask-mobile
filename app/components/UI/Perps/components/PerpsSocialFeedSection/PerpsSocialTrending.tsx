@@ -15,6 +15,7 @@ import {
   SocialFeedError,
   SocialFeedPostShell,
   SocialFeedSkeleton,
+  SocialFeedSurfaceProvider,
   SocialV1FeedPostList,
   useSocialFeed,
   type SocialFeedSource,
@@ -22,6 +23,7 @@ import {
 } from '../../../SocialFeed';
 import { navigateToSocialV1Profile } from '../../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
+import { type SocialEventSource } from '../../../../Views/SocialLeaderboard/analytics';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 
 export const PERPS_TRENDING_POST_COUNT = 3;
@@ -36,7 +38,7 @@ interface PerpsSocialTrendingProps {
   /** Scope to one perp market (raw symbol); omit for trending across all perps. */
   symbol?: string;
   postCount?: number;
-  source?: string;
+  source?: Extract<SocialEventSource, 'perps_home' | 'perp_asset_screen'>;
   /** Renders a See more button under the posts when set. */
   onSeeMorePress?: () => void;
 }
@@ -119,7 +121,10 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
   }
 
   return (
-    <>
+    <SocialFeedSurfaceProvider
+      location={symbol ? 'perps_market_details' : 'perps_home'}
+      analyticsSource={source}
+    >
       <Box twClassName="gap-6">
         <SocialV1FeedPostList
           posts={posts.slice(0, postCount)}
@@ -140,7 +145,7 @@ const PerpsSocialTrending: React.FC<PerpsSocialTrendingProps> = ({
           </Button>
         </Box>
       ) : null}
-    </>
+    </SocialFeedSurfaceProvider>
   );
 };
 
