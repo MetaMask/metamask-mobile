@@ -33,6 +33,7 @@ export async function validateAmountMultichain(
     value: string;
     accountId: string;
     assetId: CaipAssetType;
+    toAddress?: string;
   },
 ) {
   return await handleSnapRequest(controllerMessenger, {
