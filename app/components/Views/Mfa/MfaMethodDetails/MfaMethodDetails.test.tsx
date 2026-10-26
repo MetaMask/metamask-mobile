@@ -89,7 +89,7 @@ const passkey: EnrolledCredential = {
   status: 'active',
   displayName: '1Password',
 };
-const authenticatorApp: EnrolledCredential = {
+const totpCredential: EnrolledCredential = {
   type: 'totp',
   status: 'active',
 };
@@ -155,7 +155,7 @@ describe('MfaMethodDetails', () => {
   it.each([
     ['passkey', passkey, email, 'Remove passkey'],
     ['email_otp', email, passkey, 'Remove email'],
-    ['totp', authenticatorApp, email, 'Remove authenticator app'],
+    ['totp', totpCredential, email, 'Remove authenticator app'],
   ] as const)(
     'centers the %s removal confirmation title',
     (method, credential, otherCredential, title) => {
@@ -177,7 +177,7 @@ describe('MfaMethodDetails', () => {
   it.each([
     ['passkey', passkey, 'Passkey can’t be deleted'],
     ['email_otp', email, 'Email can’t be removed'],
-    ['totp', authenticatorApp, 'Authenticator app can’t be removed'],
+    ['totp', totpCredential, 'Authenticator app can’t be removed'],
   ] as const)(
     'centers the last %s method title',
     (method, credential, title) => {
