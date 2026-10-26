@@ -485,6 +485,21 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
+    // Product `goBackToSafety` delays homepage nav + modal hide by 500ms, then
+    // animates out (~300ms). Wait until the button is gone so URL-bar asserts
+    // do not race the full-screen phishing overlay (iframe smoke residual).
+    await this.waitForBackToSafetyButtonGone();
+  }
+
+  /**
+   * Poll until the phishing Back to safety control is absent / not visible.
+   * Used after the initial dismiss and when an iframe rescan re-shows the modal.
+   */
+  async waitForBackToSafetyButtonGone(timeout = 15_000): Promise<void> {
+    await Assertions.expectElementToNotBeVisible(this.backToSafetyButton, {
+      timeout,
+      description: 'Phishing Back to safety button dismissed',
+    });
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -516,16 +531,19 @@ class Browser {
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
     //
     // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
-    // rescan can cover the URL bar again about a second later. The label stays
-    // in the tree with `resolvedUrl`, but `isDisplayed()` is false while the
-    // modal covers it (local: element found, displayed=false, got ""). Read
-    // the text whenever the node exists. Create each locator inside a 300ms
-    // implicit wait so a missing Cancel does not burn the 3.5s session wait.
+    // rescan can cover the URL bar again about a second later. While the modal
+    // is up, display text is often missing / empty (got ""). Read text when the
+    // node exists; if Back to safety reappears, re-dismiss (bounded). Create
+    // each locator inside a 300ms implicit wait so a missing Cancel does not
+    // burn the 3.5s session wait.
     await AppiumContextHelpers.switchToNativeContext();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
     // Same budget as AppiumAssertions poll probes.
     const probeImplicitWaitMs = 300;
+    // Cap re-dismisses so an stuck phishing modal fails with a clear error.
+    let phishingReDismisses = 0;
+    const maxPhishingReDismisses = 2;
 
     await Utilities.executeWithRetry(
       async () => {
@@ -563,6 +581,26 @@ class Browser {
               timeout: 2_000,
             });
           }
+
+          // Iframe phishing can re-show the modal after the first dismiss;
+          // empty URL text while Back to safety is visible is that residual.
+          const phishingVisible = await withImplicitWait(
+            probeImplicitWaitMs,
+            async () => {
+              const back = await this.backToSafetyButton;
+              return (
+                (await back.unwrap().isExisting()) && (await back.isVisible())
+              );
+            },
+          );
+          if (phishingVisible && phishingReDismisses < maxPhishingReDismisses) {
+            phishingReDismisses += 1;
+            await Gestures.waitAndTap(this.backToSafetyButton, {
+              elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
+              timeout: 5_000,
+            });
+            await this.waitForBackToSafetyButtonGone(10_000);
+          }
         }
 
         throw new Error(
@@ -570,7 +608,8 @@ class Browser {
         );
       },
       {
-        timeout: 12_000,
+        // Product delay (500ms) + modal out + possible iframe re-warning cycle.
+        timeout: 20_000,
         interval: 200,
         description: assertionDescription,
         elemDescription: 'browser URL bar',
