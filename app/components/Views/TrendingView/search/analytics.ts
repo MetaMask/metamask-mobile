@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import {
   mergeAssetViewedProperties,
   MetaMetricsEvents,
@@ -192,6 +193,8 @@ export const trackExploreSectionSeeAll = ({
 };
 
 interface ExploreSearchSession {
+  /** Sent as `search_session_id` on every event until the next `opened`. */
+  id?: string;
   entryPoint?: SearchEntryPoint;
   hasResultClick: boolean;
   hasEnded: boolean;
@@ -215,6 +218,7 @@ const updateSearchSession = ({
 }: ExploreSearchInteractedProperties): void => {
   if (interaction_type === 'opened') {
     searchSession = {
+      id: uuidv4(),
       entryPoint: entry_point,
       hasResultClick: false,
       hasEnded: false,
@@ -237,11 +241,15 @@ export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {
   updateSearchSession(properties);
+  const { id: searchSessionId } = searchSession;
   analytics.trackEvent(
     AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED,
     )
-      .addProperties(properties as unknown as Record<string, unknown>)
+      .addProperties({
+        ...properties,
+        ...(searchSessionId ? { search_session_id: searchSessionId } : {}),
+      })
       .build(),
   );
 };
