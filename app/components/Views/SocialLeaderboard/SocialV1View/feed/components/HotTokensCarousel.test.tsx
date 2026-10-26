@@ -21,6 +21,24 @@ import {
 
 jest.mock('../hooks/useSocialV1HotTokens');
 
+const mockSetFrameCallbackActive = jest.fn();
+
+jest.mock('react-native-reanimated', () => {
+  const actual = jest.requireActual('react-native-reanimated');
+  return new Proxy(actual, {
+    get(target, prop, receiver) {
+      if (prop === 'useFrameCallback') {
+        return () => ({
+          setActive: mockSetFrameCallbackActive,
+          isActive: false,
+          callbackId: 1,
+        });
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+});
+
 const mockUseSocialV1HotTokens = jest.mocked(useSocialV1HotTokens);
 
 const arrange = (tokens: SocialV1HotToken[], isLoading = false) => {
@@ -240,5 +258,33 @@ describe('HotTokensCarousel', () => {
     expect(
       screen.getByTestId(getSocialV1HotTokenChipTestId('hot-nvda-loop')),
     ).toBeOnTheScreen();
+  });
+
+  it('runs the marquee while its page is active', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
+  });
+
+  it('stops the marquee while its page is off screen', () => {
+    arrange([mockHotToken(), NVIDIA]);
+
+    renderWithProvider(<HotTokensCarousel isActive={false} />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(false);
+    expect(mockSetFrameCallbackActive).not.toHaveBeenCalledWith(true);
+  });
+
+  it('resumes the marquee when its page becomes active again', () => {
+    arrange([mockHotToken(), NVIDIA]);
+    const { rerender } = renderWithProvider(
+      <HotTokensCarousel isActive={false} />,
+    );
+
+    rerender(<HotTokensCarousel isActive />);
+
+    expect(mockSetFrameCallbackActive).toHaveBeenLastCalledWith(true);
   });
 });

@@ -91,7 +91,14 @@ import type { SocialPostComposerViewParams } from './SocialPostComposerView.type
 import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
+import {
+  SocialEvent,
+  useSocialInteraction,
+  useSocialScreenAnalytics,
+  type SocialEventSource,
+} from '../analytics';
 
+const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
 type ComposerRoute = NavigationState['routes'][number];
 
 const getPreviousRoute = (
@@ -216,6 +223,20 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
+  const analyticsSource: SocialEventSource | undefined =
+    routeParams?.entryPoint === 'perps'
+      ? Source.PERP_ASSET_SCREEN
+      : routeParams?.entryPoint === 'token_details'
+        ? Source.ASSET_DETAILS
+        : tradeInFlightParams
+          ? Source.TRADER_FEED
+          : undefined;
+  const trackInteraction = useSocialScreenAnalytics(Screen.POST_COMPOSER, {
+    source: analyticsSource,
+  });
+  const trackShareSheet = useSocialInteraction(Screen.SHARE_POSITION_SHEET, {
+    source: analyticsSource,
+  });
   const isKeyboardVisible = useKeyboardHeight() > 0;
 
   const authorName = profile?.displayName || profile?.handle || '';
@@ -250,13 +271,19 @@ const SocialPostComposerView: React.FC = () => {
       author: composerAuthor,
     });
   }, [composerAuthor, selectedPosition, text, tradeInFlightPreview]);
+  const analyticsTradeType = previewItem
+    ? previewItem.variant.startsWith('perps')
+      ? Trade.PERPS
+      : Trade.SPOT
+    : undefined;
 
   const isTradeInFlightLocked = tradeInFlightParams != null;
   const canSubmit = selectedPosition != null || isTradeInFlightLocked;
 
   const handleClose = useCallback(() => {
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, trackInteraction]);
 
   const handleChangeText = useCallback((next: string) => {
     setText(clipComposerComment(next));
@@ -293,14 +320,19 @@ const SocialPostComposerView: React.FC = () => {
 
   const handleGifChipPress = useCallback(() => {
     setIsShareSheetOpen(false);
-    setIsGifSheetOpen((open) => {
-      const next = !open;
-      if (next) {
-        Keyboard.dismiss();
-      }
-      return next;
-    });
-  }, []);
+    const next = !isGifSheetOpen;
+    setIsGifSheetOpen(next);
+    if (next) {
+      Keyboard.dismiss();
+      trackInteraction(Interaction.GIF_PICKER_OPENED);
+    }
+  }, [isGifSheetOpen, trackInteraction]);
+
+  const handlePositionChipPress = useCallback(() => {
+    setIsGifSheetOpen(false);
+    setIsShareSheetOpen(true);
+    trackShareSheet(Interaction.SHEET_DISPLAYED);
+  }, [trackShareSheet]);
 
   const handleSelectGif = useCallback((nextGifUri: string) => {
     setGifUri(nextGifUri);
@@ -430,6 +462,10 @@ const SocialPostComposerView: React.FC = () => {
           queryKey: ['SocialService:fetchTraderFeed'],
         }),
       ]);
+      trackInteraction(Interaction.POST_SUBMITTED, {
+        outcome: Outcome.SUCCESS,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
@@ -449,6 +485,10 @@ const SocialPostComposerView: React.FC = () => {
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
     } catch {
+      trackInteraction(Interaction.POST_FAILED, {
+        outcome: Outcome.FAILED,
+        ...(analyticsTradeType ? { trade_type: analyticsTradeType } : {}),
+      });
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
         iconName: ComponentLibraryIconName.Danger,
@@ -463,6 +503,7 @@ const SocialPostComposerView: React.FC = () => {
     }
   }, [
     authorName,
+    analyticsTradeType,
     canSubmit,
     colors.error.default,
     colors.success.default,
@@ -475,6 +516,7 @@ const SocialPostComposerView: React.FC = () => {
     profile?.profileId,
     selectedPosition,
     text,
+    trackInteraction,
     toastRef,
     tradeInFlightParams,
     tradeInFlightPreview,
@@ -511,7 +553,7 @@ const SocialPostComposerView: React.FC = () => {
             >
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
                 testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
               >
                 {strings('social_leaderboard.composer.character_count', {
@@ -541,11 +583,12 @@ const SocialPostComposerView: React.FC = () => {
         >
           <ScrollView
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
-            keyboardShouldPersistTaps="always"
+            contentContainerStyle={tw.style('px-4 pt-6 pb-4 grow')}
+            keyboardShouldPersistTaps="handled"
             keyboardDismissMode={
               Platform.OS === 'ios' ? 'interactive' : 'on-drag'
             }
+            testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
@@ -561,10 +604,9 @@ const SocialPostComposerView: React.FC = () => {
                 placeholder={strings('social_leaderboard.composer.placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 multiline
-                autoFocus={isScreenTransitionComplete}
                 showSoftInputOnFocus
                 style={[
-                  tw.style('w-full text-default min-h-24'),
+                  tw.style('w-full text-default p-0'),
                   composerInputTypography,
                 ]}
                 testID={SocialPostComposerViewSelectorsIDs.INPUT}
@@ -575,7 +617,7 @@ const SocialPostComposerView: React.FC = () => {
             </Box>
 
             {previewItem ? (
-              <Box twClassName="relative">
+              <Box twClassName="relative mt-12">
                 <PositionCardBody item={previewItem} />
                 {isTradeInFlightLocked ? null : (
                   <Pressable
@@ -597,7 +639,7 @@ const SocialPostComposerView: React.FC = () => {
             ) : null}
 
             {gifUri ? (
-              <Box twClassName="relative rounded-2xl overflow-hidden">
+              <Box twClassName="relative mt-4 rounded-2xl overflow-hidden">
                 <SocialFeedGif
                   uri={gifUri}
                   testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
@@ -621,6 +663,15 @@ const SocialPostComposerView: React.FC = () => {
                 </Pressable>
               </Box>
             ) : null}
+
+            <Pressable
+              accessible={false}
+              onPress={Keyboard.dismiss}
+              style={tw.style('grow')}
+              testID={
+                SocialPostComposerViewSelectorsIDs.DISMISS_KEYBOARD_SURFACE
+              }
+            />
           </ScrollView>
 
           <Box
@@ -636,10 +687,7 @@ const SocialPostComposerView: React.FC = () => {
               <ComposerChip
                 label={strings('social_leaderboard.composer.chip_position')}
                 icon={<Icon name={IconName.Card} size={IconSize.Sm} />}
-                onPress={() => {
-                  setIsGifSheetOpen(false);
-                  setIsShareSheetOpen(true);
-                }}
+                onPress={handlePositionChipPress}
                 testID={SocialPostComposerViewSelectorsIDs.POSITION_CHIP}
               />
             )}

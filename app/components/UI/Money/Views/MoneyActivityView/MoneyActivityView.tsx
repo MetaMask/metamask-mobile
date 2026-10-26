@@ -39,6 +39,7 @@ import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/moneyActivity';
 import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
+import { isNeobankPendingStatus } from '../../utils/neobankActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -82,9 +83,13 @@ interface ActivitySection {
 }
 
 function isPendingItem(item: MoneyActivityItem): boolean {
-  return (
-    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
-  );
+  if (item.kind === 'onchain') {
+    return getMoneyActivityStatus(item.tx) === 'pending';
+  }
+  if (item.kind === 'neobank') {
+    return isNeobankPendingStatus(item.tx.status);
+  }
+  return false;
 }
 
 function dateKeyUtc(time: number): string {

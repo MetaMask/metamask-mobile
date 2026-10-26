@@ -89,9 +89,23 @@ describe('SocialLivePriceStore', () => {
     const listener = jest.fn();
     const unsubscribe = store.subscribe(KEY, listener);
 
+    store.publish(KEY, 100);
     unsubscribe();
     store.publish(KEY, 100);
 
-    expect(listener).not.toHaveBeenCalled();
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('releases queued price state after the final unsubscribe', () => {
+    const store = new SocialLivePriceStore(1000);
+    const listener = jest.fn();
+    const unsubscribe = store.subscribe(KEY, listener);
+
+    store.publish(KEY, 100);
+    store.publish(KEY, 110);
+    unsubscribe();
+    jest.advanceTimersByTime(1000);
+
+    expect(store.get(KEY)).toBeUndefined();
   });
 });

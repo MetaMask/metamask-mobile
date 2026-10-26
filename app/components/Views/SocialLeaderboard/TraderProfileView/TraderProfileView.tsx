@@ -4,8 +4,12 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonVariant,
   HeaderStandardAnimated,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -57,6 +61,8 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -213,6 +219,10 @@ const TraderProfileView = () => {
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleShareProfile = useCallback(() => {
+    shareSocialProfile(traderId);
+  }, [traderId]);
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
@@ -378,6 +388,20 @@ const TraderProfileView = () => {
         backButtonProps={{
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
+        endAccessory={
+          <SocialHeaderGlassSurface twClassName="px-1">
+            <ButtonIcon
+              iconName={IconName.Share}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Md}
+              onPress={handleShareProfile}
+              accessibilityLabel={strings(
+                'social_leaderboard.my_profile.share_profile',
+              )}
+              testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
+            />
+          </SocialHeaderGlassSurface>
+        }
         testID={TraderProfileViewSelectorsIDs.HEADER}
       />
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet, type StyleProp, type TextStyle } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 
 import ProfileDrawer from './ProfileDrawer';
@@ -11,8 +12,12 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
-import { useAccountName } from '../../../hooks/useAccountName';
-import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../../UI/Money/constants/moneyEvents';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -25,8 +30,6 @@ const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
 const mockUseMyProfile = jest.mocked(useMyProfile);
-const mockUseAccountName = jest.mocked(useAccountName);
-const mockUseAccountGroupName = jest.mocked(useAccountGroupName);
 
 const profileResult = (
   profile: ReturnType<typeof useMyProfile>['profile'],
@@ -38,16 +41,34 @@ const profileResult = (
   refresh: jest.fn(),
 });
 
+const flattenStyle = (node: {
+  props: { style?: StyleProp<TextStyle> };
+}): TextStyle => StyleSheet.flatten(node.props.style);
+
 jest.mock('../../SocialLeaderboard/MyProfileView/hooks/useMyProfile', () => ({
   useMyProfile: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useAccountName', () => ({
-  useAccountName: jest.fn(() => 'Account 1'),
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+}));
+jest.mock('../../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
 }));
 
-jest.mock('../../../hooks/multichainAccounts/useAccountGroupName', () => ({
-  useAccountGroupName: jest.fn(() => null),
+const mockUsePlusAccess = jest.fn(() => ({
+  isPlusSubscriber: false,
+  isPlusAccessUnknown: false,
+}));
+jest.mock('../../../../hooks/usePlusAccess', () => ({
+  usePlusAccess: () => mockUsePlusAccess(),
+}));
+
+const mockTrackButtonClicked = jest.fn();
+jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackButtonClicked,
+  }),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -87,8 +108,13 @@ describe('ProfileDrawer', () => {
     jest.clearAllMocks();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
-    mockUseAccountName.mockReturnValue('Account 1');
-    mockUseAccountGroupName.mockReturnValue(null);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+    });
+    mockUsePlusAccess.mockReturnValue({
+      isPlusSubscriber: false,
+      isPlusAccessUnknown: false,
+    });
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -175,7 +201,50 @@ describe('ProfileDrawer', () => {
     ).toBeNull();
   });
 
-  it('renders the handle, account name, and foxicon when a profile exists', () => {
+  it('sizes the loading placeholder like the create profile block so the menu rows do not shift', () => {
+    mockUseMyProfile.mockReturnValue(profileResult(null, true));
+    const loadingView = renderWithProvider(<ProfileDrawer />);
+    const loadingContainerStyle = flattenStyle(
+      loadingView.getByTestId(ProfileDrawerSelectorsIDs.PROFILE_LOADING),
+    );
+    // Skeleton hides its children from screen readers.
+    const loadingAvatarStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR,
+        { includeHiddenElements: true },
+      ),
+    );
+    const loadingHeadingStyle = flattenStyle(
+      loadingView.getByTestId(
+        ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING,
+        { includeHiddenElements: true },
+      ),
+    );
+    loadingView.unmount();
+    mockUseMyProfile.mockReturnValue(profileResult(null));
+
+    const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+    const createProfile = getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE);
+    expect(createProfile).toHaveStyle({
+      paddingTop: loadingContainerStyle.paddingTop,
+      paddingBottom: loadingContainerStyle.paddingBottom,
+    });
+    expect(
+      getByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE_AVATAR),
+    ).toHaveStyle({
+      width: loadingAvatarStyle.width,
+      height: loadingAvatarStyle.height,
+    });
+    expect(
+      within(createProfile).getByText(strings('profile_drawer.create_profile')),
+    ).toHaveStyle({
+      fontSize: loadingHeadingStyle.fontSize,
+      lineHeight: loadingHeadingStyle.lineHeight,
+    });
+  });
+
+  it('renders the handle and foxicon when a profile exists', () => {
     mockUseMyProfile.mockReturnValue(
       profileResult({
         profileId: 'profile-1',
@@ -188,16 +257,14 @@ describe('ProfileDrawer', () => {
       }),
     );
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
       <ProfileDrawer />,
     );
 
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.PROFILE_HANDLE),
     ).toHaveTextContent('@bonk-player');
-    expect(
-      getByTestId(ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME),
-    ).toHaveTextContent('Account 1');
+    expect(queryByText('Account 1')).toBeNull();
     expect(
       getByTestId(`${ProfileDrawerSelectorsIDs.PROFILE_AVATAR}-art`),
     ).toHaveProp('name', 'astro');
@@ -244,14 +311,13 @@ describe('ProfileDrawer', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
   });
 
-  it('navigates to the settings list when the settings row is pressed', () => {
+  it('navigates to the accounts menu when the settings row is pressed', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
     fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.SETTINGS_ROW));
 
-    // SettingsFlow opens on the accounts menu, so the nested screen is named.
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   });
 
@@ -272,10 +338,6 @@ describe('ProfileDrawer', () => {
       'profile_drawer.notifications',
     ],
     [ProfileDrawerSelectorsIDs.ACTIVITY_ROW, 'profile_drawer.activity'],
-    [
-      ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-      'profile_drawer.subscriptions',
-    ],
     [ProfileDrawerSelectorsIDs.SETTINGS_ROW, 'profile_drawer.settings'],
     [
       ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
@@ -392,15 +454,96 @@ describe('ProfileDrawer', () => {
     expect(within(notificationsRow).queryByText('0')).toBeNull();
   });
 
-  it.each([
-    [ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW],
-    [ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW],
-  ])('leaves the not-yet-wired %s row inert', (testID) => {
+  it('leaves the not-yet-wired help and support row inert', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
-    fireEvent.press(getByTestId(testID));
+    fireEvent.press(
+      getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+    );
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  describe('MetaMask Orange row', () => {
+    it('stays hidden while the Orange flow is off', () => {
+      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      expect(
+        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+      ).toBeNull();
+    });
+
+    it('stays hidden while membership access is unresolved', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: false,
+        isPlusAccessUnknown: true,
+      });
+
+      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      expect(
+        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+      ).toBeNull();
+    });
+
+    it('invites a non-member to join and opens the subscription flow', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.join_metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+
+    it('labels a member MetaMask Orange and opens the hub', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: true,
+        isPlusAccessUnknown: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_HUB,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
   });
 });
