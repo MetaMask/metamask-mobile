@@ -1,4 +1,6 @@
 import React from 'react';
+import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -125,6 +127,18 @@ const state = {
   },
 };
 
+const filterBarPadding = (button: ReactTestInstance) => {
+  let current: ReactTestInstance | null = button.parent;
+  while (current) {
+    const style = StyleSheet.flatten(current.props.style);
+    if (style?.paddingLeft === 16 && typeof style.paddingBottom === 'number') {
+      return style;
+    }
+    current = current.parent;
+  }
+  throw new Error('Filter bar padding was not found');
+};
+
 const lastFeedProps = (): MockSocialFeedProps => {
   const props = mockSocialFeed.mock.lastCall?.[0];
   if (!props) {
@@ -142,6 +156,14 @@ describe('LiveView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPendingNewCount = 0;
+  });
+
+  it('pads the Live filter bar 16px below the tabs and 8px above the feed', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    expect(
+      filterBarPadding(screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON)),
+    ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
   });
 
   it('renders the all-traders feed in virtualized realtime mode', () => {

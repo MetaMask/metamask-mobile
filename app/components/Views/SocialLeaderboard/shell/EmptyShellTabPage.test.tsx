@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -30,6 +31,18 @@ import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
+
+const filterBarPadding = (button: ReactTestInstance) => {
+  let current: ReactTestInstance | null = button.parent;
+  while (current) {
+    const style = StyleSheet.flatten(current.props.style);
+    if (style?.paddingLeft === 16 && typeof style.paddingBottom === 'number') {
+      return style;
+    }
+    current = current.parent;
+  }
+  throw new Error('Filter bar padding was not found');
+};
 
 const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {
   if (typeof node.props.testID === 'string') {
@@ -447,6 +460,45 @@ describe('EmptyShellTabPage', () => {
       expect(ids.indexOf(id)).toBeLessThan(carouselIndex);
     });
     expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
+  });
+
+  it('pads Trending 16px below the tabs', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('trending-page-scroll').props.contentContainerStyle,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+  });
+
+  it('pads the Following filter bar 16px below the tabs and 8px above the feed', () => {
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId('following-page-scroll').props.contentContainerStyle,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    expect(
+      filterBarPadding(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
+      ),
+    ).toEqual(expect.objectContaining({ paddingBottom: 8 }));
   });
 
   it('scrolls the Following filter bar with the feed', () => {

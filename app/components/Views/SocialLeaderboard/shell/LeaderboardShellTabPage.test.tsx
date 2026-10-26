@@ -1,4 +1,6 @@
 import React from 'react';
+import type { ReactTestInstance } from 'react-test-renderer';
+import { StyleSheet } from 'react-native';
 import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -53,6 +55,18 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+const filterBarPadding = (button: ReactTestInstance) => {
+  let current: ReactTestInstance | null = button.parent;
+  while (current) {
+    const style = StyleSheet.flatten(current.props.style);
+    if (style?.paddingLeft === 16 && typeof style.paddingBottom === 'number') {
+      return style;
+    }
+    current = current.parent;
+  }
+  throw new Error('Filter bar padding was not found');
+};
 
 const lastLeaderboardProps = () =>
   mockLeaderboardProps.mock.calls[
@@ -169,6 +183,24 @@ describe('LeaderboardShellTabPage', () => {
       MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
       { source: 'home_banner', chain_filter: 'all' },
     );
+  });
+
+  it('pads the ranking filter bar 16px below the tabs and above the rows', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
+          .contentContainerStyle,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    expect(
+      filterBarPadding(
+        screen.getByTestId(TopTradersViewSelectorsIDs.FILTER_BUTTON),
+      ),
+    ).toEqual(expect.objectContaining({ paddingBottom: 16 }));
   });
 
   it('refreshes the leaderboard on pull to refresh', async () => {
