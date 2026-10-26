@@ -9,13 +9,13 @@ interface HandleSocialLeaderboardUrlParams {
 
 /**
  * Public `tab` query values for Social V1. `live-trades` maps to the shell
- * tab id `liveTrades`. Unknown values are dropped so V1 stays on trending.
+ * tab id `live`. Unknown values are dropped so V1 stays on trending.
  */
 const SOCIAL_TAB_QUERY_VALUES: Record<string, SocialShellTab> = {
   trending: 'trending',
   following: 'following',
   leaderboard: 'leaderboard',
-  'live-trades': 'liveTrades',
+  'live-trades': 'live',
 };
 
 const parseInitialTab = (actionPath: string): SocialShellTab | undefined => {

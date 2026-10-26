@@ -31,7 +31,7 @@ const navigateToFallback = () => {
  * `socialAiTSA1122AbtestSocialBundleV1`.
  *
  * Supported URL formats:
- * - https://link.metamask.io/social/trader?traderId=<traderId>
+ * - https://link.metamask.io/social/profile?traderId=<traderId>
  * - https://link.metamask.io/social-trader?traderId=<traderId>
  */
 export const handleSocialTraderUrl = ({

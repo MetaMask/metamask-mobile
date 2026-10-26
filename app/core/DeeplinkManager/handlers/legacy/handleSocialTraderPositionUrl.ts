@@ -53,7 +53,7 @@ const navigateToFallback = () => {
  * Handles notification-approved TraderPosition deeplinks.
  *
  * Supported URL formats:
- * - https://link.metamask.io/social/trader/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
+ * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  * - https://link.metamask.io/social-trader-position?positionId=<positionId>&traderId=<traderId>&deduplication_id=<deduplicationId>&notification_subtype=<notificationSubtype>&notification_template_variant=<variant>
  */
 export const handleSocialTraderPositionUrl = ({
@@ -125,11 +125,13 @@ export const handleSocialTraderPositionUrl = ({
       analytics.trackEvent(event);
     }
 
+    const openedFromNotification = notificationSubtype !== undefined;
+
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
       positionId,
       traderId,
-      source: 'notification',
-      originalEntryPoint: 'notification',
+      source: openedFromNotification ? 'notification' : 'deep_link',
+      originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
       notificationSubtype,
       notificationTemplateVariant,
       isSocialV1: isSocialV1Treatment(),

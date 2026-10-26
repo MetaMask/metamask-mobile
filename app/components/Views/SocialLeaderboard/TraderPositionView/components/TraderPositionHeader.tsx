@@ -62,9 +62,7 @@ const TraderPositionHeader: React.FC<TraderPositionHeaderProps> = ({
           iconName={IconName.Share}
           size={ButtonIconSize.Md}
           onPress={onShare}
-          accessibilityLabel={strings(
-            'social_leaderboard.my_profile.share_position',
-          )}
+          accessibilityLabel={strings('social.profile.share_position')}
           testID={shareButtonTestID}
         />
       ) : null}

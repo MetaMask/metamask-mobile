@@ -62,7 +62,7 @@ import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificati
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
-import { shareSocialTraderProfile } from '../navigation/socialTraderDeeplink';
+import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -221,7 +221,7 @@ const TraderProfileView = () => {
   }, [navigation]);
 
   const handleShareProfile = useCallback(() => {
-    shareSocialTraderProfile(traderId);
+    shareSocialProfile(traderId);
   }, [traderId]);
 
   const handleRefresh = useCallback(async () => {

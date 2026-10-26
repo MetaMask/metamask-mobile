@@ -872,7 +872,7 @@ describe('MyProfileView', () => {
     });
   });
 
-  it('shares the trader deeplink from another trader profile header', () => {
+  it('shares the profile deeplink from another profile header', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
       traderName: 'alpha.eth',
@@ -889,7 +889,7 @@ describe('MyProfileView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/social/trader?traderId=trader-1',
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
     });
   });
 

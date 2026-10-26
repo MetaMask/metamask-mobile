@@ -1716,9 +1716,9 @@ describe('handleUniversalLink', () => {
   describe('ACTIONS.SOCIAL', () => {
     it.each([
       ['?tab=following', handleSocialLeaderboardUrl],
-      ['/trader?traderId=trader-1', handleSocialTraderUrl],
+      ['/profile?traderId=trader-1', handleSocialTraderUrl],
       [
-        '/trader/position?positionId=position-1&traderId=trader-1',
+        '/profile/position?positionId=position-1&traderId=trader-1',
         handleSocialTraderPositionUrl,
       ],
       ['/feed', handleSocialLeaderboardUrl],
@@ -1730,17 +1730,18 @@ describe('handleUniversalLink', () => {
           queryIndex === -1 ? actionPath : actionPath.slice(0, queryIndex);
         const search = queryIndex === -1 ? '' : actionPath.slice(queryIndex);
         const socialUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL}${actionPath}`;
+        const socialUrlObj = {
+          ...urlObj,
+          hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+          href: socialUrl,
+          pathname: `/${ACTIONS.SOCIAL}${path}`,
+          search,
+        };
 
         await handleUniversalLink({
           instance,
           handled,
-          urlObj: {
-            ...urlObj,
-            hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
-            href: socialUrl,
-            pathname: `/${ACTIONS.SOCIAL}${path}`,
-            search,
-          },
+          urlObj: socialUrlObj,
           browserCallBack: mockBrowserCallBack,
           url: socialUrl,
           source: 'test-source',

@@ -14,8 +14,8 @@ interface HandleSocialUrlParams {
  * Supported URL formats:
  * - https://link.metamask.io/social
  * - https://link.metamask.io/social?tab=trending|following|leaderboard|live-trades
- * - https://link.metamask.io/social/trader?traderId=<traderId>
- * - https://link.metamask.io/social/trader/position?positionId=<positionId>&traderId=<traderId>
+ * - https://link.metamask.io/social/profile?traderId=<traderId>
+ * - https://link.metamask.io/social/profile/position?positionId=<positionId>&traderId=<traderId>
  *
  * Legacy Social v0 links stay on their own actions: `top-traders` and
  * `social-trader-position`. `social-trader` remains accepted as an alias.

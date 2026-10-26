@@ -126,9 +126,7 @@ const TraderPositionAnimatedHeader: React.FC<
             iconName={IconName.Share}
             size={ButtonIconSize.Md}
             onPress={onShare}
-            accessibilityLabel={strings(
-              'social_leaderboard.my_profile.share_position',
-            )}
+            accessibilityLabel={strings('social.profile.share_position')}
             testID={TraderPositionViewSelectorsIDs.SHARE_BUTTON}
           />
         ) : (

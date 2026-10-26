@@ -47,7 +47,7 @@ import type {
 } from '../../../../core/NavigationService/types';
 import { playSelection } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
-import { shareSocialTraderProfile } from '../navigation/socialTraderDeeplink';
+import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import TraderMuteChip from '../components/TraderMuteChip';
@@ -285,7 +285,7 @@ const MyProfileView: React.FC = () => {
     if (!traderId) {
       return;
     }
-    shareSocialTraderProfile(traderId);
+    shareSocialProfile(traderId);
   }, [traderId]);
 
   const handleShareProfile = useCallback(() => {

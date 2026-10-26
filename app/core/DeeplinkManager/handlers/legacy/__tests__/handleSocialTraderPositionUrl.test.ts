@@ -90,8 +90,8 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
       positionId: 'position-1',
       traderId: 'trader-1',
-      source: 'notification',
-      originalEntryPoint: 'notification',
+      source: 'deep_link',
+      originalEntryPoint: 'deep_link',
       notificationSubtype: undefined,
       notificationTemplateVariant: undefined,
       isSocialV1: false,
@@ -244,8 +244,8 @@ describe('handleSocialTraderPositionUrl', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.POSITION, {
       positionId: 'position-1',
       traderId: 'trader-1',
-      source: 'notification',
-      originalEntryPoint: 'notification',
+      source: 'deep_link',
+      originalEntryPoint: 'deep_link',
       notificationSubtype: undefined,
       notificationTemplateVariant: undefined,
       isSocialV1: false,

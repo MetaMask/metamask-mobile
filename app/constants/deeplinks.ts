@@ -54,7 +54,7 @@ export enum ACTIONS {
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
   TOP_TRADERS = 'top-traders',
-  /** Nested Social links: `/social`, `/social/trader`, `/social/trader/position`. */
+  /** Nested Social links: `/social`, `/social/profile`, `/social/profile/position`. */
   SOCIAL = 'social',
   SOCIAL_TRADER = 'social-trader',
   SOCIAL_TRADER_POSITION = 'social-trader-position',

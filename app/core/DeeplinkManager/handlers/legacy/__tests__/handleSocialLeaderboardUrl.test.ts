@@ -38,8 +38,8 @@ describe('handleSocialLeaderboardUrl', () => {
     ['trending', 'trending'],
     ['following', 'following'],
     ['leaderboard', 'leaderboard'],
-    ['live-trades', 'liveTrades'],
-    ['LIVE-TRADES', 'liveTrades'],
+    ['live-trades', 'live'],
+    ['LIVE-TRADES', 'live'],
   ] as const)('forwards tab %s as initialTab %s', (tab, initialTab) => {
     handleSocialLeaderboardUrl({ actionPath: `?tab=${tab}` });
 

@@ -422,7 +422,7 @@ describe('TraderPositionView', () => {
     );
 
     expect(shareSpy).toHaveBeenCalledWith({
-      url: 'https://link.metamask.io/social/trader/position?positionId=pepe-base&traderId=trader-1',
+      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
     });
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),

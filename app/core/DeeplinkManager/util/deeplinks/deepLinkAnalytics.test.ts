@@ -583,11 +583,11 @@ describe('deepLinkAnalytics', () => {
         DeepLinkRoute.TOP_TRADERS,
       ],
       [
-        'https://link.metamask.io/social/trader?traderId=trader-1',
+        'https://link.metamask.io/social/profile?traderId=trader-1',
         DeepLinkRoute.SOCIAL_TRADER,
       ],
       [
-        'https://link.metamask.io/social/trader/position?positionId=position-1',
+        'https://link.metamask.io/social/profile/position?positionId=position-1',
         DeepLinkRoute.SOCIAL_TRADER_POSITION,
       ],
     ])('extracts the nested social route from %s', (url, route) => {
