@@ -10,13 +10,7 @@ We document our components using Storybook.
 
 For instructions on how to run Storybook locally see our [Storybook documentation](../../docs/readme/storybook.md).
 
-**Quick Start**: Modify `index.js` to uncomment the Storybook imports and comment out the regular app registration, then run the app as normal.
-
-```
-/* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
-```
+**Quick Start**: Run `yarn storybook`, then open the app as usual. Storybook replaces the wallet entry while that command is running. Leave `index.js` unchanged.
 
 ## Support
 
