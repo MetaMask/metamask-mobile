@@ -5,6 +5,8 @@ import VbaOnboardingStub, {
   type VbaOnboardingStubVariant,
   VbaOnboardingStubSelectorsIDs,
 } from './VbaOnboardingStub';
+import { VbaOnboardingErrorSelectorsIDs } from '../../../KYC/components/OnboardingError';
+import { strings } from '../../../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
 const mockOnContinue = jest.fn();
@@ -37,6 +39,20 @@ describe('VbaOnboardingStub', () => {
     );
 
     expect(getByTestId(testId)).toBeOnTheScreen();
+  });
+
+  it('renders the account details failure without checklist rows', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
+      <VbaOnboardingStub variant="error" onContinue={mockOnContinue} />,
+    );
+
+    expect(queryByTestId(VbaOnboardingErrorSelectorsIDs.LIST)).toBeNull();
+    expect(
+      getByText(strings('virtual_bank_account.error.title')),
+    ).toBeOnTheScreen();
+    expect(
+      getByText(strings('virtual_bank_account.error.description')),
+    ).toBeOnTheScreen();
   });
 
   it('reports continue to its adapter', async () => {

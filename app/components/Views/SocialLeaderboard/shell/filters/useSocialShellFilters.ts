@@ -73,7 +73,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   >(() => ({
     trending: cloneFilters(DEFAULT_TAB_FILTER_STATE.trending),
     following: cloneFilters(DEFAULT_TAB_FILTER_STATE.following),
-    liveTrades: cloneFilters(DEFAULT_TAB_FILTER_STATE.liveTrades),
+    live: cloneFilters(DEFAULT_TAB_FILTER_STATE.live),
     leaderboard: cloneFilters(DEFAULT_TAB_FILTER_STATE.leaderboard),
   }));
   const [openTab, setOpenTab] = useState<SocialShellTab | null>(null);

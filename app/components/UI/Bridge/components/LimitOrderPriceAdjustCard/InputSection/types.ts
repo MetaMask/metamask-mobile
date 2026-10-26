@@ -60,6 +60,11 @@ export interface InputSectionProps {
    */
   onInputPress?: () => void;
   /**
+   * When true the amount input ignores touches, so a press on it reaches the
+   * parent and only dismisses the keypad instead of focusing the input.
+   */
+  isInputPressDisabled?: boolean;
+  /**
    * Controlled caret selection, matching the swaps source amount input.
    */
   selection?: { start: number; end: number };

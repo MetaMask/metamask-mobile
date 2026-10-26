@@ -25,6 +25,7 @@ import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
+import type { SubscriptionControllerGetBenefitsAction } from '@metamask/subscription-controller';
 import { errorCodes } from '@metamask/rpc-errors';
 import {
   TransactionControllerEstimateGasAction,
@@ -64,8 +65,10 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import { calculateFees } from '../providers/polymarket/utils';
 import { isExpectedPolymarketRequestAbort } from '../providers/polymarket/fetchWithTimeout';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
@@ -106,6 +109,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictEligibility,
+  PredictFeePolicy,
   PredictFilterOption,
   PredictFilterOptionsParams,
   PredictMarket,
@@ -140,6 +144,7 @@ import { validateMarketBettable } from '../utils/marketState';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
+import { resolvePredictFeePolicy } from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
   findLiveMarket,
@@ -352,6 +357,12 @@ const PAYOUT_REDEMPTION_INTERFACE = new Interface([
   'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
 ]);
 
+const TRANSFER_EVENT_INTERFACE = new Interface([
+  'event Transfer(address indexed from, address indexed to, uint256 value)',
+]);
+
+const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
   MATIC_CONTRACTS_V2.collateral.toLowerCase(),
   USDC_E_ADDRESS.toLowerCase(),
@@ -386,7 +397,8 @@ type AllowedActions =
   | TransactionControllerEstimateGasAction
   | KeyringControllerSignTypedMessageAction
   | KeyringControllerSignPersonalMessageAction
-  | RemoteFeatureFlagControllerGetStateAction;
+  | RemoteFeatureFlagControllerGetStateAction
+  | SubscriptionControllerGetBenefitsAction;
 
 /**
  * External events the PredictController can subscribe to
@@ -655,6 +667,136 @@ export class PredictController extends BaseController<
       'RemoteFeatureFlagController:getState',
     );
     return resolvePredictFeatureFlags(remoteFeatureFlagState);
+  }
+
+  /**
+   * Resolves the current Predict membership fee hint through the scoped
+   * messenger. The waiver is skipped when
+   * `predictSubscriptionFeeWaiverEnabled` is off, unless
+   * `MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED` is `"true"`. Benefit lookup
+   * failures never grant a fee waiver.
+   *
+   * @returns The fail-closed Predict fee policy.
+   */
+  private async getPredictFeePolicy(): Promise<PredictFeePolicy | undefined> {
+    const skipFeatureFlagCheck =
+      process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED === 'true';
+
+    if (!skipFeatureFlagCheck) {
+      const { isMembershipFeeWaiverEnabled } = this.resolveFeatureFlags();
+
+      if (!isMembershipFeeWaiverEnabled) {
+        return undefined;
+      }
+    }
+
+    try {
+      const benefits = await this.messenger.call(
+        'SubscriptionController:getBenefits',
+      );
+
+      return resolvePredictFeePolicy({
+        benefits,
+      });
+    } catch {
+      return undefined;
+    }
+  }
+
+  /**
+   * Adds the current fee policy to provider parameters when a waiver is
+   * available. A previously attached policy is removed before revalidation so
+   * stale previews cannot carry a fee waiver into submission. Membership
+   * previews retain their standard fees in `originalFees`; restore those fees
+   * when the policy is no longer available so standard submissions use the
+   * correct Permit2 amount.
+   *
+   * Preview calls stop here. `previewOrder` assigns the waived fees. Submit
+   * calls `priceSubmitPreviewWithFeePolicy` when the policy was not present
+   * while the preview was priced.
+   *
+   * @param params - Provider parameters that may contain a previous policy.
+   * @returns Provider parameters with the current waiver policy, if any.
+   */
+  private async withPredictFeePolicy<
+    T extends {
+      feePolicy?: PredictFeePolicy;
+      fees?: OrderPreview['fees'];
+      originalFees?: OrderPreview['originalFees'];
+    },
+  >(params: T): Promise<T> {
+    const previousFeePolicy = params.feePolicy;
+    const paramsWithFeePolicy = { ...params };
+    delete paramsWithFeePolicy.feePolicy;
+
+    const feePolicy = await this.getPredictFeePolicy();
+
+    if (!feePolicy) {
+      if (previousFeePolicy && params.originalFees) {
+        paramsWithFeePolicy.fees = params.originalFees;
+      } else if (previousFeePolicy) {
+        // Do not submit a stale waived fee when an older preview does not
+        // contain the standard fee snapshot needed to restore it.
+        delete paramsWithFeePolicy.fees;
+      }
+
+      delete paramsWithFeePolicy.originalFees;
+      return paramsWithFeePolicy;
+    }
+
+    return { ...paramsWithFeePolicy, feePolicy };
+  }
+
+  /**
+   * Prices a submit preview with the same subscription fee assignment preview
+   * uses. Runs only when membership appears after the preview was priced at
+   * the standard rate, so the builder code and Permit2 amount match.
+   *
+   * @param preview - Order preview that may now carry a membership policy.
+   * @returns The preview with waived service fees when the policy is new.
+   */
+  private async priceSubmitPreviewWithFeePolicy(
+    preview: OrderPreview,
+  ): Promise<OrderPreview> {
+    const currentFees = preview.fees;
+    const feePolicy = preview.feePolicy;
+
+    if (!feePolicy || !currentFees || currentFees.metamaskFee <= 0) {
+      return preview;
+    }
+
+    const { feeCollection } = this.resolveFeatureFlags();
+    let userBetAmount = preview.minAmountReceived;
+
+    if (preview.side === Side.BUY) {
+      userBetAmount = preview.maxAmountSpent;
+    }
+
+    const subscriptionFees = await calculateFees({
+      feeCollection,
+      feePolicy,
+      marketId: preview.marketId,
+      userBetAmount,
+    });
+    const fees = { ...subscriptionFees.fees };
+    let originalFees = { ...fees };
+
+    if (subscriptionFees.originalFees) {
+      originalFees = { ...subscriptionFees.originalFees };
+    }
+
+    const { marketFee } = currentFees;
+
+    if (marketFee !== undefined) {
+      fees.marketFee = marketFee;
+      originalFees.marketFee = marketFee;
+    }
+
+    return {
+      ...preview,
+      fees,
+      originalFees,
+    };
   }
 
   private getEvmAccountAddress(): string | undefined {
@@ -1781,8 +1923,12 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner();
+      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
 
-      return provider.previewOrder({ ...params, signer });
+      return provider.previewOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       // Log to Sentry with preview context (no sensitive amounts)
       Logger.error(
@@ -1805,8 +1951,12 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
+      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
 
-      return provider.previewMaxBuyOrder({ ...params, signer });
+      return provider.previewMaxBuyOrder({
+        ...paramsWithFeePolicy,
+        signer,
+      });
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -1888,10 +2038,15 @@ export class PredictController extends BaseController<
       !!params.transactionId &&
       !!this.pendingOrderPreviews[params.transactionId];
 
+    let previewWithFeePolicy: OrderPreview;
+
     try {
+      previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
+        await this.withPredictFeePolicy(params.preview),
+      );
       await validateMarketBettable({
         provider: this.provider,
-        preview: params.preview,
+        preview: previewWithFeePolicy,
       });
     } catch (error) {
       const errorMessage =
@@ -1990,7 +2145,7 @@ export class PredictController extends BaseController<
       const transactionId = params.transactionId;
       if (transactionId) {
         this.pendingOrderPreviews[transactionId] = {
-          preview: params.preview,
+          preview: previewWithFeePolicy,
           signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
           activeAbTests: params.activeAbTests,
@@ -2013,7 +2168,7 @@ export class PredictController extends BaseController<
       try {
         await this.provider.createOptimisticPositionFromPreview({
           address: activeOrderAddress,
-          preview: params.preview,
+          preview: previewWithFeePolicy,
         });
       } catch (error) {
         DevLogger.log(
@@ -2081,14 +2236,14 @@ export class PredictController extends BaseController<
       : undefined;
 
     const startTime = performance.now();
-    const { analyticsProperties, preview } = params;
+    const { analyticsProperties } = params;
 
-    const sharePrice = preview?.sharePrice;
+    const sharePrice = previewWithFeePolicy?.sharePrice;
     const amountUsd =
       params.attempt?.amountUsd ??
-      (preview.side === Side.BUY
-        ? preview?.maxAmountSpent
-        : preview?.minAmountReceived);
+      (previewWithFeePolicy.side === Side.BUY
+        ? previewWithFeePolicy?.maxAmountSpent
+        : previewWithFeePolicy?.minAmountReceived);
 
     // Start Sentry trace for place order operation
     const traceId = `place-order-${Date.now()}`;
@@ -2103,7 +2258,7 @@ export class PredictController extends BaseController<
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         providerId: POLYMARKET_PROVIDER_ID,
-        side: preview.side,
+        side: previewWithFeePolicy.side,
       },
       data: {
         ...(analyticsProperties?.marketId && {
@@ -2123,7 +2278,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         attemptId: params.attempt?.attemptId,
@@ -2142,6 +2297,7 @@ export class PredictController extends BaseController<
           await this.invalidateQueryCache(provider.chainId);
           result = await provider.placeOrder({
             ...params,
+            preview: previewWithFeePolicy,
             signer,
           });
 
@@ -2188,8 +2344,8 @@ export class PredictController extends BaseController<
       let realAmountUsd = amountUsd;
       let realSharePrice = sharePrice;
       try {
-        if (preview.side === Side.BUY) {
-          const totalFee = params.preview.fees?.totalFee ?? 0;
+        if (previewWithFeePolicy.side === Side.BUY) {
+          const totalFee = previewWithFeePolicy.fees?.totalFee ?? 0;
           realAmountUsd = parseFloat(spentAmount);
           realSharePrice = parseFloat(spentAmount) / parseFloat(receivedAmount);
 
@@ -2208,8 +2364,8 @@ export class PredictController extends BaseController<
             });
           }
         } else {
-          const serviceFee = preview.fees?.totalFee ?? 0;
-          const marketFee = preview.fees?.marketFee ?? 0;
+          const serviceFee = previewWithFeePolicy.fees?.totalFee ?? 0;
+          const marketFee = previewWithFeePolicy.fees?.marketFee ?? 0;
           realAmountUsd = parseFloat(receivedAmount);
           realSharePrice = parseFloat(receivedAmount) / parseFloat(spentAmount);
           const netAmountUsd = Math.max(
@@ -2249,7 +2405,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
-        orderType: preview.orderType,
+        orderType: previewWithFeePolicy.orderType,
         paymentTokenAddress,
         paymentTokenSymbol,
         tradeCompletedAmountUsd: realAmountUsd,
@@ -2267,7 +2423,7 @@ export class PredictController extends BaseController<
         this.trackPredictOrderEvent(successEvent);
       }
 
-      traceData = { success: true, side: preview.side };
+      traceData = { success: true, side: previewWithFeePolicy.side };
       return result as unknown as Result;
     } catch (error) {
       const completionDuration = performance.now() - startTime;
@@ -2281,7 +2437,7 @@ export class PredictController extends BaseController<
       const isPostDepositOrderFailure =
         isBuyWithAnyToken && pendingOrder !== undefined;
 
-      if (params.attempt && preview.side === Side.BUY) {
+      if (params.attempt && previewWithFeePolicy.side === Side.BUY) {
         const failure = classifyPredictBuyFailure(
           error,
           PredictEventValues.FAILURE_STAGE.ORDER,
@@ -2294,7 +2450,7 @@ export class PredictController extends BaseController<
           failureReason: failure.failureReason,
           failureStage: failure.failureStage,
           failureCategory: failure.failureCategory,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           attemptId: params.attempt.attemptId,
@@ -2327,7 +2483,7 @@ export class PredictController extends BaseController<
           sharePrice,
           completionDuration,
           failureReason: errorMessage,
-          orderType: preview.orderType,
+          orderType: previewWithFeePolicy.orderType,
           paymentTokenAddress,
           paymentTokenSymbol,
           activeAbTests: params.activeAbTests,
@@ -2339,7 +2495,7 @@ export class PredictController extends BaseController<
           activeOrderAddress,
           errorMessage,
           pendingOrder,
-          preview,
+          preview: previewWithFeePolicy,
           marketId: analyticsProperties?.marketId,
         });
       } else {
@@ -2361,7 +2517,7 @@ export class PredictController extends BaseController<
         if (isBuyWithAnyToken) {
           this.provider.clearOptimisticPosition(
             activeOrderAddress,
-            preview.outcomeTokenId,
+            previewWithFeePolicy.outcomeTokenId,
           );
         }
       }
@@ -2538,6 +2694,29 @@ export class PredictController extends BaseController<
 
       if (!chainId) {
         throw new Error('Chain ID not provided by claim preparation');
+      }
+
+      // The provider can skip positions (Protocol V2 ones while the kill
+      // switch is on). Keep only the claimed ones, so the confirmation,
+      // beforeSign, publish, and confirmClaim leave the skipped positions
+      // claimable.
+      const claimedPositions = prepareClaimResult.positions;
+      if (
+        claimedPositions &&
+        claimedPositions.length < claimablePositions.length
+      ) {
+        claimablePositions = claimedPositions;
+        this.update((state) => {
+          const addressKey =
+            this.findClaimablePositionsAddress(signer.address) ??
+            signer.address;
+          state.claimablePositions[addressKey] = [...claimedPositions];
+        });
+        this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+          this.buildClaimAnalyticsProperties(
+            analyticsContext,
+            claimedPositions,
+          );
       }
 
       // Find network client - can fail if chain is not supported
@@ -4072,47 +4251,105 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    let payoutRaw = 0n;
-    let hasPayoutRedemption = false;
+    let ctfPayoutRaw = 0n;
+    let pUsdMintRaw = 0n;
+    let legacySweepRaw = 0n;
+    let hasCtfPayout = false;
+    let hasPUsdMint = false;
 
     for (const log of logs) {
-      if (
-        log.address?.toLowerCase() !==
-        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
-      ) {
-        continue;
-      }
-
+      const logAddress = log.address?.toLowerCase();
       const topics = this.normalizeLogTopics(log.topics);
       if (!topics || !log.data) {
         continue;
       }
 
-      try {
-        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
-          topics,
-          data: log.data,
-        });
-        const payout = parsedLog.args.payout?.toString();
+      if (logAddress === MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()) {
+        // CTF-protocol claims emit PayoutRedemption from the ConditionalTokens
+        // contract.
+        try {
+          const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const payout = parsedLog.args.payout?.toString();
 
-        if (payout === undefined) {
+          if (payout === undefined) {
+            continue;
+          }
+
+          ctfPayoutRaw += BigInt(payout);
+          hasCtfPayout = true;
+        } catch (_error) {
           continue;
         }
+      } else if (logAddress === MATIC_CONTRACTS_V2.collateral.toLowerCase()) {
+        // Positions-protocol (v2) redemption mints collateral and emits no
+        // CTF event, so read the payout from collateral ERC20 `Transfer`
+        // logs sourced by the zero address. The token filter keeps
+        // ERC721-shaped `Transfer` events (identical signature) from other
+        // contracts out of the sum.
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const from = parsedLog.args.from?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
 
-        payoutRaw += BigInt(payout);
-        hasPayoutRedemption = true;
-      } catch (_error) {
-        continue;
+          if (!from || value === undefined || from !== ZERO_ADDRESS) {
+            continue;
+          }
+
+          pUsdMintRaw += BigInt(value);
+          hasPUsdMint = true;
+        } catch (_error) {
+          continue;
+        }
+      } else if (logAddress === USDC_E_ADDRESS.toLowerCase()) {
+        try {
+          const parsedLog = TRANSFER_EVENT_INTERFACE.parseLog({
+            topics,
+            data: log.data,
+          });
+          const to = parsedLog.args.to?.toString()?.toLowerCase();
+          const value = parsedLog.args.value?.toString();
+
+          if (
+            !to ||
+            value === undefined ||
+            to !== COLLATERAL_ONRAMP_ADDRESS.toLowerCase()
+          ) {
+            continue;
+          }
+
+          legacySweepRaw += BigInt(value);
+        } catch (_error) {
+          continue;
+        }
       }
     }
 
-    if (!hasPayoutRedemption) {
-      return undefined;
+    // Claim batches can wrap legacy USDC.e before redemption. Remove that
+    // maintenance mint before using the remaining pUSD mint as settlement.
+    const claimPUsdMintRaw =
+      pUsdMintRaw > legacySweepRaw ? pUsdMintRaw - legacySweepRaw : 0n;
+
+    // In a mixed claim, the settlement mint already includes the CTF
+    // redemption. Adding both event totals would count the CTF leg twice.
+    if (hasPUsdMint && claimPUsdMintRaw > 0n) {
+      return parseFloat(
+        formatUnits(claimPUsdMintRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
     }
 
-    return parseFloat(
-      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
-    );
+    if (hasCtfPayout) {
+      return parseFloat(
+        formatUnits(ctfPayoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+      );
+    }
+
+    return undefined;
   }
 
   private getClaimAmountFromSimulation(

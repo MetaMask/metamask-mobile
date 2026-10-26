@@ -1,7 +1,7 @@
 /**
  * Programmatic Hermes CPU profiling for performance-test APKs only.
  *
- * BrowserStack performance builds bake `IS_PERFORMANCE_TEST=true` (see
+ * Performance-test builds bake `IS_PERFORMANCE_TEST=true` (see
  * `builds.yml` `main-e2e-bs-*`). Smoke e2e and production builds leave these
  * helpers as no-ops so profiling cannot be enabled outside that APK class.
  *

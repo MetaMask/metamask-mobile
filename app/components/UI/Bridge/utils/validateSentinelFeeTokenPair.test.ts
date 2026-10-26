@@ -8,11 +8,32 @@ const DAI_ASSET_ID =
   'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
 const POLYGON_USDC_ASSET_ID =
   'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359';
+const POLYGON_PUSD_ASSET_ID =
+  'eip155:137/erc20:0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
 
 const SENTINEL_FEE_TOKENS: SentinelFeeTokensByChain = {
   'eip155:1': [
-    { assetId: ETH_ASSET_ID, symbol: 'DUM0' },
-    { assetId: USDC_ASSET_ID, symbol: 'DUM8' },
+    {
+      assetId: ETH_ASSET_ID,
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+    },
+    {
+      assetId: USDC_ASSET_ID,
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+    },
+  ],
+  'eip155:137': [
+    {
+      assetId: POLYGON_PUSD_ASSET_ID,
+      address: '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb',
+      symbol: 'USDC',
+      decimals: 6,
+      aliasAddress: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+    },
   ],
 };
 
@@ -54,9 +75,10 @@ describe('validateSentinelFeeTokenPair', () => {
   it('rejects a pair on a chain missing from the response', () => {
     const result = validateSentinelFeeTokenPair({
       sentinelFeeTokens: SENTINEL_FEE_TOKENS,
-      chainId: 'eip155:137',
-      sourceAssetId: POLYGON_USDC_ASSET_ID,
-      destinationAssetId: 'eip155:137/slip44:966',
+      chainId: 'eip155:56',
+      sourceAssetId: 'eip155:56/slip44:714',
+      destinationAssetId:
+        'eip155:56/erc20:0x0000000000000000000000000000000000000001',
     });
 
     expect(result).toBe(false);
@@ -72,6 +94,29 @@ describe('validateSentinelFeeTokenPair', () => {
     });
 
     expect(result).toBe(true);
+  });
+
+  it('accepts a selected asset matching a Sentinel alias address', () => {
+    const result = validateSentinelFeeTokenPair({
+      sentinelFeeTokens: SENTINEL_FEE_TOKENS,
+      chainId: 'eip155:137',
+      sourceAssetId: POLYGON_USDC_ASSET_ID,
+      destinationAssetId: 'eip155:137/slip44:966',
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('does not match a Sentinel alias address on another chain', () => {
+    const result = validateSentinelFeeTokenPair({
+      sentinelFeeTokens: SENTINEL_FEE_TOKENS,
+      chainId: 'eip155:137',
+      sourceAssetId:
+        'eip155:1/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+      destinationAssetId: 'eip155:137/slip44:966',
+    });
+
+    expect(result).toBe(false);
   });
 
   it('does not match the same asset reference on another chain', () => {

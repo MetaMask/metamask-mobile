@@ -2,6 +2,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   socialFeedSourceFromAsset,
+  toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type SocialFeedAssetRef,
   type SocialFeedSource,
@@ -171,6 +172,37 @@ describe('toSocialFeedRequest', () => {
 
   it('returns null for a blank trader id', () => {
     expect(toSocialFeedRequest({ kind: 'trader', addressOrId: '' })).toBeNull();
+  });
+});
+
+describe('toSocialFeedRealtimeScope', () => {
+  it.each<[string, SocialFeedSource, 'all' | 'trending']>([
+    ['the all scope', { kind: 'all', audience: 'all', scope: 'all' }, 'all'],
+    [
+      'the trending scope',
+      { kind: 'all', audience: 'all', scope: 'trending' },
+      'trending',
+    ],
+    [
+      'an asset class of all',
+      { kind: 'all', audience: 'all', scope: 'all', assetClass: 'all' },
+      'all',
+    ],
+  ])('streams %s', (_label, source, expected) => {
+    expect(toSocialFeedRealtimeScope(source)).toBe(expected);
+  });
+
+  it.each<[string, SocialFeedSource]>([
+    ['the leaderboard audience', { kind: 'all', audience: 'all' }],
+    ['the following audience', { kind: 'all', audience: 'following' }],
+    [
+      'a narrowing asset class',
+      { kind: 'all', audience: 'all', scope: 'all', assetClass: 'perps' },
+    ],
+    ['a perp market', { kind: 'perp', symbol: 'BTC' }],
+    ['a trader', { kind: 'trader', addressOrId: 'profile-1' }],
+  ])('does not stream %s', (_label, source) => {
+    expect(toSocialFeedRealtimeScope(source)).toBeNull();
   });
 });
 

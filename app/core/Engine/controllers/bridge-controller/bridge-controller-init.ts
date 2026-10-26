@@ -13,11 +13,7 @@ import type { BridgeControllerInitMessenger } from '../../messengers/bridge-cont
 import { TransactionParams } from '@metamask/transaction-controller';
 import { buildAndTrackEvent } from '../../utils/analytics';
 import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
-import {
-  ChainId,
-  handleFetch,
-  TraceCallback,
-} from '@metamask/controller-utils';
+import { ChainId, handleFetch } from '@metamask/controller-utils';
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { trace } from '../../../../util/trace';
 import Logger from '../../../../util/Logger';
@@ -80,8 +76,7 @@ export const bridgeControllerInit: MessengerClientInitFunction<
           properties as AnalyticsUnfilteredProperties,
         );
       },
-      traceFn: trace as TraceCallback,
-
+      traceFn: trace,
       // AssetsController is now the sole source of truth for asset rates
       // (the legacy TokenRatesController/CurrencyRateController have been
       // removed).

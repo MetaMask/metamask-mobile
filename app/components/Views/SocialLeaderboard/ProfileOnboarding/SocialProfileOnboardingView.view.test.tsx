@@ -24,12 +24,18 @@ import {
   getLocalSocialProfileSnapshot,
   restoreDefaultLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
+import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
+import { strings } from '../../../../../locales/i18n';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
 const goOnline = () =>
   netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+
+const usernameValue = (): string =>
+  screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT).props
+    .value as string;
 
 const continueFromUsername = async () => {
   fireEvent.press(
@@ -158,6 +164,8 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+    const handle = usernameValue();
+    const displayName = displayNameFromUsername(handle);
     expect(
       screen.getByText('Username available', { exact: true }),
     ).toBeOnTheScreen();
@@ -209,7 +217,7 @@ describe('SocialProfileOnboardingView', () => {
 
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
-    ).toHaveTextContent('@wen-cat');
+    ).toHaveTextContent(`@${handle}`);
 
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
@@ -220,27 +228,27 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(getLocalSocialProfileSnapshot().profile).toEqual(
       expect.objectContaining({
-        handle: 'wen-cat',
-        displayName: 'Wen Cat',
+        handle,
+        displayName,
         avatarPresetId: 'zombie',
-        avatarBackgroundId: 'lime',
+        avatarBackgroundId: 'background4',
         shareTradingActivity: true,
         linkedAccountId: 'acc-1',
       }),
     );
     expect(
       Engine.context.ProfileController.checkUsernameAvailability,
-    ).toHaveBeenCalledWith('wen-cat');
+    ).toHaveBeenCalledWith(handle);
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       {
         profile_id: 'social-v1-profile',
-        username: 'wen-cat',
-        display_name: 'Wen Cat',
+        username: handle,
+        display_name: displayName,
         bio: null,
         linked_addresses: [
           'eip155:1:0x0000000000000000000000000000000000000001',
         ],
-        avatar_url: 'foxicon://zombie/lime',
+        avatar_url: 'foxicon://zombie/background4',
         trading_privacy: 'public',
       },
     );
@@ -270,6 +278,26 @@ describe('SocialProfileOnboardingView', () => {
   it('shows the static live activity on the intro while offline', () => {
     renderSocialProfileOnboarding();
 
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_TITLE),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.intro_title'),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.connect_x'),
+    );
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    ).toHaveTextContent(
+      strings('social_leaderboard.profile_onboarding.create_manually'),
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO_FALLBACK),
     ).toBeOnTheScreen();
@@ -375,22 +403,319 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('starts the X authorization flow from the intro step', async () => {
+  it('stays on the username step when the availability check fails', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockRejectedValueOnce(new Error('network'));
     renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        "Couldn't check that username. Check your connection and try again.",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('stays on the ready step when creating the profile fails', async () => {
+    const profileBefore = getLocalSocialProfileSnapshot().profile;
+    jest
+      .mocked(Engine.context.ProfileController.createProfile)
+      .mockRejectedValueOnce(new Error('network'));
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+
+    expect(
+      await screen.findByText(
+        "Couldn't create your profile. Check your connection and try again.",
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toBeOnTheScreen();
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(profileBefore);
+  });
+
+  it('mocks X connect and creates a profile from the X handle and picture', async () => {
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
 
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
     );
 
     expect(
-      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
     ).toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.getXAuthorizationUrl,
-    ).toHaveBeenCalled();
+    ).not.toHaveBeenCalled();
+    expect(screen.getByText('Degan Giri')).toBeOnTheScreen();
+    expect(screen.getByText('@degangirl')).toBeOnTheScreen();
+    expect(screen.getByText('Use @degangirl as username')).toBeOnTheScreen();
+    expect(screen.getByText('Use X profile picture')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-0`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
+      ),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        SocialProfileOnboardingSelectorsIDs.EDIT_AVATAR_BUTTON,
+      ),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-1`,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-2`,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
+    ).toHaveTextContent('@degangirl');
+    expect(screen.getByText('View profile')).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+    ).toBeOnTheScreen();
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(
+      expect.objectContaining({
+        handle: 'degangirl',
+        displayName: 'Degan Giri',
+        imageUrl:
+          'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+        xHandle: 'degangirl',
+        connectedToX: true,
+      }),
+    );
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        username: 'degangirl',
+        display_name: 'Degan Giri',
+        avatar_url:
+          'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+      }),
+    );
   });
 
-  it('stays on the ready step when creating the profile fails', async () => {
+  it('starts a fresh manual flow after leaving the X path', async () => {
+    renderSocialProfileOnboarding([
+      { name: Routes.SOCIAL.V1 },
+      { name: Routes.SOCIAL.MY_PROFILE },
+    ]);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+
+    const handle = usernameValue();
+    expect(handle).not.toBe('degangirl');
+    expect(handle).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
+    expect(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
+      ),
+    ).toBeOnTheScreen();
+
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(
+      expect.objectContaining({
+        handle,
+        connectedToX: false,
+        xHandle: null,
+        imageUrl: null,
+      }),
+    );
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        username: handle,
+        avatar_url: 'foxicon://vr/background3',
+      }),
+    );
+  });
+
+  it('uses the manual username and avatar pickers when X reuse is off', async () => {
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+      ),
+      'valueChange',
+      false,
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+    ).toBeOnTheScreen();
+    expect(screen.queryByText('Degan Giri')).not.toBeOnTheScreen();
+
+    fireEvent.changeText(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+      'moon-fox',
+    );
+
+    fireEvent(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.USE_X_AVATAR_SWITCH,
+      ),
+      'valueChange',
+      false,
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.EDIT_AVATAR_BUTTON,
+      ),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.AVATAR_STEP,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-zombie`,
+      ),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.EDIT_AVATAR_BUTTON,
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
+    ).toHaveTextContent('@moon-fox');
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+    ).toBeOnTheScreen();
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        username: 'moon-fox',
+        display_name: 'Degan Giri',
+        avatar_url: 'foxicon://zombie/background3',
+      }),
+    );
+  });
+
+  it('stays on the ready step when profile creation fails offline', async () => {
     jest
       .mocked(Engine.context.ProfileController.createProfile)
       .mockRejectedValueOnce(new Error('offline'));
@@ -457,6 +782,11 @@ describe('SocialProfileOnboardingView', () => {
     );
 
     expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.ACCOUNT_CHANGE_FOOTNOTE,
+      ),
+    ).toHaveTextContent('You can change your linked account every 30 days.');
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
     );
@@ -538,16 +868,14 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
       ),
     );
+    const initialHandle = usernameValue();
     fireEvent.press(
       screen.getByTestId(
         SocialProfileOnboardingSelectorsIDs.SHUFFLE_USERNAME_BUTTON,
       ),
     );
     await waitFor(() => {
-      expect(
-        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT)
-          .props.value,
-      ).not.toBe('wen-cat');
+      expect(usernameValue()).not.toBe(initialHandle);
     });
     const shuffledHandle = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
@@ -595,7 +923,7 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
-  it('stays on the username step when the availability check fails', async () => {
+  it('stays on the username step when the availability check rejects offline', async () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
       .mockRejectedValueOnce(new Error('offline'));

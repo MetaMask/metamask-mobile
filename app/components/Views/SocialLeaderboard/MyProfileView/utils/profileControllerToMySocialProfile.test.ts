@@ -39,8 +39,10 @@ describe('profileControllerToMySocialProfile', () => {
       bio: 'Trading in the open.',
       imageUrl: 'https://example.com/avatar.png',
       xHandle: 'alice',
+      connectedToX: true,
       linkedAccountAddress: '0x123',
       shareTradingActivity: false,
+      joinedAt: '2026-01-01T00:00:00Z',
     });
   });
 
@@ -59,18 +61,36 @@ describe('profileControllerToMySocialProfile', () => {
     expect(result.bio).toBeNull();
     expect(result.imageUrl).toBeNull();
     expect(result.xHandle).toBeNull();
+    expect(result.connectedToX).toBe(false);
     expect(result.linkedAccountAddress).toBeNull();
+  });
+
+  it('stays connected to X when the X account failed to load', () => {
+    const result = profileControllerToMySocialProfile(profile, undefined);
+
+    expect(result.connectedToX).toBe(true);
+    expect(result.xHandle).toBeNull();
   });
 
   it('reads a foxicon avatar URL as a preset and backdrop', () => {
     const result = profileControllerToMySocialProfile({
       ...profile,
-      avatarUrl: 'foxicon://zombie/lime',
+      avatarUrl: 'foxicon://zombie/background7',
     });
 
     expect(result.imageUrl).toBeNull();
     expect(result.avatarPresetId).toBe('zombie');
-    expect(result.avatarBackgroundId).toBe('lime');
+    expect(result.avatarBackgroundId).toBe('background7');
+  });
+
+  it('translates a legacy foxicon avatar URL to the current ids', () => {
+    const result = profileControllerToMySocialProfile({
+      ...profile,
+      avatarUrl: 'foxicon://visor/lime',
+    });
+
+    expect(result.avatarPresetId).toBe('vr');
+    expect(result.avatarBackgroundId).toBe('background7');
   });
 });
 

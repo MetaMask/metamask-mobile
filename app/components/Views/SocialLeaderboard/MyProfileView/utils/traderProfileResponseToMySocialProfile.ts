@@ -18,8 +18,6 @@ export const traderProfileResponseToMySocialProfile = (
   winRatePercent:
     live.stats.winRate30d != null ? live.stats.winRate30d * 100 : null,
   pnlUsd: live.stats.pnl30d ?? null,
-  timesCopied: live.copytradedAllTime?.count ?? null,
-  volumeUsd30d: live.stats.volumeUsd30d ?? null,
-  tradeCount30d: live.stats.tradeCount30d ?? null,
   linkedAccountAddress: live.profile.address,
+  joinedAt: (live.profile as { createdAt?: string | null }).createdAt ?? null,
 });

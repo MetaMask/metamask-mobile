@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
-import {
-  AutorampStatus,
-  type AutorampAccount,
-  type MoneyAccountWalletRegistration,
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import type {
+  AutorampAccount,
+  MoneyAccountWalletRegistration,
 } from '@metamask/ramps-controller';
 import type {
   KycProviderFlowStatus,
@@ -36,12 +36,11 @@ export type VbaHomeCard =
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved with a usable autoramp. */
+  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
   | { type: 'account_is_ready' }
   /**
-   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, flow
-   * submitted, or approved but provisioning has not produced a usable
-   * autoramp yet.
+   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
+   * submitted.
    */
   | { type: 'kyc_pending' }
   /** FINISH_VERIFICATION — Figma node 2267-18364. */
@@ -99,21 +98,6 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
 const matchesWallet = (walletAddress: string, candidate: string): boolean =>
   candidate.toLowerCase() === walletAddress.trim().toLowerCase();
 
-/**
- * Whether the wallet has an autoramp that is not `Rejected` or `Cancelled`.
- * Mirrors `RampsController`'s private `#hasUsableAutorampForWallet`.
- */
-const hasUsableAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some(
-    (autoramp) =>
-      matchesWallet(walletAddress, autoramp.walletAddress) &&
-      autoramp.status !== AutorampStatus.Rejected &&
-      autoramp.status !== AutorampStatus.Cancelled,
-  );
-
 /** Whether the wallet has any autoramp row, including dead routes. */
 const hasAnyAutorampForWallet = (
   walletAddress: string,
@@ -136,17 +120,10 @@ const hasWalletRegistration = (
   );
 
 /**
- * Pure decision resolving the single VBA status card for Money home. For the
- * approved states it mirrors the onboarding funnel's own destination logic
- * (`getVbaDestinationForSnapshot`: approved + ready route → complete,
- * approved + route missing → still provisioning) and the controller's
- * `#hasUsableAutorampForWallet` semantics — do not reinvent them here.
- *
- * TRAM-4079: the original TRAM-4099 order returned `none` whenever a usable
- * autoramp existed and showed `account_is_ready` only while it was still
- * missing — the exact inverse of the card's copy ("You're all set", view the
- * Pix details) and of the funnel. Rule 3 now keys the card off the usable
- * autoramp.
+ * Pure decision resolving the single VBA status card for Money home. An
+ * approved session always gets `account_is_ready`: the onboarding funnel
+ * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
+ * exists and Identity verified when it does not, and details creates it.
  *
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
@@ -194,15 +171,12 @@ export function getVbaHomeCard({
     sessionStatus?.finalStatus === 'approved' ||
     sessionStatus?.kycStatus === 'approved';
 
-  // 3. KYC approved. A usable autoramp means the virtual account details are
-  // ready — show the account_is_ready card ("You're all set" / view the Pix
-  // details). Without one, provisioning is still running: kyc_pending,
-  // mirroring the onboarding funnel's `kycPending` destination for an approved
-  // session whose route is not ready yet.
+  // 3. KYC approved. Identity is no longer being verified, so show
+  // account_is_ready with or without a usable autoramp. Its CTA opens
+  // onboarding, which sends a user without one through Identity verified to
+  // the details screen, where the autoramp is created.
   if (isApproved) {
-    return hasUsableAutorampForWallet(walletAddress, autoramps)
-      ? { type: 'account_is_ready' }
-      : { type: 'kyc_pending' };
+    return { type: 'account_is_ready' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question
@@ -371,9 +345,9 @@ export const useVbaHomeCard = (): VbaHomeCard => {
 /**
  * Whether focusing Money home should trigger the one-shot KYC session
  * refresh: a KYC session must exist and its `finalStatus` must be
- * non-terminal, matching `hydrateVbaOnboarding`'s own `refreshKyc` gate
- * (one session-status GET for a non-terminal persisted session). With no
- * session, or a terminal one, there is nothing to refresh.
+ * non-terminal — the same terminal-status gate the KYC 15s poll uses to
+ * decide whether to keep ticking. With no session, or a terminal one, there
+ * is nothing to refresh.
  *
  * @param sessionFinalStatus - `KycSessionStatus.finalStatus` when a session
  * is persisted, else `null`.
@@ -386,32 +360,48 @@ export const shouldRefreshKycSessionOnFocus = (
   !TERMINAL_SESSION_STATUSES.has(sessionFinalStatus);
 
 /**
- * One-shot KYC session refresh for Money home. Wire it on the hosting screen
- * (MoneyHomeView) so it runs on `useFocusEffect`: when a KYC session exists
- * and is non-terminal, it calls
- * `RampsController.hydrateVbaOnboarding({ walletAddress, refreshKyc: true })`
- * — a single GET, never `refreshSessionStatus` and never the 15s poll. With
- * no session or a terminal status it does nothing. The gate reads only
- * primitive state (`walletAddress`, `finalStatus`), so unrelated
- * KycController state writes never re-arm the refresh mid-focus, and
- * `hydrateVbaOnboarding` is never called during initial render.
+ * One-shot KYC session refresh: wire on the Money home screen's
+ * `useFocusEffect` to make exactly one `fetchSessionStatusOnce` GET per focus
+ * (never the 15s poll, never `hydrateVbaOnboarding`) for an eligible user
+ * with a selected Money wallet and a persisted, non-terminal KYC session. A
+ * 404 clears the stale KYC state — the session is gone server-side or
+ * belongs to another profile — instead of logging on every focus. The gate
+ * reads the session from Engine state and the tier through a ref, so no
+ * state write rebuilds the callback and re-fires the GET mid-focus.
  */
 export const useVbaHomeCardRefresh = (): void => {
+  const { isEligible } = useVbaEligibility();
+  // Device-capability matrix: every hardware tier skips network work on a
+  // known-offline network; `null` (unknown) takes the product default.
+  const networkTier = useNetworkTier();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const sessionFinalStatus = useSelector(selectKycSessionStatus)?.finalStatus;
+  const networkTierRef = useRef(networkTier);
+  networkTierRef.current = networkTier;
 
   useFocusEffect(
     useCallback(() => {
+      if (!isEligible || !walletAddress || networkTierRef.current === 'NONE') {
+        return undefined;
+      }
+      const sessionStatus = Engine.context.KycController.state.sessionStatus;
       if (
-        !walletAddress ||
-        !shouldRefreshKycSessionOnFocus(sessionFinalStatus ?? null)
+        !sessionStatus ||
+        !shouldRefreshKycSessionOnFocus(sessionStatus.finalStatus)
       ) {
         return undefined;
       }
-      Engine.context.RampsController.hydrateVbaOnboarding({
-        walletAddress,
-        refreshKyc: true,
-      }).catch((error) => {
+
+      Engine.context.KycController.fetchSessionStatusOnce(
+        sessionStatus.id,
+      ).catch((error) => {
+        if ((error as { httpStatus?: number })?.httpStatus === 404) {
+          // Mirrors `hydrateVbaOnboarding`'s own 404 handling: a session
+          // the server no longer has (cleared backend-side, or persisted
+          // by another profile) must be dropped, not logged — it would
+          // otherwise 404 on every focus while the card stays stuck.
+          Engine.context.KycController.clearState();
+          return;
+        }
         Logger.error(error as Error, {
           tags: { feature: 'money-home' },
           context: {
@@ -421,6 +411,6 @@ export const useVbaHomeCardRefresh = (): void => {
         });
       });
       return undefined;
-    }, [walletAddress, sessionFinalStatus]),
+    }, [isEligible, walletAddress]),
   );
 };

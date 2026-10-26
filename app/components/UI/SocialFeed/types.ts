@@ -4,11 +4,15 @@ import type {
   Position,
 } from '@metamask/social-controllers';
 import type { PositionTokenAvatarData } from './components/PositionTokenAvatar';
-import type { SocialV1MockedField } from './mockMarker';
+import type { SocialLivePriceSource } from './live/types';
 import type { TradeAction } from './utils/tradeAction';
 
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
+
+export interface SocialFeedPageHandle {
+  scrollToOffset: (offset: number, animated?: boolean) => void;
+}
 
 export interface SocialV1FeedAsset {
   /** Ticker shown on the position card (`BTC`, `NVDA`). */
@@ -63,15 +67,6 @@ interface SocialV1FeedItemBase {
   /** USD the trader put in, i.e. what the P&L is measured against. */
   costLabel?: string;
   isPnlPositive: boolean;
-  /**
-   * Which of this item's values the client invented. The marked labels already
-   * carry a visible `*`; this is the structural record of the same fact, so
-   * tests and later cleanup do not have to match on rendered copy.
-   *
-   * Optional: absent means nothing is mocked, which keeps composer-built items
-   * from having to declare provenance they do not have.
-   */
-  mockedFields?: SocialV1MockedField[];
 }
 
 export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
@@ -89,6 +84,13 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   entryPriceLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** How the card's figures follow the streamed mark price. */
+  live?: SocialLivePriceSource;
+  /**
+   * Composer previews set this to `false` so the card does not offer to copy
+   * the order that was just placed. Absent means the open position is copyable.
+   */
+  showCopyTrade?: boolean;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
@@ -112,6 +114,8 @@ export interface SocialV1SpotOpenFeedItem extends SocialV1FeedItemBase {
   entryMarketCapLabel?: string;
   /** Time held so far, first fill to now. */
   holdTimeLabel?: string;
+  /** How the card's figures follow the streamed spot price. */
+  live?: SocialLivePriceSource;
 }
 
 export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
@@ -182,6 +186,11 @@ export interface SocialV1FeedPost {
    * sheet so it opens without a fetch. Absent on pending and mocked posts.
    */
   position?: Position;
+  /**
+   * Socket event whose entrance this post plays once. Absent on posts that
+   * arrived without one (HTTP snapshot, revisions of rows already shown).
+   */
+  realtimeEventId?: string;
 }
 
 /**

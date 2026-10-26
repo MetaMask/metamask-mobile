@@ -12,6 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../locales/i18n';
+import AnimatedSlotText from '../../../../component-library/components-temp/AnimatedNumericText/AnimatedSlotText';
 import PositionTokenAvatar, {
   type PositionTokenAvatarData,
 } from './PositionTokenAvatar';
@@ -35,6 +36,11 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
+/** Set while an open card follows a streamed price. */
+export interface PositionCardHeaderLiveState {
+  reduceMotion: boolean;
+}
+
 export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
   avatar: PositionTokenAvatarData;
@@ -53,11 +59,16 @@ export interface PositionCardHeaderProps {
   side?: SocialV1SpotSide;
   /** `Closed 2 hr ago`, right-aligned on the closed card. */
   closedAgeLabel?: string;
+  /** Open layout only: roll the figures as live ticks arrive. */
+  live?: PositionCardHeaderLiveState;
   testID?: string;
 }
 
 const pnlClassName = (isPnlPositive: boolean) =>
   isPnlPositive ? 'text-success-default' : 'text-error-default';
+
+const pnlColor = (isPnlPositive: boolean) =>
+  isPnlPositive ? TextColor.SuccessDefault : TextColor.ErrorDefault;
 
 /** `15x Short`, `Long`, `Buy`. Empty when the card carries neither. */
 const sideTagLabel = ({
@@ -159,6 +170,7 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     pnlValueLabel,
     isPnlPositive,
     subtitleLabel,
+    live,
   } = props;
   const tagLabel = sideTagLabel(props);
 
@@ -197,7 +209,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             </Tag>
           ) : null}
         </Box>
-        {subtitleLabel ? (
+        {subtitleLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-subtitle`}
+            value={subtitleLabel}
+            variant={TextVariant.BodyXs}
+          />
+        ) : null}
+        {subtitleLabel && !live ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
@@ -214,7 +236,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
         alignItems={BoxAlignItems.End}
         twClassName="shrink-0 max-w-[45%] min-w-0"
       >
-        {pnlValueLabel ? (
+        {pnlValueLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={pnlColor(isPnlPositive)}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-pnl-value`}
+            value={pnlValueLabel}
+            variant={TextVariant.BodySm}
+          />
+        ) : null}
+        {pnlValueLabel && !live ? (
           <Text
             variant={TextVariant.BodySm}
             fontWeight={FontWeight.Medium}
@@ -224,7 +256,17 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
             {pnlValueLabel}
           </Text>
         ) : null}
-        {pnlLabel ? (
+        {pnlLabel && live ? (
+          <AnimatedSlotText
+            animated={!live.reduceMotion}
+            color={pnlColor(isPnlPositive)}
+            fontWeight={FontWeight.Medium}
+            testID={props.testID && `${props.testID}-pnl`}
+            value={pnlLabel}
+            variant={TextVariant.BodyXs}
+          />
+        ) : null}
+        {pnlLabel && !live ? (
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}

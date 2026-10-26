@@ -540,6 +540,7 @@ import {
 } from '@metamask/client-controller';
 import {
   SocialController,
+  SocialRealtimeService,
   SocialService,
   type SocialControllerActions,
   type SocialControllerEvents,
@@ -1031,6 +1032,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  SocialRealtimeService: SocialRealtimeService;
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
@@ -1176,7 +1178,6 @@ export type MessengerClientsToInitialize =
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
-  | 'SubjectMetadataController'
   | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
@@ -1192,7 +1193,6 @@ export type MessengerClientsToInitialize =
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
   | 'MoneyAccountApiDataService'
-  | 'LoggingController'
   | 'AccountTreeController'
   | 'DeFiPositionsController'
   | 'DeFiPositionsControllerV2'
@@ -1207,7 +1207,6 @@ export type MessengerClientsToInitialize =
   | 'SmartTransactionsController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionPayController'
-  | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
   | 'PredictMarketDataService'
@@ -1221,7 +1220,6 @@ export type MessengerClientsToInitialize =
   | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
-  | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -1236,13 +1234,13 @@ export type MessengerClientsToInitialize =
   | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
+  | 'SocialRealtimeService'
   | 'SocialController'
   | 'ProfileService'
   | 'ProfileController'

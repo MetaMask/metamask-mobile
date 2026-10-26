@@ -3,7 +3,9 @@ import {
   ProfileService,
   type ProfileServiceMessenger,
 } from '@metamask/profile-controller';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { CaipAccountId } from '@metamask/utils';
+import AppConstants from '../../AppConstants';
 import { ExtendedMessenger } from '../../ExtendedMessenger';
 import { getProfileServiceMessenger } from '../messengers/profile-service-messenger';
 import { buildMessengerClientInitRequestMock } from '../utils/test-utils';
@@ -16,13 +18,17 @@ import {
 const LINKED_ADDRESS =
   'eip155:1:0x0000000000000000000000000000000000000001' as CaipAccountId;
 
-function getInitRequestMock(): jest.Mocked<
-  MessengerClientInitRequest<ProfileServiceMessenger>
-> {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
+type BaseMessenger = ExtendedMessenger<
+  MockAnyNamespace,
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction
+>;
 
+const createBaseMessenger = (): BaseMessenger =>
+  new ExtendedMessenger({ namespace: MOCK_ANY_NAMESPACE });
+
+function getInitRequestMock(
+  baseMessenger: BaseMessenger = createBaseMessenger(),
+): jest.Mocked<MessengerClientInitRequest<ProfileServiceMessenger>> {
   return {
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getProfileServiceMessenger(baseMessenger),
@@ -30,6 +36,10 @@ function getInitRequestMock(): jest.Mocked<
 }
 
 describe('profileServiceInit', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it('registers the mock profile service by default', async () => {
     const request = getInitRequestMock();
     const { controller } = profileServiceInit(request);
@@ -63,6 +73,72 @@ describe('profileServiceInit', () => {
       'wen-cat',
     );
     expect(availability.available).toBe(true);
+
+    const fetched = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(fetched.username).toBe('wen-cat');
+
+    const updated = await request.controllerMessenger.call(
+      'ProfileService:updateProfile',
+      'profile-1',
+      { display_name: 'Wen Cat 2' },
+    );
+    expect(updated.display_name).toBe('Wen Cat 2');
+
+    await request.controllerMessenger.call(
+      'ProfileService:disconnectX',
+      'profile-1',
+    );
+    const afterDisconnect = await request.controllerMessenger.call(
+      'ProfileService:getProfile',
+      'profile-1',
+    );
+    expect(afterDisconnect.connected_to_x).toBe(false);
+  });
+
+  it('rejects getProfile when no profile has been created', async () => {
+    const request = getInitRequestMock();
+    profileServiceInit(request);
+
+    await expect(
+      request.controllerMessenger.call('ProfileService:getProfile', 'missing'),
+    ).rejects.toThrow('404');
+  });
+
+  it('instantiates ProfileService against PROFILE_API_URL when the profile API is enabled', async () => {
+    jest.replaceProperty(AppConstants, 'PROFILE_API_ENABLED', true);
+    jest.replaceProperty(
+      AppConstants,
+      'PROFILE_API_URL',
+      'https://profile.test/api',
+    );
+    const fetchMock = jest
+      .spyOn(global, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ message: 'not found' }), { status: 404 }),
+      );
+    const baseMessenger = createBaseMessenger();
+    baseMessenger.registerActionHandler(
+      'AuthenticationController:getBearerToken',
+      async () => 'token',
+    );
+    const request = getInitRequestMock(baseMessenger);
+
+    const { controller } = profileServiceInit(request);
+
+    expect(controller).toBeInstanceOf(ProfileService);
+    await expect(
+      request.controllerMessenger.call('ProfileService:getProfile', 'p-1'),
+    ).rejects.toThrow('404');
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://profile.test/api/v1/profiles/p-1',
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: 'Bearer token' }),
+      }),
+    );
+    controller.destroy();
   });
 
   it('instantiates ProfileService when the mock is turned off', () => {
