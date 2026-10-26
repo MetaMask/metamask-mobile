@@ -35,11 +35,12 @@ const createAssetFromParams = (paramsAsset: AssetType): AssetType => ({
  *
  * Consumers such as `useCurrencyConversions` cannot tell the two apart from the
  * asset alone, so the upstream shape is normalised here, at the boundary where
- * the provenance is still known.
+ * the provenance is still known. The hook then applies one rule to every asset.
  *
  * Only EVM non-native tokens differ. The multichain branch already returns a
- * token-to-fiat `rate`, and native coins have no entry in `marketData`, which
- * is exactly the set for which the old `exchangeRate` lookup returned 1.
+ * token-to-fiat `rate`, and native coins are priced in themselves, so their
+ * `conversionRate` is already the native-to-fiat rate this function would
+ * otherwise produce.
  */
 const normalizeAssetConversionRate = (
   asset: AssetType,
@@ -54,8 +55,9 @@ const normalizeAssetConversionRate = (
   const tokenPriceInNativeCoin =
     marketData?.[chainId as Hex]?.[address as Hex]?.price;
 
-  // No market entry means no token price to fold in, which matches the old
-  // `?? 1` fallback. Leaving the rate untouched keeps the previous behaviour.
+  // A token with no market entry has no price to fold in. `fiat.balance` could
+  // not have been built without one either, so this asset carries no usable
+  // rate; leave it untouched rather than inventing a factor of 1.
   if (tokenPriceInNativeCoin === undefined) {
     return asset;
   }
