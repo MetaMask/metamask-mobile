@@ -7,7 +7,6 @@ import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useMoneyMfa } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import {
@@ -134,19 +133,13 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
-  isSocialLogin = false,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
-  isSocialLogin?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
-  mockUseSelector.mockImplementation((selector) =>
-    selector === selectSeedlessOnboardingLoginFlow
-      ? isSocialLogin
-      : isFlagEnabled,
-  );
+  mockUseSelector.mockReturnValue(isFlagEnabled);
   mockIsMfaKitEnabled.mockReturnValue(isKitEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
@@ -191,15 +184,6 @@ describe('useMoneyMfa', () => {
 
     it('returns unavailable when the MFA kit is disabled', () => {
       const { result } = arrange({ isKitEnabled: false });
-
-      expect(result.current.status).toBe('unavailable');
-    });
-
-    it('returns unavailable for social login users', () => {
-      const { result } = arrange({
-        isSocialLogin: true,
-        credentials: [activePasskey, activeTotp],
-      });
 
       expect(result.current.status).toBe('unavailable');
     });

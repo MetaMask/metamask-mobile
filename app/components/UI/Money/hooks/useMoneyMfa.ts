@@ -19,7 +19,6 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
@@ -78,8 +77,6 @@ const migrate = (): Promise<void> => {
  */
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
-  // A social login's inherited email can't be a second factor, so SRP only for now.
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
@@ -102,7 +99,7 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isMfaKitEnabled() || isSocialLogin) {
+  if (!isFlagEnabled || !isMfaKitEnabled()) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
