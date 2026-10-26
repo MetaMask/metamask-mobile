@@ -3,6 +3,7 @@ import type {
   SocialFeedEvent,
   SocialFeedRealtimeScope,
 } from '@metamask/social-controllers';
+import isEqual from 'lodash/isEqual';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import type { SocialV1FeedPost, TraderFeedRow } from '../types';
@@ -524,9 +525,13 @@ export const useSocialFeedRealtime = (
       }
 
       const [mappedPost] = toSocialFeedPosts([row], now);
-      const post = row.realtimeEventId
+      const rebuilt = row.realtimeEventId
         ? { ...mappedPost, realtimeEventId: row.realtimeEventId }
         : mappedPost;
+      // A refresh hands back new objects for rows that did not change, and a
+      // new post object re-renders its whole row.
+      const post =
+        cached && isEqual(cached.post, rebuilt) ? cached.post : rebuilt;
       postCache.current.set(row.stableId, {
         core: row.core,
         item: row.item,

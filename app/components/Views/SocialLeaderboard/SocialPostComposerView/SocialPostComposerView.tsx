@@ -541,11 +541,12 @@ const SocialPostComposerView: React.FC = () => {
         >
           <ScrollView
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pt-8 pb-4')}
-            keyboardShouldPersistTaps="always"
+            contentContainerStyle={tw.style('px-4 pt-8 pb-4 grow')}
+            keyboardShouldPersistTaps="handled"
             keyboardDismissMode={
               Platform.OS === 'ios' ? 'interactive' : 'on-drag'
             }
+            testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
@@ -561,7 +562,6 @@ const SocialPostComposerView: React.FC = () => {
                 placeholder={strings('social_leaderboard.composer.placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 multiline
-                autoFocus={isScreenTransitionComplete}
                 showSoftInputOnFocus
                 style={[
                   tw.style('w-full text-default p-0'),
@@ -621,6 +621,15 @@ const SocialPostComposerView: React.FC = () => {
                 </Pressable>
               </Box>
             ) : null}
+
+            <Pressable
+              accessible={false}
+              onPress={Keyboard.dismiss}
+              style={tw.style('grow')}
+              testID={
+                SocialPostComposerViewSelectorsIDs.DISMISS_KEYBOARD_SURFACE
+              }
+            />
           </ScrollView>
 
           <Box
