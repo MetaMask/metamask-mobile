@@ -25,6 +25,8 @@ const readPersisted = (): MoneyAccountMigrationStatus => {
 };
 
 let status: MoneyAccountMigrationStatus = readPersisted();
+// Bumped by reset and clear so a migration already running can't write its result.
+let generation = 0;
 const listeners = new Set<() => void>();
 
 const setStatus = (next: MoneyAccountMigrationStatus) => {
@@ -53,21 +55,29 @@ export const moneyAccountMigration = {
   },
   /** Starts the migration, or resumes one that was interrupted. */
   start: async (): Promise<void> => {
+    const startedIn = generation;
     setStatus('migrating');
     try {
       await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
     } catch (error) {
-      setStatus('failed');
+      if (startedIn === generation) {
+        setStatus('failed');
+      }
       throw error;
+    }
+    if (startedIn !== generation) {
+      throw new Error('Money account migration was cancelled');
     }
     setStatus('done');
   },
   reset: () => {
+    generation += 1;
     status = 'not_started';
     listeners.forEach((listener) => listener());
   },
   /** Forgets the saved status, e.g. when the wallet is reset. */
   clear: async () => {
+    generation += 1;
     status = 'not_started';
     listeners.forEach((listener) => listener());
     await StorageWrapper.removeItem(MONEY_ACCOUNT_MIGRATION_STORAGE_KEY);

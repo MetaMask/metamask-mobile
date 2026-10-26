@@ -184,5 +184,22 @@ describe('MoneyHeader', () => {
 
       expect(queryByTestId(MoneyMfaTestIds.HEADER_BADGE)).not.toBeOnTheScreen();
     });
+
+    it('renders the badge on the pushed header and opens the sheet', () => {
+      const onMfaBadgePress = jest.fn();
+      const { getByTestId } = render(
+        <MoneyHeader
+          {...pushedProps}
+          onMenuPress={jest.fn()}
+          onBack={jest.fn()}
+          isMfaEnabled
+          onMfaBadgePress={onMfaBadgePress}
+        />,
+      );
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(onMfaBadgePress).toHaveBeenCalledTimes(1);
+    });
   });
 });
