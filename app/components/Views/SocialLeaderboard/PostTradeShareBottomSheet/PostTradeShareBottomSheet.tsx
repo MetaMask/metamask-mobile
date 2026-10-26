@@ -42,6 +42,7 @@ import {
   buildSpotPostTradeComposerParams,
   openPostTradeComposer,
 } from './postTradeComposerParams';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const ILLUSTRATION_SIZE = 64;
 
@@ -107,7 +108,7 @@ const navigateToActivity = (product: PostTradeShareSession['product']) => {
   }
   NavigationService.navigation.navigate(Routes.TRANSACTIONS_VIEW);
 };
-
+const { Interaction, Outcome, Screen, Source, Trade } = SocialEvent;
 const PostTradeShareBottomSheet: React.FC = () => {
   const session = useSyncExternalStore(
     subscribePostTradeShareSession,
@@ -115,6 +116,22 @@ const PostTradeShareBottomSheet: React.FC = () => {
     getPostTradeShareSession,
   );
 
+  const isPerps = session?.product === 'perps';
+  const source = Source.TRADER_FEED;
+  const tradeType = isPerps ? Trade.PERPS : Trade.SPOT;
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.POST_TRADE_SHARE_SHEET,
+    {
+      source,
+      outcome:
+        session?.status === 'complete'
+          ? Outcome.CONTENT
+          : session?.status === 'failed'
+            ? Outcome.ERROR
+            : null,
+      isActive: session !== null,
+    },
+  );
   const isCreateProfile = session?.variant === 'create_profile';
   const canRetry = session?.product === 'spot' && Boolean(session.owner);
   const canShare = Boolean(
@@ -125,8 +142,12 @@ const PostTradeShareBottomSheet: React.FC = () => {
   );
 
   const handleClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, {
+      outcome: Outcome.DISMISSED,
+      trade_type: tradeType,
+    });
     clearPostTradeShareSession();
-  }, []);
+  }, [trackInteraction, tradeType]);
 
   const handleViewActivity = useCallback(() => {
     if (!session) {
@@ -140,6 +161,10 @@ const PostTradeShareBottomSheet: React.FC = () => {
     if (!session) {
       return;
     }
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: session.status === 'failed' ? Outcome.FAILED : Outcome.SUCCESS,
+      trade_type: tradeType,
+    });
     if (session.status === 'failed') {
       if (!canRetry) {
         clearPostTradeShareSession();
@@ -176,7 +201,7 @@ const PostTradeShareBottomSheet: React.FC = () => {
     }
     clearPostTradeShareSession();
     openPostTradeComposer(params);
-  }, [canRetry, canShare, session]);
+  }, [canRetry, canShare, session, trackInteraction, tradeType]);
 
   if (!session) {
     return null;

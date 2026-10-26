@@ -54,12 +54,16 @@ export enum ACTIONS {
   TRENDING = 'trending',
   WHATS_HAPPENING = 'whats-happening',
   TOP_TRADERS = 'top-traders',
+  /** Nested Social links: `/social`, `/social/profile`, `/social/profile/position`. */
+  SOCIAL = 'social',
+  SOCIAL_TRADER = 'social-trader',
   SOCIAL_TRADER_POSITION = 'social-trader-position',
   EARN_MUSD = 'earn-musd',
   NFT = 'nft',
   AGENTIC_CLI = 'agentic-cli',
   ON_RAMP = 'on-ramp',
   MONEY = 'money',
+  MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
 }
 
 export const PREFIXES = {
@@ -97,12 +101,15 @@ export const PREFIXES = {
   [ACTIONS.TRENDING]: '',
   [ACTIONS.WHATS_HAPPENING]: '',
   [ACTIONS.TOP_TRADERS]: '',
+  [ACTIONS.SOCIAL]: '',
+  [ACTIONS.SOCIAL_TRADER]: '',
   [ACTIONS.SOCIAL_TRADER_POSITION]: '',
   [ACTIONS.EARN_MUSD]: '',
   [ACTIONS.NFT]: '',
   [ACTIONS.AGENTIC_CLI]: '',
   [ACTIONS.ON_RAMP]: '',
   [ACTIONS.MONEY]: '',
+  [ACTIONS.MONEY_ACCOUNT_DEPOSIT]: '',
   [ACTIONS.NOTIFICATIONS_SETTINGS]: '',
   METAMASK: 'metamask://',
 };

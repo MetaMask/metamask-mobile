@@ -40,11 +40,11 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     ...actual,
     AvatarAccount: () => null,
-    RadioButton: ({ isChecked }: { isChecked: boolean }) => {
+    Checkbox: ({ isSelected }: { isSelected: boolean }) => {
       const { View } = jest.requireActual('react-native');
       const { createElement } = jest.requireActual('react');
       return createElement(View, {
-        testID: isChecked ? 'radio-checked' : 'radio-unchecked',
+        testID: isSelected ? 'radio-checked' : 'radio-unchecked',
       });
     },
   };
