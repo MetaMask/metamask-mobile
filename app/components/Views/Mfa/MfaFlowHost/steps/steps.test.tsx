@@ -297,6 +297,18 @@ describe('EmailEntryStep', () => {
     });
   });
 
+  it('shows an enrollment failure under the email field', () => {
+    const { getByText } = render(
+      <EmailEntryStep
+        {...buildState({ name: 'emailEntry' }, { error: 'server_error' })}
+        reason={reason}
+        onAction={jest.fn()}
+      />,
+    );
+
+    expect(getByText('Something went wrong. Try again.')).toBeOnTheScreen();
+  });
+
   it('shows the error for an address already in use', () => {
     const { getByText } = render(
       <EmailEntryStep

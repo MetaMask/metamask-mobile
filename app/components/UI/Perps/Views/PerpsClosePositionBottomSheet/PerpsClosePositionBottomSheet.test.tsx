@@ -983,6 +983,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
         feeDiscountPercentage: 15,
+        feeDiscountKind: 'vip',
       });
 
       const { getByTestId } = renderSheet();

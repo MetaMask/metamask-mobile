@@ -1,3 +1,5 @@
+import PerpsFeeDiscountLabel from '../PerpsFeesDisplay/PerpsFeeDiscountLabel';
+import { type PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import {
   Box,
   BoxAlignItems,
@@ -27,7 +29,6 @@ import { Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsTradeSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../PerpsAmountDisplay';
 import PerpsMarketLimitToggle from '../PerpsMarketLimitToggle';
@@ -107,6 +108,7 @@ interface PerpsTradeScreenProps {
   /** Formatted fiat bridge fee, shown when the user pays with a token. */
   bridgeFee?: string;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   submitLabel?: string;
@@ -310,6 +312,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   feePercentage,
   bridgeFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   isSubmitting,
   isSubmitDisabled,
   submitLabel,
@@ -908,9 +911,10 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 gap={2}
               >
-                {(feeDiscountPercentage ?? 0) > 0 ? (
-                  <MembershipVipBadge />
-                ) : null}
+                <PerpsFeeDiscountLabel
+                  feeDiscountPercentage={feeDiscountPercentage}
+                  feeDiscountKind={feeDiscountKind}
+                />
                 <Text
                   variant={TextVariant.BodyXs}
                   color={TextColor.TextAlternative}

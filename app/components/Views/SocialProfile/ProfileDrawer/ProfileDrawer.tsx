@@ -13,6 +13,7 @@ import {
   FontWeight,
   HeaderBase,
   IconName,
+  Skeleton,
   Text,
   TextColor,
   TextVariant,
@@ -25,6 +26,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { strings } from '../../../../../locales/i18n';
 import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../../hooks/useAccountName';
+import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
@@ -79,9 +81,8 @@ const ProfileDrawer = () => {
   }, [navigation]);
 
   const handleSettings = useCallback(() => {
-    // SettingsFlow opens on the accounts menu, so name the nested screen.
     navigation.navigate(Routes.SETTINGS_VIEW, {
-      screen: Routes.SETTINGS.ROOT,
+      screen: Routes.ACCOUNTS_MENU_VIEW,
     });
   }, [navigation]);
 
@@ -110,7 +111,13 @@ const ProfileDrawer = () => {
     navigateToSocialV1Profile(navigation);
   }, [navigation]);
 
-  // TODO: wire Subscriptions and Help and support once those screens exist.
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
+
+  // TODO: wire Help and support once that screen exists.
   const handlePress = useCallback(() => undefined, []);
 
   const menuItems: {
@@ -133,11 +140,16 @@ const ProfileDrawer = () => {
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
     },
-    {
-      iconName: IconName.Sparkle,
-      label: strings('profile_drawer.subscriptions'),
-      testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-    },
+    ...(showOrangeEntry
+      ? [
+          {
+            iconName: IconName.MetamaskFoxOutline,
+            label: orangeLabel,
+            onPress: onPressOrange,
+            testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
+          },
+        ]
+      : []),
     {
       iconName: IconName.Setting,
       label: strings('profile_drawer.settings'),
@@ -223,11 +235,34 @@ const ProfileDrawer = () => {
             </Box>
           </Pressable>
         ) : isLoading ? (
+          // Mirrors the create profile block so the menu rows don't shift once
+          // loading settles.
           <Box
+            alignItems={BoxAlignItems.Center}
             twClassName="px-4 pb-6 pt-2"
             accessible={false}
             testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING}
-          />
+          >
+            <Box alignItems={BoxAlignItems.Center} gap={3}>
+              <Skeleton hideChildren twClassName="rounded-full">
+                <AvatarIcon
+                  iconName={IconName.UserCircleAdd}
+                  size={AvatarIconSize.Xl}
+                  severity={AvatarIconSeverity.Neutral}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_AVATAR}
+                />
+              </Skeleton>
+              <Skeleton hideChildren>
+                <Text
+                  variant={TextVariant.HeadingLg}
+                  fontWeight={FontWeight.Bold}
+                  testID={ProfileDrawerSelectorsIDs.PROFILE_LOADING_HEADING}
+                >
+                  {strings('profile_drawer.create_profile')}
+                </Text>
+              </Skeleton>
+            </Box>
+          </Box>
         ) : (
           <Pressable
             onPress={handleCreateProfile}

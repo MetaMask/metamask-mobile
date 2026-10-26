@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import type {
   EnrolledCredential,
   VerificationToken,
@@ -13,6 +14,7 @@ import type {
   MfaControllerAdapter,
   MfaFlowOptions,
   MfaFlowRequest,
+  MfaReason,
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
@@ -90,10 +92,14 @@ const start = async (
   request: MfaFlowRequest,
   controller: MfaControllerAdapter,
   passkey?: MfaFlowOptions['passkey'],
+  reason: MfaReason = {
+    operation: 'test',
+    enrollDescription: 'Why we ask',
+  },
 ) => {
   const outcome = startMfaFlow({
     request,
-    reason: { operation: 'test', enrollDescription: 'Why we ask' },
+    reason,
     platform: 'mobile',
     controller,
     passkey,
@@ -117,6 +123,32 @@ describe('MfaFlowHost', () => {
   afterEach(async () => {
     await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
   });
+
+  it.each([
+    ['card', 'card', SlideInRight],
+    ['default modal', undefined, SlideInDown],
+  ] as const)(
+    'uses the %s transition for full-screen steps',
+    async (_label, presentation, transition) => {
+      const { outcome } = await start(
+        { kind: 'enroll', method: 'email_otp' },
+        createController(),
+        undefined,
+        { operation: 'test', presentation },
+      );
+
+      const { getByTestId, unmount } = renderHost();
+
+      expect(
+        getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`).props
+          .entering,
+      ).toBe(transition);
+
+      await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
+      await outcome;
+      unmount();
+    },
+  );
 
   it('runs email setup from entry to the code, then resolves and closes', async () => {
     const controller = createController();

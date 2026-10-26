@@ -80,6 +80,62 @@ describe('SupportConsentSheet', () => {
     expect(mockOnConfirm).not.toHaveBeenCalled();
   });
 
+  it('renders the "Save my preference" checkbox checked by default', () => {
+    const { getByText, getByTestId } = renderWithProvider(
+      <SupportConsentSheet />,
+    );
+
+    expect(
+      getByText(strings('support_consent.save_preference')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('support-consent-sheet-save-preference-checkbox'),
+    ).toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ checked: true }),
+    );
+  });
+
+  it('saves the share preference when confirming with "Save my preference" checked', () => {
+    const { getByTestId, store } = renderWithProvider(<SupportConsentSheet />);
+
+    fireEvent.press(getByTestId('support-consent-sheet-confirm-button'));
+
+    expect(store.getState().security.shouldShowConsentSheet).toBe(false);
+    expect(store.getState().security.dataSharingPreference).toBe(true);
+  });
+
+  it('saves the do-not-share preference when rejecting with "Save my preference" checked', () => {
+    const { getByTestId, store } = renderWithProvider(<SupportConsentSheet />);
+
+    fireEvent.press(getByTestId('support-consent-sheet-reject-button'));
+
+    expect(store.getState().security.shouldShowConsentSheet).toBe(false);
+    expect(store.getState().security.dataSharingPreference).toBe(false);
+  });
+
+  it('does not save a preference when "Save my preference" is unchecked', () => {
+    const { getByTestId, store } = renderWithProvider(<SupportConsentSheet />);
+
+    fireEvent.press(
+      getByTestId('support-consent-sheet-save-preference-checkbox'),
+    );
+    fireEvent.press(getByTestId('support-consent-sheet-confirm-button'));
+
+    expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    expect(store.getState().security.shouldShowConsentSheet).toBe(true);
+    expect(store.getState().security.dataSharingPreference).toBeNull();
+  });
+
+  it('does not save a preference when the sheet is dismissed', () => {
+    const { getByTestId, store } = renderWithProvider(<SupportConsentSheet />);
+
+    fireEvent.press(getByTestId('support-consent-sheet-close-button'));
+
+    expect(store.getState().security.shouldShowConsentSheet).toBe(true);
+    expect(store.getState().security.dataSharingPreference).toBeNull();
+  });
+
   it('renders without crashing when route params are missing', () => {
     jest
       .mocked(useRoute)

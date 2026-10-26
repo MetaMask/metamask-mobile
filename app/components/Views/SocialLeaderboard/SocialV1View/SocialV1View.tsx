@@ -12,7 +12,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  useFocusEffect,
+  useIsFocused,
   useNavigation,
   useRoute,
   type NavigationProp,
@@ -40,16 +40,15 @@ import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
+  getSocialEventSource,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
+  useSocialInteraction,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
-import {
-  consumeSocialV1FocusTrending,
-  refreshSocialV1ComposedFeed,
-} from './feed/store/socialV1ComposedFeedStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import {
   TabsBar,
@@ -73,8 +72,9 @@ import {
   SocialFiltersBottomSheet,
   useSocialShellFilters,
 } from '../shell/filters';
-import LiveTradesView from '../LiveTradesView';
+import LiveView from '../LiveView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
@@ -86,13 +86,24 @@ import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useOpenSocialPostComposer } from '../hooks/useOpenSocialPostComposer';
 import { markSocialTabVisited } from '../utils/socialTabVisit';
+import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
 } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import {
+  PostTradeShareOwner,
+  usePostTradeShareReopen,
+} from '../PostTradeShareBottomSheet';
+import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
+import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getHardwareTier } from '../../../../util/deviceCapability';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
+const { Filter, Interaction, Screen, Tab } = SocialEvent;
 const LANDING_INDEX = 0;
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
@@ -118,10 +129,10 @@ const PAGE_TEST_IDS: Record<
     container: `${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-content`,
     scroll: `${SocialV1ViewSelectorsIDs.FOLLOWING_PAGE}-scroll`,
   },
-  liveTrades: {
-    page: SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE,
-    container: `${SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-content`,
-    scroll: `${SocialV1ViewSelectorsIDs.LIVE_TRADES_PAGE}-scroll`,
+  live: {
+    page: SocialV1ViewSelectorsIDs.LIVE_PAGE,
+    container: `${SocialV1ViewSelectorsIDs.LIVE_PAGE}-content`,
+    scroll: `${SocialV1ViewSelectorsIDs.LIVE_PAGE}-scroll`,
   },
   leaderboard: {
     page: SocialV1ViewSelectorsIDs.LEADERBOARD_PAGE,
@@ -144,8 +155,8 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
       return SocialLeaderboardEventValues.TAB.TRENDING;
     case 'following':
       return SocialLeaderboardEventValues.TAB.FOLLOWING;
-    case 'liveTrades':
-      return SocialLeaderboardEventValues.TAB.LIVE_TRADES;
+    case 'live':
+      return SocialLeaderboardEventValues.TAB.LIVE;
     case 'leaderboard':
       return SocialLeaderboardEventValues.TAB.LEADERBOARD;
     default:
@@ -153,9 +164,16 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
   }
 };
 
+const SOCIAL_EVENT_TAB_CONTEXT = {
+  trending: [Screen.TRENDING, Tab.TRENDING],
+  following: [Screen.FOLLOWING, Tab.FOLLOWING],
+  live: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
+  leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
+} as const;
+
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
- * Live trades under a collapsing header. Opened only for TSA-1122 treatment.
+ * Live under a collapsing header. Opened only for TSA-1122 treatment.
  */
 const SocialV1ViewContent: React.FC = () => {
   const tw = useTailwind();
@@ -165,6 +183,7 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+  const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -174,24 +193,68 @@ const SocialV1ViewContent: React.FC = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const pagerRef = useRef<PagerView>(null);
   const programmaticTabChangeRef = useRef(false);
+  const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const isFocused = useIsFocused();
+  const networkTier = useNetworkTier();
+  const [hardwareTier] = useState(() => getHardwareTier());
 
   useABTest(SOCIAL_V1_AB_KEY, SOCIAL_V1_VARIANTS, SOCIAL_V1_EXPOSURE_METADATA);
   useEffect(markSocialTabVisited, []);
   const tabOrder = SOCIAL_V1_TAB_ORDER;
   const trendingIndex = tabOrder.indexOf('trending');
   const followingIndex = tabOrder.indexOf('following');
-  const liveTradesIndex = tabOrder.indexOf('liveTrades');
+  const liveIndex = tabOrder.indexOf('live');
   const leaderboardIndex = tabOrder.indexOf('leaderboard');
   const [landingIndex] = useState(() =>
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  const socialPerformanceByTab = useMemo(
+    () =>
+      ({
+        trending: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === trendingIndex,
+          isFocused,
+          networkTier,
+        },
+        following: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === followingIndex,
+          isFocused,
+          networkTier,
+        },
+        leaderboard: {
+          enabled: isSocialV1Treatment,
+          hardwareTier,
+          isActive: activeIndex === leaderboardIndex,
+          isFocused,
+          networkTier,
+        },
+      }) satisfies Record<
+        Exclude<SocialShellTab, 'live'>,
+        SocialPerformanceContext
+      >,
+    [
+      activeIndex,
+      hardwareTier,
+      isFocused,
+      isSocialV1Treatment,
+      followingIndex,
+      leaderboardIndex,
+      networkTier,
+      trendingIndex,
+    ],
+  );
   // Unified filter state for the V1 shell (TSA-1115). Per-tab applied/draft
   // state; the sheet is mounted only while `openTab` is non-null.
   const {
     openTab,
     draft,
     applied,
+    hasDraftChanges,
     hasActiveFilters,
     openSheet,
     closeSheet,
@@ -199,9 +262,24 @@ const SocialV1ViewContent: React.FC = () => {
     applyFilters,
     resetDraftToDefaults,
   } = useSocialShellFilters();
+  const [filterScreen, filterTab] =
+    SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
+  const trackFilter = useSocialInteraction(filterScreen, {
+    tab_name: filterTab,
+    source: analyticsSource,
+  });
 
-  const handleOpenLiveTradesFilters = useCallback(() => {
-    openSheet('liveTrades');
+  const handleApplyFilters = useCallback(() => {
+    if (openTab && hasDraftChanges) {
+      trackFilter(Interaction.FILTER_APPLIED, {
+        filter_name: Filter.SOCIAL_FILTERS,
+      });
+    }
+    applyFilters();
+  }, [applyFilters, hasDraftChanges, openTab, trackFilter]);
+
+  const handleOpenLiveFilters = useCallback(() => {
+    openSheet('live');
   }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
@@ -218,15 +296,15 @@ const SocialV1ViewContent: React.FC = () => {
   const trendingScrollY = useSharedValue(0);
   const followingScrollY = useSharedValue(0);
   const leaderboardScrollY = useSharedValue(0);
-  const liveTradesScrollY = useSharedValue(0);
+  const liveScrollY = useSharedValue(0);
   const trendingPageRef = useRef<SocialTabPageHandle>(null);
   const followingPageRef = useRef<SocialTabPageHandle>(null);
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
-  const liveTradesPageRef = useRef<SocialTabPageHandle>(null);
+  const livePageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(landingIndex);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
-  const liveTradesIndexSv = useSharedValue(liveTradesIndex);
+  const liveIndexSv = useSharedValue(liveIndex);
   const scrollY = useDerivedValue(() => {
     if (activeIndexSv.value === trendingIndexSv.value) {
       return trendingScrollY.value;
@@ -234,8 +312,8 @@ const SocialV1ViewContent: React.FC = () => {
     if (activeIndexSv.value === followingIndexSv.value) {
       return followingScrollY.value;
     }
-    if (activeIndexSv.value === liveTradesIndexSv.value) {
-      return liveTradesScrollY.value;
+    if (activeIndexSv.value === liveIndexSv.value) {
+      return liveScrollY.value;
     }
     return leaderboardScrollY.value;
   });
@@ -255,9 +333,9 @@ const SocialV1ViewContent: React.FC = () => {
       leaderboardScrollY.value = event.contentOffset.y;
     },
   });
-  const liveTradesScrollHandler = useAnimatedScrollHandler({
+  const liveScrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
-      liveTradesScrollY.value = event.contentOffset.y;
+      liveScrollY.value = event.contentOffset.y;
     },
   });
   const scrollHandlers: Record<
@@ -266,7 +344,7 @@ const SocialV1ViewContent: React.FC = () => {
   > = {
     trending: trendingScrollHandler,
     following: followingScrollHandler,
-    liveTrades: liveTradesScrollHandler,
+    live: liveScrollHandler,
     leaderboard: leaderboardScrollHandler,
   };
 
@@ -300,8 +378,8 @@ const SocialV1ViewContent: React.FC = () => {
         if (index === followingIndex) {
           return followingScrollY.value;
         }
-        if (index === liveTradesIndex) {
-          return liveTradesScrollY.value;
+        if (index === liveIndex) {
+          return liveScrollY.value;
         }
         return leaderboardScrollY.value;
       };
@@ -325,8 +403,8 @@ const SocialV1ViewContent: React.FC = () => {
         trendingScrollY.value = target;
       } else if (nextIndex === followingIndex) {
         followingScrollY.value = target;
-      } else if (nextIndex === liveTradesIndex) {
-        liveTradesScrollY.value = target;
+      } else if (nextIndex === liveIndex) {
+        liveScrollY.value = target;
       } else {
         leaderboardScrollY.value = target;
       }
@@ -336,8 +414,8 @@ const SocialV1ViewContent: React.FC = () => {
           ? trendingPageRef
           : nextIndex === followingIndex
             ? followingPageRef
-            : nextIndex === liveTradesIndex
-              ? liveTradesPageRef
+            : nextIndex === liveIndex
+              ? livePageRef
               : leaderboardPageRef;
       incomingPage.current?.scrollToOffset(target);
     },
@@ -348,8 +426,8 @@ const SocialV1ViewContent: React.FC = () => {
       trendingIndex,
       trendingScrollY,
       leaderboardScrollY,
-      liveTradesIndex,
-      liveTradesScrollY,
+      liveIndex,
+      liveScrollY,
       titleHeight,
     ],
   );
@@ -414,6 +492,40 @@ const SocialV1ViewContent: React.FC = () => {
     [],
   );
   const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
+  const handlePostTradeReopen = useCallback(
+    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
+      setQuickBuy({ target, copyTradeOrigin });
+    },
+    [],
+  );
+  usePostTradeShareReopen(
+    handlePostTradeReopen,
+    PostTradeShareOwner.socialV1Feed,
+  );
+  const handleCopyTrade = useCallback(
+    (item: SocialV1FeedItem, commentId?: string) => {
+      if (item.variant !== 'spotOpen' && item.variant !== 'spotShare') {
+        return;
+      }
+
+      const chain = chainNameToId(item.asset.avatar.chain);
+      const tokenAddress = item.asset.avatar.tokenAddress.trim();
+      if (!chain || !tokenAddress) {
+        return;
+      }
+
+      openQuickBuy(
+        {
+          tokenAddress,
+          tokenSymbol: item.asset.symbol,
+          tokenName: item.asset.name ?? item.asset.symbol,
+          chain,
+        },
+        commentId ? { commentId } : undefined,
+      );
+    },
+    [openQuickBuy],
+  );
 
   useEffect(() => {
     if (!showNotificationsBanner) {
@@ -500,26 +612,6 @@ const SocialV1ViewContent: React.FC = () => {
     [changeTab],
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      // Reconcile with the composed-post store on every focus. A store update
-      // that lands while this screen is blurred (the composer is pushed on top
-      // of it) reaches no subscribers, and re-subscribing does not replay it.
-      refreshSocialV1ComposedFeed();
-
-      if (!consumeSocialV1FocusTrending()) {
-        return;
-      }
-      programmaticTabChangeRef.current = true;
-      pagerRef.current?.setPage(trendingIndex);
-      if (activeIndex !== trendingIndex) {
-        changeTab(trendingIndex);
-      } else {
-        trendingPageRef.current?.scrollToOffset(0, true);
-      }
-    }, [activeIndex, changeTab, trendingIndex]),
-  );
-
   useEffect(() => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
@@ -573,7 +665,7 @@ const SocialV1ViewContent: React.FC = () => {
             </Pressable>
           }
           endAccessory={
-            <SocialHeaderGlassSurface twClassName="gap-1 px-1">
+            <SocialHeaderGlassSurface twClassName="gap-2 px-2">
               <ButtonIcon
                 iconName={IconName.Gift}
                 iconProps={{ color: IconColor.IconDefault }}
@@ -583,6 +675,7 @@ const SocialV1ViewContent: React.FC = () => {
                   'wallet.rewards_accessibility_label',
                 )}
                 testID={SocialV1ViewSelectorsIDs.REWARDS_BUTTON}
+                twClassName="bg-transparent"
               />
               <ButtonIcon
                 iconName={IconName.Edit}
@@ -590,6 +683,7 @@ const SocialV1ViewContent: React.FC = () => {
                 size={ButtonIconSize.Md}
                 onPress={handleOpenComposer}
                 testID={SocialV1ViewSelectorsIDs.PLUS_BUTTON}
+                twClassName="bg-transparent"
               />
             </SocialHeaderGlassSurface>
           }
@@ -632,24 +726,24 @@ const SocialV1ViewContent: React.FC = () => {
               />
             </Box>
 
-            {/* Pages are rendered in `tabOrder` so the pager positions stay
-              aligned with the tabs bar. */}
+            {/* Flush with the tab underline. A top margin would clip the
+              pages in a band below the bar instead of at the underline. */}
             <PagerView
               ref={pagerRef}
-              style={tw.style('flex-1 mt-6')}
+              style={tw.style('flex-1')}
               initialPage={landingIndex}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
-              {tabOrder.map((tab) => {
+              {tabOrder.map((tab, pageIndex) => {
                 const testIds = PAGE_TEST_IDS[tab];
                 const pageRef =
                   tab === 'trending'
                     ? trendingPageRef
                     : tab === 'following'
                       ? followingPageRef
-                      : tab === 'liveTrades'
-                        ? liveTradesPageRef
+                      : tab === 'live'
+                        ? livePageRef
                         : leaderboardPageRef;
                 return (
                   <View
@@ -658,48 +752,58 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'liveTrades' ? (
-                      <LiveTradesView
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onOpenFilters={handleOpenLiveTradesFilters}
-                        isFilterActive={hasActiveFilters('liveTrades')}
-                        appliedFilters={applied.liveTrades}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
+                    <TraderStatRotationContext.Provider
+                      value={activeIndex === pageIndex}
+                    >
+                      {tab === 'leaderboard' ? (
+                        <LeaderboardShellTabPage
+                          isActive={activeIndex === leaderboardIndex}
+                          performance={socialPerformanceByTab.leaderboard}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          appliedFilters={applied.leaderboard}
+                          onOpenFilters={handleOpenLeaderboardFilters}
+                          isFilterActive={hasActiveFilters('leaderboard')}
+                        />
+                      ) : tab === 'live' ? (
+                        <LiveView
+                          isActive={activeIndex === liveIndex}
+                          source={analyticsSource}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleCopyTrade}
+                          onOpenFilters={handleOpenLiveFilters}
+                          isFilterActive={hasActiveFilters('live')}
+                          appliedFilters={applied.live}
+                        />
+                      ) : (
+                        <EmptyShellTabPage
+                          tab={tab}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab[tab]}
+                          isActive={
+                            tab === 'trending'
+                              ? activeIndex === trendingIndex
+                              : activeIndex === followingIndex
+                          }
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                          onOpenFilters={
+                            tab === 'following'
+                              ? handleOpenFollowingFilters
+                              : undefined
+                          }
+                          isFilterActive={hasActiveFilters('following')}
+                          appliedFilters={
+                            tab === 'following' ? applied.following : undefined
+                          }
+                          onQuickBuy={openQuickBuy}
+                        />
+                      )}
+                    </TraderStatRotationContext.Provider>
                   </View>
                 );
               })}
@@ -712,7 +816,7 @@ const SocialV1ViewContent: React.FC = () => {
             tab={openTab}
             draft={draft}
             onChange={updateDraft}
-            onApply={applyFilters}
+            onApply={handleApplyFilters}
             onReset={resetDraftToDefaults}
             onClose={closeSheet}
           />
@@ -725,6 +829,8 @@ const SocialV1ViewContent: React.FC = () => {
           features={TOP_TRADERS_QUICK_BUY_FEATURES}
           initialTradeMode="buy"
           analyticsContext={{ source: 'trader_feed' }}
+          postTradeShare
+          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
           copyTradeOrigin={quickBuy?.copyTradeOrigin}
         />
       </SafeAreaView>

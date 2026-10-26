@@ -309,6 +309,7 @@ export const moneyAccountControllerMock = {
     backgroundState: {
       MoneyAccountController: {
         moneyAccounts: {},
+        defaultMoneyAccountId: null,
       },
     },
   },
