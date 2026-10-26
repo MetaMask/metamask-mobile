@@ -15,7 +15,6 @@ import {
   IconName,
   Skeleton,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,8 +23,6 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { strings } from '../../../../../locales/i18n';
-import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
-import { useAccountName } from '../../../hooks/useAccountName';
 import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
@@ -99,9 +96,6 @@ const ProfileDrawer = () => {
   // controller. A refresh is a network fetch, so those cells skip it.
   const canRefreshProfile = networkTier !== 'NONE' && hardwareTier !== 'LOW';
   const { profile, isLoading } = useMyProfile({ enabled: canRefreshProfile });
-  const accountGroupName = useAccountGroupName();
-  const accountName = useAccountName();
-  const accountLabel = accountGroupName || accountName;
 
   const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -222,15 +216,6 @@ const ProfileDrawer = () => {
                 >
                   {formatProfileHandle(profile)}
                 </Text>
-                {accountLabel ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME}
-                  >
-                    {accountLabel}
-                  </Text>
-                ) : null}
               </Box>
             </Box>
           </Pressable>
