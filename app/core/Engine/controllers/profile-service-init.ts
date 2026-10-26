@@ -6,9 +6,9 @@ import type { MessengerClientInitFunction } from '../types';
 import { ApiEnv, getApiEnv } from '../../apiEnv';
 
 const PROFILE_API_URL_BY_ENV: Record<ApiEnv, string> = {
-  [ApiEnv.Dev]: 'https://profile-api.dev-api.cx.metamask.io',
-  [ApiEnv.Uat]: 'https://profile-api.uat-api.cx.metamask.io',
-  [ApiEnv.Prod]: 'https://profile-api.api.cx.metamask.io',
+  [ApiEnv.Dev]: 'https://profile.dev-api.cx.metamask.io',
+  [ApiEnv.Uat]: 'https://profile.uat-api.cx.metamask.io',
+  [ApiEnv.Prod]: 'https://profile.api.cx.metamask.io',
 };
 
 const getProfileApiBaseUrl = (): string =>
