@@ -61,6 +61,16 @@ describe('VbaOnboardingLoading', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('hydrates with the caller-provided source', () => {
+    renderWithProvider(
+      <VbaOnboardingLoading
+        route={{ params: { source: 'vba-home-card-get-started' } }}
+      />,
+    );
+
+    expect(mockResolve).toHaveBeenCalledWith('vba-home-card-get-started');
+  });
+
   it('opens vendor terms when hydrate returns an empty snapshot', async () => {
     const snapshot = { ...EMPTY_VBA_ONBOARDING_SNAPSHOT };
     mockResolve.mockResolvedValue({

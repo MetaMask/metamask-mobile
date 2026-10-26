@@ -1,3 +1,4 @@
+import PerpsFeeDiscountLabel from '../../components/PerpsFeesDisplay/PerpsFeeDiscountLabel';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -18,7 +19,6 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import { strings } from '../../../../../../locales/i18n';
 import { ImpactMoment, useHaptics } from '../../../../../util/haptics';
 import Keypad from '../../../../Base/Keypad';
-import MembershipVipBadge from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsSlider from '../../components/PerpsSlider';
@@ -296,11 +296,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
               twClassName="flex-row items-center justify-center gap-2 pt-2"
               testID={PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER}
             >
-              {(feeResults.feeDiscountPercentage ?? 0) > 0 ? (
-                <MembershipVipBadge
-                  hasProEntitlement={feeResults.feeSource === 'subscription'}
-                />
-              ) : null}
+              <PerpsFeeDiscountLabel
+                feeDiscountPercentage={feeResults.feeDiscountPercentage}
+                feeDiscountKind={feeResults.feeDiscountKind}
+              />
               <Text
                 variant={TextVariant.BodyXs}
                 color={TextColor.TextAlternative}

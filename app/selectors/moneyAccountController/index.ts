@@ -2,6 +2,7 @@ import { createSelector } from 'reselect';
 import type { MoneyAccountControllerState } from '@metamask/money-account-controller';
 import { RootState } from '../../reducers';
 import { selectPrimaryHDKeyring } from '../keyringController';
+import { isMnemonicMoneyAccount } from '../../lib/Money/money-accounts';
 
 /**
  * Selects the MoneyAccountController state from the root Redux state.
@@ -37,8 +38,12 @@ export const selectPrimaryMoneyAccount = createSelector(
     if (!primaryKeyringId) {
       return undefined;
     }
+    // MPC-backed money accounts have no entropy source ID, so they can never
+    // be the primary (SRP-derived) money account.
     return Object.values(moneyAccounts).find(
-      (account) => account.options.entropy.id === primaryKeyringId,
+      (account) =>
+        isMnemonicMoneyAccount(account) &&
+        account.options.entropy.id === primaryKeyringId,
     );
   },
 );
