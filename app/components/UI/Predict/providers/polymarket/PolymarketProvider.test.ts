@@ -18,7 +18,12 @@ import {
 } from '../../constants/flags';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
 import type { OrderPreview } from '../types';
-import { Side, type PredictActivity, type PredictPosition } from '../../types';
+import {
+  PredictPositionStatus,
+  Side,
+  type PredictActivity,
+  type PredictPosition,
+} from '../../types';
 import type { PredictFeatureFlags } from '../../types/flags';
 import {
   ACCOUNT_STATE_CACHE_TTL_MS,
@@ -409,6 +414,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
   isMembershipFeeWaiverEnabled: false,
+  disablePolymarketV2Markets: false,
   predictSportsFeed: DEFAULT_PREDICT_SPORTS_FEED_FLAG,
   predictHomeCategories: DEFAULT_PREDICT_HOME_CATEGORIES_FLAG,
   predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
@@ -902,6 +908,148 @@ describe('PolymarketProvider', () => {
           endDateMax: '2026-12-31',
         }),
       ).rejects.toThrow('Network error');
+    });
+  });
+
+  describe('Protocol V2 markets kill switch', () => {
+    const events = [{ id: 'event-1', markets: [] }];
+    const markets = [
+      { id: 'market-1', status: 'open', outcomes: [{ id: 'outcome-1' }] },
+    ];
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockParsePolymarketEvents.mockReturnValue(markets as never);
+    });
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to the category feed',
+      async (disablePolymarketV2Markets) => {
+        mockFetchEventsFromPolymarketApi.mockResolvedValue({
+          events,
+          category: 'trending',
+          nextCursor: null,
+        } as never);
+
+        await createProvider({ disablePolymarketV2Markets }).getMarkets({
+          category: 'trending',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to search',
+      async (disablePolymarketV2Markets) => {
+        mockSearchEventsFromPolymarketApi.mockResolvedValue({
+          events,
+          totalResults: 1,
+        } as never);
+
+        await createProvider({ disablePolymarketV2Markets }).searchMarkets({
+          q: 'bitcoin',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to the carousel',
+      async (disablePolymarketV2Markets) => {
+        mockFetchCarouselFromPolymarketApi.mockResolvedValue([
+          { event: events[0] },
+        ] as never);
+
+        await createProvider({
+          disablePolymarketV2Markets,
+        }).getCarouselMarkets();
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to market series',
+      async (disablePolymarketV2Markets) => {
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: jest.fn().mockResolvedValue({ events, next_cursor: null }),
+        });
+
+        await createProvider({ disablePolymarketV2Markets }).getMarketSeries({
+          seriesId: 'series-1',
+          endDateMin: '2026-01-01',
+          endDateMax: '2026-12-31',
+        });
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it.each([false, true])(
+      'passes hideV2Markets=%s to highlighted markets',
+      async (disablePolymarketV2Markets) => {
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+
+        await createProvider({ disablePolymarketV2Markets }).getMarketsByIds([
+          'event-1',
+        ]);
+
+        expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+          events,
+          expect.objectContaining({
+            hideV2Markets: disablePolymarketV2Markets,
+          }),
+        );
+      },
+    );
+
+    it('drops a highlighted market that is hidden because every market is v2', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+      mockParsePolymarketEvents.mockReturnValue([]);
+
+      await expect(
+        createProvider({
+          disablePolymarketV2Markets: true,
+        }).getMarketsByIds(['event-1']),
+      ).resolves.toEqual([]);
+    });
+
+    it('never hides v2 markets in market details', async () => {
+      mockGetMarketDetailsFromGammaApi.mockResolvedValue(events[0] as never);
+
+      await expect(
+        createProvider({
+          disablePolymarketV2Markets: true,
+        }).getMarketDetails({ marketId: 'event-1' }),
+      ).resolves.toEqual(markets[0]);
+
+      expect(mockParsePolymarketEvents).toHaveBeenCalledWith(
+        events,
+        expect.objectContaining({ hideV2Markets: false }),
+      );
     });
   });
 
@@ -2996,6 +3144,84 @@ describe('PolymarketProvider', () => {
     expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
   });
 
+  it('reads deposit-wallet collateral while checking whether the legacy Safe exists', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+    mockIsSmartContractAddress.mockClear();
+    mockGetRawBalance.mockClear();
+
+    let resolveDeployment: (deployed: boolean) => void = () => undefined;
+    let resolveDepositBalance: (balance: bigint) => void = () => undefined;
+    mockIsSmartContractAddress.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDeployment = resolve;
+      }),
+    );
+    mockGetRawBalance.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDepositBalance = resolve;
+      }),
+    );
+
+    const pendingBalance = provider.getBalance({ address: signer.address });
+    await flushPromises();
+
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledWith(
+      legacySafeAddress,
+      '0x89',
+    );
+
+    resolveDeployment(false);
+    resolveDepositBalance(1_500_000n);
+
+    await expect(pendingBalance).resolves.toBe(1.5);
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds deployed legacy Safe collateral to the deposit-wallet balance', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+
+    mockIsSmartContractAddress.mockResolvedValue(true);
+    mockGetRawBalance.mockImplementation(async ({ address, tokenAddress }) => {
+      if (address === depositWalletAddress) {
+        return 1_000_000n;
+      }
+      if (tokenAddress === USDC_E_ADDRESS) {
+        return 3_000_000n;
+      }
+      return 2_000_000n;
+    });
+
+    const balance = await provider.getBalance({ address: signer.address });
+
+    expect(balance).toBe(6);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: USDC_E_ADDRESS,
+    });
+  });
+
   it('runs deposit-wallet beforePublish deployment and allowance preflight', async () => {
     const provider = createProvider();
     const repairTransaction = {
@@ -3220,7 +3446,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3233,6 +3459,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: 'v2' },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: 'v2' });
     });
 
     it('keeps the CTF claim when the gamma market has no v2 version', async () => {
@@ -3263,7 +3490,7 @@ describe('PolymarketProvider', () => {
       );
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3273,6 +3500,105 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: undefined },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: undefined });
+    });
+
+    describe('Protocol V2 markets kill switch', () => {
+      const v1ConditionId = gammaConditionId;
+      const v2ConditionId =
+        '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const v1Position = createClaimPosition({
+        id: 'v1-position',
+        outcomeId: v1ConditionId,
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createClaimPosition({
+        id: 'v2-position',
+        outcomeId: v2ConditionId,
+        status: PredictPositionStatus.WON,
+      });
+
+      beforeEach(() => {
+        jest.clearAllMocks();
+        mockGetMarketDetailsFromGammaApi.mockResolvedValue({
+          markets: [
+            { conditionId: v1ConditionId, version: 'v1' },
+            { conditionId: v2ConditionId, version: 'v2' },
+          ],
+        } as never);
+      });
+
+      it('claims only the CTF positions of a mixed batch when the kill switch is on', async () => {
+        const result = await createProvider({
+          disablePolymarketV2Markets: true,
+        }).prepareClaim({ positions: [v1Position, v2Position], signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ positions: [v1Position] }),
+        );
+        expect(result.positions).toEqual([v1Position]);
+        expect(result.marketVersions).toEqual({
+          [v1ConditionId]: undefined,
+          [v2ConditionId]: 'v2',
+        });
+      });
+
+      it('throws MARKET_UNAVAILABLE when every position is v2 and the kill switch is on', async () => {
+        await expect(
+          createProvider({ disablePolymarketV2Markets: true }).prepareClaim({
+            positions: [v2Position],
+            signer,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+        expect(mockBuildClaimTransaction).not.toHaveBeenCalled();
+      });
+
+      it('throws MARKET_UNAVAILABLE when only losing CTF positions are left after skipping v2', async () => {
+        const lostV1Position = {
+          ...v1Position,
+          status: PredictPositionStatus.LOST,
+        };
+
+        await expect(
+          createProvider({ disablePolymarketV2Markets: true }).prepareClaim({
+            positions: [lostV1Position, v2Position],
+            signer,
+          }),
+        ).rejects.toThrow(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+        expect(mockBuildClaimTransaction).not.toHaveBeenCalled();
+      });
+
+      it('claims a CTF-only batch unchanged when the kill switch is on', async () => {
+        const positions = [v1Position];
+
+        const result = await createProvider({
+          disablePolymarketV2Markets: true,
+        }).prepareClaim({ positions, signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({ positions }),
+        );
+        expect(result.positions).toEqual(positions);
+      });
+
+      it('claims every position of a mixed batch when the kill switch is off', async () => {
+        const positions = [v1Position, v2Position];
+
+        const result = await createProvider({
+          disablePolymarketV2Markets: false,
+        }).prepareClaim({ positions, signer });
+
+        expect(mockBuildClaimTransaction).toHaveBeenCalledWith(
+          expect.objectContaining({
+            positions,
+            marketVersions: {
+              [v1ConditionId]: undefined,
+              [v2ConditionId]: 'v2',
+            },
+          }),
+        );
+        expect(result.positions).toBe(positions);
+      });
     });
   });
 

@@ -1270,6 +1270,11 @@
       "retry": "Try again"
     }
   },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
+    }
+  },
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",
@@ -1330,11 +1335,16 @@
         "feed": "Feed",
         "trending": "Trending",
         "following": "Following",
-        "live_trades": "Live"
+        "live": "Live"
       },
       "live_stream": {
         "paused": "Paused",
-        "live": "Live"
+        "live": "Live",
+        "new_posts": {
+          "one": "{{count}} new post",
+          "other": "{{count}} new posts"
+        },
+        "new_posts_capped": "{{count}}+ new posts"
       },
       "following": "Following",
       "all": "All",
@@ -1375,9 +1385,9 @@
           "title": "No posts yet",
           "description": "Follow traders to see their posts here."
         },
-        "liveTrades": {
+        "live": {
           "title": "No trades yet",
-          "description": "Live trades will show up here."
+          "description": "Live activity will show up here."
         }
       },
       "empty_type": {
@@ -1457,16 +1467,22 @@
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_trade_share": {
-      "in_progress": "In progress...",
+      "swap_in_progress": "Swap in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
+      "order_in_progress": "Order in progress",
       "order_complete": "Order complete",
       "order_failed": "Order failed",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "View activity",
       "try_again": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
@@ -1656,12 +1672,11 @@
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
       "first_trade_prompt": "First trade?",
-      "empty_title": "Your feed starts here",
-      "empty_description": "Share a trade and it'll show up here for your followers",
-      "empty_fee_description": "you earn 15% of fees every time someone copies your trade",
+      "empty_title": "Make your first post",
+      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
       "other_empty_title": "No posts yet",
       "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Share your first trade",
+      "share_first_trade": "Create MetaMask post",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -3502,6 +3517,7 @@
       "layout": "Order book layout",
       "layout_left": "Left",
       "layout_right": "Right",
+      "size_on_click": "Set order book size on click",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -3639,6 +3655,7 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
     "event": {
       "your_positions": "Your positions"
@@ -4125,6 +4142,11 @@
       "description": "Predictions aren't available in your region due to legal restrictions.",
       "link": "See Polymarket terms",
       "webview_title": "Polymarket Terms",
+      "button": "Got it"
+    },
+    "market_unavailable": {
+      "title": "Market unavailable",
+      "description": "This market isn't available right now. For help, contact MetaMask Support.",
       "button": "Got it"
     },
     "deposit": {
@@ -6445,6 +6467,7 @@
     "view_account": "View account on Etherscan",
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
+    "token_contract_address_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "Sharing my public key: "
   },
   "enable_nft-auto-detection": {
@@ -9622,7 +9645,13 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date"
+      "date": "Date",
+      "paid_with": "Paid with",
+      "you_deposited": "You deposited",
+      "transaction_fees": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "total": "Total",
+      "pending": "Pending"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -9733,6 +9762,7 @@
     "staked_balance": "Staked balance",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
+    "withdrawal_details_unavailable": "We couldn't load your withdrawal details. Try again. If the problem persists, contact MetaMask Support.",
     "stake_more": "Stake more",
     "claim": "Claim",
     "staking": "Staking",
@@ -13048,6 +13078,8 @@
       },
       "resets_on": "Resets on {{date}}",
       "load_error": "Couldn't load your allowances.",
+      "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
+      "unavailable": "Member pricing isn't available right now.",
       "retry": "Try again"
     },
     "physical_card": {

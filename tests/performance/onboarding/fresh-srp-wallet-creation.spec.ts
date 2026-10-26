@@ -26,6 +26,7 @@ import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptIn
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
 import { closePredictModal } from '../../flows/wallet.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 import {
   Performance,
   PerformanceOnboarding,
@@ -333,6 +334,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         },
       );
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapCreateNewWalletButton();
       await onboardingSheetTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

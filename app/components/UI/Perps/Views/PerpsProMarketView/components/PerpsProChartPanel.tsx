@@ -35,7 +35,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { selectPerpsPriceAlertsEnabledFlag } from '../../../selectors/featureFlags';
-import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
+import ChartCandleSkeleton from '../../../../Charts/ChartCandleSkeleton';
 import { useHaptics } from '../../../../../../util/haptics';
 import ComponentErrorBoundary from '../../../../ComponentErrorBoundary';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
@@ -352,9 +352,8 @@ const PerpsProChartPanel = ({
   ]);
 
   let chartContent: React.ReactNode = (
-    <Skeleton
+    <ChartCandleSkeleton
       height={PRO_CHART_HEIGHT}
-      width="100%"
       testID={PerpsProMarketViewSelectorsIDs.CHART_SKELETON}
     />
   );
