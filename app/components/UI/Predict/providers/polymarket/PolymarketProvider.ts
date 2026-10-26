@@ -3349,15 +3349,20 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
 
-    const depositPusdRaw = await getRawBalance({
-      address: accountState.address,
-      tokenAddress: protocol.collateral.tradingToken,
-    });
+    // Deposit-wallet collateral and the legacy Safe code check share no data.
+    // Overlap them so the balance read waits for one round trip. Legacy
+    // collateral is read only after that Safe is known to exist.
     const legacySafeAddress = computeProxyAddress(address);
-    const legacySafeDeployed = await isSmartContractAddress(
-      legacySafeAddress,
-      numberToHex(POLYGON_MAINNET_CHAIN_ID),
-    );
+    const [depositPusdRaw, legacySafeDeployed] = await Promise.all([
+      getRawBalance({
+        address: accountState.address,
+        tokenAddress: protocol.collateral.tradingToken,
+      }),
+      isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      ),
+    ]);
 
     let legacyPusdRaw = 0n;
     let legacyUsdceRaw = 0n;

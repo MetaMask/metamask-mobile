@@ -1,14 +1,15 @@
 import {
-  FilterButton,
-  FilterButtonSize,
-  FilterButtonVariant,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  IconName,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { LiveViewSelectorsIDs } from '../LiveView.testIds';
-import LiveIcon from './LiveIcon';
 
-const PAUSED_TEXT_PROPS = { twClassName: 'text-muted' };
+const PAUSED_COLOR_PROPS = { twClassName: TextColor.TextMuted };
 
 export interface LiveButtonProps {
   isLive: boolean;
@@ -24,18 +25,18 @@ const LiveButton: React.FC<LiveButtonProps> = ({ isLive, onPress }) => {
   );
 
   return (
-    <FilterButton
-      isSelected
-      variant={FilterButtonVariant.Secondary}
-      size={FilterButtonSize.Sm}
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Md}
       onPress={onPress}
       testID={LiveViewSelectorsIDs.STREAM_BUTTON}
       accessibilityLabel={label}
-      textProps={isLive ? undefined : PAUSED_TEXT_PROPS}
-      startAccessory={<LiveIcon isLive={isLive} />}
+      textProps={isLive ? undefined : PAUSED_COLOR_PROPS}
+      startIconName={isLive ? IconName.Play : IconName.Pause}
+      startIconProps={isLive ? undefined : PAUSED_COLOR_PROPS}
     >
       {label}
-    </FilterButton>
+    </Button>
   );
 };
 

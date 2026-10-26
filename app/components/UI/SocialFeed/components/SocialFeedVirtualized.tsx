@@ -14,14 +14,20 @@ import Animated, {
   useComposedEventHandler,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { useSocialFeedScreenView } from '../socialFeedTracking';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
-import { createFeedItemEntryScheduler } from './FeedItemEntryAnimation';
+import {
+  FEED_ROW_LAYOUT_TRANSITION,
+  FEED_ROW_LAYOUT_TRANSITION_LOW,
+  createFeedItemEntryScheduler,
+} from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type { SocialFeedVirtualizedProps } from './SocialFeed.types';
 import {
@@ -34,6 +40,9 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
 
+/** How often relative post ages ("3 min ago") are recomputed. */
+const AGE_TICK_MS = 60_000;
+
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
 
@@ -42,6 +51,14 @@ const LIST_WINDOW = {
   default: { initialNumToRender: 6, windowSize: 5 },
   low: { initialNumToRender: 4, windowSize: 3 },
 } as const;
+
+/**
+ * Rows FlatList adds per render pass. A post inserted at the top leaves the
+ * row that drops out of the window with a stale measurement, and the list
+ * renders one extra batch past its window until the rows are re-measured, then
+ * unmounts it. One row keeps that churn to a single card per insertion.
+ */
+const MAX_TO_RENDER_PER_BATCH = 1;
 
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
@@ -60,6 +77,8 @@ const keyExtractor = (post: SocialV1FeedPost) =>
 const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   source,
   location,
+  analyticsSource,
+  isActive,
   title,
   renderHeader,
   filterPost,
@@ -82,6 +101,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<Animated.FlatList<SocialV1FeedPost>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [clock, setClock] = useState(() => Date.now());
+  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
@@ -105,6 +126,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     holdNewPosts: networkTier === 'SLOW_CELLULAR',
     filterPost,
   });
+  // A disabled query (offline, locked) reports not loading and no error.
+  // That is not an empty feed; wait until a fetch has settled.
+  const awaitingResult =
+    dataUpdatedAt === undefined && !error && posts.length === 0;
+  useSocialFeedScreenView(
+    location,
+    analyticsSource,
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
+    isActive,
+  );
 
   const visiblePosts = useMemo(
     () =>
@@ -181,12 +212,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   const entrances = live?.entrances;
+  const lastIndex = visiblePosts.length - 1;
   const renderItem = useCallback(
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
       <SocialFeedRow
         post={item}
         dividerTestID={
-          index > 0
+          index < lastIndex
             ? getSocialV1FeedEntryDividerTestId(
                 `${location}-${keyExtractor(item)}`,
               )
@@ -198,11 +230,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        now={clock}
       />
     ),
     [
+      clock,
       entrances,
       isLowHardware,
+      lastIndex,
       location,
       onAuthorPress,
       onCopyTrade,
@@ -227,7 +262,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   return (
-    <SocialFeedSurfaceProvider location={location}>
+    <SocialFeedSurfaceProvider
+      location={location}
+      analyticsSource={analyticsSource}
+    >
       <Box twClassName="flex-1 bg-default" testID={testID}>
         <Animated.FlatList
           ref={listRef}
@@ -238,8 +276,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           contentContainerStyle={tw.style('flex-grow pb-8')}
           showsVerticalScrollIndicator={false}
           initialNumToRender={listWindow.initialNumToRender}
-          maxToRenderPerBatch={listWindow.initialNumToRender}
+          maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
           windowSize={listWindow.windowSize}
+          itemLayoutAnimation={
+            isLowHardware
+              ? FEED_ROW_LAYOUT_TRANSITION_LOW
+              : FEED_ROW_LAYOUT_TRANSITION
+          }
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollSettled}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -142,6 +143,16 @@ describe('LiveView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockPendingNewCount = 0;
+  });
+
+  it('pads the Live filter bar 16px below the tabs and 8px above the feed', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(LiveViewSelectorsIDs.FILTER_BAR).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
   });
 
   it('renders the all-traders feed in virtualized realtime mode', () => {
