@@ -226,12 +226,38 @@ describe('TelegramLoginHandler', () => {
       expect(parsedAuthorizationUrl.searchParams.get('state')).toBe(
         'fixed-telegram-nonce',
       );
+      expect(parsedAuthorizationUrl.searchParams.get('nonce')).toBeNull();
       expect(parsedAuthorizationUrl.searchParams.get('app_redirect_uri')).toBe(
         'metamask://oauth-tg',
       );
       expect(
         parsedAuthorizationUrl.searchParams.get('code_challenge'),
       ).toBeTruthy();
+    });
+
+    it('sends the caller nonce on initiate for MFA recovery', async () => {
+      const recoveryNonce = `0x${'ab'.repeat(32)}`;
+      handler = new TelegramLoginHandler({
+        ...baseOptions,
+        appRedirectUri: 'metamask://oauth-tg',
+        nonce: recoveryNonce,
+      });
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: 'metamask://oauth-tg?ok=1',
+      });
+
+      await handler.login();
+
+      const [authorizationUrl] = (openAuthSessionAsync as jest.Mock).mock
+        .calls[0];
+      const parsedAuthorizationUrl = new URL(authorizationUrl);
+      expect(parsedAuthorizationUrl.searchParams.get('state')).toBe(
+        recoveryNonce,
+      );
+      expect(parsedAuthorizationUrl.searchParams.get('nonce')).toBe(
+        recoveryNonce,
+      );
     });
   });
 
@@ -398,6 +424,7 @@ describe('TelegramLoginHandler', () => {
         'api/v1/oauth/mint',
         baseOptions.authServerUrl,
       );
+      expect(out.provider_id_token).toBe(verifyJwt);
     });
 
     it('retries verify once when the first verify request fails at the network layer', async () => {

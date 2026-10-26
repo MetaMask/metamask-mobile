@@ -19,6 +19,7 @@ import type {
 export const OIDC_ISSUERS: Record<string, AuthConnection> = {
   'https://accounts.google.com': AuthConnection.Google,
   'https://appleid.apple.com': AuthConnection.Apple,
+  'https://oauth.telegram.org': AuthConnection.Telegram,
 };
 
 export type LoginWithNonce = (params: {
@@ -58,8 +59,8 @@ const trimTrailingSlash = (value: string) => value.replace(/\/$/u, '');
 
 /**
  * Login with a caller nonce. Native flows return the raw ID token directly;
- * code flows (iOS Google, Android Apple) exchange the code with the auth
- * server, which returns the original token as `provider_id_token`.
+ * code flows (iOS Google, Android Apple, Telegram) exchange the code with the
+ * auth server, which returns the original token as `provider_id_token`.
  */
 export const loginWithNonceViaHandlers: LoginWithNonce = async ({
   authConnection,
@@ -67,6 +68,10 @@ export const loginWithNonceViaHandlers: LoginWithNonce = async ({
 }) => {
   const handler = createLoginHandler(Platform.OS, authConnection, false, {
     nonce,
+    // Recovery must construct a Telegram handler even when onboarding hides it.
+    ...(authConnection === AuthConnection.Telegram
+      ? { telegramLoginEnabled: true }
+      : {}),
   });
   const result = await handler.login();
   if (!result) {
@@ -90,7 +95,7 @@ export const loginWithNonceViaHandlers: LoginWithNonce = async ({
 
 /**
  * Builds the `identifierAuthProvider` the MFA recovery controller calls when it
- * needs a key-bound Google or Apple assertion for a specific request.
+ * needs a key-bound Google, Apple, or Telegram assertion for a specific request.
  */
 export const createOidcIdentifierAuthProvider = ({
   isEnabled,

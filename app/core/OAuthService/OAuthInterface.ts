@@ -87,8 +87,8 @@ export type AuthAccessType = 'online' | 'offline';
 export interface AuthResponse {
   id_token: string;
   /**
-   * Original Google/Apple ID token, returned on authorization-code and
-   * ID-token exchanges.
+   * Original Google/Apple/Telegram ID token, returned on authorization-code and
+   * ID-token exchanges (and Telegram verify) for MFA recovery PoP.
    */
   provider_id_token?: string;
   access_token: string;

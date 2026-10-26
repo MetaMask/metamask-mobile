@@ -93,6 +93,29 @@ describe('loginWithNonceViaHandlers', () => {
     expect(idToken).toBe('raw-id-token');
   });
 
+  it('enables Telegram login when requesting a Telegram ID token', async () => {
+    const codeResult = { code: 'auth-code', codeVerifier: 'verifier' };
+    const login = jest.fn().mockResolvedValue(codeResult);
+    const getAuthTokens = jest.fn().mockResolvedValue({
+      id_token: 'auth-jwt',
+      provider_id_token: 'telegram-raw',
+    });
+    mockCreateLoginHandler.mockReturnValue({ login, getAuthTokens } as never);
+
+    const idToken = await loginWithNonceViaHandlers({
+      authConnection: AuthConnection.Telegram,
+      nonce: '0xabc',
+    });
+
+    expect(mockCreateLoginHandler).toHaveBeenCalledWith(
+      Platform.OS,
+      AuthConnection.Telegram,
+      false,
+      { nonce: '0xabc', telegramLoginEnabled: true },
+    );
+    expect(idToken).toBe('telegram-raw');
+  });
+
   it('exchanges a code-flow login for the provider ID token', async () => {
     const codeResult = { code: 'auth-code', codeVerifier: 'verifier' };
     const login = jest.fn().mockResolvedValue(codeResult);
@@ -225,6 +248,36 @@ describe('createOidcIdentifierAuthProvider', () => {
 
     expect(loginWithNonce).toHaveBeenCalledWith({
       authConnection: AuthConnection.Apple,
+      nonce: expectedNonce,
+    });
+  });
+
+  it('maps the Telegram issuer to Telegram login', async () => {
+    const loginWithNonce: jest.MockedFunction<LoginWithNonce> = jest
+      .fn()
+      .mockResolvedValue(
+        tokenFor(expectedNonce, {
+          iss: 'https://oauth.telegram.org',
+          sub: 'telegram-sub-1',
+        }),
+      );
+    const provider = createOidcIdentifierAuthProvider({
+      isEnabled: () => true,
+      loginWithNonce,
+    });
+
+    await provider.getKeyBoundIdentifierToken({
+      identifier: {
+        ...googleIdentifier,
+        namespace: 'https://oauth.telegram.org',
+        value: 'telegram-sub-1',
+      },
+      proofPublicKey: PROOF_PUBLIC_KEY,
+      requestHash: REQUEST_HASH,
+    });
+
+    expect(loginWithNonce).toHaveBeenCalledWith({
+      authConnection: AuthConnection.Telegram,
       nonce: expectedNonce,
     });
   });

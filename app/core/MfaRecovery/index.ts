@@ -1,7 +1,7 @@
 /**
  * Mobile MFA recovery adapters.
  *
- * Exposes the Seedless Google/Apple OIDC `identifierAuthProvider` for
+ * Exposes the Seedless Google/Apple/Telegram OIDC `identifierAuthProvider` for
  * `@metamask/mfa-recovery-controller` (MetaMask/core#10022, MFA-703).
  * Prefer `getSeedlessOidcIdentifierAuthProvider` from the Seedless wallet-init
  * options module as the first consumer path. Full Engine

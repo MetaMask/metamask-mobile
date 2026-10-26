@@ -31,8 +31,9 @@ export interface CreateLoginHandlerOptions {
    */
   telegramLoginEnabled?: boolean;
   /**
-   * OIDC nonce to embed in the provider ID token. Only the native ID-token
-   * handlers (iOS Apple, Android Google) honour it.
+   * OIDC nonce to embed in the provider ID token. Honoured by native ID-token
+   * handlers (iOS Apple, Android Google) and by Telegram initiate when set for
+   * MFA recovery.
    */
   nonce?: string;
 }
@@ -107,6 +108,7 @@ export function createLoginHandler(
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         default:
           throw new OAuthError(
@@ -149,6 +151,7 @@ export function createLoginHandler(
             authServerUrl: w3aAuthServerUrl,
             profileSyncEnv,
             web3AuthNetwork,
+            nonce: options?.nonce,
           });
         default:
           throw new OAuthError(

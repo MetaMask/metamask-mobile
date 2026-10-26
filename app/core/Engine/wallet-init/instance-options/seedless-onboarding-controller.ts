@@ -137,7 +137,7 @@ export function getSeedlessOnboardingControllerInstanceOptions(): SeedlessOnboar
 }
 
 /**
- * Seedless Google/Apple OIDC `identifierAuthProvider` for
+ * Seedless Google/Apple/Telegram OIDC `identifierAuthProvider` for
  * `@metamask/mfa-recovery-controller` ([MFA-703](https://consensyssoftware.atlassian.net/browse/MFA-703)).
  *
  * Seedless is the first consumer path: this wraps the same OAuth login handlers

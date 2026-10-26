@@ -170,6 +170,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * 4. Backend 302s to app_redirect_uri?code_challenge=<challenge>
    * 5. App intercepts deep link — promptAsync resolves with success
    *
+   * When a caller nonce is set (MFA recovery), it is also sent as `nonce` so the
+   * Telegram ID token is bound to the recovery proof key.
+   *
    * @returns LoginHandlerCodeResult with codeVerifier for the verify step
    */
   async login(): Promise<LoginHandlerCodeResult> {
@@ -181,6 +184,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     initiateUrl.searchParams.set('state', this.nonce);
     initiateUrl.searchParams.set('app_redirect_uri', this.redirectUri);
     initiateUrl.searchParams.set('code_challenge', challenge);
+    // Recovery binds the PoP key into the ID token; normal login keeps state only.
+    if (this.hasCallerNonce) {
+      initiateUrl.searchParams.set('nonce', this.nonce);
+    }
 
     await this.loginWithAuthSession(initiateUrl.toString());
 
@@ -271,6 +278,10 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * Exchanges the PKCE code_verifier for the Telegram OIDC token via the verify endpoint,
    * exchanges that token through Hydra's JWT bearer grant,
    * then mints the standard auth-service token set used by seedless onboarding.
+   *
+   * The verify token is also returned as `provider_id_token` so MFA recovery can
+   * use Telegram's raw ID token as the escrow assertion without changing the
+   * Hydra mint path for normal login.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
    * the stored one-time login record, and returns the full auth response.
@@ -393,6 +404,8 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';
+    // Raw Telegram OIDC token from verify (before Hydra). Used by MFA recovery.
+    mintResponse.provider_id_token = verifyData.token;
 
     return mintResponse;
   }
