@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 import { filterStandaloneMarkets } from '../utils/feed';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import { predictQueries } from '../queries';
@@ -97,7 +97,7 @@ export const usePredictMarketList = (
       return;
     }
 
-    Logger.error(ensureError(queryResult.error), {
+    logPredictError(ensureError(queryResult.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictMarketList',

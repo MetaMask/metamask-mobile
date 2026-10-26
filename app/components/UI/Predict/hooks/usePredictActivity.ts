@@ -5,7 +5,6 @@ import {
   type UseInfiniteQueryResult,
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import type { PredictActivity, PredictActivityPage } from '../types';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../constants/transactions';
@@ -14,6 +13,7 @@ import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { predictQueries } from '../queries';
 import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 
 export interface UsePredictActivityOptions {
   limit?: number;
@@ -80,7 +80,7 @@ export function usePredictActivity({
   useEffect(() => {
     if (!queryResult.error) return;
 
-    Logger.error(ensureError(queryResult.error), {
+    logPredictError(ensureError(queryResult.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictActivity',

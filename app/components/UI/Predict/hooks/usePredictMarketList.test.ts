@@ -1,8 +1,13 @@
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Logger from '../../../../util/Logger';
 import { usePredictMarketList } from './usePredictMarketList';
 import { createChildPage, createPage } from '../testUtils/marketList';
+import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../utils/predictNetworkError';
 
 const mockListMarkets = jest.fn();
 const mockGetVisiblePredictMarkets = jest.fn(
@@ -43,6 +48,7 @@ const createWrapper = () => {
 describe('usePredictMarketList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
     mockListMarkets.mockResolvedValue(createPage([]));
   });
 
@@ -277,5 +283,48 @@ describe('usePredictMarketList', () => {
       expect(result.current.error).toBeNull();
     });
     expect(result.current.markets.map((m) => m.id)).toEqual(['a']);
+  });
+
+  it('records an iOS offline error as a breadcrumb instead of Logger.error', async () => {
+    const { Wrapper } = createWrapper();
+    const message =
+      'Error Domain=NSURLErrorDomain Code=-1009 "The Internet connection appears to be offline."';
+    mockListMarkets.mockRejectedValueOnce(new Error(message));
+
+    const { result } = renderHook(() => usePredictMarketList(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.error?.message).toBe(message);
+    });
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(Logger.log).toHaveBeenCalledTimes(1);
+    expect(Logger.log).toHaveBeenCalledWith(
+      PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+      '-1009',
+      expect.objectContaining({
+        tags: expect.objectContaining({ component: 'usePredictMarketList' }),
+      }),
+    );
+  });
+
+  it('reports a non-network error with Logger.error', async () => {
+    const { Wrapper } = createWrapper();
+    mockListMarkets.mockRejectedValueOnce(new Error('Boom'));
+
+    const { result } = renderHook(() => usePredictMarketList(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.error?.message).toBe('Boom');
+    });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Boom' }),
+      expect.objectContaining({
+        tags: expect.objectContaining({ component: 'usePredictMarketList' }),
+      }),
+    );
   });
 });

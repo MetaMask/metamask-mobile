@@ -1,8 +1,13 @@
 import React from 'react';
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Logger from '../../../../util/Logger';
 import { useUnrealizedPnL } from './useUnrealizedPnL';
 import { UnrealizedPnL } from '../types';
+import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../utils/predictNetworkError';
 
 const mockSelectedAddress = '0x1234567890123456789012345678901234567890';
 
@@ -11,6 +16,11 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockGetUnrealizedPnL = jest.fn();
+
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { error: jest.fn(), log: jest.fn() },
+}));
 
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
@@ -57,6 +67,7 @@ describe('useUnrealizedPnL', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
   });
 
   it('does not fetch when enabled is false', () => {
@@ -138,5 +149,46 @@ describe('useUnrealizedPnL', () => {
     });
     expect(result.current.data).toBeUndefined();
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('records a network error as a breadcrumb instead of Logger.error', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetUnrealizedPnL.mockRejectedValue(new Error('Network request failed'));
+
+    const { result } = renderHook(() => useUnrealizedPnL(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.error?.message).toBe('Network request failed');
+    });
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(Logger.log).toHaveBeenCalledTimes(1);
+    expect(Logger.log).toHaveBeenCalledWith(
+      PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+      expect.any(String),
+      expect.objectContaining({
+        tags: expect.objectContaining({ component: 'useUnrealizedPnL' }),
+      }),
+    );
+  });
+
+  it('reports a non-network error with Logger.error', async () => {
+    const { Wrapper } = createWrapper();
+    mockGetUnrealizedPnL.mockRejectedValue(new Error('Boom'));
+
+    const { result } = renderHook(() => useUnrealizedPnL(), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() => {
+      expect(result.current.error?.message).toBe('Boom');
+    });
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.objectContaining({ message: 'Boom' }),
+      expect.objectContaining({
+        tags: expect.objectContaining({ component: 'useUnrealizedPnL' }),
+      }),
+    );
   });
 });
