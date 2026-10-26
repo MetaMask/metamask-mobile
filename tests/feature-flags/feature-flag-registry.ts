@@ -4894,7 +4894,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       },
       {
         name: 'treatment',
-        scope: { type: 'percentage_rollout', value: 1 },
+        scope: { type: 'percentage_rollout', value: 0 },
       },
     ],
     status: FeatureFlagStatus.Active,

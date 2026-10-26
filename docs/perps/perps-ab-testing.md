@@ -22,9 +22,11 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 
 ## Pro entry market list (`perpsTAT4021AbtestPerpsHeaderMarketList`)
 
-Pro-mode users who tap the wallet-home Perps section header, balance-breakdown row, or main action entry (homepage Perps button, wallet actions, trade menu), and users who switch from Lite to Pro on the Perps Home pill, open the market list in treatment. The list starts on Watchlist when the watchlist is non-empty, otherwise All. Control keeps the last-viewed market, or BTC.
+Pro-mode users who tap the wallet-home Perps section header, balance-breakdown row, or main action entry (homepage Perps button, wallet actions, trade menu), and users who switch from Lite to Pro on the Perps Home pill, open the market list in treatment. The list starts on Watchlist when the watchlist feature is on and the watchlist is non-empty, otherwise All. Control keeps the last-viewed market, or BTC.
 
-Lite/casual navigation does not read the assignment (`trackExposure` stays off) and is unchanged. Deeplinks, discovery pills, position/order cards, and the market-details switcher are out of scope and still use `useGetPerpsHomeNavigationTarget`. Missing or invalid flags fall back to control. Shared Perps screen, interaction, and trade events are enriched only when `perps_mode` is `pro`.
+The hook always reads the assignment. Lite and casual surfaces pass `trackExposure: false`, so they are not enrolled and their navigation stays unchanged. For Pro users, Experiment Viewed fires when a wallet-home entry component mounts (Perps section, balance breakdown, homepage Perps button), not on tap. That readout is intent-to-treat over Pro users who rendered wallet home. The Lite pill and the mode chooser arm exposure only after the user commits to Pro.
+
+Deeplinks, discovery pills, position/order cards, and the market-details switcher are out of scope and still use `getPerpsHomeNavigationTarget`. Missing or invalid flags fall back to control. Shared Perps screen, interaction, and trade events are enriched only when `perps_mode` is `pro`.
 
 ## Screen vs bottom sheet (`perpsTAT3938AbtestScreenVsBottomSheet`)
 

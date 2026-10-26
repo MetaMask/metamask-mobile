@@ -67,6 +67,25 @@ describe('resolvePerpsHeaderEntryTarget', () => {
     });
   });
 
+  it('opens All when the watchlist feature is off even if symbols are saved', () => {
+    expect(
+      resolvePerpsHeaderEntryTarget({
+        isEligible: true,
+        destination: 'marketList',
+        watchlistCount: 2,
+        isWatchlistEnabled: false,
+        extraParams: { source: 'home_section' },
+      }),
+    ).toEqual({
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        source: 'home_section',
+        showWatchlistOnly: false,
+        defaultMarketTypeFilter: 'all',
+      },
+    });
+  });
+
   it('opens the All tab for a treatment user with an empty watchlist', () => {
     expect(
       resolvePerpsHeaderEntryTarget({

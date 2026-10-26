@@ -7,7 +7,10 @@ import {
   PERPS_HEADER_NAV_VARIANTS,
   PerpsHeaderNavVariant,
 } from '../abTestConfig';
-import { selectPerpsProModeEnabledFlag } from '../selectors/featureFlags';
+import {
+  selectPerpsProModeEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
+} from '../selectors/featureFlags';
 import {
   selectPerpsLastViewedMarketSymbol,
   selectPerpsMode,
@@ -29,17 +32,20 @@ jest.mock('react-redux', () => ({
 
 const mockSelectors = ({
   isProModeEnabled = false,
+  isWatchlistEnabled = true,
   perpsMode = PerpsMode.Lite,
   lastViewed = 'BTC',
   watchlist = [] as string[],
 }: {
   isProModeEnabled?: boolean;
+  isWatchlistEnabled?: boolean;
   perpsMode?: PerpsMode;
   lastViewed?: string;
   watchlist?: string[];
 } = {}) => {
   mockUseSelector.mockImplementation((selector: unknown) => {
     if (selector === selectPerpsProModeEnabledFlag) return isProModeEnabled;
+    if (selector === selectPerpsWatchlistEnabledFlag) return isWatchlistEnabled;
     if (selector === selectPerpsMode) return perpsMode;
     if (selector === selectPerpsLastViewedMarketSymbol) return lastViewed;
     if (selector === selectPerpsWatchlistMarkets) return watchlist;
@@ -124,6 +130,30 @@ describe('usePerpsHeaderEntryNavigation', () => {
     expect(result.current.getTarget()).toEqual({
       screen: Routes.PERPS.MARKET_LIST,
       params: { showWatchlistOnly: true },
+    });
+  });
+
+  it('opens All when the watchlist feature is off even if favorites are saved', () => {
+    mockSelectors({
+      isProModeEnabled: true,
+      perpsMode: PerpsMode.Pro,
+      isWatchlistEnabled: false,
+      watchlist: ['ETH'],
+    });
+    mockUseABTest.mockReturnValue({
+      variant: PERPS_HEADER_NAV_VARIANTS[PerpsHeaderNavVariant.Treatment],
+      variantName: PerpsHeaderNavVariant.Treatment,
+      isActive: true,
+    });
+
+    const { result } = renderHook(() => usePerpsHeaderEntryNavigation());
+
+    expect(result.current.getTarget()).toEqual({
+      screen: Routes.PERPS.MARKET_LIST,
+      params: {
+        showWatchlistOnly: false,
+        defaultMarketTypeFilter: 'all',
+      },
     });
   });
 

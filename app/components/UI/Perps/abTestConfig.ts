@@ -107,7 +107,8 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
  * TAT-4021: Pro-mode Perps entry points open the market list.
  *
  * Eligible users are already in Pro mode, or are switching into Pro from the
- * Perps Home lite pill. Lite/casual navigation never reads this assignment.
+ * Perps Home lite pill. Lite and casual callers still resolve the assignment,
+ * but they skip Experiment Viewed and keep today's home target.
  * Missing or invalid flags fall back to `control` via `useABTest`.
  *
  * LaunchDarkly JSON threshold array (50/50 at launch; dark-launch at 100%

@@ -5,8 +5,8 @@ import {
   PERPS_HEADER_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_HEADER_AB_TEST_KEY,
   PERPS_HEADER_NAV_VARIANTS,
-  type PerpsHeaderNavVariantConfig,
 } from '../abTestConfig';
+import { selectPerpsWatchlistEnabledFlag } from '../selectors/featureFlags';
 import {
   selectPerpsLastViewedMarketSymbol,
   selectPerpsWatchlistMarkets,
@@ -28,9 +28,6 @@ export interface UsePerpsHeaderEntryNavigationOptions {
 }
 
 export interface UsePerpsHeaderEntryNavigationResult {
-  destination: PerpsHeaderNavVariantConfig['destination'];
-  variantName: string;
-  isActive: boolean;
   /**
    * Wallet-home "go to Perps" target. Lite/casual users keep Perps Home
    * even when the remote assignment is treatment.
@@ -51,6 +48,7 @@ export function usePerpsHeaderEntryNavigation(
   options?: UsePerpsHeaderEntryNavigationOptions,
 ): UsePerpsHeaderEntryNavigationResult {
   const isProModeActive = useIsPerpsProModeActive();
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   const lastViewedMarketSymbol = useSelector(selectPerpsLastViewedMarketSymbol);
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
   const watchlistCount = Array.isArray(watchlistSymbols)
@@ -63,7 +61,7 @@ export function usePerpsHeaderEntryNavigation(
       : PERPS_DEFAULT_PRO_MARKET_SYMBOL;
   const trackExposure = options?.trackExposure ?? isProModeActive;
 
-  const { variant, variantName, isActive } = useABTest(
+  const { variant } = useABTest(
     PERPS_HEADER_AB_TEST_KEY,
     PERPS_HEADER_NAV_VARIANTS,
     {
@@ -80,10 +78,17 @@ export function usePerpsHeaderEntryNavigation(
         isEligible: isProModeActive,
         destination,
         watchlistCount,
+        isWatchlistEnabled,
         extraParams,
         lastViewedMarketSymbol: lastViewed,
       }),
-    [destination, isProModeActive, lastViewed, watchlistCount],
+    [
+      destination,
+      isProModeActive,
+      isWatchlistEnabled,
+      lastViewed,
+      watchlistCount,
+    ],
   );
 
   const getProSwitchTarget = useCallback(
@@ -92,16 +97,14 @@ export function usePerpsHeaderEntryNavigation(
         isEligible: true,
         destination,
         watchlistCount,
+        isWatchlistEnabled,
         extraParams,
         lastViewedMarketSymbol: lastViewed,
       }),
-    [destination, lastViewed, watchlistCount],
+    [destination, isWatchlistEnabled, lastViewed, watchlistCount],
   );
 
   return {
-    destination,
-    variantName,
-    isActive,
     getTarget,
     getProSwitchTarget,
   };

@@ -10,6 +10,10 @@ import {
 /**
  * Isolates the wallet-home Perps section header from other `home_section`
  * taps (asset tiles, explore pill) on Perp Screen Viewed.
+ *
+ * Client-local until `@metamask/perps-controller` adds this value to
+ * `PERPS_EVENT_VALUE.BUTTON_LOCATION`. Pro asset-details Screen Viewed
+ * forwards the route param when an entry point sets it.
  */
 export const PERPS_SECTION_HEADER_BUTTON_LOCATION = 'perps_section_header';
 
@@ -18,6 +22,11 @@ export interface ResolvePerpsHeaderEntryTargetArgs {
   isEligible: boolean;
   destination: PerpsHeaderNavVariantConfig['destination'];
   watchlistCount: number;
+  /**
+   * When false, saved symbols cannot be shown, so treatment opens All.
+   * Defaults to on so callers that have not read the flag keep Watchlist.
+   */
+  isWatchlistEnabled?: boolean;
   extraParams?: Record<string, unknown>;
   lastViewedMarketSymbol?: string;
 }
@@ -44,17 +53,18 @@ const marketListParams = (
 };
 
 /**
- * Resolves a Pro entry destination for the TAT-4021 experiment.
+ * Resolves where a Pro entry point opens.
  *
  * Ineligible (Lite/casual) callers keep today's home target and must not
  * branch on `destination`. Treatment opens the market list on Watchlist when
- * the watchlist has at least one symbol, otherwise All. Control keeps the
- * last-viewed market, or BTC.
+ * the watchlist feature is on and it has at least one symbol, otherwise All.
+ * Control keeps the last-viewed market, or BTC.
  */
 export const resolvePerpsHeaderEntryTarget = ({
   isEligible,
   destination,
   watchlistCount,
+  isWatchlistEnabled = true,
   extraParams = {},
   lastViewedMarketSymbol = PERPS_DEFAULT_PRO_MARKET_SYMBOL,
 }: ResolvePerpsHeaderEntryTargetArgs): PerpsHomeNavigationTarget => {
@@ -66,8 +76,10 @@ export const resolvePerpsHeaderEntryTarget = ({
     );
   }
 
+  const visibleWatchlistCount = isWatchlistEnabled ? watchlistCount : 0;
+
   return {
     screen: Routes.PERPS.MARKET_LIST,
-    params: marketListParams(watchlistCount, extraParams),
+    params: marketListParams(visibleWatchlistCount, extraParams),
   };
 };
