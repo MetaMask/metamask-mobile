@@ -21,7 +21,11 @@ import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
-import { createFeedItemEntryScheduler } from './FeedItemEntryAnimation';
+import {
+  FEED_ROW_LAYOUT_TRANSITION,
+  FEED_ROW_LAYOUT_TRANSITION_LOW,
+  createFeedItemEntryScheduler,
+} from './FeedItemEntryAnimation';
 import { useSocialEntryModeration } from './SocialEntryOptionsBottomSheet';
 import type { SocialFeedVirtualizedProps } from './SocialFeed.types';
 import {
@@ -42,6 +46,14 @@ const LIST_WINDOW = {
   default: { initialNumToRender: 6, windowSize: 5 },
   low: { initialNumToRender: 4, windowSize: 3 },
 } as const;
+
+/**
+ * Rows FlatList adds per render pass. A post inserted at the top leaves the
+ * row that drops out of the window with a stale measurement, and the list
+ * renders one extra batch past its window until the rows are re-measured, then
+ * unmounts it. One row keeps that churn to a single card per insertion.
+ */
+const MAX_TO_RENDER_PER_BATCH = 1;
 
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
@@ -181,12 +193,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   }, [livePrices]);
 
   const entrances = live?.entrances;
+  const lastIndex = visiblePosts.length - 1;
   const renderItem = useCallback(
     ({ item, index }: { item: SocialV1FeedPost; index: number }) => (
       <SocialFeedRow
         post={item}
         dividerTestID={
-          index > 0
+          index < lastIndex
             ? getSocialV1FeedEntryDividerTestId(
                 `${location}-${keyExtractor(item)}`,
               )
@@ -203,6 +216,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     [
       entrances,
       isLowHardware,
+      lastIndex,
       location,
       onAuthorPress,
       onCopyTrade,
@@ -238,8 +252,13 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           contentContainerStyle={tw.style('flex-grow pb-8')}
           showsVerticalScrollIndicator={false}
           initialNumToRender={listWindow.initialNumToRender}
-          maxToRenderPerBatch={listWindow.initialNumToRender}
+          maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
           windowSize={listWindow.windowSize}
+          itemLayoutAnimation={
+            isLowHardware
+              ? FEED_ROW_LAYOUT_TRANSITION_LOW
+              : FEED_ROW_LAYOUT_TRANSITION
+          }
           onScroll={scrollHandler}
           scrollEventThrottle={16}
           onMomentumScrollEnd={handleScrollSettled}

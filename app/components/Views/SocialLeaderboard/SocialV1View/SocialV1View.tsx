@@ -71,6 +71,7 @@ import {
 } from '../shell/filters';
 import LiveView from '../LiveView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
+import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
@@ -706,7 +707,7 @@ const SocialV1ViewContent: React.FC = () => {
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
-              {tabOrder.map((tab) => {
+              {tabOrder.map((tab, pageIndex) => {
                 const testIds = PAGE_TEST_IDS[tab];
                 const pageRef =
                   tab === 'trending'
@@ -723,52 +724,56 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        performance={socialPerformanceByTab.leaderboard}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'live' ? (
-                      <LiveView
-                        isActive={activeIndex === liveIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onCopyTrade={handleCopyTrade}
-                        onOpenFilters={handleOpenLiveFilters}
-                        isFilterActive={hasActiveFilters('live')}
-                        appliedFilters={applied.live}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        performance={socialPerformanceByTab[tab]}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
+                    <TraderStatRotationContext.Provider
+                      value={activeIndex === pageIndex}
+                    >
+                      {tab === 'leaderboard' ? (
+                        <LeaderboardShellTabPage
+                          isActive={activeIndex === leaderboardIndex}
+                          performance={socialPerformanceByTab.leaderboard}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          appliedFilters={applied.leaderboard}
+                          onOpenFilters={handleOpenLeaderboardFilters}
+                          isFilterActive={hasActiveFilters('leaderboard')}
+                        />
+                      ) : tab === 'live' ? (
+                        <LiveView
+                          isActive={activeIndex === liveIndex}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleCopyTrade}
+                          onOpenFilters={handleOpenLiveFilters}
+                          isFilterActive={hasActiveFilters('live')}
+                          appliedFilters={applied.live}
+                        />
+                      ) : (
+                        <EmptyShellTabPage
+                          tab={tab}
+                          performance={socialPerformanceByTab[tab]}
+                          isActive={
+                            tab === 'trending'
+                              ? activeIndex === trendingIndex
+                              : activeIndex === followingIndex
+                          }
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          containerTestID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                          onOpenFilters={
+                            tab === 'following'
+                              ? handleOpenFollowingFilters
+                              : undefined
+                          }
+                          isFilterActive={hasActiveFilters('following')}
+                          appliedFilters={
+                            tab === 'following' ? applied.following : undefined
+                          }
+                          onQuickBuy={openQuickBuy}
+                        />
+                      )}
+                    </TraderStatRotationContext.Provider>
                   </View>
                 );
               })}
