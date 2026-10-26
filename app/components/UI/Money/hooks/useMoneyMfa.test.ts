@@ -420,6 +420,18 @@ describe('useMoneyMfa', () => {
       expect(result.current.status).toBe('enabled');
       expectEnabledSheetShown();
     });
+
+    it('shows the setting-up banner again after it was dismissed', async () => {
+      setMigration('failed');
+      moneyMfaStore.setState({ isMigrationBannerDismissed: true });
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.retry();
+      });
+
+      expect(moneyMfaStore.getState().isMigrationBannerDismissed).toBe(false);
+    });
   });
 
   describe('turnOff', () => {

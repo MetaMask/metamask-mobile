@@ -21,12 +21,16 @@ const renderBanner = (status: MoneyMfaStatus, isSettingUpDismissed = false) => {
 };
 
 describe('MoneyMfaStatusBanner', () => {
-  const announce = jest
-    .spyOn(AccessibilityInfo, 'announceForAccessibility')
-    .mockImplementation(() => undefined);
+  let announce: jest.SpyInstance;
 
   beforeEach(() => {
-    announce.mockClear();
+    announce = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    announce.mockRestore();
   });
 
   describe('setting_up', () => {
