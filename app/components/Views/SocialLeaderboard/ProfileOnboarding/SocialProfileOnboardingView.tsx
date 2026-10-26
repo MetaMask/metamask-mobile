@@ -579,9 +579,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
