@@ -29,7 +29,6 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
-// Mock selectors
 jest.mock('../../../Charts/ChartCandleSkeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
