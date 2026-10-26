@@ -55,8 +55,11 @@ import type { PredictFeatureFlags } from '../types/flags';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -5145,6 +5148,97 @@ describe('PredictController', () => {
       });
     });
 
+    describe('when the provider skips positions', () => {
+      const address = '0x1234567890123456789012345678901234567890';
+      const v1Position = createMockPosition({
+        id: 'v1-position',
+        outcomeId: 'v1-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createMockPosition({
+        id: 'v2-position',
+        outcomeId: 'v2-outcome',
+        status: PredictPositionStatus.WON,
+      });
+
+      const givenClaimablePositions = async (controller: PredictController) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([v1Position, v2Position]);
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: 'claim-batch-1',
+        });
+        await controller.getPositions({ claimable: true });
+      };
+
+      it('keeps only the claimed positions so confirmClaim leaves the skipped ones', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue({ ...mockClaim, positions: [v1Position] });
+
+          await controller.claimWithConfirmation({});
+
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+          ]);
+
+          controller.confirmClaim({ address });
+
+          expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith(
+            expect.objectContaining({ positions: [v1Position] }),
+          );
+        });
+      });
+
+      it.each([
+        ['no positions', undefined],
+        ['every position', [v1Position, v2Position]],
+      ])(
+        'leaves claimable positions untouched when the provider returns %s',
+        async (_label, claimedPositions) => {
+          await withController(async ({ controller }) => {
+            await givenClaimablePositions(controller);
+            const claimableBefore =
+              controller.state.claimablePositions[address];
+            mockPolymarketProvider.prepareClaim = jest
+              .fn()
+              .mockResolvedValue({ ...mockClaim, positions: claimedPositions });
+
+            await controller.claimWithConfirmation({});
+
+            expect(controller.state.claimablePositions[address]).toBe(
+              claimableBefore,
+            );
+          });
+        },
+      );
+
+      it('re-throws MARKET_UNAVAILABLE and releases the pending claim', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockRejectedValue(
+              new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE),
+            );
+
+          await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+            PREDICT_ERROR_CODES.MARKET_UNAVAILABLE,
+          );
+
+          expect(controller.state.pendingClaims[address]).toBeUndefined();
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+            v2Position,
+          ]);
+          expect(addTransactionBatch).not.toHaveBeenCalled();
+        });
+      });
+    });
+
     it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
       const mockBatchId = 'claim-batch-deposit-wallet';
       await withController(async ({ controller }) => {
@@ -7946,6 +8040,40 @@ describe('PredictController', () => {
       };
     };
 
+    const transferInterface = new Interface([
+      'event Transfer(address indexed from, address indexed to, uint256 value)',
+    ]);
+
+    const createPUsdMintTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        '0x0000000000000000000000000000000000000000',
+        accountAddress,
+        valueRaw,
+      ]);
+
+      return {
+        address: MATIC_CONTRACTS_V2.collateral,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
+    const createLegacySweepTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        accountAddress,
+        COLLATERAL_ONRAMP_ADDRESS,
+        valueRaw,
+      ]);
+
+      return {
+        address: USDC_E_ADDRESS,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
     it('does not publish transaction status when no sender address can be resolved', () => {
       withController(
         ({ messenger }) => {
@@ -8230,6 +8358,287 @@ describe('PredictController', () => {
           }),
           txReceipt: {
             logs: [createPayoutRedemptionLog(0n)],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses the final pUSD mint for a mixed confirmed claim receipt', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 42,
+            cashPnl: 20,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createPayoutRedemptionLog(BigInt(30_000_000)),
+              createPUsdMintTransferLog(BigInt(42_000_000)),
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses the CTF payout when a legacy sweep mints pUSD', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 30,
+          }),
+        );
+      });
+    });
+
+    it('removes a legacy sweep from the mixed claim settlement mint', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+              createPUsdMintTransferLog(42_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses a mixed claim receipt when simulation reports zero', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              // The CTF payout is subsequently wrapped into pUSD, so summing
+              // both receipt events would report 3.14 instead of 2.09.
+              createPayoutRedemptionLog(1_050_000n),
+              createPUsdMintTransferLog(2_090_000n),
+            ],
+          },
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '0x0',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 2.09,
+          }),
+        );
+      });
+    });
+
+    it('uses v2 mint transfer logs for confirmed claims without CTF redemptions', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 12,
+            cashPnl: 4,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPUsdMintTransferLog(BigInt(12_000_000))],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 12,
+          }),
+        );
+      });
+    });
+
+    it('ignores collateral transfers not sourced by the zero address', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transferEvent = transferInterface.getEvent('Transfer');
+        const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+          // Gas top-up and unrelated transfers come from the Safe or other
+          // addresses, not the v2 payout sources.
+          accountAddress,
+          MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+          BigInt(12_000_000),
+        ]);
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                topics: encodedLog.topics,
+                data: encodedLog.data,
+              },
+            ],
           },
         };
 
