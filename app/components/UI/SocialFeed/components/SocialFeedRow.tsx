@@ -12,11 +12,15 @@ import SocialFeedPostShell, {
 
 export interface SocialFeedRowProps {
   post: SocialV1FeedPost;
-  /** Set on every row but the first, which has no divider above it. */
+  /**
+   * Set on every row but the last, which has no divider below it. The divider
+   * sits under the post so a post inserted at the top brings its own, and the
+   * rows already on screen keep their height.
+   */
   dividerTestID?: string;
   /** Realtime entrances; rows without one never animate. */
   entrances?: SocialFeedEntrances;
-  scheduleEntryDelay?: () => number;
+  scheduleEntryDelay?: (eventId: string) => number;
   reducedMotion?: boolean;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
@@ -89,9 +93,6 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       onAnimationComplete={entrances.markPlayed}
       reducedMotion={reducedMotion}
     >
-      {dividerTestID ? (
-        <SectionDivider marginVertical={1} testID={dividerTestID} />
-      ) : null}
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
@@ -100,6 +101,9 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           onPositionPress={post.position ? onPositionPress : undefined}
         />
       </Box>
+      {dividerTestID ? (
+        <SectionDivider marginVertical={1} testID={dividerTestID} />
+      ) : null}
     </FeedItemEntryAnimation>
   );
 };
