@@ -92,6 +92,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -299,6 +300,9 @@ export function useQuickBuyController(
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
   const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1687,9 +1691,14 @@ export function useQuickBuyController(
       costLabel: tradeToastInfo.fiatAmountLabel,
       entryPriceLabel: formattedRate,
     };
-    // Copy-trades always share. Other swaps get the prompt chosen from the
+    // Public copy-trades always share. Private profiles use the normal
+    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
     // linked profile and how many share sheets it has already completed.
-    const prompt = postTradeShare ? undefined : resolvePostTradePrompt('swap');
+    const shouldForcePostTradeShare =
+      postTradeShare && !isProfileTradingActivityPrivate;
+    const prompt = shouldForcePostTradeShare
+      ? undefined
+      : resolvePostTradePrompt('swap');
     let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
     if (prompt?.kind === 'claim_sheet') {
       trackedPostTradePrompt = prompt;
@@ -1706,7 +1715,8 @@ export function useQuickBuyController(
       trackedPostTradePrompt?.kind === 'claim_sheet';
     const shouldPostTradeShare =
       isCreateProfilePrompt ||
-      ((postTradeShare || trackedPostTradePrompt?.kind === 'share_sheet') &&
+      ((shouldForcePostTradeShare ||
+        trackedPostTradePrompt?.kind === 'share_sheet') &&
         Boolean(tradeInFlightChain));
     const postTradeShareSessionId = shouldPostTradeShare
       ? beginPostTradeShareSession({
@@ -1906,6 +1916,7 @@ export function useQuickBuyController(
     markTradeSubmitted,
     submitStartedAtRef,
     postTradeShare,
+    isProfileTradingActivityPrivate,
     resolvePostTradePrompt,
     copyTradeOrigin,
     postTradeShareOwner,

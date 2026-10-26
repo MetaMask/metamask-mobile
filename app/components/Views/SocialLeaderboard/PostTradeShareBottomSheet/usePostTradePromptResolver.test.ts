@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { selectInternalAccounts } from '../../../../selectors/accountsController';
 import { selectIsSocialV1Enabled } from '../../../../selectors/featureFlagController/socialV1';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { selectProfileControllerLinkedEvmAddress } from '../../../../selectors/profileController';
+import {
+  selectIsProfileTradingActivityPrivate,
+  selectProfileControllerLinkedEvmAddress,
+} from '../../../../selectors/profileController';
 import {
   getShareSheetCount,
   hasSeenClaimSheet,
@@ -27,6 +30,7 @@ jest.mock(
   }),
 );
 jest.mock('../../../../selectors/profileController', () => ({
+  selectIsProfileTradingActivityPrivate: jest.fn(),
   selectProfileControllerLinkedEvmAddress: jest.fn(),
 }));
 jest.mock('../../../../util/social/postTradePromptStorage', () => ({
@@ -43,15 +47,18 @@ const otherAccount = { id: 'other-id', address: OTHER };
 const mockSelectors = ({
   enabled = true,
   linkedEvmAddress = LINKED as string | null,
+  isProfileTradingActivityPrivate = false,
   selectedGroup = [linkedAccount],
 }: {
   enabled?: boolean;
   linkedEvmAddress?: string | null;
+  isProfileTradingActivityPrivate?: boolean;
   selectedGroup?: { id: string; address: string }[];
 } = {}) => {
   const values = new Map<unknown, unknown>([
     [selectIsSocialV1Enabled, enabled],
     [selectProfileControllerLinkedEvmAddress, linkedEvmAddress],
+    [selectIsProfileTradingActivityPrivate, isProfileTradingActivityPrivate],
     [selectInternalAccounts, [linkedAccount, otherAccount]],
     [selectSelectedAccountGroupInternalAccounts, selectedGroup],
   ]);

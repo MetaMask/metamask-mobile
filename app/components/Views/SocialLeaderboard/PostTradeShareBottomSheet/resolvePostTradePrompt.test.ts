@@ -10,6 +10,7 @@ const input = (
   product: 'swap',
   isSocialV1Enabled: true,
   linkedEvmAddress: '0xabc',
+  isProfileTradingActivityPrivate: false,
   isLinkedAccountInSelectedGroup: true,
   shareSheetCount: 0,
   hasSeenClaimSheet: false,
@@ -44,6 +45,23 @@ describe('resolvePostTradePrompt', () => {
     expect(
       resolvePostTradePrompt(input({ isLinkedAccountInSelectedGroup: false })),
     ).toEqual({ kind: 'none' });
+  });
+
+  it('returns none for an existing private profile', () => {
+    expect(
+      resolvePostTradePrompt(input({ isProfileTradingActivityPrivate: true })),
+    ).toEqual({ kind: 'none' });
+  });
+
+  it('keeps the create profile prompt when no profile exists', () => {
+    expect(
+      resolvePostTradePrompt({
+        ...input({
+          linkedEvmAddress: null,
+          isProfileTradingActivityPrivate: true,
+        }),
+      }),
+    ).toEqual({ kind: 'claim_sheet' });
   });
 
   it.each([0, 1, POST_TRADE_SHARE_SHEET_LIMIT - 1])(

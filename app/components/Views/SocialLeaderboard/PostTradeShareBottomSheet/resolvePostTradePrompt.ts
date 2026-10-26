@@ -20,6 +20,8 @@ export interface ResolvePostTradePromptInput {
   isSocialV1Enabled: boolean;
   /** Social profile wallet. Empty means the user has no social profile. */
   linkedEvmAddress: string | null | undefined;
+  /** Existing social profile has disabled trading activity sharing. */
+  isProfileTradingActivityPrivate: boolean;
   isLinkedAccountInSelectedGroup: boolean;
   shareSheetCount: number;
   hasSeenClaimSheet: boolean;
@@ -34,6 +36,7 @@ export const resolvePostTradePrompt = ({
   product,
   isSocialV1Enabled,
   linkedEvmAddress,
+  isProfileTradingActivityPrivate,
   isLinkedAccountInSelectedGroup,
   shareSheetCount,
   hasSeenClaimSheet,
@@ -44,6 +47,9 @@ export const resolvePostTradePrompt = ({
   const address = linkedEvmAddress?.trim();
   if (!address) {
     return hasSeenClaimSheet ? { kind: 'none' } : { kind: 'claim_sheet' };
+  }
+  if (isProfileTradingActivityPrivate) {
+    return { kind: 'none' };
   }
   if (!isLinkedAccountInSelectedGroup) {
     return { kind: 'none' };

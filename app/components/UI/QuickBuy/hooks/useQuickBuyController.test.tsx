@@ -36,6 +36,10 @@ jest.mock('react-redux', () => ({
   shallowEqual: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/profileController', () => ({
+  selectIsProfileTradingActivityPrivate: jest.fn(),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn() }),
 }));

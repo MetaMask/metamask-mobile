@@ -21,6 +21,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import {
   selectCurrentCurrency,
   selectCurrencyRates,
@@ -247,6 +248,9 @@ export const setupDefaultMocks = () => {
     (selector: (state: unknown) => unknown) => selector({}),
   );
   (selectIsSubmittingTx as unknown as jest.Mock).mockReturnValue(false);
+  (
+    selectIsProfileTradingActivityPrivate as unknown as jest.Mock
+  ).mockReturnValue(false);
   (selectSourceWalletAddress as unknown as jest.Mock).mockReturnValue(
     '0xWALLET',
   );
@@ -3993,6 +3997,24 @@ export const runQuickBuyControllerCases = ({
               'tx-1',
               expect.objectContaining({
                 postTradeShare: true,
+                postTradePrompt: undefined,
+              }),
+            );
+          });
+
+          it('uses the normal toasts for copy-trades from a private profile', async () => {
+            (
+              selectIsProfileTradingActivityPrivate as unknown as jest.Mock
+            ).mockReturnValue(true);
+
+            await submit(true);
+
+            expect(getPostTradeShareSession()).toBeNull();
+            expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+            expect(trackQuickBuyTrade).toHaveBeenCalledWith(
+              'tx-1',
+              expect.objectContaining({
+                postTradeShare: false,
                 postTradePrompt: undefined,
               }),
             );

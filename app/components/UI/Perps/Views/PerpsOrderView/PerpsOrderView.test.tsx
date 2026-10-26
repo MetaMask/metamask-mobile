@@ -645,6 +645,7 @@ let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
 let mockSelectedEvmAccount: { address: string } | undefined;
 let mockIsPerpsProModeActive = false;
+let mockProfileTradingActivityPrivate = false;
 const mockResolvePostTradePrompt = jest.fn();
 
 jest.mock(
@@ -690,6 +691,12 @@ jest.mock('react-redux', () => ({
     );
     if (selector === selectSelectedInternalAccountByScope) {
       return () => mockSelectedEvmAccount;
+    }
+    const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+      '../../../../../selectors/profileController',
+    );
+    if (selector === selectIsProfileTradingActivityPrivate) {
+      return mockProfileTradingActivityPrivate;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -1363,6 +1370,7 @@ describe('PerpsOrderView', () => {
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
+    mockProfileTradingActivityPrivate = false;
     (usePerpsOrderValidation as jest.Mock).mockReturnValue({
       isValid: true,
       errors: [],
@@ -7407,6 +7415,31 @@ describe('PerpsOrderView', () => {
       }
       expect(completed.orderId).toBe('42');
       expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order from a private profile', async () => {
+      mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
     });
 
     it('marks the share sheet failed and skips the error toast', async () => {
