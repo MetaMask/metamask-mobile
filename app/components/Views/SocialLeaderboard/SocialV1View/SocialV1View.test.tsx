@@ -18,13 +18,11 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { LiveTradesViewSelectorsIDs } from '../LiveTradesView/LiveTradesView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
-import type { SocialShellTab } from '../shell/types';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
 const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockNavigate = jest.fn();
-const mockSetParams = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
@@ -34,10 +32,7 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   error: null,
   refresh: mockRefreshMyProfile,
 }));
-let mockRouteParams: {
-  showNotificationsBanner?: boolean;
-  initialTab?: SocialShellTab;
-} = {};
+let mockRouteParams: { showNotificationsBanner?: boolean } = {};
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
@@ -201,10 +196,7 @@ jest.mock('@react-navigation/native', () => {
   const ReactActual = jest.requireActual('react');
   return {
     ...actual,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      setParams: mockSetParams,
-    }),
+    useNavigation: () => ({ navigate: mockNavigate }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
     useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
@@ -311,21 +303,6 @@ describe('SocialV1View', () => {
     );
 
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
-  });
-
-  it('switches the mounted view to a newly requested initial tab and clears the request', () => {
-    const { rerender } = renderWithProvider(<SocialV1View />);
-    expect(screen.queryByTestId('top-traders-view')).toBeNull();
-
-    mockRouteParams = { initialTab: 'leaderboard' };
-    rerender(<SocialV1View />);
-
-    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
-    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
-    expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
-      expect.anything(),
-    );
   });
 
   it('renders the three mocked position cards on Trending', () => {

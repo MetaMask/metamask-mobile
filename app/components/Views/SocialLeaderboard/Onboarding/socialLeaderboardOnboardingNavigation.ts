@@ -89,6 +89,25 @@ const toHomeRouteParams = (
 };
 
 /**
+ * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
+ * the current flow, after the first-time onboarding gate. Perps uses this so
+ * Social stays inside the Perps flow.
+ *
+ * @param navigate - The caller's navigate function.
+ * @param params - Params forwarded to the home route when onboarding is skipped.
+ */
+export const pushSocialLeaderboard = (
+  navigate: SocialLeaderboardNavigate,
+  params?: SocialLeaderboardViewParams,
+): void => {
+  if (shouldShowSocialLeaderboardOnboarding()) {
+    navigate(Routes.SOCIAL.ONBOARDING);
+    return;
+  }
+  navigate(getFollowTradingHomeRoute(), toHomeRouteParams(params));
+};
+
+/**
  * Entry point into the Social Leaderboard feature. Routes a first-time user
  * straight to the onboarding (so no leaderboard/loading frame is shown first),
  * otherwise opens Follow Trading home with the caller's `source`. Social V1
@@ -102,25 +121,19 @@ export const navigateToSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
-  const isV1Treatment = isSocialV1Treatment();
+  if (!isSocialV1Treatment()) {
+    pushSocialLeaderboard(navigate, params);
+    return;
+  }
   if (shouldShowSocialLeaderboardOnboarding()) {
-    if (isV1Treatment) {
-      navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
-    } else {
-      navigate(Routes.SOCIAL.ONBOARDING);
-    }
+    navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
     return;
   }
-  if (isV1Treatment) {
-    // `pop` closes root-stack screens above the tabs (e.g. Perps), like Money.
-    navigate(
-      Routes.HOME_TABS,
-      { screen: Routes.SOCIAL.TAB, params: toHomeRouteParams(params) },
-      { pop: true },
-    );
-    return;
-  }
-  navigate(Routes.SOCIAL.V0, params);
+  navigate(
+    Routes.HOME_TABS,
+    { screen: Routes.SOCIAL.TAB, params: toHomeRouteParams(params) },
+    { pop: true },
+  );
 };
 
 /**

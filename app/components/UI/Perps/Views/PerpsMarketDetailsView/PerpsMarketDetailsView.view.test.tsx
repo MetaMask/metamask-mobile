@@ -1615,7 +1615,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         ],
       });
-      // navigateToSocialLeaderboard reads ReduxService.store directly.
+      // pushSocialLeaderboard reads ReduxService.store directly.
       const unwire = wirePerpsControllerForStore(store);
       try {
         fireEvent.press(
@@ -1691,7 +1691,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         ],
       });
-      // navigateToSocialLeaderboard reads ReduxService.store directly.
+      // pushSocialLeaderboard reads ReduxService.store directly.
       const unwire = wirePerpsControllerForStore(store);
       try {
         fireEvent.press(

@@ -776,7 +776,7 @@ describe('PerpsHomeView', () => {
       );
     });
 
-    it('switches to the Social tab on Leaderboard from Top traders See more with the perps_home source', async () => {
+    it('opens Social V1 on the Leaderboard tab from Top traders See more with the perps_home source', async () => {
       setupLeaderboardApiMock({ perpsTraders, feedItems });
 
       const { store } = renderPerpsHomeView({
@@ -784,9 +784,9 @@ describe('PerpsHomeView', () => {
         socialEnabled: true,
         extraRoutes: [
           {
-            name: Routes.HOME_TABS,
+            name: Routes.SOCIAL.V1,
             Component: createRouteParamsProbe(
-              Routes.HOME_TABS,
+              Routes.SOCIAL.V1,
             ) as ComponentType<unknown>,
           },
         ],
@@ -802,11 +802,11 @@ describe('PerpsHomeView', () => {
         );
 
         const probe = await screen.findByTestId(
-          getRouteParamsProbeTestId(Routes.HOME_TABS),
+          getRouteParamsProbeTestId(Routes.SOCIAL.V1),
         );
         expect(JSON.parse(probe.props.children as string)).toEqual({
-          screen: Routes.SOCIAL.TAB,
-          params: { source: 'perps_home', initialTab: 'leaderboard' },
+          source: 'perps_home',
+          initialTab: 'leaderboard',
         });
       } finally {
         unwire();
