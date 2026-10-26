@@ -11,7 +11,7 @@ import type {
   PredictOutcomeToken,
 } from '../types';
 import type { PredictEntryPoint } from '../types/navigation';
-import { getPredictMarketVersion } from './marketVersion';
+import { getPredictOutcomeVersion } from './marketVersion';
 import { getDisplayBuyPrice } from './prices';
 
 const MAX_FAILURE_REASON_LENGTH = 255;
@@ -33,7 +33,7 @@ export function parseAnalyticsProperties(
   predictScreen?: string,
   outcome?: Pick<PredictOutcome, 'version'>,
 ) {
-  const marketVersion = getPredictMarketVersion(outcome);
+  const outcomeVersion = getPredictOutcomeVersion(outcome);
 
   return {
     marketId: market?.id,
@@ -52,7 +52,7 @@ export function parseAnalyticsProperties(
         ? PredictEventValues.MARKET_TYPE.BINARY
         : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
     outcome: outcomeToken?.title?.toLowerCase(),
-    ...(marketVersion ? { marketVersion } : {}),
+    ...(outcomeVersion ? { outcomeVersion } : {}),
     marketSlug: market?.slug,
     gameId: market?.game?.id,
     gameStartTime: market?.game?.startTime,

@@ -482,7 +482,7 @@ describe('PredictSellPreview', () => {
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
-    it('sends the market version of a Protocol V2 outcome with the cash out order', () => {
+    it('sends outcome version v2 with the cash out order of a Protocol V2 outcome', () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -504,7 +504,7 @@ describe('PredictSellPreview', () => {
         expect.objectContaining({
           analyticsProperties: expect.objectContaining({
             transactionType: 'mm_predict_sell',
-            marketVersion: 'v2',
+            outcomeVersion: 'v2',
           }),
         }),
       );

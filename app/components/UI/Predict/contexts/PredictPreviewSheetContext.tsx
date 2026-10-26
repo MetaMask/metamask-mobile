@@ -61,7 +61,7 @@ import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
 import {
-  getPredictMarketVersion,
+  getPredictOutcomeVersion,
   isPolymarketV2Outcome,
 } from '../utils/marketVersion';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
@@ -457,7 +457,7 @@ export const PredictPreviewSheetProvider: React.FC<
       marketCategory: lastParams.market?.category,
       entryPoint: lastParams.entryPoint,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
-      marketVersion: getPredictMarketVersion(lastParams.outcome),
+      outcomeVersion: getPredictOutcomeVersion(lastParams.outcome),
     };
 
     if (isPaymentFailure) {

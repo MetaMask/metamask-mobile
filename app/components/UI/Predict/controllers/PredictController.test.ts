@@ -2804,7 +2804,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('logs the routed market version to Sentry when an order fails', async () => {
+    it('logs the routed outcome version to Sentry when an order fails', async () => {
       const orderError = new Error('Order placement failed');
       const errorSpy = jest
         .spyOn(Logger, 'error')
@@ -5274,7 +5274,7 @@ describe('PredictController', () => {
       });
     });
 
-    describe('market version analytics', () => {
+    describe('outcome version analytics', () => {
       const address = '0x1234567890123456789012345678901234567890';
       const v1Position = createMockPosition({
         id: 'v1-position',
@@ -5335,7 +5335,7 @@ describe('PredictController', () => {
           },
         ],
       ])(
-        'tracks a cancelled claim with market_version %s',
+        'tracks a cancelled claim with outcome_version %s',
         async (expected, marketVersions) => {
           await withController(async ({ controller }) => {
             await givenClaim(controller, { marketVersions });
@@ -5344,14 +5344,14 @@ describe('PredictController', () => {
             const result = await controller.claimWithConfirmation({});
 
             expect(result.status).toBe(PredictClaimStatus.CANCELLED);
-            expect(findClaimEvent('cancelled').properties.market_version).toBe(
+            expect(findClaimEvent('cancelled').properties.outcome_version).toBe(
               expected,
             );
           });
         },
       );
 
-      it('tracks market_version v1 when the kill switch leaves only CTF positions', async () => {
+      it('tracks outcome_version v1 when the kill switch leaves only CTF positions', async () => {
         await withController(async ({ controller }) => {
           await givenClaim(controller, {
             positions: [v1Position],
@@ -5364,7 +5364,7 @@ describe('PredictController', () => {
 
           await controller.claimWithConfirmation({});
 
-          expect(findClaimEvent('cancelled').properties.market_version).toBe(
+          expect(findClaimEvent('cancelled').properties.outcome_version).toBe(
             'v1',
           );
         });
@@ -5374,7 +5374,7 @@ describe('PredictController', () => {
         [TransactionStatus.confirmed, 'succeeded'],
         [TransactionStatus.failed, 'failed'],
       ])(
-        'tracks the terminal %s claim with market_version',
+        'tracks the terminal %s claim with outcome_version',
         async (transactionStatus, eventStatus) => {
           await withController(async ({ controller, messenger }) => {
             await givenClaim(controller, {
@@ -5405,14 +5405,14 @@ describe('PredictController', () => {
               } as unknown as { transactionMeta: TransactionMeta },
             );
 
-            expect(findClaimEvent(eventStatus).properties.market_version).toBe(
+            expect(findClaimEvent(eventStatus).properties.outcome_version).toBe(
               'v2',
             );
           });
         },
       );
 
-      it('logs the claim market version to Sentry when the claim fails before submission', async () => {
+      it('logs the claim outcome version to Sentry when the claim fails before submission', async () => {
         const batchError = new Error('Batch submission failed');
         const errorSpy = jest
           .spyOn(Logger, 'error')
@@ -5438,7 +5438,7 @@ describe('PredictController', () => {
                 context: expect.objectContaining({
                   data: expect.objectContaining({
                     method: 'claimWithConfirmation',
-                    marketVersion: 'mixed',
+                    outcomeVersion: 'mixed',
                   }),
                 }),
               }),

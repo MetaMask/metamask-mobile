@@ -141,7 +141,7 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
-import { getPredictClaimMarketVersion } from '../utils/marketVersion';
+import { getPredictClaimOutcomeVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -2826,9 +2826,9 @@ export class PredictController extends BaseController<
         e,
         this.getErrorContext('claimWithConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
-          marketVersion:
+          outcomeVersion:
             this.pendingClaimAnalytics[signer.address.toLowerCase()]
-              ?.marketVersion,
+              ?.outcomeVersion,
         }),
       );
 
@@ -2866,7 +2866,7 @@ export class PredictController extends BaseController<
    * event. Always sets `transaction_type: mm_predict_claim`. When a single
    * market is being claimed, `market_id`/`market_title` are populated; for
    * multi-market claims they are omitted in favor of `claimable_positions_count`.
-   * `market_version` is set when the positions' market versions are passed.
+   * `outcome_version` is set when the positions' market versions are passed.
    */
   private buildClaimAnalyticsProperties(
     analyticsContext?: PredictTradeAnalyticsProperties,
@@ -2892,12 +2892,12 @@ export class PredictController extends BaseController<
       }
     }
 
-    const marketVersion = getPredictClaimMarketVersion(
+    const outcomeVersion = getPredictClaimOutcomeVersion(
       claimablePositions,
       marketVersions,
     );
-    if (marketVersion) {
-      properties.marketVersion = marketVersion;
+    if (outcomeVersion) {
+      properties.outcomeVersion = outcomeVersion;
     }
 
     return properties;

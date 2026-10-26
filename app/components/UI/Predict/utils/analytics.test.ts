@@ -23,7 +23,7 @@ jest.mock('../constants/eventNames', () => ({
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
     },
-    MARKET_VERSION: {
+    OUTCOME_VERSION: {
       V1: 'v1',
       V2: 'v2',
       MIXED: 'mixed',
@@ -217,13 +217,13 @@ describe('parseAnalyticsProperties', () => {
     });
   });
 
-  describe('market version', () => {
+  describe('outcome version', () => {
     it.each([
       ['v2', 'v2'],
       ['v1', 'v1'],
       [undefined, 'v1'],
     ])(
-      'sets marketVersion from outcome version %s to %s',
+      'sets outcomeVersion from outcome version %s to %s',
       (version, expected) => {
         const result = parseAnalyticsProperties(
           createMockMarket(),
@@ -234,18 +234,18 @@ describe('parseAnalyticsProperties', () => {
           { version },
         );
 
-        expect(result.marketVersion).toBe(expected);
+        expect(result.outcomeVersion).toBe(expected);
       },
     );
 
-    it('omits marketVersion when the outcome is not provided', () => {
+    it('omits outcomeVersion when the outcome is not provided', () => {
       const result = parseAnalyticsProperties(
         createMockMarket(),
         createMockOutcomeToken(),
         undefined,
       );
 
-      expect(result).not.toHaveProperty('marketVersion');
+      expect(result).not.toHaveProperty('outcomeVersion');
     });
   });
 

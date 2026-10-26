@@ -27,7 +27,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
-  MARKET_VERSION: 'market_version',
+  OUTCOME_VERSION: 'outcome_version',
   ORDER_TYPE: 'order_type',
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
@@ -206,7 +206,7 @@ export const PredictEventValues = {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
   },
-  MARKET_VERSION: {
+  OUTCOME_VERSION: {
     V1: 'v1',
     V2: 'v2',
     MIXED: 'mixed',
@@ -310,8 +310,8 @@ export type PredictOneTickDecisionValue =
 export type PredictRetryOutcomeValue =
   (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
 
-export type PredictMarketVersionValue =
-  (typeof PredictEventValues.MARKET_VERSION)[keyof typeof PredictEventValues.MARKET_VERSION];
+export type PredictOutcomeVersionValue =
+  (typeof PredictEventValues.OUTCOME_VERSION)[keyof typeof PredictEventValues.OUTCOME_VERSION];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

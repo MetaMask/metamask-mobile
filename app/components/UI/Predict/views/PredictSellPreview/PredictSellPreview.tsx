@@ -54,7 +54,7 @@ import {
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
 } from '../../utils/orders';
-import { getPredictMarketVersion } from '../../utils/marketVersion';
+import { getPredictOutcomeVersion } from '../../utils/marketVersion';
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
@@ -103,7 +103,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
       outcome: position?.outcome?.toLowerCase(),
-      marketVersion: getPredictMarketVersion(outcome),
+      outcomeVersion: getPredictOutcomeVersion(outcome),
       marketSlug: market?.slug,
       gameId: market?.game?.id,
       gameStartTime: market?.game?.startTime,

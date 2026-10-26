@@ -2344,7 +2344,7 @@ describe('PredictBuyPreview', () => {
       );
     });
 
-    it('tracks the market version of a Protocol V2 outcome', () => {
+    it('tracks outcome version v2 for a Protocol V2 outcome', () => {
       mockUseRoute.mockReturnValue({
         ...mockRoute,
         params: {
@@ -2365,7 +2365,7 @@ describe('PredictBuyPreview', () => {
       expect(trackPredictOrderEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           analyticsProperties: expect.objectContaining({
-            marketVersion: PredictEventValues.MARKET_VERSION.V2,
+            outcomeVersion: PredictEventValues.OUTCOME_VERSION.V2,
           }),
         }),
       );

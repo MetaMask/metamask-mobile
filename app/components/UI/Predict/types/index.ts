@@ -5,7 +5,7 @@ import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
 import type {
-  PredictMarketVersionValue,
+  PredictOutcomeVersionValue,
   PredictPaymentMethodValue,
 } from '../constants/eventNames';
 
@@ -624,7 +624,11 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
-  marketVersion?: PredictMarketVersionValue;
+  /**
+   * `outcome_version` analytics value: `v1`, `v2`, or `mixed` (claims only).
+   * Normalized, unlike the raw Gamma version in `OrderPreview.outcomeVersion`.
+   */
+  outcomeVersion?: PredictOutcomeVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;
