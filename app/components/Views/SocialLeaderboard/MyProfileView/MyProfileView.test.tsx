@@ -715,6 +715,19 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('opens the avatar picker from the owner avatar and pencil', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.AVATAR));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
   it('opens Manage profile from Edit profile', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -892,6 +905,9 @@ describe('MyProfileView', () => {
 
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON),
     ).toBeNull();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),

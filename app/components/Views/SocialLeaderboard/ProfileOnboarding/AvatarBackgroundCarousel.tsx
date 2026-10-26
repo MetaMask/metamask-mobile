@@ -374,6 +374,11 @@ interface AvatarBackgroundCarouselProps {
   avatarPresetId: string;
   selectedBackgroundId: string;
   onSelect: (backgroundId: string) => void;
+  /**
+   * When the parent already read `getHardwareTier()`, pass LOW here so this
+   * strip does not read RAM again. Omitted callers keep the internal read.
+   */
+  isLowTier?: boolean;
 }
 
 /**
@@ -389,11 +394,12 @@ const AvatarBackgroundCarousel: React.FC<AvatarBackgroundCarouselProps> = ({
   avatarPresetId,
   selectedBackgroundId,
   onSelect,
+  isLowTier: isLowTierProp,
 }) => {
   const tw = useTailwind();
   const { playSelection } = useHaptics();
   const [width, setWidth] = useState(0);
-  const isLowTier = getHardwareTier() === 'LOW';
+  const isLowTier = isLowTierProp ?? getHardwareTier() === 'LOW';
   const resolvedBackgroundId =
     getProfileAvatarBackground(selectedBackgroundId)?.id;
   // Frozen at mount: a changing `contentOffset` re-positions the native

@@ -245,6 +245,9 @@ const MyProfileView: React.FC = () => {
   const handleEditProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
+  const handleEditAvatar = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
+  }, [navigation]);
   const handleFollowersPress = useCallback(() => {
     if (!isOwner && !addressOrId) {
       return;
@@ -531,6 +534,7 @@ const MyProfileView: React.FC = () => {
                     : (displayProfile.followingCount ?? 0)
                 }
                 isOwner={isOwner}
+                onEditAvatar={isOwner ? handleEditAvatar : undefined}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
               />
