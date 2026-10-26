@@ -59,6 +59,11 @@ function flushFrame() {
   });
 }
 
+function release() {
+  emit('transitionEnd');
+  flushFrame();
+}
+
 function gate(children?: ReactNode, enabled?: boolean) {
   return (
     <DeferredRender
@@ -68,6 +73,11 @@ function gate(children?: ReactNode, enabled?: boolean) {
       {children ?? <View testID="deferred-render-content" />}
     </DeferredRender>
   );
+}
+
+function HookProbe() {
+  useDeferredRender();
+  return null;
 }
 
 describe('DeferredRender', () => {
@@ -184,6 +194,47 @@ describe('DeferredRender', () => {
     flushFrame();
 
     expect(result.current).toBe(true);
+  });
+
+  describe('nested gates', () => {
+    const devGlobal = global as unknown as { __DEV__: boolean };
+    let warnSpy: jest.SpyInstance;
+    let wasDev: boolean;
+
+    beforeEach(() => {
+      wasDev = devGlobal.__DEV__;
+      devGlobal.__DEV__ = true;
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    });
+
+    afterEach(() => {
+      devGlobal.__DEV__ = wasDev;
+      warnSpy.mockRestore();
+    });
+
+    it.each<[string, ReactNode]>([
+      ['a gate inside a gate', gate()],
+      ['a bare hook inside a gate', <HookProbe key="probe" />],
+    ])('warns once for %s', (_name, inner) => {
+      const view = render(gate(inner));
+
+      release();
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      view.rerender(gate(inner));
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays silent outside development', () => {
+      devGlobal.__DEV__ = false;
+
+      render(gate(<HookProbe />));
+      release();
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('renders the children on the first commit when disabled', () => {
