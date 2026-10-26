@@ -1,3 +1,4 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import {
   BASIS_POINTS_DIVISOR,
   DECIMAL_PRECISION_CONFIG,
@@ -260,6 +261,26 @@ const coerceScaleSkew = (value: string): string => {
         .decimalPlaces(SCALE_SKEW_DECIMAL_PLACES, BigNumber.ROUND_HALF_UP)
         .toFixed(SCALE_SKEW_DECIMAL_PLACES)
     : value;
+};
+
+/**
+ * Digit-capped Chase offset. A distance is not a venue price, so this does not
+ * apply price-tick rounding, which can turn a positive sub-tick offset into 0.
+ *
+ * @param value - Positive USD distance or percent offset.
+ * @returns Decimal string within the shared 9-digit input cap.
+ */
+const formatChaseDistanceValue = (value: BigNumber): string => {
+  const integerDigits = value
+    .integerValue(BigNumber.ROUND_DOWN)
+    .toFixed(0).length;
+  const fractionDigits = Math.max(0, MAX_PERPS_INPUT_DIGITS - integerDigits);
+  const fixed = value
+    .decimalPlaces(fractionDigits, BigNumber.ROUND_HALF_UP)
+    .toFixed(fractionDigits);
+  const [whole, fraction] = fixed.split('.');
+  const trimmedFraction = (fraction ?? '').replace(/0+$/u, '');
+  return trimmedFraction.length > 0 ? `${whole}.${trimmedFraction}` : whole;
 };
 
 const getScaleRangePercentage = (minPrice: number, maxPrice: number) =>
@@ -600,7 +621,7 @@ export interface UsePerpsProOrderFormResult {
   feeProtocolFeeRate: number | undefined;
   feeOriginalMetamaskFeeRate: number | undefined;
   feeDiscountPercentage: number | undefined;
-  feeSource: PerpsFeeSource | undefined;
+  feeDiscountKind: PerpsFeeDiscountKind | undefined;
 }
 
 /**
@@ -690,6 +711,7 @@ export const usePerpsProOrderForm = ({
     triggerPrice,
     setTriggerPrice,
     resetPriceInputInteraction,
+    registerPriceFieldHandlers,
     setOrderType,
     pendingReduceOnly,
     maxPossibleAmount,
@@ -868,12 +890,16 @@ export const usePerpsProOrderForm = ({
   const {
     marketData,
     isLoading: isMarketDataLoading,
+    isProviderMetadataAvailable,
     error: marketDataError,
   } = usePerpsMarketData({
     asset: symbol,
     // Aggregated markets list the symbol once per provider; the selected
     // market's restrictions (e.g. isolated-only) decide Cross eligibility.
     providerId: market.providerId,
+    // Terminal v4 omits venue-only margin restrictions. Read provider metadata
+    // so Pro never offers Cross for an isolated-only market.
+    useProviderMetadata: true,
     showErrorToast: false,
   });
   const network = usePerpsNetwork();
@@ -1003,6 +1029,7 @@ export const usePerpsProOrderForm = ({
   // for restrictions from the current source (a refetch keeps stale data).
   const isCrossMarginAvailableForMarket =
     isCrossMarginAvailable &&
+    isProviderMetadataAvailable &&
     !isMarketDataLoading &&
     !!marketData &&
     !marketData.onlyIsolated &&
@@ -1011,6 +1038,7 @@ export const usePerpsProOrderForm = ({
   // Clear the choice only when the gate or fresh metadata rules out Cross.
   const isCrossMarginUnsupported =
     !isCrossMarginAvailable ||
+    !isProviderMetadataAvailable ||
     (!isMarketDataLoading &&
       !!marketData &&
       !!(marketData.onlyIsolated || marketData.marginMode));
@@ -4006,8 +4034,8 @@ export const usePerpsProOrderForm = ({
       fee: hasValidAmount ? estimatedFees : undefined,
       originalFee: hasValidAmount ? undiscountedEstimatedFees : undefined,
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
-      feeSource: feeResults.feeSource,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
+      feeDiscountKind: feeResults.feeDiscountKind,
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -4032,7 +4060,7 @@ export const usePerpsProOrderForm = ({
     estimatedFees,
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
-    feeResults.feeSource,
+    feeResults.feeDiscountKind,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,
@@ -4053,6 +4081,69 @@ export const usePerpsProOrderForm = ({
     },
     [scaleAnalyticsProperties, track],
   );
+
+  // Lets an order-book tap fill the last focused Scale or Chase field.
+  // Chase max distance is an unsigned offset from the live reference, in the
+  // field's current unit. Core applies that offset on the adverse side.
+  useEffect(() => {
+    registerPriceFieldHandlers({
+      scaleStart: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleStartPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_START_PRICE,
+          );
+        }),
+      scaleEnd: (price) =>
+        guardScaleMutation(() => {
+          if (price === undefined) {
+            return;
+          }
+          setHasScaleValidationInteraction(true);
+          setHasBlurredScalePrice(true);
+          setScaleEndPrice(price);
+          trackScaleConfiguration(
+            PERPS_EVENT_VALUE.SETTING_TYPE.SCALE_END_PRICE,
+          );
+        }),
+      chaseMaxDistance: (price) =>
+        guardScaleMutation(() => {
+          const tappedPrice = new BigNumber(price ?? '');
+          const referencePrice = new BigNumber(assetData.price);
+          if (
+            !tappedPrice.isFinite() ||
+            !referencePrice.isFinite() ||
+            referencePrice.lte(0)
+          ) {
+            return;
+          }
+          const distance = tappedPrice.minus(referencePrice).abs();
+          if (distance.lte(0)) {
+            return;
+          }
+          const nextValue =
+            chaseMaxDistanceUnit === 'percent'
+              ? formatChaseDistanceValue(
+                  distance.multipliedBy(100).dividedBy(referencePrice),
+                )
+              : formatChaseDistanceValue(distance);
+          setChaseMaxDistance(nextValue);
+        }),
+    });
+
+    return () => registerPriceFieldHandlers({});
+  }, [
+    assetData.price,
+    chaseMaxDistanceUnit,
+    guardScaleMutation,
+    registerPriceFieldHandlers,
+    trackScaleConfiguration,
+  ]);
 
   // Margin reports the whole ladder requirement. With no open position, the
   // liquidation row reports the new position at the ladder's average entry.
@@ -4743,7 +4834,7 @@ export const usePerpsProOrderForm = ({
     feeProtocolFeeRate: feeResults.protocolFeeRate,
     feeOriginalMetamaskFeeRate: feeResults.originalMetamaskFeeRate,
     feeDiscountPercentage: feeResults.feeDiscountPercentage,
-    feeSource: feeResults.feeSource,
+    feeDiscountKind: feeResults.feeDiscountKind,
   };
 };
 

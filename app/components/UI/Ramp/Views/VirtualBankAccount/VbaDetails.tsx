@@ -55,7 +55,22 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import {
+  AccountCreateRegistrationError,
+  ACCOUNT_CREATE_ERROR_DESTINATION,
+  getAccountCreateFiatFailureResult,
+  getAccountCreateFailureLogFields,
+  logAccountCreateFailure,
+} from './accountCreateError';
+import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -78,8 +93,6 @@ export const VbaDetailsSelectorsIDs = {
   HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
-  SETUP_ERROR: 'vba-details-setup-error',
-  RETRY_BUTTON: 'vba-details-retry-button',
   DEBUG_BUTTON: 'vba-details-debug-button',
 } as const;
 
@@ -229,16 +242,14 @@ const VbaDetails = () => {
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [setupFailed, setSetupFailed] = useState(false);
   const [awaitingProviderApproval, setAwaitingProviderApproval] =
     useState(false);
-  const [isTerminal, setIsTerminal] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
-  const accountKeyRef = useRef(
-    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
-  );
+  const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+  const accountKeyRef = useRef(accountKey);
+  const [stateAccountKey, setStateAccountKey] = useState(accountKey);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -285,8 +296,11 @@ const VbaDetails = () => {
           if (!stillCurrent()) {
             return;
           }
-          setAwaitingProviderApproval(false);
-          setSetupFailed(true);
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+          );
           return;
         }
         const outcome = await ensureMusdAutoramp(
@@ -297,6 +311,29 @@ const VbaDetails = () => {
         if (!stillCurrent()) {
           return;
         }
+        if (outcome === 'failed') {
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            undefined,
+            undefined,
+            sourceCurrency,
+            true,
+          );
+          return;
+        }
+        if (outcome === 'terminal') {
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            undefined,
+            undefined,
+            sourceCurrency,
+          );
+          return;
+        }
         autoramp = findUsableAutoramp(
           readAutoramps(),
           walletAddress,
@@ -304,9 +341,6 @@ const VbaDetails = () => {
         );
         if (!autoramp) {
           setAwaitingProviderApproval(outcome === 'awaiting_provider');
-          setSetupFailed(outcome === 'failed');
-          setIsTerminal(outcome === 'terminal');
-          pollingDoneRef.current = outcome === 'terminal';
           setAutorampId(null);
           setAutorampStatus(null);
           setInstructions(null);
@@ -317,7 +351,6 @@ const VbaDetails = () => {
         return;
       }
       setAwaitingProviderApproval(false);
-      setSetupFailed(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
@@ -327,13 +360,23 @@ const VbaDetails = () => {
         }
         status = refreshed.status;
       }
+      const accountCreateFailure = getAccountCreateFiatFailureResult(status);
+      if (accountCreateFailure) {
+        throw new AccountCreateRegistrationError(accountCreateFailure);
+      }
       setAutorampId(autoramp.id);
       setAutorampStatus(status);
       const terminal = isTerminalStatus(status);
-      setIsTerminal(terminal);
       if (terminal) {
         pollingDoneRef.current = true;
         setInstructions(null);
+        navigateToVbaOnboardingDestination(
+          navigation,
+          ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+          undefined,
+          undefined,
+          sourceCurrency,
+        );
         return;
       }
       if (status !== 'Approved') {
@@ -380,7 +423,7 @@ const VbaDetails = () => {
         }
       }
     },
-    [debugEnabled, sourceCurrency, walletAddress],
+    [debugEnabled, navigation, sourceCurrency, walletAddress],
   );
 
   useEffect(() => {
@@ -389,13 +432,12 @@ const VbaDetails = () => {
       return;
     }
     accountKeyRef.current = nextKey;
+    setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     setInstructions(null);
     setLoadError(false);
-    setSetupFailed(false);
     setAwaitingProviderApproval(false);
-    setIsTerminal(false);
     setAutorampId(null);
     setAutorampStatus(
       walletAddress
@@ -424,6 +466,24 @@ const VbaDetails = () => {
           setLoadError(false);
         }
       } catch (error) {
+        if (error instanceof AccountCreateRegistrationError) {
+          if (cancelled || accountKeyRef.current !== requestKey) {
+            return;
+          }
+          const destinationId = logAccountCreateFailure(error.result);
+          if (!destinationId) {
+            return;
+          }
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            destinationId,
+            undefined,
+            getAccountCreateFailureLogFields(error.result),
+            sourceCurrency,
+          );
+          return;
+        }
         if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(true);
         }
@@ -447,10 +507,9 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, networkTier, refreshDeposit]);
+  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
 
   const isApproved = autorampStatus === 'Approved';
-  const hasSetupError = (setupFailed || isTerminal) && !isApproved;
 
   useEffect(() => {
     if (!loadError || !isApproved || instructions) {
@@ -460,39 +519,6 @@ const VbaDetails = () => {
       strings('virtual_bank_account.vba_details.load_error'),
     );
   }, [instructions, isApproved, loadError]);
-
-  useEffect(() => {
-    if (!hasSetupError) {
-      return;
-    }
-    AccessibilityInfo.announceForAccessibility(
-      strings('virtual_bank_account.vba_details.setup_error'),
-    );
-  }, [hasSetupError]);
-
-  const handleRetrySetup = useCallback(() => {
-    pollingDoneRef.current = false;
-    setSetupFailed(false);
-    setLoadError(false);
-    setAwaitingProviderApproval(false);
-    setIsTerminal(false);
-    refreshDeposit(true).catch((error: unknown) => {
-      Logger.error(error as Error, {
-        message: 'VbaDetails: retry setup failed',
-      });
-      // Details are fetched only after the autoramp is Approved, and that
-      // fetch rethrows. A failure there is a load error, not a failed create.
-      const approved =
-        !!walletAddress &&
-        findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
-          ?.status === 'Approved';
-      if (approved) {
-        setLoadError(true);
-        return;
-      }
-      setSetupFailed(true);
-    });
-  }, [refreshDeposit, sourceCurrency, walletAddress]);
 
   const handleDone = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -531,18 +557,33 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const hasCurrentAccountState = stateAccountKey === accountKey;
+  let accountDetailsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (loadError) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (rows.length > 0) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+    resetKey: accountKey,
+    enabled: isApproved && hasCurrentAccountState,
+    contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
+    contentState: accountDetailsContentState,
+  });
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
-  const errorMessage = setupFailed
-    ? strings('virtual_bank_account.vba_details.setup_error')
-    : loadError
-      ? strings('virtual_bank_account.vba_details.load_error')
-      : null;
+  const errorMessage = loadError
+    ? strings('virtual_bank_account.vba_details.load_error')
+    : null;
 
-  if (!isApproved && !hasSetupError) {
+  if (!isApproved) {
     return (
       <VbaCreatingAccount
         onBack={handleDone}
@@ -632,22 +673,16 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : hasSetupError || errorMessage ? (
+        ) : errorMessage ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
             twClassName="mt-6 text-center"
-            testID={
-              hasSetupError
-                ? VbaDetailsSelectorsIDs.SETUP_ERROR
-                : VbaDetailsSelectorsIDs.LOAD_ERROR
-            }
+            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
           >
-            {hasSetupError
-              ? strings('virtual_bank_account.vba_details.setup_error')
-              : errorMessage}
+            {errorMessage}
           </Text>
         ) : (
           <Box
@@ -707,17 +742,6 @@ const VbaDetails = () => {
           >
             {strings('virtual_bank_account.vba_details.helper_text')}
           </Text>
-        ) : null}
-        {hasSetupError ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleRetrySetup}
-            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
-          >
-            {strings('virtual_bank_account.vba_details.retry')}
-          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

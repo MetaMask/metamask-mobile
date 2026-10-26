@@ -10,6 +10,10 @@ import type { TradeAction } from './utils/tradeAction';
 export type SocialV1PerpDirection = 'long' | 'short';
 export type SocialV1SpotSide = 'buy' | 'sell';
 
+export interface SocialFeedPageHandle {
+  scrollToOffset: (offset: number, animated?: boolean) => void;
+}
+
 export interface SocialV1FeedAsset {
   /** Ticker shown on the position card (`BTC`, `NVDA`). */
   symbol: string;
@@ -82,6 +86,11 @@ export interface SocialV1PerpsOpenFeedItem extends SocialV1FeedItemBase {
   holdTimeLabel?: string;
   /** How the card's figures follow the streamed mark price. */
   live?: SocialLivePriceSource;
+  /**
+   * Composer previews set this to `false` so the card does not offer to copy
+   * the order that was just placed. Absent means the open position is copyable.
+   */
+  showCopyTrade?: boolean;
 }
 
 export interface SocialV1PerpsClosedFeedItem extends SocialV1FeedItemBase {
@@ -177,6 +186,11 @@ export interface SocialV1FeedPost {
    * sheet so it opens without a fetch. Absent on pending and mocked posts.
    */
   position?: Position;
+  /**
+   * Socket event whose entrance this post plays once. Absent on posts that
+   * arrived without one (HTTP snapshot, revisions of rows already shown).
+   */
+  realtimeEventId?: string;
 }
 
 /**

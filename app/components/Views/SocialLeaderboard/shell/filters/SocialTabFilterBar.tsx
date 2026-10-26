@@ -9,6 +9,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 
 export interface SocialTabFilterBarProps {
   children: React.ReactNode;
@@ -39,10 +40,21 @@ const SocialTabFilterBar: React.FC<SocialTabFilterBarProps> = ({
     <ButtonIcon
       iconName={IconName.Filter}
       size={ButtonIconSize.Md}
-      onPress={onOpenFilters}
+      onPress={
+        onOpenFilters
+          ? () => {
+              fireImpact(ImpactMoment.SecondaryCTA);
+              onOpenFilters();
+            }
+          : undefined
+      }
       testID={filterTestID}
       accessibilityLabel={strings('social_leaderboard.shell.filters.title')}
-      twClassName={isFilterActive ? 'bg-background-muted' : undefined}
+      twClassName={
+        isFilterActive
+          ? 'rounded-full bg-primary-muted'
+          : 'rounded-full bg-background-muted'
+      }
     />
   </Box>
 );

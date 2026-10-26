@@ -2,7 +2,10 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import type { Hex } from '@metamask/utils';
 import { MoneyApiActivityDetailsView } from './MoneyApiActivityDetailsView';
-import type { AccountsApiActivity } from '../../types/moneyActivity';
+import type {
+  AccountsApiActivity,
+  NeobankBankTransferActivity,
+} from '../../types/moneyActivity';
 import {
   CardMerchantCategory,
   CardTransactionStatus,
@@ -46,6 +49,16 @@ const refund: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const bankTransfer: AccountsApiActivity = {
+  kind: 'bank_transfer',
+  hash: '0xbank' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f' as Hex,
+  token,
+  amount: '15009500',
+  receivedFrom: '0x798eee806e806a0a26bc52526428dd3692217881' as Hex,
+};
+
 const declinedCardTransaction: CardTransaction = {
   id: 'declined-provider-id',
   providerId: 'baanx',
@@ -71,11 +84,14 @@ const declinedCardTransaction: CardTransaction = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 let mockBlockExplorerFlag = true;
+let mockPendingActivityEnabled = true;
+let mockLiveNeobankActivity: NeobankBankTransferActivity[] = [];
 let mockRouteParams:
   | {
       activity?: AccountsApiActivity;
       enrichment?: CardTransaction;
       cardTransaction?: CardTransaction;
+      neobankActivity?: NeobankBankTransferActivity;
     }
   | undefined;
 jest.mock('@react-navigation/native', () => ({
@@ -108,6 +124,20 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
 jest.mock('../../selectors/featureFlags', () => ({
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag: () =>
     mockBlockExplorerFlag,
+  selectMoneyVbaPendingActivityEnabled: () => mockPendingActivityEnabled,
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: () => ({
+    activity: mockLiveNeobankActivity,
+    refetch: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
+  useMoneyAccountTransactions: () => ({
+    moneyAddress: '0xd663e49775d776300aa45ac2a51f0431bb459282',
+  }),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
@@ -208,11 +238,59 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
 
+const mockRefetchApiActivity = jest.fn();
+let mockApiActivity: unknown[] = [];
+jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
+  useMoneyAccountApiActivity: () => ({
+    activity: mockApiActivity,
+    refetch: mockRefetchApiActivity,
+    watermark: Number.NEGATIVE_INFINITY,
+    isComplete: true,
+    pageCount: 1,
+    hasMore: false,
+    loadMore: jest.fn(),
+    isLoadingMore: false,
+    isLoading: false,
+    error: false,
+  }),
+}));
+
+jest.mock('../../../../Views/confirmations/components/progress-list', () => {
+  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  return {
+    ProgressList: ({ children }: { children: React.ReactNode }) => (
+      <View testID="progress-list">{children}</View>
+    ),
+    ProgressListItem: ({
+      title,
+      subtitle,
+      severity,
+      onButtonPress,
+    }: {
+      title: string;
+      subtitle: string;
+      severity?: string;
+      onButtonPress?: () => void;
+    }) => (
+      <View testID={`progress-list-item-${severity ?? 'success'}`}>
+        <RNText>{title}</RNText>
+        <RNText>
+          {severity === 'warning' ? 'transaction.pending' : subtitle}
+        </RNText>
+        {onButtonPress ? (
+          <Pressable testID="block-explorer-button" onPress={onButtonPress} />
+        ) : null}
+      </View>
+    ),
+  };
+});
+
 describe('MoneyApiActivityDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockBlockExplorerFlag = true;
     mockRouteParams = { activity: card };
+    mockApiActivity = [];
   });
 
   describe('card spend', () => {
@@ -565,6 +643,154 @@ describe('MoneyApiActivityDetailsView', () => {
     });
   });
 
+  describe('bank_transfer', () => {
+    beforeEach(() => {
+      mockRouteParams = { activity: bankTransfer };
+    });
+
+    it('renders the Deposited title and You deposited hero', () => {
+      const { getByTestId, getByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(getByTestId('header-title')).toHaveTextContent(
+        'money.transaction.deposited',
+      );
+      expect(
+        getByText('money.api_activity_details.you_deposited'),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the Steps timeline with bank transfer and Money deposit', () => {
+      const { getByTestId, getByText, getAllByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByTestId('money-bank-transfer-steps')).toBeOnTheScreen();
+      expect(
+        getByText('transaction_details.label.steps_completed'),
+      ).toBeOnTheScreen();
+      // Paid-with row + Steps title both use this string.
+      expect(
+        getAllByText('money.transaction.bank_transfer').length,
+      ).toBeGreaterThan(0);
+      expect(
+        getByText('transaction_details.title.money_account_deposit'),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render Steps for cashback rows', () => {
+      mockRouteParams = { activity: cashback };
+      const { queryByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(queryByTestId('money-bank-transfer-steps')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('neobank bank_transfer', () => {
+    beforeEach(() => {
+      mockPendingActivityEnabled = true;
+      mockLiveNeobankActivity = [];
+    });
+
+    const pendingNeobank: NeobankBankTransferActivity = {
+      id: 'neo-pending',
+      autorampId: 'ar-1',
+      status: 'Pending',
+      time: 1780574031000,
+      destinationAmount: '15',
+    };
+
+    it('blocks restored pending details when pending activity is disabled', () => {
+      mockPendingActivityEnabled = false;
+      mockRouteParams = { neobankActivity: pendingNeobank };
+      render(<MoneyApiActivityDetailsView />);
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    it('keeps both Steps pending while MoonPay pay-in is still open', () => {
+      mockRouteParams = { neobankActivity: pendingNeobank };
+      const {
+        getByTestId,
+        getByText,
+        getAllByText,
+        getAllByTestId,
+        queryByText,
+      } = render(<MoneyApiActivityDetailsView />);
+
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
+      // Header title + hero copy both use Depositing.
+      expect(
+        getAllByText('money.transaction.depositing').length,
+      ).toBeGreaterThan(0);
+      expect(
+        queryByText('money.transaction.deposit_failed'),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByText('money.api_activity_details.you_deposited'),
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
+      expect(getByTestId('money-bank-transfer-steps')).toBeOnTheScreen();
+      expect(
+        getAllByText('money.transaction.bank_transfer').length,
+      ).toBeGreaterThan(0);
+      expect(
+        getByText('transaction_details.title.money_account_deposit'),
+      ).toBeOnTheScreen();
+      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(2);
+      expect(getAllByText('transaction.pending').length).toBeGreaterThan(0);
+    });
+
+    it('shows failed hero copy and failure steps for failed transfers', () => {
+      const failedNeobank: NeobankBankTransferActivity = {
+        ...pendingNeobank,
+        status: 'Failed',
+      };
+      mockRouteParams = { neobankActivity: failedNeobank };
+
+      const { getAllByText, getAllByTestId, getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getAllByText('money.transaction.deposit_failed')).toHaveLength(2);
+      expect(queryByText('money.transaction.depositing')).not.toBeOnTheScreen();
+      expect(getByText('money.transaction.failed')).toBeOnTheScreen();
+      expect(getAllByTestId('progress-list-item-error')).toHaveLength(2);
+    });
+
+    it('marks Bank transfer complete and Money deposit pending after MoonPay Completed', () => {
+      mockLiveNeobankActivity = [{ ...pendingNeobank, status: 'Completed' }];
+      mockRouteParams = {
+        neobankActivity: pendingNeobank,
+      };
+      const { getByText, getByTestId, getAllByTestId, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      // Still awaiting on-chain mUSD — overall status stays Pending.
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
+      expect(
+        queryByText('money.api_activity_details.you_deposited'),
+      ).not.toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
+      expect(getByTestId('progress-list-item-success')).toBeOnTheScreen();
+      expect(getAllByTestId('progress-list-item-warning')).toHaveLength(1);
+    });
+
+    it('keeps provider Completed independent from a nearby confirmed activity', () => {
+      mockApiActivity = [{ ...bankTransfer, amount: '15000000' }];
+      mockLiveNeobankActivity = [{ ...pendingNeobank, status: 'Completed' }];
+      mockRouteParams = {
+        neobankActivity: pendingNeobank,
+      };
+      const { getByText, getAllByTestId, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('money.api_activity_details.pending')).toBeOnTheScreen();
+      expect(queryByText(/\+15\.00/)).not.toBeOnTheScreen();
+      expect(getAllByTestId('progress-list-item-success')).toHaveLength(1);
+    });
+  });
+
   describe('refund', () => {
     beforeEach(() => {
       mockRouteParams = { activity: refund };
@@ -608,7 +834,7 @@ describe('MoneyApiActivityDetailsView', () => {
   it('renders status as Completed', () => {
     mockRouteParams = { activity: cashback };
     const { getByText } = render(<MoneyApiActivityDetailsView />);
-    expect(getByText('money.api_activity_details.completed')).toBeTruthy();
+    expect(getByText('money.api_activity_details.completed')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {

@@ -148,6 +148,7 @@ describe('VbaEmailAdapter', () => {
         verifyWith: 'email_otp',
         reason: {
           operation: 'vba.verifyEmail',
+          presentation: 'card',
           enrollDescription: 'placeholder for enroll description',
           verifyDescription: 'placeholder for verify description',
         },
@@ -307,7 +308,7 @@ describe('VbaEmailAdapter', () => {
     expect(mockKycController.startSession).not.toHaveBeenCalled();
   });
 
-  it('shows a spinner and leaves the step from the loading screen', async () => {
+  it('shows a spinner without navigation on the loading screen', () => {
     mockKycController.getSessionStatusForVendor.mockReturnValue(
       new Promise(() => undefined),
     );
@@ -320,12 +321,10 @@ describe('VbaEmailAdapter', () => {
     expect(
       screen.queryByTestId(VbaEmailAdapterSelectorsIDs.ERROR_MESSAGE),
     ).toBeNull();
-
-    fireEvent.press(
-      screen.getByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
-    );
-
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(VbaEmailAdapterSelectorsIDs.BACK_BUTTON),
+    ).toBeNull();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('does not open email OTP after leaving during session lookup', async () => {
