@@ -496,6 +496,105 @@ describe('PerpsHomeView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('shows the ADR58 ETH banner above the position cards while an ETH position is open', async () => {
+      // Arrange – a non-ETH position is already loaded
+      const { stream } = renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [createLongPositionForViews({ symbol: 'BTC' })],
+          orders: [],
+          marketData: [createEthMarketForViews(), createBtcMarketForViews()],
+        },
+      });
+      const cardTestId = `${PerpsHomeViewSelectorsIDs.POSITION_CARD}-0`;
+      expect(
+        await screen.findByTestId(cardTestId, {}, { timeout: TIMEOUT_MS }),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER),
+      ).not.toBeOnTheScreen();
+
+      // Act – an ETH position arrives
+      act(() => {
+        stream.emitPositions([
+          createLongPositionForViews({ symbol: 'BTC' }),
+          createLongPositionForViews(),
+        ]);
+      });
+
+      // Assert – exact text, rendered before the first position card
+      const banner = await screen.findByTestId(
+        PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      expect(banner).toBeOnTheScreen();
+      expect(banner).toHaveTextContent('ADR58 POC: ETH POSITION DETECTED', {
+        exact: true,
+      });
+      const renderedTestIds: string[] = [];
+      const collectTestIds = (node: unknown): void => {
+        if (!node || typeof node !== 'object') return;
+        if (Array.isArray(node)) {
+          node.forEach(collectTestIds);
+          return;
+        }
+        const { props, children } = node as {
+          props?: { testID?: string };
+          children?: unknown;
+        };
+        if (props?.testID) renderedTestIds.push(props.testID);
+        collectTestIds(children);
+      };
+      collectTestIds(screen.toJSON());
+      const bannerIndex = renderedTestIds.indexOf(
+        PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER,
+      );
+      const cardIndex = renderedTestIds.indexOf(cardTestId);
+      expect(bannerIndex).toBeGreaterThanOrEqual(0);
+      expect(bannerIndex).toBeLessThan(cardIndex);
+
+      // Act – the ETH position closes
+      act(() => {
+        stream.emitPositions([createLongPositionForViews({ symbol: 'BTC' })]);
+      });
+
+      // Assert – banner is removed
+      await waitFor(
+        () =>
+          expect(
+            screen.queryByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER),
+          ).not.toBeOnTheScreen(),
+        { timeout: TIMEOUT_MS },
+      );
+    });
+
+    it('does not show the ADR58 ETH banner when there are no positions', async () => {
+      // Arrange
+      renderPerpsHomeView({
+        overrides: eligibleOverrides,
+        streamOverrides: {
+          account: createFundedAccountForViews('100'),
+          positions: [],
+          orders: [],
+          marketData: [createEthMarketForViews()],
+        },
+      });
+
+      // Assert – settled home renders without the banner
+      expect(
+        await screen.findByTestId(
+          PerpsHomeViewSelectorsIDs.HOME_HEADING,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER),
+      ).not.toBeOnTheScreen();
+    });
+
     it('positions section PnL subtitle flips sign when account stream delivers negative unrealizedPnl', async () => {
       // Arrange – start with a position and a positive account P&L so the subtitle is visible
       const { stream } = renderPerpsHomeView({

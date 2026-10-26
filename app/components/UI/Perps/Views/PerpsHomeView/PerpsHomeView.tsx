@@ -823,7 +823,7 @@ const PerpsHomeView = () => {
               {/* ADR58 POC - DO NOT MERGE */}
               {positions.some((position) => position.symbol === 'ETH') && (
                 <Box
-                  testID="perps-home-adr58-eth-banner"
+                  testID={PerpsHomeViewSelectorsIDs.ADR58_ETH_BANNER}
                   accessible
                   twClassName="bg-error-default px-4 py-2"
                 >

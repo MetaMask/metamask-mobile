@@ -289,6 +289,8 @@ export const PerpsHomeViewSelectorsIDs = {
   WITHDRAW_BUTTON: 'perps-home-withdraw-button',
   ADD_FUNDS_BUTTON: 'perps-home-add-funds-button',
   POSITIONS_PNL_VALUE: 'perps-home-positions-pnl-value',
+  /** ADR58 POC - DO NOT MERGE: shown while an ETH position is open */
+  ADR58_ETH_BANNER: 'perps-home-adr58-eth-banner',
   /** Per-position card; suffixed with the list index, e.g. `perps-home-position-card-0` */
   POSITION_CARD: 'perps-home-position-card',
   /** Per-order card; suffixed with the list index, e.g. `perps-home-order-card-0` */
