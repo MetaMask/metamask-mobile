@@ -42,6 +42,7 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
@@ -116,20 +117,19 @@ const LIVE_ACTIVITY = [
 ];
 
 /**
- * Step title: Display Md size on the 32px heading line height, medium weight,
- * centered.
+ * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
+ * design-system hero face and falls back when the language is not in the font.
  */
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <Text
-    variant={TextVariant.DisplayMd}
-    fontWeight={FontWeight.Medium}
-    twClassName={`text-center leading-heading-lg ${twClassName ?? ''}`}
+  <MarketingMomentTitle
+    variant={TextVariant.DisplayLg}
+    twClassName={`text-center ${twClassName ?? ''}`}
   >
     {children}
-  </Text>
+  </MarketingMomentTitle>
 );
 
 const LiveActivityFallback: React.FC = () => (
