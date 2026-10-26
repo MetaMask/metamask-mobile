@@ -537,7 +537,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         <Animated.ScrollView
           ref={scrollRef}
           style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pt-[12px]')}
+          contentContainerStyle={tw.style('flex-grow pt-4')}
           showsVerticalScrollIndicator={false}
           onScroll={onScroll}
           onMomentumScrollEnd={handleScrollSettled}
@@ -558,7 +558,8 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON}
-              twClassName="px-4 pb-4"
+              testID={SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BAR}
+              twClassName="px-4 pb-2"
             >
               <FeedSortFilterSelector
                 value={feedSort}
@@ -567,7 +568,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             </SocialTabFilterBar>
           ) : null}
           {hasBeenActive ? (
-            // The 12px gap under the tabs lives on the scroll content, so it
+            // The 16px gap under the tabs lives on the scroll content, so it
             // scrolls away and the feed still clips at the tab underline.
             // The carousel bleeds to both screen edges, so the horizontal
             // padding sits on the posts.
