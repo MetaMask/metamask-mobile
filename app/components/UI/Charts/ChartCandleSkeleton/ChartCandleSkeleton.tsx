@@ -3,6 +3,7 @@ import { Animated, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { hasTestOverrides } from '../../../../util/test/utils';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
 
 /** Fallback height when the parent does not stretch. Same as the Perps detail chart. */
@@ -235,10 +236,11 @@ const ChartCandleSkeleton = ({
     colors.border.muted,
     height,
   );
+  const canAnimate = getHardwareTier() !== 'LOW';
   const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
 
   useEffect(() => {
-    if (!PULSE_AUTO_PLAY) {
+    if (!canAnimate || !PULSE_AUTO_PLAY) {
       return undefined;
     }
     const pulse = Animated.loop(
@@ -259,7 +261,7 @@ const ChartCandleSkeleton = ({
     );
     pulse.start();
     return () => pulse.stop();
-  }, [opacity]);
+  }, [canAnimate, opacity]);
 
   return (
     <Box
@@ -299,7 +301,7 @@ const ChartCandleSkeleton = ({
         />
       </Box>
       <Animated.View
-        testID={`${testID}-pulse`}
+        testID={canAnimate ? `${testID}-pulse` : `${testID}-static`}
         pointerEvents="none"
         style={[layout.fill, { opacity }]}
       >

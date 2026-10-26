@@ -1,7 +1,14 @@
 import React from 'react';
 import { render, within } from '@testing-library/react-native';
 import { mockTheme } from '../../../../util/theme';
+import { getHardwareTier } from '../../../../util/deviceCapability';
 import ChartCandleSkeleton from './ChartCandleSkeleton';
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(() => 'HIGH'),
+}));
+
+const mockGetHardwareTier = jest.mocked(getHardwareTier);
 
 const ID = 'chart-candle-skeleton';
 const CANDLES = 32;
@@ -158,6 +165,25 @@ describe('ChartCandleSkeleton', () => {
     expect(pulse.queryByTestId(`${ID}-grid-h-0`)).toBeNull();
     expect(pulse.queryByTestId(`${ID}-grid-v-0`)).toBeNull();
   });
+
+  it.each([
+    ['LOW', 'static', 'pulse'],
+    ['MID', 'pulse', 'static'],
+    ['HIGH', 'pulse', 'static'],
+    [null, 'pulse', 'static'],
+  ] as const)(
+    'renders the %s hardware tier marks as %s',
+    (tier, shown, hidden) => {
+      mockGetHardwareTier.mockReturnValueOnce(tier);
+
+      const { getByTestId, queryByTestId } = render(<ChartCandleSkeleton />);
+      const marks = getByTestId(`${ID}-${shown}`);
+
+      expect(queryByTestId(`${ID}-${hidden}`)).toBeNull();
+      expect(flatStyle(marks.props.style).opacity).toBe(0.2);
+      expect(within(marks).getByTestId(`${ID}-candle-0`)).toBeOnTheScreen();
+    },
+  );
 
   it.each([
     ['perps-market-details-view-chart-skeleton', true],
