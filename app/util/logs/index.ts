@@ -1,3 +1,5 @@
+import { deriveStateFromMetadata } from '@metamask/base-controller';
+import type { AuthenticationControllerState } from '@metamask/profile-sync-controller/auth';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -76,10 +78,30 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
   };
 };
 
+const getSanitizedAuthenticationControllerState = (
+  authenticationControllerState?: AuthenticationControllerState,
+) => {
+  const metadata = Engine.context.AuthenticationController?.metadata;
+  if (!authenticationControllerState || !metadata) {
+    return undefined;
+  }
+
+  // Keeps profile IDs; drops access tokens and paired identifiers.
+  return deriveStateFromMetadata(
+    authenticationControllerState,
+    metadata,
+    'includeInStateLogs',
+    (error) =>
+      Logger.error(error, 'State logs: AuthenticationController sanitization'),
+  );
+};
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
   const fullState = JSON.parse(JSON.stringify(state));
+  const authenticationControllerState =
+    fullState.engine.backgroundState.AuthenticationController;
 
   delete fullState.engine.backgroundState.NftController;
   delete fullState.engine.backgroundState.TokensController;
@@ -134,6 +156,9 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
         },
         SeedlessOnboardingController:
           getSanitizedSeedlessOnboardingControllerState(),
+        AuthenticationController: getSanitizedAuthenticationControllerState(
+          authenticationControllerState,
+        ),
       },
     },
     loggedIn,
