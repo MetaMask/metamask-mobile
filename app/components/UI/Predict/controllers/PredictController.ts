@@ -2551,6 +2551,7 @@ export class PredictController extends BaseController<
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
           entryPoint: analyticsProperties?.entryPoint,
+          outcomeVersion: previewWithFeePolicy.outcomeVersion,
           completionDuration,
         }),
       );

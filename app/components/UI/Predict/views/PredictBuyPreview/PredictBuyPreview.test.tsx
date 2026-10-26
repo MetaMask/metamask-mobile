@@ -2344,6 +2344,33 @@ describe('PredictBuyPreview', () => {
       );
     });
 
+    it('tracks the market version of a Protocol V2 outcome', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: { ...mockRoute.params.outcome, version: 'v2' },
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const trackPredictOrderEvent =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackPredictOrderEvent;
+
+      expect(trackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            marketVersion: PredictEventValues.MARKET_VERSION.V2,
+          }),
+        }),
+      );
+    });
+
     it('handles undefined entryPoint with fallback', () => {
       const routeWithoutEntryPoint = {
         ...mockRoute,

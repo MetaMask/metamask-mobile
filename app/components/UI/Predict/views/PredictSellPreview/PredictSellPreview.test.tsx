@@ -482,6 +482,34 @@ describe('PredictSellPreview', () => {
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
+    it('sends the market version of a Protocol V2 outcome with the cash out order', () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: { ...mockOutcome, version: 'v2' },
+        },
+      });
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            transactionType: 'mm_predict_sell',
+            marketVersion: 'v2',
+          }),
+        }),
+      );
+    });
+
     it('shows loading text when order executes', () => {
       mockLoadingState = true;
       const { getByText } = renderWithProvider(<PredictSellPreview />, {

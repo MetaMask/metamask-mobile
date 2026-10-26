@@ -23,6 +23,11 @@ jest.mock('../constants/eventNames', () => ({
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
     },
+    MARKET_VERSION: {
+      V1: 'v1',
+      V2: 'v2',
+      MIXED: 'mixed',
+    },
     CLAIM_FAILURE_REASON: {
       PENDING_RESOLUTION: 'pending_resolution',
       INSUFFICIENT_GAS: 'insufficient_gas',
@@ -208,6 +213,38 @@ describe('parseAnalyticsProperties', () => {
       expect(result.marketId).toBe('market-123');
       expect(result.marketTitle).toBe('Test Market');
       expect(result.marketType).toBe('binary');
+    });
+  });
+
+  describe('market version', () => {
+    it.each([
+      ['v2', 'v2'],
+      ['v1', 'v1'],
+      [undefined, 'v1'],
+    ])(
+      'sets marketVersion from outcome version %s to %s',
+      (version, expected) => {
+        const result = parseAnalyticsProperties(
+          createMockMarket(),
+          createMockOutcomeToken(),
+          undefined,
+          undefined,
+          undefined,
+          { version },
+        );
+
+        expect(result.marketVersion).toBe(expected);
+      },
+    );
+
+    it('omits marketVersion when the outcome is not provided', () => {
+      const result = parseAnalyticsProperties(
+        createMockMarket(),
+        createMockOutcomeToken(),
+        undefined,
+      );
+
+      expect(result).not.toHaveProperty('marketVersion');
     });
   });
 

@@ -2804,6 +2804,41 @@ describe('PredictController', () => {
       });
     });
 
+    it('logs the routed market version to Sentry when an order fails', async () => {
+      const orderError = new Error('Order placement failed');
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(orderError);
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            outcomeVersion: 'v2',
+          });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          expect(errorSpy).toHaveBeenCalledWith(
+            orderError,
+            expect.objectContaining({
+              context: expect.objectContaining({
+                data: expect.objectContaining({
+                  method: 'placeOrder',
+                  outcomeVersion: 'v2',
+                }),
+              }),
+            }),
+          );
+        });
+      } finally {
+        errorSpy.mockRestore();
+      }
+    });
+
     it('does not invalidate queries when buy order fails', async () => {
       await withController(
         async ({ controller }) => {
