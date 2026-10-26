@@ -4,7 +4,7 @@ export {
   useSocialFeedInteractions,
   useSocialInteraction,
   useSocialScreenAnalytics,
-  useSocialV1Analytics,
+  useSocialAnalytics,
 } from './useSocialV1Analytics';
 export {
   buildFollowTradingTokenContext,

@@ -3,7 +3,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SocialEvent } from './socialEvents';
 import {
   useSocialScreenAnalytics,
-  useSocialV1Analytics,
+  useSocialAnalytics,
 } from './useSocialV1Analytics';
 const { Interaction, Outcome, Screen, Tab } = SocialEvent;
 const mockTrack = jest.fn();
@@ -18,7 +18,7 @@ jest.mock('react-redux', () => ({
 jest.mock('./useSocialLeaderboardAnalytics', () => ({
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
 }));
-describe('useSocialV1Analytics', () => {
+describe('useSocialAnalytics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsFocused = true;
@@ -26,7 +26,7 @@ describe('useSocialV1Analytics', () => {
   });
   it('omits new events when the Social V1 treatment is inactive', () => {
     mockIsTreatment = false;
-    const { result } = renderHook(() => useSocialV1Analytics());
+    const { result } = renderHook(() => useSocialAnalytics());
     result.current.trackInteraction({
       interaction_type: Interaction.TAP,
       screen_name: Screen.TRENDING,

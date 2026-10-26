@@ -166,7 +166,7 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
 const SOCIAL_EVENT_TAB_CONTEXT = {
   trending: [Screen.TRENDING, Tab.TRENDING],
   following: [Screen.FOLLOWING, Tab.FOLLOWING],
-  liveTrades: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
+  live: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
   leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
 } as const;
 

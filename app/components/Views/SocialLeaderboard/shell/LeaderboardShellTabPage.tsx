@@ -50,7 +50,7 @@ import {
 } from './filters';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
-const { Interaction, Screen, Source, Tab } = SocialEvent;
+const { Interaction, Screen, Tab } = SocialEvent;
 /** Keeps the refresh spinner up long enough to read as a refresh. */
 const MIN_REFRESH_DURATION_MS = 1000;
 
@@ -99,8 +99,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const { colors } = useTheme();
   const floatingTabBarInset = useFloatingTabBarInset();
   const route = useRoute<RouteProp<RootStackParamList, 'SocialV0View'>>();
-  const analyticsSource =
-    getSocialEventSource(route.params?.source) ?? Source.NAV_TAB;
+  const analyticsSource = getSocialEventSource(route.params?.source);
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const { track } = useSocialLeaderboardAnalytics();
 

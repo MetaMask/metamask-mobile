@@ -33,7 +33,7 @@ type SocialInteractionDetails = Omit<
 type SocialInteractionOutcome = NonNullable<
   SocialInteractionDetails['outcome']
 >;
-export const useSocialV1Analytics = () => {
+export const useSocialAnalytics = () => {
   const isSocialV1Enabled = useSelector(selectIsSocialV1Enabled);
   const { track } = useSocialLeaderboardAnalytics();
   const trackInteraction = useCallback(
@@ -54,7 +54,7 @@ export const useSocialV1Analytics = () => {
   );
   return { isSocialV1Enabled, trackInteraction, trackScreenViewed };
 };
-type Tracker = ReturnType<typeof useSocialV1Analytics>['trackInteraction'];
+type Tracker = ReturnType<typeof useSocialAnalytics>['trackInteraction'];
 const useBoundSocialInteraction = (
   trackInteraction: Tracker,
   screen_name: SocialScreenName,
@@ -85,7 +85,7 @@ export const useSocialInteraction = (
   context?: SocialInteractionContext,
   enabled?: boolean,
 ) => {
-  const { trackInteraction: emit } = useSocialV1Analytics();
+  const { trackInteraction: emit } = useSocialAnalytics();
   return useBoundSocialInteraction(emit, screenName, context, enabled);
 };
 export const useSocialFeedInteractions = (
@@ -139,7 +139,7 @@ export const useSocialScreenAnalytics = (
 ) => {
   const isFocused = useIsFocused();
   const { isSocialV1Enabled, trackInteraction, trackScreenViewed } =
-    useSocialV1Analytics();
+    useSocialAnalytics();
   const hasTrackedRef = useRef(false);
   const activationIsOpen = isSocialV1Enabled && isFocused && isActive;
   const resolvedOutcome = state ? getSocialScreenOutcome(...state) : outcome;
