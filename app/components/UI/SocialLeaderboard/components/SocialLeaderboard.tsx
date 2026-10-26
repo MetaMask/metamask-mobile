@@ -1,7 +1,23 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useImperativeHandle, useMemo } from 'react';
-import { useWindowDimensions } from 'react-native';
+import React, {
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+} from 'react';
+import {
+  useWindowDimensions,
+  type RefreshControlProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
+import {
+  FlashList,
+  type FlashListProps,
+  type FlashListRef,
+} from '@shopify/flash-list';
 import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
@@ -64,10 +80,26 @@ const rowLayoutTransition = LinearTransition.duration(
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
 
-/** Lets a host that owns the scroll view drive pull-to-refresh. */
+/** Pixels of list drawn past the viewport. LOW devices keep a short window. */
+const LOW_LIST_DRAW_DISTANCE = 80;
+
+const LeaderboardFlashList = React.forwardRef<
+  FlashListRef<RankedTrader>,
+  FlashListProps<RankedTrader>
+>((props, ref) => <FlashList ref={ref} {...props} />);
+
+const AnimatedLeaderboardList =
+  Animated.createAnimatedComponent(LeaderboardFlashList);
+
+/** Lets a host drive pull-to-refresh and, in virtualized mode, offset. */
 export interface SocialLeaderboardHandle {
   refresh: () => Promise<void>;
+  scrollToOffset: (offset: number, animated?: boolean) => void;
 }
+
+type AnimatedScrollHandler = React.ComponentProps<
+  typeof Animated.ScrollView
+>['onScroll'];
 
 export interface SocialLeaderboardProps {
   /** Which ranking to load. The component fetches it; the host does not. */
@@ -82,6 +114,17 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  /** Gate the query. Still skipped when the network tier is `NONE`. */
+  enabled?: boolean;
+  /** When false, the query can run without painting rows. */
+  visible?: boolean;
+  /** Opt into a self-scrolling FlashList. Embedded hosts keep the map path. */
+  virtualized?: boolean;
+  onScroll?: AnimatedScrollHandler;
+  scrollTestID?: string;
+  refreshControl?: React.ReactElement<RefreshControlProps>;
+  contentContainerStyle?: StyleProp<ViewStyle>;
+  listHeader?: React.ReactElement | null;
   /** Enables treatment-only Social V1 fetch and first-content tracing. */
   performance?: SocialPerformanceContext;
   ref?: React.Ref<SocialLeaderboardHandle>;
@@ -100,9 +143,18 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
+  enabled: enabledProp = true,
+  visible = true,
+  virtualized = false,
+  onScroll,
+  scrollTestID,
+  refreshControl,
+  contentContainerStyle,
+  listHeader = null,
   performance,
   ref,
 }) => {
+  const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -110,8 +162,10 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const { followWithSetup } = useFollowWithNotificationSetup();
   const networkTier = useNetworkTier();
   // Low-RAM devices skip the reveal and the reorder slide.
-  const canAnimate = getHardwareTier() !== 'LOW';
+  const hardwareTier = getHardwareTier();
+  const canAnimate = hardwareTier !== 'LOW';
   const isOffline = networkTier === 'NONE';
+  const listRef = useRef<FlashListRef<RankedTrader>>(null);
 
   const { timeframe, ranking, cohort } = filters;
   const sort = toLeaderboardSort(ranking);
@@ -128,13 +182,22 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   } = useSocialLeaderboard(source, {
     timeframe,
     sort,
-    enabled: !isOffline,
+    enabled: enabledProp && !isOffline,
     performance: performance?.enabled
       ? { tab: SOCIAL_TRACE_TABS.Leaderboard }
       : undefined,
   });
 
-  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
+  useImperativeHandle(
+    ref,
+    () => ({
+      refresh,
+      scrollToOffset: (offset: number, animated = false) => {
+        listRef.current?.scrollToOffset({ offset, animated });
+      },
+    }),
+    [refresh],
+  );
 
   const hydrateSnapshotRow = useCallback(
     (trader: TopTrader): RankedTrader => ({
@@ -233,8 +296,26 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     refresh().catch(() => undefined);
   }, [refresh]);
 
+  const showRows =
+    resolution.status !== 'unavailable' &&
+    !(isLoading && traders.length === 0 && !isShowingSnapshot) &&
+    rows.length > 0;
+
+  const renderRow = useCallback(
+    ({ item }: { item: RankedTrader }) => (
+      <SocialV1TraderRow
+        trader={item}
+        metric={item.displayMetric}
+        onFollowPress={handleFollowPress}
+        onTraderPress={handleTraderPress}
+        showLeaderboardDetails
+      />
+    ),
+    [handleFollowPress, handleTraderPress],
+  );
+
   const firstContentState =
-    !isEnabled || resolution.status === 'hidden'
+    !visible || !isEnabled || resolution.status === 'hidden'
       ? null
       : resolution.status === 'unavailable'
         ? 'empty'
@@ -253,7 +334,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     performance,
   });
 
-  if (!isEnabled || resolution.status === 'hidden') {
+  if (!visible || !isEnabled || resolution.status === 'hidden') {
     return null;
   }
 
@@ -276,6 +357,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       );
     }
     if (rows.length > 0) {
+      if (virtualized) {
+        return null;
+      }
       return (
         <Box testID={SocialLeaderboardSelectorsIDs.ROWS}>
           {rows.map((trader) => (
@@ -316,6 +400,61 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     }
     return null;
   };
+
+  if (virtualized) {
+    return (
+      <SocialFeedSurfaceProvider location={location}>
+        <Box
+          twClassName="flex-1"
+          testID={SocialLeaderboardSelectorsIDs.CONTAINER}
+        >
+          <AnimatedLeaderboardList
+            ref={listRef}
+            style={tw.style('flex-1')}
+            data={showRows ? rows : []}
+            renderItem={renderRow}
+            keyExtractor={(item) => item.id}
+            getItemType={() => 'trader'}
+            drawDistance={
+              hardwareTier === 'LOW' ? LOW_LIST_DRAW_DISTANCE : undefined
+            }
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            refreshControl={refreshControl}
+            contentContainerStyle={contentContainerStyle}
+            testID={
+              scrollTestID ??
+              (showRows ? SocialLeaderboardSelectorsIDs.ROWS : undefined)
+            }
+            ListHeaderComponent={
+              <Box twClassName="gap-2">
+                {listHeader}
+                {title ? (
+                  <Text variant={TextVariant.HeadingSm} twClassName="px-4">
+                    {title}
+                  </Text>
+                ) : null}
+                {viewerRow ? (
+                  <SocialV1TraderRow
+                    trader={viewerRow.trader}
+                    metric={viewerRow.trader.displayMetric}
+                    onFollowPress={handleFollowPress}
+                    onTraderPress={handleViewerPress}
+                    highlighted
+                    hideRank={viewerRow.hideRank}
+                    showLeaderboardDetails
+                    testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
+                  />
+                ) : null}
+                {showRows ? null : renderBody()}
+              </Box>
+            }
+          />
+        </Box>
+      </SocialFeedSurfaceProvider>
+    );
+  }
 
   return (
     <SocialFeedSurfaceProvider location={location}>

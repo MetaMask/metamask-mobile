@@ -343,10 +343,13 @@ describe('SocialV1View', () => {
 
   it('renders the three mocked position cards on Trending', () => {
     renderWithProvider(<SocialV1View />);
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
 
     MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
       expect(
-        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
+        trendingPage.getByTestId(getSocialFeedPositionCardTestId(item.id)),
       ).toBeOnTheScreen();
     });
   });
@@ -475,9 +478,14 @@ describe('SocialV1View', () => {
 
     it('stays on Trending, without the post, when no post was just written', () => {
       renderWithProvider(<SocialV1View />);
+      const trendingPage = within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+      );
 
       expect(
-        screen.queryByTestId(getSocialFeedPositionCardTestId(PENDING_ITEM_ID)),
+        trendingPage.queryByTestId(
+          getSocialFeedPositionCardTestId(PENDING_ITEM_ID),
+        ),
       ).toBeNull();
     });
   });

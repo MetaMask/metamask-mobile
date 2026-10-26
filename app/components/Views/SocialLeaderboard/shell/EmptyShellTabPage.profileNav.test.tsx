@@ -9,6 +9,14 @@ import { wrapMockFeedPosts } from '../../../UI/SocialFeed/mocks/wrapMockFeedPost
 import { SocialFeedPostShellSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedPostShell.testIds';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({

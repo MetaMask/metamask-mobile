@@ -20,6 +20,7 @@ import {
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import React, {
+  startTransition,
   useCallback,
   useEffect,
   useMemo,
@@ -70,6 +71,7 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveView from '../LiveView';
+import { PageMotionProvider } from '../../../UI/SocialFeed/PageMotionContext';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
 import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePricesContext';
@@ -100,6 +102,29 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
 const LANDING_INDEX = 0;
+const IDLE_PREFETCH_TIMEOUT_MS = 1000;
+
+interface IdleCallbackGlobals {
+  requestIdleCallback?: (
+    callback: () => void,
+    options?: { timeout?: number },
+  ) => number;
+  cancelIdleCallback?: (handle: number) => void;
+}
+
+const scheduleIdlePrefetch = (task: () => void): (() => void) => {
+  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
+
+  if (idleGlobals.requestIdleCallback) {
+    const idleCallbackId = idleGlobals.requestIdleCallback(task, {
+      timeout: IDLE_PREFETCH_TIMEOUT_MS,
+    });
+    return () => idleGlobals.cancelIdleCallback?.(idleCallbackId);
+  }
+
+  const timeoutId = setTimeout(task, 0);
+  return () => clearTimeout(timeoutId);
+};
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
   const index = initialTab ? SOCIAL_V1_TAB_ORDER.indexOf(initialTab) : -1;
@@ -196,6 +221,9 @@ const SocialV1ViewContent: React.FC = () => {
     getLandingIndex(route.params?.initialTab),
   );
   const [activeIndex, setActiveIndex] = useState(landingIndex);
+  const [idlePrefetch, setIdlePrefetch] = useState(false);
+  const [deferredTabsMounted, setDeferredTabsMounted] = useState(false);
+  const [deferredRowsReady, setDeferredRowsReady] = useState(false);
   const socialPerformanceByTab = useMemo(
     () =>
       ({
@@ -273,9 +301,17 @@ const SocialV1ViewContent: React.FC = () => {
   const leaderboardPageRef = useRef<SocialTabPageHandle>(null);
   const livePageRef = useRef<SocialTabPageHandle>(null);
   const activeIndexSv = useSharedValue(landingIndex);
+  // The hot-token crawl commits the shadow tree every frame. Hold it while the
+  // page is hidden, and skip it on low-tier hardware.
+  const hotTokenCrawl = useSharedValue(0);
   const trendingIndexSv = useSharedValue(trendingIndex);
   const followingIndexSv = useSharedValue(followingIndex);
   const liveIndexSv = useSharedValue(liveIndex);
+  useEffect(() => {
+    hotTokenCrawl.value =
+      activeIndex === trendingIndex && hardwareTier !== 'LOW' ? 1 : 0;
+  }, [activeIndex, hardwareTier, hotTokenCrawl, trendingIndex]);
+
   const scrollY = useDerivedValue(() => {
     if (activeIndexSv.value === trendingIndexSv.value) {
       return trendingScrollY.value;
@@ -587,6 +623,28 @@ const SocialV1ViewContent: React.FC = () => {
     pagerRef.current?.setPage(activeIndex);
   }, [activeIndex]);
 
+  useEffect(() => {
+    startTransition(() => {
+      setDeferredTabsMounted(true);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!deferredTabsMounted) {
+      return;
+    }
+    startTransition(() => {
+      setDeferredRowsReady(true);
+    });
+  }, [deferredTabsMounted]);
+
+  useEffect(() => {
+    setIdlePrefetch(false);
+    return scheduleIdlePrefetch(() => {
+      setIdlePrefetch(true);
+    });
+  }, [activeIndex]);
+
   const title = strings('homepage.sections.top_traders');
 
   return (
@@ -703,10 +761,11 @@ const SocialV1ViewContent: React.FC = () => {
               ref={pagerRef}
               style={tw.style('flex-1')}
               initialPage={landingIndex}
+              offscreenPageLimit={1}
               onPageSelected={handlePageSelected}
               testID={SocialV1ViewSelectorsIDs.PAGER}
             >
-              {tabOrder.map((tab) => {
+              {tabOrder.map((tab, pageIndex) => {
                 const testIds = PAGE_TEST_IDS[tab];
                 const pageRef =
                   tab === 'trending'
@@ -716,6 +775,12 @@ const SocialV1ViewContent: React.FC = () => {
                       : tab === 'live'
                         ? livePageRef
                         : leaderboardPageRef;
+                const pageIsActive = activeIndex === pageIndex;
+                const mountPage = pageIsActive || deferredTabsMounted;
+                const prefetch =
+                  idlePrefetch &&
+                  !pageIsActive &&
+                  Math.abs(pageIndex - activeIndex) === 1;
                 return (
                   <View
                     key={tab}
@@ -723,52 +788,62 @@ const SocialV1ViewContent: React.FC = () => {
                     collapsable={false}
                     testID={testIds.page}
                   >
-                    {tab === 'leaderboard' ? (
-                      <LeaderboardShellTabPage
-                        isActive={activeIndex === leaderboardIndex}
-                        performance={socialPerformanceByTab.leaderboard}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        appliedFilters={applied.leaderboard}
-                        onOpenFilters={handleOpenLeaderboardFilters}
-                        isFilterActive={hasActiveFilters('leaderboard')}
-                      />
-                    ) : tab === 'live' ? (
-                      <LiveView
-                        isActive={activeIndex === liveIndex}
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        onCopyTrade={handleCopyTrade}
-                        onOpenFilters={handleOpenLiveFilters}
-                        isFilterActive={hasActiveFilters('live')}
-                        appliedFilters={applied.live}
-                      />
-                    ) : (
-                      <EmptyShellTabPage
-                        tab={tab}
-                        performance={socialPerformanceByTab[tab]}
-                        isActive={
-                          tab === 'trending'
-                            ? activeIndex === trendingIndex
-                            : activeIndex === followingIndex
-                        }
-                        onScroll={scrollHandlers[tab]}
-                        pageRef={pageRef}
-                        containerTestID={testIds.container}
-                        scrollTestID={testIds.scroll}
-                        onOpenFilters={
-                          tab === 'following'
-                            ? handleOpenFollowingFilters
-                            : undefined
-                        }
-                        isFilterActive={hasActiveFilters('following')}
-                        appliedFilters={
-                          tab === 'following' ? applied.following : undefined
-                        }
-                        onQuickBuy={openQuickBuy}
-                      />
-                    )}
+                    {mountPage ? (
+                      <PageMotionProvider value={pageIsActive}>
+                        {tab === 'leaderboard' ? (
+                          <LeaderboardShellTabPage
+                            isActive={pageIsActive}
+                            performance={socialPerformanceByTab.leaderboard}
+                            prefetch={prefetch}
+                            prepare={deferredRowsReady}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            appliedFilters={applied.leaderboard}
+                            onOpenFilters={handleOpenLeaderboardFilters}
+                            isFilterActive={hasActiveFilters('leaderboard')}
+                          />
+                        ) : tab === 'live' ? (
+                          <LiveView
+                            isActive={pageIsActive}
+                            prepare={deferredRowsReady}
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            onCopyTrade={handleCopyTrade}
+                            onOpenFilters={handleOpenLiveFilters}
+                            isFilterActive={hasActiveFilters('live')}
+                            appliedFilters={applied.live}
+                          />
+                        ) : (
+                          <EmptyShellTabPage
+                            tab={tab}
+                            performance={socialPerformanceByTab[tab]}
+                            isActive={pageIsActive}
+                            prefetch={prefetch}
+                            prepare={deferredRowsReady}
+                            hotTokenCrawl={
+                              tab === 'trending' ? hotTokenCrawl : undefined
+                            }
+                            onScroll={scrollHandlers[tab]}
+                            pageRef={pageRef}
+                            containerTestID={testIds.container}
+                            scrollTestID={testIds.scroll}
+                            onOpenFilters={
+                              tab === 'following'
+                                ? handleOpenFollowingFilters
+                                : undefined
+                            }
+                            isFilterActive={hasActiveFilters('following')}
+                            appliedFilters={
+                              tab === 'following'
+                                ? applied.following
+                                : undefined
+                            }
+                            onQuickBuy={openQuickBuy}
+                          />
+                        )}
+                      </PageMotionProvider>
+                    ) : null}
                   </View>
                 );
               })}

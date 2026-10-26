@@ -12,6 +12,16 @@ const mockLeaderboardProps = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockTrack = jest.fn();
 let mockIsPerpsEnabled = true;
+let mockHardwareTier: 'LOW' | 'HIGH' | null = null;
+let mockNetworkTier: 'WIFI' | 'NONE' | 'SLOW_CELLULAR' | null = null;
+
+jest.mock('../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+}));
 
 jest.mock('../../../UI/SocialLeaderboard', () => {
   const ReactActual = jest.requireActual('react');
@@ -19,13 +29,32 @@ jest.mock('../../../UI/SocialLeaderboard', () => {
   return {
     SocialLeaderboard: ({
       ref,
+      scrollTestID,
+      refreshControl,
+      listHeader,
+      visible = true,
       ...props
-    }: Record<string, unknown> & { ref?: React.Ref<unknown> }) => {
+    }: Record<string, unknown> & {
+      ref?: React.Ref<unknown>;
+      scrollTestID?: string;
+      refreshControl?: React.ReactElement;
+      listHeader?: React.ReactElement | null;
+      visible?: boolean;
+    }) => {
       mockLeaderboardProps(props);
-      ReactActual.useImperativeHandle(ref, () => ({ refresh: mockRefresh }));
-      return ReactActual.createElement(View, {
-        testID: 'social-leaderboard-mock',
-      });
+      ReactActual.useImperativeHandle(ref, () => ({
+        refresh: mockRefresh,
+        scrollToOffset: () => undefined,
+      }));
+      if (!visible) {
+        return null;
+      }
+      return ReactActual.createElement(
+        View,
+        { testID: scrollTestID, refreshControl },
+        listHeader,
+        ReactActual.createElement(View, { testID: 'social-leaderboard-mock' }),
+      );
     },
   };
 });
@@ -63,6 +92,8 @@ describe('LeaderboardShellTabPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsPerpsEnabled = true;
+    mockHardwareTier = null;
+    mockNetworkTier = null;
   });
 
   it('renders the combined ranking with the viewer card by default', () => {
@@ -75,6 +106,7 @@ describe('LeaderboardShellTabPage', () => {
         source: { kind: 'all', assetClass: 'all' },
         location: 'social_leaderboard',
         showViewerRow: true,
+        virtualized: true,
         filters: { timeframe: '7d', ranking: 'pnl', cohort: 'all' },
       }),
     );
@@ -146,6 +178,27 @@ describe('LeaderboardShellTabPage', () => {
     rerender(
       <LeaderboardShellTabPage
         isActive={false}
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    expect(screen.getByTestId(LEADERBOARD_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('keeps prepared rows mounted if capability later degrades', () => {
+    const { rerender } = renderWithProvider(
+      <LeaderboardShellTabPage
+        isActive={false}
+        prepare
+        containerTestID="leaderboard-page"
+      />,
+    );
+
+    mockHardwareTier = 'LOW';
+    rerender(
+      <LeaderboardShellTabPage
+        isActive={false}
+        prepare
         containerTestID="leaderboard-page"
       />,
     );

@@ -15,6 +15,12 @@ import SocialLeaderboard, {
 } from './SocialLeaderboard';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
 
+jest.mock('@shopify/flash-list', () =>
+  jest.requireActual(
+    '../../../Views/SocialLeaderboard/testUtils/flashListMock',
+  ),
+);
+
 const mockUseTopTraders = jest.fn();
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
@@ -195,6 +201,18 @@ describe('SocialLeaderboard', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps row details in the opt-in virtualized list', () => {
+    mockQueryResult({
+      traders: [buildTrader({ id: 'virtualized', percentageChange: 7.76 })],
+    });
+
+    renderLeaderboard({ virtualized: true });
+
+    expect(
+      screen.getByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
     ).toBeOnTheScreen();
   });
 

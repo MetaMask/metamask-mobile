@@ -6,6 +6,14 @@ import type { UseSocialV1FeedResult } from '../SocialV1View/feed/types';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
 } from './EmptyShellTabPage';
+
+jest.mock('../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => null,
+}));
+
+jest.mock('../SocialV1View/feed/hooks/usePopularTraders', () => ({
+  usePopularTraders: jest.fn(),
+}));
 import {
   SOCIAL_FEED_ERROR_TEST_ID,
   SOCIAL_FEED_RETRY_TEST_ID,
