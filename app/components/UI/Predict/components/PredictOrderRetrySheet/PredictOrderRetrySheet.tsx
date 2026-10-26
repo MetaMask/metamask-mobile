@@ -16,6 +16,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../locales/i18n';
 import {
   formatCents,
@@ -34,7 +35,8 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { TouchableOpacity } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
@@ -254,104 +256,120 @@ const PredictOrderRetrySheet = forwardRef<
     const showFooter = !isBusy;
 
     return (
-      <BottomSheet
-        ref={sheetRef}
-        shouldNavigateBack={false}
-        isInteractable
-        onClose={handleSheetClosed}
-      >
-        <TouchableOpacity
-          testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
-          onPress={closeSheet}
-          style={tw.style('absolute top-8 right-4 z-10')}
+      // A full-window Modal so the sheet is never clipped by a shorter
+      // parent, such as the Predict sell bottom sheet.
+      <View pointerEvents="box-none" style={tw.style('absolute h-0 w-0')}>
+        <Modal
+          visible
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={closeSheet}
         >
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Xl}
-            color={IconColor.IconDefault}
-          />
-        </TouchableOpacity>
-        <Box
-          testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-6 pb-8 pt-8 gap-4"
-        >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
-          >
-            <Icon
-              name={IconName.Warning}
-              size={IconSize.Xl}
-              color={iconColor}
-            />
-          </Box>
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-          >
-            {title}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {body}
-          </Text>
-          {isQuoteShown && (
-            <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
-              {quoteRows.map((row) => (
-                <Box
-                  key={row.label}
-                  flexDirection={BoxFlexDirection.Row}
-                  justifyContent={BoxJustifyContent.Between}
+          <ModalSafeAreaProvider>
+            <GestureHandlerRootView style={tw.style('flex-1')}>
+              <BottomSheet
+                ref={sheetRef}
+                shouldNavigateBack={false}
+                isInteractable
+                onClose={handleSheetClosed}
+              >
+                <TouchableOpacity
+                  testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
+                  onPress={closeSheet}
+                  style={tw.style('absolute top-8 right-4 z-10')}
                 >
+                  <Icon
+                    name={IconName.Close}
+                    size={IconSize.Xl}
+                    color={IconColor.IconDefault}
+                  />
+                </TouchableOpacity>
+                <Box
+                  testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="px-6 pb-8 pt-8 gap-4"
+                >
+                  <Box
+                    alignItems={BoxAlignItems.Center}
+                    twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
+                  >
+                    <Icon
+                      name={IconName.Warning}
+                      size={IconSize.Xl}
+                      color={iconColor}
+                    />
+                  </Box>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextDefault}
+                    twClassName="text-center"
+                  >
+                    {title}
+                  </Text>
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
+                    twClassName="text-center"
                   >
-                    {row.label}
+                    {body}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {row.value}
-                  </Text>
+                  {isQuoteShown && (
+                    <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
+                      {quoteRows.map((row) => (
+                        <Box
+                          key={row.label}
+                          flexDirection={BoxFlexDirection.Row}
+                          justifyContent={BoxJustifyContent.Between}
+                        >
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                          >
+                            {row.label}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextDefault}
+                          >
+                            {row.value}
+                          </Text>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
-        {showFooter && (
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                variant: ButtonVariants.Primary,
-                label: buttonLabel,
-                onPress: isQuoteShown ? onConfirm : onRetry,
-                testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
-                isDisabled: isRetrying,
-                loading: isRetrying,
-              },
-              ...(isNoMatch
-                ? [
-                    {
-                      variant: ButtonVariants.Secondary,
-                      label: strings('predict.order.try_later'),
-                      onPress: closeSheet,
-                      testID:
-                        PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
-                    },
-                  ]
-                : []),
-            ]}
-            style={tw.style('px-6')}
-          />
-        )}
-      </BottomSheet>
+                {showFooter && (
+                  <BottomSheetFooter
+                    buttonPropsArray={[
+                      {
+                        variant: ButtonVariants.Primary,
+                        label: buttonLabel,
+                        onPress: isQuoteShown ? onConfirm : onRetry,
+                        testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
+                        isDisabled: isRetrying,
+                        loading: isRetrying,
+                      },
+                      ...(isNoMatch
+                        ? [
+                            {
+                              variant: ButtonVariants.Secondary,
+                              label: strings('predict.order.try_later'),
+                              onPress: closeSheet,
+                              testID:
+                                PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+                            },
+                          ]
+                        : []),
+                    ]}
+                    style={tw.style('px-6')}
+                  />
+                )}
+              </BottomSheet>
+            </GestureHandlerRootView>
+          </ModalSafeAreaProvider>
+        </Modal>
+      </View>
     );
   },
 );

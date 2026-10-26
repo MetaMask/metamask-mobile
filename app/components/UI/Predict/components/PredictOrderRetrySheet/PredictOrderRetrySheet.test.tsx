@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { Modal } from 'react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import PredictOrderRetrySheet from './PredictOrderRetrySheet';
 import { Side, type OrderPreview } from '../../types';
 import { PredictOrderRetrySheetSelectorsIDs } from '../../Predict.testIds';
@@ -184,6 +185,26 @@ describe('PredictOrderRetrySheet', () => {
       );
 
       expect(getByTestId('bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('renders the sheet in a full-window modal so a parent sheet cannot clip it', () => {
+      const { UNSAFE_getByType } = render(
+        <PredictOrderRetrySheet {...defaultProps} />,
+      );
+
+      const modal = UNSAFE_getByType(Modal);
+      expect(modal.props.transparent).toBe(true);
+      expect(within(modal).getByTestId('bottom-sheet')).toBeOnTheScreen();
+    });
+
+    it('closes the sheet on Android back', () => {
+      const { UNSAFE_getByType } = render(
+        <PredictOrderRetrySheet {...defaultProps} />,
+      );
+
+      UNSAFE_getByType(Modal).props.onRequestClose();
+
+      expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     });
   });
 
