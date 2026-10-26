@@ -5,7 +5,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
-import ExtendedKeyringTypes from '../../../../../constants/keyringTypes';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import ReduxService, { type ReduxStore } from '../../../../../core/redux';
@@ -15,7 +14,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
@@ -195,11 +194,8 @@ const hydratedSnapshot = (
   autorampStatus,
 });
 
-const VBA_TEST_HD_KEYRING_ID = 'vba-kyc-pending-hd-keyring';
-const VBA_TEST_MONEY_ADDRESS = '0xb1a6e05757757c333909af7243d408de5bf26f89';
-
 const buildKycState = (session: KycSession) =>
-  initialStateWallet()
+  initialStateVba()
     .withOverrides({
       engine: {
         backgroundState: {
@@ -213,38 +209,6 @@ const buildKycState = (session: KycSession) =>
               kycStatus: session.kycStatus,
             },
             providerFlowStatus: 'submitted',
-          },
-          // resolveVbaOnboarding needs selectSelectedVbaWalletAddress →
-          // primary Money account matched to the primary HD keyring.
-          KeyringController: {
-            keyrings: [
-              {
-                type: ExtendedKeyringTypes.hd,
-                accounts: [],
-                metadata: { id: VBA_TEST_HD_KEYRING_ID, name: '' },
-              },
-            ],
-          },
-          MoneyAccountController: {
-            moneyAccounts: {
-              'money-account-1': {
-                id: 'money-account-1',
-                address: VBA_TEST_MONEY_ADDRESS,
-                type: 'eip155:eoa',
-                scopes: [],
-                methods: [],
-                options: {
-                  entropy: {
-                    type: 'mnemonic',
-                    id: VBA_TEST_HD_KEYRING_ID,
-                    derivationPath: "m/44'/4392018'/0'/0",
-                    groupIndex: 0,
-                  },
-                  exportable: false,
-                },
-              },
-            },
-            defaultMoneyAccountId: 'money-account-1',
           },
         },
       },
