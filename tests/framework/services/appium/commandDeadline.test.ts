@@ -37,6 +37,6 @@ describe('withCommandDeadline', () => {
     );
 
     rejectLate(new Error('late failure'));
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    await Promise.resolve();
   });
 });

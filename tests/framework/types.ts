@@ -203,10 +203,11 @@ export interface RetryOptions {
   elemDescription?: string;
   maxRetries?: number;
   /**
-   * Wall-clock cap for a single attempt. A stuck WebDriver command otherwise
-   * holds the attempt until the Android connection timeout (~150s), which
-   * exhausts `timeout` before a retry can start.
-   * Defaults to 15s. Raise it when one healthy attempt includes a long wait.
+   * Wall-clock cap for a single attempt, in milliseconds. When set, a stuck
+   * WebDriver command fails the attempt so the next retry can start instead of
+   * waiting for the Android connection timeout (~150s).
+   * Omit it for operations whose healthy duration is unknown. A missed deadline
+   * is a failed attempt, not a dead session.
    */
   attemptTimeout?: number;
 }
