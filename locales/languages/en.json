@@ -1270,6 +1270,11 @@
       "retry": "Try again"
     }
   },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
+    }
+  },
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",
@@ -3506,6 +3511,7 @@
       "layout": "Order book layout",
       "layout_left": "Left",
       "layout_right": "Right",
+      "size_on_click": "Set order book size on click",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
@@ -3643,6 +3649,7 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
     "event": {
       "your_positions": "Your positions"

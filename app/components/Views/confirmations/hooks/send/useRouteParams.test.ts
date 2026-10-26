@@ -9,6 +9,7 @@ import { useSendContext } from '../../context/send-context';
 import { useEVMNfts } from './useNfts';
 import { useRouteParams } from './useRouteParams';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
+import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -177,6 +178,122 @@ describe('useRouteParams', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectAssetsBySelectedAccountGroup) {
         return { '0x1': [assetToken] };
+      }
+    });
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalledWith(assetToken);
+    });
+  });
+
+  // Regression (CONF-2189): `selectAssetsBySelectedAccountGroup` stores the
+  // native-to-fiat currency rate in `fiat.conversionRate`, while the in-flow
+  // token picker stores a complete token-to-fiat price. The route-param asset
+  // is normalised to the latter so `useCurrencyConversions` can apply one rule.
+  it('folds the token price into conversionRate for an EVM token', async () => {
+    const asset = {
+      id: '123',
+      address: '0xtoken',
+      chainId: '0x1',
+    };
+    // USDC: 0.00025 ETH per token, ETH at $4,000 -> $1.00 per token.
+    const assetToken = {
+      id: '123',
+      assetId: '0xtoken',
+      address: '0xtoken',
+      chainId: '0x1',
+      isNative: false,
+      fiat: { balance: 100, currency: 'usd', conversionRate: 4000 },
+    };
+    mockUseParams.mockReturnValue({ asset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [assetToken] };
+      }
+      if (selector === selectTokenMarketData) {
+        return { '0x1': { '0xtoken': { price: 0.00025 } } };
+      }
+    });
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalledWith({
+        ...assetToken,
+        fiat: { balance: 100, currency: 'usd', conversionRate: 1 },
+      });
+    });
+  });
+
+  it('leaves conversionRate untouched for a native coin', async () => {
+    const asset = {
+      id: '123',
+      address: '0xnative',
+      chainId: '0x1',
+    };
+    const assetToken = {
+      id: '123',
+      assetId: '0xnative',
+      address: '0xnative',
+      chainId: '0x1',
+      isNative: true,
+      fiat: { balance: 4000, currency: 'usd', conversionRate: 4000 },
+    };
+    mockUseParams.mockReturnValue({ asset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [assetToken] };
+      }
+      if (selector === selectTokenMarketData) {
+        return { '0x1': {} };
+      }
+    });
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalledWith(assetToken);
+    });
+  });
+
+  it('leaves conversionRate untouched when the token has no market data', async () => {
+    const asset = {
+      id: '123',
+      address: '0xtoken',
+      chainId: '0x1',
+    };
+    const assetToken = {
+      id: '123',
+      assetId: '0xtoken',
+      address: '0xtoken',
+      chainId: '0x1',
+      isNative: false,
+      fiat: { balance: 100, currency: 'usd', conversionRate: 4000 },
+    };
+    mockUseParams.mockReturnValue({ asset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [assetToken] };
+      }
+      if (selector === selectTokenMarketData) {
+        return { '0x1': {} };
       }
     });
     mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
