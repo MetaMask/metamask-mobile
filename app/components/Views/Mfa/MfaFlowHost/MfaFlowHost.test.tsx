@@ -177,6 +177,23 @@ describe('MfaFlowHost', () => {
     ).toBeOnTheScreen();
 
     await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+    });
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value).toBe(
+      'new@b.co',
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-otp`),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
       fireEvent.changeText(
         getByTestId(MfaFlowSelectorsIDs.CODE_INPUT),
         '123456',
@@ -247,6 +264,33 @@ describe('MfaFlowHost', () => {
     );
     const result = await outcome;
     expect(result.ok && result.value.token?.claims.amr).toEqual(['email_otp']);
+  });
+
+  it('returns to authenticator setup from its code screen', async () => {
+    const controller = createController();
+    controller.beginCredentialEnrollment = jest.fn(async () => ({
+      type: 'totp' as const,
+      flowId: 'enroll-1',
+      secret: 'JBSWY3DPEHPK3PXP',
+      qrCode: 'data:image/png;base64,QR',
+      setupUri: 'otpauth://totp/MetaMask?secret=JBSWY3DPEHPK3PXP',
+      expiresAt: Date.now(),
+    }));
+    await start({ kind: 'enroll', method: 'totp' }, controller);
+    const { getByTestId, getByText } = renderHost();
+
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(getByText('Enter your verification code')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+    });
+
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
   });
 
   it('rejects with flow_cancelled when the user closes it', async () => {
