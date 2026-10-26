@@ -40,11 +40,18 @@ interface TradingActivityListViewProps<T extends { id: string }> {
   testIDs: TradingActivityListViewTestIds;
   list: UseCursorPaginatedListResult<T>;
   renderItem: (item: T) => React.ReactElement | null;
+  /**
+   * Row identity. Defaults to `id`. A feed that mixes types, such as earnings
+   * and claims, must include the type: those rows can share an id.
+   */
+  keyExtractor?: (item: T) => string;
   /** Empty-state description from referral `localized_text`. */
   emptyDescription: string;
   /** Empty-state button label. The button renders only with `emptyOnAction`. */
   emptyActionLabel?: string;
   emptyOnAction?: () => void;
+  /** Sits above the list, the empty state, and the loading skeleton. */
+  header?: React.ReactElement | null;
 }
 
 /**
@@ -63,9 +70,11 @@ function TradingActivityListView<T extends { id: string }>({
   testIDs,
   list,
   renderItem,
+  keyExtractor = (item) => item.id,
   emptyDescription,
   emptyActionLabel,
   emptyOnAction,
+  header,
 }: TradingActivityListViewProps<T>): React.ReactElement {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
@@ -192,6 +201,7 @@ function TradingActivityListView<T extends { id: string }>({
           includesTopInset
         />
         <Box twClassName="flex-1 px-4 pb-8 pt-2">
+          {header ? <Box twClassName="mb-4">{header}</Box> : null}
           {isInitialLoadPending && !error ? (
             <Box
               collapsable={false}
@@ -208,7 +218,7 @@ function TradingActivityListView<T extends { id: string }>({
             <FlatList
               style={tw.style('flex-1')}
               data={items ?? []}
-              keyExtractor={(item) => item.id}
+              keyExtractor={keyExtractor}
               renderItem={renderListItem}
               onEndReached={onEndReached}
               onEndReachedThreshold={0.4}

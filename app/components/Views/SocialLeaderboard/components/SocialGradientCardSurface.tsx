@@ -13,7 +13,7 @@ export interface SocialGradientCardSurfaceProps {
 }
 
 /**
- * Neutral hairline card with the Live trades left-to-right section gradient.
+ * Neutral hairline card with the Live left-to-right section gradient.
  * Padding is left to the caller so leaderboard rows can keep list alignment.
  */
 const SocialGradientCardSurface: React.FC<SocialGradientCardSurfaceProps> = ({

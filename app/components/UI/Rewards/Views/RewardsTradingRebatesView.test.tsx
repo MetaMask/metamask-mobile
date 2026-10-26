@@ -41,6 +41,8 @@ const KEYRING_ID = 'entropy-source-1';
 const LOCALIZED_TEXT = {
   tradingRebates: 'Trading rebates',
   rebatePerpsVolume: 'Perps volume',
+  rebateSwapsVolume: 'Swaps volume',
+  rebatePredictions: 'Predictions',
   rebateSwaps: 'Swaps',
   tradingActivityEmptyDescription:
     'Your activity is empty now. Start trading to earn today!',

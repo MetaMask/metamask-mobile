@@ -54,13 +54,9 @@ export type ClaimBlockingReason =
   | 'SIGNER_UNAVAILABLE'
   | 'TAX_DETERMINATION_REQUIRED'
   | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
-
-export type LedgerBlockingReason =
-  | 'SUSPENDED'
-  | 'TAX_DETERMINATION_REQUIRED'
-  | 'EARNING_ADDRESS_MISSING'
-  | 'MECHANISM_NOT_CLAIMABLE';
+  | 'MECHANISM_NOT_CLAIMABLE'
+  | 'VOIDED'
+  | 'UNDER_REVIEW';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type ReferralCodeView = {
@@ -108,10 +104,30 @@ export type ReferralLocalizedTextKey =
   | 'availableToClaim'
   | 'claim'
   | 'claimed'
+  | 'held'
+  | 'blocked'
+  | 'voided'
+  | 'pending'
   | 'claimSuccessToast'
+  | 'claimPartialSuccessToast'
+  | 'claimFailureToast'
+  | 'claimFailureRetryToast'
+  | 'claimFailureWaitToast'
+  | 'claimFailureWaitMinutesToast'
+  | 'claimFailureMinimumToast'
+  | 'claimFailureAddressBlockedToast'
+  | 'claimFailureTooLargeToast'
+  | 'claimFailureNoEligibleBalanceToast'
+  | 'claimFailureUnavailableToast'
+  | 'claimFailureContactSupportToast'
+  | 'historyClaimPending'
   | 'last7Days'
-  | 'recordedEarningsLabel'
+  | 'totalEarningsLabel'
   | 'breakdown'
+  | 'breakdownTrading'
+  | 'breakdownTradingDescription'
+  | 'breakdownReferralsDescription'
+  | 'breakdownSocialDescription'
   | 'tradingRebates'
   | 'history'
   | 'historyReferrals'
@@ -124,7 +140,7 @@ export type ReferralLocalizedTextKey =
   | 'copyLink'
   | 'messages'
   | 'telegram'
-  | 'last30DaysUpdatedDaily'
+  | 'updatedDaily'
   | 'eligibleFees'
   | 'funnelCodeUses'
   | 'funnelCodeUsesDescription'
@@ -169,7 +185,16 @@ export type ReferralLocalizedTextKey =
   | 'termsTitle'
   | 'termsDescription'
   | 'termsLearnMore'
-  | 'termsUrl';
+  | 'termsUrl'
+  | 'balance'
+  | 'mUSD'
+  | 'paused'
+  | 'claimsPausedTitle'
+  | 'claimsPausedDescription'
+  | 'rewardsPausedTitle'
+  | 'rewardsPausedDescription'
+  | 'rewardsPausedBanner'
+  | 'rewardsPausedLearnMore';
 
 /** Resolved for the request's `Accept-Language`; defaults fill missing keys. */
 export type ReferralLocalizedText = {
@@ -202,6 +227,11 @@ export type ReferralMeDto = {
   localized_text: ReferralLocalizedText;
   /** Null when Contentful has no invite hero synced. */
   invite_hero: ThemeImage | null;
+  /**
+   * Program-scoped ISO 3166-1 alpha-2 codes excluded from accepting an invite.
+   * Always present from the API; treat missing as `[]` for older cached payloads.
+   */
+  excluded_regions: string[];
 };
 
 /** `GET /referral/me/funnel` */
@@ -232,19 +262,59 @@ export type ReadWindowDto = {
   to: string | null;
 };
 
+/**
+ * Totals at one level of `GET /earnings/summary`.
+ *
+ * Every amount is an mUSD base-unit integer string. At the root of the
+ * summary, `lifetime_total` is this same `lifetime`.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SummaryTotalsDto = {
+  /**
+   * Everything at this level. It currently partitions exactly as
+   * `claimed + pending + claimable + held + blocked + voided`. An upcoming
+   * change will remove `voided` from `lifetime`. The client treats this
+   * backend figure as the source of truth and does not subtract `voided`.
+   */
   lifetime: string;
+  /**
+   * Exact base units a claim over this slice would pay now. Absent when
+   * claimability was not requested; absent is not zero.
+   */
   claimable?: string;
+  /**
+   * Base units the income threshold is holding, or, while the account is
+   * suspended, everything that was otherwise payable. Valued at what a claim
+   * would release.
+   */
   held?: string;
+  /**
+   * Base units a durable reason excluded: the mechanism is closed, the
+   * accrual has no producing address, the address cannot be screened, or an
+   * operator hold is under review. A suspension does not move this money.
+   * Voided money is not included.
+   */
   blocked?: string;
   /**
-   * Base units voided and not paid. Absent when the caller opted out of
-   * claimability, like `claimable`, `held`, and `blocked`.
+   * Base units cancelled and never payable. Final, and separate from
+   * `blocked`. Absent when claimability was not requested.
    */
   voided?: string;
+  /**
+   * Earned but not claimable yet, including an open trading day and cashback
+   * still inside its claim delay.
+   */
   pending: string;
+  /** Already paid out. */
   claimed: string;
+  /**
+   * Why this level pays nothing. Null only when `claimable` is non-zero. On
+   * a family it is that family's claim reason. On a branch it is set only
+   * when every family shares the same reason. It names the durable `blocked`
+   * state, except `VOIDED`, which is used only when `blocked` and `held` are
+   * zero and `voided` is not. A suspension reports `SUSPENDED` even though
+   * that money sits in `held`.
+   */
   blocking_reason?: ClaimBlockingReason | null;
 };
 
@@ -276,6 +346,11 @@ export type BranchViewDto<F extends SummaryTotalsDto> = SummaryTotalsDto & {
 /** `GET /earnings/summary` — live backend SummaryView shape. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EarningsSummaryDto = {
+  /**
+   * The root `lifetime`: everything in this summary. It currently includes
+   * `voided`. An upcoming change will remove `voided` from it. Read this
+   * figure as returned.
+   */
   lifetime_total: string;
   window: ReadWindowDto | null;
   claimable?: string;
@@ -285,6 +360,10 @@ export type EarningsSummaryDto = {
   voided?: string;
   pending: string;
   claimed: string;
+  /**
+   * Server claim minimum, `claimMinimumMusdBaseUnits`, as mUSD base units.
+   * A claimable balance below this is not offered as Claim.
+   */
   minimum_musd_base_units: string;
   self_earned: BranchViewDto<SelfEarnedFamilyTotalsDto>;
   earned_by_others: BranchViewDto<EarnedByOthersFamilyTotalsDto>;
@@ -339,7 +418,6 @@ export type LedgerEarningEntryDto = {
    * the end of its claim delay, and a day entry carries its UTC day's close.
    */
   claimable_at: string;
-  blocking_reason?: LedgerBlockingReason | null;
   swaps_source: LedgerSwapsSourceView | null;
   perps_source: LedgerPerpsSourceView | null;
   predict_source: LedgerPredictSourceView | null;
@@ -416,6 +494,67 @@ export type ClaimHistoryPageDto = {
   cursor: string | null;
 };
 
+/** Last path segment of `POST /wr/earnings/claim/<slug>`. */
+export type ClaimRouteSlug =
+  | 'referral-trade-fee-cashback'
+  | 'referral-rev-share';
+
+export interface ClaimVoucherDto {
+  claim_id: string;
+  from: string;
+  to: string;
+  value: string;
+  valid_after: number;
+  valid_before: number;
+  nonce: string;
+  signature: string;
+}
+
+export interface ClaimExcludedDto {
+  type: string;
+  reason: string;
+}
+
+export interface ClaimInitiateDto {
+  claim: ClaimDto;
+  voucher: ClaimVoucherDto | null;
+  excluded: ClaimExcludedDto[];
+  status: 'LIVE_VOUCHER' | 'AWAITING_RELEASE' | 'OPENED';
+}
+
+export interface ClaimProofChallengeDto {
+  earning_address: string;
+  amount_musd_base_units: string;
+  message: string;
+}
+
+export interface ClaimProofRequiredDto {
+  reason: 'PROOF_REQUIRED';
+  claim_intent_id: string;
+  expires_at: string;
+  challenges: ClaimProofChallengeDto[];
+}
+
+export interface ClaimProofSubmissionDto {
+  earning_address: string;
+  signature: string;
+}
+
+export interface InitiateClaimBody {
+  money_account_address: string;
+  /**
+   * Earning-address keys this handset can sign. Omitting it asks for every
+   * address with eligible cashback. An empty array is refused.
+   */
+  earning_addresses?: string[];
+  claim_intent_id?: string;
+  proofs?: ClaimProofSubmissionDto[];
+}
+
+export type InitiateClaimResult =
+  | { kind: 'authorized'; body: ClaimInitiateDto }
+  | { kind: 'proof_required'; body: ClaimProofRequiredDto };
+
 /**
  * The mechanisms `GET /referral/me/commissions` serves.
  *
@@ -489,7 +628,24 @@ export interface RegisterRefereeDto {
   code: string;
 }
 
-export interface GetEarningsSummaryDto {
+/**
+ * Optional narrowing for `GET /earnings/summary`.
+ *
+ * A window (`from`/`to`, UTC `YYYY-MM-DD`, closed on both ends) is only valid
+ * with `includeClaimable: false`. Claimability is what a claim would pay right
+ * now, so the server refuses it beside a window rather than mixing the two.
+ */
+export interface EarningsSummaryQuery {
+  from?: string;
+  to?: string;
+  /**
+   * When false, the response omits `claimable`, `held` and `blocked`.
+   * Defaults to true, matching the server.
+   */
+  includeClaimable?: boolean;
+}
+
+export interface GetEarningsSummaryDto extends EarningsSummaryQuery {
   originTypes?: EarningOriginType[];
   forceFresh?: boolean;
 }

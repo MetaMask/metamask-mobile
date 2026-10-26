@@ -13,7 +13,7 @@ export const ProfileDrawerSelectorsIDs = {
   PROFILE_ACCOUNT_NAME: 'profile-drawer-profile-account-name',
   NOTIFICATIONS_ROW: 'profile-drawer-notifications-row',
   ACTIVITY_ROW: 'profile-drawer-activity-row',
-  SUBSCRIPTIONS_ROW: 'profile-drawer-subscriptions-row',
+  METAMASK_ORANGE: 'profile-drawer-metamask-orange-row',
   SETTINGS_ROW: 'profile-drawer-settings-row',
   HELP_AND_SUPPORT_ROW: 'profile-drawer-help-and-support-row',
 };

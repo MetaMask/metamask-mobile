@@ -55,7 +55,7 @@ const LOCALIZED_TEXT = {
   tradeCommissions: 'Trade commissions',
   tradingCommissionsSection: 'Trading commissions',
   tradingRebates: 'Trading rebates',
-  recordedEarnings: 'recorded claims',
+  recordedEarnings: 'recorded earnings',
   invitedBenefitTitle: 'Your referral benefit',
   invitedReferredBy: 'Referred by',
   invitedOptInDescription: 'Opt in to Rewards to start earning.',
@@ -88,6 +88,7 @@ const createReferralMe = (
   },
   localized_text: LOCALIZED_TEXT,
   invite_hero: null,
+  excluded_regions: [],
   ...overrides,
 });
 
@@ -118,6 +119,7 @@ const renderTab = ({
           referralFunnel: {},
           commissions: {},
           cashbackLedger: {},
+          earningsHistory: {},
         },
       },
     },

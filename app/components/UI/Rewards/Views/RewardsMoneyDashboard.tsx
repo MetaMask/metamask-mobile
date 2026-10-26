@@ -40,12 +40,14 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import EarningsTab from '../components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../components/Money/Tabs/PerformanceTab';
 import WaysToEarnTab from '../components/Money/Tabs/WaysToEarnTab';
 import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkeleton';
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { canClaimEarnings } from '../utils/claimEarnings';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -69,17 +71,6 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
 const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
-
-const hasClaimableEarnings = (claimable?: string): boolean => {
-  if (!claimable) {
-    return false;
-  }
-  try {
-    return BigInt(claimable) > 0n;
-  } catch {
-    return false;
-  }
-};
 
 function sessionHasNoProfile(
   identityReady: boolean,
@@ -150,21 +141,13 @@ const RewardsMoneyDashboard: React.FC = () => {
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
-  const showEarningsDot = hasClaimableEarnings(
-    earningsSummaryEntry?.data?.claimable,
-  );
-
   const referralMe = referralMeEntry?.data;
+  const showEarningsDot = canClaimEarnings(
+    earningsSummaryEntry?.data,
+    moneyDashboardPersona(referralMe),
+  );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
-  const tabPanelProps = (isActive: boolean) => ({
-    accessibilityElementsHidden: !isActive,
-    importantForAccessibility: isActive
-      ? ('auto' as const)
-      : ('no-hide-descendants' as const),
-    pointerEvents: isActive ? ('auto' as const) : ('none' as const),
-    style: tw.style(!isActive && 'hidden'),
-  });
   // The three panels share this scroller. A tab press returns to the top so a
   // long Ways to earn page cannot leave Performance opened mid-list. Pressing
   // the tab that is already selected leaves the offset alone. scrollY is reset
@@ -360,30 +343,35 @@ const RewardsMoneyDashboard: React.FC = () => {
               onScroll={onScroll}
               scrollEventThrottle={16}
             >
-              <Box
-                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
-                {...tabPanelProps(activeTab === 'waysToEarn')}
-              >
-                <WaysToEarnTab
-                  profileId={profileId}
-                  referralMe={referralMe}
-                  isSubscribed={Boolean(subscriptionId)}
-                />
-              </Box>
-              <Box
-                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}
-                {...tabPanelProps(activeTab === 'earnings')}
-              />
-              <Box
-                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
-                {...tabPanelProps(activeTab === 'performance')}
-              >
-                <PerformanceTab
-                  profileId={profileId}
-                  persona={moneyDashboardPersona(referralMe)}
-                  active={activeTab === 'performance'}
-                />
-              </Box>
+              {activeTab === 'waysToEarn' ? (
+                <Box
+                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                >
+                  <WaysToEarnTab
+                    profileId={profileId}
+                    referralMe={referralMe}
+                    isSubscribed={Boolean(subscriptionId)}
+                  />
+                </Box>
+              ) : null}
+              {activeTab === 'earnings' ? (
+                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}>
+                  <EarningsTab
+                    profileId={profileId}
+                    persona={moneyDashboardPersona(referralMe)}
+                    onViewPerformance={() => setActiveTab('performance')}
+                  />
+                </Box>
+              ) : null}
+              {activeTab === 'performance' ? (
+                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
+                  <PerformanceTab
+                    profileId={profileId}
+                    persona={moneyDashboardPersona(referralMe)}
+                    active
+                  />
+                </Box>
+              ) : null}
             </Animated.ScrollView>
           </Animated.View>
         </Box>

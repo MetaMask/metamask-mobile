@@ -223,10 +223,10 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
   });
 
-  it('hides the Time frame section on Following and Live trades', () => {
+  it('hides the Time frame section on Following and Live', () => {
     render(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -285,7 +285,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-volume_24h-slider')).toBeNull();
   });
 
-  it('shows the Following cohort chip on Live trades and Leaderboard but not Following', () => {
+  it('shows the Following cohort chip on Live and Leaderboard but not Following', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -296,11 +296,15 @@ describe('SocialFiltersBottomSheet', () => {
         onClose={jest.fn()}
       />,
     );
+    expect(screen.queryByTestId('social-filters-cohort-all')).toBeNull();
     expect(screen.queryByTestId('social-filters-cohort-following')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -311,6 +315,9 @@ describe('SocialFiltersBottomSheet', () => {
     expect(
       screen.getByTestId('social-filters-cohort-following'),
     ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-cohort-shrimp')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-dolphin')).toBeNull();
+    expect(screen.queryByTestId('social-filters-cohort-whale')).toBeNull();
 
     rerender(
       <SocialFiltersBottomSheet
@@ -408,7 +415,7 @@ describe('SocialFiltersBottomSheet', () => {
     expect(onChange).toHaveBeenCalledWith({ type: 'tokens' });
   });
 
-  it('renders market cap and hides 24h volume on Following and Live trades', () => {
+  it('renders market cap and hides 24h volume on Following and Live', () => {
     const { rerender } = render(
       <SocialFiltersBottomSheet
         tab="following"
@@ -427,7 +434,7 @@ describe('SocialFiltersBottomSheet', () => {
 
     rerender(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}
@@ -463,7 +470,7 @@ describe('SocialFiltersBottomSheet', () => {
   it('hides Network chips on every tab', () => {
     render(
       <SocialFiltersBottomSheet
-        tab="liveTrades"
+        tab="live"
         draft={baseDraft}
         onChange={jest.fn()}
         onApply={jest.fn()}

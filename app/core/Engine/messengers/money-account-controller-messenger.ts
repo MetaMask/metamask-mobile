@@ -34,8 +34,8 @@ export function getMoneyAccountControllerMessenger(
     messenger,
     actions: [
       'KeyringController:getState',
-      'KeyringController:addNewKeyring',
-      'KeyringController:withKeyring',
+      'KeyringController:withController',
+      'KeyringController:withKeyringV2',
     ],
     events: [],
   });

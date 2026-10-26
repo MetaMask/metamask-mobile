@@ -21,6 +21,7 @@ import {
   StackActions,
   useNavigation,
   useRoute,
+  type NavigationState,
 } from '@react-navigation/native';
 import React, {
   useCallback,
@@ -54,16 +55,27 @@ import { IconName as ComponentLibraryIconName } from '../../../../component-libr
 import ReactQueryService from '../../../../core/ReactQueryService';
 import Routes from '../../../../constants/navigation/Routes';
 import useScreenTransitionComplete from '../../../hooks/useScreenTransitionComplete';
+import { useKeyboardHeight } from '../../../hooks/useKeyboardHeight/useKeyboardHeight';
 import { useTheme } from '../../../../util/theme';
+import {
+  fireImpact,
+  ImpactMoment,
+  playSuccessNotification,
+} from '../../../../util/haptics';
 import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { PositionCardBody } from '../../../UI/SocialFeed/components/SocialFeedPositionCard';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import { submitSocialV1ComposedPost } from '../SocialV1View/feed/store/socialV1ComposedFeedStore';
+import SocialFeedGif from '../../../UI/SocialFeed/components/SocialFeedGif';
+import {
+  addPendingPost,
+  requestPostsTabFocus,
+} from '../pendingPosts/pendingPostsStore';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { appendKlipyGifUrlToCommentText } from '../../../UI/SocialFeed/utils/klipyGifComment';
+import { buildPendingPost } from './buildPendingPost';
 import { createSwapComment } from './createSwapCommentApi';
 import {
   clipComposerComment,
@@ -79,6 +91,45 @@ import type { SocialPostComposerViewParams } from './SocialPostComposerView.type
 import GifPickerSheet from './GifPickerSheet';
 import SharePositionBottomSheet from './SharePositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
+
+type ComposerRoute = NavigationState['routes'][number];
+
+const getPreviousRoute = (
+  state: NavigationState | undefined,
+): ComposerRoute | undefined =>
+  state && state.index > 0 ? state.routes[state.index - 1] : undefined;
+
+/**
+ * The viewer's own profile on either profile route, matched the same way
+ * `MyProfileView` decides ownership: no trader, or the viewer's own id or
+ * linked address.
+ */
+const isOwnProfileRoute = (
+  route: ComposerRoute | undefined,
+  viewer: { profileId?: string; linkedAccountAddress?: string | null },
+): boolean => {
+  if (
+    route?.name !== Routes.SOCIAL.MY_PROFILE &&
+    route?.name !== Routes.SOCIAL.V1_PROFILE
+  ) {
+    return false;
+  }
+  const params = route.params as
+    | { traderId?: string; traderAddress?: string }
+    | undefined;
+  if (!params?.traderId) {
+    return true;
+  }
+  return (
+    params.traderId === viewer.profileId ||
+    Boolean(
+      params.traderAddress &&
+        viewer.linkedAccountAddress &&
+        params.traderAddress.toLowerCase() ===
+          viewer.linkedAccountAddress.toLowerCase(),
+    )
+  );
+};
 
 interface ImageInsertEvent {
   nativeEvent: {
@@ -165,15 +216,17 @@ const SocialPostComposerView: React.FC = () => {
   const [gifUri, setGifUri] = useState<string | null>(null);
   const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
   const [isGifSheetOpen, setIsGifSheetOpen] = useState(false);
+  const isKeyboardVisible = useKeyboardHeight() > 0;
 
+  const authorName = profile?.displayName || profile?.handle || '';
   const composerAuthor = useMemo(
     () => ({
       id: profile?.profileId ?? COMPOSER_FEED_AUTHOR.id,
-      username: profile?.handle ?? '',
+      username: authorName,
       avatarUri: profile?.imageUrl,
       winRatePercent: COMPOSER_FEED_AUTHOR.winRatePercent,
     }),
-    [profile?.handle, profile?.imageUrl, profile?.profileId],
+    [authorName, profile?.imageUrl, profile?.profileId],
   );
 
   const previewItem: SocialV1FeedItem | null = useMemo(() => {
@@ -282,6 +335,7 @@ const SocialPostComposerView: React.FC = () => {
     }
     const caption = text.trim();
     const commentText = appendKlipyGifUrlToCommentText(caption, gifUri);
+    fireImpact(ImpactMoment.PrimaryCTA);
     setIsSubmitting(true);
     try {
       let created;
@@ -300,21 +354,62 @@ const SocialPostComposerView: React.FC = () => {
       } else {
         return;
       }
-      if (selectedPosition && !tradeInFlightParams) {
-        const item = mapPositionToFeedItem(selectedPosition.position, caption, {
-          isClosed: selectedPosition.isClosed,
-          author: composerAuthor,
+      playSuccessNotification().catch(() => undefined);
+      const comment = created;
+      const pendingPost = buildPendingPost(
+        comment,
+        () => {
+          const name = comment.author.name || authorName;
+          const avatarUri = comment.author.images?.sm ?? profile?.imageUrl;
+          const author = {
+            id: comment.author.id,
+            username: name,
+            avatarUri,
+            winRatePercent: null,
+          };
+          const timestampMs = comment.timestamp * 1000;
+          let item: SocialV1FeedItem;
+          if (tradeInFlightPreview) {
+            item =
+              'product' in tradeInFlightPreview
+                ? mapPerpsOrderInFlightToFeedItem(
+                    tradeInFlightPreview,
+                    caption,
+                    { author, timestamp: timestampMs },
+                  )
+                : mapTradeInFlightToFeedItem(tradeInFlightPreview, caption, {
+                    author,
+                    timestamp: timestampMs,
+                  });
+          } else if (selectedPosition) {
+            item = mapPositionToFeedItem(selectedPosition.position, caption, {
+              isClosed: selectedPosition.isClosed,
+              author,
+            });
+          } else {
+            return null;
+          }
+          return {
+            id: comment.uid,
+            authorHandle: name,
+            authorImageUrl: avatarUri,
+            timestampMs,
+            reactions: [],
+            gifUri: gifUri ?? undefined,
+            item,
+            position: tradeInFlightParams
+              ? undefined
+              : selectedPosition?.position,
+          };
+        },
+        { isTradeInFlight: tradeInFlightParams != null },
+      );
+      if (pendingPost && profile?.profileId) {
+        addPendingPost({
+          ownerProfileId: profile.profileId,
+          post: pendingPost,
         });
-        submitSocialV1ComposedPost({
-          id: created.uid,
-          authorHandle: profile?.handle ?? '',
-          authorImageUrl: profile?.imageUrl,
-          timestampMs: created.timestamp * 1000,
-          reactions: [],
-          gifUri: gifUri ?? undefined,
-          item,
-        });
-      } else {
+      } else if (tradeInFlightParams) {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           iconName: ComponentLibraryIconName.Confirmation,
@@ -338,8 +433,20 @@ const SocialPostComposerView: React.FC = () => {
       if (openFeedAfterPost) {
         // Replace so Back from the feed skips this already-posted composer.
         navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1));
-      } else {
+        return;
+      }
+      // Every other post lands on the viewer's Posts tab, where it is pinned.
+      requestPostsTabFocus();
+      if (
+        isOwnProfileRoute(getPreviousRoute(navigation.getState()), {
+          profileId: profile?.profileId,
+          linkedAccountAddress,
+        })
+      ) {
         navigation.goBack();
+      } else {
+        // Replace so Back from the profile skips this already-posted composer.
+        navigation.dispatch(StackActions.replace(Routes.SOCIAL.V1_PROFILE));
       }
     } catch {
       toastRef?.current?.showToast({
@@ -355,20 +462,22 @@ const SocialPostComposerView: React.FC = () => {
       setIsSubmitting(false);
     }
   }, [
+    authorName,
     canSubmit,
     colors.error.default,
     colors.success.default,
-    composerAuthor,
     gifUri,
     isSubmitting,
+    linkedAccountAddress,
     navigation,
     openFeedAfterPost,
-    profile?.handle,
     profile?.imageUrl,
+    profile?.profileId,
     selectedPosition,
     text,
     toastRef,
     tradeInFlightParams,
+    tradeInFlightPreview,
   ]);
 
   return (
@@ -402,7 +511,7 @@ const SocialPostComposerView: React.FC = () => {
             >
               <Text
                 variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
+                color={TextColor.TextAlternative}
                 testID={SocialPostComposerViewSelectorsIDs.CHARACTER_COUNT}
               >
                 {strings('social_leaderboard.composer.character_count', {
@@ -432,8 +541,12 @@ const SocialPostComposerView: React.FC = () => {
         >
           <ScrollView
             style={tw.style('flex-1')}
-            contentContainerStyle={tw.style('px-4 pt-8 pb-4 gap-4')}
-            keyboardShouldPersistTaps="always"
+            contentContainerStyle={tw.style('px-4 pt-8 pb-4 grow')}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+            }
+            testID={SocialPostComposerViewSelectorsIDs.SCROLL}
           >
             <Box gap={3} twClassName="w-full">
               <ProfileAvatar
@@ -449,10 +562,9 @@ const SocialPostComposerView: React.FC = () => {
                 placeholder={strings('social_leaderboard.composer.placeholder')}
                 placeholderTextColor={colors.text.alternative}
                 multiline
-                autoFocus={isScreenTransitionComplete}
                 showSoftInputOnFocus
                 style={[
-                  tw.style('w-full text-default min-h-24'),
+                  tw.style('w-full text-default p-0'),
                   composerInputTypography,
                 ]}
                 testID={SocialPostComposerViewSelectorsIDs.INPUT}
@@ -463,7 +575,7 @@ const SocialPostComposerView: React.FC = () => {
             </Box>
 
             {previewItem ? (
-              <Box twClassName="relative">
+              <Box twClassName="relative mt-12">
                 <PositionCardBody item={previewItem} />
                 {isTradeInFlightLocked ? null : (
                   <Pressable
@@ -485,10 +597,9 @@ const SocialPostComposerView: React.FC = () => {
             ) : null}
 
             {gifUri ? (
-              <Box twClassName="relative rounded-2xl overflow-hidden">
-                <Image
-                  source={{ uri: gifUri }}
-                  style={tw.style('w-full aspect-square')}
+              <Box twClassName="relative mt-4 rounded-2xl overflow-hidden">
+                <SocialFeedGif
+                  uri={gifUri}
                   testID={SocialPostComposerViewSelectorsIDs.GIF_PREVIEW}
                 />
                 <Pressable
@@ -510,6 +621,15 @@ const SocialPostComposerView: React.FC = () => {
                 </Pressable>
               </Box>
             ) : null}
+
+            <Pressable
+              accessible={false}
+              onPress={Keyboard.dismiss}
+              style={tw.style('grow')}
+              testID={
+                SocialPostComposerViewSelectorsIDs.DISMISS_KEYBOARD_SURFACE
+              }
+            />
           </ScrollView>
 
           <Box
@@ -541,6 +661,19 @@ const SocialPostComposerView: React.FC = () => {
                 testID={SocialPostComposerViewSelectorsIDs.GIF_CHIP}
               />
             )}
+            {isKeyboardVisible ? (
+              <Box twClassName="ml-auto">
+                <ButtonIcon
+                  iconName={IconName.ArrowDown}
+                  size={ButtonIconSize.Md}
+                  onPress={Keyboard.dismiss}
+                  accessibilityLabel={strings(
+                    'social_leaderboard.composer.hide_keyboard',
+                  )}
+                  testID={SocialPostComposerViewSelectorsIDs.HIDE_KEYBOARD}
+                />
+              </Box>
+            ) : null}
           </Box>
           {isGifSheetOpen ? (
             <GifPickerSheet
