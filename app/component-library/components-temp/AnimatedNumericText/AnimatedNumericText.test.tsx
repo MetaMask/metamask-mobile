@@ -10,11 +10,14 @@ jest.mock('react-native-reanimated', () => ({
   useReducedMotion: jest.fn(() => false),
 }));
 
-const mockTwStyle = jest.fn(() => ({}));
+const mockTwStyle = jest.fn();
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
-    style: (...classes: unknown[]) => mockTwStyle(...classes),
+    style: (...classes: unknown[]) => {
+      mockTwStyle(...classes);
+      return {};
+    },
   }),
 }));
 
