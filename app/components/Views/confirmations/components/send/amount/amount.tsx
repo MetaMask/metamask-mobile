@@ -44,6 +44,7 @@ import { styleSheet } from './amount.styles';
 import { formatAmountWithCommas } from '../../../utils/format-amount';
 import { InitSendLocation } from '../../../constants/send';
 import {
+  FontFamily,
   Text,
   TextVariant,
   TextColor,
@@ -221,7 +222,12 @@ export const Amount = () => {
                   : displayAmount
               }
               color={textColor}
-              cursor={{ animated: true }}
+              cursor={{
+                animated: true,
+                style: styles.cursor,
+                testID: 'send-amount-cursor',
+              }}
+              fontFamily={FontFamily.Hero}
               style={styles.inputText}
               suffix={displaySuffix}
               suffixColor={

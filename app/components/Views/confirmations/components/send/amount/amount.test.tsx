@@ -197,14 +197,18 @@ describe('Amount', () => {
     expect(
       StyleSheet.flatten(getByText('LONGTOKEN').props.style),
     ).toMatchObject({
+      fontFamily: 'GrotzecCond-Bold',
       fontSize: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
+      lineHeight: getFontSizeForInputLength(1 + 'LONGTOKEN'.length + 2),
     });
 
     fireEvent.press(getByTestId('fiat_toggle'));
 
     expect(getByRole('text', { name: '0.00 USD' })).toBeOnTheScreen();
     expect(StyleSheet.flatten(getByText('USD').props.style)).toMatchObject({
+      fontFamily: 'GrotzecCond-Bold',
       fontSize: getFontSizeForInputLength(4 + 'USD'.length + 2),
+      lineHeight: getFontSizeForInputLength(4 + 'USD'.length + 2),
     });
   });
 

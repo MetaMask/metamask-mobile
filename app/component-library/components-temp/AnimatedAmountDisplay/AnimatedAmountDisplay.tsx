@@ -9,6 +9,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import {
+  FontFamily,
   FontWeight,
   Text,
   TextColor,
@@ -58,6 +59,7 @@ export interface AnimatedAmountDisplayProps {
   cursor?: false | AnimatedAmountCursorProps;
   /** Use native text autosizing for legacy high-precision displays. */
   fitToWidth?: boolean;
+  fontFamily?: FontFamily;
   fontWeight?: FontWeight;
   loading?: boolean;
   loadingContent?: React.ReactNode;
@@ -85,6 +87,7 @@ const AnimatedAmountDisplay = ({
   containerStyle,
   cursor = false,
   fitToWidth = false,
+  fontFamily,
   fontWeight,
   loading = false,
   loadingContent,
@@ -133,6 +136,7 @@ const AnimatedAmountDisplay = ({
       return (
         <Text
           color={affixColor ?? color}
+          fontFamily={fontFamily}
           fontWeight={fontWeight}
           style={[style, affixStyle]}
           variant={variant}
@@ -150,6 +154,7 @@ const AnimatedAmountDisplay = ({
       accessible={false}
       adjustsFontSizeToFit
       color={color}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       minimumFontScale={minimumFontScale}
       numberOfLines={1}
@@ -165,6 +170,7 @@ const AnimatedAmountDisplay = ({
       animated={animated}
       color={color}
       containerStyle={amountContainerStyle}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       style={style}
       testID={amountTestID}
