@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, type ReactNode } from 'react';
+import React, { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
 import { hasTestOverrides } from '../../../../util/test/utils';
@@ -211,7 +211,7 @@ const ChartCandleSkeleton = ({
   height,
   testID = 'chart-candle-skeleton',
 }: ChartCandleSkeletonProps) => {
-  const canAnimate = getHardwareTier() !== 'LOW';
+  const [canAnimate] = useState(() => getHardwareTier() !== 'LOW');
   const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
 
   useEffect(() => {
