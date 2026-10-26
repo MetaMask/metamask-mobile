@@ -27,4 +27,5 @@ export const predictBalanceOptions = ({ address = '' }: GetBalanceParams) =>
       return balance;
     },
     staleTime: 10_000,
+    retry: false,
   });

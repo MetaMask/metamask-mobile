@@ -172,6 +172,7 @@ async function withTimeout<T>(
   timeoutMessage: string,
 ): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
+  request.catch(() => undefined);
 
   try {
     return await Promise.race([

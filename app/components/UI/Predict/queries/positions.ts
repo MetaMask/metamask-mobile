@@ -14,4 +14,5 @@ export const predictPositionsOptions = ({ address }: { address: string }) =>
     queryFn: async (): Promise<PredictPosition[]> =>
       Engine.context.PredictController.getPositions({ address }),
     staleTime: 5_000,
+    retry: false,
   });
