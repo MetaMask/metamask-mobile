@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import type { MoneyActivityItem } from '../../types/moneyActivity';
 import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import AccountsApiActivityItem from '../AccountsApiActivityItem/AccountsApiActivityItem';
+import NeobankActivityItem from '../NeobankActivityItem/NeobankActivityItem';
 import CardTransactionRow from '../../../Card/components/CardTransactionRow/CardTransactionRow';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
@@ -83,6 +84,11 @@ const MoneyActivityRow = ({
       />
     );
   }
+
+  if (item.kind === 'neobank') {
+    return <NeobankActivityItem activity={item.tx} privacyMode={privacyMode} />;
+  }
+
   return (
     <MoneyActivityItemView
       tx={item.tx}

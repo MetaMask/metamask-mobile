@@ -578,6 +578,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                   isLoading={isLoading}
                   selectedTokenId={activeHotTokenId}
                   onTokenPress={handleHotTokenPress}
+                  isActive={isActive}
                 />
               ) : null}
               {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (

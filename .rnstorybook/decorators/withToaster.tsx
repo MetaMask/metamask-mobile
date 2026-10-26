@@ -1,9 +1,9 @@
 import React from 'react';
 import { Toaster } from '@metamask/design-system-react-native';
 
-const withToaster = (storyFn: () => React.ReactNode) => (
+const withToaster = (Story: React.ComponentType) => (
   <>
-    {storyFn()}
+    <Story />
     <Toaster />
   </>
 );
