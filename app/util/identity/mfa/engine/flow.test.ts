@@ -214,6 +214,21 @@ describe('createMfaFlow', () => {
       codeSent: true,
     });
 
+    await act(flow, { type: 'back' });
+    expect(flow.getState().step).toStrictEqual({
+      name: 'emailEntry',
+      prefillEmail: 'new@b.co',
+    });
+    await act(flow, { type: 'submitEmail', email: 'new@b.co' });
+    expect(flow.getState().step).toStrictEqual({
+      name: 'otp',
+      purpose: 'setup',
+      method: 'email_otp',
+      email: 'new@b.co',
+      codeSent: true,
+    });
+    expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
+
     await act(flow, { type: 'submitCode', code: '111111' });
     expect(fake.controller.completeCredentialEnrollment).toHaveBeenCalledWith({
       flowId: 'enroll-1',
@@ -1022,6 +1037,19 @@ describe('createMfaFlow', () => {
         codeSent: true,
       });
 
+      // Back returns to the same setup, without starting another one.
+      await act(flow, { type: 'back' });
+      expect(flow.getState().step).toStrictEqual({
+        name: 'totpSetup',
+        ...TOTP_SETUP,
+        secret: `${TOTP_SETUP.secret}1`,
+        isRestart: false,
+      });
+      expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(
+        1,
+      );
+
+      await act(flow, { type: 'continue' });
       await act(flow, { type: 'submitCode', code: '123456' });
       expect(fake.controller.completeCredentialEnrollment).toHaveBeenCalledWith(
         {
