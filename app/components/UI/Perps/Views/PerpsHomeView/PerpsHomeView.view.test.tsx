@@ -18,6 +18,7 @@ import {
 import {
   MarketCategory,
   PERPS_EVENT_VALUE,
+  PerpsMode,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import Engine from '../../../../../core/Engine';
@@ -2136,7 +2137,7 @@ describe('PerpsHomeView', () => {
               ...eligibleOverrides.engine.backgroundState,
               PerpsController: {
                 ...eligibleOverrides.engine.backgroundState.PerpsController,
-                mode: 'lite',
+                mode: PerpsMode.Lite,
                 watchlistMarkets: { testnet: [], mainnet: watchlistSymbols },
               },
               RemoteFeatureFlagController: {
@@ -2160,7 +2161,7 @@ describe('PerpsHomeView', () => {
         extraRoutes: [
           {
             name: Routes.PERPS.MARKET_LIST,
-            Component: marketListProbe,
+            Component: marketListProbe as ComponentType<unknown>,
           },
         ],
       });

@@ -159,6 +159,7 @@ jest.mock('../../UI/Perps/selectors/perpsController', () => {
 
 jest.mock('../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: jest.fn(),
+  selectPerpsWatchlistEnabledFlag: jest.fn(() => true),
 }));
 
 const mockHasCompletedPerpsModeSelection = jest.fn(() =>

@@ -116,6 +116,7 @@ jest.mock('../../selectors/perpsController', () => ({
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPerpsProModeEnabledFlag: () => mockIsProModeEnabled,
+  selectPerpsWatchlistEnabledFlag: () => true,
 }));
 
 jest.mock('../../hooks/usePerpsMode', () => ({
