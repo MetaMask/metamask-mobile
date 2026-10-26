@@ -256,6 +256,29 @@ describe('predictNetworkError', () => {
       expect(loggedArgs).not.toContain(message);
     });
 
+    it.each([-1001, -1003, -1004, -1005, -1006, -1009, -1018, -1020, -1200])(
+      'records NSURL connectivity code %s as a breadcrumb without the raw message',
+      (code) => {
+        const message = `Error Domain=NSURLErrorDomain Code=${code} "https://clob.polymarket.com/x"`;
+
+        logPredictError(new Error(message), context);
+
+        expect(isNetworkError(message)).toBe(true);
+        expect(Logger.log).toHaveBeenCalledWith(
+          PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+          String(code),
+          expect.objectContaining({
+            context: expect.objectContaining({
+              data: expect.objectContaining({ nsurl_code: code }),
+            }),
+          }),
+        );
+        expect(jest.mocked(Logger.log).mock.calls[0]?.[1]).not.toContain(
+          message,
+        );
+      },
+    );
+
     it('normalizes non-Error values before reporting', () => {
       logPredictError('boom', context);
 
