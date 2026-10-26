@@ -136,6 +136,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
+    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
+      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
+    }`;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
@@ -145,7 +148,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
     const primaryAmount = (
       <AnimatedAmountDisplay
+        accessible={!onPress}
         amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+        accessibilityLabel={primaryAccessibilityLabel}
         color={primaryColor}
         cursor={isActive ? { testID: 'cursor', style: styles.cursor } : false}
         loading={isLoading}
@@ -178,7 +183,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           <TouchableOpacity
             testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
             accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={primaryAccessibilityLabel}
             onPress={onPress}
             activeOpacity={0.7}
           >

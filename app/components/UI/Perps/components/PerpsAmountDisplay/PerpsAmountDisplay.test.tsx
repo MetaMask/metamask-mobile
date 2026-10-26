@@ -197,6 +197,25 @@ describe('PerpsAmountDisplay', () => {
       ).toBeOnTheScreen();
     });
 
+    it('includes the asset unit in the accessible trade sheet button label', () => {
+      render(
+        <PerpsAmountDisplay
+          amount="1000"
+          tokenAmount="0.5"
+          tokenSymbol="ETH"
+          showTokenAmount
+          variant="tradeSheet"
+          onPress={jest.fn()}
+          accessibilityLabel="Order amount, 0.5"
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', { name: 'Order amount, 0.5 ETH' }),
+      ).toBeOnTheScreen();
+      expect(screen.queryByRole('text', { name: '0.5' })).toBeNull();
+    });
+
     it('switches between fiat and asset values in the trade sheet', () => {
       const TradeSheetAmount = () => {
         const [showTokenAmount, setShowTokenAmount] = React.useState(false);
