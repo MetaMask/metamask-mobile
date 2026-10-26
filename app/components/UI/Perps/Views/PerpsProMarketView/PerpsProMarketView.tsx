@@ -18,6 +18,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller/constants';
 import { AnimationDuration } from '@metamask/design-tokens';
+import BigNumber from 'bignumber.js';
 import {
   useNavigation,
   useIsFocused,
@@ -45,7 +46,7 @@ import { PerpsProMarketViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsBalanceBottomSheet from '../../components/PerpsBalanceBottomSheet';
 import { CandlePeriodBottomSheet } from '../../../Charts/CandlePeriodSelector';
 import PerpsProMarketStatsBar from '../../components/PerpsProMarketStatsBar';
-import { usePerpsMarketData } from '../../hooks';
+import { useMinimumOrderAmount, usePerpsMarketData } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsChartInteractions } from '../../hooks/usePerpsChartInteractions';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -56,6 +57,7 @@ import {
 import { usePerpsMarketDetailLiveMeasurement } from '../../hooks/usePerpsMarketDetailLiveMeasurement';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import { usePerpsMarketHeaderActions } from '../../hooks/usePerpsMarketHeaderActions';
+import type { PerpsOrderPriceField } from '../../hooks/usePerpsOrderForm';
 import { usePerpsProOrderBookExpanded } from '../../hooks/usePerpsProOrderBookExpanded';
 import { usePerpsProOrderBookPosition } from '../../hooks/usePerpsProOrderBookPosition';
 import { usePerpsRecordMarketViewed } from '../../hooks/usePerpsRecordMarketViewed';
@@ -86,6 +88,7 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
+import { getUsdFromAsset } from './components/PerpsProOrderForm/usePerpsProSizeInput';
 import PerpsProPositionsPanel from './components/PerpsProPositionsPanel';
 import { createStyles } from './PerpsProMarketView.styles';
 import { canonicalizeOrderPrice } from '../../utils/triggerOrderValidation';
@@ -107,8 +110,11 @@ interface PerpsProOrderBookColumnProps {
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can prefill the semantic price field for the selected type
- * without changing a trigger placement to plain Limit.
+ * bid/ask row tap can fill the price field the user last focused — Scale
+ * start/end, Chase max distance, limit, or trigger — in place, with no
+ * order-type switch. Only when nothing is focused does it fall back to the
+ * order type's own default field. With "Set order book size on click" on,
+ * the tap also fills the order size from the row (TAT-4085).
  */
 const PerpsProOrderBookColumn = ({
   symbol,
@@ -118,14 +124,23 @@ const PerpsProOrderBookColumn = ({
   onCollapse,
   onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
-  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
-    usePerpsOrderContext();
+  const {
+    orderForm,
+    commitLimitPrice,
+    setOrderType,
+    commitTriggerPrice,
+    activePriceField,
+    commitPriceToField,
+    setAmount,
+    fillOrderBookSize,
+  } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
+  const { minimumOrderAmount } = useMinimumOrderAmount({ asset: symbol });
 
   const handleSelectPrice = useCallback(
-    (price: string) => {
+    (price: string, size?: string) => {
       // Book prices come from the venue already on a valid tick, so canonicalize
       // only once the asset's precision is known. `canonicalizeOrderPrice` falls
       // back to a default `szDecimals` when it is not, which can round a valid
@@ -135,23 +150,64 @@ const PerpsProOrderBookColumn = ({
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
-      if (isTriggerOrderType(orderForm.type)) {
-        if (isLimitExecutionOrderType(orderForm.type)) {
-          commitLimitPrice(selectedPrice);
-          return;
+      // The last focused field wins over the type-based default below.
+      // Falls through when nothing is focused or the field has no handler.
+      const commitSelectedPrice = (): PerpsOrderPriceField => {
+        if (
+          activePriceField &&
+          commitPriceToField(activePriceField, selectedPrice)
+        ) {
+          return activePriceField;
         }
-        commitTriggerPrice(selectedPrice);
-        return;
-      }
 
-      setOrderType('limit');
-      commitLimitPrice(selectedPrice);
+        if (isTriggerOrderType(orderForm.type)) {
+          if (isLimitExecutionOrderType(orderForm.type)) {
+            commitLimitPrice(selectedPrice);
+            return 'limit';
+          }
+          commitTriggerPrice(selectedPrice);
+          return 'trigger';
+        }
+
+        setOrderType('limit');
+        commitLimitPrice(selectedPrice);
+        return 'limit';
+      };
+      const filledField = commitSelectedPrice();
+
+      if (size !== undefined && selectedPrice !== undefined) {
+        // The amount reads as if the trader typed the row size in the size
+        // field. USD cannot hold every base size, so the exact row size rides
+        // along and sizes the order while that amount and price stand. A row
+        // below the market minimum only raises the amount; outside Reduce Only
+        // the form caps the amount at the margin maximum, which drops the fill.
+        const rowAmount = getUsdFromAsset(size, Number(selectedPrice));
+        if (new BigNumber(rowAmount).gt(0)) {
+          // Compare the unrounded notional: cents rounding can lift a row just
+          // under the minimum onto it, and the exact size would then be refused.
+          if (new BigNumber(size).times(selectedPrice).lt(minimumOrderAmount)) {
+            setAmount(String(minimumOrderAmount));
+          } else {
+            fillOrderBookSize({
+              size,
+              amount: rowAmount,
+              price: selectedPrice,
+              field: filledField,
+            });
+          }
+        }
+      }
     },
     [
+      activePriceField,
+      commitPriceToField,
       commitLimitPrice,
       commitTriggerPrice,
+      fillOrderBookSize,
       marketData?.szDecimals,
+      minimumOrderAmount,
       orderForm.type,
+      setAmount,
       setOrderType,
     ],
   );

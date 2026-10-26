@@ -96,7 +96,11 @@ export const PERPS_LAST_ACTION_AT = `${prefix}perpsLastActionAt`;
 
 export const SOCIAL_LAST_TRADE_AT = `${prefix}socialLastTradeAt`;
 
+export const SOCIAL_POST_TRADE_PROMPTS = `${prefix}socialPostTradePrompts`;
+
 export const PERPS_AGGREGATE_FILLS = `${prefix}perpsAggregateFills`;
+
+export const PERPS_ORDER_BOOK_SIZE_ON_CLICK = `${prefix}perpsOrderBookSizeOnClick`;
 
 export const ROBINHOOD_SWAPS_BANNER_DISMISSED = `${prefix}robinhoodSwapsBannerDismissed`;
 

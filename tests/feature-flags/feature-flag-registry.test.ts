@@ -172,9 +172,32 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('registers pending VBA activity as default-off and version-gated', () => {
+      expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
+        name: 'moneyVbaPendingActivityEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps the Money hub default-off', () => {
       expect(
         getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps the Money deposit Braze campaign default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
+          ?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '0.0.0',

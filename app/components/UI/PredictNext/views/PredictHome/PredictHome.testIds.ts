@@ -10,6 +10,7 @@ export const PredictHomeTestIds = {
   BALANCE_LOADING: 'predict-next-home-balance-loading',
   BALANCE_ERROR: 'predict-next-home-balance-error',
   BALANCE_RETRY: 'predict-next-home-balance-retry',
+  BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
   ADD_FUNDS: 'predict-next-home-add-funds',
