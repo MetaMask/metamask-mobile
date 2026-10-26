@@ -1,6 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
 import Engine from '../../../../core/Engine';
-import { WITHDRAWAL_CONSTANTS } from '@metamask/perps-controller';
+import {
+  HYPERLIQUID_ASSET_CONFIGS,
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
 import { useWithdrawValidation } from './useWithdrawValidation';
 
 // Mock Engine
@@ -227,8 +230,7 @@ describe('useWithdrawValidation', () => {
   it('should handle testnet network', () => {
     (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
     const testnetRoute = {
-      assetId:
-        'eip155:421614/erc20:0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d/default',
+      assetId: HYPERLIQUID_ASSET_CONFIGS.usdc.testnet,
       chainId: 'eip155:421614',
       constraints: {
         minAmount: '2.00',

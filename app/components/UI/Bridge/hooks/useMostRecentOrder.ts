@@ -38,7 +38,7 @@ function getMostRecentOrder(
   }
 
   return Date.parse(limitOrder.timingData.createdAt) >=
-    Date.parse(recurringOrder.createdAt)
+    Date.parse(recurringOrder.timingData.createdAt)
     ? { type: BridgeTabKey.Limit, order: limitOrder }
     : { type: BridgeTabKey.Recurring, order: recurringOrder };
 }
