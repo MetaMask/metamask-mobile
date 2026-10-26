@@ -42,13 +42,17 @@ export enum FeatureFlagNames {
   addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
   ledgerDmk = 'ledgerDmk',
+  tokenDetailsBrandRefresh = 'tokenDetailsBrandRefresh',
   crossmintApplePayCheckout = 'crossmintApplePayCheckout',
   nativeTabBarEnabled = 'nativeTabBarEnabled',
   predictBrandRefresh = 'predictBrandRefresh',
   homeInterimHeaderNavBar = 'homeInterimHeaderNavBar',
   homeBrandRefreshSurfaces = 'homeBrandRefreshSurfaces',
   moneyBrandRefresh = 'moneyBrandRefresh',
+  moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
+  moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
+  exploreBrandRefresh = 'exploreBrandRefresh',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */
@@ -76,4 +80,12 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.telegramLoginEnabled]: false,
+  [FeatureFlagNames.moneyVbaPendingActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
 };

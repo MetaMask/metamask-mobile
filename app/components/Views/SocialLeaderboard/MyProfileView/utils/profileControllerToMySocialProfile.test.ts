@@ -75,12 +75,22 @@ describe('profileControllerToMySocialProfile', () => {
   it('reads a foxicon avatar URL as a preset and backdrop', () => {
     const result = profileControllerToMySocialProfile({
       ...profile,
-      avatarUrl: 'foxicon://zombie/lime',
+      avatarUrl: 'foxicon://zombie/background7',
     });
 
     expect(result.imageUrl).toBeNull();
     expect(result.avatarPresetId).toBe('zombie');
-    expect(result.avatarBackgroundId).toBe('lime');
+    expect(result.avatarBackgroundId).toBe('background7');
+  });
+
+  it('translates a legacy foxicon avatar URL to the current ids', () => {
+    const result = profileControllerToMySocialProfile({
+      ...profile,
+      avatarUrl: 'foxicon://visor/lime',
+    });
+
+    expect(result.avatarPresetId).toBe('vr');
+    expect(result.avatarBackgroundId).toBe('background7');
   });
 });
 

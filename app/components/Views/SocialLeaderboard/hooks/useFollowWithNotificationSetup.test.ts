@@ -26,20 +26,39 @@ describe('useFollowWithNotificationSetup', () => {
     const { result } = renderHook(() => useFollowWithNotificationSetup());
     await result.current.followWithSetup(false, performFollow);
 
-    expect(openSetupIfNeeded).toHaveBeenCalledWith(performFollow);
     expect(performFollow).toHaveBeenCalledTimes(1);
+    expect(openSetupIfNeeded).toHaveBeenCalledWith();
   });
 
-  it('defers the follow to the setup sheet when setup is needed', async () => {
+  it('follows before opening notification setup', async () => {
     const openSetupIfNeeded = setGate(true);
-    const performFollow = jest.fn();
+    const calls: string[] = [];
+    const performFollow = jest.fn(async () => {
+      calls.push('follow');
+    });
+    openSetupIfNeeded.mockImplementation(() => {
+      calls.push('setup');
+      return true;
+    });
 
     const { result } = renderHook(() => useFollowWithNotificationSetup());
     await result.current.followWithSetup(false, performFollow);
 
-    // Handed to the sheet, which performs it once a channel is enabled.
-    expect(openSetupIfNeeded).toHaveBeenCalledWith(performFollow);
-    expect(performFollow).not.toHaveBeenCalled();
+    expect(calls).toEqual(['follow', 'setup']);
+    expect(openSetupIfNeeded).toHaveBeenCalledWith();
+  });
+
+  it('skips notification setup when the follow rejects', async () => {
+    const openSetupIfNeeded = setGate(true);
+    const performFollow = jest.fn().mockRejectedValue(new Error('fail'));
+
+    const { result } = renderHook(() => useFollowWithNotificationSetup());
+
+    await expect(
+      result.current.followWithSetup(false, performFollow),
+    ).rejects.toThrow('fail');
+
+    expect(openSetupIfNeeded).not.toHaveBeenCalled();
   });
 
   it('never gates an unfollow, even when setup would be needed', async () => {

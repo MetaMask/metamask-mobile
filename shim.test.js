@@ -1,5 +1,7 @@
 /**
- * Tests for the Event/EventTarget/CloseEvent/MessageEvent polyfills in shim.js.
+ * Tests for shim.js.
+ *
+ * Event/EventTarget/CloseEvent/MessageEvent polyfills:
  *
  * The core fix (TAT-3223) ensures polyfilled globals use React Native's own
  * Event classes for instanceof compatibility with RN's EventTarget.dispatchEvent.
@@ -71,5 +73,88 @@ describe('Event polyfill shims (TAT-3223)', () => {
 
       expect(me instanceof RNEvent).toBe(true);
     });
+  });
+});
+
+describe('E2E network shim', () => {
+  const MOCK_SERVER_URL = 'http://localhost:8000';
+  const savedGlobals = {
+    fetch: global.fetch,
+    XMLHttpRequest: global.XMLHttpRequest,
+    WebSocket: global.WebSocket,
+  };
+
+  /**
+   * Evaluates shim.js in an isolated module registry, as an E2E build would.
+   * Native-only side-effect imports are stubbed out.
+   */
+  const loadShim = () =>
+    jest.isolateModules(() => {
+      /* eslint-disable import-x/no-commonjs */
+      jest.doMock('./app/util/test/utils.js', () => ({
+        ...jest.requireActual('./app/util/test/utils.js'),
+        isTestEnvironment: true,
+        hasTestOverrides: true,
+      }));
+      jest.doMock('react-native-launch-arguments', () => ({
+        LaunchArguments: { value: () => ({ mockServerPort: 8000 }) },
+      }));
+      jest.doMock('@walletconnect/react-native-compat', () => ({}));
+      jest.doMock('expo', () => ({}));
+      jest.doMock('compression-streams-polyfill', () => ({}));
+      jest.doMock('./shimPerf', () => ({}));
+      Object.defineProperty(require('react-native'), 'Settings', {
+        value: { get: jest.fn() },
+      });
+      require('./shim.js');
+      /* eslint-enable import-x/no-commonjs */
+    });
+
+  const flushPromises = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+  let underlyingFetch;
+
+  beforeEach(() => {
+    jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    underlyingFetch = jest.fn(async (url) => {
+      if (url === `${MOCK_SERVER_URL}/health-check`) {
+        return { ok: true };
+      }
+      throw new TypeError('Network request failed');
+    });
+    global.fetch = underlyingFetch;
+    global.XMLHttpRequest = undefined;
+    global.WebSocket = undefined;
+  });
+
+  afterEach(() => {
+    Object.assign(global, savedGlobals);
+    jest.restoreAllMocks();
+  });
+
+  it('routes fetch through the mock server proxy', async () => {
+    loadShim();
+    await flushPromises();
+
+    await global.fetch('https://example.com/a').catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(
+      `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent('https://example.com/a')}`,
+      undefined,
+    );
+  });
+
+  it('rejects when the proxied fetch fails, without retrying the original URL directly', async () => {
+    loadShim();
+    await flushPromises();
+
+    await expect(global.fetch('https://example.com/a')).rejects.toThrow(
+      'Network request failed',
+    );
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      'https://example.com/a',
+      undefined,
+    );
   });
 });

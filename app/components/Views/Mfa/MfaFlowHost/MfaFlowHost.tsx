@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import Animated, { SlideInDown } from 'react-native-reanimated';
+import Animated, { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import {
   StackActions,
   useNavigation,
@@ -20,6 +20,7 @@ import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
 import PickerStep from './steps/PickerStep';
 import EmailEntryStep from './steps/EmailEntryStep';
+import TotpSetupStep from './steps/TotpSetupStep';
 import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import FailureStep from './steps/FailureStep';
@@ -90,6 +91,8 @@ const MfaFlowHost = () => {
         return <IntroStep {...shared} step={step} />;
       case 'emailEntry':
         return <EmailEntryStep {...shared} step={step} />;
+      case 'totpSetup':
+        return <TotpSetupStep {...shared} step={step} />;
       case 'otp':
         return <CodeStep {...shared} step={step} />;
       case 'passkey':
@@ -126,7 +129,9 @@ const MfaFlowHost = () => {
   // slide in themselves, as a full-screen modal would.
   return (
     <Animated.View
-      entering={SlideInDown}
+      entering={
+        flow.reason.presentation === 'card' ? SlideInRight : SlideInDown
+      }
       style={tw.style('flex-1 bg-default')}
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >

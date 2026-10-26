@@ -93,9 +93,10 @@ interface ContractCheck {
  * absent `HONEYPOT` may mean "not a honeypot" or "not tested" and these rules
  * cannot tell the two apart. Each check therefore picks a side in `otherwise`.
  * Silence reads as reassuring on `no_honeypot`, `no_blacklist` and
- * `is_mintable` — whose `fail` prints "No", the inversion described below —
- * and as a warning only on `renounced`, which at least has a real inverse
- * signal in `OWNERSHIP_NOT_RENOUNCED` for the cases Blockaid does report.
+ * `is_mintable` — whose `fail` prints "No", the inversion described below.
+ * `renounced` and `contract_verified` instead resolve to `unknown` when
+ * neither of their explicit poles is present, since Blockaid only emits an
+ * ownership/verification signal when it has one to report (confirmed Oct 2026).
  */
 export const CONTRACT_CHECKS: Readonly<
   Record<ContractCheckKey, ContractCheck>
@@ -116,10 +117,17 @@ export const CONTRACT_CHECKS: Readonly<
     otherwise: 'unknown',
     tone: 'verdict',
   },
+  /**
+   * Both poles are explicit featureIds, and Blockaid only emits one when it
+   * has a specific ownership signal to report — so absent *both*, it has not
+   * asserted an ownership state, and the honest reading is `unknown` rather
+   * than guessing "not renounced". Confirmed by Blockaid (Oct 2026): neither
+   * id present -> Unknown / not checked. This mirrors `contract_verified`.
+   */
   [ContractCheckKey.Renounced]: {
     failOn: ['OWNERSHIP_NOT_RENOUNCED'],
     passOn: ['OWNERSHIP_RENOUNCED'],
-    otherwise: 'fail',
+    otherwise: 'unknown',
     tone: 'verdict',
   },
   [ContractCheckKey.NoBlacklist]: {

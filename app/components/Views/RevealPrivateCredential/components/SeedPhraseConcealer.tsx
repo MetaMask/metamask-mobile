@@ -21,7 +21,7 @@ import { SeedPhraseConcealerProps } from '../types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const FILL_STYLE =
-  'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1';
+  'absolute top-0 left-0 bottom-0 right-0 h-full rounded-xl flex-1';
 
 const SeedPhraseConcealer = ({
   onReveal,
@@ -31,7 +31,7 @@ const SeedPhraseConcealer = ({
   const tw = useTailwind();
 
   return (
-    <Box twClassName="flex-1 rounded-lg">
+    <Box twClassName="flex-1 rounded-xl">
       <TouchableOpacity
         onPress={onReveal}
         style={tw.style(FILL_STYLE)}
@@ -44,7 +44,7 @@ const SeedPhraseConcealer = ({
           style={tw.style(FILL_STYLE, 'opacity-50')}
           resizeMode="cover"
         />
-        <Box twClassName="items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1">
+        <Box twClassName="items-center justify-center rounded-xl px-6 py-[45px] gap-y-4 h-full flex-1">
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
@@ -52,13 +52,15 @@ const SeedPhraseConcealer = ({
           />
           <Text
             variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
+            twClassName="text-center"
           >
-            {strings('manual_backup_step_1.reveal')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
-            {strings('manual_backup_step_1.watching')}
+            <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+              {strings('manual_backup_step_1.reveal')}
+            </Text>{' '}
+            <Text variant={TextVariant.BodyMd}>
+              {strings('manual_backup_step_1.watching')}
+            </Text>
           </Text>
         </Box>
       </TouchableOpacity>

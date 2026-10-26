@@ -32,9 +32,9 @@ export interface TrackedQuickBuyTrade {
    * When true, terminal complete/failed toasts are skipped and the Social
    * post-swap share sheet is updated instead.
    */
-  postSwapShare?: boolean;
+  postTradeShare?: boolean;
   /** Identifies the share session created for this trade. */
-  postSwapShareSessionId?: string;
+  postTradeShareSessionId?: string;
 }
 
 /**
