@@ -1237,7 +1237,6 @@ export type MessengerClientsToInitialize =
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'
-  | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
   | 'SocialRealtimeService'

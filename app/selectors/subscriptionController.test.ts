@@ -688,7 +688,6 @@ describe('subscriptionController selectors', () => {
         },
         perps: {
           builderFeeBips: '0',
-          builderCode: 'code',
           capMicroUsd: 1_500_000_000,
           consumedMicroUsd: 500_000_000,
           remainingMicroUsd: 1_000_000_000,

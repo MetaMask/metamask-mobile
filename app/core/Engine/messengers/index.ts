@@ -132,10 +132,6 @@ import {
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
 import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
-import {
-  getAnalyticsControllerInitMessenger,
-  getAnalyticsControllerMessenger,
-} from './analytics-controller-messenger';
 import { getAiDigestControllerMessenger } from './ai-digest-controller-messenger';
 import { getSocialServiceMessenger } from './social-service-messenger';
 import { getSocialRealtimeServiceMessenger } from './social-realtime-service-messenger';
@@ -426,10 +422,6 @@ export const MESSENGER_FACTORIES = {
   ProofOfOwnershipService: {
     getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
-  },
-  AnalyticsController: {
-    getMessenger: getAnalyticsControllerMessenger,
-    getInitMessenger: getAnalyticsControllerInitMessenger,
   },
   AiDigestController: {
     getMessenger: getAiDigestControllerMessenger,

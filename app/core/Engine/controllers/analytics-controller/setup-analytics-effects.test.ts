@@ -1,57 +1,18 @@
-import { analyticsControllerInit } from './analytics-controller-init';
-import {
-  AnalyticsController,
-  AnalyticsControllerMessenger,
-} from '@metamask/analytics-controller';
-import { MessengerClientInitRequest } from '../../types';
-import {
-  AnalyticsControllerInitMessenger,
-  getAnalyticsControllerMessenger,
-} from '../../messengers/analytics-controller-messenger';
-import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
-import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
+import type { AccountsControllerState } from '@metamask/accounts-controller';
+import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { analytics } from '../../../../util/analytics/analytics';
-import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
 import Logger from '../../../../util/Logger';
+import { getAccountCompositionTraits } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { syncBrazeEventBlocklist } from '../../../Braze';
 import { BRAZE_EVENT_BLOCKLIST_FLAG_KEY } from '../../../../selectors/featureFlagController/brazeEventBlocklist';
-import type { AccountsControllerState } from '@metamask/accounts-controller';
-import type { RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import { KeyringTypes } from '@metamask/keyring-controller';
-import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
-import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
+import type { AnalyticsControllerInitMessenger } from '../../messengers/analytics-controller-messenger';
+import { setupAnalyticsControllerEffects } from './setup-analytics-effects';
 
 type InternalAccounts = AccountsControllerState['internalAccounts']['accounts'];
-
-jest.mock('@metamask/analytics-controller', () => ({
-  ...jest.requireActual('@metamask/analytics-controller'),
-  AnalyticsController: jest.fn().mockImplementation(() => ({
-    init: jest.fn().mockResolvedValue(undefined),
-  })),
-}));
-
-jest.mock('./platform-adapter', () => ({
-  createPlatformAdapter: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('./platform-adapter-e2e', () => ({
-  createPlatformAdapter: jest.fn().mockReturnValue({}),
-}));
-
-jest.mock('../../../../util/test/utils', () => ({
-  hasTestOverrides: false,
-}));
-
-jest.mock('../../../Braze', () => ({
-  getBrazePlugin: jest.fn().mockReturnValue({ name: 'braze' }),
-  syncBrazeEventBlocklist: jest.fn(),
-}));
-
-jest.mock('../../../../util/analytics/appVersionSegmentPlugin', () =>
-  jest.fn().mockImplementation(() => ({ name: 'appVersion' })),
-);
 
 jest.mock('../../../../util/analytics/analytics', () => ({
   analytics: {
@@ -73,6 +34,10 @@ jest.mock('../../../../util/Logger', () => ({
   },
 }));
 
+jest.mock('../../../Braze', () => ({
+  syncBrazeEventBlocklist: jest.fn(),
+}));
+
 const mockAnalyticsIdentify = jest.mocked(analytics.identify);
 const mockGetAccountCompositionTraits = jest.mocked(
   getAccountCompositionTraits,
@@ -85,33 +50,6 @@ function buildInitMessengerMock(): jest.Mocked<AnalyticsControllerInitMessenger>
     subscribe: jest.fn(),
     call: jest.fn(),
   } as unknown as jest.Mocked<AnalyticsControllerInitMessenger>;
-}
-
-function getInitRequestMock(
-  overrides: Partial<{
-    analyticsId: string;
-    persistedState: Record<string, unknown>;
-    initMessenger: jest.Mocked<AnalyticsControllerInitMessenger>;
-  }> = {},
-): jest.Mocked<
-  MessengerClientInitRequest<
-    AnalyticsControllerMessenger,
-    AnalyticsControllerInitMessenger
-  >
-> {
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never, never>({
-    namespace: MOCK_ANY_NAMESPACE,
-  });
-
-  return {
-    ...buildMessengerClientInitRequestMock(baseMessenger),
-    controllerMessenger: getAnalyticsControllerMessenger(
-      baseMessenger as never,
-    ),
-    initMessenger: overrides.initMessenger ?? buildInitMessengerMock(),
-    analyticsId: overrides.analyticsId ?? 'test-analytics-id',
-    persistedState: overrides.persistedState ?? {},
-  };
 }
 
 function getAccountsSubscribeCallback(
@@ -166,114 +104,9 @@ function buildMockAccounts(
   };
 }
 
-describe('analyticsControllerInit', () => {
+describe('setupAnalyticsControllerEffects', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  describe('controller initialization', () => {
-    it('returns the initialized controller', () => {
-      const { controller } = analyticsControllerInit(getInitRequestMock());
-      expect(controller).toBeDefined();
-    });
-
-    it('creates AnalyticsController with correct arguments', () => {
-      analyticsControllerInit(getInitRequestMock());
-
-      expect(AnalyticsController).toHaveBeenCalledWith({
-        messenger: expect.any(Object),
-        state: expect.objectContaining({ analyticsId: 'test-analytics-id' }),
-        platformAdapter: expect.any(Object),
-        isAnonymousEventsFeatureEnabled: true,
-        isGeolocationEnabled: false,
-      });
-    });
-
-    it('uses persisted consentDecisionMade state when available', () => {
-      analyticsControllerInit(
-        getInitRequestMock({
-          persistedState: {
-            AnalyticsController: { consentDecisionMade: true },
-          },
-        }),
-      );
-
-      expect(AnalyticsController).toHaveBeenCalledWith(
-        expect.objectContaining({
-          state: expect.objectContaining({ consentDecisionMade: true }),
-        }),
-      );
-    });
-
-    it('defaults consentDecisionMade to false when nothing is persisted', () => {
-      analyticsControllerInit(getInitRequestMock());
-
-      expect(AnalyticsController).toHaveBeenCalledWith(
-        expect.objectContaining({
-          state: expect.objectContaining({ consentDecisionMade: false }),
-        }),
-      );
-    });
-
-    it('keeps persisted marketing consent and eventsConfig while forcing the MMKV analyticsId', () => {
-      analyticsControllerInit(
-        getInitRequestMock({
-          analyticsId: 'mmkv-analytics-id',
-          persistedState: {
-            AnalyticsController: {
-              analyticsId: 'persisted-analytics-id',
-              optedIn: true,
-              consentDecisionMade: true,
-              optedInToMarketing: true,
-              marketingConsentDecisionMade: true,
-              marketingCampaignCookieId: 'cookie',
-              eventsConfig: {
-                schemaVersion: '1',
-                version: '2',
-                timestamp: 1,
-                events: { 'Swap Completed': ['marketing'] },
-              },
-            },
-          },
-        }),
-      );
-
-      expect(AnalyticsController).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isGeolocationEnabled: false,
-          state: expect.objectContaining({
-            analyticsId: 'mmkv-analytics-id',
-            optedIn: true,
-            consentDecisionMade: true,
-            optedInToMarketing: true,
-            marketingConsentDecisionMade: true,
-            marketingCampaignCookieId: 'cookie',
-            eventsConfig: expect.objectContaining({ version: '2' }),
-          }),
-        }),
-      );
-    });
-
-    it('uses persisted optedIn state when available', () => {
-      analyticsControllerInit(
-        getInitRequestMock({
-          persistedState: { AnalyticsController: { optedIn: true } },
-        }),
-      );
-
-      expect(AnalyticsController).toHaveBeenCalledWith(
-        expect.objectContaining({
-          state: expect.objectContaining({ optedIn: true }),
-        }),
-      );
-    });
-
-    it('calls controller.init()', () => {
-      analyticsControllerInit(getInitRequestMock());
-
-      const controllerMock = jest.mocked(AnalyticsController);
-      expect(controllerMock.mock.results[0].value.init).toHaveBeenCalled();
-    });
   });
 
   describe('Braze event blocklist', () => {
@@ -283,7 +116,7 @@ describe('analyticsControllerInit', () => {
       blockedEvents: ['App Opened'],
     };
 
-    it('syncs the current remote flag value on init', () => {
+    it('syncs the current remote flag value on setup', () => {
       const initMessenger = buildInitMessengerMock();
       initMessenger.call.mockReturnValue(
         buildRemoteFeatureFlagState({
@@ -291,7 +124,7 @@ describe('analyticsControllerInit', () => {
         }),
       );
 
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       expect(initMessenger.call).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:getState',
@@ -302,7 +135,7 @@ describe('analyticsControllerInit', () => {
     it('subscribes to RemoteFeatureFlagController:stateChange', () => {
       const initMessenger = buildInitMessengerMock();
 
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       expect(initMessenger.subscribe).toHaveBeenCalledWith(
         'RemoteFeatureFlagController:stateChange',
@@ -312,7 +145,7 @@ describe('analyticsControllerInit', () => {
 
     it('syncs the blocklist when remote feature flags change', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       mockSyncBrazeEventBlocklist.mockClear();
 
       const callback = getRemoteFeatureFlagSubscribeCallback(initMessenger);
@@ -326,40 +159,10 @@ describe('analyticsControllerInit', () => {
     });
   });
 
-  describe('platform adapter', () => {
-    it('uses standard platform adapter when not in E2E', () => {
-      const { createPlatformAdapter } = jest.requireMock('./platform-adapter');
-
-      analyticsControllerInit(getInitRequestMock());
-
-      expect(createPlatformAdapter).toHaveBeenCalledWith([
-        { name: 'braze' },
-        { name: 'appVersion' },
-      ]);
-    });
-
-    it('uses E2E platform adapter when hasTestOverrides is true', () => {
-      jest.resetModules();
-      jest.doMock('../../../../util/test/utils', () => ({
-        hasTestOverrides: true,
-      }));
-      const { createPlatformAdapter: createE2E } = jest.requireMock(
-        './platform-adapter-e2e',
-      );
-      // Re-require to pick up the new hasTestOverrides mock
-      const { analyticsControllerInit: initFn } = jest.requireMock(
-        './analytics-controller-init',
-      );
-      initFn?.(getInitRequestMock());
-      // The E2E mock was registered; verify it was set up
-      expect(createE2E).toBeDefined();
-    });
-  });
-
   describe('AccountsController:stateChange subscription', () => {
     it('subscribes to AccountsController:stateChange', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       expect(initMessenger.subscribe).toHaveBeenCalledWith(
         'AccountsController:stateChange',
@@ -370,7 +173,7 @@ describe('analyticsControllerInit', () => {
 
     it('uses internalAccounts.accounts as the selector', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       const [, , selector] = initMessenger.subscribe.mock.calls.find(
         ([event]) => event === 'AccountsController:stateChange',
@@ -387,7 +190,7 @@ describe('analyticsControllerInit', () => {
 
     it('calls analytics.identify when account composition changes', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       const callback = getAccountsSubscribeCallback(initMessenger);
       const accounts = buildMockAccounts();
@@ -399,7 +202,7 @@ describe('analyticsControllerInit', () => {
 
     it('does not call analytics.identify when account composition has not changed', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       const callback = getAccountsSubscribeCallback(initMessenger);
       const accounts = buildMockAccounts();
@@ -411,14 +214,13 @@ describe('analyticsControllerInit', () => {
       expect(mockAnalyticsIdentify).not.toHaveBeenCalled();
     });
 
-    it('calls analytics.identify again when account composition changes after initial call', () => {
+    it('calls analytics.identify again when account composition changes after the first call', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       const callback = getAccountsSubscribeCallback(initMessenger);
 
-      const accounts1 = buildMockAccounts();
-      callback(accounts1);
+      callback(buildMockAccounts());
       jest.clearAllMocks();
 
       const accounts2 = buildMockAccounts({
@@ -438,7 +240,7 @@ describe('analyticsControllerInit', () => {
 
     it('logs an error when analytics.identify throws', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
 
       const mockError = new Error('identify failed');
       mockAnalyticsIdentify.mockImplementationOnce(() => {
@@ -450,28 +252,25 @@ describe('analyticsControllerInit', () => {
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         mockError,
-        'analyticsControllerInit: Error updating account composition traits',
+        'setupAnalyticsControllerEffects: Error updating account composition traits',
       );
     });
-  });
 
-  describe('getCompositionFingerprint', () => {
-    it('produces stable fingerprint including keyring type and entropy', () => {
+    it('keeps the same fingerprint when keyring type and entropy are unchanged', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       const callback = getAccountsSubscribeCallback(initMessenger);
 
       const accounts = buildMockAccounts();
       callback(accounts);
       jest.clearAllMocks();
-      // Same accounts, same fingerprint — should not re-identify
       callback(accounts);
       expect(mockAnalyticsIdentify).not.toHaveBeenCalled();
     });
 
-    it('produces different fingerprint when keyring type changes', () => {
+    it('calls analytics.identify when the keyring type changes', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       const callback = getAccountsSubscribeCallback(initMessenger);
 
       callback(buildMockAccounts());
@@ -492,9 +291,9 @@ describe('analyticsControllerInit', () => {
       expect(mockAnalyticsIdentify).toHaveBeenCalled();
     });
 
-    it('handles accounts with missing entropy gracefully', () => {
+    it('identifies accounts that have no entropy', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       const callback = getAccountsSubscribeCallback(initMessenger);
 
       const accountsNoEntropy: InternalAccounts = {
@@ -508,9 +307,9 @@ describe('analyticsControllerInit', () => {
       expect(mockAnalyticsIdentify).toHaveBeenCalled();
     });
 
-    it('handles accounts with missing keyring metadata gracefully', () => {
+    it('identifies accounts that have no keyring metadata', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       const callback = getAccountsSubscribeCallback(initMessenger);
 
       const accountsNoKeyring: InternalAccounts = {
@@ -527,9 +326,9 @@ describe('analyticsControllerInit', () => {
       expect(() => callback(accountsNoKeyring)).not.toThrow();
     });
 
-    it('produces sorted, stable output for multiple accounts', () => {
+    it('treats account insertion order as the same composition', () => {
       const initMessenger = buildInitMessengerMock();
-      analyticsControllerInit(getInitRequestMock({ initMessenger }));
+      setupAnalyticsControllerEffects(initMessenger);
       const callback = getAccountsSubscribeCallback(initMessenger);
 
       const accountsAB: InternalAccounts = {
@@ -546,7 +345,6 @@ describe('analyticsControllerInit', () => {
       callback(accountsAB);
       jest.clearAllMocks();
 
-      // Same accounts, different insertion order — fingerprint should be identical (sorted)
       const accountsBA: InternalAccounts = {
         'account-b': accountsAB['account-b'],
         'account-a': accountsAB['account-a'],

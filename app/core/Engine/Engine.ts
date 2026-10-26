@@ -167,7 +167,6 @@ import { rewardsMoneyDataServiceInit } from './controllers/rewards-money-data-se
 import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { networkConnectionBannerControllerInit } from './controllers/network-connection-banner-controller/network-connection-banner-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -292,6 +291,7 @@ export class Engine {
     this.#wallet = initializeWallet({
       messenger: this.controllerMessenger,
       state: mergedInitialState,
+      analyticsId,
     });
 
     const codefiTokenApiV2 = new CodefiTokenPricesServiceV2();
@@ -383,7 +383,6 @@ export class Engine {
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
         ProofOfOwnershipService: proofOfOwnershipServiceInit,
-        AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
         NeoBankService: neoBankServiceInit,
@@ -411,7 +410,7 @@ export class Engine {
       ...initRequest,
     });
 
-    const analyticsController = messengerClientsByName.AnalyticsController;
+    const analyticsController = this.#wallet.getInstance('AnalyticsController');
     const loggingController = this.#wallet.getInstance('LoggingController');
     const remoteFeatureFlagController = this.#wallet.getInstance(
       'RemoteFeatureFlagController',
