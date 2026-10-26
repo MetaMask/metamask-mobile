@@ -3,11 +3,14 @@ import { act, fireEvent, within } from '@testing-library/react-native';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import type { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
+import { formatTimestampToDateTime } from '../../../../../util/date';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { renderOpenLimitOrderDetailsModal } from '../../../../../../tests/component-view/renderers/bridge';
 import { MOCK_LIMIT_OPEN_ORDER } from '../../api/limitOrders/getLimitOrders/mock';
 import { CancelLimitOrderModalSelectorsIDs } from '../CancelLimitOrderModal/testIds';
+import { TokenAmountValueSelectorsIDs } from '../LimitOrderConfirmationModal/TokenAmountValue/testIds';
 import { OpenLimitOrderDetailsModalSelectorsIDs } from './testIds';
+import type { LimitOrder } from '../../api/limitOrders/getLimitOrders/types';
 
 const {
   SHEET,
@@ -20,10 +23,12 @@ const {
 } = OpenLimitOrderDetailsModalSelectorsIDs;
 
 // Derived from MOCK_LIMIT_OPEN_ORDER: 0.1 ETH at 2200 USDC per ETH, expiring
-// on 2026-09-27.
+// on 2026-09-27 at 12:00 UTC.
 const SUBMITTED_AMOUNT = '0.1 ETH';
 const TRIGGER_PRICE = '2200 USDC';
-const EXPIRY_DATE = 'Sep 27';
+const EXPIRY_DATE = formatTimestampToDateTime(
+  Date.parse(MOCK_LIMIT_OPEN_ORDER.timingData.expiresAt),
+) as string;
 
 const renderDetails = () =>
   renderOpenLimitOrderDetailsModal({ order: MOCK_LIMIT_OPEN_ORDER });
@@ -31,7 +36,7 @@ const renderDetails = () =>
 const MOCK_USD_PRICE_ORDER = {
   ...MOCK_LIMIT_OPEN_ORDER,
   trigger: { kind: 'src_price', threshold: 'above', price: '2160' },
-};
+} as const;
 
 /**
  * State where the display currency is EUR. 1 ETH is worth EUR 2000 and
@@ -85,6 +90,9 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
       within(triggerRow).getByText(strings('bridge.limit.trigger_condition')),
     ).toBeOnTheScreen();
     expect(within(triggerRow).getByText(TRIGGER_PRICE)).toBeOnTheScreen();
+    expect(
+      within(triggerRow).getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
 
     const expiryRow = getByTestId(EXPIRY);
     expect(
@@ -93,7 +101,7 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     expect(within(expiryRow).getByText(EXPIRY_DATE)).toBeOnTheScreen();
   });
 
-  it.each(['src_price', 'dest_price'])(
+  it.each<LimitOrder['trigger']['kind']>(['src_price', 'dest_price'])(
     'shows a %s trigger as a USD price',
     async (kind) => {
       const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
@@ -125,6 +133,68 @@ describeForPlatforms('OpenLimitOrderDetailsModal', () => {
     const triggerRow = getByTestId(TRIGGER_CONDITION);
     expect(within(triggerRow).getByText('$2,160.00')).toBeOnTheScreen();
     expect(within(triggerRow).queryByText('€2,000.00')).not.toBeOnTheScreen();
+  });
+
+  it('signs the trigger price of an order placed at or below the limit price', async () => {
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: {
+        ...MOCK_LIMIT_OPEN_ORDER,
+        trigger: { kind: 'src_price', threshold: 'below', price: '2160' },
+      },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    expect(
+      within(getByTestId(TRIGGER_CONDITION)).getByTestId(
+        TokenAmountValueSelectorsIDs.PREFIX,
+      ),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_below'));
+  });
+
+  it('shows the trigger price of a sell as entered when the API reports it inverted', async () => {
+    // Selling BNB at or above 817.501762 USDT per BNB, which the API reports
+    // as at or below 1 / 817.501762 BNB per USDT.
+    const { findByTestId, getByTestId } = renderOpenLimitOrderDetailsModal({
+      order: {
+        ...MOCK_LIMIT_OPEN_ORDER,
+        src: {
+          asset: {
+            assetId: 'eip155:56/slip44:714',
+            address: '0x0000000000000000000000000000000000000000',
+            chainId: 56,
+            symbol: 'BNB',
+            decimals: 18,
+          },
+          amount: '100000000000000000',
+        },
+        dest: {
+          asset: {
+            assetId:
+              'eip155:56/erc20:0x55d398326f99059ff775485246999027b3197955',
+            address: '0x55d398326f99059ff775485246999027b3197955',
+            chainId: 56,
+            symbol: 'USDT',
+            decimals: 18,
+          },
+          amount: '81750176200000000000',
+          minAmount: '81750176200000000000',
+        },
+        trigger: {
+          kind: 'ratio',
+          threshold: 'below',
+          price: '0.00122323895370393098',
+        },
+      },
+    });
+
+    expect(await findByTestId(SHEET)).toBeOnTheScreen();
+
+    const triggerRow = getByTestId(TRIGGER_CONDITION);
+    expect(within(triggerRow).getByText('817.501762 USDT')).toBeOnTheScreen();
+    expect(
+      within(triggerRow).getByTestId(TokenAmountValueSelectorsIDs.PREFIX),
+    ).toHaveTextContent(strings('bridge.limit.trigger_condition_at_or_above'));
   });
 
   // The orders response carries no market price, so the sheet cannot say how

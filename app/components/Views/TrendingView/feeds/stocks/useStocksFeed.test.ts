@@ -4,9 +4,24 @@ import { useRwaTokens } from '../../../../UI/Trending/hooks/useRwaTokens/useRwaT
 import { useStocksFeed } from './useStocksFeed';
 
 let mockIsBasicFunctionalityEnabled = true;
+let mockShowRobinhoodRwa = false;
 
 jest.mock('react-redux', () => ({
-  useSelector: jest.fn(() => mockIsBasicFunctionalityEnabled),
+  useSelector: (selector: (state: unknown) => unknown) =>
+    selector({
+      settings: {
+        basicFunctionalityEnabled: mockIsBasicFunctionalityEnabled,
+      },
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              ASSETS4098ShowRobinhoodRwa: mockShowRobinhoodRwa,
+            },
+          },
+        },
+      },
+    }),
 }));
 
 jest.mock('../../../../UI/Trending/hooks/useRwaTokens/useRwaTokens', () => ({
@@ -47,11 +62,21 @@ describe('useStocksFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBasicFunctionalityEnabled = true;
+    mockShowRobinhoodRwa = false;
     arrangeRwaTokens();
   });
 
   describe('no-query path (tab sections)', () => {
-    it.skip('filters to Ethereum and Robinhood assets', () => {
+    it('filters to Ethereum assets when Robinhood RWA is off', () => {
+      const { result } = renderHook(() => useStocksFeed());
+      const symbols = result.current.data.map((d) => d.symbol);
+      expect(symbols).toEqual(['OUSG', 'BUIDL']);
+      expect(symbols).not.toContain('AAPL');
+      expect(symbols).not.toContain('bOUSG');
+    });
+
+    it('filters to Ethereum and Robinhood assets when the flag is on', () => {
+      mockShowRobinhoodRwa = true;
       const { result } = renderHook(() => useStocksFeed());
       const symbols = result.current.data.map((d) => d.symbol);
       expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);
@@ -65,7 +90,19 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it.skip('requests Ethereum and Robinhood from the RWA API', () => {
+    it('requests Ethereum only from the RWA API when the flag is off', () => {
+      renderHook(() => useStocksFeed());
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainIds: ['eip155:1'],
+          includeTokenSecurityData: false,
+        }),
+      );
+    });
+
+    it('requests Ethereum and Robinhood from the RWA API when the flag is on', () => {
+      mockShowRobinhoodRwa = true;
       renderHook(() => useStocksFeed());
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
@@ -128,15 +165,29 @@ describe('useStocksFeed', () => {
       );
     });
 
-    it('does not restrict chainIds when searching', () => {
+    it('requests Ethereum and BNB when searching and the flag is off', () => {
       renderHook(() => useStocksFeed({ query: 'OUSG' }));
 
       expect(mockUseRwaTokens).toHaveBeenCalledWith(
-        expect.objectContaining({ chainIds: undefined }),
+        expect.objectContaining({
+          chainIds: ['eip155:1', 'eip155:56'],
+        }),
       );
     });
 
-    it.skip('treats a whitespace-only query like no query', () => {
+    it('includes Robinhood Chain when searching and the flag is on', () => {
+      mockShowRobinhoodRwa = true;
+      renderHook(() => useStocksFeed({ query: 'OUSG' }));
+
+      expect(mockUseRwaTokens).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainIds: ['eip155:1', 'eip155:56', 'eip155:4663'],
+        }),
+      );
+    });
+
+    it('treats a whitespace-only query like no query', () => {
+      mockShowRobinhoodRwa = true;
       const { result } = renderHook(() => useStocksFeed({ query: '   ' }));
       const symbols = result.current.data.map((d) => d.symbol);
       expect(symbols).toEqual(['OUSG', 'BUIDL', 'AAPL']);

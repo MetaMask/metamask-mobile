@@ -61,6 +61,7 @@ const PerpsOrderRedirect: React.FC = () => {
     useBottomSheet: useBottomSheetParam,
     stayOnCurrentScreen,
     source,
+    copyTradeOrigin,
   } = route.params;
   const orderSource = source ?? PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN;
 
@@ -162,6 +163,7 @@ const PerpsOrderRedirect: React.FC = () => {
                 ? { useBottomSheet: true, forceBottomSheet: true }
                 : {}),
               ...(stayOnCurrentScreen ? { stayOnCurrentScreen: true } : {}),
+              ...(copyTradeOrigin ? { copyTradeOrigin } : {}),
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },
@@ -208,6 +210,7 @@ const PerpsOrderRedirect: React.FC = () => {
     leverage,
     fromTokenDetails,
     stayOnCurrentScreen,
+    copyTradeOrigin,
     orderSource,
     transactionActiveAbTests,
     useBottomSheet,

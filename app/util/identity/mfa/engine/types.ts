@@ -76,7 +76,8 @@ export type MfaKitErrorCode =
   | 'passkey_unsupported'
   | 'passkey_ceremony_cancelled'
   | 'invalid_request'
-  | 'email_already_enrolled';
+  | 'email_already_enrolled'
+  | 'totp_already_enrolled';
 
 /**
  * Every code `verifyOrEnroll` and `enroll` can reject with, as read by
@@ -87,8 +88,19 @@ export type MfaFlowErrorCode = MfaErrorCode | MfaKitErrorCode;
 export interface MfaReason {
   /** Sent to the controller (trace tags). */
   operation: string;
-  /** Already-translated line explaining why the feature asks. UI only. */
-  description?: string;
+  /** Mobile presentation for full-screen steps. Defaults to a modal. */
+  presentation?: 'card' | 'modal';
+  /**
+   * Already-translated line shown when the flow sets up missing methods,
+   * replacing the generic one. UI only.
+   */
+  enrollDescription?: string;
+  /**
+   * Already-translated line saying what the verification is for, shown when
+   * the user picks how to verify (for example "Verify it's you to send
+   * $20.00"). Not shown when confirming before a setup. UI only.
+   */
+  verifyDescription?: string;
 }
 
 /**
@@ -147,7 +159,7 @@ export interface EnrollOptions {
 }
 
 export type PlanStep =
-  | { kind: 'intro'; missing: MfaMethod[] }
+  | { kind: 'intro'; methods: MfaMethod[]; missing: MfaMethod[] }
   | { kind: 'confirm'; options: MfaMethod[] }
   | { kind: 'setup'; method: MfaMethod; prefillEmail?: string }
   | { kind: 'verify'; options: MfaMethod[] };
@@ -175,16 +187,43 @@ export type MfaPurpose = 'setup' | 'confirm' | 'verify';
 
 export type MfaFlowStep =
   | { name: 'idle' }
-  | { name: 'intro'; missing: MfaMethod[] }
+  | {
+      name: 'intro';
+      /** Every method the feature asked for; those not `missing` are set up. */
+      methods: MfaMethod[];
+      missing: MfaMethod[];
+      /** The email set up for codes, if any. */
+      email?: string;
+    }
   | {
       name: 'picker';
       purpose: Exclude<MfaPurpose, 'setup'>;
       options: MfaMethod[];
     }
   | { name: 'emailEntry'; prefillEmail?: string }
-  | { name: 'otp'; purpose: MfaPurpose; email?: string; codeSent: boolean }
+  | {
+      name: 'totpSetup';
+      /** Base32 secret, for typing into the authenticator app. */
+      secret: string;
+      /** PNG data URL of the QR code, for setting up another device. */
+      qrCode: string;
+      /** `otpauth://` link that opens an authenticator app on this device. */
+      setupUri: string;
+      /**
+       * The previous setup expired and this one has a new secret: an account
+       * already added to the app from the old one no longer works.
+       */
+      isRestart: boolean;
+    }
+  | {
+      name: 'otp';
+      purpose: MfaPurpose;
+      /** Where the code comes from: an email, or the authenticator app. */
+      method: 'email_otp' | 'totp';
+      email?: string;
+      codeSent: boolean;
+    }
   | { name: 'passkey'; purpose: MfaPurpose }
-  | { name: 'success' }
   | { name: 'failure'; code: MfaFlowErrorCode; canRetry: boolean };
 
 export interface MfaFlowState {
@@ -222,6 +261,17 @@ export interface MfaFlowOptions {
   controller: MfaControllerAdapter;
   passkey?: PasskeyAdapter;
   now?: () => number;
+  /**
+   * Called when the flow fails because of a bug on our side (see `isReportable`),
+   * for error reporting. The context never holds an email address.
+   */
+  reportError?: (error: unknown, context: MfaErrorContext) => void;
+}
+
+export interface MfaErrorContext {
+  code: MfaFlowErrorCode;
+  operation: string;
+  step: MfaFlowStep['name'];
 }
 
 export interface MfaFlow {

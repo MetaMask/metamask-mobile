@@ -92,6 +92,14 @@ jest.mock('../../../../../util/theme', () => {
   };
 });
 
+jest.mock('../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => 'WIFI',
+}));
+
+jest.mock('../../../../../util/deviceCapability', () => ({
+  getHardwareTier: () => 'HIGH',
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -239,32 +247,39 @@ describe('EarnMusdConversionEducationView', () => {
 
   describe('rendering', () => {
     it('renders mUSD conversion education screen with all UI elements', () => {
-      const { getByText, getByTestId } = renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <EarnMusdConversionEducationView />,
         { state: {} },
       );
 
-      const descriptionText = strings(
-        'earn.musd_conversion.education.description',
-        {
+      expect(
+        getByTestId(EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.TITLE),
+      ).toHaveTextContent(
+        strings('earn.musd_conversion.education.heading', {
           percentage: MUSD_CONVERSION_APY,
-        },
+        }),
       );
-
       expect(
-        getByText(
-          strings('earn.musd_conversion.education.heading', {
-            percentage: MUSD_CONVERSION_APY,
-          }),
+        getByTestId(EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.DESCRIPTION),
+      ).toHaveTextContent(
+        strings('earn.musd_conversion.education.description', {
+          percentage: MUSD_CONVERSION_APY,
+        }),
+      );
+      expect(
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON,
         ),
-      ).toBeOnTheScreen();
-      expect(getByText(descriptionText, { exact: false })).toBeOnTheScreen();
+      ).toHaveTextContent(
+        strings('earn.musd_conversion.education.primary_button'),
+      );
       expect(
-        getByText(strings('earn.musd_conversion.education.primary_button')),
-      ).toBeOnTheScreen();
-      expect(
-        getByText(strings('earn.musd_conversion.education.secondary_button')),
-      ).toBeOnTheScreen();
+        getByTestId(
+          EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON,
+        ),
+      ).toHaveTextContent(
+        strings('earn.musd_conversion.education.secondary_button'),
+      );
       expect(
         getByTestId(
           EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.BACKGROUND_IMAGE,

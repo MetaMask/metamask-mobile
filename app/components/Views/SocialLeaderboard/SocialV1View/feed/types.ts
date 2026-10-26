@@ -5,8 +5,11 @@ export type SocialV1FeedTab = 'trending' | 'following';
 
 export interface UseSocialV1FeedResult {
   posts: SocialV1FeedPost[];
-  pendingPost: SocialV1FeedPost | null;
-  pendingStartedAtMs: number | null;
+  /**
+   * The viewer's own new posts, to render above `posts` regardless of sort or
+   * filters. Following only; always empty on Trending.
+   */
+  pinnedPosts: SocialV1FeedPost[];
   isLoading: boolean;
   /** True while a follow-up page is being fetched. */
   isFetchingNextPage: boolean;
@@ -15,7 +18,12 @@ export interface UseSocialV1FeedResult {
   /** Request the next page; no-op if none remain or one is in flight. */
   loadMore: () => void;
   error: string | null;
-  /** Reset to the first page and refetch -- also the recovery path after an error. */
+  /** Timestamp of the latest successful server response, including empty data. */
+  dataUpdatedAt?: number;
+  /**
+   * Reset to the first page and refetch -- also the recovery path after an
+   * error. Releases pinned posts the feed now serves or never will.
+   */
   refresh: () => Promise<void>;
 }
 

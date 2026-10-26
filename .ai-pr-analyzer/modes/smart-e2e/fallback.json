@@ -5,8 +5,8 @@
     "confidence": 0,
     "reasoning": "Fallback: AI analysis did not complete successfully. Running all tests.",
     "performance_tests": {
-      "selected_tags": ["ALL"],
-      "reasoning": "Fallback: AI analysis did not complete successfully. Running all performance tests."
+      "selected_tags": [],
+      "reasoning": "Fallback: AI analysis did not complete successfully. Skipping performance tests."
     }
   },
   "empty": {

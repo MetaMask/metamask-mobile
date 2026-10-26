@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react';
-import type { CaipChainId, Hex } from '@metamask/utils';
+import type { CaipChainId } from '@metamask/utils';
 
 export enum OrdersTabKey {
   OpenOrders = 'openOrders',
@@ -8,6 +8,12 @@ export enum OrdersTabKey {
 
 export interface OrdersTabConfig<T> {
   items: T[];
+  /**
+   * How many orders this tab has in total, including pages not loaded yet.
+   * Shown as the tab count as given, so it must already be scoped to the
+   * selected network. Omit to count the loaded items instead.
+   */
+  totalCount?: number;
   renderItem?: (item: T, index: number) => ReactElement;
   keyExtractor?: (item: T, index: number) => string;
   isLoading?: boolean;
@@ -15,9 +21,16 @@ export interface OrdersTabConfig<T> {
   isFetchingNextPage?: boolean;
   onRetry?: () => void;
   /**
-   * Chain used by the All networks filter for this tab's items.
+   * Chain used by the All networks filter for this tab's items. The filter
+   * is only shown once the items span at least two of these chains, or
+   * while a network is selected.
    */
-  getItemChainId?: (item: T) => Hex | CaipChainId | undefined;
+  getItemChainId: (item: T) => CaipChainId;
+  /**
+   * ISO-8601 timestamp used to group this tab's items under date headers.
+   * Omit to render a flat list.
+   */
+  getItemDate?: (item: T) => string | undefined;
 }
 
 export interface OrdersTabsProps<TOpen, THistory> {
@@ -27,8 +40,8 @@ export interface OrdersTabsProps<TOpen, THistory> {
   activeTab?: OrdersTabKey;
   onTabChange?: (tab: OrdersTabKey) => void;
   /**
-   * Restricts the orders network picker to these chains.
-   * Omit to show the default allowed ranking.
+   * Restricts the orders network picker to these chains, on top of the
+   * chains the loaded items are on.
    */
   enabledChainIds?: CaipChainId[];
 }

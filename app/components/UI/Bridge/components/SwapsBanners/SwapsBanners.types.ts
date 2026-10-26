@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type { BoxProps } from '@metamask/design-system-react-native';
 import type { BridgeToken } from '../../types';
 
 export interface SwapsBannersProps {
@@ -7,6 +8,11 @@ export interface SwapsBannersProps {
    * The banners to show, in the order the order type wants them.
    */
   children: ReactNode;
+  /**
+   * Space between stacked banners. Defaults to 12px so market and limit
+   * quotes keep their current rhythm.
+   */
+  gap?: BoxProps['gap'];
   /**
    * Entry point reported to analytics when a banner opens a modal.
    */

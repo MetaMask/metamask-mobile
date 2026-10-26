@@ -40,6 +40,7 @@
       "isGasIncluded7702Supported": false,
       "isGasIncludedSTXSendBundleSupported": false,
       "isMaxSourceAmount": false,
+      "isNativeGasIncludedSupported": false,
       "isSelectingRecipient": false,
       "isSelectingToken": false,
       "isSlippageUserOverride": false,
@@ -87,20 +88,6 @@
     "cronjobController": {},
     "engine": {
       "backgroundState": {
-        "AccountTrackerController": {
-          "accountsByChainId": {
-            "1": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            },
-            "64": {
-              "0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3": {
-                "balance": "0x0"
-              }
-            }
-          }
-        },
         "AccountTreeController": {
           "accountTree": {
             "wallets": {}
@@ -155,6 +142,10 @@
           "cardHomeDataError": null,
           "cardHomeDataFetchedThisSession": false,
           "cardHomeDataStatus": "success",
+          "cardLinkApiBlocked": false,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
           "cardholderAccounts": [],
           "isAuthenticated": false,
           "lastUnauthenticatedReason": null,
@@ -163,7 +154,11 @@
           "providerUserId": null,
           "redeemWithdrawal": null,
           "selectedCountry": null,
-          "signInLink": null
+          "signInLink": null,
+          "cardLinks": null,
+          "cardLinksFetchedAt": null,
+          "cardLinksSeeded": false,
+          "cardLinkApiBlocked": false
         },
         "ClaimsController": {
           "claims": [],
@@ -182,25 +177,17 @@
         },
         "ConfigRegistryController": {
           "configs": {
+            "eventsConfig": null,
             "networks": {}
           },
           "etag": null,
+          "eventsConfigEtag": null,
           "lastFetched": null,
           "version": "0.0.0"
         },
         "CronJobController": {
           "events": {},
           "jobs": {}
-        },
-        "CurrencyRateController": {
-          "currencyRates": {
-            "ETH": {
-              "conversionDate": 1684232383.997,
-              "conversionRate": 1815.41,
-              "usdConversionRate": 1815.41
-            }
-          },
-          "currentCurrency": "usd"
         },
         "GasFeeController": {
           "estimatedGasFeeTimeBounds": {},
@@ -245,17 +232,11 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
-        },
-        "MultichainAssetsController": {
-          "accountsAssets": {},
-          "assetsMetadata": {}
-        },
-        "MultichainAssetsRatesController": {
-          "conversionRates": {}
         },
         "MultichainNetworkController": {
           "isEvmSelected": true,
@@ -612,6 +593,20 @@
           "useTokenDetection": true,
           "useTransactionSimulations": true
         },
+        "ProfileController": {
+          "profile": {
+            "avatarUrl": "",
+            "bio": "",
+            "connectedToX": false,
+            "createdAt": "",
+            "displayName": "",
+            "linkedAddresses": [],
+            "profileId": "",
+            "tradingPrivacy": "public",
+            "updatedAt": "",
+            "username": ""
+          }
+        },
         "QrSyncController": {
           "connectionStatus": "disconnected",
           "error": null,
@@ -730,12 +725,6 @@
         "SubscriptionController": {
           "subscriptions": [],
           "trialedProducts": []
-        },
-        "TokenBalancesController": {
-          "tokenBalances": {}
-        },
-        "TokenRatesController": {
-          "marketData": {}
         },
         "TokensController": {
           "allDetectedTokens": {},
@@ -962,6 +951,17 @@
       "vipSplashAccepted": {},
       "vipTransactions": {}
     },
+    "rewardsMoney": {
+      "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
+      "commissions": {},
+      "earningsHistory": {},
+      "earningsSummary": {},
+      "inFlightClaims": {},
+      "referralFunnel": {},
+      "referralMe": {}
+    },
     "rpcEvents": {
       "signingEvent": {
         "eventStage": "idle",
@@ -978,7 +978,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}

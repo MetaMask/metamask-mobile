@@ -34,21 +34,21 @@ import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
-interface HomepageBalanceBreakdownMoneyBuyButtonProps {
+interface HomepageBalanceBreakdownMoneyAddButtonProps {
   accessibilityLabel: string;
   label: string;
 }
 
-const HomepageBalanceBreakdownMoneyBuyButton = ({
+const HomepageBalanceBreakdownMoneyAddButton = ({
   accessibilityLabel,
   label,
-}: HomepageBalanceBreakdownMoneyBuyButtonProps) => {
+}: HomepageBalanceBreakdownMoneyAddButtonProps) => {
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.WALLET_HOME,
     component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
   });
   const { handleAddPress } = useMoneyAddMoney({
-    buttonLabelKey: 'homepage.action_buttons.buy',
+    buttonLabelKey: 'money.balance_card.add',
     logTag: '[HomepageBalanceBreakdownRow]',
     trackButtonClicked,
   });
@@ -59,8 +59,8 @@ const HomepageBalanceBreakdownMoneyBuyButton = ({
       onPress={handleAddPress}
       size={ButtonSize.Sm}
       testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
-      twClassName="h-7 self-end px-4"
-      variant={ButtonVariant.Primary}
+      twClassName="h-7 shrink-0 px-4"
+      variant={ButtonVariant.Secondary}
     >
       {label}
     </Button>
@@ -82,6 +82,7 @@ const HomepageBalanceBreakdownRow = ({
   const { colors } = useTheme();
   const { formatCurrency } = useFormatters();
   const isLoading = slice.status === 'loading';
+  const isMoneyRow = slice.key === 'money';
   const percentageLabel =
     slice.status !== 'ready'
       ? null
@@ -112,13 +113,10 @@ const HomepageBalanceBreakdownRow = ({
     formattedMoneyApy !== undefined
       ? strings('money.apy_label', { percentage: formattedMoneyApy })
       : undefined;
-  const showMoneyBuyButton = slice.key === 'money';
-  const moneyBuyLabel = strings('homepage.action_buttons.buy');
+  const moneyAddLabel = strings('money.balance_card.add');
   const rowAccessibilityLabel = [
     getSliceLabel(slice.key),
-    !privacyMode && !showMoneyBuyButton && slice.status === 'ready'
-      ? displayValue
-      : undefined,
+    !privacyMode && slice.status === 'ready' ? displayValue : undefined,
     !privacyMode ? percentageLabel : undefined,
     !privacyMode ? apyLabel : undefined,
   ]
@@ -126,7 +124,7 @@ const HomepageBalanceBreakdownRow = ({
     .join(', ');
   const accessibilityLabel = [
     rowAccessibilityLabel,
-    showMoneyBuyButton ? moneyBuyLabel : undefined,
+    isMoneyRow ? moneyAddLabel : undefined,
   ]
     .filter(Boolean)
     .join(', ');
@@ -172,7 +170,7 @@ const HomepageBalanceBreakdownRow = ({
           </>
         ) : null}
       </Box>
-      {slice.key === 'money' && slice.apyLoading ? (
+      {isMoneyRow && slice.apyLoading ? (
         <Skeleton
           height={20}
           testID={HomepageBalanceBreakdownTestIds.APY_SKELETON}
@@ -196,18 +194,7 @@ const HomepageBalanceBreakdownRow = ({
     </Box>
   );
 
-  const value = showMoneyBuyButton ? (
-    <Button
-      accessible={false}
-      importantForAccessibility="no-hide-descendants"
-      pointerEvents="none"
-      size={ButtonSize.Sm}
-      twClassName="h-7 self-end px-4 opacity-0"
-      variant={ButtonVariant.Primary}
-    >
-      {moneyBuyLabel}
-    </Button>
-  ) : (
+  const balanceValue = (
     <Skeleton
       hideChildren={isLoading}
       testID={HomepageBalanceBreakdownTestIds.SKELETON(slice.key)}
@@ -229,10 +216,26 @@ const HomepageBalanceBreakdownRow = ({
     </Skeleton>
   );
 
-  const listItem = (
+  const value = isMoneyRow ? (
+    <Box
+      alignItems={BoxAlignItems.Center}
+      flexDirection={BoxFlexDirection.Row}
+      gap={2}
+    >
+      <HomepageBalanceBreakdownMoneyAddButton
+        accessibilityLabel={accessibilityLabel}
+        label={moneyAddLabel}
+      />
+      {balanceValue}
+    </Box>
+  ) : (
+    balanceValue
+  );
+
+  return (
     <ListItem
       accessibilityLabel={
-        showMoneyBuyButton ? rowAccessibilityLabel : accessibilityLabel
+        isMoneyRow ? rowAccessibilityLabel : accessibilityLabel
       }
       isInteractive
       onPress={onPress}
@@ -242,20 +245,6 @@ const HomepageBalanceBreakdownRow = ({
       value={value}
       variant={ListItemVariant.OneLine}
     />
-  );
-
-  return showMoneyBuyButton ? (
-    <Box twClassName="relative">
-      {listItem}
-      <Box twClassName="absolute inset-y-0 right-4 justify-center">
-        <HomepageBalanceBreakdownMoneyBuyButton
-          accessibilityLabel={accessibilityLabel}
-          label={moneyBuyLabel}
-        />
-      </Box>
-    </Box>
-  ) : (
-    listItem
   );
 };
 

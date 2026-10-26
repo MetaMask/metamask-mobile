@@ -1,25 +1,35 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   accountsApiItem,
   cardProviderItem,
+  neobankItem,
   onchainItem,
   type AccountsApiActivity,
   type MoneyActivityItem,
+  type NeobankBankTransferActivity,
 } from '../types/moneyActivity';
 import { MoneyActivityFilter } from '../constants/moneyActivity';
 import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
-import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
-import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
-import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
+import { useMoneyVbaTransfers } from './useMoneyVbaTransfers';
 import {
   selectMoneyEnableCardActivityEnrichmentFlag,
   selectMoneyEnableMoneyAccountFlag,
+  selectMoneyVbaCompletedActivityEnabled,
+  selectMoneyVbaPendingActivityEnabled,
 } from '../selectors/featureFlags';
+import { useCardTransactionIndex } from '../../Card/hooks/useCardTransactionIndex';
+import { useCardCapabilities } from '../../Card/hooks/useCardCapabilities';
+import { selectCardTransactionHistoryEnabled } from '../../../../selectors/featureFlagController/card';
 import { selectIsMoneyAccountGeoEligible } from '../selectors/eligibility';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
+import {
+  isNeobankPendingStatus,
+  isNeobankVisibleActivityStatus,
+} from '../utils/neobankActivity';
+import { mapMoneyVbaTransfers } from '../utils/moneyVbaTransfers';
 
 /** The list shown for each activity filter tab. */
 export type MoneyActivityBuckets = Record<
@@ -61,6 +71,9 @@ export interface UseMoneyActivityItemsResult {
  */
 export const AUTO_FILL_MAX_PAGES = 10;
 
+const EMPTY_API_ACTIVITY: AccountsApiActivity[] = [];
+const EMPTY_NEOBANK_ACTIVITY: NeobankBankTransferActivity[] = [];
+
 export interface UseMoneyActivityItemsOptions {
   /**
    * Keep fetching pages until `bucket` holds at least `count` safe
@@ -81,7 +94,10 @@ export interface UseMoneyActivityItemsOptions {
  * rows now would let older activity pop in above them on the next page load.
  * The gate is strict (`>`): timestamps are second-resolution, so the next
  * un-fetched page can open with rows at exactly the watermark whose id
- * tiebreak would sort them above an already-rendered row.
+ * tiebreak would sort them above an already-rendered row. In-flight VBA rows
+ * are exempt: they are pinned at the top of the list, so the gate cannot
+ * reorder them, and withholding one would hide a deposit already known to be
+ * in progress.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -90,7 +106,11 @@ function safeItems(
   if (watermark === Number.NEGATIVE_INFINITY) {
     return items;
   }
-  return items.filter((item) => item.time > watermark);
+  return items.filter(
+    (item) =>
+      item.time > watermark ||
+      (item.kind === 'neobank' && isNeobankPendingStatus(item.tx.status)),
+  );
 }
 
 /** Drops Accounts-API rows, keeping only locally-known on-chain activity. */
@@ -99,19 +119,45 @@ function onchainOnly(items: MoneyActivityItem[]): MoneyActivityItem[] {
 }
 
 /**
- * Merge local on-chain Money transactions with Accounts-API activity (card
- * spends and cashback) into a single source-tagged, time-descending list.
+ * Merge local on-chain Money transactions with Accounts-API activity and
+ * completed/in-flight VBA API transfers into a single source-tagged,
+ * time-descending list.
  */
 export function mergeMoneyActivity(
   onchainTransactions: TransactionMeta[],
   apiActivity: AccountsApiActivity[],
   declinedCardTxs: CardTransaction[] = [],
+  neobankActivity: NeobankBankTransferActivity[] = [],
 ): MoneyActivityItem[] {
   const apiHashes = new Set(apiActivity.map((a) => a.hash.toLowerCase()));
+  const onchainHashes = new Set(
+    onchainTransactions
+      .map((tx) => tx.hash?.toLowerCase())
+      .filter((hash): hash is string => Boolean(hash)),
+  );
   const onchain = onchainTransactions
-    // we ignore any on chain data that exists in the accounts API response.
-    .filter((tx) => !(tx.hash && apiHashes.has(tx.hash.toLowerCase())))
+    // Any API match is rendered from its richer data-service activity row.
+    .filter((tx) => !tx.hash || !apiHashes.has(tx.hash.toLowerCase()))
     .map(onchainItem);
+  const seenNeoBankIds = new Set<string>();
+  const neobank = neobankActivity
+    .filter((item) => isNeobankVisibleActivityStatus(item.status))
+    // A settlement hash can already be rendered from the richer Accounts-API
+    // row (including a completed VBA transfer), so dedupe against both sets.
+    .filter(
+      (item) =>
+        !item.transactionHash ||
+        (!onchainHashes.has(item.transactionHash.toLowerCase()) &&
+          !apiHashes.has(item.transactionHash.toLowerCase())),
+    )
+    .filter((item) => {
+      if (seenNeoBankIds.has(item.id)) {
+        return false;
+      }
+      seenNeoBankIds.add(item.id);
+      return true;
+    })
+    .map(neobankItem);
   // Time-descending, with `id` as a stable tiebreak so rows sharing a timestamp
   // (e.g. a spend and its cashback in the same second) keep a deterministic
   // order across renders/refetches and across the two merged sources.
@@ -119,6 +165,7 @@ export function mergeMoneyActivity(
     ...onchain,
     ...apiActivity.map(accountsApiItem),
     ...declinedCardTxs.map(cardProviderItem),
+    ...neobank,
   ].sort((a, b) => b.time - a.time || a.id.localeCompare(b.id));
 }
 
@@ -131,18 +178,34 @@ export function buildMoneyActivityBuckets(
   apiActivity: AccountsApiActivity[],
   watermark: number = Number.NEGATIVE_INFINITY,
   declinedCardTxs: CardTransaction[] = [],
+  neobankActivity: NeobankBankTransferActivity[] = [],
 ): MoneyActivityBuckets {
   return {
     [MoneyActivityFilter.All]: safeItems(
-      mergeMoneyActivity(onchain.all, apiActivity, declinedCardTxs),
+      mergeMoneyActivity(
+        onchain.all,
+        apiActivity,
+        declinedCardTxs,
+        neobankActivity,
+      ),
       watermark,
     ),
-    // Deposits and Sends are on-chain only. API rows are still merged in so
-    // their hashes dedupe any on-chain twin, then dropped from the rendered
-    // rows. Declined card txs are omitted here so they only surface in All /
-    // Purchases.
-    [MoneyActivityFilter.Deposits]: onchainOnly(
-      safeItems(mergeMoneyActivity(onchain.deposits, apiActivity), watermark),
+    // Deposits: on-chain deposits plus completed or in-flight VBA transfers.
+    // Other API kinds are merged only to dedupe hashes, then dropped. Declined
+    // card txs stay on All / Purchases.
+    [MoneyActivityFilter.Deposits]: safeItems(
+      mergeMoneyActivity(
+        onchain.deposits,
+        apiActivity,
+        [],
+        neobankActivity,
+      ).filter(
+        (item) =>
+          item.kind === 'onchain' ||
+          item.kind === 'neobank' ||
+          (item.kind === 'accountsApi' && item.tx.kind === 'bank_transfer'),
+      ),
+      watermark,
     ),
     [MoneyActivityFilter.Transfers]: onchainOnly(
       safeItems(mergeMoneyActivity(onchain.transfers, apiActivity), watermark),
@@ -157,8 +220,8 @@ export function buildMoneyActivityBuckets(
 }
 
 /**
- * Assembles the Money activity list from its two sources (local on-chain txns +
- * Accounts-API activity), bucketed by filter tab.
+ * Assembles the Money activity list from local on-chain transactions and API
+ * activity, bucketed by filter tab.
  */
 export function useMoneyActivityItems({
   fill,
@@ -174,8 +237,57 @@ export function useMoneyActivityItems({
     isLoadingMore,
     pageCount,
     error,
-    refetch,
+    refetch: refetchApiActivity,
   } = useMoneyAccountApiActivity();
+  const pendingActivityEnabled = useSelector(
+    selectMoneyVbaPendingActivityEnabled,
+  );
+  const completedActivityEnabled = useSelector(
+    selectMoneyVbaCompletedActivityEnabled,
+  );
+  const {
+    data: vbaTransfersResponse,
+    isLoading: isVbaTransfersLoading,
+    refetch: refetchVbaTransfers,
+  } = useMoneyVbaTransfers();
+  const mappedVbaTransfers = useMemo(
+    () =>
+      moneyAddress
+        ? mapMoneyVbaTransfers(
+            vbaTransfersResponse?.transfers ?? [],
+            moneyAddress,
+          )
+        : { completed: [], pending: [], failed: [] },
+    [moneyAddress, vbaTransfersResponse],
+  );
+  const completedVbaActivity = useMemo(
+    () =>
+      completedActivityEnabled
+        ? mappedVbaTransfers.completed
+        : EMPTY_API_ACTIVITY,
+    [completedActivityEnabled, mappedVbaTransfers.completed],
+  );
+  // A completed VBA row is stamped with its event time, which can sit below the
+  // Accounts-API watermark while its on-chain settlement is newer. Merging it
+  // would drop that local row as a duplicate, and `safeItems` would then
+  // withhold the VBA row too, hiding the deposit from every bucket.
+  const mergeableCompletedVbaActivity = useMemo(
+    () => completedVbaActivity.filter((item) => item.time > watermark),
+    [completedVbaActivity, watermark],
+  );
+  const visibleVbaActivity = useMemo(
+    () =>
+      pendingActivityEnabled
+        ? [...mappedVbaTransfers.pending, ...mappedVbaTransfers.failed].filter(
+            (item) => isNeobankVisibleActivityStatus(item.status),
+          )
+        : EMPTY_NEOBANK_ACTIVITY,
+    [
+      mappedVbaTransfers.failed,
+      mappedVbaTransfers.pending,
+      pendingActivityEnabled,
+    ],
+  );
 
   const isCardTxHistoryEnabled = useSelector(
     selectCardTransactionHistoryEnabled,
@@ -237,19 +349,34 @@ export function useMoneyActivityItems({
     () =>
       buildMoneyActivityBuckets(
         { all: allTransactions, deposits, transfers },
-        activity,
+        [...activity, ...mergeableCompletedVbaActivity],
         watermark,
         declinedForFeed,
+        visibleVbaActivity,
       ),
     [
       allTransactions,
       deposits,
       transfers,
       activity,
+      mergeableCompletedVbaActivity,
       watermark,
       declinedForFeed,
+      visibleVbaActivity,
     ],
   );
+
+  const refetch = useCallback(() => {
+    refetchApiActivity();
+    if (completedActivityEnabled || pendingActivityEnabled) {
+      refetchVbaTransfers().catch(() => undefined);
+    }
+  }, [
+    completedActivityEnabled,
+    pendingActivityEnabled,
+    refetchApiActivity,
+    refetchVbaTransfers,
+  ]);
 
   // Minimum-viable upfront fetch: pull more pages until the target bucket
   // holds `fill.count` safe rows, the activity is exhausted, or the page
@@ -275,6 +402,8 @@ export function useMoneyActivityItems({
     isLoading ||
     (fillCount === 0 &&
       ((enrichmentEnabled && isEnrichmentSettling) ||
+        ((completedActivityEnabled || pendingActivityEnabled) &&
+          isVbaTransfersLoading) ||
         wantsMorePages ||
         isLoadingMore));
 

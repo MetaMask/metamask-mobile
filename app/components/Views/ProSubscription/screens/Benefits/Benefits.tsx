@@ -32,6 +32,7 @@ import PlanSelectorCard from './components/PlanSelectorCard';
 import PlanSelectorCardSkeleton from './components/PlanSelectorCardSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
+import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import {
   getBenefitsPriceLine,
   getPlanSelectorCardCopy,
@@ -46,13 +47,22 @@ import { PLUS_PRICING_STATUS } from './utils/mapMoneyAccountPlusPricing';
 
 interface BenefitsProps {
   onSuccess: (plan: SelectedPlusPlan) => void;
+  onCheckoutStart: () => void;
+  onCheckoutError: () => void;
   onPlanChange?: (planId: PlanId) => void;
   initialPlan?: PlanId;
 }
 
-const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
+const Benefits = ({
+  onSuccess,
+  onCheckoutStart,
+  onCheckoutError,
+  onPlanChange,
+  initialPlan,
+}: BenefitsProps) => {
   const tw = useTailwind();
   const { plusPricing, isLoading, hasError, retry } = useSubscriptionPricing();
+  const { isEligibleForTrial } = useMoneyAccountPlusTrialEligibility();
   const { startSubscription, isSubmitting, errorMessage } =
     useStartProSubscription();
   const [selectedPlan, setSelectedPlan] = useState<string>(
@@ -72,13 +82,21 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
   const visiblePlans = useMemo(
     () =>
       PLANS.flatMap((plan) => {
-        const copy = getPlanSelectorCardCopy(plan.id, plusPricing);
+        const copy = getPlanSelectorCardCopy(
+          plan.id,
+          plusPricing,
+          isEligibleForTrial,
+        );
         if (copy === undefined) {
           return [];
         }
         return [{ plan, copy }];
       }),
-    [plusPricing],
+    [plusPricing, isEligibleForTrial],
+  );
+
+  const selectedPlanOffersTrial = visiblePlans.some(
+    ({ plan, copy }) => plan.id === resolvedPlan && Boolean(copy.trialLabel),
   );
 
   const canSelectPlans =
@@ -106,13 +124,27 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
       return;
     }
 
+    onCheckoutStart();
+
     try {
-      await startSubscription(checkoutPlan);
+      await startSubscription(checkoutPlan, {
+        isTrial: selectedPlanOffersTrial,
+      });
       onSuccess(checkoutPlan);
     } catch {
       // The hook logs the failure and exposes localized error state.
+      onCheckoutError();
     }
-  }, [isCtaDisabled, onSuccess, plusPricing, resolvedPlan, startSubscription]);
+  }, [
+    isCtaDisabled,
+    onCheckoutError,
+    onCheckoutStart,
+    onSuccess,
+    plusPricing,
+    resolvedPlan,
+    selectedPlanOffersTrial,
+    startSubscription,
+  ]);
 
   const handlePlanPress = useCallback(
     (planId: PlanId) => {
@@ -289,8 +321,21 @@ const Benefits = ({ onSuccess, onPlanChange, initialPlan }: BenefitsProps) => {
           isLoading={isSubmitting}
           isFullWidth
         >
-          {strings('pro_subscription.join_orange')}
+          {selectedPlanOffersTrial
+            ? strings('pro_subscription.start_free_trial')
+            : strings('pro_subscription.join_orange')}
         </Button>
+        {selectedPlanOffersTrial ? (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+            testID={BenefitsTestIds.FREE_TRIAL_DESCRIPTION}
+          >
+            {strings('pro_subscription.free_trial_description')}
+          </Text>
+        ) : null}
       </Box>
 
       {isBenefitDetailSheetOpen && selectedBenfitDetail && (

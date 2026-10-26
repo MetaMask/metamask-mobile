@@ -37,6 +37,7 @@ import {
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
+import { showDepositErrorToast } from '../utils/predictErrorHandler';
 
 const showPendingToast = ({
   showToast,
@@ -234,20 +235,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'failed') {
-          showErrorToast({
-            showToast,
-            title: strings('predict.deposit.error_title'),
-            description: strings('predict.deposit.error_description'),
-            ...(canRetry
-              ? {
-                  retryLabel: strings('predict.deposit.try_again'),
-                  onRetry: () => {
-                    deposit().catch(() => undefined);
-                  },
+          showDepositErrorToast(
+            canRetry
+              ? () => {
+                  deposit().catch(() => undefined);
                 }
-              : {}),
-            iconColor: theme.colors.error.default,
-          });
+              : undefined,
+          );
           return;
         }
 

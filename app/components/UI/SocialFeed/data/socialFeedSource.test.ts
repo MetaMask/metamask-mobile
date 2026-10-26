@@ -2,6 +2,7 @@ import type { CaipAssetType } from '@metamask/utils';
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   socialFeedSourceFromAsset,
+  toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type SocialFeedAssetRef,
   type SocialFeedSource,
@@ -23,6 +24,45 @@ describe('toSocialFeedRequest', () => {
       });
     },
   );
+
+  it('keeps the exact shared chain list when the asset class is all', () => {
+    const request = toSocialFeedRequest({
+      kind: 'all',
+      audience: 'all',
+      assetClass: 'all',
+    });
+
+    expect(request?.options).toHaveProperty('chains', FEED_CAIP2_CHAINS);
+  });
+
+  it('narrows the global feed to spot chains for tokens', () => {
+    expect(
+      toSocialFeedRequest({
+        kind: 'all',
+        audience: 'all',
+        assetClass: 'tokens',
+      }),
+    ).toStrictEqual({
+      action: 'SocialService:fetchFeed',
+      options: {
+        scope: 'leaderboard',
+        chains: FEED_CAIP2_CHAINS.filter((chain) => chain !== 'eip155:999'),
+      },
+    });
+  });
+
+  it('narrows the global feed to Hyperliquid for perps', () => {
+    expect(
+      toSocialFeedRequest({
+        kind: 'all',
+        audience: 'following',
+        assetClass: 'perps',
+      }),
+    ).toStrictEqual({
+      action: 'SocialService:fetchFeed',
+      options: { scope: 'following', chains: ['eip155:999'] },
+    });
+  });
 
   it('lowercases a checksummed EVM contract, which the token route requires', () => {
     const request = toSocialFeedRequest({
@@ -132,6 +172,37 @@ describe('toSocialFeedRequest', () => {
 
   it('returns null for a blank trader id', () => {
     expect(toSocialFeedRequest({ kind: 'trader', addressOrId: '' })).toBeNull();
+  });
+});
+
+describe('toSocialFeedRealtimeScope', () => {
+  it.each<[string, SocialFeedSource, 'all' | 'trending']>([
+    ['the all scope', { kind: 'all', audience: 'all', scope: 'all' }, 'all'],
+    [
+      'the trending scope',
+      { kind: 'all', audience: 'all', scope: 'trending' },
+      'trending',
+    ],
+    [
+      'an asset class of all',
+      { kind: 'all', audience: 'all', scope: 'all', assetClass: 'all' },
+      'all',
+    ],
+  ])('streams %s', (_label, source, expected) => {
+    expect(toSocialFeedRealtimeScope(source)).toBe(expected);
+  });
+
+  it.each<[string, SocialFeedSource]>([
+    ['the leaderboard audience', { kind: 'all', audience: 'all' }],
+    ['the following audience', { kind: 'all', audience: 'following' }],
+    [
+      'a narrowing asset class',
+      { kind: 'all', audience: 'all', scope: 'all', assetClass: 'perps' },
+    ],
+    ['a perp market', { kind: 'perp', symbol: 'BTC' }],
+    ['a trader', { kind: 'trader', addressOrId: 'profile-1' }],
+  ])('does not stream %s', (_label, source) => {
+    expect(toSocialFeedRealtimeScope(source)).toBeNull();
   });
 });
 
