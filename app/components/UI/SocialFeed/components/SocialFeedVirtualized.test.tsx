@@ -22,6 +22,16 @@ import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedHeaderProps } from './SocialFeed.types';
 import SocialFeedVirtualized from './SocialFeedVirtualized';
+
+const mockUseSocialFeedScreenView = jest.fn();
+jest.mock('../socialFeedTracking', () => ({
+  SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  useSocialFeedTracking: () => ({}),
+  useSocialFeedScreenView: (...args: unknown[]) =>
+    mockUseSocialFeedScreenView(...args),
+  socialFeedTracksLocation: () => false,
+}));
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import { SOCIAL_FEED_RETRY_TEST_ID } from './SocialFeedStates.testIds';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
@@ -67,6 +77,8 @@ jest.mock('./FeedItemEntryAnimation', () => ({
     <>{children}</>
   )),
   createFeedItemEntryScheduler: () => () => 0,
+  FEED_ROW_LAYOUT_TRANSITION: 'row-layout-transition',
+  FEED_ROW_LAYOUT_TRANSITION_LOW: 'row-layout-transition-low',
 }));
 
 jest.mock('react-native-reanimated', () => {
@@ -155,7 +167,7 @@ describe('SocialFeedVirtualized', () => {
     jest.restoreAllMocks();
   });
 
-  it('renders posts with a divider above every post but the first', () => {
+  it('renders posts with a divider below every post but the last', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({ posts: [post('one'), post('two')] }),
     );
@@ -165,13 +177,43 @@ describe('SocialFeedVirtualized', () => {
     expect(screen.getByText('one')).toBeOnTheScreen();
     expect(screen.getByText('two')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-two')),
+      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-one')),
     ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(
+        getSocialV1FeedEntryDividerTestId('social_live-two'),
+      ),
+    ).toBeNull();
+  });
+
+  it('keeps the existing first post divider-free when a post lands on top', () => {
+    mockUseSocialFeed.mockReturnValue(feedState({ posts: [post('one')] }));
+    const { rerender } = renderFeed();
+    const dividerBeforeInsert = screen.queryByTestId(
+      getSocialV1FeedEntryDividerTestId('social_live-one'),
+    );
+
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ posts: [post('new'), post('one')] }),
+    );
+    rerender(
+      <SocialFeedVirtualized
+        source={source}
+        location="social_live"
+        scrollMode="virtualized"
+        scrollTestID="feed-scroll"
+      />,
+    );
+
+    expect(dividerBeforeInsert).toBeNull();
     expect(
       screen.queryByTestId(
         getSocialV1FeedEntryDividerTestId('social_live-one'),
       ),
     ).toBeNull();
+    expect(
+      screen.getByTestId(getSocialV1FeedEntryDividerTestId('social_live-new')),
+    ).toBeOnTheScreen();
   });
 
   it('hides posts the viewer hid', () => {
@@ -218,6 +260,12 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(lastFeedOptions()?.enabled).toBe(false);
+    expect(mockUseSocialFeedScreenView).toHaveBeenCalledWith(
+      'social_live',
+      undefined,
+      [true, false, false],
+      undefined,
+    );
     expect(
       screen.getByTestId(getSocialFeedPostSkeletonTestId(1)),
     ).toBeOnTheScreen();
@@ -253,7 +301,12 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(getList().props).toEqual(
-      expect.objectContaining({ initialNumToRender: 4, windowSize: 3 }),
+      expect.objectContaining({
+        initialNumToRender: 4,
+        maxToRenderPerBatch: 1,
+        windowSize: 3,
+        itemLayoutAnimation: 'row-layout-transition-low',
+      }),
     );
     expect(mockFeedItemEntryAnimation.mock.lastCall?.[0]).toEqual(
       expect.objectContaining({ reducedMotion: true }),
@@ -266,7 +319,12 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(getList().props).toEqual(
-      expect.objectContaining({ initialNumToRender: 6, windowSize: 5 }),
+      expect.objectContaining({
+        initialNumToRender: 6,
+        maxToRenderPerBatch: 1,
+        windowSize: 5,
+        itemLayoutAnimation: 'row-layout-transition',
+      }),
     );
     expect(
       screen.getByTestId(getSocialFeedPostSkeletonTestId(3)),

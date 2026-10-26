@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -43,6 +44,7 @@ jest.mock(
 jest.mock('../analytics', () => ({
   ...jest.requireActual('../analytics'),
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  useSocialScreenAnalytics: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -169,6 +171,24 @@ describe('LeaderboardShellTabPage', () => {
       MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED,
       { source: 'home_banner', chain_filter: 'all' },
     );
+  });
+
+  it('pads the ranking filter bar 16px below the tabs and above the rows', () => {
+    renderWithProvider(
+      <LeaderboardShellTabPage containerTestID="leaderboard-page" />,
+    );
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
+          .contentContainerStyle,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16 }));
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(TopTradersViewSelectorsIDs.FILTER_BAR).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ paddingBottom: 16 }));
   });
 
   it('refreshes the leaderboard on pull to refresh', async () => {

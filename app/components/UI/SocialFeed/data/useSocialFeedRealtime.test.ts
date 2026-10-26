@@ -159,6 +159,29 @@ describe('useSocialFeedRealtime', () => {
     expect(mockSetActive).not.toHaveBeenCalled();
   });
 
+  it('keeps unchanged posts when a refresh returns them as new objects', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-a' }),
+        buildRow({ positionId: 'pos-b' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+    const [before, beforeChanged] = result.current?.posts ?? [];
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a' }),
+        buildRow({ positionId: 'pos-b', copyCount: 42 }),
+      ],
+      dataUpdatedAt: 2_000,
+    });
+    const [after, afterChanged] = result.current?.posts ?? [];
+
+    expect(after).toBe(before);
+    expect(afterChanged).not.toBe(beforeChanged);
+  });
+
   it('adds a new post at the top with an entrance while live', () => {
     const { result } = renderRealtime();
 
@@ -328,6 +351,18 @@ describe('useSocialFeedRealtime', () => {
     rerender({ nearTop: true });
 
     expect(refreshedAwayFromTop).toBe(0);
+    await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
+  });
+
+  it('catches up when a filter change widens the feed', async () => {
+    const rejectAll = () => false;
+    const { rerender } = renderRealtime({ filterPost: rejectAll });
+    emit(buildEvent('pos-a'));
+    const refreshedBeforeFilterChange = refresh.mock.calls.length;
+
+    rerender({ filterPost: () => true });
+
+    expect(refreshedBeforeFilterChange).toBe(0);
     await waitFor(() => expect(refresh).toHaveBeenCalledTimes(1));
   });
 

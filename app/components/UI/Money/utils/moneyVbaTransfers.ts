@@ -109,6 +109,7 @@ function mapCompletedTransfer(
     amount: minimalAmount.toFixed(0),
     receivedFrom: (transfer.sender_address?.toLowerCase() ??
       walletAddress.toLowerCase()) as Hex,
+    status: 'confirmed',
   };
 }
 
