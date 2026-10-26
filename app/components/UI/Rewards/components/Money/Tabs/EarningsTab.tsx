@@ -107,7 +107,7 @@ function claimsPausedLabels(
 ): ClaimsPausedLabels {
   return {
     breakdown: localizedText.breakdown,
-    recordedEarningsLabel: localizedText.recordedEarnings,
+    recordedEarningsLabel: localizedText.totalEarningsLabel,
     availableToClaim: localizedText.availableToClaim,
     held: localizedText.held,
     blocked: localizedText.blocked,
@@ -510,6 +510,20 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const openBalanceBreakdown = useCallback(
+    (summaryData: EarningsSummaryDto) => {
+      if (!localizedText) {
+        return;
+      }
+      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
+        variant: 'breakdown',
+        title: localizedText.breakdown,
+        totals: claimsPausedTotals(summaryData),
+        labels: claimsPausedLabels(localizedText),
+      });
+    },
+    [localizedText, navigation],
+  );
   const openClaimsPaused = useCallback(
     (
       summaryData:
@@ -619,7 +633,8 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
-              isClaiming={isClaiming || isClaimWaiting}
+              isClaiming={isClaiming}
+              isClaimWaiting={isClaimWaiting}
               onClaim={
                 summary.data
                   ? () => {
@@ -632,6 +647,17 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                   : undefined
               }
               onPaused={() => openClaimsPaused()}
+              onBalanceBreakdown={
+                summary.data
+                  ? () => {
+                      const summaryData = summary.data;
+                      if (!summaryData) {
+                        return;
+                      }
+                      openBalanceBreakdown(summaryData);
+                    }
+                  : undefined
+              }
             />
           ) : null}
         </Box>
