@@ -8,6 +8,8 @@ on:
     branches-ignore:
       - 'release/**'
       - 'stable'
+      # OTA validation PRs. The label skips E2E and fails "Check all jobs pass".
+      - 'ota-base/**'
 
 jobs:
   add-label:

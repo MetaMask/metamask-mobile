@@ -1,0 +1,150 @@
+import { execFileSync, spawnSync } from 'child_process';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
+import { tmpdir } from 'os';
+import path from 'path';
+
+const SCRIPT = path.join(__dirname, 'ensure-ota-pull-request.sh');
+
+function runWithFakeGh(options: {
+  prs: unknown[];
+  labels?: string;
+  planOnly?: boolean;
+  allowCreate?: boolean;
+}): { exitCode: number; stdout: string; stderr: string; log: string; output: string } {
+  const root = mkdtempSync(path.join(tmpdir(), 'ota-pr-'));
+  const bin = path.join(root, 'bin');
+  const log = path.join(root, 'gh.log');
+  const output = path.join(root, 'github.output');
+  execFileSync('mkdir', ['-p', bin]);
+  writeFileSync(
+    path.join(bin, 'gh'),
+    `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "$GH_LOG"
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  printf '%s\\n' "$GH_PRS_JSON"
+  exit 0
+fi
+if [[ "$1" == "pr" && "$2" == "view" ]]; then
+  printf '%s\\n' "\${GH_LABELS:-}"
+  exit 0
+fi
+exit 0
+`,
+  );
+  chmodSync(path.join(bin, 'gh'), 0o755);
+  writeFileSync(output, '');
+
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    PATH: `${bin}:${process.env.PATH ?? ''}`,
+    GH_LOG: log,
+    GH_PRS_JSON: JSON.stringify(options.prs),
+    GH_LABELS: options.labels ?? '',
+    HEAD_BRANCH: 'release/8.15.1-ota',
+    DESIRED_BASE: 'ota-base/v8.15.0',
+    SEMVER: '8.15.1',
+    GITHUB_REPOSITORY: 'MetaMask/metamask-mobile',
+    GH_TOKEN: 'test-token',
+    GITHUB_OUTPUT: output,
+    PLAN_ONLY: options.planOnly ? 'true' : '',
+    ALLOW_CREATE: options.allowCreate === false ? 'false' : 'true',
+  };
+
+  const ran = spawnSync('bash', [SCRIPT], { encoding: 'utf8', env });
+  const exitCode = ran.status ?? 1;
+  const stdout = ran.stdout ?? '';
+  const stderr = ran.stderr ?? '';
+
+  const ghLog = readFileSync(log, 'utf8');
+  const githubOutput = readFileSync(output, 'utf8');
+  rmSync(root, { recursive: true, force: true });
+  return { exitCode, stdout, stderr, log: ghLog, output: githubOutput };
+}
+
+describe('ensure-ota-pull-request.sh', () => {
+  it('retargets a stable OTA pull request and reopens it for CI', () => {
+    const result = runWithFakeGh({
+      prs: [
+        {
+          number: 7,
+          baseRefName: 'stable',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+      labels: 'pr-not-ready-for-e2e',
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.log).toContain('pr edit 7');
+    expect(result.log).toContain('--base ota-base/v8.15.0');
+    expect(result.log).toContain('--remove-label pr-not-ready-for-e2e');
+    expect(result.log).toContain('pr close 7');
+    expect(result.log).toContain('pr reopen 7');
+    expect(result.output).toContain('skip_bump=true');
+  });
+
+  it('opens a draft pull request against the pinned base', () => {
+    const result = runWithFakeGh({ prs: [] });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.log).toContain('pr create');
+    expect(result.log).toContain('--draft');
+    expect(result.log).toContain('--base ota-base/v8.15.0');
+    expect(result.log).toContain('--head release/8.15.1-ota');
+    expect(result.output).toContain('skip_bump=false');
+  });
+
+  it('closes a leftover stable pull request without retargeting the pinned one', () => {
+    const result = runWithFakeGh({
+      prs: [
+        {
+          number: 4,
+          baseRefName: 'ota-base/v8.15.0',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+        {
+          number: 9,
+          baseRefName: 'stable',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.log).not.toContain('--base ota-base/v8.15.0');
+    expect(result.log).toContain('pr close 9');
+    expect(result.log).not.toContain('pr close 4');
+  });
+
+  it('does not open a pull request when creation is deferred', () => {
+    const result = runWithFakeGh({ prs: [], allowCreate: false });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.log).not.toContain('pr create');
+    expect(result.stderr).toContain('Leaving creation');
+    expect(result.output).toContain('skip_bump=false');
+  });
+
+  it('does not edit the pull request when only planning', () => {
+    const result = runWithFakeGh({
+      planOnly: true,
+      prs: [
+        {
+          number: 7,
+          baseRefName: 'stable',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('"action":"retarget"');
+    expect(result.log).not.toContain('pr edit');
+    expect(result.log).not.toContain('pr create');
+    expect(result.output).toContain('skip_bump=true');
+  });
+});
