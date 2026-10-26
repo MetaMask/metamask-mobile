@@ -124,10 +124,14 @@ export class KalshiDeviceKeyUnavailableError extends Error {
 }
 
 /**
- * ECDSA P-256 over SHA-256. Returns 64-byte raw r || s, which is the form
+ * ECDSA P-256 over SHA-256. Resolves to 64-byte raw r || s, which is the form
  * Kalshi verifies. `data` is the message, not a precomputed digest.
+ * The promise is here so a later Secure Enclave or Keystore signer can replace
+ * the body without changing callers.
  */
-export const signWithKalshiDeviceKey = (data: Uint8Array): Uint8Array => {
+export const signWithKalshiDeviceKey = async (
+  data: Uint8Array,
+): Promise<Uint8Array> => {
   if (!stored) {
     throw new KalshiDeviceKeyUnavailableError();
   }

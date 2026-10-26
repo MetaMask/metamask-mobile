@@ -41,9 +41,12 @@ describe('resolveA2tIssuerUrl', () => {
     ).toThrow('mac-lan-address');
   });
 
-  it('rejects a missing URL', () => {
-    expect(() =>
-      resolveA2tIssuerUrl('  ', { os: 'ios', isEmulator: true }),
-    ).toThrow('MM_A2T_URL is not set');
+  it('returns undefined when the URL is missing', () => {
+    expect(resolveA2tIssuerUrl('  ', { os: 'ios', isEmulator: true })).toBe(
+      undefined,
+    );
+    expect(
+      resolveA2tIssuerUrl(undefined, { os: 'ios', isEmulator: true }),
+    ).toBe(undefined);
   });
 });

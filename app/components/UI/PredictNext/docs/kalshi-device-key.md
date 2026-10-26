@@ -4,7 +4,7 @@ Phase 1 of the Kalshi ISV flow, after the existing SRP login. The mobile app hol
 
 `auth/kalshiDeviceKey.ts` creates that key when `predictConfig.enabled` and `predictConfig.venues.kalshi.enabled` are both true and the wallet is unlocked. `KalshiDeviceKeyBootstrap` runs that check when the Kalshi stack mounts, and again when the unlock state changes. Locking the wallet, turning Kalshi off, or leaving the stack drops the plaintext key. The encrypted copy remains until the wallet is reset.
 
-The private key never leaves the module. Callers receive the 65-byte uncompressed public point (`0x04 || X || Y`), the 16-byte salt, and the unpadded base64url forms of both. `signWithKalshiDeviceKey` returns a 64-byte `r || s` signature over SHA-256, which is the encoding Kalshi verifies.
+The private key never leaves the module. Callers receive the 65-byte uncompressed public point (`0x04 || X || Y`), the 16-byte salt, and the unpadded base64url forms of both. `signWithKalshiDeviceKey` returns a promise of a 64-byte `r || s` signature over SHA-256, which is the encoding Kalshi verifies.
 
 ## What this build does
 
@@ -18,7 +18,7 @@ This is the same algorithm and the same wire format as the localhost POC. Once l
 
 Do not copy the private key into AsyncStorage, MMKV, Redux, logs, or the KeyringController vault. PredictNext still forbids credentials in Redux and general persisted product state.
 
-`docs/remote-adapters.md` still says the backend owns Kalshi request signing. The ISV spec puts this P-256 signature on the device. This module follows the spec. That remote-adapters sentence needs an explicit decision before account-scoped Kalshi calls start using the key.
+Account-scoped Kalshi requests are signed with this key. Mobile sends the payload and the signature to predict-api, which delivers both to Kalshi. See `docs/remote-adapters.md`.
 
 ## What a production key requires
 

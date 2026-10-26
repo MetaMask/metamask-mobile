@@ -24,10 +24,10 @@ const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '::1']);
 export const resolveA2tIssuerUrl = (
   configured: string | undefined,
   host: A2tIssuerHost,
-): string => {
+): string | undefined => {
   const raw = configured?.trim();
   if (!raw) {
-    throw new Error('MM_A2T_URL is not set');
+    return undefined;
   }
 
   let url: URL;

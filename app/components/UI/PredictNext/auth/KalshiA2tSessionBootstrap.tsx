@@ -5,6 +5,7 @@ import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import Logger from '../../../../util/Logger';
 import { selectPredictConfig } from '../selectors/predictConfig';
+import { isA2tSessionCleared } from './a2tSession';
 import { a2tSession } from './a2tSessionInstance';
 import { isKalshiDeviceKeyEnabled } from './kalshiDeviceKey';
 
@@ -33,7 +34,7 @@ export const KalshiA2tSessionBootstrap = ({
     }
 
     a2tSession.ensureA2T().catch((error: unknown) => {
-      if (error instanceof Error && error.name === 'A2tSessionClearedError') {
+      if (isA2tSessionCleared(error)) {
         return;
       }
       Logger.error(

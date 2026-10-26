@@ -6,7 +6,7 @@ import {
 import {
   A2tSession,
   a2tPopMessage,
-  type A2tIssuedSummary,
+  isA2tSessionCleared,
   type A2tSessionDependencies,
 } from './a2tSession';
 
@@ -96,14 +96,13 @@ const createHarness = (
     signSrpMessage: async () => 'srp-signature',
     getDeviceKey: async () => key,
     peekDeviceKey: () => key,
-    signDeviceProof: () => Uint8Array.from({ length: 64 }, () => 7),
+    signDeviceProof: async () => Uint8Array.from({ length: 64 }, () => 7),
     fetch: fetchMock,
     now: () => nowSec.value,
     nowMs: () => nowMs.value,
     sleep: async (ms) => {
       nowMs.value += ms;
     },
-    logIssued: () => undefined,
     ...overrides,
   };
   return {
@@ -126,14 +125,12 @@ describe('A2tSession', () => {
   it('issues an A2T after the access token, SRP identifier, and device key are ready', async () => {
     let deviceReads = 0;
     const key = material();
-    const logIssued = jest.fn();
     const harness = createHarness({
       getDeviceKey: async () => {
         deviceReads += 1;
         return deviceReads < 2 ? null : key;
       },
       peekDeviceKey: () => null,
-      logIssued,
     });
     mockIssue(harness.fetchMock);
 
@@ -172,28 +169,11 @@ describe('A2tSession', () => {
         }),
       }),
     );
-    expect(logIssued).toHaveBeenCalledWith(
-      expect.objectContaining({
-        a2t: issuedToken,
-        profileId: PROFILE_ID,
-        exp: NOW_SEC + 900,
-        expiresInSec: 900,
-        header: { alg: 'ES256', typ: 'JWT', kid: 'a2t-issuer-1' },
-        claims: {
-          iss: 'https://poc-issuer.metamask.local',
-          sub: PROFILE_ID,
-          aud: 'kalshi-demo-audience-placeholder',
-          iat: NOW_SEC,
-          exp: NOW_SEC + 900,
-          nonce: DEVICE_NONCE,
-        },
-      } satisfies A2tIssuedSummary),
-    );
   });
 
   it('signs the SRP message and the device proof for that challenge', async () => {
     const signSrpMessage = jest.fn(async () => 'srp-signature');
-    const signDeviceProof = jest.fn(() =>
+    const signDeviceProof = jest.fn(async () =>
       Uint8Array.from({ length: 64 }, () => 1),
     );
     const harness = createHarness({ signSrpMessage, signDeviceProof });
@@ -510,7 +490,7 @@ describe('A2tSession', () => {
   it('reloads the device key once when signing finds it missing', async () => {
     let signs = 0;
     const harness = createHarness({
-      signDeviceProof: () => {
+      signDeviceProof: async () => {
         signs += 1;
         if (signs === 1) {
           throw new KalshiDeviceKeyUnavailableError();
@@ -535,7 +515,7 @@ describe('A2tSession', () => {
         return reads < 3 ? material() : null;
       },
       peekDeviceKey: () => material(),
-      signDeviceProof: () => {
+      signDeviceProof: async () => {
         throw new KalshiDeviceKeyUnavailableError();
       },
     });
@@ -557,7 +537,7 @@ describe('A2tSession', () => {
         return reads < 3 ? material('device-a') : material('device-b');
       },
       peekDeviceKey: () => material('device-a'),
-      signDeviceProof: () => {
+      signDeviceProof: async () => {
         throw new KalshiDeviceKeyUnavailableError();
       },
     });
@@ -577,7 +557,7 @@ describe('A2tSession', () => {
         reads += 1;
         return material();
       },
-      signDeviceProof: () => {
+      signDeviceProof: async () => {
         throw new Error('sign failed');
       },
     });
@@ -586,5 +566,35 @@ describe('A2tSession', () => {
     await expect(harness.session.ensureA2T()).rejects.toThrow('sign failed');
 
     expect(reads).toBe(2);
+  });
+
+  it('skips issuance when the issuer URL is missing', async () => {
+    const getDeviceKey = jest.fn(async () => material());
+    const harness = createHarness({
+      getIssuerUrl: () => undefined,
+      getDeviceKey,
+    });
+
+    await expect(harness.session.ensureA2T()).resolves.toBeUndefined();
+
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+    expect(getDeviceKey).not.toHaveBeenCalled();
+  });
+
+  it('reports a cleared session when clear runs during issuance', async () => {
+    const signSrpMessage = jest.fn(async () => 'srp-signature');
+    const harness = createHarness({ signSrpMessage });
+    signSrpMessage.mockImplementation(async () => {
+      harness.session.clear();
+      return 'srp-signature';
+    });
+    harness.fetchMock.mockResolvedValueOnce(jsonResponse(200, challengeBody));
+
+    const error = await harness.session
+      .ensureA2T()
+      .catch((caught: unknown) => caught);
+
+    expect(isA2tSessionCleared(error)).toBe(true);
+    expect(isA2tSessionCleared(new Error('issuer down'))).toBe(false);
   });
 });

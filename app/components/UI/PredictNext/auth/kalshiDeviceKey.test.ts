@@ -356,7 +356,7 @@ describe('kalshiDeviceKey', () => {
       'utf8',
     );
 
-    const signature = signWithKalshiDeviceKey(message);
+    const signature = await signWithKalshiDeviceKey(message);
 
     expect(signature).toHaveLength(KALSHI_DEVICE_SIGNATURE_LENGTH);
     expect(
@@ -383,8 +383,8 @@ describe('kalshiDeviceKey', () => {
     ).toBe(false);
   });
 
-  it('throws when asked to sign with no device key', () => {
-    expect(() => signWithKalshiDeviceKey(Uint8Array.of(1))).toThrow(
+  it('throws when asked to sign with no device key', async () => {
+    await expect(signWithKalshiDeviceKey(Uint8Array.of(1))).rejects.toThrow(
       'Kalshi device key is not available',
     );
   });

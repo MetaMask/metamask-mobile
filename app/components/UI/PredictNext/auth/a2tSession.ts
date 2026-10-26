@@ -15,28 +15,9 @@ const SRP_MESSAGE = /^metamask:[^\s:]+:[^\s:]+(?::(?:primary|secondary))?$/u;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;
 
-export interface A2tIssuedSummary {
-  a2t: string;
-  profileId: string;
-  exp: number;
-  expiresInSec: number;
-  header: {
-    alg?: string;
-    typ?: string;
-    kid?: string;
-  };
-  claims: {
-    iss?: string;
-    sub?: string;
-    aud?: string | string[];
-    iat?: number;
-    exp?: number;
-    nonce?: string;
-  };
-}
-
 export interface A2tSessionDependencies {
-  getIssuerUrl: () => string;
+  /** Undefined when this build has no issuer URL. Issuance is skipped. */
+  getIssuerUrl: () => string | undefined;
   getAccessToken: () => Promise<string>;
   /** Canonical MetaMask profile id for the primary SRP. */
   getCanonicalProfileId: () => string | undefined;
@@ -45,13 +26,12 @@ export interface A2tSessionDependencies {
   signSrpMessage: (message: string) => Promise<string>;
   getDeviceKey: () => Promise<KalshiDevicePublicMaterial | null>;
   peekDeviceKey: () => KalshiDevicePublicMaterial | null;
-  signDeviceProof: (message: Uint8Array) => Uint8Array;
+  signDeviceProof: (message: Uint8Array) => Promise<Uint8Array>;
   fetch: typeof fetch;
   /** Unix time in seconds. */
   now: () => number;
   nowMs: () => number;
   sleep: (ms: number) => Promise<void>;
-  logIssued: (summary: A2tIssuedSummary) => void;
 }
 
 interface ReadyA2t {
@@ -101,12 +81,16 @@ class A2tChallengeExpiredError extends Error {
   }
 }
 
-class A2tSessionClearedError extends Error {
+export class A2tSessionClearedError extends Error {
   constructor() {
     super('A2T session was cleared');
     this.name = 'A2tSessionClearedError';
   }
 }
+
+/** True when `clear()` cancelled the issuance this error came from. */
+export const isA2tSessionCleared = (error: unknown): boolean =>
+  error instanceof A2tSessionClearedError;
 
 /** Device proof of possession. The issuer verifies this exact UTF-8 string. */
 export const a2tPopMessage = (
@@ -267,44 +251,6 @@ const acceptIssued = (
   };
 };
 
-const readAudience = (value: unknown): string | string[] | undefined => {
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (Array.isArray(value) && value.every((item) => typeof item === 'string')) {
-    return value;
-  }
-  return undefined;
-};
-
-const summarizeIssued = (
-  issued: A2tIssued,
-  nowSec: number,
-): A2tIssuedSummary => {
-  const [headerPart, claimsPart] = issued.a2t.split('.');
-  const header = readJwtObject(headerPart);
-  const claims = readJwtObject(claimsPart);
-  return {
-    a2t: issued.a2t,
-    profileId: issued.profileId,
-    exp: issued.exp,
-    expiresInSec: issued.exp - nowSec,
-    header: {
-      alg: readString(header, 'alg'),
-      typ: readString(header, 'typ'),
-      kid: readString(header, 'kid'),
-    },
-    claims: {
-      iss: readString(claims, 'iss'),
-      sub: readString(claims, 'sub'),
-      aud: readAudience(claims?.aud),
-      iat: readNumber(claims, 'iat'),
-      exp: readNumber(claims, 'exp'),
-      nonce: readString(claims, 'nonce'),
-    },
-  };
-};
-
 const bytesToBase64Url = (bytes: Uint8Array): string =>
   Buffer.from(bytes)
     .toString('base64')
@@ -323,7 +269,7 @@ const bytesToBase64Url = (bytes: Uint8Array): string =>
 export class A2tSession {
   readonly #deps: A2tSessionDependencies;
   #cached: CachedA2t | null = null;
-  #inflight: Promise<string> | null = null;
+  #inflight: Promise<string | undefined> | null = null;
   #generation = 0;
 
   constructor(deps: A2tSessionDependencies) {
@@ -333,8 +279,9 @@ export class A2tSession {
   /**
    * Returns a cached A2T, or runs challenge and issuance once.
    * A challenge the issuer has already expired starts the whole flow again.
+   * A build with no issuer URL resolves to undefined and does not start one.
    */
-  ensureA2T(): Promise<string> {
+  ensureA2T(): Promise<string | undefined> {
     const fresh = this.#readFresh(
       this.#deps.getCanonicalProfileId(),
       this.#deps.peekDeviceKey()?.publicKey,
@@ -363,8 +310,13 @@ export class A2tSession {
     this.#inflight = null;
   }
 
-  async #issue(generation: number): Promise<string> {
+  async #issue(generation: number): Promise<string | undefined> {
     this.#assertCurrent(generation);
+    const issuerUrl = this.#deps.getIssuerUrl();
+    if (!issuerUrl) {
+      return undefined;
+    }
+
     const loadedDevice = await this.#deps.getDeviceKey();
     const fresh = this.#readFresh(
       this.#deps.getCanonicalProfileId(),
@@ -374,7 +326,6 @@ export class A2tSession {
       return fresh;
     }
 
-    const issuerUrl = this.#deps.getIssuerUrl();
     const ready = await this.#waitUntilReady(generation);
     const readyFresh = this.#readFresh(
       ready.canonicalProfileId,
@@ -391,7 +342,7 @@ export class A2tSession {
       } catch (error) {
         lastError = error;
         if (
-          error instanceof A2tSessionClearedError ||
+          isA2tSessionCleared(error) ||
           !isExpiredChallenge(error) ||
           attempt === CHALLENGE_ATTEMPTS - 1
         ) {
@@ -499,7 +450,6 @@ export class A2tSession {
       canonicalProfileId: ready.canonicalProfileId,
       devicePublicKey: ready.device.publicKey,
     };
-    this.#deps.logIssued(summarizeIssued(issued, this.#deps.now()));
     return issued.a2t;
   }
 
@@ -514,7 +464,7 @@ export class A2tSession {
     generation: number,
   ): Promise<Uint8Array> {
     try {
-      return this.#deps.signDeviceProof(proof);
+      return await this.#deps.signDeviceProof(proof);
     } catch (error) {
       if (!(error instanceof KalshiDeviceKeyUnavailableError)) {
         throw error;
@@ -524,7 +474,7 @@ export class A2tSession {
       if (!reloaded || reloaded.publicKey !== publicKey) {
         throw error;
       }
-      return this.#deps.signDeviceProof(proof);
+      return await this.#deps.signDeviceProof(proof);
     }
   }
 

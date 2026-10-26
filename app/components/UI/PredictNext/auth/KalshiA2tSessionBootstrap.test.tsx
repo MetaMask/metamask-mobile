@@ -1,12 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 
 import { selectIsSignedIn } from '../../../../selectors/identity';
 import { selectIsUnlocked } from '../../../../selectors/keyringController';
+import Logger from '../../../../util/Logger';
 import type { PredictConfig } from '../config/predictConfig';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { KalshiA2tSessionBootstrap } from './KalshiA2tSessionBootstrap';
+import { A2tSessionClearedError } from './a2tSession';
 import { a2tSession } from './a2tSessionInstance';
 
 jest.mock('react-redux', () => ({
@@ -155,5 +157,49 @@ describe('KalshiA2tSessionBootstrap', () => {
       expect(clearMock).toHaveBeenCalledTimes(1);
     });
     expect(ensureA2TMock).not.toHaveBeenCalled();
+  });
+
+  it('logs an issuance failure', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    ensureA2TMock.mockRejectedValue(new Error('issuer down'));
+
+    render(
+      <KalshiA2tSessionBootstrap>
+        <View />
+      </KalshiA2tSessionBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(errorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'issuer down' }),
+        'A2T issuance failed',
+      );
+    });
+    errorSpy.mockRestore();
+  });
+
+  it('does not log a cleared session', async () => {
+    const errorSpy = jest
+      .spyOn(Logger, 'error')
+      .mockImplementation(() => undefined);
+    ensureA2TMock.mockRejectedValue(new A2tSessionClearedError());
+
+    render(
+      <KalshiA2tSessionBootstrap>
+        <View />
+      </KalshiA2tSessionBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(ensureA2TMock).toHaveBeenCalledTimes(1);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(errorSpy).not.toHaveBeenCalled();
+    errorSpy.mockRestore();
   });
 });

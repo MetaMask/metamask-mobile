@@ -12,7 +12,7 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { store } from '../../../../store';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolveA2tIssuerUrl } from './a2tIssuerUrl';
-import { A2tSession, type A2tIssuedSummary } from './a2tSession';
+import { A2tSession } from './a2tSession';
 import {
   deleteKalshiDeviceKey,
   ensureKalshiDeviceKey,
@@ -59,7 +59,8 @@ const invokeMessageSigningSnap = (
 export const a2tSession = new A2tSession({
   getIssuerUrl: () =>
     // PoC local issuer. Remove the host argument once the A2T service has an
-    // external URL. It tells the resolver when to rewrite localhost.
+    // external URL. It tells the resolver when to rewrite localhost. A missing
+    // URL comes back undefined, and issuance skips instead of throwing.
     resolveA2tIssuerUrl(configuredIssuerUrl(), {
       os: Platform.OS,
       isEmulator: isEmulatorSync(),
@@ -104,15 +105,6 @@ export const a2tSession = new A2tSession({
     new Promise((resolve) => {
       setTimeout(resolve, ms);
     }),
-  logIssued: (summary: A2tIssuedSummary) => {
-    if (!__DEV__) {
-      return;
-    }
-    // Dev-only. Logger.log stores a Sentry breadcrumb outside development,
-    // and this summary contains the A2T.
-    // eslint-disable-next-line no-console
-    console.log('A2T issued', summary);
-  },
 });
 
 /** Wallet reset. Drops the cached A2T, then removes the device key. */
