@@ -12,6 +12,13 @@ type Set = (
   value: unknown,
 ) => unknown;
 
+type LooseSet = (
+  receiver: unknown,
+  state: unknown,
+  value: unknown,
+  kind?: string,
+) => unknown;
+
 // tslib 1's helper, as written onto the global object by its UMD build.
 const tslib1ClassPrivateFieldGet = (
   receiver: object,
@@ -72,5 +79,111 @@ describe('pinTslibHelpers', () => {
 
     expect(classPrivateFieldIn(new WeakSet([receiver]), receiver)).toBe(true);
     expect(() => classPrivateFieldIn(new WeakSet(), 1)).toThrow(TypeError);
+  });
+
+  it('calls private accessors', () => {
+    const target = pinned();
+    const get = target.__classPrivateFieldGet as (
+      receiver: object,
+      state: WeakSet<object>,
+      kind: 'a',
+      accessor: (this: object, value?: unknown) => unknown,
+    ) => unknown;
+    const set = target.__classPrivateFieldSet as (
+      receiver: object,
+      state: WeakSet<object>,
+      value: unknown,
+      kind: 'a',
+      accessor: (this: object, value?: unknown) => unknown,
+    ) => unknown;
+    const receiver = { stored: 'before' };
+    const instances = new WeakSet([receiver]);
+
+    set(receiver, instances, 'after', 'a', function (this: object, value) {
+      (this as { stored: unknown }).stored = value;
+    });
+
+    expect(
+      get(receiver, instances, 'a', function (this: object) {
+        return (this as { stored: unknown }).stored;
+      }),
+    ).toBe('after');
+  });
+
+  it('reads and writes static private fields', () => {
+    const target = pinned();
+    const get = target.__classPrivateFieldGet as (
+      receiver: unknown,
+      state: unknown,
+      kind: 'f',
+      descriptor: { value: unknown },
+    ) => unknown;
+    const set = target.__classPrivateFieldSet as (
+      receiver: unknown,
+      state: unknown,
+      value: unknown,
+      kind: 'f',
+      descriptor: { value: unknown },
+    ) => unknown;
+    class WithStatic {}
+    const descriptor = { value: 'before' };
+
+    set(WithStatic, WithStatic, 'after', 'f', descriptor);
+
+    expect(get(WithStatic, WithStatic, 'f', descriptor)).toBe('after');
+  });
+
+  it.each([
+    [
+      'writing a private method',
+      (set: LooseSet) => set({}, new WeakSet(), 1, 'm'),
+      'Private method is not writable',
+    ],
+    [
+      'writing an accessor without a setter',
+      (set: LooseSet) => set({}, new WeakSet(), 1, 'a'),
+      'Private accessor was defined without a setter',
+    ],
+    [
+      'writing to an object whose class did not declare the member',
+      (set: LooseSet) => set({}, new WeakMap(), 1),
+      'Cannot write private member to an object whose class did not declare it',
+    ],
+  ])('rejects %s', (_name, write, message) => {
+    const set = pinned().__classPrivateFieldSet as LooseSet;
+
+    expect(() => write(set)).toThrow(message);
+  });
+
+  it('rejects reading an accessor without a getter', () => {
+    const get = pinned().__classPrivateFieldGet as (
+      receiver: object,
+      state: WeakSet<object>,
+      kind: 'a',
+    ) => unknown;
+
+    expect(() => get({}, new WeakSet(), 'a')).toThrow(
+      'Private accessor was defined without a getter',
+    );
+  });
+
+  it('checks static membership for the in operator', () => {
+    const classPrivateFieldIn = pinned().__classPrivateFieldIn as (
+      state: unknown,
+      receiver: unknown,
+    ) => boolean;
+    class WithStatic {}
+
+    expect(classPrivateFieldIn(WithStatic, WithStatic)).toBe(true);
+  });
+
+  it('pins the helpers on the global object by default', () => {
+    pinTslibHelpers();
+    const globalTarget = globalThis as unknown as Record<string, unknown>;
+    const helper = globalTarget.__classPrivateFieldGet;
+
+    globalTarget.__classPrivateFieldGet = () => undefined;
+
+    expect(globalTarget.__classPrivateFieldGet).toBe(helper);
   });
 });
