@@ -64,6 +64,13 @@ import {
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -240,9 +247,9 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
-  const accountKeyRef = useRef(
-    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
-  );
+  const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+  const accountKeyRef = useRef(accountKey);
+  const [stateAccountKey, setStateAccountKey] = useState(accountKey);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -425,6 +432,7 @@ const VbaDetails = () => {
       return;
     }
     accountKeyRef.current = nextKey;
+    setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     setInstructions(null);
@@ -549,6 +557,23 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const hasCurrentAccountState = stateAccountKey === accountKey;
+  let accountDetailsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (loadError) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (rows.length > 0) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+    resetKey: accountKey,
+    enabled: isApproved && hasCurrentAccountState,
+    contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
+    contentState: accountDetailsContentState,
+  });
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');

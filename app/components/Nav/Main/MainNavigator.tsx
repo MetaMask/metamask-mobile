@@ -197,11 +197,11 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import {
-  PredictScreenStack,
   PredictModalStack,
   PredictPreviewSheetProvider,
   selectPredictEnabledFlag,
 } from '../../UI/Predict';
+import { PredictRoot } from '../../UI/PredictNext';
 import { TrendingQuickBuySheetProvider } from '../../UI/Trending/contexts';
 import {
   MarketInsightsView,
@@ -265,6 +265,7 @@ import { ALLOWED_CAPABILITIES as ADD_DEVICE_TO_WALLET_ROUTE_ALLOWED_CAPABILITIES
 import { ALLOWED_CAPABILITIES as CHOOSE_PASSWORD_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/ChoosePassword/messenger';
 import { ALLOWED_CAPABILITIES as QR_TAB_SWITCHER_ROUTE_ALLOWED_CAPABILITIES } from '../../Views/QRTabSwitcher/messenger';
 import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
+import MoneyDepositDeeplinkBridge from '../../UI/Money/components/MoneyDepositDeeplinkBridge/MoneyDepositDeeplinkBridge';
 
 const NativeStack = createNativeStackNavigator();
 const JsTab = createBottomTabNavigator();
@@ -1434,6 +1435,11 @@ const MainNavigator = () => {
         options={transparentModalStackOptions}
       />
       <NativeStack.Screen
+        name={Routes.MONEY.DEPOSIT_DEEPLINK}
+        component={MoneyDepositDeeplinkBridge}
+        options={transparentModalStackOptions}
+      />
+      <NativeStack.Screen
         name="StakeModals"
         component={StakeModalStack}
         options={transparentModalStackOptions}
@@ -1480,7 +1486,7 @@ const MainNavigator = () => {
         <>
           <NativeStack.Screen
             name={Routes.PREDICT.ROOT}
-            component={PredictScreenStack}
+            component={PredictRoot}
             options={slideFromRightNativeOptions}
           />
           <NativeStack.Screen
