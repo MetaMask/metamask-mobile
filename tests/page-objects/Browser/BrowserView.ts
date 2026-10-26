@@ -516,10 +516,11 @@ class Browser {
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
     //
     // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
-    // rescan can cover the URL bar again about a second later. Awaiting a
-    // getter under the session's 3.5s implicit wait burns that gap (CI: 2
-    // attempts in 12s, last error "not visible after 700ms"). Create each
-    // locator inside a 300ms implicit wait, and read the bar before Cancel.
+    // rescan can cover the URL bar again about a second later. The label stays
+    // in the tree with `resolvedUrl`, but `isDisplayed()` is false while the
+    // modal covers it (local: element found, displayed=false, got ""). Read
+    // the text whenever the node exists. Create each locator inside a 300ms
+    // implicit wait so a missing Cancel does not burn the 3.5s session wait.
     await AppiumContextHelpers.switchToNativeContext();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
@@ -532,10 +533,7 @@ class Browser {
           probeImplicitWaitMs,
           async () => {
             const display = await this.urlBarDisplayText;
-            if (
-              !(await display.unwrap().isExisting()) ||
-              !(await display.isVisible())
-            ) {
+            if (!(await display.unwrap().isExisting())) {
               return '';
             }
             return (await display.textContent()).trim();
