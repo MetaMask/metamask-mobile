@@ -16,11 +16,15 @@ interface StoreState {
 
 const STORE_GLOBAL_KEY = '__mmLocalSocialProfileStore__';
 
+/** Placeholder thesis used until a profile has its own bio. */
+export const LOCAL_SOCIAL_PROFILE_DUMMY_BIO =
+  'Trading in the open. Copy my moves or fade them, either way we learn.';
+
 const createDefaultProfile = (): MySocialProfile => ({
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
+  bio: LOCAL_SOCIAL_PROFILE_DUMMY_BIO,
   imageUrl: null,
   rankingTag: 'whale',
   xHandle: 'giga-whale',

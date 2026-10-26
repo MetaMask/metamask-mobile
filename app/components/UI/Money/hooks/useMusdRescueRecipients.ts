@@ -8,6 +8,7 @@ import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
+import { isMnemonicMoneyAccount } from '../../../../lib/Money/money-accounts';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 /**
@@ -50,8 +51,12 @@ const useMusdRescueRecipients = (): UseMusdRescueRecipientsResult => {
   const accountGroups = useSelector(selectAccountGroups);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  const entropy = primaryMoneyAccount?.options?.entropy;
-  const entropyId = entropy?.id;
+  // MPC-backed money accounts are not derived from an SRP entropy source, so
+  // they have no rescue recipients.
+  const entropyId =
+    primaryMoneyAccount && isMnemonicMoneyAccount(primaryMoneyAccount)
+      ? primaryMoneyAccount.options.entropy.id
+      : undefined;
   const moneyAccountAddress = primaryMoneyAccount?.address;
 
   const recipients = useMemo(() => {
