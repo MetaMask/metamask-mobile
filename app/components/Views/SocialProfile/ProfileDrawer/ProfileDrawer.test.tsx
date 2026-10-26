@@ -12,8 +12,6 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
 /* eslint-enable import-x/no-restricted-paths */
-import { useAccountName } from '../../../hooks/useAccountName';
-import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -32,8 +30,6 @@ const mockIsNotificationsFeatureEnabled = jest.mocked(
   isNotificationsFeatureEnabled,
 );
 const mockUseMyProfile = jest.mocked(useMyProfile);
-const mockUseAccountName = jest.mocked(useAccountName);
-const mockUseAccountGroupName = jest.mocked(useAccountGroupName);
 
 const profileResult = (
   profile: ReturnType<typeof useMyProfile>['profile'],
@@ -51,14 +47,6 @@ const flattenStyle = (node: {
 
 jest.mock('../../SocialLeaderboard/MyProfileView/hooks/useMyProfile', () => ({
   useMyProfile: jest.fn(),
-}));
-
-jest.mock('../../../hooks/useAccountName', () => ({
-  useAccountName: jest.fn(() => 'Account 1'),
-}));
-
-jest.mock('../../../hooks/multichainAccounts/useAccountGroupName', () => ({
-  useAccountGroupName: jest.fn(() => null),
 }));
 
 const mockUseProSubscriptionEnabled = jest.fn(() => ({
@@ -120,8 +108,6 @@ describe('ProfileDrawer', () => {
     jest.clearAllMocks();
     mockIsNotificationsFeatureEnabled.mockReturnValue(true);
     mockUseMyProfile.mockReturnValue(profileResult(null));
-    mockUseAccountName.mockReturnValue('Account 1');
-    mockUseAccountGroupName.mockReturnValue(null);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -258,7 +244,7 @@ describe('ProfileDrawer', () => {
     });
   });
 
-  it('renders the handle, account name, and foxicon when a profile exists', () => {
+  it('renders the handle and foxicon when a profile exists', () => {
     mockUseMyProfile.mockReturnValue(
       profileResult({
         profileId: 'profile-1',
@@ -271,16 +257,14 @@ describe('ProfileDrawer', () => {
       }),
     );
 
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId, queryByText } = renderWithProvider(
       <ProfileDrawer />,
     );
 
     expect(
       getByTestId(ProfileDrawerSelectorsIDs.PROFILE_HANDLE),
     ).toHaveTextContent('@bonk-player');
-    expect(
-      getByTestId(ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME),
-    ).toHaveTextContent('Account 1');
+    expect(queryByText('Account 1')).toBeNull();
     expect(
       getByTestId(`${ProfileDrawerSelectorsIDs.PROFILE_AVATAR}-art`),
     ).toHaveProp('name', 'astro');
