@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
@@ -317,6 +317,10 @@ describe('ProHub', () => {
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
+      expect(
+        within(lifetimeEarningsSection).getAllByText('+$12.50'),
+      ).toHaveLength(2);
+      expect(lifetimeEarningsSection).not.toHaveTextContent(toRegex('$86.42'));
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.money_balance', {
@@ -362,12 +366,19 @@ describe('ProHub', () => {
       } as ReturnType<typeof useMoneyPremiumVaultRate>);
 
       const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
       const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
 
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(strings('pro_hub.money_balance', { apy: '—' })),
       );
       expect(moneyBalanceRow).toHaveTextContent(toRegex('$0.00'));
+      // Headline, Money balance row, and the still-mocked mUSD back amount.
+      expect(
+        within(lifetimeEarningsSection).getAllByText('$0.00'),
+      ).toHaveLength(3);
     });
 
     it('renders an active plan without a membership alert', () => {

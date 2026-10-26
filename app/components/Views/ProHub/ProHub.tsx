@@ -218,7 +218,8 @@ const ProHub = () => {
                   fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                  {/* Include MOCK_PRO_HUB_STATS.musdBack in this total once mUSD back earnings data exists. */}
+                  {sinceInceptionInterest}
                 </Text>
               </Box>
 
