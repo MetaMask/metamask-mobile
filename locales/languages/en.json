@@ -3459,7 +3459,8 @@
       },
       "data_source_dev": "Data source (dev)",
       "data_source_hyperliquid": "Hyperliquid",
-      "data_source_hydromancer": "Hydromancer (PoC)"
+      "data_source_hydromancer": "Hydromancer (PoC)",
+      "data_source_quicknode": "QuickNode (PoC)"
     },
     "tutorial": {
       "continue": "Continue",

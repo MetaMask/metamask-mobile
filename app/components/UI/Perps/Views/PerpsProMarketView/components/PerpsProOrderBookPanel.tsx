@@ -449,11 +449,20 @@ const PerpsProOrderBookPanel = ({
   const spreadOffsetRef = useRef(0);
   const userScrolledLadderRef = useRef(false);
   // Dev builds open on the local Hydromancer relay. The settings row that
-  // can switch back to Hyperliquid only renders when `__DEV__`.
+  // can switch among Hyperliquid / Hydromancer / QuickNode only renders
+  // when `__DEV__`.
   const [dataSource, setDataSource] = useState<PerpsProOrderBookDataSource>(
     __DEV__ ? 'hydromancer' : 'hyperliquid',
   );
-  const isHydromancerDataSource = __DEV__ && dataSource === 'hydromancer';
+  let relayOrderBookChannel:
+    | 'orderBookHydromancer'
+    | 'orderBookQuicknode'
+    | null = null;
+  if (__DEV__ && dataSource === 'quicknode') {
+    relayOrderBookChannel = 'orderBookQuicknode';
+  } else if (__DEV__ && dataSource === 'hydromancer') {
+    relayOrderBookChannel = 'orderBookHydromancer';
+  }
 
   const handleCollapse = useCallback(() => {
     if (!onCollapse) {
@@ -606,9 +615,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
-    channel: isHydromancerDataSource
-      ? 'orderBookHydromancer'
-      : 'orderBookAggregated',
+    channel: relayOrderBookChannel ?? 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,

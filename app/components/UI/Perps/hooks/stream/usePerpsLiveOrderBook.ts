@@ -45,11 +45,15 @@ export interface UsePerpsLiveOrderBookOptions {
    * `'orderBook'` is the raw / full-precision book via the controller's shared
    * socket (used for mid, spread, slippage). `'orderBookAggregated'` is the
    * server-aggregated book on a dedicated socket so the raw channel is never
-   * coarsened (Pro ladder panel). `'orderBookHydromancer'` is the Hydromancer
-   * `l2Book` order-book-depth PoC (20 levels/side) on its own dedicated
-   * connection — see `../../services/hydromancerOrderBookConnection.ts`.
+   * coarsened (Pro ladder panel). `'orderBookHydromancer'` / `'orderBookQuicknode'`
+   * are the 20-level PoC feeds from the local relay
+   * (`../../services/hydromancerOrderBookConnection.ts`).
    */
-  channel?: 'orderBook' | 'orderBookAggregated' | 'orderBookHydromancer';
+  channel?:
+    | 'orderBook'
+    | 'orderBookAggregated'
+    | 'orderBookHydromancer'
+    | 'orderBookQuicknode';
 }
 
 export interface UsePerpsLiveOrderBookReturn {
@@ -104,9 +108,11 @@ export function usePerpsLiveOrderBook(
 
   const isAggregated = channel === 'orderBookAggregated';
   const isHydromancer = channel === 'orderBookHydromancer';
-  // Both dedicated-connection channels report connection health; the raw
+  const isQuickNode = channel === 'orderBookQuicknode';
+  const isRelayChannel = isHydromancer || isQuickNode;
+  // Dedicated-connection channels report connection health; the raw
   // channel (shared controller socket) always reports 'connected'.
-  const usesDedicatedConnection = isAggregated || isHydromancer;
+  const usesDedicatedConnection = isAggregated || isRelayChannel;
   const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
   const [dataSymbol, setDataSymbol] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -209,10 +215,11 @@ export function usePerpsLiveOrderBook(
             }
           },
         });
-      } else if (isHydromancer) {
+      } else if (isRelayChannel) {
         const connection = getHydromancerOrderBookConnection();
         unsubscribe = connection.subscribe({
           symbol,
+          vendor: isQuickNode ? 'quicknode' : 'hydromancer',
           levels,
           nSigFigs,
           mantissa,
@@ -298,7 +305,8 @@ export function usePerpsLiveOrderBook(
     fast,
     channel,
     isAggregated,
-    isHydromancer,
+    isQuickNode,
+    isRelayChannel,
     usesDedicatedConnection,
     reconnectNonce,
   ]);

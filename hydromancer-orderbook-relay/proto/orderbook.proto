@@ -1,0 +1,29 @@
+// Minimal QuickNode Hyperliquid order-book proto for StreamL2Book.
+// Source: https://github.com/quiknode-labs/hypercore-grpc-examples/blob/main/proto/orderbook.proto
+syntax = "proto3";
+package hyperliquid;
+
+service OrderBookStreaming {
+  rpc StreamL2Book (L2BookRequest) returns (stream L2BookUpdate);
+}
+
+message L2BookRequest {
+  string coin = 1;
+  uint32 n_levels = 2;
+  optional uint32 n_sig_figs = 3;
+  optional uint64 mantissa = 4;
+}
+
+message L2BookUpdate {
+  string coin = 1;
+  uint64 time = 2;
+  uint64 block_number = 3;
+  repeated L2Level bids = 4;
+  repeated L2Level asks = 5;
+}
+
+message L2Level {
+  string px = 1;
+  string sz = 2;
+  uint32 n = 3;
+}

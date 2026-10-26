@@ -36,13 +36,16 @@ import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
 import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
 /**
- * Dev-only: which order-book feed backs the Pro ladder. `'hydromancer'` is
- * the order-book-depth PoC (20 levels/side from the local relay at
- * `ws://localhost:8787`) — see
+ * Dev-only: which order-book feed backs the Pro ladder.
+ * `'hydromancer'` / `'quicknode'` are the 20-level PoC feeds from the local
+ * relay at `ws://localhost:8787` — see
  * `../../../hooks/stream/usePerpsLiveOrderBook.ts` and
  * `../../../services/hydromancerOrderBookConnection.ts`.
  */
-export type PerpsProOrderBookDataSource = 'hyperliquid' | 'hydromancer';
+export type PerpsProOrderBookDataSource =
+  | 'hyperliquid'
+  | 'hydromancer'
+  | 'quicknode';
 
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
@@ -453,9 +456,9 @@ const PerpsProOrderBookConfigSheet = ({
             </Box>
           </Box>
 
-          {/* Dev-only: PoC toggle for the Hydromancer order-book-depth feed
-              (20 levels/side via a dedicated mock/real `l2Book` connection).
-              Never rendered in production builds. */}
+          {/* Dev-only: PoC toggle for 20-level vendor feeds via the local
+              relay (Hydromancer JSON or QuickNode gRPC). Never rendered in
+              production builds. */}
           {__DEV__ && (
             <Box twClassName="w-full gap-2">
               <Box twClassName="px-4">
@@ -483,6 +486,12 @@ const PerpsProOrderBookConfigSheet = ({
                   isSelected={draftDataSource === 'hydromancer'}
                   onPress={() => handleDataSourceSelect('hydromancer')}
                   testID={`${testID}-data-source-hydromancer`}
+                />
+                <OptionFilterButton
+                  label={strings('perps.order_book.data_source_quicknode')}
+                  isSelected={draftDataSource === 'quicknode'}
+                  onPress={() => handleDataSourceSelect('quicknode')}
+                  testID={`${testID}-data-source-quicknode`}
                 />
               </Box>
             </Box>

@@ -6,22 +6,30 @@ import type {
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
- * PoC connection to the local Hydromancer order-book relay
- * (`hydromancer-orderbook-relay/`). The relay holds the vendor API key and
+ * PoC connection to the local order-book relay
+ * (`hydromancer-orderbook-relay/`). The relay holds vendor API keys and
  * sends the app an `OrderBookData` snapshot. This socket never talks to
- * Hydromancer directly.
+ * Hydromancer or QuickNode directly.
  *
  * Hardcoded for the iOS simulator: `localhost` is the Mac running the relay.
  */
 const RELAY_URL = 'ws://localhost:8787';
 const RECONNECT_MS = 1000;
 
+/** Upstream vendor the local relay should fan out. */
+export type OrderBookRelayVendor = 'hydromancer' | 'quicknode';
+
 export interface SubscribeHydromancerOrderBookParams {
   /** Market symbol (e.g. 'BTC'). Sent to the relay as `coin`. */
   symbol: string;
+  /**
+   * Which vendor the relay should subscribe to. Defaults to `'hydromancer'`.
+   * `'quicknode'` uses QuickNode's gRPC `StreamL2Book` behind the same relay.
+   */
+  vendor?: OrderBookRelayVendor;
   /** Number of levels per side to keep. The relay sends 20. */
   levels?: number;
-  /** Server-side price aggregation. The relay forwards this to Hydromancer. */
+  /** Server-side price aggregation. The relay forwards this to the vendor. */
   nSigFigs?: 2 | 3 | 4 | 5;
   /** Mantissa refinement when `nSigFigs` is 5. */
   mantissa?: 2 | 5;
@@ -34,6 +42,7 @@ export interface SubscribeHydromancerOrderBookParams {
 }
 
 interface LiveHandler {
+  vendor: OrderBookRelayVendor;
   levels: number;
   nSigFigs?: 2 | 3 | 4 | 5;
   mantissa?: 2 | 5;
@@ -44,6 +53,7 @@ interface LiveHandler {
 
 interface RelayClientMessage {
   type: 'subscribe' | 'unsubscribe';
+  vendor: OrderBookRelayVendor;
   coin: string;
   nSigFigs?: 2 | 3 | 4 | 5;
   mantissa?: 2 | 5;
@@ -97,6 +107,7 @@ export class HydromancerOrderBookConnection {
    */
   subscribe({
     symbol,
+    vendor = 'hydromancer',
     levels = 20,
     nSigFigs,
     mantissa,
@@ -106,6 +117,7 @@ export class HydromancerOrderBookConnection {
   }: SubscribeHydromancerOrderBookParams): () => void {
     onStatusChange?.('connecting');
     this.#liveHandlers.set(symbol, {
+      vendor,
       levels,
       nSigFigs,
       mantissa,
@@ -113,11 +125,16 @@ export class HydromancerOrderBookConnection {
       onReset,
       onStatusChange,
     });
-    this.#send({ type: 'subscribe', coin: symbol, nSigFigs, mantissa });
+    this.#send({ type: 'subscribe', vendor, coin: symbol, nSigFigs, mantissa });
 
     return () => {
+      const current = this.#liveHandlers.get(symbol);
       this.#liveHandlers.delete(symbol);
-      this.#send({ type: 'unsubscribe', coin: symbol });
+      this.#send({
+        type: 'unsubscribe',
+        vendor: current?.vendor ?? vendor,
+        coin: symbol,
+      });
       if (this.#liveHandlers.size === 0) {
         this.close();
       }
@@ -179,6 +196,15 @@ export class HydromancerOrderBookConnection {
         return;
       }
 
+      // Ignore snapshots from a different vendor while the Pro settings switch
+      // between Hydromancer and QuickNode on the same socket.
+      if (
+        typeof parsed.vendor === 'string' &&
+        parsed.vendor !== handler.vendor
+      ) {
+        return;
+      }
+
       if (parsed.type === 'reset') {
         handler.onReset?.();
         return;
@@ -222,6 +248,7 @@ export class HydromancerOrderBookConnection {
         for (const [coin, handler] of this.#liveHandlers) {
           this.#send({
             type: 'subscribe',
+            vendor: handler.vendor,
             coin,
             nSigFigs: handler.nSigFigs,
             mantissa: handler.mantissa,

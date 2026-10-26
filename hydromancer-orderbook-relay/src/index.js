@@ -1,52 +1,113 @@
 import { createServer } from 'node:http';
 import { acceptWebSocket, sendText } from './clientSocket.js';
 import { toOrderBookData } from './orderBook.js';
+import { createQuickNodeVendor } from './vendors/quicknode.js';
 
 const PORT = Number(process.env.PORT ?? 8787);
-const API_KEY = process.env.HYDROMANCER_API_KEY?.trim() ?? '';
+const HYDROMANCER_API_KEY = process.env.HYDROMANCER_API_KEY?.trim() ?? '';
+const QUICKNODE_GRPC_ENDPOINT =
+  process.env.QUICKNODE_GRPC_ENDPOINT?.trim() ?? '';
+const QUICKNODE_API_TOKEN = process.env.QUICKNODE_API_TOKEN?.trim() ?? '';
 const LEVELS = 20;
 const MAX_MARKETS = 32;
+const VENDORS = new Set(['hydromancer', 'quicknode']);
 
-if (!API_KEY) {
+const hasHydromancer = HYDROMANCER_API_KEY.length > 0;
+const hasQuickNode =
+  QUICKNODE_GRPC_ENDPOINT.length > 0 && QUICKNODE_API_TOKEN.length > 0;
+
+if (!hasHydromancer && !hasQuickNode) {
   console.error(
-    'Missing HYDROMANCER_API_KEY. Copy .env.example to .env in hydromancer-orderbook-relay/ and paste the key there.',
+    'Missing vendor credentials. Set HYDROMANCER_API_KEY and/or QUICKNODE_GRPC_ENDPOINT + QUICKNODE_API_TOKEN in hydromancer-orderbook-relay/.env.',
   );
   process.exit(1);
 }
 
-/** @type {Map<import('node:stream').Duplex, Set<string>>} */
-const clientCoins = new Map();
-/** @type {Map<string, Set<import('node:stream').Duplex>>} */
-const coinClients = new Map();
-/** @type {Map<string, object>} */
-const books = new Map();
-
-/** @type {WebSocket | null} */
-let vendor = null;
-let vendorReady = false;
-let reconnectTimer = null;
-/** Coins currently registered with Hydromancer. */
-let activeCoins = [];
-/** Aggregation signature of the live vendor subscription. */
-let activeSignature = '';
-/** @type {Map<string, { nSigFigs?: number, mantissa?: number }>} */
-const coinAggregation = new Map();
-/** Last per-subscription seq. Null after a gap or a resubscribe. */
-let lastSeq = null;
-
-function log(message) {
-  console.log(`[hydromancer-relay] ${message}`);
+/**
+ * Subscription identity shared by clients and the cached book.
+ * Coins can themselves contain colons (e.g. `xyz:TSLA`), so never split the
+ * key on `:` — use `parseBookKey` instead.
+ *
+ * @param {'hydromancer' | 'quicknode'} vendor
+ * @param {string} coin
+ */
+function bookKey(vendor, coin) {
+  return `${vendor}:${coin}`;
 }
 
-function broadcast(coin, message) {
+/**
+ * @param {string} key
+ * @returns {{ vendor: 'hydromancer' | 'quicknode', coin: string } | null}
+ */
+function parseBookKey(key) {
+  if (key.startsWith('hydromancer:')) {
+    return { vendor: 'hydromancer', coin: key.slice('hydromancer:'.length) };
+  }
+  if (key.startsWith('quicknode:')) {
+    return { vendor: 'quicknode', coin: key.slice('quicknode:'.length) };
+  }
+  return null;
+}
+
+/** @type {Map<import('node:stream').Duplex, Set<string>>} */
+const clientKeys = new Map();
+/** @type {Map<string, Set<import('node:stream').Duplex>>} */
+const keyClients = new Map();
+/** @type {Map<string, object>} */
+const books = new Map();
+/** @type {Map<string, { nSigFigs?: number, mantissa?: number }>} */
+const keyAggregation = new Map();
+
+/** @type {WebSocket | null} */
+let hydromancer = null;
+let hydromancerReady = false;
+let hydromancerReconnectTimer = null;
+/** Coins currently registered with Hydromancer. */
+let hydromancerActiveCoins = [];
+/** Aggregation signature of the live Hydromancer subscription. */
+let hydromancerActiveSignature = '';
+/** Last Hydromancer per-subscription seq. Null after a gap or a resubscribe. */
+let hydromancerLastSeq = null;
+
+const quickNode = hasQuickNode
+  ? createQuickNodeVendor({
+      endpoint: QUICKNODE_GRPC_ENDPOINT,
+      token: QUICKNODE_API_TOKEN,
+      onBook: (coin, orderBook, vendorTime) => {
+        const key = bookKey('quicknode', coin);
+        if (!keyClients.has(key)) {
+          return;
+        }
+        books.set(key, orderBook);
+        broadcast(key, {
+          type: 'l2Book',
+          vendor: 'quicknode',
+          coin,
+          orderBook,
+          vendorTime,
+          relayTime: Date.now(),
+        });
+      },
+      onLog: (message) => log(message),
+    })
+  : null;
+
+function log(message) {
+  console.log(`[orderbook-relay] ${message}`);
+}
+
+function broadcast(key, message) {
   const payload = JSON.stringify(message);
-  for (const socket of coinClients.get(coin) ?? []) {
+  for (const socket of keyClients.get(key) ?? []) {
     sendText(socket, payload);
   }
 }
 
-function desiredCoins() {
-  return [...coinClients.keys()].sort();
+function hydromancerCoins() {
+  return [...keyClients.keys()]
+    .filter((key) => key.startsWith('hydromancer:'))
+    .map((key) => key.slice('hydromancer:'.length))
+    .sort();
 }
 
 function normalizeAggregation(message) {
@@ -60,45 +121,52 @@ function normalizeAggregation(message) {
   return { nSigFigs, mantissa };
 }
 
-function desiredSignature() {
-  return desiredCoins()
+function normalizeVendor(value) {
+  if (typeof value !== 'string') {
+    return 'hydromancer';
+  }
+  return VENDORS.has(value) ? value : null;
+}
+
+function hydromancerDesiredSignature() {
+  return hydromancerCoins()
     .map((coin) => {
-      const params = coinAggregation.get(coin) ?? {};
+      const params = keyAggregation.get(bookKey('hydromancer', coin)) ?? {};
       return `${coin}:${params.nSigFigs ?? ''}:${params.mantissa ?? ''}`;
     })
     .join('|');
 }
 
-function sendVendor(message) {
-  if (!vendor || vendor.readyState !== WebSocket.OPEN) {
+function sendHydromancer(message) {
+  if (!hydromancer || hydromancer.readyState !== WebSocket.OPEN) {
     return;
   }
-  vendor.send(JSON.stringify(message));
+  hydromancer.send(JSON.stringify(message));
 }
 
-function syncVendorSubscription() {
-  const next = desiredCoins();
-  const signature = desiredSignature();
-  if (!vendorReady || signature === activeSignature) {
+function syncHydromancerSubscription() {
+  const next = hydromancerCoins();
+  const signature = hydromancerDesiredSignature();
+  if (!hydromancerReady || signature === hydromancerActiveSignature) {
     return;
   }
-  if (activeCoins.length > 0) {
-    sendVendor({
+  if (hydromancerActiveCoins.length > 0) {
+    sendHydromancer({
       method: 'unsubscribe',
-      subscription: { type: 'l2Book', coins: activeCoins },
+      subscription: { type: 'l2Book', coins: hydromancerActiveCoins },
     });
   }
-  activeCoins = next;
-  activeSignature = signature;
-  lastSeq = null;
+  hydromancerActiveCoins = next;
+  hydromancerActiveSignature = signature;
+  hydromancerLastSeq = null;
   for (const coin of next) {
-    books.delete(coin);
+    books.delete(bookKey('hydromancer', coin));
   }
   if (next.length === 0) {
     return;
   }
-  const params = coinAggregation.get(next[0]) ?? {};
-  sendVendor({
+  const params = keyAggregation.get(bookKey('hydromancer', next[0])) ?? {};
+  sendHydromancer({
     method: 'subscribe',
     subscription: {
       type: 'l2Book',
@@ -109,26 +177,29 @@ function syncVendorSubscription() {
     },
   });
   log(
-    `subscribed ${next.join(', ')} nSigFigs=${params.nSigFigs ?? 'raw'} mantissa=${params.mantissa ?? '-'}`,
+    `hydromancer subscribed ${next.join(', ')} nSigFigs=${params.nSigFigs ?? 'raw'} mantissa=${params.mantissa ?? '-'}`,
   );
 }
 
-function connectVendor() {
+function connectHydromancer() {
+  if (!hasHydromancer) {
+    return;
+  }
   if (
-    vendor &&
-    (vendor.readyState === WebSocket.CONNECTING ||
-      vendor.readyState === WebSocket.OPEN)
+    hydromancer &&
+    (hydromancer.readyState === WebSocket.CONNECTING ||
+      hydromancer.readyState === WebSocket.OPEN)
   ) {
     return;
   }
-  vendorReady = false;
+  hydromancerReady = false;
   const socket = new WebSocket(
-    `wss://api.hydromancer.xyz/ws?token=${encodeURIComponent(API_KEY)}`,
+    `wss://api.hydromancer.xyz/ws?token=${encodeURIComponent(HYDROMANCER_API_KEY)}`,
   );
-  vendor = socket;
+  hydromancer = socket;
 
   socket.addEventListener('message', (event) => {
-    if (vendor !== socket) {
+    if (hydromancer !== socket) {
       return;
     }
     let message;
@@ -139,50 +210,50 @@ function connectVendor() {
     } catch {
       return;
     }
-    handleVendorMessage(message);
+    handleHydromancerMessage(message);
   });
 
   socket.addEventListener('close', () => {
-    if (vendor !== socket) {
+    if (hydromancer !== socket) {
       return;
     }
-    vendorReady = false;
-    activeCoins = [];
-    activeSignature = '';
-    lastSeq = null;
-    log('vendor socket closed, reconnecting');
-    scheduleReconnect();
+    hydromancerReady = false;
+    hydromancerActiveCoins = [];
+    hydromancerActiveSignature = '';
+    hydromancerLastSeq = null;
+    log('hydromancer socket closed, reconnecting');
+    scheduleHydromancerReconnect();
   });
 
   socket.addEventListener('error', () => {
-    if (vendor !== socket) {
+    if (hydromancer !== socket) {
       return;
     }
-    log('vendor socket error');
+    log('hydromancer socket error');
     socket.close();
   });
 }
 
-function scheduleReconnect() {
-  if (reconnectTimer) {
+function scheduleHydromancerReconnect() {
+  if (hydromancerReconnectTimer) {
     return;
   }
-  reconnectTimer = setTimeout(() => {
-    reconnectTimer = null;
-    connectVendor();
+  hydromancerReconnectTimer = setTimeout(() => {
+    hydromancerReconnectTimer = null;
+    connectHydromancer();
   }, 1000);
 }
 
-function handleVendorMessage(message) {
+function handleHydromancerMessage(message) {
   if (message.type === 'connected') {
-    vendorReady = true;
-    activeCoins = [];
-    activeSignature = '';
-    syncVendorSubscription();
+    hydromancerReady = true;
+    hydromancerActiveCoins = [];
+    hydromancerActiveSignature = '';
+    syncHydromancerSubscription();
     return;
   }
   if (message.type === 'ping') {
-    sendVendor({ type: 'pong' });
+    sendHydromancer({ type: 'pong' });
     return;
   }
   if (message.type !== 'l2Book') {
@@ -190,29 +261,32 @@ function handleVendorMessage(message) {
   }
 
   if (typeof message.seq === 'number') {
-    if (lastSeq !== null && message.seq !== lastSeq + 1) {
-      log(`seq gap ${lastSeq} -> ${message.seq}, dropping books`);
-      for (const coin of desiredCoins()) {
-        books.delete(coin);
-        broadcast(coin, { type: 'reset', coin });
+    if (hydromancerLastSeq !== null && message.seq !== hydromancerLastSeq + 1) {
+      log(
+        `hydromancer seq gap ${hydromancerLastSeq} -> ${message.seq}, dropping books`,
+      );
+      for (const coin of hydromancerCoins()) {
+        const key = bookKey('hydromancer', coin);
+        books.delete(key);
+        broadcast(key, { type: 'reset', vendor: 'hydromancer', coin });
       }
-      lastSeq = null;
+      hydromancerLastSeq = null;
       return;
     }
-    lastSeq = message.seq;
+    hydromancerLastSeq = message.seq;
   }
 
   const snapshots = Array.isArray(message.data) ? message.data : [message.data];
   const relayTime = Date.now();
   for (const snapshot of snapshots) {
-    if (
-      !snapshot ||
-      typeof snapshot.coin !== 'string' ||
-      !coinClients.has(snapshot.coin)
-    ) {
+    if (!snapshot || typeof snapshot.coin !== 'string') {
       continue;
     }
-    const expected = coinAggregation.get(snapshot.coin) ?? {};
+    const key = bookKey('hydromancer', snapshot.coin);
+    if (!keyClients.has(key)) {
+      continue;
+    }
+    const expected = keyAggregation.get(key) ?? {};
     if (expected.nSigFigs && message.nSigFigs !== expected.nSigFigs) {
       continue;
     }
@@ -220,9 +294,10 @@ function handleVendorMessage(message) {
       continue;
     }
     const orderBook = toOrderBookData(snapshot);
-    books.set(snapshot.coin, orderBook);
-    broadcast(snapshot.coin, {
+    books.set(key, orderBook);
+    broadcast(key, {
       type: 'l2Book',
+      vendor: 'hydromancer',
       coin: snapshot.coin,
       orderBook,
       vendorTime: snapshot.time,
@@ -231,51 +306,83 @@ function handleVendorMessage(message) {
   }
 }
 
-function addClientCoin(socket, coin, aggregation) {
+function addClientCoin(socket, vendor, coin, aggregation) {
   if (!/^[A-Za-z0-9:_-]{1,32}$/.test(coin)) {
     sendText(
       socket,
-      JSON.stringify({ type: 'error', message: 'invalid coin' }),
+      JSON.stringify({ type: 'error', vendor, coin, message: 'invalid coin' }),
     );
     return;
   }
-  if (!coinClients.has(coin) && coinClients.size >= MAX_MARKETS) {
+  if (vendor === 'hydromancer' && !hasHydromancer) {
     sendText(
       socket,
-      JSON.stringify({ type: 'error', message: 'too many markets' }),
+      JSON.stringify({
+        type: 'error',
+        vendor,
+        coin,
+        message: 'hydromancer is not configured on this relay',
+      }),
+    );
+    return;
+  }
+  if (vendor === 'quicknode' && !quickNode) {
+    sendText(
+      socket,
+      JSON.stringify({
+        type: 'error',
+        vendor,
+        coin,
+        message: 'quicknode is not configured on this relay',
+      }),
     );
     return;
   }
 
-  let coins = clientCoins.get(socket);
-  if (!coins) {
-    coins = new Set();
-    clientCoins.set(socket, coins);
+  const key = bookKey(vendor, coin);
+  if (!keyClients.has(key) && keyClients.size >= MAX_MARKETS) {
+    sendText(
+      socket,
+      JSON.stringify({
+        type: 'error',
+        vendor,
+        coin,
+        message: 'too many markets',
+      }),
+    );
+    return;
   }
-  coins.add(coin);
 
-  let sockets = coinClients.get(coin);
+  let keys = clientKeys.get(socket);
+  if (!keys) {
+    keys = new Set();
+    clientKeys.set(socket, keys);
+  }
+  keys.add(key);
+
+  let sockets = keyClients.get(key);
   if (!sockets) {
     sockets = new Set();
-    coinClients.set(coin, sockets);
+    keyClients.set(key, sockets);
   }
   const wasEmpty = sockets.size === 0;
   sockets.add(socket);
-  const previous = coinAggregation.get(coin);
+  const previous = keyAggregation.get(key);
   const aggregationChanged =
     previous?.nSigFigs !== aggregation.nSigFigs ||
     previous?.mantissa !== aggregation.mantissa;
-  coinAggregation.set(coin, aggregation);
+  keyAggregation.set(key, aggregation);
   if (aggregationChanged) {
-    books.delete(coin);
+    books.delete(key);
   }
 
-  const cached = books.get(coin);
+  const cached = books.get(key);
   if (cached) {
     sendText(
       socket,
       JSON.stringify({
         type: 'l2Book',
+        vendor,
         coin,
         orderBook: cached,
         vendorTime: cached.lastUpdated,
@@ -283,32 +390,50 @@ function addClientCoin(socket, coin, aggregation) {
       }),
     );
   }
-  if (wasEmpty || aggregationChanged) {
-    connectVendor();
-    syncVendorSubscription();
+
+  if (vendor === 'hydromancer' && (wasEmpty || aggregationChanged)) {
+    connectHydromancer();
+    syncHydromancerSubscription();
+  }
+  if (vendor === 'quicknode' && (wasEmpty || aggregationChanged)) {
+    if (aggregationChanged && previous) {
+      quickNode.release(coin, previous);
+    }
+    quickNode.ensure(coin, aggregation);
   }
 }
 
-function removeClientCoin(socket, coin) {
-  clientCoins.get(socket)?.delete(coin);
-  const sockets = coinClients.get(coin);
+function removeClientCoin(socket, vendor, coin) {
+  const key = bookKey(vendor, coin);
+  clientKeys.get(socket)?.delete(key);
+  const sockets = keyClients.get(key);
   if (!sockets) {
     return;
   }
   sockets.delete(socket);
   if (sockets.size === 0) {
-    coinClients.delete(coin);
-    coinAggregation.delete(coin);
-    books.delete(coin);
-    syncVendorSubscription();
+    const aggregation = keyAggregation.get(key) ?? {};
+    keyClients.delete(key);
+    keyAggregation.delete(key);
+    books.delete(key);
+    if (vendor === 'hydromancer') {
+      syncHydromancerSubscription();
+    }
+    if (vendor === 'quicknode' && quickNode) {
+      quickNode.release(coin, aggregation);
+    }
   }
 }
 
 function removeClient(socket) {
-  const coins = clientCoins.get(socket);
-  clientCoins.delete(socket);
-  for (const coin of coins ?? []) {
-    removeClientCoin(socket, coin);
+  const keys = clientKeys.get(socket);
+  clientKeys.delete(socket);
+  for (const key of keys ?? []) {
+    const parsed = parseBookKey(key);
+    if (!parsed) {
+      continue;
+    }
+    removeClientCoin(socket, parsed.vendor, parsed.coin);
   }
 }
 
@@ -318,8 +443,17 @@ const server = createServer((request, response) => {
     response.end(
       JSON.stringify({
         ok: true,
-        vendorReady,
-        markets: desiredCoins(),
+        vendors: {
+          hydromancer: {
+            configured: hasHydromancer,
+            ready: hydromancerReady,
+          },
+          quicknode: {
+            configured: Boolean(quickNode),
+            activeStreams: quickNode?.activeCount ?? 0,
+          },
+        },
+        markets: [...keyClients.keys()],
       }),
     );
     return;
@@ -337,13 +471,29 @@ server.on('upgrade', (request, socket, head) => {
       } catch {
         return;
       }
+      const vendor = normalizeVendor(message.vendor);
+      if (!vendor) {
+        sendText(
+          socket,
+          JSON.stringify({
+            type: 'error',
+            message: 'invalid vendor',
+          }),
+        );
+        return;
+      }
       if (message.type === 'subscribe' && typeof message.coin === 'string') {
-        addClientCoin(socket, message.coin, normalizeAggregation(message));
+        addClientCoin(
+          socket,
+          vendor,
+          message.coin,
+          normalizeAggregation(message),
+        );
       } else if (
         message.type === 'unsubscribe' &&
         typeof message.coin === 'string'
       ) {
-        removeClientCoin(socket, message.coin);
+        removeClientCoin(socket, vendor, message.coin);
       }
     },
     onClose: () => {
@@ -354,4 +504,7 @@ server.on('upgrade', (request, socket, head) => {
 
 server.listen(PORT, () => {
   log(`listening on ws://localhost:${PORT}`);
+  log(
+    `vendors: hydromancer=${hasHydromancer ? 'on' : 'off'} quicknode=${hasQuickNode ? 'on' : 'off'}`,
+  );
 });

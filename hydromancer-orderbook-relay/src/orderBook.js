@@ -1,14 +1,25 @@
 const MAX_LEVELS = 20;
 
 /**
- * Maps one Hydromancer `l2Book` snapshot into the `OrderBookData` shape the
- * mobile order-book UI already renders.
+ * Maps one vendor L2 snapshot into the `OrderBookData` shape the mobile
+ * order-book UI already renders.
  *
- * @param {{ coin: string, time: number, levels: [{ px: string, sz: string }[], { px: string, sz: string }[]] }} data
+ * Accepts either Hydromancer's `{ levels: [bids, asks] }` envelope or the
+ * QuickNode `StreamL2Book` shape `{ bids, asks }` where each level is
+ * `{ px, sz, n }` and `sz` is the size resting at that price.
+ *
+ * @param {{
+ *   coin?: string,
+ *   time: number | string,
+ *   levels?: [{ px: string, sz: string }[], { px: string, sz: string }[]],
+ *   bids?: { px: string, sz: string }[],
+ *   asks?: { px: string, sz: string }[],
+ * }} data
  * @returns {object}
  */
 export function toOrderBookData(data) {
-  const [rawBids, rawAsks] = data.levels;
+  const rawBids = data.levels?.[0] ?? data.bids ?? [];
+  const rawAsks = data.levels?.[1] ?? data.asks ?? [];
   const bids = toLevels(rawBids);
   const asks = toLevels(rawAsks);
   const bestBid = Number.parseFloat(bids[0]?.price ?? '');
@@ -21,14 +32,14 @@ export function toOrderBookData(data) {
     const total = Number.parseFloat(level.total);
     return Number.isFinite(total) && total > max ? total : max;
   }, 0);
-
+  const lastUpdated = Number(data.time);
   return {
     bids,
     asks,
     spread: spread.toString(),
     spreadPercentage: spreadPercentage.toString(),
     midPrice: midPrice.toString(),
-    lastUpdated: data.time,
+    lastUpdated: Number.isFinite(lastUpdated) ? lastUpdated : Date.now(),
     maxTotal: maxTotal.toString(),
   };
 }
