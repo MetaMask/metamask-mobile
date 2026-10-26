@@ -26,8 +26,6 @@ import { applyBridgeQuote } from './apply-bridge-quote';
 
 export type { ActivityListItem };
 
-const excludedTransactionTypes = ['SPAM_TOKEN_TRANSFER'];
-
 const getOriginalTransactionId = (bridgeHistoryItem: BridgeHistoryItem) =>
   (bridgeHistoryItem as unknown as { originalTransactionId?: string })
     .originalTransactionId;
@@ -65,52 +63,10 @@ function isIncomingTokenTransfer(
   );
 }
 
-function isNativeValueTransfer(
-  transfer: NonNullable<V1TransactionByHashResponse['valueTransfers']>[number],
-) {
-  const transferType = transfer.transferType?.toLowerCase();
-  return (
-    !transfer.contractAddress &&
-    (transferType === 'native' || transferType === 'normal')
-  );
-}
-
-function isIncomingNativeTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-  let hasOutgoingTransfer = false;
-  let hasIncomingNativeTransfer = false;
-
-  for (const transfer of transaction.valueTransfers ?? []) {
-    if (
-      !hasOutgoingTransfer &&
-      transfer.from?.toLowerCase() === normalizedAddress
-    ) {
-      hasOutgoingTransfer = true;
-    }
-
-    if (
-      !hasIncomingNativeTransfer &&
-      transfer.to?.toLowerCase() === normalizedAddress &&
-      isNativeValueTransfer(transfer)
-    ) {
-      hasIncomingNativeTransfer = true;
-    }
-
-    if (hasOutgoingTransfer && hasIncomingNativeTransfer) {
-      break;
-    }
-  }
-
-  return hasIncomingNativeTransfer && !hasOutgoingTransfer;
-}
-
 /**
  * Participation gate shared by the activity list and the Activity details
  * by-hash lookup: excluded hashes, transactions the subject does not take part
- * in at the top level, spam, and no-op self transfers.
+ * in at the top level, and no-op self transfers.
  *
  * `address` must already be lowercased.
  */
@@ -129,10 +85,6 @@ export function shouldSkipUnrelatedTransaction(
   }
 
   if (!hasTopLevelAddressMatch) {
-    return true;
-  }
-
-  if (excludedTransactionTypes.includes(transaction.transactionType ?? '')) {
     return true;
   }
 
@@ -163,12 +115,7 @@ export function shouldSkipTransaction(
     return true;
   }
 
-  const rawFrom = transaction.from?.toLowerCase();
-
-  return (
-    isIncomingTokenTransfer(address, transaction) ||
-    (rawFrom !== address && isIncomingNativeTransfer(address, transaction))
-  );
+  return isIncomingTokenTransfer(address, transaction);
 }
 
 function transformApiTransactions(

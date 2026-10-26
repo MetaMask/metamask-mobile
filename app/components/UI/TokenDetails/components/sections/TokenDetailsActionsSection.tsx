@@ -147,6 +147,8 @@ export interface TokenDetailsActionsSectionProps {
   onExitAction?: () => void;
   /** Token Details page version. Threaded into the section's fallback `useTokenActions` so the below-chart Buy/Send/Receive emit `tdp_version` (`'v2'` legacy, `'v3'` V1). */
   tdpVersion?: TdpVersion;
+  /** Draws the action tiles on brand refresh glass. */
+  isGlass?: boolean;
 }
 
 const TokenDetailsActionsSection = ({
@@ -163,6 +165,7 @@ const TokenDetailsActionsSection = ({
   resetNavigationLockRef,
   onExitAction,
   tdpVersion,
+  isGlass = false,
 }: TokenDetailsActionsSectionProps) => {
   const selfPerpsMarket = usePerpsActions({
     symbol: perpsMarket ? null : token.symbol,
@@ -221,6 +224,7 @@ const TokenDetailsActionsSection = ({
           isLoading={isBuyableLoading || isPerpsLoading}
           resetNavigationLockRef={resetNavigationLockRef}
           onActionTapped={effectiveOnActionTapped}
+          isGlass={isGlass}
         />
       </Box>
       {geoBlockTooltip}

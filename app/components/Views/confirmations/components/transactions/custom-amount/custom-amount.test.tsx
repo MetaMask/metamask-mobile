@@ -1,9 +1,11 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import { CustomAmount } from './custom-amount';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
 import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
+import { mockTheme } from '../../../../../../util/theme';
+import { TransactionPayComponentIDs } from '../../../ConfirmationView.testIds';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators');
@@ -23,7 +25,7 @@ describe('CustomAmount', () => {
       <CustomAmount amountFiat="123.45" />,
     );
 
-    const amountValue = getByTestId('custom-amount-input-value');
+    const amountValue = getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE);
 
     expect(amountValue).toHaveTextContent('123.45');
     expect(amountValue).toHaveProp('accessible', true);
@@ -40,9 +42,9 @@ describe('CustomAmount', () => {
     expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
       '1000000',
     );
-    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-      '1,000,000',
-    );
+    expect(
+      getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+    ).toHaveTextContent('1,000,000');
   });
 
   it('renders fiat symbol for specified currency', () => {
@@ -60,6 +62,38 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('$')).toBeOnTheScreen();
+  });
+
+  it('renders the amount in the error colour when an alert is active', () => {
+    const { getByTestId } = renderWithProvider(
+      <CustomAmount amountFiat="10" hasAlert />,
+    );
+
+    expect(
+      within(getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE)).getByText(
+        '1',
+      ),
+    ).toHaveStyle({
+      color: mockTheme.colors.error.default,
+    });
+  });
+
+  it('does not expose a press target when no payment option is available', () => {
+    const { getByTestId, queryByRole } = renderWithProvider(
+      <CustomAmount amountFiat="10" disabled onPress={jest.fn()} />,
+    );
+
+    expect(queryByRole('button')).not.toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).not.toHaveProp('onPress');
+  });
+
+  it('does not expose a press target for a fixed membership amount', () => {
+    const { getByTestId, queryByRole } = renderWithProvider(
+      <CustomAmount amountFiat="10" showCursor={false} />,
+    );
+
+    expect(queryByRole('button')).not.toBeOnTheScreen();
+    expect(getByTestId('custom-amount-input')).not.toHaveProp('onPress');
   });
 
   it('renders skeleton if loading', () => {
@@ -88,9 +122,9 @@ describe('CustomAmount', () => {
       <CustomAmount amountFiat="123.45" />,
     );
 
-    expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-      '123.45',
-    );
+    expect(
+      getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+    ).toHaveTextContent('123.45');
     expect(queryByTestId('custom-amount-skeleton')).toBeNull();
   });
 
@@ -132,9 +166,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="500.123456" />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '500.12',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('500.12');
     });
 
     it('truncates rather than rounding up', () => {
@@ -144,9 +178,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="10.379" />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '10.37',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10.37');
     });
 
     it('never carries into the whole part', () => {
@@ -154,9 +188,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="1.999" />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '1.99',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.99');
     });
 
     it('truncates before applying locale separators', () => {
@@ -174,9 +208,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="500,987654" />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '500.98',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('500.98');
     });
 
     it('renders malformed input unchanged rather than NaN', () => {
@@ -184,9 +218,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="1.2.3456" />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '1.2.3456',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.2.3456');
     });
 
     it.each(['500', '1000000', '123.45', '123.4', '0.10', '12.'])(
@@ -196,9 +230,9 @@ describe('CustomAmount', () => {
           <CustomAmount amountFiat={amountFiat} />,
         );
 
-        expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-          amountFiat,
-        );
+        expect(
+          getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+        ).toHaveTextContent(amountFiat);
       },
     );
   });
@@ -209,9 +243,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="10000." showCursor />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '10000.',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10000.');
       expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
       expect(getByTestId('custom-amount-assistive')).toHaveTextContent('00');
     });
@@ -221,7 +255,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="1.2" showCursor />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent('1.2');
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.2');
       expect(getByTestId('custom-amount-cursor')).toBeOnTheScreen();
       expect(getByTestId('custom-amount-assistive')).toHaveTextContent('0');
     });
@@ -231,9 +267,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="1.25" showCursor />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '1.25',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('1.25');
       expect(queryByTestId('custom-amount-assistive')).toBeNull();
     });
 
@@ -242,9 +278,9 @@ describe('CustomAmount', () => {
         <CustomAmount amountFiat="10000.00" showCursor={false} />,
       );
 
-      expect(getByTestId('custom-amount-input-value')).toHaveTextContent(
-        '10000',
-      );
+      expect(
+        getByTestId(TransactionPayComponentIDs.AMOUNT_VALUE),
+      ).toHaveTextContent('10000');
       expect(queryByText('10000.00')).toBeNull();
       expect(queryByTestId('custom-amount-assistive')).toBeNull();
     });

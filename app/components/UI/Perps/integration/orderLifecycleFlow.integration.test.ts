@@ -1323,5 +1323,47 @@ describe('Perps order lifecycle — FLOW integration', () => {
         remaining_amount: 0.05,
       });
     });
+
+    it('emits a market Perp Position Close Transaction when closing all positions', async () => {
+      const openLongETH: Position = {
+        ...openLongBTC,
+        symbol: 'ETH',
+        size: '1',
+        entryPrice: '3000',
+        positionValue: '3000',
+      };
+      const perps = buildPerpsFlowHarness();
+      perps.harness.setupTradingReady();
+      perps.harness.mocks.subscription.getCachedPositions.mockReturnValue([
+        openLongBTC,
+        openLongETH,
+      ]);
+      perps.harness.mocks.exchangeClient.order.mockResolvedValueOnce({
+        status: 'ok',
+        response: {
+          data: {
+            statuses: [
+              { filled: { oid: 123, totalSz: '0.1', avgPx: '50000' } },
+              { filled: { oid: 124, totalSz: '1', avgPx: '3000' } },
+            ],
+          },
+        },
+      });
+
+      // Same call usePerpsCloseAllPositions makes.
+      const closeResult = await Engine.context.PerpsController.closePositions({
+        symbols: ['BTC', 'ETH'],
+      });
+
+      expect(closeResult).toMatchObject({ success: true, successCount: 2 });
+      const closeEvent = perps.analytics.lastByName(
+        PerpsAnalyticsEvent.PositionCloseTransaction,
+      );
+      expect(closeEvent).toMatchObject({
+        status: PERPS_EVENT_VALUE.STATUS.EXECUTED,
+        order_type: 'market',
+        number_positions_closed: 2,
+      });
+    });
   });
 });

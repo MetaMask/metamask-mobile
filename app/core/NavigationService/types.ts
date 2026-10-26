@@ -708,6 +708,9 @@ export type RootStackParamList = {
   RewardsInfoSheetModal:
     | RewardsNavigationParamList['RewardsInfoSheetModal']
     | undefined;
+  RewardsMoneyClaimsPausedModal:
+    | RewardsNavigationParamList['RewardsMoneyClaimsPausedModal']
+    | undefined;
   RewardsClaimBottomSheetModal:
     | RewardsNavigationParamList['RewardsClaimBottomSheetModal']
     | undefined;
@@ -1025,6 +1028,7 @@ export type RootStackParamList = {
   PredictBuyPreview: PredictNavigationParamList['PredictBuyPreview'];
   PredictSellPreview: PredictNavigationParamList['PredictSellPreview'];
   PredictUnavailable: undefined;
+  PredictMarketUnavailable: undefined;
   PredictAddFundsSheet: PredictModalsNavigationParamList['PredictAddFundsSheet'];
 
   // Social Leaderboard routes

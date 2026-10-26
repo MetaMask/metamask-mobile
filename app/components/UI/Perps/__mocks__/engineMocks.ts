@@ -47,6 +47,7 @@ export const createMockEngineContext = () => ({
   },
   RewardsController: {
     getPerpsDiscountForAccount: jest.fn().mockReturnValue(Promise.resolve(0)),
+    getPerpsTradingFeeGrant: jest.fn().mockResolvedValue(null),
     estimatePoints: jest
       .fn()
       .mockReturnValue(

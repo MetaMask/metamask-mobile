@@ -16,7 +16,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import type { SocialV1FeedTab } from '../types';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from './SocialV1FeedEmptyState.testIds';
 
-type SocialV1EmptyStateTab = SocialV1FeedTab | 'liveTrades';
+type SocialV1EmptyStateTab = SocialV1FeedTab | 'live';
 
 export interface SocialV1FeedEmptyStateProps {
   /** Which Social V1 tab has no content. */
