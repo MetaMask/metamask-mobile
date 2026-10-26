@@ -113,8 +113,8 @@ const activePasskey: EnrolledCredential = {
   status: 'active',
 };
 
-const activeEmail = {
-  type: 'email_otp',
+const activeTotp = {
+  type: 'totp',
   status: 'active',
 } as EnrolledCredential;
 
@@ -198,14 +198,14 @@ describe('useMoneyMfa', () => {
     it('returns unavailable for social login users', () => {
       const { result } = arrange({
         isSocialLogin: true,
-        credentials: [activePasskey, activeEmail],
+        credentials: [activePasskey, activeTotp],
       });
 
       expect(result.current.status).toBe('unavailable');
     });
 
     it('returns not_set_up when 2FA was never turned on, even with both methods', () => {
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       expect(result.current.status).toBe('not_set_up');
     });
@@ -261,7 +261,7 @@ describe('useMoneyMfa', () => {
   });
 
   describe('turnOn', () => {
-    it('asks the kit to verify or set up passkey and email with a fresh check', async () => {
+    it('asks the kit to verify or set up passkey and authenticator app with a fresh check', async () => {
       const { result } = arrange();
 
       await act(async () => {
@@ -269,8 +269,8 @@ describe('useMoneyMfa', () => {
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['passkey', 'email_otp'],
-        verifyWith: ['passkey', 'email_otp'],
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
         reason: expect.objectContaining({ operation: 'money.mfa.setup' }),
       });
@@ -328,7 +328,7 @@ describe('useMoneyMfa', () => {
 
     it('turns 2FA back on with a toast and no migration when it was done before', async () => {
       setMigration('done');
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       await act(async () => {
         await result.current.turnOn();
@@ -441,15 +441,15 @@ describe('useMoneyMfa', () => {
     });
 
     it('verifies with every active method, turns 2FA off and shows a toast', async () => {
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       await act(async () => {
         await result.current.turnOff();
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['passkey', 'email_otp'],
-        verifyWith: ['passkey', 'email_otp'],
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
         reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
       });

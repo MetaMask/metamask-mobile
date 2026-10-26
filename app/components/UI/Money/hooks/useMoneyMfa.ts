@@ -25,7 +25,7 @@ import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
 /** Methods Money requires before 2-step verification turns on. */
-export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'email_otp'];
+export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'totp'];
 
 export type MoneyMfaStatus =
   | 'unavailable'
@@ -71,7 +71,7 @@ const migrate = (): Promise<void> => {
 
 /**
  * Money 2-step verification: whether it is on, and the actions that turn it
- * on (the MFA kit sets up passkey and email, then the MPC Money account is
+ * on (the MFA kit sets up passkey and authenticator app, then the MPC Money account is
  * created) or off.
  *
  * @returns The current status and its actions.
