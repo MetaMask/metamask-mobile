@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SocialEvent } from './socialEvents';
 import {
+  useManageProfileAnalytics,
   useSocialScreenAnalytics,
   useSocialAnalytics,
 } from './useSocialV1Analytics';
@@ -77,5 +78,33 @@ describe('useSocialAnalytics', () => {
     mockIsFocused = true;
     rerender({ active: true });
     expect(mockTrack).toHaveBeenCalledTimes(3);
+  });
+  it('keeps a single screen view when blur does not reset the latch', () => {
+    const { rerender } = renderHook(() =>
+      useSocialScreenAnalytics(Screen.MANAGE_PROFILE, {
+        outcome: Outcome.CONTENT,
+        resetWhenInactive: false,
+      }),
+    );
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    mockIsFocused = false;
+    rerender(undefined);
+    mockIsFocused = true;
+    rerender(undefined);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+  });
+  it('records a profile edit without a screen view', () => {
+    const { result } = renderHook(() => useManageProfileAnalytics());
+    expect(mockTrack).not.toHaveBeenCalled();
+    result.current();
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_UI_INTERACTION,
+      expect.objectContaining({
+        interaction_type: Interaction.PROFILE_EDITED,
+        screen_name: Screen.MANAGE_PROFILE,
+        outcome: Outcome.SUCCESS,
+      }),
+    );
   });
 });

@@ -120,10 +120,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     holdNewPosts: networkTier === 'SLOW_CELLULAR',
     filterPost,
   });
+  // A disabled query (offline, locked) reports not loading and no error.
+  // That is not an empty feed; wait until a fetch has settled.
+  const awaitingResult =
+    dataUpdatedAt === undefined && !error && posts.length === 0;
   useSocialFeedScreenView(
     location,
     analyticsSource,
-    [isLoading, Boolean(error), posts.length > 0],
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
     isActive,
   );
 

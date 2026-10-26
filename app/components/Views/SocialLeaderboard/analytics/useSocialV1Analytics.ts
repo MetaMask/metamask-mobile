@@ -22,6 +22,8 @@ interface UseSocialScreenViewedOptions {
   state?: Parameters<typeof getSocialScreenOutcome>;
   step?: SocialScreenViewedProperties['step'];
   isActive?: boolean;
+  /** Blur clears the latch. Manage Profile keeps one view for the visit. */
+  resetWhenInactive?: boolean;
 }
 type SocialInteractionContext = Partial<
   Pick<SocialUIInteractionProperties, 'source' | 'tab_name' | 'step'>
@@ -135,6 +137,7 @@ export const useSocialScreenAnalytics = (
     state,
     step,
     isActive = true,
+    resetWhenInactive = true,
   }: UseSocialScreenViewedOptions = {},
 ) => {
   const isFocused = useIsFocused();
@@ -145,7 +148,9 @@ export const useSocialScreenAnalytics = (
   const resolvedOutcome = state ? getSocialScreenOutcome(...state) : outcome;
   useEffect(() => {
     if (!activationIsOpen) {
-      hasTrackedRef.current = false;
+      if (resetWhenInactive) {
+        hasTrackedRef.current = false;
+      }
       return;
     }
     if (resolvedOutcome === null || hasTrackedRef.current) {
@@ -164,6 +169,7 @@ export const useSocialScreenAnalytics = (
     resolvedOutcome,
     screenName,
     source,
+    resetWhenInactive,
     step,
     tabName,
     trackScreenViewed,
@@ -176,7 +182,7 @@ export const useSocialScreenAnalytics = (
   );
 };
 export const useManageProfileAnalytics = () => {
-  const track = useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE);
+  const track = useSocialInteraction(SocialEvent.Screen.MANAGE_PROFILE);
   return useCallback(
     () => track(Interaction.PROFILE_EDITED, Outcome.SUCCESS),
     [track],

@@ -29,13 +29,20 @@ import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
-import { useManageProfileAnalytics } from '../analytics';
+import {
+  SocialEvent,
+  useManageProfileAnalytics,
+  useSocialScreenAnalytics,
+} from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
   const { isControllerBacked, disconnectX } = useProfileController();
+  useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE, {
+    resetWhenInactive: false,
+  });
   const trackProfileEdited = useManageProfileAnalytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);

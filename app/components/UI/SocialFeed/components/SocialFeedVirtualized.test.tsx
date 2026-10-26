@@ -23,11 +23,13 @@ import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedHeaderProps } from './SocialFeed.types';
 import SocialFeedVirtualized from './SocialFeedVirtualized';
 
+const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
   SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>
     children,
   useSocialFeedTracking: () => ({}),
-  useSocialFeedScreenView: () => undefined,
+  useSocialFeedScreenView: (...args: unknown[]) =>
+    mockUseSocialFeedScreenView(...args),
   socialFeedTracksLocation: () => false,
 }));
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
@@ -258,6 +260,12 @@ describe('SocialFeedVirtualized', () => {
     renderFeed();
 
     expect(lastFeedOptions()?.enabled).toBe(false);
+    expect(mockUseSocialFeedScreenView).toHaveBeenCalledWith(
+      'social_live',
+      undefined,
+      [true, false, false],
+      undefined,
+    );
     expect(
       screen.getByTestId(getSocialFeedPostSkeletonTestId(1)),
     ).toBeOnTheScreen();
