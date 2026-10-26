@@ -807,6 +807,19 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getAllByText('transaction.pending').length).toBeGreaterThan(0);
     });
 
+    it('leaves the total blank when a pending transfer has no known amount', () => {
+      mockRouteParams = {
+        neobankActivity: { ...pendingNeobank, destinationAmount: undefined },
+      };
+
+      const { getByText, queryByText } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+
+      expect(getByText('money.api_activity_details.total')).toBeOnTheScreen();
+      expect(queryByText('$0.00')).not.toBeOnTheScreen();
+    });
+
     it('shows a gray zero amount and a single failed step for failed transfers', () => {
       const failedNeobank: NeobankBankTransferActivity = {
         ...pendingNeobank,

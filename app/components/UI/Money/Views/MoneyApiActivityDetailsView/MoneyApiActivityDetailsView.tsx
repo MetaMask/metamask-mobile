@@ -684,11 +684,10 @@ function NeobankBankTransferDetailsContent({
       return moneyFormatUsd(new BigNumber(0));
     }
     const destination = new BigNumber(activity.destinationAmount ?? 'NaN');
-    return moneyFormatUsd(
-      destination.isFinite() && destination.isGreaterThan(0)
-        ? destination
-        : new BigNumber(0),
-    );
+    if (!destination.isFinite() || !destination.isGreaterThan(0)) {
+      return undefined;
+    }
+    return moneyFormatUsd(destination);
   }, [activity.destinationAmount, failed]);
 
   return (
