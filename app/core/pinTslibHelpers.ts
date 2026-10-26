@@ -18,7 +18,7 @@ const HELPERS = {
  * WalletConnect and older Sentry packages, writes its helpers onto the global
  * object, and its two-argument version breaks private methods ("undefined is
  * not a function"). tslib 2's helpers also accept tslib 1's call shapes.
- * Writes to these globals are ignored.
+ * Writes to these globals are ignored, and the pin can't be redefined.
  *
  * @param target - The global object.
  */
@@ -29,8 +29,12 @@ export function pinTslibHelpers(
   >,
 ): void {
   for (const [name, helper] of Object.entries(HELPERS)) {
+    // Already pinned (e.g. the module ran again after a Fast Refresh).
+    if (Object.getOwnPropertyDescriptor(target, name)?.configurable === false) {
+      continue;
+    }
     Object.defineProperty(target, name, {
-      configurable: true,
+      configurable: false,
       get: () => helper,
       set: () => undefined,
     });
