@@ -1,17 +1,23 @@
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
+  PerpsMode,
   type PerpsMarketData,
   type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
+import Engine from '../../../Engine';
 import ReduxService from '../../../redux';
 import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
+import { selectPerpsProModeEnabledFlag } from '../../../../components/UI/Perps/selectors/featureFlags';
 import {
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
 } from '../../../../components/UI/Perps/utils/perpsAnalyticsAttribution';
-import { getPerpsHomeNavigationTarget } from '../../../../components/UI/Perps/utils/perpsModeSwitch';
+import {
+  getPerpsHomeNavigationTarget,
+  PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+} from '../../../../components/UI/Perps/utils/perpsModeSwitch';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 import { analytics } from '../../../../util/analytics/analytics';
@@ -52,7 +58,12 @@ interface PerpsNavigationParams {
   symbol?: string;
   /** Market category tab filter: 'all' | 'crypto' | 'stock' */
   tab?: string;
+  /** `pro` asks the handler to persist Pro mode before opening the screen. */
+  mode?: string;
 }
+
+const readPerpsQueryParams = (perpsPath: string): URLSearchParams =>
+  new URLSearchParams(perpsPath.includes('?') ? perpsPath.split('?')[1] : '');
 
 /**
  * Parse URL parameters into typed navigation parameters
@@ -62,16 +73,31 @@ interface PerpsNavigationParams {
 const parsePerpsNavigationParams = (
   perpsPath: string,
 ): PerpsNavigationParams => {
-  const urlParams = new URLSearchParams(
-    perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
-  );
+  const urlParams = readPerpsQueryParams(perpsPath);
 
   return {
     screen:
       (urlParams.get('screen') as PerpsNavigationParams['screen']) || undefined,
     symbol: urlParams.get('symbol') || undefined,
     tab: urlParams.get('tab') || undefined,
+    mode: urlParams.get('mode') || undefined,
   };
+};
+
+/**
+ * `perps-pro` links ask to persist Pro mode. The remote flag still gates the
+ * layout, so a disabled flag leaves the current mode unchanged.
+ */
+const shouldActivateProMode = (perpsPath: string): boolean =>
+  readPerpsQueryParams(perpsPath).get('mode') === 'pro' &&
+  selectPerpsProModeEnabledFlag(ReduxService.store.getState());
+
+const activateProMode = (): void => {
+  try {
+    Engine.context.PerpsController.setPerpsMode(PerpsMode.Pro);
+  } catch (error) {
+    DevLogger.log('[handlePerpsUrl] Failed to set Pro mode:', error);
+  }
 };
 
 /**
@@ -166,6 +192,9 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - https://link.metamask.io/perps?screen=market-list&tab=stocks      → PerpsMarketListView (HIP3 stocks)
  * - https://link.metamask.io/perps?screen=asset&symbol=BTC            → PerpsMarketDetailsView (crypto)
  * - https://link.metamask.io/perps?screen=asset&symbol=xyz:TSLA       → PerpsMarketDetailsView (HIP3)
+ * - https://link.metamask.io/perps-pro                                → Pro mode, BTC market
+ * - https://link.metamask.io/perps-pro?symbol=ETH                     → Pro mode, ETH market
+ * - https://link.metamask.io/perps?screen=asset&mode=pro&symbol=ETH   → Pro mode, ETH market
  *
  * Navigation behavior:
  * - First-time users: Always navigate to tutorial (regardless of parameters)
@@ -235,7 +264,9 @@ const resolvePerpsTarget = ({
 
     case 'asset': {
       DevLogger.log('[handlePerpsUrl] Navigating to asset details');
-      const rawSymbol = navParams.symbol || '';
+      const rawSymbol =
+        navParams.symbol ||
+        (navParams.mode === 'pro' ? PERPS_DEFAULT_PRO_MARKET_SYMBOL : '');
       if (!rawSymbol) {
         DevLogger.log(
           '[handlePerpsUrl] No symbol provided, fallback to markets list',
@@ -280,9 +311,7 @@ const resolvePerpsTarget = ({
  */
 const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
   try {
-    const urlParams = new URLSearchParams(
-      perpsPath.includes('?') ? perpsPath.split('?')[1] : '',
-    );
+    const urlParams = readPerpsQueryParams(perpsPath);
     const source = urlParams.get('source');
     const screen = urlParams.get('screen');
     if (
@@ -325,6 +354,9 @@ export const createPerpsDeeplinkIntent = ({
   trackPriceAlertNotificationIfApplicable(perpsPath);
   return {
     target: resolvePerpsTarget({ perpsPath }),
+    // prepare runs before navigation on both the warm and cold-start paths,
+    // so the market screen mounts the Pro layout once.
+    ...(shouldActivateProMode(perpsPath) && { prepare: activateProMode }),
   };
 };
 

@@ -1,4 +1,5 @@
 import { handlePerpsUrl, createPerpsDeeplinkIntent } from '../handlePerpsUrl';
+import Engine from '../../../../../core/Engine';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
@@ -36,6 +37,7 @@ jest.mock('../../../../../core/Engine', () => ({
         getAttributionContext: jest.fn(() => ({})),
         clearAttributionContext: jest.fn(),
         mergeAttributionContext: jest.fn((props = {}) => props),
+        setPerpsMode: jest.fn(),
       },
     },
   },
@@ -606,6 +608,135 @@ describe('handlePerpsUrl', () => {
       });
 
       expect(analytics.trackEvent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('handlePerpsUrl - pro mode deeplinks', () => {
+    const mockSetPerpsMode = () =>
+      Engine.context.PerpsController.setPerpsMode as jest.Mock;
+
+    beforeEach(() => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
+      mockSetPerpsMode().mockReset();
+    });
+
+    it('sets Pro mode before opening the given market when the Pro flag is enabled', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+      const calls: string[] = [];
+      mockSetPerpsMode().mockImplementation(() => {
+        calls.push('mode');
+      });
+      mockNavigate.mockImplementation(() => {
+        calls.push('navigate');
+      });
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+
+      expect(mockSetPerpsMode()).toHaveBeenCalledWith(PerpsMode.Pro);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKET_DETAILS,
+        params: expect.objectContaining({
+          market: expect.objectContaining({ symbol: 'ETH' }),
+          source: 'deeplink',
+        }),
+      });
+      expect(calls).toEqual(['mode', 'navigate']);
+    });
+
+    it('opens BTC when a Pro link omits the symbol', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&mode=pro' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'BTC' }),
+          }),
+        }),
+      );
+    });
+
+    it('opens a HIP-3 market in Pro mode', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=xyz:TSLA',
+      });
+
+      expect(mockSetPerpsMode()).toHaveBeenCalledWith(PerpsMode.Pro);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'xyz:TSLA' }),
+          }),
+        }),
+      );
+    });
+
+    it('opens the market without changing mode when the Pro flag is disabled', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(false);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+
+      expect(mockSetPerpsMode()).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: expect.objectContaining({
+            market: expect.objectContaining({ symbol: 'ETH' }),
+          }),
+        }),
+      );
+    });
+
+    it('sends first-time users to the tutorial after enabling Pro mode', async () => {
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=BTC',
+      });
+
+      expect(mockSetPerpsMode()).toHaveBeenCalledWith(PerpsMode.Pro);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.TUTORIAL, {
+        isFromDeeplink: true,
+      });
+    });
+
+    it('leaves mode unchanged for asset links that do not request Pro', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=ETH' });
+
+      expect(mockSetPerpsMode()).not.toHaveBeenCalled();
+    });
+
+    it('still opens the market when setting Pro mode throws', async () => {
+      jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
+      mockSetPerpsMode().mockImplementation(() => {
+        throw new Error('controller unavailable');
+      });
+
+      await handlePerpsUrl({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+        }),
+      );
     });
   });
 });

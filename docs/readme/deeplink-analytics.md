@@ -177,19 +177,19 @@ Routes are extracted from the deep link action and mapped to standardized route 
 
 ### DeepLinkRoute Enum
 
-| Route                | Value                | Actions Mapped                                                  |
-| -------------------- | -------------------- | --------------------------------------------------------------- |
-| `HOME`               | "home"               | `ACTIONS.HOME`                                                  |
-| `ASSET`              | "asset"              | `ACTIONS.ASSET`                                                 |
-| `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                  |
-| `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
-| `TRANSACTION`        | "transaction"        | `ACTIONS.SEND`                                                  |
-| `BUY`                | "buy"                | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
-| `SELL`               | "sell"               | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
-| `CARD_HOME`          | "card-home"          | `ACTIONS.CARD_HOME`                                             |
-| `CARD_ONBOARDING`    | "card-onboarding"    | `ACTIONS.CARD_ONBOARDING`                                       |
-| `ENABLE_CARD_BUTTON` | "enable-card-button" | `ACTIONS.ENABLE_CARD_BUTTON`                                    |
-| `INVALID`            | "invalid"            | All other actions or invalid URLs                               |
+| Route                | Value                | Actions Mapped                                                                       |
+| -------------------- | -------------------- | ------------------------------------------------------------------------------------ |
+| `HOME`               | "home"               | `ACTIONS.HOME`                                                                       |
+| `ASSET`              | "asset"              | `ACTIONS.ASSET`                                                                      |
+| `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                                       |
+| `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET`, `ACTIONS.PERPS_PRO` |
+| `TRANSACTION`        | "transaction"        | `ACTIONS.SEND`                                                                       |
+| `BUY`                | "buy"                | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                                                  |
+| `SELL`               | "sell"               | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                                                |
+| `CARD_HOME`          | "card-home"          | `ACTIONS.CARD_HOME`                                                                  |
+| `CARD_ONBOARDING`    | "card-onboarding"    | `ACTIONS.CARD_ONBOARDING`                                                            |
+| `ENABLE_CARD_BUTTON` | "enable-card-button" | `ACTIONS.ENABLE_CARD_BUTTON`                                                         |
+| `INVALID`            | "invalid"            | All other actions or invalid URLs                                                    |
 
 ### Route Extraction
 

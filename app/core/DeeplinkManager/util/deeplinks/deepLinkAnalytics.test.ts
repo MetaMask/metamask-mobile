@@ -413,6 +413,7 @@ describe('deepLinkAnalytics', () => {
       [ACTIONS.PERPS, DeepLinkRoute.PERPS],
       [ACTIONS.PERPS_MARKETS, DeepLinkRoute.PERPS],
       [ACTIONS.PERPS_ASSET, DeepLinkRoute.PERPS],
+      [ACTIONS.PERPS_PRO, DeepLinkRoute.PERPS],
     ] as const)(
       'maps perps action %s to PERPS route',
       (action, expectedRoute) => {

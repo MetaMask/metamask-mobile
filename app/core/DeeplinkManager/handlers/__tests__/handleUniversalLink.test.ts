@@ -1235,6 +1235,92 @@ describe('handleUniversalLink', () => {
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });
 
+    it('injects screen=asset and mode=pro when action is PERPS_PRO in execute mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}?symbol=ETH`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_PRO}`,
+        search: '?symbol=ETH',
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('defaults a PERPS_PRO link with no symbol to the shared pro asset path', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_PRO}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+      });
+
+      expect(handlePerpsUrl).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro',
+      });
+    });
+
+    it('returns a perps pro startup intent in resolve mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}?symbol=BTC`;
+      const perpsProUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: perpsProUrl,
+        pathname: `/${ACTIONS.PERPS_PRO}`,
+        search: '?symbol=BTC',
+      };
+      const intent: DeeplinkIntent = {
+        target: {
+          type: 'main-stack',
+          routeName: 'Perps',
+        },
+      };
+      (
+        createPerpsDeeplinkIntent as jest.MockedFunction<
+          typeof createPerpsDeeplinkIntent
+        >
+      ).mockReturnValueOnce(intent);
+
+      const result = await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: perpsProUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: perpsProUrl,
+        source: 'test-source',
+        mode: 'resolve',
+      });
+
+      expect(result).toBe(intent);
+      expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
+        perpsPath: 'perps?screen=asset&mode=pro&symbol=BTC',
+      });
+      expect(handlePerpsUrl).not.toHaveBeenCalled();
+    });
+
     it('calls handlePerpsOutreachUrl when action is PERPS_OUTREACH in execute mode', async () => {
       const perpsOutreachUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_OUTREACH}?campaign=test`;
       const perpsOutreachUrlObj = {

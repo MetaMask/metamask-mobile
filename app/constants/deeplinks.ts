@@ -44,6 +44,8 @@ export enum ACTIONS {
   PERPS = 'perps',
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
+  /** Opens a Perps market in Pro mode. Defaults to BTC when `symbol` is omitted. */
+  PERPS_PRO = 'perps-pro',
   PERPS_OUTREACH = 'perps-outreach',
   REWARDS = 'rewards',
   SHIELD = 'shield',
@@ -87,6 +89,7 @@ export const PREFIXES = {
   [ACTIONS.PERPS]: '',
   [ACTIONS.PERPS_MARKETS]: '',
   [ACTIONS.PERPS_ASSET]: '',
+  [ACTIONS.PERPS_PRO]: '',
   [ACTIONS.PERPS_OUTREACH]: '',
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',

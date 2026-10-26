@@ -119,6 +119,7 @@ const SUPPORTED_ACTIONS = {
   PERPS: ACTIONS.PERPS,
   PERPS_MARKETS: ACTIONS.PERPS_MARKETS,
   PERPS_ASSET: ACTIONS.PERPS_ASSET,
+  PERPS_PRO: ACTIONS.PERPS_PRO,
   PERPS_OUTREACH: ACTIONS.PERPS_OUTREACH,
   REWARDS: ACTIONS.REWARDS,
   PREDICT: ACTIONS.PREDICT,
@@ -163,6 +164,7 @@ const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.PERPS,
   SUPPORTED_ACTIONS.PERPS_MARKETS,
   SUPPORTED_ACTIONS.PERPS_ASSET,
+  SUPPORTED_ACTIONS.PERPS_PRO,
   SUPPORTED_ACTIONS.PERPS_OUTREACH,
   SUPPORTED_ACTIONS.REWARDS,
   SUPPORTED_ACTIONS.PREDICT,
@@ -236,6 +238,12 @@ interface UniversalLinkActionHandler {
 const getPerpsAssetPath = (actionBasedRampPath: string): string =>
   `perps?screen=asset${actionBasedRampPath.replace('?', '&')}`;
 
+// perps-pro URLs carry an optional '?symbol=X'. Inject screen=asset and
+// mode=pro so the shared handler opens that market after enabling Pro mode.
+// A missing symbol is filled in by handlePerpsUrl (BTC).
+const getPerpsProPath = (actionBasedRampPath: string): string =>
+  `perps?screen=asset&mode=pro${actionBasedRampPath.replace('?', '&')}`;
+
 const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
   Record<SUPPORTED_ACTIONS, UniversalLinkActionHandler>
 > = {
@@ -295,6 +303,14 @@ const UNIVERSAL_LINK_ACTION_HANDLERS: Partial<
     resolve: ({ actionBasedRampPath }) =>
       createPerpsDeeplinkIntent({
         perpsPath: getPerpsAssetPath(actionBasedRampPath),
+      }),
+  },
+  [SUPPORTED_ACTIONS.PERPS_PRO]: {
+    execute: ({ actionBasedRampPath }) =>
+      handlePerpsUrl({ perpsPath: getPerpsProPath(actionBasedRampPath) }),
+    resolve: ({ actionBasedRampPath }) =>
+      createPerpsDeeplinkIntent({
+        perpsPath: getPerpsProPath(actionBasedRampPath),
       }),
   },
   [SUPPORTED_ACTIONS.PERPS_OUTREACH]: {
