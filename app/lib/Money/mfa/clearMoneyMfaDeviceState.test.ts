@@ -1,4 +1,4 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { clearMoneyMfaDeviceState } from './clearMoneyMfaDeviceState';
 import { MONEY_MFA_STORAGE_KEY, moneyMfaStore } from './moneyMfaStore';
 import {
@@ -6,7 +6,7 @@ import {
   moneyAccountMigration,
 } from './moneyAccountMigration';
 
-jest.mock('../../../../store/storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItem: jest.fn(() => Promise.resolve(null)),
@@ -16,7 +16,7 @@ jest.mock('../../../../store/storage-wrapper', () => ({
   },
 }));
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {

@@ -90,7 +90,7 @@ jest.mock('../Braze', () => ({
 }));
 
 const mockClearMoneyMfaDeviceState = jest.fn();
-jest.mock('../../components/UI/Money/hooks/clearMoneyMfaDeviceState', () => ({
+jest.mock('../../lib/Money/mfa/clearMoneyMfaDeviceState', () => ({
   clearMoneyMfaDeviceState: () => mockClearMoneyMfaDeviceState(),
 }));
 

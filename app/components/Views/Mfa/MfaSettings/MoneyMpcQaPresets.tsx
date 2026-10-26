@@ -16,7 +16,7 @@ import { setMpcTwoFactorTokenProvider } from '../../../../core/MpcMoneyKeyring/m
 import { describeError } from '../../../../util/describeError';
 import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
-import { moneyAccountMigration } from '../../../UI/Money/hooks/moneyAccountMigration';
+import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 import { MONEY_MFA_METHODS } from '../../../UI/Money/hooks/useMoneyMfa';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 
@@ -113,10 +113,10 @@ const MoneyMpcQaPresets = () => {
       onPress: () => sign('Sign test message'),
     },
     {
-      label: 'Sign with 2FA (passkey or email)',
+      label: 'Sign with 2FA (passkey or authenticator app)',
       onPress: () =>
         sign(
-          'Sign with 2FA (passkey or email)',
+          'Sign with 2FA (passkey or authenticator app)',
           verifyWith(mfa, MONEY_MFA_METHODS),
         ),
     },

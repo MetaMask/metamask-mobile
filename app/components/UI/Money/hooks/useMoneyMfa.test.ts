@@ -7,13 +7,12 @@ import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useMoneyMfa } from './useMoneyMfa';
-import { moneyMfaStore } from './moneyMfaStore';
+import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import {
   moneyAccountMigration,
   type MoneyAccountMigrationStatus,
-} from './moneyAccountMigration';
+} from '../../../../lib/Money/mfa/moneyAccountMigration';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -50,7 +49,7 @@ jest.mock('../../../../core/NavigationService', () => ({
   },
 }));
 
-jest.mock('./moneyAccountMigration', () => {
+jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
   let status = 'not_started';
   const listeners = new Set<() => void>();
   const setStatus = (next: string) => {
@@ -113,8 +112,8 @@ const activePasskey: EnrolledCredential = {
   status: 'active',
 };
 
-const activeEmail = {
-  type: 'email_otp',
+const activeTotp = {
+  type: 'totp',
   status: 'active',
 } as EnrolledCredential;
 
@@ -134,19 +133,13 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
-  isSocialLogin = false,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
-  isSocialLogin?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
-  mockUseSelector.mockImplementation((selector) =>
-    selector === selectSeedlessOnboardingLoginFlow
-      ? isSocialLogin
-      : isFlagEnabled,
-  );
+  mockUseSelector.mockReturnValue(isFlagEnabled);
   mockIsMfaKitEnabled.mockReturnValue(isKitEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
@@ -195,17 +188,8 @@ describe('useMoneyMfa', () => {
       expect(result.current.status).toBe('unavailable');
     });
 
-    it('returns unavailable for social login users', () => {
-      const { result } = arrange({
-        isSocialLogin: true,
-        credentials: [activePasskey, activeEmail],
-      });
-
-      expect(result.current.status).toBe('unavailable');
-    });
-
     it('returns not_set_up when 2FA was never turned on, even with both methods', () => {
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       expect(result.current.status).toBe('not_set_up');
     });
@@ -261,7 +245,7 @@ describe('useMoneyMfa', () => {
   });
 
   describe('turnOn', () => {
-    it('asks the kit to verify or set up passkey and email with a fresh check', async () => {
+    it('asks the kit to verify or set up passkey and authenticator app with a fresh check', async () => {
       const { result } = arrange();
 
       await act(async () => {
@@ -269,8 +253,8 @@ describe('useMoneyMfa', () => {
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['passkey', 'email_otp'],
-        verifyWith: ['passkey', 'email_otp'],
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
         reason: expect.objectContaining({ operation: 'money.mfa.setup' }),
       });
@@ -328,7 +312,7 @@ describe('useMoneyMfa', () => {
 
     it('turns 2FA back on with a toast and no migration when it was done before', async () => {
       setMigration('done');
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       await act(async () => {
         await result.current.turnOn();
@@ -420,6 +404,18 @@ describe('useMoneyMfa', () => {
       expect(result.current.status).toBe('enabled');
       expectEnabledSheetShown();
     });
+
+    it('shows the setting-up banner again after it was dismissed', async () => {
+      setMigration('failed');
+      moneyMfaStore.setState({ isMigrationBannerDismissed: true });
+      const { result } = arrange();
+
+      await act(async () => {
+        await result.current.retry();
+      });
+
+      expect(moneyMfaStore.getState().isMigrationBannerDismissed).toBe(false);
+    });
   });
 
   describe('turnOff', () => {
@@ -429,15 +425,15 @@ describe('useMoneyMfa', () => {
     });
 
     it('verifies with every active method, turns 2FA off and shows a toast', async () => {
-      const { result } = arrange({ credentials: [activePasskey, activeEmail] });
+      const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       await act(async () => {
         await result.current.turnOff();
       });
 
       expect(mockVerifyOrEnroll).toHaveBeenCalledWith({
-        methods: ['passkey', 'email_otp'],
-        verifyWith: ['passkey', 'email_otp'],
+        methods: ['passkey', 'totp'],
+        verifyWith: ['passkey', 'totp'],
         maxSessionAgeMs: 0,
         reason: expect.objectContaining({ operation: 'money.mfa.turnOff' }),
       });

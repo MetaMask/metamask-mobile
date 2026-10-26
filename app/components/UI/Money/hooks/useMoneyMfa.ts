@@ -19,13 +19,12 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
-import { moneyMfaStore } from './moneyMfaStore';
-import { moneyAccountMigration } from './moneyAccountMigration';
+import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
+import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
 /** Methods Money requires before 2-step verification turns on. */
-export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'email_otp'];
+export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'totp'];
 
 export type MoneyMfaStatus =
   | 'unavailable'
@@ -71,15 +70,13 @@ const migrate = (): Promise<void> => {
 
 /**
  * Money 2-step verification: whether it is on, and the actions that turn it
- * on (the MFA kit sets up passkey and email, then the MPC Money account is
+ * on (the MFA kit sets up passkey and authenticator app, then the MPC Money account is
  * created) or off.
  *
  * @returns The current status and its actions.
  */
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
-  // A social login's inherited email can't be a second factor, so SRP only for now.
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
@@ -102,7 +99,7 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isMfaKitEnabled() || isSocialLogin) {
+  if (!isFlagEnabled || !isMfaKitEnabled()) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
@@ -184,6 +181,11 @@ export const useMoneyMfa = () => {
     showToast('money.mfa.toast_off');
   }, [activeMethods, verifyOrEnroll, showToast]);
 
+  const retry = useCallback(() => {
+    moneyMfaStore.setState({ isMigrationBannerDismissed: false });
+    return migrate();
+  }, []);
+
   const dismissSettingUpBanner = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
@@ -201,7 +203,7 @@ export const useMoneyMfa = () => {
     status,
     turnOn,
     addPasskeyAndTurnOn,
-    retry: migrate,
+    retry,
     turnOff,
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,

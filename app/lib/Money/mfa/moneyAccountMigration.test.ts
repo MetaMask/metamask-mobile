@@ -1,12 +1,12 @@
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
-import Engine from '../../../../core/Engine';
-import StorageWrapper from '../../../../store/storage-wrapper';
+import Engine from '../../../core/Engine';
+import StorageWrapper from '../../../store/storage-wrapper';
 import {
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
 
-jest.mock('../../../../store/storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItem: jest.fn(() => Promise.resolve(null)),
@@ -15,7 +15,7 @@ jest.mock('../../../../store/storage-wrapper', () => ({
   },
 }));
 
-jest.mock('../../../../core/Engine', () => ({
+jest.mock('../../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {
@@ -27,7 +27,7 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../util/Logger', () => ({
+jest.mock('../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
 }));

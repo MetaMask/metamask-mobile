@@ -7,9 +7,17 @@ import MoneyMfaSettingUpSheet from './MoneyMfaSettingUpSheet';
 import MoneyMfaTurnOffSheet from './MoneyMfaTurnOffSheet';
 import MoneyMfaPromptSheet from './MoneyMfaPromptSheet';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import { dismissBanner } from '../../../../../reducers/banners';
+import { MONEY_MFA_HOME_PROMPT_ID } from '../../hooks/useMoneyMfaHomePrompt';
 
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useDispatch: () => mockDispatch,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -157,6 +165,25 @@ describe('Money 2-step verification sheets', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
       expect(mockAddPasskeyAndTurnOn).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the home prompt for good when closed', () => {
+      const { getByTestId } = render(<MoneyMfaPromptSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.PROMPT_SHEET_CLOSE));
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        dismissBanner(MONEY_MFA_HOME_PROMPT_ID),
+      );
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the home prompt when Add passkey is pressed', () => {
+      const { getByTestId } = render(<MoneyMfaPromptSheet />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
+
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 });

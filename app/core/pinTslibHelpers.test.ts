@@ -1,9 +1,14 @@
+import {
+  __classPrivateFieldGet,
+  __classPrivateFieldIn,
+  __classPrivateFieldSet,
+} from 'tslib';
 import { pinTslibHelpers } from './pinTslibHelpers';
 
 type Get = (
   receiver: object,
   state: WeakMap<object, unknown> | WeakSet<object>,
-  kind?: 'f' | 'm',
+  kind?: 'm',
   f?: unknown,
 ) => unknown;
 type Set = (
@@ -18,6 +23,15 @@ const tslib1ClassPrivateFieldGet = (
   privateMap: WeakMap<object, unknown>,
 ) => privateMap.get(receiver);
 
+const TSLIB_HELPERS = {
+  __classPrivateFieldGet,
+  __classPrivateFieldSet,
+  __classPrivateFieldIn,
+};
+const HELPER_NAMES = Object.keys(
+  TSLIB_HELPERS,
+) as (keyof typeof TSLIB_HELPERS)[];
+
 const pinned = () => {
   const target: Record<string, unknown> = {};
   pinTslibHelpers(target);
@@ -25,6 +39,10 @@ const pinned = () => {
 };
 
 describe('pinTslibHelpers', () => {
+  it.each(HELPER_NAMES)('pins tslib 2 %s', (name) => {
+    expect(pinned()[name]).toBe(TSLIB_HELPERS[name]);
+  });
+
   it('ignores tslib 1 overwriting the globals', () => {
     const target = pinned();
     const helper = target.__classPrivateFieldGet;
@@ -34,13 +52,30 @@ describe('pinTslibHelpers', () => {
     expect(target.__classPrivateFieldGet).toBe(helper);
   });
 
-  it('reads private methods', () => {
-    const get = pinned().__classPrivateFieldGet as Get;
+  it('cannot be redefined', () => {
+    const target = pinned();
+
+    expect(() =>
+      Object.defineProperty(target, '__classPrivateFieldGet', {
+        value: tslib1ClassPrivateFieldGet,
+      }),
+    ).toThrow(TypeError);
+  });
+
+  it('can run again without throwing', () => {
+    const target = pinned();
+
+    expect(() => pinTslibHelpers(target)).not.toThrow();
+  });
+
+  it('reads private methods after tslib 1 loads', () => {
+    const target = pinned();
+    target.__classPrivateFieldGet = tslib1ClassPrivateFieldGet;
+    const get = target.__classPrivateFieldGet as Get;
     const receiver = {};
-    const instances = new WeakSet([receiver]);
     const method = () => 'called';
 
-    expect(get(receiver, instances, 'm', method)).toBe(method);
+    expect(get(receiver, new WeakSet([receiver]), 'm', method)).toBe(method);
   });
 
   it('reads and writes private fields with tslib 1 call shapes', () => {
@@ -55,22 +90,13 @@ describe('pinTslibHelpers', () => {
     expect(get(receiver, fields)).toBe('after');
   });
 
-  it('rejects objects whose class did not declare the member', () => {
-    const get = pinned().__classPrivateFieldGet as Get;
+  it('pins the helpers on the global object by default', () => {
+    pinTslibHelpers();
+    const globalTarget = globalThis as unknown as Record<string, unknown>;
+    const helper = globalTarget.__classPrivateFieldGet;
 
-    expect(() => get({}, new WeakMap())).toThrow(
-      'Cannot read private member from an object whose class did not declare it',
-    );
-  });
+    globalTarget.__classPrivateFieldGet = () => undefined;
 
-  it('checks membership for the in operator', () => {
-    const classPrivateFieldIn = pinned().__classPrivateFieldIn as (
-      state: WeakSet<object>,
-      receiver: unknown,
-    ) => boolean;
-    const receiver = {};
-
-    expect(classPrivateFieldIn(new WeakSet([receiver]), receiver)).toBe(true);
-    expect(() => classPrivateFieldIn(new WeakSet(), 1)).toThrow(TypeError);
+    expect(globalTarget.__classPrivateFieldGet).toBe(helper);
   });
 });
