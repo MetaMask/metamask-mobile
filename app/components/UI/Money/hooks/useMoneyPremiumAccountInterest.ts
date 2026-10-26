@@ -117,13 +117,14 @@ const useMoneyPremiumAccountInterest =
 
     useEffect(() => {
       if (!sinceInceptionQuery.isError) {
-        clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW);
+        clearReportedMoneyInterestError(SINCE_INCEPTION_WINDOW, 'premium');
         return;
       }
 
       reportMoneyInterestError(
         SINCE_INCEPTION_WINDOW,
         sinceInceptionQuery.error,
+        'premium',
       );
     }, [sinceInceptionQuery.error, sinceInceptionQuery.isError]);
 

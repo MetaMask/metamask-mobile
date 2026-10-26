@@ -184,6 +184,7 @@ describe('useMoneyPremiumAccountInterest', () => {
     expect(mockReportMoneyInterestError).toHaveBeenCalledWith(
       'since_inception',
       interestError,
+      'premium',
     );
   });
 
@@ -192,6 +193,7 @@ describe('useMoneyPremiumAccountInterest', () => {
 
     expect(mockClearReportedMoneyInterestError).toHaveBeenCalledWith(
       'since_inception',
+      'premium',
     );
     expect(mockReportMoneyInterestError).not.toHaveBeenCalled();
   });
