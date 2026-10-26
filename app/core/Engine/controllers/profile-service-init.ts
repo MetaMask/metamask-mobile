@@ -100,6 +100,36 @@ const registerEchoingMockProfileService = (
 };
 
 /**
+ * `getProfile` responses stay fresh for a minute, so a refetch right after
+ * an edit would otherwise put the pre-edit profile back into controller state.
+ */
+export class ProfileServiceWithFreshReads extends ProfileService {
+  override async updateProfile(
+    profileId: string,
+    params: UpdateProfileParams,
+  ): Promise<ProfileApiResponse> {
+    const response = await super.updateProfile(profileId, params);
+    await this.#invalidateProfile(profileId);
+    return response;
+  }
+
+  override async replaceProfile(
+    profileId: string,
+    params: ReplaceProfileParams,
+  ): Promise<ProfileApiResponse> {
+    const response = await super.replaceProfile(profileId, params);
+    await this.#invalidateProfile(profileId);
+    return response;
+  }
+
+  async #invalidateProfile(profileId: string): Promise<void> {
+    await this.invalidateQueries({
+      queryKey: [`${this.name}:getProfile`, profileId],
+    });
+  }
+}
+
+/**
  * The profile API is not live for social onboarding yet, so builds use an
  * in-memory mock unless `MM_PROFILE_API_ENABLED=true`. Then `ProfileService`
  * calls `PROFILE_API_URL`, which dev builds point at the social API's
@@ -115,7 +145,7 @@ export const createProfileServiceClient = (
     return { name: 'ProfileService' } as ProfileService;
   }
 
-  return new ProfileService({
+  return new ProfileServiceWithFreshReads({
     messenger,
     baseUrl: AppConstants.PROFILE_API_URL,
   });
