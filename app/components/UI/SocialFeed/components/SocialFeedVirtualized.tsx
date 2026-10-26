@@ -19,6 +19,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { useSocialFeedScreenView } from '../socialFeedTracking';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
@@ -72,6 +73,8 @@ const keyExtractor = (post: SocialV1FeedPost) =>
 const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   source,
   location,
+  analyticsSource,
+  isActive,
   title,
   renderHeader,
   filterPost,
@@ -117,6 +120,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     holdNewPosts: networkTier === 'SLOW_CELLULAR',
     filterPost,
   });
+  // A disabled query (offline, locked) reports not loading and no error.
+  // That is not an empty feed; wait until a fetch has settled.
+  const awaitingResult =
+    dataUpdatedAt === undefined && !error && posts.length === 0;
+  useSocialFeedScreenView(
+    location,
+    analyticsSource,
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
+    isActive,
+  );
 
   const visiblePosts = useMemo(
     () =>
@@ -241,7 +254,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   return (
-    <SocialFeedSurfaceProvider location={location}>
+    <SocialFeedSurfaceProvider
+      location={location}
+      analyticsSource={analyticsSource}
+    >
       <Box twClassName="flex-1 bg-default" testID={testID}>
         <Animated.FlatList
           ref={listRef}
