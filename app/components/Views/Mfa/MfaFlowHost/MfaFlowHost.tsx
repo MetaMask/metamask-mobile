@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
-import Animated, { SlideInDown } from 'react-native-reanimated';
+import Animated, { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import {
   StackActions,
   useNavigation,
@@ -129,7 +129,9 @@ const MfaFlowHost = () => {
   // slide in themselves, as a full-screen modal would.
   return (
     <Animated.View
-      entering={SlideInDown}
+      entering={
+        flow.reason.presentation === 'card' ? SlideInRight : SlideInDown
+      }
       style={tw.style('flex-1 bg-default')}
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >

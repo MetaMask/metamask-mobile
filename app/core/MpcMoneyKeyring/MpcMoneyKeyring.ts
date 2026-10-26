@@ -47,10 +47,11 @@ export class MpcMoneyKeyring implements Keyring {
   }
 
   /**
-   * Run key generation or import.
+   * Run key generation or import. The mode (create or import) is inferred
+   * from the backend by the real keyring.
    *
-   * The V2 adapter invokes this during account creation; the stub keeps it a
-   * noop because `getAccounts` already serves the static address.
+   * The V2 adapter may invoke this during account creation; the stub keeps it
+   * a noop because `getAccounts` already serves the static address.
    */
   async setup(): Promise<void> {
     // Stub: no MPC setup runs.

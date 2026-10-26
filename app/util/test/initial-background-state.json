@@ -1029,8 +1029,8 @@
     "orders": []
   },
   "MoneyAccountController": {
-    "defaultMoneyAccountId": null,
-    "moneyAccounts": {}
+    "moneyAccounts": {},
+    "defaultMoneyAccountId": null
   },
   "MoneyAccountUpgradeController": {
     "upgradedAccounts": {}

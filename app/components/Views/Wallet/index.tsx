@@ -162,10 +162,6 @@ import type { HomeSectionName } from '../Homepage/hooks/useHomeViewedEvent';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useHomeNavBarConfig } from '../Homepage/hooks/useHomeNavBarConfig';
 import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
-import {
-  BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
-  BALANCE_REFERENCE_SPACING,
-} from '../../UI/Assets/components/Balance/AccountGroupBalance.styles';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useMultichainAccountsIntroModal } from '../../hooks/useMultichainAccountsIntroModal';
@@ -217,13 +213,10 @@ import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
 
-// The floating header's account capsule (h-10) sits centred in its min-h-14
-// root, so the balance cap height lands the reference gap below the capsule.
-const FLOATING_HEADER_BALANCE_INSET = Math.round(
-  BALANCE_REFERENCE_SPACING -
-    (56 - 40) / 2 -
-    BALANCE_DISPLAY_INK_INSET_ABOVE_CAP,
-);
+// Extra space under the account pill. The 40px capsule is already centered
+// in the 56px bar, which leaves 8px, so 16px here makes a 24px gap.
+// This is the only gap: the portfolio cluster must not add another inset.
+const FLOATING_HEADER_BALANCE_TOP_GAP = 16;
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -980,6 +973,11 @@ const Wallet = ({
     isInterimHeader && !isNativeHeader && !isSearchHeaderEnabled;
   const { inset: floatingHeaderInset, onLayout: handleFloatingHeaderLayout } =
     useHeaderGlassInset(isFloatingJsHeader, safeAreaInsets.top);
+  const contentPaddingTop =
+    floatingHeaderInset +
+    (isFloatingJsHeader || isNativeHeader
+      ? FLOATING_HEADER_BALANCE_TOP_GAP
+      : 0);
   const viewportTopInset = nativeHeaderInset + floatingHeaderInset;
 
   // Listen for scroll-to-token events (e.g., after claiming mUSD rewards)
@@ -1020,10 +1018,10 @@ const Wallet = ({
         flexGrow: 0,
         overflow: 'visible' as const,
         paddingBottom: floatingTabBarInset,
-        paddingTop: floatingHeaderInset,
+        paddingTop: contentPaddingTop,
       },
     ],
-    [styles.wrapper, floatingTabBarInset, floatingHeaderInset],
+    [styles.wrapper, floatingTabBarInset, contentPaddingTop],
   );
 
   const handleRefresh = useCallback(async () => {
@@ -1338,10 +1336,7 @@ const Wallet = ({
       ) : null}
       {compactHeaderAccountName}
       <Box
-        style={[
-          styles.portfolioHeaderCluster,
-          isFloatingJsHeader && { paddingTop: FLOATING_HEADER_BALANCE_INSET },
-        ]}
+        style={styles.portfolioHeaderCluster}
         paddingTop={
           isSearchHeaderEnabled && inWalletHomePostOnboardingFlow ? 4 : 0
         }

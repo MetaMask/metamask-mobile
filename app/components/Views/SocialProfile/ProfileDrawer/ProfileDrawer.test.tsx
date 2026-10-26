@@ -10,7 +10,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyProfile';
-import { getProfileAvatarPreset } from '../../SocialLeaderboard/MyProfileView/avatarPresets';
 /* eslint-enable import-x/no-restricted-paths */
 import { useAccountName } from '../../../hooks/useAccountName';
 import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
@@ -201,7 +200,7 @@ describe('ProfileDrawer', () => {
     ).toHaveTextContent('Account 1');
     expect(
       getByTestId(`${ProfileDrawerSelectorsIDs.PROFILE_AVATAR}-art`),
-    ).toHaveProp('source', getProfileAvatarPreset('astronaut')?.source);
+    ).toHaveProp('name', 'astro');
     expect(queryByTestId(ProfileDrawerSelectorsIDs.CREATE_PROFILE)).toBeNull();
   });
 

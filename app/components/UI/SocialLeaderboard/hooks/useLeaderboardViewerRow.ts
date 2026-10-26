@@ -63,7 +63,7 @@ export const useLeaderboardViewerRow = (
       address: profile.linkedAccountAddress ?? '',
       rank: 0,
       overallRank: 0,
-      username: profile.handle || profile.displayName,
+      username: profile.displayName || profile.handle,
       avatarUri: profile.imageUrl ?? undefined,
       percentageChange: 0,
       pnlValue: profile.pnlUsd ?? 0,

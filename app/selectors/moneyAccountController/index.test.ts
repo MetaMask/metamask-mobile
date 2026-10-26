@@ -29,8 +29,8 @@ describe('MoneyAccountController selectors', () => {
   describe('selectMoneyAccounts', () => {
     it('returns the moneyAccounts record', () => {
       const result = selectMoneyAccounts.resultFunc({
-        defaultMoneyAccountId: null,
         moneyAccounts: MOCK_MONEY_ACCOUNTS,
+        defaultMoneyAccountId: MOCK_MONEY_ACCOUNT.id,
       });
 
       expect(result).toEqual(MOCK_MONEY_ACCOUNTS);
