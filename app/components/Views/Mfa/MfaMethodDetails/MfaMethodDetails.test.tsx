@@ -89,6 +89,10 @@ const passkey: EnrolledCredential = {
   status: 'active',
   displayName: '1Password',
 };
+const authenticatorApp: EnrolledCredential = {
+  type: 'totp',
+  status: 'active',
+};
 
 const renderDetails = (
   params: { method: MfaMethod; index: number },
@@ -148,57 +152,46 @@ describe('MfaMethodDetails', () => {
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
 
-  it('centers the authenticator app removal sheet titles', () => {
-    const authenticatorApp: EnrolledCredential = {
-      type: 'totp',
-      status: 'active',
-    };
-    const { getByTestId, getByText, getAllByText } = renderDetails(
-      { method: 'totp', index: 0 },
-      [authenticatorApp, email],
-    );
+  it.each([
+    ['passkey', passkey, email, 'Remove passkey'],
+    ['email_otp', email, passkey, 'Remove email'],
+    ['totp', authenticatorApp, email, 'Remove authenticator app'],
+  ] as const)(
+    'centers the %s removal confirmation title',
+    (method, credential, otherCredential, title) => {
+      const { getByTestId, getAllByText } = renderDetails(
+        { method, index: 0 },
+        [credential, otherCredential],
+      );
 
-    fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
-    expect(
-      getAllByText('Remove authenticator app').map((node) =>
-        JSON.stringify(node.props.style),
-      ),
-    ).toEqual(expect.arrayContaining([expect.stringContaining('"center"')]));
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
 
-    fireEvent.press(getByText('Cancel'));
-    const { getByTestId: getLastByTestId, getByText: getLastByText } =
-      renderDetails({ method: 'totp', index: 0 }, [authenticatorApp]);
-    fireEvent.press(
-      getLastByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
-    );
-    expect(
-      JSON.stringify(
-        getLastByText('Authenticator app can’t be removed').props.style,
-      ),
-    ).toContain('"center"');
+      expect(
+        getAllByText(title).some((node) =>
+          JSON.stringify(node.props.style).includes('"center"'),
+        ),
+      ).toBe(true);
+    },
+  );
 
-    const { getByTestId: getEmailByTestId, getAllByText: getEmailByText } =
-      renderDetails({ method: 'email_otp', index: 0 }, [email, passkey]);
-    fireEvent.press(
-      getEmailByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
-    );
-    expect(
-      getEmailByText('Remove email').some((node) =>
-        JSON.stringify(node.props.style).includes('"center"'),
-      ),
-    ).toBe(true);
+  it.each([
+    ['passkey', passkey, 'Passkey can’t be deleted'],
+    ['email_otp', email, 'Email can’t be removed'],
+    ['totp', authenticatorApp, 'Authenticator app can’t be removed'],
+  ] as const)(
+    'centers the last %s method title',
+    (method, credential, title) => {
+      const { getByTestId, getByText } = renderDetails({ method, index: 0 }, [
+        credential,
+      ]);
 
-    const { getByTestId: getPasskeyByTestId, getAllByText: getPasskeyByText } =
-      renderDetails({ method: 'passkey', index: 0 }, [passkey]);
-    fireEvent.press(
-      getPasskeyByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON),
-    );
-    expect(
-      getPasskeyByText('Passkey can’t be deleted').some((node) =>
-        JSON.stringify(node.props.style).includes('"center"'),
-      ),
-    ).toBe(true);
-  });
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+      expect(JSON.stringify(getByText(title).props.style)).toContain(
+        '"center"',
+      );
+    },
+  );
 
   it('describes an authenticator app without an app name', () => {
     const { getAllByText, getByText } = renderDetails(
