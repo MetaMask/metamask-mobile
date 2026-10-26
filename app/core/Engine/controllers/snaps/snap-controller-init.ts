@@ -24,6 +24,7 @@ import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
 import { getClientConfig } from './utils';
 import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
+import { isFlaskBuild } from '../../../../util/environment';
 
 /**
  * Initialize the Snap controller.
@@ -41,15 +42,13 @@ export const snapControllerInit: MessengerClientInitFunction<
   SnapControllerMessenger,
   SnapControllerInitMessenger
 > = ({ initMessenger, controllerMessenger, persistedState }) => {
-  const requireAllowlist = process.env.METAMASK_BUILD_TYPE !== 'flask';
+  const requireAllowlist = !isFlaskBuild;
   const disableSnapInstallation = !CAN_INSTALL_THIRD_PARTY_SNAPS;
-  const allowLocalSnaps = process.env.METAMASK_BUILD_TYPE === 'flask';
+  const allowLocalSnaps = isFlaskBuild;
   const autoUpdatePreinstalledSnaps = true;
 
-  ///: BEGIN:ONLY_INCLUDE_IF(flask)
   const forcePreinstalledSnaps =
-    process.env.FORCE_PREINSTALLED_SNAPS === 'true';
-  ///: END:ONLY_INCLUDE_IF
+    isFlaskBuild && process.env.FORCE_PREINSTALLED_SNAPS === 'true';
 
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
@@ -88,9 +87,7 @@ export const snapControllerInit: MessengerClientInitFunction<
       disableSnapInstallation,
       requireAllowlist,
       autoUpdatePreinstalledSnaps,
-      ///: BEGIN:ONLY_INCLUDE_IF(flask)
       forcePreinstalledSnaps,
-      ///: END:ONLY_INCLUDE_IF
     },
 
     // @ts-expect-error: `encryptorFactory` is not compatible with the expected
