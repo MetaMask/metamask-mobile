@@ -9634,6 +9634,9 @@
       "date": "Date",
       "paid_with": "Paid with",
       "you_deposited": "You deposited",
+      "transaction_fees": "Transaction fees",
+      "paid_by_metamask": "Paid by MetaMask",
+      "total": "Total",
       "pending": "Pending"
     },
     "convert_stablecoins": {
