@@ -907,16 +907,20 @@ describe('logs :: generateStateLogs', () => {
       });
     });
 
-    it('keeps fields that have no metadata entry', () => {
+    it('drops fields that have no metadata entry', () => {
       setControllerMetadata('QrSyncController', {
-        otp: stateLogsMetadata(false),
+        status: stateLogsMetadata(true),
       });
 
       const logs = generateParsedLogs({
-        QrSyncController: { otp: 'sensitive-otp', legacyField: 'kept' },
+        QrSyncController: { status: 'idle', legacyField: 'dropped' },
       });
 
-      expect(logs.QrSyncController).toStrictEqual({ legacyField: 'kept' });
+      expect(logs.QrSyncController).toStrictEqual({ status: 'idle' });
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error("No metadata found for 'legacyField'"),
+        'State logs: QrSyncController',
+      );
     });
 
     it('keeps controller state unchanged when the controller has no metadata', () => {
@@ -946,7 +950,7 @@ describe('logs :: generateStateLogs', () => {
       expect(logs.QrSyncController).toStrictEqual({ status: 'idle' });
       expect(Logger.error).toHaveBeenCalledWith(
         sanitizerError,
-        'State logs: failed to sanitize QrSyncController.session',
+        'State logs: QrSyncController',
       );
     });
 

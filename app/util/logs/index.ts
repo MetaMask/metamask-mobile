@@ -1,5 +1,9 @@
-import type { StateConstraint, StateMetadata } from '@metamask/base-controller';
-import { hasProperty, isObject, type Json } from '@metamask/utils';
+import {
+  deriveStateFromMetadata,
+  type StateConstraint,
+  type StateMetadata,
+} from '@metamask/base-controller';
+import { isObject, type Json } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -83,46 +87,6 @@ const hasStateMetadata = (
 ): controller is { metadata: StateMetadata<StateConstraint> } =>
   isObject(controller) && isObject(controller.metadata);
 
-/**
- * Applies each field's `includeInStateLogs` metadata to a controller state.
- * Fields without a metadata entry are kept, since some controllers still have
- * state keys with no metadata.
- *
- * @param controllerName - Controller name, used for error reporting.
- * @param controllerState - Controller state from the Redux background state.
- * @param metadata - The controller's state metadata.
- * @returns The controller state to include in state logs.
- */
-const applyStateLogsMetadata = (
-  controllerName: string,
-  controllerState: Record<string, Json>,
-  metadata: StateMetadata<StateConstraint>,
-) =>
-  Object.entries(controllerState).reduce<Record<string, Json>>(
-    (sanitizedState, [key, value]) => {
-      if (!hasProperty(metadata, key)) {
-        sanitizedState[key] = value;
-        return sanitizedState;
-      }
-
-      const includeInStateLogs = metadata[key]?.includeInStateLogs;
-      try {
-        if (typeof includeInStateLogs === 'function') {
-          sanitizedState[key] = includeInStateLogs(value);
-        } else if (includeInStateLogs) {
-          sanitizedState[key] = value;
-        }
-      } catch (error) {
-        Logger.error(
-          error as Error,
-          `State logs: failed to sanitize ${controllerName}.${key}`,
-        );
-      }
-      return sanitizedState;
-    },
-    {},
-  );
-
 const applyStateLogsMetadataToBackgroundState = (
   backgroundState: Record<string, Json>,
 ) =>
@@ -136,10 +100,11 @@ const applyStateLogsMetadataToBackgroundState = (
 
       return [
         controllerName,
-        applyStateLogsMetadata(
-          controllerName,
-          controllerState as Record<string, Json>,
+        deriveStateFromMetadata(
+          controllerState as StateConstraint,
           controller.metadata,
+          'includeInStateLogs',
+          (error) => Logger.error(error, `State logs: ${controllerName}`),
         ),
       ];
     }),
