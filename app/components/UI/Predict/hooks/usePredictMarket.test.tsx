@@ -1,14 +1,20 @@
 import React from 'react';
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Logger from '../../../../util/Logger';
 import { usePredictMarket } from './usePredictMarket';
 import { PredictMarket, Recurrence } from '../types';
 import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
+import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../utils/predictNetworkError';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
+    log: jest.fn(),
   },
 }));
 
@@ -87,6 +93,7 @@ const mockMarket: PredictMarket = {
 describe('usePredictMarket', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
   });
 
   afterEach(() => {
@@ -185,6 +192,51 @@ describe('usePredictMarket', () => {
 
       expect(result.current.data).toBeUndefined();
       expect(result.current.error).toBe('String error');
+    });
+
+    it('records a network error as a breadcrumb instead of Logger.error', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetMarket.mockRejectedValue(new Error('Network request failed'));
+
+      const { result } = renderHook(
+        () => usePredictMarket({ id: 'market-1' }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.error?.message).toBe('Network request failed');
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+      expect(Logger.log).toHaveBeenCalledWith(
+        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+        expect.any(String),
+        expect.objectContaining({
+          tags: expect.objectContaining({ component: 'usePredictMarket' }),
+        }),
+      );
+    });
+
+    it('reports a non-network error with Logger.error', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetMarket.mockRejectedValue(new Error('Boom'));
+
+      const { result } = renderHook(
+        () => usePredictMarket({ id: 'market-1' }),
+        { wrapper: Wrapper },
+      );
+
+      await waitFor(() => {
+        expect(result.current.error?.message).toBe('Boom');
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Boom' }),
+        expect.objectContaining({
+          tags: expect.objectContaining({ component: 'usePredictMarket' }),
+        }),
+      );
     });
   });
 

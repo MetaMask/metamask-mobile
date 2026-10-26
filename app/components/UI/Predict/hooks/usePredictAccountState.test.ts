@@ -5,6 +5,10 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { usePredictAccountState } from './usePredictAccountState';
 import { predictAccountStateKeys } from '../queries/accountState';
+import {
+  PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+  resetPredictNetworkErrorThrottle,
+} from '../utils/predictNetworkError';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -27,6 +31,7 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
+  log: jest.fn(),
 }));
 
 jest.mock('../../../../core/redux', () => ({
@@ -68,6 +73,7 @@ describe('usePredictAccountState', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetPredictNetworkErrorThrottle();
     mockGetAccountState.mockResolvedValue(mockAccountState);
   });
 
@@ -188,6 +194,33 @@ describe('usePredictAccountState', () => {
         expect.objectContaining({
           tags: expect.objectContaining({
             feature: 'Predict',
+            component: 'usePredictAccountState',
+          }),
+        }),
+      );
+    });
+
+    it('records a network error as a breadcrumb instead of Logger.error', async () => {
+      const { Wrapper } = createWrapper();
+      mockGetAccountState.mockRejectedValue(
+        new Error('Network request failed'),
+      );
+
+      const { result } = renderHook(() => usePredictAccountState(), {
+        wrapper: Wrapper,
+      });
+
+      await waitFor(() => {
+        expect(result.current.error?.message).toBe('Network request failed');
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+      expect(Logger.log).toHaveBeenCalledTimes(1);
+      expect(Logger.log).toHaveBeenCalledWith(
+        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
+        expect.any(String),
+        expect.objectContaining({
+          tags: expect.objectContaining({
             component: 'usePredictAccountState',
           }),
         }),

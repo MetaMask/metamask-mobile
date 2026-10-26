@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 import { predictQueries } from '../queries';
 import type { AccountState } from '../types';
 
@@ -38,7 +38,7 @@ export function usePredictAccountState(
     if (reportedErrorRef.current === queryResult.error) return;
     reportedErrorRef.current = queryResult.error;
 
-    Logger.error(ensureError(queryResult.error), {
+    logPredictError(ensureError(queryResult.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictAccountState',

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 import { predictQueries } from '../queries';
 
 /**
@@ -23,7 +23,7 @@ export const usePredictMarket = ({
   useEffect(() => {
     if (!query.error) return;
 
-    Logger.error(ensureError(query.error), {
+    logPredictError(ensureError(query.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'usePredictMarket',

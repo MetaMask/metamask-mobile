@@ -3,9 +3,9 @@ import { RpcEndpointType } from '@metamask/network-controller';
 import { CaipChainId } from '@metamask/utils';
 import { queryOptions } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
-import Logger from '../../../../util/Logger';
 import { PREDICT_CONSTANTS } from '../constants/errors';
 import { ensureError } from '../utils/predictErrorHandler';
+import { logPredictError } from '../utils/predictNetworkError';
 import type { AccountState } from '../types';
 import {
   POLYGON_MAINNET_CHAIN_ID,
@@ -60,7 +60,7 @@ async function ensurePolygonNetwork(): Promise<void> {
 
     enablePolygonNetwork(POLYGON_MAINNET_CAIP_CHAIN_ID);
   } catch (error) {
-    Logger.error(ensureError(error), {
+    logPredictError(ensureError(error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,
         component: 'ensurePolygonNetwork',
