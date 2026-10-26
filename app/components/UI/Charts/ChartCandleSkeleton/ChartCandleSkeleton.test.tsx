@@ -56,7 +56,7 @@ describe('ChartCandleSkeleton', () => {
 
     expect(flatStyle(getByTestId(ID).props.style)).toEqual(
       expect.objectContaining({
-        flex: 1,
+        flexGrow: 1,
         height,
         backgroundColor: mockTheme.colors.background.default,
       }),

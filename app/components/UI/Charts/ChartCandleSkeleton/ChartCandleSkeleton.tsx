@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../util/theme';
 import { hasTestOverrides } from '../../../../util/test/utils';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
@@ -93,22 +92,6 @@ const gridStyles = HORIZONTAL_GRID.map((line) =>
     },
   }),
 );
-
-const themedStyles = (
-  backgroundColor: string,
-  gridColor: string,
-  height: number,
-) =>
-  StyleSheet.create({
-    root: {
-      flex: 1,
-      height,
-      backgroundColor,
-    },
-    hairline: {
-      backgroundColor: gridColor,
-    },
-  });
 
 /** [bodyTop, bodyHeight, wickTop, wickHeight, volumeHeight] px of the 250/68 panes. */
 const CANDLE_PX = [
@@ -228,12 +211,6 @@ const ChartCandleSkeleton = ({
   height,
   testID = 'chart-candle-skeleton',
 }: ChartCandleSkeletonProps) => {
-  const { colors } = useTheme();
-  const themed = themedStyles(
-    colors.background.default,
-    colors.border.muted,
-    height,
-  );
   const canAnimate = getHardwareTier() !== 'LOW';
   const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
 
@@ -264,8 +241,8 @@ const ChartCandleSkeleton = ({
   return (
     <Box
       testID={testID}
-      twClassName="w-full overflow-hidden"
-      style={themed.root}
+      twClassName="w-full flex-1 overflow-hidden bg-default"
+      style={{ height }}
     >
       <Box style={layout.fill}>
         <ChartFrame
@@ -275,7 +252,8 @@ const ChartCandleSkeleton = ({
                 <Box
                   key={`grid-h-${index}`}
                   testID={`${testID}-grid-h-${index}`}
-                  style={[grid.line, themed.hairline]}
+                  twClassName="bg-border-muted"
+                  style={grid.line}
                 />
               ))}
               <Box twClassName="flex-row" style={layout.fill}>
@@ -288,7 +266,8 @@ const ChartCandleSkeleton = ({
                   >
                     <Box
                       testID={`${testID}-grid-v-${index}`}
-                      style={[layout.verticalGrid, themed.hairline]}
+                      twClassName="bg-border-muted"
+                      style={layout.verticalGrid}
                     />
                     <Box style={layout.flex1} />
                   </Box>
