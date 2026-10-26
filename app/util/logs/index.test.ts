@@ -15,6 +15,19 @@ import { merge } from 'lodash';
 import Engine from '../../core/Engine';
 import { SecretType } from '@metamask/seedless-onboarding-controller';
 import { KeyringObject, KeyringTypes } from '@metamask/keyring-controller';
+import {
+  Controller as AuthenticationController,
+  type AuthenticationControllerMessenger,
+  type AuthenticationControllerState,
+} from '@metamask/profile-sync-controller/auth';
+import { Platform } from '@metamask/profile-sync-controller/sdk';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { analytics } from '../analytics/analytics';
 
 jest.mock('react-native-fs', () => ({
@@ -836,6 +849,129 @@ describe('logs :: generateStateLogs', () => {
         parsedLogs.engine.backgroundState.SeedlessOnboardingController
           .nodeAuthTokens,
       ).toEqual([]);
+    });
+  });
+
+  describe('Sanitized AuthenticationController State', () => {
+    const createAuthenticationController = () => {
+      const rootMessenger = new Messenger<
+        MockAnyNamespace,
+        MessengerActions<AuthenticationControllerMessenger>,
+        MessengerEvents<AuthenticationControllerMessenger>
+      >({ namespace: MOCK_ANY_NAMESPACE });
+      rootMessenger.registerActionHandler('KeyringController:getState', () => ({
+        isUnlocked: false,
+        keyrings: [],
+      }));
+      const messenger: AuthenticationControllerMessenger = new Messenger({
+        namespace: 'AuthenticationController',
+        parent: rootMessenger,
+      });
+      rootMessenger.delegate({
+        actions: ['KeyringController:getState'],
+        events: ['KeyringController:lock', 'KeyringController:unlock'],
+        messenger,
+      });
+
+      return new AuthenticationController({
+        messenger,
+        metametrics: {
+          agent: Platform.MOBILE,
+          getMetaMetricsId: () => 'metametrics-id',
+        },
+      });
+    };
+
+    const authenticationControllerState: AuthenticationControllerState = {
+      isSignedIn: true,
+      needsProfilePairing: false,
+      needsSocialPairing: false,
+      srpSessionData: {
+        'entropy-source-id': {
+          token: {
+            accessToken: 'sensitive-access-token',
+            expiresIn: 3600,
+            obtainedAt: 1700000000000,
+          },
+          profile: {
+            identifierId: 'identifier-id',
+            profileId: 'profile-id',
+            canonicalProfileId: 'canonical-profile-id',
+            metaMetricsId: 'profile-metametrics-id',
+            pairedIdentifierIds: [{ id: 'paired-identifier-id', type: 'SRP' }],
+          },
+        },
+      },
+      enrolledCredentials: [
+        {
+          type: 'email_otp',
+          status: 'active',
+          enrolledAt: 1700000000000,
+          lastUsedAt: 1700000001000,
+          email: 'user@example.com',
+          verified: true,
+        },
+      ],
+    };
+
+    const generateLogsWithAuthenticationState = () =>
+      JSON.parse(
+        generateStateLogs({
+          engine: {
+            backgroundState: {
+              ...backgroundState,
+              AuthenticationController: authenticationControllerState,
+            },
+          },
+        }),
+      );
+
+    afterEach(() => {
+      Reflect.deleteProperty(Engine.context, 'AuthenticationController');
+    });
+
+    it('keeps profile IDs and redacts tokens and identifiers', () => {
+      Engine.context.AuthenticationController =
+        createAuthenticationController();
+
+      const parsedLogs = generateLogsWithAuthenticationState();
+
+      expect(
+        parsedLogs.engine.backgroundState.AuthenticationController,
+      ).toStrictEqual({
+        isSignedIn: true,
+        needsProfilePairing: false,
+        needsSocialPairing: false,
+        srpSessionData: {
+          'entropy-source-id': {
+            token: { expiresIn: 3600, obtainedAt: 1700000000000 },
+            profile: {
+              identifierId: 'identifier-id',
+              profileId: 'profile-id',
+              canonicalProfileId: 'canonical-profile-id',
+              metaMetricsId: 'profile-metametrics-id',
+            },
+          },
+        },
+        enrolledCredentials: [
+          { type: 'email_otp', status: 'active', enrolledAt: 1700000000000 },
+        ],
+      });
+      const logs = JSON.stringify(parsedLogs);
+      expect(logs).not.toContain('sensitive-access-token');
+      expect(logs).not.toContain('paired-identifier-id');
+      expect(logs).not.toContain('user@example.com');
+    });
+
+    it('omits AuthenticationController when its metadata is unavailable', () => {
+      const parsedLogs = generateLogsWithAuthenticationState();
+
+      expect(parsedLogs.engine.backgroundState).not.toHaveProperty(
+        'AuthenticationController',
+      );
+      expect(JSON.stringify(parsedLogs)).not.toContain(
+        'sensitive-access-token',
+      );
     });
   });
 });
