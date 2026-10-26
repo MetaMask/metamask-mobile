@@ -23,15 +23,18 @@ import type { PerpsChartFullscreenModalProps } from '../../../components/PerpsCh
 import type { OhlcData } from '../../../components/TradingViewChart';
 import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import { playSelection } from '../../../../../../util/haptics';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
 import PerpsProChartPanel from './PerpsProChartPanel';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../../constants/navigation/Routes';
+
+const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn().mockReturnValue({
-    navigate: jest.fn(),
+    navigate: (...args: unknown[]) => mockNavigate(...args),
     replace: jest.fn(),
     goBack: jest.fn(),
   }),
@@ -43,6 +46,12 @@ jest.mock('react-redux', () => ({
 }));
 
 jest.mock('../../../../../../util/haptics');
+jest.mock('../../../../../../util/deviceCapability', () => ({
+  getHardwareTier: jest.fn(),
+}));
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: jest.fn(),
+}));
 
 interface MockLivePriceHeaderProps {
   currentPrice: number;
@@ -134,6 +143,7 @@ const mockUsePriceDeviation = jest.fn();
 const mockSetChartExpanded = jest.fn();
 const mockUsePerpsProChartExpanded = jest.fn();
 let mockVisibleCandleCount = 30;
+const mockIsNativeTradingViewSpikeEnabled = jest.fn(() => false);
 const mockOnVisibleCandleCountChange = jest.fn((count: number) => {
   mockVisibleCandleCount = count;
 });
@@ -173,6 +183,12 @@ jest.mock('../../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
 
 jest.mock('../../../hooks', () => ({
   usePerpsMarketData: (params: unknown) => mockUsePerpsMarketData(params),
+}));
+
+jest.mock('../../../constants/chartConfig', () => ({
+  ...jest.requireActual('../../../constants/chartConfig'),
+  isPerpsNativeTradingViewSpikeEnabled: () =>
+    mockIsNativeTradingViewSpikeEnabled(),
 }));
 
 jest.mock('../../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => ({
@@ -272,6 +288,9 @@ describe('PerpsProChartPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockVisibleCandleCount = 30;
+    mockIsNativeTradingViewSpikeEnabled.mockReturnValue(false);
+    jest.mocked(getHardwareTier).mockReturnValue('HIGH');
+    jest.mocked(useNetworkTier).mockReturnValue('WIFI');
     jest.mocked(playSelection).mockClear();
     mockUsePerpsLiveCandles.mockReturnValue({
       candleData: MOCK_CANDLE_DATA,
@@ -1070,6 +1089,83 @@ describe('PerpsProChartPanel', () => {
     });
   });
 
+  describe('native TradingView spike', () => {
+    const ohlcData: OhlcData = {
+      time: 1700000000000,
+      open: '50000',
+      high: '51000',
+      low: '49000',
+      close: '50500',
+      volume: '100',
+    };
+
+    it('renders the standard Advanced Chart when the spike flag is off', () => {
+      renderChartPanel();
+
+      expect(
+        screen.queryByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW,
+        ),
+      ).not.toBeOnTheScreen();
+      expect(getLastAdvancedChartProps()).toEqual(
+        expect.objectContaining({ nativeTradingView: false, height: 288 }),
+      );
+    });
+
+    it('renders the taller native TradingView chart when the spike flag is on', () => {
+      mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);
+
+      renderChartPanel({ isAdvancedChartEnabled: false });
+
+      expect(
+        screen.getByTestId(
+          PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW,
+        ),
+      ).toBeOnTheScreen();
+      expect(getLastAdvancedChartProps()).toEqual(
+        expect.objectContaining({ nativeTradingView: true, height: 420 }),
+      );
+      expect(mockTradingViewChart).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['HIGH', 'NONE'],
+      ['LOW', 'WIFI'],
+    ] as const)(
+      'renders the standard Advanced Chart for %s hardware on %s network',
+      (hardwareTier, networkTier) => {
+        mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);
+        jest.mocked(getHardwareTier).mockReturnValue(hardwareTier);
+        jest.mocked(useNetworkTier).mockReturnValue(networkTier);
+
+        renderChartPanel();
+
+        expect(
+          screen.queryByTestId(
+            PerpsProMarketViewSelectorsIDs.CHART_NATIVE_TRADINGVIEW,
+          ),
+        ).not.toBeOnTheScreen();
+        expect(getLastAdvancedChartProps()).toEqual(
+          expect.objectContaining({ nativeTradingView: false, height: 288 }),
+        );
+      },
+    );
+
+    it('leaves OHLCV values to the native legend when the spike flag is on', () => {
+      mockIsNativeTradingViewSpikeEnabled.mockReturnValue(true);
+
+      renderChartPanel();
+
+      act(() => {
+        getLastAdvancedChartProps().onCrosshairDataChange?.(ohlcData);
+      });
+
+      expect(
+        screen.queryByTestId(PerpsProMarketViewSelectorsIDs.CHART_OHLCV),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   it('navigates to price alerts with szDecimals from market data', () => {
     jest.mocked(useSelector).mockReturnValue(true);
 
@@ -1081,7 +1177,7 @@ describe('PerpsProChartPanel', () => {
       ),
     );
 
-    expect(useNavigation().navigate).toHaveBeenCalledWith(
+    expect(mockNavigate).toHaveBeenCalledWith(
       Routes.PERPS.PRICE_ALERTS,
       expect.objectContaining({
         mode: 'perps',

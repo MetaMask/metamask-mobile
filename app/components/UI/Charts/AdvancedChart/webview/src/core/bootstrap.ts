@@ -56,6 +56,7 @@ import {
   handleToggleVolume,
   registerVolumeThemeSync,
 } from '../features/volume';
+import { attachNativeTradingViewBridge } from '../features/nativeTradingView';
 import { registerTradeMarkerOverlay } from '../overlays/tradeMarkers';
 import { registerTradeMarkerPulseHandler } from '../overlays/tradeMarkers/animation';
 import { attachMarkerHitTest } from '../overlays/tradeMarkers/markerHitTest';
@@ -191,12 +192,17 @@ export function bootstrap(): ChartConfig {
               attachTapDismiss(widget);
               attachMarkerHitTest(widget, chart);
               attachVisibleRangeListeners(chart);
-              chart
-                .selection()
-                .onChanged()
-                .subscribe(null, () => {
-                  chart.selection().clear();
-                });
+              if (config.features?.nativeTradingView) {
+                // Native drawing tools need selection to move/edit/delete.
+                attachNativeTradingViewBridge(widget, chart);
+              } else {
+                chart
+                  .selection()
+                  .onChanged()
+                  .subscribe(null, () => {
+                    chart.selection().clear();
+                  });
+              }
               attachLegendResizeListener(widget);
               slbScheduleInitialCentering();
               scheduleChartLayoutSettledNotify();

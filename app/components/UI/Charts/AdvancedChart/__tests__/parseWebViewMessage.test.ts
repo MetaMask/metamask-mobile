@@ -100,4 +100,93 @@ describe('parseWebViewMessage', () => {
       ).toBeNull();
     });
   });
+
+  describe('NATIVE_TV_EVENT', () => {
+    it('parses a study event with its id and name', () => {
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: {
+          source: 'study',
+          type: 'create',
+          id: 'st1',
+          name: 'Accelerator Oscillator',
+        },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual(raw);
+    });
+
+    it('drops non-string id and name from a drawing event', () => {
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'drawing', type: 'remove', id: 7, name: null },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual({
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'drawing', type: 'remove' },
+      });
+    });
+
+    it('parses a TradingView dialog open event', () => {
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'dialog', type: 'open', name: 'indicators-dialog' },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toEqual(raw);
+    });
+
+    it('returns null for an unknown event source', () => {
+      const raw = {
+        type: 'NATIVE_TV_EVENT',
+        payload: { source: 'context_menu', type: 'place_limit' },
+      };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toBeNull();
+    });
+
+    it('returns null when the event type is missing', () => {
+      const raw = { type: 'NATIVE_TV_EVENT', payload: { source: 'study' } };
+
+      const message = parseWebViewMessage(raw);
+
+      expect(message).toBeNull();
+    });
+  });
+
+  it('parses a DEBUG breadcrumb message', () => {
+    const raw = {
+      type: 'DEBUG',
+      payload: { message: 'modular-bootstrap-ready' },
+    };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toEqual(raw);
+  });
+
+  it('returns null for an INDICATOR_ADDED message without an id', () => {
+    const raw = { type: 'INDICATOR_ADDED', payload: { name: 'RSI' } };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toBeNull();
+  });
+
+  it('returns null for a TRADE_MARKER_PRESSED message with an empty id', () => {
+    const raw = { type: 'TRADE_MARKER_PRESSED', payload: { id: '' } };
+
+    const message = parseWebViewMessage(raw);
+
+    expect(message).toBeNull();
+  });
 });

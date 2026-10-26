@@ -1,5 +1,6 @@
 import { createAdvancedChartTemplate } from '../AdvancedChartTemplate';
 import { LIGHT_MODE_SUCCESS_GREEN, mockTheme } from '../../../../../util/theme';
+import { AppThemeKey, type Theme } from '../../../../../util/theme/models';
 
 describe('createAdvancedChartTemplate', () => {
   it('defaults useSubscriptPriceFormat to false in CONFIG', () => {
@@ -12,6 +13,42 @@ describe('createAdvancedChartTemplate', () => {
       useSubscriptPriceFormat: true,
     });
     expect(html).toContain('useSubscriptPriceFormat: true');
+  });
+
+  describe('native TradingView spike', () => {
+    const lightTheme: Theme = {
+      ...mockTheme,
+      themeAppearance: AppThemeKey.light,
+    };
+    const darkTheme: Theme = {
+      ...mockTheme,
+      themeAppearance: AppThemeKey.dark,
+    };
+
+    it('keeps native mode and light chrome off by default', () => {
+      const html = createAdvancedChartTemplate(lightTheme);
+
+      expect(html).toContain('nativeTradingView: false');
+      expect(html).toContain('lightChrome: false');
+    });
+
+    it('requests light chrome for native mode in a light app', () => {
+      const html = createAdvancedChartTemplate(lightTheme, {
+        nativeTradingView: true,
+      });
+
+      expect(html).toContain('nativeTradingView: true');
+      expect(html).toContain('lightChrome: true');
+    });
+
+    it('keeps dark chrome for native mode in a dark app', () => {
+      const html = createAdvancedChartTemplate(darkTheme, {
+        nativeTradingView: true,
+      });
+
+      expect(html).toContain('nativeTradingView: true');
+      expect(html).toContain('lightChrome: false');
+    });
   });
 
   it('defaults priceDecimals to null in CONFIG', () => {
