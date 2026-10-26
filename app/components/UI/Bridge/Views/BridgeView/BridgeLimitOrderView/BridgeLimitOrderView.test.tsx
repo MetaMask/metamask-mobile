@@ -7,7 +7,10 @@ import {
   type ViewStyle,
 } from 'react-native';
 import type { CaipChainId } from '@metamask/utils';
-import { FeatureId } from '@metamask/bridge-controller';
+import {
+  FeatureId,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { strings } from '../../../../../../../locales/i18n';
@@ -38,6 +41,32 @@ import { OrdersTabKey } from '../../../components/OrdersTabs';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { SwapsFeatureIdProvider } from '../../../providers/SwapsFeatureIdProvider';
 import BridgeLimitOrderView from './index';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import { OrderType } from '../../../types/advancedOrders';
+
+const expectAdvancedOrderProperties = (
+  event: { category: string },
+  properties: {
+    location: string;
+    feature_id: FeatureId;
+    order_type: OrderType;
+    error?: string;
+  },
+) => {
+  const { createEventBuilder } = useAnalytics();
+
+  expect(createEventBuilder).toHaveBeenCalledWith(event);
+  const callIndex = jest
+    .mocked(createEventBuilder)
+    .mock.calls.map((call) => call[0])
+    .lastIndexOf(event);
+  const added = jest.mocked(createEventBuilder).mock.results[callIndex].value
+    .addProperties.mock.calls[0][0] as Record<string, unknown>;
+
+  expect(added).toEqual(properties);
+  expect(added).toHaveProperty('order_type');
+};
 
 /**
  * Unit tests for BridgeLimitOrderView orchestration (keypad footer swap,
@@ -57,18 +86,32 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useBridgeSession', () => ({
-  useBridgeSession: jest.fn().mockReturnValue({
-    selectedTab: 'limit',
-    renderedTab: 'limit',
-    setSelectedTab: jest.fn(),
-    setRenderedTab: jest.fn(),
-    latestSourceBalance: {
-      displayBalance: '1.0',
-      atomicBalance: undefined,
+let mockInitialLimitOrdersTab = 'openOrders';
+
+jest.mock('../../../hooks/useBridgeSession', () => {
+  const ReactActual = jest.requireActual('react');
+
+  return {
+    useBridgeSession: () => {
+      const [limitOrdersTab, setLimitOrdersTab] = ReactActual.useState(
+        mockInitialLimitOrdersTab,
+      );
+
+      return {
+        selectedTab: 'limit',
+        renderedTab: 'limit',
+        setSelectedTab: jest.fn(),
+        setRenderedTab: jest.fn(),
+        limitOrdersTab,
+        setLimitOrdersTab,
+        latestSourceBalance: {
+          displayBalance: '1.0',
+          atomicBalance: undefined,
+        },
+      };
     },
-  }),
-}));
+  };
+});
 
 jest.mock('../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext', () => ({
   useBridgeQuoteDataContext: jest.fn(),
@@ -235,11 +278,19 @@ jest.mock('../../../components/SwapsInputs', () => {
 });
 
 let mockOnOrdersTabChange: ((tab: string) => void) | undefined;
+let mockOrdersActiveTab: string | undefined;
 
 jest.mock('../../../components/OrdersTabs', () => ({
   __esModule: true,
   ...jest.requireActual('../../../components/OrdersTabs'),
-  default: ({ onTabChange }: { onTabChange?: (tab: string) => void }) => {
+  default: ({
+    activeTab,
+    onTabChange,
+  }: {
+    activeTab?: string;
+    onTabChange?: (tab: string) => void;
+  }) => {
+    mockOrdersActiveTab = activeTab;
     mockOnOrdersTabChange = onTabChange;
     return null;
   },
@@ -454,7 +505,9 @@ function buildKeypadMock() {
 function getLimitOrderView() {
   return (
     <SwapsFeatureIdProvider featureId={FeatureId.LIMIT_ORDER}>
-      <BridgeLimitOrderView />
+      <BridgeLimitOrderView
+        location={MetaMetricsSwapsEventSource.TransactionDetails}
+      />
     </SwapsFeatureIdProvider>
   );
 }
@@ -482,6 +535,8 @@ describe('BridgeLimitOrderView', () => {
     mockSourceAmount = '';
     mockHardwareTier = 'HIGH';
     mockNetworkTier = 'WIFI';
+    mockInitialLimitOrdersTab = OrdersTabKey.OpenOrders;
+    mockOrdersActiveTab = undefined;
 
     jest
       .mocked(useLimitOrderSwapInputs)
@@ -690,6 +745,7 @@ describe('BridgeLimitOrderView', () => {
     jest.mocked(useSentinelFeeTokenValidation).mockReturnValue({
       isValid: false,
       reason: 'unsupported-pair',
+      supportedTokenSymbols: ['ETH', 'USDC'],
       retry: jest.fn(),
     });
 
@@ -970,10 +1026,10 @@ describe('BridgeLimitOrderView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays 2% when the cost tolerance is not set', () => {
+  it('displays 3% when the cost tolerance is not set', () => {
     const { getByText } = renderLimitOrderView();
 
-    expect(getByText('2%')).toBeOnTheScreen();
+    expect(getByText('3%')).toBeOnTheScreen();
   });
 
   it('keeps the session cost tolerance when the limit orders screen mounts', () => {
@@ -1267,6 +1323,21 @@ describe('BridgeLimitOrderView', () => {
         enabled: false,
       }),
     );
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+  });
+
+  it('shows the orders tab held in the bridge session', () => {
+    mockInitialLimitOrdersTab = OrdersTabKey.History;
+
+    renderLimitOrderView();
+
+    expect(mockOrdersActiveTab).toBe(OrdersTabKey.History);
+    expect(useLimitOrders).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        states: expect.arrayContaining([LimitOrderState.Filled]),
+        enabled: true,
+      }),
+    );
   });
 
   it.each([
@@ -1371,5 +1442,48 @@ describe('BridgeLimitOrderView', () => {
 
       expect(UNSAFE_getByType(RefreshControl).props.refreshing).toBe(false);
     });
+  });
+
+  describe('advanced order events', () => {
+    it.each([
+      {
+        executionType: LimitOrderExecutionType.SELL,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+        expectedType: OrderType.SELL_ABOVE,
+      },
+      {
+        executionType: LimitOrderExecutionType.BUY,
+        priceComparisonDirection:
+          LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        expectedType: OrderType.BUY_BELOW,
+      },
+    ])(
+      'tracks ADVANCED_ORDER_SUBMITTED with type $expectedType',
+      ({ executionType, priceComparisonDirection, expectedType }) => {
+        mockIsAmountFocused = true;
+        mockSourceAmount = '2';
+        jest.mocked(useSwapsLimitOrderPriceAdjust).mockImplementation(() => ({
+          ...buildPriceAdjustMock(),
+          executionType,
+          priceComparisonDirection,
+        }));
+
+        const { getByTestId } = renderLimitOrderView();
+
+        fireEvent.press(
+          getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+        );
+
+        expectAdvancedOrderProperties(
+          MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED,
+          {
+            location: 'Transaction Details',
+            feature_id: FeatureId.LIMIT_ORDER,
+            order_type: expectedType,
+          },
+        );
+      },
+    );
   });
 });

@@ -184,7 +184,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(getByText('Debit card or Apple Pay')).toBeOnTheScreen();
     expect(getByText('$1,203.89')).toBeOnTheScreen();
     expect(getByText('mUSD')).toBeOnTheScreen();
-    expect(getByText('Bank account')).toBeOnTheScreen();
+    expect(getByText('Bank transfer')).toBeOnTheScreen();
     expect(getByText('External address')).toBeOnTheScreen();
     // Only External address is coming soon; Bank account is live with a "New" badge.
     expect(getAllByText('Coming soon')).toHaveLength(1);
@@ -260,7 +260,7 @@ describe('MoneyAddMoneySheet', () => {
     expect(
       queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
     ).toBeNull();
-    expect(queryByText('Bank account')).toBeNull();
+    expect(queryByText('Bank transfer')).toBeNull();
     expect(queryByText('New')).toBeNull();
     expect(getAllByText('Coming soon')).toHaveLength(1);
   });
@@ -783,7 +783,7 @@ describe('MoneyAddMoneySheet', () => {
       expect(mockTrackBottomSheetViewed).toHaveBeenCalledTimes(1);
     });
 
-    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank account" row is pressed', () => {
+    it('calls trackSurfaceClicked with BANK_ACCOUNT component when "Bank transfer" row is pressed', () => {
       const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
 
       fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));

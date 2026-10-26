@@ -33,7 +33,7 @@ import React, {
   useState,
 } from 'react';
 import { useSelector } from 'react-redux';
-import { View, type ScrollView } from 'react-native';
+import { View, type LayoutChangeEvent, type ScrollView } from 'react-native';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -83,7 +83,6 @@ import PerpsMarketHeader, {
   createProMarketHeaderTestIDs,
 } from '../../components/PerpsMarketHeader';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
-import { PRICE_SECTION_HEIGHT } from '../../components/PerpsMarketSummary';
 import PerpsProMarketLayout from './components/PerpsProMarketLayout';
 import PerpsProOrderBookPanel from './components/PerpsProOrderBookPanel';
 import PerpsProOrderFormPanel from './components/PerpsProOrderFormPanel';
@@ -108,8 +107,10 @@ interface PerpsProOrderBookColumnProps {
  * Order-book column bridged to the shared order-form state (TAT-3643).
  *
  * Rendered inside `PerpsOrderProvider` (owned by `PerpsProMarketView`) so a
- * bid/ask row tap can prefill the semantic price field for the selected type
- * without changing a trigger placement to plain Limit.
+ * bid/ask row tap can fill the price field the user last focused — Scale
+ * start/end, Chase max distance, limit, or trigger — in place, with no
+ * order-type switch. Only when nothing is focused does it fall back to the
+ * order type's own default field.
  */
 const PerpsProOrderBookColumn = ({
   symbol,
@@ -119,8 +120,14 @@ const PerpsProOrderBookColumn = ({
   onCollapse,
   onResolvedStateChange,
 }: PerpsProOrderBookColumnProps) => {
-  const { orderForm, commitLimitPrice, setOrderType, commitTriggerPrice } =
-    usePerpsOrderContext();
+  const {
+    orderForm,
+    commitLimitPrice,
+    setOrderType,
+    commitTriggerPrice,
+    activePriceField,
+    commitPriceToField,
+  } = usePerpsOrderContext();
   // Drives the ladder's price precision and base-size decimals — without it
   // every price falls back to magnitude-based formatting.
   const { marketData } = usePerpsMarketData({ asset: symbol });
@@ -136,6 +143,15 @@ const PerpsProOrderBookColumn = ({
           ? price
           : canonicalizeOrderPrice(price, marketData.szDecimals);
 
+      // The last focused field wins over the type-based default below.
+      // Falls through when nothing is focused or the field has no handler.
+      if (
+        activePriceField &&
+        commitPriceToField(activePriceField, selectedPrice)
+      ) {
+        return;
+      }
+
       if (isTriggerOrderType(orderForm.type)) {
         if (isLimitExecutionOrderType(orderForm.type)) {
           commitLimitPrice(selectedPrice);
@@ -149,6 +165,8 @@ const PerpsProOrderBookColumn = ({
       commitLimitPrice(selectedPrice);
     },
     [
+      activePriceField,
+      commitPriceToField,
       commitLimitPrice,
       commitTriggerPrice,
       marketData?.szDecimals,
@@ -338,14 +356,19 @@ const PerpsProMarketView = ({
     setOrderBookExpanded(true);
   }, [setOrderBookExpanded]);
 
-  // Drives the header's subtitle/live-price crossfade (see
-  // PerpsProMarketHeader). The price section above the fold has a fixed
-  // height, so the threshold is set once instead of measured via onLayout.
+  // Drives the header's subtitle/live-price crossfade. The summary row
+  // sizes to its content, so the threshold comes from its measured height.
   const { scrollY, onScroll, titleSectionHeightSv, setTitleSectionHeight } =
     useHeaderStandardAnimated();
-  useEffect(() => {
-    setTitleSectionHeight(PRICE_SECTION_HEIGHT);
-  }, [setTitleSectionHeight]);
+  const handleMarketSummaryLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) {
+        setTitleSectionHeight(height);
+      }
+    },
+    [setTitleSectionHeight],
+  );
 
   const handleRequestScrollBy = useCallback(
     (delta: number) => {
@@ -655,6 +678,7 @@ const PerpsProMarketView = ({
           onFreshDelivery={() =>
             setChartDeliveryRevision((revision) => revision + 1)
           }
+          onSummaryLayout={handleMarketSummaryLayout}
         />
         {/* The chart's own height (`PerpsProChartPanel`) animates when
             expanded/collapsed above this point — wrap everything that would

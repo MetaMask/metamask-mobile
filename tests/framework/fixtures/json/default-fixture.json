@@ -232,7 +232,8 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -955,6 +956,17 @@
       "vipSplashAccepted": {},
       "vipTransactions": {}
     },
+    "rewardsMoney": {
+      "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
+      "commissions": {},
+      "earningsHistory": {},
+      "earningsSummary": {},
+      "inFlightClaims": {},
+      "referralFunnel": {},
+      "referralMe": {}
+    },
     "rpcEvents": {
       "signingEvent": {
         "eventStage": "idle",
@@ -971,7 +983,9 @@
       "allowLoginWithRememberMe": false,
       "dataCollectionForMarketing": false,
       "isNFTAutoDetectionModalViewed": false,
-      "osAuthEnabled": false
+      "osAuthEnabled": false,
+      "shouldShowConsentSheet": true,
+      "dataSharingPreference": null
     },
     "securityAlerts": {
       "alerts": {}

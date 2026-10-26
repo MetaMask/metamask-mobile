@@ -21,11 +21,13 @@ describe('ConfirmationContext', () => {
       isFooterVisible: undefined,
       isConfirmationSubmitting: false,
       isConfirmationSubmittingRef: { current: false },
+      isGasFeeModalVisible: false,
       isHeadlessBuyInProgress: false,
       isTransactionDataUpdating: false,
       isTransactionValueUpdating: false,
       setHeadlessBuyError: expect.any(Function),
       setIsFooterVisible: expect.any(Function),
+      setIsGasFeeModalVisible: expect.any(Function),
       setIsConfirmationSubmitting: expect.any(Function),
       setIsHeadlessBuyInProgress: expect.any(Function),
       setIsTransactionDataUpdating: expect.any(Function),
@@ -57,6 +59,22 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isFooterVisible).toBe(false);
+  });
+
+  it('updates isGasFeeModalVisible state when calling setIsGasFeeModalVisible', () => {
+    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
+
+    act(() => {
+      result.current.setIsGasFeeModalVisible(true);
+    });
+
+    expect(result.current.isGasFeeModalVisible).toBe(true);
+
+    act(() => {
+      result.current.setIsGasFeeModalVisible(false);
+    });
+
+    expect(result.current.isGasFeeModalVisible).toBe(false);
   });
 
   it('updates isHeadlessBuyInProgress state when calling setIsHeadlessBuyInProgress', () => {

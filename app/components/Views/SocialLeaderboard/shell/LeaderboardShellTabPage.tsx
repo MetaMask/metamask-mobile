@@ -45,6 +45,7 @@ import {
   toLeaderboardTypeFilter,
   type SocialShellFilters,
 } from './filters';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
 /** Keeps the refresh spinner up long enough to read as a refresh. */
 const MIN_REFRESH_DURATION_MS = 1000;
@@ -58,6 +59,7 @@ export interface LeaderboardShellTabPageProps {
    * use.
    */
   isActive?: boolean;
+  performance?: SocialPerformanceContext;
   /**
    * Scroll handler forwarded by the tabs container so the page's scroll drives
    * the parent's collapsing title.
@@ -81,6 +83,7 @@ export interface LeaderboardShellTabPageProps {
  */
 const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   isActive = true,
+  performance,
   onScroll,
   pageRef,
   containerTestID,
@@ -187,7 +190,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
             style={tw.style('flex-1')}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style(
-              `pb-[${24 + floatingTabBarInset}px]`,
+              `pt-4 pb-[${24 + floatingTabBarInset}px]`,
             )}
             onScroll={onScroll}
             scrollEventThrottle={16}
@@ -205,6 +208,8 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               onOpenFilters={onOpenFilters}
               isFilterActive={isFilterActive}
               filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
+              testID={TopTradersViewSelectorsIDs.FILTER_BAR}
+              twClassName="px-4 pb-4"
             >
               <RankingFilterSelector
                 value={ranking}
@@ -219,6 +224,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
+                performance={performance}
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>

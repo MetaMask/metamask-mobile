@@ -105,6 +105,7 @@ const VbaEmailAdapter = () => {
           verifyWith: 'email_otp',
           reason: {
             operation: 'vba.verifyEmail',
+            presentation: 'card',
             enrollDescription: strings(
               'virtual_bank_account.kyc_email.enroll_description',
             ),
@@ -215,13 +216,6 @@ const VbaEmailAdapter = () => {
       style={tw.style('flex-1 bg-default')}
       testID={VbaEmailAdapterSelectorsIDs.CONTAINER}
     >
-      <HeaderStandard
-        onBack={handleBack}
-        backButtonProps={{
-          testID: VbaEmailAdapterSelectorsIDs.BACK_BUTTON,
-        }}
-        includesTopInset
-      />
       <Box
         twClassName="flex-1"
         alignItems={BoxAlignItems.Center}
