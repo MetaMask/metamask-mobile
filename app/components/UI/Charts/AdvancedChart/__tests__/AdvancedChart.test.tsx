@@ -107,6 +107,9 @@ describe('AdvancedChart', () => {
         skeletonVariant="candles"
       />,
     );
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
     const webView = getByTestId('mock-webview');
 
     act(() => {
