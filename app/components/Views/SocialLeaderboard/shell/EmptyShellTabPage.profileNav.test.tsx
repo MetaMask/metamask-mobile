@@ -78,8 +78,7 @@ describe('EmptyShellTabPage profile navigation', () => {
     const [firstPost] = wrapMockFeedPosts();
     mockUseSocialV1Feed.mockReturnValue({
       posts: firstPost ? [firstPost] : [],
-      pendingPost: null,
-      pendingStartedAtMs: null,
+      pinnedPosts: [],
       isLoading: false,
       isFetchingNextPage: false,
       hasNextPage: false,

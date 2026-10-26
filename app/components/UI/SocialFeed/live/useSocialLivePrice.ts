@@ -8,7 +8,6 @@ import {
 import type { View } from 'react-native';
 import { computeLivePositionFigures } from './computeLivePositionFigures';
 import { useSocialLivePrices } from './SocialLivePricesContext';
-import type { SocialLivePriceTrend } from './SocialLivePriceStore';
 import type { SocialLivePositionFigures, SocialLivePriceSource } from './types';
 
 const noopUnsubscribe = () => undefined;
@@ -18,8 +17,6 @@ export interface UseSocialLivePriceResult {
   trackRef: React.RefObject<View | null>;
   /** `null` until the first streamed price, and outside the provider. */
   figures: SocialLivePositionFigures | null;
-  /** Direction of the latest price change. */
-  trend: SocialLivePriceTrend | null;
   reduceMotion: boolean;
 }
 
@@ -63,7 +60,6 @@ export function useSocialLivePrice(
   return {
     trackRef,
     figures,
-    trend: entry?.trend ?? null,
     reduceMotion: context?.reduceMotion ?? false,
   };
 }

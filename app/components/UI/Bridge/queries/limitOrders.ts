@@ -25,12 +25,14 @@ export const limitOrdersQueries = {
     walletAddress,
     states,
     chainId,
+    assetId,
     limit,
   }: LimitOrdersQueryParams) => {
     const params: LimitOrdersQueryParams = {
       walletAddress: walletAddress.toLowerCase(),
       ...(states ? { states: [...states] } : {}),
       ...(chainId ? { chainId } : {}),
+      ...(assetId ? { assetId } : {}),
       ...(limit === undefined ? {} : { limit }),
     };
 
