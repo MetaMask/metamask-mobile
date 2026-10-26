@@ -9,8 +9,10 @@ import { storybookStore } from '../storybook-store';
 const mockStore = configureMockStore();
 const store = mockStore(storybookStore);
 
-const withMockStore = (story: any) => {
-  return <Provider store={store}>{story()}</Provider>;
-};
+const withMockStore = (Story: React.ComponentType) => (
+  <Provider store={store}>
+    <Story />
+  </Provider>
+);
 
 export default withMockStore;

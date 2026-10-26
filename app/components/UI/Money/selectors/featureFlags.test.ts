@@ -8,6 +8,7 @@ import {
   selectMoneyEnableMfaFlag,
   selectMoneyHubEnabledFlag,
   selectMoneyEarningSectionEnabledFlag,
+  selectIsMoneyDepositBrazeCampaignEnabledFlag,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
@@ -592,6 +593,50 @@ describe('selectMoneyEarningSectionEnabledFlag', () => {
     const state = createState({ _unique: 'earning-section-no-local-flag' });
 
     expect(selectMoneyEarningSectionEnabledFlag(state as never)).toBe(false);
+  });
+});
+
+describe('selectIsMoneyDepositBrazeCampaignEnabledFlag', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('returns true when the remote flag is enabled', () => {
+    mockedValidate.mockReturnValue(true);
+
+    const state = createState({
+      earnMoneyDepositBrazeCampaignEnabled: {
+        enabled: true,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectIsMoneyDepositBrazeCampaignEnabledFlag(state as never)).toBe(
+      true,
+    );
+  });
+
+  it('returns false when the remote flag is disabled', () => {
+    mockedValidate.mockReturnValue(false);
+
+    const state = createState({
+      earnMoneyDepositBrazeCampaignEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+    });
+
+    expect(selectIsMoneyDepositBrazeCampaignEnabledFlag(state as never)).toBe(
+      false,
+    );
+  });
+
+  it('defaults to false when the remote flag is absent or invalid', () => {
+    mockedValidate.mockReturnValue(undefined);
+
+    expect(
+      selectIsMoneyDepositBrazeCampaignEnabledFlag(createState() as never),
+    ).toBe(false);
   });
 });
 
