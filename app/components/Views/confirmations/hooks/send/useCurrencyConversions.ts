@@ -1,8 +1,11 @@
+import { Hex } from '@metamask/utils';
 import { ERC1155, ERC721 } from '@metamask/controller-utils';
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 
+import { RootState } from '../../../../../reducers';
 import { getCurrencySymbol } from '../../../../../util/number';
+import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { AssetType } from '../../types/token';
@@ -20,12 +23,14 @@ interface ConversionArgs {
   conversionRate: number;
   currentCurrency?: string;
   decimals?: number;
+  exchangeRate: number;
 }
 
 export const getFiatValueFn = ({
   amount,
   conversionRate,
   decimals,
+  exchangeRate,
 }: ConversionArgs) => {
   if (!amount || !isValidPositiveNumericString(amount)) {
     return '0.00';
@@ -33,7 +38,7 @@ export const getFiatValueFn = ({
 
   return convertCurrency(
     amount ?? '0',
-    conversionRate ?? 1,
+    (conversionRate ?? 1) * (exchangeRate ?? 1),
     decimals,
     2,
   ).toString();
@@ -43,6 +48,7 @@ export const getFiatDisplayValueFn = ({
   amount,
   conversionRate,
   currentCurrency,
+  exchangeRate,
   decimals,
 }: ConversionArgs) => {
   const amt = amount
@@ -50,6 +56,7 @@ export const getFiatDisplayValueFn = ({
         amount: amount ?? '0',
         conversionRate,
         decimals,
+        exchangeRate,
       })
     : '0.00';
   return `${getCurrencySymbol(currentCurrency)} ${formatAmountWithCommas(amt)}`;
@@ -59,6 +66,7 @@ export const getNativeValueFn = ({
   amount,
   conversionRate,
   decimals,
+  exchangeRate,
 }: ConversionArgs) => {
   // In order to handle the case where the amount is empty string,
   // we return empty string so it allows to go back initial state of the amount input
@@ -70,7 +78,7 @@ export const getNativeValueFn = ({
     return '0';
   }
 
-  const rate = conversionRate ?? 1;
+  const rate = (conversionRate ?? 1) * (exchangeRate ?? 1);
   return convertCurrency(
     amount ?? '0',
     rate === 0 ? 0 : 1 / rate,
@@ -80,19 +88,20 @@ export const getNativeValueFn = ({
 };
 
 export const useCurrencyConversions = () => {
-  const { asset } = useSendContext();
+  const { asset, chainId } = useSendContext();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
+  const contractExchangeRates = useSelector((state: RootState) =>
+    selectContractExchangeRatesByChainId(state, chainId as Hex),
+  );
+  const exchangeRate = useMemo(
+    () =>
+      asset?.address
+        ? (contractExchangeRates?.[asset?.address as Hex]?.price ?? 1)
+        : 1,
+    [asset?.address, contractExchangeRates],
+  );
 
-  // Price of one unit of the asset in the user's selected currency, sourced
-  // from `AssetsController` via `selectConfirmationAssetsByAccountGroupId`.
-  //
-  // This is the complete token -> fiat rate. It must not be combined with the
-  // `TokenRatesController` exchange rate, which prices the token in the chain's
-  // native coin: multiplying the two counted the token price twice and left an
-  // uncancelled token/native term, so ERC-20 values collapsed toward zero on
-  // chains with an expensive native coin and inflated on chains with a cheap
-  // one. Native coins were unaffected because their exchange rate is 1.
   const conversionRate = useMemo(() => {
     const assetAddress = asset?.address ?? (asset as AssetType)?.assetId;
     if (!assetAddress) {
@@ -117,8 +126,9 @@ export const useCurrencyConversions = () => {
         conversionRate,
         currentCurrency,
         decimals: (asset as AssetType)?.decimals,
+        exchangeRate,
       }),
-    [asset, conversionRate, currentCurrency],
+    [asset, conversionRate, exchangeRate, currentCurrency],
   );
 
   const getFiatValue = useCallback(
@@ -127,8 +137,9 @@ export const useCurrencyConversions = () => {
         amount,
         conversionRate,
         decimals: (asset as AssetType)?.decimals,
+        exchangeRate,
       }),
-    [asset, conversionRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   const getNativeValue = useCallback(
@@ -137,8 +148,9 @@ export const useCurrencyConversions = () => {
         amount,
         conversionRate,
         decimals: (asset as AssetType)?.decimals,
+        exchangeRate,
       }),
-    [asset, conversionRate],
+    [asset, conversionRate, exchangeRate],
   );
 
   return {
