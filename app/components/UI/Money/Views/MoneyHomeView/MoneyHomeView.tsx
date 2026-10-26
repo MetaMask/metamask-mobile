@@ -195,22 +195,6 @@ const MoneyHomeView = () => {
     }, [trackScreenViewed]),
   );
 
-  const handlePullRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        refetchBalance(),
-        refetchInterest(),
-        refreshMusdFiatRate(),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
-      ]);
-    } catch (error) {
-      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
-
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
   // At most one VBA identity-status card; `none` renders nothing. The focus
@@ -244,6 +228,7 @@ const MoneyHomeView = () => {
     // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
     isSettling: isActivitySettling,
     error: activityError,
+    refetch: refetchActivity,
     moneyAddress,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
@@ -253,6 +238,24 @@ const MoneyHomeView = () => {
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
+
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchBalance(),
+        refetchInterest(),
+        refreshMusdFiatRate(),
+        Promise.resolve(refetchActivity()),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
+      ]);
+    } catch (error) {
+      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
+
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
