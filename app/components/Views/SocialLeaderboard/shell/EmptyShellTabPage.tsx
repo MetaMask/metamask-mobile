@@ -72,7 +72,6 @@ import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
   SocialEvent,
   type SocialEventSource,
-  useSocialFeedInteractions,
   useSocialScreenAnalytics,
 } from '../analytics';
 import {
@@ -81,7 +80,7 @@ import {
 } from '../../../../util/social/socialPerformance';
 import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
-const { FeedSort, Filter, Interaction, Screen, Tab, Trade } = SocialEvent;
+const { FeedSort, Filter, Interaction, Screen, Tab } = SocialEvent;
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
@@ -212,7 +211,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const { colors } = useTheme();
   const screenName = tab === 'trending' ? Screen.TRENDING : Screen.FOLLOWING;
   const tabName = tab === 'trending' ? Tab.TRENDING : Tab.FOLLOWING;
-  const analyticsContext = { tab_name: tabName, source };
   const trackInteraction = useSocialScreenAnalytics(screenName, {
     tabName,
     source,
@@ -223,10 +221,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     ],
     isActive,
   });
-  const feedInteractions = useSocialFeedInteractions(
-    screenName,
-    analyticsContext,
-  );
   const [refreshing, setRefreshing] = useState(false);
   const [selectedToken, setSelectedToken] = useState<SocialV1HotToken | null>(
     null,
@@ -465,7 +459,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
       playSelection().catch(() => undefined);
-      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -477,7 +470,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [myProfile, navigation, trackInteraction],
+    [myProfile, navigation],
   );
 
   const handlePositionPress = useCallback(
@@ -486,11 +479,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
-      trackInteraction(Interaction.TAP, {
-        trade_type: post.item.variant.startsWith('perps')
-          ? Trade.PERPS
-          : Trade.SPOT,
-      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
         position: post.position,
@@ -501,14 +489,13 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation, trackInteraction],
+    [navigation],
   );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
       <SocialFeedPostEntrance animate={!seenPostIds.has(post.id)}>
         <SocialFeedPostShell
-          {...feedInteractions}
           post={post}
           onCopyTrade={handleCopyTrade}
           onAuthorPress={handleAuthorPress}
@@ -516,13 +503,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
         />
       </SocialFeedPostEntrance>
     ),
-    [
-      handleAuthorPress,
-      handleCopyTrade,
-      feedInteractions,
-      handlePositionPress,
-      seenPostIds,
-    ],
+    [handleAuthorPress, handleCopyTrade, handlePositionPress, seenPostIds],
   );
 
   const showInitialFeedSkeletons = visibleAssetFeed
@@ -585,6 +566,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   return (
     <SocialFeedSurfaceProvider
       location={tab === 'trending' ? 'social_trending' : 'social_following'}
+      analyticsSource={source}
       showMockedFields
     >
       <Box twClassName="flex-1 bg-default" testID={containerTestID}>

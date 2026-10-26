@@ -33,6 +33,7 @@ import ReactionPickerBalloon, {
 } from './ReactionPickerBalloon';
 import { PositionCardBody } from './SocialFeedPositionCard';
 import SocialFeedGif from './SocialFeedGif';
+import { useSocialFeedTracking } from '../socialFeedTracking';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 export interface SocialFeedPostShellProps {
@@ -58,6 +59,10 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onAuthorPress,
   onPositionPress,
 }) => {
+  const tracked = useSocialFeedTracking();
+  const notifyCopy = onCopyTradeInteraction ?? tracked.onCopyTradeInteraction;
+  const notifyReaction = onReactionInteraction ?? tracked.onReactionInteraction;
+  const notifyPicker = onReactionPickerOpened ?? tracked.onReactionPickerOpened;
   const tw = useTailwind();
   const { colors } = useTheme();
   const reactionAnchorRef = useRef<View>(null);
@@ -92,13 +97,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
-    onCopyTradeInteraction?.('spot');
+    notifyCopy?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
-  }, [onCopyTradeInteraction, onSpotCopyTrade, post.item, post.commentId]);
+  }, [notifyCopy, onSpotCopyTrade, post.item, post.commentId]);
   const handlePerpsCopyTrade = useCallback(() => {
-    onCopyTradeInteraction?.('perps');
+    notifyCopy?.('perps');
     onPerpsCopyTrade?.();
-  }, [onCopyTradeInteraction, onPerpsCopyTrade]);
+  }, [notifyCopy, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
@@ -118,9 +123,9 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     reactionAnchorRef.current?.measureInWindow((x, y, width, height) => {
       setPickerAnchor({ x, y, width, height });
       setPickerVisible(true);
-      onReactionPickerOpened?.();
+      notifyPicker?.();
     });
-  }, [ensureSocialProfileOnboarding, onReactionPickerOpened]);
+  }, [ensureSocialProfileOnboarding, notifyPicker]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -132,16 +137,13 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         return;
       }
 
-      onReactionInteraction?.(
-        userReaction === emotion ? 'removed' : 'added',
-        emotion,
-      );
+      notifyReaction?.(userReaction === emotion ? 'removed' : 'added', emotion);
       pickEmotion(emotion).catch(() => undefined);
     },
     [
       ensureSocialProfileOnboarding,
       isPending,
-      onReactionInteraction,
+      notifyReaction,
       pickEmotion,
       userReaction,
     ],
@@ -156,12 +158,18 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   );
 
   const handleIdentityPress = useCallback(() => {
+    tracked.onAuthorTap?.();
     onAuthorPress?.(post);
-  }, [onAuthorPress, post]);
+  }, [onAuthorPress, post, tracked]);
 
   const handlePositionPress = useCallback(() => {
+    tracked.onPositionTap?.(
+      post.item.variant === 'perpsOpen' || post.item.variant === 'perpsClosed'
+        ? 'perps'
+        : 'spot',
+    );
     onPositionPress?.(post);
-  }, [onPositionPress, post]);
+  }, [onPositionPress, post, tracked]);
 
   if (isHidden) {
     return null;

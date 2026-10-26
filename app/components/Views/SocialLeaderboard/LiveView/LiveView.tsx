@@ -36,10 +36,10 @@ import { useMyProfile } from '../MyProfileView/hooks';
 import {
   SocialEvent,
   type SocialEventSource,
-  useSocialScreenAnalytics,
+  useSocialInteraction,
 } from '../analytics';
 
-const { Filter, Interaction, Screen, StreamState, Tab, Trade } = SocialEvent;
+const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
 
 const LIVE_FEED_SOURCE: SocialFeedSource = {
   kind: 'all',
@@ -98,11 +98,11 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const previousFiltersRef = useRef(appliedFilters);
-  const trackInteraction = useSocialScreenAnalytics(Screen.LIVE_TRADES, {
-    tabName: Tab.LIVE_TRADES,
-    source,
+  const trackInteraction = useSocialInteraction(
+    Screen.LIVE_TRADES,
+    { tab_name: Tab.LIVE_TRADES, source },
     isActive,
-  });
+  );
   useEffect(() => {
     if (previousFiltersRef.current === appliedFilters) {
       return;
@@ -131,7 +131,6 @@ const LiveView: React.FC<LiveViewProps> = ({
   const handleAuthorPress = useCallback(
     (post: SocialV1FeedPost) => {
       playSelection().catch(() => undefined);
-      trackInteraction(Interaction.TAP);
       navigateToSocialV1Profile(navigation, {
         traderId: post.item.author.id,
         traderName: post.authorHandle,
@@ -143,7 +142,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
       });
     },
-    [myProfile, navigation, trackInteraction],
+    [myProfile, navigation],
   );
 
   const handlePositionPress = useCallback(
@@ -152,13 +151,6 @@ const LiveView: React.FC<LiveViewProps> = ({
         return;
       }
       playSelection().catch(() => undefined);
-      trackInteraction(Interaction.TAP, {
-        trade_type:
-          post.item.variant === 'perpsOpen' ||
-          post.item.variant === 'perpsClosed'
-            ? Trade.PERPS
-            : Trade.SPOT,
-      });
       navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
         positionId: post.position.positionId,
         position: post.position,
@@ -169,7 +161,7 @@ const LiveView: React.FC<LiveViewProps> = ({
           post.item.variant === 'spotClosed',
       });
     },
-    [navigation, trackInteraction],
+    [navigation],
   );
 
   const isLive = streamState === 'live';
@@ -203,6 +195,8 @@ const LiveView: React.FC<LiveViewProps> = ({
       <SocialFeed
         source={LIVE_FEED_SOURCE}
         location="social_live"
+        analyticsSource={source}
+        isActive={isActive}
         scrollMode="virtualized"
         realtime={isActive}
         paused={!isLive}

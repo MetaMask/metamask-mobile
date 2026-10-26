@@ -22,6 +22,14 @@ import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedHeaderProps } from './SocialFeed.types';
 import SocialFeedVirtualized from './SocialFeedVirtualized';
+
+jest.mock('../socialFeedTracking', () => ({
+  SocialFeedTrackingProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  useSocialFeedTracking: () => ({}),
+  useSocialFeedScreenView: () => undefined,
+  socialFeedTracksLocation: () => false,
+}));
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import { SOCIAL_FEED_RETRY_TEST_ID } from './SocialFeedStates.testIds';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';

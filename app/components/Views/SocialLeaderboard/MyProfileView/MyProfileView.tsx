@@ -81,11 +81,7 @@ import { overlayMyProfileLiveStats } from './utils/overlayMyProfileLiveStats';
 import { traderProfileResponseToMySocialProfile } from './utils/traderProfileResponseToMySocialProfile';
 import type { MySocialProfile } from './hooks/useMyProfile';
 import type { ProfileAssetFilter } from './utils/splitPositionsByType';
-import {
-  SocialEvent,
-  useSocialFeedInteractions,
-  useSocialScreenAnalytics,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const { Filter, Interaction, Screen, Trade } = SocialEvent;
 type ProfileContentTab = 'open' | 'closed' | 'posts';
@@ -155,7 +151,6 @@ const MyProfileView: React.FC = () => {
         traderAddress.toLowerCase() ===
           myProfile.linkedAccountAddress.toLowerCase(),
     );
-  const feed = useSocialFeedInteractions(Screen.MY_PROFILE, undefined, isOwner);
   const { traders: following } = useFollowedTraders();
   const ownerAddressOrId = useMyProfileAddress(myProfile);
   const addressOrId = isOwner ? ownerAddressOrId : (traderId ?? traderAddress);
@@ -429,7 +424,11 @@ const MyProfileView: React.FC = () => {
     !isPostsLoading && posts.length === 0 && !postsError;
 
   return (
-    <SocialFeedSurfaceProvider location="my_profile" showMockedFields>
+    <SocialFeedSurfaceProvider
+      location="my_profile"
+      analyticsEnabled={isOwner}
+      showMockedFields
+    >
       <SafeAreaView
         edges={SCROLLABLE_SCREEN_SAFE_AREA_EDGES}
         style={tw.style('flex-1 bg-default')}
@@ -740,9 +739,7 @@ const MyProfileView: React.FC = () => {
                 <SocialV1FeedPostList
                   posts={posts}
                   dividerKeyPrefix="my-profile"
-                  renderPost={(post) => (
-                    <SocialFeedPostShell {...feed} post={post} />
-                  )}
+                  renderPost={(post) => <SocialFeedPostShell post={post} />}
                 />
               </Box>
             )}
