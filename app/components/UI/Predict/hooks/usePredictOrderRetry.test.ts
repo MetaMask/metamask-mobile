@@ -1215,6 +1215,46 @@ describe('usePredictOrderRetry', () => {
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
+    it.each([
+      [
+        'the sheet is closed',
+        (hook: Awaited<ReturnType<typeof renderAtConfirm>>) =>
+          hook.result.current.cancelRetry(),
+      ],
+      [
+        'the screen is left',
+        (hook: Awaited<ReturnType<typeof renderAtConfirm>>) => hook.unmount(),
+      ],
+    ])(
+      'submits and tracks nothing when %s during the check',
+      async (_, leave) => {
+        const hook = await renderAtConfirm();
+        let resolveFetch: (value: RefetchPreviewResult) => void = () =>
+          undefined;
+        hook.refetchPreview.mockImplementationOnce(
+          () =>
+            new Promise<RefetchPreviewResult>((resolve) => {
+              resolveFetch = resolve;
+            }),
+        );
+
+        let confirmPromise: Promise<void> = Promise.resolve();
+        act(() => {
+          confirmPromise = hook.result.current.handleRetryConfirm();
+        });
+        act(() => {
+          leave(hook);
+        });
+        await act(async () => {
+          resolveFetch(okResult(confirmedQuote));
+          await confirmPromise;
+        });
+
+        expect(hook.params.placeOrder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      },
+    );
+
     it('tracks each check and counts only the retry that is submitted', async () => {
       const movedPreview = sellPreview({
         sharePrice: 0.58,

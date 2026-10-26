@@ -148,6 +148,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    cancelRetry,
   } = usePredictOrderRetry({
     preview,
     refetchPreview,
@@ -509,6 +510,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         onRetry={handleRetry}
         onConfirm={handleRetryConfirm}
         onDismiss={resetOrderNotFilled}
+        onCancel={cancelRetry}
         isRetrying={isRetrying}
       />
       <PredictOrderRetrySheet
@@ -519,7 +521,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         side={Side.SELL}
         onRetry={retryCashOut}
         onConfirm={confirmCashOut}
-        onDismiss={dismissCashOut}
+        onCancel={dismissCashOut}
         isRetrying={isCheckingPrice}
       />
     </Wrapper>

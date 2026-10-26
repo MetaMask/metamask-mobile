@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import {
   PredictEventValues,
@@ -143,7 +143,8 @@ export function usePredictCashOutSubmit({
   // Single-flight lock for the whole attempt (fetch and submit). Flipped
   // before any await so a double tap cannot start a second attempt.
   const isInFlightRef = useRef(false);
-  // Bumped when the sheet is dismissed so an in-flight check is ignored.
+  // Bumped when the sheet is closed or the screen is left so an in-flight
+  // check is ignored.
   const attemptIdRef = useRef(0);
   // The price the last attempt was checked against; "Try again" reuses it.
   const approvedPriceRef = useRef<number | null>(null);
@@ -235,6 +236,9 @@ export function usePredictCashOutSubmit({
   const dismissCashOut = useCallback(() => {
     attemptIdRef.current += 1;
   }, []);
+
+  // Leaving the screen during a check submits nothing.
+  useEffect(() => dismissCashOut, [dismissCashOut]);
 
   return {
     cashOut,

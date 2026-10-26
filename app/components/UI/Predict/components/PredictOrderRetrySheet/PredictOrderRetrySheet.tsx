@@ -1,4 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -68,6 +73,12 @@ interface PredictOrderRetrySheetProps {
   /** Submits the confirmed refreshed quote. */
   onConfirm: () => void;
   onDismiss?: () => void;
+  /**
+   * Called as soon as the user closes the sheet (X, "Try later", Android
+   * back), before the close animation, so an action in flight can be
+   * cancelled right away.
+   */
+  onCancel?: () => void;
   isRetrying?: boolean;
 }
 
@@ -146,6 +157,7 @@ const PredictOrderRetrySheet = forwardRef<
       onRetry,
       onConfirm,
       onDismiss,
+      onCancel,
       isRetrying = false,
     },
     ref,
@@ -160,6 +172,11 @@ const PredictOrderRetrySheet = forwardRef<
     } = usePredictBottomSheet({ onDismiss });
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
+
+    const handleClose = useCallback(() => {
+      onCancel?.();
+      closeSheet();
+    }, [onCancel, closeSheet]);
 
     const quoteRows = useMemo(() => {
       if (!preview) {
@@ -264,19 +281,21 @@ const PredictOrderRetrySheet = forwardRef<
           transparent
           animationType="none"
           statusBarTranslucent
-          onRequestClose={closeSheet}
+          onRequestClose={handleClose}
         >
           <ModalSafeAreaProvider>
             <GestureHandlerRootView style={tw.style('flex-1')}>
+              {/* Swipe and backdrop only report the close after the
+                  animation, so they are off while an action runs. */}
               <BottomSheet
                 ref={sheetRef}
                 shouldNavigateBack={false}
-                isInteractable
+                isInteractable={!isRetrying}
                 onClose={handleSheetClosed}
               >
                 <TouchableOpacity
                   testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
-                  onPress={closeSheet}
+                  onPress={handleClose}
                   style={tw.style('absolute top-8 right-4 z-10')}
                 >
                   <Icon
@@ -355,7 +374,7 @@ const PredictOrderRetrySheet = forwardRef<
                             {
                               variant: ButtonVariants.Secondary,
                               label: strings('predict.order.try_later'),
-                              onPress: closeSheet,
+                              onPress: handleClose,
                               testID:
                                 PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
                             },

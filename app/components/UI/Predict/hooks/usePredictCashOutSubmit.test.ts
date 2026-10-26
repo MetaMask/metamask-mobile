@@ -363,6 +363,30 @@ describe('usePredictCashOutSubmit', () => {
     expect(result.current.isCheckingPrice).toBe(false);
   });
 
+  it('submits and tracks nothing when the screen is left while the price is checked', async () => {
+    let resolveFetch: (value: RefetchPreviewResult) => void = () => undefined;
+    const refetchPreview = jest.fn().mockImplementationOnce(
+      () =>
+        new Promise<RefetchPreviewResult>((resolve) => {
+          resolveFetch = resolve;
+        }),
+    );
+    const { result, placeOrder, unmount } = setup({ refetchPreview });
+
+    let cashOutPromise: Promise<void> = Promise.resolve();
+    act(() => {
+      cashOutPromise = result.current.cashOut();
+    });
+    unmount();
+    await act(async () => {
+      resolveFetch(okResult(createSellPreview()));
+      await cashOutPromise;
+    });
+
+    expect(placeOrder).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
   it('does nothing without a preview on screen', async () => {
     const { result, placeOrder, refetchPreview } = setup({
       preview: null,

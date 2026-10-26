@@ -139,6 +139,9 @@ export function usePredictOrderRetry({
   const isRetryInFlightRef = useRef(false);
   const isOrderNotFilledRef = useRef(false);
   isOrderNotFilledRef.current = isOrderNotFilled;
+  // Bumped when the sheet is closed or the screen is left so an in-flight
+  // sell check submits nothing.
+  const sellCheckIdRef = useRef(0);
   // Terminal/in-flight order state must never be retried as a fresh failure.
   const isRetryBlockedRef = useRef(false);
   isRetryBlockedRef.current = orderState !== 'unknown';
@@ -213,12 +216,17 @@ export function usePredictOrderRetry({
   const recheckSellQuote = useCallback(
     async (approvedQuote: OrderPreview): Promise<OrderPreview | null> => {
       const startedAt = Date.now();
+      const checkId = sellCheckIdRef.current;
       const { outcome, freshPreview } = await checkPredictSellPrice(
         refetchPreview,
         approvedQuote.sharePrice,
       );
       // The user may have dismissed the sheet while the check was in flight.
-      if (!isOrderNotFilledRef.current || isRetryBlockedRef.current) {
+      if (
+        checkId !== sellCheckIdRef.current ||
+        !isOrderNotFilledRef.current ||
+        isRetryBlockedRef.current
+      ) {
         return null;
       }
 
@@ -425,6 +433,14 @@ export function usePredictOrderRetry({
     handleRetry,
   ]);
 
+  /** Cancels a sell check in flight; called as soon as the sheet is closed. */
+  const cancelRetry = useCallback(() => {
+    sellCheckIdRef.current += 1;
+  }, []);
+
+  // Leaving the screen during a sell check submits nothing.
+  useEffect(() => cancelRetry, [cancelRetry]);
+
   return {
     retrySheetRef,
     retrySheetVariant,
@@ -433,5 +449,6 @@ export function usePredictOrderRetry({
     isRetrying,
     handleRetry,
     handleRetryConfirm,
+    cancelRetry,
   };
 }

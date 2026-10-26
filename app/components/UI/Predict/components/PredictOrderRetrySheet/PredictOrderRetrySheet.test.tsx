@@ -34,10 +34,13 @@ jest.mock(
     const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return ReactActual.forwardRef(
-      (props: { children?: React.ReactNode }, _ref: React.Ref<unknown>) =>
+      (
+        props: { children?: React.ReactNode; isInteractable?: boolean },
+        _ref: React.Ref<unknown>,
+      ) =>
         ReactActual.createElement(
           View,
-          { testID: 'bottom-sheet' },
+          { testID: 'bottom-sheet', isInteractable: props.isInteractable },
           props.children,
         ),
     );
@@ -574,5 +577,61 @@ describe('PredictOrderRetrySheet', () => {
 
       expect(mockCloseSheet).toHaveBeenCalledTimes(1);
     });
+
+    it.each([
+      [
+        'the close button',
+        (view: ReturnType<typeof render>) =>
+          fireEvent.press(
+            view.getByTestId(PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON),
+          ),
+      ],
+      [
+        'Try later',
+        (view: ReturnType<typeof render>) =>
+          fireEvent.press(
+            view.getByTestId(
+              PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+            ),
+          ),
+      ],
+      [
+        'Android back',
+        (view: ReturnType<typeof render>) =>
+          view.UNSAFE_getByType(Modal).props.onRequestClose(),
+      ],
+    ])('cancels before the close animation on %s', (_, close) => {
+      const onCancel = jest.fn();
+      const view = render(
+        <PredictOrderRetrySheet
+          {...defaultProps}
+          variant="no_match"
+          onCancel={onCancel}
+        />,
+      );
+
+      close(view);
+
+      expect(onCancel).toHaveBeenCalledTimes(1);
+      expect(onCancel.mock.invocationCallOrder[0]).toBeLessThan(
+        mockCloseSheet.mock.invocationCallOrder[0],
+      );
+    });
+
+    it.each([
+      [false, true],
+      [true, false],
+    ])(
+      'when isRetrying is %s, swipe and backdrop close are enabled: %s',
+      (isRetrying, isInteractable) => {
+        const { getByTestId } = render(
+          <PredictOrderRetrySheet {...defaultProps} isRetrying={isRetrying} />,
+        );
+
+        expect(getByTestId('bottom-sheet').props.isInteractable).toBe(
+          isInteractable,
+        );
+      },
+    );
   });
 });
