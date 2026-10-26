@@ -143,6 +143,14 @@ describe('InputDisplay', () => {
     expect(getByRole('text', { name: '1000 USD' })).toBeOnTheScreen();
   });
 
+  it('renders the amount unit in Grotzec', () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId(INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX)).toHaveStyle({
+      fontFamily: 'GrotzecCond-Bold',
+    });
+  });
+
   it('exposes the token amount and unit as a combined text label', () => {
     const { getByRole } = renderComponent({
       ...defaultProps,
