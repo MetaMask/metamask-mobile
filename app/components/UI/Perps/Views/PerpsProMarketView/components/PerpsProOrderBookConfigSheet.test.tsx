@@ -118,6 +118,7 @@ const defaultProps = {
   grouping: 1,
   groupingOptions: [0.1, 1, 10, 100, 1000],
   layout: 'left' as const,
+  dataSource: 'hyperliquid' as const,
   onApply: jest.fn(),
   onClose: jest.fn(),
   testID: 'config-sheet',
@@ -271,6 +272,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 1,
       layout: 'right',
+      dataSource: 'hyperliquid',
     });
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
@@ -347,6 +349,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'size',
       grouping: 10,
       layout: 'left',
+      dataSource: 'hyperliquid',
     });
     expect(onClose).toHaveBeenCalled();
     // Three changed chip picks + the primary save commit.
@@ -423,6 +426,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 100,
       layout: 'left',
+      dataSource: 'hyperliquid',
     });
   });
 
@@ -463,6 +467,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 1,
       layout: 'left',
+      dataSource: 'hyperliquid',
     });
   });
 });

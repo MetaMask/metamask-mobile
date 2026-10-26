@@ -1,0 +1,16 @@
+{
+  "name": "hydromancer-orderbook-relay",
+  "private": true,
+  "type": "module",
+  "description": "Holds vendor API keys and fans one 20-level order-book snapshot per active market out to MetaMask Mobile. Supports Hydromancer (JSON WebSocket) and QuickNode (gRPC StreamL2Book).",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node --env-file=.env src/index.js"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.4",
+    "@grpc/proto-loader": "^0.7.15"
+  }
+}

@@ -35,6 +35,18 @@ import PerpsProModalPortal from './PerpsProModalPortal';
 import PerpsProOrderBookGlyph from './PerpsProOrderBookGlyph';
 import PerpsProOrderFormGlyph from './PerpsProOrderFormGlyph';
 
+/**
+ * Dev-only: which order-book feed backs the Pro ladder.
+ * `'hydromancer'` / `'quicknode'` are the 20-level PoC feeds from the local
+ * relay at `ws://localhost:8787` — see
+ * `../../../hooks/stream/usePerpsLiveOrderBook.ts` and
+ * `../../../services/hydromancerOrderBookConnection.ts`.
+ */
+export type PerpsProOrderBookDataSource =
+  | 'hyperliquid'
+  | 'hydromancer'
+  | 'quicknode';
+
 export interface PerpsProOrderBookConfigSheetProps {
   isVisible: boolean;
   baseSymbol: string;
@@ -44,11 +56,14 @@ export interface PerpsProOrderBookConfigSheetProps {
   groupingOptions: number[];
   /** Side the order-book column is currently pinned to. */
   layout: ProLayoutPreferences['orderBookPosition'];
+  /** Dev-only data-source selection; the row only renders when `__DEV__`. */
+  dataSource: PerpsProOrderBookDataSource;
   onApply: (next: {
     currency: OrderBookListCurrency;
     metric: OrderBookListMetric;
     grouping: number;
     layout: ProLayoutPreferences['orderBookPosition'];
+    dataSource: PerpsProOrderBookDataSource;
   }) => void;
   onClose: () => void;
   testID?: string;
@@ -170,6 +185,7 @@ const PerpsProOrderBookConfigSheet = ({
   grouping,
   groupingOptions,
   layout,
+  dataSource,
   onApply,
   onClose,
   testID = 'perps-pro-order-book-config-sheet',
@@ -183,6 +199,8 @@ const PerpsProOrderBookConfigSheet = ({
   const [draftGrouping, setDraftGrouping] = useState<number | null>(grouping);
   const [draftLayout, setDraftLayout] =
     useState<ProLayoutPreferences['orderBookPosition']>(layout);
+  const [draftDataSource, setDraftDataSource] =
+    useState<PerpsProOrderBookDataSource>(dataSource);
 
   // Snapshot props into draft only when the sheet opens. Do not re-sync while
   // open — live grouping/mid updates would wipe in-progress chip selections.
@@ -198,8 +216,9 @@ const PerpsProOrderBookConfigSheet = ({
     setDraftMetric(metric);
     setDraftGrouping(grouping);
     setDraftLayout(layout);
+    setDraftDataSource(dataSource);
     sheetRef.current?.onOpenBottomSheet();
-  }, [isVisible, currency, metric, grouping, layout]);
+  }, [isVisible, currency, metric, grouping, layout, dataSource]);
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(onClose);
@@ -249,6 +268,17 @@ const PerpsProOrderBookConfigSheet = ({
     [draftLayout, playSelection],
   );
 
+  const handleDataSourceSelect = useCallback(
+    (next: PerpsProOrderBookDataSource) => {
+      if (draftDataSource === next) {
+        return;
+      }
+      playSelection().catch(() => undefined);
+      setDraftDataSource(next);
+    },
+    [draftDataSource, playSelection],
+  );
+
   const handleSave = useCallback(() => {
     if (draftGrouping === null) {
       return;
@@ -259,6 +289,7 @@ const PerpsProOrderBookConfigSheet = ({
       metric: draftMetric,
       grouping: draftGrouping,
       layout: draftLayout,
+      dataSource: draftDataSource,
     });
     handleClose();
   }, [
@@ -266,6 +297,7 @@ const PerpsProOrderBookConfigSheet = ({
     draftMetric,
     draftGrouping,
     draftLayout,
+    draftDataSource,
     onApply,
     handleClose,
     playImpact,
@@ -423,6 +455,47 @@ const PerpsProOrderBookConfigSheet = ({
               />
             </Box>
           </Box>
+
+          {/* Dev-only: PoC toggle for 20-level vendor feeds via the local
+              relay (Hydromancer JSON or QuickNode gRPC). Never rendered in
+              production builds. */}
+          {__DEV__ && (
+            <Box twClassName="w-full gap-2">
+              <Box twClassName="px-4">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                >
+                  {strings('perps.order_book.data_source_dev')}
+                </Text>
+              </Box>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                twClassName="w-full gap-2 px-4"
+                testID={`${testID}-data-source`}
+              >
+                <OptionFilterButton
+                  label={strings('perps.order_book.data_source_hyperliquid')}
+                  isSelected={draftDataSource === 'hyperliquid'}
+                  onPress={() => handleDataSourceSelect('hyperliquid')}
+                  testID={`${testID}-data-source-hyperliquid`}
+                />
+                <OptionFilterButton
+                  label={strings('perps.order_book.data_source_hydromancer')}
+                  isSelected={draftDataSource === 'hydromancer'}
+                  onPress={() => handleDataSourceSelect('hydromancer')}
+                  testID={`${testID}-data-source-hydromancer`}
+                />
+                <OptionFilterButton
+                  label={strings('perps.order_book.data_source_quicknode')}
+                  isSelected={draftDataSource === 'quicknode'}
+                  onPress={() => handleDataSourceSelect('quicknode')}
+                  testID={`${testID}-data-source-quicknode`}
+                />
+              </Box>
+            </Box>
+          )}
         </Box>
 
         <BottomSheetFooter

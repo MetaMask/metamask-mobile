@@ -29,6 +29,15 @@ const styleSheet = StyleSheet.create({
     height: 4,
     borderRadius: 999,
   },
+  ladderScroll: {
+    flex: 1,
+  },
+  ladderScrollContent: {
+    flexGrow: 1,
+  },
+  panel: {
+    flex: 1,
+  },
 });
 
 export default styleSheet;

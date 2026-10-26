@@ -27,7 +27,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -70,7 +70,9 @@ import {
   type OrderBookListMetric,
   type OrderBookPriceFormat,
 } from '../../../utils/orderBookGrouping';
-import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
+import PerpsProOrderBookConfigSheet, {
+  type PerpsProOrderBookDataSource,
+} from './PerpsProOrderBookConfigSheet';
 import styles from './PerpsProOrderBookPanel.styles';
 
 const DEPTH_BAR_OPACITY = 0.15;
@@ -442,6 +444,25 @@ const PerpsProOrderBookPanel = ({
   const metric = orderBookPreferences.metric;
   const [viewMode, setViewMode] = useState<OrderBookViewMode>('default');
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const ladderScrollRef = useRef<ScrollView>(null);
+  const ladderViewportHeightRef = useRef(0);
+  const spreadOffsetRef = useRef(0);
+  const userScrolledLadderRef = useRef(false);
+  // Dev builds open on the local Hydromancer relay. The settings row that
+  // can switch among Hyperliquid / Hydromancer / QuickNode only renders
+  // when `__DEV__`.
+  const [dataSource, setDataSource] = useState<PerpsProOrderBookDataSource>(
+    __DEV__ ? 'hydromancer' : 'hyperliquid',
+  );
+  let relayOrderBookChannel:
+    | 'orderBookHydromancer'
+    | 'orderBookQuicknode'
+    | null = null;
+  if (__DEV__ && dataSource === 'quicknode') {
+    relayOrderBookChannel = 'orderBookQuicknode';
+  } else if (__DEV__ && dataSource === 'hydromancer') {
+    relayOrderBookChannel = 'orderBookHydromancer';
+  }
 
   const handleCollapse = useCallback(() => {
     if (!onCollapse) {
@@ -469,6 +490,21 @@ const PerpsProOrderBookPanel = ({
   useEffect(() => {
     setSelectedGrouping(savedGrouping ?? null);
   }, [symbol, savedGrouping]);
+
+  const centerSpreadInView = useCallback(() => {
+    if (userScrolledLadderRef.current) {
+      return;
+    }
+    const viewportHeight = ladderViewportHeightRef.current;
+    const spreadOffset = spreadOffsetRef.current;
+    if (viewportHeight <= 0 || spreadOffset <= 0) {
+      return;
+    }
+    ladderScrollRef.current?.scrollTo({
+      y: Math.max(0, spreadOffset - viewportHeight / 2 + 16),
+      animated: false,
+    });
+  }, []);
 
   const handleCycleViewMode = useCallback(() => {
     setViewMode((current) => {
@@ -579,7 +615,7 @@ const PerpsProOrderBookPanel = ({
     reconnect,
   } = usePerpsLiveOrderBook({
     symbol,
-    channel: 'orderBookAggregated',
+    channel: relayOrderBookChannel ?? 'orderBookAggregated',
     enabled: Boolean(symbol) && isMarketContextReady,
     resetKey: marketContextKey,
     levels: ORDER_BOOK_AGGREGATED_LEVELS,
@@ -621,6 +657,17 @@ const PerpsProOrderBookPanel = ({
     [grouped],
   );
 
+  // A fresh market (or a feed that changes how many levels are on screen)
+  // should open with the spread in the middle of the column, not the top ask.
+  // After the user drags the ladder, leave their place alone. Reset during
+  // render so the next layout can center before paint.
+  const ladderCenterKey = `${symbol}:${reversedAsks.length}`;
+  const ladderCenterKeyRef = useRef(ladderCenterKey);
+  if (ladderCenterKeyRef.current !== ladderCenterKey) {
+    ladderCenterKeyRef.current = ladderCenterKey;
+    userScrolledLadderRef.current = false;
+  }
+
   const depthRatio = useMemo(
     () => (grouped ? getDepthRatio(grouped.bids, grouped.asks) : null),
     [grouped],
@@ -651,6 +698,7 @@ const PerpsProOrderBookPanel = ({
       metric: OrderBookListMetric;
       grouping: number;
       layout: PerpsProOrderBookPosition;
+      dataSource: PerpsProOrderBookDataSource;
     }) => {
       setOrderBookPreferences({
         currency: next.currency,
@@ -659,6 +707,7 @@ const PerpsProOrderBookPanel = ({
       setSelectedGrouping(next.grouping);
       saveGrouping(next.grouping);
       setOrderBookPosition(next.layout);
+      setDataSource(next.dataSource);
     },
     [saveGrouping, setOrderBookPosition, setOrderBookPreferences],
   );
@@ -771,6 +820,7 @@ const PerpsProOrderBookPanel = ({
       testID={testID}
       flexDirection={BoxFlexDirection.Column}
       collapsable={false}
+      style={styles.panel}
       twClassName="w-full py-2"
     >
       {/* Header: collapse stays on the leading edge while settings stays flush
@@ -840,110 +890,135 @@ const PerpsProOrderBookPanel = ({
         {columnHeaders}
       </Box>
 
-      {/* Ladder */}
-      {showSkeleton ? (
-        <OrderBookLadderSkeleton testID={testID} />
-      ) : showEmptyPlaceholder || !grouped ? (
-        <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="gap-3 px-2 py-8"
-          testID={hasConnectionError ? `${testID}-connection-error` : undefined}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
+      {/* Ladder scrolls inside the column. The column is stretched to the
+          order form, so a 20-level book stays put instead of lengthening
+          the screen. */}
+      <ScrollView
+        ref={ladderScrollRef}
+        style={styles.ladderScroll}
+        contentContainerStyle={styles.ladderScrollContent}
+        nestedScrollEnabled
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        testID={`${testID}-ladder-scroll`}
+        onLayout={(event) => {
+          ladderViewportHeightRef.current = event.nativeEvent.layout.height;
+          centerSpreadInView();
+        }}
+        onScrollBeginDrag={() => {
+          userScrolledLadderRef.current = true;
+        }}
+      >
+        {showSkeleton ? (
+          <OrderBookLadderSkeleton testID={testID} />
+        ) : showEmptyPlaceholder || !grouped ? (
+          <Box
+            flexDirection={BoxFlexDirection.Column}
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            twClassName="gap-3 px-2 py-8"
+            testID={
+              hasConnectionError ? `${testID}-connection-error` : undefined
+            }
           >
-            {placeholderMessage}
-          </Text>
-          {hasConnectionError && (
-            <Button
-              variant={ButtonVariant.Secondary}
-              size={ButtonSize.Sm}
-              onPress={reconnect}
-              testID={`${testID}-reconnect`}
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
             >
-              {strings('perps.order_book.reconnect')}
-            </Button>
-          )}
-        </Box>
-      ) : (
-        <Box flexDirection={BoxFlexDirection.Column}>
-          {showAsks && (
-            <Box flexDirection={BoxFlexDirection.Column}>
-              {reversedAsks.map((level, index) => (
-                <OrderBookRow
-                  // Key by ladder rank, not price — positional slots reused
-                  // across live ticks avoid remounts (same as Extension).
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={`ask-${index}`}
-                  level={level}
-                  side="ask"
-                  currency={currency}
-                  metric={metric}
-                  depthMax={depthMax}
-                  depthBarColor={sellColor}
-                  szDecimals={szDecimals}
-                  priceFormat={priceFormat}
-                  onSelectPrice={rowSelectPrice}
-                  layout={orderBookPosition}
-                  testID={`${testID}-ask-row-${index}`}
-                />
-              ))}
-            </Box>
-          )}
+              {placeholderMessage}
+            </Text>
+            {hasConnectionError && (
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                onPress={reconnect}
+                testID={`${testID}-reconnect`}
+              >
+                {strings('perps.order_book.reconnect')}
+              </Button>
+            )}
+          </Box>
+        ) : (
+          <Box flexDirection={BoxFlexDirection.Column}>
+            {showAsks && (
+              <Box flexDirection={BoxFlexDirection.Column}>
+                {reversedAsks.map((level, index) => (
+                  <OrderBookRow
+                    // Key by ladder rank, not price — positional slots reused
+                    // across live ticks avoid remounts (same as Extension).
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`ask-${index}`}
+                    level={level}
+                    side="ask"
+                    currency={currency}
+                    metric={metric}
+                    depthMax={depthMax}
+                    depthBarColor={sellColor}
+                    szDecimals={szDecimals}
+                    priceFormat={priceFormat}
+                    onSelectPrice={rowSelectPrice}
+                    layout={orderBookPosition}
+                    testID={`${testID}-ask-row-${index}`}
+                  />
+                ))}
+              </Box>
+            )}
 
-          {/* Figma drops the "Spread" label and right-aligns the value on its
+            {/* Figma drops the "Spread" label and right-aligns the value on its
               own, giving the figures the full column width. The row still
               carries the label for screen readers, which would otherwise get
               a bare amount with no indication of what it measures. */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="h-8"
-            testID={`${testID}-spread`}
-          >
-            {spreadDisplay ? (
-              <Text
-                variant={TextVariant.BodyXs}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextDefault}
-                numberOfLines={1}
-                twClassName="flex-1 text-right"
-                accessibilityLabel={strings('perps.order_book.spread_value', {
-                  value: spreadDisplay,
-                })}
-              >
-                {spreadDisplay}
-              </Text>
-            ) : null}
-          </Box>
-
-          {showBids && (
-            <Box flexDirection={BoxFlexDirection.Column}>
-              {grouped.bids.map((level, index) => (
-                <OrderBookRow
-                  // eslint-disable-next-line react/no-array-index-key
-                  key={`bid-${index}`}
-                  level={level}
-                  side="bid"
-                  currency={currency}
-                  metric={metric}
-                  depthMax={depthMax}
-                  depthBarColor={buyColor}
-                  szDecimals={szDecimals}
-                  priceFormat={priceFormat}
-                  onSelectPrice={rowSelectPrice}
-                  layout={orderBookPosition}
-                  testID={`${testID}-bid-row-${index}`}
-                />
-              ))}
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="h-8"
+              testID={`${testID}-spread`}
+              onLayout={(event) => {
+                spreadOffsetRef.current = event.nativeEvent.layout.y;
+                centerSpreadInView();
+              }}
+            >
+              {spreadDisplay ? (
+                <Text
+                  variant={TextVariant.BodyXs}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  numberOfLines={1}
+                  twClassName="flex-1 text-right"
+                  accessibilityLabel={strings('perps.order_book.spread_value', {
+                    value: spreadDisplay,
+                  })}
+                >
+                  {spreadDisplay}
+                </Text>
+              ) : null}
             </Box>
-          )}
-        </Box>
-      )}
+
+            {showBids && (
+              <Box flexDirection={BoxFlexDirection.Column}>
+                {grouped.bids.map((level, index) => (
+                  <OrderBookRow
+                    // eslint-disable-next-line react/no-array-index-key
+                    key={`bid-${index}`}
+                    level={level}
+                    side="bid"
+                    currency={currency}
+                    metric={metric}
+                    depthMax={depthMax}
+                    depthBarColor={buyColor}
+                    szDecimals={szDecimals}
+                    priceFormat={priceFormat}
+                    onSelectPrice={rowSelectPrice}
+                    layout={orderBookPosition}
+                    testID={`${testID}-bid-row-${index}`}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+      </ScrollView>
 
       {/* Buy/Sell depth ratio */}
       {depthRatio ? (
@@ -1035,6 +1110,7 @@ const PerpsProOrderBookPanel = ({
         grouping={currentGrouping}
         groupingOptions={groupingOptions}
         layout={orderBookPosition}
+        dataSource={dataSource}
         onApply={handleApplyConfig}
         onClose={() => setIsConfigOpen(false)}
         testID={`${testID}-config-sheet`}
