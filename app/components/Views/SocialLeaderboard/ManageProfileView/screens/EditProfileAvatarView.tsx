@@ -50,6 +50,22 @@ const EditProfileAvatarView: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const handleSelectPreset = useCallback((presetId: string) => {
+    const preset = getProfileAvatarPreset(presetId);
+    if (!preset) {
+      return;
+    }
+    setAvatarPresetId(preset.id);
+  }, []);
+
+  const handleSelectBackground = useCallback((backgroundId: string) => {
+    const background = getProfileAvatarBackground(backgroundId);
+    if (!background) {
+      return;
+    }
+    setAvatarBackgroundId(background.id);
+  }, []);
+
   const handleSave = useCallback(async (): Promise<void> => {
     if (!isControllerBacked || !canSave) {
       return;
@@ -91,8 +107,8 @@ const EditProfileAvatarView: React.FC = () => {
         <ProfileAvatarPicker
           avatarPresetId={avatarPresetId}
           avatarBackgroundId={avatarBackgroundId}
-          onSelectPreset={setAvatarPresetId}
-          onSelectBackground={setAvatarBackgroundId}
+          onSelectPreset={handleSelectPreset}
+          onSelectBackground={handleSelectBackground}
           isLowTier={isLowTier}
         />
       </ScrollView>

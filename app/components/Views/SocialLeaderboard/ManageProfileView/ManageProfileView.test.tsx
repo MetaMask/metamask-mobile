@@ -311,7 +311,9 @@ describe('ManageProfileView', () => {
     fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
 
     expect(
-      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON),
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     ).toBeOnTheScreen();
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
     expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -341,7 +343,9 @@ describe('ManageProfileView', () => {
     );
     fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
     fireEvent.press(
-      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON),
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     );
 
     expect(mockNavigate).not.toHaveBeenCalled();
