@@ -41,6 +41,11 @@ on:
           - unofficial
           - nightly
         default: unofficial
+      commit_sha:
+        description: 'Optional full SHA. When set, the PR head must still match it or the publish fails.'
+        required: false
+        type: string
+        default: ''
 
   workflow_call:
     inputs:
@@ -74,6 +79,13 @@ on:
         type: string
         required: false
         default: ''
+      commit_sha:
+        description: >-
+          Optional full SHA that must equal the PR head. Runway OTA Production
+          passes the SHA that already passed "Check all jobs pass".
+        type: string
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -104,8 +116,48 @@ jobs:
           PR_NUMBER: ${{ env.TARGET_PR_NUMBER }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          EXPECTED_COMMIT_SHA: ${{ inputs.commit_sha }}
         run: |
           .github/scripts/validate-pr-commit.sh
+
+  require-ci:
+    name: Check all jobs pass
+    needs: validate-pr
+    # Always runs so non-production channels are not stuck behind a skipped job.
+    # The check itself applies only to production; every other channel passes
+    # this job without reading CI. A failed production check blocks approval
+    # and both publish jobs.
+    if: always() && !cancelled() && needs.validate-pr.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Skip CI gate for non-production channels
+        if: inputs.channel != 'production'
+        run: echo "Channel '${{ inputs.channel }}' does not require Check all jobs pass."
+
+      - name: Checkout gate script
+        if: inputs.channel == 'production'
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/require-check-all-jobs-pass.mts
+            .nvmrc
+
+      - name: Setup Node.js
+        if: inputs.channel == 'production'
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Require Check all jobs pass on the shipped SHA
+        if: inputs.channel == 'production'
+        env:
+          COMMIT_SHA: ${{ needs.validate-pr.outputs.commit_sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node .github/scripts/require-check-all-jobs-pass.mts
 
   verify-release-branch:
     name: Verify release branch (production only)
@@ -174,7 +226,7 @@ jobs:
 
   ota-summary:
     name: OTA Update Summary
-    needs: validate-pr
+    needs: [validate-pr, require-ci]
     runs-on: ubuntu-latest
     steps:
       - name: Display OTA Summary
@@ -196,6 +248,7 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+      - require-ci
     permissions:
       contents: read
       id-token: write # requested by setup-node-modules.yml
@@ -212,6 +265,7 @@ jobs:
     needs:
       - validate-pr
       - verify-release-branch
+      - require-ci
     permissions:
       contents: read
       id-token: write # requested by setup-node-modules.yml
@@ -225,7 +279,7 @@ jobs:
 
   prepare:
     name: Load OTA build config
-    needs: [validate-pr, verify-release-branch]
+    needs: [validate-pr, verify-release-branch, require-ci]
     runs-on: ubuntu-latest
     outputs:
       github_environment: ${{ steps.config.outputs.github_environment }}
@@ -412,6 +466,7 @@ jobs:
     needs:
       - fingerprint-comparison
       - validate-pr
+      - require-ci
     if: >
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       inputs.channel == 'production'
@@ -444,6 +499,7 @@ jobs:
       - verify-release-branch
       - setup-dependencies
       - prepare
+      - require-ci
     # approval is intentionally skipped for non-production channels, so the default implicit
     # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
@@ -453,6 +509,7 @@ jobs:
       needs.verify-release-branch.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
+      needs.require-ci.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'ios')
@@ -480,6 +537,7 @@ jobs:
       - validate-pr
       - setup-dependencies
       - prepare
+      - require-ci
     # approval is intentionally skipped for non-production channels, so the default implicit
     # success() (which treats a skipped dependency as failing) must be overridden here.
     if: >
@@ -488,6 +546,7 @@ jobs:
       needs.validate-pr.result == 'success' &&
       needs.setup-dependencies.result == 'success' &&
       needs.prepare.result == 'success' &&
+      needs.require-ci.result == 'success' &&
       needs.fingerprint-comparison.outputs.fingerprints_equal == 'true' &&
       (needs.approval.result == 'success' || (needs.approval.result == 'skipped' && inputs.channel != 'production')) &&
       (inputs.platform == 'all' || inputs.platform == 'android')

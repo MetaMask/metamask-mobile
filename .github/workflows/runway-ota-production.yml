@@ -7,6 +7,11 @@
 # This workflow does not build binaries and does not bump the build version — the release PR is
 # expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
 #
+# Production publish is fail-closed on ci.yml's "Check all jobs pass" job for the
+# exact PR head SHA. A missing, pending, or unsuccessful check blocks the push.
+# Runway's workflow_dispatch inputs are unchanged. The gate evaluates the SHA on
+# the ref that is actually published (see push-eas-update.yml).
+#
 ##############################################################################################
 name: Runway OTA Production
 
@@ -23,6 +28,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  checks: read
 
 cache-mode: none
 
@@ -48,11 +54,50 @@ jobs:
           fi
           echo "Using PR #${{ needs.resolve-context.outputs.pr_number }}"
 
+  require-ci:
+    name: Check all jobs pass
+    needs: [resolve-context, validate-ota-pr]
+    runs-on: ubuntu-latest
+    outputs:
+      commit_sha: ${{ steps.gate.outputs.commit_sha }}
+    steps:
+      - name: Checkout gate script
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          sparse-checkout: |
+            .github/scripts/require-check-all-jobs-pass.mts
+            .nvmrc
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Require Check all jobs pass on the PR head
+        id: gate
+        env:
+          PR_NUMBER: ${{ needs.resolve-context.outputs.pr_number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          SHA=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq '.headRefOid')
+          SHA=$(printf '%s' "$SHA" | tr '[:upper:]' '[:lower:]')
+          if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Could not resolve a full commit SHA for PR #${PR_NUMBER}"
+            exit 1
+          fi
+          echo "commit_sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "Requiring Check all jobs pass on ${SHA}"
+          COMMIT_SHA="$SHA" node .github/scripts/require-check-all-jobs-pass.mts
+
   push-ota:
     name: Push OTA update (production)
-    needs: [resolve-context, validate-ota-pr]
+    needs: [resolve-context, validate-ota-pr, require-ci]
     permissions:
       contents: read
+      checks: read # reusable workflow re-checks the shipped SHA
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
@@ -61,4 +106,5 @@ jobs:
       message: ${{ needs.resolve-context.outputs.ota_version }}
       channel: production
       platform: all
+      commit_sha: ${{ needs.require-ci.outputs.commit_sha }}
     secrets: inherit
