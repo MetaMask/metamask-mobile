@@ -1,29 +1,30 @@
 import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
-import type { VaultRateResponse } from '@metamask/money-account-api-data-service';
+import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
 import BigNumber from 'bignumber.js';
-import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import { readVaultAddress } from '../utils/readVaultAddress';
+import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 interface UseMoneyPremiumVaultRateResult {
-  vaultRateQuery: UseQueryResult<VaultRateResponse>;
-  /** Raw vault rate string from the Money API, when the query has one. */
+  /** Positions query that carries `current_apy` per vault. */
+  vaultRateQuery: UseQueryResult<PositionResponse>;
+  /** Raw `current_apy` decimal for the premium vault, when the position has one. */
   rate: string | undefined;
-  /** Rate as a one-decimal percentage (for example `7.1` for `0.071`). */
+  /** `current_apy` as a one-decimal percentage (for example `7.1` for `0.071`). */
   ratePercent: number | undefined;
   /** `ratePercent` with a percent sign (for example `7.1%`). */
   ratePercentFormatted: string | undefined;
 }
 
 /**
- * Converts the decimal rate string into a one-decimal percentage.
+ * Converts a decimal APY into a one-decimal percentage.
  *
- * @param rate - Decimal rate from the Money API.
+ * @param rate - Decimal `current_apy` from the positions response.
  * @returns The percentage, or undefined when the rate is not a finite number.
  */
 const parseRatePercent = (rate: string | undefined): number | undefined => {
@@ -43,40 +44,38 @@ const parseRatePercent = (rate: string | undefined): number | undefined => {
 };
 
 /**
- * Current rate for the premium vault, shown as the Pro Hub APY.
+ * Current APY for the premium vault, shown on Pro Hub.
  *
- * The vault address comes from the Plus subscription's crypto payment method.
- * The chain id comes from `moneyAccountPremiumVaultConfig`.
+ * Reads `current_apy` from the premium position. The vault address comes from
+ * the Plus subscription's crypto payment method. The account address comes
+ * from the primary Money account.
  *
- * @returns The vault-rate query, the raw rate, and the rate as a percentage.
+ * @returns The positions query, the raw APY decimal, and the APY as a percentage.
  */
 const useMoneyPremiumVaultRate = (): UseMoneyPremiumVaultRateResult => {
+  const { primaryMoneyAccount } = useMoneyAccountInfo();
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
-  const premiumVaultConfig = useSelector(selectMoneyAccountPremiumVaultConfig);
+  const address = primaryMoneyAccount?.address?.toLowerCase();
   const vaultAddress = readVaultAddress(plusSubscription?.paymentMethod);
-  const chainId = premiumVaultConfig
-    ? Number(premiumVaultConfig.chainId)
-    : undefined;
-  const isEnabled = Boolean(
-    vaultAddress && chainId !== undefined && Number.isSafeInteger(chainId),
-  );
-
-  const vaultRateOptions =
-    chainId !== undefined && Number.isSafeInteger(chainId)
-      ? { chainId }
-      : undefined;
+  const isEnabled = Boolean(address && vaultAddress);
 
   const vaultRateQuery = useQuery({
     queryKey: [
-      MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
-      vaultAddress as string,
-      { ...vaultRateOptions },
+      MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
+      address as string,
     ],
     enabled: isEnabled,
     refetchInterval: FIVE_MINUTES_MS,
-  }) as UseQueryResult<VaultRateResponse>;
+  }) as UseQueryResult<PositionResponse>;
 
-  const rate = vaultRateQuery.data?.rate;
+  const normalizedVaultAddress = vaultAddress?.toLowerCase();
+  const rate =
+    normalizedVaultAddress === undefined
+      ? undefined
+      : vaultRateQuery.data?.positions.find(
+          (position) =>
+            position.vault_address.toLowerCase() === normalizedVaultAddress,
+        )?.current_apy;
   const ratePercent = parseRatePercent(rate);
   const ratePercentFormatted =
     ratePercent !== undefined ? `${ratePercent}%` : undefined;
