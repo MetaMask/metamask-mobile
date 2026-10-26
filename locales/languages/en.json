@@ -3512,6 +3512,7 @@
       "layout": "Order book layout",
       "layout_left": "Left",
       "layout_right": "Right",
+      "size_on_click": "Set order book size on click",
       "apply": "Apply",
       "save": "Save",
       "collapse": "Hide order book",
