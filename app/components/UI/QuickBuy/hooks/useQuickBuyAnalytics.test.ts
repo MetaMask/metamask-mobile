@@ -6,7 +6,6 @@ import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
 
 const mockDispatch = jest.fn();
 const mockTrack = jest.fn();
-const mockTrackEvent = jest.fn();
 const mockResetBridgeState = jest.fn(() => ({ type: 'bridge/reset' }));
 const mockBridgeControllerResetState = jest.fn();
 
@@ -66,10 +65,6 @@ jest.mock('../../../Views/SocialLeaderboard/analytics', () => ({
   useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
 }));
 
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({ trackEvent: mockTrackEvent }),
-}));
-
 jest.mock('../../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     SOCIAL_QUICK_BUY_DISMISSED: 'SOCIAL_QUICK_BUY_DISMISSED',
@@ -119,20 +114,16 @@ describe('useQuickBuyAnalytics', () => {
         );
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
         expect.objectContaining({
-          name: 'Quick Buy Amount Selected',
-          properties: {
-            amount_usd: 25,
-            amount_selection_method:
-              QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
-            source: ANALYTICS_CONTEXT.source,
-            caip19: CAIP19,
-            trader_address: TRADER,
-            pay_with_token: 'ETH',
-          },
+          [QuickBuyEventProperties.TRADER_ADDRESS]: TRADER,
+          [QuickBuyEventProperties.CAIP19]: CAIP19,
+          [QuickBuyEventProperties.AMOUNT_USD]: 25,
+          [QuickBuyEventProperties.AMOUNT_SELECTION_METHOD]:
+            QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
+          [QuickBuyEventProperties.PAY_WITH_TOKEN]: 'ETH',
         }),
-        { protocols: { event_version: 2 } },
       );
     });
 
@@ -150,11 +141,11 @@ describe('useQuickBuyAnalytics', () => {
         );
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
         expect.objectContaining({
-          properties: expect.objectContaining({ slider_percent: 25 }),
+          [QuickBuyEventProperties.SLIDER_PERCENT]: 25,
         }),
-        { protocols: { event_version: 2 } },
       );
     });
 
@@ -174,11 +165,11 @@ describe('useQuickBuyAnalytics', () => {
         );
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
         expect.objectContaining({
-          properties: expect.not.objectContaining({ preset_value: 50 }),
+          [QuickBuyEventProperties.PRESET_VALUE]: 50,
         }),
-        { protocols: { event_version: 2 } },
       );
     });
 
@@ -194,7 +185,7 @@ describe('useQuickBuyAnalytics', () => {
         );
       });
 
-      const call = mockTrackEvent.mock.calls[0][0].properties;
+      const call = mockTrack.mock.calls[0][1];
       expect(call).not.toHaveProperty(QuickBuyEventProperties.SLIDER_PERCENT);
     });
 
@@ -243,13 +234,11 @@ describe('useQuickBuyAnalytics', () => {
         );
       });
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED,
         expect.objectContaining({
-          properties: expect.objectContaining({
-            trader_address: '0xOverride',
-          }),
+          [QuickBuyEventProperties.TRADER_ADDRESS]: '0xOverride',
         }),
-        { protocols: { event_version: 2 } },
       );
     });
   });

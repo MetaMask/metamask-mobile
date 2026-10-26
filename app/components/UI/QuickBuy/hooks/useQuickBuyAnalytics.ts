@@ -4,15 +4,12 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { resetBridgeState } from '../../../../core/redux/slices/bridge';
 import Engine from '../../../../core/Engine';
 import { useSocialLeaderboardAnalytics } from '../../../Views/SocialLeaderboard/analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   buildQuickBuySharedAnalyticsProperties,
   QuickBuyEventProperties,
   QuickBuyEventValues,
 } from '../analytics';
 import type { QuickBuyAnalyticsContext, QuickBuyTradeMode } from '../types';
-import { createQuickBuyAmountSelected } from '../../../../util/analytics/generated/QuickBuyAmountSelected';
-import { createTypedEventTransport } from '../../../../util/analytics/typedEventTransport';
 
 type QuickBuyDismissStage =
   (typeof QuickBuyEventValues.DISMISS_STAGE)[keyof typeof QuickBuyEventValues.DISMISS_STAGE];
@@ -54,12 +51,6 @@ export function useQuickBuyAnalytics(
 } {
   const dispatch = useDispatch();
   const { track } = useSocialLeaderboardAnalytics();
-  const { trackEvent } = useAnalytics();
-  const typedAmountSelected = useMemo(
-    () =>
-      createQuickBuyAmountSelected(createTypedEventTransport(trackEvent)).v2,
-    [trackEvent],
-  );
 
   const dismissStageRef = useRef<QuickBuyDismissStage>(
     QuickBuyEventValues.DISMISS_STAGE.TOKEN_DETAIL,
@@ -127,28 +118,31 @@ export function useQuickBuyAnalytics(
       presetValue?: number,
     ) => {
       if (!resolvedTraderAddress || !caip19) return;
-      // These legacy arguments remain in the hook API but are intentionally
-      // omitted from this QA-only v2 payload until their contract semantics
-      // are resolved.
-      void receiveToken;
-      void presetValue;
       lastTrackedAmountRef.current = String(amountUsd);
       lastInputMethodRef.current = method;
-      typedAmountSelected.track({
-        amount_usd: amountUsd,
-        amount_selection_method: method,
-        source: analyticsSource,
-        ...(caip19 ? { caip19 } : {}),
-        ...(resolvedTraderAddress
-          ? { trader_address: resolvedTraderAddress }
+      track(MetaMetricsEvents.SOCIAL_QUICK_BUY_AMOUNT_SELECTED, {
+        ...sharedAnalyticsProps,
+        [QuickBuyEventProperties.TRADER_ADDRESS]: resolvedTraderAddress,
+        [QuickBuyEventProperties.CAIP19]: caip19,
+        [QuickBuyEventProperties.AMOUNT_USD]: amountUsd,
+        [QuickBuyEventProperties.AMOUNT_SELECTION_METHOD]: method,
+        ...(payWithToken
+          ? { [QuickBuyEventProperties.PAY_WITH_TOKEN]: payWithToken }
           : {}),
-        ...(payWithToken ? { pay_with_token: payWithToken } : {}),
-        ...(sliderPercent != null ? { slider_percent: sliderPercent } : {}),
+        ...(receiveToken
+          ? { [QuickBuyEventProperties.RECEIVE_TOKEN]: receiveToken }
+          : {}),
+        ...(sliderPercent != null
+          ? { [QuickBuyEventProperties.SLIDER_PERCENT]: sliderPercent }
+          : {}),
+        ...(presetValue != null
+          ? { [QuickBuyEventProperties.PRESET_VALUE]: presetValue }
+          : {}),
       });
       dismissStageRef.current =
         QuickBuyEventValues.DISMISS_STAGE.AMOUNT_SELECTION;
     },
-    [resolvedTraderAddress, caip19, typedAmountSelected, analyticsSource],
+    [resolvedTraderAddress, caip19, track, sharedAnalyticsProps],
   );
 
   const trackTradeModeToggled = useCallback(
