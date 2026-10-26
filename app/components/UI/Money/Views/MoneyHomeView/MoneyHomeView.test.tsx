@@ -2111,6 +2111,18 @@ describe('MoneyHomeView', () => {
       });
     });
 
+    it('opens the 2-step verification sheet from the badge on the pushed header', () => {
+      mockRouteParams = { showBackButton: true };
+      mockMfaStatus('enabled');
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      fireEvent.press(getByTestId(MoneyMfaTestIds.HEADER_BADGE));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
+    });
+
     it('omits the header badge when 2-step verification is off', () => {
       mockMfaStatus('off');
 
