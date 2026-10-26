@@ -1270,6 +1270,11 @@
       "retry": "Try again"
     }
   },
+  "social": {
+    "profile": {
+      "share_position": "Share position"
+    }
+  },
   "social_leaderboard": {
     "entry_options": {
       "title": "Options",
