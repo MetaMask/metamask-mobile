@@ -636,7 +636,7 @@ const Wallet = ({
 
   useEffect(() => {
     if (isPerpsFlagEnabled && isPerpsGTMModalEnabled) {
-      checkAndNavigateToPerpsGTM();
+      void checkAndNavigateToPerpsGTM();
     }
   }, [isPerpsFlagEnabled, isPerpsGTMModalEnabled, checkAndNavigateToPerpsGTM]);
 
@@ -689,7 +689,7 @@ const Wallet = ({
         onPress: () => {
           storePrivacyPolicyClickedOrClosed();
           toast?.closeToast();
-          Linking.openURL(CONSENSYS_PRIVACY_POLICY);
+          void Linking.openURL(CONSENSYS_PRIVACY_POLICY);
         },
       },
       hasNoTimeout: true,
