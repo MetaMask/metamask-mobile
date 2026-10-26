@@ -355,6 +355,13 @@ android {
                 signingConfig signingConfigs.mainProd
             }
           }
+          // Side-by-side beta app (builds.yml main-beta-rc, MM_APP_VARIANT=beta); same code as prod
+          beta {
+            dimension "version"
+            applicationId "io.metamask"
+            applicationIdSuffix ".beta"
+            signingConfig signingConfigs.mainRc
+          }
           flask {
             dimension "version"
             applicationIdSuffix ".flask"

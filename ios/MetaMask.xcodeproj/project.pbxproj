@@ -172,6 +172,7 @@
 		683865D794CE6007E46CAD3A /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		6E7939D848B5467AA6602966 /* Inter-MediumItalic.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Inter-MediumItalic.ttf"; path = "../app/fonts/Inter-MediumItalic.ttf"; sourceTree = "<group>"; };
 		7D2A2666F9BADDF2418B01A1 /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
+		88179ADA877493E917281B0A /* Pods-MetaMask.release-beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release-beta.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release-beta.xcconfig"; sourceTree = "<group>"; };
 		7FF1597C0ACA4902B86140B2 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
 		8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTSearchApi.a; sourceTree = "<group>"; };
 		8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-Flask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -205,6 +206,7 @@
 		F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMPoly-Regular.otf"; path = "../app/fonts/MMPoly-Regular.otf"; sourceTree = "<group>"; };
 		B8D4F02C5E3A49B1C7F26D99 /* GrotzecCond-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "GrotzecCond-Bold.otf"; path = "../app/fonts/GrotzecCond/GrotzecCond-Bold.otf"; sourceTree = "<group>"; };
 		F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
+		633FF2B294064913501BC129 /* Pods-MetaMask-Flask.release-beta.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release-beta.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release-beta.xcconfig"; sourceTree = "<group>"; };
 		F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Regular.otf"; path = "../app/fonts/MMSans-Regular.otf"; sourceTree = "<group>"; };
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
 		F961A36A28105CF9007442B5 /* LinkPresentation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LinkPresentation.framework; path = System/Library/Frameworks/LinkPresentation.framework; sourceTree = SDKROOT; };
@@ -437,6 +439,8 @@
 				7D2A2666F9BADDF2418B01A1 /* Pods-MetaMask.release.xcconfig */,
 				91B348F39D8AD3220320E89D /* Pods-MetaMask-Flask.debug.xcconfig */,
 				F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */,
+				88179ADA877493E917281B0A /* Pods-MetaMask.release-beta.xcconfig */,
+				633FF2B294064913501BC129 /* Pods-MetaMask-Flask.release-beta.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -892,7 +896,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\n\nif [ \"${CONFIGURATION}\" = \"Release\" ]; then\n  find \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\nfi\n";
+			shellScript = "# Script for stripping bitcode when building using Xcode 16+ and uploading to the App Store\n# Reference - https://discuss.bitrise.io/t/xcode-16-known-issues/24484\n# This script should be last to ensure that all bitcode is stripped after dependencies are installed\n\n\ncase \"${CONFIGURATION}\" in Release*)\n  find \"${BUILT_PRODUCTS_DIR}/${FRAMEWORKS_FOLDER_PATH}\" -name 'OpenSSL' -exec xcrun bitcode_strip {} -r -o {} \\;\n  ;;\nesac\n";
 		};
 		B04B18D72D8B34BE00C5C2CE /* Strip Bitcode */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1051,6 +1055,7 @@
 				);
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 8.19.0;
+				MM_APP_DISPLAY_NAME = MetaMask;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1117,6 +1122,7 @@
 				);
 				LLVM_LTO = YES;
 				MARKETING_VERSION = 8.19.0;
+				MM_APP_DISPLAY_NAME = MetaMask;
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = "$(inherited)";
 				OTHER_LDFLAGS = (
@@ -1135,6 +1141,72 @@
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
+		};
+		61BAD5958F5A6C5D578C9A47 /* Release-Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 88179ADA877493E917281B0A /* Pods-MetaMask.release-beta.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMaskBeta.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_UNROLL_LOOPS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
+					"$(SRCROOT)/../node_modules/react-native-share/ios",
+					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
+					"$(SRCROOT)/../node_modules/@metamask/react-native-search-api/ios/RCTSearchApi",
+					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
+					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
+				);
+				INFOPLIST_FILE = MetaMask/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(SDKROOT)/usr/lib/swift$(inherited)",
+					"${inherited}",
+				);
+				LLVM_LTO = YES;
+				MARKETING_VERSION = 8.19.0;
+				MM_APP_DISPLAY_NAME = "MetaMask Beta";
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.MetaMask-Beta";
+				PRODUCT_NAME = MetaMask;
+				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask-Beta";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask-Beta";
+				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
+				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-Beta";
 		};
 		2EF282902B0FF86900D7B4B1 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -1268,6 +1340,70 @@
 			};
 			name = Release;
 		};
+		AAAA806DA1D5DC98E8D3DBFC /* Release-Beta */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 633FF2B294064913501BC129 /* Pods-MetaMask-Flask.release-beta.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Flask";
+				ASSETCATALOG_COMPILER_OPTIMIZATION = time;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = MetaMask/MetaMask.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = 48XVW22RCG;
+				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_UNROLL_LOOPS = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../node_modules/react-native-wkwebview-reborn/ios/RCTWKWebView",
+					"$(SRCROOT)/../node_modules/react-native-keychain/RNKeychainManager",
+					"$(SRCROOT)/../node_modules/react-native-share/ios",
+					"$(SRCROOT)/../node_modules/react-native-branch/ios/**",
+					"$(SRCROOT)/../node_modules/@metamask/react-native-search-api/ios/RCTSearchApi",
+					"$(SRCROOT)/../node_modules/lottie-ios/lottie-ios/Classes/**",
+					"$(SRCROOT)/../node_modules/react-native-view-shot/ios",
+					"$(SRCROOT)/../node_modules/react-native-tcp/ios/**",
+				);
+				INFOPLIST_FILE = "MetaMask/MetaMask-Flask-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(SDKROOT)/usr/lib/swift",
+					"$(inherited)",
+					"\"$(SRCROOT)/MetaMask/System/Library/Frameworks\"",
+				);
+				LLVM_LTO = YES;
+				MARKETING_VERSION = 8.19.0;
+				ONLY_ACTIVE_ARCH = NO;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+					"-lc++",
+				);
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.metamask.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "Bitrise AppStore io.metamask.MetaMask";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Bitrise AppStore io.metamask.MetaMask-Flask";
+				SWIFT_OBJC_BRIDGING_HEADER = "MetaMask-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				VERSIONING_SYSTEM = "apple-generic";
+			};
+			name = "Release-Beta";
+		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 15FDD82721B7642B006B7C35 /* debug.xcconfig */;
@@ -1382,6 +1518,60 @@
 			};
 			name = Release;
 		};
+		2B5C418C4BB6E26CF0832629 /* Release-Beta */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = YES;
+				ENABLE_BITCODE = NO;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = "";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION,
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"-DRCT_REMOVE_LEGACY_ARCH=1",
+				);
+				OTHER_LDFLAGS = "$(inherited)";
+				PODFILE_DIR = "$(SRCROOT)";
+				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
+				SDKROOT = iphoneos;
+				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
+				USE_HERMES = true;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = "Release-Beta";
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1390,6 +1580,7 @@
 			buildConfigurations = (
 				13B07F941A680F5B00A75B9A /* Debug */,
 				13B07F951A680F5B00A75B9A /* Release */,
+				61BAD5958F5A6C5D578C9A47 /* Release-Beta */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -1399,6 +1590,7 @@
 			buildConfigurations = (
 				2EF282902B0FF86900D7B4B1 /* Debug */,
 				2EF282912B0FF86900D7B4B1 /* Release */,
+				AAAA806DA1D5DC98E8D3DBFC /* Release-Beta */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -1408,6 +1600,7 @@
 			buildConfigurations = (
 				83CBBA201A601CBA00E9B192 /* Debug */,
 				83CBBA211A601CBA00E9B192 /* Release */,
+				2B5C418C4BB6E26CF0832629 /* Release-Beta */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

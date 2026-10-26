@@ -268,6 +268,14 @@ prebuild_android(){
 	fi
 }
 
+# The beta app variant (main-beta-rc) has no local debug variant; it is built in CI only
+rejectLocalAppVariant(){
+	if [ -n "$MM_APP_VARIANT" ] ; then
+		printError "MM_APP_VARIANT '${MM_APP_VARIANT}' is CI-only. Unset it for local builds."
+		exit 1
+	fi
+}
+
 # Builds and installs the Main APK for local development
 buildAndroidMainLocal(){
 	prebuild_android
@@ -295,21 +303,22 @@ buildIosFlaskLocal(){
 }
 
 # Generates the iOS binary for the given scheme and configuration
+# Optional second argument overrides CONFIGURATION (e.g. Release-Beta for the MetaMask-Beta scheme)
 generateIosBinary() {
 	scheme="$1"
-	configuration="${CONFIGURATION:-"Release"}"
+	configuration="${2:-${CONFIGURATION:-"Release"}}"
 
 	# Check if configuration is valid
-	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] ; then
+	if [ "$configuration" != "Debug" ] && [ "$configuration" != "Release" ] && [ "$configuration" != "Release-Beta" ] ; then
 		# Configuration is not recognized
-		echo "Configuration $configuration is not recognized! Only Debug and Release are supported"
+		echo "Configuration $configuration is not recognized! Only Debug, Release, and Release-Beta are supported"
 		exit 1
 	fi
 
 	# Check if scheme is valid
-	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-Flask" ] ; then
+	if [ "$scheme" != "MetaMask" ] && [ "$scheme" != "MetaMask-Flask" ] && [ "$scheme" != "MetaMask-Beta" ] ; then
 		# Scheme is not recognized
-		echo "Scheme $scheme is not recognized! Only MetaMask, and MetaMask-Flask are supported"
+		echo "Scheme $scheme is not recognized! Only MetaMask, MetaMask-Flask, and MetaMask-Beta are supported"
 		exit 1
 	fi
 
@@ -328,6 +337,12 @@ generateIosBinary() {
 		else
 			exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskFlaskRelease.plist"
 		fi
+	elif [ "$scheme" = "MetaMask-Beta" ] ; then
+		if [ "$profile" = "development" ] ; then
+			echo "PROFILE=development is not supported for MetaMask-Beta; only App Store (TestFlight) signing is configured"
+			exit 1
+		fi
+		exportOptionsPlist="MetaMask/IosExportOptionsMetaMaskBetaRelease.plist"
 	fi
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
@@ -399,9 +414,9 @@ generateAndroidBinary() {
 	fi
 
 	# Check if flavor is valid
-	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] ; then
+	if [ "$flavor" != "Prod" ] && [ "$flavor" != "Flask" ] && [ "$flavor" != "Beta" ] ; then
 		# Flavor is not recognized
-		echo "Flavor $flavor is not recognized! Only Prod, Flask are supported"
+		echo "Flavor $flavor is not recognized! Only Prod, Flask, Beta are supported"
 		exit 1
 	fi
 
@@ -656,6 +671,7 @@ buildAndroid() {
 	echo "Build Android $METAMASK_BUILD_TYPE started..."
 	if [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
+			rejectLocalAppVariant
 			buildAndroidMainLocal
 		else
 			# Prepare Android dependencies
@@ -663,7 +679,11 @@ buildAndroid() {
 			# Go to android directory
 			cd android
 			# Generate Android binary
-			generateAndroidBinary "Prod"
+			if [ "$MM_APP_VARIANT" = "beta" ] ; then
+				generateAndroidBinary "Beta"
+			else
+				generateAndroidBinary "Prod"
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
@@ -686,6 +706,7 @@ buildIos() {
 	echo "Build iOS $METAMASK_BUILD_TYPE started..."
 	if [ "$METAMASK_BUILD_TYPE" == "main" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
+			rejectLocalAppVariant
 			buildIosMainLocal
 		else
 			# Prepare iOS dependencies
@@ -693,7 +714,11 @@ buildIos() {
 			# Go to ios directory
 			cd ios
 			# Generate iOS binary
-			generateIosBinary "MetaMask"
+			if [ "$MM_APP_VARIANT" = "beta" ] ; then
+				generateIosBinary "MetaMask-Beta" "Release-Beta"
+			else
+				generateIosBinary "MetaMask"
+			fi
 		fi
 	elif [ "$METAMASK_BUILD_TYPE" == "flask" ] ; then
 		if [ "$IS_LOCAL" = true ] ; then
