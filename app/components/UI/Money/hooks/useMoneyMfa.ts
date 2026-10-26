@@ -184,6 +184,11 @@ export const useMoneyMfa = () => {
     showToast('money.mfa.toast_off');
   }, [activeMethods, verifyOrEnroll, showToast]);
 
+  const retry = useCallback(() => {
+    moneyMfaStore.setState({ isMigrationBannerDismissed: false });
+    return migrate();
+  }, []);
+
   const dismissSettingUpBanner = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: true });
   }, []);
@@ -201,7 +206,7 @@ export const useMoneyMfa = () => {
     status,
     turnOn,
     addPasskeyAndTurnOn,
-    retry: migrate,
+    retry,
     turnOff,
     isSettingUpBannerDismissed: isMigrationBannerDismissed,
     dismissSettingUpBanner,
