@@ -106,6 +106,11 @@ describe('MfaSettings', () => {
         reason: { operation: 'settings.addEmail' },
       }),
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Email verified' }],
+      }),
+    );
   });
 
   it('offers to add an email whose setup is not finished', () => {
@@ -231,6 +236,11 @@ describe('MfaSettings', () => {
       expect.objectContaining({
         request: { kind: 'enroll', method: 'passkey' },
         reason: { operation: 'settings.addPasskey' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
       }),
     );
   });

@@ -45,6 +45,12 @@ const ADD_OPERATIONS: Record<MfaMethod, string> = {
   totp: 'settings.addAuthenticatorApp',
 };
 
+const ADD_SUCCESS_MESSAGE_KEYS: Record<MfaMethod, string> = {
+  passkey: 'mfa.settings.passkey_added',
+  email_otp: 'mfa.settings.email_verified',
+  totp: 'mfa.settings.totp_added',
+};
+
 /**
  * The profile's verification methods: "Add" sets one up, the chevron opens
  * one that is set up. Passkeys open their list, where more can be added.
@@ -75,12 +81,9 @@ const MfaSettings = () => {
       reason: { operation: ADD_OPERATIONS[method] },
     })
       .then(() => {
-        if (method !== 'totp') {
-          return;
-        }
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
-          labelOptions: [{ label: strings('mfa.settings.totp_added') }],
+          labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
           iconName: ToastIconName.Confirmation,
           iconColor: theme.colors.success.default,
           hasNoTimeout: false,
