@@ -2,18 +2,17 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
-import { dismissBanner } from '../../../../reducers/banners';
 import { selectDismissedBanners } from '../../../../selectors/banner';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa, type MoneyMfaStatus } from './useMoneyMfa';
 import {
   MONEY_MFA_HOME_PROMPT_ID,
+  resetMoneyMfaHomePromptSession,
   useMoneyMfaHomePrompt,
 } from './useMoneyMfaHomePrompt';
 
 const mockNavigate = jest.fn();
-const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -23,7 +22,6 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
-  useDispatch: () => mockDispatch,
 }));
 
 jest.mock('./useMoneyMfa', () => ({
@@ -96,20 +94,28 @@ const arrange = ({
 describe('useMoneyMfaHomePrompt', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetMoneyMfaHomePromptSession();
   });
 
-  it('opens the passkey prompt and dismisses it for later when the funded wallet has no passkey', async () => {
+  it('opens the passkey prompt when the funded wallet has no passkey', async () => {
     arrange();
 
     await flushPromises();
 
     expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      dismissBanner(MONEY_MFA_HOME_PROMPT_ID),
-    );
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
     });
+  });
+
+  it('opens the prompt once per session', async () => {
+    arrange().unmount();
+    await flushPromises();
+
+    arrange();
+    await flushPromises();
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('skips the prompt when the refreshed credentials include an active passkey', async () => {
@@ -118,7 +124,6 @@ describe('useMoneyMfaHomePrompt', () => {
     await flushPromises();
 
     expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
-    expect(mockDispatch).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

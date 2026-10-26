@@ -21,8 +21,8 @@ import { IconName as ToastIconName } from '../../../../component-library/compone
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
-import { moneyMfaStore } from './moneyMfaStore';
-import { moneyAccountMigration } from './moneyAccountMigration';
+import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
+import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
 /** Methods Money requires before 2-step verification turns on. */
 export const MONEY_MFA_METHODS: MfaMethod[] = ['passkey', 'email_otp'];

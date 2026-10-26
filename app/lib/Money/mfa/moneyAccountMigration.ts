@@ -1,5 +1,5 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
-import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../store/storage-wrapper';
+import Logger from '../../../util/Logger';
 
 export type MoneyAccountMigrationStatus =
   | 'not_started'
@@ -54,7 +54,12 @@ export const moneyAccountMigration = {
   /** Starts the migration, or resumes one that was interrupted. */
   start: async (): Promise<void> => {
     setStatus('migrating');
-    await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
+    try {
+      await new Promise((resolve) => setTimeout(resolve, STUB_DELAY_MS));
+    } catch (error) {
+      setStatus('failed');
+      throw error;
+    }
     setStatus('done');
   },
   reset: () => {

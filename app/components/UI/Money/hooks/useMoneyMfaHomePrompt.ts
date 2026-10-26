@@ -1,9 +1,8 @@
 import { useCallback, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
-import { dismissBanner } from '../../../../reducers/banners';
 import { selectDismissedBanners } from '../../../../selectors/banner';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
@@ -11,13 +10,21 @@ import { useMoneyMfa } from './useMoneyMfa';
 
 export const MONEY_MFA_HOME_PROMPT_ID = 'money-mfa-home-prompt';
 
+// The sheet's close button dismisses the prompt for good; otherwise it comes
+// back in a later session.
+let hasPromptedThisSession = false;
+
+export const resetMoneyMfaHomePromptSession = () => {
+  hasPromptedThisSession = false;
+};
+
 /**
- * Opens the passkey prompt once on the wallet home after the wallet has a
- * balance, when Money 2-step verification is available and not set up.
+ * Opens the passkey prompt on the wallet home, at most once per session, after
+ * the wallet has a balance, when Money 2-step verification is available and not
+ * set up.
  */
 export const useMoneyMfaHomePrompt = () => {
   const navigation = useNavigation<AppNavigationProp>();
-  const dispatch = useDispatch();
   const { status } = useMoneyMfa();
   const balance = useSelector(selectAccountGroupBalanceForEmptyState);
   const dismissedBanners = useSelector(selectDismissedBanners);
@@ -31,7 +38,7 @@ export const useMoneyMfaHomePrompt = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (!isEligible || isChecking.current) {
+      if (!isEligible || isChecking.current || hasPromptedThisSession) {
         return;
       }
       isChecking.current = true;
@@ -48,7 +55,7 @@ export const useMoneyMfaHomePrompt = () => {
           if (!isFocused || hasPasskey) {
             return;
           }
-          dispatch(dismissBanner(MONEY_MFA_HOME_PROMPT_ID));
+          hasPromptedThisSession = true;
           navigation.navigate(Routes.MONEY.MODALS.ROOT, {
             screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
           });
@@ -60,6 +67,6 @@ export const useMoneyMfaHomePrompt = () => {
       return () => {
         isFocused = false;
       };
-    }, [isEligible, dispatch, navigation]),
+    }, [isEligible, navigation]),
   );
 };

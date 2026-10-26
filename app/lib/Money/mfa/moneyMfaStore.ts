@@ -1,5 +1,5 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
-import Logger from '../../../../util/Logger';
+import StorageWrapper from '../../../store/storage-wrapper';
+import Logger from '../../../util/Logger';
 
 export interface MoneyMfaStoreState {
   /** Money 2-step verification is on. Stands in for the MPC account state. */

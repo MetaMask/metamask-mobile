@@ -1,10 +1,10 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import {
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
 } from './moneyAccountMigration';
 
-jest.mock('../../../../store/storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItem: jest.fn(() => Promise.resolve(null)),
@@ -40,6 +40,17 @@ describe('moneyAccountMigration', () => {
     await promise;
 
     expect(moneyAccountMigration.getStatus()).toBe('done');
+  });
+
+  it('fails and rejects when the migration throws', async () => {
+    const error = new Error('timer unavailable');
+    jest.spyOn(global, 'setTimeout').mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await expect(moneyAccountMigration.start()).rejects.toThrow(error);
+
+    expect(moneyAccountMigration.getStatus()).toBe('failed');
   });
 
   it('saves each status and notifies subscribers', async () => {
