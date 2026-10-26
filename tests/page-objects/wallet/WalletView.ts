@@ -7,7 +7,6 @@ import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
-import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import type { AppiumElement } from '../../framework/AppiumElement';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
@@ -15,8 +14,14 @@ import { isPerformanceSuiteActive } from '../../framework/ai-locator/Performance
 import WalletHomeScroll from './WalletHomeScroll';
 import { WalletHomeSections as WalletHomeSectionsBase } from './WalletHomeSections';
 
-/** How long to look for the homepage breakdown hero before using the account balance. */
-const BALANCE_SURFACE_PROBE_MS = 2_000;
+/**
+ * Treatment renders the breakdown hero and control renders the account balance,
+ * never both. One pattern finds whichever is on screen without a probe that
+ * would add time to the measured wait.
+ */
+const BALANCE_SURFACE_ID_PATTERN = new RegExp(
+  `(?:^|/)(?:${HomepageBalanceBreakdownTestIds.HERO}|${WalletViewSelectorsIDs.EYE_SLASH_ICON})$`,
+);
 
 function throwBalanceDidNotStabilize(
   maxWaitTime: number,
@@ -170,12 +175,12 @@ class WalletView extends WalletHomeSectionsBase {
   }
 
   /**
-   * Treatment homepage. Its accessibility label carries the aggregate total.
-   * `total-balance-text` is also rendered here, on the animated digit slots,
-   * which do not expose that total to Appium.
+   * Homepage hero (treatment) or account balance (control). Both labels carry
+   * the aggregate total. `total-balance-text` sits on the treatment's animated
+   * digit slots, which do not expose that total to Appium.
    */
-  get balanceBreakdownHero(): Promise<AppiumElement> {
-    return Matchers.getElementByID(HomepageBalanceBreakdownTestIds.HERO);
+  get balanceSurface(): Promise<AppiumElement> {
+    return Matchers.getElementByID(BALANCE_SURFACE_ID_PATTERN);
   }
 
   get accountNameLabelText(): Promise<AppiumElement> {
@@ -446,39 +451,22 @@ class WalletView extends WalletHomeSectionsBase {
     });
   }
 
-  /**
-   * Treatment renders the breakdown hero. Control keeps the account balance.
-   * The probe is short so a missing hero does not sit on the session implicit wait.
-   */
-  private async isBalanceBreakdownHeroShown(
-    timeoutMs: number,
-  ): Promise<boolean> {
-    return isOptionalElementVisible(() => this.balanceBreakdownHero, timeoutMs);
-  }
-
   async waitForBalanceToStabilize(
     options: {
       maxWaitTime?: number;
       pollInterval?: number;
       sameResultTimeout?: number;
-      surfaceProbeTimeout?: number;
     } = {},
   ): Promise<string> {
     const {
       maxWaitTime = 60000,
       pollInterval = 100,
       sameResultTimeout = 8000,
-      surfaceProbeTimeout = BALANCE_SURFACE_PROBE_MS,
     } = options;
 
-    const usingHero =
-      await this.isBalanceBreakdownHeroShown(surfaceProbeTimeout);
-    const balanceSource = usingHero ? 'homepage-hero' : 'account-balance';
-    logObservedBalance('surface', balanceSource);
     // The amount TextView has no test id. Read the labeled parent instead.
-    const readBalance = usingHero
-      ? async () => readBalanceFromContainer(this.balanceBreakdownHero)
-      : async () => readBalanceFromContainer(this.eyeSlashIcon);
+    const readBalance = async () =>
+      readBalanceFromContainer(this.balanceSurface);
 
     const startTime = Date.now();
     const isIOS = PlatformDetector.isIOS();
@@ -489,7 +477,7 @@ class WalletView extends WalletHomeSectionsBase {
         return;
       }
       lastLoggedBalance = balance;
-      logObservedBalance(balanceSource, balance);
+      logObservedBalance('balance', balance);
     };
 
     if (isIOS) {

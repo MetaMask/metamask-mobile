@@ -2,7 +2,6 @@
  * Appium polling over a native balance label. Component-view cannot read that
  * element, and the loop does not cross an app-to-controller seam.
  */
-import { isOptionalElementVisible } from '../../framework/AppiumUtilities';
 import Matchers from '../../framework/Matchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import WalletView from './WalletView';
@@ -10,10 +9,6 @@ import WalletView from './WalletView';
 jest.mock('../../framework/Utilities', () => ({
   __esModule: true,
   default: {},
-}));
-
-jest.mock('../../framework/AppiumUtilities', () => ({
-  isOptionalElementVisible: jest.fn(),
 }));
 
 jest.mock('../../framework/PlatformLocator', () => ({
@@ -54,9 +49,6 @@ jest.mock('./WalletHomeScroll', () => ({
 const getElementByID = Matchers.getElementByID as jest.MockedFunction<
   typeof Matchers.getElementByID
 >;
-const heroShown = isOptionalElementVisible as jest.MockedFunction<
-  typeof isOptionalElementVisible
->;
 const isIOS = PlatformDetector.isIOS as jest.MockedFunction<
   typeof PlatformDetector.isIOS
 >;
@@ -73,8 +65,6 @@ describe('WalletView.waitForBalanceToStabilize', () => {
   beforeEach(() => {
     getAttribute = jest.fn().mockResolvedValue(null);
     mockBalanceContainer(getAttribute);
-    heroShown.mockReset();
-    heroShown.mockResolvedValue(false);
     isIOS.mockReset();
     isIOS.mockReturnValue(false);
   });
@@ -134,8 +124,7 @@ describe('WalletView.waitForBalanceToStabilize', () => {
     expect(getAttribute).toHaveBeenCalledWith('content-desc');
   });
 
-  it('reads the homepage hero total when that surface is shown', async () => {
-    heroShown.mockResolvedValue(true);
+  it('reads the homepage hero total without probing for the surface first', async () => {
     getAttribute.mockResolvedValue('$1,234.56, +$3.00, +0.2%, Today');
 
     const balance = await WalletView.waitForBalanceToStabilize({
@@ -145,7 +134,13 @@ describe('WalletView.waitForBalanceToStabilize', () => {
     });
 
     expect(balance).toBe('$1,234.56');
-    expect(heroShown).toHaveBeenCalledWith(expect.any(Function), 2_000);
+    const pattern = getElementByID.mock.calls[0][0] as RegExp;
+    expect(pattern.test('io.metamask:id/homepage-balance-breakdown-hero')).toBe(
+      true,
+    );
+    expect(pattern.test('balance-container')).toBe(true);
+    expect(pattern.test('homepage-balance-breakdown-hero-content')).toBe(false);
+    expect(pattern.test('money-balance-container')).toBe(false);
   });
 
   it('throws the last Android balance when the value never settles', async () => {
