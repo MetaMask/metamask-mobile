@@ -1,29 +1,31 @@
 import React from 'react';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { getErrorMessage } from '../../labels';
+import { getSpecificErrorMessage } from '../../labels';
 import { MfaFlowSelectorsIDs } from '../../Mfa.testIds';
 import StepLayout, { type StepProps } from './StepLayout';
 
 const FailureStep = ({ step, state, onAction }: StepProps<'failure'>) => (
   <StepLayout
     top={
-      <Icon
-        name={IconName.Danger}
-        color={IconColor.ErrorDefault}
-        size={IconSize.Xl}
+      <AvatarIcon
+        iconName={IconName.Danger}
+        severity={AvatarIconSeverity.Danger}
+        size={AvatarIconSize.Xl}
+        twClassName="self-center"
       />
     }
     title={strings('mfa.failure.title')}
-    description={getErrorMessage(step.code)}
+    // The title already says something went wrong; only a specific reason adds to it.
+    description={getSpecificErrorMessage(step.code)}
     footer={
       <>
         {step.canRetry ? (

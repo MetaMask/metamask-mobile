@@ -3,6 +3,9 @@ import {
   RewardsMoneyDataService,
   RewardsMoneyAuthorizationError,
   RewardsMoneyRebateQuoteError,
+  RewardsMoneyHttpError,
+  RewardsMoneyClaimRefusalError,
+  buildEarningsSummaryQuery,
   buildOriginTypeQuery,
   type RewardsMoneyDataServiceMessenger,
 } from './rewards-money-data-service';
@@ -49,10 +52,36 @@ const okJson = <T>(body: T): Response =>
     json: async () => body,
   }) as Response;
 
-const notOk = (status: number): Response =>
+const notOk = (status: number, bodyText: string = ''): Response =>
   ({
     ok: false,
     status,
+    text: async () => bodyText,
+  }) as Response;
+
+const httpError = (
+  status: number,
+  body: unknown,
+  headers: Record<string, string> = {},
+): Response =>
+  ({
+    ok: false,
+    status,
+    headers: {
+      get: (name: string) => headers[name.toLowerCase()] ?? null,
+    },
+    text: async () => JSON.stringify(body),
+  }) as Response;
+
+/** A `503` whose `Retry-After` is omitted when `retryAfter` is absent. */
+const busyReferralMe = (retryAfter?: string): Response =>
+  ({
+    ok: false,
+    status: 503,
+    headers: {
+      get: (name: string) =>
+        name.toLowerCase() === 'retry-after' ? (retryAfter ?? null) : null,
+    },
   }) as Response;
 
 describe('RewardsMoneyDataService', () => {
@@ -103,12 +132,14 @@ describe('RewardsMoneyDataService', () => {
         'getReferralFunnel',
         'getReferralCodes',
         'validateReferralCode',
+        'registerReferee',
         'getEarningsSummary',
         'getEarningsLedger',
         'getClaimHistory',
         'getCommissions',
         'getClaimById',
         'getRebateQuote',
+        'initiateClaim',
         'getRewardsMoneyEnvUrl',
         'canChangeRewardsMoneyEnvUrl',
         'setRewardsMoneyEnvUrl',
@@ -127,17 +158,20 @@ describe('RewardsMoneyDataService', () => {
     it('attaches Authorization Bearer for authenticated reads', async () => {
       mockFetch.mockResolvedValue(
         okJson({
-          role: 'NONE',
-          variant: 'NONE',
+          roles: [],
+          ui_variant: 'NONE',
           user_type: 'REGULAR',
           status: 'ACTIVE',
           referral_code: null,
+          referral_code_status: null,
           referred_by: null,
           earn_rates: {
-            revshare_rate_bps: null,
             cashback_rate_bps: null,
-            revshare_earning_term_minutes: null,
-            cashback_earning_term_minutes: null,
+            cashback_earning_start: null,
+            cashback_earning_end: null,
+            revshare_rate_bps: null,
+            revshare_earning_start: null,
+            revshare_earning_end: null,
           },
         }),
       );
@@ -174,11 +208,14 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
-    it('throws RewardsMoneyAuthorizationError on 403', async () => {
+    it('does not treat authenticated 403 as an authorization failure', async () => {
       mockFetch.mockResolvedValue(notOk(403));
 
-      await expect(service.getEarningsSummary()).rejects.toBeInstanceOf(
+      await expect(service.getEarningsSummary()).rejects.not.toBeInstanceOf(
         RewardsMoneyAuthorizationError,
+      );
+      await expect(service.getEarningsSummary()).rejects.toThrow(
+        'Get earnings summary failed: 403',
       );
     });
 
@@ -285,6 +322,73 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
+    it('retries a short 503 from referral validate once without Authorization', async () => {
+      jest.useFakeTimers();
+      try {
+        mockFetch
+          .mockResolvedValueOnce(busyReferralMe('2'))
+          .mockResolvedValueOnce(okJson({ success: true }));
+
+        const pending = service.validateReferralCode('ABC123');
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({ success: true });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(getBearerToken).not.toHaveBeenCalled();
+        for (const [, options] of mockFetch.mock.calls) {
+          expect(
+            (options?.headers as Record<string, string>).Authorization,
+          ).toBeUndefined();
+          expect(options).toEqual(
+            expect.objectContaining({
+              method: 'GET',
+            }),
+          );
+        }
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('throws when the referral validate retry is still a 503', async () => {
+      jest.useFakeTimers();
+      try {
+        const busy = busyReferralMe('2');
+        mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
+
+        const pending = expect(
+          service.validateReferralCode('ABC123'),
+        ).rejects.toMatchObject({
+          name: 'RewardsMoneyHttpError',
+          status: 503,
+          message: 'Validate referral code failed: 503',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await pending;
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(getBearerToken).not.toHaveBeenCalled();
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('copies Retry-After onto a 429 from referral validate', async () => {
+      mockFetch.mockResolvedValue(
+        httpError(
+          429,
+          { statusCode: 429, reason: 'RATE_LIMITED' },
+          { 'retry-after': '12' },
+        ),
+      );
+
+      await expect(service.validateReferralCode('MISS')).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 429,
+        retryAfterSeconds: 12,
+      });
+    });
+
     it('throws when referral me fails with a non-auth status', async () => {
       mockFetch.mockResolvedValue(notOk(500));
       await expect(service.getReferralMe()).rejects.toThrow(
@@ -292,11 +396,177 @@ describe('RewardsMoneyDataService', () => {
       );
     });
 
+    it('retries a busy referral me once and returns the next 200', async () => {
+      jest.useFakeTimers();
+      try {
+        const referralMe = { roles: [], ui_variant: 'NONE' };
+        mockFetch
+          .mockResolvedValueOnce(busyReferralMe('2'))
+          .mockResolvedValueOnce(okJson(referralMe));
+
+        const pending = service.getReferralMe();
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual(referralMe);
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('throws when the referral me retry is still a 503', async () => {
+      jest.useFakeTimers();
+      try {
+        const busy = busyReferralMe('2');
+        mockFetch.mockResolvedValueOnce(busy).mockResolvedValueOnce(busy);
+
+        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
+          name: 'RewardsMoneyHttpError',
+          status: 503,
+          message: 'Get referral me failed: 503',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await pending;
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 503 referral me that has no Retry-After', async () => {
+      mockFetch.mockResolvedValueOnce(busyReferralMe());
+
+      await expect(service.getReferralMe()).rejects.toThrow(
+        'Get referral me failed: 503',
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('retries a busy earnings summary once and returns the next 200', async () => {
+      jest.useFakeTimers();
+      try {
+        const summary = { lifetime_total: '0' };
+        mockFetch
+          .mockResolvedValueOnce(busyReferralMe('2'))
+          .mockResolvedValueOnce(okJson(summary));
+
+        const pending = service.getEarningsSummary();
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual(summary);
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+        expect(mockFetch.mock.calls[1][0]).toEqual(
+          expect.stringContaining('/earnings/summary'),
+        );
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('retries a short 429 on the ledger once', async () => {
+      jest.useFakeTimers();
+      try {
+        const limited = httpError(
+          429,
+          { statusCode: 429, reason: 'RATE_LIMITED' },
+          { 'retry-after': '2' },
+        );
+        mockFetch.mockResolvedValueOnce(limited).mockResolvedValueOnce(
+          okJson({
+            results: [],
+            has_more: false,
+            cursor: null,
+            window: null,
+          }),
+        );
+
+        const pending = service.getEarningsLedger();
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({
+          results: [],
+          has_more: false,
+          cursor: null,
+          window: null,
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 429 whose Retry-After is over 5 seconds', async () => {
+      mockFetch.mockResolvedValueOnce(
+        httpError(
+          429,
+          { statusCode: 429, reason: 'RATE_LIMITED' },
+          { 'retry-after': '6' },
+        ),
+      );
+
+      await expect(service.getEarningsLedger()).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 429,
+        retryAfterSeconds: 6,
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not retry a 503 whose Retry-After is over 5 seconds', async () => {
+      mockFetch.mockResolvedValueOnce(busyReferralMe('6'));
+
+      await expect(service.getClaimById('claim-1')).rejects.toThrow(
+        'Get claim by id failed: 503',
+      );
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
     it('fetches earnings summary with origin-type query', async () => {
       mockFetch.mockResolvedValue(
         okJson({
           lifetime_total: '0',
           window: null,
+          pending: '0',
+          claimed: '0',
+          voided: '0',
+          pairing_pending: false,
+          minimum_musd_base_units: '0',
+          self_earned: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            voided: '0',
+            by_claim_family: {},
+          },
+          earned_by_others: {
+            lifetime: '0',
+            pending: '0',
+            claimed: '0',
+            voided: '0',
+            by_claim_family: {},
+          },
+        }),
+      );
+
+      await service.getEarningsSummary([
+        'SWAPS_FEE_CASHBACK',
+        'PERPS_FEE_CASHBACK',
+      ]);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'earning_origin_type=SWAPS_FEE_CASHBACK&earning_origin_type=PERPS_FEE_CASHBACK',
+        ),
+        expect.any(Object),
+      );
+    });
+
+    it('sends a window only with claimability turned off', async () => {
+      mockFetch.mockResolvedValue(
+        okJson({
+          lifetime_total: '0',
+          window: { from: '2026-09-22', to: '2026-09-28' },
           pending: '0',
           claimed: '0',
           forfeited: '0',
@@ -318,17 +588,17 @@ describe('RewardsMoneyDataService', () => {
         }),
       );
 
-      await service.getEarningsSummary([
-        'SWAPS_FEE_CASHBACK',
-        'PERPS_FEE_CASHBACK',
-      ]);
+      await service.getEarningsSummary(undefined, {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      });
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'earning_origin_type=SWAPS_FEE_CASHBACK&earning_origin_type=PERPS_FEE_CASHBACK',
-        ),
-        expect.any(Object),
-      );
+      const [url] = mockFetch.mock.calls[0];
+      expect(url).toContain('from=2026-09-22');
+      expect(url).toContain('to=2026-09-28');
+      expect(url).toContain('include_claimable=false');
+      expect(url).not.toContain('earning_origin_type');
     });
 
     it('throws when earnings summary fails', async () => {
@@ -357,7 +627,7 @@ describe('RewardsMoneyDataService', () => {
       expect(url).not.toContain('cursor=');
     });
 
-    it('sends cursor without origin types on ledger page 2', async () => {
+    it('resends origin types alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({
           results: [],
@@ -372,7 +642,7 @@ describe('RewardsMoneyDataService', () => {
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain('cursor=cursor-1');
       expect(url).toContain('include_claims=true');
-      expect(url).not.toContain('earning_origin_type');
+      expect(url).toContain('earning_origin_type=SWAPS_FEE_CASHBACK');
     });
 
     it('can request accrual-only ledger pages', async () => {
@@ -453,8 +723,7 @@ describe('RewardsMoneyDataService', () => {
     });
 
     // The commissions cursor stamps the filter and the server 400s when the
-    // request omits it — the opposite of the ledger, which reads it from the
-    // cursor alone.
+    // request omits it.
     it('resends the mechanism filter alongside the cursor', async () => {
       mockFetch.mockResolvedValue(
         okJson({ results: [], mechanisms: {}, has_more: false, cursor: null }),
@@ -512,6 +781,123 @@ describe('RewardsMoneyDataService', () => {
       await expect(service.getClaimById('missing')).rejects.toThrow(
         'Get claim by id failed: 404',
       );
+    });
+  });
+
+  describe('registerReferee', () => {
+    it('POSTs the code alone to the referee route', async () => {
+      mockFetch.mockResolvedValue(okJson({}));
+
+      await service.registerReferee({ code: 'ABC123' });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/wr/referral/referee'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ code: 'ABC123' }),
+        }),
+      );
+      const [, options] = mockFetch.mock.calls[0];
+      expect(
+        (options?.headers as Record<string, string>).Authorization,
+      ).toMatch(/^Bearer /u);
+      expect(options?.body).not.toContain('profile_id');
+    });
+
+    it('copies Retry-After onto a 429 from register', async () => {
+      mockFetch.mockResolvedValue(
+        httpError(
+          429,
+          {
+            statusCode: 429,
+            reason: 'RATE_LIMITED',
+            message: 'Too many requests',
+          },
+          { 'retry-after': '8' },
+        ),
+      );
+
+      await expect(
+        service.registerReferee({ code: 'X' }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 429,
+        retryAfterSeconds: 8,
+      });
+    });
+
+    it('throws RewardsMoneyHttpError carrying the status and body on 409', async () => {
+      mockFetch.mockResolvedValue(notOk(409, 'Already referred'));
+
+      await expect(
+        service.registerReferee({ code: 'X' }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 409,
+        bodyText: 'Already referred',
+      });
+    });
+
+    it('throws RewardsMoneyHttpError rather than an auth error on 403', async () => {
+      mockFetch.mockResolvedValue(
+        notOk(403, 'Cannot use your own referral code'),
+      );
+
+      const error = await service
+        .registerReferee({ code: 'SELF' })
+        .catch((thrown: unknown) => thrown);
+
+      expect(error).toBeInstanceOf(RewardsMoneyHttpError);
+      expect(error).not.toBeInstanceOf(RewardsMoneyAuthorizationError);
+      expect((error as RewardsMoneyHttpError).status).toBe(403);
+      expect((error as RewardsMoneyHttpError).bodyText).toBe(
+        'Cannot use your own referral code',
+      );
+    });
+
+    it('retries a 503 SERVER_BUSY once', async () => {
+      jest.useFakeTimers();
+      try {
+        mockFetch
+          .mockResolvedValueOnce(
+            httpError(
+              503,
+              { statusCode: 503, reason: 'SERVER_BUSY' },
+              { 'retry-after': '2' },
+            ),
+          )
+          .mockResolvedValueOnce(okJson({}));
+
+        const pending = service.registerReferee({ code: 'ABC123' });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toBeUndefined();
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 503 whose body is not SERVER_BUSY', async () => {
+      mockFetch.mockResolvedValueOnce(
+        httpError(503, { statusCode: 503, reason: 'JWKS_UNAVAILABLE' }),
+      );
+
+      await expect(
+        service.registerReferee({ code: 'ABC123' }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyHttpError',
+        status: 503,
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('still throws an authorization error on 401', async () => {
+      mockFetch.mockResolvedValue(notOk(401));
+
+      await expect(
+        service.registerReferee({ code: 'ABC123' }),
+      ).rejects.toBeInstanceOf(RewardsMoneyAuthorizationError);
     });
   });
 
@@ -642,17 +1028,17 @@ describe('RewardsMoneyDataService', () => {
           { 'retry-after': '12' },
         ),
       );
-      mockFetch.mockResolvedValueOnce(
-        jsonError(
-          503,
-          {
-            statusCode: 503,
-            reason: 'SERVER_BUSY',
-            message: 'Server busy, retry shortly',
-          },
-          { 'retry-after': '2' },
-        ),
+      const busyQuote = jsonError(
+        503,
+        {
+          statusCode: 503,
+          reason: 'SERVER_BUSY',
+          message: 'Server busy, retry shortly',
+        },
+        { 'retry-after': '2' },
       );
+      mockFetch.mockResolvedValueOnce(busyQuote);
+      mockFetch.mockResolvedValueOnce(busyQuote);
       mockFetch.mockResolvedValueOnce({
         ok: false,
         status: 500,
@@ -676,14 +1062,21 @@ describe('RewardsMoneyDataService', () => {
         detail: 'Too many requests',
         retryAfterSeconds: 12,
       });
-      await expect(
-        service.getRebateQuote({ product: 'perps' }),
-      ).rejects.toMatchObject({
-        status: 503,
-        failure: 'UNAVAILABLE',
-        detail: 'Server busy, retry shortly',
-        retryAfterSeconds: 2,
-      });
+      jest.useFakeTimers();
+      try {
+        const busyQuotePending = expect(
+          service.getRebateQuote({ product: 'perps' }),
+        ).rejects.toMatchObject({
+          status: 503,
+          failure: 'UNAVAILABLE',
+          detail: 'Server busy, retry shortly',
+          retryAfterSeconds: 2,
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+        await busyQuotePending;
+      } finally {
+        jest.useRealTimers();
+      }
       const failed = await service
         .getRebateQuote({ product: 'perps' })
         .catch((thrown: unknown) => thrown);
@@ -829,6 +1222,248 @@ describe('RewardsMoneyDataService', () => {
       await expect(
         service.getRebateQuote({ product: 'perps' }),
       ).rejects.toMatchObject({ status: 200, failure: 'FAILED' });
+    });
+  });
+
+  describe('buildEarningsSummaryQuery', () => {
+    it('matches the origin-type query when claimability stays on', () => {
+      expect(buildEarningsSummaryQuery()).toBe('');
+      expect(buildEarningsSummaryQuery(['REFERRAL_REV_SHARE'])).toBe(
+        '?earning_origin_type=REFERRAL_REV_SHARE',
+      );
+      expect(
+        buildEarningsSummaryQuery(undefined, { includeClaimable: true }),
+      ).toBe('');
+    });
+
+    it('appends the window and include_claimable=false together', () => {
+      expect(
+        buildEarningsSummaryQuery(['SWAPS_FEE_CASHBACK'], {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        }),
+      ).toBe(
+        '?earning_origin_type=SWAPS_FEE_CASHBACK&from=2026-09-22&to=2026-09-28&include_claimable=false',
+      );
+    });
+  });
+
+  describe('initiateClaim', () => {
+    const textResponse = (
+      status: number,
+      body: unknown,
+      headers: Record<string, string> = {},
+    ): Response =>
+      ({
+        ok: status >= 200 && status < 300,
+        status,
+        headers: { get: (name: string) => headers[name.toLowerCase()] ?? null },
+        text: async () => JSON.stringify(body),
+      }) as Response;
+
+    it('returns an authorized claim and voucher for a 200', async () => {
+      const body = {
+        claim: { id: 'claim-1' },
+        voucher: {
+          claim_id: 'claim-1',
+          from: '0xfrom',
+          to: '0xmoney',
+          value: '1000000',
+          valid_after: 0,
+          valid_before: 60,
+          nonce: '0x11',
+          signature: '0x22',
+        },
+        excluded: [],
+        status: 'OPENED',
+      };
+      mockFetch.mockResolvedValue(textResponse(200, body));
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toEqual({ kind: 'authorized', body });
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toContain('/wr/earnings/claim/referral-trade-fee-cashback');
+      expect(init).toEqual(
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ money_account_address: '0xmoney' }),
+        }),
+      );
+    });
+
+    it('returns a 428 challenge instead of throwing', async () => {
+      const challenge = {
+        reason: 'PROOF_REQUIRED',
+        claim_intent_id: 'intent-1',
+        expires_at: '2026-09-29T00:00:00.000Z',
+        challenges: [
+          {
+            earning_address: 'eip155:1:0xabc',
+            amount_musd_base_units: '1000000',
+            message: 'sign me',
+          },
+        ],
+      };
+      mockFetch.mockResolvedValue(textResponse(428, challenge));
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toEqual({ kind: 'proof_required', body: challenge });
+
+      const [url, init] = mockFetch.mock.calls[0];
+      expect(url).toContain('/wr/earnings/claim/referral-trade-fee-cashback');
+      expect(init).toEqual(
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ money_account_address: '0xmoney' }),
+        }),
+      );
+    });
+
+    it('throws a typed refusal for a 422', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(422, { message: 'UNDER_REVIEW' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toBeInstanceOf(RewardsMoneyClaimRefusalError);
+
+      await expect(
+        service.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ reason: 'UNDER_REVIEW', status: 422 });
+    });
+
+    it('retries a 503 SERVER_BUSY once', async () => {
+      jest.useFakeTimers();
+      try {
+        const voucher = { claim_id: 'claim-1' };
+        mockFetch
+          .mockResolvedValueOnce(
+            textResponse(
+              503,
+              { statusCode: 503, reason: 'SERVER_BUSY' },
+              { 'retry-after': '2' },
+            ),
+          )
+          .mockResolvedValueOnce(textResponse(200, voucher));
+
+        const pending = service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        });
+        await jest.advanceTimersByTimeAsync(3000);
+
+        await expect(pending).resolves.toEqual({
+          kind: 'authorized',
+          body: voucher,
+        });
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
+    });
+
+    it('does not retry a 503 whose body is not SERVER_BUSY', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(503, { statusCode: 503, reason: 'JWKS_UNAVAILABLE' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ status: 503, reason: 'JWKS_UNAVAILABLE' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not retry a 409', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(409, { reason: 'CLAIM_IN_PROGRESS' }),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({ status: 409, reason: 'CLAIM_IN_PROGRESS' });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('refuses a 428 whose body is not JSON', async () => {
+      mockFetch.mockResolvedValue({
+        ok: false,
+        status: 428,
+        headers: { get: () => null },
+        text: async () => 'not-json',
+      } as unknown as Response);
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        name: 'RewardsMoneyClaimRefusalError',
+        status: 428,
+        reason: 'UNKNOWN',
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps Retry-After and SIGNATURE_RESERVE on a held-back partial claim', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(
+          409,
+          {
+            statusCode: 409,
+            message: 'VELOCITY_LIMIT_EXCEEDED',
+            error: 'Conflict',
+            reason: 'SIGNATURE_RESERVE',
+          },
+          { 'retry-after': '61' },
+        ),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        status: 409,
+        reason: 'SIGNATURE_RESERVE',
+        retryAfterSeconds: 61,
+      });
+    });
+
+    it('keeps Retry-After on a rate-limited refusal', async () => {
+      mockFetch.mockResolvedValue(
+        textResponse(
+          429,
+          { reason: 'RATE_LIMITED', message: 'Too many requests' },
+          { 'retry-after': '240' },
+        ),
+      );
+
+      await expect(
+        service.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toMatchObject({
+        status: 429,
+        reason: 'RATE_LIMITED',
+        retryAfterSeconds: 240,
+      });
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
   });
 });

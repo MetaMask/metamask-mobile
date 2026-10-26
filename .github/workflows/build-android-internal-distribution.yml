@@ -2,7 +2,7 @@
 #
 # Build Android for internal distribution
 #
-# Produces a signed Android production APK via Build Mobile App (build.yml) for **internal**
+# Produces a signed Android main-rc APK via Build Mobile App (build.yml) for **internal**
 # teammate distribution only (not store / external release). Renames the APK from the sanitized
 # source branch and uploads it as a GitHub Actions artifact for a Runway Build Distro bucket
 # rule to auto-pull. Job summary links the public bucket and tells testers what to look for.
@@ -33,15 +33,17 @@ on:
 
 permissions:
   contents: read
-  id-token: write
   actions: read
 
 jobs:
   build:
-    name: Build Android (main-prod)
+    name: Build Android (main-rc)
+    permissions:
+      contents: read
+      id-token: write # AWS OIDC for code signing in build.yml
     uses: ./.github/workflows/build.yml
     with:
-      build_name: main-prod
+      build_name: main-rc
       platform: android
       source_branch: ${{ inputs.source_branch }}
       runner_provider: ${{ inputs.runner_provider }}
@@ -60,10 +62,10 @@ jobs:
       apk_artifact_name: ${{ steps.rename.outputs.apk_artifact_name }}
       apk_file_name: ${{ steps.rename.outputs.apk_file_name }}
     steps:
-      - name: Download main-prod APK artifact
+      - name: Download main-rc APK artifact
         uses: actions/download-artifact@v7
         with:
-          name: android-apk-main-prod
+          name: android-apk-main-rc
           path: artifacts/android-apk
 
       - name: Rename APK from source branch
@@ -75,7 +77,7 @@ jobs:
 
           APK=$(find artifacts/android-apk -name '*.apk' -type f | head -1)
           if [ -z "$APK" ]; then
-            echo "::error::No .apk found in android-apk-main-prod artifact"
+            echo "::error::No .apk found in android-apk-main-rc artifact"
             exit 1
           fi
 

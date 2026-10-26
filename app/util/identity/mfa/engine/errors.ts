@@ -5,6 +5,7 @@ const HANDLING: Record<MfaFlowErrorCode, MfaErrorHandling> = {
   aal2_required: 'refresh',
   email_socially_verified: 'refresh',
   email_already_enrolled: 'refresh',
+  totp_already_enrolled: 'refresh',
   credential_not_enrolled: 'refresh',
   mfa_identity_missing: 'refresh',
   verification_token_invalid: 'refresh',
@@ -52,6 +53,16 @@ export const getFlowErrorCode = (error: unknown): MfaFlowErrorCode => {
 
 export const getErrorHandling = (code: MfaFlowErrorCode): MfaErrorHandling =>
   HANDLING[code];
+
+/**
+ * Whether the code means a bug on our side (a malformed request or response)
+ * rather than something the user or the server's rules caused.
+ *
+ * @param code - The flow error code.
+ * @returns `true` for codes worth reporting.
+ */
+export const isReportable = (code: MfaFlowErrorCode): boolean =>
+  code === 'invalid_response' || code === 'invalid_request';
 
 /**
  * Rejection of `verifyOrEnroll` and `enroll`. `mfaCode` is what

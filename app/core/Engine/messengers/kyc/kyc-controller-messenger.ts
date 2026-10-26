@@ -8,8 +8,9 @@ import type { RootMessenger } from '../../types';
 
 /**
  * Actions {@link KycController} calls on other messengers. Matches the
- * package's `AllowedActions` (every `KycService` method plus Profile Sync
- * storage used to persist the UKYC local user secret).
+ * package's `AllowedActions` (every `KycService` method, Profile Sync
+ * storage used to persist the UKYC local user secret, identity-sharing
+ * consent, and the partner identity token).
  */
 const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:getGeoCountry',
@@ -23,19 +24,23 @@ const KYC_CONTROLLER_DELEGATED_ACTIONS = [
   'KycService:fetchIdosEnclaveJwks',
   'KycService:fetchIdosRelayJwks',
   'KycService:createUkycSession',
+  'KycService:resetWrappingKeys',
   'KycService:setAuthorizations',
   'KycService:createJourney',
   'KycService:getSessionStatus',
   'KycService:getSessionStatusForVendor',
   'UserStorageController:performGetStorage',
   'UserStorageController:performSetStorage',
+  'AuthenticatedUserStorageService:putIdentitySharingConsent',
+  'AuthenticationController:getPartnerIdentityToken',
 ] as const;
 
 /**
  * Get the messenger for the KycController.
  *
- * Delegates KycService and UserStorageController actions so the controller
- * can call them through the messenger.
+ * Delegates KycService, UserStorageController, identity-sharing consent, and
+ * partner identity token actions so the controller can call them through the
+ * messenger.
  *
  * @param rootMessenger - The root messenger.
  * @returns The KycControllerMessenger.

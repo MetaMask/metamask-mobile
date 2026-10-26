@@ -321,6 +321,47 @@ class AccountListBottomSheet {
       waitForInteractive: true,
       elemDescription: 'Add Account button in V2 multichain accounts',
     });
+
+    // Account creation restarts sync/discovery. The new row is not in the
+    // tree until that settles, and the default text assertion only gets a
+    // couple of probes before its timeout.
+    await this.waitForAccountSyncToComplete();
+  }
+
+  /**
+   * Tap "Add account" and prove the new account row exists.
+   * Appium can report a successful click while FlashList / InteractionManager
+   * abandons create — re-tap until the named row is visible (scroll-aware).
+   */
+  async addAccountAndExpectVisibleV2(
+    accountName: string,
+    options?: {
+      srpIndex?: number;
+      shouldWait?: boolean;
+      timeout?: number;
+    },
+  ): Promise<void> {
+    const timeout = options?.timeout ?? 50_000;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const existing =
+          await this.getAccountElementsByAccountNameV2(accountName);
+        if (existing.length === 0) {
+          await this.tapAddAccountButtonV2(options);
+        }
+
+        await this.expectAccountVisibleByNameV2(accountName, {
+          timeout: 15_000,
+          description: `${accountName} visible after Add account`,
+        });
+      },
+      {
+        timeout,
+        interval: 1_000,
+        description: `Add account and expect "${accountName}" visible`,
+      },
+    );
   }
 
   async tapAddEthereumAccountButton(): Promise<void> {
@@ -370,7 +411,7 @@ class AccountListBottomSheet {
     // Modal don't fire while the sheet is still animating out.
     await Utilities.waitForElementToDisappear(
       this.connectAccountsButton,
-      5_000,
+      15_000,
     );
   }
 
@@ -698,7 +739,7 @@ class AccountListBottomSheet {
       async () => {
         const cells = await this.getAccountElementsByAccountNameV2(accountName);
         if (cells.length === 0) {
-          return false;
+          throw new Error(`No account row found for "${accountName}"`);
         }
 
         const cell = cells[0];
@@ -709,14 +750,16 @@ class AccountListBottomSheet {
               maxScrolls: 10,
             });
             if (await cell.isVisible()) {
-              return true;
+              return;
             }
           } catch {
             // try the other scroll direction
           }
         }
 
-        return await cell.isVisible();
+        if (!(await cell.isVisible())) {
+          throw new Error(`Account row "${accountName}" is not visible`);
+        }
       },
       {
         description,

@@ -1,0 +1,39 @@
+---
+description: Use shared hardware and network tiers; apply the UX matrix on any screen you touch
+globs: app/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Device capability
+
+> Canonical guide + UX matrix: [`app/util/deviceCapability/README.md`](../../app/util/deviceCapability/README.md)
+
+## When this applies
+
+Any screen you **touch** (new or existing) that uses animation (including Rive), lists, polling, prefetch, realtime, heavy images, or blur. Do not rewrite unrelated screens in the same PR.
+
+## Canonical APIs
+
+```ts
+import { getHardwareTier } from '../../util/deviceCapability';
+import { useNetworkTier } from '../../hooks/useNetworkTier';
+
+const hardware = getHardwareTier(); // 'LOW' | 'MID' | 'HIGH' | null
+const network = useNetworkTier(); // 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null
+```
+
+Keep the two values **separate**. Do not fold them into one “worst of RAM and network” flag.
+
+`null` means unknown — never treat it as LOW, offline, or `'NONE'`. `'NONE'` is known no usable internet.
+
+## Required
+
+1. Read both tiers (do not invent `DeviceInfo` RAM checks or a parallel NetInfo classifier).
+2. Cross the UX matrix in the README and apply that cell on **this** screen.
+3. Tell the human the cell and the levers (Rive vs static, poll, prefetch, FlashList, blur, image quality).
+
+## Forbidden
+
+- `DeviceInfo.getTotalMemory` / `getTotalMemorySync` outside `app/util/deviceCapability`
+- Mapping NetInfo `type` / `cellularGeneration` to a custom enum outside `computeNetworkTier`
+- Treating iOS simulator RAM as a device tier (it can be the Mac’s RAM)

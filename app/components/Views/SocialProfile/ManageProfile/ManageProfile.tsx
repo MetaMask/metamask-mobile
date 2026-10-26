@@ -57,9 +57,11 @@ const applyFieldUpdate = (
 ): Profile => {
   switch (update.field) {
     case ManageProfileFieldName.DisplayName:
-      return { ...profile, displayName: update.value };
+      return { ...profile, displayName: String(update.value) };
     case ManageProfileFieldName.Bio:
-      return { ...profile, bio: update.value };
+      return { ...profile, bio: String(update.value) };
+    case ManageProfileFieldName.TradingActivity:
+      return { ...profile, isTradingActivityVisible: Boolean(update.value) };
     default:
       return profile;
   }
@@ -101,6 +103,10 @@ const ManageProfile = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleOpenLinkedSocialAccount = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.LINKED_SOCIAL_ACCOUNT);
+  }, [navigation]);
+
   const handleEditDisplayName = useCallback(
     () =>
       navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
@@ -116,6 +122,17 @@ const ManageProfile = () => {
         initialValue: profile.bio,
       }),
     [navigation, profile.bio],
+  );
+  const handleOpenXAccount = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.X_ACCOUNT);
+  }, [navigation]);
+  const handleEditTradingActivity = useCallback(
+    () =>
+      navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
+        field: ManageProfileFieldName.TradingActivity,
+        initialValue: profile.isTradingActivityVisible,
+      }),
+    [navigation, profile.isTradingActivityVisible],
   );
 
   return (
@@ -190,6 +207,7 @@ const ManageProfile = () => {
               ) : undefined
             }
             testID={ManageProfileSelectorsIDs.X_ACCOUNT_ROW}
+            onPress={handleOpenXAccount}
           />
         </Card>
 
@@ -214,6 +232,7 @@ const ManageProfile = () => {
               />
             }
             testID={ManageProfileSelectorsIDs.TRADING_ACTIVITY_ROW}
+            onPress={handleEditTradingActivity}
           />
           <ProfileRow
             showDivider
@@ -231,6 +250,7 @@ const ManageProfile = () => {
                 />
               ) : undefined
             }
+            onPress={handleOpenLinkedSocialAccount}
             testID={ManageProfileSelectorsIDs.LINKED_SOCIAL_ACCOUNT_ROW}
           />
         </Card>

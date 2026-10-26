@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { fireEvent, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WalletHeader, { type WalletHeaderProps } from './WalletHeader';
 import { WalletViewSelectorsIDs } from '../../WalletView.testIds';
@@ -31,6 +32,27 @@ jest.mock('../../../../UI/Card/components/CardButton', () => {
 jest.mock('../../../../hooks/useAccountsMenuAttention', () => ({
   useAccountsMenuAttention: jest.fn(() => false),
 }));
+
+let mockSocialV1Enabled = false;
+jest.mock('../../../../../selectors/featureFlagController/socialV1', () => ({
+  selectIsSocialV1Enabled: jest.fn(() => mockSocialV1Enabled),
+}));
+
+const mockWalletHeaderProfileAvatar = jest.fn();
+jest.mock('./WalletHeaderProfileAvatar', () => {
+  const { View } = jest.requireActual('react-native');
+  const { WalletViewSelectorsIDs: TestIds } = jest.requireActual(
+    '../../WalletView.testIds',
+  );
+  return {
+    __esModule: true,
+    SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER: 40,
+    default: (props: { diameter?: number }) => {
+      mockWalletHeaderProfileAvatar(props);
+      return <View testID={TestIds.ACCOUNT_PICKER_AVATAR} />;
+    },
+  };
+});
 
 const mockBlurView = jest.fn();
 jest.mock('expo-blur', () => {
@@ -179,7 +201,6 @@ describe('WalletHeader', () => {
       useSearchHeaderLayout: false,
       isInterimLayout: true,
     };
-
     it('shows Activity, Search and Menu without Copy Address when Money is available', () => {
       const { getByTestId, queryByTestId } = renderWithProvider(
         <WalletHeader {...interimProps} isMoneyAccountVisible />,
@@ -313,6 +334,242 @@ describe('WalletHeader', () => {
       expect(
         getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ACTIONS_CAPSULE),
       ).toHaveStyle({ paddingLeft: 12, paddingRight: 12 });
+    });
+
+    it('uses the Social glass header with Profile, account and Rewards actions', () => {
+      const handleProfilePress = jest.fn();
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          isSocialLayout
+          handleProfilePress={handleProfilePress}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+      expect(mockWalletHeaderProfileAvatar).toHaveBeenCalledWith({
+        diameter: 40,
+      });
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.PROFILE_BUTTON));
+
+      expect(handleProfilePress).toHaveBeenCalledTimes(1);
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON),
+      ).toBeNull();
+      expect(
+        getByTestId(
+          WalletViewSelectorsIDs.WALLET_HEADER_ACCOUNT_PICKER_CAPSULE,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('keeps Social header action icons transparent while pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          isSocialLayout
+          handleProfilePress={jest.fn()}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON),
+        'pressIn',
+      );
+      fireEvent(
+        getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON),
+        'pressIn',
+      );
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_SEARCH_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
+      expect(
+        StyleSheet.flatten(
+          getByTestId(WalletViewSelectorsIDs.WALLET_REWARDS_BUTTON).props.style,
+        ).backgroundColor,
+      ).toBe('transparent');
+    });
+
+    it('keeps the Social account name flexible beside the chevron', () => {
+      const { getByText } = renderWithProvider(
+        <WalletHeader
+          {...interimProps}
+          displayName="Test Main Account a really long name"
+          isSocialLayout
+          handleProfilePress={jest.fn()}
+          handleRewardsPress={jest.fn()}
+        />,
+      );
+
+      expect(
+        getByText('Test Main Account a really long name'),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Social V1 avatar picker', () => {
+    const socialV1Props: WalletHeaderProps = {
+      ...defaultProps,
+      useSearchHeaderLayout: false,
+    };
+
+    beforeEach(() => {
+      mockSocialV1Enabled = false;
+    });
+
+    afterEach(() => {
+      mockSocialV1Enabled = false;
+    });
+
+    it('shows only the avatar in the header, without the account name', () => {
+      mockSocialV1Enabled = true;
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+      // The header's own picker is gone; the name lives in the row under it.
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('keeps the named picker when Social V1 is disabled', () => {
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} />,
+      );
+
+      expect(getByText('Account 1')).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows only the avatar in the interim layout when Social V1 is enabled', () => {
+      mockSocialV1Enabled = true;
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <WalletHeader
+          {...socialV1Props}
+          useSearchHeaderLayout={false}
+          isInterimLayout
+        />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('still opens the profile drawer from the avatar', () => {
+      mockSocialV1Enabled = true;
+      const navigate = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} navigation={{ navigate }} />,
+      );
+
+      fireEvent.press(getByTestId(WalletViewSelectorsIDs.ACCOUNT_ICON));
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL_PROFILE.DRAWER, {});
+    });
+
+    it('shows no dropdown caret in the Social V1 avatar picker', () => {
+      mockSocialV1Enabled = true;
+      const { queryByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} />,
+      );
+
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      ).not.toBeOnTheScreen();
+      expect(
+        queryByTestId(WalletViewSelectorsIDs.ACCOUNT_PICKER_AVATAR),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders the named account picker row under the header', () => {
+      mockSocialV1Enabled = true;
+      const { getByTestId, getByText } = renderWithProvider(
+        <WalletHeader {...socialV1Props} />,
+      );
+
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW_NAME),
+      ).toHaveTextContent('Account 1');
+      expect(getByText('Account 1')).toBeOnTheScreen();
+    });
+
+    it('keeps the row inside the header, so a floating header measures it', () => {
+      mockSocialV1Enabled = true;
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} isInterimLayout />,
+      );
+
+      const stack = getByTestId(
+        WalletViewSelectorsIDs.WALLET_HEADER_WITH_ACCOUNT_PICKER,
+      );
+
+      expect(
+        within(stack).getByTestId(WalletViewSelectorsIDs.WALLET_HEADER_ROOT),
+      ).toBeOnTheScreen();
+      expect(
+        within(stack).getByTestId(
+          WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the account selector from the row, not the profile', () => {
+      mockSocialV1Enabled = true;
+      const navigate = jest.fn();
+      const { getByTestId } = renderWithProvider(
+        <WalletHeader {...socialV1Props} navigation={{ navigate }} />,
+      );
+
+      fireEvent.press(
+        getByTestId(WalletViewSelectorsIDs.WALLET_ACCOUNT_PICKER_ROW_PICKER),
+      );
+
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_SELECTOR,
+        {},
+      );
     });
   });
 });

@@ -66,6 +66,7 @@ describe('traderFeedQueries', () => {
           chains: FEED_CAIP2_CHAINS,
           limit: FEED_PAGE_LIMIT,
         },
+        'infinite',
       ]);
     });
 

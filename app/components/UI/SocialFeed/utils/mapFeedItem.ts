@@ -32,7 +32,7 @@ import type {
 const isPresentNumber = (value: number | null | undefined): value is number =>
   value != null && Number.isFinite(value);
 
-interface FeedItemPresentation {
+export interface FeedItemPresentation {
   valueLabel: string;
   pnlLabel: string;
   hasValueData: boolean;
@@ -121,10 +121,10 @@ function buildSubHeader(
 }
 
 function realizedPnlPercent(
-  realizedPnl: number,
+  realizedPnl: number | null | undefined,
   boughtUsd: number | null | undefined,
 ): number | null {
-  if (!boughtUsd) {
+  if (!isPresentNumber(realizedPnl) || !boughtUsd) {
     return null;
   }
   return (realizedPnl / boughtUsd) * 100;
@@ -171,7 +171,7 @@ function resolveValueLabel(
   return '';
 }
 
-function buildFeedItemPresentation(
+export function buildFeedItemPresentation(
   coreItem: CoreFeedItem,
   isClosed: boolean,
 ): FeedItemPresentation {
@@ -191,8 +191,7 @@ function buildFeedItemPresentation(
   const pnlSignSource = isClosed
     ? pnlValue
     : (coreItem.pnlValueUsd ?? pnlPercent);
-  const isPnlPositive =
-    hasPnlData && isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
+  const isPnlPositive = isPresentNumber(pnlSignSource) && pnlSignSource >= 0;
 
   return {
     valueLabel,
@@ -308,6 +307,22 @@ export function readTriggeringTradeMarketCapUsd(
 }
 
 /**
+ * Whether a feed row announces a full close. Only a full close realizes P&L; a
+ * reduce leaves the position open, so its card keeps showing current value.
+ * Rows without a lifecycle action fall back to the position's own state.
+ */
+export function isFeedItemClosed(coreItem: CoreFeedItem): boolean {
+  const trade = findTriggeringTrade(
+    coreItem.trades ?? [],
+    tradeTimestampToMs(coreItem.timestamp),
+  );
+  const action = resolveAction(coreItem, trade);
+  return (
+    action === 'closed' || (action === undefined && isClosedPosition(coreItem))
+  );
+}
+
+/**
  * Maps a core `SocialService` feed item (`Position` + `actor` + `timestamp`)
  * into the presentation `FeedItem` consumed by `FeedItemRow`.
  *
@@ -322,11 +337,9 @@ export function mapFeedItem(coreItem: CoreFeedItem): FeedItem | null {
   const isPerp = isPerpPosition(coreItem);
   const trade = findTriggeringTrade(trades ?? [], timestampMs);
   const action = resolveAction(coreItem, trade);
-  const isClosed =
-    action === 'closed' || (action === undefined && isClosedPosition(coreItem));
-  // Only a full close realizes P&L. A reduce leaves the position open, so the
-  // right column keeps showing current value — the old `intent === 'exit'`
-  // test flipped it to a realized figure on every partial trim.
+  // The old `intent === 'exit'` test flipped the right column to a realized
+  // figure on every partial trim.
+  const isClosed = isFeedItemClosed(coreItem);
   const subHeader = buildSubHeader(trade, !isPerp);
   const presentation = buildFeedItemPresentation(coreItem, isClosed);
 

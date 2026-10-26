@@ -6,6 +6,7 @@ import { WalletViewSelectorsText } from '../../../app/components/Views/Wallet/Wa
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
+import Utilities from '../../framework/Utilities';
 import { type AppiumElement } from '../../framework';
 
 class ConnectedAccountsModal {
@@ -148,6 +149,54 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Wait until the connected-accounts sheet is interactive and the accounts
+   * summary is showing. Prefer this before asserting account-name text —
+   * Appium can open the sheet while account cells are still mounting (iOS).
+   *
+   * `accounts-connected-modal-container` is declared but never assigned in
+   * the UI. The accounts tab mounts Edit accounts and Disconnect all.
+   */
+  async waitForAccountsSummaryReady(timeout: number = 20_000): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
+      timeout,
+      description: 'Edit accounts control on the connected accounts sheet',
+    });
+    await Assertions.expectElementToBeVisible(
+      this.disconnectAllAccountsAndNetworksButton,
+      {
+        timeout,
+        description: 'Disconnect all accounts and networks control',
+      },
+    );
+  }
+
+  async expectConnectedAccountDisplayed(
+    accountName: string,
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.expectConnectedAccountsDisplayed([accountName], options);
+  }
+
+  /**
+   * Wait once for the accounts summary, then assert each connected account name.
+   * Prefer this after Connect returns — bare `expectTextDisplayed` on Account 2/3
+   * races the newly connected cells while Account 1 is already in the tree.
+   */
+  async expectConnectedAccountsDisplayed(
+    accountNames: string[],
+    options: { timeout?: number } = {},
+  ): Promise<void> {
+    await this.waitForAccountsSummaryReady();
+    const timeout = options.timeout ?? 30_000;
+    for (const accountName of accountNames) {
+      await Assertions.expectTextDisplayed(accountName, {
+        timeout,
+        description: `"${accountName}" in connected accounts summary`,
+      });
+    }
+  }
+
   async tapDisconnectButton(): Promise<void> {
     await Gestures.waitAndTap(this.disconnectButton, {
       elemDescription: 'Disconnect button',
@@ -190,10 +239,20 @@ class ConnectedAccountsModal {
     });
   }
 
+  /**
+   * Confirm disconnect-all. Wait for the confirm control and the connected
+   * sheet's disconnect_all control to leave the tree — iOS can still show the
+   * sheet while the next specs already assert the browser chrome.
+   */
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
       elemDescription: 'Confirm disconnect networks button',
+      waitForElementToDisappear: true,
     });
+    await Utilities.waitForElementToDisappear(
+      this.disconnectAllAccountsAndNetworksButton,
+      15_000,
+    );
   }
 
   async scrollToBottomOfModal(): Promise<void> {

@@ -10,6 +10,10 @@
  * REAL (runs production code paths):
  *   - HyperLiquidProvider — its order / close / validation logic, asset
  *     mapping, all in-memory state transitions
+ *   - `buildPerpsFeeResolutionHarness` additionally runs PerpsController's
+ *     real fee resolver and provider pricing path
+ *   - `buildPerpsDepositHarness` additionally runs PerpsController's real
+ *     deposit preparation up to the TransactionController messenger call
  *
  * MOCKED (the I/O boundary — never makes real network/SDK calls):
  *   - HyperLiquidClientService     — SDK clients, network mode
@@ -124,6 +128,8 @@ jest.mock('@metamask/perps-controller/utils/hyperLiquidValidation', () => ({
 
 import {
   HyperLiquidProvider,
+  PerpsController,
+  type PerpsTradingFeeGrant,
   type PerpsPlatformDependencies,
 } from '@metamask/perps-controller';
 import { HyperLiquidClientService } from '@metamask/perps-controller/services/HyperLiquidClientService';
@@ -173,6 +179,7 @@ function createMockInfoClient() {
       balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
     }),
     userAbstraction: jest.fn().mockResolvedValue('unifiedAccount'),
+    userToMultiSigSigners: jest.fn().mockResolvedValue(null),
     meta: jest.fn().mockResolvedValue({
       universe: [
         { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
@@ -220,10 +227,8 @@ function createMockInfoClient() {
         [{ px: '50001', sz: '1', n: 1 }],
       ],
     }),
-    orderStatus: jest.fn().mockResolvedValue({
-      status: 'order',
-      order: { status: 'open', order: { sz: '0.1' } },
-    }),
+    // No signed identity is known until the test supplies its venue receipt.
+    orderStatus: jest.fn().mockResolvedValue({ status: 'unknownOid' }),
     referral: jest.fn().mockResolvedValue({
       referrerState: { stage: 'ready', data: { code: 'MMCSI' } },
     }),
@@ -322,6 +327,31 @@ export interface PerpsHarnessOptions {
   cachedPrices?: Record<string, string>;
 }
 
+type PerpsRewardsDependencies = NonNullable<
+  PerpsPlatformDependencies['rewards']
+>;
+type GetPerpsDiscountForAccount = NonNullable<
+  PerpsRewardsDependencies['getPerpsDiscountForAccount']
+>;
+type GetPerpsTradingFeeGrant = NonNullable<
+  PerpsRewardsDependencies['getPerpsTradingFeeGrant']
+>;
+
+export interface PerpsFeeResolutionHarness {
+  controller: PerpsController;
+  getPerpsTradingFeeGrant: jest.MockedFunction<GetPerpsTradingFeeGrant>;
+}
+
+export interface PerpsDepositHarness {
+  controller: PerpsController;
+  /** `TransactionController:addTransaction`; its confirmation never settles. */
+  addTransaction: jest.Mock;
+  /** `NetworkController:findNetworkClientIdByChainId`. */
+  findNetworkClientIdByChainId: jest.Mock;
+  /** The network client id `findNetworkClientIdByChainId` returns. */
+  networkClientId: string;
+}
+
 export function buildPerpsIntegrationHarness(
   options: PerpsHarnessOptions = {},
 ): PerpsIntegrationHarness {
@@ -348,7 +378,25 @@ export function buildPerpsIntegrationHarness(
       .fn()
       .mockReturnValue(options.isTestnet ? 'testnet' : 'mainnet'),
     getInfoClient: jest.fn().mockReturnValue(infoClient),
-    getExchangeClient: jest.fn().mockReturnValue(exchangeClient),
+    getExchangeClient: jest.fn((beforeDispatch?: () => Promise<void>) => {
+      if (!beforeDispatch) {
+        return exchangeClient;
+      }
+      // Run the fence before the mocked SDK call. Production runs it after
+      // signing; this harness does not simulate that signing boundary.
+      return new Proxy(exchangeClient, {
+        get(target, property, receiver) {
+          const value: unknown = Reflect.get(target, property, receiver);
+          if (typeof value !== 'function') {
+            return value;
+          }
+          return async (...args: unknown[]) => {
+            await beforeDispatch();
+            return Reflect.apply(value, target, args);
+          };
+        },
+      });
+    }),
     fetchHistoricalOrders: jest.fn().mockResolvedValue([]),
     disconnect: jest.fn().mockResolvedValue(undefined),
     toggleTestnet: jest.fn(),
@@ -477,5 +525,98 @@ export function buildPerpsIntegrationHarness(
       exchangeClient,
       infrastructure,
     },
+  };
+}
+
+function buildHarnessController(
+  infrastructure: jest.Mocked<PerpsPlatformDependencies>,
+  {
+    isTestnet = false,
+    messenger = createMockMessenger(),
+  }: {
+    isTestnet?: boolean;
+    messenger?: ReturnType<typeof createMockMessenger>;
+  } = {},
+): PerpsController {
+  return new PerpsController({
+    messenger,
+    state: {
+      activeProvider: 'hyperliquid',
+      isTestnet,
+      isEligible: true,
+    },
+    infrastructure,
+    deferEligibilityCheck: true,
+  });
+}
+
+/**
+ * Builds a real PerpsController around the Shape A I/O mocks so fee previews
+ * exercise Core's RewardsIntegrationService and provider fee calculation.
+ */
+export function buildPerpsFeeResolutionHarness(
+  grant: PerpsTradingFeeGrant,
+): PerpsFeeResolutionHarness {
+  const { mocks } = buildPerpsIntegrationHarness();
+  const rewards = mocks.infrastructure.rewards;
+  const getPerpsDiscountForAccount = rewards?.getPerpsDiscountForAccount;
+  const getPerpsTradingFeeGrant = rewards?.getPerpsTradingFeeGrant;
+  if (!getPerpsDiscountForAccount || !getPerpsTradingFeeGrant) {
+    throw new Error('Perps rewards infrastructure is required');
+  }
+
+  const mockGetPerpsDiscountForAccount =
+    getPerpsDiscountForAccount as jest.MockedFunction<GetPerpsDiscountForAccount>;
+  const mockGetPerpsTradingFeeGrant =
+    getPerpsTradingFeeGrant as jest.MockedFunction<GetPerpsTradingFeeGrant>;
+  mockGetPerpsDiscountForAccount.mockResolvedValue(null);
+  mockGetPerpsTradingFeeGrant.mockResolvedValue(grant);
+
+  return {
+    controller: buildHarnessController(mocks.infrastructure),
+    getPerpsTradingFeeGrant: mockGetPerpsTradingFeeGrant,
+  };
+}
+
+/**
+ * Builds a real PerpsController around the Shape A I/O mocks whose deposit
+ * flow stops at mocked NetworkController and TransactionController messenger
+ * calls, so tests observe the prepared transaction without submitting it.
+ * Route validation stays stubbed by this module; restore `getSupportedPaths`
+ * for real deposit routes.
+ */
+export function buildPerpsDepositHarness(
+  options: Pick<PerpsHarnessOptions, 'isTestnet'> = {},
+): PerpsDepositHarness {
+  const { mocks } = buildPerpsIntegrationHarness(options);
+  const networkClientId = 'deposit-network-client';
+  const addTransaction = jest.fn().mockResolvedValue({
+    result: new Promise(() => undefined),
+    transactionMeta: { id: 'deposit-transaction' },
+  });
+  const findNetworkClientIdByChainId = jest
+    .fn()
+    .mockReturnValue(networkClientId);
+  const messenger = createMockMessenger();
+  const defaultCall = messenger.call.getMockImplementation();
+  messenger.call.mockImplementation((...args) => {
+    const [action, ...params] = args;
+    if (action === 'TransactionController:addTransaction') {
+      return addTransaction(...params);
+    }
+    if (action === 'NetworkController:findNetworkClientIdByChainId') {
+      return findNetworkClientIdByChainId(...params);
+    }
+    return defaultCall?.(...args);
+  });
+
+  return {
+    controller: buildHarnessController(mocks.infrastructure, {
+      isTestnet: options.isTestnet,
+      messenger,
+    }),
+    addTransaction,
+    findNetworkClientIdByChainId,
+    networkClientId,
   };
 }

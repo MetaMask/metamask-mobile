@@ -16,6 +16,8 @@ export interface NativeHeaderConfig {
   rightItems?: () => NativeStackHeaderItem[];
   /** Per-screen gate, e.g. a feature flag, on top of OS support. */
   isEnabled?: boolean;
+  /** Turns off UIKit's top scroll edge effect, for screens that draw their own backdrop. */
+  hidesScrollEdgeEffect?: boolean;
 }
 
 /** Compact UINavigationBar height, below the status bar. */
@@ -26,6 +28,7 @@ const HIDDEN_HEADER_OPTIONS: NativeStackNavigationOptions = {
   headerTransparent: false,
   unstable_headerLeftItems: undefined,
   unstable_headerRightItems: undefined,
+  scrollEdgeEffects: undefined,
 };
 
 /**
@@ -47,6 +50,7 @@ export const useNativeHeader = ({
   leftItems,
   rightItems,
   isEnabled = true,
+  hidesScrollEdgeEffect = false,
 }: NativeHeaderConfig = {}): boolean => {
   const isNativeHeader = useIsNativeHeader() && isEnabled;
   const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
@@ -65,8 +69,16 @@ export const useNativeHeader = ({
       title: '',
       unstable_headerLeftItems: leftItems,
       unstable_headerRightItems: rightItems,
+      scrollEdgeEffects: hidesScrollEdgeEffect ? { top: 'hidden' } : undefined,
     });
-  }, [isNativeHeader, navigation, colors.icon.default, leftItems, rightItems]);
+  }, [
+    isNativeHeader,
+    navigation,
+    colors.icon.default,
+    leftItems,
+    rightItems,
+    hidesScrollEdgeEffect,
+  ]);
 
   useLayoutEffect(() => {
     if (!isNativeHeader) {

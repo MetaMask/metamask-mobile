@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import type {
   EnrolledCredential,
   VerificationToken,
@@ -11,7 +12,9 @@ import {
 } from '../../../../util/identity/mfa/engine/activeFlow';
 import type {
   MfaControllerAdapter,
+  MfaFlowOptions,
   MfaFlowRequest,
+  MfaReason,
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
@@ -88,12 +91,18 @@ const createController = (
 const start = async (
   request: MfaFlowRequest,
   controller: MfaControllerAdapter,
+  passkey?: MfaFlowOptions['passkey'],
+  reason: MfaReason = {
+    operation: 'test',
+    enrollDescription: 'Why we ask',
+  },
 ) => {
   const outcome = startMfaFlow({
     request,
-    reason: { operation: 'test', description: 'Why we ask' },
+    reason,
     platform: 'mobile',
     controller,
+    passkey,
   }).then(
     (value) => ({ ok: true as const, value }),
     (error) => ({ ok: false as const, code: error.mfaCode }),
@@ -115,7 +124,33 @@ describe('MfaFlowHost', () => {
     await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
   });
 
-  it('runs email setup from entry to success and resolves', async () => {
+  it.each([
+    ['card', 'card', SlideInRight],
+    ['default modal', undefined, SlideInDown],
+  ] as const)(
+    'uses the %s transition for full-screen steps',
+    async (_label, presentation, transition) => {
+      const { outcome } = await start(
+        { kind: 'enroll', method: 'email_otp' },
+        createController(),
+        undefined,
+        { operation: 'test', presentation },
+      );
+
+      const { getByTestId, unmount } = renderHost();
+
+      expect(
+        getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`).props
+          .entering,
+      ).toBe(transition);
+
+      await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
+      await outcome;
+      unmount();
+    },
+  );
+
+  it('runs email setup from entry to the code, then resolves and closes', async () => {
     const controller = createController();
     const { outcome } = await start(
       { kind: 'enroll', method: 'email_otp' },
@@ -154,14 +189,6 @@ describe('MfaFlowHost', () => {
         proof: { type: 'email_otp', code: '123456' },
       }),
     );
-    expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-success`),
-    ).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    });
-
     expect(await outcome).toEqual({
       ok: true,
       value: { credentials: [activeEmail] },
@@ -218,13 +245,6 @@ describe('MfaFlowHost', () => {
         proof: { type: 'email_otp', code: '222222' },
       }),
     );
-    expect(
-      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-success`),
-    ).toBeOnTheScreen();
-    await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
-    });
-
     const result = await outcome;
     expect(result.ok && result.value.token?.claims.amr).toEqual(['email_otp']);
   });
@@ -237,11 +257,33 @@ describe('MfaFlowHost', () => {
     const { getByTestId } = renderHost();
 
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
     expect(mockRemoveSelf).toHaveBeenCalledTimes(1);
+  });
+
+  it('asks how to verify in a sheet, and cancels when the sheet closes', async () => {
+    const { outcome } = await start(
+      {
+        kind: 'verifyOrEnroll',
+        methods: ['email_otp', 'passkey'],
+        verifyWith: ['email_otp', 'passkey'],
+      },
+      createController([activeEmail, { type: 'passkey', status: 'active' }]),
+      { create: jest.fn(), get: jest.fn() },
+    );
+    const { getByTestId } = renderHost();
+
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-picker`),
+    ).toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+    });
+
+    expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
   });
 
   it('closes itself when no flow is running', async () => {
@@ -274,7 +316,7 @@ describe('MfaFlowHost', () => {
     const { getByTestId } = renderHost();
 
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
 
     expect(await outcome).toEqual({ ok: false, code: 'flow_cancelled' });
@@ -291,14 +333,14 @@ describe('MfaFlowHost', () => {
     );
     const { getByTestId, queryByText, unmount } = renderHost();
     await act(async () => {
-      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.CLOSE_BUTTON));
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
     });
     expect(await first.outcome).toEqual({ ok: false, code: 'flow_cancelled' });
 
     await act(async () => {
       startMfaFlow({
         request: { kind: 'verifyOrEnroll', methods: ['email_otp'] },
-        reason: { operation: 'next', description: 'Next reason' },
+        reason: { operation: 'next', enrollDescription: 'Next reason' },
         platform: 'mobile',
         controller: createController(),
       }).catch(() => undefined);
