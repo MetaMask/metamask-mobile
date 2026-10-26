@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import type { NetworkTier } from '../../../../../util/deviceCapability/types';
 import {
   DEFAULT_PROFILE_AVATAR_BACKGROUND_ID,
+  PROFILE_AVATAR_PRESETS,
   toFoxiconAvatarUrl,
 } from '../../MyProfileView/avatarPresets';
 import type { UseMyProfileResult } from '../../MyProfileView/hooks/useMyProfile';
@@ -93,6 +94,23 @@ describe('EditProfileAvatarView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('names avatar options for assistive technology', () => {
+    renderWithProvider(<EditProfileAvatarView />);
+
+    PROFILE_AVATAR_PRESETS.forEach((preset, index) => {
+      expect(
+        screen.getByTestId(
+          `${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${preset.id}`,
+        ),
+      ).toHaveProp(
+        'accessibilityLabel',
+        `${strings(
+          'social_leaderboard.profile_onboarding.customize_avatar',
+        )} ${index + 1}`,
+      );
+    });
+  });
+
   it('does not write the profile while offline', () => {
     mockUseNetworkTier.mockReturnValue('NONE');
 
@@ -115,11 +133,12 @@ describe('EditProfileAvatarView', () => {
       screen.getByTestId(EditProfileAvatarSelectorsIDs.SAVE_BUTTON),
     );
 
-    expect(
-      await screen.findByText(
-        strings('social_leaderboard.manage_profile.save_error'),
-      ),
-    ).toBeOnTheScreen();
+    const errorMessage = await screen.findByText(
+      strings('social_leaderboard.manage_profile.save_error'),
+    );
+
+    expect(errorMessage).toBeOnTheScreen();
+    expect(errorMessage).toHaveProp('accessibilityLiveRegion', 'polite');
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

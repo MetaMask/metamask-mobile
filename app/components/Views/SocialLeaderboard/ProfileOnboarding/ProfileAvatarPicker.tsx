@@ -2,6 +2,7 @@ import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
+import { strings } from '../../../../../locales/i18n';
 import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { useHaptics } from '../../../../util/haptics';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
@@ -62,11 +63,14 @@ const ProfileAvatarPicker: React.FC<ProfileAvatarPickerProps> = ({
         twClassName="flex-row flex-wrap justify-center gap-5 mt-11"
         style={tw.style({ width: AVATAR_GRID_WIDTH })}
       >
-        {PROFILE_AVATAR_PRESETS.map((preset) => {
+        {PROFILE_AVATAR_PRESETS.map((preset, index) => {
           const isSelected = avatarPresetId === preset.id;
           return (
             <Pressable
               key={preset.id}
+              accessibilityLabel={`${strings(
+                'social_leaderboard.profile_onboarding.customize_avatar',
+              )} ${index + 1}`}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
               onPress={() => handleSelectPreset(preset.id)}

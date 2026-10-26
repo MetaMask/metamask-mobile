@@ -116,6 +116,7 @@ const EditProfileAvatarView: React.FC = () => {
       <Box twClassName="px-4 pb-4">
         {errorMessage ? (
           <Text
+            accessibilityLiveRegion="polite"
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
             twClassName="text-center pb-3"
