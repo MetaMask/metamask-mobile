@@ -30,12 +30,19 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
 
-const renderSettings = (enrolledCredentials: EnrolledCredential[] = []) =>
+const renderSettings = (
+  enrolledCredentials: EnrolledCredential[] = [],
+  seedlessVault?: string,
+) =>
   renderWithProvider(<MfaSettings />, {
     state: {
       engine: {
         backgroundState: {
           ...backgroundState,
+          SeedlessOnboardingController: {
+            ...backgroundState.SeedlessOnboardingController,
+            vault: seedlessVault,
+          },
           AuthenticationController: {
             ...backgroundState.AuthenticationController,
             enrolledCredentials,
@@ -50,6 +57,23 @@ describe('MfaSettings', () => {
     jest.clearAllMocks();
     mockAdapter.refreshEnrolledCredentials.mockResolvedValue([]);
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+  });
+
+  it('hides email and keeps the authenticator app for social login users', () => {
+    const { queryByTestId, getByTestId } = renderSettings(
+      [
+        {
+          type: 'email_otp',
+          status: 'active',
+          email: 'a@b.co',
+          verified: true,
+        },
+      ],
+      'vault',
+    );
+
+    expect(queryByTestId(MfaSettingsSelectorsIDs.EMAIL_ROW)).toBeNull();
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toBeOnTheScreen();
   });
 
   it('refreshes the methods and offers to add email', async () => {
