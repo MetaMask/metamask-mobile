@@ -530,6 +530,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.64,
             slippage: 0.05,
+            worstFillPrice: 0.64,
           }),
         }),
       });
@@ -560,6 +561,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.62,
             slippage: 0.05,
+            worstFillPrice: 0.62,
           }),
         }),
       });
@@ -591,6 +593,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.68,
             slippage: 0.05,
+            worstFillPrice: 0.68,
           }),
         }),
       });
@@ -652,6 +655,7 @@ describe('usePredictOrderRetry', () => {
             sharePrice: 0.098,
             tickSize: 0.001,
             slippage: 0.05,
+            worstFillPrice: 0.098,
           }),
         }),
       });
@@ -736,6 +740,45 @@ describe('usePredictOrderRetry', () => {
       expect(result.current.retryQuote).toBeNull();
       expect(params.placeOrder).not.toHaveBeenCalled();
     });
+
+    it.each([
+      // 62¢ is the price on the sheet; 55¢ is under its 5% floor (58.9¢).
+      ['at the last price', 0.62],
+      // 3 ticks worse: the floor comes from the new price on the sheet.
+      ['after the price moved', 0.65],
+    ])(
+      'moves to no_match when a sell only fills outside the band %s',
+      async (_, lastSubmittedPrice) => {
+        const params = createDefaultParams({
+          lastSubmittedPreview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: lastSubmittedPrice,
+            slippage: 0.05,
+          }),
+          refetchPreview: jest.fn().mockResolvedValue({
+            status: 'ok' as const,
+            preview: createMockPreview({
+              side: Side.SELL,
+              sharePrice: 0.62,
+              slippage: 0.05,
+              worstFillPrice: 0.55,
+            }),
+          }),
+        });
+        const { result, rerender } = renderHook(() =>
+          usePredictOrderRetry(params),
+        );
+
+        await act(async () => {
+          params.isOrderNotFilled = true;
+          rerender();
+        });
+
+        expect(result.current.retrySheetVariant).toBe('no_match');
+        expect(result.current.retryQuote).toBeNull();
+        expect(params.placeOrder).not.toHaveBeenCalled();
+      },
+    );
 
     it('submits nothing when confirming from the no_match state', async () => {
       const params = createDefaultParams({

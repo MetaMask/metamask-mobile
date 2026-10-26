@@ -13,7 +13,10 @@ import {
   type PredictBuyAttempt,
   type PredictRetryOrderState,
 } from '../types';
-import { getPredictTicksWorse } from '../utils/prices';
+import {
+  getPredictSellSubmitDecision,
+  getPredictTicksWorse,
+} from '../utils/prices';
 import { sanitizePredictFailureReason } from '../utils/analytics';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
 import type { RefetchPreviewResult } from './usePredictOrderPreview';
@@ -89,6 +92,17 @@ function classifyFreshQuote(
       return { outcome: 'unavailable' };
     case 'ok': {
       const freshPreview = fetchResult.preview;
+      // A sell that cannot fill inside the band of the quoted price would be
+      // blocked on confirm, so it is no match now.
+      if (
+        freshPreview.side === Side.SELL &&
+        getPredictSellSubmitDecision({
+          approvedPrice: freshPreview.sharePrice,
+          freshPreview,
+        }) === 'no_match'
+      ) {
+        return { outcome: 'no_match' };
+      }
       const ticksWorse =
         referencePrice === undefined
           ? 0

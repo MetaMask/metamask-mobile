@@ -531,7 +531,7 @@ describe('PredictSellPreview', () => {
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
 
-    it('sends outcome version v2 with the cash out order of a Protocol V2 outcome', () => {
+    it('sends outcome version v2 with the cash out order of a Protocol V2 outcome', async () => {
       mockPlaceOrderResult = {
         success: true,
         response: { transactionHash: '0xabc123' },
@@ -547,7 +547,9 @@ describe('PredictSellPreview', () => {
         state: initialState,
       });
 
-      fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+      await act(async () => {
+        fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+      });
 
       expect(mockPlaceOrder).toHaveBeenCalledWith(
         expect.objectContaining({
