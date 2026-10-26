@@ -74,6 +74,14 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
     twClassName: 'bg-transparent',
   };
 
+  const mfaBadgeProps = {
+    iconName: IconName.SecurityTick,
+    iconProps: { color: IconColor.SuccessDefault },
+    onPress: onMfaBadgePress,
+    accessibilityLabel: strings('money.mfa.badge_label'),
+    testID: MoneyMfaTestIds.HEADER_BADGE,
+  };
+
   if (props.onBack) {
     return (
       <HeaderStandardAnimatedGlass
@@ -92,7 +100,11 @@ const MoneyHeader = (props: MoneyHeaderProps) => {
           accessibilityLabel: strings('navigation.back'),
           testID: MoneyHeaderTestIds.BACK_BUTTON,
         }}
-        endButtonIconProps={[menuButtonProps]}
+        // The collapsing title has no accessory slot, so the shield sits
+        // with the end buttons.
+        endButtonIconProps={
+          isMfaEnabled ? [mfaBadgeProps, menuButtonProps] : [menuButtonProps]
+        }
       />
     );
   }

@@ -111,6 +111,18 @@ describe('moneyAccountMigration', () => {
     );
   });
 
+  it('rejects without saving a result when reset while running', async () => {
+    const promise = moneyAccountMigration.start();
+    moneyAccountMigration.reset();
+    mockSetItem.mockClear();
+
+    jest.runAllTimers();
+
+    await expect(promise).rejects.toThrow('cancelled');
+    expect(moneyAccountMigration.getStatus()).toBe('not_started');
+    expect(mockSetItem).not.toHaveBeenCalled();
+  });
+
   it('saves each status and notifies subscribers', async () => {
     const listener = jest.fn();
     moneyAccountMigration.subscribe(listener);
