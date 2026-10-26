@@ -1,5 +1,6 @@
 import React, { type ReactNode } from 'react';
 
+import { DeferredRenderContext } from './DeferredRenderContext';
 import {
   useDeferredRender,
   type UseDeferredRenderOptions,
@@ -17,6 +18,9 @@ export interface DeferredRenderProps extends UseDeferredRenderOptions {
  * Renders `placeholder` until {@link useDeferredRender} releases `children`.
  * Passes `enabled` through to the hook.
  *
+ * Marks its subtree through {@link DeferredRenderContext} so a second gate or
+ * a bare `useDeferredRender` below it can warn in development.
+ *
  * @param props - Placeholder, children, and `enabled`.
  * @returns The placeholder or the deferred children.
  */
@@ -27,5 +31,9 @@ export function DeferredRender({
 }: DeferredRenderProps) {
   const isReady = useDeferredRender({ enabled });
 
-  return <>{isReady ? children : placeholder}</>;
+  return (
+    <DeferredRenderContext.Provider value>
+      {isReady ? children : placeholder}
+    </DeferredRenderContext.Provider>
+  );
 }

@@ -1,8 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 
 import type { AppStackNavigationProp } from '../../core/NavigationService/types';
 import { subscribeScreenTransition } from '../hooks/subscribeScreenTransition';
+import { DeferredRenderContext } from './DeferredRenderContext';
 
 /** Options for {@link useDeferredRender}. */
 export interface UseDeferredRenderOptions {
@@ -31,10 +32,23 @@ export function useDeferredRender({
 }: UseDeferredRenderOptions = {}): boolean {
   const navigation = useNavigation<AppStackNavigationProp>();
   const [isReleased, setIsReleased] = useState(() => !enabled);
+  const isNested = useContext(DeferredRenderContext);
+  const warnedRef = useRef(false);
 
   if (!enabled && !isReleased) {
     setIsReleased(true);
   }
+
+  useEffect(() => {
+    if (!__DEV__ || !isNested || warnedRef.current) {
+      return;
+    }
+
+    warnedRef.current = true;
+    console.warn(
+      'DeferredRender: a gate is already deferring this subtree. Use one gate per screen; a nested gate only costs another frame.',
+    );
+  }, [isNested]);
 
   useEffect(() => {
     if (isReleased || !enabled) {
