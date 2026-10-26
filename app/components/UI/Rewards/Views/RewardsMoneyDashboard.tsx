@@ -47,6 +47,7 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { canClaimEarnings } from '../utils/claimEarnings';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
@@ -70,17 +71,6 @@ export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
 const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
-
-const hasClaimableEarnings = (claimable?: string): boolean => {
-  if (!claimable) {
-    return false;
-  }
-  try {
-    return BigInt(claimable) > 0n;
-  } catch {
-    return false;
-  }
-};
 
 function sessionHasNoProfile(
   identityReady: boolean,
@@ -151,11 +141,11 @@ const RewardsMoneyDashboard: React.FC = () => {
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
-  const showEarningsDot = hasClaimableEarnings(
-    earningsSummaryEntry?.data?.claimable,
-  );
-
   const referralMe = referralMeEntry?.data;
+  const showEarningsDot = canClaimEarnings(
+    earningsSummaryEntry?.data,
+    moneyDashboardPersona(referralMe),
+  );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   // The three panels share this scroller. A tab press returns to the top so a

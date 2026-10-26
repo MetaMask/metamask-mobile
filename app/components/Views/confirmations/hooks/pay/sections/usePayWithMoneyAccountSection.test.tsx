@@ -468,27 +468,24 @@ describe('usePayWithMoneyAccountSection', () => {
       },
     );
 
-    it.each([
-      TransactionType.predictDeposit,
-      TransactionType.predictDepositAndOrder,
+    it.each<[TransactionType, boolean]>([
+      [TransactionType.predictDeposit, true],
+      [TransactionType.predictDeposit, false],
+      [TransactionType.predictDepositAndOrder, true],
+      [TransactionType.predictDepositAndOrder, false],
     ])(
-      'renders the "no deposit fee" tag on the money account row for %s',
-      (txType) => {
+      'omits the tag for %s when the fixed-spread route is listed: %s',
+      (txType, routeEnabled) => {
         useTransactionMetadataRequestMock.mockReturnValue({
           id: 'tx-1',
           type: txType,
           txParams: {},
         } as never);
-        mockNoFeeRoute(true);
+        mockNoFeeRoute(routeEnabled);
 
         const { result } = renderHook(() => usePayWithMoneyAccountSection());
-        const tag = result.current?.rows[0].tagRenderers?.[0]?.();
-        const { getByTestId, getByText } = render(<>{tag}</>);
 
-        expect(
-          getByTestId(`${PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID}-no-fee-tag`),
-        ).toBeOnTheScreen();
-        expect(getByText('No deposit fee')).toBeOnTheScreen();
+        expect(result.current?.rows[0].tagRenderers).toBeUndefined();
       },
     );
 

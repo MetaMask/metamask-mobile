@@ -111,7 +111,10 @@ const installComplianceController = (blocked: boolean) => {
 };
 
 const pressCopyTrade = async () => {
-  const button = await screen.findByTestId(copyTradeButtonTestId);
+  const trendingPage = within(
+    screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+  );
+  const button = await trendingPage.findByTestId(copyTradeButtonTestId);
   fireEvent.press(button);
 };
 
@@ -188,7 +191,10 @@ describe('SocialV1View copy trade', () => {
       overrides: eligibleOverrides,
     });
 
-    const card = await screen.findByTestId(
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    const card = await trendingPage.findByTestId(
       `${SocialFeedPostShellSelectorsIDs.CONTAINER}-${OPEN_PERP_POST_ID}`,
     );
     const cardScope = within(card);
@@ -238,13 +244,19 @@ describe('SocialV1View initial tab', () => {
     await waitFor(() =>
       expect(getCalledActions()).toContain('SocialService:fetchFeed'),
     );
-    expect(screen.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(trendingPage.queryByTestId(feedPostTestId)).not.toBeOnTheScreen();
   });
 
   it('opens on Trending when the initial tab is not a Social V1 tab', async () => {
     renderWithInitialTab('feed');
 
-    expect(await screen.findByTestId(feedPostTestId)).toBeOnTheScreen();
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).not.toBeOnTheScreen();
