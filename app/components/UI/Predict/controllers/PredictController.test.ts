@@ -3663,7 +3663,7 @@ describe('PredictController', () => {
           expect(result).toEqual({ status: 'unavailable', eligible: false });
           expect(logSpy).toHaveBeenCalledWith(
             PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-            cronetError.message,
+            'net::ERR_CONNECTION_TIMED_OUT',
             expect.any(Object),
           );
           expect(errorSpy).not.toHaveBeenCalled();

@@ -847,7 +847,7 @@ describe('PolymarketProvider', () => {
       expect(Logger.error).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        cronetError.message,
+        'net::ERR_NAME_NOT_RESOLVED',
         expect.any(Object),
       );
     });
@@ -1155,7 +1155,7 @@ describe('PolymarketProvider', () => {
       expect(Logger.error).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        expect.stringContaining('NSURLErrorDomain Code=-1005'),
+        '-1005',
         expect.objectContaining({
           context: {
             name: 'PolymarketProvider',

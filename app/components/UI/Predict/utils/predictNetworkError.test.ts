@@ -149,7 +149,7 @@ describe('predictNetworkError', () => {
       expect(Logger.error).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        CRONET_MESSAGE,
+        'net::ERR_CONNECTION_TIMED_OUT',
         context,
       );
     });
@@ -160,7 +160,7 @@ describe('predictNetworkError', () => {
       expect(Logger.error).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        NSURL_OFFLINE_MESSAGE,
+        '-1009',
         {
           tags: context.tags,
           context: {
@@ -184,7 +184,7 @@ describe('predictNetworkError', () => {
       expect(Logger.error).not.toHaveBeenCalled();
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        message,
+        '-1200',
         expect.objectContaining({
           context: {
             name: 'PolymarketProvider',
@@ -201,7 +201,7 @@ describe('predictNetworkError', () => {
 
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        message,
+        '-1005',
         expect.objectContaining({
           context: {
             name: 'PolymarketProvider',
@@ -218,7 +218,7 @@ describe('predictNetworkError', () => {
 
       expect(Logger.log).toHaveBeenCalledWith(
         PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        NSURL_OFFLINE_MESSAGE,
+        '-1009',
         {
           tags: { feature: 'Predict' },
           context: { name: 'Predict', data: { nsurl_code: -1009 } },
@@ -242,6 +242,18 @@ describe('predictNetworkError', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(error, context);
       expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('logs a code or the error name and never the raw message', () => {
+      const message =
+        'Network request failed https://clob.polymarket.com/v2/user-pnl?user=0xAbCdEf0123456789aBcDeF0123456789AbCdEf01';
+
+      logPredictError(new Error(message), context);
+
+      const loggedArgs = jest.mocked(Logger.log).mock.calls[0];
+      expect(loggedArgs?.[0]).toBe(PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE);
+      expect(loggedArgs?.[1]).toBe('Error');
+      expect(loggedArgs).not.toContain(message);
     });
 
     it('normalizes non-Error values before reporting', () => {

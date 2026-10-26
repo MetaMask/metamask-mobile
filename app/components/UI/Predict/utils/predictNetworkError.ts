@@ -156,11 +156,34 @@ function getThrottleKey(context: LoggerErrorOptions): string {
   return `${name}:${typeof method === 'string' ? method : 'unknown'}`;
 }
 
+const NET_ERR_TOKEN_PATTERN = /net::ERR_[A-Z0-9_]+/u;
+
+/**
+ * Breadcrumb detail safe to send to Sentry. The raw message can carry a URL
+ * or an EVM address, and Logger.log skips the beforeSend scrub.
+ * iOS: NSURL code. Android Cronet: net::ERR_* token. Otherwise the error name.
+ */
+function getPredictNetworkBreadcrumbDetail(
+  error: unknown,
+  nsurlCode: number | undefined,
+): string {
+  if (nsurlCode !== undefined) {
+    return String(nsurlCode);
+  }
+  const netErrToken = NET_ERR_TOKEN_PATTERN.exec(getErrorMessage(error));
+  if (netErrToken) {
+    return netErrToken[0];
+  }
+  return error instanceof Error ? error.name : 'Error';
+}
+
 /**
  * Records an already-classified transient network error as a Sentry
  * breadcrumb (Logger.log), at most once per call site every
- * PREDICT_NETWORK_BREADCRUMB_THROTTLE_MS. Adds `nsurl_code` to the context
- * data when the error carries an iOS NSURLErrorDomain code.
+ * PREDICT_NETWORK_BREADCRUMB_THROTTLE_MS. The logged detail is the NSURL
+ * code, a net::ERR_* token, or the error name, never the raw message.
+ * Adds `nsurl_code` to the context data when the error carries an iOS
+ * NSURLErrorDomain code.
  *
  * @param error - The caught network error
  * @param context - Logger error options (tags/context) for this call site
@@ -194,7 +217,7 @@ export function recordPredictNetworkError(
 
   Logger.log(
     PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-    getErrorMessage(error),
+    getPredictNetworkBreadcrumbDetail(error, nsurlCode),
     breadcrumbContext,
   );
 }
