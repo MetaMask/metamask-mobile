@@ -120,6 +120,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
 jest.mock('../../hooks/useEmailVerificationSend');
 const mockSignUpRegions = [
   {
+    key: 'AU',
+    name: 'Australia',
+    emoji: '🇦🇺',
+    areaCode: '61',
+    canSignUp: true,
+  },
+  {
     key: 'NZ',
     name: 'New Zealand',
     emoji: '🇳🇿',
@@ -496,7 +503,7 @@ describe('SignUp Component', () => {
       const { selectCardImmersveCountries, selectCardImmersveEnabled } =
         jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -666,7 +673,7 @@ describe('SignUp Component', () => {
       );
     });
 
-    it('prefills New Zealand when geolocation errors', () => {
+    it('prefills Australia when geolocation errors', () => {
       render(
         <Provider
           store={createTestStore({ geoLocation: 'US', geoStatus: 'error' })}
@@ -683,11 +690,11 @@ describe('SignUp Component', () => {
           location_format: 'country',
         },
       );
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
-    it('prefills New Zealand when geolocation is unknown', () => {
+    it('prefills Australia when geolocation is unknown', () => {
       render(
         <Provider store={createTestStore({ geoLocation: 'UNKNOWN' })}>
           <SignUp />
@@ -702,10 +709,10 @@ describe('SignUp Component', () => {
           location_format: 'unknown',
         },
       );
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
     });
 
-    it('prefills New Zealand when geolocation is not a registration country', () => {
+    it('prefills Australia when geolocation is not a registration country', () => {
       render(
         <Provider store={createTestStore({ geoLocation: 'JP' })}>
           <SignUp />
@@ -720,7 +727,7 @@ describe('SignUp Component', () => {
           location_format: 'country',
         },
       );
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
     });
 
     it('tracks unavailable registration settings ahead of geolocation', () => {
@@ -1052,14 +1059,15 @@ describe('SignUp Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('RegionSelectorModal', {
         params: {
           regions: [
+            expect.objectContaining({ key: 'AU', name: 'Australia' }),
             expect.objectContaining({ key: 'NZ', name: 'New Zealand' }),
           ],
-          selectedRegionKey: 'NZ',
+          selectedRegionKey: 'AU',
         },
       });
     });
 
-    it('prefills New Zealand when geolocation is a different country', () => {
+    it('prefills Australia when geolocation is a different country', () => {
       const storeWithGeo = createTestStore({ geoLocation: 'CA' });
 
       const { getByText, queryByText } = render(
@@ -1068,13 +1076,13 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(queryByText('Canada')).toBeNull();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
     });
 
-    it('prefills New Zealand when geolocation is US', () => {
+    it('prefills Australia when geolocation is US', () => {
       const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByText } = render(
@@ -1083,20 +1091,20 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
-    it('prefills New Zealand when geolocation is a subdivision', () => {
+    it('prefills Australia when geolocation is a subdivision', () => {
       const { getByText } = render(
         <Provider store={createTestStore({ geoLocation: 'US-NY' })}>
           <SignUp />
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: MetaMetricsEvents.CARD_VIEWED.category,
@@ -1108,7 +1116,7 @@ describe('SignUp Component', () => {
       );
     });
 
-    it('prefills New Zealand when geolocation is UNKNOWN', () => {
+    it('prefills Australia when geolocation is UNKNOWN', () => {
       const storeWithUnknown = createTestStore({ geoLocation: 'UNKNOWN' });
 
       const { getByText } = render(
@@ -1117,12 +1125,12 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
     });
 
-    it('prefills New Zealand when geolocation does not match any available region', () => {
+    it('prefills Australia when geolocation does not match any available region', () => {
       const storeWithUnsupported = createTestStore({ geoLocation: 'JP' });
 
       const { getByText } = render(
@@ -1131,7 +1139,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(mockSetUserLocation).toHaveBeenCalledWith('international');
     });
 
@@ -1144,14 +1152,14 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
     });
 
     it('treats an Immersve country as supported (no waitlist) when onboarding is enabled', () => {
       const { selectCardImmersveCountries, selectCardImmersveEnabled } =
         jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -1161,7 +1169,7 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(
         queryByTestId('signup-country-not-available-text'),
       ).not.toBeOnTheScreen();
@@ -1172,7 +1180,7 @@ describe('SignUp Component', () => {
       ).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-select')).toBeOnTheScreen();
       expect(getByTestId('signup-immersve-account-avatar')).toBeOnTheScreen();
-      expect(mockSetSelectedCountry).toHaveBeenCalledWith('NZ');
+      expect(mockSetSelectedCountry).toHaveBeenCalledWith('AU');
 
       mockNavigate.mockClear();
       fireEvent.press(getByTestId('signup-immersve-phone-area-code-select'));
@@ -1190,7 +1198,7 @@ describe('SignUp Component', () => {
       const { selectCardImmersveCountries, selectCardImmersveEnabled } =
         jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -1218,7 +1226,7 @@ describe('SignUp Component', () => {
       const { selectCardImmersveCountries, selectCardImmersveEnabled } =
         jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
 
       const storeWithImmersve = createTestStore({ geoLocation: 'GB' });
 
@@ -1277,7 +1285,7 @@ describe('SignUp Component', () => {
       const { selectCardImmersveCountries, selectCardImmersveEnabled } =
         jest.requireMock('../../../../../selectors/featureFlagController/card');
       (selectCardImmersveEnabled as jest.Mock).mockReturnValue(true);
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
     };
 
     const fillImmersveForm = (getByTestId: (id: string) => unknown) => {
@@ -1303,7 +1311,7 @@ describe('SignUp Component', () => {
 
       expect(getByTestId('signup-immersve-legal-clickwrap')).toBeOnTheScreen();
       expect(queryByTestId('signup-password-input')).not.toBeOnTheScreen();
-      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('NZ');
+      expect(mockUseImmersveSupportedRegions).toHaveBeenCalledWith('AU');
     });
 
     it('hides Immersve legal clickwrap for non-Immersve countries', () => {
@@ -1435,7 +1443,7 @@ describe('SignUp Component', () => {
       });
 
       expect(mockImmersveSignIn).toHaveBeenCalledWith({
-        country: 'NZ',
+        country: 'AU',
         address: IMMERSVE_TEST_ADDRESS,
       });
       expect(mockGetFundingSources).toHaveBeenCalled();
@@ -1443,14 +1451,14 @@ describe('SignUp Component', () => {
       await waitFor(() =>
         expect(mockPatchContactDetails).toHaveBeenCalledWith({
           email: 'gb@example.com',
-          phone: '+647911123456',
+          phone: '+617911123456',
         }),
       );
       expect(mockRouteImmersve).toHaveBeenCalledWith(
         { type: 'kyc', url: 'https://kyc', ctaHint: undefined },
         expect.objectContaining({
           email: 'gb@example.com',
-          countryKey: 'NZ',
+          countryKey: 'AU',
           hasExistingCard: false,
           fundingAddress: expect.any(String),
         }),
@@ -1487,7 +1495,7 @@ describe('SignUp Component', () => {
         { type: 'active' },
         expect.objectContaining({
           email: 'gb@example.com',
-          countryKey: 'NZ',
+          countryKey: 'AU',
           hasExistingCard: false,
           fundingAddress: expect.any(String),
         }),
@@ -1561,8 +1569,8 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      // New Zealand was auto-selected on first render
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      // Australia was auto-selected on first render
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
 
       // Simulate background refetch: new function identity, same data
@@ -1583,7 +1591,7 @@ describe('SignUp Component', () => {
 
       // hasAutoSelectedCountry ref must have blocked the second run
       expect(secondGetRegionByCode).not.toHaveBeenCalled();
-      expect(getByText('New Zealand', { exact: false })).toBeOnTheScreen();
+      expect(getByText('Australia', { exact: false })).toBeOnTheScreen();
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
   });
@@ -1673,7 +1681,7 @@ describe('SignUp Component', () => {
       });
     });
 
-    it('enables continue when New Zealand is preselected and the other fields are valid', async () => {
+    it('enables continue when Australia is preselected and the other fields are valid', async () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />
@@ -1756,7 +1764,7 @@ describe('SignUp Component', () => {
         expect.objectContaining({
           email: 'test@example.com',
           password: 'Password123!',
-          countryKey: 'NZ',
+          countryKey: 'AU',
         }),
       );
     });
@@ -2354,7 +2362,7 @@ describe('SignUp Component', () => {
       const { selectCardImmersveCountries } = jest.requireMock(
         '../../../../../selectors/featureFlagController/card',
       );
-      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['NZ']);
+      (selectCardImmersveCountries as jest.Mock).mockReturnValue(['AU']);
       mockUseRoute.mockReturnValue({ params: undefined });
       mockImmersveSignIn.mockResolvedValue({ done: true });
       mockGetFundingSources.mockResolvedValue([{ id: 'fs-existing' }]);

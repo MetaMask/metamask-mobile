@@ -58,8 +58,10 @@ export const DEFAULT_IMMERSVE_REPORT_TRANSACTION_URL =
   'https://help.immersve.com/hc/en-us/requests/new?ticket_form_id=22905679582745';
 export const HUBSPOT_WAITLIST_URL =
   'https://share.hsforms.com/1kNZXeod7TU2xEy0BxmQxJw2urwb';
-/** Country of residence offered on Card Sign up and Sign in. */
-export const CARD_AUTH_COUNTRY_CODE = 'NZ';
+/** Countries of residence offered on Card Sign up and Sign in. */
+export const CARD_AUTH_COUNTRY_CODES: readonly string[] = ['NZ', 'AU'];
+/** Country pre-selected on Card Sign up and Sign in. */
+export const CARD_AUTH_DEFAULT_COUNTRY_CODE = 'AU';
 // Fixed sentinel Immersve redirects the user to when they exit the hosted KYC
 // UI; the KYC webview watches for it to know onboarding-in-webview is done, and
 // it is passed to spending-prerequisites as kycRedirectUrl.

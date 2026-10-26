@@ -17,13 +17,17 @@ export function getWalletTypeForPlatform(): WalletType {
 }
 
 /**
- * Apple Pay in-app provisioning is certified for cards issued in New Zealand.
- * This is a fixed list until more countries are certified.
+ * Apple Pay in-app provisioning is certified for cards issued in New Zealand
+ * and Australia. This is a fixed list until more countries are certified.
  */
-export const APPLE_PAY_PROVISIONING_COUNTRY = 'NZ';
+export const APPLE_PAY_PROVISIONING_COUNTRIES: readonly string[] = ['NZ', 'AU'];
 
 export function isApplePayProvisioningCountry(
   countryCode: string | null | undefined,
 ): boolean {
-  return countryCode?.toUpperCase() === APPLE_PAY_PROVISIONING_COUNTRY;
+  const normalized = countryCode?.toUpperCase();
+  return (
+    normalized !== undefined &&
+    APPLE_PAY_PROVISIONING_COUNTRIES.includes(normalized)
+  );
 }

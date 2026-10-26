@@ -72,7 +72,7 @@ import {
   selectCardImmersveCountries,
   selectCardImmersveEnabled,
 } from '../../../../../selectors/featureFlagController/card';
-import { CARD_AUTH_COUNTRY_CODE, HUBSPOT_WAITLIST_URL } from '../../constants';
+import { CARD_AUTH_COUNTRY_CODES, HUBSPOT_WAITLIST_URL } from '../../constants';
 import { useCardPostAuthRedirect } from '../../hooks/useCardPostAuthRedirect';
 import { useCardUkMigrationState } from '../../hooks/useCardUkMigrationState';
 import { useCardUkMigrationUpdateBadge } from '../../hooks/useCardUkMigrationUpdateBadge';
@@ -166,7 +166,10 @@ const SignUp = () => {
     isRegistrationSettingsFetched,
   } = useRegions();
   const countryRegions = useMemo(
-    () => allRegions.filter((region) => region.key === CARD_AUTH_COUNTRY_CODE),
+    () =>
+      allRegions.filter((region) =>
+        CARD_AUTH_COUNTRY_CODES.includes(region.key),
+      ),
     [allRegions],
   );
   const { trackEvent, createEventBuilder } = useAnalytics();

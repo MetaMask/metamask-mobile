@@ -14,7 +14,7 @@ export interface ApplePayHomePromptInput {
 /**
  * Who sees the wallet-home Apple Pay splash and banner.
  * Signed-in Immersve cardholders see it when the card can still be added.
- * Signed-out users see it in New Zealand when the account is known to Immersve.
+ * Signed-out users see it in New Zealand or Australia when the account is known to Immersve.
  */
 export function resolveApplePayHomePrompt({
   isIos,

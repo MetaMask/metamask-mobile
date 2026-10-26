@@ -185,11 +185,11 @@ describe('buildCountryPrefillAnalytics', () => {
 });
 
 describe('regionForSignUpCountryPrefill', () => {
-  const newZealand = { key: 'NZ' };
+  const australia = { key: 'AU' };
   const unitedKingdom = { key: 'GB' };
   const getRegionByCode = (code: string | null | undefined) => {
-    if (code === 'NZ') {
-      return newZealand;
+    if (code === 'AU') {
+      return australia;
     }
     if (code === UK_MIGRATION_COUNTRY_CODE) {
       return unitedKingdom;
@@ -197,13 +197,13 @@ describe('regionForSignUpCountryPrefill', () => {
     return null;
   };
 
-  it('uses New Zealand regardless of geolocation', () => {
+  it('uses Australia regardless of geolocation', () => {
     expect(
       regionForSignUpCountryPrefill({
         fromMigration: false,
         getRegionByCode,
       }),
-    ).toBe(newZealand);
+    ).toBe(australia);
   });
 
   it('uses the United Kingdom during migration', () => {

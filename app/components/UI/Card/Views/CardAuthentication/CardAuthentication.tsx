@@ -56,7 +56,10 @@ import { navigateWithDetails } from '../../../../../util/navigation/navUtils';
 import { getCardProviderErrorMessage } from '../../util/getCardProviderErrorMessage';
 import useRegions from '../../hooks/useRegions';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
-import { CARD_AUTH_COUNTRY_CODE } from '../../constants';
+import {
+  CARD_AUTH_COUNTRY_CODES,
+  CARD_AUTH_DEFAULT_COUNTRY_CODE,
+} from '../../constants';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
@@ -173,7 +176,10 @@ const CardAuthentication = () => {
     isLoading: isLoadingRegions,
   } = useRegions();
   const countryRegions = useMemo(
-    () => allRegions.filter((region) => region.key === CARD_AUTH_COUNTRY_CODE),
+    () =>
+      allRegions.filter((region) =>
+        CARD_AUTH_COUNTRY_CODES.includes(region.key),
+      ),
     [allRegions],
   );
   const { state: ukMigrationState } = useCardUkMigrationState();
@@ -294,7 +300,7 @@ const CardAuthentication = () => {
     if (!allRegions.length || hasAutoSelectedCountry.current) {
       return;
     }
-    const matched = getRegionByCode(CARD_AUTH_COUNTRY_CODE);
+    const matched = getRegionByCode(CARD_AUTH_DEFAULT_COUNTRY_CODE);
     if (matched) {
       hasAutoSelectedCountry.current = true;
       setSelectedCountry(matched);

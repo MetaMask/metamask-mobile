@@ -46,9 +46,10 @@ describe('Push Provisioning Constants', () => {
   });
 
   describe('isApplePayProvisioningCountry', () => {
-    it('accepts New Zealand', () => {
+    it('accepts New Zealand and Australia', () => {
       expect(isApplePayProvisioningCountry('NZ')).toBe(true);
-      expect(isApplePayProvisioningCountry('nz')).toBe(true);
+      expect(isApplePayProvisioningCountry('AU')).toBe(true);
+      expect(isApplePayProvisioningCountry('au')).toBe(true);
     });
 
     it('rejects every other country', () => {
