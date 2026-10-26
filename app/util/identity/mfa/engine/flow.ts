@@ -563,6 +563,23 @@ export const createMfaFlow = ({
   };
 
   const submitEmailAddress = async (email: string) => {
+    // Returning from the setup code keeps its challenge. Continuing with the
+    // same address returns to that code instead of sending another one.
+    if (
+      current?.method === 'email_otp' &&
+      current.purpose === 'setup' &&
+      current.email === email &&
+      current.flowId
+    ) {
+      show({
+        name: 'otp',
+        purpose: 'setup',
+        method: 'email_otp',
+        email,
+        codeSent: true,
+      });
+      return;
+    }
     current = { method: 'email_otp', purpose: 'setup', email };
     // Stay on email entry until a code is sent. Opening the code screen
     // first tells the user a code went out when enrollment still failed.
@@ -661,8 +678,8 @@ export const createMfaFlow = ({
         }
         return;
       case 'back':
-        // Only the authenticator setup's code returns to that setup. The
-        // secret stays the one already added to the app.
+        // Setup codes return to the setup behind them without replacing the
+        // authenticator secret or sending another email code.
         if (
           step.name === 'otp' &&
           step.purpose === 'setup' &&
@@ -670,6 +687,13 @@ export const createMfaFlow = ({
           totpSetup
         ) {
           show(totpSetup);
+        } else if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'email_otp' &&
+          current?.email
+        ) {
+          show({ name: 'emailEntry', prefillEmail: current.email });
         }
         return;
       case 'dismiss':

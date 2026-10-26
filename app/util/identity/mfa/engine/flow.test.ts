@@ -214,6 +214,21 @@ describe('createMfaFlow', () => {
       codeSent: true,
     });
 
+    await act(flow, { type: 'back' });
+    expect(flow.getState().step).toStrictEqual({
+      name: 'emailEntry',
+      prefillEmail: 'new@b.co',
+    });
+    await act(flow, { type: 'submitEmail', email: 'new@b.co' });
+    expect(flow.getState().step).toStrictEqual({
+      name: 'otp',
+      purpose: 'setup',
+      method: 'email_otp',
+      email: 'new@b.co',
+      codeSent: true,
+    });
+    expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
+
     await act(flow, { type: 'submitCode', code: '111111' });
     expect(fake.controller.completeCredentialEnrollment).toHaveBeenCalledWith({
       flowId: 'enroll-1',

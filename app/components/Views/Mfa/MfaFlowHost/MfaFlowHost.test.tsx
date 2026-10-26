@@ -177,6 +177,23 @@ describe('MfaFlowHost', () => {
     ).toBeOnTheScreen();
 
     await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+    });
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value).toBe(
+      'new@b.co',
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-otp`),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
       fireEvent.changeText(
         getByTestId(MfaFlowSelectorsIDs.CODE_INPUT),
         '123456',

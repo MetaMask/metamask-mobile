@@ -470,9 +470,7 @@ describe('CodeStep', () => {
       error: 'invalid_code',
     });
 
-    expect(
-      getByText('That code isn’t right. Check it and try again.'),
-    ).toBeOnTheScreen();
+    expect(getByText('This code isn’t correct. Try again')).toBeOnTheScreen();
     fireEvent.press(getByTestId(MfaFlowSelectorsIDs.RESEND_BUTTON));
     expect(onAction).toHaveBeenCalledWith({ type: 'resend' });
   });

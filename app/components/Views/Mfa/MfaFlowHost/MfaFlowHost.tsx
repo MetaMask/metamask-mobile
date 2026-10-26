@@ -78,15 +78,10 @@ const MfaFlowHost = () => {
 
   const { step } = state;
   const cancel = () => flow.dispatch({ type: 'cancel' });
-  // The authenticator setup's code is the one step with a screen behind it.
+  // Enrollment codes have their setup screen behind them.
   const goBack = () =>
     flow.dispatch({
-      type:
-        step.name === 'otp' &&
-        step.purpose === 'setup' &&
-        step.method === 'totp'
-          ? 'back'
-          : 'cancel',
+      type: step.name === 'otp' && step.purpose === 'setup' ? 'back' : 'cancel',
     });
   const shared = {
     state,
