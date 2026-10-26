@@ -254,6 +254,26 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('leaves the flow when the back arrow is tapped on the intro', async () => {
+    renderSocialProfileOnboarding([], {
+      previousRoute: Routes.SOCIAL.MY_PROFILE,
+    });
+    const backButton = await screen.findByTestId(
+      SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
+    );
+
+    fireEvent.press(backButton);
+
+    await waitFor(() =>
+      expect(
+        screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.CONTAINER),
+      ).not.toBeOnTheScreen(),
+    );
+    expect(
+      screen.getByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
+    ).toBeOnTheScreen();
+  });
+
   it('defaults the avatar backdrop to the centered color', async () => {
     renderSocialProfileOnboarding();
 

@@ -552,7 +552,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       )}
       <HeaderStandard
         title=""
-        onBack={step === 'intro' ? undefined : handleBack}
+        onBack={step === 'intro' ? handleClose : handleBack}
         onClose={handleClose}
         backButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
