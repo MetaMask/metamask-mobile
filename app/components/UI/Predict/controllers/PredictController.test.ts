@@ -137,7 +137,6 @@ const ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS = {
     },
     perps: {
       builderFeeBips: null,
-      builderCode: null,
       remainingMicroUsd: null,
       exhausted: false,
     },
