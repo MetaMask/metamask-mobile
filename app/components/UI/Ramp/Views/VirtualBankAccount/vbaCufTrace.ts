@@ -82,9 +82,7 @@ const pauseForegroundSegment = (
 const startForegroundSegment = (
   timestamp = getPerformanceTimestamp(),
 ): void => {
-  if (foregroundSegmentStartedAt === null) {
-    foregroundSegmentStartedAt = timestamp;
-  }
+  foregroundSegmentStartedAt ??= timestamp;
 };
 
 const handleAppStateChange = (nextState: AppStateStatus): void => {
