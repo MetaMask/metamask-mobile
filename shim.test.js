@@ -82,6 +82,7 @@ describe('E2E network shim', () => {
   const proxied = (url) =>
     `${MOCK_SERVER_URL}/proxy?url=${encodeURIComponent(url)}`;
   const savedGlobals = {
+    AbortController: global.AbortController,
     fetch: global.fetch,
     XMLHttpRequest: global.XMLHttpRequest,
     WebSocket: global.WebSocket,
@@ -89,9 +90,14 @@ describe('E2E network shim', () => {
 
   let underlyingFetch;
   let answerHealthCheck;
+  let failHealthCheck;
   let nativeStart;
-  // The patched expo/fetch NativeRequest of the last loadShim() call.
+  let expoSourceFetch;
+  let expoReExporterFetch;
+  // The patched expo/fetch modules of the last loadShim() call.
   let NativeRequest;
+  let expoFetchSource;
+  let expoFetchReExporter;
 
   /**
    * Evaluates shim.js in an isolated module registry, as an E2E build would.
@@ -99,14 +105,21 @@ describe('E2E network shim', () => {
    *
    * @param {object} [options]
    * @param {boolean} [options.hasTestOverrides] - Mocked `hasTestOverrides`.
+   * @param {boolean} [options.isPerformanceTest] - Mocked `isPerformanceTest`.
+   * @param {string} [options.platform] - `Platform.OS` the shim sees.
    */
-  const loadShim = ({ hasTestOverrides = true } = {}) =>
+  const loadShim = ({
+    hasTestOverrides = true,
+    isPerformanceTest = false,
+    platform = 'ios',
+  } = {}) =>
     jest.isolateModules(() => {
       /* eslint-disable import-x/no-commonjs */
       jest.doMock('./app/util/test/utils.js', () => ({
         ...jest.requireActual('./app/util/test/utils.js'),
         isTestEnvironment: true,
         hasTestOverrides,
+        isPerformanceTest,
       }));
       jest.doMock('react-native-launch-arguments', () => ({
         LaunchArguments: { value: () => ({ mockServerPort: 8000 }) },
@@ -120,14 +133,22 @@ describe('E2E network shim', () => {
         NativeRequest.prototype.start = nativeStart;
         return { ExpoFetchModule: { NativeRequest } };
       });
-      jest.doMock('expo/src/winter/fetch/fetch', () => ({ fetch: jest.fn() }));
-      jest.doMock('expo/src/winter/fetch/index', () => ({ fetch: jest.fn() }));
-      Object.defineProperty(require('react-native'), 'Settings', {
+      jest.doMock('expo/src/winter/fetch/fetch', () => ({
+        fetch: expoSourceFetch,
+      }));
+      jest.doMock('expo/src/winter/fetch/index', () => ({
+        fetch: expoReExporterFetch,
+      }));
+      const ReactNative = require('react-native');
+      Object.defineProperty(ReactNative, 'Settings', {
         value: { get: jest.fn() },
       });
+      ReactNative.Platform.OS = platform;
       require('./shim.js');
       ({ NativeRequest } =
         require('expo/src/winter/fetch/ExpoFetchModule').ExpoFetchModule);
+      expoFetchSource = require('expo/src/winter/fetch/fetch');
+      expoFetchReExporter = require('expo/src/winter/fetch/index');
       /* eslint-enable import-x/no-commonjs */
     });
 
@@ -136,8 +157,9 @@ describe('E2E network shim', () => {
   beforeEach(() => {
     jest.spyOn(console, 'log').mockImplementation(() => undefined);
     jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-    const healthCheck = new Promise((resolve) => {
+    const healthCheck = new Promise((resolve, reject) => {
       answerHealthCheck = resolve;
+      failHealthCheck = reject;
     });
     underlyingFetch = jest.fn(async (url) => {
       if (url === HEALTH_CHECK_URL) {
@@ -146,6 +168,8 @@ describe('E2E network shim', () => {
       throw new TypeError('Network request failed');
     });
     nativeStart = jest.fn(async () => undefined);
+    expoSourceFetch = jest.fn(async () => undefined);
+    expoReExporterFetch = jest.fn(async () => undefined);
     global.fetch = underlyingFetch;
     global.XMLHttpRequest = undefined;
     global.WebSocket = undefined;
@@ -153,6 +177,7 @@ describe('E2E network shim', () => {
 
   afterEach(() => {
     Object.assign(global, savedGlobals);
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -188,7 +213,7 @@ describe('E2E network shim', () => {
 
     expect(underlyingFetch).toHaveBeenCalledTimes(1);
     expect(underlyingFetch).toHaveBeenCalledWith(HEALTH_CHECK_URL, {
-      signal: expect.any(Object),
+      signal: expect.any(global.AbortSignal),
     });
 
     answerHealthCheck({ ok: true });
@@ -258,4 +283,204 @@ describe('E2E network shim', () => {
 
     expect(nativeStart).toHaveBeenCalledWith(HEALTH_CHECK_URL, {}, null);
   });
+
+  it('sends a fetch held for the health check to the original URL once the check times out after 5 s', async () => {
+    jest.useFakeTimers();
+    // A timeout signal on the fake clock, standing in for the platform's.
+    const timeout = jest
+      .spyOn(global.AbortSignal, 'timeout')
+      .mockImplementation((ms) => {
+        const controller = new savedGlobals.AbortController();
+        setTimeout(() => controller.abort(new Error('timed out')), ms);
+        return controller.signal;
+      });
+    // A mock server that never answers: only the signal ends the request.
+    underlyingFetch.mockImplementation((url, options) =>
+      url === HEALTH_CHECK_URL
+        ? new Promise((_, reject) => {
+            options.signal.addEventListener('abort', () =>
+              reject(options.signal.reason),
+            );
+          })
+        : Promise.resolve({ ok: true }),
+    );
+    loadShim();
+
+    expect(timeout).toHaveBeenCalledTimes(1);
+    expect(timeout).toHaveBeenCalledWith(5000);
+    expect(underlyingFetch).toHaveBeenCalledWith(HEALTH_CHECK_URL, {
+      signal: timeout.mock.results[0].value,
+    });
+
+    const pending = global.fetch('https://example.com/a');
+    await jest.advanceTimersByTimeAsync(4999);
+    expect(underlyingFetch).toHaveBeenCalledTimes(1);
+
+    await jest.advanceTimersByTimeAsync(1);
+    await pending;
+    expect(underlyingFetch).toHaveBeenCalledTimes(2);
+    expect(underlyingFetch).toHaveBeenLastCalledWith(
+      'https://example.com/a',
+      undefined,
+    );
+  });
+
+  it('sends fetch to the original URL when the health check is refused', async () => {
+    loadShim();
+    const pending = global.fetch('https://example.com/a');
+    failHealthCheck(new TypeError('Network request failed'));
+    await pending.catch(() => undefined);
+
+    expect(underlyingFetch).toHaveBeenCalledWith(
+      'https://example.com/a',
+      undefined,
+    );
+    expect(underlyingFetch).not.toHaveBeenCalledWith(
+      proxied('https://example.com/a'),
+      undefined,
+    );
+  });
+
+  it('falls back to the Android emulator host when localhost does not answer', async () => {
+    const emulatorUrl = 'http://10.0.2.2:8000';
+    underlyingFetch.mockImplementation(async (url) => {
+      if (url === HEALTH_CHECK_URL) {
+        throw new TypeError('Network request failed');
+      }
+      if (url === `${emulatorUrl}/health-check`) {
+        return { ok: true };
+      }
+      return { ok: true, url };
+    });
+    loadShim({ platform: 'android' });
+
+    await global.fetch('https://clients3.google.com/generate_204');
+
+    expect(underlyingFetch.mock.calls.map(([url]) => url)).toEqual([
+      HEALTH_CHECK_URL,
+      `${emulatorUrl}/health-check`,
+      `${emulatorUrl}/proxy?url=${encodeURIComponent(
+        'https://clients3.google.com/generate_204',
+      )}`,
+    ]);
+  });
+
+  it('does not re-install the wrapper over a later wrapper of it, with test overrides', async () => {
+    loadShim({ hasTestOverrides: true });
+    // A later fetch wrapper (e.g. a debug request tracker) calling the shim's.
+    // Re-installing the shim's wrapper on top of it would make them call each
+    // other forever; fail on re-entry instead.
+    const shimFetch = global.fetch;
+    const trackingFetch = jest.fn((url, options) => {
+      if (trackingFetch.mock.calls.length > 1) {
+        throw new Error('fetch recursed');
+      }
+      return shimFetch(url, options);
+    });
+    global.fetch = trackingFetch;
+
+    answerHealthCheck({ ok: true });
+    await flushPromises();
+    await global.fetch('https://example.com/a').catch(() => undefined);
+
+    expect(global.fetch).toBe(trackingFetch);
+    expect(trackingFetch).toHaveBeenCalledTimes(1);
+    expect(underlyingFetch.mock.calls).toEqual([
+      [HEALTH_CHECK_URL, { signal: expect.any(global.AbortSignal) }],
+      [proxied('https://example.com/a'), undefined],
+    ]);
+  });
+
+  describe.each([
+    ['source module', () => expoFetchSource, () => expoSourceFetch],
+    ['re-exporter', () => expoFetchReExporter, () => expoReExporterFetch],
+  ])('expo/fetch %s', (_label, getModule, getOriginalFetch) => {
+    it('holds a fetch until the health check settles, then routes it through the mock server', async () => {
+      loadShim();
+      const pending = getModule().fetch('https://example.com/stream', {});
+      await flushPromises();
+      expect(getOriginalFetch()).not.toHaveBeenCalled();
+
+      answerHealthCheck({ ok: true });
+      await pending;
+
+      expect(getOriginalFetch()).toHaveBeenCalledTimes(1);
+      expect(getOriginalFetch()).toHaveBeenCalledWith(
+        proxied('https://example.com/stream'),
+        {},
+      );
+    });
+
+    it('sends a fetch to the original URL when no mock server answers', async () => {
+      loadShim();
+      const pending = getModule().fetch('https://example.com/stream', {});
+      answerHealthCheck({ ok: false });
+      await pending;
+
+      expect(getOriginalFetch()).toHaveBeenCalledWith(
+        'https://example.com/stream',
+        {},
+      );
+    });
+  });
+
+  describe('performance builds', () => {
+    const web3AuthUrl = 'https://sapphire-1.node.web3auth.io/sss/v1';
+
+    it('sends fetch to web3auth nodes directly, and other hosts through the mock server', async () => {
+      loadShim({ isPerformanceTest: true });
+      answerHealthCheck({ ok: true });
+
+      await global.fetch(web3AuthUrl).catch(() => undefined);
+      await global.fetch('https://example.com/a').catch(() => undefined);
+
+      expect(underlyingFetch).toHaveBeenCalledWith(web3AuthUrl, undefined);
+      expect(underlyingFetch).not.toHaveBeenCalledWith(
+        proxied(web3AuthUrl),
+        undefined,
+      );
+      expect(underlyingFetch).toHaveBeenCalledWith(
+        proxied('https://example.com/a'),
+        undefined,
+      );
+    });
+
+    it('starts expo/fetch native requests to web3auth nodes directly', async () => {
+      loadShim({ isPerformanceTest: true });
+      answerHealthCheck({ ok: true });
+
+      await new NativeRequest().start(web3AuthUrl, {}, null);
+
+      expect(nativeStart).toHaveBeenCalledWith(web3AuthUrl, {}, null);
+    });
+  });
+
+  it('starts expo/fetch native requests at the original URL when no mock server answers', async () => {
+    loadShim();
+    const pending = new NativeRequest().start(
+      'https://example.com/stream',
+      {},
+      null,
+    );
+    answerHealthCheck({ ok: false });
+    await pending;
+
+    expect(nativeStart).toHaveBeenCalledWith(
+      'https://example.com/stream',
+      {},
+      null,
+    );
+  });
+
+  it.each(['data:text/plain;base64,aGk=', 'file:///tmp/a.json'])(
+    'does not proxy expo/fetch native requests to %s',
+    async (url) => {
+      loadShim();
+      answerHealthCheck({ ok: true });
+
+      await new NativeRequest().start(url, {}, null);
+
+      expect(nativeStart).toHaveBeenCalledWith(url, {}, null);
+    },
+  );
 });
