@@ -8,7 +8,7 @@ export const SocialV1ViewSelectorsIDs = {
   LEADERBOARD_PAGE: 'social-v1-view-leaderboard-page',
   TRENDING_PAGE: 'social-v1-view-trending-page',
   FOLLOWING_PAGE: 'social-v1-view-following-page',
-  LIVE_TRADES_PAGE: 'social-v1-view-live-trades-page',
+  LIVE_PAGE: 'social-v1-view-live-page',
   NOTIFICATIONS_BANNER: 'social-v1-view-notifications-banner',
   AVATAR_BUTTON: 'social-v1-view-avatar-button',
   ACCOUNT_AVATAR: 'social-v1-view-account-avatar',

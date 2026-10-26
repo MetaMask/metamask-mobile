@@ -1,3 +1,5 @@
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import type {
   FetchFeedParams,
   FetchOrderCommitParams,
@@ -229,8 +231,16 @@ export class PredictApiReadClient implements PredictApiReadTransport {
    */
   async #resolveBearerToken(): Promise<string> {
     // A missing or failing token provider is an authentication failure, not a
-    // malformed response. Never let the provider's error text escape.
-    const token = await this.#getBearerToken().catch(() => undefined);
+    // malformed response. The provider's error never reaches the caller. It is
+    // logged instead, so a locked wallet or a broken provider can be told apart
+    // from a provider that returned no token.
+    const token = await this.#getBearerToken().catch((error: unknown) => {
+      Logger.error(
+        ensureError(error, 'PredictApiReadClient.resolveBearerToken'),
+        'PredictNext: failed to get the Predict API bearer token',
+      );
+      return undefined;
+    });
     if (!token?.trim()) {
       throw new PredictHttpError(401);
     }

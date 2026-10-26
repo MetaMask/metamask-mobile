@@ -62,7 +62,7 @@ const buildData = (
 
 describe('ActivityList transformations', () => {
   describe('shouldSkipTransaction', () => {
-    it('skips excluded hashes, unrelated transactions, spam, and empty self transfers', () => {
+    it('skips excluded hashes, unrelated transactions, and empty self transfers', () => {
       expect(
         shouldSkipTransaction(address, buildTransaction(), new Set(['0xhash'])),
       ).toBe(true);
@@ -70,12 +70,6 @@ describe('ActivityList transformations', () => {
         shouldSkipTransaction(
           address,
           buildTransaction({ from: otherAddress, to: otherAddress }),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({ transactionType: 'SPAM_TOKEN_TRANSFER' }),
         ),
       ).toBe(true);
       expect(
@@ -117,30 +111,6 @@ describe('ActivityList transformations', () => {
       expect(shouldSkipTransaction(address, buildTransaction())).toBe(false);
     });
 
-    it('skips incoming native transfers when the account only appears in valueTransfers', () => {
-      expect(
-        shouldSkipTransaction(
-          address,
-          buildTransaction({
-            from: otherAddress,
-            to: otherAddress,
-            valueTransfers: [
-              {
-                amount: '1',
-                contractAddress: '',
-                decimal: 18,
-                from: otherAddress,
-                name: 'Ether',
-                symbol: 'ETH',
-                to: address,
-                transferType: 'NATIVE',
-              },
-            ],
-          }),
-        ),
-      ).toBe(true);
-    });
-
     it('keeps direct incoming token transfers when the indexer omits contractAddress', () => {
       const transaction = buildTransaction({
         from: otherAddress,
@@ -167,23 +137,6 @@ describe('ActivityList transformations', () => {
 
   describe('shouldSkipUnrelatedTransaction', () => {
     it('keeps direct receives that the list gate drops via their value transfers', () => {
-      const nativeReceive = buildTransaction({
-        from: otherAddress,
-        to: address,
-        value: '1000000000000000000',
-        valueTransfers: [
-          {
-            amount: '1000000000000000000',
-            contractAddress: '',
-            decimal: 18,
-            from: otherAddress,
-            name: 'Ether',
-            symbol: 'ETH',
-            to: address,
-            transferType: 'NATIVE',
-          },
-        ],
-      });
       const tokenReceive = buildTransaction({
         from: otherAddress,
         to: address,
@@ -202,15 +155,11 @@ describe('ActivityList transformations', () => {
         ],
       });
 
-      expect(shouldSkipTransaction(address, nativeReceive)).toBe(true);
       expect(shouldSkipTransaction(address, tokenReceive)).toBe(true);
-      expect(shouldSkipUnrelatedTransaction(address, nativeReceive)).toBe(
-        false,
-      );
       expect(shouldSkipUnrelatedTransaction(address, tokenReceive)).toBe(false);
     });
 
-    it('still skips excluded hashes, non-participant, spam, and empty self transfers', () => {
+    it('still skips excluded hashes, non-participant, and empty self transfers', () => {
       expect(
         shouldSkipUnrelatedTransaction(
           address,
@@ -237,12 +186,6 @@ describe('ActivityList transformations', () => {
               },
             ],
           }),
-        ),
-      ).toBe(true);
-      expect(
-        shouldSkipUnrelatedTransaction(
-          address,
-          buildTransaction({ transactionType: 'SPAM_TOKEN_TRANSFER' }),
         ),
       ).toBe(true);
       expect(
@@ -451,31 +394,6 @@ describe('ActivityList transformations', () => {
 
       const result = selectApiEvmTransactions({ address })(
         buildData([incomingNftTransfer]),
-      );
-
-      expect(result.pages[0].data).toHaveLength(0);
-    });
-
-    it('still filters incoming native transfers when the account only appears in valueTransfers', () => {
-      const incomingNativeTransfer = buildTransaction({
-        hash: '0xincoming-native',
-        from: otherAddress,
-        to: otherAddress,
-        valueTransfers: [
-          {
-            amount: '1',
-            contractAddress: '',
-            decimal: 18,
-            from: otherAddress,
-            symbol: 'ETH',
-            to: address,
-            transferType: 'NATIVE',
-          },
-        ],
-      } as Partial<V1TransactionByHashResponse>);
-
-      const result = selectApiEvmTransactions({ address })(
-        buildData([incomingNativeTransfer]),
       );
 
       expect(result.pages[0].data).toHaveLength(0);

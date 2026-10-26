@@ -183,6 +183,8 @@ const Transactions = (props) => {
     tokenChainId,
     skipScrollOnClick,
     location,
+    contentBottomInset,
+    refreshControlOffset,
     hardwareWallet = DEFAULT_HARDWARE_WALLET,
     accountImportTime,
     groupEvmAccountAddress,
@@ -788,6 +790,7 @@ const Transactions = (props) => {
                     <RefreshControl
                       colors={[colors.primary.default]}
                       tintColor={colors.icon.default}
+                      progressViewOffset={refreshControlOffset}
                       refreshing={refreshing}
                       onRefresh={async () => {
                         setRefreshing(true);
@@ -818,7 +821,12 @@ const Transactions = (props) => {
                       renderEmpty()
                     )
                   }
-                  contentContainerStyle={styles.listContentContainer}
+                  contentContainerStyle={[
+                    styles.listContentContainer,
+                    contentBottomInset !== undefined && {
+                      paddingBottom: contentBottomInset,
+                    },
+                  ]}
                   style={baseStyles.flexGrow}
                   showsVerticalScrollIndicator={false}
                   scrollIndicatorInsets={{ right: 1 }}
@@ -935,6 +943,14 @@ Transactions.propTypes = {
    * Location context for analytics tracking (home or asset_details)
    */
   location: PropTypes.string,
+  /**
+   * (optional) Bottom padding for the list, e.g. to clear a footer floating over it
+   */
+  contentBottomInset: PropTypes.number,
+  /**
+   * Moves the pull-to-refresh spinner down, e.g. below a floating header
+   */
+  refreshControlOffset: PropTypes.number,
   hardwareWallet: PropTypes.shape({
     ensureDeviceReady: PropTypes.func,
     setPendingOperationAddress: PropTypes.func,
