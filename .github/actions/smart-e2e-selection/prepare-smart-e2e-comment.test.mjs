@@ -21,7 +21,6 @@ describe('prepareCommentResultJson', () => {
       selected_tags: NO_E2E_TESTS_SELECTED,
       confidence: 95,
       reasoning: 'No smoke tags warranted.',
-      performance_tests: { selected_tags: [], reasoning: 'none' },
     });
   });
 
@@ -34,6 +33,24 @@ describe('prepareCommentResultJson', () => {
       JSON.parse(commentJson).selected_tags,
       NO_E2E_TESTS_SELECTED,
     );
+  });
+
+  it('drops performance tags from a real E2E selection', () => {
+    const commentJson = prepareCommentResultJson(
+      JSON.stringify({
+        selected_tags: ['SmokeAccounts'],
+        confidence: 90,
+        performance_tests: {
+          selected_tags: ['@PerformanceLogin'],
+          reasoning: 'login',
+        },
+      }),
+    );
+
+    assert.deepEqual(JSON.parse(commentJson), {
+      selected_tags: ['SmokeAccounts'],
+      confidence: 90,
+    });
   });
 
   it('leaves a real tag selection unchanged', () => {

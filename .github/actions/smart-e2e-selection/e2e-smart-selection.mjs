@@ -61,7 +61,7 @@ function loadResult() {
 const parsedResult = loadResult();
 if (!parsedResult) {
   console.error(
-    '❌ No smart-e2e result_json or smart-e2e.json; E2E falls back to all tags and performance tests are skipped',
+    '❌ No smart-e2e result_json or smart-e2e.json; E2E falls back to all tags. Performance tests are not part of Smart E2E selection',
   );
 }
 
