@@ -1,0 +1,449 @@
+import React from 'react';
+import { act, fireEvent, screen } from '@testing-library/react-native';
+import Routes from '../../../../constants/navigation/Routes';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
+import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
+import type { SocialFeedInlineRow } from '../../../UI/SocialFeed/components/SocialFeed';
+import type {
+  SocialFeedPageHandle,
+  SocialV1FeedPost,
+} from '../../../UI/SocialFeed/types';
+import { SocialEvent } from '../analytics/socialEvents';
+import type { SocialTabPageHandle } from '../shared/tabPageScroll';
+import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
+import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
+import { mockHotToken } from '../SocialV1View/feed/mocks/socialV1HotTokens.mock';
+import type { SocialV1HotToken } from '../SocialV1View/feed/types';
+import { useTrendingHotTokens } from './hooks/useTrendingHotTokens';
+import TrendingView, {
+  TRENDING_FEED_SOURCE,
+  TRENDING_POPULAR_TRADERS_INSERT_AFTER,
+} from './TrendingView';
+
+interface MockSocialFeedProps {
+  source: unknown;
+  filters?: { assetIds?: string[] };
+  location: string;
+  analyticsSource?: string;
+  scrollMode: string;
+  showMockedFields?: boolean;
+  isActive?: boolean;
+  renderHeader?: (props: {
+    pendingNewCount: number;
+    onRevealPending: () => void;
+  }) => React.ReactNode;
+  inlineRows?: readonly SocialFeedInlineRow[];
+  renderEmpty?: () => React.ReactNode;
+  onRefresh?: () => void;
+  performance?: { tab: string; context: SocialPerformanceContext };
+  onScroll?: unknown;
+  pageRef?: React.Ref<SocialFeedPageHandle>;
+  onAuthorPress?: (post: SocialV1FeedPost) => void;
+  onCopyTrade?: unknown;
+  onPositionPress?: (post: SocialV1FeedPost) => void;
+  testID?: string;
+  scrollTestID?: string;
+}
+
+const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
+const mockFeedScrollToOffset = jest.fn();
+
+jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
+  const ReactActual = jest.requireActual('react') as typeof React;
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+
+  const MockSocialFeed = (props: MockSocialFeedProps) => {
+    mockSocialFeed(props);
+    ReactActual.useImperativeHandle(props.pageRef, () => ({
+      scrollToOffset: mockFeedScrollToOffset,
+    }));
+    return ReactActual.createElement(
+      View,
+      { testID: props.testID },
+      props.renderHeader?.({ pendingNewCount: 0, onRevealPending: jest.fn() }),
+      props.renderEmpty?.(),
+      props.inlineRows?.map((row) =>
+        ReactActual.createElement(
+          ReactActual.Fragment,
+          { key: row.key },
+          row.render(),
+        ),
+      ),
+    );
+  };
+
+  return { __esModule: true, default: MockSocialFeed };
+});
+
+jest.mock('./hooks/useTrendingHotTokens', () => ({
+  useTrendingHotTokens: jest.fn(),
+}));
+
+// The marquee is covered in HotTokensCarousel.test. This stand-in exposes the
+// chips so the view can prove a press filters the feed.
+jest.mock('../SocialV1View/feed/components', () => {
+  const ReactActual = jest.requireActual('react') as typeof React;
+  const { Pressable } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  const { getSocialV1HotTokenChipTestId: chipTestId } = jest.requireActual(
+    '../SocialV1View/feed/components/HotTokensCarousel.testIds',
+  );
+  return {
+    HotTokensCarousel: ({
+      tokens = [],
+      selectedTokenId = null,
+      onTokenPress,
+    }: {
+      tokens?: SocialV1HotToken[];
+      selectedTokenId?: string | null;
+      onTokenPress?: (token: SocialV1HotToken) => void;
+    }) =>
+      ReactActual.createElement(
+        ReactActual.Fragment,
+        null,
+        tokens.map((token) =>
+          ReactActual.createElement(Pressable, {
+            key: token.id,
+            testID: chipTestId(token.id),
+            accessibilityState: { selected: token.id === selectedTokenId },
+            onPress: () => onTokenPress?.(token),
+          }),
+        ),
+      ),
+  };
+});
+
+jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
+  const ReactActual = jest.requireActual('react') as typeof React;
+  const { View } = jest.requireActual(
+    'react-native',
+  ) as typeof import('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'popular-traders-carousel-section',
+      }),
+  };
+});
+
+const mockTrackInteraction = jest.fn();
+const mockUseSocialInteraction = jest.fn(
+  (..._args: unknown[]) => mockTrackInteraction,
+);
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics/socialEvents'),
+  useSocialInteraction: (...args: unknown[]) =>
+    mockUseSocialInteraction(...args),
+}));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../MyProfileView/hooks', () => ({
+  useMyProfile: () => ({ profile: null }),
+}));
+
+const mockNavigateToSocialV1Profile = jest.fn();
+jest.mock('../navigation/navigateToSocialV1Profile', () => ({
+  navigateToSocialV1Profile: (...args: unknown[]) =>
+    mockNavigateToSocialV1Profile(...args),
+}));
+
+jest.mock('../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: (key: string) => key,
+}));
+
+const { Interaction, Screen, Source, Tab } = SocialEvent;
+
+const mockUseTrendingHotTokens = jest.mocked(useTrendingHotTokens);
+
+const BTC = mockHotToken({
+  id: 'asset:BTC',
+  symbol: 'BTC',
+  assetIds: [
+    'eip155:999/perp:BTC',
+    'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+  ],
+});
+const ETH = mockHotToken({ id: 'asset:ETH', symbol: 'ETH' });
+
+const performanceContext: SocialPerformanceContext = {
+  enabled: true,
+  hardwareTier: null,
+  isActive: true,
+  isFocused: true,
+  networkTier: null,
+};
+
+const perpPost: SocialV1FeedPost = {
+  id: 'perp-post',
+  authorHandle: 'ada',
+  timestampMs: 1,
+  reactions: [],
+  item: mockOpenPerpsFeedItem({
+    id: 'perp-item',
+    author: {
+      id: 'trader-ada',
+      username: 'ada',
+      winRatePercent: 50,
+      pnl30d: 50_000,
+    },
+  }),
+  position: mockPerpFeedItem({ positionId: 'perp-position' }),
+};
+
+const lastFeedProps = (): MockSocialFeedProps => {
+  const props = mockSocialFeed.mock.lastCall?.[0];
+  if (!props) {
+    throw new Error('SocialFeed was not rendered');
+  }
+  return props;
+};
+
+const pressChip = (token: SocialV1HotToken) =>
+  fireEvent.press(screen.getByTestId(getSocialV1HotTokenChipTestId(token.id)));
+
+describe('TrendingView', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseTrendingHotTokens.mockReturnValue({
+      tokens: [BTC, ETH],
+      isLoading: false,
+    });
+  });
+
+  it('renders the leaderboard feed in virtualized mode with mocked fields', () => {
+    const onCopyTrade = jest.fn();
+
+    renderWithProvider(
+      <TrendingView
+        source={Source.NAV_TAB}
+        onCopyTrade={onCopyTrade}
+        testID="trending-content"
+        scrollTestID="trending-scroll"
+      />,
+    );
+
+    expect(lastFeedProps()).toEqual(
+      expect.objectContaining({
+        source: { kind: 'all', audience: 'all' },
+        filters: undefined,
+        location: 'social_trending',
+        analyticsSource: Source.NAV_TAB,
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade,
+        testID: 'trending-content',
+        scrollTestID: 'trending-scroll',
+      }),
+    );
+  });
+
+  it('ranks the rail from the same source the feed renders', () => {
+    renderWithProvider(<TrendingView />);
+
+    expect(mockUseTrendingHotTokens.mock.lastCall?.[0]).toBe(
+      lastFeedProps().source,
+    );
+    expect(lastFeedProps().source).toBe(TRENDING_FEED_SOURCE);
+  });
+
+  it('passes the Trending performance context to the feed', () => {
+    renderWithProvider(<TrendingView performance={performanceContext} />);
+
+    expect(lastFeedProps().performance).toEqual({
+      tab: 'trending',
+      context: performanceContext,
+    });
+  });
+
+  it('omits performance without a context', () => {
+    renderWithProvider(<TrendingView />);
+
+    expect(lastFeedProps().performance).toBeUndefined();
+  });
+
+  it('waits for the tab to be opened before mounting the feed', () => {
+    const { rerender } = renderWithProvider(<TrendingView isActive={false} />);
+    const mountedWhileClosed = mockSocialFeed.mock.calls.length;
+    const railGateWhileClosed =
+      mockUseTrendingHotTokens.mock.lastCall?.[1].hasBeenActive;
+
+    rerender(<TrendingView isActive />);
+
+    expect(mountedWhileClosed).toBe(0);
+    expect(railGateWhileClosed).toBe(false);
+    expect(lastFeedProps().isActive).toBe(true);
+    expect(mockUseTrendingHotTokens.mock.lastCall?.[1].hasBeenActive).toBe(
+      true,
+    );
+  });
+
+  it('keeps the feed mounted after the tab is left', () => {
+    const { rerender } = renderWithProvider(<TrendingView isActive />);
+
+    rerender(<TrendingView isActive={false} />);
+
+    expect(lastFeedProps().isActive).toBe(false);
+    expect(mockUseTrendingHotTokens.mock.lastCall?.[1].hasBeenActive).toBe(
+      true,
+    );
+  });
+
+  it('inserts Popular traders after the third post', () => {
+    renderWithProvider(<TrendingView />);
+
+    expect(TRENDING_POPULAR_TRADERS_INSERT_AFTER).toBe(3);
+    expect(lastFeedProps().inlineRows).toEqual([
+      expect.objectContaining({
+        key: 'popular-traders',
+        afterIndex: TRENDING_POPULAR_TRADERS_INSERT_AFTER,
+      }),
+    ]);
+    expect(
+      screen.getByTestId('popular-traders-carousel-section'),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Trending empty state when the feed is empty', () => {
+    renderWithProvider(<TrendingView />);
+
+    expect(
+      screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.v1_empty.trending.title'),
+    ).toBeOnTheScreen();
+  });
+
+  it('filters the feed to every asset of the pressed chip and scrolls to the top', () => {
+    renderWithProvider(<TrendingView />);
+
+    pressChip(BTC);
+
+    expect(lastFeedProps().filters).toEqual({ assetIds: BTC.assetIds });
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(0, true);
+    expect(mockUseTrendingHotTokens.mock.lastCall?.[1].selectedTokenId).toBe(
+      BTC.id,
+    );
+    expect(
+      screen.getByTestId(getSocialV1HotTokenChipTestId(BTC.id)).props
+        .accessibilityState,
+    ).toEqual({ selected: true });
+  });
+
+  it('clears the filter when the selected chip is pressed again', () => {
+    renderWithProvider(<TrendingView />);
+
+    pressChip(BTC);
+    pressChip(BTC);
+
+    expect(lastFeedProps().filters).toBeUndefined();
+    expect(mockFeedScrollToOffset).toHaveBeenCalledTimes(2);
+    expect(lastFeedProps().inlineRows).toHaveLength(1);
+  });
+
+  it('switches the filter to another chip', () => {
+    renderWithProvider(<TrendingView />);
+
+    pressChip(BTC);
+    pressChip(ETH);
+
+    expect(lastFeedProps().filters).toEqual({ assetIds: ETH.assetIds });
+  });
+
+  it('drops Popular traders and the Trending empty state while a chip is selected', () => {
+    renderWithProvider(<TrendingView />);
+
+    pressChip(BTC);
+
+    expect(lastFeedProps().inlineRows).toBeUndefined();
+    expect(lastFeedProps().renderEmpty).toBeUndefined();
+    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('tracks a pull-to-refresh on the Trending screen', () => {
+    renderWithProvider(<TrendingView source={Source.NAV_TAB} />);
+
+    act(() => {
+      lastFeedProps().onRefresh?.();
+    });
+
+    expect(mockUseSocialInteraction).toHaveBeenLastCalledWith(
+      Screen.TRENDING,
+      { tab_name: Tab.TRENDING, source: Source.NAV_TAB },
+      true,
+    );
+    expect(mockTrackInteraction).toHaveBeenCalledWith(Interaction.REFRESH);
+  });
+
+  it('keeps refresh analytics quiet while the tab is inactive', () => {
+    const { rerender } = renderWithProvider(<TrendingView isActive />);
+
+    rerender(<TrendingView isActive={false} />);
+
+    expect(mockUseSocialInteraction).toHaveBeenLastCalledWith(
+      Screen.TRENDING,
+      expect.anything(),
+      false,
+    );
+  });
+
+  it('forwards page scrolls from the shell to the feed', () => {
+    const pageRef = React.createRef<SocialTabPageHandle>();
+    renderWithProvider(<TrendingView pageRef={pageRef} />);
+
+    act(() => {
+      pageRef.current?.scrollToOffset(24, true);
+    });
+
+    expect(mockFeedScrollToOffset).toHaveBeenCalledWith(24, true);
+  });
+
+  it('opens the author profile', () => {
+    renderWithProvider(<TrendingView />);
+
+    act(() => {
+      lastFeedProps().onAuthorPress?.(perpPost);
+    });
+
+    expect(mockNavigateToSocialV1Profile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        traderId: 'trader-ada',
+        source: 'trader_feed',
+      }),
+    );
+  });
+
+  it('opens the position sheet for posts with a position', () => {
+    renderWithProvider(<TrendingView />);
+
+    act(() => {
+      lastFeedProps().onPositionPress?.(perpPost);
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL.POSITION_SHEET,
+      expect.objectContaining({
+        positionId: 'perp-position',
+        isClosed: false,
+      }),
+    );
+  });
+});

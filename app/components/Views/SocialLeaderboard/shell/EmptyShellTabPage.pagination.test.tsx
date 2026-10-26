@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import type { UseSocialV1FeedResult } from '../SocialV1View/feed/types';
+import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import EmptyShellTabPage, {
   SOCIAL_V1_FEED_FOOTER_LOADING_TEST_ID,
 } from './EmptyShellTabPage';
@@ -25,30 +26,7 @@ jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => ({ profile: null }),
 }));
 
-jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
-  useSocialFeed: jest.fn(() => ({
-    posts: [],
-    rows: [],
-    isLoading: false,
-    isFetchingNextPage: false,
-    hasNextPage: false,
-    loadMore: jest.fn(),
-    error: null,
-    refresh: jest.fn(async () => undefined),
-    dataUpdatedAt: undefined,
-  })),
-}));
-
-jest.mock('../SocialV1View/feed/components', () => ({
-  HotTokensCarousel: () => null,
-}));
-
 jest.mock('../../../UI/SocialFeed/components/SocialFeedPostShell', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
   __esModule: true,
   default: () => null,
 }));
@@ -80,9 +58,7 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
         authorHandle: 'aparjey',
         timestampMs: Date.now(),
         reactions: [],
-        item: {
-          author: { id: 'author-1' },
-        } as UseSocialV1FeedResult['posts'][number]['item'],
+        item: mockOpenPerpsFeedItem({ id: 'post-1-item' }),
       },
     ],
     ...overrides,
@@ -91,10 +67,10 @@ const populatedFeed = (overrides: Partial<UseSocialV1FeedResult> = {}) =>
 const renderPage = () =>
   renderWithProvider(
     <EmptyShellTabPage
-      tab="trending"
+      tab="following"
       isActive
-      containerTestID="trending-page-content"
-      scrollTestID="trending-page-scroll"
+      containerTestID="following-page-content"
+      scrollTestID="following-page-scroll"
     />,
   );
 
@@ -103,7 +79,7 @@ const renderPage = () =>
  * so the pull gesture is driven through its props.
  */
 const refreshControl = () =>
-  screen.getByTestId('trending-page-scroll').props.refreshControl;
+  screen.getByTestId('following-page-scroll').props.refreshControl;
 
 /** A scroll event that settles `distanceFromEnd` pixels from the bottom. */
 const scrollEvent = (distanceFromEnd: number) => ({
@@ -125,7 +101,7 @@ describe('EmptyShellTabPage pagination', () => {
 
     renderPage();
     fireEvent(
-      screen.getByTestId('trending-page-scroll'),
+      screen.getByTestId('following-page-scroll'),
       'momentumScrollEnd',
       scrollEvent(100),
     );
@@ -140,7 +116,7 @@ describe('EmptyShellTabPage pagination', () => {
 
     renderPage();
     fireEvent(
-      screen.getByTestId('trending-page-scroll'),
+      screen.getByTestId('following-page-scroll'),
       'scrollEndDrag',
       scrollEvent(100),
     );
@@ -153,7 +129,7 @@ describe('EmptyShellTabPage pagination', () => {
 
     renderPage();
     fireEvent(
-      screen.getByTestId('trending-page-scroll'),
+      screen.getByTestId('following-page-scroll'),
       'momentumScrollEnd',
       scrollEvent(1500),
     );
@@ -166,7 +142,7 @@ describe('EmptyShellTabPage pagination', () => {
 
     renderPage();
     fireEvent(
-      screen.getByTestId('trending-page-scroll'),
+      screen.getByTestId('following-page-scroll'),
       'momentumScrollEnd',
       scrollEvent(100),
     );

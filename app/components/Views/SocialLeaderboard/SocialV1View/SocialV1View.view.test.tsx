@@ -11,12 +11,14 @@
 import '../../../../../tests/component-view/mocks';
 
 import React from 'react';
+import NetInfo from '@react-native-community/netinfo';
 import {
   fireEvent,
   screen,
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
@@ -109,6 +111,17 @@ const installComplianceController = (blocked: boolean) => {
     },
   });
 };
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+// The tab feeds only fetch online, and the NetInfo mock starts offline.
+beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+});
+
+afterEach(() => {
+  netInfoMock.__resetMockNetInfo();
+});
 
 const pressCopyTrade = async () => {
   const trendingPage = within(

@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { useLogSocialQueryError } from '../../../../util/social/socialServiceTelemetry';
+import { FEED_CAIP2_CHAINS } from './feed-constants';
 import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
 import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import { toSocialFeedRequest, type SocialFeedSource } from './socialFeedSource';
@@ -239,6 +240,113 @@ describe('useSocialFeed', () => {
     expect(result.current.checksummed.posts).toHaveLength(1);
     expect(mockCall).toHaveBeenCalledTimes(1);
     expect(client.getQueryCache().getAll()).toHaveLength(1);
+  });
+
+  describe('filters', () => {
+    const leaderboardSource: SocialFeedSource = {
+      kind: 'all',
+      audience: 'all',
+    };
+    const assetIds = [
+      'eip155:999/perp:BTC',
+      'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+    ] as const;
+
+    it('sends assetIds with the chains on the global feed', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      renderHook(
+        () =>
+          useSocialFeed(leaderboardSource, {
+            filters: { assetIds: [...assetIds] },
+          }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      await waitFor(() =>
+        expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+          scope: 'leaderboard',
+          chains: [...FEED_CAIP2_CHAINS],
+          assetIds: [...assetIds],
+          limit: FEED_PAGE_LIMIT,
+        }),
+      );
+    });
+
+    it('keys the cache on assetIds', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+      const filters = { assetIds: [...assetIds] };
+
+      renderHook(
+        () => ({
+          all: useSocialFeed(leaderboardSource),
+          filtered: useSocialFeed(leaderboardSource, { filters }),
+        }),
+        { wrapper },
+      );
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalledTimes(2));
+      const filteredRequest = toSocialFeedRequest(leaderboardSource, filters);
+      if (!filteredRequest) {
+        throw new Error('Expected a request for the global feed');
+      }
+      expect(
+        client.getQueryCache().find({
+          queryKey: buildSocialFeedQueryKey(filteredRequest, FEED_PAGE_LIMIT),
+          exact: true,
+        }),
+      ).toBeDefined();
+      expect(client.getQueryCache().getAll()).toHaveLength(2);
+    });
+
+    it('omits an empty assetIds filter and shares the unfiltered entry', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(
+        () => useSocialFeed(leaderboardSource, { filters: { assetIds: [] } }),
+        { wrapper },
+      );
+
+      await waitFor(() =>
+        expect(mockCall).toHaveBeenCalledWith('SocialService:fetchFeed', {
+          scope: 'leaderboard',
+          chains: [...FEED_CAIP2_CHAINS],
+          limit: FEED_PAGE_LIMIT,
+        }),
+      );
+      expect(client.getQueryCache().getAll()[0]?.queryHash).toBe(
+        hashKey(
+          buildSocialFeedQueryKey(
+            {
+              action: 'SocialService:fetchFeed',
+              options: { scope: 'leaderboard', chains: FEED_CAIP2_CHAINS },
+            },
+            FEED_PAGE_LIMIT,
+          ),
+        ),
+      );
+    });
+
+    it('turns realtime off while filtering by asset', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      renderHook(
+        () =>
+          useSocialFeed(
+            { kind: 'all', audience: 'all', scope: 'all' },
+            { realtime: true, filters: { assetIds: [...assetIds] } },
+          ),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+    });
   });
 
   it('sorts the global feed newest first', async () => {

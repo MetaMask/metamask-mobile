@@ -494,6 +494,56 @@ describe('useLogSocialQueryError', () => {
     rerender({ queryError: null });
     expect(mockLoggerError).toHaveBeenCalledTimes(1);
   });
+
+  describe('one query watched by two hooks', () => {
+    const context = {
+      surface: 'trader_feed' as const,
+      operation: 'fetch_feed',
+      extraMessage: 'Social feed fetch failed',
+      source: 'useSocialFeed',
+      endpoint: 'feed' as const,
+    };
+
+    it('reports the shared error once', () => {
+      const sharedError = new Error('feed down');
+
+      renderHook(() => {
+        useLogSocialQueryError(sharedError, context);
+        useLogSocialQueryError(sharedError, context);
+      });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockAddBreadcrumb).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the next failure, a new error instance', () => {
+      const { rerender } = renderHook(
+        ({ queryError }: { queryError: unknown }) => {
+          useLogSocialQueryError(queryError, context);
+          useLogSocialQueryError(queryError, context);
+        },
+        { initialProps: { queryError: new Error('feed down') as unknown } },
+      );
+
+      rerender({ queryError: new Error('feed down again') });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not report an error again after it clears and returns', () => {
+      const sharedError = new Error('feed down');
+      const { rerender } = renderHook(
+        ({ queryError }: { queryError: unknown }) =>
+          useLogSocialQueryError(queryError, context),
+        { initialProps: { queryError: sharedError as unknown } },
+      );
+
+      rerender({ queryError: null });
+      rerender({ queryError: sharedError });
+
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

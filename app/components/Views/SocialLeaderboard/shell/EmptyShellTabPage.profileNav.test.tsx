@@ -22,31 +22,8 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../SocialV1View/feed/hooks/useSocialV1Feed');
 
-jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
-  useSocialFeed: jest.fn(() => ({
-    posts: [],
-    rows: [],
-    isLoading: false,
-    isFetchingNextPage: false,
-    hasNextPage: false,
-    loadMore: jest.fn(),
-    error: null,
-    refresh: jest.fn(async () => undefined),
-    dataUpdatedAt: undefined,
-  })),
-}));
-
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => ({ profile: null }),
-}));
-
-jest.mock('../SocialV1View/feed/components', () => ({
-  HotTokensCarousel: () => null,
-}));
-
-jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => ({
-  __esModule: true,
-  default: () => null,
 }));
 
 jest.mock('../../../UI/SocialFeed/components/TraderAvatar', () => {
@@ -97,10 +74,10 @@ describe('EmptyShellTabPage profile navigation', () => {
     renderWithProvider(
       <QueryClientProvider client={new QueryClient()}>
         <EmptyShellTabPage
-          tab="trending"
+          tab="following"
           isActive
-          containerTestID="trending-page-content"
-          scrollTestID="trending-page-scroll"
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
         />
       </QueryClientProvider>,
     );
@@ -138,10 +115,10 @@ describe('EmptyShellTabPage profile navigation', () => {
     renderWithProvider(
       <QueryClientProvider client={new QueryClient()}>
         <EmptyShellTabPage
-          tab="trending"
+          tab="following"
           isActive
-          containerTestID="trending-page-content"
-          scrollTestID="trending-page-scroll"
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
         />
       </QueryClientProvider>,
     );
@@ -172,10 +149,10 @@ describe('EmptyShellTabPage profile navigation', () => {
     renderWithProvider(
       <QueryClientProvider client={new QueryClient()}>
         <EmptyShellTabPage
-          tab="trending"
+          tab="following"
           isActive
-          containerTestID="trending-page-content"
-          scrollTestID="trending-page-scroll"
+          containerTestID="following-page-content"
+          scrollTestID="following-page-scroll"
         />
       </QueryClientProvider>,
     );

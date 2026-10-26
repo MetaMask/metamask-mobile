@@ -16,7 +16,8 @@ export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'eip155:999', // hyperliquid
 ];
 
-const HYPERLIQUID_CAIP2: CaipChainId = 'eip155:999';
+/** HyperEVM, the chain the feed files Hyperliquid perp markets under. */
+export const HYPERLIQUID_CAIP2_CHAIN_ID: CaipChainId = 'eip155:999';
 
 /**
  * Chains the global feed requests per asset class. `all` must stay the exact
@@ -28,6 +29,8 @@ export const FEED_CAIP2_CHAINS_BY_ASSET_CLASS: Record<
   readonly CaipChainId[]
 > = {
   all: FEED_CAIP2_CHAINS,
-  tokens: FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2),
-  perps: [HYPERLIQUID_CAIP2],
+  tokens: FEED_CAIP2_CHAINS.filter(
+    (chain) => chain !== HYPERLIQUID_CAIP2_CHAIN_ID,
+  ),
+  perps: [HYPERLIQUID_CAIP2_CHAIN_ID],
 };

@@ -1,5 +1,4 @@
 import { Box, TextColor } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -10,11 +9,7 @@ import React, {
 } from 'react';
 import type { ScrollHandlerProcessed } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
-import Routes from '../../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
-import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
-import { playSelection } from '../../../../util/haptics';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
@@ -32,7 +27,7 @@ import type { SocialShellFilters } from '../shell/filters/types';
 import LiveButton from './components/LiveButton';
 import PendingPostsButton from './components/PendingPostsButton';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
-import { useMyProfile } from '../MyProfileView/hooks';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import {
   SocialEvent,
   type SocialEventSource,
@@ -71,8 +66,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
-  const navigation = useNavigation<AppNavigationProp>();
-  const { profile: myProfile } = useMyProfile();
+  const { onAuthorPress, onPositionPress } = useSocialFeedPostNavigation();
   const followingProfileIds = useSelector(selectFollowingProfileIds);
   const [streamState, setStreamState] = useState<LiveStreamState>('live');
   const feedPageRef = useRef<SocialFeedPageHandle>(null);
@@ -128,42 +122,6 @@ const LiveView: React.FC<LiveViewProps> = ({
     [streamState, trackInteraction],
   );
 
-  const handleAuthorPress = useCallback(
-    (post: SocialV1FeedPost) => {
-      playSelection().catch(() => undefined);
-      navigateToSocialV1Profile(navigation, {
-        traderId: post.item.author.id,
-        traderName: post.authorHandle,
-        traderAddress: post.item.author.address,
-        traderAvatarUri:
-          post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
-        source: 'trader_feed',
-        viewerProfileId: myProfile?.profileId ?? undefined,
-        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
-      });
-    },
-    [myProfile, navigation],
-  );
-
-  const handlePositionPress = useCallback(
-    (post: SocialV1FeedPost) => {
-      if (!post.position) {
-        return;
-      }
-      playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
-        positionId: post.position.positionId,
-        position: post.position,
-        author: post.item.author,
-        comment: post.item.comment,
-        isClosed:
-          post.item.variant === 'perpsClosed' ||
-          post.item.variant === 'spotClosed',
-      });
-    },
-    [navigation],
-  );
-
   const isLive = streamState === 'live';
 
   const renderHeader = useCallback(
@@ -205,9 +163,9 @@ const LiveView: React.FC<LiveViewProps> = ({
         renderHeader={renderHeader}
         onScroll={onScroll}
         pageRef={feedPageRef}
-        onAuthorPress={handleAuthorPress}
+        onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
-        onPositionPress={handlePositionPress}
+        onPositionPress={onPositionPress}
         testID={LiveViewSelectorsIDs.CONTAINER}
         scrollTestID={LiveViewSelectorsIDs.SCROLL_VIEW}
       />

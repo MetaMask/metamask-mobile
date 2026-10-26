@@ -11,16 +11,19 @@ export interface SocialFeedPlaceholderProps {
   state: SocialFeedListState;
   /** Placeholder posts to show; defaults to the skeleton's own count. */
   skeletonCount?: number;
+  /** Replaces the default empty state. */
+  renderEmpty?: () => React.ReactNode;
 }
 
 /** What stands in for the posts while there are none: skeleton or empty. */
 export const SocialFeedPlaceholder: React.FC<SocialFeedPlaceholderProps> = ({
   state,
   skeletonCount,
+  renderEmpty,
 }) => (
   <>
     {state.showSkeleton ? <SocialFeedSkeleton count={skeletonCount} /> : null}
-    {state.showEmpty ? <SocialFeedEmpty /> : null}
+    {state.showEmpty ? renderEmpty ? renderEmpty() : <SocialFeedEmpty /> : null}
   </>
 );
 

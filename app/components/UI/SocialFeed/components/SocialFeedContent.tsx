@@ -90,11 +90,14 @@ const LoadMoreSentinel: React.FC<{
  */
 const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   source,
+  filters,
   location,
   analyticsSource,
+  showMockedFields,
   isActive,
   title,
   renderHeader,
+  renderEmpty,
   filterPost,
   onAuthorPress,
   onCopyTrade,
@@ -109,7 +112,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     loadMore,
     error,
     refresh,
-  } = useSocialFeed(source, { filterPost });
+  } = useSocialFeed(source, { filters, filterPost });
   const state = getSocialFeedListState({
     postCount: posts.length,
     isLoading,
@@ -138,11 +141,12 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      showMockedFields={showMockedFields}
     >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
-        <SocialFeedPlaceholder state={state} />
+        <SocialFeedPlaceholder state={state} renderEmpty={renderEmpty} />
         {posts.length > 0 ? (
           <SocialV1FeedPostList
             posts={posts}

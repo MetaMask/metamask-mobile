@@ -20,8 +20,13 @@ import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
-import type { SocialFeedHeaderProps } from './SocialFeed.types';
-import SocialFeedVirtualized from './SocialFeedVirtualized';
+import type {
+  SocialFeedHeaderProps,
+  SocialFeedInlineRow,
+} from './SocialFeed.types';
+import SocialFeedVirtualized, {
+  REFRESH_MIN_DURATION_MS,
+} from './SocialFeedVirtualized';
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -33,8 +38,23 @@ jest.mock('../socialFeedTracking', () => ({
   socialFeedTracksLocation: () => false,
 }));
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
-import { SOCIAL_FEED_RETRY_TEST_ID } from './SocialFeedStates.testIds';
+import {
+  SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from './SocialFeedStates.testIds';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
+import {
+  SocialFeedSurfaceProvider,
+  useSocialFeedSurface,
+} from '../SocialFeedSurface';
+import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
+import { mockTheme } from '../../../../util/theme';
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace',
+  () => ({ useSocialTabFirstContentTrace: jest.fn() }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   useIsFocused: jest.fn(() => true),
@@ -103,6 +123,35 @@ const mockUseSocialLivePrices = jest.mocked(useSocialLivePrices);
 const mockFeedItemEntryAnimation = jest.mocked(FeedItemEntryAnimation);
 const mockUseAnimatedScrollHandler = jest.mocked(useAnimatedScrollHandler);
 const mockUseComposedEventHandler = jest.mocked(useComposedEventHandler);
+const mockUseSocialTabFirstContentTrace = jest.mocked(
+  useSocialTabFirstContentTrace,
+);
+
+const performanceContext = (
+  overrides: Partial<SocialPerformanceContext> = {},
+): SocialPerformanceContext => ({
+  enabled: true,
+  hardwareTier: null,
+  isActive: true,
+  isFocused: true,
+  networkTier: null,
+  ...overrides,
+});
+
+const inlineRow = (key: string, afterIndex: number): SocialFeedInlineRow => ({
+  key,
+  afterIndex,
+  render: () => <Text>{key}</Text>,
+});
+
+/** Text of every post and inline row on screen, top to bottom. */
+const renderedRowTexts = (pattern: RegExp) =>
+  screen.getAllByText(pattern).map((node) => node.props.children);
+
+const SurfaceProbe: React.FC = () => {
+  const { showMockedFields } = useSocialFeedSurface();
+  return <Text>{`mocked:${showMockedFields}`}</Text>;
+};
 
 const source = { kind: 'all', audience: 'all', scope: 'all' } as const;
 
@@ -380,16 +429,60 @@ describe('SocialFeedVirtualized', () => {
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('refreshes through the refresh control', async () => {
-    const refresh = jest.fn(async () => undefined);
-    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
-    renderFeed();
+  describe('pull to refresh', () => {
+    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
 
-    await act(async () => {
-      await screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+    beforeEach(() => {
+      jest.useFakeTimers();
     });
 
-    expect(refresh).toHaveBeenCalledTimes(1);
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('refreshes the feed and tells the host', async () => {
+      const refresh = jest.fn(async () => undefined);
+      const onRefresh = jest.fn();
+      mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
+      renderFeed({ onRefresh });
+
+      await act(async () => {
+        getRefreshControl().props.onRefresh();
+      });
+
+      expect(refresh).toHaveBeenCalledTimes(1);
+      expect(onRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it('holds the spinner for the minimum duration after a fast refetch', async () => {
+      mockUseSocialFeed.mockReturnValue(feedState());
+      renderFeed();
+
+      await act(async () => {
+        getRefreshControl().props.onRefresh();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS - 1);
+      });
+      const refreshingBeforeMinimum = getRefreshControl().props.refreshing;
+      await act(async () => {
+        jest.advanceTimersByTime(1);
+      });
+
+      expect(refreshingBeforeMinimum).toBe(true);
+      expect(getRefreshControl().props.refreshing).toBe(false);
+    });
+
+    it('uses the themed spinner colors', () => {
+      renderFeed();
+
+      expect(getRefreshControl().props).toEqual(
+        expect.objectContaining({
+          colors: [mockTheme.colors.primary.default],
+          tintColor: mockTheme.colors.icon.default,
+        }),
+      );
+    });
   });
 
   it('reveals pending posts, refreshes, then scrolls to the top', async () => {
@@ -462,5 +555,234 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.getByText('one')).toBeOnTheScreen();
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands the server filters to the feed', () => {
+    const filters = { assetIds: ['eip155:999/perp:BTC' as const] };
+
+    renderFeed({ filters });
+
+    expect(lastFeedOptions()?.filters).toBe(filters);
+  });
+
+  describe('mocked fields', () => {
+    it('shows them when the host opts in', () => {
+      renderFeed({
+        showMockedFields: true,
+        renderHeader: () => <SurfaceProbe />,
+      });
+
+      expect(screen.getByText('mocked:true')).toBeOnTheScreen();
+    });
+
+    it('keeps the outer surface choice when omitted', () => {
+      render(
+        <SocialFeedSurfaceProvider showMockedFields>
+          <SocialFeedVirtualized
+            source={source}
+            location="social_live"
+            scrollMode="virtualized"
+            renderHeader={() => <SurfaceProbe />}
+          />
+        </SocialFeedSurfaceProvider>,
+      );
+
+      expect(screen.getByText('mocked:true')).toBeOnTheScreen();
+    });
+
+    it('stays hidden without a surface opting in', () => {
+      renderFeed({ renderHeader: () => <SurfaceProbe /> });
+
+      expect(screen.getByText('mocked:false')).toBeOnTheScreen();
+    });
+  });
+
+  describe('inline rows', () => {
+    const rowTextPattern = /^(one|two|three|rail|empty)$/;
+
+    it('splices a row in after the given number of posts', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), post('two'), post('three')] }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 2)] });
+
+      expect(renderedRowTexts(rowTextPattern)).toEqual([
+        'one',
+        'two',
+        'rail',
+        'three',
+      ]);
+    });
+
+    it('moves a row past the last post to the end', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), post('two')] }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 3)] });
+
+      expect(renderedRowTexts(rowTextPattern)).toEqual(['one', 'two', 'rail']);
+    });
+
+    it('hides the rows while the first page loads', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ isLoading: true, dataUpdatedAt: undefined }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 3)] });
+
+      expect(screen.queryByText('rail')).toBeNull();
+      expect(
+        screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the rows under the empty state once the first page is empty', () => {
+      renderFeed({
+        inlineRows: [inlineRow('rail', 3)],
+        renderEmpty: () => <Text>empty</Text>,
+      });
+
+      expect(renderedRowTexts(rowTextPattern)).toEqual(['empty', 'rail']);
+    });
+
+    it('keeps the retry below the rows after a failed first page', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ error: 'feed down', dataUpdatedAt: undefined }),
+      );
+
+      renderFeed({
+        inlineRows: [
+          {
+            key: 'rail',
+            afterIndex: 3,
+            render: () => <Text testID="inline-rail">rail</Text>,
+          },
+        ],
+      });
+      const orderedIds = screen
+        .getAllByTestId(
+          new RegExp(`^(inline-rail|${SOCIAL_FEED_RETRY_TEST_ID})$`),
+        )
+        .map((node) => node.props.testID);
+
+      expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
+      expect(orderedIds).toEqual(['inline-rail', SOCIAL_FEED_RETRY_TEST_ID]);
+    });
+
+    it('draws a divider under every row but the last, rows included', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), post('two')] }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 1)] });
+
+      expect(
+        screen.getByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-one'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-inline-rail'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-two'),
+        ),
+      ).toBeNull();
+    });
+
+    it('leaves a trailing row without a divider', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), post('two')] }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 5)] });
+
+      expect(
+        screen.getByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-two'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-inline-rail'),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('empty state', () => {
+    it('renders the host empty state in place of the default one', () => {
+      renderFeed({ renderEmpty: () => <Text>nothing trending</Text> });
+
+      expect(screen.getByText('nothing trending')).toBeOnTheScreen();
+      expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
+    });
+
+    it('renders the default empty state without one', () => {
+      renderFeed();
+
+      expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
+    });
+  });
+
+  describe('performance', () => {
+    it('traces the initial fetch for the tab while the context is enabled', () => {
+      renderFeed({
+        performance: { tab: 'trending', context: performanceContext() },
+      });
+
+      expect(lastFeedOptions()?.performance).toEqual({ tab: 'trending' });
+    });
+
+    it('does not trace the initial fetch while the context is disabled', () => {
+      renderFeed({
+        performance: {
+          tab: 'trending',
+          context: performanceContext({ enabled: false }),
+        },
+      });
+
+      expect(lastFeedOptions()?.performance).toBeUndefined();
+    });
+
+    it('runs no first-content trace without a performance context', () => {
+      renderFeed();
+
+      expect(mockUseSocialTabFirstContentTrace).not.toHaveBeenCalled();
+    });
+
+    it.each<[string, Partial<SocialFeedState>, string | null, boolean]>([
+      ['content once posts render', { posts: [post('one')] }, 'content', true],
+      [
+        'error when a failure leaves the list empty',
+        { error: 'feed down', dataUpdatedAt: undefined },
+        'error',
+        false,
+      ],
+      ['empty when the settled first page is empty', {}, 'empty', true],
+      [
+        'nothing while the first page loads',
+        { isLoading: true, dataUpdatedAt: undefined },
+        null,
+        false,
+      ],
+    ])('reports %s', (_label, overrides, expectedState, expectedUsableData) => {
+      const context = performanceContext();
+      mockUseSocialFeed.mockReturnValue(feedState(overrides));
+
+      renderFeed({ performance: { tab: 'trending', context } });
+
+      expect(mockUseSocialTabFirstContentTrace).toHaveBeenLastCalledWith({
+        tab: 'trending',
+        contentState: expectedState,
+        hasUsableData: expectedUsableData,
+        performance: context,
+      });
+    });
   });
 });

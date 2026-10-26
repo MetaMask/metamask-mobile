@@ -23,6 +23,7 @@ import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import {
   toSocialFeedRealtimeScope,
   toSocialFeedRequest,
+  type SocialFeedFilters,
   type SocialFeedRequest,
   type SocialFeedSource,
 } from './socialFeedSource';
@@ -40,6 +41,11 @@ export interface UseSocialFeedOptions {
   enabled?: boolean;
   /** Items per page. Part of the cache key. */
   pageSize?: number;
+  /**
+   * Server-side narrowing of an `all` source. Part of the cache key, and
+   * turns realtime off while it filters by asset. Memoize it.
+   */
+  filters?: SocialFeedFilters;
   /**
    * Keeps only matching posts. With realtime, also drops non-matching new
    * posts before they are held or counted. Memoize it.
@@ -130,6 +136,7 @@ export const useSocialFeed = (
   const {
     enabled = true,
     pageSize = FEED_PAGE_LIMIT,
+    filters,
     filterPost,
     realtime = false,
     paused = false,
@@ -142,13 +149,15 @@ export const useSocialFeed = (
   const initialRequestAccountedForRef = useRef(false);
 
   const request = useMemo(
-    () => (source ? toSocialFeedRequest(source) : null),
-    [source],
+    () => (source ? toSocialFeedRequest(source, filters) : null),
+    [filters, source],
   );
   const realtimeScope = useMemo(
     () =>
-      realtime && source && request ? toSocialFeedRealtimeScope(source) : null,
-    [realtime, request, source],
+      realtime && source && request
+        ? toSocialFeedRealtimeScope(source, filters)
+        : null,
+    [filters, realtime, request, source],
   );
   const queryKey = useMemo(
     () =>

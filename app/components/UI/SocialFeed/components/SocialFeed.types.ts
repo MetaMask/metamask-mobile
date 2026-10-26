@@ -1,10 +1,19 @@
 import type React from 'react';
 import type { ScrollHandlerProcessed } from 'react-native-reanimated';
-import type { SocialFeedSource } from '../data/socialFeedSource';
+import type {
+  SocialFeedFilters,
+  SocialFeedSource,
+} from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
+import type {
+  SocialDataFetchTab,
+  SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
+
+export type { SocialFeedFilters } from '../data/socialFeedSource';
 
 /**
  * Who scrolls the feed. `content` renders inside the host's scroll view;
@@ -19,19 +28,40 @@ export interface SocialFeedHeaderProps {
   onRevealPending: () => void;
 }
 
+/** A host row spliced into the list between posts. */
+export interface SocialFeedInlineRow {
+  /** Unique among the feed's inline rows. */
+  key: string;
+  /** Posts shown above this row. Past the last post, the row follows it. */
+  afterIndex: number;
+  render: () => React.ReactNode;
+}
+
 interface SocialFeedBaseProps {
   /** Which slice to load. The component fetches it; the host does not. */
   source: SocialFeedSource;
+  /**
+   * Server-side narrowing of an `all` source. Part of the cache key.
+   * Memoize it.
+   */
+  filters?: SocialFeedFilters;
   /** Where this feed is shown. Post events use it; the host does not track. */
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
   analyticsSource?: SocialEventSource;
+  /**
+   * Shows the invented values posts still carry. Omitted keeps the outer
+   * surface's choice.
+   */
+  showMockedFields?: boolean;
   /** Inactive tabs wait to record the screen view. Defaults to active. */
   isActive?: boolean;
   /** Optional heading above the posts. */
   title?: string;
   /** Rendered below the title, scrolling with the posts. */
   renderHeader?: (props: SocialFeedHeaderProps) => React.ReactNode;
+  /** Replaces the default empty state once a load finds nothing. */
+  renderEmpty?: () => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
   filterPost?: (post: SocialV1FeedPost) => boolean;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
@@ -50,6 +80,18 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   realtime?: boolean;
   /** Holds new posts behind `pendingNewCount`. */
   paused?: boolean;
+  /**
+   * Host rows between posts, hidden while the first page loads. With no
+   * posts they follow the empty state. Memoize the array.
+   */
+  inlineRows?: readonly SocialFeedInlineRow[];
+  /** Called when the user pulls to refresh, for host analytics. */
+  onRefresh?: () => void;
+  /** Social V1 tab traces: the initial fetch and the first content. */
+  performance?: Readonly<{
+    tab: SocialDataFetchTab;
+    context: SocialPerformanceContext;
+  }>;
   /** Host scroll handler, composed with the feed's own. */
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialFeedPageHandle>;

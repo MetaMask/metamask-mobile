@@ -6,6 +6,7 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialV1FeedPost } from '../types';
+import { useSocialFeedSurface } from '../SocialFeedSurface';
 import SocialFeed, {
   SOCIAL_FEED_NEXT_PAGE_TEST_ID,
   type SocialFeedHeaderProps,
@@ -253,6 +254,60 @@ describe('SocialFeed', () => {
 
     expect(mockUseSocialFeed).toHaveBeenCalledWith(source, { filterPost });
   });
+
+  it('hands the server filters to the feed', () => {
+    const filters = { assetIds: ['eip155:999/perp:BTC' as const] };
+
+    renderWithProvider(
+      <SocialFeed
+        source={{ kind: 'all', audience: 'all' }}
+        location="perps_home"
+        filters={filters}
+      />,
+    );
+
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(
+      { kind: 'all', audience: 'all' },
+      expect.objectContaining({ filters }),
+    );
+  });
+
+  it('renders the host empty state in place of the default one', () => {
+    renderWithProvider(
+      <SocialFeed
+        source={source}
+        location="token_details"
+        renderEmpty={() => <Text>nothing here</Text>}
+      />,
+    );
+
+    expect(screen.getByText('nothing here')).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
+  });
+
+  it.each([
+    [true, 'mocked:true'],
+    [undefined, 'mocked:false'],
+  ])(
+    'sets showMockedFields=%s on the surface it renders',
+    (showMockedFields, expected) => {
+      const SurfaceProbe = () => {
+        const surface = useSocialFeedSurface();
+        return <Text>{`mocked:${surface.showMockedFields}`}</Text>;
+      };
+
+      renderWithProvider(
+        <SocialFeed
+          source={source}
+          location="token_details"
+          showMockedFields={showMockedFields}
+          renderHeader={() => <SurfaceProbe />}
+        />,
+      );
+
+      expect(screen.getByText(expected)).toBeOnTheScreen();
+    },
+  );
 
   it('renders the virtualized feed for the virtualized scroll mode', () => {
     renderWithProvider(
