@@ -1,122 +1,201 @@
 /**
- * Unit coverage: one frame after the transition flag, plus cancel on unmount.
- * Component-view would still mock `transitionEnd` and `requestAnimationFrame`.
- * This hook does not cross a controller seam. The transition hook has its own tests.
+ * Unit coverage: one state flip, one commit, and the transition subscription it
+ * owns. Component-view would still have to drive `transitionEnd` and
+ * `requestAnimationFrame`. This gate does not cross a controller seam, and the
+ * transition helper keeps its own tests.
  */
-import React from 'react';
+import React, { Profiler, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { act, render, renderHook } from '@testing-library/react-native';
 
+import { SCREEN_TRANSITION_FALLBACK_MS } from '../hooks/subscribeScreenTransition';
 import { DeferredRender } from './DeferredRender';
 import { useDeferredRender } from './useDeferredRender';
 
-let mockIsTransitionComplete = false;
+type Listener = (event: { data: { closing: boolean } }) => void;
 
-jest.mock('../hooks/useScreenTransitionComplete', () => ({
-  useScreenTransitionComplete: () => mockIsTransitionComplete,
+const listeners: Record<string, Set<Listener>> = {
+  focus: new Set(),
+  transitionEnd: new Set(),
+};
+const mockUnsubscribe = jest.fn();
+const mockIsFocused = jest.fn(() => true);
+const mockAddListener = jest.fn((type: string, listener: Listener) => {
+  listeners[type].add(listener);
+  return () => {
+    listeners[type].delete(listener);
+    mockUnsubscribe();
+  };
+});
+
+// One stable object for every call, as a real navigator returns: a new object
+// per render would re-run the subscription effect on every commit.
+const mockNavigation = {
+  addListener: mockAddListener,
+  isFocused: mockIsFocused,
+};
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => mockNavigation,
 }));
 
-interface QueuedFrame {
-  id: number;
-  callback: FrameRequestCallback;
-}
-
-let queuedFrames: QueuedFrame[] = [];
-let nextFrameId = 1;
+let queuedFrames: FrameRequestCallback[] = [];
 const originalRequestAnimationFrame = global.requestAnimationFrame;
 const originalCancelAnimationFrame = global.cancelAnimationFrame;
 
-function installAnimationFrameMock() {
-  queuedFrames = [];
-  nextFrameId = 1;
-  global.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
-    const id = nextFrameId;
-    nextFrameId += 1;
-    queuedFrames.push({ id, callback });
-    return id;
-  }) as typeof requestAnimationFrame;
-  global.cancelAnimationFrame = jest.fn((id: number) => {
-    queuedFrames = queuedFrames.filter((frame) => frame.id !== id);
-  }) as typeof cancelAnimationFrame;
+function emit(type: string, closing = false) {
+  act(() => {
+    [...listeners[type]].forEach((listener) => listener({ data: { closing } }));
+  });
 }
 
-function flushAnimationFrame() {
+function flushFrame() {
   const frame = queuedFrames.shift();
   if (!frame) {
     throw new Error('expected a pending animation frame');
   }
-
   act(() => {
-    frame.callback(0);
+    frame(0);
   });
 }
 
-function gate(enabled?: boolean) {
+function gate(children?: ReactNode, enabled?: boolean) {
   return (
     <DeferredRender
       enabled={enabled}
       placeholder={<View testID="deferred-render-placeholder" />}
     >
-      <View testID="deferred-render-content" />
+      {children ?? <View testID="deferred-render-content" />}
     </DeferredRender>
   );
 }
 
 describe('DeferredRender', () => {
   beforeEach(() => {
-    mockIsTransitionComplete = false;
-    installAnimationFrameMock();
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    mockIsFocused.mockReturnValue(true);
+    listeners.focus.clear();
+    listeners.transitionEnd.clear();
+    queuedFrames = [];
+    global.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
+      queuedFrames.push(callback);
+      return queuedFrames.length;
+    }) as typeof requestAnimationFrame;
+    global.cancelAnimationFrame = jest.fn(() => {
+      queuedFrames = [];
+    }) as typeof cancelAnimationFrame;
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     global.requestAnimationFrame = originalRequestAnimationFrame;
     global.cancelAnimationFrame = originalCancelAnimationFrame;
   });
 
-  it('returns false before the transition completes', () => {
-    const { result } = renderHook(() => useDeferredRender());
+  it('commits twice: the placeholder, then the released children', () => {
+    const onRender = jest.fn();
+    render(
+      <Profiler id="gate" onRender={onRender}>
+        {gate()}
+      </Profiler>,
+    );
 
-    expect(result.current).toBe(false);
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    emit('transitionEnd');
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    flushFrame();
+    expect(onRender).toHaveBeenCalledTimes(2);
+  });
+
+  it('queues one frame on transitionEnd and shows the children when it runs', () => {
+    const view = render(gate());
+
+    expect(view.getByTestId('deferred-render-placeholder')).toBeOnTheScreen();
     expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+
+    emit('transitionEnd');
+
+    expect(global.requestAnimationFrame).toHaveBeenCalledTimes(1);
+
+    flushFrame();
+
+    expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
+    expect(view.queryByTestId('deferred-render-placeholder')).toBeNull();
   });
 
-  it('returns true one frame after the transition completes', () => {
-    mockIsTransitionComplete = true;
+  it('ignores the transitionEnd of the screen that is closing', () => {
+    const view = render(gate());
 
-    const { result } = renderHook(() => useDeferredRender());
+    emit('transitionEnd', true);
 
-    expect(result.current).toBe(false);
-
-    flushAnimationFrame();
-
-    expect(result.current).toBe(true);
+    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(view.getByTestId('deferred-render-placeholder')).toBeOnTheScreen();
   });
 
-  it('cancels the pending frame on unmount', () => {
-    mockIsTransitionComplete = true;
-    const { result, unmount } = renderHook(() => useDeferredRender());
-    const pendingFrame = queuedFrames[0];
+  it('clears the fallback when transitionEnd arrives, so it releases once', () => {
+    render(gate());
 
-    unmount();
-
-    expect(global.cancelAnimationFrame).toHaveBeenCalledWith(pendingFrame.id);
-    expect(queuedFrames).toHaveLength(0);
-
+    emit('transitionEnd');
     act(() => {
-      pendingFrame.callback(0);
+      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS * 2);
     });
 
-    expect(result.current).toBe(false);
+    expect(global.requestAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(jest.getTimerCount()).toBe(0);
   });
 
-  it('returns true on the first commit when enabled is false', () => {
-    const { result } = renderHook(() => useDeferredRender({ enabled: false }));
+  it('releases on the fallback only while the screen is focused', () => {
+    const { result, unmount } = renderHook(() => useDeferredRender());
+
+    mockIsFocused.mockReturnValue(false);
+    act(() => {
+      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
+    });
+    expect(result.current).toBe(false);
+    unmount();
+
+    mockIsFocused.mockReturnValue(true);
+    const focused = renderHook(() => useDeferredRender());
+    act(() => {
+      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
+    });
+    flushFrame();
+
+    expect(focused.result.current).toBe(true);
+  });
+
+  it('re-arms the fallback when the screen comes back into focus', () => {
+    const { result } = renderHook(() => useDeferredRender());
+
+    mockIsFocused.mockReturnValue(false);
+    act(() => {
+      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
+    });
+    expect(result.current).toBe(false);
+
+    mockIsFocused.mockReturnValue(true);
+    emit('focus');
+    act(() => {
+      jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS);
+    });
+    flushFrame();
 
     expect(result.current).toBe(true);
-    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('stays true when enabled changes from false to true after mount', () => {
+  it('renders the children on the first commit when disabled', () => {
+    const view = render(gate(undefined, false));
+
+    expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
+    expect(mockAddListener).not.toHaveBeenCalled();
+    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
+  it('stays released when enabled flips from false to true', () => {
     const { result, rerender } = renderHook(
       ({ enabled }: { enabled: boolean }) => useDeferredRender({ enabled }),
       { initialProps: { enabled: false } },
@@ -130,25 +209,17 @@ describe('DeferredRender', () => {
     expect(global.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('renders the placeholder and then the children one frame later', () => {
-    const view = render(gate());
+  it('cancels the frame, the timer and both listeners on unmount', () => {
+    const { unmount } = renderHook(() => useDeferredRender());
 
-    expect(view.getByTestId('deferred-render-placeholder')).toBeOnTheScreen();
-    expect(view.queryByTestId('deferred-render-content')).toBeNull();
+    emit('transitionEnd');
+    expect(queuedFrames).toHaveLength(1);
 
-    mockIsTransitionComplete = true;
-    view.rerender(gate());
-    flushAnimationFrame();
+    unmount();
 
-    expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
-    expect(view.queryByTestId('deferred-render-placeholder')).toBeNull();
-  });
-
-  it('renders the children on the first commit when enabled is false', () => {
-    const view = render(gate(false));
-
-    expect(view.getByTestId('deferred-render-content')).toBeOnTheScreen();
-    expect(view.queryByTestId('deferred-render-placeholder')).toBeNull();
-    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(global.cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(queuedFrames).toHaveLength(0);
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(2);
+    expect(jest.getTimerCount()).toBe(0);
   });
 });
