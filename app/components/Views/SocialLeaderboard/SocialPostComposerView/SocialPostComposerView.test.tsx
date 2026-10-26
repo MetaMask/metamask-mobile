@@ -1,4 +1,5 @@
 import React from 'react';
+import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import type { Position } from '@metamask/social-controllers';
@@ -304,13 +305,54 @@ describe('SocialPostComposerView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('focuses the comment field after the screen transition', () => {
+  it('focuses the comment field once after the screen transition', () => {
+    const focusSpy = jest
+      .spyOn(TextInput.prototype, 'focus')
+      .mockImplementation(() => undefined);
+
     renderWithProvider(<SocialPostComposerView />);
 
     expect(
       screen.getByTestId(SocialPostComposerViewSelectorsIDs.INPUT).props
         .autoFocus,
-    ).toBe(true);
+    ).toBeUndefined();
+    expect(focusSpy).toHaveBeenCalledTimes(1);
+
+    focusSpy.mockRestore();
+  });
+
+  it('dismisses the keyboard when the empty composer area is pressed', () => {
+    const dismissSpy = jest
+      .spyOn(Keyboard, 'dismiss')
+      .mockImplementation(() => undefined);
+
+    renderWithProvider(<SocialPostComposerView />);
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialPostComposerViewSelectorsIDs.DISMISS_KEYBOARD_SURFACE,
+      ),
+    );
+
+    expect(dismissSpy).toHaveBeenCalledTimes(1);
+
+    dismissSpy.mockRestore();
+  });
+
+  it('dismisses the keyboard on drag and on taps the scroll content does not handle', () => {
+    renderWithProvider(<SocialPostComposerView />);
+
+    const scrollView = screen.getByTestId(
+      SocialPostComposerViewSelectorsIDs.SCROLL,
+    );
+
+    expect(scrollView.props.keyboardShouldPersistTaps).toBe('handled');
+    expect(scrollView.props.keyboardDismissMode).toBe(
+      Platform.OS === 'ios' ? 'interactive' : 'on-drag',
+    );
+    expect(StyleSheet.flatten(scrollView.props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ flexGrow: 1 }),
+    );
   });
 
   it('opens the GIF picker from the GIF chip without attaching a gif', () => {
