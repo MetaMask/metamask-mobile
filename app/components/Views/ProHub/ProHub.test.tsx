@@ -180,9 +180,7 @@ describe('ProHub', () => {
       isError: false,
     } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
     mockUseMoneyPremiumVaultRate.mockReturnValue({
-      vaultRateQuery: {
-        data: { rate: '0.041' },
-      },
+      vaultRateQuery: { data: undefined },
       rate: '0.041',
       ratePercent: 4.1,
       ratePercentFormatted: '4.1%',
