@@ -1467,16 +1467,22 @@
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_trade_share": {
-      "in_progress": "In progress...",
+      "swap_in_progress": "Swap in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
+      "order_in_progress": "Order in progress",
       "order_complete": "Order complete",
       "order_failed": "Order failed",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "View activity",
       "try_again": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
