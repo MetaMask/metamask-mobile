@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -104,9 +105,10 @@ describe('EditProfileAvatarView', () => {
         ),
       ).toHaveProp(
         'accessibilityLabel',
-        `${strings(
-          'social_leaderboard.profile_onboarding.customize_avatar',
-        )} ${index + 1}`,
+        strings(
+          'social_leaderboard.profile_onboarding.avatar_option_accessibility_label',
+          { number: index + 1, total: PROFILE_AVATAR_PRESETS.length },
+        ),
       );
     });
   });
@@ -124,7 +126,10 @@ describe('EditProfileAvatarView', () => {
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('shows the save error when the update fails', async () => {
+  it('shows and announces the save error when the update fails', async () => {
+    const announceSpy = jest
+      .spyOn(AccessibilityInfo, 'announceForAccessibility')
+      .mockImplementation(() => undefined);
     mockUpdateProfile.mockRejectedValueOnce(new Error('offline'));
 
     renderWithProvider(<EditProfileAvatarView />);
@@ -139,6 +144,10 @@ describe('EditProfileAvatarView', () => {
 
     expect(errorMessage).toBeOnTheScreen();
     expect(errorMessage).toHaveProp('accessibilityLiveRegion', 'polite');
+    expect(announceSpy).toHaveBeenCalledWith(
+      strings('social_leaderboard.manage_profile.save_error'),
+    );
     expect(mockGoBack).not.toHaveBeenCalled();
+    announceSpy.mockRestore();
   });
 });

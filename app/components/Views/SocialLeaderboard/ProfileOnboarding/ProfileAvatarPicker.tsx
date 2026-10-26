@@ -68,9 +68,10 @@ const ProfileAvatarPicker: React.FC<ProfileAvatarPickerProps> = ({
           return (
             <Pressable
               key={preset.id}
-              accessibilityLabel={`${strings(
-                'social_leaderboard.profile_onboarding.customize_avatar',
-              )} ${index + 1}`}
+              accessibilityLabel={strings(
+                'social_leaderboard.profile_onboarding.avatar_option_accessibility_label',
+                { number: index + 1, total: PROFILE_AVATAR_PRESETS.length },
+              )}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
               onPress={() => handleSelectPreset(preset.id)}

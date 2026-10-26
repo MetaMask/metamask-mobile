@@ -8,8 +8,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -50,6 +50,13 @@ const EditProfileAvatarView: React.FC = () => {
   );
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(errorMessage);
+  }, [errorMessage]);
 
   const handleSelectPreset = useCallback((presetId: string) => {
     const preset = getProfileAvatarPreset(presetId);
