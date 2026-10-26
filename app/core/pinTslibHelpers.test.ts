@@ -31,7 +31,20 @@ const pinned = () => {
   return target;
 };
 
+const HELPER_NAMES = [
+  '__classPrivateFieldGet',
+  '__classPrivateFieldSet',
+  '__classPrivateFieldIn',
+];
+
 describe('pinTslibHelpers', () => {
+  afterEach(() => {
+    const globalTarget = globalThis as unknown as Record<string, unknown>;
+    for (const name of HELPER_NAMES) {
+      delete globalTarget[name];
+    }
+  });
+
   it('ignores tslib 1 overwriting the globals', () => {
     const target = pinned();
     const helper = target.__classPrivateFieldGet;
