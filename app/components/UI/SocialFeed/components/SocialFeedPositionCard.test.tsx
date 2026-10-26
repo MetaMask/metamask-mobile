@@ -1,5 +1,5 @@
 import React from 'react';
-import { lightTheme } from '@metamask/design-tokens';
+import { darkTheme } from '@metamask/design-tokens';
 import {
   act,
   fireEvent,
@@ -10,6 +10,8 @@ import {
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { mockTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import SocialFeedPositionCard, {
   PositionCardBody,
 } from './SocialFeedPositionCard';
@@ -343,24 +345,24 @@ describe('SocialFeedPositionCard', () => {
       expect(style?.width).toBe('100%');
     });
 
-    it('joins the symbol, leverage and direction into one title', () => {
+    it('keeps the leverage tag beside the symbol', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByText(
-          'ETH \u00b7 15x social_leaderboard.trader_position.short',
-        ),
+        screen.getByText('15x social_leaderboard.trader_position.short'),
       ).toBeOnTheScreen();
     });
 
-    it('merges the realized P&L and its percent into one line', () => {
+    it('stacks the realized P&L and its percent', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
-      expect(screen.getByText('+$96,378.60 (+38.2%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$96,378.60')).toBeOnTheScreen();
+      expect(screen.getByText('+38.2%')).toBeOnTheScreen();
     });
 
     it('shows whichever half it has when the other is missing', () => {
@@ -369,15 +371,22 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('+$96,378.60')).toBeOnTheScreen();
+      expect(screen.queryByText('+38.2%')).toBeNull();
     });
 
     // The side is spent once the position closes; the toned border says how.
     it('titles a closed spot position with the bare symbol', () => {
-      const item = mockClosedSpotFeedItem();
+      const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
+      expect(
+        screen.queryByText('social_leaderboard.feed.position_card.sell'),
+      ).toBeNull();
+      expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+      ).toBeOnTheScreen();
     });
 
     it('shows how long ago the position closed', () => {
@@ -518,45 +527,52 @@ describe('SocialFeedPositionCard', () => {
     ).toBeOnTheScreen();
   });
 
-  // The card's wash is the fastest read of the outcome while scrolling, so it
-  // has to follow the position's state rather than only its numbers.
+  // The wash follows the P&L in dark mode. Light mode keeps the border only.
   describe('card tone', () => {
     const cardTintOf = (item: Parameters<typeof PositionCardBody>[0]['item']) =>
-      renderWithProvider(<PositionCardBody item={item} />).UNSAFE_getAllByType(
-        LinearGradient,
-      )[0].props.colors[0];
+      renderWithProvider(<PositionCardBody item={item} />, {
+        theme: {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          typography: darkTheme.typography,
+          shadows: darkTheme.shadows,
+          themeAppearance: AppThemeKey.dark,
+        },
+      }).UNSAFE_getAllByType(LinearGradient)[0].props.colors[0];
 
-    it('leaves an open position neutral, whichever way it is running', () => {
-      expect(cardTintOf(mockOpenPerpsFeedItem())).toContain(
-        lightTheme.colors.icon.default,
+    it('washes an open winner green and an open loser red', () => {
+      expect(cardTintOf(mockOpenPerpsFeedItem())).toBe(
+        darkTheme.colors.success.muted,
       );
-      expect(
-        cardTintOf(mockOpenSpotFeedItem({ isPnlPositive: false })),
-      ).toContain(lightTheme.colors.icon.default);
+      expect(cardTintOf(mockOpenSpotFeedItem({ isPnlPositive: false }))).toBe(
+        darkTheme.colors.error.muted,
+      );
     });
 
     it('washes a closed winner green', () => {
-      expect(
-        cardTintOf(mockClosedPerpsFeedItem({ isPnlPositive: true })),
-      ).toContain(lightTheme.colors.success.default);
+      expect(cardTintOf(mockClosedPerpsFeedItem({ isPnlPositive: true }))).toBe(
+        darkTheme.colors.success.muted,
+      );
     });
 
     it('washes a closed loser red', () => {
-      expect(
-        cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
-      ).toContain(lightTheme.colors.error.default);
+      expect(cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false }))).toBe(
+        darkTheme.colors.error.muted,
+      );
     });
 
-    it('leaves a closed position neutral when no PnL is available', () => {
-      expect(
-        cardTintOf(
-          mockClosedSpotFeedItem({
+    it('leaves a closed position without a wash when no PnL is available', () => {
+      const utils = renderWithProvider(
+        <PositionCardBody
+          item={mockClosedSpotFeedItem({
             valueLabel: '',
             pnlLabel: '',
             isPnlPositive: false,
-          }),
-        ),
-      ).toContain(lightTheme.colors.icon.default);
+          })}
+        />,
+      );
+
+      expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
     });
   });
 

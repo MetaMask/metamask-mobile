@@ -2,6 +2,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import { View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { POSITION_CARD_RADIUS_PX } from './PositionCardShell';
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
 import { SocialFeedSkeletonPlaceholder } from './SocialFeedSkeletonPlaceholder';
 
@@ -63,7 +64,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
 }) => {
   const tw = useTailwind();
   const cardChromeStyle = tw.style(
-    'rounded-xl border border-muted p-3 gap-2 bg-background-alternative',
+    `rounded-[${POSITION_CARD_RADIUS_PX}px] border border-muted p-3 gap-2 bg-background-alternative`,
   ) as Record<string, unknown>;
   const dividerStyle = tw.style('bg-border-muted') as Record<string, unknown>;
 
@@ -98,7 +99,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
                 alignItems="center"
                 justifyContent="space-between"
               >
-                <Item flexDirection="row" alignItems="center" gap={8} flex={1}>
+                <Item flexDirection="row" alignItems="center" gap={12} flex={1}>
                   <Item {...TOKEN_AVATAR_BONE} />
                   <Item gap={4}>
                     <Item {...CARD_SYMBOL_BONE} />

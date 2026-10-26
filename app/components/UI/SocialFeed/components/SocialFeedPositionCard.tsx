@@ -9,7 +9,7 @@ import { isCopyTradeable } from '../utils/copyTrade';
 import CopyTradeButton from './CopyTradeButton';
 import FeedPost from './FeedPost';
 import PositionCardHeader from './PositionCardHeader';
-import PositionCardShell from './PositionCardShell';
+import PositionCardShell, { type PositionCardTone } from './PositionCardShell';
 import PositionCardStats, {
   type PositionCardStatRow,
 } from './PositionCardStats';
@@ -62,14 +62,29 @@ const priceOrMarketCapRow = (
 };
 
 export const closedAgeLabel = (
-  closedAtMs?: number,
+  closedAtMs: number | undefined,
+  verb: 'closed' | 'sold',
   now: number = Date.now(),
 ): string | undefined =>
   closedAtMs == null
     ? undefined
-    : strings('social_leaderboard.feed.position_card.closed_ago', {
-        age: formatFeedPostAge(closedAtMs, now),
-      });
+    : strings(
+        verb === 'sold'
+          ? 'social_leaderboard.feed.position_card.sold_ago'
+          : 'social_leaderboard.feed.position_card.closed_ago',
+        { age: formatFeedPostAge(closedAtMs, now) },
+      );
+
+const cardTone = (item: {
+  valueLabel: string;
+  pnlLabel: string;
+  isPnlPositive: boolean;
+}): PositionCardTone => {
+  if (!item.valueLabel && !item.pnlLabel) {
+    return 'neutral';
+  }
+  return item.isPnlPositive ? 'positive' : 'negative';
+};
 
 /**
  * The closed-card stats, identical for perps and spot. Three short values that
@@ -108,15 +123,15 @@ const closedStats = (item: {
 /**
  * The position card that forms the body of a post.
  *
- * Two shapes, not four: an open position puts its running P&L beside the title
- * and offers Copy trade, a closed one puts its settled result under the title and
- * offers nothing to copy. The asset class only decides how entry and exit are
- * quoted -- spot as market cap when the fills recorded one, perps as price.
- * Composer spot shares reuse the open layout and gate Copy trade with
- * `showCopyTrade`.
+ * Two shapes, not four: both put the symbol, a side tag, and the P&L on one
+ * row. An open card captions the live price or market cap and offers Copy
+ * trade. A closed card captions when it settled and offers nothing to copy.
+ * Spot quotes entry and exit as market cap when the fills recorded one. Perps
+ * quote a price, and a closed spot card drops the side tag. Composer spot
+ * shares reuse the open layout and gate Copy trade with `showCopyTrade`.
  *
- * A closed card also takes the tone of its realized P&L, so a win and a loss
- * are distinguishable while scrolling past at speed.
+ * Dark mode washes the card with the P&L hue. A closed card also outlines in
+ * that hue, so a win and a loss still read while scrolling past at speed.
  */
 export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   item,
@@ -169,7 +184,7 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     const showCopyTrade = isCopyTradeable(item);
 
     return (
-      <PositionCardShell>
+      <PositionCardShell tone={cardTone(item)}>
         <View ref={header.trackRef} collapsable={false}>
           <PositionCardHeader
             layout="open"
@@ -187,7 +202,6 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
                 ? `${marketCapLabel} ${marketCapSuffix()}`
                 : header.priceLabel
             }
-            valueLabel={item.valueLabel}
             pnlLabel={header.pnlLabel}
             pnlValueLabel={header.pnlValueLabel}
             isPnlPositive={header.isPnlPositive}
@@ -206,28 +220,22 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   }
 
   return (
-    <PositionCardShell
-      tone={
-        item.valueLabel || item.pnlLabel
-          ? item.isPnlPositive
-            ? 'positive'
-            : 'negative'
-          : 'neutral'
-      }
-    >
+    <PositionCardShell tone={cardTone(item)} emphasizeBorder>
       <PositionCardHeader
         layout="closed"
         avatar={item.asset.avatar}
         symbol={item.asset.symbol}
         direction={item.variant === 'perpsClosed' ? item.direction : undefined}
-        side={item.variant === 'spotClosed' ? item.side : undefined}
         leverageLabel={
           item.variant === 'perpsClosed' ? item.leverageLabel : undefined
         }
-        valueLabel={item.valueLabel}
+        subtitleLabel={closedAgeLabel(
+          item.closedAtMs,
+          item.variant === 'spotClosed' ? 'sold' : 'closed',
+        )}
         pnlLabel={item.pnlLabel}
+        pnlValueLabel={item.valueLabel}
         isPnlPositive={item.isPnlPositive}
-        closedAgeLabel={closedAgeLabel(item.closedAtMs)}
       />
       <PositionCardStats
         rows={closedStats(item)}

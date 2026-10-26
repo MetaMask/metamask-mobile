@@ -1392,7 +1392,8 @@
         "hold_time": "Hold time",
         "buy": "Acheter",
         "sell": "Vendre",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
     "composer": {
