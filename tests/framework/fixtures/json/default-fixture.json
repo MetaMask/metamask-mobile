@@ -232,7 +232,8 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -952,9 +953,12 @@
     },
     "rewardsMoney": {
       "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
+      "inFlightClaims": {},
       "referralFunnel": {},
       "referralMe": {}
     },

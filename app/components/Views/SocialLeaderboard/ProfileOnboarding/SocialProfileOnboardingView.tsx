@@ -60,9 +60,9 @@ import {
   getUsernameStatus,
   normalizeUsername,
   type ProfileOnboardingDraft,
-  type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -75,7 +75,9 @@ import {
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Step } = SocialEvent;
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
@@ -115,44 +117,6 @@ const LIVE_ACTIVITY = [
   },
 ];
 
-const MANUAL_PROGRESS_SEGMENT_COUNT = 4;
-const X_PROGRESS_SEGMENT_COUNT = 3;
-
-const progressSegmentCount = (path: ProfileOnboardingPath): number =>
-  path === 'x' ? X_PROGRESS_SEGMENT_COUNT : MANUAL_PROGRESS_SEGMENT_COUNT;
-
-const progressFilledCount = (
-  step: ProfileOnboardingStep,
-  path: ProfileOnboardingPath,
-): number => {
-  if (path === 'x') {
-    switch (step) {
-      case 'x-identity':
-      case 'avatar':
-        return 1;
-      case 'account':
-        return 2;
-      case 'ready':
-        return 3;
-      default:
-        return 0;
-    }
-  }
-
-  switch (step) {
-    case 'username':
-      return 1;
-    case 'avatar':
-      return 2;
-    case 'account':
-      return 3;
-    case 'ready':
-      return 4;
-    default:
-      return 0;
-  }
-};
-
 /**
  * Step title: Display Md size on the 32px heading line height, medium weight,
  * centered.
@@ -169,48 +133,6 @@ const OnboardingTitle: React.FC<{
     {children}
   </Text>
 );
-
-/**
- * Sits above the header, so it carries the top inset. A static inset rather
- * than a safe-area edge, which recalculates mid push transition (TSA-970).
- * No bottom padding: the 56px header centers its 24px icons, which puts the
- * arrow and close button 16px below this bar.
- */
-const OnboardingProgress: React.FC<{
-  step: ProfileOnboardingStep;
-  path: ProfileOnboardingPath;
-  topInset: number;
-}> = ({ step, path, topInset }) => {
-  const filledCount = progressFilledCount(step, path);
-  const segmentCount = progressSegmentCount(path);
-  if (filledCount === 0) {
-    return null;
-  }
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      gap={1}
-      paddingHorizontal={4}
-      style={{ paddingTop: topInset + 8 }}
-      testID={SocialProfileOnboardingSelectorsIDs.PROGRESS}
-    >
-      {Array.from({ length: segmentCount }, (_, index) => (
-        <Box
-          key={`progress-${index}`}
-          twClassName="flex-1 h-1 rounded-full bg-muted overflow-hidden"
-          testID={`${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-${index}`}
-        >
-          <Box
-            twClassName={`h-full bg-icon-default ${
-              index < filledCount ? 'w-full' : 'w-0'
-            }`}
-          />
-        </Box>
-      ))}
-    </Box>
-  );
-};
 
 const LiveActivityFallback: React.FC = () => (
   <Box
@@ -337,6 +259,10 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
+    step: analyticsStep,
+  });
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -348,6 +274,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
+
+  useEffect(() => {
+    trackInteraction(Interaction.STEP_VIEWED);
+  }, [analyticsStep, trackInteraction]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -366,8 +296,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [accounts]);
 
   const handleClose = useCallback(() => {
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, trackInteraction]);
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -454,6 +385,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
+    trackInteraction(Interaction.USERNAME_SHUFFLED);
     const claimGeneratedUsername = async () => {
       let username = generateUsername();
       applyUsername(username);
@@ -467,7 +399,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       await checkHandle(username);
     };
     claimGeneratedUsername().catch(() => undefined);
-  }, [applyUsername, checkHandle, clearUsernameCheckTimer]);
+  }, [applyUsername, checkHandle, clearUsernameCheckTimer, trackInteraction]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -483,14 +415,19 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       playSelection().catch(() => undefined);
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarPresetId: presetId }));
     },
-    [draft.avatarPresetId, playSelection],
+    [draft.avatarPresetId, playSelection, trackInteraction],
   );
 
-  const handleAvatarBackgroundSelect = useCallback((backgroundId: string) => {
-    setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
-  }, []);
+  const handleAvatarBackgroundSelect = useCallback(
+    (backgroundId: string) => {
+      trackInteraction(Interaction.AVATAR_CHANGED);
+      setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
+    },
+    [trackInteraction],
+  );
 
   const handleConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
@@ -535,9 +472,13 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleToggleXAvatar = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
+      if (enabled === draft.useXAvatar) {
+        return;
+      }
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, useXAvatar: enabled }));
     },
-    [playSelection],
+    [draft.useXAvatar, playSelection, trackInteraction],
   );
 
   const handleContinue = useCallback(async () => {
@@ -583,8 +524,21 @@ const SocialProfileOnboardingView: React.FC = () => {
     try {
       const profileId =
         (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
-      await createProfile(buildCreateProfileParams(draft, profileId));
+      const linkedAccount = accounts.find(
+        (account) => account.id === draft.linkedAccountId,
+      );
+      await createProfile(
+        buildCreateProfileParams(
+          draft,
+          profileId,
+          linkedAccount?.linkedAddresses,
+        ),
+      );
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
+      trackInteraction(Interaction.USERNAME_CLAIMED, {
+        outcome: Outcome.SUCCESS,
+        step: draft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
+      });
       navigation.navigate(
         draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
       );
@@ -595,7 +549,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [createProfile, draft, navigation]);
+  }, [accounts, createProfile, draft, navigation, trackInteraction]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -625,9 +579,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
@@ -885,7 +841,16 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
+                    shareTradingActivity={draft.shareTradingActivity}
+                    onShareTradingActivityChange={(enabled) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        shareTradingActivity: enabled,
+                      }));
+                    }}
                     onSelect={(account) => {
+                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
                       playSelection().catch(() => undefined);
                       setDraft((current) => ({
                         ...current,

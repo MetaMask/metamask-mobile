@@ -46,15 +46,7 @@ import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigr
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
-import { useProSubscriptionEnabled } from '../../../hooks/useProSubscriptionEnabled';
-import { usePlusAccess } from '../../../hooks/usePlusAccess';
-import { useMoneyAnalytics } from '../../UI/Money/hooks/useMoneyAnalytics';
-import {
-  COMPONENT_NAMES,
-  MONEY_BUTTON_INTENTS,
-  MONEY_BUTTON_TYPES,
-  SCREEN_NAMES,
-} from '../../UI/Money/constants/moneyEvents';
+import { useMetamaskOrangeEntry } from '../../../hooks/useMetamaskOrangeEntry';
 import {
   CardFlow,
   mapUkMigrationPhaseToAnalytics,
@@ -83,12 +75,11 @@ const AccountsMenu = () => {
   const {
     state: { phase: ukMigrationPhase },
   } = useCardUkMigrationState();
-  const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
-  const { trackButtonClicked } = useMoneyAnalytics({
-    screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
-  });
-  const showOrangeEntry = isProSubscriptionEnabled && !isPlusAccessUnknown;
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -113,34 +104,6 @@ const AccountsMenu = () => {
     rampGeodetectedRegion,
     rampsButtonClickData,
   ]);
-
-  const onPressOrange = useCallback(() => {
-    const destination = isPlusSubscriber
-      ? {
-          button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
-          label_key: 'accounts_menu.metamask_orange',
-          redirect_target: SCREEN_NAMES.PRO_HUB,
-          route: Routes.PRO_HUB.ROOT,
-        }
-      : {
-          button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
-          label_key: 'accounts_menu.join_metamask_orange',
-          redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
-          route: Routes.PRO_SUBSCRIPTION.ROOT,
-        };
-
-    trackButtonClicked({
-      button_type: MONEY_BUTTON_TYPES.TEXT,
-      component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
-      button_intent: destination.button_intent,
-      label_key: destination.label_key,
-      redirect_target: destination.redirect_target,
-    });
-
-    navigation.navigate(destination.route, {
-      source: 'accounts_menu',
-    });
-  }, [isPlusSubscriber, navigation, trackButtonClicked]);
 
   const onPressNotifications = useCallback(() => {
     navigation.navigate(Routes.NOTIFICATIONS.VIEW);
@@ -448,11 +411,7 @@ const AccountsMenu = () => {
             startAccessory={
               <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
             }
-            label={strings(
-              isPlusSubscriber
-                ? 'accounts_menu.metamask_orange'
-                : 'accounts_menu.join_metamask_orange',
-            )}
+            label={orangeLabel}
             endAccessory={arrowRightIcon}
             onPress={onPressOrange}
             testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}

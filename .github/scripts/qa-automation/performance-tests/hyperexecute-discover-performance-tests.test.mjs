@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -20,7 +22,7 @@ const discoverPath = path.join(
   'hyperexecute-discover-performance-tests.sh',
 );
 
-function discover(buildType) {
+function discover(buildType, cwd = repoRoot) {
   const env = { ...process.env };
   if (buildType === undefined) {
     delete env.BUILD_TYPE;
@@ -29,7 +31,7 @@ function discover(buildType) {
   }
 
   const result = spawnSync('bash', [discoverPath], {
-    cwd: repoRoot,
+    cwd,
     env,
     encoding: 'utf8',
   });
@@ -65,13 +67,35 @@ test('onboarding discovery includes a bare @Performance onboarding spec', () => 
 });
 
 test('onboarding discovery excludes specs with only an area tag', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'perf-discovery-'));
+  const onboardingDir = path.join(root, 'tests', 'performance', 'onboarding');
+  fs.mkdirSync(onboardingDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(onboardingDir, 'bare.spec.ts'),
+    'test.describe(`${Performance} ${PerformanceOnboarding}`, () => {});\n',
+  );
+  fs.writeFileSync(
+    path.join(onboardingDir, 'area-only.spec.ts'),
+    'test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {});\n',
+  );
+
+  try {
+    const { status, specs } = discover('onboarding', root);
+
+    assert.equal(status, 0);
+    assert.deepEqual(specs, ['tests/performance/onboarding/bare.spec.ts']);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('onboarding discovery includes cold start after wallet import', () => {
   const { specs } = discover('onboarding');
 
-  assert.equal(
+  assert.ok(
     specs.includes(
       'tests/performance/onboarding/launch-times/cold-start-after-wallet-import.spec.ts',
     ),
-    false,
   );
 });
 
