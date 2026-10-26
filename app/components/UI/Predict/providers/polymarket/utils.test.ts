@@ -2,6 +2,7 @@ import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
+import { Interface } from 'ethers/lib/utils';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { webcrypto } from 'crypto';
 import Engine from '../../../../../core/Engine';
@@ -32,6 +33,7 @@ import {
   clearClobMarketInfoSessionState,
   createApiKey,
   deriveApiKey,
+  encodeRouterRedeem,
   fetchChildEventsFromGammaApi,
   fetchEventsFromPolymarketApi,
   fetchMarketsFromPolymarketApi,
@@ -55,6 +57,7 @@ import {
   previewMaxBuyOrder,
   previewOrder,
   searchEventsFromPolymarketApi,
+  toBytes31ConditionId,
 } from './utils';
 import type {
   PolymarketApiActivity,
@@ -3952,75 +3955,135 @@ describe('polymarket utils', () => {
     ]);
   });
 
-  it('drops an event when every market version is v2', () => {
-    const event: PolymarketApiEvent = {
-      id: 'v2-event',
-      slug: 'v2-event',
-      title: 'V2 Event',
-      description: 'V2 event description',
+  describe('Protocol V2 markets', () => {
+    const createCtfMarket = (): PolymarketApiMarket => ({
+      conditionId: 'ctf-condition',
+      question: 'CTF question',
+      description: 'CTF market',
+      icon: '',
+      image: '',
+      groupItemTitle: 'Yes',
+      status: 'open',
+      volumeNum: 10,
+      liquidity: 10,
+      negRisk: false,
+      clobTokenIds: '["yes","no"]',
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.6","0.4"]',
+      closed: false,
+      active: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      version: 'v1',
+    });
+    const createV2Market = (): PolymarketApiMarket => ({
+      ...createCtfMarket(),
+      conditionId: 'v2-condition',
+      question: 'V2 question',
+      clobTokenIds: '',
+      positionIds: ['v2-yes', 'v2-no'],
+      version: 'v2',
+    });
+    const createEvent = (
+      id: string,
+      markets: PolymarketApiMarket[],
+    ): PolymarketApiEvent => ({
+      id,
+      slug: id,
+      title: id,
+      description: `${id} description`,
       icon: '',
       closed: false,
       series: [],
-      markets: [
-        {
-          conditionId: 'v2-condition',
-          version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
-      ],
-      tags: [],
-      liquidity: 0,
-      volume: 0,
-    };
-
-    expect(parsePolymarketEvents([event], 'trending')).toEqual([]);
-  });
-
-  it('keeps CTF markets when an event also contains a v2 market', () => {
-    const event: PolymarketApiEvent = {
-      id: 'mixed-event',
-      slug: 'mixed-event',
-      title: 'Mixed Event',
-      description: 'Mixed event description',
-      icon: '',
-      closed: false,
-      series: [],
-      markets: [
-        {
-          conditionId: 'ctf-condition',
-          question: 'CTF question',
-          description: 'CTF market',
-          icon: '',
-          image: '',
-          groupItemTitle: 'Yes',
-          status: 'open',
-          volumeNum: 10,
-          liquidity: 10,
-          negRisk: false,
-          clobTokenIds: '["yes","no"]',
-          outcomes: '["Yes","No"]',
-          outcomePrices: '["0.6","0.4"]',
-          closed: false,
-          active: true,
-          resolvedBy: '',
-          orderPriceMinTickSize: 0.01,
-          umaResolutionStatus: '',
-          version: 'v1',
-        },
-        {
-          conditionId: 'v2-condition',
-          version: 'v2',
-        } as PolymarketApiEvent['markets'][number],
-      ],
+      markets,
       tags: [],
       liquidity: 10,
       volume: 10,
-    };
+    });
 
-    const [market] = parsePolymarketEvents([event], 'trending');
+    it('keeps an event when every market version is v2', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
 
-    expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
-      'ctf-condition',
-    ]);
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.id).toBe('v2-event');
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'v2-condition',
+      ]);
+    });
+
+    it('keeps CTF and v2 markets in a mixed event', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], 'trending');
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+        'v2-condition',
+      ]);
+    });
+
+    it('drops an event when every market version is v2 and v2 markets are hidden', () => {
+      const event = createEvent('v2-event', [createV2Market()]);
+
+      expect(
+        parsePolymarketEvents([event], {
+          category: 'trending',
+          hideV2Markets: true,
+        }),
+      ).toEqual([]);
+    });
+
+    it('keeps only CTF markets in a mixed event when v2 markets are hidden', () => {
+      const event = createEvent('mixed-event', [
+        createCtfMarket(),
+        createV2Market(),
+      ]);
+
+      const [market] = parsePolymarketEvents([event], {
+        category: 'trending',
+        hideV2Markets: true,
+      });
+
+      expect(market.outcomes.map((outcome) => outcome.id)).toEqual([
+        'ctf-condition',
+      ]);
+    });
+
+    it.each([false, true])(
+      'parses a CTF-only event the same way when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('ctf-event', [createCtfMarket()]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          }),
+        ).toEqual(parsePolymarketEvents([event], 'trending'));
+      },
+    );
+
+    it.each([false, true])(
+      'drops inactive markets when hideV2Markets is %s',
+      (hideV2Markets) => {
+        const event = createEvent('inactive-event', [
+          { ...createCtfMarket(), active: false },
+          { ...createV2Market(), active: false },
+        ]);
+
+        expect(
+          parsePolymarketEvents([event], {
+            category: 'trending',
+            hideV2Markets,
+          })[0]?.outcomes ?? [],
+        ).toEqual([]);
+      },
+    );
   });
 
   it('falls back to question when a spread market is missing group item title', () => {
@@ -4480,6 +4543,52 @@ describe('parsePolymarketMarket market version', () => {
       'ctf-no',
     ]);
   });
+
+  it.each(['inactive', 'active', 'resolved'])(
+    'reads the Protocol V2 resolutionStatus "%s" on v2 markets',
+    (resolutionStatus) => {
+      const parsed = parsePolymarketMarket(
+        createVersionedMarket({
+          version: 'v2',
+          resolutionStatus,
+          umaResolutionStatus: 'proposed',
+        }),
+        event,
+      );
+
+      expect(parsed.resolutionStatus).toBe(resolutionStatus);
+    },
+  );
+
+  it('leaves resolutionStatus undefined when a v2 market has none', () => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version: 'v2',
+        resolutionStatus: null,
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBeUndefined();
+  });
+
+  it.each([
+    ['v1', 'v1'],
+    ['missing', undefined],
+    ['unknown', 'v3'],
+  ])('reads umaResolutionStatus when the version is %s', (_label, version) => {
+    const parsed = parsePolymarketMarket(
+      createVersionedMarket({
+        version,
+        resolutionStatus: 'active',
+        umaResolutionStatus: 'resolved',
+      }),
+      event,
+    );
+
+    expect(parsed.resolutionStatus).toBe('resolved');
+  });
 });
 
 describe('calculateFees', () => {
@@ -4503,5 +4612,91 @@ describe('calculateFees', () => {
     expect(fees.metamaskFee).toBeCloseTo(0.1);
     expect(fees.providerFee).toBeCloseTo(0.2);
     expect(fees.totalFee).toBeCloseTo(0.3);
+  });
+});
+
+describe('toBytes31ConditionId', () => {
+  it('passes a bytes31 condition id through unchanged', () => {
+    const value = `0x${'ab'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('narrows a padded bytes32 condition id when the final byte is zero', () => {
+    expect(toBytes31ConditionId(`0x${'ab'.repeat(31)}00`)).toBe(
+      `0x${'ab'.repeat(31)}`,
+    );
+  });
+
+  it('accepts uppercase hex digits', () => {
+    const value = `0x${'AB'.repeat(31)}`;
+
+    expect(toBytes31ConditionId(value)).toBe(value);
+  });
+
+  it('throws for a padded bytes32 condition id with a non-zero final byte', () => {
+    expect(() => toBytes31ConditionId(`0x${'ab'.repeat(31)}01`)).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+
+  it('throws for values that are neither bytes31 nor padded bytes32', () => {
+    expect(() => toBytes31ConditionId('0x1234')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+    expect(() => toBytes31ConditionId('not-a-hex-value')).toThrow(
+      'Cannot narrow condition id to bytes31',
+    );
+  });
+});
+
+describe('encodeRouterRedeem', () => {
+  const redeemInterface = new Interface([
+    'function redeem(bytes31 conditionId, uint256 outcomeIndex, uint256 amount)',
+  ]);
+  const conditionId = `0x${'cd'.repeat(31)}`;
+
+  it('encodes the Router redeem call with a bytes31 condition id, outcome index, and base-unit amount', () => {
+    // Snapshot: selector 0xd217a3cc, bytes31 word right-padded with 00,
+    // outcomeIndex 0, amount 1000000 (0xf4240).
+    const expectedCalldata =
+      '0xd217a3cc' +
+      'cd'.repeat(31) +
+      '00' +
+      '0'.repeat(64) +
+      '0'.repeat(59) +
+      'f4240';
+
+    expect(
+      encodeRouterRedeem({
+        conditionId,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toBe(expectedCalldata);
+  });
+
+  it('narrows a padded bytes32 condition id before encoding', () => {
+    const data = encodeRouterRedeem({
+      conditionId: `${conditionId}00`,
+      outcomeIndex: 1,
+      amount: '2500000',
+    });
+    const [decodedConditionId, outcomeIndex, amount] =
+      redeemInterface.decodeFunctionData('redeem', data);
+
+    expect(decodedConditionId).toBe(conditionId);
+    expect(String(outcomeIndex)).toBe('1');
+    expect(String(amount)).toBe('2500000');
+  });
+
+  it('throws when the condition id cannot be narrowed', () => {
+    expect(() =>
+      encodeRouterRedeem({
+        conditionId: `${conditionId}01`,
+        outcomeIndex: 0,
+        amount: 1000000,
+      }),
+    ).toThrow('Cannot narrow condition id to bytes31');
   });
 });

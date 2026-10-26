@@ -155,6 +155,11 @@ export interface ClaimOrderResponse {
     };
     type?: TransactionType;
   }[];
+  /**
+   * The positions the transactions redeem. Fewer than requested when the
+   * provider skipped some (Protocol V2 positions while the kill switch is on).
+   */
+  positions?: PredictPosition[];
 }
 
 export interface SignWithdrawParams {

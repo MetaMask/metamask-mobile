@@ -18,6 +18,7 @@ import {
 import {
   MoneyLocationEventProperties,
   MoneyBaseEventProperties,
+  MoneyAccountCampaignTriggeredEventProperties,
   MoneyRedirectEventProperties,
   MoneyOnboardingEventProperties,
   MoneyTooltipClickedEventProperties,
@@ -174,6 +175,20 @@ export const useMoneyAnalytics = ({
     [createEventBuilder, getBaseProperties, trackEvent],
   );
 
+  const trackCampaignTriggered = useCallback(
+    (properties: MoneyAccountCampaignTriggeredEventProperties) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.MONEY_ACCOUNT_CAMPAIGN_TRIGGERED)
+          .addProperties({
+            ...getBaseProperties(),
+            ...properties,
+          })
+          .build(),
+      );
+    },
+    [createEventBuilder, getBaseProperties, trackEvent],
+  );
+
   const trackTokenButtonClicked = useCallback(
     (properties: MoneyTokenRowButtonClickedInputProperties) => {
       trackEvent(
@@ -319,6 +334,9 @@ export const useMoneyAnalytics = ({
     trackTokenButtonClicked,
     trackTokenSurfaceClicked,
     trackActivitySurfaceClicked,
+
+    // Campaign events
+    trackCampaignTriggered,
 
     // View events
     trackScreenViewed,
