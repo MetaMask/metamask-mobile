@@ -54,6 +54,17 @@ export const selectProfileControllerLinkedEvmAddress = createSelector(
 );
 
 /**
+ * Whether an existing social profile has disabled trading activity sharing.
+ *
+ * A missing profile is not private: callers use that state to preserve the
+ * one-time Create profile prompt.
+ */
+export const selectIsProfileTradingActivityPrivate = createSelector(
+  selectProfileControllerProfile,
+  (profile): boolean => Boolean(profile?.tradingPrivacy === 'private'),
+);
+
+/**
  * Gets the linked X (Twitter) profile, or undefined when none is connected.
  */
 export const selectProfileControllerXProfile = createSelector(

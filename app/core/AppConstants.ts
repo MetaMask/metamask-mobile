@@ -253,10 +253,6 @@ export default {
     process.env.DIGEST_API_URL ?? 'https://digest.api.cx.metamask.io/api/v1',
   SOCIAL_API_URL:
     process.env.SOCIAL_API_URL ?? 'https://social.api.cx.metamask.io',
-  PROFILE_API_URL:
-    process.env.PROFILE_API_URL ?? 'https://profile.api.cx.metamask.io',
-  // Off by default: the profile API is not live, so ProfileService is mocked.
-  PROFILE_API_ENABLED: process.env.MM_PROFILE_API_ENABLED === 'true',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',

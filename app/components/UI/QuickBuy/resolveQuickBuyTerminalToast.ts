@@ -1,13 +1,26 @@
 import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
-import type { ToastRef } from '../../../component-library/components/Toast/Toast.types';
+import type {
+  ToastLinkButtonOptions,
+  ToastRef,
+} from '../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../core/Engine';
 import {
   playErrorNotification,
   playSuccessNotification,
 } from '../../../util/haptics';
 import type { Theme } from '../../../util/theme/models';
-import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+import { strings } from '../../../../locales/i18n';
+import ToastService from '../../../core/ToastService';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../util/social/postTradePromptStorage';
+import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import {
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -84,6 +97,29 @@ function resolveFromMultichain(signature: string): TerminalOutcome | undefined {
   return undefined;
 }
 
+const buildPostToFeedLink = (
+  trade: TrackedQuickBuyTrade,
+  transactionHash: string | undefined,
+): ToastLinkButtonOptions | undefined => {
+  const prompt = trade.postTradePrompt;
+  if (prompt?.kind !== 'post_to_feed_toast' || !transactionHash) {
+    return undefined;
+  }
+  return {
+    label: strings('social_leaderboard.post_trade_share.post_to_feed'),
+    onPress: () => {
+      ToastService.toastRef?.current?.closeToast();
+      openPostTradeComposer(
+        buildSpotPostTradeComposerParams({
+          transactionHash,
+          chain: prompt.tradeInFlightChain,
+          preview: prompt.preview,
+        }),
+      );
+    },
+  };
+};
+
 /**
  * Claims the trade atomically (settling doubles as the dedupe), surfaces the
  * matching `complete` / `failed` toast and fires the paired haptic. The first
@@ -104,6 +140,13 @@ function emitTerminalToast(
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
+  const prompt = trade.postTradePrompt;
+  if (isComplete && prompt?.kind === 'share_sheet') {
+    incrementShareSheetCount(prompt.countKey.address, prompt.countKey.product);
+  }
+  if (isComplete && prompt?.kind === 'claim_sheet') {
+    markClaimSheetSeen('swap');
+  }
   if (trade.postTradeShare && trade.postTradeShareSessionId) {
     const sessionUpdated = patchPostTradeShareSession(
       trade.postTradeShareSessionId,
@@ -125,6 +168,9 @@ function emitTerminalToast(
       buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
         trade,
         theme,
+        linkButtonOptions: isComplete
+          ? buildPostToFeedLink(trade, transactionHash)
+          : undefined,
       }),
     );
   }
