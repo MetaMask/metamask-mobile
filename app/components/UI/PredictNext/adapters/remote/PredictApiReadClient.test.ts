@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import type {
   PredictEntityId,
   PredictFeedId,
@@ -5,6 +6,13 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
+const mockLoggerError = jest.mocked(Logger.error);
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event/one' as PredictEntityId;
@@ -30,6 +38,7 @@ describe('PredictApiReadClient', () => {
   let client: PredictApiReadClient;
 
   beforeEach(() => {
+    mockLoggerError.mockClear();
     fetchMock = jest.fn();
     client = new PredictApiReadClient({
       baseUrl: 'https://predict.example/api/',
@@ -141,6 +150,26 @@ describe('PredictApiReadClient', () => {
       message: 'Predict API request failed with status 401.',
     });
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('logs the token provider failure before failing with 401', async () => {
+    const providerError = new Error('wallet is locked');
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: jest.fn().mockRejectedValue(providerError),
+    });
+
+    await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+      status: 401,
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      providerError,
+      'PredictNext: failed to get the Predict API bearer token',
+    );
   });
 
   it('authenticates Positions requests with encoded page parameters', async () => {
