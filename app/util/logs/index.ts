@@ -1,3 +1,5 @@
+import type { StateConstraint, StateMetadata } from '@metamask/base-controller';
+import { hasProperty, isObject, type Json } from '@metamask/utils';
 import Engine from '../../core/Engine';
 import {
   getApplicationName,
@@ -76,6 +78,73 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
   };
 };
 
+const hasStateMetadata = (
+  controller: unknown,
+): controller is { metadata: StateMetadata<StateConstraint> } =>
+  isObject(controller) && isObject(controller.metadata);
+
+/**
+ * Applies each field's `includeInStateLogs` metadata to a controller state.
+ * Fields without a metadata entry are kept, since some controllers still have
+ * state keys with no metadata.
+ *
+ * @param controllerName - Controller name, used for error reporting.
+ * @param controllerState - Controller state from the Redux background state.
+ * @param metadata - The controller's state metadata.
+ * @returns The controller state to include in state logs.
+ */
+const applyStateLogsMetadata = (
+  controllerName: string,
+  controllerState: Record<string, Json>,
+  metadata: StateMetadata<StateConstraint>,
+) =>
+  Object.entries(controllerState).reduce<Record<string, Json>>(
+    (sanitizedState, [key, value]) => {
+      if (!hasProperty(metadata, key)) {
+        sanitizedState[key] = value;
+        return sanitizedState;
+      }
+
+      const includeInStateLogs = metadata[key]?.includeInStateLogs;
+      try {
+        if (typeof includeInStateLogs === 'function') {
+          sanitizedState[key] = includeInStateLogs(value);
+        } else if (includeInStateLogs) {
+          sanitizedState[key] = value;
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          `State logs: failed to sanitize ${controllerName}.${key}`,
+        );
+      }
+      return sanitizedState;
+    },
+    {},
+  );
+
+const applyStateLogsMetadataToBackgroundState = (
+  backgroundState: Record<string, Json>,
+) =>
+  Object.fromEntries(
+    Object.entries(backgroundState).map(([controllerName, controllerState]) => {
+      const controller: unknown =
+        Engine.context[controllerName as keyof typeof Engine.context];
+      if (!hasStateMetadata(controller) || !isObject(controllerState)) {
+        return [controllerName, controllerState];
+      }
+
+      return [
+        controllerName,
+        applyStateLogsMetadata(
+          controllerName,
+          controllerState as Record<string, Json>,
+          controller.metadata,
+        ),
+      ];
+    }),
+  );
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import-x/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
@@ -90,11 +159,16 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.DeFiPositionsController;
   delete fullState.engine.backgroundState.DeFiPositionsControllerV2;
   delete fullState.engine.backgroundState.PredictController;
-  delete fullState.engine.backgroundState.AuthenticationController;
+
+  const rawCardControllerState =
+    fullState.engine.backgroundState.CardController;
+  fullState.engine.backgroundState = applyStateLogsMetadataToBackgroundState(
+    fullState.engine.backgroundState,
+  );
 
   const cardControllerState = fullState.engine.backgroundState.CardController;
   if (cardControllerState) {
-    const { cardHomeData, cardHomeDataAddress } = cardControllerState;
+    const { cardHomeData, cardHomeDataAddress } = rawCardControllerState;
     cardControllerState.cardHomeData = cardHomeData
       ? {
           hasCard: Boolean(cardHomeData.card),
