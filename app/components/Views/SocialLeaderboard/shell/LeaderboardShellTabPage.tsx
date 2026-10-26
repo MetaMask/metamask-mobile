@@ -31,10 +31,9 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import {
-  DEFAULT_V1_LEADERBOARD_RANKING,
-  RankingFilterSelector,
-  RankingFilterSheet,
-  type V1LeaderboardRanking,
+  TypeFilterSelector,
+  TypeFilterSheet,
+  type SocialTypeFilter,
 } from '../components/Filters';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { TopTradersViewSelectorsIDs } from '../TopTradersView/TopTradersView.testIds';
@@ -74,10 +73,11 @@ export interface LeaderboardShellTabPageProps {
   appliedFilters?: SocialShellFilters;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  onTypeChange?: (type: SocialTypeFilter) => void;
 }
 
 /**
- * Leaderboard tab page for Social Bundle V1: the ranking chip and Custom
+ * Leaderboard tab page for Social Bundle V1: the asset-type chip and Custom
  * filters button above the shared `SocialLeaderboard`, inside this page's own
  * scroll so the tabs container can drive the collapsing title.
  */
@@ -90,6 +90,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   appliedFilters = DEFAULT_FILTERS,
   onOpenFilters,
   isFilterActive = false,
+  onTypeChange,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -101,10 +102,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   // Latches on: once the list has loaded, leaving the tab must not tear it down
   // and refetch on the way back.
   const [hasBeenActive, setHasBeenActive] = useState(isActive);
-  const [ranking, setRanking] = useState<V1LeaderboardRanking>(
-    DEFAULT_V1_LEADERBOARD_RANKING,
-  );
-  const [isRankingSheetOpen, setIsRankingSheetOpen] = useState(false);
+  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const leaderboardRef = useRef<SocialLeaderboardHandle>(null);
@@ -137,10 +135,10 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   const filters = useMemo(
     (): SocialLeaderboardFilters => ({
       timeframe: toLeaderboardTimeframe(appliedFilters.timeframe),
-      ranking,
+      ranking: 'pnl',
       cohort: appliedFilters.traderCohort,
     }),
-    [appliedFilters.timeframe, appliedFilters.traderCohort, ranking],
+    [appliedFilters.timeframe, appliedFilters.traderCohort],
   );
 
   useEffect(() => {
@@ -178,8 +176,13 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
     }
   }, []);
 
-  const openRankingSheet = useCallback(() => setIsRankingSheetOpen(true), []);
-  const closeRankingSheet = useCallback(() => setIsRankingSheetOpen(false), []);
+  const openTypeSheet = useCallback(() => setIsTypeSheetOpen(true), []);
+  const closeTypeSheet = useCallback(() => setIsTypeSheetOpen(false), []);
+  const selectedType = toLeaderboardTypeFilter(appliedFilters.type);
+  const handleTypeChange = useCallback(
+    (next: SocialTypeFilter) => onTypeChange?.(next),
+    [onTypeChange],
+  );
 
   return (
     <Box twClassName="flex-1 bg-default" testID={containerTestID}>
@@ -210,11 +213,13 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               filterTestID={TopTradersViewSelectorsIDs.FILTER_BUTTON}
               twClassName="px-4 pb-4"
             >
-              <RankingFilterSelector
-                value={ranking}
-                onPress={openRankingSheet}
-                testID={TopTradersViewSelectorsIDs.RANKING_SELECTOR}
-              />
+              {isPerpsEnabled ? (
+                <TypeFilterSelector
+                  value={selectedType}
+                  onPress={openTypeSheet}
+                  testID={TopTradersViewSelectorsIDs.TYPE_SELECTOR}
+                />
+              ) : null}
             </SocialTabFilterBar>
             <SocialFeedSurfaceProvider showMockedFields>
               <SocialLeaderboard
@@ -227,11 +232,11 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
               />
             </SocialFeedSurfaceProvider>
           </Animated.ScrollView>
-          <RankingFilterSheet
-            isOpen={isRankingSheetOpen}
-            value={ranking}
-            onChange={setRanking}
-            onClose={closeRankingSheet}
+          <TypeFilterSheet
+            isOpen={isTypeSheetOpen}
+            value={selectedType}
+            onChange={handleTypeChange}
+            onClose={closeTypeSheet}
           />
         </>
       )}
