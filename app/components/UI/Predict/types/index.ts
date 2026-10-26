@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
+import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
 import type { PredictPaymentMethodValue } from '../constants/eventNames';
@@ -381,6 +382,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market, as reported by Gamma.
+   * Informational only: order routing reads `OrderPreview.outcomeVersion`,
+   * which the provider resolves when it builds the preview.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -774,6 +781,11 @@ export interface PredictFees {
   permit2Enabled?: boolean;
 }
 
+export interface PredictFeePolicy {
+  discountType: DiscountType.SUBSCRIPTION;
+  builderCode: string;
+}
+
 /**
  * @example
  * side = BUY;
@@ -803,11 +815,20 @@ export interface OrderPreview {
   negRisk: boolean;
   feeRateBps?: string;
   fees?: PredictFees;
+  /** Standard fees before applying the membership MetaMask fee waiver. */
+  originalFees?: PredictFees;
+  feePolicy?: PredictFeePolicy;
   rateLimited?: boolean;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Gamma market version of the traded outcome's market, resolved when the
+   * provider builds the preview. Routes the order: "v2" uses the positions
+   * protocol; any other value uses the CTF path.
+   */
+  outcomeVersion?: string;
 }
 
 export type OrderResult = Result<{
@@ -871,6 +892,7 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
+  feePolicy?: PredictFeePolicy;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
@@ -881,6 +903,7 @@ export interface PreviewMaxBuyOrderParams {
   outcomeId: string;
   outcomeTokenId: string;
   availableBalance: number;
+  feePolicy?: PredictFeePolicy;
 }
 
 export type PredictWalletType = 'safe' | 'deposit-wallet';

@@ -16,12 +16,18 @@ import { SwapQuotesProvider } from '../../Bridge/providers/SwapQuotesProvider';
 import { useQuickBuyQuotes } from './useQuickBuyQuotes';
 import { useSwapQuotes } from '../../Bridge/hooks/useSwapQuotes';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
+import { recordSocialTrade } from '../../../../util/social/socialActivityStorage';
 
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
   },
+}));
+
+jest.mock('../../../../util/social/socialActivityStorage', () => ({
+  ...jest.requireActual('../../../../util/social/socialActivityStorage'),
+  recordSocialTrade: jest.fn(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -155,7 +161,10 @@ jest.mock('../../../../core/Engine', () => ({
     controllerMessenger: { call: jest.fn() },
     context: {
       BridgeController: { resetState: jest.fn() },
-      BridgeStatusController: { submitTx: jest.fn() },
+      BridgeStatusController: {
+        submitTx: jest.fn(),
+        submitIntent: jest.fn(),
+      },
       NetworkController: {
         findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
       },
@@ -311,8 +320,9 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -321,8 +331,9 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       { initialProps },
     );
@@ -392,8 +403,9 @@ runQuickBuyControllerCases({
     analyticsContext?: QuickBuyAnalyticsContext,
     initialProps?: { target: QuickBuyTarget; onClose: () => void },
     initialTradeMode?: 'buy' | 'sell',
-    postSwapShare?: boolean,
+    postTradeShare?: boolean,
     copyTradeOrigin?: CopyTradeOrigin,
+    postTradeShareOwner?: string,
   ) => {
     const utils = renderHook(
       () =>
@@ -402,8 +414,9 @@ runQuickBuyControllerCases({
           onClose ?? jest.fn(),
           analyticsContext ?? { source: 'profile_position' },
           initialTradeMode,
-          postSwapShare,
+          postTradeShare,
           copyTradeOrigin,
+          postTradeShareOwner,
         ),
       {
         initialProps,

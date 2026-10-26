@@ -105,20 +105,25 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
   const rightTeam = isHomeFirst ? game.awayTeam : game.homeTeam;
   const leftScore = isHomeFirst ? gameData.homeScore : gameData.awayScore;
   const rightScore = isHomeFirst ? gameData.awayScore : gameData.homeScore;
-  const leftLogoTestID = testID
-    ? `${testID}${
-        isHomeFirst
-          ? PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO
-          : PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO
-      }`
-    : undefined;
-  const rightLogoTestID = testID
-    ? `${testID}${
-        isHomeFirst
-          ? PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO
-          : PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO
-      }`
-    : undefined;
+  const getTestID = (suffix: string) =>
+    testID ? `${testID}${suffix}` : undefined;
+  const homeLogoTestID = getTestID(
+    PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_LOGO,
+  );
+  const awayLogoTestID = getTestID(
+    PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_LOGO,
+  );
+  const homeScoreTestID = getTestID(
+    PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_SCORE,
+  );
+  const awayScoreTestID = getTestID(
+    PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_SCORE,
+  );
+  const leftLogoTestID = isHomeFirst ? homeLogoTestID : awayLogoTestID;
+  const rightLogoTestID = isHomeFirst ? awayLogoTestID : homeLogoTestID;
+  const leftScoreTestID = isHomeFirst ? homeScoreTestID : awayScoreTestID;
+  const rightScoreTestID = isHomeFirst ? awayScoreTestID : homeScoreTestID;
+  const statusTestID = getTestID(PREDICT_SPORT_SCOREBOARD_TEST_IDS.STATUS);
 
   const renderTeamLogo = (
     team: PredictSportTeam,
@@ -156,6 +161,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             fontWeight={FontWeight.Bold}
             twClassName={`${compact ? 'pl-2' : 'pl-3'}`}
             numberOfLines={1}
+            testID={leftScoreTestID}
           >
             {leftScore}
           </Text>
@@ -173,6 +179,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
                 twClassName="text-center"
+                testID={getTestID(
+                  PREDICT_SPORT_SCOREBOARD_TEST_IDS.SCHEDULED_DATE,
+                )}
               >
                 {scheduledTime.date}
               </Text>
@@ -181,6 +190,9 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
                 twClassName="text-center"
+                testID={getTestID(
+                  PREDICT_SPORT_SCOREBOARD_TEST_IDS.SCHEDULED_TIME,
+                )}
               >
                 {scheduledTime.time}
               </Text>
@@ -196,11 +208,16 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 justifyContent={BoxJustifyContent.Center}
                 twClassName="gap-1"
               >
-                <PulsingLiveDot />
+                <PulsingLiveDot
+                  testID={getTestID(PREDICT_SPORT_SCOREBOARD_TEST_IDS.LIVE_DOT)}
+                />
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.SuccessDefault}
+                  testID={getTestID(
+                    PREDICT_SPORT_SCOREBOARD_TEST_IDS.LIVE_LABEL,
+                  )}
                 >
                   LIVE
                 </Text>
@@ -211,6 +228,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextAlternative}
                 twClassName="text-center"
+                testID={statusTestID}
               >
                 {statusText}
               </Text>
@@ -221,6 +239,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
               fontWeight={FontWeight.Medium}
               color={TextColor.TextAlternative}
               twClassName="text-center"
+              testID={statusTestID}
             >
               {statusText}
             </Text>
@@ -234,6 +253,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             fontWeight={FontWeight.Bold}
             twClassName={`${compact ? 'pr-2' : 'pr-3'} text-right`}
             numberOfLines={1}
+            testID={rightScoreTestID}
           >
             {rightScore}
           </Text>

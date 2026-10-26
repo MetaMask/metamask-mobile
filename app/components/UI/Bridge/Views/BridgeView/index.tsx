@@ -37,6 +37,8 @@ import {
   setDestAmount,
   setSelectedQuoteRequestId,
   setBridgeViewMode,
+  setLimitOrderCostTolerance,
+  setLimitOrderExpirationMinutes,
 } from '../../../../../core/redux/slices/bridge';
 import { BridgeViewMode } from '../../types';
 import { useBridgeSession } from '../../hooks/useBridgeSession';
@@ -56,6 +58,9 @@ import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useReconcileInputsForNonMarketSwapTab } from '../../hooks/useReconcileInputsForNonMarketSwapTab';
+import { OrdersTabKey } from '../../components/OrdersTabs';
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 
 const BridgeView = () => {
   const {
@@ -63,6 +68,8 @@ const BridgeView = () => {
     renderedTab,
     setSelectedTab,
     setRenderedTab,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
     setQuoteParams,
   } = useBridgeSession();
   const navigation = useNavigation<AppNavigationProp>();
@@ -87,6 +94,14 @@ const BridgeView = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const initialLimitOrderExpirationMinutes =
+    route.params?.initialLimitOrderExpirationMinutes;
+  const initialLimitOrderPriceTolerance =
+    route.params?.initialLimitOrderPriceTolerance;
+
+  /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
+  const location =
+    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
 
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
@@ -109,8 +124,52 @@ const BridgeView = () => {
 
     setSelectedTab(initialTab);
     setRenderedTab(initialTab);
+    if (initialTab === BridgeTabKey.Limit) {
+      setLimitOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
+    if (initialTab === BridgeTabKey.Recurring) {
+      setRecurringOrdersTab?.(OrdersTabKey.OpenOrders);
+    }
     navigation.setParams({ initialTab: undefined });
-  }, [initialTab, navigation, setRenderedTab, setSelectedTab]);
+  }, [
+    initialTab,
+    navigation,
+    setLimitOrdersTab,
+    setRecurringOrdersTab,
+    setRenderedTab,
+    setSelectedTab,
+  ]);
+
+  // Deep-link presets for the Limit tab override the session values exactly
+  // once per deep link. Presets the deep link omits keep whatever the user
+  // already picked this app session. Clearing the route params afterwards
+  // stops a later re-mount (e.g. tab switch) from re-applying the presets.
+  useLayoutEffect(() => {
+    if (
+      initialLimitOrderExpirationMinutes === undefined &&
+      initialLimitOrderPriceTolerance === undefined
+    ) {
+      return;
+    }
+
+    if (initialLimitOrderExpirationMinutes !== undefined) {
+      dispatch(
+        setLimitOrderExpirationMinutes(initialLimitOrderExpirationMinutes),
+      );
+    }
+    if (initialLimitOrderPriceTolerance !== undefined) {
+      dispatch(setLimitOrderCostTolerance(initialLimitOrderPriceTolerance));
+    }
+    navigation.setParams({
+      initialLimitOrderExpirationMinutes: undefined,
+      initialLimitOrderPriceTolerance: undefined,
+    });
+  }, [
+    initialLimitOrderExpirationMinutes,
+    initialLimitOrderPriceTolerance,
+    dispatch,
+    navigation,
+  ]);
 
   const quoteParams = useMemo(
     (): QuoteParams => ({
@@ -135,6 +194,8 @@ const BridgeView = () => {
   useEffect(() => {
     setQuoteParams(quoteParams);
   }, [quoteParams, setQuoteParams]);
+
+  useTrackSwapPageViewed(location);
 
   let headerTitle: string;
   if (bridgeViewMode === BridgeViewMode.Bridge) {
@@ -322,10 +383,14 @@ const BridgeView = () => {
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Box twClassName="flex-1" testID={BridgeViewSelectorsIDs.TABS_CONTENT}>
-          {renderedTab === BridgeTabKey.Market ? <BridgeMarketView /> : null}
-          {renderedTab === BridgeTabKey.Limit ? <BridgeLimitOrderView /> : null}
+          {renderedTab === BridgeTabKey.Market ? (
+            <BridgeMarketView location={location} />
+          ) : null}
+          {renderedTab === BridgeTabKey.Limit ? (
+            <BridgeLimitOrderView location={location} />
+          ) : null}
           {renderedTab === BridgeTabKey.Recurring ? (
-            <BridgeRecurringBuyView />
+            <BridgeRecurringBuyView location={location} />
           ) : null}
         </Box>
       </GestureDetector>

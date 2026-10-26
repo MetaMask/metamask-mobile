@@ -198,9 +198,10 @@ describe('useOpenVbaOnboarding', () => {
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'NAVIGATE',
+        type: 'RESET',
         payload: expect.objectContaining({
-          name: Routes.RAMP.VBA_DETAILS,
+          index: 1,
+          routes: [callerRoute, { name: Routes.RAMP.VBA_DETAILS }],
         }),
       }),
     );
@@ -460,7 +461,7 @@ describe('useOpenVbaOnboarding', () => {
     });
   });
 
-  it('pushes the completed account on the same stack as onboarding', () => {
+  it('keeps the caller under the completed account', () => {
     const onboardingDispatch = jest.fn();
     const parentDispatch = jest.fn();
     const onboardingNavigation = {
@@ -493,9 +494,13 @@ describe('useOpenVbaOnboarding', () => {
 
     expect(parentDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: 'NAVIGATE',
+        type: 'RESET',
         payload: expect.objectContaining({
-          name: Routes.RAMP.VBA_DETAILS,
+          index: 1,
+          routes: [
+            { key: 'home-1', name: 'Home' },
+            { name: Routes.RAMP.VBA_DETAILS },
+          ],
         }),
       }),
     );
@@ -865,5 +870,132 @@ describe('resolveVbaOnboarding', () => {
         sessionDisclaimersComplete: true,
       }),
     });
+  });
+});
+
+describe('navigateToVbaOnboardingDestination account create error', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('opens the bank-details error screen', () => {
+    navigateToVbaOnboardingDestination(navigation, 'accountCreateDetails');
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: { variant: 'details' },
+    });
+  });
+
+  it('passes the safe registration fields to contact support', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateDetails',
+      undefined,
+      { httpStatus: 400, traceId: 'moonpay-trace' },
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'details',
+        failure: { httpStatus: 400, traceId: 'moonpay-trace' },
+      },
+    });
+  });
+
+  it('passes the source currency to the retry screen', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'USD',
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        failure: { httpStatus: 500 },
+        sourceCurrency: 'USD',
+      },
+    });
+  });
+
+  it('marks recoverable setup failures as retryable', () => {
+    navigateToVbaOnboardingDestination(
+      navigation,
+      'accountCreateGeneric',
+      undefined,
+      undefined,
+      'BRL',
+      true,
+    );
+
+    expectResetTo({
+      name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      params: {
+        variant: 'generic',
+        sourceCurrency: 'BRL',
+        retryable: true,
+      },
+    });
+  });
+
+  it('keeps Money home under an error opened from account details', () => {
+    const dispatch = jest.fn();
+    const detailsNavigation = {
+      dispatch,
+      getState: () => ({
+        index: 1,
+        routeNames: [
+          'Home',
+          Routes.RAMP.VBA_DETAILS,
+          Routes.RAMP.VBA_ONBOARDING,
+        ],
+        routes: [
+          callerRoute,
+          { key: 'details-1', name: Routes.RAMP.VBA_DETAILS },
+        ],
+      }),
+      getParent: () => undefined,
+    } as unknown as AppNavigationProp;
+
+    navigateToVbaOnboardingDestination(
+      detailsNavigation,
+      'accountCreateGeneric',
+      undefined,
+      { httpStatus: 500 },
+      'BRL',
+    );
+
+    expect(dispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'RESET',
+        payload: expect.objectContaining({
+          index: 1,
+          routes: [
+            callerRoute,
+            {
+              name: Routes.RAMP.VBA_ONBOARDING,
+              state: {
+                index: 0,
+                routes: [
+                  {
+                    name: VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+                    params: {
+                      variant: 'generic',
+                      failure: { httpStatus: 500 },
+                      sourceCurrency: 'BRL',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      }),
+    );
   });
 });

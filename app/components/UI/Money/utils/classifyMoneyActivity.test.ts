@@ -76,6 +76,26 @@ describe('classifyMoneyActivity', () => {
     expect(classifyMoneyActivity(makeTx({ type }))).toBe('received');
   });
 
+  it('classifies incoming mUSD as received; completed VBA comes from API rows', () => {
+    const transaction = makeTx({
+      type: TransactionType.incoming,
+      status: TransactionStatus.confirmed,
+      chainId: CHAIN_IDS.MONAD,
+      txParams: {
+        from: '0x000000000000000000000000000000000000000a',
+        to: '0x000000000000000000000000000000000000000b',
+      },
+      transferInformation: {
+        amount: '1230000',
+        symbol: 'mUSD',
+        decimals: 6,
+        contractAddress: MUSD_TOKEN_ADDRESS,
+      },
+    });
+
+    expect(classifyMoneyActivity(transaction)).toBe('received');
+  });
+
   it.each([TransactionType.moneyAccountWithdraw, TransactionType.simpleSend])(
     'classifies %s as sent',
     (type) => {

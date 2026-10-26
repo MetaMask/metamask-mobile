@@ -2,6 +2,7 @@ name: 'CLA Signature Bot'
 on:
   issue_comment:
     types: [created]
+  # zizmor: ignore[dangerous-triggers] needed to comment on fork PRs; no checkout, so PR code never runs
   pull_request_target:
     types: [opened, closed, synchronize]
   merge_group:

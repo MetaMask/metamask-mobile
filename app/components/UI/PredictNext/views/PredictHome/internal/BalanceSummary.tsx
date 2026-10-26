@@ -5,6 +5,7 @@ import {
   Box,
   Button,
   ButtonVariant,
+  FontFamily,
   SensitiveText,
   SensitiveTextLength,
   Skeleton,
@@ -14,6 +15,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
+import { PredictError, PredictErrorCode } from '../../../errors';
 import type { PredictBalance } from '../../../types';
 import { PredictHomeTestIds } from '../PredictHome.testIds';
 
@@ -23,12 +25,12 @@ const formatUsd = (value: string): string =>
 export const BalanceSummary = ({
   balance,
   isLoading,
-  isError,
+  error,
   onRetry,
 }: {
   balance?: PredictBalance;
   isLoading: boolean;
-  isError: boolean;
+  error: Error | null;
   onRetry: () => void;
 }) => {
   const privacyMode = useSelector(selectPrivacyMode);
@@ -42,7 +44,23 @@ export const BalanceSummary = ({
     );
   }
 
-  if (!balance && isError) {
+  // Retrying cannot lift a regional block, so it gets no retry button.
+  if (
+    !balance &&
+    error instanceof PredictError &&
+    error.code === PredictErrorCode.GEO_BLOCKED
+  ) {
+    return (
+      <Text
+        variant={TextVariant.BodyMd}
+        testID={PredictHomeTestIds.BALANCE_GEO_BLOCKED}
+      >
+        {strings('predict_next.unavailable_in_region')}
+      </Text>
+    );
+  }
+
+  if (!balance && error) {
     return (
       <Box gap={2} testID={PredictHomeTestIds.BALANCE_ERROR}>
         <Text variant={TextVariant.BodyMd}>
@@ -71,7 +89,8 @@ export const BalanceSummary = ({
   return (
     <Box gap={1} testID={PredictHomeTestIds.BALANCE}>
       <SensitiveText
-        variant={TextVariant.DisplayLg}
+        variant={TextVariant.AmountDisplayLg}
+        fontFamily={FontFamily.Hero}
         isHidden={privacyMode}
         length={SensitiveTextLength.Medium}
         testID={PredictHomeTestIds.BALANCE_AMOUNT}

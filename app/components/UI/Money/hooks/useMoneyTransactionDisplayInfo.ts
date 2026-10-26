@@ -55,6 +55,17 @@ export interface MoneyTransactionDisplayInfo {
   isIncoming: boolean;
   icon: IconName;
   status: MoneyActivityStatus;
+  /**
+   * Render the primary amount line for completed VBA deposits and card rows.
+   * Other Money rows show `fiatAmount` only.
+   */
+  showPrimaryAmount?: boolean;
+  /** Optional status text shown beneath a pending amount instead of fiat. */
+  pendingStatusLabel?: string;
+  /** Dim the primary amount while the transfer is still pending. */
+  isPrimaryAmountPending?: boolean;
+  /** Render the fiat line in the alternative text color. */
+  isFiatAmountMuted?: boolean;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
@@ -178,7 +189,7 @@ function isNativeTokenAddress(tokenAddress: string, chainId: Hex): boolean {
  */
 export function useMoneyTransactionDisplayInfo(
   tx: TransactionMeta,
-  _moneyAddress: string | undefined,
+  moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
   const paymentMethodName = useFiatPaymentMethodName(tx);

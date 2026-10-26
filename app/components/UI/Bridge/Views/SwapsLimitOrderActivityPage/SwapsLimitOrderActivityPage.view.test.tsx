@@ -292,6 +292,34 @@ describeForPlatforms('SwapsLimitOrderActivityPage', () => {
     });
   });
 
+  it('condenses the leading zeros of tiny amounts and a tiny trigger price', async () => {
+    const { findByTestId, getByTestId, getByText } = await openActivityPage(
+      {
+        ...MOCK_LIMIT_FILLED_ORDER,
+        trigger: {
+          kind: 'src_price',
+          threshold: 'above',
+          price: '0.000003747',
+        },
+      },
+      [
+        {
+          ...FILL_TRANSACTION,
+          src: { ...FILL_TRANSACTION.src, amount: '12345678900' },
+          dest: { ...FILL_TRANSACTION.dest, amount: '1' },
+        },
+      ],
+    );
+
+    await findByTestId(ActivityDetailsSelectorsIDs.TRANSACTION_ID_COPY);
+
+    expect(getByText('-0.0₇1234 ETH')).toBeOnTheScreen();
+    expect(getByText('+0.0₅1 USDC')).toBeOnTheScreen();
+    expect(
+      within(getByTestId(TRIGGER_CONDITION_ROW)).getByText('$0.0₅3747'),
+    ).toBeOnTheScreen();
+  });
+
   it('shows the network fee as a token amount when the fill reports no USD value for it', async () => {
     const { findByTestId } = await openActivityPage(
       MOCK_LIMIT_FILLED_ORDER,

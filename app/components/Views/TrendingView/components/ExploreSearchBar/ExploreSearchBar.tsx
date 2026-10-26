@@ -24,6 +24,7 @@ import {
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import CapsuleGlass from '../../../../../component-library/components-temp/CapsuleGlass';
 import { TrendingViewSelectorsIDs } from '../../TrendingView.testIds';
 import { useSearchAccessoryAnimation } from './ExploreSearchBar.animations';
 
@@ -36,6 +37,8 @@ interface ExploreSearchBarButtonProps {
   clipboardButtonTestID?: string;
   /** Tailwind gap class for the search + cancel row. Defaults to `gap-2`. */
   rowTwClassName?: string;
+  /** Draws the search pill as a Liquid Glass capsule. */
+  isGlass?: boolean;
 }
 
 interface ExploreSearchBarInteractiveProps {
@@ -58,6 +61,8 @@ interface ExploreSearchBarInteractiveProps {
    */
   autoFocus?: boolean;
   dismissVariant?: 'cancel' | 'back';
+  /** Draws the search field as a Liquid Glass capsule. */
+  isGlass?: boolean;
 }
 
 type ExploreSearchBarProps =
@@ -140,6 +145,7 @@ const ExploreSearchBarButton = ({
   onPastePress,
   clipboardButtonTestID,
   rowTwClassName = 'flex-1 gap-2',
+  isGlass = false,
   resolvedPlaceholder,
 }: ExploreSearchBarButtonProps & ResolvedPlaceholder) => {
   const tw = useTailwind();
@@ -174,27 +180,44 @@ const ExploreSearchBarButton = ({
     </>
   );
 
+  const pillContent = (
+    <>
+      <TouchableOpacity
+        onPress={onPress}
+        testID="explore-view-search-button"
+        activeOpacity={0.7}
+        style={tw.style('flex-1 flex-row items-center gap-3')}
+      >
+        {searchBarContent}
+      </TouchableOpacity>
+      {buttonPastePill}
+    </>
+  );
+
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName={rowTwClassName}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="h-10 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
-      >
-        <TouchableOpacity
-          onPress={onPress}
-          testID="explore-view-search-button"
-          activeOpacity={0.7}
-          style={tw.style('flex-1 flex-row items-center gap-3')}
+      {isGlass ? (
+        <Box twClassName="flex-1">
+          <CapsuleGlass
+            twClassName="h-12 gap-3 px-4"
+            testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS}
+          >
+            {pillContent}
+          </CapsuleGlass>
+        </Box>
+      ) : (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="h-12 flex-1 gap-3 rounded-full border border-border-muted bg-muted px-4"
         >
-          {searchBarContent}
-        </TouchableOpacity>
-        {buttonPastePill}
-      </Box>
+          {pillContent}
+        </Box>
+      )}
     </Box>
   );
 };
@@ -210,6 +233,7 @@ const ExploreSearchBarInteractive = ({
   rowTwClassName = 'gap-2',
   autoFocus = true,
   dismissVariant,
+  isGlass = false,
   resolvedPlaceholder,
 }: ExploreSearchBarInteractiveProps & ResolvedPlaceholder) => {
   const tw = useTailwind();
@@ -249,7 +273,8 @@ const ExploreSearchBarInteractive = ({
   if (resolvedStartAccessory == null && isBackVariant) {
     resolvedStartAccessory = (
       <ButtonIcon
-        iconName={IconName.Arrow2Left}
+        iconName={IconName.ArrowLeft}
+        iconProps={{ color: IconColor.IconAlternative }}
         size={ButtonIconSize.Md}
         onPress={dismissSearch}
         accessibilityLabel={strings('navigation.back')}
@@ -257,6 +282,29 @@ const ExploreSearchBarInteractive = ({
       />
     );
   }
+
+  const searchField = (
+    <TextFieldSearch
+      // On glass the capsule draws the fill and the outline.
+      twClassName={isGlass ? 'h-12 flex-1 border-0 bg-transparent' : 'h-12'}
+      endAccessory={endAccessory}
+      value={searchQuery}
+      onChangeText={onSearchChange}
+      placeholder={resolvedPlaceholder}
+      autoFocus={autoFocus}
+      inputRef={inputRef}
+      onPressClearButton={() => {
+        onSearchChange('');
+      }}
+      clearButtonProps={{ testID: 'explore-search-clear-button' }}
+      startAccessory={resolvedStartAccessory}
+      inputProps={{
+        autoCapitalize: 'none',
+        keyboardAppearance,
+        testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      }}
+    />
+  );
 
   return (
     <Box
@@ -268,25 +316,16 @@ const ExploreSearchBarInteractive = ({
         twClassName="flex-1"
         testID={TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_INPUT}
       >
-        <TextFieldSearch
-          twClassName="h-10"
-          endAccessory={endAccessory}
-          value={searchQuery}
-          onChangeText={onSearchChange}
-          placeholder={resolvedPlaceholder}
-          autoFocus={autoFocus}
-          inputRef={inputRef}
-          onPressClearButton={() => {
-            onSearchChange('');
-          }}
-          clearButtonProps={{ testID: 'explore-search-clear-button' }}
-          startAccessory={resolvedStartAccessory}
-          inputProps={{
-            autoCapitalize: 'none',
-            keyboardAppearance,
-            testID: TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
-          }}
-        />
+        {isGlass ? (
+          <CapsuleGlass
+            twClassName="h-12"
+            testID={TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS}
+          >
+            {searchField}
+          </CapsuleGlass>
+        ) : (
+          searchField
+        )}
       </Box>
       {!isBackVariant && (
         <TouchableOpacity
