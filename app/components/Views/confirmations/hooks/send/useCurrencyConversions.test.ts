@@ -29,8 +29,7 @@ describe('getFiatValueFn', () => {
   it('return fiat value for passed native value', () => {
     expect(
       getFiatValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         amount: '10',
         decimals: 2,
       }),
@@ -40,8 +39,7 @@ describe('getFiatValueFn', () => {
   it('return 0 if input is empty string', () => {
     expect(
       getFiatValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         amount: '',
         decimals: 2,
       }),
@@ -52,11 +50,34 @@ describe('getFiatValueFn', () => {
     expect(
       getFiatValueFn({
         conversionRate: undefined as unknown as number,
-        exchangeRate: 3890.556,
         amount: '10',
         decimals: 2,
       }),
-    ).toStrictEqual('38905.56');
+    ).toStrictEqual('10.00');
+  });
+
+  // Regression: #36401 changed `fiat.conversionRate` to the token's own fiat
+  // price, but the token price in the native coin was still applied on top, so
+  // the token price was counted twice. A $1 stablecoin must stay $1 regardless
+  // of how expensive the chain's native coin is.
+  it('values a stablecoin at its own fiat price on an expensive-native chain', () => {
+    expect(
+      getFiatValueFn({
+        conversionRate: 1,
+        amount: '100',
+        decimals: 6,
+      }),
+    ).toStrictEqual('100.00');
+  });
+
+  it('values a token at its own fiat price on a cheap-native chain', () => {
+    expect(
+      getFiatValueFn({
+        conversionRate: 0.5,
+        amount: '100',
+        decimals: 18,
+      }),
+    ).toStrictEqual('50.00');
   });
 });
 
@@ -64,8 +85,7 @@ describe('getFiatDisplayValueFn', () => {
   it('return fiat value with currency prefix for passed native value', () => {
     expect(
       getFiatDisplayValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         currentCurrency: 'usd',
         amount: '10',
       }),
@@ -75,8 +95,7 @@ describe('getFiatDisplayValueFn', () => {
   it('return 0 if amount is not passed', () => {
     expect(
       getFiatDisplayValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         currentCurrency: 'usd',
         amount: '',
       }),
@@ -88,8 +107,7 @@ describe('getNativeValueFn', () => {
   it('return native value for passed fiat value', () => {
     expect(
       getNativeValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         amount: '38905.56',
         decimals: 2,
       }),
@@ -99,8 +117,7 @@ describe('getNativeValueFn', () => {
   it('return empty string if input is empty string', () => {
     expect(
       getNativeValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         amount: '',
         decimals: 2,
       }),
@@ -110,10 +127,31 @@ describe('getNativeValueFn', () => {
   it('return 0 if input is invalid decimal', () => {
     expect(
       getNativeValueFn({
-        conversionRate: 1,
-        exchangeRate: 3890.556,
+        conversionRate: 3890.556,
         amount: 'abc',
         decimals: 2,
+      }),
+    ).toStrictEqual('0');
+  });
+
+  // Regression: fiat entry inverted the same doubled rate, so $10 of a
+  // stablecoin resolved to roughly 40,000 tokens with ETH at $4,000.
+  it('converts a fiat amount into the matching stablecoin amount', () => {
+    expect(
+      getNativeValueFn({
+        conversionRate: 1,
+        amount: '10',
+        decimals: 6,
+      }),
+    ).toStrictEqual('10.00000');
+  });
+
+  it('returns 0 when the conversion rate is 0', () => {
+    expect(
+      getNativeValueFn({
+        conversionRate: 0,
+        amount: '10',
+        decimals: 6,
       }),
     ).toStrictEqual('0');
   });
