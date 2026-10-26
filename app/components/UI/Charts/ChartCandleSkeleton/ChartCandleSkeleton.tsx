@@ -6,8 +6,6 @@ import { hasTestOverrides } from '../../../../util/test/utils';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
 
-/** Fallback height when the parent does not stretch. Same as the Perps detail chart. */
-const DEFAULT_CHART_HEIGHT = 350;
 /** Price-pane pixel basis. Mark tops/heights are a percentage of this pane. */
 const PRICE_PANE_HEIGHT = 250;
 /** Volume-bar pixel basis. Bar height is this share of the volume band. */
@@ -227,7 +225,7 @@ const ChartFrame = ({ testID, plot, yAxis, volume, time }: ChartFrameProps) => (
 
 /** Candle-chart placeholder. Price flexes, volume is 22% of that wrapper, time row is 32px. */
 const ChartCandleSkeleton = ({
-  height = DEFAULT_CHART_HEIGHT,
+  height,
   testID = 'chart-candle-skeleton',
 }: ChartCandleSkeletonProps) => {
   const { colors } = useTheme();

@@ -11,6 +11,7 @@ jest.mock('../../../../util/deviceCapability', () => ({
 const mockGetHardwareTier = jest.mocked(getHardwareTier);
 
 const ID = 'chart-candle-skeleton';
+const HEIGHT = 350;
 const CANDLES = 32;
 const Y_PILLS = 6;
 const X_PILLS = 6;
@@ -42,35 +43,28 @@ describe('ChartCandleSkeleton', () => {
   ) => flatStyle(getByTestId(suffix ? `${ID}-${suffix}` : ID).props.style);
 
   it('adds no progressbar role or accessibility label', () => {
-    const { getByTestId, queryByRole } = render(<ChartCandleSkeleton />);
+    const { getByTestId, queryByRole } = render(
+      <ChartCandleSkeleton height={HEIGHT} />,
+    );
 
     expect(queryByRole('progressbar')).toBeNull();
     expect(getByTestId(ID).props.accessibilityLabel).toBeUndefined();
   });
 
-  it.each([
-    ['a passed height', 240, 240],
-    ['the detail-chart fallback', undefined, 350],
-  ] as const)('fills %s', (_label, height, expected) => {
-    const { getByTestId } = render(
-      height === undefined ? (
-        <ChartCandleSkeleton />
-      ) : (
-        <ChartCandleSkeleton height={height} />
-      ),
-    );
+  it.each([240, 288, 350])('fills a %ipx chart box', (height) => {
+    const { getByTestId } = render(<ChartCandleSkeleton height={height} />);
 
     expect(flatStyle(getByTestId(ID).props.style)).toEqual(
       expect.objectContaining({
         flex: 1,
-        height: expected,
+        height,
         backgroundColor: mockTheme.colors.background.default,
       }),
     );
   });
 
   it('splits the chart into panes, a volume band, and a time row', () => {
-    const { getByTestId } = render(<ChartCandleSkeleton />);
+    const { getByTestId } = render(<ChartCandleSkeleton height={HEIGHT} />);
 
     expect(styleOf(getByTestId, 'panes')).toEqual(
       expect.objectContaining({ flex: 1 }),
@@ -87,7 +81,9 @@ describe('ChartCandleSkeleton', () => {
   });
 
   it('lays out skinny candles, wicks, volume bars, and axis pills', () => {
-    const { getByTestId, queryByTestId } = render(<ChartCandleSkeleton />);
+    const { getByTestId, queryByTestId } = render(
+      <ChartCandleSkeleton height={HEIGHT} />,
+    );
     const mark = (suffix: string) => styleOf(getByTestId, suffix);
 
     expect(queryByTestId(`${ID}-candle-${CANDLES}`)).toBeNull();
@@ -144,7 +140,9 @@ describe('ChartCandleSkeleton', () => {
   });
 
   it('pulses every mark through one wrapper and leaves the grid outside it', () => {
-    const { getAllByTestId, getByTestId } = render(<ChartCandleSkeleton />);
+    const { getAllByTestId, getByTestId } = render(
+      <ChartCandleSkeleton height={HEIGHT} />,
+    );
     const pulse = within(getByTestId(`${ID}-pulse`));
 
     expect(getAllByTestId(`${ID}-pulse`)).toHaveLength(1);
@@ -176,7 +174,9 @@ describe('ChartCandleSkeleton', () => {
     (tier, shown, hidden) => {
       mockGetHardwareTier.mockReturnValueOnce(tier);
 
-      const { getByTestId, queryByTestId } = render(<ChartCandleSkeleton />);
+      const { getByTestId, queryByTestId } = render(
+        <ChartCandleSkeleton height={HEIGHT} />,
+      );
       const marks = getByTestId(`${ID}-${shown}`);
 
       expect(queryByTestId(`${ID}-${hidden}`)).toBeNull();
@@ -189,7 +189,9 @@ describe('ChartCandleSkeleton', () => {
     ['perps-market-details-view-chart-skeleton', true],
     ['perps-market-details-view-tradingview-chart-skeleton', false],
   ] as const)('keeps caller test id %s', (testID, checksMarks) => {
-    const { getByTestId } = render(<ChartCandleSkeleton testID={testID} />);
+    const { getByTestId } = render(
+      <ChartCandleSkeleton height={HEIGHT} testID={testID} />,
+    );
 
     expect(getByTestId(testID)).toBeOnTheScreen();
     expect(getByTestId(`${testID}-candle-0`)).toBeOnTheScreen();
