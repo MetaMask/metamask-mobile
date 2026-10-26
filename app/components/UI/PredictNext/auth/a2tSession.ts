@@ -24,6 +24,10 @@ export interface A2tSessionDependencies {
   /** SRP login identifier: the message-signing public key. */
   getSrpIdentifier: () => Promise<string>;
   signSrpMessage: (message: string) => Promise<string>;
+  /**
+   * Key already held by the device-key owner, or null. Must not load or
+   * create one: a flight that outlives a clear would bring plaintext back.
+   */
   getDeviceKey: () => Promise<KalshiDevicePublicMaterial | null>;
   peekDeviceKey: () => KalshiDevicePublicMaterial | null;
   signDeviceProof: (message: Uint8Array) => Promise<Uint8Array>;
@@ -335,12 +339,10 @@ export class A2tSession {
       return readyFresh;
     }
 
-    let lastError: unknown;
-    for (let attempt = 0; attempt < CHALLENGE_ATTEMPTS; attempt += 1) {
+    const attemptExchange = async (attempt: number): Promise<string> => {
       try {
         return await this.#exchange(issuerUrl, ready, generation);
       } catch (error) {
-        lastError = error;
         if (
           isA2tSessionCleared(error) ||
           !isExpiredChallenge(error) ||
@@ -348,12 +350,11 @@ export class A2tSession {
         ) {
           throw error;
         }
+        return attemptExchange(attempt + 1);
       }
-    }
+    };
 
-    throw lastError instanceof Error
-      ? lastError
-      : new Error('A2T challenge expired');
+    return attemptExchange(0);
   }
 
   async #waitUntilReady(generation: number): Promise<ReadyA2t> {
@@ -362,7 +363,19 @@ export class A2tSession {
     let accessToken = '';
     let srpIdentifier = '';
 
-    while (this.#deps.nowMs() <= deadline) {
+    const throwNotReady = (): never => {
+      this.#assertCurrent(generation);
+      if (lastError instanceof Error) {
+        throw lastError;
+      }
+      throw new Error('A2T prerequisites were not ready');
+    };
+
+    const poll = async (): Promise<ReadyA2t> => {
+      if (this.#deps.nowMs() > deadline) {
+        throwNotReady();
+      }
+
       this.#assertCurrent(generation);
       try {
         if (!accessToken) {
@@ -387,16 +400,13 @@ export class A2tSession {
       }
 
       if (this.#deps.nowMs() + READY_POLL_MS > deadline) {
-        break;
+        throwNotReady();
       }
       await this.#deps.sleep(READY_POLL_MS);
-    }
+      return poll();
+    };
 
-    this.#assertCurrent(generation);
-    if (lastError instanceof Error) {
-      throw lastError;
-    }
-    throw new Error('A2T prerequisites were not ready');
+    return poll();
   }
 
   async #exchange(
@@ -454,9 +464,10 @@ export class A2tSession {
   }
 
   /**
-   * One reload when the key was cleared while the SRP signature was in
-   * flight. A lock or a disabled venue still fails: `getDeviceKey` returns
-   * null, and a different key cannot sign this challenge.
+   * One retry when the key was cleared while the SRP signature was in flight
+   * and its owner has since reloaded it. A lock, a disabled venue, or leaving
+   * the stack still fails: `getDeviceKey` returns null, and a different key
+   * cannot sign this challenge.
    */
   async #signDeviceProof(
     proof: Uint8Array,

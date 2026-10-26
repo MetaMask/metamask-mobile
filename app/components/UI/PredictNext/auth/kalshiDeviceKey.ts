@@ -87,6 +87,17 @@ export const getKalshiDeviceKey = (): KalshiDevicePublicMaterial | null =>
   stored ? toPublicMaterial(stored) : null;
 
 /**
+ * Public material once any queued load or delete has settled. Never loads or
+ * creates the key, so a caller outside `KalshiDeviceKeyBootstrap` cannot put
+ * plaintext back after `clearKalshiDeviceKey` or `deleteKalshiDeviceKey`.
+ */
+export const waitForKalshiDeviceKey =
+  async (): Promise<KalshiDevicePublicMaterial | null> => {
+    await tail;
+    return getKalshiDeviceKey();
+  };
+
+/**
  * Drops the in-memory key. The encrypted copy in SecureKeychain stays, and
  * the next unlocked `ensureKalshiDeviceKey` loads the same key.
  */

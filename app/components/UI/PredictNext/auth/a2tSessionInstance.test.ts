@@ -5,9 +5,9 @@ import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import {
   clearKalshiDeviceKey,
   deleteKalshiDeviceKey,
-  ensureKalshiDeviceKey,
   getKalshiDeviceKey,
   signWithKalshiDeviceKey,
+  waitForKalshiDeviceKey,
   type KalshiDevicePublicMaterial,
 } from './kalshiDeviceKey';
 import {
@@ -37,16 +37,8 @@ jest.mock('../../../../selectors/identity', () => ({
   selectCanonicalProfileId: jest.fn(() => 'profile-1'),
 }));
 
-jest.mock('../../../../selectors/keyringController', () => ({
-  selectIsUnlocked: jest.fn(() => true),
-}));
-
 jest.mock('../../../../store', () => ({
   store: { getState: jest.fn(() => ({})) },
-}));
-
-jest.mock('../selectors/predictConfig', () => ({
-  selectPredictConfig: jest.fn(() => ({})),
 }));
 
 jest.mock('./a2tIssuerUrl', () => ({
@@ -57,9 +49,15 @@ jest.mock('./kalshiDeviceKey', () => ({
   clearKalshiDeviceKey: jest.fn(),
   ensureKalshiDeviceKey: jest.fn(),
   getKalshiDeviceKey: jest.fn(),
+  waitForKalshiDeviceKey: jest.fn(),
   signWithKalshiDeviceKey: jest.fn(),
   deleteKalshiDeviceKey: jest.fn(),
   kalshiDeviceKeyCommitment: () => 'device-nonce',
+  KalshiDeviceKeyUnavailableError: class extends Error {
+    constructor() {
+      super('Kalshi device key is not available');
+    }
+  },
 }));
 
 const SRP_IDENTIFIER = '0xabc';
@@ -98,9 +96,10 @@ describe('a2tSession', () => {
   const handleSnapRequestMock = handleSnapRequest as jest.MockedFunction<
     typeof handleSnapRequest
   >;
+  const originalFetch = global.fetch;
 
   beforeEach(() => {
-    (ensureKalshiDeviceKey as jest.Mock).mockResolvedValue(device);
+    (waitForKalshiDeviceKey as jest.Mock).mockResolvedValue(device);
     (getKalshiDeviceKey as jest.Mock).mockReturnValue(device);
     (signWithKalshiDeviceKey as jest.Mock).mockReturnValue(
       Uint8Array.from({ length: 64 }, () => 7),
@@ -134,6 +133,7 @@ describe('a2tSession', () => {
 
   afterEach(() => {
     a2tSession.clear();
+    global.fetch = originalFetch;
     jest.clearAllMocks();
   });
 
@@ -164,6 +164,32 @@ describe('a2tSession', () => {
         },
       },
     );
+  });
+
+  it('reads the held device key and never loads one itself', async () => {
+    const { ensureKalshiDeviceKey } = jest.requireMock('./kalshiDeviceKey');
+
+    await a2tSession.ensureA2T();
+
+    expect(waitForKalshiDeviceKey).toHaveBeenCalled();
+    expect(ensureKalshiDeviceKey).not.toHaveBeenCalled();
+  });
+
+  it('fails instead of reloading when the key was dropped mid-flight', async () => {
+    const { ensureKalshiDeviceKey, KalshiDeviceKeyUnavailableError } =
+      jest.requireMock('./kalshiDeviceKey');
+    (signWithKalshiDeviceKey as jest.Mock).mockRejectedValue(
+      new KalshiDeviceKeyUnavailableError(),
+    );
+    (waitForKalshiDeviceKey as jest.Mock)
+      .mockResolvedValueOnce(device)
+      .mockResolvedValueOnce(device)
+      .mockResolvedValue(null);
+
+    await expect(a2tSession.ensureA2T()).rejects.toThrow(
+      'Kalshi device key is not available',
+    );
+    expect(ensureKalshiDeviceKey).not.toHaveBeenCalled();
   });
 
   it('drops the cached A2T before deleting the device key', async () => {

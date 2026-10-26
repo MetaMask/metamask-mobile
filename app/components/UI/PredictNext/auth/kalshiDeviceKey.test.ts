@@ -22,6 +22,7 @@ import {
   isKalshiDeviceKeyEnabled,
   kalshiDeviceKeyCommitment,
   signWithKalshiDeviceKey,
+  waitForKalshiDeviceKey,
   type KalshiDevicePublicMaterial,
 } from './kalshiDeviceKey';
 
@@ -345,6 +346,38 @@ describe('kalshiDeviceKey', () => {
       'Failed to delete Kalshi device key',
     );
     errorSpy.mockRestore();
+  });
+
+  it('waits for a queued load and returns the held key without loading one', async () => {
+    const pending = ensureKalshiDeviceKey(enabledConfig, true);
+
+    const waited = await waitForKalshiDeviceKey();
+
+    expect(waited?.publicKey).toBe((await pending)?.publicKey);
+    expect(SecureKeychain.getSecureItem).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns null and touches no storage when no key is held', async () => {
+    saved = JSON.stringify({ v: 1, secretKey: 'unused', salt: 'unused' });
+
+    await expect(waitForKalshiDeviceKey()).resolves.toBeNull();
+
+    expect(SecureKeychain.getSecureItem).not.toHaveBeenCalled();
+    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
+    expect(getKalshiDeviceKey()).toBeNull();
+  });
+
+  it('returns null after a reset races a queued load and does not write again', async () => {
+    const pending = ensureKalshiDeviceKey(enabledConfig, true);
+    const deleted = deleteKalshiDeviceKey();
+
+    await expect(waitForKalshiDeviceKey()).resolves.toBeNull();
+    await expect(pending).resolves.toBeNull();
+    await deleted;
+
+    expect(getKalshiDeviceKey()).toBeNull();
+    expect(saved).toBeNull();
+    expect(SecureKeychain.setSecureItem).not.toHaveBeenCalled();
   });
 
   it('signs SHA-256 ECDSA as 64-byte r||s that Node can verify', async () => {

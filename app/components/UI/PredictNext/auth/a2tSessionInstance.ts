@@ -8,17 +8,15 @@ import { isEmulatorSync } from 'react-native-device-info';
 import Engine from '../../../../core/Engine';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import { selectCanonicalProfileId } from '../../../../selectors/identity';
-import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { store } from '../../../../store';
-import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolveA2tIssuerUrl } from './a2tIssuerUrl';
 import { A2tSession } from './a2tSession';
 import {
   clearKalshiDeviceKey,
   deleteKalshiDeviceKey,
-  ensureKalshiDeviceKey,
   getKalshiDeviceKey,
   signWithKalshiDeviceKey,
+  waitForKalshiDeviceKey,
 } from './kalshiDeviceKey';
 
 const MESSAGE_SIGNING_SNAP_ID: SnapId =
@@ -86,13 +84,7 @@ export const a2tSession = new A2tSession({
     }
     return signature;
   },
-  getDeviceKey: () => {
-    const state = store.getState();
-    return ensureKalshiDeviceKey(
-      selectPredictConfig(state),
-      selectIsUnlocked(state),
-    );
-  },
+  getDeviceKey: () => waitForKalshiDeviceKey(),
   peekDeviceKey: () => getKalshiDeviceKey(),
   signDeviceProof: (message) => signWithKalshiDeviceKey(message),
   fetch: (input, init) =>
