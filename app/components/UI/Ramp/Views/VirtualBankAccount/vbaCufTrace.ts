@@ -42,6 +42,7 @@ let foregroundSegmentStartedAt: number | null = null;
 let foregroundActiveMs = 0;
 let backgroundCount = 0;
 let resumeCount = 0;
+let isBackgrounded = false;
 let operationCounter = 0;
 const openChildren = new Map<string, VbaCufChildTraceName>();
 
@@ -86,22 +87,27 @@ const startForegroundSegment = (
 };
 
 const handleAppStateChange = (nextState: AppStateStatus): void => {
-  if (nextState === 'background' && currentAppState !== 'background') {
+  if (nextState === 'background' && !isBackgrounded) {
     pauseForegroundSegment();
     backgroundCount += 1;
+    isBackgrounded = true;
   } else if (
     nextState === 'active' &&
-    currentAppState === 'background' &&
+    isBackgrounded &&
     foregroundSegmentStartedAt === null
   ) {
-    resumeCount += 1;
+    if (backgroundCount > resumeCount) {
+      resumeCount += 1;
+    }
     startForegroundSegment();
+    isBackgrounded = false;
   }
   currentAppState = nextState;
 };
 
 const startForegroundAccounting = (startTime?: number): void => {
   currentAppState = AppState.currentState;
+  isBackgrounded = currentAppState === 'background';
   if (currentAppState !== 'background') {
     startForegroundSegment(startTime);
   }
@@ -125,6 +131,7 @@ const clearJourneyState = (): void => {
   foregroundActiveMs = 0;
   backgroundCount = 0;
   resumeCount = 0;
+  isBackgrounded = false;
 };
 
 export const startVbaCufJourney = (

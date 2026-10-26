@@ -1,4 +1,4 @@
-import { AppState } from 'react-native';
+import { AppState, type AppStateStatus } from 'react-native';
 import {
   VBA_CUF_LIFECYCLE_CONTEXT,
   type VbaCufLifecycleContext,
@@ -7,29 +7,37 @@ import {
 let currentContext: VbaCufLifecycleContext =
   VBA_CUF_LIFECYCLE_CONTEXT.COLD_PROCESS;
 let hasEnteredForegroundOnce = false;
+let hasBackgroundedSinceLastActive = false;
 let subscription: { remove: () => void } | undefined;
+
+export const handleVbaCufAppStateChange = (nextState: AppStateStatus): void => {
+  if (nextState === 'background') {
+    hasBackgroundedSinceLastActive = true;
+    return;
+  }
+
+  if (nextState !== 'active') {
+    return;
+  }
+
+  if (hasEnteredForegroundOnce && hasBackgroundedSinceLastActive) {
+    currentContext = VBA_CUF_LIFECYCLE_CONTEXT.BACKGROUND_RESUME;
+  }
+  hasEnteredForegroundOnce = true;
+  hasBackgroundedSinceLastActive = false;
+};
 
 const initializeLifecycleTracking = (): void => {
   if (subscription) {
     return;
   }
 
-  let lastState = AppState.currentState;
-  hasEnteredForegroundOnce = lastState === 'active';
-  subscription = AppState.addEventListener('change', (nextState) => {
-    const previousState = lastState;
-    lastState = nextState;
-    if (
-      nextState === 'active' &&
-      hasEnteredForegroundOnce &&
-      previousState === 'background'
-    ) {
-      currentContext = VBA_CUF_LIFECYCLE_CONTEXT.BACKGROUND_RESUME;
-    }
-    if (nextState === 'active') {
-      hasEnteredForegroundOnce = true;
-    }
-  });
+  hasEnteredForegroundOnce = AppState.currentState === 'active';
+  hasBackgroundedSinceLastActive = AppState.currentState === 'background';
+  subscription = AppState.addEventListener(
+    'change',
+    handleVbaCufAppStateChange,
+  );
 };
 
 export const getVbaCufLifecycleContext = (): VbaCufLifecycleContext => {
@@ -44,6 +52,7 @@ export const settleVbaCufLifecycleContext = (): void => {
 export const resetVbaCufLifecycleContextForTests = (): void => {
   currentContext = VBA_CUF_LIFECYCLE_CONTEXT.COLD_PROCESS;
   hasEnteredForegroundOnce = false;
+  hasBackgroundedSinceLastActive = false;
   subscription?.remove();
   subscription = undefined;
 };

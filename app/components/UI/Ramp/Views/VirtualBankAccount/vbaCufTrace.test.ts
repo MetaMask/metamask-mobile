@@ -16,7 +16,10 @@ import {
   startVbaCufChildTrace,
   startVbaCufJourney,
 } from './vbaCufTrace';
-import { resetVbaCufLifecycleContextForTests } from './vbaCufLifecycle';
+import {
+  getVbaCufLifecycleContext,
+  resetVbaCufLifecycleContextForTests,
+} from './vbaCufLifecycle';
 import {
   VBA_CUF_END_REASON,
   VBA_CUF_ENTRY_SURFACE,
@@ -146,6 +149,52 @@ describe('vbaCufTrace', () => {
       },
     });
     expect(hasActiveVbaCufJourney()).toBe(false);
+  });
+
+  it('resumes foreground timing after the iOS inactive transition', () => {
+    const id = startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
+    now = 1_000;
+    appState = 'background';
+    appStateListeners.forEach((listener) => listener('background'));
+    now = 6_000;
+    appState = 'inactive';
+    appStateListeners.forEach((listener) => listener('inactive'));
+    now = 8_000;
+    appState = 'active';
+    appStateListeners.forEach((listener) => listener('active'));
+    now = 10_000;
+
+    endVbaCufJourney(true);
+
+    expect(mockSetTraceMeasurement).toHaveBeenCalledWith(
+      { name: TraceName.VbaToPixInstructions, id },
+      VBA_CUF_FOREGROUND_ACTIVE_MS,
+      3_000,
+      'millisecond',
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.VbaToPixInstructions,
+      id,
+      data: {
+        [VBA_CUF_TAG.SUCCESS]: true,
+        [VBA_CUF_FOREGROUND_ACTIVE_MS]: 3_000,
+        [VBA_CUF_TAG.BACKGROUND_COUNT]: 1,
+        [VBA_CUF_TAG.RESUME_COUNT]: 1,
+      },
+    });
+  });
+
+  it('classifies an iOS background inactive active sequence as a resume', () => {
+    getVbaCufLifecycleContext();
+    const lifecycleStateListener = appStateListeners.at(-1);
+
+    lifecycleStateListener?.('background');
+    lifecycleStateListener?.('inactive');
+    lifecycleStateListener?.('active');
+
+    expect(getVbaCufLifecycleContext()).toBe(
+      VBA_CUF_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+    );
   });
 
   it('ends with a bounded failure reason on timeout', () => {
