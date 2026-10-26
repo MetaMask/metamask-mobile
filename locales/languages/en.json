@@ -9631,7 +9631,10 @@
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
-      "date": "Date"
+      "date": "Date",
+      "paid_with": "Paid with",
+      "you_deposited": "You deposited",
+      "pending": "Pending"
     },
     "convert_stablecoins": {
       "title": "Convert your stablecoins",
@@ -9742,6 +9745,7 @@
     "staked_balance": "Staked balance",
     "staked_ethereum": "Staked Ethereum",
     "unstake": "Unstake",
+    "withdrawal_details_unavailable": "We couldn't load your withdrawal details. Try again. If the problem persists, contact MetaMask Support.",
     "stake_more": "Stake more",
     "claim": "Claim",
     "staking": "Staking",
@@ -13057,6 +13061,8 @@
       },
       "resets_on": "Resets on {{date}}",
       "load_error": "Couldn't load your allowances.",
+      "pending_confirmation": "Your member pricing activates once your membership is confirmed.",
+      "unavailable": "Member pricing isn't available right now.",
       "retry": "Try again"
     },
     "physical_card": {

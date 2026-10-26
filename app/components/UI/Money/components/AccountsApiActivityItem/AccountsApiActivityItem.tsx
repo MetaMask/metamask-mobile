@@ -3,8 +3,11 @@ import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectTransactionMetadataByHash } from '../../../../../selectors/transactionController';
+import type { RootState } from '../../../../../reducers';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
 import { selectMoneyEnableActivityDetailsFlag } from '../../selectors/featureFlags';
+import { isMoneyActivityDeposit } from '../../constants/moneyActivityFilters';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import type { CardTransaction } from '../../../../../core/Engine/controllers/card-controller/provider-types';
 import ActivityRowView from '../MoneyActivityItem/ActivityRowView';
@@ -27,6 +30,9 @@ const AccountsApiActivityItem = ({
   const activityDetailsEnabled = useSelector(
     selectMoneyEnableActivityDetailsFlag,
   );
+  const localDepositTx = useSelector((state: RootState) =>
+    selectTransactionMetadataByHash(state, activity.hash),
+  );
 
   const display = useMemo(
     () => accountsApiActivityDisplayInfo(activity, enrichment),
@@ -34,11 +40,24 @@ const AccountsApiActivityItem = ({
   );
 
   const handlePress = useCallback(() => {
+    // Prefer local Money deposit details (full Steps / fiat timeline) when the
+    // Accounts API bank_transfer hash matches a TransactionController deposit.
+    if (
+      activity.kind === 'bank_transfer' &&
+      localDepositTx &&
+      isMoneyActivityDeposit(localDepositTx)
+    ) {
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: localDepositTx.id,
+      });
+      return;
+    }
+
     navigation.navigate(Routes.MONEY.CARD_TRANSACTION_DETAILS, {
       activity,
       enrichment,
     });
-  }, [navigation, activity, enrichment]);
+  }, [navigation, activity, enrichment, localDepositTx]);
 
   return (
     <ActivityRowView

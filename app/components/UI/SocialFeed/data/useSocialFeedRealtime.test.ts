@@ -159,6 +159,29 @@ describe('useSocialFeedRealtime', () => {
     expect(mockSetActive).not.toHaveBeenCalled();
   });
 
+  it('keeps unchanged posts when a refresh returns them as new objects', () => {
+    const { result, rerender } = renderRealtime({
+      rows: [
+        buildRow({ positionId: 'pos-a' }),
+        buildRow({ positionId: 'pos-b' }),
+      ],
+      dataUpdatedAt: 1_000,
+    });
+    const [before, beforeChanged] = result.current?.posts ?? [];
+
+    rerender({
+      rows: [
+        buildRow({ positionId: 'pos-a' }),
+        buildRow({ positionId: 'pos-b', copyCount: 42 }),
+      ],
+      dataUpdatedAt: 2_000,
+    });
+    const [after, afterChanged] = result.current?.posts ?? [];
+
+    expect(after).toBe(before);
+    expect(afterChanged).not.toBe(beforeChanged);
+  });
+
   it('adds a new post at the top with an entrance while live', () => {
     const { result } = renderRealtime();
 
