@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import type {
-  FontWeight,
+import {
   TextColor,
+  type FontWeight,
 } from '@metamask/design-system-react-native';
 
 export interface TooltipLabelProps {
@@ -22,7 +22,7 @@ export interface TooltipLabelProps {
    * Label text color. The underline uses the matching theme color.
    * @default TextColor.TextAlternative
    */
-  color?: TextColor.TextAlternative | TextColor.TextDefault;
+  color?: typeof TextColor.TextAlternative | typeof TextColor.TextDefault;
   /**
    * Label font weight.
    * @default FontWeight.Regular
