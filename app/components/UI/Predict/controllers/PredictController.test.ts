@@ -5274,6 +5274,182 @@ describe('PredictController', () => {
       });
     });
 
+    describe('market version analytics', () => {
+      const address = '0x1234567890123456789012345678901234567890';
+      const v1Position = createMockPosition({
+        id: 'v1-position',
+        outcomeId: 'v1-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createMockPosition({
+        id: 'v2-position',
+        outcomeId: 'v2-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const userDenied = new Error('User denied transaction signature');
+
+      const givenClaim = async (
+        controller: PredictController,
+        claimResult: Record<string, unknown>,
+      ) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([v1Position, v2Position]);
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue({ ...mockClaim, ...claimResult });
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+      };
+
+      const findClaimEvent = (status: string) =>
+        (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_claim' &&
+              arg?.properties?.status === status,
+          );
+
+      it.each([
+        [
+          'v1',
+          {
+            [v1Position.outcomeId]: undefined,
+            [v2Position.outcomeId]: undefined,
+          },
+        ],
+        [
+          'v2',
+          {
+            [v1Position.outcomeId]: 'v2',
+            [v2Position.outcomeId]: 'v2',
+          },
+        ],
+        [
+          'mixed',
+          {
+            [v1Position.outcomeId]: undefined,
+            [v2Position.outcomeId]: 'v2',
+          },
+        ],
+      ])(
+        'tracks a cancelled claim with market_version %s',
+        async (expected, marketVersions) => {
+          await withController(async ({ controller }) => {
+            await givenClaim(controller, { marketVersions });
+            (addTransactionBatch as jest.Mock).mockRejectedValue(userDenied);
+
+            const result = await controller.claimWithConfirmation({});
+
+            expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+            expect(findClaimEvent('cancelled').properties.market_version).toBe(
+              expected,
+            );
+          });
+        },
+      );
+
+      it('tracks market_version v1 when the kill switch leaves only CTF positions', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaim(controller, {
+            positions: [v1Position],
+            marketVersions: {
+              [v1Position.outcomeId]: undefined,
+              [v2Position.outcomeId]: 'v2',
+            },
+          });
+          (addTransactionBatch as jest.Mock).mockRejectedValue(userDenied);
+
+          await controller.claimWithConfirmation({});
+
+          expect(findClaimEvent('cancelled').properties.market_version).toBe(
+            'v1',
+          );
+        });
+      });
+
+      it.each([
+        [TransactionStatus.confirmed, 'succeeded'],
+        [TransactionStatus.failed, 'failed'],
+      ])(
+        'tracks the terminal %s claim with market_version',
+        async (transactionStatus, eventStatus) => {
+          await withController(async ({ controller, messenger }) => {
+            await givenClaim(controller, {
+              marketVersions: {
+                [v1Position.outcomeId]: 'v2',
+                [v2Position.outcomeId]: 'v2',
+              },
+            });
+            (addTransactionBatch as jest.Mock).mockResolvedValue({
+              batchId: 'claim-batch-1',
+            });
+            await controller.claimWithConfirmation({});
+
+            messenger.publish(
+              'TransactionController:transactionStatusUpdated',
+              {
+                transactionMeta: {
+                  id: 'claim-tx',
+                  status: transactionStatus,
+                  txParams: {
+                    from: address,
+                    to: '0x0000000000000000000000000000000000000001',
+                    value: '0x0',
+                    data: '0x',
+                  },
+                  nestedTransactions: [{ type: TransactionType.predictClaim }],
+                },
+              } as unknown as { transactionMeta: TransactionMeta },
+            );
+
+            expect(findClaimEvent(eventStatus).properties.market_version).toBe(
+              'v2',
+            );
+          });
+        },
+      );
+
+      it('logs the claim market version to Sentry when the claim fails before submission', async () => {
+        const batchError = new Error('Batch submission failed');
+        const errorSpy = jest
+          .spyOn(Logger, 'error')
+          .mockImplementation(() => undefined);
+
+        try {
+          await withController(async ({ controller }) => {
+            await givenClaim(controller, {
+              marketVersions: {
+                [v1Position.outcomeId]: undefined,
+                [v2Position.outcomeId]: 'v2',
+              },
+            });
+            (addTransactionBatch as jest.Mock).mockRejectedValue(batchError);
+
+            await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+              'Batch submission failed',
+            );
+
+            expect(errorSpy).toHaveBeenCalledWith(
+              batchError,
+              expect.objectContaining({
+                context: expect.objectContaining({
+                  data: expect.objectContaining({
+                    method: 'claimWithConfirmation',
+                    marketVersion: 'mixed',
+                  }),
+                }),
+              }),
+            );
+          });
+        } finally {
+          errorSpy.mockRestore();
+        }
+      });
+    });
+
     it('omits gasFeeToken when account walletType is deposit-wallet', async () => {
       const mockBatchId = 'claim-batch-deposit-wallet';
       await withController(async ({ controller }) => {

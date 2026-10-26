@@ -3368,7 +3368,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3381,6 +3381,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: 'v2' },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: 'v2' });
     });
 
     it('keeps the CTF claim when the gamma market has no v2 version', async () => {
@@ -3411,7 +3412,7 @@ describe('PolymarketProvider', () => {
       );
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3421,6 +3422,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: undefined },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: undefined });
     });
 
     describe('Protocol V2 markets kill switch', () => {
@@ -3457,6 +3459,10 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ positions: [v1Position] }),
         );
         expect(result.positions).toEqual([v1Position]);
+        expect(result.marketVersions).toEqual({
+          [v1ConditionId]: undefined,
+          [v2ConditionId]: 'v2',
+        });
       });
 
       it('throws MARKET_UNAVAILABLE when every position is v2 and the kill switch is on', async () => {

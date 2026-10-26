@@ -33,6 +33,7 @@ jest.mock('../constants/eventNames', () => ({
       INSUFFICIENT_GAS: 'insufficient_gas',
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
+      MARKET_UNAVAILABLE: 'market_unavailable',
       UNKNOWN: 'unknown',
     },
     FAILURE_STAGE: {
@@ -568,6 +569,7 @@ describe('parseAnalyticsProperties', () => {
 
   describe('mapClaimFailureReason', () => {
     it.each([
+      ['PREDICT_MARKET_UNAVAILABLE', 'market_unavailable'],
       ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],
       ['Market is pending resolution', 'pending_resolution'],
       ['No claimable positions found', 'pending_resolution'],

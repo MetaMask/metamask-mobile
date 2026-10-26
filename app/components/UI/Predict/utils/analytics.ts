@@ -80,6 +80,12 @@ export function mapClaimFailureReason(error?: unknown): string {
   const normalized = message.toLowerCase();
 
   if (
+    normalized.includes(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE.toLowerCase())
+  ) {
+    return CLAIM_FAILURE_REASON.MARKET_UNAVAILABLE;
+  }
+
+  if (
     normalized.includes(
       PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION.toLowerCase(),
     ) ||

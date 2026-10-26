@@ -141,6 +141,7 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { getPredictClaimMarketVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
@@ -2713,12 +2714,16 @@ export class PredictController extends BaseController<
             signer.address;
           state.claimablePositions[addressKey] = [...claimedPositions];
         });
-        this.pendingClaimAnalytics[signer.address.toLowerCase()] =
-          this.buildClaimAnalyticsProperties(
-            analyticsContext,
-            claimedPositions,
-          );
       }
+
+      // Re-stash the claim analytics with the claimed positions and their
+      // market versions, which are only known after prepareClaim.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+          prepareClaimResult.marketVersions,
+        );
 
       // Find network client - can fail if chain is not supported
       const networkClientId = this.messenger.call(
@@ -2821,6 +2826,9 @@ export class PredictController extends BaseController<
         e,
         this.getErrorContext('claimWithConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
+          marketVersion:
+            this.pendingClaimAnalytics[signer.address.toLowerCase()]
+              ?.marketVersion,
         }),
       );
 
@@ -2858,10 +2866,12 @@ export class PredictController extends BaseController<
    * event. Always sets `transaction_type: mm_predict_claim`. When a single
    * market is being claimed, `market_id`/`market_title` are populated; for
    * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   * `market_version` is set when the positions' market versions are passed.
    */
   private buildClaimAnalyticsProperties(
     analyticsContext?: PredictTradeAnalyticsProperties,
     claimablePositions?: PredictPosition[],
+    marketVersions?: Record<string, string | undefined>,
   ): PredictTradeAnalyticsProperties {
     const properties: PredictTradeAnalyticsProperties = {
       entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
@@ -2880,6 +2890,14 @@ export class PredictController extends BaseController<
         properties.marketId = properties.marketId ?? singlePosition.marketId;
         properties.marketTitle = properties.marketTitle ?? singlePosition.title;
       }
+    }
+
+    const marketVersion = getPredictClaimMarketVersion(
+      claimablePositions,
+      marketVersions,
+    );
+    if (marketVersion) {
+      properties.marketVersion = marketVersion;
     }
 
     return properties;
