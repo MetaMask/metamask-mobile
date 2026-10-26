@@ -7574,6 +7574,7 @@
           "timestamp": "now"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
