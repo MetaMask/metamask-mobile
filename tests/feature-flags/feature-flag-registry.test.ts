@@ -181,6 +181,16 @@ describe('Feature Flag Registry', () => {
       });
     });
 
+    it('keeps the Money deposit Braze campaign default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
+          ?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
     it('keeps mUSD conversion and Get-mUSD CTAs default-off', () => {
       const musdCtaFlags = [
         'earnMusdCtaEnabled',
