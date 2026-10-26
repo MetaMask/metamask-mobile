@@ -1,6 +1,8 @@
+import { useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 
-import { useScreenTransitionComplete } from '../hooks/useScreenTransitionComplete';
+import type { AppStackNavigationProp } from '../../core/NavigationService/types';
+import { subscribeScreenTransition } from '../hooks/subscribeScreenTransition';
 
 /** Options for {@link useDeferredRender}. */
 export interface UseDeferredRenderOptions {
@@ -12,9 +14,10 @@ export interface UseDeferredRenderOptions {
 }
 
 /**
- * Returns `true` after {@link useScreenTransitionComplete} and one
- * `requestAnimationFrame`. Cancels that frame on cleanup. Adds no timer
- * and does not use `InteractionManager`.
+ * Returns `true` one `requestAnimationFrame` after the screen's enter
+ * transition has finished. The released value is the hook's only state, so a
+ * gated subtree costs exactly one extra commit. Adds no timer of its own and
+ * does not use `InteractionManager`.
  *
  * Once this hook has returned `true`, it keeps returning `true` for this
  * component's lifetime. `enabled` changing from `false` to `true` does not
@@ -26,7 +29,7 @@ export interface UseDeferredRenderOptions {
 export function useDeferredRender({
   enabled = true,
 }: UseDeferredRenderOptions = {}): boolean {
-  const isTransitionComplete = useScreenTransitionComplete();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const [isReleased, setIsReleased] = useState(() => !enabled);
 
   if (!enabled && !isReleased) {
@@ -34,18 +37,30 @@ export function useDeferredRender({
   }
 
   useEffect(() => {
-    if (isReleased || !enabled || !isTransitionComplete) {
+    if (isReleased || !enabled) {
       return undefined;
     }
 
-    const frameId = requestAnimationFrame(() => {
-      setIsReleased(true);
+    let released = false;
+    let frameId: number | undefined;
+
+    const unsubscribe = subscribeScreenTransition(navigation, () => {
+      if (released) {
+        return;
+      }
+      released = true;
+      frameId = requestAnimationFrame(() => {
+        setIsReleased(true);
+      });
     });
 
     return () => {
-      cancelAnimationFrame(frameId);
+      unsubscribe();
+      if (frameId !== undefined) {
+        cancelAnimationFrame(frameId);
+      }
     };
-  }, [enabled, isReleased, isTransitionComplete]);
+  }, [enabled, isReleased, navigation]);
 
   return isReleased || !enabled;
 }
