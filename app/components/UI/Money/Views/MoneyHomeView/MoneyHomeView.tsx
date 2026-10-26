@@ -490,6 +490,7 @@ const MoneyHomeView = () => {
     ? {
         onMenuPress: handleMenuPress,
         isMfaEnabled: mfaStatus === 'enabled',
+        onMfaBadgePress: handleMfaBadgePress,
         onBack: handleBackPress,
         scrollY,
         titleSectionHeight: titleSectionHeightSv,
