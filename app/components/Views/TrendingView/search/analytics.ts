@@ -193,7 +193,6 @@ export const trackExploreSectionSeeAll = ({
 };
 
 interface ExploreSearchSession {
-  /** Sent as `search_session_id` on every event until the next `opened`. */
   id?: string;
   entryPoint?: SearchEntryPoint;
   hasResultClick: boolean;
@@ -237,6 +236,25 @@ const updateSearchSession = ({
   }
 };
 
+export const getExploreSearchSessionId = (): string | undefined =>
+  searchSession.id;
+
+/**
+ * Starts a new session when the user comes back to search after `abandoned`
+ * with no new `opened`, so later events don't join the visit that ended.
+ */
+export const renewEndedExploreSearchSession = (): void => {
+  if (!searchSession.hasEnded) {
+    return;
+  }
+  searchSession = {
+    id: uuidv4(),
+    entryPoint: searchSession.entryPoint,
+    hasResultClick: false,
+    hasEnded: false,
+  };
+};
+
 export const trackExploreSearchEvent = (
   properties: ExploreSearchInteractedProperties,
 ): void => {
@@ -275,7 +293,7 @@ export const trackExploreSearchOpened = (
 
 /**
  * Fires `abandoned` when the user leaves search without clicking a result.
- * One-shot per session: later calls are ignored until the next `opened`.
+ * One-shot per session: later calls are ignored until a new session starts.
  * `result_count` is only sent when it belongs to the query being abandoned.
  * `redactSearchQuery` blanks `search_query` for clipboard-pasted queries.
  */
@@ -313,30 +331,42 @@ export const trackExploreSearchAbandoned = (
 /**
  * Side effect hook to invoke analytics when searching.
  * Fires the 'searched' event once per unique settled query (after loading
- * completes). Resets when the query is cleared.
+ * completes) in each search session. Bump `focusCount` on every screen focus
+ * so a query still on screen is reported again when a new session starts.
+ * Resets when the query is cleared.
  */
 export const useInstrumentedSearchEffect = ({
   searchQuery,
   redactSearchQuery = false,
   isLoading,
+  focusCount = 0,
   getPill,
   getSections,
 }: {
   searchQuery: string;
   redactSearchQuery?: boolean;
   isLoading: boolean;
+  focusCount?: number;
   getPill: () => SearchFeedPill;
   getSections: () => SearchFeedSection[];
 }): void => {
-  const instrumentedQueryRef = useRef<string | null>(null);
+  const instrumentedRef = useRef<{ query: string; sessionId?: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!searchQuery.trim()) {
-      instrumentedQueryRef.current = null;
+      instrumentedRef.current = null;
       return;
     }
     if (isLoading) return;
-    if (instrumentedQueryRef.current === searchQuery) return;
+    const sessionId = searchSession.id;
+    if (
+      instrumentedRef.current?.query === searchQuery &&
+      instrumentedRef.current.sessionId === sessionId
+    ) {
+      return;
+    }
 
     const pill = getPill();
     const resultCount = getExploreSearchResultCount(pill, getSections());
@@ -348,8 +378,15 @@ export const useInstrumentedSearchEffect = ({
       result_count: resultCount,
       query_length: getSearchQueryLength(searchQuery),
     });
-    instrumentedQueryRef.current = searchQuery;
-  }, [searchQuery, redactSearchQuery, isLoading, getPill, getSections]);
+    instrumentedRef.current = { query: searchQuery, sessionId };
+  }, [
+    searchQuery,
+    redactSearchQuery,
+    isLoading,
+    focusCount,
+    getPill,
+    getSections,
+  ]);
 };
 
 /**

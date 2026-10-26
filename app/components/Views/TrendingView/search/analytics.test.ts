@@ -3,8 +3,10 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import {
   getExploreSearchResultCount,
+  getExploreSearchSessionId,
   getSearchQueryLength,
   getTotalSectionResultCount,
+  renewEndedExploreSearchSession,
   trackExplorePredictTrendingAssetViewed,
   trackExploreSearchAbandoned,
   trackExploreSearchEvent,
@@ -226,6 +228,57 @@ describe('useInstrumentedSearchEffect', () => {
     );
 
     expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not fire again on refocus within the same search session', () => {
+    const { rerender } = renderHook(
+      ({ focusCount }: { focusCount: number }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'eth',
+          isLoading: false,
+          focusCount,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { focusCount: 0 } },
+    );
+
+    act(() => {
+      rerender({ focusCount: 1 });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires again on refocus for the query on screen when a new search session started', () => {
+    mockUuidV4
+      .mockReturnValueOnce('session-1')
+      .mockReturnValueOnce('session-2');
+    trackExploreSearchOpened('nav_bar');
+    const { rerender } = renderHook(
+      ({ focusCount }: { focusCount: number }) =>
+        useInstrumentedSearchEffect({
+          searchQuery: 'eth',
+          isLoading: false,
+          focusCount,
+          getPill,
+          getSections,
+        }),
+      { initialProps: { focusCount: 0 } },
+    );
+    trackExploreSearchOpened('nav_bar');
+    mockTrackEvent.mockClear();
+
+    act(() => {
+      rerender({ focusCount: 1 });
+    });
+
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+      interaction_type: 'searched',
+      search_query: 'eth',
+      search_session_id: 'session-2',
+    });
   });
 
   it('resets and fires again after the query is cleared then re-entered', () => {
@@ -505,6 +558,45 @@ describe('Explore search analytics', () => {
         'session-2',
         'session-2',
       ]);
+    });
+
+    it('starts a new id when the user returns to search after abandoned', () => {
+      mockUuidV4
+        .mockReturnValueOnce('session-1')
+        .mockReturnValueOnce('session-2');
+
+      trackExploreSearchOpened('nav_bar');
+      trackExploreSearchAbandoned('navigate_away', 'eth');
+      renewEndedExploreSearchSession();
+      trackExploreSearchEvent({
+        interaction_type: 'searched',
+        search_query: 'eth',
+      });
+      trackExploreSearchAbandoned('back', 'eth');
+
+      expect(sentSessionIds()).toEqual([
+        'session-1',
+        'session-1',
+        'session-2',
+        'session-2',
+      ]);
+      expect(mockTrackEvent.mock.calls[3][0].properties).toMatchObject({
+        interaction_type: 'abandoned',
+        entry_point: 'nav_bar',
+      });
+    });
+
+    it('keeps the id when the user returns to search before the session ended', () => {
+      trackExploreSearchOpened('home');
+      trackExploreSearchEvent({
+        interaction_type: 'result_clicked',
+        search_query: 'eth',
+      });
+
+      renewEndedExploreSearchSession();
+
+      expect(mockUuidV4).toHaveBeenCalledTimes(1);
+      expect(getExploreSearchSessionId()).toBe('search-session-id');
     });
 
     it('omits the id when search was never opened', async () => {
