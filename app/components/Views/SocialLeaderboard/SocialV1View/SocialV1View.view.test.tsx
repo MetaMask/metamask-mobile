@@ -11,6 +11,8 @@
 import '../../../../../tests/component-view/mocks';
 
 import React from 'react';
+import { Pressable } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import {
   fireEvent,
   screen,
@@ -260,5 +262,49 @@ describe('SocialV1View initial tab', () => {
     expect(
       screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
     ).not.toBeOnTheScreen();
+  });
+
+  it('switches to Leaderboard when the mounted view is re-entered with that initial tab', async () => {
+    const returnToSocialTestId = 'return-to-social-on-leaderboard';
+    const ReturnToSocialOnLeaderboard = () => {
+      const navigation = useNavigation();
+      return (
+        <Pressable
+          testID={returnToSocialTestId}
+          onPress={() =>
+            navigation.navigate(
+              Routes.SOCIAL.V1,
+              { initialTab: 'leaderboard' },
+              { pop: true },
+            )
+          }
+        />
+      );
+    };
+    renderScreenWithRoutes(
+      SocialV1ViewWithAccessRestricted,
+      { name: Routes.SOCIAL.V1 },
+      [
+        {
+          name: Routes.SOCIAL.MY_PROFILE,
+          Component: ReturnToSocialOnLeaderboard,
+        },
+      ],
+      { state: initialStateSocialLeaderboard().build() },
+    );
+    const trendingPage = within(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
+    );
+    expect(await trendingPage.findByTestId(feedPostTestId)).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON));
+    fireEvent.press(await screen.findByTestId(returnToSocialTestId));
+
+    expect(
+      await screen.findByTestId(TopTradersViewSelectorsIDs.TRADER_LIST),
+    ).toBeOnTheScreen();
   });
 });
