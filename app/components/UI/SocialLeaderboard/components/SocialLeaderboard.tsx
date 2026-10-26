@@ -1,6 +1,11 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useImperativeHandle, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { useWindowDimensions } from 'react-native';
 import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
@@ -19,7 +24,7 @@ import { useFollowWithNotificationSetup } from '../../../Views/SocialLeaderboard
 import { navigateToSocialV1Profile } from '../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
 import { matchesShellTraderCohort } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
 import {
-  SOCIAL_V1_TRADER_ROW_HEIGHT,
+  SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
   SocialV1TraderRow,
   SocialV1TraderRowSkeleton,
 } from '../../../Views/SocialLeaderboard/TopTradersView/components';
@@ -47,6 +52,11 @@ import {
 } from '../types';
 import SocialLeaderboardMessage from './SocialLeaderboardMessage';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 
 /**
  * Slide a row runs when the ranking reshuffles, matched to the row's own
@@ -77,6 +87,9 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
+  /** Enables treatment-only Social V1 fetch and first-content tracing. */
+  performance?: SocialPerformanceContext;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -93,6 +106,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
+  onOutcomeChange,
+  performance,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -121,6 +136,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     timeframe,
     sort,
     enabled: !isOffline,
+    performance: performance?.enabled
+      ? { tab: SOCIAL_TRACE_TABS.Leaderboard }
+      : undefined,
   });
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -166,7 +184,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   );
 
   const skeletonKeys = useMemo(() => {
-    const visible = Math.ceil(windowHeight / SOCIAL_V1_TRADER_ROW_HEIGHT);
+    const visible = Math.ceil(
+      windowHeight / SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
+    );
     const count = Math.min(limit, visible + SKELETON_OVERSCAN);
     return Array.from({ length: count }, (_, i) => `leaderboard-skeleton-${i}`);
   }, [limit, windowHeight]);
@@ -220,6 +240,36 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     refresh().catch(() => undefined);
   }, [refresh]);
 
+  const firstContentState =
+    !isEnabled || resolution.status === 'hidden'
+      ? null
+      : resolution.status === 'unavailable'
+        ? 'empty'
+        : rows.length > 0 || viewerRow
+          ? 'content'
+          : error || (isOffline && !hasFetched)
+            ? 'error'
+            : hasFetched
+              ? 'empty'
+              : null;
+  const outcome =
+    resolution.status === 'unavailable'
+      ? 'empty'
+      : isLoading && traders.length === 0 && !isShowingSnapshot
+        ? null
+        : firstContentState;
+
+  useEffect(() => {
+    onOutcomeChange?.(outcome);
+  }, [onOutcomeChange, outcome]);
+
+  useSocialTabFirstContentTrace({
+    tab: SOCIAL_TRACE_TABS.Leaderboard,
+    contentState: firstContentState,
+    hasUsableData: hasFetched || isShowingSnapshot || freshTraders.length > 0,
+    performance,
+  });
+
   if (!isEnabled || resolution.status === 'hidden') {
     return null;
   }
@@ -237,7 +287,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       return (
         <Box testID={SocialLeaderboardSelectorsIDs.SKELETON}>
           {skeletonKeys.map((key) => (
-            <SocialV1TraderRowSkeleton key={key} />
+            <SocialV1TraderRowSkeleton key={key} showLeaderboardDetails />
           ))}
         </Box>
       );
@@ -257,6 +307,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
                 metric={trader.displayMetric}
                 onFollowPress={handleFollowPress}
                 onTraderPress={handleTraderPress}
+                showLeaderboardDetails
               />
             </Animated.View>
           ))}
@@ -299,6 +350,7 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             onTraderPress={handleViewerPress}
             highlighted
             hideRank={viewerRow.hideRank}
+            showLeaderboardDetails
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
         ) : null}

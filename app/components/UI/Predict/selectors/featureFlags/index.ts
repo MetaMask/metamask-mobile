@@ -180,6 +180,11 @@ export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
   (flags) => flags.predictSportCardLivePricesEnabled,
 );
 
+export const selectPredictDisablePolymarketV2MarketsFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.disablePolymarketV2Markets,
+);
+
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) =>

@@ -1039,6 +1039,64 @@ describe('usePushProvisioning', () => {
       unmount();
     });
 
+    it('forwards the pass activation state and records it on the completed event', async () => {
+      mockInitiateProvisioning.mockResolvedValue({
+        status: 'success',
+        tokenId: 'token-abc',
+        activationState: 'requires_activation',
+      });
+      const onSuccess = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(onSuccess).toHaveBeenCalledWith({
+        status: 'success',
+        tokenId: 'token-abc',
+        activationState: 'requires_activation',
+      });
+      const addProperties =
+        mockCreateEventBuilder.mock.results[0]?.value.addProperties;
+      expect(addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          activation_state: 'requires_activation',
+        }),
+      );
+      unmount();
+    });
+
+    it('treats a canceled result as idle without success or error callbacks', async () => {
+      mockInitiateProvisioning.mockResolvedValue({ status: 'canceled' });
+      const onSuccess = jest.fn();
+      const onError = jest.fn();
+
+      const { result, unmount } = renderHook(() =>
+        usePushProvisioning({ ...defaultOptions, onSuccess, onError }),
+      );
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+
+      await act(async () => {
+        await result.current.initiateProvisioning();
+      });
+
+      expect(result.current.status).toBe('idle');
+      expect(onSuccess).not.toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+      unmount();
+    });
+
     it('does not double-handle success when activation listener fires after direct success', async () => {
       let activationCallback:
         | ((event: { status: string; tokenId?: string }) => void)

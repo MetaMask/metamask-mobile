@@ -2,7 +2,7 @@
 
 This ledger records the implemented mobile canonical read contract stabilized by PRED-1168 and refined by PRED-1169. Venue DTO mapping belongs to the Predict API backend; mobile validates canonical Predict API responses only.
 
-The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). It is not executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
+The agreed next-contract direction is documented in [`canonical-read-model-and-api.md`](./canonical-read-model-and-api.md). The account-scoped Position, Portfolio Summary, Activity, and Venue catalog direction is documented in [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md). Neither is executable until the types, runtime parsers, transport, service, fixtures, and tests are updated together.
 
 This ledger covers PredictNext's internal canonical contract. The interface exposed to code outside Predict is described in [the public API contract](./public-api-contract.md). It does not expose these types yet.
 
@@ -59,6 +59,8 @@ All descriptors have Venue-qualified keys, semantic invalidation families, expli
 ## Portfolio
 
 `portfolioQueries.getBalance(venueId)` is owned by `PredictPortfolioService`. Its query key and invalidation family are `['PredictPortfolioService:getBalance', venueId]`, its stale time is 60 seconds, and its scope is `venue`. Portfolio and public market-data reads use separate service policies and circuits, so a Balance outage cannot open the market-data circuit and a Feed outage cannot open the portfolio circuit.
+
+`portfolioQueries.getPositions` and `getActivity` currently return Kalshi-native shapes: Positions with `marketExposure` and no valuation, and directionless `fill` Activity entries. They are superseded by [`canonical-portfolio-activity-catalog-contract.md`](./canonical-portfolio-activity-catalog-contract.md), which adds Position valuation fields, a Portfolio Summary read, `trade` entries with an authoritative buy or sell Action, and the Venue catalog. PRED-1404 adopts it.
 
 ## Order commit (write contract, PRED-1194)
 

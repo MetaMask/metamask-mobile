@@ -101,6 +101,8 @@ const OnboardingSheet = ({
       navigation.navigate(Routes.WEBVIEW.SIMPLE, {
         url,
         title,
+        hideShareButton: true,
+        useGlassHeader: true,
       });
     },
     [navigation],

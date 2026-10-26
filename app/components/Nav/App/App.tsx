@@ -429,6 +429,7 @@ const SimpleWebviewScreen = () => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
     />
   </NativeStack.Navigator>
 );
@@ -782,6 +783,7 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.WEBVIEW.SIMPLE}
       component={SimpleWebview}
+      initialParams={{ isModal: true }}
       options={{
         presentation: 'modal',
         animation: 'slide_from_bottom',

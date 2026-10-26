@@ -204,6 +204,8 @@ describe('OnboardingSheet', () => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
           url: AppConstants.URLS.TERMS_OF_USE_URL,
           title: strings('onboarding.terms_of_use'),
+          hideShareButton: true,
+          useGlassHeader: true,
         });
       });
 
@@ -216,6 +218,8 @@ describe('OnboardingSheet', () => {
         expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.SIMPLE, {
           url: AppConstants.URLS.PRIVACY_NOTICE,
           title: strings('onboarding.privacy_notice'),
+          hideShareButton: true,
+          useGlassHeader: true,
         });
       });
     });
