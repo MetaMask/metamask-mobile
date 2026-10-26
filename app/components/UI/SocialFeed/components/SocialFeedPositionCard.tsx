@@ -75,15 +75,21 @@ export const closedAgeLabel = (
         { age: formatFeedPostAge(closedAtMs, now) },
       );
 
-const cardTone = (item: {
-  valueLabel: string;
-  pnlLabel: string;
-  isPnlPositive: boolean;
-}): PositionCardTone => {
-  if (!item.valueLabel && !item.pnlLabel) {
+/**
+ * Wash hue for the figures the card actually shows as P&L. An open card's
+ * `valueLabel` is its current value, so it is not proof of a result. The sign
+ * has to be the one on screen: live ticks rewrite the header without rewriting
+ * the feed snapshot.
+ */
+const cardTone = (
+  pnlLabel: string,
+  pnlValueLabel: string | undefined,
+  isPnlPositive: boolean,
+): PositionCardTone => {
+  if (!pnlLabel && !pnlValueLabel) {
     return 'neutral';
   }
-  return item.isPnlPositive ? 'positive' : 'negative';
+  return isPnlPositive ? 'positive' : 'negative';
 };
 
 /**
@@ -184,7 +190,13 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
     const showCopyTrade = isCopyTradeable(item);
 
     return (
-      <PositionCardShell tone={cardTone(item)}>
+      <PositionCardShell
+        tone={cardTone(
+          header.pnlLabel,
+          header.pnlValueLabel,
+          header.isPnlPositive,
+        )}
+      >
         <View ref={header.trackRef} collapsable={false}>
           <PositionCardHeader
             layout="open"
@@ -220,7 +232,10 @@ export const PositionCardBody: React.FC<PositionCardBodyProps> = ({
   }
 
   return (
-    <PositionCardShell tone={cardTone(item)} emphasizeBorder>
+    <PositionCardShell
+      tone={cardTone(item.pnlLabel, item.valueLabel, item.isPnlPositive)}
+      emphasizeBorder
+    >
       <PositionCardHeader
         layout="closed"
         avatar={item.asset.avatar}

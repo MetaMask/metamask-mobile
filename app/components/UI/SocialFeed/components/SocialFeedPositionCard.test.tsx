@@ -561,6 +561,42 @@ describe('SocialFeedPositionCard', () => {
       );
     });
 
+    it('does not wash an open card that has a price but no P&L', () => {
+      const utils = renderWithProvider(
+        <PositionCardBody
+          item={mockOpenPerpsFeedItem({
+            valueLabel: '$212,000.00',
+            pnlLabel: '',
+            pnlValueLabel: undefined,
+            isPnlPositive: false,
+          })}
+        />,
+        {
+          theme: {
+            ...mockTheme,
+            colors: darkTheme.colors,
+            typography: darkTheme.typography,
+            shadows: darkTheme.shadows,
+            themeAppearance: AppThemeKey.dark,
+          },
+        },
+      );
+
+      expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
+    });
+
+    it('washes a closed card from its realized P&L when the percent is missing', () => {
+      expect(
+        cardTintOf(
+          mockClosedPerpsFeedItem({
+            valueLabel: '+$96,378.60',
+            pnlLabel: '',
+            isPnlPositive: true,
+          }),
+        ),
+      ).toBe(darkTheme.colors.success.muted);
+    });
+
     it('leaves a closed position without a wash when no PnL is available', () => {
       const utils = renderWithProvider(
         <PositionCardBody
@@ -719,6 +755,48 @@ describe('SocialFeedPositionCard', () => {
       renderLive(new SocialLivePriceStore(0));
 
       expect(screen.getByText('$100,000')).toBeOnTheScreen();
+    });
+
+    it('moves the wash with the live P&L sign', () => {
+      const store = new SocialLivePriceStore(0);
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        isPnlPositive: true,
+        live: liveSource,
+      });
+      const utils = renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: true,
+          }}
+        >
+          <PositionCardBody item={item} />
+        </SocialLivePricesContext.Provider>,
+        {
+          theme: {
+            ...mockTheme,
+            colors: darkTheme.colors,
+            typography: darkTheme.typography,
+            shadows: darkTheme.shadows,
+            themeAppearance: AppThemeKey.dark,
+          },
+        },
+      );
+
+      expect(utils.UNSAFE_getAllByType(LinearGradient)[0].props.colors[0]).toBe(
+        darkTheme.colors.success.muted,
+      );
+
+      act(() => {
+        store.publish('perp:BTC', 99_000);
+      });
+
+      expect(utils.UNSAFE_getAllByType(LinearGradient)[0].props.colors[0]).toBe(
+        darkTheme.colors.error.muted,
+      );
     });
 
     it('re-derives the mark price and P&L from a streamed price', () => {
