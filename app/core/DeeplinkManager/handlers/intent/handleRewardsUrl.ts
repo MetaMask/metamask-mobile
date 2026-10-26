@@ -10,6 +10,10 @@ import {
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
 
+interface NavigationStateLike {
+  routes?: { name?: string; state?: NavigationStateLike }[];
+}
+
 interface HandleRewardsUrlParams {
   rewardsPath: string;
 }
@@ -58,9 +62,53 @@ const parseRewardsNavigationParams = (
 };
 
 /**
+ * True when a route is already registered somewhere in the navigation tree.
+ * Either Rewards home stays mounted after the Rewards tab is opened, including
+ * while the user is on another tab.
+ */
+const navigationStateContainsRoute = (
+  state: NavigationStateLike | undefined,
+  routeName: string,
+): boolean =>
+  state?.routes?.some(
+    (route) =>
+      route.name === routeName ||
+      navigationStateContainsRoute(route.state, routeName),
+  ) ?? false;
+
+const REWARDS_HOME_ROUTES = [
+  Routes.REWARDS_DASHBOARD,
+  Routes.REWARDS_MONEY_DASHBOARD,
+] as const;
+
+const isRewardsHomeMounted = (): boolean => {
+  try {
+    const state = NavigationService.navigation.getRootState();
+    return REWARDS_HOME_ROUTES.some((routeName) =>
+      navigationStateContainsRoute(state, routeName),
+    );
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * RewardsHome reads the pending deeplink and pushes the sub-page itself.
+ * Also navigating to RewardsView from the root container pushes the fallback
+ * RewardsHome, and that navigate is deferred to the next frame — so it lands
+ * on top of the sub-page that was just opened.
+ */
+const shouldLeaveMountedDashboardInPlace = (rewardsPath: string): boolean => {
+  const { page, campaign } = parseRewardsNavigationParams(rewardsPath);
+  if (!page && !campaign) {
+    return false;
+  }
+  return isRewardsHomeMounted();
+};
+/**
  * Rewards deeplink handler with extensible parameter support
  *
- * @param params Object containing the rewards path
+ * @param rewardsPath - Rewards URL path with query parameters
  *
  * Supported URL formats:
  * - https://link.metamask.io/rewards
@@ -70,6 +118,7 @@ const parseRewardsNavigationParams = (
  * - https://link.metamask.io/rewards?page=benefits
  * - https://link.metamask.io/rewards?campaign=ondo
  * - https://link.metamask.io/rewards?campaign=season1
+ * - https://link.metamask.io/rewards?campaign=perps-comp
  * - https://link.metamask.io/rewards?campaign=predict-the-pitch
  * - https://link.metamask.io/rewards?campaign=money
  */
@@ -121,7 +170,12 @@ export const handleRewardsUrl = async ({
   Logger.log(`[handleRewardsUrl] Raw rewardsPath received: "${rewardsPath}"`);
 
   try {
-    await executeDeeplinkIntent(createRewardsDeeplinkIntent({ rewardsPath }));
+    const intent = createRewardsDeeplinkIntent({ rewardsPath });
+    if (shouldLeaveMountedDashboardInPlace(rewardsPath)) {
+      await intent.prepare?.();
+      return;
+    }
+    await executeDeeplinkIntent(intent);
   } catch (error) {
     DevLogger.log('Failed to handle rewards deeplink:', error);
     // Fallback to wallet home on error

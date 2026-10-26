@@ -82,6 +82,7 @@ import useRewardsVersionGuard from '../../UI/Rewards/hooks/useRewardsVersionGuar
 import { useCandidateSubscriptionId } from '../../UI/Rewards/hooks/useCandidateSubscriptionId';
 import { useRewardsTabPerformance } from '../../UI/Rewards/hooks/useRewardsTabPerformance';
 import { useRewardsMoneyTabRouting } from '../../UI/Rewards/hooks/useRewardsMoneyTabRouting';
+import { useRewardsPendingDeeplink } from '../../UI/Rewards/hooks/useRewardsPendingDeeplink';
 import { usePrefetchRewardsIdentity } from '../../UI/Rewards/hooks/usePrefetchRewardsIdentity';
 import {
   getRewardsTabContentState,
@@ -472,6 +473,14 @@ const RewardsHome = () => {
     moneyEnabled,
     moneyReferralResolved,
     moneyPersona,
+  });
+  // Both homes share this. A money persona never mounts RewardsDashboard, so a
+  // deeplink read only there would stay on the money home.
+  useRewardsPendingDeeplink({
+    enabled:
+      tabContent.status === 'ready' &&
+      (tabContent.variant === 'dashboard' ||
+        tabContent.variant === 'money_dashboard'),
   });
 
   if (
