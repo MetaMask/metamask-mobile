@@ -14,6 +14,8 @@ const DEVICE_HEALTH_ERROR_PATTERNS: readonly RegExp[] = [
   /Could not proxy command to the remote server/i,
   /device offline/i,
   /protocol fault/i,
+  // withCommandDeadline: a command that never settles is treated as a dead session.
+  /attempt deadline/i,
 ];
 
 let recreateRequested = false;

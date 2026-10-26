@@ -1,5 +1,9 @@
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import type { ServiceProvider } from '../../services';
+import {
+  DEFAULT_ATTEMPT_TIMEOUT_MS,
+  withCommandDeadline,
+} from '../../services/appium/commandDeadline.ts';
 import type { SharedAppiumSession } from './types.ts';
 
 const logger = createAppiumLogger('driver');
@@ -53,6 +57,21 @@ export function resolveLiveDriver(
   return sharedSession.drv ?? fixtureDrv;
 }
 
+/**
+ * Delete a WebDriver session, but stop waiting if the command itself is stuck
+ * on a dead UiAutomator2 process.
+ */
+export async function cleanupSessionWithinDeadline(
+  deviceProvider: ServiceProvider,
+  drv: WebdriverIO.Browser | undefined,
+  timeoutMs: number = DEFAULT_ATTEMPT_TIMEOUT_MS,
+): Promise<void> {
+  if (!drv || !deviceProvider.cleanupSession) {
+    return;
+  }
+  await withCommandDeadline(deviceProvider.cleanupSession(drv), timeoutMs);
+}
+
 export interface RecreateInProcessSessionOptions {
   currentDrv: WebdriverIO.Browser | undefined;
   deviceProvider: ServiceProvider;
@@ -70,6 +89,8 @@ export interface RecreateInProcessSessionOptions {
   /** Re-arm session-scoped state (screen recording) on the replacement session. */
   armNewSession?: (drv: WebdriverIO.Browser) => Promise<void>;
   configureWait?: ConfigureImplicitWait;
+  /** Cap for deleting the dying session. A dead UiAutomator command would otherwise sit for ~150s. */
+  cleanupDeadlineMs?: number;
 }
 
 /**
@@ -85,10 +106,14 @@ export async function recreateInProcessSession({
   flushDyingSession,
   armNewSession,
   configureWait = configureImplicitWait,
+  cleanupDeadlineMs = DEFAULT_ATTEMPT_TIMEOUT_MS,
 }: RecreateInProcessSessionOptions): Promise<WebdriverIO.Browser> {
   if (currentDrv && flushDyingSession) {
     try {
-      await flushDyingSession(currentDrv);
+      await withCommandDeadline(
+        flushDyingSession(currentDrv),
+        cleanupDeadlineMs,
+      );
     } catch (error) {
       logger.error(
         'Failed to flush session state before in-process recreate:',
@@ -97,9 +122,11 @@ export async function recreateInProcessSession({
     }
   }
   try {
-    if (currentDrv) {
-      await deviceProvider.cleanupSession?.(currentDrv);
-    }
+    await cleanupSessionWithinDeadline(
+      deviceProvider,
+      currentDrv,
+      cleanupDeadlineMs,
+    );
   } catch (error) {
     logger.error(
       'Failed to cleanup session before in-process recreate:',

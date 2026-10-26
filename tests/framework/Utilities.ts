@@ -6,6 +6,14 @@ import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
+import {
+  DEFAULT_ATTEMPT_TIMEOUT_MS,
+  withCommandDeadline,
+} from './services/appium/commandDeadline.ts';
+import {
+  isDeviceHealthError,
+  requestSharedSessionRecreate,
+} from './services/appium/sessionRecovery.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 import { Json } from '@metamask/utils';
@@ -441,6 +449,7 @@ export default class Utilities {
       maxRetries = Math.floor(timeout / interval),
       elemDescription = '',
       description,
+      attemptTimeout = DEFAULT_ATTEMPT_TIMEOUT_MS,
     } = options;
 
     let lastError: Error | undefined;
@@ -450,8 +459,16 @@ export default class Utilities {
     const action = description || operation.name;
 
     while (true) {
+      const remainingMs = timeout - (Date.now() - startTime);
+      const attemptDeadlineMs = Math.min(
+        attemptTimeout,
+        Math.max(remainingMs, 0),
+      );
       try {
-        const result = await operation();
+        const result = await withCommandDeadline(
+          operation(),
+          attemptDeadlineMs,
+        );
 
         if (attempt > 0) {
           const successMessage = [
@@ -472,6 +489,17 @@ export default class Utilities {
         const elapsedTime = Date.now() - startTime;
         const timeoutExceeded = elapsedTime >= timeout;
         const maxRetriesReached = attempt >= maxRetries;
+        // A hung or crashed UiAutomator command will not recover in this session.
+        // Ask the next Playwright attempt to create a new one, and stop retrying here.
+        const sessionDead = isDeviceHealthError(error);
+
+        if (sessionDead) {
+          requestSharedSessionRecreate();
+          logger.warn(
+            `${action} stopped after a dead WebDriver session (${lastError.message})`,
+          );
+          break;
+        }
 
         if (timeoutExceeded || maxRetriesReached) {
           break;

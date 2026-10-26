@@ -103,6 +103,29 @@ describe('recreateInProcessSession', () => {
     expect(order).toEqual(['flush:old', 'cleanup', 'adopt', 'arm:new']);
   });
 
+  it('creates a replacement session when cleanup does not settle', async () => {
+    const oldDrv = createDrv('old');
+    const newDrv = createDrv('new');
+    const deviceProvider = createProvider(newDrv);
+    deviceProvider.cleanupSession.mockImplementation(
+      () => new Promise(() => undefined),
+    );
+    const sharedSession: SharedAppiumSession = { drv: oldDrv };
+
+    const result = await recreateInProcessSession({
+      currentDrv: oldDrv,
+      deviceProvider,
+      sharedSession,
+      implicitMs: 1000,
+      adoptSession: () => undefined,
+      configureWait: jest.fn().mockResolvedValue(undefined),
+      cleanupDeadlineMs: 30,
+    });
+
+    expect(result).toBe(newDrv);
+    expect(sharedSession.drv).toBe(newDrv);
+  });
+
   it('recreates the session when the recording flush throws', async () => {
     const oldDrv = createDrv('old');
     const newDrv = createDrv('new');

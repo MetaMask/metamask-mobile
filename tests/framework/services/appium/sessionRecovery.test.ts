@@ -56,6 +56,14 @@ describe('isDeviceHealthError', () => {
     );
   });
 
+  it('returns true for a command that misses the attempt deadline', () => {
+    expect(
+      isDeviceHealthError(
+        new Error('WebDriver command exceeded the 15000ms attempt deadline'),
+      ),
+    ).toBe(true);
+  });
+
   it('returns false for ordinary assertion failures', () => {
     expect(
       isDeviceHealthError(

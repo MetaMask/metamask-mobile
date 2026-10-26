@@ -178,6 +178,10 @@ export const openPerpsHomeFromWallet = async (): Promise<void> => {
     {
       timeout: 60_000,
       interval: 1_000,
+      // One healthy pass scrolls both directions. Cap it well under the 150s
+      // Android command timeout so a stuck UiAutomator call cannot consume
+      // this whole budget as a single attempt.
+      attemptTimeout: 30_000,
       description: 'open Perps home from wallet',
       elemDescription: 'Perps home search control',
     },
@@ -235,7 +239,13 @@ export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
         },
       );
     },
-    { interval: 1000, timeout: 30000 },
+    {
+      interval: 1000,
+      timeout: 30000,
+      // The confirmation assert waits 15s. Leave room for that to fail as a
+      // normal retry instead of a session abandon.
+      attemptTimeout: 20_000,
+    },
   );
 };
 
