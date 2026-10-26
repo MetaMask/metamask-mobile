@@ -1,4 +1,5 @@
 import '../../../../../../tests/component-view/mocks';
+import { StyleSheet } from 'react-native';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Engine from '../../../../../core/Engine';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
@@ -39,10 +40,12 @@ const manualBankTransfer = {
   delay: [2880, 4320],
 };
 
+// Iron sends only the T&C and its `display_name` does not say "MoonPay";
+// the screen rewords the label client-side.
 const disclaimer = {
   id: 'd-1',
   url: 'https://moonpay.example/terms',
-  display_name: "MoonPay's Terms and Conditions",
+  display_name: 'Terms and Conditions',
 };
 
 describeForPlatforms('CreateVirtualBankAccount view', () => {
@@ -164,6 +167,18 @@ describeForPlatforms('CreateVirtualBankAccount view', () => {
       ),
     ).toBeOnTheScreen();
     expect(queryByText(/timeframe by region/)).toBeNull();
+  });
+
+  it('renders the vendor policy link without an underline', async () => {
+    const { findByTestId } = renderVbaVendorTerms();
+
+    const link = await findByTestId(
+      `${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`,
+    );
+
+    expect(StyleSheet.flatten(link.props.style)?.textDecorationLine).not.toBe(
+      'underline',
+    );
   });
 
   it('accepts vendor terms and advances to email', async () => {

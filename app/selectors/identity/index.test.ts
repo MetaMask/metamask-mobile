@@ -5,6 +5,7 @@ import {
   selectIsContactSyncingEnabled,
   selectIsSignedIn,
   selectCanonicalProfileId,
+  selectSessionProfileId,
   selectNeedsProfilePairing,
   selectNeedsSocialPairing,
   selectEnrolledCredentials,
@@ -103,6 +104,7 @@ describe('Notification Selectors', () => {
     expect(selectCanonicalProfileId(stateWithSession)).toBe(
       'canonicalProfileId',
     );
+    expect(selectSessionProfileId(stateWithSession)).toBe('profileId');
   });
 
   it('selectCanonicalProfileId returns the primary SRP session when a stale first entry remains', () => {
@@ -113,10 +115,16 @@ describe('Notification Selectors', () => {
             isSignedIn: true,
             srpSessionData: {
               'srp-1-entropy': {
-                profile: { canonicalProfileId: 'canonical-srp-1' },
+                profile: {
+                  profileId: 'profile-srp-1',
+                  canonicalProfileId: 'canonical-srp-1',
+                },
               },
               'srp-2-entropy': {
-                profile: { canonicalProfileId: 'canonical-srp-2' },
+                profile: {
+                  profileId: 'profile-srp-2',
+                  canonicalProfileId: 'canonical-srp-2',
+                },
               },
             },
           },
@@ -131,10 +139,37 @@ describe('Notification Selectors', () => {
     expect(selectCanonicalProfileId(stateWithStaleFirstEntry)).toBe(
       'canonical-srp-2',
     );
+    expect(selectSessionProfileId(stateWithStaleFirstEntry)).toBe(
+      'profile-srp-2',
+    );
   });
 
   it('selectCanonicalProfileId returns undefined when there is no session profile', () => {
     expect(selectCanonicalProfileId(mockState)).toBeUndefined();
+    expect(selectSessionProfileId(mockState)).toBeUndefined();
+  });
+
+  it('selectSessionProfileId does not fall back to the canonical id', () => {
+    const stateWithCanonicalOnly = {
+      engine: {
+        backgroundState: {
+          AuthenticationController: {
+            isSignedIn: true,
+            srpSessionData: {
+              entropySourceId1: {
+                profile: { canonicalProfileId: 'canonicalProfileId' },
+              },
+            },
+          },
+          KeyringController: {
+            isUnlocked: true,
+            keyrings: [hdKeyring('entropySourceId1')],
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(selectSessionProfileId(stateWithCanonicalOnly)).toBeUndefined();
   });
 
   describe('selectProfileEntropySourceIds', () => {

@@ -19,31 +19,25 @@ export const LOW_LIQUIDITY_TO_MARKET_CAP_RATIO = 0.05;
 /**
  * Liquidity as a share of market cap, or `null` when the inputs cannot produce
  * a meaningful ratio.
- *
- * Both figures are USD. Liquidity is the summed value of the token's pools —
- * the full pool, counting both sides, which is the convention the published
- * bands are stated in. Market cap is price times circulating supply, so a token
- * whose circulating supply is unknown yields `null` here rather than a ratio
- * computed against a total-supply valuation it cannot be compared to.
  */
 export const getLiquidityToMarketCapRatio = (
-  liquidityUsd: number | null | undefined,
-  marketCapUsd: number | null | undefined,
+  liquidity: number | null | undefined,
+  marketCap: number | null | undefined,
 ): number | null => {
-  if (liquidityUsd == null || marketCapUsd == null) {
+  if (liquidity == null || marketCap == null) {
     return null;
   }
 
-  if (!Number.isFinite(liquidityUsd) || !Number.isFinite(marketCapUsd)) {
+  if (!Number.isFinite(liquidity) || !Number.isFinite(marketCap)) {
     return null;
   }
 
   // A zero or negative valuation makes the ratio meaningless rather than large.
-  if (marketCapUsd <= 0 || liquidityUsd < 0) {
+  if (marketCap <= 0 || liquidity < 0) {
     return null;
   }
 
-  return liquidityUsd / marketCapUsd;
+  return liquidity / marketCap;
 };
 
 /**

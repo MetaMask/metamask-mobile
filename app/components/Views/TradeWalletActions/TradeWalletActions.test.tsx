@@ -745,6 +745,8 @@ describe('TradeWalletActions', () => {
       const blurStyle = StyleSheet.flatten(blurProps.style);
       expect(blurStyle).toMatchObject({
         borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
+        borderCurve: 'continuous',
       });
       expect(blurStyle.borderColor).toMatch(
         new RegExp(`^rgba\\(.*, ${TRADE_FOCUSED_BORDER_OPACITY}\\)$`),
@@ -812,7 +814,7 @@ describe('TradeWalletActions', () => {
       mockIsTradeFocusedArm = false;
     });
 
-    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline', () => {
+    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline on continuous corners', () => {
       mockUseParams.mockReturnValue(nativeTrayParams);
 
       const { getByTestId } = renderScreen(
@@ -833,17 +835,30 @@ describe('TradeWalletActions', () => {
       const [glassProps] = mockGlassView.mock.calls[0];
       expect(StyleSheet.flatten(glassProps.style)).toMatchObject({
         borderRadius: TRADE_TRAY_GLASS_RADIUS,
+        borderCurve: 'continuous',
+      });
+      // The hairline must clip, or React Native draws its border with circular arcs.
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_GLASS_BORDER),
+      ).toHaveStyle({
+        borderWidth: StyleSheet.hairlineWidth,
+        borderCurve: 'continuous',
+        overflow: 'hidden',
       });
       const fill = jest
         .mocked(
           getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
         )
-        .children.find(
-          (child) =>
-            typeof child !== 'string' &&
-            StyleSheet.flatten(child.props.style)?.opacity ===
-              TRADE_TRAY_GLASS_FILL_OPACITY,
-        );
+        .children.find((child) => {
+          if (typeof child === 'string') {
+            return false;
+          }
+          const style = StyleSheet.flatten(child.props.style);
+          return (
+            style?.opacity === TRADE_TRAY_GLASS_FILL_OPACITY &&
+            style?.borderCurve === 'continuous'
+          );
+        });
       expect(fill).toBeDefined();
     });
 
@@ -877,23 +892,41 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
       ).toBeOnTheScreen();
-    });
-
-    it('falls back to the opaque sheet when glass is unavailable', () => {
-      mockIsGlassEnabled = false;
-      mockUseParams.mockReturnValue(nativeTrayParams);
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      expect(mockGlassView).not.toHaveBeenCalled();
+      // The notch's SVG bottom edge is cut to the sheet's original corners.
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
-      ).toBeOnTheScreen();
+      ).not.toHaveStyle({ borderRadius: TRADE_TRAY_GLASS_RADIUS });
     });
+
+    const fallbackPlatforms: (typeof Platform.OS)[] = ['ios', 'android'];
+
+    it.each(fallbackPlatforms)(
+      'falls back to the opaque sheet on the tray corners on %s when glass is unavailable',
+      (os) => {
+        const originalOS = Platform.OS;
+        Platform.OS = os;
+        mockIsGlassEnabled = false;
+        mockUseParams.mockReturnValue(nativeTrayParams);
+
+        try {
+          const { getByTestId } = renderScreen(
+            TradeWalletActions,
+            { name: 'TradeWalletActions' },
+            { state: mockInitialState },
+          );
+
+          expect(mockGlassView).not.toHaveBeenCalled();
+          expect(
+            getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+          ).toHaveStyle({
+            borderRadius: TRADE_TRAY_GLASS_RADIUS,
+            overflow: 'hidden',
+          });
+        } finally {
+          Platform.OS = originalOS;
+        }
+      },
+    );
   });
 
   describe('glass morph menu', () => {
@@ -962,6 +995,8 @@ describe('TradeWalletActions', () => {
         width: morphParams.buttonLayout.width,
         height: morphParams.buttonLayout.height,
         borderRadius: morphParams.buttonLayout.height / 2,
+        // The clip and hairline follow the glass's continuous corners.
+        borderCurve: 'continuous',
       });
     });
 

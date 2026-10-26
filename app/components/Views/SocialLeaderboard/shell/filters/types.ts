@@ -8,7 +8,7 @@ export type SocialFilterType = 'all' | 'tokens' | 'perps' | 'predictions';
 
 /**
  * Trader cohort filter. `following` is tab-specific; `verified` is a
- * Leaderboard Traders chip (Following / Live trades use `verification`).
+ * Leaderboard Traders chip (Following / Live use `verification`).
  */
 export type SocialTraderCohort =
   | 'all'

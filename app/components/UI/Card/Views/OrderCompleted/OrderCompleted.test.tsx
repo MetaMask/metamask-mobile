@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import OrderCompleted from './OrderCompleted';
 import { OrderCompletedSelectors } from './OrderCompleted.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -9,6 +10,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockGoBack = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn();
 const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
@@ -23,13 +25,8 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       dispatch: mockDispatch,
+      goBack: mockGoBack,
     }),
-    StackActions: {
-      replace: jest.fn((routeName, params) => ({
-        type: 'REPLACE',
-        payload: { name: routeName, params },
-      })),
-    },
   };
 });
 
@@ -48,83 +45,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'card.order_completed.title': 'YOUR CARD\nIS ORDERED',
-      'card.order_completed.subtitle': 'It should arrive in 4 to 6 weeks.',
-      'card.order_completed.description':
-        'Set up your virtual card and add it to your digital wallet to start earning cashback.',
-      'card.order_completed.set_up_card_button': 'Set up card',
-      'card.order_completed.back_to_card_button': 'Back to card',
-    };
-    return map[key] || key;
-  },
-}));
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn((...args) =>
-      args.reduce(
-        (acc, arg) => ({ ...acc, ...(typeof arg === 'object' ? arg : {}) }),
-        {},
-      ),
-    ),
-  }),
-}));
-
-jest.mock('@metamask/design-system-react-native', () => {
-  // eslint-disable-next-line @typescript-eslint/no-shadow
-  const React = jest.requireActual('react');
-  const { View, Text: RNText } = jest.requireActual('react-native');
-
-  const { TouchableOpacity } = jest.requireActual('react-native');
-
-  return {
-    HeaderStandard: () => null,
-    Box: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(View, props, children),
-    Text: ({
-      children,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(RNText, props, children),
-    Button: ({
-      children,
-      onPress,
-      label,
-      isDisabled,
-      disabled,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) =>
-      React.createElement(
-        TouchableOpacity,
-        { onPress, disabled: disabled || isDisabled, ...props },
-        React.createElement(RNText, {}, children || label),
-      ),
-    TextVariant: {
-      HeadingLg: 'HeadingLg',
-      BodyMd: 'BodyMd',
-    },
-    FontWeight: {
-      Regular: 'Regular',
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
-  };
-});
-
 describe('OrderCompleted', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -132,22 +52,11 @@ describe('OrderCompleted', () => {
   });
 
   describe('Render', () => {
-    it('renders all required UI elements', () => {
+    it('renders the ordered-card content and actions', () => {
       const { getByTestId } = render(<OrderCompleted />);
 
-      expect(getByTestId(OrderCompletedSelectors.CONTAINER)).toBeTruthy();
-      expect(getByTestId(OrderCompletedSelectors.CARD_IMAGE)).toBeTruthy();
-      expect(getByTestId(OrderCompletedSelectors.TITLE)).toBeTruthy();
-      expect(getByTestId(OrderCompletedSelectors.SUBTITLE)).toBeTruthy();
-      expect(getByTestId(OrderCompletedSelectors.DESCRIPTION)).toBeTruthy();
-      expect(
-        getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON),
-      ).toBeTruthy();
-    });
-
-    it('displays correct text content', () => {
-      const { getByTestId } = render(<OrderCompleted />);
-
+      expect(getByTestId(OrderCompletedSelectors.CONTAINER)).toBeOnTheScreen();
+      expect(getByTestId(OrderCompletedSelectors.CARD_IMAGE)).toBeOnTheScreen();
       expect(getByTestId(OrderCompletedSelectors.TITLE)).toHaveTextContent(
         strings('card.order_completed.title'),
       );
@@ -157,6 +66,12 @@ describe('OrderCompleted', () => {
       expect(
         getByTestId(OrderCompletedSelectors.DESCRIPTION),
       ).toHaveTextContent(strings('card.order_completed.description'));
+      expect(
+        getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON),
+      ).toHaveTextContent(strings('card.order_completed.set_up_card_button'));
+      expect(
+        getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.not_now_button'));
     });
   });
 
@@ -193,18 +108,14 @@ describe('OrderCompleted', () => {
 
   describe('Navigation', () => {
     it('navigates to SpendingLimit via StackActions.replace during onboarding flow', () => {
-      mockFromUpgrade = false;
-      const { StackActions } = jest.requireMock('@react-navigation/native');
       const { getByTestId } = render(<OrderCompleted />);
 
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
-      expect(StackActions.replace).toHaveBeenCalledWith(
-        Routes.CARD.SPENDING_LIMIT,
-        { flow: 'onboarding' },
-      );
       expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'REPLACE' }),
+        StackActions.replace(Routes.CARD.SPENDING_LIMIT, {
+          flow: 'onboarding',
+        }),
       );
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -215,7 +126,20 @@ describe('OrderCompleted', () => {
 
       fireEvent.press(getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON));
 
+      expect(
+        getByTestId(OrderCompletedSelectors.SET_UP_CARD_BUTTON),
+      ).toHaveTextContent(strings('card.order_completed.back_to_card_button'));
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.HOME);
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('goes back when Not now is pressed', () => {
+      const { getByTestId } = render(<OrderCompleted />);
+
+      fireEvent.press(getByTestId(OrderCompletedSelectors.NOT_NOW_BUTTON));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
       expect(mockDispatch).not.toHaveBeenCalled();
     });
   });

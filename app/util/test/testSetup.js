@@ -806,6 +806,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   getItemSync: jest.fn(),
   removeItem: jest.fn(),
   setItem: jest.fn(),
+  onKeyChange: jest.fn(() => jest.fn()),
 }));
 
 // eslint-disable-next-line import/no-commonjs

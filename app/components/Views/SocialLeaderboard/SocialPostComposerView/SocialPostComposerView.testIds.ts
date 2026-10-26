@@ -10,4 +10,5 @@ export const SocialPostComposerViewSelectorsIDs = {
   REMOVE_POSITION: 'social-post-composer-remove-position',
   REMOVE_GIF: 'social-post-composer-remove-gif',
   GIF_PREVIEW: 'social-post-composer-gif-preview',
+  HIDE_KEYBOARD: 'social-post-composer-hide-keyboard',
 } as const;

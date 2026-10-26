@@ -24,6 +24,8 @@ const ENV_KEYS = [
   'TESTMU_APPIUM_VERSION',
   'TESTMU_CONNECTION_RETRY_TIMEOUT_MS',
   'TESTMU_DEVICE_EXACT',
+  'TESTMU_PROJECT_NAME',
+  'TESTMU_BUILD_NAME',
 ] as const;
 
 interface ProjectOverrides {
@@ -116,6 +118,21 @@ describe('TestMuAIConfigBuilder', () => {
       const config = buildConfig();
 
       expect(ltOptions(config).network).toBe(expected);
+    });
+  });
+
+  describe('dashboard grouping', () => {
+    it('uses explicit TestMu project and build names when configured', () => {
+      env.TESTMU_PROJECT_NAME = 'MetaMask Mobile Scheduled Performance';
+      env.TESTMU_BUILD_NAME =
+        'TestMu-Android-Performance-main-Scheduled-HyperExecute';
+
+      const options = ltOptions(buildConfig());
+
+      expect(options.project).toBe('MetaMask Mobile Scheduled Performance');
+      expect(options.build).toBe(
+        'TestMu-Android-Performance-main-Scheduled-HyperExecute',
+      );
     });
   });
 

@@ -861,6 +861,7 @@ export function renderPerpsMarketDetailsView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     extraRoutes?: PerpsExtraRoute[];
+    socialEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -868,11 +869,12 @@ export function renderPerpsMarketDetailsView(
     initialParams = { market: defaultMarketDetailsMarket },
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
     extraRoutes,
+    socialEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides, extraRoutes },
+    { overrides, initialParams, streamOverrides, extraRoutes, socialEnabled },
   );
 }
 
