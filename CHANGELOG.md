@@ -244,6 +244,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed the limit order keypad covering the custom percent field and removed the 99% cap (#37225)
 - Fixed the app update prompt sometimes not appearing after unlocking the wallet (#37090)
 - Fixed the add-to-wallet option appearing after a card was already added (#36678)
+- Fixed incorrect fiat conversion rates shown for tokens in the send flow (#38200)
 
 ### Security
 
@@ -253,6 +254,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a Security tab to token details with contract checks, holder distribution, liquidity, trading, origin, and detected contract risks (#37410)
 - Improved Predict order retries by requiring a fresh quote and confirmation before submission (#37592)
 - Fixed malicious and suspicious token warnings not appearing in Swaps when destination tokens were opened from deeplinks, Watchlist, Token Details, and other entry points (#37554)
+
+## [8.17.1]
+
+### Fixed
+
+- Fixed incorrect fiat conversion rates shown for tokens in the send flow (#38200)
 
 ## [8.17.0]
 
@@ -14859,7 +14866,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.18.0...HEAD
-[8.18.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.0...v8.18.0
+[8.18.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.1...v8.18.0
+[8.17.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.17.0...v8.17.1
 [8.17.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.1...v8.17.0
 [8.16.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.16.0...v8.16.1
 [8.16.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.15.1...v8.16.0
