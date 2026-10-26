@@ -22,11 +22,10 @@
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
 #   only sees Evidence JSON from this job; it does not classify. That proposal
 #   stays in the artifact (`slack.md`); this workflow does not post it.
-#   Each finding on `main` also opens a GitHub issue (bug-report template,
-#   `team-*` label of the owning scenario) with that scenario's Hermes
-#   `.cpuprofile` attached. A finding whose issue is still open is added to
-#   it as a comment, with the new capture attached, instead of being opened
-#   again. Several scenarios crossing in one run each open their own issue.
+#   Findings are not filed as GitHub issues until that is turned back on.
+#   A scheduled run still compares the profile with the recent median and
+#   writes the digest. The Monday report can still list issues that were
+#   already opened; it does not open or comment on any.
 # - After a *manually dispatched* performance run: full digest in the Actions
 #   summary and the analysis artifact.
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
@@ -154,8 +153,9 @@ jobs:
       contents: read
       actions: read
       pull-requests: read
-      # Scheduled findings open or comment on tracking issues.
-      issues: write
+      # Read-only. Issue filing is paused; the Monday report only lists
+      # issues that already exist.
+      issues: read
     if: >-
       inputs.performance_run_id == '' ||
       (inputs.performance_result == 'success' &&
@@ -207,10 +207,8 @@ jobs:
           SKIP_AI: ${{ inputs.skip_ai }}
           WEEKLY: ${{ inputs.performance_run_id == '' && (github.event_name == 'schedule' || inputs.weekly == true) }}
           SCHEDULED_EXCEPTION: ${{ inputs.performance_event == 'schedule' }}
-          # Issues are opened only for scheduled runs of `main`; a chained
-          # branch run must not file bugs against the repository. The Monday
-          # report only reads issues, so it always lists them.
-          SCHEDULED_EXCEPTION_BRANCH: ${{ github.ref_name }}
+          # Issue filing is paused. --github-issues on the weekly path only
+          # lists issues already opened; it does not create or comment.
           MAX_RUNS_PER_WEEK: ${{ inputs.max_runs_per_week }}
           MAX_ANALYSIS_MINUTES: ${{ inputs.max_analysis_minutes }}
         run: |
@@ -235,9 +233,6 @@ jobs:
             ARGS+=(--run "${RUN_ID}")
             if [ "${SCHEDULED_EXCEPTION}" = "true" ]; then
               ARGS+=(--scheduled-exception)
-              if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then
-                ARGS+=(--github-issues)
-              fi
             fi
           fi
           if [ -n "${SCENARIO}" ] && [ "${WEEKLY}" != "true" ]; then

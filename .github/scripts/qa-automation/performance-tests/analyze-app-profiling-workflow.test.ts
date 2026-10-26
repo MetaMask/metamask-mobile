@@ -251,14 +251,17 @@ describe('Analyze App Profiling triggers', () => {
     expect(workflow.permissions).toStrictEqual({});
   });
 
-  it('grants issues: write only to the analyze job', () => {
+  it('does not grant issues: write while filing is paused', () => {
     const workflow = loadWorkflow();
 
     const writers = Object.entries(workflow.jobs)
       .filter(([, job]) => job.permissions?.issues === 'write')
       .map(([name]) => name);
 
-    expect(writers).toStrictEqual(['analyze']);
+    expect(workflow.jobs.analyze.permissions).toMatchObject({
+      issues: 'read',
+    });
+    expect(writers).toStrictEqual([]);
     expect(workflow.jobs['upload-scenario-profiles'].permissions).toStrictEqual(
       {},
     );
@@ -268,7 +271,7 @@ describe('Analyze App Profiling triggers', () => {
     });
   });
 
-  it('opens tracking issues only for scheduled main runs and lists them on Monday', () => {
+  it('does not open or comment on GitHub issues', () => {
     const workflow = loadWorkflow();
     const analysisStep = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Analyze app profiling',
@@ -276,25 +279,17 @@ describe('Analyze App Profiling triggers', () => {
     const command = analysisStep?.run ?? '';
 
     expect(workflow.jobs.analyze.permissions).toMatchObject({
-      issues: 'write',
+      issues: 'read',
     });
-    // A chained run executes on the performance run's ref.
-    expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBe(
-      '${{ github.ref_name }}',
-    );
-    // A chained branch run must never file bugs against the repository.
-    expect(command).toContain(
-      'if [ "${SCHEDULED_EXCEPTION_BRANCH}" = "main" ]; then',
-    );
-    expect(command).toContain('ARGS+=(--github-issues)');
+    expect(analysisStep?.env?.SCHEDULED_EXCEPTION_BRANCH).toBeUndefined();
+    expect(command).not.toContain('SCHEDULED_EXCEPTION_BRANCH');
+    expect(command).not.toContain('ARGS+=(--github-issues)');
+    // Monday still lists issues that were already opened. That flag does not
+    // create or comment.
     expect(command).toContain(
       'ARGS+=(--weekly --skip-ai --skip-scenario-artifacts --github-issues)',
     );
-    // The lookback and single-run manual paths must not create issues.
-    const manualBranch = command.slice(command.indexOf('elif [ -n "${LOOKBACK_HOURS}" ]'));
-    expect(manualBranch.indexOf('--github-issues')).toBeGreaterThan(
-      manualBranch.indexOf('ARGS+=(--scheduled-exception)'),
-    );
+    expect(command).toContain('ARGS+=(--scheduled-exception)');
 
     const upload = workflow.jobs.analyze.steps.find(
       (step) => step.name === 'Upload analysis artifact',
@@ -475,7 +470,7 @@ describe('Run Performance E2E Tests Manually calls the analysis', () => {
       contents: 'read',
       actions: 'read',
       'pull-requests': 'read',
-      issues: 'write',
+      issues: 'read',
     });
   });
 });
