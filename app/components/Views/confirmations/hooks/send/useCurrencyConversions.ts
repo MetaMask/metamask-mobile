@@ -84,15 +84,20 @@ export const useCurrencyConversions = () => {
   const currentCurrency = useSelector(selectCurrentCurrency);
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
 
-  // Price of one unit of the asset in the user's selected currency, sourced
-  // from `AssetsController` via `selectConfirmationAssetsByAccountGroupId`.
+  // Price of one unit of the asset in the user's selected currency.
   //
-  // This is the complete token -> fiat rate. It must not be combined with the
-  // `TokenRatesController` exchange rate, which prices the token in the chain's
-  // native coin: multiplying the two counted the token price twice and left an
-  // uncancelled token/native term, so ERC-20 values collapsed toward zero on
-  // chains with an expensive native coin and inflated on chains with a cheap
-  // one. Native coins were unaffected because their exchange rate is 1.
+  // Every asset reaching the send context carries a complete token -> fiat
+  // rate, from either source: the in-flow picker supplies it directly via
+  // `selectConfirmationAssetsByAccountGroupId`, and `useRouteParams`
+  // normalises the upstream `selectAssetsBySelectedAccountGroup` shape, which
+  // stores only the native -> fiat rate, into the same unit.
+  //
+  // It must therefore not be combined with the `TokenRatesController` exchange
+  // rate, which prices the token in the chain's native coin. Multiplying the
+  // two counts the token price twice and leaves an uncancelled token/native
+  // term, so ERC-20 values collapse toward zero on chains with an expensive
+  // native coin and inflate on chains with a cheap one. Native coins are
+  // unaffected because their exchange rate is 1.
   const conversionRate = useMemo(() => {
     const assetAddress = asset?.address ?? (asset as AssetType)?.assetId;
     if (!assetAddress) {
