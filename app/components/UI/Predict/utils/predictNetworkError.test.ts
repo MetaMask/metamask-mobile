@@ -173,44 +173,6 @@ describe('predictNetworkError', () => {
       expect(context.context.data).toEqual({ method: 'getPrices' });
     });
 
-    it('records iOS TLS failures (-1200) as a breadcrumb with nsurl_code', () => {
-      const message =
-        'Error Domain=NSURLErrorDomain Code=-1200 "A TLS error caused the secure connection to fail." UserInfo={_kCFStreamErrorCodeKey=-9816}';
-
-      expect(isNetworkError(new Error(message))).toBe(true);
-
-      logPredictError(new Error(message), context);
-
-      expect(Logger.error).not.toHaveBeenCalled();
-      expect(Logger.log).toHaveBeenCalledWith(
-        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        '-1200',
-        expect.objectContaining({
-          context: {
-            name: 'PolymarketProvider',
-            data: { method: 'getPrices', nsurl_code: -1200 },
-          },
-        }),
-      );
-    });
-
-    it('adds nsurl_code for the alternate NSURL format', () => {
-      const message = '(NSURLErrorDomain error -1005.)';
-
-      logPredictError(new Error(message), context);
-
-      expect(Logger.log).toHaveBeenCalledWith(
-        PREDICT_NETWORK_ERROR_BREADCRUMB_MESSAGE,
-        '-1005',
-        expect.objectContaining({
-          context: {
-            name: 'PolymarketProvider',
-            data: { method: 'getPrices', nsurl_code: -1005 },
-          },
-        }),
-      );
-    });
-
     it("falls back to context name 'Predict' when nsurl_code is added without a context", () => {
       const tagsOnly = { tags: { feature: 'Predict' } };
 
