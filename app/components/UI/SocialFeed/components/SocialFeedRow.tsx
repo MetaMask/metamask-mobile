@@ -100,10 +100,10 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
         />
-        {dividerTestID ? (
-          <SectionDivider marginVertical={1} testID={dividerTestID} />
-        ) : null}
       </Box>
+      {dividerTestID ? (
+        <SectionDivider marginVertical={1} testID={dividerTestID} />
+      ) : null}
     </FeedItemEntryAnimation>
   );
 };
