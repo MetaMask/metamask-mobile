@@ -6,7 +6,10 @@ import {
   parseBlockedCountriesEnv,
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
-import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
+import {
+  isMoneyAccountEnabled,
+  isMoneyMfaEnabled,
+} from '../../../../lib/Money/feature-flags';
 import {
   MUSD_TOKEN_ADDRESS,
   getTokenDisplaySymbol,
@@ -27,7 +30,6 @@ import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmatio
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
 import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
-
 /**
  * Selects whether the Money activity detail view is enabled.
  * When off, clicking on an activity list item does nothing instead of opening
@@ -105,9 +107,43 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
   },
 );
 
+/** Dedicated opt-in gate for pending VBA activity from NeoBankService. */
+export const selectMoneyVbaPendingActivityEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaPendingActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/** Dedicated opt-in gate for completed VBA activity from Money Account API. */
+export const selectMoneyVbaCompletedActivityEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyVbaCompletedActivityEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag =
+      process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
+);
+
+/**
+ * Selects whether Money MFA (MPC-backed 2FA) is enabled. Independent of
+ * `moneyEnableMoneyAccount` so MFA can be rolled out or killed without
+ * disabling the rest of Money. Remote flag: `isMoneyMfaEnabled`.
+ */
+export const selectMoneyEnableMfaFlag = createSelector(
+  selectRemoteFeatureFlags,
+  isMoneyMfaEnabled,
 );
 
 /**
@@ -213,6 +249,19 @@ export const selectMoneyEarningSectionEnabledFlag = createSelector(
       remoteFeatureFlags?.earnMoneyEarningSectionEnabled as unknown as VersionGatedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the Money deposit Braze campaign can emit its trigger event.
+ */
+export const selectIsMoneyDepositBrazeCampaignEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnMoneyDepositBrazeCampaignEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
 

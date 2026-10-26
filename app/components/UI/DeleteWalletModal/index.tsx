@@ -27,7 +27,6 @@ import {
   ButtonSize,
   ButtonsAlignment,
   FontWeight,
-  HeaderStandard,
   IconAlertSeverity,
   IconName,
   ListItem,
@@ -216,30 +215,9 @@ const DeleteWalletModal: React.FC = () => {
         </>
       ) : (
         <>
-          <HeaderStandard
-            onBack={
-              !isResetWalletFromParams
-                ? () => setIsResetWallet(false)
-                : undefined
-            }
-            onClose={triggerClose}
-            backButtonProps={
-              !isResetWalletFromParams
-                ? {
-                    testID: ForgotPasswordModalSelectorsIDs.BACK_BUTTON,
-                    isDisabled: isDeletingWallet,
-                  }
-                : undefined
-            }
-            closeButtonProps={{
-              testID: ForgotPasswordModalSelectorsIDs.CLOSE_BUTTON,
-              isDisabled: isDeletingWallet,
-            }}
-          />
           <Box
             testID={ForgotPasswordModalSelectorsIDs.CONTAINER}
             paddingHorizontal={4}
-            gap={4}
           >
             <TitleAlert
               severity={IconAlertSeverity.Danger}
@@ -247,36 +225,39 @@ const DeleteWalletModal: React.FC = () => {
               titleProps={{
                 testID: ForgotPasswordModalSelectorsIDs.WARNING_TEXT,
               }}
+              twClassName="pt-6"
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('login.reset_wallet_desc')}{' '}
+            <Box marginTop={6} gap={4}>
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
+                color={TextColor.TextAlternative}
               >
-                {strings('login.reset_wallet_desc_bold')}
-              </Text>{' '}
-              {strings('login.reset_wallet_desc_2')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('login.reset_wallet_desc_srp_1')}{' '}
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-              >
-                {strings('login.reset_wallet_desc_srp_bold')}
+                {strings('login.reset_wallet_desc')}{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('login.reset_wallet_desc_bold')}
+                </Text>{' '}
+                {strings('login.reset_wallet_desc_2')}
               </Text>
-              {'. '}
-              {strings('login.reset_wallet_desc_srp_2')}
-            </Text>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {strings('login.reset_wallet_desc_srp_1')}{' '}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
+                  fontWeight={FontWeight.Bold}
+                >
+                  {strings('login.reset_wallet_desc_srp_bold')}
+                </Text>
+                {'. '}
+                {strings('login.reset_wallet_desc_srp_2')}
+              </Text>
+            </Box>
           </Box>
           <BottomSheetFooter
             buttonsAlignment={ButtonsAlignment.Vertical}
@@ -298,7 +279,7 @@ const DeleteWalletModal: React.FC = () => {
               testID: ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON,
               twClassName: 'mt-4',
             }}
-            twClassName="pt-4 flex-col-reverse"
+            twClassName="pt-5 flex-col-reverse"
           />
         </>
       )}

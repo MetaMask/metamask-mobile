@@ -284,7 +284,7 @@ const MoreTokenActionsMenu = () => {
       actions.push({
         type: 'view-explorer',
         label: strings('asset_details.options.view_on_block'),
-        iconName: IconName.Export,
+        iconName: IconName.ArrowSquareOut,
         testID: 'more-actions-view-explorer',
         isVisible: true,
         onPress: handleViewOnBlockExplorer,

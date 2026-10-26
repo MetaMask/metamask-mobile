@@ -442,8 +442,15 @@ class TestSnaps {
   }
 
   async tapConfirmButton() {
-    const button = Matchers.getElementByText(/^Confirm$/i);
-    await Gestures.waitAndTap(button);
+    // Snap UI footer buttons include the snap icon. iOS concatenates that
+    // into the button label ("D, Confirm" for Dialog Example Snap) and leaves
+    // the inner "Confirm" text visible=false. Match the button, and skip the
+    // displayed check the same way OK / Submit do.
+    const button = Matchers.getElementByText(/^(., )?Confirm$/i);
+    await Gestures.waitAndTap(
+      button,
+      this.snapUiTapOptions({ elemDescription: 'Snap UI Confirm' }),
+    );
   }
 
   async tapCancelButton() {
@@ -570,7 +577,22 @@ class TestSnaps {
       iosAppiumXPath: SnapUIInputSelectorXPaths.textfieldIos,
     });
 
-    await Gestures.typeText(input, text, { hideKeyboard: true });
+    // iOS tapOutside on this sheet hits the approval backdrop
+    // (onBackdropPress cancels the dialog) or leaves the keyboard over the
+    // absolute footer, so Confirm stays displayed=false.
+    await Gestures.typeText(input, text, {
+      hideKeyboard: !PlatformDetector.isIOSAppium(),
+    });
+    if (PlatformDetector.isIOSAppium()) {
+      // Heading often reports displayed=false while the keyboard is up — same
+      // Snap UI visible=false path as OK / Confirm (snapUiTapOptions).
+      await Gestures.tap(
+        Matchers.getElementByText(/^Custom Dialog$/i),
+        this.snapUiTapOptions({
+          elemDescription: 'Custom Dialog heading — dismiss keyboard',
+        }),
+      );
+    }
   }
 
   async selectInNativeDropdown(
@@ -748,34 +770,28 @@ class TestSnaps {
   ): Promise<void> {
     await this.tapButton(buttonLocator);
 
-    // Wait explicitly between steps; Snap install sheets are slower on Android CI.
+    // The next sheet appearing is the signal that this step finished. A second
+    // 60s wait for the previous control to leave the accessibility tree is what
+    // stretched Snap connect toward the suite timeout.
     const stepTimeout = PlatformDetector.isAndroidAppium() ? 60_000 : 15_000;
-    const waitForSheetTransition = async (
-      elem: Promise<AppiumElement>,
-    ): Promise<void> => {
-      await Utilities.waitForElementToDisappear(elem, stepTimeout);
-    };
+    const finalSheetTimeout = 10_000;
 
     await Gestures.waitAndTap(this.getConnectSnapButton, {
       elemDescription: 'Connect Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapButton);
-
     await Gestures.waitAndTap(this.getApproveSnapPermissionsRequestButton, {
       elemDescription: 'Approve permission for Snap button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getApproveSnapPermissionsRequestButton);
-
     await Gestures.waitAndTap(this.getConnectSnapInstallOkButton, {
       elemDescription: 'OK button',
       timeout: stepTimeout,
-      waitForElementToDisappear: true,
     });
-    await waitForSheetTransition(this.getConnectSnapInstallOkButton);
+    await Utilities.waitForElementToDisappear(
+      this.getConnectSnapInstallOkButton,
+      finalSheetTimeout,
+    );
   }
 
   async fillMessage(

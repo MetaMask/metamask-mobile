@@ -1,4 +1,5 @@
 import type { CaipChainId } from '@metamask/utils';
+import type { SocialAssetClass } from '../types';
 
 /**
  * CAIP-2 chain ids requested on every Trader Feed fetch. Matches the feed
@@ -14,3 +15,19 @@ export const FEED_CAIP2_CHAINS: readonly CaipChainId[] = [
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', // solana mainnet
   'eip155:999', // hyperliquid
 ];
+
+const HYPERLIQUID_CAIP2: CaipChainId = 'eip155:999';
+
+/**
+ * Chains the global feed requests per asset class. `all` must stay the exact
+ * `FEED_CAIP2_CHAINS` array: it is part of the query key V0's trader feed
+ * shares.
+ */
+export const FEED_CAIP2_CHAINS_BY_ASSET_CLASS: Record<
+  SocialAssetClass,
+  readonly CaipChainId[]
+> = {
+  all: FEED_CAIP2_CHAINS,
+  tokens: FEED_CAIP2_CHAINS.filter((chain) => chain !== HYPERLIQUID_CAIP2),
+  perps: [HYPERLIQUID_CAIP2],
+};

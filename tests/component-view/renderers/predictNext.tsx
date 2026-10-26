@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import type { QueryClient } from '@tanstack/react-query';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
@@ -12,7 +13,6 @@ import { PredictOrderFlowProvider } from '../../../app/components/UI/PredictNext
 import type {
   PredictNextEventParams,
   PredictNextFeedParams,
-  PredictNextHomeParams,
   PredictNextPortfolioParams,
   PredictNextSearchParams,
 } from '../../../app/components/UI/PredictNext/navigation/types';
@@ -47,10 +47,7 @@ export const renderPredictOrderFlow = (Component: React.ComponentType) =>
     { state: initialStatePredictNext().build() },
   );
 
-export const renderPredictNext = (
-  initialParams?: PredictNextHomeParams,
-  privacyMode = false,
-) =>
+export const renderPredictNext = (privacyMode = false) =>
   renderScreenWithRoutes(
     HomeScreen,
     { name: PredictNextRoutes.HOME },
@@ -61,7 +58,6 @@ export const renderPredictNext = (
       { name: PredictNextRoutes.SEARCH, Component: SearchScreen },
     ],
     { state: initialStatePredictNext(privacyMode).build() },
-    initialParams ? { ...initialParams } : undefined,
   );
 
 export const renderPredictSearchScreen = (
@@ -92,6 +88,7 @@ export const renderPredictEventScreen = (
 export const renderPredictPortfolioScreen = (
   initialParams: PredictNextPortfolioParams,
   privacyMode = false,
+  queryClient?: QueryClient,
 ) =>
   renderScreenWithRoutes(
     PortfolioScreen,
@@ -102,6 +99,7 @@ export const renderPredictPortfolioScreen = (
     ],
     { state: initialStatePredictNext(privacyMode).build() },
     { ...initialParams },
+    queryClient,
   );
 
 export const renderPredictFeedScreen = (initialParams: PredictNextFeedParams) =>

@@ -1,8 +1,10 @@
 import { Platform } from 'react-native';
 import type { onCardActivatedPayload } from '@expensify/react-native-wallet';
 import { AppleWalletAdapter } from './AppleWalletAdapter';
+import Logger from '../../../../../../util/Logger';
 import {
   ProvisionCardParams,
+  ProvisioningError,
   ProvisioningErrorCode,
   ApplePayEncryptedPayload,
 } from '../../types';
@@ -12,12 +14,18 @@ const mockAddCardToAppleWallet = jest.fn();
 const mockGetCardStatusBySuffix = jest.fn();
 const mockCheckWalletAvailability = jest.fn();
 const mockAddListener = jest.fn();
+const mockListAppleWalletPasses = jest.fn();
+const mockCanAddCardToAppleWallet = jest.fn();
+const mockPresentAppleWalletPass = jest.fn();
 
 const mockWalletModule = {
   addCardToAppleWallet: mockAddCardToAppleWallet,
   getCardStatusBySuffix: mockGetCardStatusBySuffix,
   checkWalletAvailability: mockCheckWalletAvailability,
   addListener: mockAddListener,
+  listAppleWalletPasses: mockListAppleWalletPasses,
+  canAddCardToAppleWallet: mockCanAddCardToAppleWallet,
+  presentAppleWalletPass: mockPresentAppleWalletPass,
 };
 
 // Mock the native wallet module so dynamic import() returns our mock
@@ -255,6 +263,7 @@ describe('AppleWalletAdapter', () => {
             cardDescription: 'MetaMask Card ending in 1234',
           },
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -268,6 +277,7 @@ describe('AppleWalletAdapter', () => {
 
         expect(mockAddCardToAppleWallet).toHaveBeenCalledWith(
           expect.objectContaining({ primaryAccountIdentifier }),
+          expect.any(Function),
           expect.any(Function),
         );
       });
@@ -285,6 +295,7 @@ describe('AppleWalletAdapter', () => {
             cardHolderName: 'Card Holder',
           }),
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -301,6 +312,7 @@ describe('AppleWalletAdapter', () => {
             cardDescription: 'MetaMask Card ending in 1234',
           }),
           expect.any(Function),
+          expect.any(Function),
         );
       });
 
@@ -310,6 +322,62 @@ describe('AppleWalletAdapter', () => {
         const result = await adapter.provisionCard(mockProvisionParams);
 
         expect(result.status).toBe('canceled');
+        expect(result.error).toBeUndefined();
+      });
+
+      it.each([
+        ['requireActivation', 'requires_activation'],
+        ['active', 'active'],
+      ] as const)(
+        'returns the pass activation state %s as %s',
+        async (reportedState, activationState) => {
+          mockAddCardToAppleWallet.mockImplementation(
+            async (_data, _callback, onAddFinished) => {
+              onAddFinished?.({ activationState: reportedState });
+              return 'success';
+            },
+          );
+
+          const result = await adapter.provisionCard(mockProvisionParams);
+
+          expect(result.status).toBe('success');
+          expect(result.activationState).toBe(activationState);
+        },
+      );
+
+      it('leaves the activation state unset when the wallet does not report one', async () => {
+        mockAddCardToAppleWallet.mockResolvedValue('success');
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.activationState).toBeUndefined();
+      });
+
+      it('returns a wallet decline when Apple Wallet already showed the error', async () => {
+        mockAddCardToAppleWallet.mockImplementation(
+          async (_data, _callback, onAddFinished) => {
+            onAddFinished?.({
+              errorDomain: 'PKPassKitErrorDomain',
+              errorCode: 2,
+            });
+            return 'error';
+          },
+        );
+
+        const result = await adapter.provisionCard(mockProvisionParams);
+
+        expect(result.status).toBe('error');
+        expect(result.error?.code).toBe(ProvisioningErrorCode.WALLET_DECLINED);
+        expect(result.error?.metadata).toEqual({
+          errorDomain: 'PKPassKitErrorDomain',
+          errorCode: 2,
+        });
+        expect(Logger.error).toHaveBeenCalledWith(
+          expect.objectContaining({
+            message: expect.stringContaining('PKPassKitErrorDomain 2'),
+          }),
+          expect.anything(),
+        );
       });
 
       it('returns error status when SDK returns error', async () => {
@@ -370,6 +438,30 @@ describe('AppleWalletAdapter', () => {
         expect(result.status).toBe('error');
         expect(result.error?.code).toBe(ProvisioningErrorCode.UNKNOWN_ERROR);
       });
+
+      it.each([
+        ProvisioningErrorCode.NETWORK_ERROR,
+        ProvisioningErrorCode.TIMEOUT,
+      ])(
+        'passes a %s from the encrypt callback through unchanged',
+        async (code) => {
+          const callbackError = new ProvisioningError(code, 'mapped');
+          mockAddCardToAppleWallet.mockImplementation(
+            async (_data, callback) => {
+              await callback('nonce', 'sig', ['cert']);
+              return 'success';
+            },
+          );
+
+          const result = await adapter.provisionCard({
+            ...mockProvisionParams,
+            issuerEncryptCallback: jest.fn().mockRejectedValue(callbackError),
+          });
+
+          expect(result.status).toBe('error');
+          expect(result.error).toBe(callbackError);
+        },
+      );
 
       it('returns error result when callback throws', async () => {
         const errorCallback = jest
@@ -452,14 +544,14 @@ describe('AppleWalletAdapter', () => {
       expect(result.recommendedAction).toBe('contact_support');
     });
 
-    it('handles requireActivation as add_card for Apple (no Yellow Path)', async () => {
+    it('hides Add when a suffix match requires activation and no identifier is set', async () => {
       mockGetCardStatusBySuffix.mockResolvedValue('requireActivation');
 
       const result = await adapter.getEligibility('1234');
 
-      // Apple Wallet doesn't have Yellow Path, so requireActivation means add_card
-      expect(result.canAddCard).toBe(true);
-      expect(result.recommendedAction).toBe('add_card');
+      expect(result.canAddCard).toBe(false);
+      expect(result.recommendedAction).toBe('none');
+      expect(result.existingCardStatus).toBe('requires_activation');
     });
 
     it('returns eligibility without checking card status when no lastFourDigits', async () => {
@@ -476,8 +568,187 @@ describe('AppleWalletAdapter', () => {
       const result = await adapter.getEligibility('1234');
 
       expect(mockGetCardStatusBySuffix).toHaveBeenCalledWith('1234');
+      expect(mockListAppleWalletPasses).not.toHaveBeenCalled();
       expect(result.canAddCard).toBe(false);
       expect(result.existingCardStatus).toBe('active');
+    });
+
+    describe('per-device eligibility', () => {
+      const identifier = 'series-1';
+
+      const passkitIdentifier = 'passkit-fpan';
+
+      const pass = (
+        activationState: string,
+        isRemote: boolean,
+        lastDigits = '1234',
+      ) => ({
+        passTypeIdentifier: 'paymentpass.com.apple',
+        serialNumber: isRemote ? 'watch' : 'phone',
+        primaryAccountIdentifier: passkitIdentifier,
+        lastDigits,
+        activationState,
+        isRemote,
+      });
+
+      it('offers Add when no pass matches the last four digits', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(true);
+        expect(result.recommendedAction).toBe('add_card');
+        expect(result.pendingVerificationDevices).toEqual([]);
+        expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+      });
+
+      it('keeps Add when the card is only on iPhone and the Watch can still take it', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([pass('active', false)]);
+        mockCanAddCardToAppleWallet.mockResolvedValue(true);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(mockCanAddCardToAppleWallet).toHaveBeenCalledWith(
+          passkitIdentifier,
+        );
+        expect(result.canAddCard).toBe(true);
+        expect(result.existingCardStatus).toBe('active');
+        expect(result.devices).toEqual({ phone: 'active' });
+      });
+
+      it('hides Add when the card is only on iPhone and nothing else can take it', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([pass('active', false)]);
+        mockCanAddCardToAppleWallet.mockResolvedValue(false);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(false);
+        expect(result.recommendedAction).toBe('none');
+      });
+
+      it('keeps Add when the card is only on Apple Watch', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([pass('active', true)]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(true);
+        expect(result.existingCardStatus).toBe('active');
+        expect(result.devices).toEqual({ watch: 'active' });
+        expect(mockCanAddCardToAppleWallet).not.toHaveBeenCalled();
+      });
+
+      it('hides Add when the card is on both devices', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([
+          pass('active', false),
+          pass('active', true),
+        ]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(false);
+        expect(mockCanAddCardToAppleWallet).not.toHaveBeenCalled();
+      });
+
+      it('keeps Add and lists iPhone when only the iPhone pass needs verification', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([
+          pass('requireActivation', false),
+        ]);
+        mockCanAddCardToAppleWallet.mockResolvedValue(true);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(true);
+        expect(result.pendingVerificationDevices).toEqual(['phone']);
+        expect(result.existingCardStatus).toBe('requires_activation');
+      });
+
+      it('hides Add and lists both devices when both passes need verification', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([
+          pass('requireActivation', false),
+          pass('requireActivation', true),
+        ]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(false);
+        expect(result.pendingVerificationDevices).toEqual(['phone', 'watch']);
+      });
+
+      it('treats a deactivated pass as absent', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([
+          pass('deactivated', false),
+        ]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(true);
+        expect(result.existingCardStatus).toBeUndefined();
+        expect(result.devices).toEqual({});
+      });
+
+      it('ignores a pass with a different last four', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([
+          pass('active', false, '9999'),
+        ]);
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(result.canAddCard).toBe(true);
+        expect(result.devices).toEqual({});
+      });
+
+      it('asks PassKit with the identifier on the matched pass', async () => {
+        mockListAppleWalletPasses.mockResolvedValue([pass('active', false)]);
+        mockCanAddCardToAppleWallet.mockResolvedValue(true);
+
+        await adapter.getEligibility('1234', identifier);
+
+        expect(mockCanAddCardToAppleWallet).toHaveBeenCalledWith(
+          passkitIdentifier,
+        );
+        expect(mockCanAddCardToAppleWallet).not.toHaveBeenCalledWith(
+          identifier,
+        );
+      });
+
+      it('falls back to the PAN suffix when the card has no last four', async () => {
+        const result = await adapter.getEligibility(undefined, identifier);
+
+        expect(mockListAppleWalletPasses).not.toHaveBeenCalled();
+        expect(mockGetCardStatusBySuffix).not.toHaveBeenCalled();
+        expect(result.canAddCard).toBe(true);
+        expect(result.recommendedAction).toBe('add_card');
+      });
+
+      it('falls back to the PAN suffix when listing passes fails', async () => {
+        mockListAppleWalletPasses.mockRejectedValue(new Error('passkit'));
+        mockGetCardStatusBySuffix.mockResolvedValue('active');
+
+        const result = await adapter.getEligibility('1234', identifier);
+
+        expect(mockGetCardStatusBySuffix).toHaveBeenCalledWith('1234');
+        expect(result.canAddCard).toBe(false);
+        expect(result.existingCardStatus).toBe('active');
+      });
+    });
+  });
+
+  describe('openCardInWallet', () => {
+    it('opens the pass that matches the last four digits', async () => {
+      mockPresentAppleWalletPass.mockResolvedValue(true);
+
+      const opened = await adapter.openCardInWallet('1234');
+
+      expect(mockPresentAppleWalletPass).toHaveBeenCalledWith('1234');
+      expect(opened).toBe(true);
+    });
+
+    it('returns false when the wallet cannot present the pass', async () => {
+      mockPresentAppleWalletPass.mockRejectedValue(new Error('passkit'));
+
+      const opened = await adapter.openCardInWallet('1234');
+
+      expect(opened).toBe(false);
     });
   });
 

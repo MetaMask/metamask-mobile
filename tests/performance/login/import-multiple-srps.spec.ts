@@ -8,6 +8,7 @@ import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomS
 import WalletView from '../../page-objects/wallet/WalletView';
 import { Performance, PerformanceAccountList } from '../../tags.performance.js';
 import AppiumGestures from '../../framework/AppiumGestures';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 /* Scenario 4: Import SRP with +50 accounts, SRP 1, SRP 2, SRP 3 */
 perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
   perfTest.setTimeout(30 * 60 * 1000);
@@ -24,6 +25,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       }
 
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
 
       const accountListTimer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
@@ -49,7 +51,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       await WalletView.tapIdenticon();
       await accountListTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
-          AccountListBottomSheet.accountList,
+          AccountListBottomSheet.addWalletButton,
           {
             description: 'Account list should be visible',
           },
@@ -57,7 +59,7 @@ perfTest.describe(`${Performance} ${PerformanceAccountList}`, () => {
       });
 
       await AccountListBottomSheet.waitForAccountSyncToComplete();
-      await AccountListBottomSheet.tapAddAccountButton();
+      await AccountListBottomSheet.tapAddWalletButton();
 
       await addAccountTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

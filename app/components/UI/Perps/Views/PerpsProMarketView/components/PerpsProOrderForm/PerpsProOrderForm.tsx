@@ -13,8 +13,6 @@ import {
   Checkbox,
   FilterButton,
   FontWeight,
-  HelpText,
-  HelpTextSeverity,
   Icon,
   IconColor,
   IconName,
@@ -46,9 +44,11 @@ import {
 import {
   getPerpsProChaseFormActiveCountSelector,
   PerpsProMarketViewSelectorsIDs,
+  getPerpsProOrderFormNoticeTestId,
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -106,7 +106,7 @@ const TPSLRow = ({ label, onPress, testID }: TPSLRowProps) => {
       testID={testID}
     >
       <Box
-        twClassName={`h-12 flex-row items-center justify-between rounded-full bg-muted px-3${
+        twClassName={`h-12 flex-row items-center justify-between rounded-xl bg-muted px-3${
           isDisabled ? ' opacity-50' : ''
         }`}
       >
@@ -177,10 +177,10 @@ const PriceField = ({
           <ButtonBase
             size={ButtonBaseSize.Sm}
             onPress={onUseMidPress}
-            twClassName="h-[26px] shrink-0 rounded bg-subsection px-2 py-0.5"
+            twClassName="h-[26px] shrink-0 rounded-md bg-subsection px-2 py-0.5"
             contentWrapperProps={{ twClassName: 'justify-end' }}
             textProps={{
-              variant: TextVariant.BodySm,
+              variant: TextVariant.BodyXs,
               fontWeight: FontWeight.Medium,
             }}
             testID={midButtonTestID}
@@ -204,14 +204,14 @@ const Notices = ({ notices }: { notices: PerpsProOrderNotice[] }) =>
             severity={BannerAlertSeverity.Warning}
             title={notice.title}
             description={notice.message}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           />
         ) : (
           <Text
             key={notice.id}
             variant={TextVariant.BodyXs}
             color={TextColor.ErrorDefault}
-            testID={`${ids.NOTICE}-${notice.id}`}
+            testID={getPerpsProOrderFormNoticeTestId(notice.id)}
           >
             {notice.message}
           </Text>
@@ -240,6 +240,7 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
@@ -325,6 +326,7 @@ const OrderSummary = ({
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
+          feeDiscountKind={feeDiscountKind}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
@@ -507,6 +509,7 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   chaseMaxDistance = '',
   onChaseMaxDistanceChange = () => undefined,
+  onChaseMaxDistanceFocus,
   chaseMaxDistanceUnit = 'usd',
   onChaseMaxDistanceUnitChange = () => undefined,
   chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -529,6 +532,7 @@ const PerpsProOrderForm = ({
   onTPSLPress,
   notices,
   summary,
+  rebateQuote,
   placeOrderLabel,
   placeOrderIntent,
   isPlaceOrderDisabled = false,
@@ -712,7 +716,7 @@ const PerpsProOrderForm = ({
             (wraps form + divider + book), not this Box. Summary rows use
             KeyValueRow which ships with px-4 by default — override to px-0 so
             margin/liquidation/slippage/fees align with the form above. */}
-        <Box twClassName="gap-4">
+        <Box twClassName="gap-3">
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -778,19 +782,21 @@ const PerpsProOrderForm = ({
             testID={ids.MARGIN_SETTINGS_ROW}
           >
             <ButtonBase
-              size={ButtonBaseSize.Sm}
+              size={ButtonBaseSize.Md}
               onPress={handleMarginModePress}
               isDisabled={isScaleFormLocked || !onMarginModePress}
-              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
+              twClassName="flex-1 rounded-xl bg-muted"
+              textProps={{ variant: TextVariant.BodySm }}
               testID={ids.MARGIN_MODE_BUTTON}
             >
               {marginModeLabel}
             </ButtonBase>
             <ButtonBase
-              size={ButtonBaseSize.Sm}
+              size={ButtonBaseSize.Md}
               onPress={handleLeveragePress}
               isDisabled={isScaleFormLocked || !onLeveragePress}
-              twClassName="h-8 flex-1 rounded-full bg-muted px-2"
+              twClassName="flex-1 rounded-xl bg-muted px-2"
+              textProps={{ variant: TextVariant.BodySm }}
               testID={ids.LEVERAGE_BUTTON}
             >
               {leverageLabel}
@@ -798,15 +804,13 @@ const PerpsProOrderForm = ({
           </Box>
           <Box
             ref={orderTypeCardRef}
-            twClassName={`overflow-hidden bg-muted ${
-              orderType === 'market' ? 'rounded-full' : 'rounded-xl'
-            }`}
+            twClassName="overflow-hidden rounded-xl bg-muted"
             testID={ids.ORDER_TYPE_CARD}
           >
             <ButtonBase
               onPress={handleOrderTypeButtonPress}
               isDisabled={isScaleFormLocked}
-              twClassName="h-[54px] w-full bg-transparent px-3"
+              twClassName="h-[48px] w-full bg-transparent px-3"
               contentWrapperProps={{ twClassName: 'w-full justify-between' }}
               textProps={{ variant: TextVariant.BodySm }}
               endIconName={IconName.ArrowDown}
@@ -908,6 +912,7 @@ const PerpsProOrderForm = ({
                   label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
+                  onFocus={onChaseMaxDistanceFocus}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
                   isDisabled={isScaleFormLocked}
                   variant="inline-labeled"
@@ -956,16 +961,17 @@ const PerpsProOrderForm = ({
             </Text>
           ) : null}
           {priceCardMessage ? (
-            <HelpText
-              severity={
+            <Text
+              variant={TextVariant.BodyXs}
+              color={
                 priceCardMessage.severity === 'error'
-                  ? HelpTextSeverity.Danger
-                  : HelpTextSeverity.Warning
+                  ? TextColor.ErrorDefault
+                  : TextColor.WarningDefault
               }
               testID={ids.PRICE_CARD_MESSAGE}
             >
               {priceCardMessage.message}
-            </HelpText>
+            </Text>
           ) : null}
           <PerpsProSizeInput
             inputRef={sizeInputRef}
@@ -985,7 +991,7 @@ const PerpsProOrderForm = ({
           />
           <Box
             testID={ids.REDUCE_ONLY_CONTAINER}
-            twClassName="h-12 justify-center rounded-full bg-muted px-3"
+            twClassName="h-12 justify-center rounded-xl bg-muted px-3"
           >
             <Checkbox
               label={strings('perps.order.reduce_only')}
@@ -1037,6 +1043,12 @@ const PerpsProOrderForm = ({
             }
           />
         ) : null}
+        <PerpsRebateBanner
+          coin={rebateQuote?.coin}
+          direction={rebateQuote?.direction}
+          notionalUsd={rebateQuote?.notionalUsd}
+          textTwClassName="text-body-xs leading-[16px]"
+        />
       </Box>
       <PerpsProInputKeyboardAccessory
         inputTestID={ids.SIZE_INPUT}

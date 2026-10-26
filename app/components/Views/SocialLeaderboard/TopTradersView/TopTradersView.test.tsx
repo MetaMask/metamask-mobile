@@ -171,6 +171,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
+    pnl30d: 220_000,
     winRatePercent: 92,
     pnlPerChain: { base: 500000, ethereum: 463146.8 },
     followerCount: 48707,
@@ -185,6 +186,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
+    pnl30d: 50_000,
     winRatePercent: 61,
     pnlPerChain: { base: 474751.45 },
     followerCount: 21999,
@@ -199,6 +201,7 @@ const fixtureTraders: TopTrader[] = [
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
+    pnl30d: 2_500,
     winRatePercent: 48,
     pnlPerChain: { solana: 374735.16 },
     followerCount: 11772,
@@ -902,6 +905,28 @@ describe('TopTradersView', () => {
       expect(screen.getAllByText('alpha.eth')).toHaveLength(1);
     });
 
+    it('filters the list to shrimp while keeping the pinned viewer', () => {
+      const { DEFAULT_FILTERS } = jest.requireActual(
+        '../shell/filters/filterDefaults',
+      ) as typeof import('../shell/filters/filterDefaults');
+
+      renderWithProvider(
+        <TopTradersView
+          useV1Filters
+          RowComponent={SocialV1TraderRow}
+          v1AppliedFilters={{ ...DEFAULT_FILTERS, traderCohort: 'shrimp' }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(TopTradersViewSelectorsIDs.VIEWER_CARD),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('giga-whale')).toBeOnTheScreen();
+      expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+      expect(screen.queryByText('alpha.eth')).toBeNull();
+      expect(screen.queryByText('beta.eth')).toBeNull();
+    });
+
     it('opens the V1 profile from a V1 list row', () => {
       renderWithProvider(
         <TopTradersView useV1Filters RowComponent={SocialV1TraderRow} />,
@@ -1227,7 +1252,7 @@ describe('TopTradersView', () => {
       });
     };
 
-    it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+    it('follows and then opens the setup sheet when both channels are off', async () => {
       mockNotificationPreferences = channelsDisabledPreferences;
 
       renderWithProvider(<TopTradersView />);
@@ -1236,15 +1261,15 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getAllByText('Follow')[0]);
       });
 
-      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockToggleFollow).toHaveBeenCalledTimes(1);
       expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SOCIAL.TRADING_SIGNALS_SETUP,
-        expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+        expect.objectContaining({ onSetupComplete: undefined }),
       );
     });
 
-    it('intercepts the follow with the feature notifications gate when the master toggle is off', async () => {
+    it('follows and then opens the feature notifications gate when the master toggle is off', async () => {
       mockIsMasterNotificationsEnabled = false;
 
       renderWithProvider(<TopTradersView />);
@@ -1253,7 +1278,7 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getAllByText('Follow')[0]);
       });
 
-      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockToggleFollow).toHaveBeenCalledTimes(1);
       expect(mockPlayErrorNotification).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.FEATURE_NOTIFICATIONS_GATE,
@@ -1261,7 +1286,7 @@ describe('TopTradersView', () => {
       });
     });
 
-    it('performs the follow when the deferred setup action runs', async () => {
+    it('does not follow again when the setup sheet completes', async () => {
       mockNotificationPreferences = channelsDisabledPreferences;
 
       renderWithProvider(<TopTradersView />);

@@ -47,7 +47,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
 
   return (
     <View>
-      <Text variant={TextVariant.HeadingMD} style={tw`py-2`}>
+      <Text variant={TextVariant.HeadingMD} style={tw`pb-2`}>
         {strings('token.token_details')}
       </Text>
       <View style={styles.listWrapper}>

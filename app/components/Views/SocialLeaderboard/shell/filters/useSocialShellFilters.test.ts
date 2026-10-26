@@ -13,10 +13,10 @@ describe('useSocialShellFilters', () => {
 
     expect(result.current.openTab).toBeNull();
     expect(result.current.applied.trending).toEqual(DEFAULT_FILTERS);
-    expect(result.current.applied.liveTrades).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.live).toEqual(DEFAULT_FILTERS);
     expect(result.current.applied.leaderboard).toEqual(DEFAULT_FILTERS);
     expect(result.current.hasActiveFilters('trending')).toBe(false);
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.hasActiveFilters('live')).toBe(false);
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
@@ -46,17 +46,17 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.applied.trending.type).toBe('tokens');
-    expect(result.current.applied.liveTrades.type).toBe('all');
+    expect(result.current.applied.live.type).toBe('all');
     expect(result.current.applied.leaderboard.type).toBe('all');
     expect(result.current.hasActiveFilters('trending')).toBe(true);
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.hasActiveFilters('live')).toBe(false);
   });
 
   it('closing the sheet without applying discards the draft', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('liveTrades');
+      result.current.openSheet('live');
     });
     act(() => {
       result.current.updateDraft({ traderCohort: 'whale' });
@@ -66,8 +66,8 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.openTab).toBeNull();
-    expect(result.current.applied.liveTrades.traderCohort).toBe('all');
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.applied.live.traderCohort).toBe('all');
+    expect(result.current.hasActiveFilters('live')).toBe(false);
   });
 
   it('resetDraftToDefaults restores the draft to defaults without applying', () => {
@@ -104,6 +104,25 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
+  });
+
+  it('does not treat leftover verification or 24h volume as active on Following', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('following');
+    });
+    act(() => {
+      result.current.updateDraft({
+        verification: 'verified',
+        volume24h: { min: 10, max: 20 },
+      });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('following')).toBe(false);
   });
 
   it('changing type reconciles the network against the new type', () => {

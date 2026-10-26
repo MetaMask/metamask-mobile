@@ -8,6 +8,7 @@ import {
   computeStakeFee,
   TronUnstakeResult,
 } from '../utils/tron-staking-snap';
+import { TronSpecialAssetsStatus } from '../../../../selectors/assets/assets-list';
 import { TokenI } from '../../Tokens/types';
 
 const mockSelectSelectedInternalAccountByScope = jest.fn();
@@ -31,6 +32,8 @@ jest.mock(
 );
 
 jest.mock('../../../../selectors/assets/assets-list', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../selectors/assets/assets-list'),
   selectTronSpecialAssetsBySelectedAccountGroup: () =>
     mockSelectTronSpecialAssetsBySelectedAccountGroup(),
 }));
@@ -110,6 +113,7 @@ describe('useTronUnstake', () => {
       stakedTrxForEnergy: { symbol: 'strx-energy', balance: '50' },
       stakedTrxForBandwidth: { symbol: 'strx-bandwidth', balance: '50' },
       totalStakedTrx: 100,
+      status: TronSpecialAssetsStatus.Ready,
       trxReadyForWithdrawal: undefined,
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
@@ -117,6 +121,24 @@ describe('useTronUnstake', () => {
   });
 
   describe('initialization', () => {
+    it('returns safe defaults when token is missing', async () => {
+      const { result } = renderHook(() => useTronUnstake({ token: undefined }));
+
+      expect(result.current.isTronAsset).toBe(false);
+      expect(result.current.isTronEnabled).toBe(false);
+      expect(result.current.stakedTrxTotal).toBe(0);
+      expect(result.current.tronWithdrawalToken).toBeUndefined();
+
+      await act(async () => {
+        expect(await result.current.validateUnstakeAmount('1')).toBeNull();
+        expect(await result.current.confirmUnstake('1')).toBeNull();
+      });
+
+      expect(mockValidateTronUnstakeAmount).not.toHaveBeenCalled();
+      expect(mockConfirmTronUnstake).not.toHaveBeenCalled();
+      expect(mockComputeStakeFee).not.toHaveBeenCalled();
+    });
+
     it('returns isTronAsset true for TRX token', () => {
       const { result } = renderHook(() =>
         useTronUnstake({ token: mockTrxToken }),

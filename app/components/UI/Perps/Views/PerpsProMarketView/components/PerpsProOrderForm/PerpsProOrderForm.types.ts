@@ -1,3 +1,4 @@
+import type { PerpsFeeDiscountKind } from '../../../../utils/feeDiscount';
 import type { OrderType } from '@metamask/perps-controller';
 import type { Ref } from 'react';
 import type { View } from 'react-native';
@@ -9,6 +10,12 @@ export interface ScaleOrderRung {
 }
 
 export type PerpsProOrderDirection = 'long' | 'short';
+
+export interface PerpsProRebateQuote {
+  coin: string;
+  direction: PerpsProOrderDirection;
+  notionalUsd: string;
+}
 
 /**
  * Active size-denomination for the Pro order form size field.
@@ -57,6 +64,7 @@ export interface PerpsProOrderSummaryProps {
   fee?: number;
   originalFee?: number;
   feeDiscountPercentage?: number;
+  feeDiscountKind?: PerpsFeeDiscountKind;
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
   /**
@@ -150,6 +158,7 @@ export interface PerpsProOrderFormProps {
   onUseMidPricePress?: () => void;
   chaseMaxDistance?: string;
   onChaseMaxDistanceChange?: (value: string) => void;
+  onChaseMaxDistanceFocus?: () => void;
   chaseMaxDistanceUnit?: 'usd' | 'percent';
   onChaseMaxDistanceUnitChange?: (unit: 'usd' | 'percent') => void;
   chaseReferencePrice?: string;
@@ -182,6 +191,7 @@ export interface PerpsProOrderFormProps {
   onTPSLPress?: () => void;
   notices: PerpsProOrderNotice[];
   summary: PerpsProOrderSummaryProps;
+  rebateQuote?: PerpsProRebateQuote;
   placeOrderLabel: string;
   placeOrderIntent: PerpsProOrderDirection;
   isPlaceOrderDisabled?: boolean;

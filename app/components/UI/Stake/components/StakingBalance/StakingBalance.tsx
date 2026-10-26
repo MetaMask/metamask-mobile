@@ -7,16 +7,14 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import {
+  Text,
+  TextVariant,
+  SensitiveText,
+  SensitiveTextLength,
   BadgeNetwork,
   BadgeWrapper,
   BadgeWrapperPosition,
 } from '@metamask/design-system-react-native';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
@@ -61,9 +59,14 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 export interface StakingBalanceProps {
   asset: TokenI;
+  /** Draws the stake buttons on brand refresh glass. */
+  isGlass?: boolean;
 }
 
-const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
+const StakingBalanceContent = ({
+  asset,
+  isGlass = false,
+}: StakingBalanceProps) => {
   const theme = useTheme();
 
   const [
@@ -213,6 +216,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
           }
           hasEthToUnstake={hasEthToUnstake}
           hasStakedPositions={hasStakedPositions}
+          isGlass={isGlass}
         />
       </>
     );
@@ -251,11 +255,11 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             />
           </BadgeWrapper>
           <View style={styles.balances}>
-            <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
+            <Text variant={TextVariant.BodyMd} testID="staked-ethereum-label">
               {strings('stake.staked_ethereum')}
             </Text>
             <SensitiveText
-              variant={TextVariant.BodySM}
+              variant={TextVariant.BodySm}
               style={styles.tokenAmount}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
@@ -282,9 +286,9 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 };
 
-export const StakingBalance = ({ asset }: StakingBalanceProps) => (
+export const StakingBalance = ({ asset, isGlass }: StakingBalanceProps) => (
   <StakeSDKProvider>
-    <StakingBalanceContent asset={asset} />
+    <StakingBalanceContent asset={asset} isGlass={isGlass} />
   </StakeSDKProvider>
 );
 

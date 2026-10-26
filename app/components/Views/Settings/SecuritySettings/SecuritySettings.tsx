@@ -28,9 +28,11 @@ import {
   ProtectYourWallet,
   DeviceSecurityToggle,
   ChangePassword,
+  MfaSection,
   AutoLock,
   ClearPrivacy,
   BlockaidSettings,
+  SupportConsentPreferenceSection,
 } from './Sections';
 import { selectProviderType } from '../../../../selectors/networkController';
 import { selectUseTransactionSimulations } from '../../../../selectors/preferencesController';
@@ -390,6 +392,7 @@ const Settings: React.FC = () => {
             toggleHint={toggleHint}
           />
           <ChangePassword />
+          <MfaSection />
           <AutoLock />
           <DeviceSecurityToggle />
           {!isBasicFunctionalityConsolidationEnabled && <BlockaidSettings />}
@@ -442,6 +445,9 @@ const Settings: React.FC = () => {
             dataCollectionRef={dataCollectionSectionRef}
           />
           <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+          <View style={styles.setting}>
+            <SupportConsentPreferenceSection />
+          </View>
           <DeleteWalletData />
           <TopTradersSection />
           {renderHint()}

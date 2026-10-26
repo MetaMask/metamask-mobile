@@ -3,6 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../../Homepage/Sections/TopTraders/types';
+import { SocialFeedSurfaceProvider } from '../../../../UI/SocialFeed/SocialFeedSurface';
 import SocialV1TraderRow from './SocialV1TraderRow';
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
@@ -29,7 +30,7 @@ describe('SocialV1TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank medal, username, verified badge, cohort, and PnL without follow chrome', () => {
+  it('renders rank medal, username, and PnL without follow chrome', () => {
     renderWithProvider(
       <SocialV1TraderRow
         trader={baseTrader}
@@ -40,16 +41,34 @@ describe('SocialV1TraderRow', () => {
     expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
-    ).toBeOnTheScreen();
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.COHORT),
+    ).toBeNull();
     expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
     expect(screen.queryByText('92% WR')).toBeNull();
     expect(screen.queryByText('48,707 followers')).toBeNull();
     expect(screen.queryByText('+43.0%')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
     expect(screen.queryByText('Follow')).toBeNull();
+  });
+
+  it('never renders a verified badge, including when mocked fields are on', () => {
+    renderWithProvider(
+      <SocialFeedSurfaceProvider showMockedFields>
+        <SocialV1TraderRow
+          trader={baseTrader}
+          onFollowPress={mockOnFollowPress}
+        />
+      </SocialFeedSurfaceProvider>,
+    );
+
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.VERIFIED_BADGE),
+    ).toBeNull();
   });
 
   it('renders the numeric rank for positions outside the podium', () => {
@@ -132,5 +151,50 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
+  });
+
+  it('renders the window percent and follower count when leaderboard details are on', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76, followerCount: 4700 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+7.8%')).toBeOnTheScreen();
+    expect(screen.getByText('4.7K followers')).toBeOnTheScreen();
+  });
+
+  it('colors a negative percent as a loss while the dollar stays a gain', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: -8.5 }}
+        metric={{ label: '+$1.00', isPositive: true }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$1.00')).toBeOnTheScreen();
+    expect(screen.getByText('-8.5%')).toBeOnTheScreen();
+  });
+
+  it('omits a zero percent and a zero follower count', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 0, followerCount: 0 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
   });
 });

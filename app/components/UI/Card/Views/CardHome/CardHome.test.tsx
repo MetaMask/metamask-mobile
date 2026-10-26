@@ -29,6 +29,7 @@ jest.mock('../../sdk', () => ({
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();
+const mockOpenInWallet = jest.fn(() => Promise.resolve());
 const mockUsePushProvisioning = jest.fn(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   (_options: unknown) => ({
@@ -41,6 +42,10 @@ const mockUsePushProvisioning = jest.fn(
     isError: false,
     isLoading: false,
     canAddToWallet: false,
+    isCardInWallet: false,
+    pendingVerificationDevices: [] as ('phone' | 'watch')[],
+    canOpenInWallet: false,
+    openInWallet: mockOpenInWallet,
   }),
 );
 
@@ -62,7 +67,13 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Alert, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -413,6 +424,7 @@ const createDefaultMoneyAccountCardLinkageMock =
     moneyAccountCardToken: null,
     canLink: false,
     isMoneyAccountLinkingSupported: true,
+    isMoneyCardSectionAvailable: true,
     status: 'idle' as const,
     isLinking: false,
     error: null,
@@ -1107,7 +1119,6 @@ function setupLoadCardDataMock(
   if (config.kycStatus?.verificationState && !ud) {
     account = {
       verificationStatus: config.kycStatus.verificationState,
-      provisioningEligible: false,
       holderName: null,
       shippingAddress: null,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1144,7 +1155,6 @@ function setupLoadCardDataMock(
       ud.firstName && ud.lastName ? `${ud.firstName} ${ud.lastName}` : null;
     account = {
       verificationStatus: config.kycStatus?.verificationState ?? null,
-      provisioningEligible: false,
       holderName: derivedHolderName,
       shippingAddress,
       countryOfResidence: config.countryOfResidence ?? null,
@@ -1183,6 +1193,14 @@ function setupLoadCardDataMock(
           availableFundingAssets: fundingAssets,
           card,
           account,
+          walletProvisioning: card
+            ? {
+                eligible: card.status === 'ACTIVE',
+                cardholderName: account?.holderName ?? '',
+                lastFour: String(card.lastFour ?? ''),
+                network: 'MASTERCARD' as const,
+              }
+            : null,
           alerts,
           actions,
           delegationSettings: config.delegationSettings,
@@ -1227,6 +1245,12 @@ function overrideCardHomeDataBalance(
         type: CardType.VIRTUAL,
       },
       account: null,
+      walletProvisioning: {
+        eligible: true,
+        cardholderName: '',
+        lastFour: '1234',
+        network: 'MASTERCARD' as const,
+      },
       alerts: [],
       actions: [{ type: 'add_funds', enabled: true }],
     },
@@ -2163,6 +2187,10 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: true,
         canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
 
       render();
@@ -2185,6 +2213,176 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: true,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the card is already in the wallet', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows a pending verification notice that names the devices', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone', 'watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_title'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(
+          strings('card.push_provisioning.verification_pending_description', {
+            devices: strings('card.push_provisioning.device_list_and', {
+              first: strings('card.push_provisioning.device_iphone'),
+              second: strings('card.push_provisioning.device_apple_watch'),
+            }),
+          }),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('opens the iPhone pass from the pending notice', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['phone'],
+        canOpenInWallet: true,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      fireEvent.press(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).getByTestId('confirm-button'),
+      );
+
+      expect(mockOpenInWallet).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the wallet link when only the Watch pass is pending', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: true,
+        isCardInWallet: true,
+        pendingVerificationDevices: ['watch'],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+      ).toBeOnTheScreen();
+      expect(
+        within(
+          screen.getByTestId(CardHomeSelectors.VERIFICATION_PENDING_NOTICE),
+        ).queryByTestId('confirm-button'),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('shows the instructions when push provisioning is unavailable', () => {
+      mockUsePushProvisioning.mockReturnValueOnce({
+        initiateProvisioning: mockInitiateProvisioning,
+        resetStatus: mockResetProvisioningStatus,
+        status: 'idle' as const,
+        error: null,
+        isProvisioning: false,
+        isSuccess: false,
+        isError: false,
+        isLoading: false,
+        canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
+      });
+
+      render();
+
+      expect(
+        screen.getByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the instructions when the Immersve card is frozen', () => {
+      setupLoadCardDataMock({
+        isAuthenticated: true,
+        cardDetails: { type: CardType.VIRTUAL, status: CardStatus.FROZEN },
       });
 
       render();
@@ -6307,7 +6505,7 @@ describe('CardHome Component', () => {
       mockResetProvisioningStatus.mockClear();
     });
 
-    it('calls usePushProvisioning with cardDetails from card status', async () => {
+    it('calls usePushProvisioning with the card id and wallet provisioning', async () => {
       // Given: authenticated user with card details
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6325,19 +6523,18 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: usePushProvisioning should be called with memoized cardDetails
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      // Verify cardDetails is passed correctly
-      expect(options.cardDetails).toEqual({
-        id: 'card-123',
-        holderName: 'John Doe',
-        panLast4: '1234',
-        status: 'ACTIVE',
+      expect(options.cardId).toBe('card-123');
+      expect(options.walletProvisioning).toEqual({
+        eligible: true,
+        cardholderName: 'John Doe',
+        lastFour: '1234',
+        network: 'MASTERCARD',
       });
     });
 
@@ -6379,7 +6576,7 @@ describe('CardHome Component', () => {
       });
     });
 
-    it('passes null cardDetails when no card exists', async () => {
+    it('passes null wallet provisioning when no card exists', async () => {
       // Given: authenticated user without card
       setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
       setupLoadCardDataMock({
@@ -6397,14 +6594,14 @@ describe('CardHome Component', () => {
       // When: component renders
       render();
 
-      // Then: cardDetails should be null
       await waitFor(() => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
       const options = getLastCallOptions();
 
-      expect(options.cardDetails).toBeNull();
+      expect(options.cardId).toBeUndefined();
+      expect(options.walletProvisioning).toBeNull();
     });
 
     it('provides onSuccess callback that shows success toast', async () => {
@@ -6496,11 +6693,12 @@ describe('CardHome Component', () => {
         expect(mockUsePushProvisioning).toHaveBeenCalled();
       });
 
-      // Then: holderName should come from KYC userDetails, not cardDetails
       const options = getLastCallOptions();
-      const cardDetails = options.cardDetails as { holderName: string };
+      const walletProvisioning = options.walletProvisioning as {
+        cardholderName: string;
+      };
 
-      expect(cardDetails.holderName).toBe('Jane Smith');
+      expect(walletProvisioning.cardholderName).toBe('Jane Smith');
     });
   });
 
@@ -6742,7 +6940,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6799,7 +6996,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6855,7 +7051,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -6911,7 +7106,6 @@ describe('CardHome Component', () => {
           card: null,
           account: {
             verificationStatus: 'VERIFIED',
-            provisioningEligible: false,
             holderName: null,
             shippingAddress: {
               line1: '123 Main St',
@@ -7177,6 +7371,10 @@ describe('CardHome Component', () => {
         isError: false,
         isLoading: false,
         canAddToWallet: false,
+        isCardInWallet: false,
+        pendingVerificationDevices: [],
+        canOpenInWallet: false,
+        openInWallet: mockOpenInWallet,
       });
       render();
       expect(screen.queryByTestId('add-to-wallet-button')).toBeNull();
@@ -7245,6 +7443,7 @@ describe('CardHome Component', () => {
         },
         canLink: true,
         isMoneyAccountLinkingSupported: true,
+        isMoneyCardSectionAvailable: true,
         status: 'idle' as const,
         isLinking: false,
         error: null,

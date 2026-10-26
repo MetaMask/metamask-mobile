@@ -1,4 +1,6 @@
 import { isEvmTxData, type QuoteResponse } from '@metamask/bridge-controller';
+import { parseApprovalTransactionData } from '../../../Views/confirmations/utils/approvals';
+import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { Flow } from './flowStrategy';
 
 /**
@@ -56,6 +58,8 @@ export interface HardwareWalletsSwapsStep {
   kind: HardwareWalletsSwapsStepKind;
   status: HardwareWalletsSwapsStepStatus;
   address?: string;
+  /** Approval step only: token contract being approved (decoded from calldata for Permit2, `approval.to` otherwise). */
+  tokenAddress?: string;
 }
 
 /**
@@ -87,7 +91,10 @@ export type HardwareWalletsSwapsEvent =
       type: HardwareWalletsSwapsEventType.Start;
       payload: {
         totalSteps: number;
+        /** Approval step only: spender decoded from the approval calldata (`undefined` when undecodable). */
         spenderAddress?: string;
+        /** Approval step only: token contract being approved. */
+        approvalTokenAddress?: string;
         recipientAddress?: string;
         /** Signing origin. `Flow.Send` produces a Sendbundle `[Transaction, FeeTransfer]` (or `[Transaction]` for plain send); default `Flow.Bridge`. */
         flow?: Flow;
@@ -116,7 +123,9 @@ export type HardwareWalletsSwapsEvent =
   | { type: HardwareWalletsSwapsEventType.Retry }
   | { type: HardwareWalletsSwapsEventType.Cancel };
 
-type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
+type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'> & {
+  quote?: { dest?: { walletAddress?: string } };
+};
 
 /**
  * Resolution emitted by the safety-net effect in `useHwSwapLifecycle` when the
@@ -134,31 +143,58 @@ export type StuckProgressResolution =
   | { readonly action: 'navigate' }
   | { readonly action: 'dispatch'; readonly event: HardwareWalletsSwapsEvent };
 
+/** Caller-computed same-chain signal: V2 quotes dropped the V1 top-level `quote.srcChainId`/`destChainId`, so the caller derives it from the selected tokens. */
+interface BuildStartPayloadOptions {
+  isSwap: boolean;
+}
+
+const getApprovalSpender = (data?: string): string | undefined => {
+  const { args } = parseStandardTokenTransactionData(data) ?? {};
+  return args?.spender ?? args?._spender ?? args?.[0];
+};
+
 /**
- * Builds the `Start` event that initializes the swap signing flow from an
- * active bridge/swap quote.
+ * Builds the `Start` event from the active quote. Spender + approval token
+ * address are decoded from the approval calldata (`approval.to` is the token
+ * contract, never the spender; undecodable calldata yields no spender line).
+ * Recipient: for a same-chain swap ONLY `quote.dest.walletAddress` — never
+ * the aggregator router (`trade.to`); bridges keep `trade.to` (extension parity).
  *
- * Determines the step count from whether an approval is required: two steps
- * (approval + trade) when `approval` is present, otherwise one (trade only).
- * Extracts the spender (`approval.to`) and recipient (`trade.to`) addresses,
- * guarded by the bridge controller's `isEvmTxData` so non-EVM quote shapes are
- * safely skipped.
- *
- * @param activeQuote - The selected quote, containing optional `approval` and
- * `trade` transaction data.
+ * @param activeQuote - The selected quote, containing optional `approval` and `trade` transaction data.
+ * @param options - Caller-computed same-chain signal.
  * @returns A `Start` event for {@link hardwareWalletsSwapsReducer}.
  */
 export function buildStartPayload(
   activeQuote: QuoteWithTxData,
+  { isSwap }: BuildStartPayloadOptions,
 ): HardwareWalletsSwapsEvent {
-  const { approval, trade } = activeQuote;
+  const { approval, trade, quote } = activeQuote;
+  const evmApprovalTo =
+    approval && isEvmTxData(approval) ? approval.to : undefined;
+  const approvalData =
+    approval && isEvmTxData(approval) && approval.data
+      ? approval.data
+      : undefined;
+  const parsedApproval = approvalData
+    ? parseApprovalTransactionData(approvalData)
+    : undefined;
+  // Same guard as parsedApproval: an undecodable approval yields no spender.
+  const approvalSpender =
+    approvalData && parsedApproval
+      ? getApprovalSpender(approvalData)
+      : undefined;
+  const recipientAddress = isSwap
+    ? quote?.dest?.walletAddress
+    : trade && isEvmTxData(trade)
+      ? trade.to
+      : undefined;
   return {
     type: HardwareWalletsSwapsEventType.Start,
     payload: {
       totalSteps: approval ? 2 : 1,
-      spenderAddress:
-        approval && isEvmTxData(approval) ? approval.to : undefined,
-      recipientAddress: trade && isEvmTxData(trade) ? trade.to : undefined,
+      spenderAddress: approvalSpender,
+      approvalTokenAddress: parsedApproval?.tokenAddress ?? evmApprovalTo,
+      recipientAddress,
     },
   };
 }
@@ -175,13 +211,14 @@ export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   disconnectedStep: null,
 };
 
-/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction × N, FeeTransfer]` (N sends + 1 fee) when totalSteps>1, else `[Transaction]` — the device signs the sends first, then the fee transfer.  */
+/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction × N, FeeTransfer]` (N sends + 1 fee) when totalSteps>1, else `[Transaction]` — the device signs the sends first, then the fee transfer. `approvalTokenAddress` is carried only by the bridge Approval step. */
 function buildSteps(
   totalSteps: number,
   spenderAddress?: string,
   recipientAddress?: string,
   flow: Flow = Flow.Bridge,
   gasTokenAddress?: string,
+  approvalTokenAddress?: string,
 ): HardwareWalletsSwapsStep[] {
   if (flow === Flow.Send) {
     return Array.from({ length: totalSteps }, (_, index) => {
@@ -197,14 +234,17 @@ function buildSteps(
   }
 
   const hasApproval = totalSteps > 1;
-  return Array.from({ length: totalSteps }, (_, index) => ({
-    kind:
-      hasApproval && index === 0
+  return Array.from({ length: totalSteps }, (_, index) => {
+    const isApproval = hasApproval && index === 0;
+    return {
+      kind: isApproval
         ? HardwareWalletsSwapsStepKind.Approval
         : HardwareWalletsSwapsStepKind.Transaction,
-    status: HardwareWalletsSwapsStepStatus.Waiting,
-    address: hasApproval && index === 0 ? spenderAddress : recipientAddress,
-  }));
+      status: HardwareWalletsSwapsStepStatus.Waiting,
+      address: isApproval ? spenderAddress : recipientAddress,
+      tokenAddress: isApproval ? approvalTokenAddress : undefined,
+    };
+  });
 }
 
 /**
@@ -302,6 +342,7 @@ export function hardwareWalletsSwapsReducer(
           event.payload.recipientAddress,
           event.payload.flow,
           event.payload.gasTokenAddress,
+          event.payload.approvalTokenAddress,
         ),
         disconnectedStep: null,
       };

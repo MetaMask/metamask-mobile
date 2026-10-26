@@ -7,11 +7,16 @@ import {
   waitFor,
 } from '@testing-library/react-native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { SafeAreaProvider, Metrics } from 'react-native-safe-area-context';
 import type { ReactTestInstance } from 'react-test-renderer';
+import Engine from '../../../../../core/Engine';
+import {
+  clearPostTradeShareSession,
+  getPostTradeShareSession,
+} from '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 
 // Local reanimated mock needed: Reanimated.default.call override is required
 // for RewardsAnimations component rendering.
@@ -26,6 +31,7 @@ jest.mock('react-native-gesture-handler', () => {
   const RN = jest.requireActual('react-native');
   return {
     GestureHandlerRootView: RN.View,
+    RectButton: RN.TouchableOpacity,
     GestureDetector: ({ children }: { children: React.ReactNode }) => children,
     Gesture: {
       Pan: jest.fn().mockReturnValue({
@@ -38,13 +44,18 @@ jest.mock('react-native-gesture-handler', () => {
 
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 
 import {
   PerpsOrderViewSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import Routes from '../../../../../constants/navigation/Routes';
+import { fireImpact, ImpactMoment } from '../../../../../util/haptics';
 import {
+  useBottomSafeAreaInset,
   usePerpsLiveAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
@@ -632,6 +643,35 @@ jest.mock(
 let mockPerpsAdvancedChartEnabled = false;
 let mockPaymentOverride: PaymentOverride | undefined;
 let mockTradeWithAnyTokenEnabled = false;
+let mockSelectedEvmAccount: { address: string } | undefined;
+let mockIsPerpsProModeActive = false;
+let mockProfileTradingActivityPrivate = false;
+const mockResolvePostTradePrompt = jest.fn();
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver',
+  () => ({ usePostTradePromptResolver: () => mockResolvePostTradePrompt }),
+);
+
+jest.mock('../../utils/perpsModeSwitch', () => ({
+  ...jest.requireActual('../../utils/perpsModeSwitch'),
+  useIsPerpsProModeActive: () => mockIsPerpsProModeActive,
+}));
+
+jest.mock('../../../../../util/social/postTradePromptStorage', () => ({
+  incrementShareSheetCount: jest.fn(),
+  markClaimSheetSeen: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+  () => ({
+    ...jest.requireActual(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    ),
+    openPostTradeComposer: jest.fn(),
+  }),
+);
 
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
@@ -645,6 +685,18 @@ jest.mock('react-redux', () => ({
     );
     if (selector === selectPerpsTradeWithAnyTokenEnabledFlag) {
       return mockTradeWithAnyTokenEnabled;
+    }
+    const { selectSelectedInternalAccountByScope } = jest.requireActual(
+      '../../../../../selectors/multichainAccounts/accounts',
+    );
+    if (selector === selectSelectedInternalAccountByScope) {
+      return () => mockSelectedEvmAccount;
+    }
+    const { selectIsProfileTradingActivityPrivate } = jest.requireActual(
+      '../../../../../selectors/profileController',
+    );
+    if (selector === selectIsProfileTradingActivityPrivate) {
+      return mockProfileTradingActivityPrivate;
     }
     if (
       selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
@@ -685,6 +737,8 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => {
   };
 });
 
+jest.mock('../../../../../util/haptics');
+
 // Mock trace utilities
 jest.mock('../../../../../util/trace', () => ({
   trace: jest.fn(),
@@ -707,6 +761,7 @@ jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
 
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
+  controllerMessenger: { call: jest.fn() },
   context: {
     PerpsController: {
       subscribeToPrices: jest.fn(() => jest.fn()),
@@ -869,6 +924,13 @@ jest.mock('../../components/PerpsOrderTypeBottomSheet', () =>
 jest.mock('../../components/PerpsBottomSheetTooltip', () =>
   createBottomSheetMock('perps-order-view-bottom-sheet-tooltip'),
 );
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
+}));
 
 interface MockTradeScreenProps {
   orderType: 'market' | 'limit';
@@ -884,6 +946,8 @@ interface MockTradeScreenProps {
   isPayWithDisabled: boolean;
   isPayWithLoading: boolean;
   feePercentage?: string;
+  bridgeFee?: string;
+  isFeeLoading: boolean;
   isSubmitDisabled: boolean;
   hasAmountError: boolean;
   showAmountWarning: boolean;
@@ -1306,6 +1370,7 @@ describe('PerpsOrderView', () => {
     applyDefaultHookMocks();
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockPaymentOverride = undefined;
+    mockProfileTradingActivityPrivate = false;
     (usePerpsOrderValidation as jest.Mock).mockReturnValue({
       isValid: true,
       errors: [],
@@ -1449,6 +1514,46 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
     });
+  });
+
+  it('renders the Perps rebate banner with the order metadata', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    expect(mockPerpsRebateBanner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        coin: 'ETH',
+        direction: 'long',
+      }),
+    );
+  });
+
+  it('does not reserve fixed-footer space inside the scroll content', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const scrollView = screen.getByTestId(
+      PerpsOrderViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    expect(StyleSheet.flatten(scrollView.props.contentContainerStyle)).toEqual(
+      expect.objectContaining({ paddingBottom: 0 }),
+    );
+  });
+
+  it('does not apply the bottom safe-area inset twice', () => {
+    const mockUseBottomSafeAreaInset = jest.mocked(useBottomSafeAreaInset);
+    mockUseBottomSafeAreaInset.mockReturnValue(34);
+
+    try {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      const footer = screen.getByTestId(PerpsOrderViewSelectorsIDs.FOOTER);
+
+      expect(StyleSheet.flatten(footer.props.style)).toEqual(
+        expect.objectContaining({ paddingBottom: 16 }),
+      );
+    } finally {
+      mockUseBottomSafeAreaInset.mockReturnValue(0);
+    }
   });
 
   it('renders the Trade bottom sheet for the treatment route', async () => {
@@ -1858,6 +1963,108 @@ describe('PerpsOrderView', () => {
     );
   });
 
+  describe('Trade sheet bridge fee', () => {
+    const payTotalsWithUsdFee = (usd: string) => ({
+      fees: {
+        provider: { usd },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+      },
+    });
+
+    it('passes the formatted bridge fee when paying with a token', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = {
+        fees: {
+          provider: { usd: '0.10' },
+          sourceNetwork: { estimate: { usd: '0.03' } },
+          targetNetwork: { usd: '0.02' },
+        },
+      };
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+      expect(getMockTradeScreenProps().isFeeLoading).toBe(false);
+    });
+
+    it('leaves the fee line unchanged when paying with perps balance', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+    });
+
+    it('leaves the fee line unchanged for the Money Account', () => {
+      mockPaymentOverride = PaymentOverride.MoneyAccount;
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+      expect(getMockTradeScreenProps().feePercentage).toBe('0.045');
+    });
+
+    it('omits the bridge fee when the deposit fee is zero', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+    });
+
+    it('omits the bridge fee when the pay quote has no fees', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = undefined;
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBeUndefined();
+    });
+
+    it('marks the Trade sheet fee as loading while the pay quote loads', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockIsPayQuoteLoading = true;
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().isFeeLoading).toBe(true);
+    });
+
+    it('updates the bridge fee when the pay quote refreshes', () => {
+      mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+      mockPayTotals = payTotalsWithUsdFee('0.15');
+      useTradeSheetRoute();
+      const { rerender } = render(<PerpsOrderView />, {
+        wrapper: TestWrapper,
+      });
+
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.15');
+
+      mockPayTotals = payTotalsWithUsdFee('0.42');
+      rerender(
+        <TestWrapper>
+          <PerpsOrderView />
+        </TestWrapper>,
+      );
+
+      expect(getMockTradeScreenProps().bridgeFee).toBe('$0.42');
+    });
+  });
+
   it('does not open the payment token selector for a hardware account', () => {
     jest.mocked(isHardwareAccount).mockReturnValue(true);
     useTradeSheetRoute();
@@ -2015,6 +2222,49 @@ describe('PerpsOrderView', () => {
     await act(async () => resolveOrder({ success: true }));
   });
 
+  it('dismisses the Trade sheet back to the presenting screen when stayOnCurrentScreen is set', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.PERPS.ROOT,
+      expect.objectContaining({
+        screen: Routes.PERPS.MARKET_DETAILS,
+      }),
+    );
+  });
+
+  it('does not pop the presenting screen again when the Trade sheet closes after a stay-on-screen submit', async () => {
+    const placeOrder = jest.fn().mockResolvedValue({ success: true });
+    (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+      placeOrder,
+      isPlacing: false,
+      error: undefined,
+    });
+    useTradeSheetRoute({ stayOnCurrentScreen: true });
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    await act(async () => {
+      getMockTradeScreenProps().onSubmit();
+    });
+    mockTradeSheetOnClose?.();
+
+    expect(placeOrder).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+  });
+
   it('still leaves the Trade sheet when the order execution fails', async () => {
     const placeOrder = jest.fn().mockResolvedValue({ success: false });
     (usePerpsOrderExecution as jest.Mock).mockReturnValue({
@@ -2037,6 +2287,64 @@ describe('PerpsOrderView', () => {
         pop: true,
       }),
     );
+  });
+
+  describe('Place Order haptics', () => {
+    const arrangePlaceOrder = () => {
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+        error: undefined,
+      });
+      return placeOrder;
+    };
+
+    it('plays PrimaryCTA once when the Trade sheet submits an order', async () => {
+      const placeOrder = arrangePlaceOrder();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(fireImpact).toHaveBeenCalledTimes(1);
+      expect(fireImpact).toHaveBeenCalledWith(ImpactMoment.PrimaryCTA);
+    });
+
+    it('stays silent on the full-screen surface', async () => {
+      const placeOrder = arrangePlaceOrder();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+          ),
+        );
+      });
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(fireImpact).not.toHaveBeenCalled();
+    });
+
+    it('stays silent when the tap only flushes a stuck slider drag', async () => {
+      const placeOrder = arrangePlaceOrder();
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSliderValueChange(500);
+      });
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(placeOrder).not.toHaveBeenCalled();
+      expect(fireImpact).not.toHaveBeenCalled();
+    });
   });
 
   describe('when the Trade sheet is dismissed while validation is pending', () => {
@@ -2137,7 +2445,10 @@ describe('PerpsOrderView', () => {
     const flushAsync = () =>
       new Promise<void>((resolve) => setTimeout(resolve, 0));
 
-    const arrangeDepositFlow = (options?: { validationPending?: boolean }) => {
+    const arrangeDepositFlow = (options?: {
+      validationPending?: boolean;
+      stayOnCurrentScreen?: boolean;
+    }) => {
       mockTradeWithAnyTokenEnabled = true;
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
       if (options?.validationPending) {
@@ -2189,7 +2500,11 @@ describe('PerpsOrderView', () => {
         error: undefined,
       });
 
-      useTradeSheetRoute();
+      useTradeSheetRoute(
+        options?.stayOnCurrentScreen
+          ? { stayOnCurrentScreen: true }
+          : undefined,
+      );
       const { unmount } = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       const submit = () =>
@@ -2335,6 +2650,30 @@ describe('PerpsOrderView', () => {
       await confirmDepositOnChain();
 
       expect(placeOrder).toHaveBeenCalledTimes(1);
+    });
+
+    // Deposit confirm dismisses first; funds arriving later re-enter
+    // `handlePlaceOrder(true)` and must still place without a second goBack.
+    it('does not pop the presenting screen again when funds arrive after a stay-on-screen deposit dismiss', async () => {
+      const { placeOrder, submit, settleConfirm, confirmDepositOnChain } =
+        arrangeDepositFlow({ stayOnCurrentScreen: true });
+
+      await submit();
+      await settleConfirm();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(placeOrder).not.toHaveBeenCalled();
+
+      await confirmDepositOnChain();
+
+      expect(placeOrder).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.PERPS.ROOT,
+        expect.objectContaining({
+          screen: Routes.PERPS.MARKET_DETAILS,
+        }),
+      );
     });
 
     // Confirming deletes the approval request, which unmounts this view while
@@ -6007,7 +6346,27 @@ describe('PerpsOrderView', () => {
       });
     });
 
-    it('explains why Trade sheet submission is blocked when market data is unavailable', () => {
+    it('does not treat a deferred empty-asset fetch as a failed market', () => {
+      (usePerpsMarketData as jest.Mock).mockReturnValue({
+        marketData: null,
+        isLoading: true,
+        error: null,
+        refetch: jest.fn(),
+      });
+      useTradeSheetRoute();
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(getMockTradeScreenProps().errorMessages).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'market-data-unavailable',
+          }),
+        ]),
+      );
+    });
+
+    it('explains why Trade sheet submission is blocked when market data is unavailable', async () => {
       (usePerpsMarketData as jest.Mock).mockReturnValue({
         marketData: null,
         isLoading: false,
@@ -6018,15 +6377,17 @@ describe('PerpsOrderView', () => {
 
       render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-      expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
-      expect(getMockTradeScreenProps().errorMessages).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            key: 'market-data-unavailable',
-            message: 'perps.failed_to_load_market_data',
-          }),
-        ]),
-      );
+      await waitFor(() => {
+        expect(getMockTradeScreenProps().isSubmitDisabled).toBe(true);
+        expect(getMockTradeScreenProps().errorMessages).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              key: 'market-data-unavailable',
+              message: 'perps.failed_to_load_market_data',
+            }),
+          ]),
+        );
+      });
     });
   });
 
@@ -6577,6 +6938,40 @@ describe('PerpsOrderView', () => {
       mockUseIsPerpsBalanceSelected.mockReturnValue(false);
     });
 
+    // CV cannot reach onSubmit while the button is disabled, so this unit test covers the programmatic-submit rejection.
+    it.each([
+      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
+      { estimate: 100, copyKey: 'perps.slippage.cannot_fill_reduce_size' },
+    ])(
+      'rejects a programmatic submit before deposits with $copyKey',
+      async ({ estimate, copyKey }) => {
+        const mockPlaceOrder = jest.fn();
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: mockPlaceOrder,
+          isPlacing: false,
+        });
+        const toasts = mockDefaultUsePerpsToasts();
+        (usePerpsToasts as jest.Mock).mockReturnValue(toasts);
+        (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+          estimatedSlippageBps: estimate,
+          isReady: true,
+          canFillWithinSlippage: false,
+        });
+        useTradeSheetRoute();
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await act(async () => {
+          await getMockTradeScreenProps().onSubmit();
+        });
+
+        expect(mockPlaceOrder).not.toHaveBeenCalled();
+        expect(
+          toasts.PerpsToastOptions.formValidation.orderForm.validationError,
+        ).toHaveBeenCalledWith(copyKey);
+        expect(toasts.showToast).toHaveBeenCalled();
+      },
+    );
+
     it.each([
       {
         surface: 'full-screen view',
@@ -6673,6 +7068,7 @@ describe('PerpsOrderView', () => {
         // event payload is verified separately by the slippage recipe and the
         // `eventNames` constants tests.)
         expect(mockPlaceOrder).not.toHaveBeenCalled();
+        expect(fireImpact).not.toHaveBeenCalled();
         // The i18n mock returns the key for untranslated strings, so the copy
         // choice per surface is observable through the toast argument.
         expect(mockValidationError).toHaveBeenCalledWith(expectedCopyKey);
@@ -6921,5 +7317,364 @@ describe('PerpsOrderView', () => {
     // integration test (which drives the real confirm button). Driving the full
     // place-order flow here is too dependent on cross-test mock state to assert
     // reliably.
+  });
+
+  describe('copy-trade intents', () => {
+    const copyTradeOrigin = { commentId: 'comment-1', asset: 'ETH' };
+    const mockMessengerCall = jest.mocked(Engine.controllerMessenger.call);
+
+    const getOnSuccess = () => {
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onSuccess) {
+        throw new Error('usePerpsOrderExecution was not given onSuccess');
+      }
+      return options.onSuccess;
+    };
+
+    beforeEach(() => {
+      mockSelectedEvmAccount = { address: '0xTRADER' };
+      mockMessengerCall.mockResolvedValue({});
+      clearPostTradeShareSession();
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+      applyDefaultHookMocks();
+    });
+
+    it('posts a perps intent for the placed order on the copied market', async () => {
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { asset: 'ETH', direction: 'long', copyTradeOrigin },
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        await getOnSuccess()(undefined, { success: true, orderId: '42' });
+      });
+
+      expect(mockMessengerCall).toHaveBeenCalledWith(
+        'SocialService:createCopyTradeIntent',
+        {
+          origin: { kind: 'comment', id: 'comment-1' },
+          copierAccount: { caip10: 'eip155:42161:0xTRADER' },
+          execution: { product: 'perps', oid: '42' },
+        },
+      );
+    });
+
+    it('posts no intent for an order opened outside a social post', async () => {
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        await getOnSuccess()(undefined, { success: true, orderId: '42' });
+      });
+
+      expect(mockMessengerCall).not.toHaveBeenCalled();
+    });
+
+    it('opens the share sheet for a copied market order and skips the success toast', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      const pending = getPostTradeShareSession();
+      expect(pending?.product).toBe('perps');
+      expect(pending?.status).toBe('pending');
+      expect(showToast).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await getOnSuccess()(undefined, {
+          success: true,
+          orderId: '42',
+          averagePrice: '3200',
+        });
+      });
+
+      const completed = getPostTradeShareSession();
+      expect(completed?.status).toBe('complete');
+      if (completed?.product !== 'perps') {
+        return;
+      }
+      expect(completed.orderId).toBe('42');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the normal toasts for a copied market order from a private profile', async () => {
+      mockProfileTradingActivityPrivate = true;
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('marks the share sheet failed and skips the error toast', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: false });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute({
+        stayOnCurrentScreen: true,
+        copyTradeOrigin,
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onError) {
+        throw new Error('usePerpsOrderExecution was not given onError');
+      }
+      act(() => {
+        options.onError?.({ error: 'rejected' });
+      });
+
+      expect(getPostTradeShareSession()?.status).toBe('failed');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('keeps the submitted toast when the order is not a social copy-trade', async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      const placeOrder = jest.fn().mockResolvedValue({ success: true });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder,
+        isPlacing: false,
+      });
+      useTradeSheetRoute();
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('completes the order success when the intent action is not registered', () => {
+      mockMessengerCall.mockImplementation(() => {
+        throw new Error(
+          'A handler for SocialService:createCopyTradeIntent has not been registered',
+        );
+      });
+      (useRoute as jest.Mock).mockReturnValue({
+        params: { asset: 'ETH', direction: 'long', copyTradeOrigin },
+      });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(() =>
+        getOnSuccess()(undefined, { success: true, orderId: '42' }),
+      ).not.toThrow();
+      expect(mockMessengerCall).toHaveBeenCalled();
+    });
+  });
+
+  describe('post-trade prompt', () => {
+    const { incrementShareSheetCount, markClaimSheetSeen } = jest.requireMock(
+      '../../../../../util/social/postTradePromptStorage',
+    );
+    const { openPostTradeComposer } = jest.requireMock(
+      '../../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams',
+    );
+    const countKey = { address: '0xlinked', product: 'perps' };
+
+    const getOnSuccess = () => {
+      const options = (usePerpsOrderExecution as jest.Mock).mock.calls.at(
+        -1,
+      )?.[0] as Parameters<typeof usePerpsOrderExecution>[0];
+      if (!options?.onSuccess) {
+        throw new Error('usePerpsOrderExecution was not given onSuccess');
+      }
+      return options.onSuccess;
+    };
+
+    const submitOrder = async () => {
+      const showToast = jest.fn();
+      (usePerpsToasts as jest.Mock).mockReturnValue({
+        ...mockDefaultUsePerpsToasts(),
+        showToast,
+      });
+      (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+        placeOrder: jest.fn().mockResolvedValue({ success: true }),
+        isPlacing: false,
+      });
+      useTradeSheetRoute({ stayOnCurrentScreen: true });
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+      await act(async () => {
+        getMockTradeScreenProps().onSubmit();
+      });
+      showToast.mockClear();
+      return showToast;
+    };
+
+    const fill = async (orderId: string | undefined = '42') => {
+      await act(async () => {
+        await getOnSuccess()(undefined, {
+          success: true,
+          orderId,
+          averagePrice: '3200',
+        });
+      });
+    };
+
+    beforeEach(() => {
+      clearPostTradeShareSession();
+      mockIsPerpsProModeActive = false;
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'none' });
+    });
+
+    afterEach(() => {
+      clearPostTradeShareSession();
+      applyDefaultHookMocks();
+    });
+
+    it('opens a counted share sheet for a Lite market order', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+
+      expect(mockResolvePostTradePrompt).toHaveBeenCalledWith('perps');
+      expect(getPostTradeShareSession()?.status).toBe('pending');
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(incrementShareSheetCount).toHaveBeenCalledWith(
+        '0xlinked',
+        'perps',
+      );
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not count a share sheet when the fill has no order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      const showToast = await submitOrder();
+      await fill('');
+
+      expect(incrementShareSheetCount).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
+      expect(showToast).toHaveBeenCalled();
+    });
+
+    it('opens a create profile sheet at submit and marks it seen on fill', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      const showToast = await submitOrder();
+
+      expect(getPostTradeShareSession()).toEqual(
+        expect.objectContaining({
+          variant: 'create_profile',
+          status: 'pending',
+        }),
+      );
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+
+      await fill();
+
+      expect(getPostTradeShareSession()?.status).toBe('complete');
+      expect(markClaimSheetSeen).toHaveBeenCalledWith('perps');
+      expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it('does not mark the create profile sheet seen without an order id', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({ kind: 'claim_sheet' });
+
+      await submitOrder();
+      await fill('');
+
+      expect(markClaimSheetSeen).not.toHaveBeenCalled();
+    });
+
+    it('adds Post to feed to the confirmed toast', async () => {
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'post_to_feed_toast',
+      });
+
+      const showToast = await submitOrder();
+      await fill();
+
+      const toast = showToast.mock.calls.at(-1)?.[0];
+      expect(toast.linkButtonOptions.label).toBe(
+        'social_leaderboard.post_trade_share.post_to_feed',
+      );
+
+      toast.linkButtonOptions.onPress();
+
+      expect(openPostTradeComposer).toHaveBeenCalledWith({
+        tradeInFlight: expect.objectContaining({
+          orderId: '42',
+          chain: 'hyperliquid',
+        }),
+        preview: expect.objectContaining({ product: 'perps' }),
+      });
+    });
+
+    it('skips the prompt in Pro mode', async () => {
+      mockIsPerpsProModeActive = true;
+      mockResolvePostTradePrompt.mockReturnValue({
+        kind: 'share_sheet',
+        countKey,
+      });
+
+      await submitOrder();
+
+      expect(mockResolvePostTradePrompt).not.toHaveBeenCalled();
+      expect(getPostTradeShareSession()).toBeNull();
+    });
   });
 });

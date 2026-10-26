@@ -12,7 +12,10 @@ import {
 import type { VenuePortfolioAdapter } from '../adapters/types';
 import { PREDICT_NEXT_FEATURE_NAME } from '../constants';
 import { PredictError, PredictErrorCode } from '../errors';
-import { portfolioQueries } from '../queries/portfolioQueries';
+import {
+  portfolioQueries,
+  portfolioQueryFamilies,
+} from '../queries/portfolioQueries';
 import {
   KALSHI_VENUE_ID,
   type PredictAmount,
@@ -248,6 +251,292 @@ describe('PredictPortfolioService', () => {
       { limit: 20, cursor: undefined },
       expect.objectContaining({ signal: expect.anything() }),
     );
+  });
+
+  describe('invalidateQueries', () => {
+    const [balanceFamily, positionsFamily] =
+      portfolioQueryFamilies(KALSHI_VENUE_ID);
+
+    it('marks a cached read stale and refreshes it through its own query function', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+
+      // A later read returns different data: the refresh must observe it.
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '153.75' as PredictAmount,
+      });
+      await service.invalidateQueries({ queryKey: balanceFamily });
+
+      // One initial read plus one refresh: the refresh only ran because the
+      // invalidation marked the cache entry stale first.
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+      const refreshed = await service.getBalance(KALSHI_VENUE_ID);
+      expect(refreshed.available).toBe('153.75');
+    });
+
+    it('refreshes every cached page of a params-bearing read by family prefix', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+        nextCursor: 'next-page',
+      });
+      const service = buildService(portfolio);
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 }, 'next-page');
+
+      await service.invalidateQueries({ queryKey: positionsFamily });
+
+      // The family invalidation refreshes the params-bearing cache entry —
+      // one entry refetching all its pages — not just a canonical shape.
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(4);
+      expect(portfolio.fetchPositions).toHaveBeenNthCalledWith(
+        3,
+        { limit: 20, cursor: undefined },
+        expect.anything(),
+      );
+      expect(portfolio.fetchPositions).toHaveBeenNthCalledWith(
+        4,
+        { limit: 20, cursor: 'next-page' },
+        expect.anything(),
+      );
+    });
+
+    it('refreshes only the cached reads matching the key filters', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.invalidateQueries({ queryKey: balanceFamily });
+
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(1);
+    });
+
+    it('fetches nothing when the invalidated families have no cached entries', async () => {
+      const portfolio = createPortfolio();
+      const service = buildService(portfolio);
+
+      await service.invalidateQueries({ queryKey: balanceFamily });
+      // Keyless filters match everything; with an empty cache that is still
+      // nothing.
+      await service.invalidateQueries();
+
+      expect(portfolio.fetchBalance).not.toHaveBeenCalled();
+      expect(portfolio.fetchPositions).not.toHaveBeenCalled();
+      expect(portfolio.fetchActivity).not.toHaveBeenCalled();
+    });
+
+    it('keyless invalidation refreshes every cached read, including Activity', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchActivity.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        activity: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getActivity(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.invalidateQueries();
+
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+      expect(portfolio.fetchActivity).toHaveBeenCalledTimes(2);
+    });
+
+    it('exact-key invalidation refreshes only the exactly matching read', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, {
+          limit: 20,
+        }).queryKey,
+        exact: true,
+      });
+
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(2);
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('evicts the oldest cached read past the registry bound', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      for (let limit = 1; limit <= 33; limit += 1) {
+        await service.getPositions(KALSHI_VENUE_ID, { limit });
+      }
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(33);
+
+      // The oldest read (limit: 1) was evicted: its exact invalidation finds
+      // no cached entry and refetches nothing.
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, { limit: 1 })
+          .queryKey,
+        exact: true,
+      });
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(33);
+
+      // The newest read survives and refreshes through its own query function.
+      await service.invalidateQueries({
+        queryKey: portfolioQueries.getPositions(KALSHI_VENUE_ID, { limit: 33 })
+          .queryKey,
+        exact: true,
+      });
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(34);
+    });
+
+    it('keeps prior data and resolves when a refresh fails', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValueOnce({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      // A non-retryable contract failure: the refresh attempt fails once
+      // without exhausting the read's retries or opening its circuit.
+      portfolio.fetchBalance.mockRejectedValue(
+        PredictError.from(PredictErrorCode.INVALID_RESPONSE),
+      );
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+
+      await expect(
+        service.invalidateQueries({ queryKey: balanceFamily }),
+      ).resolves.toBeUndefined();
+
+      // The failed refresh stays stale: the next read refetches and recovers.
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '153.75' as PredictAmount,
+      });
+      const recovered = await service.getBalance(KALSHI_VENUE_ID);
+      expect(recovered.available).toBe('153.75');
+    });
+  });
+
+  describe('clearAccountData', () => {
+    it('aborts in-flight reads and never caches their late response', async () => {
+      const portfolio = createPortfolio();
+      let release: () => void = () => undefined;
+      portfolio.fetchBalance.mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            release = () =>
+              resolve({
+                venueId: KALSHI_VENUE_ID,
+                currency: 'USD',
+                available: '100.00' as PredictAmount,
+              });
+          }),
+      );
+      const service = buildService(portfolio);
+
+      const read = service.getBalance(KALSHI_VENUE_ID);
+      await Promise.resolve();
+      await service.clearAccountData();
+      // The caller fails instead of receiving the previous person's Balance.
+      await expect(read).rejects.toThrow('CancelledError');
+
+      // The response arrives after the purge: it must not be remembered.
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '5.00' as PredictAmount,
+      });
+      release();
+      await Promise.resolve();
+
+      const next = await service.getBalance(KALSHI_VENUE_ID);
+      expect(next.available).toBe('5.00');
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+    });
+
+    it('drops a cached read so the next read refetches it', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      // Inside the stale time the cache answers, so the venue is not called.
+      await service.getBalance(KALSHI_VENUE_ID);
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '5.00' as PredictAmount,
+      });
+      await service.clearAccountData();
+
+      const next = await service.getBalance(KALSHI_VENUE_ID);
+      expect(next.available).toBe('5.00');
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops refreshing the account reads it dropped', async () => {
+      const portfolio = createPortfolio();
+      portfolio.fetchBalance.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        currency: 'USD',
+        available: '100.00' as PredictAmount,
+      });
+      portfolio.fetchPositions.mockResolvedValue({
+        venueId: KALSHI_VENUE_ID,
+        positions: [],
+      });
+      const service = buildService(portfolio);
+      await service.getBalance(KALSHI_VENUE_ID);
+      await service.getPositions(KALSHI_VENUE_ID, { limit: 20 });
+
+      await service.clearAccountData();
+      // An abandoned Order's terminal receipt still invalidates by family;
+      // the dropped reads must not be re-read for the previous person.
+      await service.invalidateQueries();
+
+      expect(portfolio.fetchBalance).toHaveBeenCalledTimes(1);
+      expect(portfolio.fetchPositions).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('traces Positions and Activity with counts only, never amounts', async () => {

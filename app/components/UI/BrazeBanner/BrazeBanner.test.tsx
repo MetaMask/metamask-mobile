@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, act, fireEvent } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import Braze from '@braze/react-native-sdk';
 import BrazeBanner from './BrazeBanner';
 import { BRAZE_BANNER_TEST_IDS } from './BrazeBanner.testIds';
@@ -39,11 +40,12 @@ jest.mock('@braze/react-native-sdk', () => ({
 const mockGetBannerForPlacement = jest.fn().mockResolvedValue(null);
 const mockLogBrazeBannerImpression = jest.fn();
 const mockLogBrazeBannerClick = jest.fn();
+const mockDismissBrazeBanner = jest.fn();
 
 jest.mock('../../../core/Braze', () => ({
   getBannerForPlacement: (...args: unknown[]) =>
     mockGetBannerForPlacement(...args),
-  dismissBrazeBanner: jest.fn(),
+  dismissBrazeBanner: (...args: unknown[]) => mockDismissBrazeBanner(...args),
   logBrazeBannerImpression: (...args: unknown[]) =>
     mockLogBrazeBannerImpression(...args),
   logBrazeBannerClick: (...args: unknown[]) => mockLogBrazeBannerClick(...args),
@@ -64,21 +66,12 @@ jest.mock('../../../core/DeeplinkManager/DeeplinkManager', () => ({
 // Mock: isAllowedBrazeDeeplink — default to true; individual tests can override
 // ---------------------------------------------------------------------------
 const mockIsAllowedBrazeDeeplink = jest.fn().mockReturnValue(true);
+const mockIsAllowedBrazeExternalUrl = jest.fn().mockReturnValue(false);
 jest.mock('./isAllowedBrazeDeeplink', () => ({
   isAllowedBrazeDeeplink: (...args: unknown[]) =>
     mockIsAllowedBrazeDeeplink(...args),
-}));
-
-// ---------------------------------------------------------------------------
-// Mock: Redux (react-redux)
-// ---------------------------------------------------------------------------
-const mockDispatch = jest.fn();
-let mockLastDismissed: string | null = null;
-
-jest.mock('react-redux', () => ({
-  useDispatch: () => mockDispatch,
-  useSelector: (selector: (s: unknown) => unknown) =>
-    selector({ banners: { lastDismissedBrazeBanner: mockLastDismissed } }),
+  isAllowedBrazeExternalUrl: (...args: unknown[]) =>
+    mockIsAllowedBrazeExternalUrl(...args),
 }));
 
 // ---------------------------------------------------------------------------
@@ -211,12 +204,12 @@ function assertBannerState(
 describe('BrazeBanner', () => {
   beforeEach(() => {
     capturedBannerListener = undefined;
-    mockLastDismissed = null;
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockGetBannerForPlacement.mockResolvedValue(null);
     (Braze.getBanner as jest.Mock).mockResolvedValue(null);
     mockIsAllowedBrazeDeeplink.mockReturnValue(true);
+    mockIsAllowedBrazeExternalUrl.mockReturnValue(false);
   });
 
   afterEach(() => {
@@ -264,29 +257,6 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('renders nothing when incoming banner bannerName matches lastDismissedBrazeBanner', () => {
-    mockLastDismissed = 'campaign-xyz';
-    const { queryByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
-
-    // Dismissed banner is skipped; hook stays in loading which now returns null
-    assertBannerState(queryByTestId, 'empty');
-  });
-
-  it('renders normally when lastDismissedBrazeBanner does not match incoming banner', () => {
-    mockLastDismissed = 'old-campaign';
-    const { queryByTestId } = render(
-      <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
-    );
-
-    fireBannerEvent([makeBanner({ bannerName: 'new-campaign' })]);
-
-    assertBannerState(queryByTestId, 'visible');
-  });
-
   it('renders null immediately on dismiss with no skeleton shown', () => {
     const { getByTestId, queryByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
@@ -300,22 +270,20 @@ describe('BrazeBanner', () => {
     assertBannerState(queryByTestId, 'empty');
   });
 
-  it('dispatches setLastDismissedBrazeBanner on dismiss when banner_name and dismissable:true are set', () => {
+  it('calls dismissBrazeBanner with the placement ID on close', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
 
-    fireBannerEvent([
-      makeBanner({ bannerName: 'campaign-xyz', dismissable: true }),
-    ]);
+    fireBannerEvent([makeBanner({ bannerName: 'campaign-xyz' })]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({ payload: 'campaign-xyz' }),
-    );
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(TEST_PLACEMENT_ID, {
+      campaign_name: 'campaign-xyz',
+    });
   });
 
-  it('does not dispatch when banner has no bannerName', () => {
+  it('calls dismissBrazeBanner even when the banner has no campaign_name', () => {
     const { getByTestId } = render(
       <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
     );
@@ -323,7 +291,10 @@ describe('BrazeBanner', () => {
     fireBannerEvent([makeBanner()]);
     fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.DISMISS_BUTTON));
 
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockDismissBrazeBanner).toHaveBeenCalledWith(
+      TEST_PLACEMENT_ID,
+      null,
+    );
   });
 
   it('ignores further bannerCardsUpdated events after dismiss', () => {
@@ -399,6 +370,22 @@ describe('BrazeBanner', () => {
       expect(mockParse).toHaveBeenCalledWith('metamask://portfolio', {
         origin: 'braze',
       });
+    });
+
+    it('opens an external URL with the OS and logs the banner click', () => {
+      const externalUrl = 'https://example.com/article';
+      mockIsAllowedBrazeDeeplink.mockReturnValue(false);
+      mockIsAllowedBrazeExternalUrl.mockReturnValue(true);
+      const { getByTestId } = render(
+        <BrazeBanner placementId={TEST_PLACEMENT_ID} />,
+      );
+
+      fireBannerEvent([makeBanner({ deeplink: externalUrl })]);
+      fireEvent.press(getByTestId(BRAZE_BANNER_TEST_IDS.PRESSABLE));
+
+      expect(Linking.openURL).toHaveBeenCalledWith(externalUrl);
+      expect(mockLogBrazeBannerClick).toHaveBeenCalledWith(TEST_PLACEMENT_ID);
+      expect(mockParse).not.toHaveBeenCalled();
     });
 
     it('does nothing when banner has no deeplink property', () => {

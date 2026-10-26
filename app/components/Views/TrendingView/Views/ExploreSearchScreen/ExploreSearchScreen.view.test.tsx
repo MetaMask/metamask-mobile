@@ -46,9 +46,33 @@ const actButtonPress = async (elem: ReactTestInstance) => {
   }
 };
 
+const waitForExploreSearchTransitionSettled = async (
+  findByTestId: (testId: string) => Promise<ReactTestInstance>,
+) => {
+  await findByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
+};
+
 describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   beforeEach(() => {
     setupTrendingApiFetchMock(mockTrendingTokensData);
+  });
+
+  it('shows the basic functionality empty state when basic functionality is disabled', async () => {
+    const { findByText, findByTestId, queryByTestId } =
+      renderExploreSearchScreenWithRoutes({
+        overrides: {
+          settings: {
+            basicFunctionalityEnabled: false,
+          },
+        },
+      });
+
+    expect(
+      await findByText(strings('trending.basic_functionality_disabled_title')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST),
+    ).not.toBeOnTheScreen();
   });
 
   afterEach(() => {
@@ -63,7 +87,7 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
       mockRwaTokensData,
       [mockAppleSearchResult],
     );
-    const { findByText, getByDisplayValue } =
+    const { findByTestId, findByText, getByDisplayValue } =
       renderExploreSearchScreenWithRoutes({
         initialParams: {
           initialQuery: 'Apple',
@@ -73,7 +97,39 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
     expect(getByDisplayValue('Apple')).toBeOnTheScreen();
 
-    expect(await findByText('Apple Token')).toBeOnTheScreen();
+    await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
+    expect(
+      await findByText('Apple Token', {}, { timeout: 10000 }),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the token symbol and market cap on a deeplink search result', async () => {
+    clearTrendingApiMocks();
+    setupTrendingApiFetchMock(
+      mockTrendingTokensData,
+      undefined,
+      mockRwaTokensData,
+      [
+        {
+          ...mockAppleSearchResult,
+          marketCap: 76000000000,
+          aggregatedUsdVolume: 974248822.2,
+        },
+      ],
+    );
+    const { findByText, queryByText } = renderExploreSearchScreenWithRoutes({
+      initialParams: {
+        initialQuery: 'Apple',
+        entryPoint: 'deeplink',
+      },
+    });
+
+    expect(
+      await findByText('Apple Token', {}, { timeout: 10000 }),
+    ).toBeOnTheScreen();
+    expect(await findByText('APPLE · $76B cap')).toBeOnTheScreen();
+    expect(queryByText('$974.2M vol')).toBeNull();
+    expect(queryByText(/cap •/)).toBeNull();
   });
 
   it('redacts a clipboard-prefilled query from the searched event', async () => {
@@ -231,6 +287,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
 
   it('pill row is visible after typing a search query', async () => {
     const { findByTestId, getByTestId } = renderExploreSearchScreenWithRoutes();
+
+    await waitForExploreSearchTransitionSettled(findByTestId);
 
     // The search input is auto-focused on mount; find it by placeholder
     const searchInput = getByTestId(
@@ -440,6 +498,36 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the flat search field with the brand refresh on where the OS cannot draw glass', async () => {
+    const { findByTestId, queryByTestId } = renderExploreSearchScreenWithRoutes(
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  exploreBrandRefresh: {
+                    enabled: true,
+                    minimumVersion: '1.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await findByTestId(
+        TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_BAR_GLASS),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the open-tabs button when no browser tabs are open', async () => {
     const { findByTestId, queryByTestId } =
       renderExploreSearchScreenWithRoutes();
@@ -503,6 +591,8 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
     try {
       const { findByTestId, getByTestId } =
         renderExploreSearchScreenWithRoutes();
+
+      await waitForExploreSearchTransitionSettled(findByTestId);
 
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
@@ -595,10 +685,13 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
         { initialParams: { entryPoint: 'deeplink' } },
       );
 
+      await waitForExploreSearchTransitionSettled(findByTestId);
+
       await userEvent.type(
         getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
         'eth',
       );
+      await findByTestId(ExploreSearchScreenSelectorsIDs.SEARCH_RESULTS_LIST);
       trackEventSpy.mockClear();
 
       await actButtonPress(
@@ -618,14 +711,14 @@ describeForPlatforms('ExploreSearchScreen - Component Tests', () => {
   });
 
   it('"All" pill is selected by default and pill row is present on mount', async () => {
-    const { getByTestId } = renderExploreSearchScreenWithRoutes();
+    const { findByTestId } = renderExploreSearchScreenWithRoutes();
 
-    // The pill row is mounted immediately — it does not require
-    // a search query. The "All" pill must be selected (active) by default.
-    await waitFor(() => {
-      const allPill = getByTestId(ExploreSearchScreenSelectorsIDs.PILL_ALL);
-      expect(allPill).toBeOnTheScreen();
-      expect(allPill.props.accessibilityState?.selected).toBe(true);
-    });
+    // Pill row mounts after the screen transition settles (see transition test).
+    await waitForExploreSearchTransitionSettled(findByTestId);
+    const allPill = await findByTestId(
+      ExploreSearchScreenSelectorsIDs.PILL_ALL,
+    );
+    expect(allPill).toBeOnTheScreen();
+    expect(allPill.props.accessibilityState?.selected).toBe(true);
   });
 });

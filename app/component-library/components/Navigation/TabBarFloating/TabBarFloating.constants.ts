@@ -76,13 +76,13 @@ export const TAB_BAR_FLOATING_LABEL_LINE_HEIGHT = 15;
 export const TAB_BAR_FLOATING_BLUR_INTENSITY = 60;
 
 /** Surface colour over the glass trade tray: 0 is pure glass, 1 is opaque. */
-export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.75;
+export const TRADE_TRAY_GLASS_FILL_OPACITY = 0.5;
 
 /** Alpha of the hairline drawn around the glass tray. */
 export const TRADE_TRAY_GLASS_BORDER_OPACITY = 0.5;
 
-/** Corner radius of the glass tray, matching `rounded-3xl`. */
-export const TRADE_TRAY_GLASS_RADIUS = 24;
+/** Corner radius of the trade tray, on glass, blur or the plain sheet. */
+export const TRADE_TRAY_GLASS_RADIUS = 32;
 
 export const TAB_BAR_FLOATING_TEST_IDS = {
   CONTAINER: 'tab-bar-floating-container',
@@ -90,4 +90,5 @@ export const TAB_BAR_FLOATING_TEST_IDS = {
   PILL: 'tab-bar-floating-pill',
   SEARCH_BUTTON: 'tab-bar-floating-search-button',
   TRADE_BUTTON: 'tab-bar-floating-trade-button',
+  SOCIAL_NEW_BADGE: 'tab-bar-floating-social-new-badge',
 } as const;

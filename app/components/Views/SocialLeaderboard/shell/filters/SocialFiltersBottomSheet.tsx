@@ -13,11 +13,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import {
+  fireImpact,
+  ImpactMoment,
+  playSelection,
+} from '../../../../../util/haptics';
+import {
   COHORT_LABEL_KEY,
-  COHORT_LEADING_EMOJI,
   COHORT_OPTIONS_FOLLOWING,
   COHORT_OPTIONS_LEADERBOARD,
-  COHORT_OPTIONS_LIVE_TRADES,
+  COHORT_OPTIONS_LIVE,
   MARKET_CAP_RANGE,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
@@ -84,8 +88,8 @@ const cohortOptionsForTab = (tab: SocialShellTab): SocialTraderCohort[] => {
   if (tab === 'leaderboard') {
     return COHORT_OPTIONS_LEADERBOARD;
   }
-  if (tab === 'liveTrades') {
-    return COHORT_OPTIONS_LIVE_TRADES;
+  if (tab === 'live') {
+    return COHORT_OPTIONS_LIVE;
   }
   return COHORT_OPTIONS_FOLLOWING;
 };
@@ -104,14 +108,22 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const { colors } = useTheme();
 
   const showTimeframe = tab === 'leaderboard';
-  const showRanges = tab !== 'leaderboard';
-  const showVerification = tab === 'following' || tab === 'liveTrades';
+  const showMarketCap = tab !== 'leaderboard';
+  // TODO: show 24h volume once the feed / live payload (or API) carries token
+  // 24h volume so the slider can filter rather than sit as chrome.
+  const showVolume24h = false;
+  // TODO: show Verification once posts/traders expose a real verified field.
+  // The blue check on cards is mocked today.
+  const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
   const typeTitleKey =
     tab === 'leaderboard'
       ? 'social_leaderboard.shell.filters.section.asset_type'
       : 'social_leaderboard.shell.filters.section.type';
   const cohortOptions = cohortOptionsForTab(tab);
+  // A lone All chip does not filter anything. Following is in that state
+  // once shrimp, dolphin, and whale are gone.
+  const showTraderCohort = cohortOptions.length > 1;
 
   const handleTypeChange = useCallback(
     (next: string) => onChange({ type: next as SocialFilterType }),
@@ -152,7 +164,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
       cohortOptions.map((id) => ({
         id,
         labelKey: COHORT_LABEL_KEY[id],
-        leadingEmoji: COHORT_LEADING_EMOJI[id],
       })),
     [cohortOptions],
   );
@@ -176,7 +187,10 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const applyButtonProps = useMemo(
     () => ({
       children: strings('social_leaderboard.shell.filters.apply'),
-      onPress: onApply,
+      onPress: () => {
+        fireImpact(ImpactMoment.PrimaryCTA);
+        onApply();
+      },
       size: ButtonSize.Lg,
       testID: SocialFiltersBottomSheetSelectorsIDs.APPLY,
     }),
@@ -186,7 +200,10 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   const resetButtonProps = useMemo(
     () => ({
       children: strings('social_leaderboard.shell.filters.reset'),
-      onPress: onReset,
+      onPress: () => {
+        playSelection().catch(() => undefined);
+        onReset();
+      },
       size: ButtonSize.Lg,
       style: styles.resetButton,
       testID: SocialFiltersBottomSheetSelectorsIDs.RESET,
@@ -248,13 +265,15 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  <FilterChipSection<SocialTraderCohort>
-                    titleKey="social_leaderboard.shell.filters.section.trader_cohort"
-                    options={cohortOptionObjects}
-                    value={draft.traderCohort}
-                    onChange={handleCohortChange}
-                    testID="social-filters-cohort"
-                  />
+                  {showTraderCohort ? (
+                    <FilterChipSection<SocialTraderCohort>
+                      titleKey="social_leaderboard.shell.filters.section.trader_cohort"
+                      options={cohortOptionObjects}
+                      value={draft.traderCohort}
+                      onChange={handleCohortChange}
+                      testID="social-filters-cohort"
+                    />
+                  ) : null}
 
                   {showTimeframe ? (
                     <FilterChipSection<SocialFilterTimeframe>
@@ -266,27 +285,28 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
                     />
                   ) : null}
 
-                  {showRanges ? (
-                    <>
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.market_cap"
-                        minimumValue={MARKET_CAP_RANGE.min}
-                        maximumValue={MARKET_CAP_RANGE.max}
-                        value={draft.marketCap}
-                        onValueChange={handleMarketCapChange}
-                        formatLabel={formatMarketCapLabel}
-                        testID={getFilterRangeTestId('market_cap')}
-                      />
-                      <FilterRangeSection
-                        titleKey="social_leaderboard.shell.filters.section.volume_24h"
-                        minimumValue={VOLUME_24H_RANGE.min}
-                        maximumValue={VOLUME_24H_RANGE.max}
-                        value={draft.volume24h}
-                        onValueChange={handleVolume24hChange}
-                        formatLabel={formatVolume24hLabel}
-                        testID={getFilterRangeTestId('volume_24h')}
-                      />
-                    </>
+                  {showMarketCap ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.market_cap"
+                      minimumValue={MARKET_CAP_RANGE.min}
+                      maximumValue={MARKET_CAP_RANGE.max}
+                      value={draft.marketCap}
+                      onValueChange={handleMarketCapChange}
+                      formatLabel={formatMarketCapLabel}
+                      testID={getFilterRangeTestId('market_cap')}
+                    />
+                  ) : null}
+
+                  {showVolume24h ? (
+                    <FilterRangeSection
+                      titleKey="social_leaderboard.shell.filters.section.volume_24h"
+                      minimumValue={VOLUME_24H_RANGE.min}
+                      maximumValue={VOLUME_24H_RANGE.max}
+                      value={draft.volume24h}
+                      onValueChange={handleVolume24hChange}
+                      formatLabel={formatVolume24hLabel}
+                      testID={getFilterRangeTestId('volume_24h')}
+                    />
                   ) : null}
                 </Box>
               </ScrollView>

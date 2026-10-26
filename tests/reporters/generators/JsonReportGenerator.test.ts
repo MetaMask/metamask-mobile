@@ -90,6 +90,20 @@ describe('JsonReportGenerator', () => {
     ).toBe(true);
   });
 
+  it('suffixes TestMu metric files so they do not overwrite BrowserStack reports', () => {
+    const data = makeReportData({
+      metrics: [
+        makeMetricsEntry({
+          device: { name: 'Pixel 8 Pro', osVersion: '14', provider: 'testmu' },
+        }),
+      ],
+    });
+
+    const files = generator.generate(data, '/reports');
+
+    expect(files.some((file) => file.endsWith('-testmu.json'))).toBe(true);
+  });
+
   it('groups metrics by device key', () => {
     const data = makeReportData({
       metrics: [

@@ -13,7 +13,6 @@ import {
   PERP_CHAINS,
   SPOT_CHAINS,
 } from '../../../shared/top-traders-constants';
-import { LEADERBOARD_COHORT_LEADING_EMOJI } from '../../../../UI/SocialFeed/utils/traderStats';
 import type {
   SocialTimeframe,
   SocialTypeFilter,
@@ -57,7 +56,7 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
 > = {
   trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
-  liveTrades: { ...DEFAULT_FILTERS },
+  live: { ...DEFAULT_FILTERS },
   leaderboard: { ...DEFAULT_FILTERS },
 };
 
@@ -73,32 +72,20 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
   predictions: 'social_leaderboard.shell.filters.type.predictions',
 };
 
-export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = [
-  'all',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
+/** Following has no sized cohort left, so the sheet hides this section. */
+export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
 
-export const COHORT_OPTIONS_LIVE_TRADES: SocialTraderCohort[] = [
-  'all',
-  'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-];
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
 
 export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
   'following',
-  'shrimp',
-  'dolphin',
-  'whale',
-  'verified',
+  // TODO: add `verified` once the leaderboard payload has a real verified field
+  // (the row badge is mocked today).
 ];
 
-/** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
-export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE_TRADES;
+/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
 
 /** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
 export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
@@ -111,13 +98,6 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
   verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
 };
-
-export const COHORT_LEADING_EMOJI: Partial<Record<SocialTraderCohort, string>> =
-  {
-    shrimp: LEADERBOARD_COHORT_LEADING_EMOJI.shrimp,
-    dolphin: LEADERBOARD_COHORT_LEADING_EMOJI.dolphin,
-    whale: LEADERBOARD_COHORT_LEADING_EMOJI.whale,
-  };
 
 export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [
   'all',
@@ -132,12 +112,9 @@ export const VERIFICATION_LABEL_KEY: Record<SocialFilterVerification, string> =
     unverified: 'social_leaderboard.shell.filters.verification.unverified',
   };
 
-export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = [
-  '1h',
-  '24h',
-  '7d',
-  '30d',
-];
+/** Windows the leaderboard API already returns (`7d` / `30d`). */
+// TODO: add `1h` / `24h` when the leaderboard endpoint exposes those windows.
+export const TIMEFRAME_OPTIONS: SocialFilterTimeframe[] = ['7d', '30d'];
 
 export const TIMEFRAME_LABEL_KEY: Record<SocialFilterTimeframe, string> = {
   '1h': 'social_leaderboard.shell.filters.timeframe.1h',

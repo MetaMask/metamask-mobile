@@ -413,6 +413,19 @@ describe('SwapsKeypad', () => {
       );
     });
 
+    it('does not claim the native responder for keypad touches', () => {
+      renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+      });
+
+      const bottomSheetProps = mockBottomSheetDialogProps.mock.lastCall?.[0];
+
+      expect(bottomSheetProps).not.toHaveProperty('onStartShouldSetResponder');
+    });
+
     it('renders BottomSheetDialog as interactable when isInteractable is true', () => {
       renderAndOpen({
         value: '0',
@@ -424,6 +437,22 @@ describe('SwapsKeypad', () => {
 
       expect(mockBottomSheetDialogProps).toHaveBeenCalledWith(
         expect.objectContaining({ isInteractable: true }),
+      );
+    });
+
+    it('forwards onLayout to the BottomSheetDialog', () => {
+      const onLayout = jest.fn();
+
+      renderAndOpen({
+        value: '0',
+        currency: 'native',
+        decimals: 18,
+        onChange: mockOnChange,
+        onLayout,
+      });
+
+      expect(mockBottomSheetDialogProps).toHaveBeenCalledWith(
+        expect.objectContaining({ onLayout }),
       );
     });
 

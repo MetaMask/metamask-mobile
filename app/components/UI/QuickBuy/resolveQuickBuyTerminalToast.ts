@@ -1,12 +1,26 @@
 import { StatusTypes } from '@metamask/bridge-controller';
 import { TransactionStatus as KeyringTransactionStatus } from '@metamask/keyring-api';
-import type { ToastRef } from '../../../component-library/components/Toast/Toast.types';
+import type {
+  ToastLinkButtonOptions,
+  ToastRef,
+} from '../../../component-library/components/Toast/Toast.types';
 import Engine from '../../../core/Engine';
 import {
   playErrorNotification,
   playSuccessNotification,
 } from '../../../util/haptics';
 import type { Theme } from '../../../util/theme/models';
+import { strings } from '../../../../locales/i18n';
+import ToastService from '../../../core/ToastService';
+import {
+  incrementShareSheetCount,
+  markClaimSheetSeen,
+} from '../../../util/social/postTradePromptStorage';
+import { patchPostTradeShareSession } from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import {
+  buildSpotPostTradeComposerParams,
+  openPostTradeComposer,
+} from '../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeComposerParams';
 import { buildQuickBuyToastOptions } from './quickBuyToastOptions';
 import {
   getTrackedQuickBuyTrade,
@@ -16,6 +30,11 @@ import {
 
 type TerminalOutcome = 'complete' | 'failed';
 
+interface BridgeTerminalResolution {
+  outcome: TerminalOutcome;
+  transactionHash?: string;
+}
+
 /**
  * Authoritative terminal status from `BridgeStatusController`. Covers EVM swaps
  * (marked `COMPLETE` on `TransactionController:transactionConfirmed`) and all
@@ -23,14 +42,28 @@ type TerminalOutcome = 'complete' | 'failed';
  */
 function resolveFromBridgeStatus(
   txMetaId: string,
-): TerminalOutcome | undefined {
+): BridgeTerminalResolution | undefined {
   const historyItem =
     Engine.context.BridgeStatusController.getBridgeHistoryItemByTxMetaId(
       txMetaId,
     );
   const status = historyItem?.status?.status;
-  if (status === StatusTypes.COMPLETE) return 'complete';
-  if (status === StatusTypes.FAILED) return 'failed';
+  if (status === StatusTypes.COMPLETE) {
+    return {
+      outcome: 'complete',
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
+    };
+  }
+  if (status === StatusTypes.FAILED) {
+    return {
+      outcome: 'failed',
+      transactionHash:
+        historyItem?.reportedSubmittedTxHash ??
+        historyItem?.status?.srcChain?.txHash,
+    };
+  }
   return undefined;
 }
 
@@ -64,6 +97,29 @@ function resolveFromMultichain(signature: string): TerminalOutcome | undefined {
   return undefined;
 }
 
+const buildPostToFeedLink = (
+  trade: TrackedQuickBuyTrade,
+  transactionHash: string | undefined,
+): ToastLinkButtonOptions | undefined => {
+  const prompt = trade.postTradePrompt;
+  if (prompt?.kind !== 'post_to_feed_toast' || !transactionHash) {
+    return undefined;
+  }
+  return {
+    label: strings('social_leaderboard.post_trade_share.post_to_feed'),
+    onPress: () => {
+      ToastService.toastRef?.current?.closeToast();
+      openPostTradeComposer(
+        buildSpotPostTradeComposerParams({
+          transactionHash,
+          chain: prompt.tradeInFlightChain,
+          preview: prompt.preview,
+        }),
+      );
+    },
+  };
+};
+
 /**
  * Claims the trade atomically (settling doubles as the dedupe), surfaces the
  * matching `complete` / `failed` toast and fires the paired haptic. The first
@@ -79,18 +135,45 @@ function emitTerminalToast(
   outcome: TerminalOutcome,
   showToast: ToastRef['showToast'],
   theme: Theme,
+  transactionHash?: string,
 ): boolean {
   markQuickBuyTradeSettled(txMetaId);
 
   const isComplete = outcome === 'complete';
-  showToast(
-    buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
-      trade,
-      theme,
-    }),
-  );
-  // Terminal feedback pairs with the toast: success buzz on settlement, error
-  // buzz on failure — fires even if the user navigated away.
+  const prompt = trade.postTradePrompt;
+  if (isComplete && prompt?.kind === 'share_sheet') {
+    incrementShareSheetCount(prompt.countKey.address, prompt.countKey.product);
+  }
+  if (isComplete && prompt?.kind === 'claim_sheet') {
+    markClaimSheetSeen('swap');
+  }
+  if (trade.postTradeShare && trade.postTradeShareSessionId) {
+    const sessionUpdated = patchPostTradeShareSession(
+      trade.postTradeShareSessionId,
+      {
+        status: isComplete ? 'complete' : 'failed',
+        ...(transactionHash ? { transactionHash } : {}),
+      },
+    );
+    if (!sessionUpdated) {
+      showToast(
+        buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+          trade,
+          theme,
+        }),
+      );
+    }
+  } else {
+    showToast(
+      buildQuickBuyToastOptions(isComplete ? 'complete' : 'failed', {
+        trade,
+        theme,
+        linkButtonOptions: isComplete
+          ? buildPostToFeedLink(trade, transactionHash)
+          : undefined,
+      }),
+    );
+  }
   if (isComplete) {
     playSuccessNotification();
   } else {
@@ -124,7 +207,10 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  let outcome = resolveFromBridgeStatus(txMetaId);
+  const bridgeResolution = resolveFromBridgeStatus(txMetaId);
+  let outcome = bridgeResolution?.outcome;
+  const transactionHash =
+    bridgeResolution?.transactionHash ?? trade.txSignature;
   if (!outcome && trade.isNonEvmSwap) {
     outcome = resolveFromMultichain(trade.txSignature ?? txMetaId);
   }
@@ -132,5 +218,12 @@ export function resolveQuickBuyTerminalToast(
     return false;
   }
 
-  return emitTerminalToast(txMetaId, trade, outcome, showToast, theme);
+  return emitTerminalToast(
+    txMetaId,
+    trade,
+    outcome,
+    showToast,
+    theme,
+    transactionHash,
+  );
 }

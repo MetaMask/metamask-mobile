@@ -96,7 +96,7 @@ import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellT
 import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
 import type { BatchSellTokenSelectRouteParams } from './types';
 import { safeToChecksumAddress } from '../../../../../util/address';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -639,7 +639,7 @@ export function BatchSellTokenSelect() {
         onPress={() => handleChainSelect(chainId)}
         isDisabled={isDisabled}
         size={ButtonToggleSize.Md}
-        style={tw.style('rounded-xl py-2 px-3')}
+        style={tw.style('rounded-full py-2 px-4')}
         testID={`${BatchSellTokenSelectSelectorsIDs.NETWORK_PILL}-${chainId}`}
       />
     ),

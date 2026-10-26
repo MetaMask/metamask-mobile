@@ -89,6 +89,8 @@ jobs:
       - name: Filter suites by selected_tags
         id: filter
         shell: bash
+        env:
+          SELECTED: ${{ inputs.selected_tags }}
         run: |
           # Full suite list — one entry per shard: {tag, slug, split, total_splits}.
           # Suites with N shards appear N times with split: 1..N.
@@ -115,15 +117,15 @@ jobs:
             {"tag":"SmokeStake",              "slug":"stake",               "split":1,"total_splits":1},
             {"tag":"SmokeMoney",              "slug":"money",               "split":1,"total_splits":1},
             {"tag":"SmokeBrowser",            "slug":"browser",             "split":1,"total_splits":1},
-            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":3},
-            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":3},
-            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":3,"total_splits":3},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":1,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":2,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":3,"total_splits":4},
+            {"tag":"SmokeConfirmations",      "slug":"confirmations",       "split":4,"total_splits":4},
             {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":1,"total_splits":2},
             {"tag":"SmokeMultiChainAPI",      "slug":"multichain-api",      "split":2,"total_splits":2},
             {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":1,"total_splits":2},
             {"tag":"SmokeNetworkExpansion",   "slug":"network-expansion",   "split":2,"total_splits":2}
           ]'
-          SELECTED='${{ inputs.selected_tags }}'
           if echo "$SELECTED" | jq -e 'contains(["ALL"])' > /dev/null; then
             INCLUDE="$SUITES"
           else

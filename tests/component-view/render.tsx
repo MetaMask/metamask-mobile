@@ -2,7 +2,7 @@ import React from 'react';
 import { Text } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
 import { notifyManager } from '@tanstack/query-core';
 import { createUIQueryClient } from '@metamask/react-data-query';
 import type { Json } from '@metamask/utils';
@@ -46,20 +46,32 @@ const dataServiceMessenger = {
   },
 };
 
-function createQueryClient() {
+export function createComponentViewQueryClient() {
   return createUIQueryClient(DATA_SERVICES, dataServiceMessenger, {
     defaultOptions: { queries: { retry: false } },
   });
 }
 
-function QueryClientBoundary({ children }: { children: React.ReactNode }) {
-  const [queryClient] = React.useState(createQueryClient);
+function QueryClientBoundary({
+  children,
+  client,
+}: {
+  children: React.ReactNode;
+  /** A caller-owned client, for tests that must keep the cache across a
+   * remount (for example when driving a reset). */
+  client?: QueryClient;
+}) {
+  const [createdClient] = React.useState(createComponentViewQueryClient);
+  const queryClient = client ?? createdClient;
 
   React.useEffect(
     () => () => {
-      queryClient.clear();
+      // A caller-owned client outlives the render: clear only our own.
+      if (!client) {
+        createdClient.clear();
+      }
     },
-    [queryClient],
+    [client, createdClient],
   );
 
   return (
@@ -67,10 +79,13 @@ function QueryClientBoundary({ children }: { children: React.ReactNode }) {
   );
 }
 
-function withQueryClient(Component: React.ComponentType): React.ComponentType {
+function withQueryClient(
+  Component: React.ComponentType,
+  client?: QueryClient,
+): React.ComponentType {
   return function WrappedWithQueryClient(props) {
     return (
-      <QueryClientBoundary>
+      <QueryClientBoundary client={client}>
         <Component {...props} />
       </QueryClientBoundary>
     );
@@ -82,9 +97,10 @@ export function renderComponentViewScreen(
   options: Parameters<typeof renderScreen>[1],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
+  queryClient?: QueryClient,
 ) {
   return renderScreen(
-    withQueryClient(Component),
+    withQueryClient(Component, queryClient),
     options,
     providerValues,
     initialParams,
@@ -121,6 +137,7 @@ export function renderScreenWithRoutes(
   }[],
   providerValues?: ProviderValues,
   initialParams?: Record<string, unknown>,
+  queryClient?: QueryClient,
 ) {
   const Stack = createNativeStackNavigator();
 
@@ -129,7 +146,7 @@ export function renderScreenWithRoutes(
     () => <Text testID={getRouteProbeTestId(routeName)}>{routeName}</Text>;
 
   const stackTree = (
-    <QueryClientBoundary>
+    <QueryClientBoundary client={queryClient}>
       <Stack.Navigator>
         <Stack.Screen
           name={options.name}
