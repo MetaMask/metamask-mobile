@@ -1,5 +1,4 @@
 import React from 'react';
-import Animated from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -13,6 +12,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
@@ -27,6 +27,13 @@ interface HomepageBalanceBreakdownHeroProps {
   hero: HeroData;
 }
 
+/** BodyMd line box, the same height as the loaded "+$0 Today" row. */
+const DELTA_SKELETON_HEIGHT = typography.sBodyMD.lineHeight;
+const DELTA_SKELETON_WIDTH = 120;
+/** Fixed so the hero shimmer does not resize as the hidden amount changes. */
+const BALANCE_SKELETON_WIDTH = 92;
+const BALANCE_SKELETON_HEIGHT = typography.sAmountDisplayLg.lineHeight;
+
 const HomepageBalanceBreakdownHero = ({
   hero,
 }: HomepageBalanceBreakdownHeroProps) => {
@@ -34,7 +41,6 @@ const HomepageBalanceBreakdownHero = ({
     accessibilityHint,
     accessibilityLabel,
     amountText,
-    animatedBalanceStyle,
     deltaColor,
     displayBalance,
     isLoading,
@@ -45,6 +51,7 @@ const HomepageBalanceBreakdownHero = ({
     togglePrivacy,
     zeroBalance,
   } = useHomepageBalanceBreakdownHero(hero);
+  const coverWithSkeleton = isLoading || hero.isPartiallyLoaded;
 
   if (!isLoading && shouldShowEmptyState) {
     return (
@@ -68,13 +75,17 @@ const HomepageBalanceBreakdownHero = ({
       testID={HomepageBalanceBreakdownTestIds.HERO}
       twClassName="mx-4 h-auto self-stretch flex-col items-start justify-start overflow-visible rounded-none bg-transparent p-0"
     >
-      <Animated.View style={animatedBalanceStyle}>
+      <Skeleton
+        height={BALANCE_SKELETON_HEIGHT}
+        hideChildren={coverWithSkeleton}
+        testID={HomepageBalanceBreakdownTestIds.HERO_BALANCE_SKELETON}
+        twClassName="rounded-md"
+        width={BALANCE_SKELETON_WIDTH}
+      >
         {privacyMode ? (
           <SensitiveText
             color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
+              hero.hasErroredSlice ? TextColor.TextMuted : TextColor.TextDefault
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Long}
@@ -88,9 +99,7 @@ const HomepageBalanceBreakdownHero = ({
           <AnimatedBalanceText
             accessible={false}
             color={
-              hero.isPartiallyLoaded || hero.hasErroredSlice
-                ? TextColor.TextMuted
-                : TextColor.TextDefault
+              hero.hasErroredSlice ? TextColor.TextMuted : TextColor.TextDefault
             }
             isLoading={isLoading}
             loadingValue={zeroBalance}
@@ -99,46 +108,51 @@ const HomepageBalanceBreakdownHero = ({
             animated={!skipBalanceAnimation}
           />
         )}
-      </Animated.View>
+      </Skeleton>
 
-      {!isLoading && hero.delta && amountText ? (
-        <Skeleton>
-          <Box
-            alignItems={BoxAlignItems.Center}
-            flexDirection={BoxFlexDirection.Row}
-            twClassName="gap-1.5"
+      {coverWithSkeleton ? (
+        <Skeleton
+          height={DELTA_SKELETON_HEIGHT}
+          testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_SKELETON}
+          twClassName="rounded-md"
+          width={DELTA_SKELETON_WIDTH}
+        />
+      ) : hero.delta && amountText ? (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="gap-1.5"
+        >
+          <SensitiveText
+            color={deltaColor}
+            fontWeight={FontWeight.Medium}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT}
+            variant={TextVariant.BodyMd}
           >
+            {amountText}
+          </SensitiveText>
+          {percentText ? (
             <SensitiveText
               color={deltaColor}
               fontWeight={FontWeight.Medium}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
-              testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT}
+              testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_PERCENT}
               variant={TextVariant.BodyMd}
             >
-              {amountText}
+              {percentText}
             </SensitiveText>
-            {percentText ? (
-              <SensitiveText
-                color={deltaColor}
-                fontWeight={FontWeight.Medium}
-                isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={HomepageBalanceBreakdownTestIds.HERO_DELTA_PERCENT}
-                variant={TextVariant.BodyMd}
-              >
-                {percentText}
-              </SensitiveText>
-            ) : null}
-            <Text
-              color={TextColor.TextAlternative}
-              testID={HomepageBalanceBreakdownTestIds.HERO_PERIOD}
-              variant={TextVariant.BodyMd}
-            >
-              {strings('asset_overview.chart_time_period.1d')}
-            </Text>
-          </Box>
-        </Skeleton>
+          ) : null}
+          <Text
+            color={TextColor.TextAlternative}
+            testID={HomepageBalanceBreakdownTestIds.HERO_PERIOD}
+            variant={TextVariant.BodyMd}
+          >
+            {strings('asset_overview.chart_time_period.1d')}
+          </Text>
+        </Box>
       ) : null}
     </ButtonBase>
   );

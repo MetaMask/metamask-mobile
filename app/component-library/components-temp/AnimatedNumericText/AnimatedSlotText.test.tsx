@@ -11,12 +11,13 @@ jest.mock('react-native-reanimated', () => ({
 }));
 
 const mockTwStyle = jest.fn();
+let mockTextStyle: { lineHeight?: number } = {};
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: (...classes: string[]) => {
       mockTwStyle(...classes);
-      return {};
+      return mockTextStyle;
     },
   }),
 }));
@@ -26,6 +27,7 @@ const mockUseReducedMotion = jest.mocked(useReducedMotion);
 describe('AnimatedSlotText', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockTextStyle = {};
     mockUseReducedMotion.mockReturnValue(false);
   });
 
@@ -36,6 +38,9 @@ describe('AnimatedSlotText', () => {
 
     expect(getByText('$ ')).toBeOnTheScreen();
     expect(getByText('250.00')).toBeOnTheScreen();
+    expect(getByText('250.00')).not.toHaveStyle({
+      fontVariant: ['tabular-nums'],
+    });
     expect(getByText(' available')).toBeOnTheScreen();
   });
 
@@ -91,5 +96,20 @@ describe('AnimatedSlotText', () => {
       'font-default-medium',
       'text-default',
     );
+  });
+
+  it('rolls each digit in a column as wide as that glyph', () => {
+    mockTextStyle = { lineHeight: 56 };
+
+    const { getAllByText, getByText, queryByText } = render(
+      <AnimatedSlotText value="$18.51" />,
+    );
+
+    expect(getByText('$')).toBeOnTheScreen();
+    expect(queryByText('18.51')).toBeNull();
+    expect(getAllByText('1').length).toBeGreaterThan(1);
+    expect(getAllByText('1')[0]).not.toHaveStyle({
+      fontVariant: ['tabular-nums'],
+    });
   });
 });
