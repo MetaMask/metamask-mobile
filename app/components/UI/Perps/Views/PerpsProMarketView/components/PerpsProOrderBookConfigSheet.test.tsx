@@ -1,11 +1,13 @@
 import React from 'react';
 import { Modal, StyleSheet } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, within } from '@testing-library/react-native';
 import PerpsProOrderBookConfigSheet from './PerpsProOrderBookConfigSheet';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { mockTheme } from '../../../../../../util/theme';
 import { PERPS_PRO_MODAL_GESTURE_ROOT_TEST_ID } from './PerpsProModalPortal';
+import { strings } from '../../../../../../../locales/i18n';
+import { PerpsProMarketViewSelectorsIDs } from '../../../Perps.testIds';
 import {
   ImpactMoment,
   playImpact,
@@ -118,6 +120,7 @@ const defaultProps = {
   grouping: 1,
   groupingOptions: [0.1, 1, 10, 100, 1000],
   layout: 'left' as const,
+  sizeOnClick: false,
   onApply: jest.fn(),
   onClose: jest.fn(),
   testID: 'config-sheet',
@@ -271,6 +274,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 1,
       layout: 'right',
+      sizeOnClick: false,
     });
     expect(playSelection).toHaveBeenCalledTimes(1);
   });
@@ -347,6 +351,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'size',
       grouping: 10,
       layout: 'left',
+      sizeOnClick: false,
     });
     expect(onClose).toHaveBeenCalled();
     // Three changed chip picks + the primary save commit.
@@ -423,6 +428,7 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 100,
       layout: 'left',
+      sizeOnClick: false,
     });
   });
 
@@ -463,6 +469,87 @@ describe('PerpsProOrderBookConfigSheet', () => {
       metric: 'total',
       grouping: 1,
       layout: 'left',
+      sizeOnClick: false,
+    });
+  });
+
+  describe('size on click', () => {
+    const SIZE_ON_CLICK_SWITCH =
+      PerpsProMarketViewSelectorsIDs.ORDER_BOOK_SIZE_ON_CLICK_SWITCH;
+
+    it('renders the switch with its label, off when the setting is off', () => {
+      const label = strings('perps.order_book.size_on_click');
+      const { getByTestId } = renderSheet({ sizeOnClick: false });
+
+      expect(label).not.toMatch(/missing/i);
+      expect(
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByText(label),
+      ).toBeOnTheScreen();
+      expect(
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByRole('switch'),
+      ).toHaveProp('value', false);
+    });
+
+    it('renders the switch on when the setting is on', () => {
+      const { getByTestId } = renderSheet({ sizeOnClick: true });
+
+      expect(
+        within(getByTestId(SIZE_ON_CLICK_SWITCH)).getByRole('switch'),
+      ).toHaveProp('value', true);
+    });
+
+    it('applies the drafted setting on Save', () => {
+      const onApply = jest.fn();
+      const { getByTestId } = renderSheet({ onApply });
+
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
+      fireEvent.press(getByTestId('config-sheet-apply'));
+
+      expect(onApply).toHaveBeenCalledWith(
+        expect.objectContaining({ sizeOnClick: true }),
+      );
+      expect(playSelection).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not apply the drafted setting when dismissed', () => {
+      const onApply = jest.fn();
+      const { getByTestId } = renderSheet({ onApply });
+
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
+      fireEvent.press(getByTestId('config-sheet-close'));
+
+      expect(onApply).not.toHaveBeenCalled();
+    });
+
+    it('resets the drafted setting when the sheet reopens', () => {
+      const onApply = jest.fn();
+      const { getByTestId, rerender } = renderWithProvider(
+        <PerpsProOrderBookConfigSheet {...defaultProps} onApply={onApply} />,
+        { state: { engine: { backgroundState } } },
+      );
+
+      fireEvent(getByTestId(SIZE_ON_CLICK_SWITCH), 'valueChange', true);
+
+      rerender(
+        <PerpsProOrderBookConfigSheet
+          {...defaultProps}
+          isVisible={false}
+          onApply={onApply}
+        />,
+      );
+      rerender(
+        <PerpsProOrderBookConfigSheet
+          {...defaultProps}
+          isVisible
+          onApply={onApply}
+        />,
+      );
+
+      fireEvent.press(getByTestId('config-sheet-apply'));
+
+      expect(onApply).toHaveBeenCalledWith(
+        expect.objectContaining({ sizeOnClick: false }),
+      );
     });
   });
 });

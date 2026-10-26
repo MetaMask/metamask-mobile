@@ -6,6 +6,7 @@ import { AppiumAssertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import QuoteView from '../../page-objects/swaps/QuoteView.js';
 import { checkSwapActivity } from '../../helpers/swap/swap-unified-ui';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 /* Scenario 7: Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3 */
 test.describe(`${Performance} ${PerformanceSwaps}`, () => {
@@ -19,6 +20,7 @@ test.describe(`${Performance} ${PerformanceSwaps}`, () => {
       );
 
       await loginToAppPlaywright();
+      await enableHermesAppProfiling();
 
       const timer1 = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',

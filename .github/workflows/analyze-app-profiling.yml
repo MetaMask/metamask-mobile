@@ -14,16 +14,17 @@
 #
 # Cadence:
 # - After a *scheduled* 6-hour performance run: collect `report.json`, compare
-#   the run with the median of the previous two scheduled ticks (~6h and
-#   ~12h), and record either the scenarios that crossed the 1.5× threshold or
-#   a one-line all-clear in the Actions summary and the
+#   the run with the average of the complete, non-spiking runs among the
+#   previous six scheduled ticks (~36h), and record either the scenarios that
+#   stayed over the 1.5× threshold in two consecutive runs or a one-line
+#   all-clear in the Actions summary and the
 #   `app-profiling-analysis` artifact. No per-scenario profile zips.
 #   Findings also get an optional proposal from the pinned
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
 #   only sees Evidence JSON from this job; it does not classify. That proposal
 #   stays in the artifact (`slack.md`); this workflow does not post it.
 #   Findings are not filed as GitHub issues until that is turned back on.
-#   A scheduled run still compares the profile with the recent median and
+#   A scheduled run still compares the profile with that baseline and
 #   writes the digest. The Monday report can still list issues that were
 #   already opened; it does not open or comment on any.
 # - After a *manually dispatched* performance run: full digest in the Actions

@@ -579,9 +579,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
@@ -839,6 +841,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
+                    shareTradingActivity={draft.shareTradingActivity}
+                    onShareTradingActivityChange={(enabled) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        shareTradingActivity: enabled,
+                      }));
+                    }}
                     onSelect={(account) => {
                       trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
                       playSelection().catch(() => undefined);
