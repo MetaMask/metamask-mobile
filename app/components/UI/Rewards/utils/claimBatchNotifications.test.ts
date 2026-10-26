@@ -1,4 +1,3 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import { clearNotificationSkipPredicates } from '../../../../core/notificationSkipPredicates';
 import {
@@ -70,12 +69,8 @@ describe('claimBatchNotifications', () => {
 
     suppressSettledClaimBatchBanner('0xAbC');
 
-    expect(isReplacedClaimBatch({ batchId: '0xabc' } as TransactionMeta)).toBe(
-      true,
-    );
-    expect(
-      isReplacedClaimBatch({ batchId: '0xother' } as TransactionMeta),
-    ).toBe(false);
+    expect(isReplacedClaimBatch({ batchId: '0xabc' })).toBe(true);
+    expect(isReplacedClaimBatch({ batchId: '0xother' })).toBe(false);
     expect(isReplacedClaimBatch(undefined)).toBe(false);
     expect(clearSettledClaimBatchBanners('0xabc')).toEqual([
       { type: 'REMOVE_NOTIFICATION_BY_ID', id: 'tx-1' },

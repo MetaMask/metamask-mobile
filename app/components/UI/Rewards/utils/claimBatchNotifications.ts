@@ -1,4 +1,3 @@
-import type { TransactionMeta } from '@metamask/transaction-controller';
 import {
   removeNotificationById,
   showSimpleNotification,
@@ -37,13 +36,14 @@ export function claimRewardsNotification(
     id,
     autodismiss: CLAIM_REWARDS_NOTIFICATION_MS,
     title,
+    description: '',
     status,
   });
 }
 
 /** True once this claim's settled wallet banner should be skipped. */
 export function isReplacedClaimBatch(
-  transactionMeta: TransactionMeta | undefined,
+  transactionMeta: { batchId?: string } | undefined,
 ): boolean {
   const batchId = transactionMeta?.batchId;
   return (
