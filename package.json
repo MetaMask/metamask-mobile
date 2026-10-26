@@ -803,7 +803,7 @@
     "dotenv": "^16.0.3",
     "dpdm": "^3.14.0",
     "eas-cli": "^12.6.1",
-    "esbuild": "^0.25.10",
+    "esbuild": "^0.28.2",
     "esbuild-register": "^3.6.0",
     "eslint": "^8.44.0",
     "eslint-config-prettier": "^8.1.0",
