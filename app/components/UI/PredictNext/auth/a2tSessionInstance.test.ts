@@ -3,13 +3,18 @@ import { HandlerType } from '@metamask/snaps-utils';
 import Engine from '../../../../core/Engine';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import {
+  clearKalshiDeviceKey,
   deleteKalshiDeviceKey,
   ensureKalshiDeviceKey,
   getKalshiDeviceKey,
   signWithKalshiDeviceKey,
   type KalshiDevicePublicMaterial,
 } from './kalshiDeviceKey';
-import { a2tSession, deleteKalshiTradingSession } from './a2tSessionInstance';
+import {
+  a2tSession,
+  deleteKalshiTradingSession,
+  watchWalletLockForA2tSession,
+} from './a2tSessionInstance';
 
 jest.mock('react-native-device-info', () => ({
   isEmulatorSync: () => true,
@@ -21,7 +26,7 @@ jest.mock('../../../../core/Engine', () => ({
       getBearerToken: jest.fn(async () => 'mm-token'),
     },
   },
-  controllerMessenger: {},
+  controllerMessenger: { subscribe: jest.fn() },
 }));
 
 jest.mock('../../../../core/Snaps/utils', () => ({
@@ -49,6 +54,7 @@ jest.mock('./a2tIssuerUrl', () => ({
 }));
 
 jest.mock('./kalshiDeviceKey', () => ({
+  clearKalshiDeviceKey: jest.fn(),
   ensureKalshiDeviceKey: jest.fn(),
   getKalshiDeviceKey: jest.fn(),
   signWithKalshiDeviceKey: jest.fn(),
@@ -170,5 +176,25 @@ describe('a2tSession', () => {
     expect(clearSpy.mock.invocationCallOrder[0]).toBeLessThan(
       jest.mocked(deleteKalshiDeviceKey).mock.invocationCallOrder[0],
     );
+  });
+
+  it('subscribes to wallet lock once and drops the A2T and device key on lock', () => {
+    const subscribeMock = jest.mocked(Engine.controllerMessenger.subscribe);
+    const clearSpy = jest.spyOn(a2tSession, 'clear');
+
+    watchWalletLockForA2tSession();
+    watchWalletLockForA2tSession();
+
+    expect(subscribeMock).toHaveBeenCalledTimes(1);
+    expect(subscribeMock).toHaveBeenCalledWith(
+      'KeyringController:lock',
+      expect.any(Function),
+    );
+
+    const onLock = subscribeMock.mock.calls[0][1] as () => void;
+    onLock();
+
+    expect(clearSpy).toHaveBeenCalledTimes(1);
+    expect(clearKalshiDeviceKey).toHaveBeenCalledTimes(1);
   });
 });

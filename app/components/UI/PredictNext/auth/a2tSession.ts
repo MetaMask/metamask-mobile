@@ -174,7 +174,7 @@ const messageFromBody = (value: unknown): string => {
 const fromBase64Url = (value: string): string => {
   const padded = value + '='.repeat((4 - (value.length % 4)) % 4);
   return Buffer.from(
-    padded.replace(/-/g, '+').replace(/_/g, '/'),
+    padded.replaceAll('-', '+').replaceAll('_', '/'),
     'base64',
   ).toString('utf8');
 };
@@ -254,9 +254,9 @@ const acceptIssued = (
 const bytesToBase64Url = (bytes: Uint8Array): string =>
   Buffer.from(bytes)
     .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]+$/u, '');
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 
 /**
  * One in-memory A2T session. `ensureA2T` waits until the MetaMask access
@@ -471,7 +471,7 @@ export class A2tSession {
       }
       const reloaded = await this.#deps.getDeviceKey();
       this.#assertCurrent(generation);
-      if (!reloaded || reloaded.publicKey !== publicKey) {
+      if (reloaded?.publicKey !== publicKey) {
         throw error;
       }
       return await this.#deps.signDeviceProof(proof);

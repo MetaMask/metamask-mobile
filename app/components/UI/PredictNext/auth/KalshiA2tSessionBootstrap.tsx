@@ -6,7 +6,7 @@ import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import Logger from '../../../../util/Logger';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { isA2tSessionCleared } from './a2tSession';
-import { a2tSession } from './a2tSessionInstance';
+import { a2tSession, watchWalletLockForA2tSession } from './a2tSessionInstance';
 import { isKalshiDeviceKeyEnabled } from './kalshiDeviceKey';
 
 interface KalshiA2tSessionBootstrapProps {
@@ -16,8 +16,9 @@ interface KalshiA2tSessionBootstrapProps {
 /**
  * Prefetches one A2T when PredictNext is on screen, Kalshi is enabled, and
  * the wallet is signed in and unlocked. Locking the wallet drops the cached
- * token. Page screens do not call this. Remounting joins the in-flight
- * request or reuses the cached token.
+ * token, also after this stack unmounts (see `watchWalletLockForA2tSession`).
+ * Page screens do not call this. Remounting joins the in-flight request or
+ * reuses the cached token.
  */
 export const KalshiA2tSessionBootstrap = ({
   children,
@@ -26,6 +27,10 @@ export const KalshiA2tSessionBootstrap = ({
   const walletUnlocked = useSelector(selectIsUnlocked);
   const config = useSelector(selectPredictConfig);
   const kalshiActive = isKalshiDeviceKeyEnabled(config);
+
+  useEffect(() => {
+    watchWalletLockForA2tSession();
+  }, []);
 
   useEffect(() => {
     if (!signedIn || !kalshiActive || !walletUnlocked) {

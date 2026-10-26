@@ -9,7 +9,7 @@ import type { PredictConfig } from '../config/predictConfig';
 import { selectPredictConfig } from '../selectors/predictConfig';
 import { KalshiA2tSessionBootstrap } from './KalshiA2tSessionBootstrap';
 import { A2tSessionClearedError } from './a2tSession';
-import { a2tSession } from './a2tSessionInstance';
+import { a2tSession, watchWalletLockForA2tSession } from './a2tSessionInstance';
 
 jest.mock('react-redux', () => ({
   useSelector: (selector: (state: unknown) => unknown) => selector(undefined),
@@ -32,6 +32,7 @@ jest.mock('./a2tSessionInstance', () => ({
     ensureA2T: jest.fn(),
     clear: jest.fn(),
   },
+  watchWalletLockForA2tSession: jest.fn(),
 }));
 
 const selectIsSignedInMock = selectIsSignedIn as unknown as jest.Mock<
@@ -87,6 +88,21 @@ describe('KalshiA2tSessionBootstrap', () => {
       expect(ensureA2TMock).toHaveBeenCalledTimes(1);
     });
     expect(clearMock).not.toHaveBeenCalled();
+  });
+
+  it('starts watching for wallet lock on mount, even while signed out', async () => {
+    selectIsSignedInMock.mockReturnValue(false);
+    jest.mocked(watchWalletLockForA2tSession).mockClear();
+
+    render(
+      <KalshiA2tSessionBootstrap>
+        <View />
+      </KalshiA2tSessionBootstrap>,
+    );
+
+    await waitFor(() => {
+      expect(watchWalletLockForA2tSession).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('clears the session and does not prefetch when signed out', async () => {

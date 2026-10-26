@@ -345,9 +345,9 @@ function copyBytes(bytes: Uint8Array): Uint8Array {
 function bytesToBase64Url(bytes: Uint8Array): string {
   return Buffer.from(bytes)
     .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/[=]+$/u, '');
+    .replaceAll('+', '-')
+    .replaceAll('/', '_')
+    .replaceAll('=', '');
 }
 
 function fromBase64Url(value: string): Uint8Array {
@@ -357,6 +357,6 @@ function fromBase64Url(value: string): Uint8Array {
 
   const padded = value + '='.repeat((4 - (value.length % 4)) % 4);
   return new Uint8Array(
-    Buffer.from(padded.replace(/-/g, '+').replace(/_/g, '/'), 'base64'),
+    Buffer.from(padded.replaceAll('-', '+').replaceAll('_', '/'), 'base64'),
   );
 }

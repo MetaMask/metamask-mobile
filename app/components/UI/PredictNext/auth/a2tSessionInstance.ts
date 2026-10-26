@@ -14,6 +14,7 @@ import { selectPredictConfig } from '../selectors/predictConfig';
 import { resolveA2tIssuerUrl } from './a2tIssuerUrl';
 import { A2tSession } from './a2tSession';
 import {
+  clearKalshiDeviceKey,
   deleteKalshiDeviceKey,
   ensureKalshiDeviceKey,
   getKalshiDeviceKey,
@@ -106,6 +107,27 @@ export const a2tSession = new A2tSession({
       setTimeout(resolve, ms);
     }),
 });
+
+let watchingWalletLock = false;
+
+/**
+ * Drops the cached A2T and the plaintext device key whenever the wallet
+ * locks, including when PredictNext is no longer on screen. The bootstraps
+ * only see a lock while the stack is mounted. Idempotent: the first call
+ * subscribes, and the subscription lives as long as `a2tSession`.
+ * `KalshiA2tSessionBootstrap` calls this on mount, after Engine is running,
+ * so nothing is cached before the subscription exists.
+ */
+export const watchWalletLockForA2tSession = (): void => {
+  if (watchingWalletLock) {
+    return;
+  }
+  Engine.controllerMessenger.subscribe('KeyringController:lock', () => {
+    a2tSession.clear();
+    clearKalshiDeviceKey();
+  });
+  watchingWalletLock = true;
+};
 
 /** Wallet reset. Drops the cached A2T, then removes the device key. */
 export const deleteKalshiTradingSession = async (): Promise<void> => {
