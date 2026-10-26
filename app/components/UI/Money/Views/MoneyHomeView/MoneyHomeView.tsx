@@ -1163,7 +1163,7 @@ const MoneyHomeView = () => {
         {vbaHomeCard.type !== 'none' && (
           <MoneyVbaHomeCard key={vbaHomeCard.type} variant={vbaHomeCard.type} />
         )}
-        {mfaStatus === 'not_set_up' || mfaStatus === 'off' ? (
+        {mfaStatus === 'not_set_up' ? (
           <MoneyMfaSetupCard onSetUp={handleMfaSetUpPress} />
         ) : null}
         <MoneyOnboardingCard isGlass={isGlass} />

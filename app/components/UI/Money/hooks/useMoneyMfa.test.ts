@@ -9,11 +9,11 @@ import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useMoneyMfa } from './useMoneyMfa';
-import { moneyMfaStore } from './moneyMfaStore';
+import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import {
   moneyAccountMigration,
   type MoneyAccountMigrationStatus,
-} from './moneyAccountMigration';
+} from '../../../../lib/Money/mfa/moneyAccountMigration';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -50,7 +50,7 @@ jest.mock('../../../../core/NavigationService', () => ({
   },
 }));
 
-jest.mock('./moneyAccountMigration', () => {
+jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
   let status = 'not_started';
   const listeners = new Set<() => void>();
   const setStatus = (next: string) => {

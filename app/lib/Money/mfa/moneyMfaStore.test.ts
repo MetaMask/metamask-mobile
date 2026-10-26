@@ -1,7 +1,7 @@
-import StorageWrapper from '../../../../store/storage-wrapper';
+import StorageWrapper from '../../../store/storage-wrapper';
 import { MONEY_MFA_STORAGE_KEY, moneyMfaStore } from './moneyMfaStore';
 
-jest.mock('../../../../store/storage-wrapper', () => ({
+jest.mock('../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItem: jest.fn(() => Promise.resolve(null)),

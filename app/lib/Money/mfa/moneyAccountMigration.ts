@@ -1,8 +1,8 @@
 import { KeyringAccountEntropyTypeOption } from '@metamask/keyring-api';
-import Engine from '../../../../core/Engine';
-import StorageWrapper from '../../../../store/storage-wrapper';
-import Logger from '../../../../util/Logger';
-import { describeError } from '../../../../util/describeError';
+import Engine from '../../../core/Engine';
+import StorageWrapper from '../../../store/storage-wrapper';
+import Logger from '../../../util/Logger';
+import { describeError } from '../../../util/describeError';
 
 export type MoneyAccountMigrationStatus =
   | 'not_started'

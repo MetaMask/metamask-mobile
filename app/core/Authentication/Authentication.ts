@@ -114,7 +114,7 @@ import { captureException } from '@sentry/react-native';
 import { captureExceptionForced } from '../../util/sentry/utils';
 import { navigateToPostUnlockHome } from '../DeeplinkManager/utils/startupDeeplinkNavigation';
 import { clearBrazeUser } from '../Braze';
-import { clearMoneyMfaDeviceState } from '../../components/UI/Money/hooks/clearMoneyMfaDeviceState';
+import { clearMoneyMfaDeviceState } from '../../lib/Money/mfa/clearMoneyMfaDeviceState';
 import { cancelDeeplinkNavigatedTrace } from '../Performance/DeeplinkPerformance';
 import {
   clearUnlockAppStartType,

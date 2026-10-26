@@ -4,7 +4,7 @@ import { recoverPersonalSignature } from '@metamask/eth-sig-util';
 import Engine from '../../../../core/Engine';
 import { setMpcTwoFactorTokenProvider } from '../../../../core/MpcMoneyKeyring/mpc-money-keyring-builder';
 import { useMfa } from '../../../../util/identity/mfa';
-import { moneyAccountMigration } from '../../../UI/Money/hooks/moneyAccountMigration';
+import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MoneyMpcQaPresets from './MoneyMpcQaPresets';
 
@@ -28,7 +28,7 @@ jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
 }));
 
-jest.mock('../../../UI/Money/hooks/moneyAccountMigration', () => ({
+jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => ({
   moneyAccountMigration: {
     reset: jest.fn(),
     start: jest.fn(),

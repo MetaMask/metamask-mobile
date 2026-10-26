@@ -16,7 +16,7 @@ import { setMpcTwoFactorTokenProvider } from '../../../../core/MpcMoneyKeyring/m
 import { describeError } from '../../../../util/describeError';
 import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
-import { moneyAccountMigration } from '../../../UI/Money/hooks/moneyAccountMigration';
+import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 import { MONEY_MFA_METHODS } from '../../../UI/Money/hooks/useMoneyMfa';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 
