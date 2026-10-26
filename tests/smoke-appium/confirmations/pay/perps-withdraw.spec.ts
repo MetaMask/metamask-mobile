@@ -36,9 +36,7 @@ const PERPS_WITHDRAW_HOLDINGS: TokenHolding[] = [
 ];
 
 appiumTest.describe(SmokeConfirmations('MM Pay - Perps withdraw'), () => {
-  // Multi-step withdraw (late Perps scroll + token picker + keypad + confirm +
-  // Activity) can exceed 250s on Android CI when homepage Perps mounts late.
-  appiumTest.describe.configure({ timeout: 320_000 });
+  appiumTest.describe.configure({ timeout: 250_000 });
 
   appiumTest(
     'withdraws Perps balance to Arbitrum ETH',

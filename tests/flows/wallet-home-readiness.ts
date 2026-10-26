@@ -59,10 +59,11 @@ const isAnyWalletHomeChildIndicatorDisplayed = async (): Promise<boolean> => {
 };
 
 /**
- * `wallet-screen` may exist in the hierarchy while `isDisplayed` is false.
- * Treat hierarchy presence + login hidden as ready (iOS/Android Appium).
+ * iOS only. `wallet-screen` may exist while `isDisplayed` is false.
+ * Android must not use this: the wallet node can exist under the lock screen
+ * before login is mounted (`waitForAppReady` in general.flow.ts).
  */
-const isWalletScreenExistsWithLoginHidden = async (): Promise<boolean> => {
+const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
   try {
     return await withImplicitWait(500, async () => {
       const walletScreen = (await Matchers.getElementByID(
@@ -82,9 +83,9 @@ const isWalletScreenExistsWithLoginHidden = async (): Promise<boolean> => {
 };
 
 /**
- * Android Appium wallet readiness — same L2 semantics as iOS: do not require
- * strict `wallet-screen` `isDisplayed()`. Post-Perps withdraw videos show wallet
- * home chrome while `wallet-screen` visibility probes still fail.
+ * Android Appium wallet readiness. Login must be hidden first — the wallet
+ * node can exist under the lock screen. Then accept the parent container or a
+ * displayed child. Do not treat mere hierarchy existence as ready.
  */
 export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
   if (await isLoginScreenDisplayed()) {
@@ -93,10 +94,7 @@ export const isWalletHomeReadyOnAndroid = async (): Promise<boolean> => {
   if (await isWalletContainerDisplayed()) {
     return true;
   }
-  if (await isAnyWalletHomeChildIndicatorDisplayed()) {
-    return true;
-  }
-  return isWalletScreenExistsWithLoginHidden();
+  return isAnyWalletHomeChildIndicatorDisplayed();
 };
 
 export const isWalletHomeReadyOnAndroidStable = async (): Promise<boolean> => {
@@ -115,7 +113,7 @@ export const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
   if (await isAnyWalletHomeChildIndicatorDisplayed()) {
     return true;
   }
-  return isWalletScreenExistsWithLoginHidden();
+  return isWalletScreenExistsWithLoginHiddenOnIOS();
 };
 
 export const isWalletHomeReadyOnAppium = async (): Promise<boolean> => {
