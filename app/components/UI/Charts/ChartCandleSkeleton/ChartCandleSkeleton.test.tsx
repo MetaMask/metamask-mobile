@@ -1,7 +1,6 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, within } from '@testing-library/react-native';
 import { mockTheme } from '../../../../util/theme';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import ChartCandleSkeleton from './ChartCandleSkeleton';
 
 const ID = 'chart-candle-skeleton';
@@ -35,7 +34,7 @@ describe('ChartCandleSkeleton', () => {
     suffix: string,
   ) => flatStyle(getByTestId(suffix ? `${ID}-${suffix}` : ID).props.style);
 
-  it('leaves accessibility to the design-system Skeleton', () => {
+  it('adds no progressbar role or accessibility label', () => {
     const { getByTestId, queryByRole } = render(<ChartCandleSkeleton />);
 
     expect(queryByRole('progressbar')).toBeNull();
@@ -81,9 +80,7 @@ describe('ChartCandleSkeleton', () => {
   });
 
   it('lays out skinny candles, wicks, volume bars, and axis pills', () => {
-    const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
-      <ChartCandleSkeleton />,
-    );
+    const { getByTestId, queryByTestId } = render(<ChartCandleSkeleton />);
     const mark = (suffix: string) => styleOf(getByTestId, suffix);
 
     expect(queryByTestId(`${ID}-candle-${CANDLES}`)).toBeNull();
@@ -137,9 +134,29 @@ describe('ChartCandleSkeleton', () => {
         backgroundColor: mockTheme.colors.border.muted,
       }),
     );
-    expect(UNSAFE_getAllByType(Skeleton)).toHaveLength(
-      CANDLES + CANDLES + CANDLES + Y_PILLS + X_PILLS,
-    );
+  });
+
+  it('pulses every mark through one wrapper and leaves the grid outside it', () => {
+    const { getAllByTestId, getByTestId } = render(<ChartCandleSkeleton />);
+    const pulse = within(getByTestId(`${ID}-pulse`));
+
+    expect(getAllByTestId(`${ID}-pulse`)).toHaveLength(1);
+    expect(flatStyle(getByTestId(`${ID}-pulse`).props.style).opacity).toBe(0.2);
+    [
+      'candle-0',
+      'candle-31',
+      'wick-31',
+      'volume-31',
+      'y-pill-5',
+      'x-pill-5',
+    ].forEach((suffix) => {
+      expect(pulse.getByTestId(`${ID}-${suffix}`)).toBeOnTheScreen();
+      expect(styleOf(getByTestId, suffix).backgroundColor).toBe(
+        mockTheme.colors.icon.alternative,
+      );
+    });
+    expect(pulse.queryByTestId(`${ID}-grid-h-0`)).toBeNull();
+    expect(pulse.queryByTestId(`${ID}-grid-v-0`)).toBeNull();
   });
 
   it.each([

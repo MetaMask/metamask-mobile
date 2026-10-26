@@ -1,8 +1,8 @@
-import React from 'react';
-import { StyleSheet } from 'react-native';
+import React, { useEffect, useRef, type ReactNode } from 'react';
+import { Animated, StyleSheet } from 'react-native';
 import { Box } from '@metamask/design-system-react-native';
-import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useTheme } from '../../../../util/theme';
+import { hasTestOverrides } from '../../../../util/test/utils';
 import type { ChartCandleSkeletonProps } from './ChartCandleSkeleton.types';
 
 /** Fallback height when the parent does not stretch. Same as the Perps detail chart. */
@@ -16,6 +16,15 @@ const VOLUME_BAND_RATIO = '22%' as const;
 /** Floor for the volume band. Matches MIN_VOLUME_PX in the volume study. */
 const MIN_VOLUME_PX = 56;
 const TIME_PANE_HEIGHT = 32;
+
+/** Same opacity range and step as the design-system Skeleton pulse. */
+const PULSE_MAX_OPACITY = 0.2;
+const PULSE_MIN_OPACITY = 0.1;
+const PULSE_STEP_MS = 700;
+/** Jest and E2E builds keep the pulse still, like the design-system Skeleton wrapper. */
+const PULSE_AUTO_PLAY = !hasTestOverrides && !process.env.JEST_WORKER_ID;
+
+const MARK_CLASS = 'rounded bg-icon-alternative';
 
 const percentOf = (part: number, whole: number): `${number}%` => {
   const rounded = Math.round((part / whole) * 100 * 1e6) / 1e6;
@@ -64,6 +73,7 @@ const layout = StyleSheet.create({
   timeAxis: { height: TIME_PANE_HEIGHT, flexShrink: 0 },
   timeTrack: { flex: 1, height: TIME_PANE_HEIGHT },
   timeSpacer: { width: AXIS_WIDTH, height: TIME_PANE_HEIGHT },
+  xPill: { width: X_PILL_WIDTH, height: X_PILL_HEIGHT },
 });
 
 const gridStyles = HORIZONTAL_GRID.map((line) =>
@@ -168,6 +178,52 @@ const candleMarks = CANDLES.map((candle) =>
   }),
 );
 
+interface ChartFrameProps {
+  testID?: string;
+  plot: ReactNode;
+  yAxis?: ReactNode;
+  volume?: ReactNode;
+  time?: ReactNode;
+}
+
+/** Price/volume panes over the time row. The grid and the marks share this frame. */
+const ChartFrame = ({ testID, plot, yAxis, volume, time }: ChartFrameProps) => (
+  <>
+    <Box testID={testID && `${testID}-panes`} style={layout.panes}>
+      <Box
+        testID={testID && `${testID}-price`}
+        twClassName="flex-row"
+        style={layout.pricePane}
+      >
+        <Box style={layout.plot}>{plot}</Box>
+        <Box testID={testID && `${testID}-y-axis`} style={layout.yAxis}>
+          {yAxis}
+        </Box>
+      </Box>
+      <Box
+        testID={testID && `${testID}-volume-band`}
+        twClassName="flex-row items-end"
+        style={layout.volumeBand}
+      >
+        <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
+          {volume}
+        </Box>
+        <Box style={layout.axisSpacer} />
+      </Box>
+    </Box>
+    <Box
+      testID={testID && `${testID}-time-axis`}
+      twClassName="flex-row items-center"
+      style={layout.timeAxis}
+    >
+      <Box twClassName="flex-row items-center" style={layout.timeTrack}>
+        {time}
+      </Box>
+      <Box style={layout.timeSpacer} />
+    </Box>
+  </>
+);
+
 /** Candle-chart placeholder. Price flexes, volume is 22% of that wrapper, time row is 32px. */
 const ChartCandleSkeleton = ({
   height = DEFAULT_CHART_HEIGHT,
@@ -179,6 +235,31 @@ const ChartCandleSkeleton = ({
     colors.border.muted,
     height,
   );
+  const opacity = useRef(new Animated.Value(PULSE_MAX_OPACITY)).current;
+
+  useEffect(() => {
+    if (!PULSE_AUTO_PLAY) {
+      return undefined;
+    }
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: PULSE_MIN_OPACITY,
+          duration: PULSE_STEP_MS,
+          useNativeDriver: true,
+          isInteraction: false,
+        }),
+        Animated.timing(opacity, {
+          toValue: PULSE_MAX_OPACITY,
+          duration: PULSE_STEP_MS,
+          useNativeDriver: true,
+          isInteraction: false,
+        }),
+      ]),
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [opacity]);
 
   return (
     <Box
@@ -186,36 +267,45 @@ const ChartCandleSkeleton = ({
       twClassName="w-full overflow-hidden"
       style={themed.root}
     >
-      <Box testID={`${testID}-panes`} style={layout.panes}>
-        <Box
-          testID={`${testID}-price`}
-          twClassName="flex-row"
-          style={layout.pricePane}
-        >
-          <Box style={layout.plot}>
-            {gridStyles.map((grid, index) => (
-              <Box
-                key={`grid-h-${index}`}
-                testID={`${testID}-grid-h-${index}`}
-                style={[grid.line, themed.hairline]}
-              />
-            ))}
-            <Box twClassName="flex-row" style={layout.fill}>
-              <Box style={layout.flex1} />
-              {VERTICAL_GRID.map((index) => (
+      <Box style={layout.fill}>
+        <ChartFrame
+          plot={
+            <>
+              {gridStyles.map((grid, index) => (
                 <Box
-                  key={`grid-v-slot-${index}`}
-                  twClassName="flex-row"
-                  style={layout.flex1}
-                >
-                  <Box
-                    testID={`${testID}-grid-v-${index}`}
-                    style={[layout.verticalGrid, themed.hairline]}
-                  />
-                  <Box style={layout.flex1} />
-                </Box>
+                  key={`grid-h-${index}`}
+                  testID={`${testID}-grid-h-${index}`}
+                  style={[grid.line, themed.hairline]}
+                />
               ))}
-            </Box>
+              <Box twClassName="flex-row" style={layout.fill}>
+                <Box style={layout.flex1} />
+                {VERTICAL_GRID.map((index) => (
+                  <Box
+                    key={`grid-v-slot-${index}`}
+                    twClassName="flex-row"
+                    style={layout.flex1}
+                  >
+                    <Box
+                      testID={`${testID}-grid-v-${index}`}
+                      style={[layout.verticalGrid, themed.hairline]}
+                    />
+                    <Box style={layout.flex1} />
+                  </Box>
+                ))}
+              </Box>
+            </>
+          }
+        />
+      </Box>
+      <Animated.View
+        testID={`${testID}-pulse`}
+        pointerEvents="none"
+        style={[layout.fill, { opacity }]}
+      >
+        <ChartFrame
+          testID={testID}
+          plot={
             <Box twClassName="flex-row" style={layout.fill}>
               {candleMarks.map((mark, index) => (
                 <Box
@@ -224,71 +314,53 @@ const ChartCandleSkeleton = ({
                   style={layout.candleSlot}
                 >
                   <Box twClassName="items-center" style={layout.candleColumn}>
-                    <Skeleton
+                    <Box
                       testID={`${testID}-wick-${index}`}
+                      twClassName={MARK_CLASS}
                       style={mark.wick}
                     />
-                    <Skeleton
+                    <Box
                       testID={`${testID}-candle-${index}`}
+                      twClassName={MARK_CLASS}
                       style={mark.body}
                     />
                   </Box>
                 </Box>
               ))}
             </Box>
-          </Box>
-          <Box testID={`${testID}-y-axis`} style={layout.yAxis}>
-            {gridStyles.map((grid, index) => (
-              <Skeleton
-                key={`y-pill-${index}`}
-                testID={`${testID}-y-pill-${index}`}
-                style={grid.pill}
-              />
-            ))}
-          </Box>
-        </Box>
-
-        <Box
-          testID={`${testID}-volume-band`}
-          twClassName="flex-row items-end"
-          style={layout.volumeBand}
-        >
-          <Box twClassName="flex-row items-end" style={layout.volumeTrack}>
-            {candleMarks.map((mark, index) => (
+          }
+          yAxis={gridStyles.map((grid, index) => (
+            <Box
+              key={`y-pill-${index}`}
+              testID={`${testID}-y-pill-${index}`}
+              twClassName={MARK_CLASS}
+              style={grid.pill}
+            />
+          ))}
+          volume={candleMarks.map((mark, index) => (
+            <Box
+              key={`volume-slot-${index}`}
+              twClassName="flex-1 items-center justify-end"
+              style={layout.volumeSlot}
+            >
               <Box
-                key={`volume-slot-${index}`}
-                twClassName="flex-1 items-center justify-end"
-                style={layout.volumeSlot}
-              >
-                <Skeleton
-                  testID={`${testID}-volume-${index}`}
-                  style={mark.volume}
-                />
-              </Box>
-            ))}
-          </Box>
-          <Box style={layout.axisSpacer} />
-        </Box>
-      </Box>
-
-      <Box
-        testID={`${testID}-time-axis`}
-        twClassName="flex-row items-center"
-        style={layout.timeAxis}
-      >
-        <Box twClassName="flex-row items-center" style={layout.timeTrack}>
-          {TIME_PILLS.map((index) => (
-            <Box key={`x-pill-slot-${index}`} twClassName="flex-1 items-center">
-              <Skeleton
-                testID={`${testID}-x-pill-${index}`}
-                width={X_PILL_WIDTH}
-                height={X_PILL_HEIGHT}
+                testID={`${testID}-volume-${index}`}
+                twClassName={MARK_CLASS}
+                style={mark.volume}
               />
             </Box>
           ))}
-        </Box>
-        <Box style={layout.timeSpacer} />
-      </Box>
+          time={TIME_PILLS.map((index) => (
+            <Box key={`x-pill-slot-${index}`} twClassName="flex-1 items-center">
+              <Box
+                testID={`${testID}-x-pill-${index}`}
+                twClassName={MARK_CLASS}
+                style={layout.xPill}
+              />
+            </Box>
+          ))}
+        />
+      </Animated.View>
     </Box>
   );
 };
