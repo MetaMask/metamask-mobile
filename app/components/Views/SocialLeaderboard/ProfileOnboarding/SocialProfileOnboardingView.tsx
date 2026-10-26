@@ -119,17 +119,21 @@ const LIVE_ACTIVITY = [
 /**
  * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
  * design-system hero face and falls back when the language is not in the font.
+ * Spacing stays on the wrapper. The title paints its metrics as a style, so a
+ * padding class on the text would lose to that style.
  */
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <MarketingMomentTitle
-    variant={TextVariant.DisplayLg}
-    twClassName={`text-center ${twClassName ?? ''}`}
-  >
-    {children}
-  </MarketingMomentTitle>
+  <Box twClassName={twClassName}>
+    <MarketingMomentTitle
+      variant={TextVariant.DisplayLg}
+      twClassName="w-full text-center"
+    >
+      {children}
+    </MarketingMomentTitle>
+  </Box>
 );
 
 const LiveActivityFallback: React.FC = () => (
