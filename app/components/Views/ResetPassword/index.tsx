@@ -453,7 +453,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     if (!pwd) {
       return;
     }
-    reauthenticate(pwd);
+    void reauthenticate(pwd);
   }, [reauthenticate]);
 
   const isError = useCallback(
@@ -836,7 +836,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       if (isSeedlessOnboardingLoginFlow) {
                         handleConfirmAction();
                       } else {
-                        onPressCreate();
+                        void onPressCreate();
                       }
                     }}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
