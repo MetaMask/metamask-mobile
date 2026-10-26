@@ -578,6 +578,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 titleProps={{
                   testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
                   twClassName: 'px-1',
+                  variant: TextVariant.DisplayLg,
                 }}
                 artwork={
                   <ProfileOnboardingIntroAnimation
