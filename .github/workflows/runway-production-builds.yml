@@ -36,6 +36,8 @@ permissions:
   contents: read
   pull-requests: read
 
+cache-mode: none
+
 jobs:
   generate-build-version:
     name: Generate build version
