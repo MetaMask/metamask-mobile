@@ -36,6 +36,7 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   hasTestOverrides,
+  isPerformanceTest,
   isTestEnvironment,
   enableApiCallLogs,
   testConfig,
@@ -332,8 +333,6 @@ if (enableApiCallLogs || isTestEnvironment) {
 
   // Performance builds only: let SeedlessOnboardingController hit live UAT
   // TOPRF / auth-service. E2E CI keeps these hosts on Mockttp (TOPRF mocked).
-  // IS_PERFORMANCE_TEST is inlined at build time via babel.
-  const isPerformanceTestBuild = process.env.IS_PERFORMANCE_TEST === 'true';
   const PROXY_BYPASS_PATTERNS = [
     '.node.web3auth.io',
     '.uat-node.web3auth.io',
@@ -341,7 +340,7 @@ if (enableApiCallLogs || isTestEnvironment) {
   ];
 
   const shouldBypassProxy = (targetUrl) => {
-    if (!isPerformanceTestBuild) {
+    if (!isPerformanceTest) {
       return false;
     }
     try {
