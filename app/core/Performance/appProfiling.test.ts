@@ -360,10 +360,12 @@ describe('appProfiling', () => {
 
     it('leaves the arm URL to the regular deeplink flow when disabled', async () => {
       const nativeModule = mockNativeModule();
+      const split = jest.spyOn(String.prototype, 'split');
 
       expect(armMeasuredAppProfilingFromUri(ARM_URL)).toBe(false);
       await flushPromises();
 
+      expect(split).not.toHaveBeenCalled();
       expect(nativeModule.armProfiling).not.toHaveBeenCalled();
     });
 

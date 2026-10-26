@@ -168,8 +168,11 @@ export function armMeasuredAppProfilingFromUri(
   uri: string | undefined,
   enabled: boolean = isPerformanceProfilingEnabled,
 ): boolean {
-  const [path, query = ''] = uri?.split('?') ?? [];
-  if (!enabled || path !== 'metamask://e2e/profiler/arm') {
+  if (!enabled || !uri) {
+    return false;
+  }
+  const [path, query = ''] = uri.split('?');
+  if (path !== 'metamask://e2e/profiler/arm') {
     return false;
   }
 
