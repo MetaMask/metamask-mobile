@@ -38,7 +38,7 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => ({
 }));
 
 jest.mock('../../../UI/Money/hooks/useMoneyMfa', () => ({
-  MONEY_MFA_METHODS: ['passkey', 'email_otp'],
+  MONEY_MFA_METHODS: ['passkey', 'totp'],
 }));
 
 jest.mock('@metamask/eth-sig-util', () => ({

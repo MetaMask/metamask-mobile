@@ -113,10 +113,10 @@ const MoneyMpcQaPresets = () => {
       onPress: () => sign('Sign test message'),
     },
     {
-      label: 'Sign with 2FA (passkey or email)',
+      label: 'Sign with 2FA (passkey or authenticator app)',
       onPress: () =>
         sign(
-          'Sign with 2FA (passkey or email)',
+          'Sign with 2FA (passkey or authenticator app)',
           verifyWith(mfa, MONEY_MFA_METHODS),
         ),
     },
