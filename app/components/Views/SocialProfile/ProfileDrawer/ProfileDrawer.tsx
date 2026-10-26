@@ -26,6 +26,7 @@ import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/acti
 import { strings } from '../../../../../locales/i18n';
 import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
 import { useAccountName } from '../../../hooks/useAccountName';
+import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
@@ -111,7 +112,13 @@ const ProfileDrawer = () => {
     navigateToSocialV1Profile(navigation);
   }, [navigation]);
 
-  // TODO: wire Subscriptions and Help and support once those screens exist.
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
+
+  // TODO: wire Help and support once that screen exists.
   const handlePress = useCallback(() => undefined, []);
 
   const menuItems: {
@@ -134,11 +141,16 @@ const ProfileDrawer = () => {
       onPress: handleActivity,
       testID: ProfileDrawerSelectorsIDs.ACTIVITY_ROW,
     },
-    {
-      iconName: IconName.Sparkle,
-      label: strings('profile_drawer.subscriptions'),
-      testID: ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-    },
+    ...(showOrangeEntry
+      ? [
+          {
+            iconName: IconName.MetamaskFoxOutline,
+            label: orangeLabel,
+            onPress: onPressOrange,
+            testID: ProfileDrawerSelectorsIDs.METAMASK_ORANGE,
+          },
+        ]
+      : []),
     {
       iconName: IconName.Setting,
       label: strings('profile_drawer.settings'),

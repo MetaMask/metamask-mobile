@@ -14,6 +14,12 @@ import { useMyProfile } from '../../SocialLeaderboard/MyProfileView/hooks/useMyP
 /* eslint-enable import-x/no-restricted-paths */
 import { useAccountName } from '../../../hooks/useAccountName';
 import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  SCREEN_NAMES,
+} from '../../../UI/Money/constants/moneyEvents';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -55,6 +61,28 @@ jest.mock('../../../hooks/multichainAccounts/useAccountGroupName', () => ({
   useAccountGroupName: jest.fn(() => null),
 }));
 
+const mockUseProSubscriptionEnabled = jest.fn(() => ({
+  isProSubscriptionEnabled: false,
+}));
+jest.mock('../../../../hooks/useProSubscriptionEnabled', () => ({
+  useProSubscriptionEnabled: () => mockUseProSubscriptionEnabled(),
+}));
+
+const mockUsePlusAccess = jest.fn(() => ({
+  isPlusSubscriber: false,
+  isPlusAccessUnknown: false,
+}));
+jest.mock('../../../../hooks/usePlusAccess', () => ({
+  usePlusAccess: () => mockUsePlusAccess(),
+}));
+
+const mockTrackButtonClicked = jest.fn();
+jest.mock('../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackButtonClicked,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -94,6 +122,13 @@ describe('ProfileDrawer', () => {
     mockUseMyProfile.mockReturnValue(profileResult(null));
     mockUseAccountName.mockReturnValue('Account 1');
     mockUseAccountGroupName.mockReturnValue(null);
+    mockUseProSubscriptionEnabled.mockReturnValue({
+      isProSubscriptionEnabled: false,
+    });
+    mockUsePlusAccess.mockReturnValue({
+      isPlusSubscriber: false,
+      isPlusAccessUnknown: false,
+    });
   });
 
   it('wraps content in SafeAreaView', () => {
@@ -320,10 +355,6 @@ describe('ProfileDrawer', () => {
       'profile_drawer.notifications',
     ],
     [ProfileDrawerSelectorsIDs.ACTIVITY_ROW, 'profile_drawer.activity'],
-    [
-      ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW,
-      'profile_drawer.subscriptions',
-    ],
     [ProfileDrawerSelectorsIDs.SETTINGS_ROW, 'profile_drawer.settings'],
     [
       ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
@@ -440,15 +471,96 @@ describe('ProfileDrawer', () => {
     expect(within(notificationsRow).queryByText('0')).toBeNull();
   });
 
-  it.each([
-    [ProfileDrawerSelectorsIDs.SUBSCRIPTIONS_ROW],
-    [ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW],
-  ])('leaves the not-yet-wired %s row inert', (testID) => {
+  it('leaves the not-yet-wired help and support row inert', () => {
     const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
-    fireEvent.press(getByTestId(testID));
+    fireEvent.press(
+      getByTestId(ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW),
+    );
 
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockGoBack).not.toHaveBeenCalled();
+  });
+
+  describe('MetaMask Orange row', () => {
+    it('stays hidden while the Orange flow is off', () => {
+      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      expect(
+        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+      ).toBeNull();
+    });
+
+    it('stays hidden while membership access is unresolved', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: false,
+        isPlusAccessUnknown: true,
+      });
+
+      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      expect(
+        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+      ).toBeNull();
+    });
+
+    it('invites a non-member to join and opens the subscription flow', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GET_PRO,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.join_metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_SUBSCRIPTION,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
+
+    it('labels a member MetaMask Orange and opens the hub', () => {
+      mockUseProSubscriptionEnabled.mockReturnValue({
+        isProSubscriptionEnabled: true,
+      });
+      mockUsePlusAccess.mockReturnValue({
+        isPlusSubscriber: true,
+        isPlusAccessUnknown: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
+
+      fireEvent.press(getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE));
+
+      expect(
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.metamask_orange')),
+      ).toBeOnTheScreen();
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.OPEN_PRO_HUB,
+        component_name: COMPONENT_NAMES.ACCOUNTS_MENU_ORANGE,
+        label_key: 'accounts_menu.metamask_orange',
+        redirect_target: SCREEN_NAMES.PRO_HUB,
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_HUB.ROOT, {
+        source: 'accounts_menu',
+      });
+    });
   });
 });
