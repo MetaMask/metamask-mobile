@@ -129,6 +129,7 @@ describe('AdvancedChart', () => {
     });
 
     expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+    expect(queryByTestId(CANDLE_SKELETON_ID)).not.toBeOnTheScreen();
     expect(getByTestId('mock-webview')).toBeOnTheScreen();
   });
 
