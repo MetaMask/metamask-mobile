@@ -606,6 +606,41 @@ describe('CodeStep', () => {
     });
   });
 
+  it.each([
+    ['email', otp(true)],
+    ['authenticator app', totpCode],
+  ])(
+    'keeps every %s digit visible with a loading indicator while verifying',
+    (_method, step) => {
+      const onAction = jest.fn();
+      const props = buildState(step);
+      const ui = (state: MfaFlowState) => (
+        <CodeStep
+          step={props.step as Extract<MfaFlowStep, { name: 'otp' }>}
+          state={state}
+          reason={reason}
+          onAction={onAction}
+        />
+      );
+      const { getByTestId, getByText, queryByTestId, rerender } = render(
+        ui(props.state),
+      );
+      fireEvent.changeText(
+        getByTestId(MfaFlowSelectorsIDs.CODE_INPUT),
+        '123456',
+      );
+      expect(queryByTestId(MfaFlowSelectorsIDs.VERIFYING_INDICATOR)).toBeNull();
+
+      rerender(ui({ ...props.state, busy: true }));
+
+      expect(
+        getByTestId(MfaFlowSelectorsIDs.VERIFYING_INDICATOR).props
+          .accessibilityLabel,
+      ).toBe('Verifying code');
+      expect(getByText('6')).toBeOnTheScreen();
+    },
+  );
+
   it('offers to try again when the app verification failed to start', () => {
     const { onAction, getByTestId, getByText } = renderCode(
       { ...totpCode, codeSent: false },

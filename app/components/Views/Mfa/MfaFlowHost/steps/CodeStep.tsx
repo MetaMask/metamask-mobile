@@ -15,6 +15,7 @@ import {
   ButtonVariant,
   FontWeight,
   HelpText,
+  Spinner,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -82,6 +83,9 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
   // resent.
   const isTotp = step.method === 'totp';
   const isCoolingDown = secondsLeft > 0;
+  // Every OTP method uses this shared screen, so email and future phone/SMS
+  // codes get the same progress state as authenticator app codes.
+  const isVerifying = busy && codeSent && code.length === CELL_COUNT;
 
   // React Native ignores focus() on an input it considers focused, so a
   // keyboard hidden without a blur (Android's back button, switching apps to
@@ -276,6 +280,19 @@ const CodeStep = ({ step, state, onAction }: StepProps<'otp'>) => {
             testID={MfaFlowSelectorsIDs.CODE_TAP_AREA}
           />
         </View>
+        {isVerifying ? (
+          <Box
+            twClassName="flex-row items-center justify-center gap-2 pt-2"
+            accessibilityRole="progressbar"
+            accessibilityLabel={strings('mfa.otp.verifying')}
+            testID={MfaFlowSelectorsIDs.VERIFYING_INDICATOR}
+          >
+            <Spinner />
+            <Text variant={TextVariant.BodySm}>
+              {strings('mfa.otp.verifying')}
+            </Text>
+          </Box>
+        ) : null}
         {showError && error ? (
           <StepError code={error} method={step.method} />
         ) : null}
