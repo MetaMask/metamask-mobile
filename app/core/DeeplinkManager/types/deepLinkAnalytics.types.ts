@@ -74,6 +74,7 @@ export enum DeepLinkRoute {
   // MetaMask SDK `mmsdk` deeplinks (the SDK's RPC message channel).
   SDK_MMSDK = 'sdk-mmsdk',
   MONEY = 'money',
+  MONEY_ACCOUNT_DEPOSIT = 'money-account-deposit',
   PRIVACY = 'privacy',
   NOTIFICATIONS_SETTINGS = 'notifications-settings',
   INVALID = 'invalid',
