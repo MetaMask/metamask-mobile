@@ -109,6 +109,11 @@ describe('AdvancedChart', () => {
     );
 
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+    expect(
+      within(getByTestId('advanced-chart-skeleton')).getByTestId(
+        CANDLE_SKELETON_ID,
+      ),
+    ).toBeOnTheScreen();
 
     const webView = getByTestId('mock-webview');
 
