@@ -1069,6 +1069,72 @@ describe('PerpsHomeView', () => {
     expect(getByTestId('section-header-button')).toBeTruthy();
   });
 
+  describe('ADR58 POC ETH banner', () => {
+    const buildPosition = (symbol: string) => ({
+      symbol,
+      size: '0.5',
+      entryPrice: '50000',
+      positionValue: '25000',
+      unrealizedPnl: '100',
+      marginUsed: '1000',
+      leverage: { type: 'cross' as const, value: 25 },
+      liquidationPrice: '48000',
+      maxLeverage: 50,
+      returnOnEquity: '10',
+      cumulativeFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
+      roi: '10',
+      takeProfitPrice: undefined,
+      stopLossPrice: undefined,
+      takeProfitCount: 0,
+      stopLossCount: 0,
+      marketPrice: '50200',
+      timestamp: Date.now(),
+    });
+
+    it('shows the banner when an ETH position is open', () => {
+      // Arrange
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [buildPosition('BTC'), buildPosition('ETH')],
+      });
+
+      // Act
+      const { getByText, getByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(getByTestId('perps-home-adr58-eth-banner')).toBeTruthy();
+      expect(getByText('ADR58 POC: ETH POSITION DETECTED')).toBeTruthy();
+    });
+
+    it('hides the banner when only non-ETH positions are open', () => {
+      // Arrange
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [buildPosition('BTC')],
+      });
+
+      // Act
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(queryByTestId('perps-home-adr58-eth-banner')).toBeNull();
+    });
+
+    it('hides the banner when there are no positions', () => {
+      // Arrange
+      mockUsePerpsHomeData.mockReturnValue({
+        ...mockDefaultData,
+        positions: [],
+      });
+
+      // Act
+      const { queryByTestId } = render(<PerpsHomeView />);
+
+      // Assert
+      expect(queryByTestId('perps-home-adr58-eth-banner')).toBeNull();
+    });
+  });
+
   it('shows orders section when orders exist', () => {
     // Arrange
     mockUsePerpsHomeData.mockReturnValue({

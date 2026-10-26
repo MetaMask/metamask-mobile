@@ -820,6 +820,18 @@ const PerpsHomeView = () => {
             renderSkeleton={() => <PerpsRowSkeleton count={2} />}
           >
             <View>
+              {/* ADR58 POC - DO NOT MERGE */}
+              {positions.some((position) => position.symbol === 'ETH') && (
+                <Box
+                  testID="perps-home-adr58-eth-banner"
+                  accessible
+                  twClassName="bg-error-default px-4 py-2"
+                >
+                  <Text color={TextColor.PrimaryInverse}>
+                    ADR58 POC: ETH POSITION DETECTED
+                  </Text>
+                </Box>
+              )}
               {positions.map((position, index) => (
                 <PerpsCard
                   key={`${position.symbol}-${index}`}
