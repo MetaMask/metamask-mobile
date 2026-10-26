@@ -169,7 +169,20 @@ describe('useMoneyPremiumAccountInterest', () => {
     expect(result.current.sinceInceptionInterest).toBe('$0.00');
   });
 
-  it('returns an em dash and reports a failed since-inception query without interest', () => {
+  it('returns an em dash when a since-inception query fails without interest', () => {
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('interest down'),
+    } as never);
+
+    const { result } = renderHook(() => useMoneyPremiumAccountInterest());
+
+    expect(result.current.sinceInceptionInterest).toBe('—');
+  });
+
+  it('reports a failed since-inception query without interest', () => {
     const interestError = new Error('interest down');
     mockUseQuery.mockReturnValue({
       data: undefined,
@@ -178,9 +191,8 @@ describe('useMoneyPremiumAccountInterest', () => {
       error: interestError,
     } as never);
 
-    const { result } = renderHook(() => useMoneyPremiumAccountInterest());
+    renderHook(() => useMoneyPremiumAccountInterest());
 
-    expect(result.current.sinceInceptionInterest).toBe('—');
     expect(mockReportMoneyInterestError).toHaveBeenCalledWith(
       'since_inception',
       interestError,
