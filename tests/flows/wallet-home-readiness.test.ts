@@ -1,5 +1,6 @@
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
+import type { AppiumElement } from '../framework/AppiumElement';
 
 jest.mock('../framework/Matchers', () => ({
   __esModule: true,
@@ -41,12 +42,15 @@ describe('isWalletHomeReadyOnAndroid', () => {
     jest.mocked(isDeviceHealthError).mockReturnValue(false);
     jest
       .mocked(Matchers.getElementByID)
-      .mockImplementation(async (testId: string) => ({
-        isVisible: async () => visibleByTestId.get(testId) ?? false,
-        unwrap: () => ({
-          isExisting: async () => false,
-        }),
-      }));
+      .mockImplementation(async (elementId) => {
+        const testId = String(elementId);
+        return {
+          isVisible: async () => visibleByTestId.get(testId) ?? false,
+          unwrap: () => ({
+            isExisting: async () => false,
+          }),
+        } as unknown as AppiumElement;
+      });
   });
 
   it('returns false while the login screen is displayed', async () => {
