@@ -8,10 +8,6 @@ import {
   startFailureRecording,
   stopFailureRecordingAndAttach,
 } from '../../services/appium/ScreenRecording.ts';
-import {
-  DEFAULT_ATTEMPT_TIMEOUT_MS,
-  withCommandDeadline,
-} from '../../services/appium/commandDeadline.ts';
 import { isSessionAlive } from '../../services/appium/sessionHealth.ts';
 import {
   consumeSharedSessionRecreate,
@@ -22,7 +18,6 @@ import {
 import { createAppiumLogger } from '../../appiumLogger.ts';
 import { isAppiumSessionReuseEnabled } from './sessionReuse.ts';
 import {
-  cleanupSessionWithinDeadline,
   configureImplicitWait,
   createSession,
   recreateInProcessSession,
@@ -82,10 +77,7 @@ export const driverFixture = {
               : `Shared WebDriver session is unhealthy; recreating for "${testInfo.title}"`,
           );
           try {
-            await cleanupSessionWithinDeadline(
-              deviceProvider,
-              sharedSession.drv,
-            );
+            await deviceProvider.cleanupSession?.(sharedSession.drv);
           } catch (error) {
             logger.error(
               'Failed to cleanup unhealthy session before recreate:',
@@ -223,14 +215,11 @@ export const driverFixture = {
 
       try {
         if (liveDrv) {
-          await withCommandDeadline(
-            stopFailureRecordingAndAttach(
-              liveDrv,
-              testInfo,
-              recordingBackend,
-              platform,
-            ),
-            DEFAULT_ATTEMPT_TIMEOUT_MS,
+          await stopFailureRecordingAndAttach(
+            liveDrv,
+            testInfo,
+            recordingBackend,
+            platform,
           );
         }
       } catch (error) {
@@ -254,7 +243,9 @@ export const driverFixture = {
       ) {
         requestSharedSessionRecreate();
         try {
-          await cleanupSessionWithinDeadline(deviceProvider, liveDrv);
+          if (liveDrv) {
+            await deviceProvider.cleanupSession?.(liveDrv);
+          }
         } catch (error) {
           logger.error(
             'Failed to cleanup WebDriver session after device-health failure:',
@@ -272,12 +263,9 @@ export const driverFixture = {
             // BaseServiceProvider) actually deleteSession — a no-arg /
             // missing cleanupSession must not leave cloud sessions open.
             if (deviceProvider.cleanupSession) {
-              await cleanupSessionWithinDeadline(deviceProvider, liveDrv);
+              await deviceProvider.cleanupSession(liveDrv);
             } else {
-              await withCommandDeadline(
-                liveDrv.deleteSession(),
-                DEFAULT_ATTEMPT_TIMEOUT_MS,
-              );
+              await liveDrv.deleteSession();
               logger.info('WebDriver session deleted');
             }
           }

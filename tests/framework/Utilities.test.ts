@@ -195,7 +195,6 @@ describe('Utilities.executeWithRetry', () => {
       const options: RetryOptions = {
         timeout: 5_000,
         interval: 20,
-        attemptTimeout: 5_000,
         description: 'test operation',
       };
 
@@ -205,25 +204,6 @@ describe('Utilities.executeWithRetry', () => {
 
       expect(mockOperation).toHaveBeenCalledTimes(1);
       expect(consumeSharedSessionRecreate()).toBe(true);
-    });
-
-    it('retries a command that misses its attempt deadline without requesting a new session', async () => {
-      const mockOperation = jest
-        .fn()
-        .mockReturnValue(new Promise(() => undefined));
-      const options: RetryOptions = {
-        timeout: 200,
-        interval: 20,
-        attemptTimeout: 40,
-        description: 'test operation',
-      };
-
-      await expect(
-        Utilities.executeWithRetry(mockOperation, options),
-      ).rejects.toThrow(/attempt deadline/);
-
-      expect(mockOperation.mock.calls.length).toBeGreaterThan(1);
-      expect(consumeSharedSessionRecreate()).toBe(false);
     });
 
     it('retries an assertion failure without requesting a new session', async () => {

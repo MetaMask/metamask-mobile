@@ -6,7 +6,6 @@ import AppiumGestures from './AppiumGestures.ts';
 import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
 import { resolveE2EWaitTimeoutMs } from './Constants.ts';
-import { withCommandDeadline } from './services/appium/commandDeadline.ts';
 import {
   isDeviceHealthError,
   requestSharedSessionRecreate,
@@ -446,7 +445,6 @@ export default class Utilities {
       maxRetries = Math.floor(timeout / interval),
       elemDescription = '',
       description,
-      attemptTimeout,
     } = options;
 
     let lastError: Error | undefined;
@@ -456,16 +454,8 @@ export default class Utilities {
     const action = description || operation.name;
 
     while (true) {
-      const remainingMs = Math.max(timeout - (Date.now() - startTime), 0);
       try {
-        const operationPromise = operation();
-        const result =
-          attemptTimeout === undefined
-            ? await operationPromise
-            : await withCommandDeadline(
-                operationPromise,
-                Math.min(attemptTimeout, remainingMs),
-              );
+        const result = await operation();
 
         if (attempt > 0) {
           const successMessage = [

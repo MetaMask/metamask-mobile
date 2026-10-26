@@ -202,14 +202,6 @@ export interface RetryOptions {
   description?: string; // Description for the retry operation, e.g. "tap() or "waitForReadyState()"
   elemDescription?: string;
   maxRetries?: number;
-  /**
-   * Wall-clock cap for a single attempt, in milliseconds. When set, a stuck
-   * WebDriver command fails the attempt so the next retry can start instead of
-   * waiting for the Android connection timeout (~150s).
-   * Omit it for operations whose healthy duration is unknown. A missed deadline
-   * is a failed attempt, not a dead session.
-   */
-  attemptTimeout?: number;
 }
 
 export interface StabilityOptions {
