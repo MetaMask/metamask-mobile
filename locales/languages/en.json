@@ -3648,6 +3648,7 @@
       "description": "Unable to load your available balance.",
       "retry": "Try again"
     },
+    "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
     "event": {
       "your_positions": "Your positions"
