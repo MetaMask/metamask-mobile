@@ -1033,7 +1033,11 @@ export const parsePolymarketMarket = (
   negRisk: market.negRisk,
   tickSize: market.orderPriceMinTickSize?.toString() ?? '0.01',
   resolvedBy: market.resolvedBy,
-  resolutionStatus: market.umaResolutionStatus,
+  // Protocol V2 markets report resolution in `resolutionStatus`; CTF markets
+  // keep their UMA status.
+  resolutionStatus: isV2Market(market)
+    ? (market.resolutionStatus ?? undefined)
+    : market.umaResolutionStatus,
   version: market.version,
 });
 
@@ -1067,15 +1071,18 @@ export function parseMarketOutcomeTokenIds(
   return rawTokenIds ? JSON.parse(rawTokenIds) : [];
 }
 
-function isVisiblePolymarketMarket(market: PolymarketApiMarket): boolean {
+function isVisiblePolymarketMarket(
+  market: PolymarketApiMarket,
+  hideV2Markets: boolean,
+): boolean {
   if (market?.active === false) {
     return false;
   }
 
-  return !isV2Market(market);
+  return !hideV2Markets || !isV2Market(market);
 }
 
-function isUnsupportedProtocolEvent(
+function isHiddenV2Event(
   event: PolymarketApiEvent,
   visibleMarkets: PolymarketApiMarket[],
 ): boolean {
@@ -1092,6 +1099,12 @@ export interface ParsePolymarketEventsOptions {
   teamLookup?: PolymarketTeamLookupFn;
   extendedSportsMarketsLeagues?: string[];
   enabledSportsMarketTypes?: string[];
+  /**
+   * Drops Protocol V2 markets, and events left empty because every market
+   * was v2. Set from the `predictDisablePolymarketV2Markets` kill switch on
+   * listing paths only. Defaults to false: v2 markets are shown.
+   */
+  hideV2Markets?: boolean;
 }
 
 export const parsePolymarketEvents = (
@@ -1109,6 +1122,7 @@ export const parsePolymarketEvents = (
     teamLookup,
     extendedSportsMarketsLeagues,
     enabledSportsMarketTypes,
+    hideV2Markets = false,
   } = options;
   const sortBy = options.sortMarketsBy ?? sortMarketsBy;
 
@@ -1133,9 +1147,9 @@ export const parsePolymarketEvents = (
         event,
         sortBy,
         isGameEvent: !!game,
-      }).filter(isVisiblePolymarketMarket);
+      }).filter((market) => isVisiblePolymarketMarket(market, hideV2Markets));
 
-      if (isUnsupportedProtocolEvent(event, markets)) {
+      if (hideV2Markets && isHiddenV2Event(event, markets)) {
         return [];
       }
 

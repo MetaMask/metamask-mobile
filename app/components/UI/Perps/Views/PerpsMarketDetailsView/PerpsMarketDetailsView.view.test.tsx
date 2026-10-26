@@ -54,7 +54,7 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
-import { LiveTradesViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveTradesView/LiveTradesView.testIds';
+import { LiveViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveView/LiveView.testIds';
 import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   getPerpsMarketDetailsTabSelector,
@@ -1494,7 +1494,7 @@ describe('PerpsMarketDetailsView', () => {
         screen.queryByTestId(getPerpsMarketDetailsTabSelector('live_trades')),
       ).not.toBeOnTheScreen();
       expect(
-        screen.queryByTestId(LiveTradesViewSelectorsIDs.CONTAINER),
+        screen.queryByTestId(LiveViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
