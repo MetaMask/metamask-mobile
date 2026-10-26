@@ -156,6 +156,11 @@ import type { PredictControllerMethodActions } from './PredictController-method-
 import { withTrace, type TraceableController } from './utils/withTrace';
 
 export const PREDICT_BLOCK_TRACKER_TIMEOUT_MS = 10_000;
+/**
+ * The provider's HTTP requests time out after 35 seconds. This longer
+ * controller deadline also bounds non-HTTP provider work without allowing a
+ * request to remain pending indefinitely.
+ */
 export const PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS = 60_000;
 
 /**
@@ -172,7 +177,6 @@ async function withTimeout<T>(
   timeoutMessage: string,
 ): Promise<T> {
   let timeout: ReturnType<typeof setTimeout> | undefined;
-  request.catch(() => undefined);
 
   try {
     return await Promise.race([

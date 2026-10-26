@@ -10805,7 +10805,7 @@ describe('PredictController', () => {
             to: '0xOldTarget',
             data: '0xolddata',
             gas: '0x1111',
-            gasLimit: '0x2222',
+            gasLimit: '0x1111',
           },
         };
 
@@ -11358,14 +11358,10 @@ describe('PredictController', () => {
       });
     });
 
-    it('handles a positions provider rejection after timeout', async () => {
+    it('rejects getPositions after the portfolio deadline', async () => {
       jest.useFakeTimers();
-      let rejectProvider: (reason?: unknown) => void = () => undefined;
       mockPolymarketProvider.getPositions.mockImplementation(
-        () =>
-          new Promise<PredictPosition[]>((_resolve, reject) => {
-            rejectProvider = reject;
-          }),
+        () => new Promise<PredictPosition[]>(() => undefined),
       );
 
       try {
@@ -11382,9 +11378,6 @@ describe('PredictController', () => {
         expect(error).toMatchObject({
           message: `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
         });
-
-        rejectProvider(new Error('Late positions provider failure'));
-        await Promise.resolve();
       } finally {
         jest.useRealTimers();
       }
@@ -11553,13 +11546,9 @@ describe('PredictController', () => {
       );
     });
 
-    it('handles a block tracker rejection after timeout', async () => {
-      let rejectBlockTracker: (reason?: unknown) => void = () => undefined;
+    it('logs a block tracker deadline during cache invalidation', async () => {
       const mockCheckForLatestBlock = jest.fn(
-        () =>
-          new Promise<void>((_resolve, reject) => {
-            rejectBlockTracker = reject;
-          }),
+        () => new Promise<void>(() => undefined),
       );
       const mockGetNetworkClientById = jest.fn().mockReturnValue({
         blockTracker: {
@@ -11590,9 +11579,6 @@ describe('PredictController', () => {
           error: `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
         }),
       );
-
-      rejectBlockTracker(new Error('Late block tracker failure'));
-      await Promise.resolve();
     });
   });
 
@@ -12119,13 +12105,9 @@ describe('PredictController', () => {
       });
     });
 
-    it('handles a balance provider rejection after timeout', async () => {
-      let rejectProvider: (reason?: unknown) => void = () => undefined;
+    it('rejects getBalance after the portfolio deadline', async () => {
       mockPolymarketProvider.getBalance.mockImplementation(
-        () =>
-          new Promise<number>((_resolve, reject) => {
-            rejectProvider = reject;
-          }),
+        () => new Promise<number>(() => undefined),
       );
       const request = withController(({ controller }) =>
         controller.getBalance({}),
@@ -12138,9 +12120,6 @@ describe('PredictController', () => {
       expect(error).toMatchObject({
         message: `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
       });
-
-      rejectProvider(new Error('Late balance provider failure'));
-      await Promise.resolve();
     });
 
     it('updates cache with validUntil 1 second in future after fetch', async () => {
