@@ -66,8 +66,9 @@ const WALLET_HOME_POLL_INTERVAL_MS = 250;
  * Waits for the wallet home screen to be ready after login.
  * On iOS, `wallet-screen` may exist but report `displayed === false` while
  * child indicators are visible — mirrors Detox `toExist` readiness checks.
- * On Android, polls readiness helpers and re-dismisses system overlays during
- * the wait (avoids a single visibility assert that can fail under shade/overlays).
+ * On Android, login must be hidden, then the parent container or a displayed
+ * child counts. The wallet node can exist under the lock screen, so hierarchy
+ * existence alone is not readiness. Polls also re-dismiss system overlays.
  */
 export const waitForWalletHomePlaywright = async (
   timeout: number = resolveE2EWaitTimeoutMs(30_000),

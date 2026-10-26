@@ -15,7 +15,7 @@ import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
 import WalletActionsBottomSheet from './WalletActionsBottomSheet';
-import TrendingView from '../Trending/TrendingView';
+import { TrendingViewSelectorsIDs } from '../../locators/Trending/TrendingView.selectors';
 
 /** Native iOS 26 tab items have no testID; UIKit exposes them by title. */
 const NATIVE_TAB_LABELS = {
@@ -203,20 +203,36 @@ class TabBarComponent {
     await AccountMenu.tapSettings();
     await Assertions.expectElementToBeVisible(SettingsView.title);
   }
+
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        await Gestures.waitAndTap(this.tabBarExploreButton, {
-          elemDescription: 'Tab Bar - Explore Button',
-          timeout: 5_000,
-        });
-        await Assertions.expectElementToBeVisible(TrendingView.searchButton, {
-          description: 'Trending view search button should be visible',
-          timeout: 5_000,
-        });
+        // `explore-view-search-button` is also the wallet homepage search id.
+        // The Explore scroll view is the tab's own content.
+        const exploreContent = Matchers.getElementByID(
+          TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
+        );
+        const alreadyOpen = await Utilities.isElementVisible(
+          exploreContent,
+          500,
+        );
+        if (!alreadyOpen) {
+          await Gestures.waitAndTap(this.tabBarExploreButton, {
+            elemDescription: 'Tab Bar - Explore Button',
+            timeout: 5_000,
+            waitForInteractive: true,
+          });
+        }
+        await Assertions.expectElementToBeVisible(
+          Matchers.getElementByID(TrendingViewSelectorsIDs.NOW_SCROLL_VIEW),
+          {
+            description: 'Explore tab content should be visible',
+            timeout: 8_000,
+          },
+        );
       },
       {
-        // Each attempt: tap + Trending readiness assert. Keep a 45s outer budget.
+        // Each attempt: interactive tap plus Explore content. Outer budget stays 45s.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Explore Button with Validation',
