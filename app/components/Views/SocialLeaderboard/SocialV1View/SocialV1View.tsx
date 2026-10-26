@@ -560,6 +560,16 @@ const SocialV1ViewContent: React.FC = () => {
     [tabOrder],
   );
 
+  const selectTab = useCallback(
+    (index: number) => {
+      syncIncomingPageScroll(index);
+      activeIndexSv.value = index;
+      setActiveIndex(index);
+      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
+    },
+    [activeIndexSv, livePrices, syncIncomingPageScroll],
+  );
+
   const changeTab = useCallback(
     (index: number) => {
       const tabChangeMethod = programmaticTabChangeRef.current
@@ -582,20 +592,25 @@ const SocialV1ViewContent: React.FC = () => {
       });
 
       playSelection().catch(() => undefined);
-      syncIncomingPageScroll(index);
-      activeIndexSv.value = index;
-      setActiveIndex(index);
-      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
+      selectTab(index);
     },
-    [
-      activeIndex,
-      activeIndexSv,
-      livePrices,
-      tabOrder,
-      syncIncomingPageScroll,
-      track,
-    ],
+    [activeIndex, selectTab, tabOrder, track],
   );
+
+  // The Social tab stays mounted, so a later entry point's `initialTab` (e.g.
+  // a `?tab=` deeplink) has to move the pager here. Clearing it lets the same
+  // tab be requested again.
+  const requestedTab = route.params?.initialTab;
+  useEffect(() => {
+    if (!requestedTab) {
+      return;
+    }
+    navigation.setParams({ initialTab: undefined });
+    const index = tabOrder.indexOf(requestedTab);
+    if (index !== -1 && index !== activeIndex) {
+      selectTab(index);
+    }
+  }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
 
   const handleTabPress = useCallback(
     (index: number) => {
