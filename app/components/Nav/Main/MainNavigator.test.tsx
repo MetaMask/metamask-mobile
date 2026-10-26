@@ -121,6 +121,10 @@ jest.mock('../../UI/Rewards/hooks/usePrefetchRewardsIdentity', () => ({
   usePrefetchRewardsIdentity: () => undefined,
 }));
 
+jest.mock('../../UI/Rewards/hooks/useRewardsPendingDeeplink', () => ({
+  useRewardsPendingDeeplink: jest.fn(),
+}));
+
 const mockSelectPerpsEnabledFlag = jest.fn();
 const mockSelectPredictEnabledFlag = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn();
