@@ -265,6 +265,17 @@ final class MitigationsTests: XCTestCase {
         lock.release()
     }
 
+    func testRefreshLockBlocksASecondHolderInTheSameProcess() throws {
+        let directory = try makeDirectory()
+        let first = AppGroupRefreshLock(directory: directory)
+        let second = AppGroupRefreshLock(directory: directory)
+        XCTAssertTrue(first.acquire(timeout: 1))
+        XCTAssertFalse(second.acquire(timeout: 0.2))
+        first.release()
+        XCTAssertTrue(second.acquire(timeout: 1))
+        second.release()
+    }
+
     func testKeychainGroupsKeepTheCardTokensSeparate() {
         XCTAssertEqual(
             CardTokenKeychainLayout.cardAccessGroup(prefix: "TEAM."),

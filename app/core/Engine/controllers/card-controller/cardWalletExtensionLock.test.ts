@@ -38,4 +38,66 @@ describe('createNativeCardRefreshLock', () => {
       true,
     );
   });
+
+  it('does not acquire again until the holder releases', async () => {
+    let resolveAcquire: (acquired: boolean) => void = () => undefined;
+    let calls = 0;
+    const acquireRefreshLock = jest.fn(
+      () =>
+        new Promise<boolean>((resolve) => {
+          calls += 1;
+          if (calls === 1) {
+            resolveAcquire = resolve;
+            return;
+          }
+          resolve(true);
+        }),
+    );
+    const releaseRefreshLock = jest.fn().mockResolvedValue(undefined);
+    NativeModules.CardWalletExtensionStore = {
+      acquireRefreshLock,
+      releaseRefreshLock,
+    };
+    const lock = createNativeCardRefreshLock();
+
+    const first = lock.acquire(1_000);
+    const second = lock.acquire(1_000);
+    await Promise.resolve();
+
+    expect(acquireRefreshLock).toHaveBeenCalledTimes(1);
+    resolveAcquire(true);
+    await expect(first).resolves.toBe(true);
+    expect(acquireRefreshLock).toHaveBeenCalledTimes(1);
+
+    await lock.release();
+    await expect(second).resolves.toBe(true);
+    expect(acquireRefreshLock).toHaveBeenCalledTimes(2);
+    expect(releaseRefreshLock).toHaveBeenCalledTimes(1);
+  });
+
+  it('lets the next caller acquire after the native lock is refused', async () => {
+    const acquireRefreshLock = jest
+      .fn()
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    NativeModules.CardWalletExtensionStore = { acquireRefreshLock };
+    const lock = createNativeCardRefreshLock();
+
+    await expect(lock.acquire(1_000)).resolves.toBe(false);
+    await expect(lock.acquire(1_000)).resolves.toBe(true);
+    expect(acquireRefreshLock).toHaveBeenCalledTimes(2);
+  });
+
+  it('lets the next caller acquire after the native lock throws', async () => {
+    const acquireRefreshLock = jest
+      .fn()
+      .mockRejectedValueOnce(new Error('native failed'))
+      .mockResolvedValueOnce(true);
+    NativeModules.CardWalletExtensionStore = { acquireRefreshLock };
+    const lock = createNativeCardRefreshLock();
+
+    await expect(lock.acquire(1_000)).rejects.toThrow('native failed');
+    await expect(lock.acquire(1_000)).resolves.toBe(true);
+    expect(acquireRefreshLock).toHaveBeenCalledTimes(2);
+  });
 });

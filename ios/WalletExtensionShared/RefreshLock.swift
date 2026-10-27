@@ -5,6 +5,10 @@ enum RefreshLockError: Error {
     case unavailable
 }
 
+/// `flock(2)`. Kept off the `flock` struct name that Darwin also exports.
+@_silgen_name("flock")
+private func refreshFileLock(_ fd: Int32, _ operation: Int32) -> Int32
+
 public final class AppGroupRefreshLock {
     private let fileURL: URL
     private var fd: Int32 = -1
@@ -13,20 +17,16 @@ public final class AppGroupRefreshLock {
         self.fileURL = directory.appendingPathComponent("card-refresh.lock")
     }
 
+    /// Exclusive lock for this open file. A second open in the same process
+    /// waits, which `fcntl` record locks do not do.
     public func acquire(timeout: TimeInterval) -> Bool {
         if fd >= 0 { return true }
         let path = fileURL.path
         let opened = open(path, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR)
         guard opened >= 0 else { return false }
-        var lock = flock()
-        lock.l_type = Int16(F_WRLCK)
-        lock.l_whence = Int16(SEEK_SET)
-        lock.l_start = 0
-        lock.l_len = 0
         let deadline = Date().addingTimeInterval(timeout)
         while true {
-            let result = fcntl(opened, F_SETLK, &lock)
-            if result == 0 {
+            if refreshFileLock(opened, LOCK_EX | LOCK_NB) == 0 {
                 fd = opened
                 return true
             }
@@ -40,12 +40,7 @@ public final class AppGroupRefreshLock {
 
     public func release() {
         guard fd >= 0 else { return }
-        var lock = flock()
-        lock.l_type = Int16(F_UNLCK)
-        lock.l_whence = Int16(SEEK_SET)
-        lock.l_start = 0
-        lock.l_len = 0
-        _ = fcntl(fd, F_SETLK, &lock)
+        _ = refreshFileLock(fd, LOCK_UN)
         close(fd)
         fd = -1
     }
