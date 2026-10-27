@@ -230,3 +230,37 @@ describe('getLocalActivityFees', () => {
     ]);
   });
 });
+
+describe('isSpendingCapUnlimited', () => {
+  // Parsed rather than typed so the API's off-contract null reaches the helper as it does at runtime.
+  const parseApiDecimals = (json: string): number => JSON.parse(json);
+
+  it('returns true for an amount at the unlimited threshold', () => {
+    const result = isSpendingCapUnlimited(
+      '1000000000000000000000000000000000',
+      18,
+    );
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false for an amount below the unlimited threshold', () => {
+    const result = isSpendingCapUnlimited('1000000000000000000', 18);
+
+    expect(result).toBe(false);
+  });
+
+  it('scales by zero when decimals are omitted', () => {
+    const result = isSpendingCapUnlimited('1000000000000000');
+
+    expect(result).toBe(true);
+  });
+
+  it('returns false when decimals arrive from the API as null', () => {
+    const decimals = parseApiDecimals('null');
+
+    const result = isSpendingCapUnlimited('1000000000000000', decimals);
+
+    expect(result).toBe(false);
+  });
+});
