@@ -4,6 +4,7 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { MfaPasskeysSelectorsIDs } from '../Mfa.testIds';
 import MfaPasskeys from './MfaPasskeys';
@@ -19,21 +20,33 @@ jest.mock('../../../../util/identity/mfa/engine/activeFlow', () => ({
 }));
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
+const mockShowToast = jest.fn();
 
 const renderPasskeys = (enrolledCredentials: EnrolledCredential[]) =>
-  renderWithProvider(<MfaPasskeys />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AuthenticationController: {
-            ...backgroundState.AuthenticationController,
-            enrolledCredentials,
+  renderWithProvider(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      <MfaPasskeys />
+    </ToastContext.Provider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              enrolledCredentials,
+            },
           },
         },
       },
     },
-  });
+  );
 
 describe('MfaPasskeys', () => {
   beforeEach(() => {
@@ -75,6 +88,11 @@ describe('MfaPasskeys', () => {
       expect.objectContaining({
         request: { kind: 'enroll', method: 'passkey' },
         reason: { operation: 'settings.addPasskey' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
       }),
     );
   });

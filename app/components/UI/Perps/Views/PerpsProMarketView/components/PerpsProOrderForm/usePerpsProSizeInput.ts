@@ -49,6 +49,8 @@ export interface UsePerpsProSizeInputParams {
   preserveMaxIntent?: boolean;
   /** Keep a venue-owned Scale base quantity exact instead of snapping through USD cents. */
   preserveAssetIntent?: boolean;
+  /** Exact base size from an order-book row fill, shown instead of the USD projection. */
+  fillAssetAmount?: string;
 }
 
 export interface UsePerpsProSizeInputResult {
@@ -65,7 +67,7 @@ export interface UsePerpsProSizeInputResult {
 const getDecimalPlaces = (szDecimals: number) =>
   Number.isInteger(szDecimals) && szDecimals >= 0 ? szDecimals : 0;
 
-const getUsdFromAsset = (
+export const getUsdFromAsset = (
   assetAmount: string,
   effectivePrice: number,
 ): string => {
@@ -176,6 +178,7 @@ export const usePerpsProSizeInput = ({
   keepSizeEmpty = false,
   preserveMaxIntent = false,
   preserveAssetIntent = false,
+  fillAssetAmount,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const priceReady = Number.isFinite(effectivePrice) && effectivePrice > 0;
   const { denomination: activeDenominationUnit, setDenomination } =
@@ -192,12 +195,14 @@ export const usePerpsProSizeInput = ({
   const [usdDraft, setUsdDraft] = useState(usdAmount);
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
-      value: priceReady
-        ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
-        : '',
+      value:
+        fillAssetAmount ??
+        (priceReady
+          ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
+          : ''),
       source: 'canonical',
       // A persisted coin unit is not displayable until this projection exists.
-      projected: priceReady,
+      projected: fillAssetAmount !== undefined || priceReady,
     }),
   );
   /**
@@ -301,13 +306,15 @@ export const usePerpsProSizeInput = ({
 
       if (shouldProjectInitialAssetDraft || shouldRefreshProjectedAssetDraft) {
         setAssetDraftState({
-          value: getAssetFromUsd(
-            shouldProjectInitialAssetDraft
-              ? finalizeNumericTextInput(usdDraft) || usdAmount
-              : usdAmount,
-            effectivePrice,
-            szDecimals,
-          ),
+          value:
+            fillAssetAmount ??
+            getAssetFromUsd(
+              shouldProjectInitialAssetDraft
+                ? finalizeNumericTextInput(usdDraft) || usdAmount
+                : usdAmount,
+              effectivePrice,
+              szDecimals,
+            ),
           source: 'canonical',
           projected: true,
         });
@@ -356,7 +363,13 @@ export const usePerpsProSizeInput = ({
     }
     setUsdDraft(usdAmount);
     usdFallbackEditRef.current = false;
-    if (priceReady) {
+    if (fillAssetAmount !== undefined) {
+      setAssetDraftState({
+        value: fillAssetAmount,
+        source: 'canonical',
+        projected: true,
+      });
+    } else if (priceReady) {
       setAssetDraftState({
         value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
         source: 'canonical',
@@ -379,6 +392,7 @@ export const usePerpsProSizeInput = ({
     clearSliderPreview,
     activeDenominationUnit,
     effectivePrice,
+    fillAssetAmount,
     isSizeFocused,
     maxPossibleAmount,
     preserveMaxIntent,
@@ -569,11 +583,13 @@ export const usePerpsProSizeInput = ({
         const canonicalUsdDraft = finalizeNumericTextInput(usdDraft);
         if (!hasAssetIntent) {
           setAssetDraftState({
-            value: priceReady
-              ? getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals)
-              : '',
+            value:
+              fillAssetAmount ??
+              (priceReady
+                ? getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals)
+                : ''),
             source: 'canonical',
-            projected: priceReady,
+            projected: fillAssetAmount !== undefined || priceReady,
           });
         }
         setDenomination('asset');
@@ -600,6 +616,7 @@ export const usePerpsProSizeInput = ({
       commitUsdAmount,
       activeDenominationUnit,
       effectivePrice,
+      fillAssetAmount,
       hasAssetIntent,
       preserveAssetIntent,
       clearSliderMaxIntent,

@@ -11,6 +11,7 @@ import {
   isSocialV1Treatment,
   navigateToSocialLeaderboard,
   navigateToSocialTab,
+  pushSocialLeaderboard,
   resetSocialLeaderboardOnboardingSeen,
   shouldShowSocialLeaderboardOnboarding,
 } from './socialLeaderboardOnboardingNavigation';
@@ -117,7 +118,7 @@ describe('socialLeaderboardOnboardingNavigation', () => {
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, undefined);
     });
 
-    it('navigates to the Social V1 route for the TSA-1122 treatment', () => {
+    it('selects the Social tab for the TSA-1122 treatment instead of pushing Social V1', () => {
       mockGetItemSync.mockReturnValue('true');
       mockResolveABTestAssignment.mockReturnValue({
         variantName: 'treatment',
@@ -131,12 +132,15 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         landingFeedAudience: 'all',
       });
 
-      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
-        source: 'home_carousel',
-      });
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        { screen: Routes.SOCIAL.TAB, params: { source: 'home_carousel' } },
+        { pop: true },
+      );
     });
 
-    it('forwards the initial tab to the Social V1 route', () => {
+    it('forwards the initial tab to the Social tab for the TSA-1122 treatment', () => {
       mockGetItemSync.mockReturnValue('true');
       mockResolveABTestAssignment.mockReturnValue({
         variantName: 'treatment',
@@ -149,9 +153,81 @@ describe('socialLeaderboardOnboardingNavigation', () => {
         initialTab: 'leaderboard',
       });
 
+      expect(navigate).toHaveBeenCalledWith(
+        Routes.HOME_TABS,
+        {
+          screen: Routes.SOCIAL.TAB,
+          params: { source: 'perps_home', initialTab: 'leaderboard' },
+        },
+        { pop: true },
+      );
+    });
+
+    it('returns a first-time TSA-1122 treatment user to the Social tab after onboarding', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      navigateToSocialLeaderboard(navigate, { source: 'home_carousel' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING, {
+        returnToTab: true,
+      });
+    });
+  });
+
+  describe('pushSocialLeaderboard', () => {
+    it('navigates to the onboarding without returning to the tab for a first-time TSA-1122 treatment user', () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      pushSocialLeaderboard(navigate, { source: 'perps_home' });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.ONBOARDING);
+    });
+
+    it('pushes the Social V1 route with the initial tab for the TSA-1122 treatment', () => {
+      mockGetItemSync.mockReturnValue('true');
+      mockResolveABTestAssignment.mockReturnValue({
+        variantName: 'treatment',
+        isActive: true,
+      });
+      const navigate = jest.fn();
+
+      pushSocialLeaderboard(navigate, {
+        source: 'perps_home',
+        initialTab: 'leaderboard',
+        landingTab: 'feed',
+      });
+
+      expect(navigate).toHaveBeenCalledTimes(1);
       expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V1, {
         source: 'perps_home',
         initialTab: 'leaderboard',
+      });
+    });
+
+    it('pushes the legacy leaderboard with the params for control', () => {
+      mockGetItemSync.mockReturnValue('true');
+      const navigate = jest.fn();
+
+      pushSocialLeaderboard(navigate, {
+        source: 'perps_home',
+        landingTab: 'feed',
+      });
+
+      expect(navigate).toHaveBeenCalledWith(Routes.SOCIAL.V0, {
+        source: 'perps_home',
+        landingTab: 'feed',
       });
     });
   });
