@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import type {
   EnrolledCredential,
   VerificationToken,
@@ -13,6 +14,7 @@ import type {
   MfaControllerAdapter,
   MfaFlowOptions,
   MfaFlowRequest,
+  MfaReason,
 } from '../../../../util/identity/mfa/engine/types';
 import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import MfaFlowHost from './MfaFlowHost';
@@ -90,10 +92,14 @@ const start = async (
   request: MfaFlowRequest,
   controller: MfaControllerAdapter,
   passkey?: MfaFlowOptions['passkey'],
+  reason: MfaReason = {
+    operation: 'test',
+    enrollDescription: 'Why we ask',
+  },
 ) => {
   const outcome = startMfaFlow({
     request,
-    reason: { operation: 'test', enrollDescription: 'Why we ask' },
+    reason,
     platform: 'mobile',
     controller,
     passkey,
@@ -118,6 +124,32 @@ describe('MfaFlowHost', () => {
     await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
   });
 
+  it.each([
+    ['card', 'card', SlideInRight],
+    ['default modal', undefined, SlideInDown],
+  ] as const)(
+    'uses the %s transition for full-screen steps',
+    async (_label, presentation, transition) => {
+      const { outcome } = await start(
+        { kind: 'enroll', method: 'email_otp' },
+        createController(),
+        undefined,
+        { operation: 'test', presentation },
+      );
+
+      const { getByTestId, unmount } = renderHost();
+
+      expect(
+        getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`).props
+          .entering,
+      ).toBe(transition);
+
+      await act(async () => getActiveMfaFlow()?.dispatch({ type: 'cancel' }));
+      await outcome;
+      unmount();
+    },
+  );
+
   it('runs email setup from entry to the code, then resolves and closes', async () => {
     const controller = createController();
     const { outcome } = await start(
@@ -140,6 +172,23 @@ describe('MfaFlowHost', () => {
     expect(controller.beginCredentialEnrollment).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'email_otp', email: 'new@b.co' }),
     );
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-otp`),
+    ).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+    });
+    expect(
+      getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-emailEntry`),
+    ).toBeOnTheScreen();
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT).props.value).toBe(
+      'new@b.co',
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(controller.beginCredentialEnrollment).toHaveBeenCalledTimes(1);
     expect(
       getByTestId(`${MfaFlowSelectorsIDs.CONTAINER}-otp`),
     ).toBeOnTheScreen();
@@ -215,6 +264,33 @@ describe('MfaFlowHost', () => {
     );
     const result = await outcome;
     expect(result.ok && result.value.token?.claims.amr).toEqual(['email_otp']);
+  });
+
+  it('returns to authenticator setup from its code screen', async () => {
+    const controller = createController();
+    controller.beginCredentialEnrollment = jest.fn(async () => ({
+      type: 'totp' as const,
+      flowId: 'enroll-1',
+      secret: 'JBSWY3DPEHPK3PXP',
+      qrCode: 'data:image/png;base64,QR',
+      setupUri: 'otpauth://totp/MetaMask?secret=JBSWY3DPEHPK3PXP',
+      expiresAt: Date.now(),
+    }));
+    await start({ kind: 'enroll', method: 'totp' }, controller);
+    const { getByTestId, getByText } = renderHost();
+
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(getByText('Enter your verification code')).toBeOnTheScreen();
+
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.BACK_BUTTON));
+    });
+
+    expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
   });
 
   it('rejects with flow_cancelled when the user closes it', async () => {

@@ -18,6 +18,8 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     codeFieldRoot: {
       marginTop: 8,
+    },
+    codeFieldCells: {
       gap: 5,
     },
     cellRoot: {

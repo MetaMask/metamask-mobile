@@ -7,6 +7,7 @@ import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import Routes from '../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import MfaSettings from './MfaSettings';
 
@@ -29,27 +30,63 @@ jest.mock('../../../../util/identity/mfa/bindings', () => ({
 
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
+const mockShowToast = jest.fn();
 
-const renderSettings = (enrolledCredentials: EnrolledCredential[] = []) =>
-  renderWithProvider(<MfaSettings />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          AuthenticationController: {
-            ...backgroundState.AuthenticationController,
-            enrolledCredentials,
+const renderSettings = (
+  enrolledCredentials: EnrolledCredential[] = [],
+  seedlessVault?: string,
+) =>
+  renderWithProvider(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      <MfaSettings />
+    </ToastContext.Provider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            SeedlessOnboardingController: {
+              ...backgroundState.SeedlessOnboardingController,
+              vault: seedlessVault,
+            },
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              enrolledCredentials,
+            },
           },
         },
       },
     },
-  });
+  );
 
 describe('MfaSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAdapter.refreshEnrolledCredentials.mockResolvedValue([]);
     mockStartMfaFlow.mockResolvedValue({ credentials: [] });
+  });
+
+  it('hides email and keeps the authenticator app for social login users', () => {
+    const { queryByTestId, getByTestId } = renderSettings(
+      [
+        {
+          type: 'email_otp',
+          status: 'active',
+          email: 'a@b.co',
+          verified: true,
+        },
+      ],
+      'vault',
+    );
+
+    expect(queryByTestId(MfaSettingsSelectorsIDs.EMAIL_ROW)).toBeNull();
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toBeOnTheScreen();
   });
 
   it('refreshes the methods and offers to add email', async () => {
@@ -67,6 +104,11 @@ describe('MfaSettings', () => {
       expect.objectContaining({
         request: { kind: 'enroll', method: 'email_otp' },
         reason: { operation: 'settings.addEmail' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Email verified' }],
       }),
     );
   });
@@ -132,6 +174,8 @@ describe('MfaSettings', () => {
     ['Verify with passkey', 'qa.verifyPasskey'],
     ['Email and passkey, verify with passkey (Kalshi)', 'qa.kalshi'],
     ['Email or passkey, pick one', 'qa.emailAndPasskey'],
+    ['Enroll authenticator app', 'qa.enrollAuthenticatorApp'],
+    ['Verify with authenticator app', 'qa.verifyAuthenticatorApp'],
   ])('starts the "%s" QA preset', async (label, operation) => {
     const { getByText } = renderSettings();
 
@@ -194,6 +238,11 @@ describe('MfaSettings', () => {
         reason: { operation: 'settings.addPasskey' },
       }),
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
+      }),
+    );
   });
 
   it('lists the only passkey', () => {
@@ -219,5 +268,42 @@ describe('MfaSettings', () => {
     );
     fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.PASSKEYS);
+  });
+
+  it('offers to add an authenticator app', async () => {
+    const { getByTestId } = renderSettings();
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toHaveTextContent(
+      /Authenticator app.*Add/,
+    );
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    });
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: { kind: 'enroll', method: 'totp' },
+        reason: { operation: 'settings.addAuthenticatorApp' },
+      }),
+    );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app added' }],
+      }),
+    );
+  });
+
+  it('opens an authenticator app that is set up', () => {
+    const { getByTestId } = renderSettings([
+      { type: 'totp', status: 'active' },
+    ]);
+
+    expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).not.toHaveTextContent(
+      /Add/,
+    );
+    fireEvent.press(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MFA.METHOD_DETAILS, {
+      method: 'totp',
+      index: 0,
+    });
   });
 });

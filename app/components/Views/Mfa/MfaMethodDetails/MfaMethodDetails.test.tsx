@@ -89,6 +89,10 @@ const passkey: EnrolledCredential = {
   status: 'active',
   displayName: '1Password',
 };
+const totpCredential: EnrolledCredential = {
+  type: 'totp',
+  status: 'active',
+};
 
 const renderDetails = (
   params: { method: MfaMethod; index: number },
@@ -146,6 +150,85 @@ describe('MfaMethodDetails', () => {
     expect(getByText('a•••@b.co')).toBeOnTheScreen();
     expect(getByText('Added Sep 17, 2026 at 11:23 AM')).toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
+  });
+
+  it.each([
+    ['passkey', passkey, email, 'Remove passkey'],
+    ['email_otp', email, passkey, 'Remove email'],
+    ['totp', totpCredential, email, 'Remove authenticator app'],
+  ] as const)(
+    'centers the %s removal confirmation title',
+    (method, credential, otherCredential, title) => {
+      const { getByTestId, getAllByText } = renderDetails(
+        { method, index: 0 },
+        [credential, otherCredential],
+      );
+
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+      expect(
+        getAllByText(title).some((node) =>
+          JSON.stringify(node.props.style).includes('"center"'),
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it.each([
+    ['passkey', passkey, 'Passkey can’t be deleted'],
+    ['email_otp', email, 'Email can’t be removed'],
+    ['totp', totpCredential, 'Authenticator app can’t be removed'],
+  ] as const)(
+    'centers the last %s method title',
+    (method, credential, title) => {
+      const { getByTestId, getByText } = renderDetails({ method, index: 0 }, [
+        credential,
+      ]);
+
+      fireEvent.press(getByTestId(MfaMethodDetailsSelectorsIDs.REMOVE_BUTTON));
+
+      expect(JSON.stringify(getByText(title).props.style)).toContain(
+        '"center"',
+      );
+    },
+  );
+
+  it('describes an authenticator app without an app name', () => {
+    const { getAllByText, getByText } = renderDetails(
+      { method: 'totp', index: 0 },
+      [{ type: 'totp', status: 'active' }],
+    );
+
+    // The header and the card both say what it is: the server cannot know
+    // which app the user picked.
+    expect(getAllByText('Authenticator app')).toHaveLength(2);
+    expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
+  });
+
+  it('removes an authenticator app after verifying with another method', async () => {
+    const authenticatorApp: EnrolledCredential = {
+      type: 'totp',
+      status: 'active',
+    };
+    const { getByTestId } = renderDetails({ method: 'totp', index: 0 }, [
+      email,
+      authenticatorApp,
+    ]);
+
+    await confirmRemoval(getByTestId);
+
+    expect(mockStartMfaFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        request: expect.objectContaining({ verifyWith: ['email_otp'] }),
+        reason: { operation: 'settings.removeAuthenticatorApp' },
+      }),
+    );
+    expect(mockRemove).toHaveBeenCalledWith(authenticatorApp, token);
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app removed' }],
+      }),
+    );
   });
 
   it('names the passkey by its position', () => {

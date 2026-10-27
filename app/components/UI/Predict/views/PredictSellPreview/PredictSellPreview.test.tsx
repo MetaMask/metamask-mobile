@@ -482,6 +482,34 @@ describe('PredictSellPreview', () => {
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
     });
 
+    it('sends outcome version v2 with the cash out order of a Protocol V2 outcome', () => {
+      mockPlaceOrderResult = {
+        success: true,
+        response: { transactionHash: '0xabc123' },
+      };
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: { ...mockOutcome, version: 'v2' },
+        },
+      });
+      const { getByTestId } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId('predict-sell-preview-cash-out-button'));
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            transactionType: 'mm_predict_sell',
+            outcomeVersion: 'v2',
+          }),
+        }),
+      );
+    });
+
     it('shows loading text when order executes', () => {
       mockLoadingState = true;
       const { getByText } = renderWithProvider(<PredictSellPreview />, {
@@ -617,21 +645,6 @@ describe('PredictSellPreview', () => {
 
       const cashOutTexts = screen.getAllByText('Cash out');
       expect(cashOutTexts.length).toBe(1);
-    });
-
-    it('renders the cash-out amount at the DisplayLg size in sheet mode', () => {
-      renderWithProvider(<PredictSellPreview {...sheetContentProps} />, {
-        state: initialState,
-      });
-
-      const amount = screen.getAllByText('$57.30')[0];
-      // DisplayLg: 40px / 50px, medium weight.
-      expect(amount).toHaveStyle({
-        fontSize: 40,
-        lineHeight: 50,
-        fontFamily: 'Inter-Medium',
-      });
-      expect(screen.getByText('+$7.30 (14.6%)')).toBeOnTheScreen();
     });
 
     it('hides position icon row in sheet mode', () => {

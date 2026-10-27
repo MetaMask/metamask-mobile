@@ -3,7 +3,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  FontWeight,
+  FontFamily,
   Text,
   TextColor,
   TextVariant,
@@ -54,6 +54,7 @@ import {
   getPredictPositionDisplay,
   getPredictSellNetProceeds,
 } from '../../utils/orders';
+import { getPredictOutcomeVersion } from '../../utils/marketVersion';
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
@@ -102,6 +103,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
           ? PredictEventValues.MARKET_TYPE.BINARY
           : PredictEventValues.MARKET_TYPE.MULTI_OUTCOME,
       outcome: position?.outcome?.toLowerCase(),
+      outcomeVersion: getPredictOutcomeVersion(outcome),
       marketSlug: market?.slug,
       gameId: market?.game?.id,
       gameStartTime: market?.game?.startTime,
@@ -402,7 +404,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Skeleton
                     width={160}
-                    height={50}
+                    height={56}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -419,8 +421,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               ) : (
                 <>
                   <Text
-                    fontWeight={FontWeight.Medium}
-                    variant={TextVariant.DisplayLg}
+                    variant={TextVariant.AmountDisplayLg}
+                    fontFamily={FontFamily.Hero}
                   >
                     {formatPrice(currentValue, { maximumDecimals: 2 })}
                   </Text>
