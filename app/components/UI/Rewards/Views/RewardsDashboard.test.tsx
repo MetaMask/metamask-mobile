@@ -611,7 +611,6 @@ describe('RewardsDashboard', () => {
       });
     });
 
-
     it('does not render the VIP button when VIP is disabled', () => {
       const { queryByTestId } = render(<RewardsDashboard />);
 
@@ -820,7 +819,6 @@ describe('RewardsDashboard', () => {
       });
     });
   });
-
 
   describe('settings button state', () => {
     it('disables settings button when user is not opted in', () => {
