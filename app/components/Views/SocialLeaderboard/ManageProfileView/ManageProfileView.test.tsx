@@ -464,6 +464,20 @@ describe('ManageProfileView', () => {
     );
   });
 
+  it('opens the avatar picker from the avatar and pencil', () => {
+    renderWithProvider(<ManageProfileView />, { state });
+
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+
+    expect(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
   it('disables editor rows when no controller profile exists', () => {
     mockUseMyProfile.mockReturnValue({
       profile: null,
@@ -485,6 +499,12 @@ describe('ManageProfileView', () => {
     );
     fireEvent.press(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    );
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+    fireEvent.press(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     );
 
     expect(mockNavigate).not.toHaveBeenCalled();

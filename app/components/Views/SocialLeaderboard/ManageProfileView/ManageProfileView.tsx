@@ -19,7 +19,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import EditableProfileAvatar from '../MyProfileView/components/EditableProfileAvatar';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
@@ -105,8 +105,13 @@ const ManageProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT);
   }, [isControllerBacked, navigation]);
 
-  // Connected: open the X account screen, which owns the confirmed disconnect.
-  // Not connected: start X OAuth in place.
+  const handleEditAvatar = useCallback(() => {
+    if (!isControllerBacked) {
+      return;
+    }
+    navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
+  }, [isControllerBacked, navigation]);
+
   const handleDisconnectX = useCallback(async (): Promise<void> => {
     if (!isControllerBacked || isConnectingX) {
       return;
@@ -151,15 +156,16 @@ const ManageProfileView: React.FC = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
       >
         <Box twClassName="items-center py-4">
-          <ProfileAvatar
+          <EditableProfileAvatar
             imageUrl={profile?.imageUrl}
             avatarPresetId={profile?.avatarPresetId}
             avatarBackgroundId={profile?.avatarBackgroundId}
-            size="lg"
+            onPress={handleEditAvatar}
+            avatarTestID={ManageProfileViewSelectorsIDs.AVATAR}
+            editTestID={ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
             accessibilityLabel={strings(
               'social_leaderboard.manage_profile.avatar_accessibility_label',
             )}
-            testID={ManageProfileViewSelectorsIDs.AVATAR}
           />
         </Box>
 

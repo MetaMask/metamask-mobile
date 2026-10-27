@@ -253,6 +253,9 @@ const MyProfileView: React.FC = () => {
   const handleEditProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE);
   }, [navigation]);
+  const handleEditAvatar = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
+  }, [navigation]);
   const handleFollowersPress = useCallback(() => {
     if (!isOwner && !addressOrId) {
       return;
@@ -587,6 +590,7 @@ const MyProfileView: React.FC = () => {
                     : (displayProfile.followingCount ?? 0)
                 }
                 isOwner={isOwner}
+                onEditAvatar={isOwner ? handleEditAvatar : undefined}
                 onFollowersPress={handleFollowersPress}
                 onFollowingPress={handleFollowingPress}
               />
@@ -605,20 +609,20 @@ const MyProfileView: React.FC = () => {
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      onPress={handleShareProfile}
+                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
+                      {strings('social_leaderboard.my_profile.share_profile')}
                     </Button>
                   </Box>
                   <Box twClassName="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      onPress={handleEditProfile}
+                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.share_profile')}
+                      {strings('social_leaderboard.my_profile.edit_profile')}
                     </Button>
                   </Box>
                 </Box>

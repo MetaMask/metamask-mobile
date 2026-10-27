@@ -142,6 +142,32 @@ describe('RewardsMoneyClaimsPausedModal', () => {
     expect(getByText('Got it')).toBeOnTheScreen();
   });
 
+  it('shows the balance rows without the paused explanation', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } = render(
+      <RewardsMoneyClaimsPausedModal
+        route={{
+          params: {
+            variant: 'breakdown',
+            title: 'Breakdown',
+            totals: TOTALS,
+            labels: LABELS,
+          },
+        }}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.TITLE)).toHaveTextContent('Breakdown');
+    expect(queryByTestId(TEST_IDS.DESCRIPTION)).toBeNull();
+    expect(queryByTestId(TEST_IDS.DIVIDER)).toBeNull();
+    expect(queryByTestId(TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
+    expect(queryByText('You cannot claim rewards right now.')).toBeNull();
+    expect(getByText('Recorded earnings')).toBeOnTheScreen();
+    expect(getByText('$132.00')).toBeOnTheScreen();
+    expect(getByText('Held')).toBeOnTheScreen();
+    expect(getByText('$100.00')).toBeOnTheScreen();
+    expect(getByText('Got it')).toBeOnTheScreen();
+  });
+
   it('goes back when Got it is pressed', () => {
     const { getByTestId } = render(
       <RewardsMoneyClaimsPausedModal

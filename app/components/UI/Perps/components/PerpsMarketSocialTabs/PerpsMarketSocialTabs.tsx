@@ -17,7 +17,7 @@ import type { TabItem } from '../../../../../component-library/components-temp/T
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import {
   SocialLeaderboard,
   type SocialLeaderboardSource,
@@ -89,7 +89,7 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   const activeTab = TABS[activeIndex];
 
   const handleOpenSocial = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate, {
+    pushSocialLeaderboard(navigation.navigate, {
       source: SOURCE,
       initialTab: activeTab === 'top_traders' ? 'leaderboard' : 'trending',
     });

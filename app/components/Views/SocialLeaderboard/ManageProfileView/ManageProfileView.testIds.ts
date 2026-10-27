@@ -3,6 +3,7 @@ export const ManageProfileViewSelectorsIDs = {
   HEADER: 'manage-profile-view-header',
   BACK_BUTTON: 'manage-profile-view-back-button',
   AVATAR: 'manage-profile-view-avatar',
+  EDIT_AVATAR_BUTTON: 'manage-profile-view-edit-avatar-button',
   ABOUT_SECTION: 'manage-profile-view-about-section',
   PRIVACY_SECTION: 'manage-profile-view-privacy-section',
   DISPLAY_NAME_ROW: 'manage-profile-view-display-name-row',

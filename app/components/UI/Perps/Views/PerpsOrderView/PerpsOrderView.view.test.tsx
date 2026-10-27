@@ -47,6 +47,7 @@ import {
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
+import { resetPerpsCufTraceForTests } from '../../utils/perpsCufTrace';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 
 const TIMEOUT_MS = 5000;
@@ -151,6 +152,16 @@ describe('PerpsOrderView', () => {
     jest
       .mocked(Engine.context.PerpsController.subscribeToOrderBook)
       .mockImplementation(() => () => undefined);
+    (Engine.context.PerpsController.placeOrder as jest.Mock)
+      .mockReset()
+      .mockResolvedValue({
+        success: true,
+        orderId: 'component-view-order',
+      });
+    // Place-order confirmation waits on a module-level resolver. A prior case
+    // that leaves that waiter pending blocks the next submit, so the TP/SL
+    // error toast never replaces "Order submitted".
+    resetPerpsCufTraceForTests();
     (
       Engine.context.PerpsController.calculateFees as jest.Mock
     ).mockResolvedValue({});
@@ -296,7 +307,9 @@ describe('PerpsOrderView', () => {
       const placeOrder = Engine.context.PerpsController.placeOrder as jest.Mock;
       const updatePositionTPSL = Engine.context.PerpsController
         .updatePositionTPSL as jest.Mock;
-      updatePositionTPSL.mockResolvedValueOnce({ success: false, error });
+      // Once is consumed by any earlier call in the same case, and the
+      // following call then resolves success and never shows the error toast.
+      updatePositionTPSL.mockResolvedValue({ success: false, error });
       const { stream } = renderPerpsOrderView({
         includeToasts: true,
         overrides: {
@@ -340,6 +353,18 @@ describe('PerpsOrderView', () => {
         expect(
           screen.getByTestId(PerpsTradeSheetSelectorsIDs.PLACE_ORDER_BUTTON),
         ).not.toBeDisabled();
+      });
+      // The separate TP/SL update runs only after pending take-profit is on
+      // the form. The place button can enable first; pressing then leaves the
+      // in-progress "Order submitted" toast up and never shows the error.
+      await waitFor(() => {
+        expect(
+          screen.getByText(
+            new RegExp(
+              `${strings('perps.order.tp')} (?!${strings('perps.order.off')})`,
+            ),
+          ),
+        ).toBeOnTheScreen();
       });
 
       await act(async () => {
