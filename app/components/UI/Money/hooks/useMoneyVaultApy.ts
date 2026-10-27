@@ -27,6 +27,13 @@ export interface UseMoneyVaultApyResult {
   baseApyDecimal: number | undefined;
   /** Base vault APY as a one-decimal percentage. */
   baseApyPercent: number | undefined;
+  /**
+   * True while `GET_VAULT_APY` is in its first load and no base rate is
+   * available yet. An override, a cached service value, or a settled fallback
+   * clears this even if a refetch is in flight. Entitled users still need it:
+   * `vaultApyQuery` switches to the premium rate and hides this query.
+   */
+  isBaseApyLoading: boolean;
 }
 
 export interface UseMoneyVaultApyOptions {
@@ -84,6 +91,8 @@ const useMoneyVaultApy = ({
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
   const baseApyPercent = toApyPercent(baseApyDecimal);
+  const isBaseApyLoading =
+    baseVaultApyQuery.isLoading && baseApyDecimal === undefined;
 
   return {
     vaultApyQuery: isEntitled ? vaultRateQuery : baseVaultApyQuery,
@@ -92,6 +101,7 @@ const useMoneyVaultApy = ({
     apyPercentFormatted,
     baseApyDecimal,
     baseApyPercent,
+    isBaseApyLoading,
   };
 };
 

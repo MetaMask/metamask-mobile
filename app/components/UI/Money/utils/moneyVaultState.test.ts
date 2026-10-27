@@ -34,6 +34,7 @@ describe('getMoneyVaultState', () => {
         status: 'premium',
         currentVault: 'premium',
         effectiveApyDecimal: 0.08,
+        usesBaseApy: false,
       });
     });
 
@@ -51,6 +52,7 @@ describe('getMoneyVaultState', () => {
         status: 'base',
         currentVault: 'base',
         effectiveApyDecimal: 0.05,
+        usesBaseApy: true,
       });
     });
   });
@@ -76,6 +78,7 @@ describe('getMoneyVaultState', () => {
         status: 'base',
         currentVault: 'base',
         effectiveApyDecimal: 0.05,
+        usesBaseApy: true,
       });
     });
 
@@ -93,6 +96,7 @@ describe('getMoneyVaultState', () => {
         status: 'base',
         currentVault: 'base',
         effectiveApyDecimal: 0.05,
+        usesBaseApy: true,
       });
     });
 
@@ -116,6 +120,7 @@ describe('getMoneyVaultState', () => {
         status: 'downgrading',
         currentVault: 'premium',
         effectiveApyDecimal: 0.08,
+        usesBaseApy: false,
       });
     });
 
@@ -144,6 +149,36 @@ describe('getMoneyVaultState', () => {
         status: 'downgrading',
         currentVault: 'premium',
         effectiveApyDecimal: 0.07,
+        usesBaseApy: true,
+      });
+    });
+
+    it('leaves the effective APY unset when a split downgrade is missing the base rate', () => {
+      expect(
+        getMoneyVaultState({
+          isEntitled: false,
+          positions: [
+            position({
+              vaultAddress: BASE_VAULT,
+              vaultKey: 'standard',
+              usd: '25',
+            }),
+            position({
+              vaultAddress: PREMIUM_VAULT,
+              vaultKey: 'premium',
+              usd: '75',
+            }),
+          ],
+          baseVaultAddress: BASE_VAULT,
+          premiumVaultAddress: PREMIUM_VAULT,
+          baseApyDecimal: undefined,
+          premiumApyDecimal: 0.08,
+        }),
+      ).toEqual({
+        status: 'downgrading',
+        currentVault: 'premium',
+        effectiveApyDecimal: undefined,
+        usesBaseApy: true,
       });
     });
   });
@@ -169,6 +204,7 @@ describe('getMoneyVaultState', () => {
         status: 'premium',
         currentVault: 'premium',
         effectiveApyDecimal: 0.08,
+        usesBaseApy: false,
       });
     });
 
@@ -186,6 +222,7 @@ describe('getMoneyVaultState', () => {
         status: 'premium',
         currentVault: 'premium',
         effectiveApyDecimal: 0.08,
+        usesBaseApy: false,
       });
     });
 
@@ -209,6 +246,7 @@ describe('getMoneyVaultState', () => {
         status: 'upgrading',
         currentVault: 'base',
         effectiveApyDecimal: 0.05,
+        usesBaseApy: true,
       });
     });
 
@@ -237,6 +275,36 @@ describe('getMoneyVaultState', () => {
         status: 'upgrading',
         currentVault: 'base',
         effectiveApyDecimal: 0.06,
+        usesBaseApy: true,
+      });
+    });
+
+    it('leaves the effective APY unset when a split upgrade is missing the base rate', () => {
+      expect(
+        getMoneyVaultState({
+          isEntitled: true,
+          positions: [
+            position({
+              vaultAddress: BASE_VAULT,
+              vaultKey: 'standard',
+              usd: '50',
+            }),
+            position({
+              vaultAddress: PREMIUM_VAULT,
+              vaultKey: 'premium',
+              usd: '50',
+            }),
+          ],
+          baseVaultAddress: BASE_VAULT,
+          premiumVaultAddress: PREMIUM_VAULT,
+          baseApyDecimal: undefined,
+          premiumApyDecimal: 0.08,
+        }),
+      ).toEqual({
+        status: 'upgrading',
+        currentVault: 'base',
+        effectiveApyDecimal: undefined,
+        usesBaseApy: true,
       });
     });
   });
@@ -275,6 +343,7 @@ describe('getMoneyVaultState', () => {
         status: 'downgrading',
         currentVault: 'premium',
         effectiveApyDecimal: 0.08,
+        usesBaseApy: false,
       });
     });
 

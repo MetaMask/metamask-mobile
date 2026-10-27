@@ -99,36 +99,46 @@ describe('getVaultPositionsRefetchInterval', () => {
 });
 
 describe('useMoneyVaultState', () => {
-  const setup = ({
-    isEntitled = false,
-    address = ADDRESS as string | null,
-    positions,
-    positionsLoading = false,
-    positionsError = false,
-    baseApyDecimal = 0.05,
-    premiumRate = '0.08' as string | undefined,
-    premiumRateLoading = false,
-    networkTier = 'WIFI' as ReturnType<typeof useNetworkTier>,
-    hardwareTier = 'HIGH' as ReturnType<typeof getHardwareTier>,
-  }: {
-    isEntitled?: boolean;
-    /** Pass `null` to simulate no Money account (undefined would hit the default). */
-    address?: string | null;
-    positions?:
-      | {
-          vault_address: string;
-          vault_key: string;
-          current_value_usd: string;
-        }[]
-      | undefined;
-    positionsLoading?: boolean;
-    positionsError?: boolean;
-    baseApyDecimal?: number;
-    premiumRate?: string | undefined;
-    premiumRateLoading?: boolean;
-    networkTier?: ReturnType<typeof useNetworkTier>;
-    hardwareTier?: ReturnType<typeof getHardwareTier>;
-  } = {}) => {
+  const setup = (
+    options: {
+      isEntitled?: boolean;
+      /** Pass `null` to simulate no Money account (undefined would hit the default). */
+      address?: string | null;
+      positions?:
+        | {
+            vault_address: string;
+            vault_key: string;
+            current_value_usd: string;
+          }[]
+        | undefined;
+      positionsLoading?: boolean;
+      positionsError?: boolean;
+      /**
+       * Omit to use `0.05`. Pass `undefined` when the base APY has not resolved.
+       */
+      baseApyDecimal?: number;
+      premiumRate?: string | undefined;
+      premiumRateLoading?: boolean;
+      baseApyLoading?: boolean;
+      networkTier?: ReturnType<typeof useNetworkTier>;
+      hardwareTier?: ReturnType<typeof getHardwareTier>;
+    } = {},
+  ) => {
+    const {
+      isEntitled = false,
+      address = ADDRESS as string | null,
+      positions,
+      positionsLoading = false,
+      positionsError = false,
+      premiumRate = '0.08' as string | undefined,
+      premiumRateLoading = false,
+      baseApyLoading = false,
+      networkTier = 'WIFI' as ReturnType<typeof useNetworkTier>,
+      hardwareTier = 'HIGH' as ReturnType<typeof getHardwareTier>,
+    } = options;
+    const baseApyDecimal = Object.hasOwn(options, 'baseApyDecimal')
+      ? options.baseApyDecimal
+      : 0.05;
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectHasMoneyAccountPremiumApyEntitlement) {
         return isEntitled;
@@ -148,6 +158,7 @@ describe('useMoneyVaultState', () => {
     mockGetHardwareTier.mockReturnValue(hardwareTier);
     mockUseMoneyVaultApy.mockReturnValue({
       baseApyDecimal,
+      isBaseApyLoading: baseApyLoading,
     } as ReturnType<typeof useMoneyVaultApy>);
     mockUseMoneyPremiumVaultRate.mockReturnValue({
       rate: premiumRate,
@@ -313,6 +324,118 @@ describe('useMoneyVaultState', () => {
         ],
       },
     );
+  });
+
+  it('stays loading for a standard position while the base vault APY is pending', () => {
+    setup({
+      isEntitled: false,
+      positions: [
+        {
+          vault_address: BASE_VAULT,
+          vault_key: 'standard',
+          current_value_usd: '100',
+        },
+      ],
+      baseApyDecimal: undefined,
+      baseApyLoading: true,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultState());
+
+    expect(result.current.status).toBe('base');
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('stays loading while upgrading when the base vault APY is pending', () => {
+    setup({
+      isEntitled: true,
+      positions: [
+        {
+          vault_address: BASE_VAULT,
+          vault_key: 'standard',
+          current_value_usd: '100',
+        },
+      ],
+      premiumRate: '0.08',
+      baseApyDecimal: undefined,
+      baseApyLoading: true,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultState());
+
+    expect(result.current.status).toBe('upgrading');
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('stays loading during a split downgrade while the base vault APY is pending', () => {
+    setup({
+      isEntitled: false,
+      positions: [
+        {
+          vault_address: BASE_VAULT,
+          vault_key: 'standard',
+          current_value_usd: '25',
+        },
+        {
+          vault_address: PREMIUM_VAULT,
+          vault_key: 'premium',
+          current_value_usd: '75',
+        },
+      ],
+      premiumRate: '0.08',
+      baseApyDecimal: undefined,
+      baseApyLoading: true,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultState());
+
+    expect(result.current.status).toBe('downgrading');
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('does not wait on the base vault APY when funds are only in the premium vault', () => {
+    setup({
+      isEntitled: true,
+      positions: [
+        {
+          vault_address: PREMIUM_VAULT,
+          vault_key: 'premium',
+          current_value_usd: '100',
+        },
+      ],
+      premiumRate: '0.08',
+      baseApyDecimal: undefined,
+      baseApyLoading: true,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultState());
+
+    expect(result.current.status).toBe('premium');
+    expect(result.current.apyDecimal).toBe(0.08);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it('stops loading when the base vault APY query settles without a rate', () => {
+    setup({
+      isEntitled: false,
+      positions: [
+        {
+          vault_address: BASE_VAULT,
+          vault_key: 'standard',
+          current_value_usd: '100',
+        },
+      ],
+      baseApyDecimal: undefined,
+      baseApyLoading: false,
+    });
+
+    const { result } = renderHook(() => useMoneyVaultState());
+
+    expect(result.current.apyDecimal).toBeUndefined();
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('disables the positions query when there is no Money account address', () => {

@@ -42,6 +42,11 @@ export interface MoneyVaultState {
   status: MoneyVaultStatus;
   currentVault: MoneyVaultKind;
   effectiveApyDecimal: number | undefined;
+  /**
+   * True when `effectiveApyDecimal` is the base vault rate, or a blend that
+   * includes it. Premium-only states do not wait on the base APY query.
+   */
+  usesBaseApy: boolean;
 }
 
 const ZERO = new BigNumber(0);
@@ -126,6 +131,15 @@ const weightedApy = ({
     return undefined;
   }
 
+  // A missing leg is not a zero rate. Publishing the other vault's APY would
+  // close Money home's time-to-content span before GET_VAULT_APY returns.
+  if (
+    (baseUsd.gt(0) && baseApy === undefined) ||
+    (premiumUsd.gt(0) && premiumApy === undefined)
+  ) {
+    return undefined;
+  }
+
   let weighted = ZERO;
   let weight = ZERO;
 
@@ -170,6 +184,7 @@ export const getMoneyVaultState = ({
       status: isEntitled ? MoneyVaultStatus.Premium : MoneyVaultStatus.Base,
       currentVault: isEntitled ? MoneyVaultKind.Premium : MoneyVaultKind.Base,
       effectiveApyDecimal: isEntitled ? premiumApyDecimal : baseApyDecimal,
+      usesBaseApy: !isEntitled,
     };
   }
 
@@ -195,12 +210,14 @@ export const getMoneyVaultState = ({
               premiumApy: premiumApyDecimal,
             })
           : baseApyDecimal,
+        usesBaseApy: true,
       };
     }
     return {
       status: MoneyVaultStatus.Premium,
       currentVault: MoneyVaultKind.Premium,
       effectiveApyDecimal: premiumApyDecimal,
+      usesBaseApy: false,
     };
   }
 
@@ -216,6 +233,7 @@ export const getMoneyVaultState = ({
             premiumApy: premiumApyDecimal,
           })
         : premiumApyDecimal,
+      usesBaseApy: inBase,
     };
   }
 
@@ -223,5 +241,6 @@ export const getMoneyVaultState = ({
     status: MoneyVaultStatus.Base,
     currentVault: MoneyVaultKind.Base,
     effectiveApyDecimal: baseApyDecimal,
+    usesBaseApy: true,
   };
 };

@@ -120,6 +120,8 @@ describe('useMoneyVaultApy', () => {
     expect(result.current.apyDecimal).toBeUndefined();
     expect(result.current.apyPercent).toBeUndefined();
     expect(result.current.apyPercentFormatted).toBeUndefined();
+    expect(result.current.baseApyDecimal).toBeUndefined();
+    expect(result.current.isBaseApyLoading).toBe(true);
   });
 
   it('uses the fallback when the settled query has no service APY', () => {
@@ -195,6 +197,33 @@ describe('useMoneyVaultApy', () => {
 
     expect(result.current.apyPercent).toBe(3.8);
     expect(result.current.apyPercentFormatted).toBe('3.8%');
+  });
+
+  it('does not report the base APY as loading when an override is already set', () => {
+    setup({
+      query: { data: undefined, isLoading: true, isError: false },
+      remoteApyConfig: { vaultApyFallback: 0.04, vaultApyOverride: 0.08 },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.baseApyDecimal).toBe(0.08);
+    expect(result.current.isBaseApyLoading).toBe(false);
+  });
+
+  it('reports base APY loading while an entitled user already has a premium rate', () => {
+    setup({
+      isEntitled: true,
+      premiumRate: '0.08',
+      query: { data: undefined, isLoading: true, isError: false },
+    });
+
+    const { result } = renderHook(() => useMoneyVaultApy());
+
+    expect(result.current.vaultApyQuery.isLoading).toBe(false);
+    expect(result.current.apyDecimal).toBe(0.08);
+    expect(result.current.baseApyDecimal).toBeUndefined();
+    expect(result.current.isBaseApyLoading).toBe(true);
   });
 
   it('returns the premium rate for an entitled user', () => {

@@ -73,6 +73,11 @@ export interface UseMoneyVaultStateResult {
  * device-capability matrix: pause on `NONE`, 60s on `SLOW_CELLULAR` or LOW
  * hardware, 30s otherwise while migrating, and 5 minutes when settled.
  *
+ * Loading stays true until every rate that status displays has settled.
+ * Standard and upgrading users, and a split downgrade, wait on the base vault
+ * APY. Premium-only states do not. A settled query that returns no rate is
+ * not loading, so Money home can record that miss.
+ *
  * @returns Vault status, current vault kind, effective APY, and loading flag.
  */
 const useMoneyVaultState = (): UseMoneyVaultStateResult => {
@@ -88,7 +93,7 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
   const baseVaultAddress = baseVaultConfig?.boringVault;
   const premiumVaultAddress = premiumVaultConfig?.boringVault;
 
-  const { baseApyDecimal } = useMoneyVaultApy();
+  const { baseApyDecimal, isBaseApyLoading } = useMoneyVaultApy();
   const [isMigrating, setIsMigrating] = useState(false);
 
   const refetchInterval = getVaultPositionsRefetchInterval(
@@ -131,15 +136,16 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
   // would briefly flip to the target vault's APY.
   const positionsUnavailable = positions === undefined;
 
-  const { status, currentVault, effectiveApyDecimal } = getMoneyVaultState({
-    isEntitled,
-    positions,
-    baseVaultAddress,
-    premiumVaultAddress,
-    baseApyDecimal,
-    premiumApyDecimal,
-    positionsUnavailable,
-  });
+  const { status, currentVault, effectiveApyDecimal, usesBaseApy } =
+    getMoneyVaultState({
+      isEntitled,
+      positions,
+      baseVaultAddress,
+      premiumVaultAddress,
+      baseApyDecimal,
+      premiumApyDecimal,
+      positionsUnavailable,
+    });
 
   useEffect(() => {
     setIsMigrating(
@@ -169,6 +175,7 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
 
   const isLoading =
     positionsQuery.isLoading ||
+    (usesBaseApy && isBaseApyLoading) ||
     ((isEntitled || hasPremiumPosition) &&
       vaultRateQuery.isLoading &&
       premiumApyDecimal === undefined);
