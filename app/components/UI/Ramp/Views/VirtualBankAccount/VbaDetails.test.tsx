@@ -520,7 +520,11 @@ describe('VbaDetails', () => {
     unmount();
     await act(async () => undefined);
 
-    expect(mockEndVbaCufChildTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-child-id',
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
   });
 
   it('does not fetch Pix instructions while offline', () => {
@@ -972,6 +976,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
+    const brlTraceId = mockStartVbaCufChildTrace.mock.results.at(-1)?.value;
     mockRouteParams = { sourceCurrency: 'USD' };
     mockLocation = 'US';
     setAutoramps([]);
@@ -998,12 +1003,11 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-usd');
     });
-    const usdTraceId = mockStartVbaCufChildTrace.mock.results.at(-1)?.value;
     resolvePix(pixInstructions);
     await act(async () => undefined);
 
-    expect(mockEndVbaCufChildTrace.mock.calls).not.toContainEqual([
-      usdTraceId,
+    expect(mockEndVbaCufChildTrace.mock.calls[0]).toEqual([
+      brlTraceId,
       false,
       VBA_CUF_END_REASON.SUPERSEDED,
     ]);
