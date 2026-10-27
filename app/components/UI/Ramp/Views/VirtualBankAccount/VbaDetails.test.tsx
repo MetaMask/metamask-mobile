@@ -17,6 +17,13 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+import { TraceName } from '../../../../../util/trace';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -83,6 +90,15 @@ jest.mock('../../../../../util/deviceCapability', () => ({
 jest.mock('../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-child-id'),
+  endVbaCufChildTrace: jest.fn(),
+  endVbaCufJourney: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -175,6 +191,7 @@ const restoreNeoBankService = () => {
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
@@ -230,6 +247,10 @@ describe('VbaDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
     expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
   });
 
@@ -258,6 +279,11 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaPixFetch,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith('vba-child-id', true);
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
@@ -326,6 +352,7 @@ describe('VbaDetails', () => {
       expect(getByText('Lead Bank')).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     });
 
     it('copies the routing number', async () => {
@@ -483,6 +510,21 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+  });
+
+  it('ends the Pix fetch trace after unmount', async () => {
+    mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+    const { unmount } = renderWithProvider(<VbaDetails />);
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledTimes(1);
+
+    unmount();
+    await act(async () => undefined);
+
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-child-id',
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
   });
 
   it('does not fetch Pix instructions while offline', () => {
@@ -909,6 +951,9 @@ describe('VbaDetails', () => {
 
   it('drops a details response that belongs to the previous currency', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
+    mockStartVbaCufChildTrace.mockImplementation(
+      () => `pix-fetch-${mockStartVbaCufChildTrace.mock.calls.length}`,
+    );
     mockGetDepositInstructions.mockImplementation(
       (autorampId: string) =>
         new Promise((resolve) => {
@@ -931,7 +976,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
-
+    const brlTraceId = mockStartVbaCufChildTrace.mock.results.at(-1)?.value;
     mockRouteParams = { sourceCurrency: 'USD' };
     mockLocation = 'US';
     setAutoramps([]);
@@ -940,7 +985,7 @@ describe('VbaDetails', () => {
       const created: TestAutoramp = {
         id: 'ar-usd',
         walletAddress: '0xabc',
-        status: 'Created',
+        status: 'Approved',
         depositRailsSummary: { currency: 'USD' },
       };
       setAutoramps([created]);
@@ -955,15 +1000,17 @@ describe('VbaDetails', () => {
       contentReady: false,
       contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
     });
-    resolvePix(pixInstructions);
-
     await waitFor(() => {
-      expect(mockCreateAutoramp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source_currencies: [{ type: 'Fiat', code: 'USD' }],
-        }),
-      );
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-usd');
     });
+    resolvePix(pixInstructions);
+    await act(async () => undefined);
+
+    expect(mockEndVbaCufChildTrace.mock.calls[0]).toEqual([
+      brlTraceId,
+      false,
+      VBA_CUF_END_REASON.SUPERSEDED,
+    ]);
     expect(view.queryByText('00020126')).toBeNull();
     expect(
       view.queryByText(strings('virtual_bank_account.vba_details.title')),
