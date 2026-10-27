@@ -161,13 +161,12 @@ const CreatePostButton: React.FC = () => {
 const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
   hasBalance,
   token,
-}) => {
-  return (
-    <Box
-      alignItems={BoxAlignItems.Center}
-      twClassName="w-full px-8 py-12"
-      testID={FEED_EMPTY_TEST_ID}
-    >
+}) => (
+  <Box
+    alignItems={BoxAlignItems.Center}
+    twClassName="w-full px-8 py-12"
+    testID={FEED_EMPTY_TEST_ID}
+  >
       <FeedEmptyMegaphone />
       <Text
         variant={TextVariant.HeadingLg}
@@ -195,8 +194,7 @@ const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
           <CreatePostButton />
         )
       ) : null}
-    </Box>
-  );
-};
+  </Box>
+);
 
 export default TokenDetailsFeedEmptyState;

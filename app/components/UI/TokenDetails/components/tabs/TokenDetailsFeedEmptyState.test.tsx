@@ -30,7 +30,12 @@ jest.mock('react-native-reanimated', () => {
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
 const mockOpenComposer = jest.fn();
-const mockUseOpenPositionHeader = jest.fn(() => ({ sharePosition: null }));
+const mockUseOpenPositionHeader = jest.fn(
+  (): { sharePosition: TraderPosition | null; isPositionLoading: boolean } => ({
+    sharePosition: null,
+    isPositionLoading: false,
+  }),
+);
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
