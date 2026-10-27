@@ -11,6 +11,7 @@ function runWithFakeGh(options: {
   planOnly?: boolean;
   allowCreate?: boolean;
   otaVersion?: string;
+  changelog?: string;
 }): { exitCode: number; stdout: string; stderr: string; log: string; output: string } {
   const root = mkdtempSync(path.join(tmpdir(), 'ota-pr-'));
   const bin = path.join(root, 'bin');
@@ -43,6 +44,8 @@ exit 0
     otaFile,
     `export const OTA_VERSION: string = '${options.otaVersion ?? 'v8.15.1'}';\n`,
   );
+  const changelogFile = path.join(root, 'CHANGELOG.md');
+  writeFileSync(changelogFile, options.changelog ?? '# Changelog\n');
 
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -59,6 +62,7 @@ exit 0
     PLAN_ONLY: options.planOnly ? 'true' : '',
     ALLOW_CREATE: options.allowCreate === false ? 'false' : 'true',
     OTA_CONSTANTS_FILE: otaFile,
+    CHANGELOG_FILE: changelogFile,
   };
 
   const ran = spawnSync('bash', [SCRIPT], { encoding: 'utf8', env });
@@ -131,6 +135,67 @@ describe('ensure-ota-pull-request.sh', () => {
     expect(rerun.output).toContain('pr_action=use');
     expect(rerun.output).toContain('skip_bump=false');
     expect(rerun.stderr).toContain('vX.XX.X');
+  });
+
+  it('runs the changelog when the pull request exists, the version is bumped, and the section is missing', () => {
+    const result = runWithFakeGh({
+      planOnly: true,
+      otaVersion: 'v8.15.1',
+      changelog: '# Changelog\n\n## [8.14.0]\n',
+      prs: [
+        {
+          number: 4,
+          baseRefName: 'ota-base/v8.15.0',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('pr_action=use');
+    expect(result.output).toContain('skip_bump=true');
+    expect(result.output).toContain('skip_changelog=false');
+    expect(result.stderr).toContain('changelog still runs');
+  });
+
+  it('corrects a stale OTA_VERSION when the pull request already exists', () => {
+    const result = runWithFakeGh({
+      planOnly: true,
+      otaVersion: 'v8.14.1',
+      prs: [
+        {
+          number: 4,
+          baseRefName: 'ota-base/v8.15.0',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('skip_bump=false');
+    expect(result.output).toContain('skip_changelog=false');
+  });
+
+  it('skips the changelog when the semver section is already present', () => {
+    const result = runWithFakeGh({
+      planOnly: true,
+      otaVersion: 'v8.15.1',
+      changelog: '# Changelog\n\n## [8.15.1]\n',
+      prs: [
+        {
+          number: 4,
+          baseRefName: 'ota-base/v8.15.0',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.output).toContain('skip_bump=true');
+    expect(result.output).toContain('skip_changelog=true');
   });
 
   it('opens a draft pull request against the pinned base', () => {

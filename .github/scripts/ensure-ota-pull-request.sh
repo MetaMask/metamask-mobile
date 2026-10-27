@@ -18,10 +18,11 @@
 #                   Pull Request, so this script cannot win the race and skip
 #                   the OTA_VERSION bump. Default true.
 #   OTA_CONSTANTS_FILE
-#                   app/constants/ota.ts path. skip_bump stays false while
-#                   OTA_VERSION is the vX.XX.X sentinel, even if a pull request
-#                   already exists.
-#   GITHUB_OUTPUT   optional Actions output file (skip_bump)
+#                   app/constants/ota.ts path. When a pull request already
+#                   exists, skip_bump is true only when OTA_VERSION is v<SEMVER>.
+#   CHANGELOG_FILE  CHANGELOG.md path. skip_changelog is true only when that
+#                   file already has a "## [<SEMVER>]" section.
+#   GITHUB_OUTPUT   optional Actions output file (skip_bump, skip_changelog)
 
 set -euo pipefail
 
@@ -33,6 +34,7 @@ GITHUB_REPOSITORY="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 OTA_CONSTANTS_FILE="${OTA_CONSTANTS_FILE:-app/constants/ota.ts}"
+CHANGELOG_FILE="${CHANGELOG_FILE:-CHANGELOG.md}"
 RELEASE_TAG="${DESIRED_BASE#ota-base/}"
 TITLE="release: ${SEMVER} (OTA)"
 OTA_VERSION_SENTINEL="vX.XX.X"
@@ -53,8 +55,8 @@ mapfile -t CLOSE_NUMBERS < <(printf '%s' "$PLAN" | jq -r '.closePrNumbers[]?')
 echo "${REASON}" >&2
 
 # A pull request is not proof the branch was bumped. Create Release Pull Request
-# skips the bump and the changelog when skip_bump=true, and production publish
-# only checks that some pull request exists.
+# skips the bump only when skip_bump=true and the changelog only when
+# skip_changelog=true. Production publish only checks that some pull request exists.
 read_ota_version() {
   if [[ ! -f "$OTA_CONSTANTS_FILE" ]]; then
     printf ''
@@ -69,18 +71,36 @@ read_ota_version() {
   sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p" <<<"$line"
 }
 
+# A pull request only means the branch was published. The bump is done when
+# OTA_VERSION is exactly v<SEMVER>. The changelog is done when its own section
+# exists. A bumped tree with a missing section still updates the changelog.
+changelog_has_semver() {
+  [[ -f "$CHANGELOG_FILE" ]] || return 1
+  awk -v version="$SEMVER" '
+    index($0, "## [" version "]") == 1 { found = 1 }
+    END { exit found ? 0 : 1 }
+  ' "$CHANGELOG_FILE"
+}
+
 SKIP_BUMP=false
+SKIP_CHANGELOG=false
 if [[ "$ACTION" == "use" || "$ACTION" == "retarget" ]]; then
   CURRENT_OTA=$(read_ota_version)
-  if [[ -n "$CURRENT_OTA" && "$CURRENT_OTA" != "$OTA_VERSION_SENTINEL" ]]; then
+  if [[ "$CURRENT_OTA" == "v${SEMVER}" ]]; then
     SKIP_BUMP=true
   else
-    echo "OTA_VERSION is '${CURRENT_OTA:-missing}', not a release value. The bump and changelog still run." >&2
+    echo "OTA_VERSION is '${CURRENT_OTA:-missing}', expected v${SEMVER}. The bump still runs." >&2
+  fi
+  if changelog_has_semver; then
+    SKIP_CHANGELOG=true
+  else
+    echo "CHANGELOG.md has no [${SEMVER}] section. The changelog still runs." >&2
   fi
 fi
 
 if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
   echo "skip_bump=${SKIP_BUMP}" >> "$GITHUB_OUTPUT"
+  echo "skip_changelog=${SKIP_CHANGELOG}" >> "$GITHUB_OUTPUT"
   echo "pr_action=${ACTION}" >> "$GITHUB_OUTPUT"
   echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 fi
@@ -143,8 +163,11 @@ case "$ACTION" in
       echo "::error::Could not read the new pull request number from: ${created_url}" >&2
       exit 1
     fi
-    # Old store tags still run auto-label on ota-base/**. Remove the label here
-    # as well as on retarget, or Check all jobs pass fails because E2E was skipped.
+    # The label is often absent here: auto-label runs after `opened`, and old
+    # tags do not ignore ota-base/**. clear-late-ota-e2e-label.sh removes it
+    # once that workflow finishes and reopens the pull request. Check all jobs
+    # pass fails while the label is set, so a label that is already present is
+    # removed now as well.
     REMOVED=$(remove_blocking_label "$created_number" || true)
     if [[ "$REMOVED" == "removed" ]]; then
       reopen_for_ci "$created_number" "Reopening so pull_request CI runs without the pr-not-ready-for-e2e label (MCRM-164)."
