@@ -36,7 +36,6 @@ export type MoneyMfaStatus =
 
 const getReason = () => ({
   operation: 'money.mfa.setup',
-  enrollDescription: strings('money.mfa.setup_operation_description'),
 });
 
 const getTurnOffReason = () => ({
