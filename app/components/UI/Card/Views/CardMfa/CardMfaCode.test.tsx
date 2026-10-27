@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppState } from 'react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import {
   CardProviderError,
@@ -114,7 +114,7 @@ describe('CardMfaCode', () => {
     };
   });
 
-  it('auto-submits six digits once and resumes with the session already authenticated', async () => {
+  it('submits a six-digit code once', async () => {
     mockSubmitCredentials.mockResolvedValue({ done: true });
     const { getByTestId } = render(<CardMfaCode />);
 
@@ -128,19 +128,29 @@ describe('CardMfaCode', () => {
       type: 'mfa_code',
       code: '123456',
     });
-    expect(mockResume).toHaveBeenCalledWith(
-      expect.objectContaining({
-        alreadyAuthenticated: true,
-        country: 'NZ',
-        address: '0xabc',
-        email: 'jane@example.com',
-        entrypoint: CardEntryPoint.SIGN_UP,
-        navigateFromRoot: true,
-      }),
-    );
   });
 
-  it('shows an inline error and clears an invalid code', async () => {
+  it('resumes onboarding after the code is accepted', async () => {
+    mockSubmitCredentials.mockResolvedValue({ done: true });
+    const { getByTestId } = render(<CardMfaCode />);
+
+    fireEvent.changeText(getByTestId('otp-code-field'), '123456');
+
+    await waitFor(() => {
+      expect(mockResume).toHaveBeenCalledWith(
+        expect.objectContaining({
+          alreadyAuthenticated: true,
+          country: 'NZ',
+          address: '0xabc',
+          email: 'jane@example.com',
+          entrypoint: CardEntryPoint.SIGN_UP,
+          navigateFromRoot: true,
+        }),
+      );
+    });
+  });
+
+  it('shows an inline error for an invalid code', async () => {
     mockSubmitCredentials.mockRejectedValueOnce(
       new CardProviderError(
         CardProviderErrorCode.InvalidOtp,
@@ -156,9 +166,44 @@ describe('CardMfaCode', () => {
     expect(await findByTestId('otp-code-field-error')).toHaveTextContent(
       'card.mfa.errors.invalid_code',
     );
-    expect(getByTestId('otp-code-field')).toHaveProp('value', '');
+  });
 
-    mockSubmitCredentials.mockResolvedValueOnce({ done: true });
+  it('clears a rejected code', async () => {
+    mockSubmitCredentials.mockRejectedValueOnce(
+      new CardProviderError(
+        CardProviderErrorCode.InvalidOtp,
+        'bad',
+        403,
+        'MFA_CODE_INVALID',
+      ),
+    );
+    const { getByTestId } = render(<CardMfaCode />);
+
+    fireEvent.changeText(getByTestId('otp-code-field'), '000000');
+
+    await waitFor(() => {
+      expect(getByTestId('otp-code-field')).toHaveProp('value', '');
+    });
+  });
+
+  it('submits a replacement code after a rejection', async () => {
+    mockSubmitCredentials
+      .mockRejectedValueOnce(
+        new CardProviderError(
+          CardProviderErrorCode.InvalidOtp,
+          'bad',
+          403,
+          'MFA_CODE_INVALID',
+        ),
+      )
+      .mockResolvedValueOnce({ done: true });
+    const { getByTestId } = render(<CardMfaCode />);
+
+    fireEvent.changeText(getByTestId('otp-code-field'), '000000');
+    await waitFor(() => {
+      expect(getByTestId('otp-code-field')).toHaveProp('value', '');
+    });
+
     fireEvent.changeText(getByTestId('otp-code-field'), '654321');
 
     await waitFor(() => {
@@ -169,7 +214,32 @@ describe('CardMfaCode', () => {
     });
   });
 
-  it('starts over when the code is expired or attempts are exceeded', async () => {
+  it('shows the attempts-exceeded message', async () => {
+    const announce = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    mockSubmitCredentials.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.AuthRestartRequired,
+        'locked',
+        403,
+        'MFA_ATTEMPTS_EXCEEDED',
+      ),
+    );
+
+    const { getByTestId, findByTestId } = render(<CardMfaCode />);
+    fireEvent.changeText(getByTestId('otp-code-field'), '111111');
+
+    expect(await findByTestId('card-mfa-code-expired')).toHaveTextContent(
+      'card.mfa.errors.attempts_exceeded',
+    );
+    expect(getByTestId('card-mfa-code-expired')).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(announce).toHaveBeenCalledWith('card.mfa.errors.attempts_exceeded');
+    announce.mockRestore();
+  });
+
+  it('restarts sign-in from the expired code screen', async () => {
     mockSubmitCredentials.mockRejectedValue(
       new CardProviderError(
         CardProviderErrorCode.AuthRestartRequired,
@@ -188,12 +258,7 @@ describe('CardMfaCode', () => {
 
     const { getByTestId, findByTestId } = render(<CardMfaCode />);
     fireEvent.changeText(getByTestId('otp-code-field'), '111111');
-
-    expect(await findByTestId('card-mfa-code-expired')).toHaveTextContent(
-      'card.mfa.errors.attempts_exceeded',
-    );
-
-    fireEvent.press(getByTestId('card-mfa-code-start-over'));
+    fireEvent.press(await findByTestId('card-mfa-code-start-over'));
 
     await waitFor(() => {
       expect(mockAuthenticateWithWallet).toHaveBeenCalledWith({

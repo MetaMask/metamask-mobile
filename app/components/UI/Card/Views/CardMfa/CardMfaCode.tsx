@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
+import { AccessibilityInfo, AppState } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -89,6 +89,11 @@ const CardMfaCode = () => {
       subscription.remove();
     };
   }, [expiresAt]);
+
+  useEffect(() => {
+    if (!expired) return;
+    AccessibilityInfo.announceForAccessibility(expiredMessage);
+  }, [expired, expiredMessage]);
 
   const handleRestart = useCallback(async () => {
     trackEvent(
@@ -214,6 +219,8 @@ const CardMfaCode = () => {
       variant={TextVariant.BodyMd}
       twClassName="text-text-alternative"
       testID="card-mfa-code-expired"
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
     >
       {expiredMessage}
     </Text>

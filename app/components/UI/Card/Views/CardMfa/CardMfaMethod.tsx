@@ -121,10 +121,15 @@ const CardMfaMethod = () => {
     return null;
   })();
 
+  const areaCode = selectedCountry?.areaCode ?? callingCode ?? '';
+  const countryCodeLabel = areaCode
+    ? strings('card.mfa.country_code_label', { code: areaCode })
+    : strings('card.mfa.country_code');
+
   const openCountrySelector = useCallback(() => {
     setOnValueChange((region) => {
       setSelectedCountry(region);
-      setError(null);
+      if (!needsRestart) setError(null);
     });
     navigateWithDetails(
       navigation,
@@ -134,7 +139,7 @@ const CardMfaMethod = () => {
         selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [allRegions, navigation, selectedCountry?.key]);
+  }, [allRegions, navigation, needsRestart, selectedCountry?.key]);
 
   const goAfterRestart = useCallback(
     async (result: Awaited<ReturnType<typeof restart>>) => {
@@ -254,8 +259,7 @@ const CardMfaMethod = () => {
             accessibilityState={{ selected: isSelected }}
             onPress={() => {
               setSelectedMethod(option.method);
-              setError(null);
-              setNeedsRestart(false);
+              if (!needsRestart) setError(null);
             }}
             testID={`card-mfa-option-${option.method}`}
             startAccessory={
@@ -289,13 +293,14 @@ const CardMfaMethod = () => {
                 onPress={openCountrySelector}
                 hideIcon
                 testID="card-mfa-country-code"
+                accessibilityLabel={countryCodeLabel}
               />
             </Box>
             <Box twClassName="flex-1">
               <TextField
                 onChangeText={(value) => {
                   setPhoneNumber(value.replace(/\D/g, ''));
-                  setError(null);
+                  if (!needsRestart) setError(null);
                 }}
                 value={phoneNumber}
                 isError={!!error}
@@ -316,7 +321,7 @@ const CardMfaMethod = () => {
           <TextField
             onChangeText={(value) => {
               setEmail(value);
-              setError(null);
+              if (!needsRestart) setError(null);
             }}
             value={email}
             isError={!!error}
@@ -336,6 +341,8 @@ const CardMfaMethod = () => {
           variant={TextVariant.BodySm}
           twClassName="text-error-default"
           testID="card-mfa-method-error"
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
         >
           {error}
         </Text>

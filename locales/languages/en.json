@@ -11796,6 +11796,8 @@
       "method_email": "Email",
       "phone_label": "Phone number",
       "email_label": "Email",
+      "country_code": "Country code",
+      "country_code_label": "Country code, +{{code}}",
       "continue": "Continue",
       "code_title": "Enter your code",
       "code_description": "Enter the code sent to {{destination}}.",

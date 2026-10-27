@@ -200,6 +200,22 @@ describe('SelectField', () => {
     expect(touchable).toBeOnTheScreen();
   });
 
+  it('passes an accessibility label to the button', () => {
+    const { getByTestId } = render(
+      <SelectField
+        value="🇺🇸 +1"
+        onPress={mockOnPress}
+        testID="select-field"
+        accessibilityLabel="Country code, +1"
+      />,
+    );
+
+    expect(getByTestId('select-field')).toHaveProp(
+      'accessibilityLabel',
+      'Country code, +1',
+    );
+  });
+
   it('does not wrap content in TouchableOpacity when read-only', () => {
     const { queryByTestId } = render(
       <SelectField value="Test" testID="select-field" />,

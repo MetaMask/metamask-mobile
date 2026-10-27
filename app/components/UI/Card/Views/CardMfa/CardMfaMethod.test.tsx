@@ -61,7 +61,8 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => key,
+  strings: (key: string, params?: { code?: string }) =>
+    params?.code ? `${key}:${params.code}` : key,
 }));
 
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
@@ -130,7 +131,7 @@ describe('CardMfaMethod', () => {
     };
   });
 
-  it('submits a full phone number in E.164 and opens the code screen', async () => {
+  it('submits a phone number in E.164', async () => {
     mockSubmitCredentials.mockResolvedValue({
       done: false,
       nextStep: {
@@ -157,13 +158,44 @@ describe('CardMfaMethod', () => {
         destination: '+64211234567',
       });
     });
-    expect(mockReplace).toHaveBeenCalledWith(
-      'CardMfaCode',
-      expect.objectContaining({
+  });
+
+  it('opens the code screen after the phone number is accepted', async () => {
+    mockSubmitCredentials.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
         method: 'phone',
         maskedDestination: '+64 *****1234',
         expiresAt: 1_700_000_000_000,
-      }),
+      },
+    });
+
+    const { getByTestId } = render(<CardMfaMethod />);
+    fireEvent.press(getByTestId('card-mfa-option-phone'));
+    fireEvent.changeText(getByTestId('card-mfa-phone-input'), '211234567');
+    fireEvent.press(getByTestId('card-mfa-method-continue'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        'CardMfaCode',
+        expect.objectContaining({
+          method: 'phone',
+          maskedDestination: '+64 *****1234',
+          expiresAt: 1_700_000_000_000,
+        }),
+      );
+    });
+  });
+
+  it('names the country calling code', () => {
+    const { getByTestId } = render(<CardMfaMethod />);
+
+    fireEvent.press(getByTestId('card-mfa-option-phone'));
+
+    expect(getByTestId('card-mfa-country-code')).toHaveProp(
+      'accessibilityLabel',
+      'card.mfa.country_code_label:64',
     );
   });
 
@@ -253,7 +285,46 @@ describe('CardMfaMethod', () => {
     expect(await findByTestId('card-mfa-method-error')).toHaveTextContent(
       'card.mfa.errors.destination_mismatch',
     );
+    expect(getByTestId('card-mfa-method-error')).toHaveProp(
+      'accessibilityRole',
+      'alert',
+    );
+    expect(getByTestId('card-mfa-method-error')).toHaveProp(
+      'accessibilityLiveRegion',
+      'polite',
+    );
     expect(mockReplace).not.toHaveBeenCalled();
+  });
+
+  it('keeps start over after another method is chosen', async () => {
+    mockSubmitCredentials.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.AuthRestartRequired,
+        'restart',
+        403,
+        'MFA_RESTART_REQUIRED',
+      ),
+    );
+
+    const { getByTestId, findByTestId, queryByTestId } = render(
+      <CardMfaMethod />,
+    );
+    fireEvent.press(getByTestId('card-mfa-option-email'));
+    fireEvent.changeText(
+      getByTestId('card-mfa-email-input'),
+      'jane@example.com',
+    );
+    fireEvent.press(getByTestId('card-mfa-method-continue'));
+
+    expect(await findByTestId('card-mfa-method-restart')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId('card-mfa-option-phone'));
+
+    expect(getByTestId('card-mfa-method-restart')).toBeOnTheScreen();
+    expect(queryByTestId('card-mfa-method-continue')).toBeNull();
+    expect(getByTestId('card-mfa-method-error')).toHaveTextContent(
+      'card.mfa.errors.restart_required',
+    );
   });
 
   it('abandons the login when the user leaves', () => {

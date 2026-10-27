@@ -1,5 +1,25 @@
 const NATIONAL_NUMBER = /^\d{4,15}$/;
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function isEmailLabel(label: string): boolean {
+  if (label.length === 0) return false;
+  for (const char of label) {
+    if (char === '.' || char === '@' || char.trim() === '') return false;
+  }
+  return true;
+}
+
+/** True when every label is non-empty and the domain has at least one dot. */
+function isEmailAddress(value: string): boolean {
+  const at = value.indexOf('@');
+  if (at <= 0 || value.indexOf('@', at + 1) !== -1) return false;
+  const localLabels = value.slice(0, at).split('.');
+  const domainLabels = value.slice(at + 1).split('.');
+  return (
+    domainLabels.length >= 2 &&
+    localLabels.every(isEmailLabel) &&
+    domainLabels.every(isEmailLabel)
+  );
+}
 
 /** Leading calling code from a masked phone such as "+64 *****1234". */
 export function callingCodeFromMaskedPhone(masked: string): string | null {
@@ -18,6 +38,6 @@ export function toE164Phone(
 
 export function normalizeMfaEmail(value: string): string | null {
   const email = value.trim().toLowerCase();
-  if (!EMAIL.test(email)) return null;
+  if (!isEmailAddress(email)) return null;
   return email;
 }
