@@ -82,6 +82,8 @@ interface TopTradersSectionProps {
    */
   sectionIndex?: number;
   totalSectionsLoaded?: number;
+  /** Analytics source for navigation and follow events. */
+  source?: 'home_carousel' | 'explore_perps';
 }
 
 /**
@@ -94,7 +96,7 @@ interface TopTradersSectionProps {
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
   TopTradersSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
+>(({ sectionIndex, totalSectionsLoaded, source = 'home_carousel' }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
   const navigation = useNavigation<AppNavigationProp>();
@@ -251,16 +253,16 @@ const TopTradersSection = forwardRef<
   const handleViewAll = useCallback(() => {
     if (bundleVariant.useSocialV1) {
       navigateToSocialLeaderboard(navigation.navigate, {
-        source: 'home_carousel',
+        source,
       });
       return;
     }
     navigateToSocialLeaderboard(navigation.navigate, {
-      source: 'home_carousel',
+      source,
       landingTab: landingVariant.landingTab,
       landingFeedAudience: landingVariant.landingFeedAudience,
     });
-  }, [navigation, bundleVariant, landingVariant]);
+  }, [navigation, bundleVariant, landingVariant, source]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -269,11 +271,11 @@ const TopTradersSection = forwardRef<
         traderId,
         traderName,
         traderAddress: trader?.address,
-        source: 'home_carousel',
+        source,
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders],
+    [navigation, traders, source],
   );
 
   const handleFollowPress = useCallback(
@@ -281,7 +283,7 @@ const TopTradersSection = forwardRef<
       const trader = traders.find((t) => t.id === traderId);
       await followWithSetup(trader?.isFollowing ?? false, () =>
         toggleFollow(traderId, {
-          source: 'home_carousel',
+          source,
           traderAddress: trader?.address ?? '',
           traderUsername: trader?.username,
           traderRank: trader?.rank,
@@ -289,7 +291,7 @@ const TopTradersSection = forwardRef<
         }),
       );
     },
-    [traders, toggleFollow, followWithSetup],
+    [traders, toggleFollow, followWithSetup, source],
   );
 
   const onViewableItemsChanged = useRef(

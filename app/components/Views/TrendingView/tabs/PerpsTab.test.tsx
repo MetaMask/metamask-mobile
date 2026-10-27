@@ -120,6 +120,11 @@ jest.mock(
   }),
 );
 
+const mockTrack = jest.fn();
+jest.mock('../../../UI/Perps/hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
 const mockTrackExploreInteracted = jest.fn();
 jest.mock('../search/analytics', () => ({
   trackExploreInteracted: (...args: unknown[]) =>
@@ -147,14 +152,21 @@ jest.mock(
   },
 );
 
+const mockSortSheetProps: { current: Record<string, unknown> } = {
+  current: {},
+};
 jest.mock(
   '../../../UI/Perps/components/PerpsMarketSortFieldBottomSheet',
   () => {
     const { View } = jest.requireActual('react-native');
     return {
       __esModule: true,
-      default: ({ testID }: { testID?: string }) =>
-        jest.requireActual('react').createElement(View, { testID }),
+      default: (props: { testID?: string; [key: string]: unknown }) => {
+        mockSortSheetProps.current = props;
+        return jest
+          .requireActual('react')
+          .createElement(View, { testID: props.testID });
+      },
     };
   },
 );
@@ -164,10 +176,10 @@ jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
+    default: ({ source }: { source?: string }) =>
       MockReact.createElement(
         View,
-        { testID: 'top-traders-section' },
+        { testID: 'top-traders-section', accessibilityHint: source },
         MockReact.createElement(Text, null, 'Top traders'),
       ),
   };
@@ -192,6 +204,7 @@ import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectPerpsWatchlistEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
 import { selectPerpsWatchlistMarkets } from '../../../UI/Perps/selectors/perpsController';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import PerpsTab from './PerpsTab';
 
 const defaultTabProps: TabProps = {
@@ -378,7 +391,8 @@ describe('PerpsTab', () => {
     expect(mockTrackExploreInteracted).toHaveBeenCalledWith({
       interaction_type: 'section_item_tapped',
       tab_name: 'Perps',
-      section_name: 'perps_markets',
+      section_name: 'perps_tab_markets',
+      position: 0,
       asset_type: 'perp',
       item_clicked: 'BTC',
     });
@@ -386,8 +400,121 @@ describe('PerpsTab', () => {
       'Perps',
       expect.objectContaining({
         screen: 'PerpsMarketDetails',
-        params: expect.objectContaining({ market: mockMarkets[0] }),
+        params: expect.objectContaining({
+          market: mockMarkets[0],
+          source: 'explore',
+          source_section: 'perps_tab_markets',
+        }),
       }),
     );
+  });
+
+  describe('analytics', () => {
+    const sourceExplore = { source: 'explore' };
+
+    it('passes the Explore sources to top traders and watchlist adds', () => {
+      const { getByTestId } = renderPerpsTab();
+      expect(getByTestId('top-traders-section').props.accessibilityHint).toBe(
+        'explore_perps',
+      );
+
+      act(() => {
+        (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
+      });
+      expect(mockWatchlistProps.current.addSource).toBe('explore');
+    });
+
+    it('omits position for markets outside the main list', () => {
+      renderPerpsTab();
+      act(() => {
+        (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
+      });
+      const { onMarketPress } = mockWatchlistProps.current as {
+        onMarketPress: (market: { symbol: string }) => void;
+      };
+
+      act(() => onMarketPress({ symbol: 'SOL' }));
+
+      expect(mockTrackExploreInteracted).toHaveBeenCalledWith(
+        expect.not.objectContaining({ position: expect.anything() }),
+      );
+    });
+
+    it('tracks a category selection as market_list_filter and filter_applied', () => {
+      renderPerpsTab();
+
+      act(() => {
+        (mockFiltersBarProps.current.onCategorySelect as (c: string) => void)(
+          'crypto',
+        );
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        {
+          interaction_type: 'market_list_filter',
+          button_clicked: 'crypto',
+          button_location: 'market_list',
+          ...sourceExplore,
+        },
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        {
+          interaction_type: 'filter_applied',
+          filter_category: 'crypto',
+          ...sourceExplore,
+        },
+      );
+    });
+
+    it('tracks filter_applied only when the watchlist is turned on', () => {
+      renderPerpsTab();
+      const toggle = () =>
+        act(() => {
+          (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
+        });
+      const filterApplied = () =>
+        mockTrack.mock.calls.filter(
+          ([, props]) => props.interaction_type === 'filter_applied',
+        );
+
+      toggle();
+      expect(filterApplied()).toHaveLength(1);
+      expect(filterApplied()[0][1]).toEqual({
+        interaction_type: 'filter_applied',
+        filter_category: 'watchlist',
+        ...sourceExplore,
+      });
+
+      toggle();
+      expect(filterApplied()).toHaveLength(1);
+      expect(mockTrack).toHaveBeenCalledTimes(3);
+    });
+
+    it('tracks sort changes with field and direction', () => {
+      const { getByTestId } = renderPerpsTab();
+      fireEvent.press(getByTestId('perps-tab-filters'));
+
+      act(() => {
+        (
+          mockSortSheetProps.current.onOptionSelect as (
+            id: string,
+            field: string,
+            direction: string,
+          ) => void
+        )('priceChange-desc', 'priceChange', 'desc');
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        {
+          interaction_type: 'sort_applied',
+          sort_field: 'priceChange',
+          sort_direction: 'desc',
+          ...sourceExplore,
+        },
+      );
+    });
   });
 });

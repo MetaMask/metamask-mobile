@@ -8,12 +8,15 @@ import {
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import {
+  PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   sortMarkets,
   type MarketTypeFilter,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { usePerpsEventTracking } from '../../../UI/Perps/hooks/usePerpsEventTracking';
 import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { usePerpsMarkets } from '../../../UI/Perps/hooks/usePerpsMarkets';
@@ -50,7 +53,7 @@ const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
   showTopTraders,
 }) => (
   <Box>
-    {showTopTraders && <TopTradersSection />}
+    {showTopTraders && <TopTradersSection source="explore_perps" />}
     {showTopTraders && <SectionDivider />}
     <SectionHeader
       title={strings('trending.perps_trending_lists')}
@@ -92,6 +95,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
   const { selectedOptionId, sortBy, direction, handleOptionChange } =
     usePerpsSorting();
+  const { track } = usePerpsEventTracking();
 
   const showFavoritesOnly = isWatchlistEnabled && selection === 'watchlist';
   const marketTypeFilter = selection === 'watchlist' ? 'all' : selection;
@@ -123,12 +127,80 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     [allMarkets, watchlistSymbols],
   );
 
+  // Same Perps UI events (and shapes) as the Perps screen's market list, tagged
+  // with source=explore so Explore usage is separable.
+  const trackPerpsUi = useCallback(
+    (properties: Record<string, string>) =>
+      track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+        ...properties,
+        [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+      }),
+    [track],
+  );
+
+  const handleCategorySelect = useCallback(
+    (category: MarketTypeFilter) => {
+      trackPerpsUi({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
+        [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: category,
+        [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+          PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
+      });
+      trackPerpsUi({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
+        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]: category,
+      });
+      setSelection(category);
+    },
+    [trackPerpsUi],
+  );
+
+  const handleWatchlistToggle = useCallback(() => {
+    const willActivate = !showFavoritesOnly;
+    trackPerpsUi({
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
+    });
+    // Like the Perps screen: filter_applied only when applying, not clearing.
+    if (willActivate) {
+      trackPerpsUi({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
+        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]:
+          PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
+      });
+    }
+    setShowFavoritesOnly(willActivate);
+  }, [showFavoritesOnly, setShowFavoritesOnly, trackPerpsUi]);
+
+  const handleSortChange = useCallback<typeof handleOptionChange>(
+    (optionId, field, sortDirection) => {
+      trackPerpsUi({
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SORT_APPLIED,
+        [PERPS_EVENT_PROPERTY.SORT_FIELD]: field,
+        [PERPS_EVENT_PROPERTY.SORT_DIRECTION]: sortDirection,
+      });
+      handleOptionChange(optionId, field, sortDirection);
+    },
+    [handleOptionChange, trackPerpsUi],
+  );
+
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
+      // Omitted for markets outside the main list (e.g. watchlist suggestions).
+      const position = markets.findIndex((m) => m.symbol === market.symbol);
       trackExploreInteracted({
         interaction_type: 'section_item_tapped',
         tab_name: 'Perps',
-        section_name: 'perps_markets',
+        section_name: 'perps_tab_markets',
+        ...(position >= 0 && { position }),
         asset_type: 'perp',
         item_clicked: market.symbol,
       });
@@ -137,11 +209,11 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         params: {
           market,
           source: PERPS_EVENT_VALUE.SOURCE.EXPLORE,
-          source_section: 'perps_markets',
+          source_section: 'perps_tab_markets',
         },
       });
     },
-    [perpsNavigation],
+    [perpsNavigation, markets],
   );
 
   const listHeader = useMemo(
@@ -162,6 +234,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
           enableShowMore={false}
           onMarketPress={handleMarketPress}
           displayMetric={sortBy}
+          addSource={PERPS_EVENT_VALUE.SOURCE.EXPLORE}
         />
       ) : undefined,
     [showFavoritesOnly, markets, suggestedMarkets, handleMarketPress, sortBy],
@@ -186,11 +259,11 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         onSortPress={() => setIsSortSheetVisible(true)}
         sortDirection={direction}
         marketTypeFilter={marketTypeFilter}
-        onCategorySelect={setSelection}
+        onCategorySelect={handleCategorySelect}
         marketCount={markets.length}
         showWatchlistBadge={isWatchlistEnabled}
         isWatchlistSelected={showFavoritesOnly}
-        onWatchlistToggle={() => setShowFavoritesOnly(!showFavoritesOnly)}
+        onWatchlistToggle={handleWatchlistToggle}
         showCategoryRow
         showSortRow
         testID="perps-tab-filters"
@@ -200,11 +273,11 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       selectedOptionId,
       direction,
       marketTypeFilter,
-      setSelection,
+      handleCategorySelect,
       markets.length,
       isWatchlistEnabled,
       showFavoritesOnly,
-      setShowFavoritesOnly,
+      handleWatchlistToggle,
     ],
   );
 
@@ -251,7 +324,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
                 onClose={() => setIsSortSheetVisible(false)}
                 selectedOptionId={selectedOptionId}
                 sortDirection={direction}
-                onOptionSelect={handleOptionChange}
+                onOptionSelect={handleSortChange}
                 testID="perps-tab-sort-sheet"
               />
             </ModalSafeAreaProvider>
