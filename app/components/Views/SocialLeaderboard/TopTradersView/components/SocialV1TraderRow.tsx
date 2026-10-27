@@ -81,8 +81,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
   // showing +0.0%. The pinned viewer card shows the zero.
   const showZeroDetails = highlighted;
   const percentLabel =
-    showLeaderboardDetails &&
-    (trader.percentageChange !== 0 || showZeroDetails)
+    showLeaderboardDetails && (trader.percentageChange !== 0 || showZeroDetails)
       ? formatPercent(trader.percentageChange, { decimals: 1 })
       : null;
   const isPercentPositive = trader.percentageChange >= 0;
