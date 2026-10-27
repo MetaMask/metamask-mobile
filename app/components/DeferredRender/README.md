@@ -29,9 +29,10 @@ schedule a frame. The wrapper passes `enabled` through to the hook.
 
 ## Rules
 
-- **One gate per screen.** Every gated section releases on the same frame, so a
-  second gate below the first only adds a commit. The hook `console.warn`s once
-  in development when it mounts inside another gate.
+- **One gate per screen.** Every gated section releases on the same frame. A
+  second gate below the first mounts only after the outer gate releases, so it
+  is a late-mounting gate and pays the cost in the next rule. The hook
+  `console.warn`s once in development when it mounts inside another gate.
 - **The gate mounts unconditionally on the first commit.** Call the hook above
   any early return, and never render the gate behind a condition that flips
   later — a gate that mounts after the transition has already ended waits for

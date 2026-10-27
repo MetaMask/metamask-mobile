@@ -46,7 +46,7 @@ export function useDeferredRender({
 
     warnedRef.current = true;
     console.warn(
-      'DeferredRender: a gate is already deferring this subtree. Use one gate per screen; a nested gate only costs another frame.',
+      'DeferredRender: a gate is already deferring this subtree. Use one gate per screen; a nested gate mounts after the outer release, misses transitionEnd and waits for the 450 ms fallback.',
     );
   }, [isNested]);
 

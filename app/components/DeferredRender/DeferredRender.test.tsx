@@ -245,6 +245,34 @@ describe('DeferredRender', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
+    it('releases a nested gate on its own 450 ms fallback plus a frame', () => {
+      const view = render(
+        gate(
+          <DeferredRender placeholder={<View testID="inner-placeholder" />}>
+            <View testID="inner-content" />
+          </DeferredRender>,
+        ),
+      );
+
+      release();
+      expect(view.getByTestId('inner-placeholder')).toBeOnTheScreen();
+
+      act(() => {
+        jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS - 1);
+      });
+      expect(queuedFrameIds()).toStrictEqual([]);
+      expect(view.getByTestId('inner-placeholder')).toBeOnTheScreen();
+
+      act(() => {
+        jest.advanceTimersByTime(1);
+      });
+      expect(queuedFrameIds()).toHaveLength(1);
+
+      flushFrame();
+
+      expect(view.getByTestId('inner-content')).toBeOnTheScreen();
+    });
+
     it('stays silent outside development', () => {
       devGlobal.__DEV__ = false;
 
