@@ -47,6 +47,12 @@ describe('SocialV1TraderRow', () => {
     expect(screen.queryByText('92% WR')).toBeNull();
     expect(screen.queryByText('48,707 followers')).toBeNull();
     expect(screen.queryByText('+43.0%')).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
     expect(screen.queryByText('Follow')).toBeNull();
   });
 
@@ -145,5 +151,50 @@ describe('SocialV1TraderRow', () => {
     );
 
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
+  });
+
+  it('renders the window percent and follower count when leaderboard details are on', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 7.76, followerCount: 4700 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+7.8%')).toBeOnTheScreen();
+    expect(screen.getByText('4.7K followers')).toBeOnTheScreen();
+  });
+
+  it('colors a negative percent as a loss while the dollar stays a gain', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: -8.5 }}
+        metric={{ label: '+$1.00', isPositive: true }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$1.00')).toBeOnTheScreen();
+    expect(screen.getByText('-8.5%')).toBeOnTheScreen();
+  });
+
+  it('omits a zero percent and a zero follower count', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{ ...baseTrader, percentageChange: 0, followerCount: 0 }}
+        onFollowPress={mockOnFollowPress}
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
   });
 });

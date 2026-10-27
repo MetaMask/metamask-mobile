@@ -5,6 +5,7 @@ import Engine from '../../../../../core/Engine';
 import type { RootState } from '../../../../../reducers';
 import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
 import { renderCardHomeView } from '../../../../../../tests/component-view/renderers/cardViewRenderer';
+import { itForPlatforms } from '../../../../../../tests/component-view/platform';
 import {
   createRouteParamsProbe,
   getRouteParamsProbeTestId,
@@ -121,6 +122,21 @@ const linkableCardHomeOverrides = {
   },
 } satisfies DeepPartial<RootState>;
 
+const immersveApplePayEnabled = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          immersveAppleWalletInAppProvisioningEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+} satisfies DeepPartial<RootState>;
+
 describe('CardHome', () => {
   afterEach(() => {
     mockGetCapabilities.mockReturnValue(defaultCapabilities);
@@ -172,8 +188,10 @@ describe('CardHome', () => {
       it('opens digital wallet instructions when the platform wallet is unsupported', async () => {
         const { findByTestId } = renderCardHomeView({
           overrides: {
+            ...immersveApplePayEnabled,
             engine: {
               backgroundState: {
+                ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
                   activeProviderId: 'immersve',
                   providerData: {
@@ -251,8 +269,10 @@ describe('CardHome', () => {
 
         const { findByTestId } = renderCardHomeView({
           overrides: {
+            ...immersveApplePayEnabled,
             engine: {
               backgroundState: {
+                ...immersveApplePayEnabled.engine.backgroundState,
                 CardController: {
                   activeProviderId: 'immersve',
                   providerData: {
@@ -270,6 +290,33 @@ describe('CardHome', () => {
           ),
         ).toBeOnTheScreen();
       });
+
+      itForPlatforms(
+        'hides digital wallet instructions for Immersve when Apple Pay provisioning is off',
+        async () => {
+          const { findByTestId, queryByTestId } = renderCardHomeView({
+            overrides: {
+              engine: {
+                backgroundState: {
+                  CardController: {
+                    activeProviderId: 'immersve',
+                    providerData: {
+                      immersve: { location: 'international' },
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          await findByTestId(CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM);
+
+          expect(
+            queryByTestId(CardHomeSelectors.DIGITAL_WALLET_INSTRUCTIONS_ITEM),
+          ).not.toBeOnTheScreen();
+        },
+        'ios',
+      );
 
       it('shows digital wallet instructions when the wallet does not report the card as provisioned', async () => {
         mockGetCapabilities.mockReturnValue({

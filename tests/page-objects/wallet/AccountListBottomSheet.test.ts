@@ -79,15 +79,19 @@ describe('AccountListBottomSheet account creation visibility', () => {
     it('taps Add account when no row exists and waits for the named row', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 3');
 
-      expect(tapAddAccountButtonV2).toHaveBeenCalledWith(undefined);
+      expect(tapAddAccountButtonV2).toHaveBeenCalledWith({
+        srpIndex: undefined,
+        shouldWait: undefined,
+        syncTimeoutMs: 25_000,
+      });
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 3', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 3 visible after Add account',
       });
       expect(Utilities.executeWithRetry).toHaveBeenCalledWith(
         expect.any(Function),
         {
-          timeout: 50000,
+          timeout: 120_000,
           interval: 1000,
           description: 'Add account and expect "Account 3" visible',
         },
@@ -101,12 +105,12 @@ describe('AccountListBottomSheet account creation visibility', () => {
 
       expect(tapAddAccountButtonV2).not.toHaveBeenCalled();
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 3', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 3 visible after Add account',
       });
     });
 
-    it('forwards srp index and wait flag only to the Add account tap', async () => {
+    it('forwards srp index and wait flag to the Add account tap with a capped sync budget', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 3', {
         srpIndex: 1,
         shouldWait: true,
@@ -115,14 +119,15 @@ describe('AccountListBottomSheet account creation visibility', () => {
       expect(tapAddAccountButtonV2).toHaveBeenCalledWith({
         srpIndex: 1,
         shouldWait: true,
+        syncTimeoutMs: 25_000,
       });
       expect(Utilities.executeWithRetry).toHaveBeenCalledWith(
         expect.any(Function),
-        expect.objectContaining({ timeout: 50000 }),
+        expect.objectContaining({ timeout: 120_000 }),
       );
     });
 
-    it('uses the caller timeout for the retry and keeps the inner visibility wait at 15s', async () => {
+    it('uses the caller timeout for the retry and keeps a 20s inner visibility wait', async () => {
       await AccountListBottomSheet.addAccountAndExpectVisibleV2('Account 2', {
         timeout: 12000,
       });
@@ -136,7 +141,7 @@ describe('AccountListBottomSheet account creation visibility', () => {
         }),
       );
       expect(expectAccountVisibleByNameV2).toHaveBeenCalledWith('Account 2', {
-        timeout: 15000,
+        timeout: 20_000,
         description: 'Account 2 visible after Add account',
       });
     });

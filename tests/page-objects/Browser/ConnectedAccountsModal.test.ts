@@ -24,7 +24,47 @@ jest.mock('../../framework/Gestures', () => ({
 jest.mock('../../framework/Utilities', () => ({
   __esModule: true,
   default: {
+    executeWithRetry: jest.fn(async (operation: () => Promise<unknown>) =>
+      operation(),
+    ),
+    isElementVisible: jest.fn(),
     waitForElementToDisappear: jest.fn(),
+  },
+}));
+
+jest.mock('../../framework/AppiumContextHelpers', () => ({
+  __esModule: true,
+  default: {
+    switchToNativeContext: jest.fn(),
+  },
+}));
+
+jest.mock('./BrowserView', () => ({
+  __esModule: true,
+  default: {
+    networkAvatarOrAccountButton: Promise.resolve({ id: 'avatar' }),
+  },
+}));
+
+jest.mock('../wallet/ToastModal', () => ({
+  __esModule: true,
+  default: {
+    waitForToastToDismiss: jest.fn(),
+  },
+}));
+
+jest.mock('../Network/NetworkListModal', () => ({
+  __esModule: true,
+  default: {
+    selectNetwork: Promise.resolve({ id: 'select-network' }),
+    swipeToDismissModal: jest.fn(),
+  },
+}));
+
+jest.mock('../MMConnect/DappConnectionModal', () => ({
+  __esModule: true,
+  default: {
+    connectButton: Promise.resolve({ id: 'connect-button' }),
   },
 }));
 
@@ -33,6 +73,10 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
+import ToastModal from '../wallet/ToastModal';
+import NetworkListModal from '../Network/NetworkListModal';
+import DappConnectionModal from '../MMConnect/DappConnectionModal';
 import ConnectedAccountsModal from './ConnectedAccountsModal';
 
 const EDIT_ACCOUNTS_ID = 'account-list-bottom-sheet';
@@ -237,6 +281,62 @@ describe('ConnectedAccountsModal account summary', () => {
         disconnectAllSentinel,
       );
       expect(disconnectTimeout).toBe(15_000);
+    });
+  });
+
+  describe('openFromBrowser', () => {
+    beforeEach(() => {
+      jest.mocked(Utilities.isElementVisible).mockResolvedValue(false);
+      jest.mocked(Utilities.waitForElementToDisappear).mockResolvedValue();
+      jest.mocked(ToastModal.waitForToastToDismiss).mockResolvedValue();
+      jest.mocked(Gestures.waitAndTap).mockResolvedValue();
+      jest
+        .mocked(AppiumContextHelpers.switchToNativeContext)
+        .mockResolvedValue();
+    });
+
+    it('returns immediately when the connected-accounts sheet is already open', async () => {
+      jest.mocked(Utilities.isElementVisible).mockResolvedValueOnce(true);
+
+      await ConnectedAccountsModal.openFromBrowser();
+
+      expect(AppiumContextHelpers.switchToNativeContext).toHaveBeenCalled();
+      expect(ToastModal.waitForToastToDismiss).toHaveBeenCalled();
+      expect(Utilities.waitForElementToDisappear).not.toHaveBeenCalled();
+      expect(Gestures.waitAndTap).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the network picker then re-taps the browser avatar', async () => {
+      jest
+        .mocked(Utilities.isElementVisible)
+        .mockResolvedValueOnce(false)
+        .mockResolvedValueOnce(true)
+        .mockResolvedValueOnce(true);
+
+      await ConnectedAccountsModal.openFromBrowser();
+
+      expect(NetworkListModal.swipeToDismissModal).toHaveBeenCalled();
+      expect(Gestures.waitAndTap).toHaveBeenCalled();
+      expect(Assertions.expectElementToBeVisible).toHaveBeenCalledWith(
+        ConnectedAccountsModal.accountListBottomSheet,
+        expect.objectContaining({
+          timeout: 3000,
+          description: 'Connected accounts sheet after browser avatar tap',
+        }),
+      );
+    });
+
+    it('waits for the connect sheet to close when requested', async () => {
+      jest.mocked(Utilities.isElementVisible).mockResolvedValueOnce(true);
+
+      await ConnectedAccountsModal.openFromBrowser({
+        waitForConnectSheetClosed: true,
+      });
+
+      expect(Utilities.waitForElementToDisappear).toHaveBeenCalledWith(
+        DappConnectionModal.connectButton,
+        15_000,
+      );
     });
   });
 });

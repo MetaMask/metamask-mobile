@@ -1,14 +1,25 @@
 import { useMemo } from 'react';
 import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
-import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import type {
+  FeedScope,
+  SocialFeedQuery,
+} from '../../../../../UI/SocialFeed/data/socialFeedSource';
 import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
+import { useSelector } from 'react-redux';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { SOCIAL_TRACE_TABS } from '../../../../../../util/social/socialPerformance';
 
 /** Trending reads the generic `leaderboard` scope, Following the per-user one. */
-const TAB_AUDIENCE = {
-  trending: 'all',
+const TAB_SCOPE = {
+  trending: 'leaderboard',
   following: 'following',
-} as const;
+} as const satisfies Record<SocialV1FeedTab, FeedScope>;
+
+const TAB_TRACE = {
+  trending: SOCIAL_TRACE_TABS.Trending,
+  following: SOCIAL_TRACE_TABS.Following,
+} as const satisfies Record<SocialV1FeedTab, 'trending' | 'following'>;
 
 export interface UseSocialV1FeedOptions {
   /**
@@ -33,11 +44,9 @@ export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
   { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
-  const source = useMemo(
-    (): SocialFeedSource => ({
-      kind: 'all',
-      audience: TAB_AUDIENCE[tab],
-    }),
+  const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const query = useMemo(
+    (): SocialFeedQuery => ({ scope: TAB_SCOPE[tab] }),
     [tab],
   );
 
@@ -49,7 +58,10 @@ export const useSocialV1Feed = (
     loadMore,
     error,
     refresh: refetch,
-  } = useSocialFeed(source);
+    dataUpdatedAt,
+  } = useSocialFeed(query, {
+    performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
+  });
 
   const overlay = usePendingPostsOverlay({
     surface: 'following',
@@ -68,5 +80,6 @@ export const useSocialV1Feed = (
     loadMore,
     error,
     refresh: overlay.refresh,
+    dataUpdatedAt,
   };
 };

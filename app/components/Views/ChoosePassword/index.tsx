@@ -1001,6 +1001,7 @@ const ChoosePassword = () => {
                         : IconName.EyeSlash
                     }
                     size={ButtonIconSize.Md}
+                    twClassName="-mr-1"
                     onPress={() => toggleShowPassword(0)}
                     accessibilityLabel={strings(
                       showPasswordIndex.includes(0)
@@ -1057,6 +1058,7 @@ const ChoosePassword = () => {
                         : IconName.EyeSlash
                     }
                     size={ButtonIconSize.Md}
+                    twClassName="-mr-1"
                     isDisabled={password === ''}
                     onPress={() => toggleShowPassword(1)}
                     accessibilityLabel={strings(

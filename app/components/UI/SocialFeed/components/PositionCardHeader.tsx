@@ -29,10 +29,10 @@ const SIDE_I18N: Record<SocialV1SpotSide, string> = {
 };
 
 /**
- * Both layouts lead with the token; they differ in what sits beside it. `open`
- * tags the side, quotes the current price or market cap underneath, and puts
- * the running P&L on the right; `closed` demotes the title to a caption above
- * the settled result and puts the close time on the right.
+ * Both layouts share this header. The symbol sits beside a side tag, a caption
+ * sits under it, and the P&L sits on the right. Closed cards use the caption
+ * for when the position settled (`Closed · 2 hr ago`, `Sold · 2 hr ago`) and
+ * omit the spot side tag.
  */
 export type PositionCardHeaderLayout = 'open' | 'closed';
 
@@ -45,20 +45,16 @@ export interface PositionCardHeaderProps {
   layout: PositionCardHeaderLayout;
   avatar: PositionTokenAvatarData;
   symbol: string;
-  /** Realized P&L on a closed card, merged into the result line. */
-  valueLabel: string;
-  /** P&L as a percent. Sits under the USD figure on the open card. */
+  /** P&L as a percent. Sits under the USD figure. */
   pnlLabel: string;
-  /** P&L in USD. Leads the open card's right-hand column. */
+  /** P&L in USD. Leads the right-hand column. */
   pnlValueLabel?: string;
   isPnlPositive: boolean;
   direction?: SocialV1PerpDirection;
   leverageLabel?: string;
-  /** Current price, or market cap for spot, under the open card's title. */
+  /** Current price, market cap, or the closed-card age caption. */
   subtitleLabel?: string;
   side?: SocialV1SpotSide;
-  /** `Closed 2 hr ago`, right-aligned on the closed card. */
-  closedAgeLabel?: string;
   /** Open layout only: roll the figures as live ticks arrive. */
   live?: PositionCardHeaderLiveState;
   testID?: string;
@@ -93,75 +89,6 @@ const isBullish = ({
 }: Pick<PositionCardHeaderProps, 'direction' | 'side'>): boolean =>
   direction ? direction === 'long' : side !== 'sell';
 
-/**
- * `BTC · 15x Long` on a closed perp. A closed spot card shows the bare symbol:
- * its side is spent, and the toned border already says how it ended.
- */
-const closedTitle = (props: PositionCardHeaderProps): string => {
-  const meta = props.direction ? sideTagLabel(props) : '';
-  return meta ? `${props.symbol} \u00b7 ${meta}` : props.symbol;
-};
-
-/**
- * `+$96,378.60 (+38.2%)`. Either half can be missing -- `mapFeedItem` emits an
- * empty label for a figure the row did not report -- so the parentheses only
- * appear when there is something to put in them.
- */
-const closedResult = (valueLabel: string, pnlLabel: string): string => {
-  if (valueLabel && pnlLabel) {
-    return `${valueLabel} (${pnlLabel})`;
-  }
-  return valueLabel || pnlLabel;
-};
-
-const ClosedHeader: React.FC<PositionCardHeaderProps> = (props) => {
-  const { avatar, valueLabel, pnlLabel, isPnlPositive, closedAgeLabel } = props;
-  const result = closedResult(valueLabel, pnlLabel);
-
-  return (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={2}
-      twClassName="w-full min-w-0"
-      testID={props.testID ?? 'position-card-header-closed'}
-    >
-      <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
-      <Box twClassName="flex-1 min-w-0">
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-        >
-          {closedTitle(props)}
-        </Text>
-        {result ? (
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            twClassName={pnlClassName(isPnlPositive)}
-            numberOfLines={1}
-          >
-            {result}
-          </Text>
-        ) : null}
-      </Box>
-      {closedAgeLabel ? (
-        <Text
-          variant={TextVariant.BodyXs}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextMuted}
-          numberOfLines={1}
-          twClassName="self-start shrink-0"
-        >
-          {closedAgeLabel}
-        </Text>
-      ) : null}
-    </Box>
-  );
-};
-
 const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   const {
     avatar,
@@ -178,7 +105,8 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={2}
+      gap={3}
+      twClassName="w-full min-w-0"
       testID={props.testID}
     >
       <PositionTokenAvatar position={avatar} size={AvatarTokenSize.Md} />
@@ -281,11 +209,14 @@ const OpenHeader: React.FC<PositionCardHeaderProps> = (props) => {
   );
 };
 
-const PositionCardHeader: React.FC<PositionCardHeaderProps> = (props) =>
-  props.layout === 'closed' ? (
-    <ClosedHeader {...props} />
-  ) : (
-    <OpenHeader {...props} />
-  );
+const PositionCardHeader: React.FC<PositionCardHeaderProps> = (props) => (
+  <OpenHeader
+    {...props}
+    testID={
+      props.testID ??
+      (props.layout === 'closed' ? 'position-card-header-closed' : undefined)
+    }
+  />
+);
 
 export default PositionCardHeader;
