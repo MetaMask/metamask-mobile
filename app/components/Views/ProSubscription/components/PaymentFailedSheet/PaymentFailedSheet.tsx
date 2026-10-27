@@ -6,6 +6,7 @@ import {
   Box,
   ButtonSize,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -20,7 +21,6 @@ import {
   NotificationMoment,
   playNotification,
 } from '../../../../../util/haptics';
-import { useAppThemeFromContext } from '../../../../../util/theme';
 import { PaymentFailedSheetTestIds } from './PaymentFailedSheet.testIds';
 
 interface PaymentFailedSheetProps {
@@ -33,7 +33,6 @@ interface PaymentFailedSheetProps {
  */
 const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const theme = useAppThemeFromContext();
   const tryAgainRef = useRef(false);
 
   useEffect(() => {
@@ -94,7 +93,7 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
         <Box twClassName="flex-row items-center gap-2">
           <Icon
             name={IconName.Danger}
-            color={theme.colors.error.default}
+            color={IconColor.ErrorDefault}
             size={IconSize.Lg}
           />
           <Text

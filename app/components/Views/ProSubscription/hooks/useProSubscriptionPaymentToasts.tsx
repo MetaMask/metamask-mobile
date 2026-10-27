@@ -138,7 +138,7 @@ export function useProSubscriptionPaymentToasts(): ProSubscriptionPaymentToasts 
       startAccessory: (
         <Icon
           name={IconName.Confirmation}
-          color={theme.colors.success.default}
+          color={IconColor.SuccessDefault}
           size={IconSize.Lg}
         />
       ),

@@ -89,7 +89,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
     );
 
     status = SUBSCRIPTION_STATUSES.active;
-    rerender();
+    rerender(undefined);
 
     expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
     expect(result.current.isPaymentFailedSheetOpen).toBe(false);
@@ -100,7 +100,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
     const { rerender } = renderHook(() => useProSubscriptionPaymentMonitor());
 
     status = SUBSCRIPTION_STATUSES.trialing;
-    rerender();
+    rerender(undefined);
 
     expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
   });
@@ -112,7 +112,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
     );
 
     status = SUBSCRIPTION_STATUSES.canceled;
-    rerender();
+    rerender(undefined);
 
     expect(result.current.isPaymentFailedSheetOpen).toBe(true);
     expect(mockDismissPaymentToast).toHaveBeenCalledTimes(1);
@@ -126,7 +126,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
     );
 
     status = undefined;
-    rerender();
+    rerender(undefined);
 
     expect(result.current.isPaymentFailedSheetOpen).toBe(true);
     expect(mockDismissPaymentToast).toHaveBeenCalledTimes(1);
@@ -138,7 +138,7 @@ describe('useProSubscriptionPaymentMonitor', () => {
     );
 
     status = SUBSCRIPTION_STATUSES.active;
-    rerender();
+    rerender(undefined);
 
     expect(mockShowActiveToast).not.toHaveBeenCalled();
     expect(result.current.isPaymentFailedSheetOpen).toBe(false);
