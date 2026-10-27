@@ -760,7 +760,13 @@ describe('handlePerpsUrl', () => {
       // Stack history lives on NavigationService, which a component-view
       // render of a screen does not exercise. This handler is already a unit.
       jest.mocked(selectPerpsProModeEnabledFlag).mockReturnValue(true);
-      const perpsState = {
+      // The array starts as Lite Home and then receives the market route.
+      // A name/params annotation keeps both entries assignable.
+      const perpsState: {
+        key: string;
+        index: number;
+        routes: { key: string; name: string; params: object }[];
+      } = {
         key: 'perps-stack',
         index: 0,
         routes: [
