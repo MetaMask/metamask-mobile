@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -8,6 +8,10 @@ import {
   ButtonSize,
   ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -18,35 +22,89 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { strings } from '../../../../../locales/i18n';
 import { useXAuth } from '../../../../hooks/useXAuth';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import ProfileAvatar from './ProfileAvatar';
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
 
 const AVATAR_SIZE = 72;
 
+type DisconnectPhase = 'idle' | 'pending' | 'settled';
+
 /** Shows the linked X account and lets the user disconnect it. */
 const ManageProfileXAccount = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { isConnected, xProfile, isDisconnecting, disconnect, refresh } =
+  const { isConnected, xProfile, isDisconnecting, error, disconnect, refresh } =
     useXAuth();
+  const { toastRef } = useContext(ToastContext);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const hasRequestedRefresh = useRef(false);
+  // `pending` is set by the sheet's confirm so a screen that is merely
+  // disconnected does not toast. `settled` stops the effect from toasting, or
+  // navigating, a second time when it re-runs after the latch is written.
+  const [disconnectPhase, setDisconnectPhase] =
+    useState<DisconnectPhase>('idle');
+  const [hasRequestedRefresh, setHasRequestedRefresh] = useState(false);
 
   const needsRefresh = isConnected && !xProfile;
 
   useEffect(() => {
-    if (needsRefresh && !hasRequestedRefresh.current) {
-      hasRequestedRefresh.current = true;
-      refresh().catch(() => undefined);
+    if (!needsRefresh || hasRequestedRefresh) {
+      return;
     }
-  }, [needsRefresh, refresh]);
+    setHasRequestedRefresh(true);
+    refresh().catch(() => undefined);
+  }, [needsRefresh, hasRequestedRefresh, refresh]);
 
   useEffect(() => {
-    if (!isConnected && !isDisconnecting && !isSheetOpen) {
-      navigation.goBack();
+    if (isConnected || isDisconnecting) {
+      return;
     }
-  }, [isConnected, isDisconnecting, isSheetOpen, navigation]);
+    setIsSheetOpen(false);
+    if (disconnectPhase === 'settled') {
+      return;
+    }
+    // `disconnect` resolves void, so success is read from the controller having
+    // cleared the link without recording an error.
+    if (disconnectPhase === 'pending' && !error) {
+      setDisconnectPhase('settled');
+      // The toast is hosted by the global ToastContext, so it survives the
+      // navigation back to Manage profile.
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings('manage_profile.x_account_disconnect_success'),
+            isBold: true,
+          },
+        ],
+        startAccessory: (
+          <Box twClassName="self-start pt-1">
+            <Icon
+              name={IconName.Confirmation}
+              size={IconSize.Lg}
+              color={IconColor.SuccessDefault}
+              testID={
+                ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SUCCESS_ICON
+              }
+            />
+          </Box>
+        ),
+        hasNoTimeout: false,
+      });
+    }
+    navigation.goBack();
+  }, [
+    disconnectPhase,
+    error,
+    isConnected,
+    isDisconnecting,
+    navigation,
+    toastRef,
+  ]);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -58,15 +116,18 @@ const ManageProfileXAccount = () => {
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
+    setDisconnectPhase('idle');
   }, []);
 
   const handleConfirmDisconnect = useCallback(async () => {
-    const result = await disconnect();
-    if (!result) {
-      navigation.goBack();
-    }
-    return result;
-  }, [disconnect, navigation]);
+    setDisconnectPhase('pending');
+    await disconnect();
+  }, [disconnect]);
+
+  const disconnectErrorMessage =
+    disconnectPhase === 'pending' && error && !isDisconnecting
+      ? strings('manage_profile.x_account_disconnect_error')
+      : null;
 
   const username = xProfile?.username;
 
@@ -120,13 +181,14 @@ const ManageProfileXAccount = () => {
           onPress={handleOpenSheet}
           testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON}
         >
-          {strings('manage_profile.x_account_disconnect')}
+          {strings('common.disconnect')}
         </Button>
       </Box>
       {isSheetOpen ? (
         <DisconnectXAccountSheet
           handle={username}
           isDisconnecting={isDisconnecting}
+          errorMessage={disconnectErrorMessage}
           onClose={handleCloseSheet}
           onConfirm={handleConfirmDisconnect}
         />

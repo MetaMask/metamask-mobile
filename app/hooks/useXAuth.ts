@@ -24,8 +24,8 @@ export interface UseXAuth {
   /** True while the refresh flow is in flight. */
   isRefreshing: boolean;
   error: XAuthError | undefined;
-  connect: () => Promise<XAuthError | undefined>;
-  disconnect: () => Promise<XAuthError | undefined>;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -49,31 +49,25 @@ export const useXAuth = (): UseXAuth => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<XAuthError | undefined>(undefined);
 
-  const connect = useCallback(async (): Promise<XAuthError | undefined> => {
+  const connect = useCallback(async () => {
     setIsConnecting(true);
     setError(undefined);
     try {
       await connectX();
-      return undefined;
     } catch (error_) {
-      const normalized = toXAuthError(error_);
-      setError(normalized);
-      return normalized;
+      setError(toXAuthError(error_));
     } finally {
       setIsConnecting(false);
     }
   }, []);
 
-  const disconnect = useCallback(async (): Promise<XAuthError | undefined> => {
+  const disconnect = useCallback(async () => {
     setIsDisconnecting(true);
     setError(undefined);
     try {
       await disconnectXAccount();
-      return undefined;
     } catch (error_) {
-      const normalized = toXAuthError(error_);
-      setError(normalized);
-      return normalized;
+      setError(toXAuthError(error_));
     } finally {
       setIsDisconnecting(false);
     }

@@ -20,7 +20,6 @@ import {
   IconName,
   IconSize,
   SectionHeader,
-  Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -32,8 +31,6 @@ import type {
   RootStackParamList,
 } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
-import { useXAuth } from '../../../../hooks/useXAuth';
-import { XAuthErrorType } from '../../../../core/XAuthService';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { BIO_VALUE_MAX_WIDTH, type Profile } from './ManageProfile.constants';
@@ -53,14 +50,6 @@ const SECTION_TITLE_PROPS = {
 /** Unset fields read as a muted placeholder rather than an empty row. */
 const valueOrPlaceholder = (value: string) =>
   value || strings('manage_profile.not_set');
-
-/** The X row reads the live X connection, not the placeholder profile. */
-const getXAccountValue = (isConnected: boolean, username?: string) => {
-  if (username) {
-    return `@${username}`;
-  }
-  return isConnected ? 'X' : strings('manage_profile.not_set');
-};
 
 const applyFieldUpdate = (
   profile: Profile,
@@ -95,8 +84,6 @@ const ManageProfile = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const route = useRoute<RouteProp<RootStackParamList, 'ManageProfile'>>();
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
-  const { isConnected, xProfile, isConnecting, connect } = useXAuth();
-  const [xConnectError, setXConnectError] = useState<string | null>(null);
 
   const fieldUpdate = route.params?.fieldUpdate;
   const consumedUpdate = useRef<ManageProfileFieldUpdate | undefined>(
@@ -136,23 +123,9 @@ const ManageProfile = () => {
       }),
     [navigation, profile.bio],
   );
-  const handleOpenXAccount = useCallback(async () => {
-    if (isConnected) {
-      navigation.navigate(Routes.SOCIAL_PROFILE.X_ACCOUNT);
-      return;
-    }
-    if (isConnecting) {
-      return;
-    }
-    setXConnectError(null);
-    const result = await connect();
-    if (result && result.type !== XAuthErrorType.UserCancelled) {
-      setXConnectError(strings('manage_profile.x_account_connect_error'));
-    }
-  }, [isConnected, isConnecting, connect, navigation]);
-  const handleXAccountPress = useCallback(() => {
-    handleOpenXAccount().catch(() => undefined);
-  }, [handleOpenXAccount]);
+  const handleOpenXAccount = useCallback(() => {
+    navigation.navigate(Routes.SOCIAL_PROFILE.X_ACCOUNT);
+  }, [navigation]);
   const handleEditTradingActivity = useCallback(
     () =>
       navigation.navigate(Routes.SOCIAL_PROFILE.MANAGE_PROFILE_FIELD, {
@@ -223,9 +196,9 @@ const ManageProfile = () => {
           <ProfileRow
             showDivider
             title={strings('manage_profile.x_account')}
-            value={getXAccountValue(isConnected, xProfile?.username)}
+            value={valueOrPlaceholder(profile.socialHandle)}
             valueStartAccessory={
-              isConnected ? (
+              profile.socialHandle ? (
                 <Icon
                   name={IconName.X}
                   size={IconSize.Sm}
@@ -234,19 +207,9 @@ const ManageProfile = () => {
               ) : undefined
             }
             testID={ManageProfileSelectorsIDs.X_ACCOUNT_ROW}
-            onPress={handleXAccountPress}
+            onPress={handleOpenXAccount}
           />
         </Card>
-        {xConnectError ? (
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.ErrorDefault}
-            twClassName="mx-4 mt-2"
-            testID={ManageProfileSelectorsIDs.X_ACCOUNT_CONNECT_ERROR}
-          >
-            {xConnectError}
-          </Text>
-        ) : null}
 
         <SectionHeader
           title={strings('manage_profile.privacy')}

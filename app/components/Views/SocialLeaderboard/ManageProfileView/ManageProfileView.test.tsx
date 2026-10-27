@@ -41,7 +41,7 @@ jest.mock('./hooks/useProfileController', () => ({
   useProfileController: () => mockUseProfileController(),
 }));
 
-const mockConnect = jest.fn<Promise<XAuthError | undefined>, []>();
+const mockConnect = jest.fn<Promise<void>, []>();
 const mockUseXAuth = jest.fn<UseXAuth, []>();
 jest.mock('../../../../hooks/useXAuth', () => ({
   useXAuth: () => mockUseXAuth(),
@@ -283,33 +283,37 @@ describe('ManageProfileView', () => {
       expect(mockConnect).not.toHaveBeenCalled();
     });
 
-    it('shows nothing when the user cancels X OAuth', async () => {
-      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
-      mockConnect.mockResolvedValue(
-        new XAuthError(XAuthErrorType.UserCancelled, 'cancelled'),
+    it('shows nothing when the user cancels X OAuth', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          error: new XAuthError(XAuthErrorType.UserCancelled, 'cancelled'),
+        }),
       );
 
       renderWithProvider(<ManageProfileView />, { state });
 
-      await pressSocials();
-
       expect(
-        screen.queryByText(strings('manage_profile.x_account_connect_error')),
+        screen.queryByText(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
       ).toBeNull();
     });
 
-    it('shows a connect error when X OAuth fails', async () => {
-      mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
-      mockConnect.mockResolvedValue(
-        new XAuthError(XAuthErrorType.BackendError, 'boom'),
+    it('shows a connect error when X OAuth fails', () => {
+      mockUseXAuth.mockReturnValue(
+        xAuthResult({
+          isConnected: false,
+          error: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+        }),
       );
 
       renderWithProvider(<ManageProfileView />, { state });
 
-      await pressSocials();
-
       expect(
-        screen.getByText(strings('manage_profile.x_account_connect_error')),
+        screen.getByText(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        ),
       ).toBeOnTheScreen();
     });
 

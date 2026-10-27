@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent, within } from '@testing-library/react-native';
+import { act, fireEvent, render, within } from '@testing-library/react-native';
 import type { XProfile } from '@metamask/profile-controller';
 
 import ManageProfileXAccount from './ManageProfileXAccount';
@@ -9,6 +9,10 @@ import { strings } from '../../../../../locales/i18n';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { useXAuth, type UseXAuth } from '../../../../hooks/useXAuth';
 import { XAuthError, XAuthErrorType } from '../../../../core/XAuthService';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 
 const mockGoBack = jest.fn();
 
@@ -28,6 +32,10 @@ const mockUseXAuth = jest.mocked(useXAuth);
 const mockConnect = jest.fn();
 const mockDisconnect = jest.fn();
 const mockRefresh = jest.fn();
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
 
 const X_PROFILE: XProfile = {
   xUserId: 'x-user-1',
@@ -39,31 +47,58 @@ const X_PROFILE: XProfile = {
   updatedAt: '2026-01-01T00:00:00Z',
 };
 
-const setXAuth = (overrides: Partial<UseXAuth> = {}) => {
-  mockUseXAuth.mockReturnValue({
-    isConnected: true,
-    xProfile: X_PROFILE,
-    isConnecting: false,
-    isDisconnecting: false,
-    isRefreshing: false,
-    error: undefined,
-    connect: mockConnect,
-    disconnect: mockDisconnect,
-    refresh: mockRefresh,
-    ...overrides,
-  });
-};
+/**
+ * The screen reads its outcome from hook state, not from the action's return
+ * value, so the mock has to be a live snapshot the test can mutate and
+ * re-render with.
+ */
+let xAuthState: UseXAuth;
+
+const defaultXAuth = (): UseXAuth => ({
+  isConnected: true,
+  xProfile: X_PROFILE,
+  isConnecting: false,
+  isDisconnecting: false,
+  isRefreshing: false,
+  error: undefined,
+  connect: mockConnect,
+  disconnect: mockDisconnect,
+  refresh: mockRefresh,
+});
 
 describe('ManageProfileXAccount', () => {
+  // A fresh element per render: reusing one element instance makes React bail
+  // out of the re-render, so the hook mock would never be read again.
+  const renderTree = () => (
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <ManageProfileXAccount />
+    </ToastContext.Provider>
+  );
+
+  const renderScreen = () => {
+    const utils = renderWithProvider(renderTree());
+    return {
+      ...utils,
+      /** Mirrors what ProfileController writes when the action settles. */
+      updateXAuth: (next: Partial<UseXAuth>) => {
+        xAuthState = { ...xAuthState, ...next };
+        act(() => {
+          utils.rerender(renderTree());
+        });
+      },
+    };
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
+    xAuthState = defaultXAuth();
+    mockUseXAuth.mockImplementation(() => xAuthState);
     mockRefresh.mockResolvedValue(undefined);
     mockDisconnect.mockResolvedValue(undefined);
-    setXAuth();
   });
 
   it('renders the header titled X account', () => {
-    const { getByTestId } = renderWithProvider(<ManageProfileXAccount />);
+    const { getByTestId } = renderScreen();
 
     expect(
       getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_SCREEN),
@@ -76,9 +111,7 @@ describe('ManageProfileXAccount', () => {
   });
 
   it('renders the avatar, handle, disconnect copy and Disconnect button', () => {
-    const { getByTestId, getByText } = renderWithProvider(
-      <ManageProfileXAccount />,
-    );
+    const { getByTestId, getByText } = renderScreen();
 
     expect(
       getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_AVATAR),
@@ -92,23 +125,21 @@ describe('ManageProfileXAccount', () => {
     expect(
       within(
         getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON),
-      ).getByText(strings('manage_profile.x_account_disconnect')),
+      ).getByText(strings('common.disconnect')),
     ).toBeOnTheScreen();
   });
 
   it('does not refresh when the X profile is already loaded', () => {
-    renderWithProvider(<ManageProfileXAccount />);
+    renderScreen();
 
     expect(mockRefresh).not.toHaveBeenCalled();
   });
 
   it('refreshes once and hides the handle when connected without an X profile', () => {
-    setXAuth({ xProfile: undefined });
+    xAuthState = { ...xAuthState, xProfile: undefined };
 
-    const { queryByTestId, rerender } = renderWithProvider(
-      <ManageProfileXAccount />,
-    );
-    rerender(<ManageProfileXAccount />);
+    const { queryByTestId, updateXAuth } = renderScreen();
+    updateXAuth({});
 
     expect(mockRefresh).toHaveBeenCalledTimes(1);
     expect(
@@ -117,23 +148,28 @@ describe('ManageProfileXAccount', () => {
   });
 
   it('goes back when shown while not connected', () => {
-    setXAuth({ isConnected: false, xProfile: undefined });
+    xAuthState = { ...xAuthState, isConnected: false, xProfile: undefined };
 
-    renderWithProvider(<ManageProfileXAccount />);
+    renderScreen();
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('does not go back while a disconnect is in flight', () => {
-    setXAuth({ isConnected: false, isDisconnecting: true });
+    xAuthState = {
+      ...xAuthState,
+      isConnected: false,
+      isDisconnecting: true,
+    };
 
-    renderWithProvider(<ManageProfileXAccount />);
+    renderScreen();
 
     expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('navigates back when the back button is pressed', () => {
-    const { getByTestId } = renderWithProvider(<ManageProfileXAccount />);
+    const { getByTestId } = renderScreen();
 
     fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
 
@@ -141,7 +177,7 @@ describe('ManageProfileXAccount', () => {
   });
 
   describe('disconnect sheet', () => {
-    const openSheet = (utils: ReturnType<typeof renderWithProvider>): void => {
+    const openSheet = (utils: ReturnType<typeof renderScreen>): void => {
       fireEvent.press(
         utils.getByTestId(
           ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON,
@@ -150,7 +186,7 @@ describe('ManageProfileXAccount', () => {
     };
 
     it('opens the sheet without disconnecting', () => {
-      const utils = renderWithProvider(<ManageProfileXAccount />);
+      const utils = renderScreen();
 
       expect(
         utils.queryByTestId(
@@ -167,7 +203,7 @@ describe('ManageProfileXAccount', () => {
     });
 
     it('does not disconnect when Cancel is pressed', () => {
-      const utils = renderWithProvider(<ManageProfileXAccount />);
+      const utils = renderScreen();
       openSheet(utils);
 
       fireEvent.press(
@@ -180,8 +216,8 @@ describe('ManageProfileXAccount', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('disconnects once and goes back once on success', async () => {
-      const utils = renderWithProvider(<ManageProfileXAccount />);
+    it('disconnects once, shows a success toast and goes back once', async () => {
+      const utils = renderScreen();
       openSheet(utils);
 
       await act(async () => {
@@ -193,14 +229,34 @@ describe('ManageProfileXAccount', () => {
       });
 
       expect(mockDisconnect).toHaveBeenCalledTimes(1);
+
+      // The controller clears the X link, which is how success is observed.
+      utils.updateXAuth({ isConnected: false, xProfile: undefined });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      const toastOptions = mockShowToast.mock.calls[0][0];
+      expect(toastOptions).toEqual(
+        expect.objectContaining({
+          variant: ToastVariants.Plain,
+          labelOptions: [
+            {
+              label: strings('manage_profile.x_account_disconnect_success'),
+              isBold: true,
+            },
+          ],
+          hasNoTimeout: false,
+        }),
+      );
+      expect(
+        render(<>{toastOptions.startAccessory}</>).getByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SUCCESS_ICON,
+        ),
+      ).toBeOnTheScreen();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the sheet open with an error and does not navigate on failure', async () => {
-      mockDisconnect.mockResolvedValue(
-        new XAuthError(XAuthErrorType.BackendError, 'backend down'),
-      );
-      const utils = renderWithProvider(<ManageProfileXAccount />);
+      const utils = renderScreen();
       openSheet(utils);
 
       await act(async () => {
@@ -211,12 +267,18 @@ describe('ManageProfileXAccount', () => {
         );
       });
 
+      // A failed disconnect leaves the link in place and records an error.
+      utils.updateXAuth({
+        error: new XAuthError(XAuthErrorType.BackendError, 'backend down'),
+      });
+
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET),
       ).toBeOnTheScreen();
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
       ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
+      expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
   });

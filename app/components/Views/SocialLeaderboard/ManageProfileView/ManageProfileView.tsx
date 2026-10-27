@@ -33,7 +33,6 @@ import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
 import {
   SocialEvent,
-  useManageProfileAnalytics,
   useSocialScreenAnalytics,
 } from '../analytics';
 
@@ -46,15 +45,21 @@ const ManageProfileView: React.FC = () => {
     isConnected: isConnectedToX,
     xProfile,
     isConnecting: isConnectingX,
+    error: xAuthError,
     connect: connectX,
   } = useXAuth();
   useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE, {
     resetWhenInactive: false,
   });
-  const trackProfileEdited = useManageProfileAnalytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // `connect` resolves void, so the outcome is read from hook state rather than
+  // a return value: `error` is set on failure and cleared when a flow starts.
+  // A user-cancelled OAuth stays silent.
+  const errorMessage =
+    xAuthError && xAuthError.type !== XAuthErrorType.UserCancelled
+      ? strings('social_leaderboard.profile_onboarding.connect_x_error')
+      : null;
 
   const linkedAccount = profile?.linkedAccountAddress
     ? accounts.find(
@@ -95,7 +100,7 @@ const ManageProfileView: React.FC = () => {
 
   // Connected: open the X account screen, which owns the confirmed disconnect.
   // Not connected: start X OAuth in place.
-  const handleOpenSocials = useCallback(async (): Promise<void> => {
+  const handleDisconnectX = useCallback(async (): Promise<void> => {
     if (!isControllerBacked || isConnectingX) {
       return;
     }
@@ -104,22 +109,13 @@ const ManageProfileView: React.FC = () => {
       return;
     }
 
-    setErrorMessage(null);
-    const connectError = await connectX();
-    if (!connectError) {
-      trackProfileEdited();
-      return;
-    }
-    if (connectError.type !== XAuthErrorType.UserCancelled) {
-      setErrorMessage(strings('manage_profile.x_account_connect_error'));
-    }
+    await connectX();
   }, [
     connectX,
     isConnectedToX,
     isConnectingX,
     isControllerBacked,
     navigation,
-    trackProfileEdited,
   ]);
 
   const displayName = profile?.displayName ?? '';
@@ -131,7 +127,7 @@ const ManageProfileView: React.FC = () => {
   let socials = '';
   if (xHandle) {
     socials = `X @${xHandle}`;
-  } else if (isConnectedToX || profile?.connectedToX) {
+  } else if (isConnectedToX) {
     socials = 'X';
   }
   const tradingActivityValue = strings(
@@ -205,7 +201,7 @@ const ManageProfileView: React.FC = () => {
             value={socials}
             disabled={socialsDisabled}
             onPress={() => {
-              handleOpenSocials().catch(() => undefined);
+              handleDisconnectX().catch(() => undefined);
             }}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.SOCIALS_ROW}

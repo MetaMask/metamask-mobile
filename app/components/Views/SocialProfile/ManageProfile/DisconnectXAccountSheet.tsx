@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Modal, StyleSheet } from 'react-native';
 import {
   BottomSheet,
@@ -13,7 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
-import type { XAuthError } from '../../../../core/XAuthService';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 
 const styles = StyleSheet.create({
@@ -27,20 +26,21 @@ interface DisconnectXAccountSheetProps {
   /** X username without the leading `@`. */
   handle?: string;
   isDisconnecting: boolean;
+  /** Localised error line shown under the body; `null` hides it. */
+  errorMessage: string | null;
   onClose: () => void;
-  /** Resolves with the error if the disconnect failed, `undefined` on success. */
-  onConfirm: () => Promise<XAuthError | undefined>;
+  onConfirm: () => void;
 }
 
 /** Confirmation sheet shown before unlinking the X account. */
 const DisconnectXAccountSheet = ({
   handle,
   isDisconnecting,
+  errorMessage,
   onClose,
   onConfirm,
 }: DisconnectXAccountSheetProps) => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const dismiss = useCallback(() => {
     if (isDisconnecting) {
@@ -49,20 +49,12 @@ const DisconnectXAccountSheet = ({
     sheetRef.current?.onCloseBottomSheet();
   }, [isDisconnecting]);
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirmPress = useCallback(() => {
     if (isDisconnecting) {
       return;
     }
-    setErrorMessage(null);
-    const result = await onConfirm();
-    if (result) {
-      setErrorMessage(strings('manage_profile.x_account_disconnect_error'));
-    }
+    onConfirm();
   }, [isDisconnecting, onConfirm]);
-
-  const handleConfirmPress = useCallback(() => {
-    handleConfirm().catch(() => undefined);
-  }, [handleConfirm]);
 
   const body = handle
     ? strings('manage_profile.x_account_disconnect_sheet_body', {
@@ -106,13 +98,13 @@ const DisconnectXAccountSheet = ({
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={{
-            children: strings('manage_profile.cancel'),
+            children: strings('navigation.cancel'),
             isDisabled: isDisconnecting,
             onPress: dismiss,
             testID: ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CANCEL,
           }}
           primaryButtonProps={{
-            children: strings('manage_profile.x_account_disconnect'),
+            children: strings('common.disconnect'),
             isDanger: true,
             isLoading: isDisconnecting,
             isDisabled: isDisconnecting,

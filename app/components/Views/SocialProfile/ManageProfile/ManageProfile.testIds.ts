@@ -11,7 +11,6 @@ export const ManageProfileSelectorsIDs = {
   X_ACCOUNT_ROW: 'manage-profile-x-account-row',
   X_ACCOUNT_SCREEN: 'manage-profile-x-account-screen',
   X_ACCOUNT_HEADER: 'manage-profile-x-account-header',
-  X_ACCOUNT_CONNECT_ERROR: 'manage-profile-x-account-connect-error',
   X_ACCOUNT_AVATAR: 'manage-profile-x-account-avatar',
   X_ACCOUNT_HANDLE: 'manage-profile-x-account-handle',
   X_ACCOUNT_DISCONNECT_BUTTON: 'manage-profile-x-account-disconnect-button',
@@ -19,6 +18,8 @@ export const ManageProfileSelectorsIDs = {
   X_ACCOUNT_DISCONNECT_CANCEL: 'manage-profile-x-account-disconnect-cancel',
   X_ACCOUNT_DISCONNECT_CONFIRM: 'manage-profile-x-account-disconnect-confirm',
   X_ACCOUNT_DISCONNECT_ERROR: 'manage-profile-x-account-disconnect-error',
+  X_ACCOUNT_DISCONNECT_SUCCESS_ICON:
+    'manage-profile-x-account-disconnect-success-icon',
   TRADING_ACTIVITY_ROW: 'manage-profile-trading-activity-row',
   LINKED_SOCIAL_ACCOUNT_ROW: 'manage-profile-linked-social-account-row',
   FIELD_SCREEN: 'manage-profile-field-screen',
