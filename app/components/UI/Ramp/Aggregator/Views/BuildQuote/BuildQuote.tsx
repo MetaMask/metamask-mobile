@@ -45,6 +45,7 @@ import AssetSelectorButton from '../../components/AssetSelectorButton';
 import PaymentMethodSelector from '../../components/PaymentMethodSelector';
 import AmountInput from '../../components/AmountInput';
 import Keypad, { Keys } from '../../../../../Base/Keypad';
+import useCurrency from '../../../../../Base/Keypad/useCurrency';
 import QuickAmounts from '../../components/QuickAmounts';
 import AccountSelector from '../../components/AccountSelector';
 
@@ -220,6 +221,10 @@ const BuildQuote = () => {
     isFetchingFiatCurrency,
     currentFiatCurrency,
   } = useFiatCurrencies();
+  const { decimalSeparator } = useCurrency(
+    currentFiatCurrency?.symbol,
+    currentFiatCurrency?.decimals,
+  );
 
   const {
     cryptoCurrencies,
@@ -876,15 +881,9 @@ const BuildQuote = () => {
 
   // Buy amounts use localized grouping when displayed.
   if (isBuy) {
-    const inputDecimalSeparator = amount.includes(',')
-      ? ','
-      : amount.includes('.')
-        ? '.'
-        : undefined;
-
     displayAmount =
       isBuy && amountFocused
-        ? formatAmountWithLocaleSeparators(amount, inputDecimalSeparator)
+        ? formatAmountWithLocaleSeparators(amount, decimalSeparator)
         : // If the amount is not focused it will be fully formatted
           formatAmount(amountNumber);
   }

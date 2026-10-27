@@ -813,6 +813,10 @@ describe('BuildQuote View', () => {
       for (const key of ['1', '2', '3', '4']) {
         fireEvent.press(getByRoleButton(key));
       }
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234');
+
       fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_DOT));
       fireEvent.press(getByRoleButton('5'));
       fireEvent.press(getByRoleButton('6'));
