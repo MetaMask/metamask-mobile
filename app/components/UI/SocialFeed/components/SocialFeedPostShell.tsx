@@ -48,6 +48,8 @@ export interface SocialFeedPostShellProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   /** Opens the position details. The card's own buttons keep their press. */
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** Clock for the relative timestamp. Defaults to `Date.now()`. */
+  now?: number;
 }
 
 const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
@@ -58,6 +60,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   onReactionPickerOpened,
   onAuthorPress,
   onPositionPress,
+  now,
 }) => {
   const tracked = useSocialFeedTracking();
   const notifyCopy = onCopyTradeInteraction ?? tracked.onCopyTradeInteraction;
@@ -185,6 +188,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
         handle={post.authorHandle}
         imageUrl={post.authorImageUrl}
         timestampMs={post.timestampMs}
+        now={now}
         recyclingKey={post.id}
         onMorePress={openOptions}
         onIdentityPress={onAuthorPress ? handleIdentityPress : undefined}

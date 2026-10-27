@@ -42,6 +42,7 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
@@ -118,20 +119,23 @@ const LIVE_ACTIVITY = [
 ];
 
 /**
- * Step title: Display Md size on the 32px heading line height, medium weight,
- * centered.
+ * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
+ * design-system hero face and falls back when the language is not in the font.
+ * Spacing stays on the wrapper. The title paints its metrics as a style, so a
+ * padding class on the text would lose to that style.
  */
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <Text
-    variant={TextVariant.DisplayMd}
-    fontWeight={FontWeight.Medium}
-    twClassName={`text-center leading-heading-lg ${twClassName ?? ''}`}
-  >
-    {children}
-  </Text>
+  <Box twClassName={twClassName}>
+    <MarketingMomentTitle
+      variant={TextVariant.DisplayLg}
+      twClassName="w-full text-center"
+    >
+      {children}
+    </MarketingMomentTitle>
+  </Box>
 );
 
 const LiveActivityFallback: React.FC = () => (
@@ -579,9 +583,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
@@ -603,6 +609,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 titleProps={{
                   testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
                   twClassName: 'px-1',
+                  variant: TextVariant.DisplayLg,
                 }}
                 artwork={
                   <ProfileOnboardingIntroAnimation
@@ -839,6 +846,14 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
+                    shareTradingActivity={draft.shareTradingActivity}
+                    onShareTradingActivityChange={(enabled) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        shareTradingActivity: enabled,
+                      }));
+                    }}
                     onSelect={(account) => {
                       trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
                       playSelection().catch(() => undefined);
