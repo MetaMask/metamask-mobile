@@ -660,6 +660,9 @@ const SocialV1ViewContent: React.FC = () => {
               accessibilityLabel={strings(
                 'social_leaderboard.my_profile.open_profile',
               )}
+              // Header chrome is inset 8px. The feed tabs use 16px, so the
+              // avatar needs the other 8px to share that left edge.
+              style={tw.style('ml-2')}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
                 {myProfile ? (
