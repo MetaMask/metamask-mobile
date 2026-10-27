@@ -2367,6 +2367,28 @@ describe('MoneyHomeView', () => {
       ).not.toBeOnTheScreen();
     });
 
+    it('shows the upgrading pill when the vault rate has not resolved', () => {
+      mockUseMoneyVaultState.mockReturnValue({
+        ...defaultMoneyVaultState,
+        status: 'upgrading',
+        currentVault: 'base',
+        apyDecimal: undefined,
+        apyPercent: undefined,
+        isLoading: true,
+      } as ReturnType<typeof useMoneyVaultState>);
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyHomeView />,
+      );
+
+      expect(
+        getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+      ).toHaveTextContent('Upgrading to Premium APY');
+      expect(
+        queryByTestId(MoneyBalanceSummaryTestIds.APY),
+      ).not.toBeOnTheScreen();
+    });
+
     it('shows the downgrading pill when vault status is downgrading', () => {
       mockUseMoneyVaultState.mockReturnValue({
         ...defaultMoneyVaultState,

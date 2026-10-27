@@ -155,6 +155,50 @@ describe('MoneyBalanceSummary', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('renders the upgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={balanceState()}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Upgrading to Premium APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('renders the downgrading pill when the vault rate has not resolved', () => {
+    const { getByTestId, queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={unavailableState('$2,384.34')}
+        pendingVaultTransition="downgrading"
+      />,
+    );
+
+    expect(
+      getByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).toHaveTextContent('Moving to standard APY');
+    expect(queryByTestId(MoneyBalanceSummaryTestIds.APY)).not.toBeOnTheScreen();
+  });
+
+  it('hides the pending pill in the no-account state', () => {
+    const { queryByTestId } = render(
+      <MoneyBalanceSummary
+        apy={undefined}
+        displayState={{ kind: 'noAccount' }}
+        pendingVaultTransition="upgrading"
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneyBalanceSummaryTestIds.UPGRADE_PILL),
+    ).not.toBeOnTheScreen();
+  });
+
   it('hides the APY row when apy is negative', () => {
     const mockInfoPress = jest.fn();
     const { queryByTestId } = render(
