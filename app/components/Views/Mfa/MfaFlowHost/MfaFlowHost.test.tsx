@@ -45,6 +45,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const activeEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   email: 'a@b.co',
@@ -315,7 +316,10 @@ describe('MfaFlowHost', () => {
         methods: ['email_otp', 'passkey'],
         verifyWith: ['email_otp', 'passkey'],
       },
-      createController([activeEmail, { type: 'passkey', status: 'active' }]),
+      createController([
+        activeEmail,
+        { id: 'passkey', type: 'passkey', status: 'active' },
+      ]),
       { create: jest.fn(), get: jest.fn() },
     );
     const { getByTestId } = renderHost();

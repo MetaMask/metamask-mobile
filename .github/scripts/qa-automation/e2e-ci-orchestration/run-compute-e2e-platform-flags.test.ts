@@ -225,6 +225,25 @@ describe('run-compute-e2e-platform-flags entrypoint', () => {
       });
     });
 
+    it('selects both platforms when a brand-new Appium smoke spec is added', () => {
+      const { stdout, outputs } = runEntrypoint({
+        GITHUB_EVENT_NAME: 'pull_request',
+        PR_BASE_REF: 'main',
+        ADDED_SMOKE_SPEC_FILES:
+          'added\ttests/smoke-appium/seedless/google-login-change-password.spec.ts',
+        ...androidOnlyPR,
+      });
+
+      expect(outputs).toMatchObject({
+        android_final: 'true',
+        ios_final: 'true',
+        e2e_needed: 'true',
+        use_main_builds_for_test_only_prs: 'false',
+      });
+      expect(stdout).toContain('brand-new Appium smoke spec');
+      expect(stdout).not.toContain('iOS not requested');
+    });
+
     it('builds iOS and runs Appium iOS when run-appium-ios-tests is applied', () => {
       const { stdout, outputs } = runEntrypoint({
         GITHUB_EVENT_NAME: 'pull_request',

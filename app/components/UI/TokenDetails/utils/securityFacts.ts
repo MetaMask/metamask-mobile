@@ -517,7 +517,18 @@ export const resolveVerdict = (
   VERDICT_BY_RESULT_TYPE[securityData.resultType] ?? 'unscreened';
 
 /**
- * Sum of the top ten holders' share, capped because the API can overshoot.
+ * Sum of the top ten WALLET holders' share, capped because the API can
+ * overshoot.
+ *
+ * Only `label === 'wallet'` holders count: AMM pools (`market`), Solana
+ * routers (`program`), `locker` and `contract` entries are excluded, because
+ * counting them inflates concentration toward ~100% for pooled tokens (a
+ * single AMM pool can hold 99%+). Blockaid confirmed this is the intended
+ * reading, and the API returns the label lowercase.
+ *
+ * Caveat: the top-10 cap is applied after filtering, so if fewer than 10
+ * wallets survive the filter the capped list cannot reconstruct the true
+ * top-10 wallet share and may slightly undercount. That is acceptable.
  *
  * Exported because `useTokenStats` formats the same figure for the Top 10 row
  * while the holders bar needs it raw to size itself. One function so the
@@ -526,14 +537,15 @@ export const resolveVerdict = (
 export const sumTopTenPercentage = (
   financialStats: TokenSecurityFinancialStats | null | undefined,
 ): number | null => {
-  const holders = financialStats?.topHolders;
-  if (!holders?.length) {
+  const walletHolders = financialStats?.topHolders?.filter(
+    (holder) => holder.label === 'wallet',
+  );
+  if (!walletHolders?.length) {
     return null;
   }
-  const total = holders.reduce(
-    (sum, holder) => sum + (holder.holdingPercentage ?? 0),
-    0,
-  );
+  const total = walletHolders
+    .slice(0, 10)
+    .reduce((sum, holder) => sum + (holder.holdingPercentage ?? 0), 0);
   return Math.min(total, 100);
 };
 
