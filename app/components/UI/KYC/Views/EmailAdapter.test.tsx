@@ -149,8 +149,6 @@ describe('VbaEmailAdapter', () => {
         reason: {
           operation: 'vba.verifyEmail',
           presentation: 'card',
-          enrollDescription: 'placeholder for enroll description',
-          verifyDescription: 'placeholder for verify description',
         },
       });
       expect(mockKycController.startSession).toHaveBeenCalledWith({
