@@ -295,7 +295,8 @@ describe('MfaFlowHost', () => {
   });
 
   it('returns to the setup with Android back from its code screen', async () => {
-    const handlers: (() => boolean | null | undefined)[] = [];
+    type BackPressHandler = Parameters<typeof BackHandler.addEventListener>[1];
+    const handlers: BackPressHandler[] = [];
     jest
       .spyOn(BackHandler, 'addEventListener')
       .mockImplementation((_event, handler) => {
@@ -326,7 +327,7 @@ describe('MfaFlowHost', () => {
 
     let handled: boolean | null | undefined;
     await act(async () => {
-      handled = onBack();
+      handled = onBack({ type: 'hardwareBackPress', timeStamp: 0 });
     });
 
     expect(handled).toBe(true);
