@@ -11,6 +11,7 @@ export enum ActivityTypeFilter {
   All = 'all',
   Transactions = 'transactions',
   BuySell = 'buySell',
+  LimitOrders = 'limitOrders',
   Perps = 'perps',
   Predictions = 'predictions',
   MetamaskCard = 'metamaskCard',
@@ -113,6 +114,9 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'claimMusdBonus',
   ]),
   [ActivityTypeFilter.BuySell]: new Set<ActivityKind>(['buy', 'sell']),
+  // Swap limit orders have no activity kind: ActivityList serves this bucket
+  // from the limit orders API instead.
+  [ActivityTypeFilter.LimitOrders]: new Set<ActivityKind>([]),
   // Derived from the Perps sub-buckets — see PERPS_ACTIVITY_FILTER_KINDS.
   [ActivityTypeFilter.Perps]: PERPS_ACTIVITY_KINDS,
   [ActivityTypeFilter.Predictions]: new Set<ActivityKind>([
@@ -131,10 +135,25 @@ export const ACTIVITY_TYPE_FILTER_ORDER: ActivityTypeFilter[] = [
   // ActivityTypeFilter.All,
   ActivityTypeFilter.Transactions,
   ActivityTypeFilter.BuySell,
+  ActivityTypeFilter.LimitOrders,
   ActivityTypeFilter.Perps,
   ActivityTypeFilter.Predictions,
   ActivityTypeFilter.MetamaskCard,
 ];
+
+/**
+ * @param isLimitOrdersEnabled - Whether swap limit orders are enabled.
+ * @returns The Type filter options to offer, in sheet order.
+ */
+export function getSelectableActivityTypeFilters(
+  isLimitOrdersEnabled: boolean,
+): ActivityTypeFilter[] {
+  return isLimitOrdersEnabled
+    ? ACTIVITY_TYPE_FILTER_ORDER
+    : ACTIVITY_TYPE_FILTER_ORDER.filter(
+        (filter) => filter !== ActivityTypeFilter.LimitOrders,
+      );
+}
 
 export function activityKindMatchesTypeFilter(
   kind: ActivityKind,

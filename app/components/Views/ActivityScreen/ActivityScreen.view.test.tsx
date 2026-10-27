@@ -1,5 +1,7 @@
 import '../../../../tests/component-view/mocks';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import NetInfo from '@react-native-community/netinfo';
+import type NetInfoMock from '../../../__mocks__/@react-native-community/netinfo';
 
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
@@ -63,6 +65,20 @@ import {
   clearAccountsTransactionsApiMocks,
   setupAccountsTransactionsApiMock,
 } from '../../../../tests/component-view/api-mocking/accounts-transactions';
+import {
+  clearLimitOrdersDataServiceMock,
+  setupGetLimitOrderApiMock,
+  setupLimitOrdersDataServiceMock,
+} from '../../../../tests/component-view/api-mocking/limitOrders';
+import { BridgeLimitOrderActivityNavigator } from '../../../../tests/component-view/renderers/bridge';
+import { MOCK_LIMIT_FILLED_ORDER } from '../../UI/Bridge/api/limitOrders/getLimitOrders/mock';
+import {
+  LimitOrderState,
+  type LimitOrder,
+} from '../../UI/Bridge/api/limitOrders/getLimitOrders/types';
+import type { LimitOrdersQueryParams } from '../../UI/Bridge/queries/limitOrders';
+import { OpenOrderRowSelectorsIDs } from '../../UI/Bridge/components/OpenOrderRow/OpenOrderRow.testIds';
+import { SwapsLimitOrderActivityPageSelectorsIDs } from '../../UI/Bridge/Views/SwapsLimitOrderActivityPage/SwapsLimitOrderActivityPage.testIds';
 import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -131,6 +147,8 @@ const activityListRowAvatarStackTestId = (hash: string): string =>
 // Container wraps the a11y-hidden spinner (PendingActivityListItemRow).
 const activityListRowPendingSpinnerTestId = (hash: string): string =>
   `activity-pending-spinner-container-${hash}`;
+const activityListLimitOrderRowTestId = (orderId: string): string =>
+  `activity-limit-order-${orderId}`;
 
 /** Patch Engine.state then UPDATE_BG_STATE so Redux selectors see live controller updates. */
 const syncEngineControllerState = (
@@ -1550,6 +1568,224 @@ describeForPlatforms('ActivityScreen — buy/sell rows', () => {
     expect(
       queryByTestId(activityListRowTitleTestId(sendHash)),
     ).not.toBeOnTheScreen();
+  });
+});
+
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+describeForPlatforms('ActivityScreen — limit orders', () => {
+  const OLDER_FILLED_ORDER: LimitOrder = {
+    ...MOCK_LIMIT_FILLED_ORDER,
+    id: 'mock-limit-order-filled-older',
+    timingData: {
+      ...MOCK_LIMIT_FILLED_ORDER.timingData,
+      closedAt: '2026-09-02T13:00:00.000Z',
+    },
+  };
+
+  const SEND_HASH = buildConfirmedLocalSendTransaction().hash as string;
+
+  /**
+   * Renders Activity with a confirmed send and waits for its row. The list
+   * holds local rows back until the accounts API answers, so this also keeps
+   * that request from outliving the test.
+   */
+  const renderLimitOrdersActivity = async ({
+    enabled = true,
+    extraRoutes = [],
+  }: {
+    enabled?: boolean;
+    extraRoutes?: { name: string; Component?: React.ComponentType<object> }[];
+  } = {}) => {
+    const view = renderActivityScreenViewWithRoutes({
+      state: initialStateActivityWithLocalTransactions([
+        buildConfirmedLocalSendTransaction(),
+      ])
+        .withRemoteFeatureFlags({ swapsLimitOrder: { enabled } })
+        .build(),
+      extraRoutes,
+    });
+    expect(
+      await view.findByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).toBeOnTheScreen();
+    return view;
+  };
+
+  const serveLimitOrders = (orders: LimitOrder[]) => {
+    const requests: LimitOrdersQueryParams[] = [];
+    setupLimitOrdersDataServiceMock({
+      limitOrders: async ({ cursor: _cursor, ...params }) => {
+        requests.push(params);
+        return { orders, total: orders.length };
+      },
+    });
+    return requests;
+  };
+
+  const selectLimitOrdersFilter = async (
+    view: ReturnType<typeof renderActivityScreenViewWithRoutes>,
+  ) => {
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+    fireEvent.press(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    );
+    await waitFor(() => {
+      expect(
+        view.getAllByText(
+          selectedTypeFilterLabel(ActivityTypeFilter.LimitOrders),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+  };
+
+  beforeEach(() => {
+    netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+    setupAccountsTransactionsApiMock([]);
+  });
+
+  afterEach(() => {
+    netInfoMock.__resetMockNetInfo();
+    // Also tears down the limit order nock, which shares the nock teardown.
+    clearAccountsTransactionsApiMocks();
+    clearLimitOrdersDataServiceMock();
+  });
+
+  it('shows only filled limit orders, newest first, and hides transaction rows', async () => {
+    const requests = serveLimitOrders([
+      OLDER_FILLED_ORDER,
+      MOCK_LIMIT_FILLED_ORDER,
+    ]);
+    const view = await renderLimitOrdersActivity();
+
+    await selectLimitOrdersFilter(view);
+
+    const newerRow = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.TITLE),
+    ).toHaveTextContent(
+      strings('bridge.limit.pair', {
+        source: MOCK_LIMIT_FILLED_ORDER.src.asset.symbol,
+        dest: MOCK_LIMIT_FILLED_ORDER.dest.asset.symbol,
+      }),
+    );
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.PRIMARY),
+    ).toHaveTextContent('+220.00 USDC');
+    expect(
+      within(newerRow).getByTestId(OpenOrderRowSelectorsIDs.SECONDARY),
+    ).toHaveTextContent('-0.10 ETH');
+
+    const olderRow = view.getByTestId(
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    );
+    const rowIds = view
+      .getAllByTestId(/^activity-limit-order-/)
+      .map((row) => row.props.testID);
+    expect(rowIds).toEqual([
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      activityListLimitOrderRowTestId(OLDER_FILLED_ORDER.id),
+    ]);
+    expect(olderRow).toBeOnTheScreen();
+
+    expect(
+      view.queryByTestId(activityListRowTitleTestId(SEND_HASH)),
+    ).not.toBeOnTheScreen();
+    expect(requests.at(-1)).toEqual(
+      expect.objectContaining({
+        walletAddress: ACTIVITY_CV_ACCOUNT.toLowerCase(),
+        states: [LimitOrderState.Filled],
+      }),
+    );
+  });
+
+  it('opens the limit order activity page when a filled order is pressed', async () => {
+    serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    setupGetLimitOrderApiMock({ order: MOCK_LIMIT_FILLED_ORDER });
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [
+        {
+          name: Routes.BRIDGE.ROOT,
+          Component: BridgeLimitOrderActivityNavigator,
+        },
+      ],
+    });
+    await selectLimitOrdersFilter(view);
+
+    const row = await view.findByTestId(
+      activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+    );
+    await act(async () => {
+      fireEvent.press(
+        within(row).getByTestId(OpenOrderRowSelectorsIDs.CONTAINER),
+      );
+    });
+
+    expect(
+      await view.findByTestId(SwapsLimitOrderActivityPageSelectorsIDs.SCREEN),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the Limit orders empty state, whose action opens swaps', async () => {
+    serveLimitOrders([]);
+    const view = await renderLimitOrdersActivity({
+      extraRoutes: [{ name: Routes.BRIDGE.ROOT }],
+    });
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(view.queryByTestId(/^activity-limit-order-/)).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      view.getByText(strings('activity_view.empty_state.limit_orders.action')),
+    );
+
+    expect(
+      await view.findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not request limit orders while offline', async () => {
+    netInfoMock.__setMockNetInfo({ isInternetReachable: false });
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity();
+    await selectLimitOrdersFilter(view);
+
+    expect(
+      await view.findByText(
+        strings('activity_view.empty_state.limit_orders.description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(
+        activityListLimitOrderRowTestId(MOCK_LIMIT_FILLED_ORDER.id),
+      ),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
+  });
+
+  it('does not offer the Limit orders filter when limit orders are disabled', async () => {
+    const requests = serveLimitOrders([MOCK_LIMIT_FILLED_ORDER]);
+    const view = await renderLimitOrdersActivity({ enabled: false });
+
+    fireEvent.press(
+      view.getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP),
+    );
+
+    expect(
+      await view.findByTestId(optionTestId(ActivityTypeFilter.BuySell)),
+    ).toBeOnTheScreen();
+    expect(
+      view.queryByTestId(optionTestId(ActivityTypeFilter.LimitOrders)),
+    ).not.toBeOnTheScreen();
+    expect(requests).toEqual([]);
   });
 });
 

@@ -87,6 +87,13 @@ export function getActivityEmptyState({
         action: ActivityEmptyStateAction.AddFunds,
       };
 
+    case ActivityTypeFilter.LimitOrders:
+      return {
+        descriptionKey: 'activity_view.empty_state.limit_orders.description',
+        actionLabelKey: 'activity_view.empty_state.limit_orders.action',
+        action: ActivityEmptyStateAction.Swap,
+      };
+
     case ActivityTypeFilter.MetamaskCard:
       // TODO: confirm card empty state copy with product
       return {

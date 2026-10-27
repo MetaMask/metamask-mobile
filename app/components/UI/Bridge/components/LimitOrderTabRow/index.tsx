@@ -147,7 +147,10 @@ export function LimitOrderTabRow({ order }: LimitOrderTabRowProps) {
   }, [navigation, order]);
 
   const handleHistoryOrderPress = useCallback(() => {
-    navigation.navigate(Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY, { order });
+    navigation.navigate(Routes.BRIDGE.ROOT, {
+      screen: Routes.BRIDGE.SWAPS_LIMIT_ORDER_ACTIVITY,
+      params: { order },
+    });
   }, [navigation, order]);
 
   return (

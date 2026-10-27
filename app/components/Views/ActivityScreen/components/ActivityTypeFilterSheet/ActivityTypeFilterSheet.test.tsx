@@ -32,6 +32,12 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
+const mockIsLimitOrdersEnabled = jest.fn(() => true);
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: () => mockIsLimitOrdersEnabled(),
+}));
+
 const mockFilterOptionSheet = jest.fn();
 jest.mock('../FilterOptionSheet', () => ({
   FilterOptionSheet: (props: Record<string, unknown>) => {
@@ -47,6 +53,7 @@ describe('ActivityTypeFilterSheet', () => {
     mockGoBack.mockClear();
     mockOnSelect.mockClear();
     mockCanGoBack.mockReturnValue(true);
+    mockIsLimitOrdersEnabled.mockReturnValue(true);
   });
 
   const lastProps = () =>
@@ -68,12 +75,26 @@ describe('ActivityTypeFilterSheet', () => {
     render(<ActivityTypeFilterSheet />);
 
     const props = lastProps();
-    expect(props.options).toBe(ACTIVITY_TYPE_FILTER_ORDER);
+    expect(props.options).toEqual(ACTIVITY_TYPE_FILTER_ORDER);
     expect(props.selected).toBe(ActivityTypeFilter.Perps);
     expect(props.sheetTestID).toBe(
       ActivityScreenSelectorsIDs.TYPE_FILTER_SHEET,
     );
     expect(props.onSelect).toBe(mockOnSelect);
+  });
+
+  it('omits the Limit orders option when limit orders are disabled', () => {
+    mockIsLimitOrdersEnabled.mockReturnValue(false);
+
+    render(<ActivityTypeFilterSheet />);
+
+    const { options } = lastProps();
+    expect(options).not.toContain(ActivityTypeFilter.LimitOrders);
+    expect(options).toEqual(
+      ACTIVITY_TYPE_FILTER_ORDER.filter(
+        (filter) => filter !== ActivityTypeFilter.LimitOrders,
+      ),
+    );
   });
 
   it('resolves labels and option testIDs from the type-filter maps', () => {
