@@ -17,6 +17,8 @@ export const HomepageBalanceBreakdownTestIds = {
     `homepage-balance-breakdown-error-warning-${key}`,
   ERROR_SHEET: (key: SliceKey) =>
     `homepage-balance-breakdown-error-sheet-${key}`,
+  ERROR_SHEET_GESTURE_ROOT: (key: SliceKey) =>
+    `homepage-balance-breakdown-error-sheet-gesture-root-${key}`,
   ERROR_SHEET_DESCRIPTION: (key: SliceKey) =>
     `homepage-balance-breakdown-error-sheet-description-${key}`,
   MONEY_BUY: 'homepage-balance-breakdown-money-buy',

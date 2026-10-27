@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal } from 'react-native';
+import { Modal, StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -43,6 +44,12 @@ import { useMoneyAnalytics } from '../../../../UI/Money/hooks/useMoneyAnalytics'
 import type { SliceData } from '../../BalanceBreakdown/types';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { getSliceLabel } from './homepageBalanceBreakdown.constants';
+
+const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
+});
 
 interface HomepageBalanceBreakdownMoneyAddButtonProps {
   accessibilityLabel: string;
@@ -321,30 +328,37 @@ const HomepageBalanceBreakdownRow = ({
           visible
         >
           <ModalSafeAreaProvider>
-            <BottomSheet
-              ref={errorSheetRef}
-              onClose={handleErrorSheetClose}
-              testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET(slice.key)}
+            <GestureHandlerRootView
+              style={styles.gestureRoot}
+              testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_GESTURE_ROOT(
+                slice.key,
+              )}
             >
-              <BottomSheetHeader onClose={handleErrorSheetRequestClose}>
-                <Text variant={TextVariant.HeadingSm}>
-                  {strings('balance_breakdown.error.title')}
-                </Text>
-              </BottomSheetHeader>
-              <Box twClassName="px-4 pb-8">
-                <Text
-                  color={TextColor.TextAlternative}
-                  testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION(
-                    slice.key,
-                  )}
-                  variant={TextVariant.BodyMd}
-                >
-                  {strings('balance_breakdown.error.description', {
-                    primitive: getSliceLabel(slice.key),
-                  })}
-                </Text>
-              </Box>
-            </BottomSheet>
+              <BottomSheet
+                ref={errorSheetRef}
+                onClose={handleErrorSheetClose}
+                testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET(slice.key)}
+              >
+                <BottomSheetHeader onClose={handleErrorSheetRequestClose}>
+                  <Text variant={TextVariant.HeadingSm}>
+                    {strings('balance_breakdown.error.title')}
+                  </Text>
+                </BottomSheetHeader>
+                <Box twClassName="px-4 pb-8">
+                  <Text
+                    color={TextColor.TextAlternative}
+                    testID={HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION(
+                      slice.key,
+                    )}
+                    variant={TextVariant.BodyMd}
+                  >
+                    {strings('balance_breakdown.error.description', {
+                      primitive: getSliceLabel(slice.key),
+                    })}
+                  </Text>
+                </Box>
+              </BottomSheet>
+            </GestureHandlerRootView>
           </ModalSafeAreaProvider>
         </Modal>
       ) : null}

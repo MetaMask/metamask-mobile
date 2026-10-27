@@ -770,6 +770,11 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(
+        HomepageBalanceBreakdownTestIds.ERROR_SHEET_GESTURE_ROOT('tokens'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
         HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION('tokens'),
       ),
     ).toHaveTextContent(
