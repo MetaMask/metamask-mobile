@@ -64,6 +64,10 @@ describe('formatAmountDigitsForDisplay', () => {
     expect(formatAmountDigitsForDisplay('12.5', ',')).toBe('12,5');
   });
 
+  it('groups integer digits without colliding with the currency decimal separator', () => {
+    expect(formatAmountDigitsForDisplay('1234.56', ',')).toBe('1.234,56');
+  });
+
   it('falls back to 0 for an empty amount', () => {
     expect(formatAmountDigitsForDisplay('', ',')).toBe('0');
   });

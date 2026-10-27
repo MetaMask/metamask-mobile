@@ -802,6 +802,26 @@ describe('BuildQuote View', () => {
       expect(getByRoleButton(`${symbol}${validAmount}`)).toBeTruthy();
     });
 
+    it('groups EUR input without reusing its decimal separator', () => {
+      mockUseFiatCurrenciesValues = {
+        ...mockUseFiatCurrenciesInitialValues,
+        currentFiatCurrency: mockFiatCurrenciesData[1],
+      };
+      render(BuildQuote);
+
+      fireEvent.press(screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+      for (const key of ['1', '2', '3', '4']) {
+        fireEvent.press(getByRoleButton(key));
+      }
+      fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_DOT));
+      fireEvent.press(getByRoleButton('5'));
+      fireEvent.press(getByRoleButton('6'));
+
+      expect(
+        screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT),
+      ).toHaveTextContent('€1.234,56');
+    });
+
     it('updates the amount input with quick amount buttons', () => {
       render(BuildQuote);
       const initialAmount = '0';

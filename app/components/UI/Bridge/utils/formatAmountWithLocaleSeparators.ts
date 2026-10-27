@@ -4,14 +4,32 @@ import { getIntlNumberFormatter } from '../../../../util/intl';
 /**
  * Formats a number string with locale-appropriate separators
  * Uses Intl.NumberFormat to respect user's locale (e.g., en-US uses commas, de-DE uses periods)
+ * A keypad decimal override keeps editable currency values unambiguous when
+ * its separator differs from the app locale.
  */
-export const formatAmountWithLocaleSeparators = (value: string): string => {
+export const formatAmountWithLocaleSeparators = (
+  value: string,
+  decimalSeparatorOverride?: string | null,
+): string => {
   if (!value || value === '0') return value;
 
-  const parsed = parseFloat(value);
+  const inputDecimalSeparator =
+    decimalSeparatorOverride && value.includes(decimalSeparatorOverride)
+      ? decimalSeparatorOverride
+      : value.includes('.')
+        ? '.'
+        : undefined;
+  const decimalIndex = inputDecimalSeparator
+    ? value.lastIndexOf(inputDecimalSeparator)
+    : -1;
+  const integerPart = decimalIndex >= 0 ? value.slice(0, decimalIndex) : value;
+  const decimalPart =
+    decimalIndex >= 0 ? value.slice(decimalIndex + 1) : undefined;
+  const parsed = Number(
+    decimalPart === undefined ? integerPart : `${integerPart}.${decimalPart}`,
+  );
   if (isNaN(parsed)) return value;
 
-  const [integerPart, decimalPart] = value.split('.');
   const sanitizedInt = (integerPart || '0').replace(/^\+/, '');
 
   try {
@@ -24,23 +42,41 @@ export const formatAmountWithLocaleSeparators = (value: string): string => {
       ? parseInt(sanitizedInt, 10)
       : Math.trunc(parsed);
 
-    const formattedInteger = getIntlNumberFormatter(I18n.locale, {
+    const integerFormatter = getIntlNumberFormatter(I18n.locale, {
       useGrouping: true,
       maximumFractionDigits: 0,
-    }).format(integerValue);
+    });
+    let formattedInteger = integerFormatter.format(integerValue);
 
-    if (decimalPart === undefined && !value.includes('.')) {
+    if (decimalPart === undefined && !decimalSeparatorOverride) {
       return formattedInteger;
     }
 
     // Extract the locale's decimal separator by formatting a known
     // number and reading the character between the two digits.
     // e.g. "1.1" (en-US) or "1,1" (de-DE)
-    const sample = getIntlNumberFormatter(I18n.locale, {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 1,
-    }).format(1.1);
-    const decimalSeparator = sample[1] ?? '.';
+    const decimalSeparator =
+      decimalSeparatorOverride ??
+      getIntlNumberFormatter(I18n.locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(1.1)[1] ??
+      inputDecimalSeparator ??
+      '.';
+    const groupingSeparator = integerFormatter
+      .formatToParts?.(integerValue)
+      .find(({ type }) => type === 'group')?.value;
+
+    if (groupingSeparator === decimalSeparator) {
+      const safeGroupingSeparator = decimalSeparator === ',' ? '.' : ',';
+      formattedInteger = formattedInteger
+        .split(groupingSeparator)
+        .join(safeGroupingSeparator);
+    }
+
+    if (decimalPart === undefined) {
+      return formattedInteger;
+    }
 
     return `${formattedInteger}${decimalSeparator}${decimalPart ?? ''}`;
   } catch (error) {

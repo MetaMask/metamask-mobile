@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
   FontWeight,
   TextColor,
@@ -18,11 +18,20 @@ import { useTheme } from '../../../../../util/theme';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getFontSizeForInputLength } from '../../Views/BuildQuote/getFontSizeForInputLength';
+import Text, {
+  TextColor as LegacyTextColor,
+  TextVariant as LegacyTextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 
 const DEFAULT_AMOUNT_FONT_SIZE = 24;
 const DEFAULT_AMOUNT_LINE_HEIGHT = 32;
 
 const styles = StyleSheet.create({
+  amount: {
+    fontSize: DEFAULT_AMOUNT_FONT_SIZE,
+    lineHeight: DEFAULT_AMOUNT_LINE_HEIGHT,
+  },
   amountWithCursor: {
     alignItems: 'center',
     flexDirection: 'row',
@@ -76,17 +85,8 @@ const AmountInput: React.FC<Props> = ({
   const amountAnimationEnabled = !(
     hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
   );
-  const expectedTokenSuffix = tokenSymbol ? ` ${tokenSymbol}` : undefined;
-  const tokenSuffix =
-    expectedTokenSuffix && amount.endsWith(expectedTokenSuffix)
-      ? expectedTokenSuffix
-      : undefined;
-  const amountValue = tokenSuffix
-    ? amount.slice(0, -tokenSuffix.length)
-    : amount;
-  const amountContentLength = `${currencySymbol ?? ''}${amountValue}${
-    tokenSuffix ?? ''
-  }`.length;
+  const cursorOpacity = useBlinkingCursor(highlighted && Boolean(tokenSymbol));
+  const amountContentLength = `${currencySymbol ?? ''}${amount}`.length;
   const amountFontSize = getAggregatorAmountFontSize(amountContentLength);
   const amountStyle = {
     fontSize: amountFontSize,
@@ -102,6 +102,63 @@ const AmountInput: React.FC<Props> = ({
   const renderAmountContent = () => {
     if (loading) {
       return <SkeletonText medium />;
+    }
+
+    if (tokenSymbol) {
+      const textColor = highlightedError
+        ? LegacyTextColor.Error
+        : LegacyTextColor.Default;
+
+      if (highlighted) {
+        const suffix = ` ${tokenSymbol}`;
+        const amountWithoutSymbol = amount.endsWith(suffix)
+          ? amount.slice(0, -suffix.length)
+          : amount.replace(tokenSymbol, '').trimEnd();
+
+        return (
+          <View style={styles.amountWithCursor}>
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              style={styles.amount}
+              variant={LegacyTextVariant.BodyMDMedium}
+              color={textColor}
+            >
+              {amountWithoutSymbol}
+            </Text>
+            <Animated.View
+              style={[
+                styles.cursor,
+                {
+                  backgroundColor: colors.primary.default,
+                  opacity: cursorOpacity,
+                },
+              ]}
+              testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
+            />
+            <Text
+              style={styles.amount}
+              variant={LegacyTextVariant.BodyMDMedium}
+              color={textColor}
+            >
+              {' '}
+              {tokenSymbol}
+            </Text>
+          </View>
+        );
+      }
+
+      return (
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={styles.amount}
+          variant={LegacyTextVariant.BodyMDMedium}
+          color={textColor}
+        >
+          {amount}
+        </Text>
+      );
     }
 
     return (
@@ -128,8 +185,7 @@ const AmountInput: React.FC<Props> = ({
         fontWeight={FontWeight.Medium}
         prefix={currencySymbol}
         style={amountStyle}
-        suffix={tokenSuffix}
-        value={amountValue}
+        value={amount}
         variant={TextVariant.BodyMd}
       />
     );

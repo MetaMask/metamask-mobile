@@ -27,6 +27,7 @@ import { formatTokenAmount } from '../../SocialFeed/utils/formatters';
 import { strings } from '../../../../../locales/i18n';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { formatAmountWithLocaleSeparators } from '../../Bridge/utils/formatAmountWithLocaleSeparators';
 
 interface QuickBuyAmountSectionProps {
   amountDisplayMode: QuickBuyAmountDisplayMode;
@@ -98,11 +99,7 @@ export function formatAmountDigitsForDisplay(
   amount: string,
   decimalSeparator: string | null | undefined,
 ): string {
-  const digits = amount || '0';
-  if (!decimalSeparator || decimalSeparator === '.' || !digits.includes('.')) {
-    return digits;
-  }
-  return digits.replace('.', decimalSeparator);
+  return formatAmountWithLocaleSeparators(amount || '0', decimalSeparator);
 }
 
 const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({

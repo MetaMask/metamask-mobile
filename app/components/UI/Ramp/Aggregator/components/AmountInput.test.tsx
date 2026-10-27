@@ -137,42 +137,6 @@ describe('AmountInput', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('keeps the sell cursor before the token suffix', () => {
-    renderWithProvider(
-      <AmountInput
-        {...mockProps}
-        amount="1.230 ETH"
-        currencySymbol={undefined}
-        highlighted
-        tokenSymbol="ETH"
-      />,
-      {
-        state: defaultState,
-      },
-    );
-
-    const amountInput = screen.getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
-    const amountRow = amountInput.find(({ children }) =>
-      children.some(
-        (child) =>
-          typeof child !== 'string' &&
-          child.props.testID === BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
-      ),
-    );
-    const cursorIndex = amountRow.children.findIndex(
-      (child) =>
-        typeof child !== 'string' &&
-        child.props.testID === BuildQuoteSelectors.AMOUNT_INPUT_CURSOR,
-    );
-    const suffixIndex = amountRow.children.findIndex(
-      (child) => typeof child !== 'string' && child.props.children === ' ETH',
-    );
-
-    expect(amountInput).toHaveTextContent('1.230 ETH');
-    expect(cursorIndex).toBeGreaterThan(-1);
-    expect(suffixIndex).toBeGreaterThan(cursorIndex);
-  });
-
   it('keeps short animated amounts at 24px', () => {
     renderWithProvider(<AmountInput {...mockProps} />, {
       state: defaultState,
@@ -222,25 +186,6 @@ describe('AmountInput', () => {
       .findAll(({ props }) => props.color === TextColor.ErrorDefault);
 
     expect(errorColorNodes.length).toBeGreaterThan(0);
-  });
-
-  it('labels the amount button with the complete sell value', () => {
-    renderWithProvider(
-      <AmountInput
-        {...mockProps}
-        amount="1.230 ETH"
-        currencySymbol={undefined}
-        tokenSymbol="ETH"
-      />,
-      {
-        state: defaultState,
-      },
-    );
-
-    expect(screen.getByRole('button', { name: '1.230 ETH' })).toBeOnTheScreen();
-    expect(
-      screen.queryByRole('text', { name: '1.230 ETH' }),
-    ).not.toBeOnTheScreen();
   });
 
   it('does not call onPress when loading', () => {

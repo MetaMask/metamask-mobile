@@ -35,6 +35,7 @@ import {
   IconName,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import useCurrency from '../../../../Base/Keypad/useCurrency';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -75,6 +76,7 @@ import {
 } from '../../constants/rampScreenPerformance';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { formatAmountWithLocaleSeparators } from '../../../Bridge/utils/formatAmountWithLocaleSeparators';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -343,6 +345,7 @@ function BuildQuote() {
   ]);
 
   const currency = userRegion?.country?.currency || 'USD';
+  const { decimalSeparator } = useCurrency(currency);
   const { currencyPrefix, currencySuffix } = useMemo(() => {
     const formatted = formatCurrency(1, currency, {
       currencyDisplay: 'narrowSymbol',
@@ -356,10 +359,14 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+  const formattedAmount = formatAmountWithLocaleSeparators(
+    amount,
+    decimalSeparator,
+  );
 
   const amountDisplayString = useMemo(
-    () => `${currencyPrefix}${amount}${currencySuffix}`,
-    [currencyPrefix, currencySuffix, amount],
+    () => `${currencyPrefix}${formattedAmount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, formattedAmount],
   );
   const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
   const amountLineHeight = amountFontSize + 10;
@@ -836,7 +843,7 @@ function BuildQuote() {
                 )}
                 suffix={currencySuffix || undefined}
                 testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                value={amount}
+                value={formattedAmount}
                 variant={TextVariant.BodyMd}
               />
               <PaymentMethodPill

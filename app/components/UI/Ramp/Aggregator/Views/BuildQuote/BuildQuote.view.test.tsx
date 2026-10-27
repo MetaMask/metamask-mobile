@@ -218,7 +218,9 @@ async function enterSellAmountViaKeypad(
   }
 
   expect(
-    await findByRole('button', { name: `${amount} ${tokenSymbol}` }),
+    await findByRole('button', {
+      name: `${amount} ${tokenSymbol}`,
+    }),
   ).toBeOnTheScreen();
 }
 

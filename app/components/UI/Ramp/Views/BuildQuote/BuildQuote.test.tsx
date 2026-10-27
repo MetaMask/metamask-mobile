@@ -54,6 +54,17 @@ jest.mock('../../../../Base/Keypad', () => {
             }),
         }),
         ReactActual.createElement(Button, {
+          key: 'grouped-value',
+          testID: 'keypad-trigger-grouped-value',
+          title: 'GroupedValue',
+          onPress: () =>
+            onChange({
+              value: '1234.56',
+              valueAsNumber: 1234.56,
+              pressedKey: '0',
+            }),
+        }),
+        ReactActual.createElement(Button, {
           key: 'back',
           testID: 'keypad-trigger-back',
           title: 'Back',
@@ -449,6 +460,20 @@ describe('BuildQuote', () => {
 
       const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
       expect(amountInput).toHaveTextContent('$99.99');
+    });
+
+    it('groups integer digits while preserving the keypad decimal separator', async () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('keypad-trigger-grouped-value'));
+      });
+
+      expect(getByTestId(BuildQuoteSelectors.AMOUNT_INPUT)).toHaveTextContent(
+        '$1,234.56',
+      );
     });
 
     it('clears rampsError when amount is updated', async () => {
