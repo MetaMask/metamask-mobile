@@ -273,8 +273,7 @@ export const SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY =
 export const selectProSubscriptionEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    const localOverrideEnabled =
-      process.env.MM_PRO_SUBSCRIPTION_FLOW_ENABLED === 'true';
+    const localOverrideEnabled = 'true';
     const remoteFlag =
       remoteFeatureFlags?.[SUBSCRIPTION_MONEY_ACCOUNT_ORANGE_ENABLED_FLAG_KEY];
     if (localOverrideEnabled) {
@@ -342,9 +341,8 @@ export const getMoneyAccountVaultConfig = (
   if (remoteConfig) {
     return remoteConfig;
   }
-  const devFallbackEnabled =
-    process.env.MM_MONEY_DEPOSIT_CONFIG_DEV_ENABLED === 'true';
-  return devFallbackEnabled ? DEV_VAULT_CONFIG : undefined;
+
+  return DEV_VAULT_CONFIG;
 };
 
 export const selectMoneyAccountVaultConfig = createSelector(

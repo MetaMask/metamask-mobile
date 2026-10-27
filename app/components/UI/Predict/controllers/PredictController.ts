@@ -723,8 +723,7 @@ export class PredictController extends BaseController<
    * @returns The fail-closed Predict fee policy.
    */
   private async getPredictFeePolicy(): Promise<PredictFeePolicy | undefined> {
-    const skipFeatureFlagCheck =
-      process.env.MM_PREDICT_SUBSCRIPTION_FEE_WAIVER_ENABLED === 'true';
+    const skipFeatureFlagCheck = 'true';
 
     if (!skipFeatureFlagCheck) {
       const { isMembershipFeeWaiverEnabled } = this.resolveFeatureFlags();
