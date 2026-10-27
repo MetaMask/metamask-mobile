@@ -1506,7 +1506,12 @@
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
-          "volume_24h": "24h volume"
+          "volume_24h": "24h volume",
+          "positions": "Positions"
+        },
+        "position_status": {
+          "open": "Open",
+          "closed": "Closed"
         },
         "type": {
           "all": "All",

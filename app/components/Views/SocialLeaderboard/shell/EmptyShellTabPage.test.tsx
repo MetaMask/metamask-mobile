@@ -5,6 +5,7 @@ import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
+  mockClosedSpotFeedItem,
   mockOpenPerpsFeedItem,
   mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
@@ -28,6 +29,7 @@ import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/compone
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
+import { TRENDING_FILTER_RAIL_TEST_ID } from './filters/TrendingFilterRail';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
@@ -542,6 +544,111 @@ describe('EmptyShellTabPage', () => {
     expect(
       screen.getByTestId('social-v1-feed-entry-divider-leading-3'),
     ).toBeOnTheScreen();
+  });
+
+  it('opens Custom filters from the button over the Trending pills', () => {
+    const onOpenFilters = jest.fn();
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+        onOpenFilters={onOpenFilters}
+      />,
+    );
+
+    const scroll = within(screen.getByTestId('trending-page-scroll'));
+    fireEvent.press(
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(onOpenFilters).toHaveBeenCalledTimes(1);
+    expect(
+      StyleSheet.flatten(
+        scroll.getByTestId(TRENDING_FILTER_RAIL_TEST_ID).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ marginBottom: -16 }));
+  });
+
+  it('hides open posts on Trending when Custom filters apply closed positions', () => {
+    const { DEFAULT_FILTERS } = jest.requireActual(
+      './filters/filterDefaults',
+    ) as typeof import('./filters/filterDefaults');
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
+      />,
+    );
+
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+    ).toBeNull();
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-eth-closed'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-aapl-closed'),
+    ).toBeOnTheScreen();
+  });
+
+  it('applies Custom filters on top of a selected pill feed', () => {
+    const openPump = mockOpenSpotFeedItem();
+    const closedPump = mockClosedSpotFeedItem({
+      id: 'v1-feed-pump-closed',
+      asset: openPump.asset,
+    });
+    const toPost = (item: SocialV1FeedItem) => ({
+      id: item.id,
+      authorHandle: item.author.username,
+      timestampMs: item.timestamp,
+      reactions: [],
+      item,
+    });
+    jest.mocked(useSocialFeed).mockImplementation((source) => ({
+      posts: source ? [toPost(openPump), toPost(closedPump)] : [],
+      rows: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: jest.fn(),
+      error: null,
+      refresh: jest.fn(async () => undefined),
+      dataUpdatedAt: undefined,
+    }));
+    const { DEFAULT_FILTERS } = jest.requireActual(
+      './filters/filterDefaults',
+    ) as typeof import('./filters/filterDefaults');
+
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="trending"
+        isActive
+        containerTestID="trending-page-content"
+        scrollTestID="trending-page-scroll"
+        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
+    );
+
+    expect(
+      screen.getByTestId('social-v1-feed-card-v1-feed-pump-closed'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
+    ).toBeNull();
   });
 
   it('hides perp posts on Following when Custom filters apply tokens', () => {

@@ -57,6 +57,7 @@ import { getSocialV1HotTokenId } from '../SocialV1View/feed/utils/rankFeedHotTok
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import SocialTabFilterBar from './filters/SocialTabFilterBar';
+import TrendingFilterRail from './filters/TrendingFilterRail';
 import type {
   SocialV1FeedItem,
   SocialV1FeedPost,
@@ -202,7 +203,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   );
   const shellFilteredPosts = useMemo(
     () =>
-      tab === 'following'
+      tab === 'following' || tab === 'trending'
         ? filterSocialV1FeedPosts(visiblePosts, appliedFilters)
         : visiblePosts,
     [appliedFilters, tab, visiblePosts],
@@ -252,7 +253,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       return shellFilteredPosts;
     }
     const sourcePosts = showingAssetFeed ? assetFeed.posts : shellFilteredPosts;
-    return sourcePosts.filter((post) => {
+    const narrowed = sourcePosts.filter((post) => {
       if (
         isEntryHidden({
           postId: post.id,
@@ -267,7 +268,14 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       }
       return getSocialV1HotTokenId(post.item) === selectedToken.id;
     });
+    // A selected pill loads that asset's server feed, which has not passed
+    // through the shell filter yet. The sheet still narrows those posts.
+    if (showingAssetFeed) {
+      return filterSocialV1FeedPosts(narrowed, appliedFilters);
+    }
+    return narrowed;
   }, [
+    appliedFilters,
     assetFeed.posts,
     isEntryHidden,
     selectedToken,
@@ -610,13 +618,19 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             // padding sits on the posts.
             <Box twClassName="pb-8 gap-6">
               {showHotTokens ? (
-                <HotTokensCarousel
-                  posts={visiblePosts}
-                  isLoading={isLoading}
-                  selectedTokenId={activeHotTokenId}
-                  onTokenPress={handleHotTokenPress}
-                  isActive={isActive}
-                />
+                <TrendingFilterRail
+                  onOpenFilters={onOpenFilters}
+                  isFilterActive={isFilterActive}
+                  testID={SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON}
+                >
+                  <HotTokensCarousel
+                    posts={visiblePosts}
+                    isLoading={isLoading}
+                    selectedTokenId={activeHotTokenId}
+                    onTokenPress={handleHotTokenPress}
+                    isActive={isActive}
+                  />
+                </TrendingFilterRail>
               ) : null}
               {showInitialFeedSkeletons && !showPinnedPostsWhileLoading ? (
                 <SocialFeedSkeleton />

@@ -283,6 +283,9 @@ const SocialV1ViewContent: React.FC = () => {
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
   }, [openSheet]);
+  const handleOpenTrendingFilters = useCallback(() => {
+    openSheet('trending');
+  }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
   }, [openSheet]);
@@ -815,12 +818,10 @@ const SocialV1ViewContent: React.FC = () => {
                           onOpenFilters={
                             tab === 'following'
                               ? handleOpenFollowingFilters
-                              : undefined
+                              : handleOpenTrendingFilters
                           }
-                          isFilterActive={hasActiveFilters('following')}
-                          appliedFilters={
-                            tab === 'following' ? applied.following : undefined
-                          }
+                          isFilterActive={hasActiveFilters(tab)}
+                          appliedFilters={applied[tab]}
                           onQuickBuy={openQuickBuy}
                         />
                       )}
