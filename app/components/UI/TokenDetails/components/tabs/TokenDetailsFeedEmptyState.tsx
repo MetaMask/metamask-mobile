@@ -167,33 +167,33 @@ const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
     twClassName="w-full px-8 py-12"
     testID={FEED_EMPTY_TEST_ID}
   >
-      <FeedEmptyMegaphone />
-      <Text
-        variant={TextVariant.HeadingLg}
-        color={TextColor.TextDefault}
-        twClassName="text-center"
-      >
-        {strings(
-          hasBalance
-            ? 'token_details_v1.feed_tab.empty.has_balance_title'
-            : 'token_details_v1.feed_tab.empty.no_balance_title',
-        )}
-      </Text>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={TextColor.TextAlternative}
-        twClassName="mt-1 text-center"
-      >
-        {strings('token_details_v1.feed_tab.empty.description')}
-      </Text>
-      {hasBalance ? (
-        token ? (
-          <CreateBalancePostButton token={token} />
-        ) : (
-          <CreatePostButton />
-        )
-      ) : null}
+    <FeedEmptyMegaphone />
+    <Text
+      variant={TextVariant.HeadingLg}
+      color={TextColor.TextDefault}
+      twClassName="text-center"
+    >
+      {strings(
+        hasBalance
+          ? 'token_details_v1.feed_tab.empty.has_balance_title'
+          : 'token_details_v1.feed_tab.empty.no_balance_title',
+      )}
+    </Text>
+    <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      twClassName="mt-1 text-center"
+    >
+      {strings('token_details_v1.feed_tab.empty.description')}
+    </Text>
+    {hasBalance ? (
+      token ? (
+        <CreateBalancePostButton token={token} />
+      ) : (
+        <CreatePostButton />
+      )
+    ) : null}
   </Box>
 );
 

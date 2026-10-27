@@ -150,7 +150,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition,
         isLoading: false,
-      isPositionLoading: false,
+        isPositionLoading: false,
       });
     });
 
@@ -176,7 +176,7 @@ describe('TraderPositionPnlSection', () => {
         expandedDetails,
         sharePosition: null,
         isLoading: false,
-      isPositionLoading: false,
+        isPositionLoading: false,
       });
 
       renderSection();
