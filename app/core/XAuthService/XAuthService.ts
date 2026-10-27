@@ -154,10 +154,11 @@ async function openAuthorizationSession(
  * app-relay OAuth flow: request the authorization URL from the backend, open
  * it in a system browser session, capture the x-oauth-redirect universal
  * link, and relay the code + state to the backend.
+ *
+ * The profile API resolves the account from the bearer token, so this does
+ * not require a social profile to exist in ProfileController yet.
  */
 export async function connectX(): Promise<XProfile> {
-  requireProfileId();
-
   const { ProfileController } = Engine.context;
 
   let session: ConnectXSession;

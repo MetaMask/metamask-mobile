@@ -40,6 +40,11 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
+import {
+  connectX,
+  XAuthError,
+  XAuthErrorType,
+} from '../../../../core/XAuthService';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
@@ -72,6 +77,7 @@ import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
 import {
   generateUsername,
   generateUsernameWithNumber,
+  MAX_USERNAME_LENGTH,
 } from './generateUsername';
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
@@ -263,12 +269,18 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  const [connectXError, setConnectXError] = useState<string | null>(null);
+  const [isConnectingX, setIsConnectingX] = useState(false);
+  const [profileCreated, setProfileCreated] = useState(false);
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
   });
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const profileCreatedRef = useRef(false);
+  const creatingProfileRef = useRef(false);
+  const createAttemptRef = useRef(0);
 
   const clearUsernameCheckTimer = useCallback(() => {
     if (usernameCheckTimer.current) {
@@ -435,8 +447,34 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
-    setDraft((current) => applyXOnboardingProfile(current));
-    setStep('x-identity');
+    setConnectXError(null);
+    setIsConnectingX(true);
+    const connect = async () => {
+      try {
+        const xProfile = await connectX();
+        setDraft((current) =>
+          applyXOnboardingProfile(current, {
+            username: xProfile.username,
+            displayName: xProfile.displayName,
+            avatarUrl: xProfile.avatarUrl || null,
+          }),
+        );
+        setStep('x-identity');
+      } catch (error) {
+        if (
+          error instanceof XAuthError &&
+          error.type === XAuthErrorType.UserCancelled
+        ) {
+          return;
+        }
+        setConnectXError(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        );
+      } finally {
+        setIsConnectingX(false);
+      }
+    };
+    connect().catch(() => undefined);
   }, [playSelection]);
 
   const handleCreateManually = useCallback(() => {
@@ -522,7 +560,13 @@ const SocialProfileOnboardingView: React.FC = () => {
     step,
   ]);
 
-  const handleFinish = useCallback(async () => {
+  const createOnboardingProfile = useCallback(async () => {
+    if (profileCreatedRef.current || creatingProfileRef.current) {
+      return;
+    }
+    creatingProfileRef.current = true;
+    const attempt = createAttemptRef.current + 1;
+    createAttemptRef.current = attempt;
     setFinishError(null);
     setIsSubmitting(true);
     try {
@@ -538,22 +582,60 @@ const SocialProfileOnboardingView: React.FC = () => {
           linkedAccount?.linkedAddresses,
         ),
       );
+      if (attempt !== createAttemptRef.current) {
+        return;
+      }
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
+      profileCreatedRef.current = true;
+      setProfileCreated(true);
       trackInteraction(Interaction.USERNAME_CLAIMED, {
         outcome: Outcome.SUCCESS,
         step: draft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
       });
-      navigation.navigate(
-        draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
-      );
     } catch {
+      if (attempt !== createAttemptRef.current) {
+        return;
+      }
       setFinishError(
         strings('social_leaderboard.profile_onboarding.save_error'),
       );
     } finally {
-      setIsSubmitting(false);
+      if (attempt === createAttemptRef.current) {
+        creatingProfileRef.current = false;
+        setIsSubmitting(false);
+      }
     }
-  }, [accounts, createProfile, draft, navigation, trackInteraction]);
+  }, [accounts, createProfile, draft, trackInteraction]);
+
+  const createOnboardingProfileRef = useRef(createOnboardingProfile);
+  createOnboardingProfileRef.current = createOnboardingProfile;
+  const stepRef = useRef(step);
+
+  useEffect(() => {
+    const previousStep = stepRef.current;
+    stepRef.current = step;
+    if (step !== 'ready') {
+      if (previousStep === 'ready') {
+        createAttemptRef.current += 1;
+        creatingProfileRef.current = false;
+        setIsSubmitting(false);
+      }
+      return;
+    }
+    if (profileCreatedRef.current) {
+      return;
+    }
+    createOnboardingProfileRef.current().catch(() => undefined);
+  }, [step]);
+
+  const handleFinish = useCallback(() => {
+    if (!profileCreatedRef.current) {
+      return;
+    }
+    navigation.navigate(
+      draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
+    );
+  }, [draft.path, navigation]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -623,12 +705,24 @@ const SocialProfileOnboardingView: React.FC = () => {
                 artworkWrapperAnimatedViewProps={{
                   entering: undefined,
                 }}
+                description={connectXError ?? undefined}
+                descriptionProps={
+                  connectXError
+                    ? {
+                        color: TextColor.ErrorDefault,
+                        testID:
+                          SocialProfileOnboardingSelectorsIDs.CONNECT_X_ERROR,
+                      }
+                    : undefined
+                }
                 primaryAction={{
                   label: strings(
                     'social_leaderboard.profile_onboarding.connect_x',
                   ),
                   startIconName: IconName.X,
                   onPress: handleConnectX,
+                  isLoading: isConnectingX,
+                  isDisabled: isConnectingX,
                   testID: SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
                 }}
                 secondaryAction={{
@@ -711,6 +805,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       inputProps={{
                         autoCapitalize: 'none',
                         autoCorrect: false,
+                        maxLength: MAX_USERNAME_LENGTH,
                         testID:
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
@@ -919,21 +1014,40 @@ const SocialProfileOnboardingView: React.FC = () => {
                 </Text>
               ) : null}
               {step === 'ready' ? (
-                <Button
-                  variant={ButtonVariant.Primary}
-                  isFullWidth
-                  isLoading={isSubmitting}
-                  onPress={() => {
-                    handleFinish().catch(() => undefined);
-                  }}
-                  testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
-                >
-                  {strings(
-                    draft.path === 'x'
-                      ? 'social_leaderboard.profile_onboarding.view_profile'
-                      : 'social_leaderboard.profile_onboarding.lets_go',
-                  )}
-                </Button>
+                <Box gap={3}>
+                  {finishError ? (
+                    <Button
+                      variant={ButtonVariant.Secondary}
+                      isFullWidth
+                      isLoading={isSubmitting}
+                      isDisabled={isSubmitting}
+                      onPress={() => {
+                        createOnboardingProfile().catch(() => undefined);
+                      }}
+                      testID={
+                        SocialProfileOnboardingSelectorsIDs.RETRY_CREATE_BUTTON
+                      }
+                    >
+                      {strings(
+                        'social_leaderboard.profile_onboarding.try_again',
+                      )}
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    isFullWidth
+                    isLoading={!profileCreated && isSubmitting}
+                    isDisabled={!profileCreated || isSubmitting}
+                    onPress={handleFinish}
+                    testID={SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON}
+                  >
+                    {strings(
+                      draft.path === 'x'
+                        ? 'social_leaderboard.profile_onboarding.view_profile'
+                        : 'social_leaderboard.profile_onboarding.lets_go',
+                    )}
+                  </Button>
+                </Box>
               ) : (
                 <Button
                   variant={ButtonVariant.Primary}

@@ -346,14 +346,19 @@ describe('XAuthService (app-relay flow)', () => {
       });
     });
 
-    it('throws NotSignedIn before contacting the backend when no profile id exists', async () => {
+    it('requests an authorization URL when the controller has no profile id yet', async () => {
       ProfileController.state.profile.profileId = '';
-
-      await expect(connectX()).rejects.toMatchObject({
-        type: XAuthErrorType.NotSignedIn,
+      (openAuthSessionAsync as jest.Mock).mockResolvedValue({
+        type: 'success',
+        url: REDIRECT_WITH(`code=auth-code-1&state=${SESSION_STATE}`),
       });
-      expect(ProfileController.getXAuthorizationUrl).not.toHaveBeenCalled();
-      expect(openAuthSessionAsync).not.toHaveBeenCalled();
+
+      await expect(connectX()).resolves.toStrictEqual(X_PROFILE);
+      expect(ProfileController.getXAuthorizationUrl).toHaveBeenCalledTimes(1);
+      expect(ProfileController.connectX).toHaveBeenCalledWith({
+        code: 'auth-code-1',
+        state: SESSION_STATE,
+      });
     });
   });
 

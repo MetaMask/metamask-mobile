@@ -52,6 +52,18 @@ const continueFromUsername = async () => {
   ).toBeOnTheScreen();
 };
 
+const leaveReadyStep = async () => {
+  await waitFor(() => {
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).not.toBe(true);
+  });
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+  );
+};
+
 const reachReadyStep = async () => {
   fireEvent.press(
     screen.getByTestId(
@@ -123,6 +135,16 @@ const SIGNED_OUT_SESSION: Awaited<
   metaMetricsId: 'metrics',
 };
 
+const signIn = () => {
+  jest
+    .mocked(Engine.context.AuthenticationController.getSessionProfile)
+    .mockResolvedValue({
+      ...SIGNED_OUT_SESSION,
+      profileId: 'signed-in-profile',
+      canonicalProfileId: 'signed-in-profile',
+    });
+};
+
 const restoreProfileControllerMocks = () => {
   jest.mocked(Engine.context.ProfileController.createProfile).mockReset();
   jest
@@ -134,10 +156,10 @@ const restoreProfileControllerMocks = () => {
   jest
     .mocked(Engine.context.ProfileController.checkUsernameAvailability)
     .mockResolvedValue({
-      username: 'wen-cat',
+      username: 'wen_cat',
       available: true,
       valid: true,
-      normalized: 'wen-cat',
+      normalized: 'wen_cat',
       errors: [],
     });
   jest
@@ -159,6 +181,7 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
       .mockClear();
+    jest.mocked(Engine.context.ProfileController.connectX).mockClear();
     restoreProfileControllerMocks();
   });
 
@@ -225,9 +248,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
     ).toHaveTextContent(`@${handle}`);
 
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
@@ -403,10 +424,10 @@ describe('SocialProfileOnboardingView', () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
       .mockResolvedValueOnce({
-        username: 'wen-cat',
+        username: 'wen_cat',
         available: false,
         valid: true,
-        normalized: 'wen-cat',
+        normalized: 'wen_cat',
         errors: [],
       });
     renderSocialProfileOnboarding();
@@ -478,9 +499,6 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
 
     expect(
       await screen.findByText(
@@ -488,12 +506,78 @@ describe('SocialProfileOnboardingView', () => {
       ),
     ).toBeOnTheScreen();
     expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+    expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
     ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
     expect(getLocalSocialProfileSnapshot().profile).toEqual(profileBefore);
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.RETRY_CREATE_BUTTON,
+      ),
+    );
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(2);
   });
 
-  it('mocks X connect and creates a profile from the X handle and picture', async () => {
+  it('connects X when the session has no profile id yet', async () => {
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.getXAuthorizationUrl,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_ERROR),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows a connection error when the profile API rejects X connect', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+      .mockRejectedValueOnce(new Error('network'));
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.CONNECT_X_ERROR,
+      ),
+    ).toHaveTextContent(
+      "Couldn't connect X. Check your connection and try again.",
+    );
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('connects X through the profile API and creates a profile from that account', async () => {
+    signIn();
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
 
     fireEvent.press(
@@ -507,7 +591,11 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(
       Engine.context.ProfileController.getXAuthorizationUrl,
-    ).not.toHaveBeenCalled();
+    ).toHaveBeenCalledTimes(1);
+    expect(Engine.context.ProfileController.connectX).toHaveBeenCalledWith({
+      code: 'mock-code',
+      state: 'mock-oauth-state',
+    });
     expect(screen.getByText('Degan Giri')).toBeOnTheScreen();
     expect(screen.getByText('@degangirl')).toBeOnTheScreen();
     expect(screen.getByText('Use @degangirl as username')).toBeOnTheScreen();
@@ -554,9 +642,7 @@ describe('SocialProfileOnboardingView', () => {
     ).toHaveTextContent('@degangirl');
     expect(screen.getByText('View profile')).toBeOnTheScreen();
 
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
@@ -582,6 +668,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('starts a fresh manual flow after leaving the X path', async () => {
+    signIn();
     renderSocialProfileOnboarding([
       { name: Routes.SOCIAL.V1 },
       { name: Routes.SOCIAL.MY_PROFILE },
@@ -607,7 +694,7 @@ describe('SocialProfileOnboardingView', () => {
 
     const handle = usernameValue();
     expect(handle).not.toBe('degangirl');
-    expect(handle).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)+$/);
+    expect(handle).toMatch(/^[a-z0-9]+(?:_[a-z0-9]+)+$/);
     expect(
       screen.getByTestId(
         `${SocialProfileOnboardingSelectorsIDs.PROGRESS}-segment-3`,
@@ -627,9 +714,7 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
@@ -651,6 +736,7 @@ describe('SocialProfileOnboardingView', () => {
   });
 
   it('uses the manual username and avatar pickers when X reuse is off', async () => {
+    signIn();
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
 
     fireEvent.press(
@@ -676,7 +762,7 @@ describe('SocialProfileOnboardingView', () => {
 
     fireEvent.changeText(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
-      'moon-fox',
+      'moon_fox',
     );
 
     fireEvent(
@@ -725,17 +811,15 @@ describe('SocialProfileOnboardingView', () => {
     );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
-    ).toHaveTextContent('@moon-fox');
+    ).toHaveTextContent('@moon_fox');
 
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.MY_PROFILE)),
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({
-        username: 'moon-fox',
+        username: 'moon_fox',
         display_name: 'Degan Giri',
         avatar_url: 'foxicon://zombie/background3',
       }),
@@ -750,15 +834,18 @@ describe('SocialProfileOnboardingView', () => {
     const profileBeforeFinish = getLocalSocialProfileSnapshot().profile;
 
     await reachReadyStep();
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
 
     expect(
       await screen.findByText(
         "Couldn't create your profile. Check your connection and try again.",
       ),
     ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
     expect(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
     ).toBeOnTheScreen();
@@ -781,9 +868,7 @@ describe('SocialProfileOnboardingView', () => {
     renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
 
     await reachReadyStep();
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
@@ -824,9 +909,7 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
@@ -882,9 +965,7 @@ describe('SocialProfileOnboardingView', () => {
     fireEvent.press(
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
     );
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
@@ -919,7 +1000,7 @@ describe('SocialProfileOnboardingView', () => {
       ),
     );
 
-    await screen.findByDisplayValue(/-\d{3}$/);
+    await screen.findByDisplayValue(/_\d{3}$/);
     const numberedHandle = screen.getByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     ).props.value as string;
@@ -929,7 +1010,7 @@ describe('SocialProfileOnboardingView', () => {
     expect(
       Engine.context.ProfileController.checkUsernameAvailability,
     ).toHaveBeenNthCalledWith(2, numberedHandle);
-    expect(numberedHandle).toMatch(/-\d{3}$/);
+    expect(numberedHandle).toMatch(/_\d{3}$/);
   });
 
   it('keeps the shuffled handle when that availability check is superseded', async () => {
@@ -981,9 +1062,7 @@ describe('SocialProfileOnboardingView', () => {
       screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
     ).toHaveTextContent(`@${shuffledHandle}`);
 
-    fireEvent.press(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
-    );
+    await leaveReadyStep();
 
     expect(
       await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
