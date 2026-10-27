@@ -25,12 +25,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import {
   SafeAreaInsetsContext,
   SafeAreaView,
@@ -49,8 +44,6 @@ import { getSessionProfileId } from '../../../../util/notifications/utils/get-se
 import MarketingMoment from '../../../UI/MarketingMoment';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
-import Foxicon from '../../../../component-library/components-temp/Foxicon';
-import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
 import { saveLocalSocialProfile } from '../MyProfileView/hooks/localSocialProfileStore';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
@@ -74,7 +67,7 @@ import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
-import AvatarBackgroundCarousel from './AvatarBackgroundCarousel';
+import ProfileAvatarPicker from './ProfileAvatarPicker';
 import {
   generateUsername,
   generateUsernameWithNumber,
@@ -86,9 +79,6 @@ import XProfileIdentityStep from './XProfileIdentityStep';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const { Interaction, Outcome, Screen, Step } = SocialEvent;
-const AVATAR_TILE_SIZE = 60;
-/** Four 60pt tiles with 20pt gaps. */
-const AVATAR_GRID_WIDTH = 300;
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
@@ -454,14 +444,10 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleAvatarSelect = useCallback(
     (presetId: string) => {
-      if (presetId === draft.avatarPresetId) {
-        return;
-      }
-      playSelection().catch(() => undefined);
       trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarPresetId: presetId }));
     },
-    [draft.avatarPresetId, playSelection, trackInteraction],
+    [trackInteraction],
   );
 
   const handleAvatarBackgroundSelect = useCallback(
@@ -1019,50 +1005,18 @@ const SocialProfileOnboardingView: React.FC = () => {
               ) : null}
 
               {step === 'avatar' ? (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  testID={SocialProfileOnboardingSelectorsIDs.AVATAR_STEP}
-                >
+                <Box alignItems={BoxAlignItems.Center}>
                   <OnboardingTitle twClassName="pb-14">
                     {strings(
                       'social_leaderboard.profile_onboarding.customize_avatar',
                     )}
                   </OnboardingTitle>
-                  <AvatarBackgroundCarousel
+                  <ProfileAvatarPicker
                     avatarPresetId={draft.avatarPresetId}
-                    selectedBackgroundId={draft.avatarBackgroundId}
-                    onSelect={handleAvatarBackgroundSelect}
+                    avatarBackgroundId={draft.avatarBackgroundId}
+                    onSelectPreset={handleAvatarSelect}
+                    onSelectBackground={handleAvatarBackgroundSelect}
                   />
-                  <Box
-                    twClassName="flex-row flex-wrap justify-center gap-5 mt-11"
-                    style={tw.style({ width: AVATAR_GRID_WIDTH })}
-                  >
-                    {PROFILE_AVATAR_PRESETS.map((preset) => {
-                      const isSelected = draft.avatarPresetId === preset.id;
-                      return (
-                        <Pressable
-                          key={preset.id}
-                          accessibilityRole="button"
-                          accessibilityState={{ selected: isSelected }}
-                          onPress={() => handleAvatarSelect(preset.id)}
-                          testID={`${SocialProfileOnboardingSelectorsIDs.AVATAR_OPTION}-${preset.id}`}
-                          style={tw.style(
-                            'items-center justify-center rounded-full border',
-                            isSelected ? 'border-icon-default' : 'border-muted',
-                            {
-                              width: AVATAR_TILE_SIZE,
-                              height: AVATAR_TILE_SIZE,
-                            },
-                          )}
-                        >
-                          <Foxicon
-                            variant={preset.id}
-                            size={AVATAR_TILE_SIZE * 0.85}
-                          />
-                        </Pressable>
-                      );
-                    })}
-                  </Box>
                 </Box>
               ) : null}
 
