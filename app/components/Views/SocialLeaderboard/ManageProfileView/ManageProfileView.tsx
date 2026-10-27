@@ -112,7 +112,7 @@ const ManageProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
   }, [isControllerBacked, navigation]);
 
-  const handleDisconnectX = useCallback(async (): Promise<void> => {
+  const handleSocialsPress = useCallback(async (): Promise<void> => {
     if (!isControllerBacked || isConnectingX) {
       return;
     }
@@ -208,7 +208,7 @@ const ManageProfileView: React.FC = () => {
             value={socials}
             disabled={socialsDisabled}
             onPress={() => {
-              handleDisconnectX().catch(() => undefined);
+              handleSocialsPress().catch(() => undefined);
             }}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.SOCIALS_ROW}
