@@ -1,10 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Tag,
-  TagSeverity,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -62,11 +58,6 @@ function getLimitOrderRowSlots(
           order.src.asset.decimals,
         )} ${sourceSymbol}`,
         primaryColor: TextColor.SuccessDefault,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Success}>
-            {strings('bridge.limit.filled')}
-          </Tag>
-        ),
       };
     case LimitOrderState.Expired:
       return {
@@ -78,24 +69,22 @@ function getLimitOrderRowSlots(
         }),
         primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Neutral}>
-            {strings('bridge.limit.expired')}
-          </Tag>
-        ),
+        titleColor: TextColor.TextAlternative,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Cancelled:
       return {
         subtitle: strings('bridge.limit.canceled_at', {
-          date: formatLimitOrderDate(order.timingData.closedAt),
+          // The API leaves `closedAt` unset on orders it cancels itself, e.g.
+          // for insufficient funds at execution.
+          date: formatLimitOrderDate(
+            order.timingData.closedAt ?? order.timingData.expiresAt,
+          ),
         }),
         primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Neutral}>
-            {strings('bridge.limit.canceled')}
-          </Tag>
-        ),
+        titleColor: TextColor.TextAlternative,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Failed:
       return {
@@ -104,11 +93,8 @@ function getLimitOrderRowSlots(
         }),
         primaryValue: triggerPrice,
         secondaryValue: limitPriceLabel,
-        titleEndAccessory: (
-          <Tag severity={TagSeverity.Danger}>
-            {strings('bridge.limit.failed')}
-          </Tag>
-        ),
+        titleColor: TextColor.ErrorDefault,
+        primaryColor: TextColor.TextAlternative,
       };
     case LimitOrderState.Open:
     default:

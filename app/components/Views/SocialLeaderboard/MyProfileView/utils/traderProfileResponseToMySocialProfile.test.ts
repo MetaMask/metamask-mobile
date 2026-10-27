@@ -46,10 +46,8 @@ describe('traderProfileResponseToMySocialProfile', () => {
       shareUrl: 'https://example.com/p',
       winRatePercent: 50,
       pnlUsd: 100,
-      timesCopied: 4,
-      volumeUsd30d: 200,
-      tradeCount30d: 9,
       linkedAccountAddress: '0xabc',
+      joinedAt: null,
     });
   });
 

@@ -25,6 +25,9 @@ on:
 permissions:
   contents: read
 
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
+
 jobs:
   ios-exp:
     name: Nightly iOS exp
@@ -138,6 +141,85 @@ jobs:
             --head-ref main \
             --vcs-provider github \
             --head-repo-name MetaMask/metamask-mobile
+
+  collect-metadata:
+    name: Collect nightly build metadata
+    needs: [ios-exp, ios-rc, android-exp, android-rc]
+    # Always run, even if a build failed, so the Slack notification workflow
+    # can still report which builds succeeded/failed instead of finding no
+    # artifact at all. nightly-build-slack-notification.yml reads this.
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Write nightly-build-metadata.json
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TRIGGERED_SHA: ${{ github.sha }}
+          IOS_EXP_RESULT: ${{ needs.ios-exp.result }}
+          IOS_EXP_VERSION: ${{ needs.ios-exp.outputs.semantic_version }}
+          IOS_EXP_BUILD_NUMBER: ${{ needs.ios-exp.outputs.ios_version_code }}
+          IOS_EXP_COMMIT_SHA: ${{ needs.ios-exp.outputs.built_commit_sha }}
+          IOS_RC_RESULT: ${{ needs.ios-rc.result }}
+          IOS_RC_VERSION: ${{ needs.ios-rc.outputs.semantic_version }}
+          IOS_RC_BUILD_NUMBER: ${{ needs.ios-rc.outputs.ios_version_code }}
+          IOS_RC_COMMIT_SHA: ${{ needs.ios-rc.outputs.built_commit_sha }}
+          ANDROID_EXP_RESULT: ${{ needs.android-exp.result }}
+          ANDROID_EXP_VERSION: ${{ needs.android-exp.outputs.semantic_version }}
+          ANDROID_EXP_BUILD_NUMBER: ${{ needs.android-exp.outputs.android_version_code }}
+          ANDROID_EXP_COMMIT_SHA: ${{ needs.android-exp.outputs.built_commit_sha }}
+          ANDROID_RC_RESULT: ${{ needs.android-rc.result }}
+          ANDROID_RC_VERSION: ${{ needs.android-rc.outputs.semantic_version }}
+          ANDROID_RC_BUILD_NUMBER: ${{ needs.android-rc.outputs.android_version_code }}
+          ANDROID_RC_COMMIT_SHA: ${{ needs.android-rc.outputs.built_commit_sha }}
+        run: |
+          node -e '
+            const fs = require("fs");
+            const metadata = {
+              run_id: process.env.RUN_ID,
+              run_url: process.env.RUN_URL,
+              triggered_sha: process.env.TRIGGERED_SHA,
+              generated_at: new Date().toISOString(),
+              builds: {
+                "ios-exp": {
+                  result: process.env.IOS_EXP_RESULT || null,
+                  version: process.env.IOS_EXP_VERSION || null,
+                  build_number: process.env.IOS_EXP_BUILD_NUMBER || null,
+                  commit_sha: process.env.IOS_EXP_COMMIT_SHA || null,
+                },
+                "ios-rc": {
+                  result: process.env.IOS_RC_RESULT || null,
+                  version: process.env.IOS_RC_VERSION || null,
+                  build_number: process.env.IOS_RC_BUILD_NUMBER || null,
+                  commit_sha: process.env.IOS_RC_COMMIT_SHA || null,
+                },
+                "android-exp": {
+                  result: process.env.ANDROID_EXP_RESULT || null,
+                  version: process.env.ANDROID_EXP_VERSION || null,
+                  build_number: process.env.ANDROID_EXP_BUILD_NUMBER || null,
+                  commit_sha: process.env.ANDROID_EXP_COMMIT_SHA || null,
+                },
+                "android-rc": {
+                  result: process.env.ANDROID_RC_RESULT || null,
+                  version: process.env.ANDROID_RC_VERSION || null,
+                  build_number: process.env.ANDROID_RC_BUILD_NUMBER || null,
+                  commit_sha: process.env.ANDROID_RC_COMMIT_SHA || null,
+                },
+              },
+            };
+            fs.writeFileSync("nightly-build-metadata.json", JSON.stringify(metadata, null, 2));
+          '
+          cat nightly-build-metadata.json
+
+      - name: Upload nightly build metadata artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nightly-build-metadata
+          path: nightly-build-metadata.json
+          compression-level: 0
+          retention-days: 7
 
   size-analysis-android:
     name: Sentry Size Analysis (Android)

@@ -36,7 +36,9 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
     onCopyAddress?.();
 
     toast({
-      title: strings('account_details.account_copied_to_clipboard'),
+      title: strings(
+        'account_details.token_contract_address_copied_to_clipboard',
+      ),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
       showCloseButton: false,
@@ -45,7 +47,7 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
 
   return (
     <View>
-      <Text variant={TextVariant.HeadingMD} style={tw`py-2`}>
+      <Text variant={TextVariant.HeadingMD} style={tw`pb-2`}>
         {strings('token.token_details')}
       </Text>
       <View style={styles.listWrapper}>

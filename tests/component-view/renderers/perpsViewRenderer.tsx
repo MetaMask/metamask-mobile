@@ -16,7 +16,11 @@ import { PerpsConnectionManager } from '../../../app/components/UI/Perps/service
 import { buildPerpsMarketContextKey } from '../../../app/components/UI/Perps/utils/perpsMarketContext';
 import Routes from '../../../app/constants/navigation/Routes';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
+import {
+  createComponentViewQueryClient,
+  renderComponentViewScreen,
+  renderScreenWithRoutes,
+} from '../render';
 import {
   initialStatePerps,
   initialStatePerpsPro,
@@ -83,13 +87,14 @@ import {
 /** No-op unsubscribe for test stream channels; subscribe() must return () => void */
 const noopUnsubscribe = (): void => undefined;
 
-const createPerpsQueryClient = () =>
-  new QueryClient({
-    defaultOptions: {
-      queries: { retry: false },
-      mutations: { retry: false },
-    },
+const createPerpsQueryClient = () => {
+  const queryClient = createComponentViewQueryClient();
+  queryClient.setDefaultOptions({
+    ...queryClient.getDefaultOptions(),
+    mutations: { retry: false },
   });
+  return queryClient;
+};
 
 /** Connection context value for view tests: "connected" so views render content instead of loading skeleton */
 const testConnectionValue: PerpsConnectionContextValue = {
@@ -374,13 +379,29 @@ function focusedPriceChannel(cachedFocusedPrice: PriceUpdate | null = null) {
 /**
  * Candles channel. The cached series is a synchronous read for the trade
  * sheet header. It is not pushed through the live candle subscription.
+ * `liveCandles` is delivered once to a subscriber with the same symbol and
+ * interval.
  */
 function candlesChannel(
   cachedCandles: CandleData | null,
   chartCacheFresh: boolean,
+  liveCandles: CandleData | null,
 ) {
   return {
-    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribe: (params?: {
+      symbol: string;
+      interval: CandlePeriod;
+      callback: (data: CandleData) => void;
+    }): (() => void) => {
+      if (
+        liveCandles &&
+        params?.symbol === liveCandles.symbol &&
+        params.interval === liveCandles.interval
+      ) {
+        params.callback(liveCandles);
+      }
+      return noopUnsubscribe;
+    },
     getSnapshot: () => cachedCandles,
     getCachedData: (
       symbol: string,
@@ -525,6 +546,8 @@ export interface PerpsStreamOverrides {
    * series is seeded, otherwise false.
    */
   chartCacheFresh?: boolean;
+  /** Candle series delivered to `candles.subscribe` for a matching symbol and interval. */
+  liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
 }
@@ -565,7 +588,11 @@ function createTestStreamManager(
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
     ),
-    candles: candlesChannel(cachedCandles, chartCacheFresh),
+    candles: candlesChannel(
+      cachedCandles,
+      chartCacheFresh,
+      streamOverrides?.liveCandles ?? null,
+    ),
     retryOrderStreams: (): void => {
       orders.clearCache();
       fills.clearCache();
@@ -622,6 +649,7 @@ interface RenderPerpsViewOptions {
   /** Selects the matching Perps state preset. */
   mode?: 'lite' | 'pro';
   crossMarginEnabled?: boolean;
+  socialEnabled?: boolean;
   /** Override the PerpsConnectionContext value. Useful for views that behave differently when disconnected or connecting. */
   connectionValue?: PerpsConnectionContextValue;
 }
@@ -651,11 +679,12 @@ export function renderPerpsView(
     connectionValue,
     includeToasts,
     crossMarginEnabled,
+    socialEnabled,
   } = options;
   const builder =
     mode === 'pro'
-      ? initialStatePerpsPro({ crossMarginEnabled })
-      : initialStatePerps({ crossMarginEnabled });
+      ? initialStatePerpsPro({ crossMarginEnabled, socialEnabled })
+      : initialStatePerps({ crossMarginEnabled, socialEnabled });
   if (overrides) {
     builder.withOverrides(overrides);
   }
@@ -854,6 +883,7 @@ export function renderPerpsMarketDetailsView(
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
     extraRoutes?: PerpsExtraRoute[];
+    socialEnabled?: boolean;
   } = {},
 ) {
   const {
@@ -861,11 +891,12 @@ export function renderPerpsMarketDetailsView(
     initialParams = { market: defaultMarketDetailsMarket },
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
     extraRoutes,
+    socialEnabled,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides, extraRoutes },
+    { overrides, initialParams, streamOverrides, extraRoutes, socialEnabled },
   );
 }
 

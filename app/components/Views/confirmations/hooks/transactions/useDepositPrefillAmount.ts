@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { BigNumber } from 'bignumber.js';
+import { Hex } from '@metamask/utils';
 import {
   TransactionMeta,
   TransactionType,
@@ -9,9 +10,9 @@ import { useSelector } from 'react-redux';
 import {
   selectDepositLimits,
   selectMetaMaskPayFlags,
-  selectRelayFixedSpread,
   PrefilledAmountConfig,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { selectStablecoins } from '../../../../../selectors/featureFlagController/stableTokens';
 import {
   selectFeatureFlagThresholdGroups,
   selectRemoteFeatureFlags,
@@ -19,7 +20,6 @@ import {
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { RootState } from '../../../../../reducers';
 import { resolveABTestAssignment } from '../../../../../util/abTest';
-import { isRouteToken } from '../../utils/relayFixedSpread';
 import { getMoneyAccountDepositIntent } from '../../../../UI/Money/utils/moneyAccountDepositIntent';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_KEY,
@@ -42,11 +42,33 @@ function formatFiatAmount(value: BigNumber): string {
   return value.isInteger() ? value.toString(10) : value.toFixed(2);
 }
 
+/**
+ * True when the pay token is listed for its chain in the `stableTokens` flag.
+ * Addresses and chain ids are compared case-insensitively because the flag
+ * stores them lowercased.
+ */
+function isListedStablecoin(
+  stablecoins: Record<Hex, Hex[]>,
+  chainId: string,
+  address: string,
+): boolean {
+  const listed = stablecoins[chainId.toLowerCase() as Hex];
+  if (!listed) {
+    return false;
+  }
+
+  const normalizedAddress = address.toLowerCase();
+  return listed.some(
+    (listedAddress) => listedAddress.toLowerCase() === normalizedAddress,
+  );
+}
+
 export interface DepositPrefillResult {
   prefillAmount: string | undefined;
   /**
-   * Percentage of balance used for the prefill (100 for stablecoins, 50
-   * otherwise). Undefined when there is no prefill amount.
+   * Percentage of balance used for the prefill. Money account deposits use
+   * 100 when the pay token is in the stableTokens flag, and 50 otherwise.
+   * Undefined when there is no prefill amount.
    */
   percentage: number | undefined;
   /**
@@ -77,7 +99,7 @@ export function useDepositPrefillAmount({
 
   const { prefilledAmount } = useSelector(selectMetaMaskPayFlags);
   const depositLimits = useSelector(selectDepositLimits);
-  const relayFixedSpread = useSelector(selectRelayFixedSpread);
+  const stablecoins = useSelector(selectStablecoins);
 
   const prefilledAmountConfig = useMemo((): PrefilledAmountConfig => {
     for (const [type, config] of Object.entries(prefilledAmount.overrides)) {
@@ -185,10 +207,11 @@ export function useDepositPrefillAmount({
       };
     }
 
-    const stable = isRouteToken(relayFixedSpread, {
-      chainId: payToken.chainId,
-      address: payToken.address,
-    });
+    const stable = isListedStablecoin(
+      stablecoins,
+      payToken.chainId,
+      payToken.address,
+    );
     const nextPercentage = isMoneyAccountDeposit && stable ? 100 : 50;
 
     const raw = new BigNumber(nextPercentage)
@@ -224,7 +247,7 @@ export function useDepositPrefillAmount({
     balanceUsd,
     payToken,
     depositLimit,
-    relayFixedSpread,
+    stablecoins,
   ]);
 
   useEffect(() => {

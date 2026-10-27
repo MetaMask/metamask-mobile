@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
+import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
   PRODUCT_TYPES,
@@ -17,6 +18,11 @@ import {
   TRADE_ALLOWANCE_IDS,
 } from './ProHub.constants';
 import { MemberPricingOnTradesTestIds } from './components/MemberPricingOnTrades';
+import {
+  getMembershipBannerModel,
+  MembershipStatusKind,
+} from './components/MembershipBanner/MembershipBanner.utils';
+import { useMembershipBannerModel } from './hooks/useMembershipBannerModel';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
@@ -24,6 +30,9 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
+import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
+import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
+import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
@@ -60,6 +69,34 @@ const mockUseMoneyAccountPlusBenefits = jest.mocked(
 jest.mock('./hooks/useMoneyAccountPlusBenefits', () => ({
   ...jest.requireActual('./hooks/useMoneyAccountPlusBenefits'),
   useMoneyAccountPlusBenefits: jest.fn(),
+}));
+
+const mockUseMoneyPremiumAccountInterest = jest.mocked(
+  useMoneyPremiumAccountInterest,
+);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumAccountInterest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMoneyAccountSinceInceptionInterest = jest.mocked(
+  useMoneyAccountSinceInceptionInterest,
+);
+jest.mock('../../UI/Money/hooks/useMoneyAccountInterest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  useMoneyAccountSinceInceptionInterest: jest.fn(),
+}));
+
+const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
+jest.mock('../../UI/Money/hooks/useMoneyPremiumVaultRate', () => ({
+  __esModule: true,
+  default: jest.fn(),
+}));
+
+const mockUseMembershipBannerModel = jest.mocked(useMembershipBannerModel);
+jest.mock('./hooks/useMembershipBannerModel', () => ({
+  useMembershipBannerModel: jest.fn(),
 }));
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -105,8 +142,15 @@ const toRegex = (s: string) =>
 
 const TRADE_ALLOWANCE_ID_LIST = Object.values(TRADE_ALLOWANCE_IDS);
 
-// CV cannot cover this screen yet: it is still mock-data UI with no Redux /
-// Engine state, so focused unit tests remain the coverage layer.
+const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
+  createPlusSubscription(SUBSCRIPTION_STATUSES.active),
+);
+
+// Interest totals are covered by mocking useMoneyPremiumAccountInterest,
+// useMoneyAccountSinceInceptionInterest, and useMoneyPremiumVaultRate.
+// Access and benefits still depend on the subscriptions query, so this
+// screen test mocks those hooks. The banner model and the
+// displayed-subscription selector have their own unit tests.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -123,6 +167,27 @@ describe('ProHub', () => {
       items: MOCK_TRADE_ALLOWANCES,
       resetsOn: 'Sep 15',
       retry: jest.fn(),
+    });
+    mockUseMoneyPremiumAccountInterest.mockReturnValue({
+      sinceInceptionQuery: {
+        data: { interest_earned_usd: '12.5' },
+        isError: false,
+      },
+      sinceInceptionInterest: '+$12.50',
+    } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+    mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+      data: undefined,
+      isError: false,
+    } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
+    mockUseMoneyPremiumVaultRate.mockReturnValue({
+      vaultRateQuery: { data: undefined },
+      rate: '0.041',
+      ratePercent: 4.1,
+      ratePercentFormatted: '4.1%',
+    } as ReturnType<typeof useMoneyPremiumVaultRate>);
+    mockUseMembershipBannerModel.mockReturnValue({
+      model: ACTIVE_MEMBERSHIP_BANNER,
+      subscription: undefined,
     });
   });
 
@@ -155,6 +220,42 @@ describe('ProHub', () => {
       renderProHub();
 
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('leaves when only a cached plan remains after access lapses', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Eligible,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
+    });
+
+    it('leaves when Pro is disabled even if a plan is still displayed', () => {
+      mockUseMoneyAccountPlusAccess.mockReturnValue(
+        MoneyAccountPlusAccess.Disabled,
+      );
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { queryByTestId } = renderProHub();
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(queryByTestId(ProHubTestIds.MEMBERSHIP_BANNER)).toBeNull();
     });
 
     it('does not render subscriber content without access', () => {
@@ -225,18 +326,23 @@ describe('ProHub', () => {
         toRegex(strings('pro_hub.title')),
       );
       expect(membershipBanner).toHaveTextContent(
-        toRegex(strings('pro_hub.membership_label')),
+        toRegex(strings('pro_hub.membership_status.active')),
       );
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
+      expect(
+        within(lifetimeEarningsSection).getAllByText('+$12.50'),
+      ).toHaveLength(2);
+      expect(lifetimeEarningsSection).not.toHaveTextContent(toRegex('$86.42'));
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.money_balance', {
-            apy: `${MOCK_PRO_HUB_STATS.moneyBalanceApy}%`,
+            apy: '4.1%',
           }),
         ),
       );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$12.50'));
       expect(musdBackRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.musd_back', {
@@ -259,6 +365,145 @@ describe('ProHub', () => {
       expect(lock).toBeOnTheScreen();
       expect(musdBackRow).toContainElement(lock);
       expect(queryByText(MOCK_PRO_HUB_STATS.musdBack)).toBeNull();
+    });
+
+    it('shows placeholders while premium interest and vault rate are unavailable', () => {
+      mockUseMoneyPremiumAccountInterest.mockReturnValue({
+        sinceInceptionQuery: { data: undefined },
+        sinceInceptionInterest: '$0.00',
+      } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+      mockUseMoneyPremiumVaultRate.mockReturnValue({
+        vaultRateQuery: { data: undefined },
+        rate: undefined,
+        ratePercent: undefined,
+        ratePercentFormatted: undefined,
+      } as ReturnType<typeof useMoneyPremiumVaultRate>);
+
+      const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(moneyBalanceRow).toHaveTextContent(
+        toRegex(strings('pro_hub.money_balance', { apy: '—' })),
+      );
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('$0.00'));
+      // Headline, Money balance row, and the still-mocked mUSD back amount.
+      expect(
+        within(lifetimeEarningsSection).getAllByText('$0.00'),
+      ).toHaveLength(3);
+    });
+
+    it('shows premium plus base interest on the headline and the money balance row', () => {
+      mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+        data: { interest_earned_usd: '2.5' },
+        isError: false,
+      } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
+
+      const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(
+        within(lifetimeEarningsSection).getAllByText('+$15.00'),
+      ).toHaveLength(2);
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$15.00'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
+    });
+
+    it('shows an em dash for interest when base-vault interest failed', () => {
+      mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+        data: undefined,
+        isError: true,
+      } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
+
+      const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(within(lifetimeEarningsSection).getAllByText('—')).toHaveLength(2);
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('—'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
+    });
+
+    it('renders an active plan without a membership alert', () => {
+      const { queryByTestId } = renderProHub();
+
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(MembershipStatusKind.Overdue),
+        ),
+      ).toBeNull();
+      expect(
+        queryByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_BANNER(
+            MembershipStatusKind.Deactivated,
+          ),
+        ),
+      ).toBeNull();
+    });
+
+    it('opens add money when the overdue alert action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Overdue,
+          statusKey: 'pro_hub.membership_status.overdue',
+          iconColor: IconColor.ErrorDefault,
+          alert: {
+            severity: 'danger' as const,
+            titleKey: 'pro_hub.membership_alert.payment_failed.title',
+            descriptionKey:
+              'pro_hub.membership_alert.payment_failed.description',
+            actionKey: 'pro_hub.membership_alert.payment_failed.action',
+            action: 'addFunds' as const,
+          },
+        },
+        subscription: undefined,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Overdue),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+    });
+
+    it('opens the subscription flow when the renew action is pressed', () => {
+      mockUseMembershipBannerModel.mockReturnValue({
+        model: {
+          statusKind: MembershipStatusKind.Cancelled,
+          statusKey: 'pro_hub.membership_status.cancelled',
+          alert: {
+            severity: 'warning' as const,
+            titleKey: 'pro_hub.membership_alert.cancelled.title',
+            descriptionKey: 'pro_hub.membership_alert.cancelled.description',
+            actionKey: 'pro_hub.membership_alert.cancelled.action',
+            action: 'renew' as const,
+          },
+        },
+        subscription: { id: 'sub-last' } as Subscription,
+      });
+
+      const { getByTestId } = renderProHub();
+
+      fireEvent.press(
+        getByTestId(
+          ProHubTestIds.MEMBERSHIP_ALERT_ACTION(MembershipStatusKind.Cancelled),
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PRO_SUBSCRIPTION.ROOT);
     });
 
     it('renders the physical card banner with title and description', () => {

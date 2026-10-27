@@ -3,7 +3,7 @@ import React from 'react';
 import { Pressable, Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CommonActions, useNavigation } from '@react-navigation/native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -14,7 +14,7 @@ import renderWithProvider, {
 import type { RootState } from '../../../../../reducers';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
 import { getRouteProbeTestId } from '../../../../../../tests/component-view/render';
-import { initialStateWallet } from '../../../../../../tests/component-view/presets/wallet';
+import { initialStateVba } from '../../../../../../tests/component-view/presets/vba';
 import { VbaKycPendingAdapter } from '../../../Ramp/Views/VirtualBankAccount/modules/VbaStatusAdapters';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
@@ -22,6 +22,9 @@ import {
   type VbaOnboardingSnapshot,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaOnboardingSnapshot';
 import { VbaKycPendingSelectorsIDs } from './KycPending';
+import VbaIdentityVerified, {
+  VbaIdentityVerifiedSelectorsIDs,
+} from './IdentityVerified';
 
 const VbaKycPendingViewSelectorsIDs = {
   OPEN_PENDING: 'vba-kyc-pending-open-from-previous-screen',
@@ -82,6 +85,10 @@ const OnboardingNavigator = () => (
       component={VbaKycPendingAdapter}
     />
     <OnboardingStack.Screen
+      name={VbaOnboardingRoutes.IDENTITY_VERIFIED}
+      component={VbaIdentityVerified}
+    />
+    <OnboardingStack.Screen
       name={VbaOnboardingRoutes.KYC_REJECTED}
       component={rejectedProbe}
     />
@@ -94,16 +101,6 @@ const OnboardingNavigator = () => (
       component={provisioningProbe}
     />
   </OnboardingStack.Navigator>
-);
-
-const RampNavigator = () => (
-  <RampStack.Navigator screenOptions={{ headerShown: false }}>
-    <RampStack.Screen
-      name={Routes.RAMP.VBA_ONBOARDING}
-      component={OnboardingNavigator}
-    />
-    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
-  </RampStack.Navigator>
 );
 
 const MoneyHomeNavigator = () => (
@@ -122,6 +119,20 @@ const MoneyRootNavigator = () => (
       component={MoneyHomeNavigator}
     />
   </MoneyRootStack.Navigator>
+);
+
+const RampNavigator = () => (
+  <RampStack.Navigator
+    initialRouteName={Routes.RAMP.VBA_ONBOARDING}
+    screenOptions={{ headerShown: false }}
+  >
+    <RampStack.Screen name={Routes.HOME_TABS} component={MoneyRootNavigator} />
+    <RampStack.Screen
+      name={Routes.RAMP.VBA_ONBOARDING}
+      component={OnboardingNavigator}
+    />
+    <RampStack.Screen name={Routes.RAMP.VBA_DETAILS} component={detailsProbe} />
+  </RampStack.Navigator>
 );
 
 const PendingWithHistory = () => (
@@ -156,7 +167,11 @@ interface KycSession {
 }
 
 const engineContext = Engine.context as unknown as {
-  RampsController: { hydrateVbaOnboarding?: jest.Mock };
+  RampsController: {
+    hydrateVbaOnboarding?: jest.Mock;
+    registerMoneyAccountWallet?: jest.Mock;
+    createAutoramp?: jest.Mock;
+  };
   KycController?: {
     state: { email: string | null };
     readSessionStatus: jest.Mock;
@@ -180,7 +195,7 @@ const hydratedSnapshot = (
 });
 
 const buildKycState = (session: KycSession) =>
-  initialStateWallet()
+  initialStateVba()
     .withOverrides({
       engine: {
         backgroundState: {
@@ -228,6 +243,8 @@ describeForPlatforms('VbaKycPending', () => {
     }
     previousKycController = engineContext.KycController;
     previousHydrate = engineContext.RampsController.hydrateVbaOnboarding;
+    engineContext.RampsController.registerMoneyAccountWallet = jest.fn();
+    engineContext.RampsController.createAutoramp = jest.fn();
     engineContext.KycController = {
       state: { email: 'user@example.com' },
       readSessionStatus: jest.fn().mockReturnValue({ id: 'session-1' }),
@@ -302,11 +319,6 @@ describeForPlatforms('VbaKycPending', () => {
     ['approved', 'ready', Routes.RAMP.VBA_DETAILS],
     ['rejected', 'not_ready', VbaOnboardingRoutes.KYC_REJECTED],
     ['retry', 'not_ready', VbaOnboardingRoutes.IDENTITY_VERIFICATION],
-    [
-      'approved',
-      'retryable_failure',
-      VbaOnboardingRoutes.ACCOUNT_PROVISIONING_ERROR,
-    ],
   ])(
     'opens the next screen when KYC is %s and the account is %s',
     async (kycStatus, autorampStatus, route) => {
@@ -328,31 +340,28 @@ describeForPlatforms('VbaKycPending', () => {
     },
   );
 
-  it('stays on this screen when KYC is approved but the account is not ready', async () => {
-    const hydrate = jest
+  it('opens identity verified when KYC is approved without a usable autoramp', async () => {
+    engineContext.RampsController.hydrateVbaOnboarding = jest
       .fn()
       .mockResolvedValue(hydratedSnapshot('approved', 'not_ready'));
-    engineContext.RampsController.hydrateVbaOnboarding = hydrate;
-    const { findByTestId, getByText } = renderKycScreen(<RampNavigator />, {
+    const { findByTestId, queryByTestId } = renderKycScreen(<RampNavigator />, {
       finalStatus: 'approved',
       kycStatus: 'approved',
     });
 
-    await waitFor(() => expect(hydrate).toHaveBeenCalledTimes(1), {
-      timeout: REDIRECT_TIMEOUT_MS,
-    });
-    await expect(
-      findByTestId(
-        getRouteProbeTestId(Routes.RAMP.VBA_DETAILS),
-        {},
-        {
-          timeout: 500,
-        },
-      ),
-    ).rejects.toThrow();
     expect(
-      getByText(strings('virtual_bank_account.kyc_taking_longer.title')),
+      await findByTestId(
+        VbaIdentityVerifiedSelectorsIDs.CONTAINER,
+        {},
+        { timeout: REDIRECT_TIMEOUT_MS },
+      ),
     ).toBeOnTheScreen();
-    expect(hydrate).toHaveBeenCalledTimes(1);
+    expect(
+      queryByTestId(getRouteProbeTestId(Routes.RAMP.VBA_DETAILS)),
+    ).not.toBeOnTheScreen();
+    expect(
+      engineContext.RampsController.registerMoneyAccountWallet,
+    ).not.toHaveBeenCalled();
+    expect(engineContext.RampsController.createAutoramp).not.toHaveBeenCalled();
   });
 });

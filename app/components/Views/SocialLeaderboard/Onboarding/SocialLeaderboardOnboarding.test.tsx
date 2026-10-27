@@ -37,6 +37,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockShowToast = jest.fn();
+let mockOnboardingRouteParams: { returnToTab?: boolean } | undefined;
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
@@ -50,6 +51,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       dispatch: mockDispatch,
     }),
+    useRoute: () => ({ params: mockOnboardingRouteParams }),
   };
 });
 
@@ -100,6 +102,7 @@ jest.mock('../analytics', () => {
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () => false,
   }),
 );
@@ -209,6 +212,7 @@ describe('SocialLeaderboardOnboarding', () => {
     mockIsNotificationsEnabled = false;
     mockIsPushEnabled = false;
     mockNotificationsFeatureEnabled = true;
+    mockOnboardingRouteParams = undefined;
   });
 
   const renderComponent = () =>
@@ -769,6 +773,24 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
+  it('returns to the Social tab after tab-origin onboarding', async () => {
+    mockOnboardingRouteParams = { returnToTab: true };
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.SOCIAL.TAB,
+        params: { source: 'nux' },
+      },
+      { pop: true },
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
   it('swallows an allowNotifications entry pulse on the follow-path Notify step', async () => {
     // The follow-path Notify slide shows the two-button ("Allow notifications")
     // layout while prompting, so its entry pulse can arrive on that trigger too.
@@ -1078,6 +1100,24 @@ describe('SocialLeaderboardOnboarding', () => {
       MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_ONBOARDING_COMPLETED,
       expect.anything(),
     );
+  });
+
+  it('returns to the Social tab when tab-origin onboarding is dismissed', async () => {
+    mockOnboardingRouteParams = { returnToTab: true };
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.CLOSE);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.HOME_TABS,
+      {
+        screen: Routes.SOCIAL.TAB,
+        params: { source: 'nux' },
+      },
+      { pop: true },
+    );
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
   it('reports the current step in the dismissed interaction', async () => {

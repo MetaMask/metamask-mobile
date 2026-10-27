@@ -3,7 +3,7 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { Hex } from '@metamask/utils';
+import { Hex, type Json } from '@metamask/utils';
 import { TransactionPaymentToken } from '@metamask/transaction-pay-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
@@ -15,7 +15,11 @@ import {
   selectDepositLimits,
 } from '../../../../../selectors/featureFlagController/confirmations';
 import { selectAccountOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
-import { isRouteToken } from '../../utils/relayFixedSpread';
+import {
+  selectStablecoins,
+  STABLE_TOKENS_FLAG,
+} from '../../../../../selectors/featureFlagController/stableTokens';
+import { mockedEmptyFlagsState } from '../../../../../selectors/featureFlagController/mocks';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayAvailableTokens } from '../pay/useTransactionPayAvailableTokens';
 import { useTransactionPayBalance } from '../pay/useTransactionPayBalance';
@@ -50,11 +54,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../utils/relayFixedSpread', () => ({
-  ...jest.requireActual('../../utils/relayFixedSpread'),
-  isRouteToken: jest.fn(),
-}));
-
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayAvailableTokens');
 jest.mock('../pay/useTransactionPayBalance');
@@ -67,8 +66,17 @@ jest.mock('../../../../../selectors/transactionPayController', () => ({
 }));
 
 const TOKEN_ADDRESS_MOCK = '0x1234567890123456789012345678901234567890' as Hex;
-const TOKEN_ADDRESS_B_MOCK =
-  '0x9876543210987654321098765432109876543210' as Hex;
+/** Ethereum USDT, listed in both the stableTokens fallback and the production flag. */
+const ETHEREUM_USDT_ADDRESS =
+  '0xdac17f958d2ee523a2206206994597c13d831ec7' as Hex;
+/** Ethereum USDC, also a listed stablecoin, used when switching pay tokens. */
+const ETHEREUM_USDC_ADDRESS =
+  '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as Hex;
+/** Ethereum DAI. Present on the production stableTokens flag, absent from the fallback list. */
+const ETHEREUM_DAI_ADDRESS =
+  '0x6b175474e89094c44da98b954eedeac495271d0f' as Hex;
+const NON_STABLECOIN_ADDRESS =
+  '0x1111111111111111111111111111111111111111' as Hex;
 const CHAIN_ID_MOCK = '0x1' as Hex;
 const BATCH_ID_MOCK = '0xtestbatchid';
 const TRANSACTION_ID_MOCK = 'test-tx-id';
@@ -87,7 +95,6 @@ const useTransactionPayFiatPaymentMock = jest.mocked(
 const selectMetaMaskPayFlagsMock =
   selectMetaMaskPayFlags as unknown as jest.Mock;
 const selectDepositLimitsMock = selectDepositLimits as unknown as jest.Mock;
-const isRouteTokenMock = isRouteToken as unknown as jest.Mock;
 const selectAccountOverrideMock =
   selectAccountOverrideByTransactionId as unknown as jest.Mock;
 const getMoneyAccountDepositIntentMock = jest.mocked(
@@ -122,7 +129,7 @@ function makePayToken(
   overrides?: Partial<TransactionPaymentToken>,
 ): TransactionPaymentToken {
   return {
-    address: TOKEN_ADDRESS_MOCK,
+    address: ETHEREUM_USDT_ADDRESS,
     balanceUsd: '1000',
     chainId: CHAIN_ID_MOCK,
     ...overrides,
@@ -171,10 +178,16 @@ function setupMocks(
     depositIntent = 'convert',
   } = overrides;
 
-  const resolvedPayToken =
+  let resolvedPayToken =
     'payToken' in overrides
       ? (overrides.payToken ?? undefined)
       : makePayToken();
+  if (resolvedPayToken && !stablecoin) {
+    resolvedPayToken = {
+      ...resolvedPayToken,
+      address: NON_STABLECOIN_ADDRESS,
+    };
+  }
 
   useTransactionMetadataRequestMock.mockReturnValue(transactionMeta);
   setPayTokenWithBalance(resolvedPayToken);
@@ -207,17 +220,38 @@ function setupMocks(
     },
   });
   selectDepositLimitsMock.mockReturnValue(depositLimits);
-  isRouteTokenMock.mockReturnValue(stablecoin);
   selectAccountOverrideMock.mockReturnValue(overrides.accountOverride);
   getMoneyAccountDepositIntentMock.mockReturnValue(
     depositIntent as ReturnType<typeof getMoneyAccountDepositIntent>,
   );
 }
 
-function runHook(options?: { autoSelectFiatPayment?: boolean }) {
-  return renderHookWithProvider(() => useDepositPrefillAmount(options), {
-    state: {},
-  });
+function runHook(options?: {
+  autoSelectFiatPayment?: boolean;
+  stableTokens?: Record<string, Json>;
+}) {
+  return renderHookWithProvider(
+    () =>
+      useDepositPrefillAmount({
+        autoSelectFiatPayment: options?.autoSelectFiatPayment,
+      }),
+    {
+      state: options?.stableTokens
+        ? {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    [STABLE_TOKENS_FLAG]: options.stableTokens,
+                  },
+                  cacheTimestamp: 0,
+                },
+              },
+            },
+          }
+        : {},
+    },
+  );
 }
 
 describe('useDepositPrefillAmount', () => {
@@ -461,6 +495,80 @@ describe('useDepositPrefillAmount', () => {
       expect(result.current.prefillAmount).toBe('500');
       expect(result.current.percentage).toBe(100);
       expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('prefills the full balance for every fallback stablecoin', () => {
+      const stablecoins = selectStablecoins(mockedEmptyFlagsState);
+
+      for (const [chainId, addresses] of Object.entries(stablecoins)) {
+        for (const address of addresses) {
+          setupMocks({
+            payToken: makePayToken({
+              address: address as Hex,
+              balanceUsd: '1000',
+              chainId: chainId as Hex,
+            }),
+          });
+
+          const { result } = runHook();
+
+          expect(result.current.prefillAmount).toBe('1000');
+          expect(result.current.percentage).toBe(100);
+          expect(result.current.isLimitCapped).toBe(false);
+        }
+      }
+    });
+
+    it('prefills Ethereum USDT to max when the address is checksummed', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7' as Hex,
+          balanceUsd: '80',
+        }),
+      });
+
+      const { result } = runHook();
+
+      expect(result.current.prefillAmount).toBe('80');
+      expect(result.current.percentage).toBe(100);
+    });
+
+    it('prefills tokens on the stableTokens flag to max, including ones absent from the fallback list', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: ETHEREUM_DAI_ADDRESS,
+          balanceUsd: '1000',
+        }),
+      });
+
+      const { result } = runHook({
+        stableTokens: {
+          rc: true,
+          '0x1': [ETHEREUM_USDT_ADDRESS, ETHEREUM_DAI_ADDRESS],
+        },
+      });
+
+      expect(result.current.prefillAmount).toBe('1000');
+      expect(result.current.percentage).toBe(100);
+      expect(result.current.isLimitCapped).toBe(false);
+    });
+
+    it('prefills 50% for a fallback stablecoin the stableTokens flag omits', () => {
+      setupMocks({
+        payToken: makePayToken({
+          address: ETHEREUM_USDT_ADDRESS,
+          balanceUsd: '1000',
+        }),
+      });
+
+      const { result } = runHook({
+        stableTokens: {
+          '0x1': [ETHEREUM_USDC_ADDRESS],
+        },
+      });
+
+      expect(result.current.prefillAmount).toBe('500');
+      expect(result.current.percentage).toBe(50);
     });
 
     it('computes 50% for non-stablecoin', () => {
@@ -742,7 +850,7 @@ describe('useDepositPrefillAmount', () => {
 
       setPayTokenWithBalance(
         makePayToken({
-          address: TOKEN_ADDRESS_B_MOCK,
+          address: ETHEREUM_USDC_ADDRESS,
           balanceUsd: '800',
         }),
       );

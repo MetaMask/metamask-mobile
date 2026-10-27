@@ -46,6 +46,7 @@ import { useCardUkMigrationUpdateBadge } from '../../UI/Card/hooks/useCardUkMigr
 import { useCardUkMigrationState } from '../../UI/Card/hooks/useCardUkMigrationState';
 import CardUkMigrationUpdateBadge from './components/CardUkMigrationUpdateBadge/CardUkMigrationUpdateBadge';
 import { selectCardActiveProviderId } from '../../../selectors/cardController';
+import { useMetamaskOrangeEntry } from '../../../hooks/useMetamaskOrangeEntry';
 import {
   CardFlow,
   mapUkMigrationPhaseToAnalytics,
@@ -74,6 +75,11 @@ const AccountsMenu = () => {
   const {
     state: { phase: ukMigrationPhase },
   } = useCardUkMigrationState();
+  const {
+    showOrangeEntry,
+    label: orangeLabel,
+    onPress: onPressOrange,
+  } = useMetamaskOrangeEntry();
 
   const onPressDeposit = useCallback(() => {
     trackEvent(
@@ -399,6 +405,18 @@ const AccountsMenu = () => {
             testID={AccountsMenuSelectorsIDs.NOTIFICATIONS_BUTTON}
           />
         )}
+
+        {showOrangeEntry ? (
+          <ActionListItem
+            startAccessory={
+              <Icon name={IconName.MetamaskFoxOutline} size={IconSize.Lg} />
+            }
+            label={orangeLabel}
+            endAccessory={arrowRightIcon}
+            onPress={onPressOrange}
+            testID={AccountsMenuSelectorsIDs.METAMASK_ORANGE}
+          />
+        ) : null}
 
         {/* MetaMask Card Row */}
         <ActionListItem

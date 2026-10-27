@@ -7,6 +7,7 @@ import { TokenAmountValueSelectorsIDs } from './TokenAmountValue/testIds';
 import type { LimitOrderConfirmationModalProps } from './types';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { LimitOrderPriceComparisonDirection } from '../../constants/limitOrders';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -69,7 +70,9 @@ function buildProps(
     sourceToken: mockSourceToken,
     destToken: mockDestToken,
     payingAmount: '0.1 ETH',
+    estReceivingAmount: '341.22 USDC',
     triggerPrice: '$3,412.20',
+    triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
     expiry: '7 days',
     costTolerance: '2%',
     delegationFee: {
@@ -115,13 +118,47 @@ describe('LimitOrderConfirmationModal', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('displays the trigger price after an @', () => {
-    const { getByTestId, getByText } = render(
+  it('displays the estimated receiving amount', () => {
+    const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
 
+    const receivingRow = getByTestId(
+      LimitOrderConfirmationModalSelectorsIDs.RECEIVING,
+    );
+
+    expect(
+      within(receivingRow).getByText(strings('bridge.limit.est_receiving')),
+    ).toBeOnTheScreen();
+    expect(within(receivingRow).getByText('341.22 USDC')).toBeOnTheScreen();
+  });
+
+  it('displays an at or above trigger price after a greater than or equal sign', () => {
+    const { getByTestId, getByText } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_ABOVE,
+        })}
+      />,
+    );
+
     expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
-      strings('bridge.limit.trigger_condition_at'),
+      strings('bridge.limit.trigger_condition_at_or_above'),
+    );
+    expect(getByText('$3,412.20')).toBeOnTheScreen();
+  });
+
+  it('displays an at or below trigger price after a less than or equal sign', () => {
+    const { getByTestId, getByText } = render(
+      <LimitOrderConfirmationModal
+        {...buildProps({
+          triggerDirection: LimitOrderPriceComparisonDirection.AT_OR_BELOW,
+        })}
+      />,
+    );
+
+    expect(getByTestId(TokenAmountValueSelectorsIDs.PREFIX)).toHaveTextContent(
+      strings('bridge.limit.trigger_condition_at_or_below'),
     );
     expect(getByText('$3,412.20')).toBeOnTheScreen();
   });
@@ -266,7 +303,7 @@ describe('LimitOrderConfirmationModal', () => {
     expect(getByText('Try again')).toBeOnTheScreen();
   });
 
-  it('opens the cost tolerance tooltip when the info button is pressed', () => {
+  it('opens the cost tolerance tooltip when the cost tolerance label is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps({ costTolerance: '2%' })} />,
     );
@@ -322,7 +359,7 @@ describe('LimitOrderConfirmationModal', () => {
     ).toHaveTextContent(strings('bridge.limit.includes_metamask_fee'));
   });
 
-  it('opens the account upgrade fee info sheet when the fee disclaimer is pressed', () => {
+  it('opens the MetaMask fee info sheet when the fee disclaimer is pressed', () => {
     const { getByTestId } = render(
       <LimitOrderConfirmationModal {...buildProps()} />,
     );
@@ -333,7 +370,7 @@ describe('LimitOrderConfirmationModal', () => {
 
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_ACCOUNT_UPGRADE_FEE_INFO_MODAL,
+      screen: Routes.BRIDGE.MODALS.LIMIT_ORDER_METAMASK_FEE_INFO_MODAL,
     });
   });
 });

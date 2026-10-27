@@ -27,6 +27,9 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockSheetClose = jest.fn();
 
+jest.mock('images/image-icons', () => ({ __esModule: true, default: {} }), {
+  virtual: true,
+});
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
@@ -54,6 +57,13 @@ jest.mock('../../hooks', () => ({
   usePerpsMarketData: jest.fn(),
   usePerpsToasts: jest.fn(),
   usePerpsRewards: jest.fn(),
+}));
+const mockPerpsRebateBanner = jest.fn(
+  (_props: Record<string, unknown>) => null,
+);
+jest.mock('../../components/PerpsRebateBanner', () => ({
+  __esModule: true,
+  default: (props: Record<string, unknown>) => mockPerpsRebateBanner(props),
 }));
 
 jest.mock('../../hooks/usePerpsClosePosition', () => ({
@@ -203,7 +213,6 @@ describe('PerpsClosePositionBottomSheet', () => {
   const usePerpsRewardsMock = jest.mocked(
     jest.requireMock('../../hooks').usePerpsRewards,
   );
-
   beforeEach(() => {
     jest.clearAllMocks();
     resetLastCloseOrderType();
@@ -505,7 +514,7 @@ describe('PerpsClosePositionBottomSheet', () => {
         getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
       const unit = () =>
         queryByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL);
-      const fiatFirst = amount().props.children;
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
 
       fireEvent.press(
@@ -513,9 +522,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      const tokenFirst = amount().props.children;
-
-      expect(tokenFirst).not.toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('1.5');
       expect(unit()).toHaveTextContent('ETH');
 
       fireEvent.press(
@@ -523,7 +530,7 @@ describe('PerpsClosePositionBottomSheet', () => {
           PerpsClosePositionBottomSheetSelectorsIDs.AMOUNT_DISPLAY_TOGGLE,
         ),
       );
-      expect(amount().props.children).toBe(fiatFirst);
+      expect(amount()).toHaveTextContent('$4,500');
       expect(unit()).toBeNull();
     });
 
@@ -974,6 +981,7 @@ describe('PerpsClosePositionBottomSheet', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,
         feeDiscountPercentage: 15,
+        feeDiscountKind: 'vip',
       });
 
       const { getByTestId } = renderSheet();

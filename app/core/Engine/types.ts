@@ -8,14 +8,6 @@ import {
 ///: END:ONLY_INCLUDE_IF
 import { ExtendedMessenger } from '../ExtendedMessenger';
 import {
-  AccountTrackerController,
-  AccountTrackerControllerState,
-  AccountTrackerControllerActions,
-  AccountTrackerControllerEvents,
-  CurrencyRateController,
-  CurrencyRateState,
-  CurrencyRateControllerActions,
-  CurrencyRateControllerEvents,
   NftController,
   NftControllerState,
   NftControllerActions,
@@ -26,15 +18,6 @@ import {
   TokensControllerActions,
   TokensControllerEvents,
   TokensControllerState,
-  TokenBalancesController,
-  TokenBalancesControllerState,
-  TokenBalancesControllerActions,
-  TokenBalancesControllerEvents,
-  TokenDetectionController,
-  TokenRatesController,
-  TokenRatesControllerState,
-  TokenRatesControllerActions,
-  TokenRatesControllerEvents,
   AssetsContractController,
   AssetsContractControllerActions,
   AssetsContractControllerEvents,
@@ -48,26 +31,19 @@ import {
   DeFiPositionsControllerV2Actions,
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesControllerState,
-  MultichainBalancesController,
-  MultichainBalancesControllerEvents,
-  MultichainBalancesControllerActions,
   TokenSearchDiscoveryDataController,
   TokenSearchDiscoveryDataControllerState,
   TokenSearchDiscoveryDataControllerActions,
   TokenSearchDiscoveryDataControllerEvents,
-  MultichainAssetsController,
-  MultichainAssetsControllerState,
-  MultichainAssetsControllerEvents,
-  MultichainAssetsControllerActions,
-  MultichainAssetsRatesController,
-  MultichainAssetsRatesControllerState,
-  MultichainAssetsRatesControllerEvents,
-  MultichainAssetsRatesControllerActions,
   CodefiTokenPricesServiceV2,
-  TokenDetectionControllerEvents,
-  TokenDetectionControllerActions,
   ///: END:ONLY_INCLUDE_IF
+  // Legacy asset controller actions still referenced by external messenger
+  // types. Only CurrencyRate and MultichainAssets have handlers
+  // (`legacy-asset-state-compat.ts`).
+  type AccountTrackerControllerGetStateAction,
+  // TransactionControllerInitMessenger uses the full actions union.
+  type CurrencyRateControllerActions,
+  type MultichainAssetsControllerGetStateAction,
 } from '@metamask/assets-controllers';
 import {
   AssetsController,
@@ -564,6 +540,7 @@ import {
 } from '@metamask/client-controller';
 import {
   SocialController,
+  SocialRealtimeService,
   SocialService,
   type SocialControllerActions,
   type SocialControllerEvents,
@@ -688,13 +665,15 @@ export type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
-  | AccountTrackerControllerActions
   | AssetsControllerActions
+  | AccountTrackerControllerGetStateAction
+  | CurrencyRateControllerActions
+  | MultichainAssetsControllerGetStateAction
   | NftControllerActions
+  | TokensControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | ConnectivityControllerActions
-  | CurrencyRateControllerActions
   | GasFeeControllerActions
   | GatorPermissionsControllerActions
   | KeyringControllerActions
@@ -720,9 +699,6 @@ export type GlobalActions =
   | AccountActivityServiceActions
   | OHLCVServiceActions
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | MultichainBalancesControllerActions
-  | MultichainAssetsControllerActions
-  | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
   | SnapAccountServiceActions
@@ -730,10 +706,6 @@ export type GlobalActions =
   | AccountsControllerActions
   | AccountTreeControllerActions
   | PreferencesControllerActions
-  | TokenBalancesControllerActions
-  | TokensControllerActions
-  | TokenDetectionControllerActions
-  | TokenRatesControllerActions
   | TransactionControllerActions
   | TransactionPayControllerActions
   | SelectedNetworkControllerActions
@@ -811,15 +783,14 @@ export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
-  | AccountTrackerControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
+  | TokensControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
   | ConfigRegistryControllerEvents
   | ConfigRegistryApiServiceEvents
-  | CurrencyRateControllerEvents
   | GasFeeControllerEvents
   | GatorPermissionsControllerEvents
   | KeyringControllerEvents
@@ -841,9 +812,6 @@ export type GlobalEvents =
   | AccountActivityServiceEvents
   | OHLCVServiceEvents
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | MultichainBalancesControllerEvents
-  | MultichainAssetsControllerEvents
-  | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
   | SnapAccountServiceEvents
@@ -860,10 +828,6 @@ export type GlobalEvents =
   | ClaimsServiceEvents
   | AccountsControllerEvents
   | PreferencesControllerEvents
-  | TokenBalancesControllerEvents
-  | TokensControllerEvents
-  | TokenDetectionControllerEvents
-  | TokenRatesControllerEvents
   | TransactionControllerEvents
   | TransactionPayControllerEvents
   | SelectedNetworkControllerEvents
@@ -966,7 +930,6 @@ export type MessengerClients = {
   ///: END:ONLY_INCLUDE_IF
   AccountsController: AccountsController;
   AccountTreeController: AccountTreeController;
-  AccountTrackerController: AccountTrackerController;
   AddressBookController: AddressBookController;
   AppMetadataController: AppMetadataController;
   ConnectivityController: ConnectivityController;
@@ -977,7 +940,6 @@ export type MessengerClients = {
   ApprovalController: ApprovalController;
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
-  CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -985,6 +947,7 @@ export type MessengerClients = {
   NetworkController: NetworkController;
   NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
+  TokensController: TokensController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
   // TODO: Replace "any" with type
@@ -995,10 +958,6 @@ export type MessengerClients = {
   PreferencesController: PreferencesControllerWithSavedGasFees;
   RampsController: RampsController;
   RemoteFeatureFlagController: RemoteFeatureFlagController;
-  TokenBalancesController: TokenBalancesController;
-  TokenDetectionController: TokenDetectionController;
-  TokenRatesController: TokenRatesController;
-  TokensController: TokensController;
   DeFiPositionsController: DeFiPositionsController;
   DeFiPositionsControllerV2: DeFiPositionsControllerV2;
   TransactionController: TransactionController;
@@ -1030,9 +989,6 @@ export type MessengerClients = {
   AccountActivityService: AccountActivityService;
   OHLCVService: OHLCVService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesController: MultichainBalancesController;
-  MultichainAssetsRatesController: MultichainAssetsRatesController;
-  MultichainAssetsController: MultichainAssetsController;
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
@@ -1076,6 +1032,7 @@ export type MessengerClients = {
   AiDigestController: AiDigestController;
   SocialController: SocialController;
   SocialService: SocialService;
+  SocialRealtimeService: SocialRealtimeService;
   ProfileController: ProfileController;
   ProfileService: ProfileService;
   AuthenticatedUserStorageService: AuthenticatedUserStorageService;
@@ -1101,7 +1058,6 @@ export type EngineContext = RequiredControllers & Partial<OptionalControllers>;
 // Adding an index signature fixes this, but at the cost of widening the type unnecessarily.
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type EngineState = {
-  AccountTrackerController: AccountTrackerControllerState;
   AddressBookController: AddressBookControllerState;
   AssetsController: AssetsControllerState;
   AppMetadataController: AppMetadataControllerState;
@@ -1109,7 +1065,6 @@ export type EngineState = {
   NetworkConnectionBannerController: NetworkConnectionBannerControllerState;
   ConfigRegistryController: ConfigRegistryControllerState;
   NftController: NftControllerState;
-  CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
   NetworkEnablementController: NetworkEnablementControllerState;
@@ -1117,8 +1072,6 @@ export type EngineState = {
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   RampsController: RampsControllerState;
   PhishingController: PhishingControllerState;
-  TokenBalancesController: TokenBalancesControllerState;
-  TokenRatesController: TokenRatesControllerState;
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
@@ -1149,9 +1102,6 @@ export type EngineState = {
   SelectedNetworkController: SelectedNetworkControllerState;
   SignatureController: SignatureControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  MultichainBalancesController: MultichainBalancesControllerState;
-  MultichainAssetsController: MultichainAssetsControllerState;
-  MultichainAssetsRatesController: MultichainAssetsRatesControllerState;
   MultichainTransactionsController: MultichainTransactionsControllerState;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataControllerState;
@@ -1213,7 +1163,6 @@ export type MessengerClientsToInitialize =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
-  | 'AccountTrackerController'
   | 'AssetsContractController'
   | 'AssetsController'
   | 'NetworkConnectionBannerController'
@@ -1229,16 +1178,12 @@ export type MessengerClientsToInitialize =
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'
   | 'AppMetadataController'
-  | 'SubjectMetadataController'
   | 'UserStorageController'
   ///: END:ONLY_INCLUDE_IF
   | 'BackendWebSocketService'
   | 'AccountActivityService'
   | 'OHLCVService'
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  | 'MultichainAssetsController'
-  | 'MultichainAssetsRatesController'
-  | 'MultichainBalancesController'
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
@@ -1248,26 +1193,20 @@ export type MessengerClientsToInitialize =
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
   | 'MoneyAccountApiDataService'
-  | 'LoggingController'
   | 'AccountTreeController'
-  | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'DeFiPositionsControllerV2'
   | 'GeolocationController'
   | 'GeolocationApiService'
   | 'MultichainNetworkController'
   | 'NftController'
+  | 'TokensController'
   | 'NftDetectionController'
   | 'PhishingController'
   | 'SignatureController'
   | 'SmartTransactionsController'
-  | 'TokenBalancesController'
-  | 'TokenDetectionController'
-  | 'TokenRatesController'
-  | 'TokensController'
   | 'TokenSearchDiscoveryDataController'
   | 'TransactionPayController'
-  | 'PermissionController'
   | 'PerpsController'
   | 'PredictController'
   | 'PredictMarketDataService'
@@ -1281,7 +1220,6 @@ export type MessengerClientsToInitialize =
   | 'UiSlotsController'
   | 'QrSyncController'
   | 'QrSyncProvisioningService'
-  | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
@@ -1296,13 +1234,13 @@ export type MessengerClientsToInitialize =
   | 'NeoBankService'
   | 'GatorPermissionsController'
   | 'DelegationController'
-  | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
   | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
+  | 'SocialRealtimeService'
   | 'SocialController'
   | 'ProfileService'
   | 'ProfileController'

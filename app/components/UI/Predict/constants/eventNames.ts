@@ -27,6 +27,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  OUTCOME_VERSION: 'outcome_version',
   ORDER_TYPE: 'order_type',
   TRADE_TYPE: 'trade_type',
   IMPLEMENTATION_TYPE: 'implementation_type',
@@ -85,6 +86,13 @@ export const PredictEventProperties = {
   ATTEMPT_ID: 'attempt_id',
   FAILURE_STAGE: 'failure_stage',
   FAILURE_CATEGORY: 'failure_category',
+
+  // Order retry (bounded-retry flow)
+  RETRY_REASON: 'retry_reason',
+  RETRY_COUNT: 'retry_count',
+  ONE_TICK_DECISION: 'one_tick_decision',
+  SLIPPAGE_BAND: 'slippage_band',
+  RETRY_OUTCOME: 'retry_outcome',
 
   // Betslip dismissal
   DISMISSAL_METHOD: 'dismissal_method',
@@ -159,6 +167,7 @@ export const PredictEventValues = {
     INSUFFICIENT_GAS: 'insufficient_gas',
     NETWORK_ERROR: 'network_error',
     USER_REJECTED: 'user_rejected',
+    MARKET_UNAVAILABLE: 'market_unavailable',
     UNKNOWN: 'unknown',
   },
   PAYMENT_METHOD: {
@@ -179,9 +188,28 @@ export const PredictEventValues = {
     USER_REJECTED: 'user_rejected',
     OTHER: 'other',
   },
+  RETRY_REASON: {
+    ORDER_NOT_FILLED: 'order_not_filled',
+  },
+  ONE_TICK_DECISION: {
+    // Fresh quote at most 1 tick worse: single confirmation suffices.
+    WITHIN_ONE_TICK: 'within_one_tick',
+    // Fresh quote more than 1 tick worse: explicit re-confirmation shown.
+    BEYOND_ONE_TICK: 'beyond_one_tick',
+  },
+  RETRY_OUTCOME: {
+    SUCCESS: 'success',
+    NOT_FILLED: 'not_filled',
+    FAILED: 'failed',
+  },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
+  },
+  OUTCOME_VERSION: {
+    V1: 'v1',
+    V2: 'v2',
+    MIXED: 'mixed',
   },
   MARKET_DETAILS_TAB: {
     ABOUT: 'about',
@@ -247,6 +275,7 @@ export const PredictTradeStatus = {
   SWAP_FAILED: 'swap_failed',
   RETRY_PROMPTED: 'retry_prompted',
   RETRY_SUBMITTED: 'retry_submitted',
+  RETRY_COMPLETED: 'retry_completed',
   PAYMENT_FAILURE_PROMPTED: 'payment_failure_prompted',
   ADD_FUNDS_SUBMITTED: 'add_funds_submitted',
   ATTEMPT_STARTED: 'attempt_started',
@@ -271,6 +300,18 @@ export type PredictFailureStageValue =
 
 export type PredictFailureCategoryValue =
   (typeof PredictEventValues.FAILURE_CATEGORY)[keyof typeof PredictEventValues.FAILURE_CATEGORY];
+
+export type PredictRetryReasonValue =
+  (typeof PredictEventValues.RETRY_REASON)[keyof typeof PredictEventValues.RETRY_REASON];
+
+export type PredictOneTickDecisionValue =
+  (typeof PredictEventValues.ONE_TICK_DECISION)[keyof typeof PredictEventValues.ONE_TICK_DECISION];
+
+export type PredictRetryOutcomeValue =
+  (typeof PredictEventValues.RETRY_OUTCOME)[keyof typeof PredictEventValues.RETRY_OUTCOME];
+
+export type PredictOutcomeVersionValue =
+  (typeof PredictEventValues.OUTCOME_VERSION)[keyof typeof PredictEventValues.OUTCOME_VERSION];
 
 /**
  * Dismissal method values for the Predict Betslip Dismissed event

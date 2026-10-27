@@ -31,7 +31,11 @@ Notes:
 
 #### Performance-test APKs (programmatic profiling)
 
-BrowserStack performance builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. In those APKs the app profiles itself: `index.js` calls `initializeAppProfiling()`, which arms Hermes as soon as JS runs and dumps a trace every time the app is backgrounded. Outside performance APKs it is a no-op, and so are `startAppProfiling` / `stopAppProfiling` if you call them directly.
+Performance-test builds (`main-e2e-bs-with-srp` / `main-e2e-bs-without-srp` in `builds.yml`) set `IS_PERFORMANCE_TEST=true`. In those APKs the app profiles itself: `index.js` calls `initializeAppProfiling()`, which arms Hermes as soon as JS runs and dumps a trace every time the app is backgrounded. Outside performance APKs it is a no-op, and so are `startAppProfiling` / `stopAppProfiling` if you call them directly.
+
+Feature specs do not want login or onboarding setup in that trace. They call `enableHermesAppProfiling()` immediately before the team-specific action (opening an asset, the Perps header, the Money tab, and the same boundary in the other scenarios). That opens `metamask://e2e/profiler/arm`, which `handleDeeplink` consumes before the unsupported-link UI. The app clears the sample buffer without writing a segment, writes `metamask-performance.armed`, and keeps the sampler running. The segment collected at the end of the test is the measured flow.
+
+Cold-start specs that relaunch the app call `enableHermesAppProfiling({ scope: 'next-process' })` immediately before `terminateApp`. This process does not dump its setup trace. The relaunched process arms itself from JS startup, which is the launch those specs measure. `Cold Start To Onboarding Screen` does not call the helper: the process under test is already the measured launch.
 
 On Android this goes through `MetaMaskHermesProfiler`, a native module in
 `android/app/src/main/java/io/metamask/nativeModules/HermesProfiler/` that is
@@ -55,30 +59,37 @@ should. Two reasons:
   outside costs an Appium round trip at exactly the moment the launch-time specs
   begin their timers. Self-arming is free, so the launch those specs measure is
   actually in the trace, and a spec that restarts the app gets the new process
-  profiled with no extra work.
+  profiled with no extra work. The arm deeplink is only for flows whose measured
+  work starts later. It runs before that action, outside the timer.
 - **Reliability.** The previous design mounted invisible `Pressable` hooks in
   the app root. Because the root draws edge-to-edge on `targetSdk` 36, the hooks
   nearest the top of the screen sat under the status bar, where Android reports
   them as not visible to the user and Appium drops them from the accessibility
   tree entirely. Roughly a fifth of start/stop lookups failed that way, and no
-  timeout could fix it.
+  timeout could fix it. The arm deeplink is confirmed by the
+  `metamask-performance.armed` file, not by an accessibility node.
 
 Backgrounding is the dump trigger because it is the only signal that the test
 can produce on demand (`mobile: backgroundApp`, already used by the warm-start
-specs) and that nothing on screen can swallow. Do **not** use deeplinks —
-unknown `metamask://e2e/profiler/*` URLs show MetaMask's unsupported-link UI.
+specs) and that nothing on screen can swallow. Do **not** add other profiler
+deeplinks. `metamask://e2e/profiler/arm` is the one exception, and only because
+`handleDeeplink` returns before `checkForDeeplink`. An unhandled
+`metamask://e2e/profiler/*` URL still shows the unsupported-link UI. Do **not**
+drive profiling with invisible in-app controls.
 
 #### Hermes profiles are opt-in
 
-`appProfiling.fixture.ts` is an `auto` fixture, so no spec needs profiling
-plumbing. Collection only runs when `COLLECT_HERMES_CPUPROFILES=true`
-(schedule/manual performance workflows). PR runs leave that unset to skip the
-background + `pullFile` harvest — `analyze-app-profiling` never consumes PR
-artifacts. When enabled, any Playwright test under `tests/performance/` is
-profiled from app startup; after the last assertion the fixture backgrounds the
-app, waits for the trace to land, pulls every segment into
-`tests/reporters/reports/hermes-cpuprofiles/` and attaches it to the Playwright
-report. On iOS collection is skipped (app-scoped export is Android-only).
+`appProfiling.fixture.ts` is an `auto` fixture, so collection needs no extra
+plumbing. It only runs when `COLLECT_HERMES_CPUPROFILES=true`
+(schedule/manual performance workflows). PR runs leave that unset, so
+`enableHermesAppProfiling` is a no-op and the fixture skips the background +
+`pullFile` harvest — `analyze-app-profiling` never consumes PR artifacts. When
+collection is enabled, the fixture backgrounds the app after the last
+assertion, waits for the trace to land, pulls every segment written after the
+arm marker into `tests/reporters/reports/hermes-cpuprofiles/`, and attaches it
+to the Playwright report. The first segment kept for a test is saved as the
+plain `.cpuprofile`. On iOS the arm and the collection are both skipped
+(app-scoped export is Android-only).
 
 #### Segments
 
@@ -87,10 +98,12 @@ dumps whenever it stays backgrounded past a short grace period (so brief pauses
 like biometric prompts do not cost a multi-MB write) and immediately re-arms, and
 one test can produce several traces:
 
-- Specs that kill the app (`AppiumGestures.terminateApp`, used by the cold-start
-  launch-time specs) flush first. `terminateApp` runs the `onBeforeAppTerminate`
-  hooks from `tests/framework/appLifecycle.ts`, and the fixture registers one to
-  harvest the in-flight trace while the process is still alive.
+- Specs that kill the app (`AppiumGestures.terminateApp`) normally flush first.
+  `terminateApp` runs the `onBeforeAppTerminate` hooks from
+  `tests/framework/appLifecycle.ts`, and the fixture registers one to harvest
+  the in-flight trace while the process is still alive. A `next-process` arm
+  skips that flush so the setup process does not write a segment. The
+  relaunched process is collected at the end of the test.
 - Specs that background the app themselves — the warm-start specs, and the OAuth
   hand-offs in seedless onboarding — produce a segment at that point too.
 

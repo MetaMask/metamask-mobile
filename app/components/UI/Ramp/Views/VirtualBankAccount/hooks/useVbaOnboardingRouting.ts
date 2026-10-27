@@ -17,25 +17,25 @@ import {
   getVbaDestinationForSnapshot,
   type VbaOnboardingDestinationId,
 } from '../vbaOnboardingFunnel';
-import {
-  buildBrazilMusdAutorampRequest,
-  type VbaOnboardingSnapshot as RampsVbaOnboardingSnapshot,
-} from '@metamask/ramps-controller';
 import type { VbaOnboardingSnapshot } from '../vbaOnboardingSnapshot';
 import {
   getVbaVendorTermsAcceptance,
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
+import {
+  accountCreateErrorVariantForDestination,
+  isAccountCreateErrorDestination,
+  type AccountCreateFailureFields,
+} from '../accountCreateError';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
+import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
 
-type StackNavigationAction =
-  | ReturnType<typeof CommonActions.reset>
-  | ReturnType<typeof CommonActions.navigate>;
+type StackNavigationAction = ReturnType<typeof CommonActions.reset>;
 
 interface StackController {
   dispatch: (action: StackNavigationAction) => void;
@@ -52,12 +52,16 @@ const DEFAULT_CALLER_ROUTE = {
 };
 
 const getCallerRoute = (state: NavigationState) => {
-  const activeRoute = state.routes[state.index];
-  if (activeRoute?.name !== Routes.RAMP.VBA_ONBOARDING) {
-    return activeRoute ?? DEFAULT_CALLER_ROUTE;
+  for (let index = state.index; index >= 0; index -= 1) {
+    const route = state.routes[index];
+    if (
+      route?.name !== Routes.RAMP.VBA_ONBOARDING &&
+      route?.name !== Routes.RAMP.VBA_DETAILS
+    ) {
+      return route;
+    }
   }
-
-  return state.routes[state.index - 1] ?? DEFAULT_CALLER_ROUTE;
+  return DEFAULT_CALLER_ROUTE;
 };
 
 /**
@@ -124,18 +128,40 @@ export const openAsOnlyOnboardingRoute = (
 };
 
 /**
- * Pushes the completed account on the same stack as onboarding, with the same
- * horizontal transition. The screen hides its back button, so this does not
- * replace the route underneath.
+ * Keeps the original caller under the completed account and removes onboarding
+ * from the root stack. Header and native-gesture back actions then return
+ * directly to the caller instead of revealing the onboarding loader.
+ *
+ * @param navigation - Navigation from any screen inside or beside onboarding.
+ * @param sourceCurrency - Currency picked on Choose Currency. Omit to use the
+ * IP country's currency.
  */
-const openCompletedVbaAccount = (navigation: AppNavigationProp): void => {
+export const openCompletedVbaAccount = (
+  navigation: AppNavigationProp,
+  sourceCurrency?: VbaSourceCurrency,
+): void => {
   let current: StackController | undefined =
     navigation as unknown as StackController;
 
   while (current) {
     const state = current.getState();
     if (state?.routeNames.includes(Routes.RAMP.VBA_ONBOARDING)) {
-      current.dispatch(CommonActions.navigate(Routes.RAMP.VBA_DETAILS));
+      current.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            getCallerRoute(
+              state,
+            ) as PartialState<NavigationState>['routes'][number],
+            sourceCurrency
+              ? {
+                  name: Routes.RAMP.VBA_DETAILS,
+                  params: { sourceCurrency },
+                }
+              : { name: Routes.RAMP.VBA_DETAILS },
+          ],
+        }),
+      );
       return;
     }
 
@@ -151,6 +177,9 @@ export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
+  failure?: AccountCreateFailureFields,
+  sourceCurrency?: VbaSourceCurrency,
+  retryable?: boolean,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -163,6 +192,26 @@ export const navigateToVbaOnboardingDestination = (
         ? VbaOnboardingRoutes.IDENTITY_VERIFICATION
         : VbaOnboardingRoutes.ERROR,
       snapshot ? { snapshot } : undefined,
+    );
+    return;
+  }
+  if (destinationId === 'identityVerified') {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.IDENTITY_VERIFIED,
+    );
+    return;
+  }
+  if (isAccountCreateErrorDestination(destinationId)) {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      {
+        variant: accountCreateErrorVariantForDestination(destinationId),
+        ...(failure ? { failure } : {}),
+        ...(sourceCurrency ? { sourceCurrency } : {}),
+        ...(retryable ? { retryable } : {}),
+      },
     );
     return;
   }
@@ -193,50 +242,6 @@ export interface OpenVbaOnboardingRequest {
    */
   retryRejectedKyc?: boolean;
 }
-
-/**
- * v27 hydrate only reads status. Main still opens a BRL to mUSD route, so
- * register the wallet when needed and create that autoramp here.
- */
-const provisionBrazilMusdAutoramp = async (
-  walletAddress: string,
-  snapshot: RampsVbaOnboardingSnapshot,
-): Promise<RampsVbaOnboardingSnapshot> => {
-  if (
-    snapshot.kycStatus !== 'approved' ||
-    (snapshot.autorampStatus !== 'needs_wallet_registration' &&
-      snapshot.autorampStatus !== 'needs_source_currency')
-  ) {
-    return snapshot;
-  }
-
-  if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
-    if (registration.type === 'lookupUnavailable') {
-      return { ...snapshot, autorampStatus: 'retryable_failure' };
-    }
-  }
-
-  try {
-    await Engine.context.RampsController.createAutoramp(
-      buildBrazilMusdAutorampRequest(walletAddress),
-    );
-  } catch (error) {
-    Logger.error(error as Error, {
-      tags: { feature: 'vba-onboarding' },
-      context: {
-        name: 'provisionBrazilMusdAutoramp',
-        data: { autorampStatus: snapshot.autorampStatus },
-      },
-    });
-    return { ...snapshot, autorampStatus: 'retryable_failure' };
-  }
-
-  return { ...snapshot, autorampStatus: 'ready' };
-};
 
 /**
  * Re-submits capability authorization for a KYC session that already exists.
@@ -278,8 +283,9 @@ export type ResolvedVbaOnboarding =
 
 /**
  * Resumes a persisted KYC session, hydrates VBA onboarding facts, and picks
- * the next destination. Does not navigate. A missing wallet, a failed session
- * resume, or a thrown hydrate returns `{ status: 'error' }`.
+ * the next destination. Does not navigate, sign, or create an autoramp. A
+ * missing wallet, a failed session resume, or a thrown hydrate returns
+ * `{ status: 'error' }`.
  *
  * @param source - Caller/entry point for error telemetry.
  */
@@ -296,16 +302,12 @@ export const resolveVbaOnboarding = async (
 
     await resumePersistedKycSession();
 
-    const hydratedSnapshot = applyVbaDevOverrides(
+    const accountSnapshot = applyVbaDevOverrides(
       await Engine.context.RampsController.hydrateVbaOnboarding({
         walletAddress,
         refreshKyc: true,
         refreshAutoramps: true,
       }),
-    );
-    const accountSnapshot = await provisionBrazilMusdAutoramp(
-      walletAddress,
-      hydratedSnapshot,
     );
     if (
       accountSnapshot.sessionExists &&

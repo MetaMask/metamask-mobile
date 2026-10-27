@@ -29,7 +29,7 @@ export interface OpenOrderRowProps {
    */
   titleColor?: TextColor;
   /**
-   * Optional node after the title (warning icon or status Tag).
+   * Optional node after the title, e.g. a warning icon.
    */
   titleEndAccessory?: ReactNode;
   /**

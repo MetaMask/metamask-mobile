@@ -224,7 +224,34 @@ class TabBarComponent {
     );
   }
 
+  /**
+   * Money builds replace the Activity tab with a header clock button. Re-query
+   * that button after wallet chrome is showing so the tap is not a stale node.
+   */
+  private async openActivityFromWalletHeader(): Promise<void> {
+    const isWalletActivityButtonVisible = await Utilities.isElementVisible(
+      WalletView.activityButton,
+      500,
+    );
+    if (!isWalletActivityButtonVisible) {
+      await Gestures.waitAndTap(this.tabBarWalletButton, {
+        timeout: 2_000,
+        elemDescription: 'Tab Bar - Wallet Button',
+        waitForInteractive: true,
+      });
+    }
+    await Gestures.waitAndTap(WalletView.activityButton, {
+      timeout: 5_000,
+      elemDescription: 'Wallet Activity button',
+      waitForInteractive: true,
+    });
+  }
+
   async tapActivity(): Promise<void> {
+    // Set only after the Money tab is actually shown. Standard builds keep
+    // waiting on the Activity tab; a slow 500ms probe must not switch them
+    // onto the header button, which those builds do not render.
+    let moneyTabWasVisible = false;
     await Utilities.executeWithRetry(
       async () => {
         const alreadyOnActivity = await Utilities.isElementVisible(
@@ -237,22 +264,17 @@ class TabBarComponent {
             500,
           );
           if (isMoneyTabVisible) {
-            const isWalletActivityButtonVisible =
-              await Utilities.isElementVisible(WalletView.activityButton, 500);
-            if (!isWalletActivityButtonVisible) {
-              await Gestures.waitAndTap(this.tabBarWalletButton, {
-                timeout: 2_000,
-                elemDescription: 'Tab Bar - Wallet Button',
-              });
-            }
-            await Gestures.waitAndTap(WalletView.activityButton, {
-              timeout: 5_000,
-              elemDescription: 'Wallet Activity button',
-            });
+            moneyTabWasVisible = true;
+          }
+          if (moneyTabWasVisible) {
+            // A header tap can cover the tab bar before Activity mounts. Money
+            // builds have no Activity tab, so return home and use the header.
+            await this.openActivityFromWalletHeader();
           } else {
             await Gestures.waitAndTap(this.tabBarActivityButton, {
               timeout: 2_000,
               elemDescription: 'Tab Bar - Activity Button',
+              waitForInteractive: true,
             });
           }
         }
@@ -260,16 +282,16 @@ class TabBarComponent {
           ActivitiesView.redesignedScreen,
           {
             description: 'Activity View Screen',
-            timeout: 500,
+            timeout: 5_000,
           },
         );
         await Assertions.expectElementToBeVisible(ActivitiesView.container, {
           description: 'Activity List',
-          timeout: 500,
+          timeout: 5_000,
         });
       },
       {
-        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        // Header tap plus activity-screen postcondition. Outer budget stays 45s.
         maxRetries: 15,
         timeout: 45000,
         description: 'Tap Activity Button',
