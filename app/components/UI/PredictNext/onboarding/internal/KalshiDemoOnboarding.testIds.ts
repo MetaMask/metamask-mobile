@@ -1,0 +1,16 @@
+export const KalshiDemoOnboardingTestIds = {
+  SHEET: 'kalshi-demo-onboarding-sheet',
+  EMAIL_INPUT: 'kalshi-demo-onboarding-email',
+  CODE_INPUT: 'kalshi-demo-onboarding-code',
+  CONTINUE: 'kalshi-demo-onboarding-continue',
+  NOT_NOW: 'kalshi-demo-onboarding-not-now',
+  VERIFY: 'kalshi-demo-onboarding-verify',
+  RESEND: 'kalshi-demo-onboarding-resend',
+  WORKING: 'kalshi-demo-onboarding-working',
+  WALLET_ADDRESS: 'kalshi-demo-onboarding-wallet-address',
+  ACTIVATE: 'kalshi-demo-onboarding-activate',
+  DONE: 'kalshi-demo-onboarding-done',
+  MESSAGE: 'kalshi-demo-onboarding-message',
+  TRY_AGAIN: 'kalshi-demo-onboarding-try-again',
+  CLOSE: 'kalshi-demo-onboarding-close',
+} as const;
