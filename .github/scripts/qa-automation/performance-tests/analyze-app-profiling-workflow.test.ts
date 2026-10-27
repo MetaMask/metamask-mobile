@@ -322,7 +322,8 @@ describe('Analyze App Profiling triggers', () => {
     );
     const dm = slackSteps[0];
 
-    expect(workflow.env).toBeUndefined();
+    expect(workflow.env?.SLACK_TARGET).toBeUndefined();
+    expect(workflow.env?.SLACK_PERFORMANCE_TARGET).toBeUndefined();
     expect(notify.needs).toStrictEqual([
       'analyze',
       'upload-scenario-profiles',
