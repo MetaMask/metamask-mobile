@@ -262,6 +262,7 @@ const SocialV1ViewContent: React.FC = () => {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    clearAppliedFilters,
     setLeaderboardType,
   } = useSocialShellFilters();
   const [filterScreen, filterTab] =
@@ -782,6 +783,9 @@ const SocialV1ViewContent: React.FC = () => {
                           appliedFilters={applied.leaderboard}
                           onOpenFilters={handleOpenLeaderboardFilters}
                           isFilterActive={hasActiveFilters('leaderboard')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('leaderboard')
+                          }
                           onTypeChange={setLeaderboardType}
                         />
                       ) : tab === 'live' ? (
@@ -793,6 +797,7 @@ const SocialV1ViewContent: React.FC = () => {
                           onCopyTrade={handleCopyTrade}
                           onOpenFilters={handleOpenLiveFilters}
                           isFilterActive={hasActiveFilters('live')}
+                          onClearFilters={() => clearAppliedFilters('live')}
                           appliedFilters={applied.live}
                         />
                       ) : (
@@ -815,6 +820,9 @@ const SocialV1ViewContent: React.FC = () => {
                               : undefined
                           }
                           isFilterActive={hasActiveFilters('following')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('following')
+                          }
                           appliedFilters={
                             tab === 'following' ? applied.following : undefined
                           }

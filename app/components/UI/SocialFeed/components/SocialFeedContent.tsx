@@ -96,6 +96,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   title,
   renderHeader,
   filterPost,
+  emptyState,
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
@@ -142,7 +143,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
-        <SocialFeedPlaceholder state={state} />
+        <SocialFeedPlaceholder state={state} emptyState={emptyState} />
         {posts.length > 0 ? (
           <SocialV1FeedPostList
             posts={posts}

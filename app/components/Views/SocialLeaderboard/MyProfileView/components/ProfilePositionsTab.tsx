@@ -109,12 +109,19 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
           testID={MyProfileViewSelectorsIDs.POSITIONS_ERROR}
         >
           <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
+            variant={TextVariant.HeadingSm}
+            fontWeight={FontWeight.Bold}
             color={TextColor.TextDefault}
             twClassName="text-center"
           >
             {strings('social_leaderboard.feed.error.title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.feed.error.description')}
           </Text>
           <Button
             variant={ButtonVariant.Secondary}
