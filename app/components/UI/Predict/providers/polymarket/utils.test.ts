@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -3199,7 +3198,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3256,7 +3254,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
       marketId: 'market-1',
@@ -3337,7 +3334,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3501,7 +3497,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       });
@@ -3865,7 +3860,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });

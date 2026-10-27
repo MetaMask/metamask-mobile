@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import {
   NavigationProp,
   RouteProp,
@@ -166,7 +165,6 @@ interface MockPreview {
   fees?: MockFees;
   originalFees?: MockFees;
   feePolicy?: {
-    discountType: DiscountType;
     builderCode: string;
   };
 }
@@ -705,7 +703,6 @@ describe('PredictSellPreview', () => {
         },
         originalFees: mockFees,
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       };

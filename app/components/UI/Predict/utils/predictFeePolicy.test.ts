@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import type {
   PredictBenefitUsage,
   SubscriptionBenefitsResponse,
@@ -38,7 +37,6 @@ describe('Predict fee policy', () => {
         benefits: createBenefits(),
       }),
     ).toEqual({
-      discountType: DiscountType.SUBSCRIPTION,
       builderCode: 'predict-pro-builder',
     });
   });
@@ -57,7 +55,9 @@ describe('Predict fee policy', () => {
       }),
     });
 
-    expect(availablePolicy?.discountType).toBe(DiscountType.SUBSCRIPTION);
+    expect(availablePolicy).toEqual({
+      builderCode: 'predict-pro-builder',
+    });
     expect(exhaustedPolicy).toBeUndefined();
   });
 

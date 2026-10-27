@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { query } from '@metamask/controller-utils';
 import { hmacSha256 } from '@metamask/cryptography/hmac';
@@ -2397,8 +2396,7 @@ export async function calculateFees({
     feeCollection,
     marketFeeWaived,
     userBetAmount,
-    waiveMetamaskServiceFee:
-      feePolicy?.discountType === DiscountType.SUBSCRIPTION,
+    waiveMetamaskServiceFee: Boolean(feePolicy),
   });
 }
 
@@ -2944,10 +2942,7 @@ export const previewOrder = async (
     },
   };
 
-  if (
-    feePolicy?.discountType === DiscountType.SUBSCRIPTION &&
-    originalServiceFees
-  ) {
+  if (feePolicy && originalServiceFees) {
     orderPreview.originalFees = {
       ...originalServiceFees,
       marketFee,

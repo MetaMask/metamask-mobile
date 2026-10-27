@@ -7,8 +7,6 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { DiscountType } from '@metamask/bridge-controller';
-
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
 import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
@@ -1681,7 +1679,6 @@ describe('PredictController', () => {
           } as NonNullable<OrderPreview['fees']>;
           const preview = createMockOrderPreview({
             feePolicy: {
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             },
             fees: {
@@ -1752,7 +1749,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toEqual({
@@ -1821,7 +1817,6 @@ describe('PredictController', () => {
             });
             const preview = createMockOrderPreview({
               feePolicy: {
-                discountType: DiscountType.SUBSCRIPTION,
                 builderCode: 'predict-pro-builder',
               },
               fees: waivedFees,
@@ -1835,7 +1830,6 @@ describe('PredictController', () => {
             expect(submittedPreview.fees).toEqual(waivedFees);
             expect(submittedPreview.originalFees).toEqual(standardFees);
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
           },
@@ -1914,7 +1908,6 @@ describe('PredictController', () => {
         } as NonNullable<OrderPreview['fees']>;
         const preview = createMockOrderPreview({
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           fees: waivedFees,
@@ -1970,7 +1963,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toEqual({
@@ -2028,7 +2020,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toBeUndefined();
@@ -10202,7 +10193,6 @@ describe('PredictController', () => {
             expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),
@@ -10296,7 +10286,6 @@ describe('PredictController', () => {
             expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),
@@ -10405,7 +10394,6 @@ describe('PredictController', () => {
             ).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),

@@ -631,7 +631,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             loading={isPayFeesLoading}
             total={total}
             originalTotal={originalFeeBreakdown?.total}
-            feePolicyDiscountType={preview?.feePolicy?.discountType}
+            feePolicy={preview?.feePolicy}
             rewardsFeeAmountUsd={rewardsFeeAmount}
             rewardsLoadingOverride={isUserChangeTriggeringCalculation}
             handleFeesInfoPress={handleFeesInfoPress}
@@ -697,8 +697,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           depositFee={feeBreakdown.depositFee}
           sharePrice={
             preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
