@@ -312,6 +312,10 @@ export class PredictAnalytics {
       ...(analyticsProperties.outcome && {
         [PredictEventProperties.OUTCOME]: analyticsProperties.outcome,
       }),
+      ...(analyticsProperties.outcomeVersion && {
+        [PredictEventProperties.OUTCOME_VERSION]:
+          analyticsProperties.outcomeVersion,
+      }),
       ...(completionDuration !== undefined && {
         [PredictEventProperties.COMPLETION_DURATION]: completionDuration,
       }),

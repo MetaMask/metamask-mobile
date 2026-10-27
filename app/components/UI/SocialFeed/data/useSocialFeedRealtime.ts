@@ -161,6 +161,17 @@ export const useSocialFeedRealtime = (
     setCatchUpVersion((version) => version + 1);
   }, []);
 
+  // Events the old filter rejected were dropped, so widening it needs the
+  // server rows again.
+  const previousFilterPostRef = useRef(filterPost);
+  useEffect(() => {
+    if (previousFilterPostRef.current === filterPost) {
+      return;
+    }
+    previousFilterPostRef.current = filterPost;
+    markCatchUp();
+  }, [filterPost, markCatchUp]);
+
   /** Applies one event to the store. Returns whether the rows changed. */
   const applyEvent = useCallback(
     (event: SocialFeedEvent, animate: boolean): boolean => {
