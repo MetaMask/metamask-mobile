@@ -3,8 +3,32 @@ import type {
   Profile,
   XProfile,
 } from '@metamask/profile-controller';
+import { parseCaipAccountId, type CaipAccountId } from '@metamask/utils';
 import { createSelector } from 'reselect';
 import type { RootState } from '../reducers';
+
+/**
+ * Returns the first EVM address among a profile's linked CAIP accounts.
+ *
+ * @param linkedAddresses - CAIP-10 account ids linked to the profile.
+ * @returns The EVM address, or null when none is linked.
+ */
+export const getLinkedEvmAddress = (
+  linkedAddresses: CaipAccountId[],
+): string | null => {
+  for (const linkedAddress of linkedAddresses) {
+    try {
+      const { address, chainId } = parseCaipAccountId(linkedAddress);
+      if (chainId.startsWith('eip155:')) {
+        return address;
+      }
+    } catch {
+      // Ignore unsupported linked account formats.
+    }
+  }
+
+  return null;
+};
 
 /** Gets the ProfileController state from engine.backgroundState. */
 export const selectProfileControllerState = (
@@ -18,6 +42,26 @@ export const selectProfileControllerProfile = createSelector(
     const profile = state?.profile;
     return profile?.profileId ? profile : undefined;
   },
+);
+
+/**
+ * Gets the EVM wallet linked during social profile onboarding, or null.
+ */
+export const selectProfileControllerLinkedEvmAddress = createSelector(
+  selectProfileControllerProfile,
+  (profile): string | null =>
+    profile ? getLinkedEvmAddress(profile.linkedAddresses) : null,
+);
+
+/**
+ * Whether an existing social profile has disabled trading activity sharing.
+ *
+ * A missing profile is not private: callers use that state to preserve the
+ * one-time Create profile prompt.
+ */
+export const selectIsProfileTradingActivityPrivate = createSelector(
+  selectProfileControllerProfile,
+  (profile): boolean => Boolean(profile?.tradingPrivacy === 'private'),
 );
 
 /**

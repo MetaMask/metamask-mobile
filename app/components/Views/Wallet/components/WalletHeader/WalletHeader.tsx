@@ -38,7 +38,9 @@ import {
 import WalletHeaderInterimActions, {
   WalletHeaderMenuButton,
 } from './WalletHeaderInterimActions';
-import WalletHeaderProfileAvatar from './WalletHeaderProfileAvatar';
+import WalletHeaderProfileAvatar, {
+  SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER,
+} from './WalletHeaderProfileAvatar';
 import WalletHeaderAccountPickerRow from './WalletHeaderAccountPickerRow';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { createAccountSelectorNavDetails } from '../../../AccountSelector';
@@ -250,7 +252,7 @@ const WalletHeader = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="gap-1 px-3"
+            twClassName="gap-1 pl-4 pr-3"
           >
             <Text
               variant={TextVariant.HeadingSm}
@@ -299,17 +301,20 @@ const WalletHeader = ({
         twClassName="h-14 px-3"
       >
         <CapsuleGlass twClassName="h-10 w-10 shrink-0 justify-center">
-          <ButtonIcon
-            iconName={MMDSIconName.UserCircle}
-            iconProps={{ color: MMDSIconColor.IconDefault }}
-            size={ButtonIconSize.Md}
-            onPress={handleProfilePress}
+          <ButtonBase
+            onPress={() => handleProfilePress?.()}
             testID={WalletViewSelectorsIDs.PROFILE_BUTTON}
+            accessibilityRole="button"
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.open_profile',
             )}
             hitSlop={touchAreaSlop}
-          />
+            twClassName="h-10 w-10 items-center justify-center rounded-full bg-transparent p-0"
+          >
+            <WalletHeaderProfileAvatar
+              diameter={SOCIAL_HEADER_PROFILE_AVATAR_DIAMETER}
+            />
+          </ButtonBase>
         </CapsuleGlass>
         {socialAccountPicker}
         {socialActions}

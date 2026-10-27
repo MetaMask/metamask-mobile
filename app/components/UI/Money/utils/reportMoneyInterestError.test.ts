@@ -121,4 +121,14 @@ describe('reportMoneyInterestError', () => {
 
     expect(mockLoggerError).toHaveBeenCalledTimes(2);
   });
+
+  it('keeps a premium failure after the base since-inception query recovers', () => {
+    const error = createApiError();
+
+    reportMoneyInterestError('since_inception', error, 'premium');
+    clearReportedMoneyInterestError('since_inception');
+    reportMoneyInterestError('since_inception', error, 'premium');
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+  });
 });

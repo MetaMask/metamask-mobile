@@ -1,7 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Image, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -22,9 +26,14 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import type {
+  AppNavigationProp,
+  RootStackParamList,
+} from '../../../../../core/NavigationService/types';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
@@ -32,7 +41,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
-import { getVbaSourceCurrencyForCountry } from '../../../../../util/region/getVbaSourceCurrency';
+import {
+  getVbaSourceCurrencyForCountry,
+  isVbaSourceCurrency,
+  VBA_CHOOSABLE_SOURCE_CURRENCIES,
+} from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import vbaPixLogo from './assets/vba-pix-logo.png';
 import bankTransferImage from '../../../../../images/bank-transfer.png';
@@ -43,7 +56,28 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import {
+  AccountCreateRegistrationError,
+  ACCOUNT_CREATE_ERROR_DESTINATION,
+  getAccountCreateFiatFailureResult,
+  getAccountCreateFailureLogFields,
+  logAccountCreateFailure,
+} from './accountCreateError';
+import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -55,6 +89,7 @@ export const VbaDetailsSelectorsIDs = {
   HEADER: 'vba-details-header',
   BACK_BUTTON: 'vba-details-back-button',
   LOGO: 'vba-details-logo',
+  TITLE: 'vba-details-title',
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
   PIX_KEY: 'vba-details-pix-key',
@@ -65,8 +100,6 @@ export const VbaDetailsSelectorsIDs = {
   HELPER_TEXT: 'vba-details-helper-text',
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
-  SETUP_ERROR: 'vba-details-setup-error',
-  RETRY_BUTTON: 'vba-details-retry-button',
   DEBUG_BUTTON: 'vba-details-debug-button',
 } as const;
 
@@ -74,32 +107,13 @@ interface AutorampCursor {
   id: string;
   walletAddress: string;
   status: string;
+  depositRailsSummary?: { currency?: string };
 }
-
-interface PixDepositInstructions {
-  brCode: string;
-  instruction: string;
-  pixKey?: string;
-}
-
-interface UsBankDepositInstructions {
-  accountHolder: string;
-  routingNumber: string;
-  accountNumber: string;
-  bankName: string;
-}
-
-type DepositInstructions =
-  | ({ type: 'Pix' } & PixDepositInstructions)
-  | ({ type: 'UsBank' } & UsBankDepositInstructions);
 
 interface DepositNeoBank {
-  getDepositInstructions?: (
+  getDepositInstructions: (
     autorampId: string,
-  ) => Promise<DepositInstructions | null>;
-  getPixDepositInstructions?: (
-    autorampId: string,
-  ) => Promise<PixDepositInstructions | null>;
+  ) => Promise<AutorampDepositInstructions | null>;
   listAutorampTransactions?: (
     autorampId: string,
   ) => Promise<AutorampTransactionSummary[]>;
@@ -123,20 +137,8 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
-// ramps-controller releases before 27.1 only expose the PIX reader.
-const loadDepositInstructions = async (
-  neoBank: DepositNeoBank,
-  autorampId: string,
-): Promise<DepositInstructions | null> => {
-  if (neoBank.getDepositInstructions) {
-    return neoBank.getDepositInstructions(autorampId);
-  }
-  const pix = await neoBank.getPixDepositInstructions?.(autorampId);
-  return pix?.brCode ? { type: 'Pix', ...pix } : null;
-};
-
 const buildDetailRows = (
-  instructions: DepositInstructions | null,
+  instructions: AutorampDepositInstructions | null,
 ): DetailRow[] => {
   if (instructions?.type === 'UsBank') {
     return [
@@ -204,53 +206,136 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const { regionCurrencies, regionOverride } = useSelector(
-    selectMoneyMovementNeobank,
-  );
-  const sourceCurrency = getVbaSourceCurrencyForCountry(
-    regionOverride ?? location,
+  const {
+    chooseCurrency,
     regionCurrencies,
-  );
+    regions,
+    defaultCurrency,
+    regionOverride,
+  } = useSelector(selectMoneyMovementNeobank);
+  const effectiveLocation = regionOverride ?? location;
+  // With chooseCurrency on, only the picked currency may create an account.
+  const regionCurrency = chooseCurrency
+    ? undefined
+    : getVbaSourceCurrencyForCountry(
+        effectiveLocation,
+        regionCurrencies,
+        regions,
+        defaultCurrency,
+      );
+  const requestedCurrency = route.params?.sourceCurrency;
+  // EUR stays out until that deposit layout exists. Ignore anything else too.
+  const pickedCurrency =
+    isVbaSourceCurrency(requestedCurrency) &&
+    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
+      ? requestedCurrency
+      : undefined;
+  const sourceCurrency = pickedCurrency ?? regionCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
-  const [instructions, setInstructions] = useState<DepositInstructions | null>(
-    null,
-  );
+  const [instructions, setInstructions] =
+    useState<AutorampDepositInstructions | null>(null);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
-      ? (findUsableAutoramp(readAutoramps(), walletAddress)?.status ?? null)
+      ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+          ?.status ?? null)
       : null,
   );
   const [transactionStatus, setTransactionStatus] = useState<string | null>(
     null,
   );
   const [loadError, setLoadError] = useState(false);
-  const [setupFailed, setSetupFailed] = useState(false);
-  const [isTerminal, setIsTerminal] = useState(false);
+  const [awaitingProviderApproval, setAwaitingProviderApproval] =
+    useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
+  const pixFetchTraceIdRef = useRef<string | null>(null);
+  const pixFetchTraceSettledRef = useRef(false);
+  const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+  const accountKeyRef = useRef(accountKey);
+  const [stateAccountKey, setStateAccountKey] = useState(accountKey);
+
+  const finishPixFetchTrace = useCallback(
+    (
+      success: boolean,
+      reason?: VbaCufEndReason,
+      expectedTraceId = pixFetchTraceIdRef.current,
+    ) => {
+      const traceId = pixFetchTraceIdRef.current;
+      if (!traceId || traceId !== expectedTraceId) {
+        return;
+      }
+      pixFetchTraceIdRef.current = null;
+      pixFetchTraceSettledRef.current = true;
+      if (reason) {
+        endVbaCufChildTrace(traceId, success, reason);
+      } else {
+        endVbaCufChildTrace(traceId, success);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      queueMicrotask(() => {
+        if (!isMountedRef.current) {
+          finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+        }
+      });
     };
-  }, []);
+  }, [finishPixFetchTrace]);
 
   const refreshDeposit = useCallback(
     async (replaceTerminal = false) => {
       if (!walletAddress) {
         return;
       }
+      const requestKey = `${walletAddress}:${sourceCurrency ?? ''}`;
+      const stillCurrent = () =>
+        isMountedRef.current && accountKeyRef.current === requestKey;
       const ramps = Engine.context.RampsController as DepositRamps;
-      let autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+      let autoramp = findUsableAutoramp(
+        readAutoramps(),
+        walletAddress,
+        sourceCurrency,
+      );
+      // An Approved account from before currency was stored must be refreshed
+      // before it can satisfy this fiat. Otherwise a BRL account is reused for USD.
+      if (
+        autoramp &&
+        sourceCurrency &&
+        autoramp.status === 'Approved' &&
+        !autoramp.depositRailsSummary?.currency &&
+        ramps.refreshAutoramp
+      ) {
+        await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
+      }
       if (!autoramp) {
         if (!sourceCurrency) {
-          setSetupFailed(true);
+          if (!stillCurrent()) {
+            return;
+          }
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+          );
           return;
         }
         const outcome = await ensureMusdAutoramp(
@@ -258,34 +343,76 @@ const VbaDetails = () => {
           sourceCurrency,
           { replaceTerminal },
         );
-        if (!isMountedRef.current) {
+        if (!stillCurrent()) {
           return;
         }
-        autoramp = findUsableAutoramp(readAutoramps(), walletAddress);
+        if (outcome === 'failed') {
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            undefined,
+            undefined,
+            sourceCurrency,
+            true,
+          );
+          return;
+        }
+        if (outcome === 'terminal') {
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            undefined,
+            undefined,
+            sourceCurrency,
+          );
+          return;
+        }
+        autoramp = findUsableAutoramp(
+          readAutoramps(),
+          walletAddress,
+          sourceCurrency,
+        );
         if (!autoramp) {
-          setSetupFailed(outcome === 'failed');
-          setIsTerminal(outcome === 'terminal');
-          pollingDoneRef.current = outcome === 'terminal';
+          setAwaitingProviderApproval(outcome === 'awaiting_provider');
           setAutorampId(null);
           setAutorampStatus(null);
           setInstructions(null);
           return;
         }
       }
-      setSetupFailed(false);
+      if (!stillCurrent()) {
+        return;
+      }
+      setAwaitingProviderApproval(false);
 
       let status = autoramp.status;
       if (status !== 'Approved' && ramps.refreshAutoramp) {
         const refreshed = await ramps.refreshAutoramp(autoramp.id);
+        if (!stillCurrent()) {
+          return;
+        }
         status = refreshed.status;
+      }
+      const accountCreateFailure = getAccountCreateFiatFailureResult(status);
+      if (accountCreateFailure) {
+        throw new AccountCreateRegistrationError(accountCreateFailure);
       }
       setAutorampId(autoramp.id);
       setAutorampStatus(status);
       const terminal = isTerminalStatus(status);
-      setIsTerminal(terminal);
       if (terminal) {
         pollingDoneRef.current = true;
+        finishPixFetchTrace(false, VBA_CUF_END_REASON.ERROR);
         setInstructions(null);
+        navigateToVbaOnboardingDestination(
+          navigation,
+          ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+          undefined,
+          undefined,
+          sourceCurrency,
+        );
         return;
       }
       if (status !== 'Approved') {
@@ -299,18 +426,46 @@ const VbaDetails = () => {
         return;
       }
 
-      // Fetch details on their own so a flaky transaction poll cannot hide them.
+      // One logical trace covers all retries so polling cannot flood Sentry.
+      if (!pixFetchTraceIdRef.current && !pixFetchTraceSettledRef.current) {
+        pixFetchTraceIdRef.current = startVbaCufChildTrace(
+          TraceName.VbaPixFetch,
+        );
+      }
+      const requestTraceId = pixFetchTraceIdRef.current;
       try {
-        const details = await loadDepositInstructions(neoBank, autoramp.id);
+        const details = await neoBank.getDepositInstructions(autoramp.id);
+        if (!stillCurrent()) {
+          finishPixFetchTrace(
+            false,
+            isMountedRef.current
+              ? VBA_CUF_END_REASON.SUPERSEDED
+              : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
+          );
+          return;
+        }
         if (details) {
+          finishPixFetchTrace(true, undefined, requestTraceId);
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
           pollingDoneRef.current = !debugEnabled;
         }
       } catch (error) {
+        if (!stillCurrent()) {
+          finishPixFetchTrace(
+            false,
+            isMountedRef.current
+              ? VBA_CUF_END_REASON.SUPERSEDED
+              : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
+          );
+          return;
+        }
         Logger.error(error as Error, {
           message: 'VbaDetails: failed to load deposit instructions',
         });
+        throw error;
       }
 
       if (debugEnabled && neoBank.listAutorampTransactions) {
@@ -328,8 +483,37 @@ const VbaDetails = () => {
         }
       }
     },
-    [debugEnabled, sourceCurrency, walletAddress],
+    [
+      debugEnabled,
+      finishPixFetchTrace,
+      navigation,
+      sourceCurrency,
+      walletAddress,
+    ],
   );
+
+  useEffect(() => {
+    const nextKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+    if (accountKeyRef.current === nextKey) {
+      return;
+    }
+    accountKeyRef.current = nextKey;
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.SUPERSEDED);
+    pixFetchTraceSettledRef.current = false;
+    setStateAccountKey(nextKey);
+    // A reused route or an account switch must not keep the previous details.
+    pollingDoneRef.current = false;
+    setInstructions(null);
+    setLoadError(false);
+    setAwaitingProviderApproval(false);
+    setAutorampId(null);
+    setAutorampStatus(
+      walletAddress
+        ? (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+            ?.status ?? null)
+        : null,
+    );
+  }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -339,17 +523,36 @@ const VbaDetails = () => {
     let cancelled = false;
     let inFlight = false;
     const tick = async () => {
+      const requestKey = accountKeyRef.current;
       if (cancelled || inFlight || pollingDoneRef.current) {
         return;
       }
       inFlight = true;
       try {
         await refreshDeposit();
-        if (!cancelled) {
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(false);
         }
       } catch (error) {
-        if (!cancelled) {
+        if (error instanceof AccountCreateRegistrationError) {
+          if (cancelled || accountKeyRef.current !== requestKey) {
+            return;
+          }
+          const destinationId = logAccountCreateFailure(error.result);
+          if (!destinationId) {
+            return;
+          }
+          pollingDoneRef.current = true;
+          navigateToVbaOnboardingDestination(
+            navigation,
+            destinationId,
+            undefined,
+            getAccountCreateFailureLogFields(error.result),
+            sourceCurrency,
+          );
+          return;
+        }
+        if (!cancelled && accountKeyRef.current === requestKey) {
           setLoadError(true);
         }
         Logger.error(error as Error, {
@@ -372,10 +575,9 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, networkTier, refreshDeposit]);
+  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
 
   const isApproved = autorampStatus === 'Approved';
-  const hasSetupError = (setupFailed || isTerminal) && !isApproved;
 
   useEffect(() => {
     if (!loadError || !isApproved || instructions) {
@@ -386,42 +588,25 @@ const VbaDetails = () => {
     );
   }, [instructions, isApproved, loadError]);
 
-  useEffect(() => {
-    if (!hasSetupError) {
-      return;
-    }
-    AccessibilityInfo.announceForAccessibility(
-      strings('virtual_bank_account.vba_details.setup_error'),
-    );
-  }, [hasSetupError]);
-
-  const handleRetrySetup = useCallback(() => {
-    pollingDoneRef.current = false;
-    setSetupFailed(false);
-    setIsTerminal(false);
-    refreshDeposit(true).catch((error: unknown) => {
-      Logger.error(error as Error, {
-        message: 'VbaDetails: retry setup failed',
-      });
-      setSetupFailed(true);
-    });
-  }, [refreshDeposit]);
-
   const handleDone = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [navigation]);
+  }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
     }
 
     handleDone();
-  }, [handleDone, navigation]);
+  }, [finishPixFetchTrace, handleDone, navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -444,19 +629,44 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const hasCurrentAccountState = stateAccountKey === accountKey;
+  let accountDetailsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (loadError) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (rows.length > 0) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+    resetKey: accountKey,
+    enabled: isApproved && hasCurrentAccountState,
+    contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
+    contentState: accountDetailsContentState,
+  });
+  useEffect(() => {
+    if (hasCurrentAccountState && rows.length > 0) {
+      endVbaCufJourney(true);
+    }
+  }, [hasCurrentAccountState, rows.length]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');
 
   const skeletonMotion = hardwareTier === 'LOW' ? { autoPlay: false } : {};
-  const errorMessage = setupFailed
-    ? strings('virtual_bank_account.vba_details.setup_error')
-    : loadError
-      ? strings('virtual_bank_account.vba_details.load_error')
-      : null;
+  const errorMessage = loadError
+    ? strings('virtual_bank_account.vba_details.load_error')
+    : null;
 
-  if (!isApproved && !hasSetupError) {
-    return <VbaCreatingAccount onBack={handleDone} />;
+  if (!isApproved) {
+    return (
+      <VbaCreatingAccount
+        onBack={handleDone}
+        awaitingProviderApproval={awaitingProviderApproval}
+      />
+    );
   }
 
   return (
@@ -484,7 +694,11 @@ const VbaDetails = () => {
             testID={VbaDetailsSelectorsIDs.LOGO}
           />
         </Box>
-        <Text variant={TextVariant.HeadingLg} twClassName="mt-6 text-center">
+        <Text
+          variant={TextVariant.HeadingLg}
+          twClassName="mt-6 text-center"
+          testID={VbaDetailsSelectorsIDs.TITLE}
+        >
           {strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_title'
@@ -536,22 +750,16 @@ const VbaDetails = () => {
               </Box>
             ))}
           </Box>
-        ) : hasSetupError || errorMessage ? (
+        ) : errorMessage ? (
           <Text
             variant={TextVariant.BodyMd}
             color={TextColor.ErrorDefault}
             twClassName="mt-6 text-center"
-            testID={
-              hasSetupError
-                ? VbaDetailsSelectorsIDs.SETUP_ERROR
-                : VbaDetailsSelectorsIDs.LOAD_ERROR
-            }
+            testID={VbaDetailsSelectorsIDs.LOAD_ERROR}
             accessibilityRole="alert"
             accessibilityLiveRegion="polite"
           >
-            {hasSetupError
-              ? strings('virtual_bank_account.vba_details.setup_error')
-              : errorMessage}
+            {errorMessage}
           </Text>
         ) : (
           <Box
@@ -611,17 +819,6 @@ const VbaDetails = () => {
           >
             {strings('virtual_bank_account.vba_details.helper_text')}
           </Text>
-        ) : null}
-        {hasSetupError ? (
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleRetrySetup}
-            testID={VbaDetailsSelectorsIDs.RETRY_BUTTON}
-          >
-            {strings('virtual_bank_account.vba_details.retry')}
-          </Button>
         ) : null}
         {debugEnabled ? (
           <Button

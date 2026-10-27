@@ -2,6 +2,7 @@ import {
   selectMoneyAccountDepositEnabledFlag,
   selectMoneyAccountWithdrawEnabledFlag,
   selectMoneyAccountVaultConfig,
+  selectMoneyAccountPremiumVaultConfig,
   selectMoneyAccountDepositQuotePipelineEnabled,
   selectMoneyMovementNeobank,
   isVbaGeoBypassEnabled,
@@ -114,6 +115,8 @@ describe('Money Account feature flag selectors', () => {
       isEnabled: false,
       regions: [],
       regionCurrencies: {},
+      defaultCurrency: undefined,
+      chooseCurrency: false,
       regionOverride: undefined,
     };
     const enabledFlag = {
@@ -139,6 +142,8 @@ describe('Money Account feature flag selectors', () => {
         isEnabled: true,
         regions: ['BR', 'US'],
         regionCurrencies: { BR: 'BRL' },
+        defaultCurrency: undefined,
+        chooseCurrency: false,
         regionOverride: undefined,
       });
     });
@@ -155,6 +160,8 @@ describe('Money Account feature flag selectors', () => {
         isEnabled: true,
         regions: ['US'],
         regionCurrencies: { BR: 'BRL' },
+        defaultCurrency: undefined,
+        chooseCurrency: false,
         regionOverride: undefined,
       });
     });
@@ -167,11 +174,141 @@ describe('Money Account feature flag selectors', () => {
             br: 'brl',
             ' us ': ' usd ',
             DE: 'GBP',
+            FR: 1,
           },
         },
       });
 
       expect(result.regionCurrencies).toEqual({ BR: 'BRL', US: 'USD' });
+    });
+
+    it('fails closed with an empty currency map when it is missing or malformed', () => {
+      const { regionCurrencies: _regionCurrencies, ...flagWithoutCurrencies } =
+        enabledFlag;
+      const withoutMap = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: flagWithoutCurrencies,
+      });
+      const malformedMap = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          regionCurrencies: ['BRL'],
+        },
+      });
+
+      expect(withoutMap.regionCurrencies).toEqual({});
+      expect(malformedMap.regionCurrencies).toEqual({});
+    });
+
+    it('normalizes a br region and a spaced default currency to USD', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          enabled: true,
+          minimumVersion: '0.0.0',
+          regions: ['br'],
+          regionCurrencies: {},
+          defaultCurrency: ' usd ',
+        },
+      });
+
+      expect(result).toEqual({
+        isEnabled: true,
+        regions: ['BR'],
+        regionCurrencies: {},
+        defaultCurrency: 'USD',
+        chooseCurrency: false,
+        regionOverride: undefined,
+      });
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            defaultCurrency: 'brl',
+          },
+        }).defaultCurrency,
+      ).toBe('BRL');
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            defaultCurrency: 'eur',
+          },
+        }).defaultCurrency,
+      ).toBe('EUR');
+    });
+
+    it('rejects gbp, blank, missing, and non-string default currencies', () => {
+      const readDefault = (defaultCurrency: string | number | boolean | null) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+            ...enabledFlag,
+            defaultCurrency,
+          },
+        }).defaultCurrency;
+
+      expect(readDefault('gbp')).toBeUndefined();
+      expect(readDefault('GBP')).toBeUndefined();
+      expect(readDefault('')).toBeUndefined();
+      expect(readDefault('   ')).toBeUndefined();
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+        }).defaultCurrency,
+      ).toBeUndefined();
+      expect(readDefault(null)).toBeUndefined();
+      expect(readDefault(1)).toBeUndefined();
+      expect(readDefault(true)).toBeUndefined();
+    });
+
+    it('does not expose defaultCurrency when the flag is disabled', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          enabled: false,
+          defaultCurrency: 'USD',
+        },
+      });
+
+      expect(result.defaultCurrency).toBeUndefined();
+      expect(result).toEqual(disabled);
+    });
+
+    it('reads chooseCurrency only when it is literally true', () => {
+      const readChooseCurrency = (chooseCurrency: boolean | string) =>
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: { ...enabledFlag, chooseCurrency },
+        }).chooseCurrency;
+
+      expect(readChooseCurrency(true)).toBe(true);
+      expect(readChooseCurrency(false)).toBe(false);
+      expect(readChooseCurrency('true')).toBe(false);
+      expect(
+        selectMoneyMovementNeobank.resultFunc({
+          [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: enabledFlag,
+        }).chooseCurrency,
+      ).toBe(false);
+    });
+
+    it('reads chooseCurrency from a progressive-rollout wrapper', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          name: 'treatment',
+          value: { ...enabledFlag, chooseCurrency: true },
+        },
+      });
+
+      expect(result.chooseCurrency).toBe(true);
+    });
+
+    it('turns chooseCurrency off when the flag is disabled', () => {
+      const result = selectMoneyMovementNeobank.resultFunc({
+        [MONEY_MOVEMENT_NEOBANK_FLAG_KEY]: {
+          ...enabledFlag,
+          enabled: false,
+          chooseCurrency: true,
+        },
+      });
+
+      expect(result).toEqual(disabled);
     });
 
     it('uppercases and trims regionOverride without limiting it to a currency', () => {
@@ -605,6 +742,42 @@ describe('Money Account feature flag selectors', () => {
       });
 
       expect(result).toEqual(remoteConfig);
+    });
+  });
+
+  describe('selectMoneyAccountPremiumVaultConfig', () => {
+    const premiumConfig = {
+      chainId: '0x8f',
+      boringVault: '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7',
+      tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
+      accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
+      lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
+      underlyingToken: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+    };
+
+    it('returns the parsed premium vault config when the flag is valid', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: premiumConfig,
+      });
+
+      expect(result).toEqual(premiumConfig);
+    });
+
+    it('returns undefined when the premium vault flag is missing', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({});
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when the premium vault flag is malformed', () => {
+      const result = selectMoneyAccountPremiumVaultConfig.resultFunc({
+        moneyAccountPremiumVaultConfig: {
+          ...premiumConfig,
+          lensAddress: '0x0',
+        },
+      });
+
+      expect(result).toBeUndefined();
     });
   });
 });

@@ -163,3 +163,25 @@ jobs:
       source_fingerprint: ${{ inputs.source_fingerprint }}
       collect_hermes_cpuprofiles: true
     secrets: inherit
+
+  # Runs after a failed suite too, so a manual run can report that there is
+  # nothing to analyze.
+  analyze-app-profiling:
+    name: Analyze Hermes CPU profiles
+    needs: [scheduled-e2e, manual]
+    if: >-
+      always() &&
+      (needs.scheduled-e2e.result != 'skipped' || needs.manual.result != 'skipped')
+    permissions:
+      contents: read
+      actions: read # download this run's profile artifacts
+      pull-requests: read
+      issues: read # issue filing is paused; Monday report only lists existing issues
+    uses: ./.github/workflows/analyze-app-profiling.yml
+    with:
+      performance_run_id: ${{ github.run_id }}
+      performance_event: ${{ github.event_name }}
+      performance_result: ${{ github.event_name == 'schedule' && needs.scheduled-e2e.result || needs.manual.result }}
+    secrets:
+      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

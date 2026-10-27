@@ -67,6 +67,25 @@ describe('ProfilePositionsTab', () => {
     jest.clearAllMocks();
   });
 
+  it('insets Open and Closed filters to the same depth as profile posts', () => {
+    renderWithProvider(
+      <ProfilePositionsTab
+        positions={[openSpot]}
+        isLoading={false}
+        error={null}
+        isClosed={false}
+        filter="all"
+        onFilterChange={onFilterChange}
+        onPositionPress={onPositionPress}
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toHaveStyle({ paddingTop: 16 });
+  });
+
   it('renders Tokens then Perpetuals sections for All', () => {
     renderWithProvider(
       <ProfilePositionsTab

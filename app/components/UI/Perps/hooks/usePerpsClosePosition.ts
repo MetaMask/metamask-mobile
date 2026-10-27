@@ -72,6 +72,7 @@ interface ClosePositionParams {
 // close screen dismisses before the request settles, so screen state can't guard it.
 const closesInFlight = new Set<string>();
 const closeLockListeners = new Set<() => void>();
+const SENTRY_CLOSE_POSITION_ERROR_MESSAGE = 'Perps close position failed';
 let closeLockVersion = 0;
 
 const getCloseKey = (
@@ -247,6 +248,7 @@ export const usePerpsClosePosition = (
       // Guard against double-toasting: the { success: false } branch shows the
       // failure toast then throws, so the catch must not show it again.
       let failureToastShown = false;
+      let rawCloseError: string | undefined;
 
       // Confirmation CUF (market close): ends when the stream shows the
       // position reduced or absent. Limit closes rest until filled, so their
@@ -438,6 +440,7 @@ export const usePerpsClosePosition = (
             error: failureInput,
             fallbackMessage: strings('perps.close_position.error_unknown'),
           });
+          rawCloseError = result.error ?? errorMessage;
 
           // Rejected request, not an exception: classify before the throw so
           // the catch's EXCEPTION end no-ops (matches TPSL/cancel paths).
@@ -491,38 +494,44 @@ export const usePerpsClosePosition = (
           'usePerpsClosePosition: Error closing position',
           closeError,
         );
-        Logger.error(closeError, {
-          tags: {
-            feature: PERPS_CONSTANTS.FeatureName,
-            component: 'usePerpsClosePosition',
-            action: 'close_position',
-            operation: 'position_management',
-          },
-          context: {
-            name: 'usePerpsClosePosition',
-            data: {
-              symbol: position.symbol,
-              positionSize: position.size,
-              requestedSize: size,
-              orderType,
-              isFullClose,
-              limitPrice,
-              marketPrice,
-              trackingSource: trackingData?.source,
-              tradeAction: trackingData?.tradeAction,
-              inputMethod: trackingData?.inputMethod,
-              totalFee: trackingData?.totalFee,
-              realizedPnl: trackingData?.realizedPnl,
-              receivedAmount: trackingData?.receivedAmount,
-              rawError:
-                err instanceof Error
-                  ? undefined
-                  : err === undefined
-                    ? 'undefined'
-                    : String(err),
+        Logger.error(
+          new Error(SENTRY_CLOSE_POSITION_ERROR_MESSAGE, {
+            cause: closeError,
+          }),
+          {
+            tags: {
+              feature: PERPS_CONSTANTS.FeatureName,
+              component: 'usePerpsClosePosition',
+              action: 'close_position',
+              operation: 'position_management',
+            },
+            context: {
+              name: 'usePerpsClosePosition',
+              data: {
+                symbol: position.symbol,
+                positionSize: position.size,
+                requestedSize: size,
+                orderType,
+                isFullClose,
+                limitPrice,
+                marketPrice,
+                trackingSource: trackingData?.source,
+                tradeAction: trackingData?.tradeAction,
+                inputMethod: trackingData?.inputMethod,
+                totalFee: trackingData?.totalFee,
+                realizedPnl: trackingData?.realizedPnl,
+                receivedAmount: trackingData?.receivedAmount,
+                rawError:
+                  rawCloseError ??
+                  (err instanceof Error
+                    ? err.message
+                    : err === undefined
+                      ? 'undefined'
+                      : String(err)),
+              },
             },
           },
-        });
+        );
         setError(closeError);
 
         // Call error callback

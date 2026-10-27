@@ -1532,6 +1532,7 @@ export const initialStateActivity = () =>
           },
           MoneyAccountController: {
             moneyAccounts: {},
+            defaultMoneyAccountId: null,
           },
           NetworkEnablementController: {
             enabledNetworkMap: {

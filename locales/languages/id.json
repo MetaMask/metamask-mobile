@@ -550,9 +550,7 @@
     "forgot_password_point_2_bold": "dompet Anda,",
     "forgot_password_point_2_1": "Anda dapat mereset dompet saat ini dan mengimpor ulang menggunakan Frasa Pemulihan Rahasia.",
     "reset_wallet": "Reset dompet",
-    "reset_wallet_desc": "Data dompet Anda akan",
-    "reset_wallet_desc_bold": "dihapus secara permanen",
-    "reset_wallet_desc_2": "dari MetaMask di perangkat ini. Tindakan ini tidak dapat dibatalkan.",
+    "reset_wallet_desc": "Data dompet Anda akan dihapus secara permanen dari MetaMask di perangkat ini. Tindakan ini tidak dapat dibatalkan.",
     "reset_wallet_desc_login": "Untuk memulihkan dompet, Anda dapat menggunakan Frasa Pemulihan Rahasia, atau kata sandi akun Google atau Apple. MetaMask tidak memiliki informasi ini.",
     "reset_wallet_desc_srp": "Untuk memulihkan dompet, pastikan Anda memiliki Frasa Pemulihan Rahasia. MetaMask tidak memiliki informasi ini.",
     "reset_wallet_desc_srp_1": "Untuk memulihkan dompet Anda, pastikan Anda memiliki",
@@ -1859,7 +1857,7 @@
     "available_balance": "Saldo tersedia",
     "margin_used": "Margin yang digunakan",
     "gtm_content": {
-      "title": "PERP TELAH HADIR",
+      "title": "Perp telah hadir",
       "title_description": "Posisi long atau short dengan leverage hingga 40x. Danai akun Anda dalam satu klik.",
       "not_now": "Tidak sekarang",
       "try_now": "Mulai"
@@ -9153,7 +9151,7 @@
         "failed": "Konversi mUSD gagal"
       },
       "education": {
-        "heading": "DAPATKAN {{percentage}}% PADA\nSTABLECOIN",
+        "heading": "Dapatkan {{percentage}}% pada stablecoin",
         "description": "Konversikan stablecoin Anda ke mUSD dan dapatkan bonus tahunan sebesar {{percentage}}%.",
         "terms_apply": "Syarat berlaku.",
         "primary_button": "Mulai",
@@ -10986,7 +10984,7 @@
       "payment_creation_error": "Gagal membuat pembayaran. Coba lagi."
     },
     "order_completed": {
-      "title": "KARTU ANDA\nSUDAH DIPESAN",
+      "title": "Kartu Anda sudah dipesan",
       "subtitle": "Kartu akan tiba dalam waktu 4 sampai 6 minggu.",
       "description": "Atur kartu virtual Anda dan tambahkan ke dompet digital untuk mulai mendapatkan pengembalian mUSD.",
       "set_up_card_button": "Atur kartu",
@@ -11029,7 +11027,7 @@
       "try_again": "Coba lagi"
     },
     "card_onboarding": {
-      "title": "Gunakan\ndan Dapatkan",
+      "title": "Gunakan dan dapatkan",
       "description": "Kartu MetaMask merupakan cara cepat dan mudah untuk menggunakan kripto dan mendapatkan pengembalian hingga 3% mUSD.",
       "apply_now_button": "Atur sekarang",
       "login_button": "Masuk",
@@ -11865,7 +11863,7 @@
       "points_from_referrals_label": "Poin dari referensi",
       "referrals_label": "Referensi VIP",
       "tier_benefits_title": "Manfaat tingkatan",
-      "splash_title": "SELAMAT DATANG\nDI GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Selamat datang di Gold Fox Collective",
       "splash_description": "Dapatkan keuntungan eksklusif, fitur-fitur awal, dan reward pilihan. Hanya dengan undangan.",
       "splash_accept_invite": "Terima undangan",
       "splash_not_now": "Tidak sekarang",

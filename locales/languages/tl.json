@@ -550,9 +550,7 @@
     "forgot_password_point_2_bold": "Lihim na Parirala sa Pagbawi,",
     "forgot_password_point_2_1": "maaari mong i-reset ang iyong kasalukuyang wallet at muling i-import gamit ang Lihim na Parirala sa Pagbawi.",
     "reset_wallet": "I-reset ang wallet",
-    "reset_wallet_desc": "Ang iyong data ng wallet ay",
-    "reset_wallet_desc_bold": "permanenteng buburahin",
-    "reset_wallet_desc_2": "sa MetaMask gamit ang device na ito. Hindi ito maaaring bawiin.",
+    "reset_wallet_desc": "Ang iyong data ng wallet ay permanenteng buburahin sa MetaMask gamit ang device na ito. Hindi ito maaaring bawiin.",
     "reset_wallet_desc_login": "Para ibalik ang iyong wallet, maaari mong gamitin ang iyong Lihim na Parirala sa Pagbawi, o ang password ng iyong Google o Apple account. Wala sa MetaMask ang impormasyong ito.",
     "reset_wallet_desc_srp": "Para maibalik ang wallet mo, siguraduhing mayroon ka ng Lihim na Parirala sa Pagbawi (Secret Recovery Phrase) mo. Wala sa MetaMask ang impormasyong ito.",
     "reset_wallet_desc_srp_1": "Para ibalik ang wallet mo, siguraduhing nasa iyo ang",
@@ -1859,7 +1857,7 @@
     "available_balance": "Available na balanse",
     "margin_used": "Nagamit na margin",
     "gtm_content": {
-      "title": "NARITO NA ANG PERPS",
+      "title": "Narito na ang Perps",
       "title_description": "Long o short na may hanggang 40x leverage. Pondohan ang iyong account sa isang click.",
       "not_now": "Hindi sa ngayon",
       "try_now": "Magsimula"
@@ -9153,7 +9151,7 @@
         "failed": "Nabigong palitan ang mUSD"
       },
       "education": {
-        "heading": "MAKAKUHA NG {{percentage}}% SA\nMGA STABLECOIN",
+        "heading": "Makakuha ng {{percentage}}% sa mga stablecoin",
         "description": "I-convert ang mga stablecoin mo sa mUSD at kumita ng {{percentage}}% taunang bonus.",
         "terms_apply": "Nalalapat ang mga tuntunin.",
         "primary_button": "Magsimula",
@@ -10986,7 +10984,7 @@
       "payment_creation_error": "Nabigong lumikha ng pagbabayad. Subukan muli."
     },
     "order_completed": {
-      "title": "NA-ORDER NA\nANG CARD MO",
+      "title": "Na-order na ang card mo",
       "subtitle": "Darating ito sa loob ng 4 hanggang 6 na linggo.",
       "description": "I-set up ang virtual card mo at idagdag ito sa iyong digital wallet para magsimulang makakuha ng ibabalik na mUSD.",
       "set_up_card_button": "I-set up ang card",
@@ -11029,7 +11027,7 @@
       "try_again": "Subukang muli"
     },
     "card_onboarding": {
-      "title": "Gumastos \nat Kumita",
+      "title": "Gumastos at kumita",
       "description": "Ang MetaMask Card ang mabilis at\nmadaling paraan para gastusin ang crypto mo at\nmakakuha ng ibabalik na hanggang 3% mUSD.",
       "apply_now_button": "I-set up ngayon",
       "login_button": "Mag-log in",
@@ -11865,7 +11863,7 @@
       "points_from_referrals_label": "Mga punto mula sa mga referral",
       "referrals_label": "Mga Referral ng VIP",
       "tier_benefits_title": "Mga benepisyo ng tier",
-      "splash_title": "MALIGAYANG PAGDATING\nSA GOLD FOX\nCOLLECTIVE",
+      "splash_title": "Maligayang pagdating sa Gold Fox Collective",
       "splash_description": "I-unlock ang mga eksklusibong perk, mga unang feature, at na-curate na reward. Para sa imbitado lang.",
       "splash_accept_invite": "Tanggapin ang imbitasyon",
       "splash_not_now": "Hindi sa ngayon",

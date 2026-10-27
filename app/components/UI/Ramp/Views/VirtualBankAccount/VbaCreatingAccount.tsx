@@ -12,6 +12,11 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
 
 export const VbaCreatingAccountSelectorsIDs = {
   CONTAINER: 'vba-creating-account-container',
@@ -21,12 +26,26 @@ export const VbaCreatingAccountSelectorsIDs = {
 
 interface VbaCreatingAccountProps {
   onBack: () => void;
+  /** KYC is approved, but the MoonPay customer is not Active yet. */
+  awaitingProviderApproval?: boolean;
 }
 
 /** Shown while the autoramp is being created and until it is Approved. */
-const VbaCreatingAccount = ({ onBack }: VbaCreatingAccountProps) => {
+const VbaCreatingAccount = ({
+  onBack,
+  awaitingProviderApproval = false,
+}: VbaCreatingAccountProps) => {
   const tw = useTailwind();
-  const title = strings('virtual_bank_account.creating_account.title');
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+    contentReady: true,
+  });
+  const title = strings(
+    awaitingProviderApproval
+      ? 'virtual_bank_account.creating_account.awaiting_provider'
+      : 'virtual_bank_account.creating_account.title',
+  );
 
   return (
     <SafeAreaView

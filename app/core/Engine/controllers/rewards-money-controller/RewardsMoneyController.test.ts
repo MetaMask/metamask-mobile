@@ -3,6 +3,7 @@ import {
   RewardsMoneyController,
   getRewardsMoneyControllerDefaultState,
   originTypeScopeKey,
+  summaryScopeKey,
   ledgerScopeKey,
   commissionsScopeKey,
   profileCacheKey,
@@ -26,8 +27,8 @@ import type {
 } from './types';
 
 const mockReferralMe: ReferralMeDto = {
-  role: 'REFERRER',
-  variant: 'REFERRER',
+  roles: ['REFERRER'],
+  ui_variant: 'REFERRER',
   user_type: 'KOL',
   status: 'ACTIVE',
   referral_code: {
@@ -36,16 +37,20 @@ const mockReferralMe: ReferralMeDto = {
     status: 'ACTIVE',
     share_url: null,
   },
+  referral_code_status: 'ACTIVE',
   referred_by: null,
   earn_rates: {
-    revshare_rate_bps: 1000,
     cashback_rate_bps: null,
-    revshare_earning_term_minutes: 525600,
-    cashback_earning_term_minutes: null,
+    cashback_earning_start: null,
+    cashback_earning_end: null,
+    revshare_rate_bps: 1000,
+    revshare_earning_start: null,
+    revshare_earning_end: null,
   },
   // No assertion reads copy keys; the server always sends all of them.
   localized_text: {} as ReferralLocalizedText,
   invite_hero: null,
+  excluded_regions: [],
 };
 
 const mockFunnel: ReferralFunnelDto = {
@@ -73,20 +78,21 @@ const mockSummary: EarningsSummaryDto = {
   blocked: '0',
   pending: '0',
   claimed: '50',
-  forfeited: '0',
+  voided: '0',
+  pairing_pending: false,
   minimum_musd_base_units: '1000000',
   self_earned: {
     lifetime: '100',
     pending: '0',
     claimed: '50',
-    forfeited: '0',
+    voided: '0',
     by_claim_family: {},
   },
   earned_by_others: {
     lifetime: '0',
     pending: '0',
     claimed: '0',
-    forfeited: '0',
+    voided: '0',
     by_claim_family: {},
   },
 };
@@ -98,15 +104,17 @@ const mockLedgerPage: EarningsLedgerPageDto = {
       id: 'earn-1',
       earning_origin_type: 'SWAPS_FEE_CASHBACK',
       musd_amount: '10',
+      voided_musd_amount: '0',
       fee_amount_usd: '1',
       entry_count: 1,
       transaction_hash: null,
       chain_id: null,
       ledger_timestamp: '2026-09-10T00:00:00.000Z',
       claim_status: 'UNCLAIMED',
-      claim_expires_at: null,
+      claimable_at: '2026-09-10T00:00:00.000Z',
       swaps_source: null,
       perps_source: null,
+      predict_source: null,
     },
     {
       type: 'claim',
@@ -118,6 +126,7 @@ const mockLedgerPage: EarningsLedgerPageDto = {
       status: 'SETTLED',
       ledger_timestamp: '2026-09-08T14:22:00.000Z',
       settled_at: '2026-09-08T15:00:00.000Z',
+      payout_method: 'VOUCHER',
     },
   ],
   has_more: false,
@@ -149,6 +158,7 @@ const mockClaim: ClaimDto = {
   released_at: null,
   status: 'AUTHORIZED',
   route: 'SELF',
+  payout_method: 'VOUCHER',
   created_at: '2026-01-01T00:00:00.000Z',
   updated_at: '2026-01-01T00:00:00.000Z',
 };
@@ -179,6 +189,30 @@ describe('originTypeScopeKey', () => {
     expect(
       originTypeScopeKey(['PERPS_FEE_CASHBACK', 'SWAPS_FEE_CASHBACK']),
     ).toBe(originTypeScopeKey(['SWAPS_FEE_CASHBACK', 'PERPS_FEE_CASHBACK']));
+  });
+});
+
+describe('summaryScopeKey', () => {
+  it('keeps the default call on the origin-type key', () => {
+    expect(summaryScopeKey()).toBe('all');
+    expect(summaryScopeKey(undefined, { includeClaimable: true })).toBe('all');
+  });
+
+  it('gives a window its own bucket that cannot overwrite claimable', () => {
+    expect(
+      summaryScopeKey(undefined, {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      }),
+    ).toBe('all|window:2026-09-22..2026-09-28|claimable:0');
+    expect(
+      summaryScopeKey(['SWAPS_FEE_CASHBACK'], {
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      }),
+    ).not.toBe(summaryScopeKey(['SWAPS_FEE_CASHBACK']));
   });
 });
 
@@ -259,6 +293,15 @@ describe('RewardsMoneyController', () => {
       expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
     });
 
+    it('keeps default cache maps an older persisted state omits', () => {
+      const restored = new RewardsMoneyController({
+        messenger: mockMessenger,
+        state: { referralMe: {} },
+      });
+
+      expect(restored.state).toEqual(getRewardsMoneyControllerDefaultState());
+    });
+
     it('registers messenger method handlers', () => {
       expect(mockMessenger.registerMethodActionHandlers).toHaveBeenCalledWith(
         controller,
@@ -267,6 +310,7 @@ describe('RewardsMoneyController', () => {
           'getReferralFunnel',
           'getReferralCodes',
           'validateReferralCode',
+          'registerReferee',
           'getEarningsSummary',
           'getEarningsLedger',
           'getClaimHistory',
@@ -315,16 +359,20 @@ describe('RewardsMoneyController', () => {
         if (action === 'RewardsMoneyDataService:getReferralMe') {
           return Promise.resolve({
             ...mockReferralMe,
-            role: 'NONE',
-            variant: 'NONE',
+            roles: [],
+            ui_variant: 'NONE',
+            referral_code_status: null,
           });
         }
         return undefined;
       });
 
       const forB = await controller.getReferralMe();
-      expect(forB.role).toBe('NONE');
-      expect(controller.state.referralMe[PROFILE_B]?.payload.role).toBe('NONE');
+      expect(forB.roles).toEqual([]);
+      expect(forB.ui_variant).toBe('NONE');
+      expect(controller.state.referralMe[PROFILE_B]?.payload.ui_variant).toBe(
+        'NONE',
+      );
       expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
         mockReferralMe,
       );
@@ -384,25 +432,42 @@ describe('RewardsMoneyController', () => {
       );
     });
 
-    it('returns empty pages for list reads when disabled', async () => {
-      await expect(controller.getEarningsLedger()).resolves.toEqual({
-        results: [],
-        has_more: false,
-        cursor: null,
-        window: null,
-      });
-      await expect(controller.getClaimHistory()).resolves.toEqual({
-        results: [],
-        has_more: false,
-        cursor: null,
-      });
-      await expect(controller.getReferralCodes()).resolves.toEqual({
-        codes: [],
-      });
-      await expect(controller.getReferralFunnel()).resolves.toEqual({
-        enrolled: 0,
-        earning_generating: 0,
-      });
+    it('throws for list reads when disabled', async () => {
+      await expect(controller.getEarningsLedger()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getClaimHistory()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getReferralCodes()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getReferralFunnel()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      await expect(controller.getCommissions()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
+    it('does not call data service when flag is off for initiateClaim', async () => {
+      await expect(
+        controller.initiateClaim('referral-trade-fee-cashback', {
+          money_account_address: '0xmoney',
+        }),
+      ).rejects.toThrow('Rewards Money is disabled');
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        expect.stringMatching(/^RewardsMoneyDataService:/),
+      );
+    });
+
+    it('does not call data service when flag is off for registerReferee', async () => {
+      await expect(controller.registerReferee({ code: 'ABC' })).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
         expect.stringMatching(/^RewardsMoneyDataService:/),
       );
@@ -468,6 +533,135 @@ describe('RewardsMoneyController', () => {
       expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
     });
 
+    it('keeps the later forceFresh result when an older normal fetch resolves last', async () => {
+      const requestResolvers: ((value: ReferralMeDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return new Promise<ReferralMeDto>((resolve) => {
+            requestResolvers.push(resolve);
+          });
+        }
+        return undefined;
+      });
+      const none: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      };
+      const referee: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
+
+      const normal = controller.getReferralMe();
+      await Promise.resolve();
+      await Promise.resolve();
+      const forceFresh = controller.getReferralMe({ forceFresh: true });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(requestResolvers).toHaveLength(2);
+
+      requestResolvers[1](referee);
+      await expect(forceFresh).resolves.toEqual(referee);
+      requestResolvers[0](none);
+      await expect(normal).resolves.toEqual(none);
+
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(referee);
+    });
+
+    it('shares one in-flight referral me per profile', async () => {
+      let resolveReferral: (value: ReferralMeDto) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return new Promise<ReferralMeDto>((resolve) => {
+            resolveReferral = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getReferralMe();
+      const second = controller.getReferralMe();
+      await jest.advanceTimersByTimeAsync(0);
+
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        ),
+      ).toHaveLength(1);
+
+      resolveReferral(mockReferralMe);
+      await jest.advanceTimersByTimeAsync(0);
+
+      await expect(first).resolves.toEqual(mockReferralMe);
+      await expect(second).resolves.toEqual(mockReferralMe);
+      expect(controller.state.referralMe[PROFILE_A]?.payload).toEqual(
+        mockReferralMe,
+      );
+    });
+
+    it('fetches again after a shared in-flight referral me rejects', async () => {
+      let rejectReferral: (error: Error) => void = () => undefined;
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          if (referralReads === 1) {
+            return new Promise<ReferralMeDto>((_resolve, reject) => {
+              rejectReferral = reject;
+            });
+          }
+          return Promise.resolve(mockReferralMe);
+        }
+        return undefined;
+      });
+
+      const first = controller.getReferralMe();
+      const second = controller.getReferralMe();
+      await jest.advanceTimersByTimeAsync(0);
+
+      const referralCalls = () =>
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        );
+      expect(referralCalls()).toHaveLength(1);
+
+      const rejectionOf = (pending: Promise<unknown>) =>
+        pending.then(
+          () => {
+            throw new Error('expected referral read to reject');
+          },
+          (error: unknown) => error,
+        );
+      const firstRejection = rejectionOf(first);
+      const secondRejection = rejectionOf(second);
+      rejectReferral(new Error('busy'));
+      await jest.advanceTimersByTimeAsync(0);
+      await expect(firstRejection).resolves.toEqual(
+        expect.objectContaining({ message: 'busy' }),
+      );
+      await expect(secondRejection).resolves.toEqual(
+        expect.objectContaining({ message: 'busy' }),
+      );
+
+      await expect(controller.getReferralMe()).resolves.toBeDefined();
+      expect(referralCalls()).toHaveLength(2);
+    });
+
     it('caches earnings summary by origin-type scope', async () => {
       withProfileAndData(
         'RewardsMoneyDataService:getEarningsSummary',
@@ -488,6 +682,59 @@ describe('RewardsMoneyController', () => {
       );
       expect(controller.state.earningsSummary[key]?.payload).toEqual(
         mockSummary,
+      );
+    });
+
+    it('caches a windowed summary apart from the claimable one', async () => {
+      const windowed = {
+        ...mockSummary,
+        lifetime_total: '1000000',
+        claimable: undefined,
+      };
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getEarningsSummary') {
+          const request = args[1] as { includeClaimable?: boolean } | undefined;
+          return Promise.resolve(
+            request?.includeClaimable === false ? windowed : mockSummary,
+          );
+        }
+        return undefined;
+      });
+
+      await controller.getEarningsSummary();
+      await controller.getEarningsSummary({
+        from: '2026-09-22',
+        to: '2026-09-28',
+        includeClaimable: false,
+      });
+
+      expect(dataServiceCalls(mockMessenger.call)).toHaveLength(2);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:getEarningsSummary',
+        undefined,
+        {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        },
+      );
+      const claimableKey = profileCacheKey(PROFILE_A, summaryScopeKey());
+      const windowKey = profileCacheKey(
+        PROFILE_A,
+        summaryScopeKey(undefined, {
+          from: '2026-09-22',
+          to: '2026-09-28',
+          includeClaimable: false,
+        }),
+      );
+      expect(controller.state.earningsSummary[claimableKey]?.payload).toEqual(
+        mockSummary,
+      );
+      expect(controller.state.earningsSummary[windowKey]?.payload).toEqual(
+        windowed,
       );
     });
 
@@ -566,6 +813,36 @@ describe('RewardsMoneyController', () => {
       expect(controller.state.claimHistoryFirstPage).toEqual({});
     });
 
+    it('keeps the newer claim history page when an older fetch answers last', async () => {
+      const pending: ((page: ClaimHistoryPageDto) => void)[] = [];
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getClaimHistory') {
+          return new Promise((resolve) => pending.push(resolve));
+        }
+        return Promise.resolve(undefined);
+      });
+      const olderPage = { ...mockClaimHistory, results: [mockClaim] };
+      const newerPage = {
+        ...mockClaimHistory,
+        results: [mockClaim, { ...mockClaim, id: 'claim-2' }],
+      };
+
+      const older = controller.getClaimHistory({ forceFresh: true });
+      const newer = controller.getClaimHistory({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      pending[1](newerPage);
+      await newer;
+      pending[0](olderPage);
+      await older;
+
+      expect(controller.state.claimHistoryFirstPage[PROFILE_A]?.payload).toBe(
+        newerPage,
+      );
+    });
+
     it('caches claim by id and caps the map', async () => {
       mockMessenger.call.mockImplementation((action, ...args): any => {
         if (action === 'AuthenticationController:getSessionProfile') {
@@ -586,6 +863,36 @@ describe('RewardsMoneyController', () => {
       expect(
         Object.keys(controller.state.claimById).length,
       ).toBeLessThanOrEqual(20);
+    });
+
+    it('shares one in-flight earnings summary per profile', async () => {
+      let resolveSummary: (value: typeof mockSummary) => void = () => undefined;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getEarningsSummary') {
+          return new Promise((resolve) => {
+            resolveSummary = resolve;
+          });
+        }
+        return undefined;
+      });
+
+      const first = controller.getEarningsSummary({ forceFresh: true });
+      const second = controller.getEarningsSummary({ forceFresh: true });
+      await jest.advanceTimersByTimeAsync(0);
+      resolveSummary(mockSummary);
+      await jest.advanceTimersByTimeAsync(0);
+
+      await expect(first).resolves.toEqual(mockSummary);
+      await expect(second).resolves.toEqual(mockSummary);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getEarningsSummary',
+        ),
+      ).toHaveLength(1);
     });
 
     it('refetches earnings summary after money TTL', async () => {
@@ -621,6 +928,191 @@ describe('RewardsMoneyController', () => {
         'RewardsMoneyDataService:validateReferralCode',
         'ABC',
       );
+    });
+  });
+
+  describe('initiateClaim', () => {
+    it('forwards the route and body when enabled', async () => {
+      const authorized = {
+        kind: 'authorized' as const,
+        body: {
+          claim: { id: 'claim-1' },
+          voucher: null,
+          excluded: [],
+          status: 'OPENED' as const,
+        },
+      };
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'RewardsMoneyDataService:initiateClaim') {
+          return authorized;
+        }
+        return undefined;
+      });
+
+      await expect(
+        controller.initiateClaim('referral-rev-share', {
+          money_account_address: '0xmoney',
+        }),
+      ).resolves.toBe(authorized);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:initiateClaim',
+        'referral-rev-share',
+        { money_account_address: '0xmoney' },
+      );
+    });
+  });
+
+  describe('registerReferee', () => {
+    it('forwards the code to the data service when enabled', async () => {
+      const registerReferee = jest.fn().mockResolvedValue(undefined);
+      mockMessenger.call.mockImplementation((action, ...args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return registerReferee(args[0]);
+        }
+        return undefined;
+      });
+
+      await expect(
+        controller.registerReferee({ code: 'KOL1' }),
+      ).resolves.toBeUndefined();
+
+      expect(registerReferee).toHaveBeenCalledWith({ code: 'KOL1' });
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsMoneyDataService:registerReferee',
+        { code: 'KOL1' },
+      );
+    });
+
+    it('does not write any controller cache for a register', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        return undefined;
+      });
+
+      await controller.registerReferee({ code: 'KOL1' });
+
+      expect(controller.state).toEqual(getRewardsMoneyControllerDefaultState());
+    });
+
+    it('drops the cached referral me after a successful registration', async () => {
+      const beforeRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      };
+      const afterRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          return Promise.resolve(
+            referralReads === 1 ? beforeRegistration : afterRegistration,
+          );
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.resolve(undefined);
+        }
+        return undefined;
+      });
+
+      await controller.getReferralMe();
+      await controller.registerReferee({ code: 'KOL1' });
+
+      expect(controller.state.referralMe[PROFILE_A]).toBeUndefined();
+      await expect(controller.getReferralMe()).resolves.toEqual(
+        afterRegistration,
+      );
+      expect(referralReads).toBe(2);
+    });
+
+    it('keeps the cached referral me when registration fails', async () => {
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          return Promise.resolve(mockReferralMe);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.reject(new Error('registration failed'));
+        }
+        return undefined;
+      });
+
+      await controller.getReferralMe();
+      await expect(
+        controller.registerReferee({ code: 'KOL1' }),
+      ).rejects.toThrow('registration failed');
+
+      await expect(controller.getReferralMe()).resolves.toEqual(mockReferralMe);
+      expect(
+        dataServiceCalls(mockMessenger.call).filter(
+          (call: unknown[]) =>
+            call[0] === 'RewardsMoneyDataService:getReferralMe',
+        ),
+      ).toHaveLength(1);
+    });
+
+    it('does not let a pre-registration read refill the referral me cache', async () => {
+      let resolveFirstRead: (value: ReferralMeDto) => void = () => undefined;
+      const afterRegistration: ReferralMeDto = {
+        ...mockReferralMe,
+        roles: ['REFEREE'],
+        ui_variant: 'REFEREE',
+        referral_code_status: null,
+      };
+      let referralReads = 0;
+      mockMessenger.call.mockImplementation((action, ..._args): any => {
+        if (action === 'AuthenticationController:getSessionProfile') {
+          return sessionProfile(PROFILE_A);
+        }
+        if (action === 'RewardsMoneyDataService:getReferralMe') {
+          referralReads += 1;
+          if (referralReads === 1) {
+            return new Promise<ReferralMeDto>((resolve) => {
+              resolveFirstRead = resolve;
+            });
+          }
+          return Promise.resolve(afterRegistration);
+        }
+        if (action === 'RewardsMoneyDataService:registerReferee') {
+          return Promise.resolve(undefined);
+        }
+        return undefined;
+      });
+
+      const pendingRead = controller.getReferralMe();
+      await Promise.resolve();
+      await Promise.resolve();
+      await controller.registerReferee({ code: 'KOL1' });
+      resolveFirstRead({
+        ...mockReferralMe,
+        roles: [],
+        ui_variant: 'NONE',
+        referral_code_status: null,
+      });
+      await pendingRead;
+
+      expect(controller.state.referralMe[PROFILE_A]).toBeUndefined();
+      await expect(controller.getReferralMe()).resolves.toEqual(
+        afterRegistration,
+      );
+      expect(referralReads).toBe(2);
     });
   });
 
@@ -761,14 +1253,12 @@ describe('RewardsMoneyController', () => {
       );
     });
 
-    it('returns an empty page with both mechanisms closed when disabled', async () => {
+    it('throws when disabled instead of returning a closed empty page', async () => {
       isDisabled.mockReturnValue(true);
 
-      const page = await controller.getCommissions();
-
-      expect(page.results).toEqual([]);
-      expect(page.mechanisms.REFERRAL_REV_SHARE.claim_open).toBe(false);
-      expect(page.mechanisms.SOCIAL_FOLLOW_TRADE.claim_open).toBe(false);
+      await expect(controller.getCommissions()).rejects.toThrow(
+        'Rewards Money is disabled',
+      );
       expect(
         dataServiceCalls(mockMessenger.call).filter(
           (call: unknown[]) =>

@@ -550,9 +550,7 @@
     "forgot_password_point_2_bold": "Gizli Kurtarma İfadesi,",
     "forgot_password_point_2_1": "geçerli cüzdanınızı sıfırlayabilir ve Gizli Kurtarma İfadesi kullanarak yeniden içe aktarabilirsiniz.",
     "reset_wallet": "Cüzdanı sıfırla",
-    "reset_wallet_desc": "Cüzdan verileriniz",
-    "reset_wallet_desc_bold": "bu cihazda",
-    "reset_wallet_desc_2": "MetaMask'ten kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+    "reset_wallet_desc": "Cüzdan verileriniz bu cihazda MetaMask'ten kalıcı olarak silinecek. Bu işlem geri alınamaz.",
     "reset_wallet_desc_login": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizi veya Google ya da Apple hesap şifrenizi kullanabilirsiniz. MetaMask bu bilgilere sahip değildir.",
     "reset_wallet_desc_srp": "Cüzdanınızı geri yüklemek için Gizli Kurtarma İfadenizin hazır bulunduğundan emin olun. MetaMask bu bilgiye sahip değildir.",
     "reset_wallet_desc_srp_1": "Cüzdanınızı geri yüklemek için mutlaka olması gereken şey",
@@ -1859,7 +1857,7 @@
     "available_balance": "Kullanılabilir bakiye",
     "margin_used": "Kullanılan marj",
     "gtm_content": {
-      "title": "PERPS BURADA",
+      "title": "Perps burada",
       "title_description": "40 kata kadar kaldıraçla uzun veya kısa pozisyon. Tek tıkla hesabınızı fonlayın.",
       "not_now": "Şimdi değil",
       "try_now": "Başlarken"
@@ -9153,7 +9151,7 @@
         "failed": "mUSD dönüştürme işlemi başarısız oldu"
       },
       "education": {
-        "heading": "STABİL KRİPTO PARALARDA\n%{{percentage}} AL",
+        "heading": "Stabil kripto paralarda %{{percentage}} al",
         "description": "Stabil kripto paralarınızı mUSD'ye dönüştürün ve %{{percentage}} oranında yıllık getiri bonusu kazanın.",
         "terms_apply": "Şartlar uygulanır.",
         "primary_button": "Başlarken",
@@ -10986,7 +10984,7 @@
       "payment_creation_error": "Ödeme oluşturulamadı. Tekrar deneyin."
     },
     "order_completed": {
-      "title": "KART SİPARİŞİNİZ\nVERİLDİ",
+      "title": "Kart siparişiniz verildi",
       "subtitle": "4 ila 6 hafta içinde ulaşacaktır.",
       "description": "mUSD iadesi kazanmaya başlamak için sanal kartınızın kurulumunu yapın ve dijital cüzdanınıza ekleyin.",
       "set_up_card_button": "Kart kurulumunu yap",
@@ -11029,7 +11027,7 @@
       "try_again": "Tekrar dene"
     },
     "card_onboarding": {
-      "title": "Harca\nve Kazan",
+      "title": "Harca ve kazan",
       "description": "MetaMask Card kriptonuzu\nharcamanın ve %3'e varan mUSD iadesi\nkazanmanın hızlı ve kolay yoludur.",
       "apply_now_button": "Şimdi kur",
       "login_button": "Giriş yap",
@@ -11865,7 +11863,7 @@
       "points_from_referrals_label": "Referanslardan gelen puanlar",
       "referrals_label": "VIP Referanslar",
       "tier_benefits_title": "Aşama faydaları",
-      "splash_title": "GOLD FOX\nCOLLECTIVE’A\nHOŞ GELDİNİZ",
+      "splash_title": "Gold Fox Collective’a hoş geldiniz",
       "splash_description": "Özel avantajların, erken erişim özelliklerinin ve seçkin ödüllerin kilidini açın. Yalnızca davet yoluyla.",
       "splash_accept_invite": "Daveti kabul et",
       "splash_not_now": "Şimdi değil",

@@ -550,9 +550,7 @@
     "forgot_password_point_2_bold": "비밀복구구문입니다,",
     "forgot_password_point_2_1": "비밀복구구문을 사용하여 다시 가져올 수 있습니다.",
     "reset_wallet": "지갑 초기화",
-    "reset_wallet_desc": "이 장치에서 MetaMask의",
-    "reset_wallet_desc_bold": "지갑 데이터가",
-    "reset_wallet_desc_2": "영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
+    "reset_wallet_desc": "이 장치에서 MetaMask의 지갑 데이터가 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다.",
     "reset_wallet_desc_login": "지갑을 복구하려면 비밀복구구문, Google 계정 비밀번호, Apple 계정 비밀번호를 사용할 수 있습니다. MetaMask는 이 정보를 보관하지 않습니다.",
     "reset_wallet_desc_srp": "지갑을 복구하려면 비밀복구구문이 있어야 합니다. MetaMask는 이 정보를 보관하지 않습니다.",
     "reset_wallet_desc_srp_1": "지갑을 복구하려면 다음 항목이 있어야 합니다:",
@@ -9153,7 +9151,7 @@
         "failed": "mUSD 전환 실패"
       },
       "education": {
-        "heading": "스테이블 코인\n{{percentage}}% 혜택",
+        "heading": "스테이블 코인 {{percentage}}% 혜택",
         "description": "스테이블코인을 mUSD로 전환하면 연 {{percentage}}% 보너스를 받을 수 있습니다.",
         "terms_apply": "약관이 적용됩니다.",
         "primary_button": "시작하기",
@@ -10986,7 +10984,7 @@
       "payment_creation_error": "결제를 생성하지 못했습니다. 다시 시도해 주세요."
     },
     "order_completed": {
-      "title": "카드 주문이\n완료되었습니다",
+      "title": "카드 주문이 완료되었습니다",
       "subtitle": "4~6주 내에 배송될 예정입니다.",
       "description": "가상 카드를 설정하고 디지털 지갑에 추가하여 mUSD 캐시백을 받으세요.",
       "set_up_card_button": "카드 설정",
@@ -11029,7 +11027,7 @@
       "try_again": "다시 시도"
     },
     "card_onboarding": {
-      "title": "결제와 동시에\n수익 창출",
+      "title": "결제와 동시에 수익 창출",
       "description": "MetaMask 카드로 암호자산을\n쉽고 빠르게 결제에 사용하고 최대 \n3% mUSD 캐시백을 받을 수 있습니다.",
       "apply_now_button": "설정하기",
       "login_button": "로그인",
