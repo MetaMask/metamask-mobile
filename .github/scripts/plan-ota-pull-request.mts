@@ -116,6 +116,14 @@ function readEnv(name: string): string {
   return process.env[name] ?? '';
 }
 
+/**
+ * Workflow commands treat %0A / %0D as newlines and %25 as a percent sign.
+ * Encode percent first so a title such as x%0A::error::INJECTED stays one line.
+ */
+function escapeWorkflowCommand(value: string): string {
+  return value.replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+}
+
 const invokedPath = process.argv[1] ?? '';
 if (invokedPath.endsWith('plan-ota-pull-request.mts')) {
   let parsed: unknown;
@@ -136,7 +144,7 @@ if (invokedPath.endsWith('plan-ota-pull-request.mts')) {
   );
   process.stdout.write(`${JSON.stringify(plan)}\n`);
   if (plan.action === 'fail') {
-    process.stderr.write(`::error::${plan.reason}\n`);
+    process.stderr.write(`::error::${escapeWorkflowCommand(plan.reason)}\n`);
     process.exit(1);
   }
 }
