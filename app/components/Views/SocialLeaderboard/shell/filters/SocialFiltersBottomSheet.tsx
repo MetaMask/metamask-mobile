@@ -107,6 +107,7 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 }) => {
   const { colors } = useTheme();
 
+  const showType = tab !== 'leaderboard';
   const showTimeframe = tab === 'leaderboard';
   const showMarketCap = tab !== 'leaderboard';
   // TODO: show 24h volume once the feed / live payload (or API) carries token
@@ -116,10 +117,6 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
   // The blue check on cards is mocked today.
   const showVerification = false;
   const typeOptions = TYPE_OPTIONS;
-  const typeTitleKey =
-    tab === 'leaderboard'
-      ? 'social_leaderboard.shell.filters.section.asset_type'
-      : 'social_leaderboard.shell.filters.section.type';
   const cohortOptions = cohortOptionsForTab(tab);
   // A lone All chip does not filter anything. Following is in that state
   // once shrimp, dolphin, and whale are gone.
@@ -247,13 +244,15 @@ const SocialFiltersBottomSheet: React.FC<SocialFiltersBottomSheetProps> = ({
 
               <ScrollView>
                 <Box twClassName="px-4 pb-4 mb-4">
-                  <FilterChipSection<SocialFilterType>
-                    titleKey={typeTitleKey}
-                    options={typeOptionObjects}
-                    value={draft.type}
-                    onChange={handleTypeChange}
-                    testID="social-filters-type"
-                  />
+                  {showType ? (
+                    <FilterChipSection<SocialFilterType>
+                      titleKey="social_leaderboard.shell.filters.section.type"
+                      options={typeOptionObjects}
+                      value={draft.type}
+                      onChange={handleTypeChange}
+                      testID="social-filters-type"
+                    />
+                  ) : null}
 
                   {showVerification ? (
                     <FilterChipSection<SocialFilterVerification>

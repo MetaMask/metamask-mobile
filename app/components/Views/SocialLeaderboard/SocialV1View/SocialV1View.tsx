@@ -262,6 +262,7 @@ const SocialV1ViewContent: React.FC = () => {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    setLeaderboardType,
   } = useSocialShellFilters();
   const [filterScreen, filterTab] =
     SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
@@ -781,6 +782,7 @@ const SocialV1ViewContent: React.FC = () => {
                           appliedFilters={applied.leaderboard}
                           onOpenFilters={handleOpenLeaderboardFilters}
                           isFilterActive={hasActiveFilters('leaderboard')}
+                          onTypeChange={setLeaderboardType}
                         />
                       ) : tab === 'live' ? (
                         <LiveView
