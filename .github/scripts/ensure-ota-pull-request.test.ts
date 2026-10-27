@@ -10,6 +10,7 @@ function runWithFakeGh(options: {
   labels?: string;
   planOnly?: boolean;
   allowCreate?: boolean;
+  otaVersion?: string;
 }): { exitCode: number; stdout: string; stderr: string; log: string; output: string } {
   const root = mkdtempSync(path.join(tmpdir(), 'ota-pr-'));
   const bin = path.join(root, 'bin');
@@ -28,11 +29,20 @@ if [[ "$1" == "pr" && "$2" == "view" ]]; then
   printf '%s\\n' "\${GH_LABELS:-}"
   exit 0
 fi
+if [[ "$1" == "pr" && "$2" == "create" ]]; then
+  printf '%s\\n' "https://github.com/MetaMask/metamask-mobile/pull/77"
+  exit 0
+fi
 exit 0
 `,
   );
   chmodSync(path.join(bin, 'gh'), 0o755);
   writeFileSync(output, '');
+  const otaFile = path.join(root, 'ota.ts');
+  writeFileSync(
+    otaFile,
+    `export const OTA_VERSION: string = '${options.otaVersion ?? 'v8.15.1'}';\n`,
+  );
 
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -48,6 +58,7 @@ exit 0
     GITHUB_OUTPUT: output,
     PLAN_ONLY: options.planOnly ? 'true' : '',
     ALLOW_CREATE: options.allowCreate === false ? 'false' : 'true',
+    OTA_CONSTANTS_FILE: otaFile,
   };
 
   const ran = spawnSync('bash', [SCRIPT], { encoding: 'utf8', env });
@@ -82,6 +93,44 @@ describe('ensure-ota-pull-request.sh', () => {
     expect(result.log).toContain('pr close 7');
     expect(result.log).toContain('pr reopen 7');
     expect(result.output).toContain('skip_bump=true');
+  });
+
+  it('removes pr-not-ready-for-e2e when the pull request is created', () => {
+    const result = runWithFakeGh({
+      prs: [],
+      labels: 'pr-not-ready-for-e2e',
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.log).toContain('pr create');
+    expect(result.log).toContain('pr view 77');
+    expect(result.log).toContain('--remove-label pr-not-ready-for-e2e');
+    expect(result.log).toContain('pr close 77');
+    expect(result.log).toContain('pr reopen 77');
+  });
+
+  it('does not skip the bump when the pull request exists and OTA_VERSION is the sentinel', () => {
+    const opened = runWithFakeGh({ prs: [], otaVersion: 'vX.XX.X' });
+    const rerun = runWithFakeGh({
+      planOnly: true,
+      otaVersion: 'vX.XX.X',
+      prs: [
+        {
+          number: 77,
+          baseRefName: 'ota-base/v8.15.0',
+          state: 'OPEN',
+          title: 'release: 8.15.1 (OTA)',
+        },
+      ],
+    });
+
+    expect(opened.exitCode).toBe(0);
+    expect(opened.output).toContain('pr_action=create');
+    expect(opened.output).toContain('skip_bump=false');
+    expect(rerun.exitCode).toBe(0);
+    expect(rerun.output).toContain('pr_action=use');
+    expect(rerun.output).toContain('skip_bump=false');
+    expect(rerun.stderr).toContain('vX.XX.X');
   });
 
   it('opens a draft pull request against the pinned base', () => {

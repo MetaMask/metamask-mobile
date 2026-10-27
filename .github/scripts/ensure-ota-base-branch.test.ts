@@ -23,7 +23,7 @@ function makeRepo(): { root: string; work: string } {
   );
   git(work, ['add', 'package.json']);
   git(work, ['commit', '-m', 'store build']);
-  git(work, ['tag', 'v8.15.0']);
+  git(work, ['tag', '-a', 'v8.15.0', '-m', 'store build 8.15.0']);
   git(work, ['remote', 'add', 'origin', bare]);
   git(work, ['push', 'origin', 'HEAD:refs/heads/release/8.15.1-ota']);
   git(work, ['push', 'origin', 'v8.15.0']);
@@ -46,13 +46,15 @@ describe('ensure-ota-base-branch.sh', () => {
   it('creates the pin from the store tag and reuses it', () => {
     const repo = makeRepo();
     cleanups.push(repo.root);
-    const tag = git(repo.work, ['rev-parse', 'v8.15.0^{}']).trim();
+    const tagObject = git(repo.work, ['rev-parse', 'v8.15.0']).trim();
+    const tagCommit = git(repo.work, ['rev-parse', 'v8.15.0^{}']).trim();
 
+    expect(tagObject).not.toBe(tagCommit);
     expect(run(repo.work)).toBe('ota-base/v8.15.0');
     expect(run(repo.work)).toBe('ota-base/v8.15.0');
     expect(
       git(repo.work, ['ls-remote', 'origin', 'refs/heads/ota-base/v8.15.0']).split(/\s+/)[0],
-    ).toBe(tag);
+    ).toBe(tagCommit);
   });
 
   it('fails when the pin has moved and leaves the remote branch in place', () => {

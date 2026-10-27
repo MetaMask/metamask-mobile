@@ -13,9 +13,11 @@
 #
 # `create` only pins the base branch. Opening the pull request here would race
 # Auto Create Release PR and make that workflow skip the OTA_VERSION bump.
-# `workflow_run` runs after that workflow finishes, then retargets or opens
-# the pull request. Dispatch this workflow with ota_branch to repair an OTA
-# that was opened before this file reached the default branch.
+# `workflow_run` runs only after that workflow concludes success, then
+# retargets or opens the pull request. A failed run must not open the pull
+# request: the rerun would see it and could skip the bump. Dispatch this
+# workflow with ota_branch to repair an OTA that was opened before this file
+# reached the default branch.
 #
 # Runway's branch and workflow_dispatch interface is unchanged.
 #
@@ -53,7 +55,7 @@ jobs:
     if: >-
       ${{
         (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'release/') && endsWith(github.event.ref, '-ota')) ||
-        (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'release/') && endsWith(github.event.workflow_run.head_branch, '-ota') && github.event.workflow_run.head_repository.full_name == github.repository) ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'release/') && endsWith(github.event.workflow_run.head_branch, '-ota') && github.event.workflow_run.head_repository.full_name == github.repository) ||
         github.event_name == 'workflow_dispatch'
       }}
     runs-on: ubuntu-latest

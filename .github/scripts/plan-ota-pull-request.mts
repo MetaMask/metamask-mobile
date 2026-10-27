@@ -3,7 +3,8 @@
  *
  * The pull request that CI and Runway use targets `ota-base/v<store>`.
  * A leftover pull request into `stable` from the previous automation is
- * retargeted or closed. Any other open pull request fails closed.
+ * retargeted or closed. Any other open pull request fails closed, including
+ * one that already targets the pin but does not use the OTA release title.
  */
 
 export interface OpenPullRequest {
@@ -61,17 +62,27 @@ export function planOtaPullRequest(
   if (keepers.length > 0) {
     const titled = keepers.filter((pr) => pr.title === title);
     const untitled = keepers.filter((pr) => pr.title !== title);
-    if (untitled.length > 0 && (titled.length > 0 || untitled.length > 1)) {
+    if (untitled.length > 0) {
       const unexpected = untitled[0];
       return {
         action: 'fail',
         prNumber: null,
         fromBase: unexpected.baseRefName,
         closePrNumbers: [],
-        reason: `open PR #${unexpected.number} targets ${unexpected.baseRefName} and is not the OTA release PR`,
+        reason: `open PR #${unexpected.number} targets ${unexpected.baseRefName} with title "${unexpected.title}" and is not the OTA release PR`,
       };
     }
-    const [keep, ...extraKeepers] = titled.length > 0 ? titled : untitled;
+    const keep = titled[0];
+    if (keep === undefined) {
+      return {
+        action: 'fail',
+        prNumber: null,
+        fromBase: desiredBase,
+        closePrNumbers: [],
+        reason: `no OTA release pull request targets ${desiredBase}`,
+      };
+    }
+    const extraKeepers = titled.slice(1);
     return {
       action: 'use',
       prNumber: keep.number,

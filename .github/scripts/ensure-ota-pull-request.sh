@@ -17,6 +17,10 @@
 #   ALLOW_CREATE    false leaves a missing pull request for Create Release
 #                   Pull Request, so this script cannot win the race and skip
 #                   the OTA_VERSION bump. Default true.
+#   OTA_CONSTANTS_FILE
+#                   app/constants/ota.ts path. skip_bump stays false while
+#                   OTA_VERSION is the vX.XX.X sentinel, even if a pull request
+#                   already exists.
 #   GITHUB_OUTPUT   optional Actions output file (skip_bump)
 
 set -euo pipefail
@@ -28,8 +32,10 @@ GITHUB_REPOSITORY="${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 : "${GH_TOKEN:?GH_TOKEN is required}"
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+OTA_CONSTANTS_FILE="${OTA_CONSTANTS_FILE:-app/constants/ota.ts}"
 RELEASE_TAG="${DESIRED_BASE#ota-base/}"
 TITLE="release: ${SEMVER} (OTA)"
+OTA_VERSION_SENTINEL="vX.XX.X"
 
 PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$HEAD_BRANCH" --state open --json number,baseRefName,state,title)
 PLAN=$(
@@ -46,12 +52,35 @@ mapfile -t CLOSE_NUMBERS < <(printf '%s' "$PLAN" | jq -r '.closePrNumbers[]?')
 
 echo "${REASON}" >&2
 
-if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
-  if [[ "$ACTION" == "use" || "$ACTION" == "retarget" ]]; then
-    echo "skip_bump=true" >> "$GITHUB_OUTPUT"
-  else
-    echo "skip_bump=false" >> "$GITHUB_OUTPUT"
+# A pull request is not proof the branch was bumped. Create Release Pull Request
+# skips the bump and the changelog when skip_bump=true, and production publish
+# only checks that some pull request exists.
+read_ota_version() {
+  if [[ ! -f "$OTA_CONSTANTS_FILE" ]]; then
+    printf ''
+    return
   fi
+  local line
+  line=$(grep -E '^export const OTA_VERSION' "$OTA_CONSTANTS_FILE" | head -n 1 || true)
+  if [[ -z "$line" ]]; then
+    printf ''
+    return
+  fi
+  sed -n "s/^export const OTA_VERSION: string = '\\([^']*\\)'.*/\\1/p" <<<"$line"
+}
+
+SKIP_BUMP=false
+if [[ "$ACTION" == "use" || "$ACTION" == "retarget" ]]; then
+  CURRENT_OTA=$(read_ota_version)
+  if [[ -n "$CURRENT_OTA" && "$CURRENT_OTA" != "$OTA_VERSION_SENTINEL" ]]; then
+    SKIP_BUMP=true
+  else
+    echo "OTA_VERSION is '${CURRENT_OTA:-missing}', not a release value. The bump and changelog still run." >&2
+  fi
+fi
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  echo "skip_bump=${SKIP_BUMP}" >> "$GITHUB_OUTPUT"
   echo "pr_action=${ACTION}" >> "$GITHUB_OUTPUT"
   echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
 fi
@@ -105,10 +134,22 @@ case "$ACTION" in
       echo "No pull request yet. Leaving creation to Create Release Pull Request so the OTA_VERSION bump is not skipped." >&2
       exit 0
     fi
-    gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+    created_url=$(gh pr create --repo "$GITHUB_REPOSITORY" --draft \
       --base "$DESIRED_BASE" --head "$HEAD_BRANCH" \
       --title "$TITLE" \
-      --body "$BODY"
+      --body "$BODY")
+    created_number=$(printf '%s\n' "$created_url" | sed -n 's|.*/pull/\([0-9][0-9]*\).*|\1|p' | head -n 1)
+    if [[ -z "$created_number" ]]; then
+      echo "::error::Could not read the new pull request number from: ${created_url}" >&2
+      exit 1
+    fi
+    # Old store tags still run auto-label on ota-base/**. Remove the label here
+    # as well as on retarget, or Check all jobs pass fails because E2E was skipped.
+    REMOVED=$(remove_blocking_label "$created_number" || true)
+    if [[ "$REMOVED" == "removed" ]]; then
+      reopen_for_ci "$created_number" "Reopening so pull_request CI runs without the pr-not-ready-for-e2e label (MCRM-164)."
+      echo "Removed pr-not-ready-for-e2e from #${created_number}" >&2
+    fi
     ;;
   retarget)
     gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --base "$DESIRED_BASE" --body "$BODY"

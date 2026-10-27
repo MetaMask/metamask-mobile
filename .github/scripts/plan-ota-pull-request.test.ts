@@ -92,6 +92,21 @@ describe('plan-ota-pull-request', () => {
     expect(body).toMatchObject({ action: 'use', prNumber: 4, closePrNumbers: [11] });
   });
 
+  it('fails closed when the only pin pull request has a different title', () => {
+    const result = plan([
+      {
+        number: 4,
+        baseRefName: 'ota-base/v8.15.0',
+        state: 'OPEN',
+        title: 'fix: something else',
+      },
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('PR #4');
+    expect(result.stderr).toContain('fix: something else');
+  });
+
   it('fails closed when a second pull request targets the pin with another title', () => {
     const result = plan([
       {

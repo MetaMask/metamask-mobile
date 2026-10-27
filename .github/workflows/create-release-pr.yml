@@ -189,6 +189,8 @@ jobs:
           PLAN_ONLY: 'true'
         run: bash .github/scripts/ensure-ota-pull-request.sh
 
+      # skip_bump stays false while OTA_VERSION is still the vX.XX.X sentinel,
+      # even when the pull request already exists.
       - name: Bump OTA_VERSION and push (OTA hotfix)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_pr_plan.outputs.skip_bump != 'true'
         shell: bash
