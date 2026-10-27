@@ -115,6 +115,16 @@ class QuoteView {
     return Matchers.getElementByText(QuoteViewSelectorText.RATE);
   }
 
+  /**
+   * Non-interactive spot beside Rate. The Rate label opens a tooltip, and the
+   * rate value opens providers, so keypad dismissal taps this instead.
+   */
+  get quoteKeypadDismissTarget(): Promise<AppiumElement> {
+    return Matchers.getElementByID(
+      QuoteViewSelectorIDs.QUOTE_KEYPAD_DISMISS_TARGET,
+    );
+  }
+
   /** Token selector testID - matches TokenSelectorItem's getAssetTestId(chainId-symbol). */
   getTokenElementId(chainId: string, symbol: string): string {
     return getAssetTestId(`${chainId}-${symbol}`);
@@ -257,16 +267,16 @@ class QuoteView {
   }
 
   async dismissKeypad(): Promise<void> {
-    // Prefer the "Rate" label (not rate-arrow-button) when a quote is present —
-    // tapping BRIDGE_VIEW_SCROLL can open QuoteSelectorView (swap providers).
-    // When there is no quote (e.g. RWA geo-block), Rate is absent; fall back
-    // to the scroll view so the keypad can still be dismissed.
+    // Tap beside Rate when a quote is present. Rate opens a tooltip, and
+    // rate-arrow-button opens providers. Tapping BRIDGE_VIEW_SCROLL can also
+    // open QuoteSelectorView. When there is no quote (e.g. RWA geo-block),
+    // the dismiss target is absent; fall back to the scroll view.
     try {
-      await Gestures.waitAndTap(this.rateLabel, {
+      await Gestures.waitAndTap(this.quoteKeypadDismissTarget, {
         checkForDisplayed: true,
         checkEnabled: true,
         timeout: 5000,
-        elemDescription: 'Tap rate label to dismiss keypad',
+        elemDescription: 'Tap quote row to dismiss keypad',
       });
     } catch {
       await Gestures.waitAndTap(this.bridgeViewScroll, {

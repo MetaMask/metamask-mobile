@@ -60,6 +60,7 @@ import TooltipLabel from '../TooltipLabel';
 import { usePriceImpactViewData } from '../../hooks/usePriceImpactViewData';
 import formatFiat from '../../../../../util/formatFiat';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 
 if (
   Platform.OS === 'android' &&
@@ -201,7 +202,12 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltipTitle={strings('bridge.quote_info_title')}
               tooltipContent={strings('bridge.quote_info_content')}
             />
-            <QuoteCountdownTimer />
+            <Box
+              testID={BridgeViewSelectorsIDs.QUOTE_KEYPAD_DISMISS_TARGET}
+              twClassName="h-6 min-w-10 justify-center"
+            >
+              <QuoteCountdownTimer />
+            </Box>
           </Box>
           <TouchableOpacity
             style={tw`flex-1 items-end`}
