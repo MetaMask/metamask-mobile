@@ -114,6 +114,13 @@ describe('ProfileAvatar', () => {
     });
   });
 
+  it('stays a plain image with no edit control', () => {
+    render(<ProfileAvatar avatarPresetId="zombie" testID={TEST_ID} />);
+
+    expect(screen.queryByLabelText('Edit avatar')).toBeNull();
+    expect(screen.getByTestId(TEST_ID)).toBeOnTheScreen();
+  });
+
   it('shows the bundled fox for an unknown preset', () => {
     render(<ProfileAvatar avatarPresetId="retired-preset" testID={TEST_ID} />);
 

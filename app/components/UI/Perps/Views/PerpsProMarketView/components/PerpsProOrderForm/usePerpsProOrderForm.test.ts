@@ -156,6 +156,7 @@ const mockContextValue = {
   handlePercentageAmount: mockHandlePercentageAmount,
   maxPossibleAmount: 1000,
   setMaxPossibleAmountOverride: mockSetMaxPossibleAmountOverride,
+  setEstimatedFeeRate: jest.fn(),
   balanceForValidation: 500,
 };
 
@@ -319,6 +320,7 @@ jest.mock('../../../../hooks', () => ({
     return { placeOrder: mockExecuteOrder, isPlacing: mockIsPlacing };
   },
   usePerpsOrderFees: (params: unknown) => mockUsePerpsOrderFees(params),
+  usePerpsQuotedFeeReservation: jest.fn(),
   usePerpsOrderValidation: (params: typeof mockOrderValidationParams) => {
     mockOrderValidationParams = params;
     if (mockValidateCalculatedMargin && params) {
