@@ -170,10 +170,6 @@ import {
   type CachedPerpsHeaderQuote,
 } from '../../utils/cachedPerpsHeaderQuote';
 import {
-  BUTTON_COLOR_VARIANTS,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
-} from '../../abTestConfig';
-import {
   formatLiquidationDistance,
   formatPerpsFiat,
   formatWithSignificantDigits,
@@ -3247,49 +3243,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             onPress={() => handlePlaceOrder()}
             isFullWidth
             size={ButtonBaseSize.Lg}
-            isDisabled={
-              !orderValidation.isValid ||
-              isPlacingOrder ||
-              doesStopLossRiskLiquidation ||
-              hasInvalidTPSL ||
-              isAtOICap ||
-              shouldBlockBecauseOfFeesLoading ||
-              hasBlockingPayAlerts
-            }
+            isDisabled={isOrderSubmissionBlocked}
             isLoading={isPlacingOrder}
             testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
           >
             {placeOrderLabel}
           </PerpsDirectionButton>
-          {buttonColorVariant === 'colors' ? (
-            <ButtonSemantic
-              severity={
-                orderForm.direction === 'long'
-                  ? ButtonSemanticSeverity.Success
-                  : ButtonSemanticSeverity.Danger
-              }
-              onPress={() => handlePlaceOrder()}
-              isFullWidth
-              size={ButtonBaseSize.Lg}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </ButtonSemantic>
-          ) : (
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
-              isFullWidth
-              onPress={() => handlePlaceOrder()}
-              isDisabled={isOrderSubmissionBlocked}
-              isLoading={isPlacingOrder}
-              testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            >
-              {placeOrderLabel}
-            </Button>
-          )}
         </View>
       )}
       {/* Leverage Selector */}

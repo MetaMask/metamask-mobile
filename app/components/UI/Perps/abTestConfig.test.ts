@@ -1,10 +1,6 @@
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { AB_TEST_ANALYTICS_MAPPINGS } from '../../../util/analytics/abTestAnalyticsRegistry';
 import {
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
-  BUTTON_COLOR_VARIANTS,
-  ButtonColorVariant,
-  PERPS_BUTTON_COLOR_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_KEY,
   PERPS_HOME_EXPLORE_VARIANTS,

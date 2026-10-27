@@ -6,8 +6,6 @@ import {
   ButtonIcon,
   ButtonIconSize,
   ButtonIconVariant,
-  ButtonSemantic,
-  ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   FilterButtonVariant,

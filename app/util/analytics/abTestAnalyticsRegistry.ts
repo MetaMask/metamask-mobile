@@ -26,9 +26,7 @@ import {
   HOMEPAGE_SEARCH_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
-import { SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Perps/abTestConfig';
 import {
-  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
   PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/Perps/abTestConfig';

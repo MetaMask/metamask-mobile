@@ -6983,6 +6983,31 @@ describe('PerpsOrderView', () => {
     );
 
     it.each([
+      { estimate: null, copyKey: 'perps.slippage.insufficient_depth' },
+      { estimate: 100, copyKey: 'perps.slippage.cannot_fill' },
+    ])(
+      'disables the full-screen place order button when $copyKey',
+      async ({ estimate }) => {
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+        (usePerpsEstimatedSlippage as jest.Mock).mockReturnValue({
+          estimatedSlippageBps: estimate,
+          isReady: true,
+          canFillWithinSlippage: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        const placeOrderButton = await screen.findByTestId(
+          PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+        );
+        expect(placeOrderButton).toBeDisabled();
+      },
+    );
+
+    it.each([
       {
         surface: 'full-screen view',
         useTradeSheet: false,
