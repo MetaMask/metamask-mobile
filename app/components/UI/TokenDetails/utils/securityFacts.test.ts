@@ -590,10 +590,30 @@ describe('sumTopTenPercentage', () => {
     const financialStats = {
       ...buildSecurityData().financialStats,
       topHolders: [
-        { label: 'market', name: null, address: '0xamm', holdingPercentage: 99.4 },
-        { label: 'program', name: null, address: '0xrtr', holdingPercentage: 0.3 },
-        { label: 'locker', name: null, address: '0xlck', holdingPercentage: 0.1 },
-        { label: 'contract', name: null, address: '0xctr', holdingPercentage: 0.05 },
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.3,
+        },
+        {
+          label: 'locker',
+          name: null,
+          address: '0xlck',
+          holdingPercentage: 0.1,
+        },
+        {
+          label: 'contract',
+          name: null,
+          address: '0xctr',
+          holdingPercentage: 0.05,
+        },
         { label: 'wallet', name: null, address: '0x1', holdingPercentage: 0.4 },
         { label: 'wallet', name: null, address: '0x2', holdingPercentage: 0.3 },
         { label: 'wallet', name: null, address: '0x3', holdingPercentage: 0.1 },
@@ -622,8 +642,18 @@ describe('sumTopTenPercentage', () => {
     const financialStats = {
       ...buildSecurityData().financialStats,
       topHolders: [
-        { label: 'market', name: null, address: '0xamm', holdingPercentage: 99.4 },
-        { label: 'program', name: null, address: '0xrtr', holdingPercentage: 0.6 },
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.6,
+        },
       ],
     };
 
