@@ -550,14 +550,12 @@
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
     "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "If you have your",
     "forgot_password_point_2_bold": "Secret Recovery Phrase,",
     "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
     "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc": "Your wallet data will be erased from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
@@ -1473,16 +1471,22 @@
       "post_pending_index": "Posted. It will appear in the feed once the trade is indexed."
     },
     "post_trade_share": {
-      "in_progress": "In progress...",
+      "swap_in_progress": "Swap in progress",
       "complete": "Swap complete",
       "failed": "Swap failed",
+      "order_in_progress": "Order in progress",
       "order_complete": "Order complete",
       "order_failed": "Order failed",
-      "share_and_earn_title": "Share and earn",
-      "share_and_earn_body": "Earn 15% of the post-rebate fee when someone copies your trade.",
-      "share_this_trade": "Share this trade",
+      "post_and_earn_title": "Post and earn",
+      "post_and_earn_body": "You earn 15% on fees every time someone copies your trade",
+      "create_post": "Create post",
+      "create_profile_title": "MetaMask is now social",
+      "create_profile_body": "Create your profile and earn when others copy your trades",
+      "create_profile": "Create profile",
+      "view_activity": "View activity",
       "try_again": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "post_to_feed": "Post to feed"
     },
     "shell": {
       "subnav": {
@@ -1704,13 +1708,15 @@
       "username_label": "Username",
       "display_name_label": "Display name",
       "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
       "connect_x_error": "Couldn't connect X. Check your connection and try again.",
       "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "try_again": "Try again",
       "shuffle_username": "Suggest a username",
       "customize_avatar": "Choose an avatar",
+      "avatar_option_accessibility_label": "Avatar {{number}} of {{total}}",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
@@ -3657,6 +3663,11 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "Retry",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
       "your_positions": "Your positions"
     },
@@ -4281,8 +4292,12 @@
       "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
       "no_match_title": "No match",
       "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "market_timeout_title": "Market timed out",
+      "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to get the latest price.",
       "try_later": "Try later",
       "retry_price_label": "Price",
+      "retry_expected_fill_label": "Expected fill",
+      "retry_expected_fill_value": "{{shares}} shares",
       "retry_proceeds_label": "You receive",
       "retry_payout_label": "To win",
       "retry_worst_case_label": "Worst case ({{band}} band)",
@@ -6469,6 +6484,7 @@
     "view_account": "View account on Etherscan",
     "show_private_key": "Show private key",
     "account_copied_to_clipboard": "Public address copied to clipboard",
+    "token_contract_address_copied_to_clipboard": "Token contract address copied to clipboard",
     "share_public_key": "Sharing my public key: "
   },
   "enable_nft-auto-detection": {
@@ -7583,6 +7599,7 @@
           "timestamp": "now"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
@@ -8558,18 +8575,20 @@
       "resend_in": "Resend code in {{seconds}}s",
       "resent": "We sent you a new code.",
       "paste": "Paste",
+      "verifying": "Verifying code",
       "get_new_code": "Get new code"
     },
     "totp_setup": {
       "title": "Set up authenticator app",
-      "description": "Add MetaMask to your authenticator app, then enter the 6-digit code it shows.",
+      "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
       "open_app": "Open authenticator app",
       "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
-      "other_device": "Set up on another device",
+      "copied": "Setup key copied",
+      "show_qr": "Show QR code",
       "qr_title": "Scan QR code",
-      "qr_description": "Scan this code with the authenticator app on your other device, then enter the 6-digit code it shows.",
+      "qr_description": "Scan this code with your authenticator app to add your account. Then enter the 6-digit code it shows.",
       "restarted": "That took too long, so we made a new setup key. Remove the earlier MetaMask entry from your authenticator app, then add this one.",
       "continue": "Continue"
     },
@@ -8583,7 +8602,7 @@
       "close": "Close"
     },
     "errors": {
-      "invalid_code": "That code isn’t right. Check it and try again.",
+      "invalid_code": "This code isn’t correct. Try again",
       "too_many_attempts": "Too many attempts. Request a new code.",
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
@@ -8596,14 +8615,14 @@
       "flow_in_progress": "Another verification is already in progress.",
       "generic": "Something went wrong. Try again.",
       "code_expired": "Your verification code expired, get a new code.",
-      "invalid_totp_code": "That code isn’t right. Check that your phone’s time is set automatically, then enter the current code.",
+      "invalid_totp_code": "This code isn’t correct. Try again",
       "totp_expired": "That took too long. Enter the current code from your app.",
       "totp_too_many_attempts": "Too many attempts. Wait for a new code in your app and try again.",
       "totp_taken": "An authenticator app is already set up for this account."
     },
     "settings": {
       "title": "2-step verification",
-      "description": "Used to confirm it's you before sensitive actions.",
+      "description": "Adds protection to Money account transactions.",
       "manage": "Manage",
       "notice": "These methods add protection to Money account transactions. They can’t recover your wallet.",
       "add": "Add",
@@ -8631,9 +8650,13 @@
       "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
       "last_totp_title": "Authenticator app can’t be removed",
       "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "only_passkeys_description": "Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.",
       "got_it": "Got it",
+      "passkey_added": "Passkey added",
       "passkey_removed": "Passkey removed",
+      "email_verified": "Email verified",
       "email_removed": "Email verification removed",
+      "totp_added": "Authenticator app added",
       "totp_removed": "Authenticator app removed",
       "remove_failed": "Couldn’t remove this method. Try again later."
     }

@@ -86,19 +86,4 @@ describe('ManualBackupConfirmErrorSheet', () => {
 
     expect(onDismiss).toHaveBeenCalled();
   });
-
-  it('dismisses when close is pressed', () => {
-    const onDismiss = jest.fn();
-    const { getByTestId } = render(
-      <ManualBackupConfirmErrorSheet isVisible onDismiss={onDismiss} />,
-    );
-
-    fireEvent.press(
-      getByTestId(
-        ManualBackupConfirmErrorSheetSelectorsIDs.ERROR_SHEET_CLOSE_BUTTON,
-      ),
-    );
-
-    expect(onDismiss).toHaveBeenCalled();
-  });
 });

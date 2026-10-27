@@ -12,6 +12,9 @@ import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
 import { VBA_KYC_VENDOR } from '../constants';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -98,6 +101,13 @@ jest.mock('../../../../../../core/redux', () => ({
     getState: () => mockGetState(),
   },
 }));
+jest.mock('../vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-hydrate-id'),
+  endVbaCufChildTrace: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
 
 jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
@@ -804,6 +814,14 @@ describe('resolveVbaOnboarding', () => {
         }),
       }),
     );
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaHydrate,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      false,
+      VBA_CUF_END_REASON.ERROR,
+    );
   });
 
   it('resumes a persisted KYC session before hydration', async () => {
@@ -843,6 +861,10 @@ describe('resolveVbaOnboarding', () => {
 
     expect(mockStartSession).not.toHaveBeenCalled();
     expect(mockHydrate).toHaveBeenCalled();
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-hydrate-id',
+      true,
+    );
   });
 
   it('returns an error without hydrating when session resume fails', async () => {

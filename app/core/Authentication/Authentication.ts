@@ -79,6 +79,7 @@ import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
+import ReactQueryService from '../ReactQueryService';
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
@@ -398,7 +399,7 @@ class AuthenticationService {
     clearEngine: boolean,
   ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
-    if (clearEngine) await Engine.resetState();
+    if (clearEngine) await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -472,7 +473,7 @@ class AuthenticationService {
   private createWalletVaultAndKeychain = async (
     password: string,
   ): Promise<void> => {
-    await Engine.resetState();
+    await this.resetEngineState();
 
     const { MultichainAccountService } = Engine.context;
 
@@ -482,6 +483,21 @@ class AuthenticationService {
     });
 
     password = this.wipeSensitiveData();
+  };
+
+  /**
+   * Resets Engine state for a new wallet and drops every cached read the app
+   * query client hydrated from the previous one. A wallet reset replaces the
+   * person within one process, so no cached read may answer for the previous
+   * Predict User. The Predict services purge their own cache inside the
+   * reset; this clears the shared client that mirrors them, and nothing else
+   * (lock, account switch, sign-out) clears it.
+   */
+  private resetEngineState = async (): Promise<void> => {
+    await Engine.resetState();
+    // After the reset, never before: the reset's own teardown publishes cache
+    // events, so clearing last leaves no copy for them to restore.
+    ReactQueryService.queryClient.clear();
   };
 
   /**

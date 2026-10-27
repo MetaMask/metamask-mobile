@@ -100,6 +100,27 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
   );
 });
 
+test('weekly --github-issues lists issues and does not open or comment', () => {
+  const source = fs.readFileSync(
+    new URL('./analyze-app-profiling.mjs', import.meta.url),
+    'utf8',
+  );
+  const mainStart = source.indexOf('async function main(');
+  const scheduledStart = source.indexOf(
+    'async function runScheduledExceptionAnalysis',
+  );
+  const weeklyStart = source.indexOf('async function runWeeklyAnalysis');
+  const weeklyEnd = source.indexOf('\nif (import.meta.url');
+  const dispatch = source.slice(mainStart, scheduledStart);
+  const weekly = source.slice(weeklyStart, weeklyEnd);
+
+  assert.match(dispatch, /if \(args\.weekly\) \{[\s\S]*?return;/);
+  assert.match(weekly, /loadWeeklyIssues\(/);
+  assert.equal(weekly.includes('syncProfilingRegressionIssues('), false);
+  assert.equal(weekly.includes("issue', 'create'"), false);
+  assert.equal(weekly.includes("issue', 'comment'"), false);
+});
+
 test('resolveRunsInRange keeps a half-open scheduled window', () => {
   const runs = [
     {

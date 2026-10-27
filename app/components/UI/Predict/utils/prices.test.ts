@@ -1,6 +1,7 @@
 import {
   Side,
   type GetPriceResponse,
+  type OrderPreview,
   type PredictOutcomeToken,
   type PriceUpdate,
 } from '../types';
@@ -8,6 +9,7 @@ import {
   getDisplayBuyPrice,
   getPredictBuyPrice,
   getPredictMidPrice,
+  getPredictSellSubmitDecision,
   getPredictTicksWorse,
 } from './prices';
 
@@ -232,5 +234,121 @@ describe('getPredictTicksWorse', () => {
         tickSize: 0.01,
       }),
     ).toBe(0);
+  });
+});
+
+describe('getPredictSellSubmitDecision', () => {
+  const createSellPreview = (
+    overrides: Partial<OrderPreview> = {},
+  ): OrderPreview => ({
+    marketId: 'market-1',
+    outcomeId: 'outcome-1',
+    outcomeTokenId: 'token-1',
+    timestamp: 1,
+    side: Side.SELL,
+    sharePrice: 0.6,
+    worstFillPrice: 0.6,
+    maxAmountSpent: 10,
+    minAmountReceived: 6,
+    slippage: 0.05,
+    tickSize: 0.01,
+    minOrderSize: 1,
+    negRisk: false,
+    ...overrides,
+  });
+
+  it.each([
+    { label: 'better', sharePrice: 0.62, worstFillPrice: 0.6 },
+    { label: 'equal', sharePrice: 0.6, worstFillPrice: 0.58 },
+    { label: 'one tick worse', sharePrice: 0.59, worstFillPrice: 0.58 },
+  ])(
+    'submits when the fresh price is $label and the full size fills in band',
+    ({ sharePrice, worstFillPrice }) => {
+      expect(
+        getPredictSellSubmitDecision({
+          approvedPrice: 0.6,
+          freshPreview: createSellPreview({ sharePrice, worstFillPrice }),
+        }),
+      ).toBe('submit');
+    },
+  );
+
+  it('submits when the worst fill lands exactly on the band floor', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({ worstFillPrice: 0.57 }),
+      }),
+    ).toBe('submit');
+  });
+
+  it('returns no_match when the price is within one tick but the full size fills below the approved band', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({
+          sharePrice: 0.59,
+          worstFillPrice: 0.56,
+        }),
+      }),
+    ).toBe('no_match');
+  });
+
+  it('returns price_moved when the fresh price is more than one tick worse', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({
+          sharePrice: 0.58,
+          worstFillPrice: 0.58,
+        }),
+      }),
+    ).toBe('price_moved');
+  });
+
+  it('returns price_moved when the fresh price is more than 5% worse, measuring the band from the fresh price', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({
+          sharePrice: 0.5,
+          worstFillPrice: 0.48,
+        }),
+      }),
+    ).toBe('price_moved');
+  });
+
+  it('returns no_match when the price moved and the full size fills below the fresh band', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({
+          sharePrice: 0.5,
+          worstFillPrice: 0.47,
+        }),
+      }),
+    ).toBe('no_match');
+  });
+
+  it('returns no_match when the preview has no worst fill price', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.6,
+        freshPreview: createSellPreview({ worstFillPrice: undefined }),
+      }),
+    ).toBe('no_match');
+  });
+
+  it('measures the move with the preview tick size', () => {
+    expect(
+      getPredictSellSubmitDecision({
+        approvedPrice: 0.1,
+        freshPreview: createSellPreview({
+          sharePrice: 0.098,
+          worstFillPrice: 0.098,
+          tickSize: 0.001,
+        }),
+      }),
+    ).toBe('price_moved');
   });
 });

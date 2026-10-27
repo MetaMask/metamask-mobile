@@ -155,6 +155,31 @@ describe('useAssetMetadata', () => {
     });
   });
 
+  it('fetches metadata when the search query is a CAIP-19 asset ID', async () => {
+    const stellarChainId = 'stellar:pubnet';
+    const stellarAssetId =
+      'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
+    mockFetchAssetMetadata.mockResolvedValueOnce({
+      address: 'USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN',
+      assetId: stellarAssetId,
+      symbol: 'USDC',
+      decimals: 7,
+      chainId: stellarChainId,
+    });
+
+    const { result } = renderHook(() =>
+      useAssetMetadata(stellarAssetId, true, stellarChainId),
+    );
+
+    await waitFor(() => {
+      expect(result.current.assetMetadata?.assetId).toBe(stellarAssetId);
+    });
+    expect(mockFetchAssetMetadata).toHaveBeenCalledWith(
+      stellarAssetId,
+      stellarChainId,
+    );
+  });
+
   it('should return undefined when fetchAssetMetadata returns undefined', async () => {
     mockFetchAssetMetadata.mockResolvedValueOnce(undefined);
 

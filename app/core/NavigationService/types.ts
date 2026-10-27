@@ -1082,6 +1082,7 @@ export type RootStackParamList = {
   };
   ManageProfileTradingActivityView: undefined;
   ManageProfileLinkedAccountView: undefined;
+  EditProfileAvatarView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;
