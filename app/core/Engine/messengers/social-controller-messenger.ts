@@ -13,13 +13,12 @@ type SocialControllerMessengerActions =
   | MessengerActions<SocialControllerMessenger>
   | SocialServiceRefreshNotificationPreferencesCacheAction;
 
-type SocialControllerMessengerWithNotificationCache =
-  Messenger<
-    'SocialController',
-    SocialControllerMessengerActions,
-    MessengerEvents<SocialControllerMessenger>,
-    RootMessenger
-  >;
+type SocialControllerMessengerWithNotificationCache = Messenger<
+  'SocialController',
+  SocialControllerMessengerActions,
+  MessengerEvents<SocialControllerMessenger>,
+  RootMessenger
+>;
 
 /**
  * Get the messenger for the SocialController.
