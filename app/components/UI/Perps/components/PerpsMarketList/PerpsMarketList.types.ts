@@ -37,6 +37,12 @@ export interface PerpsMarketListProps {
    */
   stickyHeader?: React.ReactElement | null;
   /**
+   * On filter change, scroll to just below {@link ListHeaderComponent} (only if
+   * scrolled past it) instead of offset 0. Requires `stickyHeader`.
+   * @default false
+   */
+  keepHeaderHiddenOnReset?: boolean;
+  /**
    * Replaces the default "no markets" message when `markets` is empty (e.g. the
    * watchlist block with suggestions).
    */

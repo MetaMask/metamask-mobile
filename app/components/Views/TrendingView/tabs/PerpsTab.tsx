@@ -303,6 +303,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       <PerpsMarketList
         contentContainerStyle={contentContainerStyle}
         markets={showFavoritesOnly || isLoading ? [] : markets}
+        keepHeaderHiddenOnReset
         emptyComponent={emptyComponent}
         onMarketPress={handleMarketPress}
         ListHeaderComponent={listHeader}
