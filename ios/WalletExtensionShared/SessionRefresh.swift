@@ -45,7 +45,8 @@ enum SessionRefresh {
            !ProvisioningLogic.shouldRefreshAccessToken(latest) {
             return .ready(latest)
         }
-        guard let current = try? store.load(providerId: snapshot.providerId, password: password) else {
+        guard let current = try? store.load(providerId: snapshot.providerId, password: password),
+              ProvisioningLogic.sessionMatches(snapshot: snapshot, tokens: current) else {
             return .unavailable
         }
         tokens = current

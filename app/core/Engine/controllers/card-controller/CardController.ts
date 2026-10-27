@@ -1549,8 +1549,10 @@ export class CardController extends BaseController<
         });
       }
     }
-    await CardTokenStore.remove(providerId);
-    await clearCardWalletExtensionSnapshot();
+    await this.#withRefreshLock(async () => {
+      await CardTokenStore.remove(providerId);
+      await clearCardWalletExtensionSnapshot();
+    });
     this.update((s) => {
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         providerId
@@ -2084,8 +2086,10 @@ export class CardController extends BaseController<
       }
     }
 
-    await this.#clearLocalSession();
-    await clearCardWalletExtensionSnapshot();
+    await this.#withRefreshLock(async () => {
+      await this.#clearLocalSession();
+      await clearCardWalletExtensionSnapshot();
+    });
   }
 
   /**
@@ -2123,8 +2127,14 @@ export class CardController extends BaseController<
    */
   async #handleSessionExpired(
     reason: CardUnauthenticatedReason | null = null,
+    options: { lockHeld?: boolean } = {},
   ): Promise<void> {
-    await this.#clearLocalSession(reason);
+    const clear = () => this.#clearLocalSession(reason);
+    if (options.lockHeld) {
+      await clear();
+    } else {
+      await this.#withRefreshLock(clear);
+    }
     this.#fetchCardHomeDataWithLogging('#handleSessionExpired');
   }
 
@@ -2143,60 +2153,62 @@ export class CardController extends BaseController<
    * @returns {Promise<void>}
    */
   async resetAll(): Promise<void> {
-    try {
-      const providerIds = Object.keys(this.providers) as CardProviderId[];
-      for (const pid of providerIds) {
-        try {
-          const tokens = await CardTokenStore.get(pid);
-          if (tokens) {
-            try {
-              await this.providers[pid]?.logout(tokens);
-            } catch (error) {
-              Logger.error(error as Error, {
-                tags: { feature: 'card', provider: pid },
-                context: {
-                  name: 'CardController',
-                  data: { method: 'resetAll/providerLogout' },
-                },
-              });
+    await this.#withRefreshLock(async () => {
+      try {
+        const providerIds = Object.keys(this.providers) as CardProviderId[];
+        for (const pid of providerIds) {
+          try {
+            const tokens = await CardTokenStore.get(pid);
+            if (tokens) {
+              try {
+                await this.providers[pid]?.logout(tokens);
+              } catch (error) {
+                Logger.error(error as Error, {
+                  tags: { feature: 'card', provider: pid },
+                  context: {
+                    name: 'CardController',
+                    data: { method: 'resetAll/providerLogout' },
+                  },
+                });
+              }
             }
+            await CardTokenStore.remove(pid);
+            await CardOnboardingStore.remove(pid);
+          } catch (error) {
+            Logger.error(error as Error, {
+              tags: { feature: 'card', provider: pid },
+              context: {
+                name: 'CardController',
+                data: { method: 'resetAll/providerCleanup' },
+              },
+            });
           }
-          await CardTokenStore.remove(pid);
-          await CardOnboardingStore.remove(pid);
-        } catch (error) {
-          Logger.error(error as Error, {
-            tags: { feature: 'card', provider: pid },
-            context: {
-              name: 'CardController',
-              data: { method: 'resetAll/providerCleanup' },
-            },
-          });
         }
-      }
 
-      this.currentSession = null;
-      this.refreshPromise = null;
-      this.invalidateFetch();
-      this.#invalidateRedeemWithdrawal();
-      this.#cardLinksGeneration += 1;
-      this.#cardLinksFetchPromise = null;
-      this.#cardLinkSeedPromise = null;
-      this.#cardLinkWriteQueues = {};
-      this.#cardLinkSeedAttempted = false;
-      if (this.#cardholderCheckTimer !== undefined) {
-        clearTimeout(this.#cardholderCheckTimer);
-        this.#cardholderCheckTimer = undefined;
-      }
-      this.update(() => ({ ...defaultCardControllerState }));
+        this.currentSession = null;
+        this.refreshPromise = null;
+        this.invalidateFetch();
+        this.#invalidateRedeemWithdrawal();
+        this.#cardLinksGeneration += 1;
+        this.#cardLinksFetchPromise = null;
+        this.#cardLinkSeedPromise = null;
+        this.#cardLinkWriteQueues = {};
+        this.#cardLinkSeedAttempted = false;
+        if (this.#cardholderCheckTimer !== undefined) {
+          clearTimeout(this.#cardholderCheckTimer);
+          this.#cardholderCheckTimer = undefined;
+        }
+        this.update(() => ({ ...defaultCardControllerState }));
 
-      ReduxService.store.dispatch(resetCardState());
-      await clearCardWalletExtensionSnapshot();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: { name: 'CardController', data: { method: 'resetAll' } },
-      });
-    }
+        ReduxService.store.dispatch(resetCardState());
+        await clearCardWalletExtensionSnapshot();
+      } catch (error) {
+        Logger.error(error as Error, {
+          tags: { feature: 'card' },
+          context: { name: 'CardController', data: { method: 'resetAll' } },
+        });
+      }
+    });
   }
 
   async validateAndRefreshSession(): Promise<{
@@ -2277,6 +2289,32 @@ export class CardController extends BaseController<
     return this.providers[providerId];
   }
 
+  /**
+   * Runs `task` while holding the refresh lock so an extension cannot write
+   * the session back after a sign-out. The task still runs if the lock times out.
+   */
+  async #withRefreshLock(task: () => Promise<void>): Promise<void> {
+    const acquired = await this.refreshLock.acquire(
+      CARD_REFRESH_LOCK_TIMEOUT_MS,
+    );
+    if (!acquired) {
+      Logger.error(new Error('Card refresh lock timed out'), {
+        tags: { feature: 'card' },
+        context: {
+          name: 'CardController',
+          data: { method: '#withRefreshLock' },
+        },
+      });
+    }
+    try {
+      await task();
+    } finally {
+      if (acquired) {
+        await this.refreshLock.release();
+      }
+    }
+  }
+
   async #doRefresh(
     pid: string,
     tokens: CardAuthTokens,
@@ -2293,7 +2331,10 @@ export class CardController extends BaseController<
     }
 
     try {
-      const latest = (await CardTokenStore.get(pid)) ?? tokens;
+      const latest = await CardTokenStore.get(pid);
+      if (!latest) {
+        return null;
+      }
       const provider = this.getActiveProvider();
       if (
         latest.accessToken !== tokens.accessToken &&
@@ -2308,7 +2349,7 @@ export class CardController extends BaseController<
       }
 
       if (provider.validateTokens(latest) === 'expired') {
-        await this.#handleSessionExpired();
+        await this.#handleSessionExpired(null, { lockHeld: true });
         return null;
       }
 
@@ -2350,7 +2391,7 @@ export class CardController extends BaseController<
           error instanceof CardProviderError &&
           error.code === CardProviderErrorCode.InvalidCredentials
         ) {
-          await this.#handleSessionExpired();
+          await this.#handleSessionExpired(null, { lockHeld: true });
         }
         return null;
       }

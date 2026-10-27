@@ -52,6 +52,27 @@ final class SequencedTokenStore: CardTokenStoring {
     }
 }
 
+/// Returns the item a fixed number of times, then nothing. `save` does not recreate it.
+final class VanishingTokenStore: CardTokenStoring {
+    private let tokens: CardTokenSet
+    private var loadsRemaining: Int
+
+    init(tokens: CardTokenSet, loadsBeforeVanishing: Int) {
+        self.tokens = tokens
+        self.loadsRemaining = loadsBeforeVanishing
+    }
+
+    func load(providerId: String, password: String) throws -> CardTokenSet? {
+        guard loadsRemaining > 0 else { return nil }
+        loadsRemaining -= 1
+        return tokens
+    }
+
+    func save(providerId: String, tokens: CardTokenSet, password: String) throws {
+        throw CardTokenStoreError.itemMissing
+    }
+}
+
 final class SessionRefreshTests: XCTestCase {
     private let password = "fixture-fox-code"
 
@@ -67,7 +88,7 @@ final class SessionRefreshTests: XCTestCase {
         let snapshot = sampleSnapshot()
         try SnapshotStore.write(snapshot, directory: directory)
         let store = InMemoryCardTokenStore()
-        try store.save(providerId: "baanx", tokens: staleTokens(), password: password)
+        try store.seed(providerId: "baanx", tokens: staleTokens(), password: password)
         MockURLProtocol.handler = { request in
             XCTAssertEqual(request.url?.path, "/v1/auth/oauth/token")
             let body = [
@@ -302,11 +323,103 @@ final class SessionRefreshTests: XCTestCase {
 
     func testWriteBackReplacesCiphertextAndStillDecrypts() throws {
         let store = InMemoryCardTokenStore()
-        try store.save(providerId: "baanx", tokens: staleTokens(), password: password)
+        try store.seed(providerId: "baanx", tokens: staleTokens(), password: password)
         try store.save(providerId: "baanx", tokens: freshTokens(accessToken: "after-refresh"), password: password)
         let loaded = try store.load(providerId: "baanx", password: password)
         XCTAssertEqual(loaded?.accessToken, "after-refresh")
         XCTAssertEqual(loaded?.refreshToken, "refresh")
+        XCTAssertThrowsError(
+            try InMemoryCardTokenStore().save(
+                providerId: "baanx",
+                tokens: freshTokens(accessToken: "new"),
+                password: password
+            )
+        ) { error in
+            guard case CardTokenStoreError.itemMissing = error else {
+                XCTFail("expected a missing item")
+                return
+            }
+        }
+    }
+
+    func testRefreshWhoseItemDisappearsDoesNotRecreateIt() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let store = VanishingTokenStore(tokens: staleTokens(), loadsBeforeVanishing: 3)
+        MockURLProtocol.handler = { _ in
+            let body = [
+                "access_token": "renewed",
+                "refresh_token": "rotated",
+                "expires_in": 3600,
+            ] as [String: Any]
+            return (200, try JSONSerialization.data(withJSONObject: body))
+        }
+
+        let outcome = await SessionRefresh.usableTokens(
+            snapshot: sampleSnapshot(),
+            store: store,
+            http: mockHTTP(),
+            password: password,
+            lockDirectory: directory
+        )
+
+        guard case .unavailable = outcome else {
+            XCTFail("expected a missing item to stay unavailable")
+            return
+        }
+        let stored = try store.load(providerId: "baanx", password: password)
+        XCTAssertNil(stored)
+    }
+
+    func testChangedUserUnderTheLockDoesNotRefresh() async throws {
+        var requested = false
+        MockURLProtocol.handler = { _ in
+            requested = true
+            return (500, Data())
+        }
+        let store = SequencedTokenStore([
+            staleTokens(),
+            staleTokens(providerUserId: "other"),
+        ])
+
+        let outcome = await SessionRefresh.usableTokens(
+            snapshot: sampleSnapshot(),
+            store: store,
+            http: mockHTTP(),
+            password: password,
+            lockDirectory: FileManager.default.temporaryDirectory
+        )
+
+        guard case .unavailable = outcome else {
+            XCTFail("expected a changed user to stay unavailable")
+            return
+        }
+        XCTAssertFalse(requested)
+        XCTAssertTrue(store.saved.isEmpty)
+    }
+
+    func testReplaceCardsSkipsAClearedOrReplacedSnapshot() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let snapshot = sampleSnapshot()
+        let live = [card(entryId: "card-2", cardId: "card-2", lastFour: "9999", identifier: nil)]
+        try SnapshotStore.write(snapshot, directory: directory)
+        SnapshotStore.clear(directory: directory)
+        SnapshotStore.replaceCards(live, ifStillMatching: snapshot, directory: directory)
+        XCTAssertNil(SnapshotStore.read(directory: directory))
+
+        var replaced = snapshot
+        replaced.providerUserId = "other"
+        try SnapshotStore.write(replaced, directory: directory)
+        SnapshotStore.replaceCards(live, ifStillMatching: snapshot, directory: directory)
+        XCTAssertEqual(SnapshotStore.read(directory: directory)?.providerUserId, "other")
+        XCTAssertEqual(SnapshotStore.read(directory: directory)?.cards.first?.cardId, "card-1")
+
+        try SnapshotStore.write(snapshot, directory: directory)
+        SnapshotStore.replaceCards(live, ifStillMatching: snapshot, directory: directory)
+        XCTAssertEqual(SnapshotStore.read(directory: directory)?.cards.first?.cardId, "card-2")
     }
 
     private static func requestBody(_ request: URLRequest) -> Data? {
@@ -331,14 +444,17 @@ final class SessionRefreshTests: XCTestCase {
         return ProviderHTTP(session: URLSession(configuration: configuration), timeout: 2)
     }
 
-    private func staleTokens(refreshTokenExpiresAt: Double? = nil) -> CardTokenSet {
+    private func staleTokens(
+        refreshTokenExpiresAt: Double? = nil,
+        providerUserId: String = "user-1"
+    ) -> CardTokenSet {
         CardTokenSet(
             accessToken: "old",
             refreshToken: "refresh",
             accessTokenExpiresAt: 1,
             refreshTokenExpiresAt: refreshTokenExpiresAt,
             location: "us",
-            providerUserId: "user-1"
+            providerUserId: providerUserId
         )
     }
 

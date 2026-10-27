@@ -829,6 +829,66 @@ describe('CardController — auth methods', () => {
 
       expect(controller.state.redeemWithdrawal).toBeNull();
     });
+
+    it('takes the refresh lock before removing tokens and releases it after the snapshot is cleared', async () => {
+      const provider = buildMockProvider();
+      provider.logout.mockResolvedValue(undefined);
+      const order: string[] = [];
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      mockTokenStore.remove.mockImplementation(async () => {
+        order.push('remove');
+        return true;
+      });
+      const refreshLock = {
+        acquire: jest.fn(async () => {
+          order.push('acquire');
+          return true;
+        }),
+        release: jest.fn(async () => {
+          order.push('release');
+        }),
+      };
+      NativeModules.CardWalletExtensionStore = {
+        acquireRefreshLock: jest.fn().mockResolvedValue(true),
+        releaseRefreshLock: jest.fn().mockResolvedValue(undefined),
+        clearSnapshot: jest.fn(async () => {
+          order.push('clear');
+        }),
+      };
+      const controller = buildController(
+        provider,
+        { isAuthenticated: true },
+        buildMockCardService(),
+        refreshLock,
+      );
+
+      await controller.logout();
+
+      expect(order).toEqual(['acquire', 'remove', 'clear', 'release']);
+    });
+
+    it('still clears the session when the refresh lock times out', async () => {
+      const provider = buildMockProvider();
+      provider.logout.mockResolvedValue(undefined);
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      mockTokenStore.remove.mockResolvedValue(true);
+      const refreshLock = {
+        acquire: jest.fn().mockResolvedValue(false),
+        release: jest.fn().mockResolvedValue(undefined),
+      };
+      const controller = buildController(
+        provider,
+        { isAuthenticated: true },
+        buildMockCardService(),
+        refreshLock,
+      );
+
+      await controller.logout();
+
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(refreshLock.release).not.toHaveBeenCalled();
+      expect(controller.state.isAuthenticated).toBe(false);
+    });
   });
 
   describe('clearLastUnauthenticatedReason', () => {
@@ -861,6 +921,7 @@ describe('CardController — auth methods', () => {
   describe('resetAll', () => {
     function buildMultiProviderController(
       stateOverrides: Partial<typeof defaultCardControllerState> = {},
+      refreshLock?: { acquire: jest.Mock; release: jest.Mock },
     ) {
       const baanx = buildMockProvider();
       const other = buildMockProvider({ id: CardProviderIds.Immersve });
@@ -869,6 +930,7 @@ describe('CardController — auth methods', () => {
         cardService: buildMockCardService(),
         messenger: buildMessenger(),
         providers: { baanx, [CardProviderIds.Immersve]: other },
+        refreshLock,
         state: { activeProviderId: 'baanx', ...stateOverrides },
       });
       return { controller, baanx, other };
@@ -894,6 +956,26 @@ describe('CardController — auth methods', () => {
       expect(mockOnboardingStore.remove).toHaveBeenCalledWith(
         CardProviderIds.Immersve,
       );
+    });
+
+    it('takes the refresh lock around the wipe', async () => {
+      mockTokenStore.get.mockResolvedValue(null);
+      mockTokenStore.remove.mockResolvedValue(true);
+      mockOnboardingStore.remove.mockResolvedValue(true);
+      const refreshLock = {
+        acquire: jest.fn().mockResolvedValue(true),
+        release: jest.fn().mockResolvedValue(undefined),
+      };
+      const { controller } = buildMultiProviderController(
+        { isAuthenticated: true },
+        refreshLock,
+      );
+
+      await controller.resetAll();
+
+      expect(refreshLock.acquire).toHaveBeenCalledTimes(1);
+      expect(refreshLock.release).toHaveBeenCalledTimes(1);
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
     });
 
     it('continues cleanup when provider.logout throws', async () => {
@@ -1110,6 +1192,47 @@ describe('CardController — auth methods', () => {
       expect(provider.refreshTokens).not.toHaveBeenCalled();
       expect(mockTokenStore.remove).not.toHaveBeenCalled();
       expect(result).toStrictEqual({ isAuthenticated: false });
+    });
+
+    it('does not write tokens back when the item is gone', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get
+        .mockResolvedValueOnce(mockTokenSet)
+        .mockResolvedValueOnce(null);
+      provider.validateTokens.mockReturnValue('needs_refresh');
+      const controller = buildController(provider);
+
+      const result = await controller.validateAndRefreshSession();
+
+      expect(provider.refreshTokens).not.toHaveBeenCalled();
+      expect(mockTokenStore.set).not.toHaveBeenCalled();
+      expect(result).toStrictEqual({ isAuthenticated: false });
+    });
+
+    it('acquires the refresh lock once when the re-read session is expired', async () => {
+      const provider = buildMockProvider();
+      mockTokenStore.get.mockResolvedValue(mockTokenSet);
+      provider.validateTokens
+        .mockReturnValueOnce('needs_refresh')
+        .mockReturnValue('expired');
+      mockTokenStore.remove.mockResolvedValue(true);
+      const refreshLock = {
+        acquire: jest.fn().mockResolvedValue(true),
+        release: jest.fn().mockResolvedValue(undefined),
+      };
+      const controller = buildController(
+        provider,
+        {},
+        buildMockCardService(),
+        refreshLock,
+      );
+
+      await controller.validateAndRefreshSession();
+
+      expect(refreshLock.acquire).toHaveBeenCalledTimes(1);
+      expect(refreshLock.release).toHaveBeenCalledTimes(1);
+      expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+      expect(provider.refreshTokens).not.toHaveBeenCalled();
     });
 
     it('keeps tokens another process refreshed after a rejected refresh', async () => {
@@ -1402,6 +1525,35 @@ describe('CardController — 401 retry and forced logout', () => {
     expect(provider.logout).not.toHaveBeenCalled();
     // It must repaint card home as unauthenticated.
     expect(fetchSpy).toHaveBeenCalled();
+  });
+
+  it('takes the refresh lock when a 401 retry ends the session', async () => {
+    wireTokenStorage(mockTokenSet);
+    const provider = buildAuthedProvider();
+    (provider.getCashbackWallet as jest.Mock).mockRejectedValue(
+      unauthorizedError,
+    );
+    provider.refreshTokens.mockRejectedValue(refreshRejectedError);
+    const refreshLock = {
+      acquire: jest.fn().mockResolvedValue(true),
+      release: jest.fn().mockResolvedValue(undefined),
+    };
+    const controller = buildController(
+      provider,
+      { isAuthenticated: true },
+      buildMockCardService(),
+      refreshLock,
+    );
+    jest.spyOn(controller, 'fetchCardHomeData').mockResolvedValue();
+
+    await expect(controller.getCashbackWallet()).rejects.toBe(
+      unauthorizedError,
+    );
+
+    expect(refreshLock.acquire).toHaveBeenCalledTimes(1);
+    expect(refreshLock.release).toHaveBeenCalledTimes(1);
+    expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
+    expect(controller.state.isAuthenticated).toBe(false);
   });
 
   it('keeps the session when the refresh fails transiently after a 401', async () => {

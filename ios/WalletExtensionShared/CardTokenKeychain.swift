@@ -3,6 +3,7 @@ import Security
 
 enum CardTokenStoreError: Error {
     case encodingFailed
+    case itemMissing
     case writeRejected
     case verifyFailed
 }
@@ -32,7 +33,19 @@ final class InMemoryCardTokenStore: CardTokenStoring {
         return SecureItemCodec.decodeTokens(plaintext: plain)
     }
 
+    /// Creates the item. `save` only updates one that is already here.
+    func seed(providerId: String, tokens: CardTokenSet, password: String) throws {
+        items[providerId] = try encoded(tokens, password: password)
+    }
+
     func save(providerId: String, tokens: CardTokenSet, password: String) throws {
+        guard items[providerId] != nil else {
+            throw CardTokenStoreError.itemMissing
+        }
+        items[providerId] = try encoded(tokens, password: password)
+    }
+
+    private func encoded(_ tokens: CardTokenSet, password: String) throws -> String {
         guard let wrapped = SecureItemCodec.encodeTokens(tokens) else {
             throw CardTokenStoreError.encodingFailed
         }
@@ -41,7 +54,7 @@ final class InMemoryCardTokenStore: CardTokenStoring {
         guard SecureItemCodec.decodeTokens(plaintext: check)?.accessToken == tokens.accessToken else {
             throw CardTokenStoreError.verifyFailed
         }
-        items[providerId] = payload
+        return payload
     }
 }
 
@@ -67,7 +80,9 @@ enum CardTokenKeychain {
         guard let wrapped = SecureItemCodec.encodeTokens(tokens) else {
             throw CardTokenStoreError.encodingFailed
         }
-        let previous = try readPayload(providerId: providerId, accessGroup: accessGroup)
+        guard let previous = try readPayload(providerId: providerId, accessGroup: accessGroup) else {
+            throw CardTokenStoreError.itemMissing
+        }
         guard allowsWrite(existingCiphertext: previous, password: password) else {
             throw CardTokenStoreError.verifyFailed
         }
@@ -83,15 +98,13 @@ enum CardTokenKeychain {
                 throw CardTokenStoreError.verifyFailed
             }
         } catch {
-            if let previous {
-                try? writePayload(previous, providerId: providerId, accessGroup: accessGroup)
-            }
+            try? writePayload(previous, providerId: providerId, accessGroup: accessGroup)
             throw error
         }
     }
 
     static func allowsWrite(existingCiphertext: String?, password: String) -> Bool {
-        guard let existingCiphertext else { return true }
+        guard let existingCiphertext else { return false }
         guard
             let plain = try? Encryptor().decrypt(payloadJSON: existingCiphertext, password: password),
             SecureItemCodec.decodeTokens(plaintext: plain) != nil
@@ -128,15 +141,9 @@ enum CardTokenKeychain {
         let base = query(providerId: providerId, accessGroup: accessGroup)
         let updateStatus = SecItemUpdate(base as CFDictionary, [kSecValueData as String: data] as CFDictionary)
         if updateStatus == errSecSuccess { return }
-        if updateStatus != errSecItemNotFound {
-            throw CardTokenStoreError.writeRejected
+        if updateStatus == errSecItemNotFound {
+            throw CardTokenStoreError.itemMissing
         }
-        var add = base
-        add[kSecValueData as String] = data
-        add[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
-        let addStatus = SecItemAdd(add as CFDictionary, nil)
-        guard addStatus == errSecSuccess else {
-            throw CardTokenStoreError.writeRejected
-        }
+        throw CardTokenStoreError.writeRejected
     }
 }

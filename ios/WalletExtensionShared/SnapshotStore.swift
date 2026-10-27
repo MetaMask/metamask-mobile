@@ -30,6 +30,24 @@ enum SnapshotStore {
         return snapshot
     }
 
+    /// Writes `cards` only when the file is still the snapshot this refresh started from.
+    /// A sign-out clears the file, and this must not create it again.
+    static func replaceCards(
+        _ cards: [SnapshotCard],
+        ifStillMatching snapshot: ProvisioningSnapshot,
+        directory: URL
+    ) {
+        guard
+            var current = read(directory: directory),
+            current.providerId == snapshot.providerId,
+            current.providerUserId == snapshot.providerUserId
+        else {
+            return
+        }
+        current.cards = cards
+        try? write(current, directory: directory)
+    }
+
     static func clear(directory: URL, defaults: UserDefaults? = nil) {
         try? FileManager.default.removeItem(at: fileURL(in: directory))
         defaults?.removeObject(forKey: ProvisioningSnapshot.storageKey)

@@ -135,7 +135,7 @@ enum WalletExtensionPasses {
                 return []
             }
             snapshot.cards = live
-            try? SnapshotStore.write(snapshot, directory: directory)
+            SnapshotStore.replaceCards(live, ifStillMatching: snapshot, directory: directory)
         case .expired:
             clearSnapshot()
             return []

@@ -107,7 +107,7 @@ final class MitigationsTests: XCTestCase {
         )
         XCTAssertFalse(CardTokenKeychain.allowsWrite(existingCiphertext: payload, password: "other"))
         XCTAssertTrue(CardTokenKeychain.allowsWrite(existingCiphertext: payload, password: "fixture-fox-code"))
-        XCTAssertTrue(CardTokenKeychain.allowsWrite(existingCiphertext: nil, password: "other"))
+        XCTAssertFalse(CardTokenKeychain.allowsWrite(existingCiphertext: nil, password: "other"))
     }
 
     func testUnknownPassIdentifierIsRejected() {

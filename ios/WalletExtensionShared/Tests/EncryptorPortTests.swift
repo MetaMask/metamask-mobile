@@ -33,7 +33,7 @@ final class EncryptorPortTests: XCTestCase {
             providerUserId: "user-1"
         )
         let store = InMemoryCardTokenStore()
-        try store.save(providerId: "baanx", tokens: tokens, password: "pw")
+        try store.seed(providerId: "baanx", tokens: tokens, password: "pw")
         let loaded = try store.load(providerId: "baanx", password: "pw")
         XCTAssertEqual(loaded, tokens)
     }
