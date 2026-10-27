@@ -1105,6 +1105,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardBaanxPasswordlessLogin: {
+    name: 'cardBaanxPasswordlessLogin',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardForgotPasswordFeature: {
     name: 'cardForgotPasswordFeature',
     type: FeatureFlagType.Remote,
