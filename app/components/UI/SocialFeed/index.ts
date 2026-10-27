@@ -3,10 +3,13 @@ export {
   toSocialFeedRequest,
 } from './data/socialFeedSource';
 export type {
+  FeedScope,
   SocialFeedAssetRef,
+  SocialFeedQuery,
   SocialFeedRequest,
   SocialFeedSource,
 } from './data/socialFeedSource';
+export { HYPERLIQUID_CAIP2_CHAIN_ID } from './data/feed-constants';
 export { useSocialFeed } from './data/useSocialFeed';
 export type {
   SocialFeedState,

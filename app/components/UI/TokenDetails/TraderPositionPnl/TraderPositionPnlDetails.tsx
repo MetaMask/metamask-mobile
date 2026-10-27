@@ -6,6 +6,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   IconName,
+  SectionDivider,
   Text,
   TextColor,
   TextVariant,
@@ -89,7 +90,14 @@ const TraderPositionPnlDetails: React.FC<TraderPositionPnlDetailsProps> = ({
       >
         {strings('asset_overview.position_pnl.share_to_feed')}
       </Button>
-    ) : null}
+    ) : (
+      // When sharing is unavailable (social flag/A-B/position all absent) there
+      // is no button to separate the position header from the details, so show
+      // a divider in its place instead (ASSETS-4183). `marginVertical` is a
+      // Tailwind spacing step (my-2 = 8px); combined with the 12px from the
+      // parent `gap-3` / header margin, the rule gets ~20px above and below.
+      <SectionDivider marginVertical={2} testID={`${testID}-divider`} />
+    )}
     <Box twClassName="gap-1">
       <DetailRow
         testID={`${testID}-average-cost`}

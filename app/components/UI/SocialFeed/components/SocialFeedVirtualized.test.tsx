@@ -15,6 +15,7 @@ import {
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
@@ -104,7 +105,7 @@ const mockFeedItemEntryAnimation = jest.mocked(FeedItemEntryAnimation);
 const mockUseAnimatedScrollHandler = jest.mocked(useAnimatedScrollHandler);
 const mockUseComposedEventHandler = jest.mocked(useComposedEventHandler);
 
-const source = { kind: 'all', audience: 'all', scope: 'all' } as const;
+const query: SocialFeedQuery = { scope: 'all' };
 
 const post = (id: string): SocialV1FeedPost => ({
   id,
@@ -140,7 +141,7 @@ const renderFeed = (
 ) =>
   render(
     <SocialFeedVirtualized
-      source={source}
+      {...query}
       location="social_live"
       scrollMode="virtualized"
       scrollTestID="feed-scroll"
@@ -198,7 +199,7 @@ describe('SocialFeedVirtualized', () => {
     );
     rerender(
       <SocialFeedVirtualized
-        source={source}
+        {...query}
         location="social_live"
         scrollMode="virtualized"
         scrollTestID="feed-scroll"
@@ -235,7 +236,7 @@ describe('SocialFeedVirtualized', () => {
 
     renderFeed({ realtime: true, paused: true, filterPost });
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(source, {
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
       enabled: true,
       realtime: true,
       paused: true,
@@ -462,5 +463,16 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.getByText('one')).toBeOnTheScreen();
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads the query its fields describe', () => {
+    const assetIds = ['eip155:999/perp:BTC'] as const;
+
+    renderFeed({ scope: 'trending', assetIds });
+
+    expect(mockUseSocialFeed.mock.lastCall?.[0]).toEqual({
+      scope: 'trending',
+      assetIds,
+    });
   });
 });

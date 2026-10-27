@@ -31,6 +31,9 @@ import {
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -292,11 +295,13 @@ export type ResolvedVbaOnboarding =
 export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
+  const hydrateTraceId = startVbaCufChildTrace(TraceName.VbaHydrate);
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
       ReduxService.store.getState() as RootState,
     );
     if (!walletAddress) {
+      endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
       return { status: 'error' };
     }
 
@@ -337,12 +342,14 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    endVbaCufChildTrace(hydrateTraceId, true);
     return {
       status: 'ready',
       destinationId: getVbaDestinationForSnapshot(snapshot),
       snapshot,
     };
   } catch (error) {
+    endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
     Logger.error(error as Error, {
       tags: { feature: 'vba-onboarding' },
       context: {
