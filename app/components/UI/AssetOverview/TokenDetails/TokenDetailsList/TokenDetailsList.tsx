@@ -36,7 +36,9 @@ const TokenDetailsList: React.FC<TokenDetailsListProps> = ({
     onCopyAddress?.();
 
     toast({
-      title: strings('account_details.account_copied_to_clipboard'),
+      title: strings(
+        'account_details.token_contract_address_copied_to_clipboard',
+      ),
       severity: ToastSeverity.Success,
       hasNoTimeout: false,
       showCloseButton: false,

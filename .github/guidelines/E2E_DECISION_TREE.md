@@ -21,7 +21,7 @@ flowchart TD
 
     GR -->|PR with non-ignorable changes| PRToValidate["Path-filtered platforms (Android, iOS, or both)"]
     PRToValidate -->|Yes, Android tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
-    PRToValidate -->iOSRequired{{PR label: run-appium-ios-tests? or E2E infra code?}}
+    PRToValidate -->iOSRequired{{PR label: run-appium-ios-tests? or E2E infra code? or brand-new Appium smoke spec?}}
     iOSRequired -->|Yes, iOS tests required| Smart{{PR label: skip-smart-e2e-selection ?}}
 
     Smart -->|Yes| AllTags[🧪 Run all E2E for required platforms]
@@ -34,15 +34,17 @@ flowchart TD
 
 ## E2E platform policy
 
-After the global gates, path filters classify non-ignorable changes as Android-only, iOS-only, or both. For pull requests, iOS is suppressed unless it is explicitly requested with `run-appium-ios-tests`. Ignorable-only changes stop before this stage; labels cannot revive them.
+After the global gates, path filters classify non-ignorable changes as Android-only, iOS-only, or both. For pull requests, path filtering suppresses iOS. iOS still runs when `run-appium-ios-tests` is applied, when smoke-infrastructure changes on `main` request it, or when the PR adds a brand-new Appium smoke spec. Ignorable-only changes stop before this stage; labels cannot revive them.
+
+A pull request selects both Android and iOS when the pull request files API reports a `tests/smoke-appium/**/*.spec.ts` file with status `added` and no previous filename. Edits, renames, and copies do not trigger this added-spec rule. On a PR targeting `main`, a change under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override. Forks, `stable` synchronization PRs, `skip-e2e`, `pr-not-ready-for-e2e`, and ignorable-only changes still skip E2E.
 
 For every eligible pull request, iOS runs on explicit request:
 
-| Request | Effect |
-| --- | --- |
-| `run-appium-ios-tests` | Adds iOS while preserving the path-selected Android platform. |
+| Request                    | Effect                                                                                 |
+| -------------------------- | -------------------------------------------------------------------------------------- |
+| `run-appium-ios-tests`     | Adds iOS while preserving the path-selected Android platform.                          |
 | `skip-smart-e2e-selection` | Runs all Android E2E tags and bypasses AI test tag selection. It does not request iOS. |
-| Both labels | Runs all E2E tags on Android and iOS. |
+| Both labels                | Runs all E2E tags on Android and iOS.                                                  |
 
 For non-PR events:
 
@@ -51,9 +53,10 @@ For non-PR events:
 
 Forced platform runs:
 
-| Condition | Effect |
-| --- | --- |
-| E2E infrastructure changes on a PR targeting `main` | Select both Android and iOS as required to run to catch breaking infrastructure changes. |
+| Condition                                                                     | Effect                                                                                                                                                                                                                             |
+| ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| E2E infrastructure changes on a PR targeting `main`                           | Select both Android and iOS as required to run to catch breaking infrastructure changes.                                                                                                                                           |
+| Brand-new Appium smoke spec (`added`, no previous filename) on an eligible PR | Select both Android and iOS. Edits, renames, and copies do not trigger this rule. On a PR targeting `main`, other changes under `tests/smoke-appium/**` can still select both platforms through the smoke-infrastructure override. |
 
 ## E2E tests skipped by default on new PRs during peak hours
 
