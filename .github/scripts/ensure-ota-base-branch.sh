@@ -16,6 +16,15 @@ REMOTE="${GIT_REMOTE:-origin}"
 OTA_REF="${OTA_REF:-HEAD}"
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Same order as escapeWorkflowCommand in plan-ota-pull-request.mts.
+escape_workflow_command() {
+  local value=$1
+  value=${value//%/%25}
+  value=${value//$'\r'/%0D}
+  value=${value//$'\n'/%0A}
+  printf '%s' "$value"
+}
+
 if ! git rev-parse --verify --quiet "${OTA_REF}^{commit}" >/dev/null; then
   echo "::error::OTA ref ${OTA_REF} is not a commit" >&2
   exit 1
@@ -36,7 +45,8 @@ process.stdin.on("end", () => {
 ')
 
 if ! [[ "$VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
-  echo "::error::package.json version is not strict X.Y.Z, got: ${VERSION}" >&2
+  printf '::error::package.json version is not strict X.Y.Z, got: %s\n' \
+    "$(escape_workflow_command "$VERSION")" >&2
   exit 1
 fi
 

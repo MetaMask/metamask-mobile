@@ -16,8 +16,18 @@ set -euo pipefail
 OTA_BRANCH="${OTA_BRANCH:?OTA_BRANCH is required}"
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
+# Same order as escapeWorkflowCommand in plan-ota-pull-request.mts.
+escape_workflow_command() {
+  local value=$1
+  value=${value//%/%25}
+  value=${value//$'\r'/%0D}
+  value=${value//$'\n'/%0A}
+  printf '%s' "$value"
+}
+
 if ! [[ "$OTA_BRANCH" =~ ^release/((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))-ota$ ]]; then
-  echo "::error::OTA branch must be release/X.Y.Z-ota (strict semver), got: ${OTA_BRANCH}" >&2
+  printf '::error::OTA branch must be release/X.Y.Z-ota (strict semver), got: %s\n' \
+    "$(escape_workflow_command "$OTA_BRANCH")" >&2
   exit 1
 fi
 SEMVER="${BASH_REMATCH[1]}"

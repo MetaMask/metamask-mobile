@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
@@ -41,6 +41,28 @@ describe('ensure-ota-base-branch.sh', () => {
     for (const root of cleanups) {
       rmSync(root, { recursive: true, force: true });
     }
+  });
+
+  it('escapes workflow commands in a rejected package.json version', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ota-version-'));
+    cleanups.push(root);
+    const work = path.join(root, 'work');
+    execFileSync('git', ['init', '-b', 'main', work]);
+    git(work, ['config', 'user.email', 'ota@example.com']);
+    git(work, ['config', 'user.name', 'ota']);
+    writeFileSync(
+      path.join(work, 'package.json'),
+      JSON.stringify({ version: '8.15.0%0A::add-mask::SECRET' }),
+    );
+    git(work, ['add', 'package.json']);
+    git(work, ['commit', '-m', 'bad version']);
+
+    const ran = spawnSync('bash', [SCRIPT], { cwd: work, encoding: 'utf8' });
+    const stderr = ran.stderr ?? '';
+
+    expect(ran.status).toBe(1);
+    expect(stderr).toContain('8.15.0%250A::add-mask::SECRET');
+    expect(stderr.split('\n').some((line) => line.startsWith('::add-mask::'))).toBe(false);
   });
 
   it('creates the pin from the store tag and reuses it', () => {

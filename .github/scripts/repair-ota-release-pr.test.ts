@@ -1,4 +1,4 @@
-import { execFileSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import { chmodSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';
@@ -80,6 +80,23 @@ exit 0
     expect(ghLog).toContain('pr create');
     expect(ghLog).toContain('--base ota-base/v8.15.0');
     expect(ghLog).toContain('--head release/8.15.1-ota');
+  });
+
+  it('escapes workflow commands in a rejected branch name', () => {
+    const ran = spawnSync('bash', [SCRIPT], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        OTA_BRANCH: 'release/1.2.3-ota%0A::add-mask::SECRET',
+        GH_TOKEN: 'test-token',
+        GITHUB_REPOSITORY: 'example/repo',
+      },
+    });
+    const stderr = ran.stderr ?? '';
+
+    expect(ran.status).toBe(1);
+    expect(stderr).toContain('release/1.2.3-ota%250A::add-mask::SECRET');
+    expect(stderr.split('\n').some((line) => line.startsWith('::add-mask::'))).toBe(false);
   });
 
   it('rejects a branch that is not release/X.Y.Z-ota', () => {

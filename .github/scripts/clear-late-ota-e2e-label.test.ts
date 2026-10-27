@@ -95,7 +95,63 @@ describe('clear-late-ota-e2e-label.sh', () => {
   });
 });
 
+function getTokenWithBlocks(yaml: string): string[] {
+  const lines = yaml.split('\n');
+  const blocks: string[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    if (!lines[index].includes('actions/get-token@')) {
+      continue;
+    }
+    const chunk: string[] = [];
+    for (let next = index + 1; next < lines.length; next++) {
+      if (/^\s+- name:/.test(lines[next]) || /^  [a-z0-9-]+:\s*$/.test(lines[next])) {
+        break;
+      }
+      chunk.push(lines[next]);
+    }
+    blocks.push(chunk.join('\n'));
+  }
+  return blocks;
+}
+
+function permissionLines(block: string): string[] {
+  const lines = block.split('\n');
+  const start = lines.findIndex((line) => line.includes('permissions: |'));
+  if (start === -1) {
+    return [];
+  }
+  const pairs: string[] = [];
+  for (const line of lines.slice(start + 1)) {
+    if (!/^\s+\S/.test(line)) {
+      break;
+    }
+    pairs.push(line.trim());
+  }
+  return pairs;
+}
+
 describe('ensure-ota-release-pr.yml late label job', () => {
+  it('gives get-token newline-separated permissions and no repositories input', () => {
+    const workflow = readFileSync(WORKFLOW, 'utf8');
+    const blocks = getTokenWithBlocks(workflow);
+
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const block of blocks) {
+      expect(block).toContain('permissions: |');
+      expect(block).not.toMatch(/^\s*repositories:/m);
+      expect(block).not.toMatch(/permissions:\s*['"]?\{/);
+      const pairs = permissionLines(block);
+      expect(pairs.length).toBeGreaterThan(0);
+      for (const pair of pairs) {
+        expect(pair).toMatch(/^[a-z_]+: (read|write)$/);
+      }
+    }
+
+    const clearJob = workflow.slice(workflow.indexOf('clear-late-e2e-label:'));
+    const clearPermissions = permissionLines(getTokenWithBlocks(clearJob)[0] ?? '');
+    expect(clearPermissions).toEqual(['contents: read', 'pull_requests: write']);
+  });
+
   it('runs the clearer after the auto-label workflow succeeds', () => {
     const workflow = readFileSync(WORKFLOW, 'utf8');
 
