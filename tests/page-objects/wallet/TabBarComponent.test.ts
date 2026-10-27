@@ -82,7 +82,7 @@ describe('TabBarComponent.tapExploreButton', () => {
     jest.clearAllMocks();
   });
 
-  it('taps Explore and waits for the Explore scroll view', async () => {
+  it('taps Explore and waits for the Explore header', async () => {
     jest.mocked(Utilities.isElementVisible).mockResolvedValue(false);
 
     await TabBarComponent.tapExploreButton();
@@ -105,16 +105,25 @@ describe('TabBarComponent.tapExploreButton', () => {
       500,
     );
     expect(Matchers.getElementByID).toHaveBeenCalledWith(
+      TrendingViewSelectorsIDs.HEADER_ROOT,
+    );
+    expect(Matchers.getElementByID).not.toHaveBeenCalledWith(
       TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
     );
   });
 
-  it('skips the tap when Explore content is already visible', async () => {
+  it('skips the tap when the Explore header is already visible', async () => {
     jest.mocked(Utilities.isElementVisible).mockResolvedValue(true);
 
     await TabBarComponent.tapExploreButton();
 
     expect(Gestures.waitAndTap).not.toHaveBeenCalled();
     expect(Assertions.expectElementToBeVisible).toHaveBeenCalled();
+    expect(Matchers.getElementByID).toHaveBeenCalledWith(
+      TrendingViewSelectorsIDs.HEADER_ROOT,
+    );
+    expect(Matchers.getElementByID).not.toHaveBeenCalledWith(
+      TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
+    );
   });
 });

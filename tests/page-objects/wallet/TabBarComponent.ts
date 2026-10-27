@@ -208,12 +208,12 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         // `explore-view-search-button` is also the wallet homepage search id.
-        // The Explore scroll view is the tab's own content.
-        const exploreContent = Matchers.getElementByID(
-          TrendingViewSelectorsIDs.NOW_SCROLL_VIEW,
-        );
+        // Inner-tab scroll views stay mounted and hidden when another Explore
+        // tab is selected, so the header is the signal that Explore is open.
+        const exploreHeader = () =>
+          Matchers.getElementByID(TrendingViewSelectorsIDs.HEADER_ROOT);
         const alreadyOpen = await Utilities.isElementVisible(
-          exploreContent,
+          exploreHeader(),
           500,
         );
         if (!alreadyOpen) {
@@ -223,13 +223,10 @@ class TabBarComponent {
             waitForInteractive: true,
           });
         }
-        await Assertions.expectElementToBeVisible(
-          Matchers.getElementByID(TrendingViewSelectorsIDs.NOW_SCROLL_VIEW),
-          {
-            description: 'Explore tab content should be visible',
-            timeout: 8_000,
-          },
-        );
+        await Assertions.expectElementToBeVisible(exploreHeader(), {
+          description: 'Explore tab content should be visible',
+          timeout: 8_000,
+        });
       },
       {
         // Each attempt: interactive tap plus Explore content. Outer budget stays 45s.
