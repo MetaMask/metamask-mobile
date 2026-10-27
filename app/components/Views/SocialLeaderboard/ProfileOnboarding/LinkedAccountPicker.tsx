@@ -12,6 +12,7 @@ import {
   IconName,
   IconSize,
   ListItemSelect,
+  Switch,
   Text,
   TextColor,
   TextVariant,
@@ -39,25 +40,30 @@ const styles = StyleSheet.create({
 
 const BENEFIT_KEYS = [
   'social_leaderboard.profile_onboarding.link_account_benefit_trades',
+  'social_leaderboard.profile_onboarding.link_account_benefit_fees',
   'social_leaderboard.profile_onboarding.link_account_benefit_private',
   'social_leaderboard.profile_onboarding.link_account_benefit_follow',
-  'social_leaderboard.profile_onboarding.link_account_benefit_fees',
 ] as const;
 
 interface LinkedAccountPickerProps {
   accounts: LinkableSocialAccount[];
   selectedAccountId: string | null;
+  shareTradingActivity: boolean;
   onSelect: (account: LinkableSocialAccount) => void;
+  onShareTradingActivityChange: (shareTradingActivity: boolean) => void;
 }
 
 /**
- * Account dropdown for profile onboarding. Opens a bottom sheet of the same
- * accounts. Built from BottomSheetDialog and ListItemSelect.
+ * Account step controls: the linked-account dropdown, the trading-activity
+ * switch, and the benefit list. The sheet is built from BottomSheetDialog
+ * and ListItemSelect.
  */
 const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
   accounts,
   selectedAccountId,
+  shareTradingActivity,
   onSelect,
+  onShareTradingActivityChange,
 }) => {
   const { colors } = useTheme();
   const avatarAccountType = useSelector(selectAvatarAccountType);
@@ -129,6 +135,17 @@ const LinkedAccountPicker: React.FC<LinkedAccountPickerProps> = ({
             />
           </Box>
         </Pressable>
+
+        <Box twClassName="bg-muted rounded-xl px-4 py-3">
+          <Switch
+            isOn={shareTradingActivity}
+            onValueChange={onShareTradingActivityChange}
+            label={strings(
+              'social_leaderboard.manage_profile.show_trading_activity',
+            )}
+            testID={SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH}
+          />
+        </Box>
 
         <Box gap={3}>
           {BENEFIT_KEYS.map((key) => (

@@ -38722,8 +38722,6 @@ __metadata:
     react-native-blob-util: "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
-    react-native-confetti: "npm:^0.1.0"
-    react-native-confetti-cannon: "npm:^1.5.0"
     react-native-confirmation-code-field: "npm:^7.6.1"
     react-native-crypto: "npm:2.2.1"
     react-native-default-preference: "npm:^1.4.3"
@@ -38813,6 +38811,7 @@ __metadata:
     tldts: "npm:^7.4.13"
     ts-loader: "npm:^9.5.0"
     ts-node: "npm:^10.9.2"
+    tslib: "npm:^2.8.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:~5.8.3"
     unicode-confusables: "npm:^0.1.1"
@@ -44449,20 +44448,6 @@ __metadata:
   version: 0.1.2
   resolution: "react-native-browser-polyfill@npm:0.1.2"
   checksum: 10/d88599fa495b4add9f57106a4560f62350aac8230a3540eafd1fe216680d3026eed3ca721745c660dca068af954ab66fa91d1240965f52425e7c6ce6d3de59eb
-  languageName: node
-  linkType: hard
-
-"react-native-confetti-cannon@npm:^1.5.0":
-  version: 1.5.2
-  resolution: "react-native-confetti-cannon@npm:1.5.2"
-  checksum: 10/0ca5d56eef9763e891d228017708c340b54cc87d46d1c38d7aff5b46d511d78b52d884b9492aa1022cdd4772ef974c0e2175831516b1aafda93208e97e5098a1
-  languageName: node
-  linkType: hard
-
-"react-native-confetti@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "react-native-confetti@npm:0.1.0"
-  checksum: 10/f1687bab6db8ccfe233d5e008128caa4f0c776c267ce5046ba90b54c54c6985f2170e39051d0971b2649f97ea59f596cf18908647f4c75e9c6811dd1be332b44
   languageName: node
   linkType: hard
 

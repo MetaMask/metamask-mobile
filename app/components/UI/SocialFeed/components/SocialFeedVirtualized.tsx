@@ -14,11 +14,13 @@ import Animated, {
   useComposedEventHandler,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { useSocialFeedScreenView } from '../socialFeedTracking';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
@@ -37,6 +39,9 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
+
+/** How often relative post ages ("3 min ago") are recomputed. */
+const AGE_TICK_MS = 60_000;
 
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
@@ -72,6 +77,8 @@ const keyExtractor = (post: SocialV1FeedPost) =>
 const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   source,
   location,
+  analyticsSource,
+  isActive,
   title,
   renderHeader,
   filterPost,
@@ -94,6 +101,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<Animated.FlatList<SocialV1FeedPost>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [clock, setClock] = useState(() => Date.now());
+  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
@@ -117,6 +126,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     holdNewPosts: networkTier === 'SLOW_CELLULAR',
     filterPost,
   });
+  // A disabled query (offline, locked) reports not loading and no error.
+  // That is not an empty feed; wait until a fetch has settled.
+  const awaitingResult =
+    dataUpdatedAt === undefined && !error && posts.length === 0;
+  useSocialFeedScreenView(
+    location,
+    analyticsSource,
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
+    isActive,
+  );
 
   const visiblePosts = useMemo(
     () =>
@@ -211,9 +230,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        now={clock}
       />
     ),
     [
+      clock,
       entrances,
       isLowHardware,
       lastIndex,
@@ -241,7 +262,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   return (
-    <SocialFeedSurfaceProvider location={location}>
+    <SocialFeedSurfaceProvider
+      location={location}
+      analyticsSource={analyticsSource}
+    >
       <Box twClassName="flex-1 bg-default" testID={testID}>
         <Animated.FlatList
           ref={listRef}

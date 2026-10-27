@@ -40,9 +40,12 @@ import { strings } from '../../../../../locales/i18n';
 import { playSelection } from '../../../../util/haptics';
 import NotificationService from '../../../../util/notifications/services/NotificationService';
 import {
+  getSocialEventSource,
+  SocialEvent,
   SocialLeaderboardEventProperties,
   SocialLeaderboardEventValues,
   useSocialLeaderboardAnalytics,
+  useSocialInteraction,
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
@@ -86,10 +89,11 @@ import { markSocialTabVisited } from '../utils/socialTabVisit';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
-  QuickBuy,
   TOP_TRADERS_QUICK_BUY_FEATURES,
   type QuickBuyTarget,
+  type QuickBuyTradeMode,
 } from '../../../UI/QuickBuy';
+import { useQuickBuySheet } from '../../../UI/QuickBuy/QuickBuySheetHost';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import {
   PostTradeShareOwner,
@@ -100,6 +104,7 @@ import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 
+const { Filter, Interaction, Screen, Tab } = SocialEvent;
 const LANDING_INDEX = 0;
 
 const getLandingIndex = (initialTab: SocialShellTab | undefined) => {
@@ -160,6 +165,13 @@ const getTabAnalyticsValue = (tab: SocialShellTab) => {
   }
 };
 
+const SOCIAL_EVENT_TAB_CONTEXT = {
+  trending: [Screen.TRENDING, Tab.TRENDING],
+  following: [Screen.FOLLOWING, Tab.FOLLOWING],
+  live: [Screen.LIVE_TRADES, Tab.LIVE_TRADES],
+  leaderboard: [Screen.LEADERBOARD, Tab.LEADERBOARD],
+} as const;
+
 /**
  * Social Bundle V1 Follow Trading home: Trending | Following | Leaderboard |
  * Live under a collapsing header. Opened only for TSA-1122 treatment.
@@ -172,6 +184,7 @@ const SocialV1ViewContent: React.FC = () => {
     useRoute<
       RouteProp<RootStackParamList, 'SocialV1View' | 'SocialLeaderboardTab'>
     >();
+  const analyticsSource = getSocialEventSource(route.params?.source);
   const { profile: myProfile } = useMyProfile();
   const accountAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -242,6 +255,7 @@ const SocialV1ViewContent: React.FC = () => {
     openTab,
     draft,
     applied,
+    hasDraftChanges,
     hasActiveFilters,
     openSheet,
     closeSheet,
@@ -249,6 +263,21 @@ const SocialV1ViewContent: React.FC = () => {
     applyFilters,
     resetDraftToDefaults,
   } = useSocialShellFilters();
+  const [filterScreen, filterTab] =
+    SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
+  const trackFilter = useSocialInteraction(filterScreen, {
+    tab_name: filterTab,
+    source: analyticsSource,
+  });
+
+  const handleApplyFilters = useCallback(() => {
+    if (openTab && hasDraftChanges) {
+      trackFilter(Interaction.FILTER_APPLIED, {
+        filter_name: Filter.SOCIAL_FILTERS,
+      });
+    }
+    applyFilters();
+  }, [applyFilters, hasDraftChanges, openTab, trackFilter]);
 
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
@@ -450,29 +479,29 @@ const SocialV1ViewContent: React.FC = () => {
     Boolean(route.params?.showNotificationsBanner),
   );
 
-  // The spot QuickBuy sheet is hosted here, outside the PagerView, because the
-  // design-system BottomSheet is a plain `absolute inset-0` view with no portal:
-  // inside a pager page it would be clipped by the collapsing header block and
-  // painted over by the page's own scroll content.
-  const [quickBuy, setQuickBuy] = useState<{
-    target: QuickBuyTarget;
-    copyTradeOrigin?: CopyTradeOrigin;
-  } | null>(null);
+  // Rendered outside the PagerView, where a page would clip the inline sheet; null inside the home tabs host.
+  const { openQuickBuy: showQuickBuy, quickBuySheet } = useQuickBuySheet();
   const openQuickBuy = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) =>
-      setQuickBuy({ target, copyTradeOrigin }),
-    [],
+    (
+      target: QuickBuyTarget,
+      copyTradeOrigin?: CopyTradeOrigin,
+      tradeMode: QuickBuyTradeMode = 'buy',
+    ) =>
+      showQuickBuy({
+        target,
+        copyTradeOrigin,
+        features: TOP_TRADERS_QUICK_BUY_FEATURES,
+        initialTradeMode: tradeMode,
+        analyticsContext: { source: 'trader_feed' },
+        postTradeShare: true,
+        postTradeShareOwner: PostTradeShareOwner.socialV1Feed,
+      }),
+    [showQuickBuy],
   );
-  const closeQuickBuy = useCallback(() => setQuickBuy(null), []);
-  const handlePostTradeReopen = useCallback(
-    (target: QuickBuyTarget, copyTradeOrigin?: CopyTradeOrigin) => {
-      setQuickBuy({ target, copyTradeOrigin });
-    },
-    [],
-  );
+  // The Social tab stays mounted under a pushed feed route; only the visible feed may reopen.
   usePostTradeShareReopen(
-    handlePostTradeReopen,
-    PostTradeShareOwner.socialV1Feed,
+    openQuickBuy,
+    isFocused ? PostTradeShareOwner.socialV1Feed : undefined,
   );
   const handleCopyTrade = useCallback(
     (item: SocialV1FeedItem, commentId?: string) => {
@@ -531,6 +560,16 @@ const SocialV1ViewContent: React.FC = () => {
     [tabOrder],
   );
 
+  const selectTab = useCallback(
+    (index: number) => {
+      syncIncomingPageScroll(index);
+      activeIndexSv.value = index;
+      setActiveIndex(index);
+      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
+    },
+    [activeIndexSv, livePrices, syncIncomingPageScroll],
+  );
+
   const changeTab = useCallback(
     (index: number) => {
       const tabChangeMethod = programmaticTabChangeRef.current
@@ -553,20 +592,25 @@ const SocialV1ViewContent: React.FC = () => {
       });
 
       playSelection().catch(() => undefined);
-      syncIncomingPageScroll(index);
-      activeIndexSv.value = index;
-      setActiveIndex(index);
-      livePrices?.requestVisibilityCheck(TAB_CHANGE_VISIBILITY_DELAY_MS);
+      selectTab(index);
     },
-    [
-      activeIndex,
-      activeIndexSv,
-      livePrices,
-      tabOrder,
-      syncIncomingPageScroll,
-      track,
-    ],
+    [activeIndex, selectTab, tabOrder, track],
   );
+
+  // The Social tab stays mounted, so a later entry point's `initialTab` (e.g.
+  // a `?tab=` deeplink) has to move the pager here. Clearing it lets the same
+  // tab be requested again.
+  const requestedTab = route.params?.initialTab;
+  useEffect(() => {
+    if (!requestedTab) {
+      return;
+    }
+    navigation.setParams({ initialTab: undefined });
+    const index = tabOrder.indexOf(requestedTab);
+    if (index !== -1 && index !== activeIndex) {
+      selectTab(index);
+    }
+  }, [activeIndex, navigation, requestedTab, selectTab, tabOrder]);
 
   const handleTabPress = useCallback(
     (index: number) => {
@@ -741,6 +785,7 @@ const SocialV1ViewContent: React.FC = () => {
                       ) : tab === 'live' ? (
                         <LiveView
                           isActive={activeIndex === liveIndex}
+                          source={analyticsSource}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           onCopyTrade={handleCopyTrade}
@@ -751,6 +796,7 @@ const SocialV1ViewContent: React.FC = () => {
                       ) : (
                         <EmptyShellTabPage
                           tab={tab}
+                          source={analyticsSource}
                           performance={socialPerformanceByTab[tab]}
                           isActive={
                             tab === 'trending'
@@ -786,23 +832,13 @@ const SocialV1ViewContent: React.FC = () => {
             tab={openTab}
             draft={draft}
             onChange={updateDraft}
-            onApply={applyFilters}
+            onApply={handleApplyFilters}
             onReset={resetDraftToDefaults}
             onClose={closeSheet}
           />
         ) : null}
 
-        <QuickBuy.Root
-          isVisible={quickBuy !== null}
-          target={quickBuy?.target ?? null}
-          onClose={closeQuickBuy}
-          features={TOP_TRADERS_QUICK_BUY_FEATURES}
-          initialTradeMode="buy"
-          analyticsContext={{ source: 'trader_feed' }}
-          postTradeShare
-          postTradeShareOwner={PostTradeShareOwner.socialV1Feed}
-          copyTradeOrigin={quickBuy?.copyTradeOrigin}
-        />
+        {quickBuySheet}
       </SafeAreaView>
     </SocialEntryOptionsProvider>
   );

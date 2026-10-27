@@ -70,11 +70,17 @@ import type {
 } from '../SocialV1View/feed/types';
 import { chainNameToId } from '../../../UI/SocialFeed/utils/chainMapping';
 import {
+  SocialEvent,
+  type SocialEventSource,
+  useSocialScreenAnalytics,
+} from '../analytics';
+import {
   SOCIAL_TRACE_TABS,
   type SocialPerformanceContext,
 } from '../../../../util/social/socialPerformance';
 import { useSocialTabFirstContentTrace } from '../SocialV1View/performance/useSocialTabFirstContentTrace';
 
+const { FeedSort, Filter, Interaction, Screen, Tab } = SocialEvent;
 /** Insert the Popular traders rail after this many Trending posts. */
 export const TRENDING_POPULAR_TRADERS_INSERT_AFTER = 3;
 
@@ -106,6 +112,7 @@ const FEED_TRACE_TABS = {
 
 export interface EmptyShellTabPageProps {
   tab: SocialFeedShellTab;
+  source?: SocialEventSource;
   /**
    * The pager mounts every page up front. Hold the mock list back until the
    * tab is first opened so Trending and Following don't duplicate testIDs.
@@ -137,6 +144,7 @@ export interface EmptyShellTabPageProps {
  */
 const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   tab,
+  source,
   isActive = true,
   performance,
   onScroll,
@@ -201,6 +209,18 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   );
 
   const { colors } = useTheme();
+  const screenName = tab === 'trending' ? Screen.TRENDING : Screen.FOLLOWING;
+  const tabName = tab === 'trending' ? Tab.TRENDING : Tab.FOLLOWING;
+  const trackInteraction = useSocialScreenAnalytics(screenName, {
+    tabName,
+    source,
+    state: [
+      isLoading,
+      Boolean(error),
+      posts.length > 0 || pinnedPosts.length > 0,
+    ],
+    isActive,
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [selectedToken, setSelectedToken] = useState<SocialV1HotToken | null>(
     null,
@@ -269,6 +289,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
+    trackInteraction(Interaction.REFRESH);
     try {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, REFRESH_MIN_DURATION_MS),
@@ -291,7 +312,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     } finally {
       setRefreshing(false);
     }
-  }, [visibleAssetFeed, refresh]);
+  }, [refresh, trackInteraction, visibleAssetFeed]);
 
   /**
    * Pagination rides `onMomentumScrollEnd` / `onScrollEndDrag` rather than
@@ -511,6 +532,20 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   const showNextPageSpinner = visibleAssetFeed
     ? visibleAssetFeed.isFetchingNextPage
     : isFetchingNextPage;
+  const handleFeedSortChange = useCallback(
+    (nextSort: FeedSort) => {
+      if (nextSort === feedSort) {
+        return;
+      }
+      trackInteraction(Interaction.SORT_APPLIED, {
+        filter_name: Filter.FEED_SORT,
+        previous_filter_value: feedSort,
+        filter_value: nextSort,
+      });
+      setFeedSort(nextSort);
+    },
+    [feedSort, trackInteraction],
+  );
   const firstContentState = !hasBeenActive
     ? null
     : sortedPosts.length > 0
@@ -531,6 +566,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   return (
     <SocialFeedSurfaceProvider
       location={tab === 'trending' ? 'social_trending' : 'social_following'}
+      analyticsSource={source}
       showMockedFields
     >
       <Box twClassName="flex-1 bg-default" testID={containerTestID}>
@@ -632,7 +668,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           <FeedSortFilterSheet
             isOpen={isSortSheetOpen}
             value={feedSort}
-            onChange={setFeedSort}
+            onChange={handleFeedSortChange}
             onClose={() => setIsSortSheetOpen(false)}
           />
         ) : null}

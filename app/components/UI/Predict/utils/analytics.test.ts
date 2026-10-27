@@ -23,11 +23,17 @@ jest.mock('../constants/eventNames', () => ({
       BINARY: 'binary',
       MULTI_OUTCOME: 'multi-outcome',
     },
+    OUTCOME_VERSION: {
+      V1: 'v1',
+      V2: 'v2',
+      MIXED: 'mixed',
+    },
     CLAIM_FAILURE_REASON: {
       PENDING_RESOLUTION: 'pending_resolution',
       INSUFFICIENT_GAS: 'insufficient_gas',
       NETWORK_ERROR: 'network_error',
       USER_REJECTED: 'user_rejected',
+      MARKET_UNAVAILABLE: 'market_unavailable',
       UNKNOWN: 'unknown',
     },
     FAILURE_STAGE: {
@@ -208,6 +214,38 @@ describe('parseAnalyticsProperties', () => {
       expect(result.marketId).toBe('market-123');
       expect(result.marketTitle).toBe('Test Market');
       expect(result.marketType).toBe('binary');
+    });
+  });
+
+  describe('outcome version', () => {
+    it.each([
+      ['v2', 'v2'],
+      ['v1', 'v1'],
+      [undefined, 'v1'],
+    ])(
+      'sets outcomeVersion from outcome version %s to %s',
+      (version, expected) => {
+        const result = parseAnalyticsProperties(
+          createMockMarket(),
+          createMockOutcomeToken(),
+          undefined,
+          undefined,
+          undefined,
+          { version },
+        );
+
+        expect(result.outcomeVersion).toBe(expected);
+      },
+    );
+
+    it('omits outcomeVersion when the outcome is not provided', () => {
+      const result = parseAnalyticsProperties(
+        createMockMarket(),
+        createMockOutcomeToken(),
+        undefined,
+      );
+
+      expect(result).not.toHaveProperty('outcomeVersion');
     });
   });
 
@@ -531,6 +569,7 @@ describe('parseAnalyticsProperties', () => {
 
   describe('mapClaimFailureReason', () => {
     it.each([
+      ['PREDICT_MARKET_UNAVAILABLE', 'market_unavailable'],
       ['PREDICT_MARKET_PENDING_RESOLUTION', 'pending_resolution'],
       ['Market is pending resolution', 'pending_resolution'],
       ['No claimable positions found', 'pending_resolution'],

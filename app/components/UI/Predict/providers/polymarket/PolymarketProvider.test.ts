@@ -3144,6 +3144,84 @@ describe('PolymarketProvider', () => {
     expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
   });
 
+  it('reads deposit-wallet collateral while checking whether the legacy Safe exists', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+    mockIsSmartContractAddress.mockClear();
+    mockGetRawBalance.mockClear();
+
+    let resolveDeployment: (deployed: boolean) => void = () => undefined;
+    let resolveDepositBalance: (balance: bigint) => void = () => undefined;
+    mockIsSmartContractAddress.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDeployment = resolve;
+      }),
+    );
+    mockGetRawBalance.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDepositBalance = resolve;
+      }),
+    );
+
+    const pendingBalance = provider.getBalance({ address: signer.address });
+    await flushPromises();
+
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(1);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledWith(
+      legacySafeAddress,
+      '0x89',
+    );
+
+    resolveDeployment(false);
+    resolveDepositBalance(1_500_000n);
+
+    await expect(pendingBalance).resolves.toBe(1.5);
+    expect(mockGetRawBalance).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds deployed legacy Safe collateral to the deposit-wallet balance', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false);
+    const provider = createProvider();
+    await provider.getAccountState({ ownerAddress: signer.address });
+
+    mockIsSmartContractAddress.mockResolvedValue(true);
+    mockGetRawBalance.mockImplementation(async ({ address, tokenAddress }) => {
+      if (address === depositWalletAddress) {
+        return 1_000_000n;
+      }
+      if (tokenAddress === USDC_E_ADDRESS) {
+        return 3_000_000n;
+      }
+      return 2_000_000n;
+    });
+
+    const balance = await provider.getBalance({ address: signer.address });
+
+    expect(balance).toBe(6);
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: depositWalletAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: MATIC_CONTRACTS_V2.collateral,
+    });
+    expect(mockGetRawBalance).toHaveBeenCalledWith({
+      address: legacySafeAddress,
+      tokenAddress: USDC_E_ADDRESS,
+    });
+  });
+
   it('runs deposit-wallet beforePublish deployment and allowance preflight', async () => {
     const provider = createProvider();
     const repairTransaction = {
@@ -3368,7 +3446,7 @@ describe('PolymarketProvider', () => {
       } as never);
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3381,6 +3459,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: 'v2' },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: 'v2' });
     });
 
     it('keeps the CTF claim when the gamma market has no v2 version', async () => {
@@ -3411,7 +3490,7 @@ describe('PolymarketProvider', () => {
       );
       const provider = createProvider();
 
-      await provider.prepareClaim({
+      const result = await provider.prepareClaim({
         positions: [createClaimPosition()],
         signer,
       });
@@ -3421,6 +3500,7 @@ describe('PolymarketProvider', () => {
           marketVersions: { [gammaConditionId]: undefined },
         }),
       );
+      expect(result.marketVersions).toEqual({ [gammaConditionId]: undefined });
     });
 
     describe('Protocol V2 markets kill switch', () => {
@@ -3457,6 +3537,10 @@ describe('PolymarketProvider', () => {
           expect.objectContaining({ positions: [v1Position] }),
         );
         expect(result.positions).toEqual([v1Position]);
+        expect(result.marketVersions).toEqual({
+          [v1ConditionId]: undefined,
+          [v2ConditionId]: 'v2',
+        });
       });
 
       it('throws MARKET_UNAVAILABLE when every position is v2 and the kill switch is on', async () => {
