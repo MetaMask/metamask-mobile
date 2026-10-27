@@ -567,6 +567,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'ios')
     permissions:
       contents: read
+      checks: read # eas-update-platform.yml re-reads ci.yml before the EAS push
+      actions: read
       id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:
@@ -606,6 +608,8 @@ jobs:
       (inputs.platform == 'all' || inputs.platform == 'android')
     permissions:
       contents: read
+      checks: read # eas-update-platform.yml re-reads ci.yml before the EAS push
+      actions: read
       id-token: write # AWS OIDC role assumption in eas-update-platform.yml
     uses: ./.github/workflows/eas-update-platform.yml
     with:

@@ -13,7 +13,9 @@
 # in-progress check cannot satisfy or block that lookup. A missing, pending,
 # or unsuccessful ci.yml result blocks the push. Runway's workflow_dispatch
 # inputs are unchanged. push-eas-update.yml checks the same SHA again after
-# release-team approval, immediately before the EAS push.
+# release-team approval. The production environment's required reviewers sit
+# after that check, so eas-update-platform.yml re-reads ci.yml as the first
+# step of the push job, after those reviewers approve and before the EAS push.
 #
 ##############################################################################################
 name: Runway OTA Production

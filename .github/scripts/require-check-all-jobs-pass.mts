@@ -37,6 +37,15 @@ export interface CheckRunRef {
   app?: { slug?: string | null } | null;
   /** Workflow file that created the check. Required for a pass. */
   workflow_path?: string | null;
+  /**
+   * Start of the ci.yml workflow run. Latest-run ordering uses this, not the
+   * aggregate job's own start, because that job starts near the end of CI.
+   */
+  run_started_at?: string | null;
+  /** Higher attempt is the newer run when two runs share a start time. */
+  run_attempt?: number | null;
+  /** Workflow run id. Tie-break after run_attempt. */
+  run_id?: number | null;
 }
 
 export interface WorkflowRunRef {
@@ -47,6 +56,7 @@ export interface WorkflowRunRef {
   conclusion?: string | null;
   run_started_at?: string | null;
   created_at?: string | null;
+  run_attempt?: number | null;
   html_url?: string | null;
 }
 
@@ -91,8 +101,10 @@ export function readCheckRuns(payload: unknown): CheckRunRef[] {
  * check attached to a merge commit cannot satisfy the gate for the branch
  * tip. Runs that are not the ci.yml aggregate are ignored too, including a
  * same-named job from the OTA gate itself. Among the remaining runs, the
- * latest one must be a completed success from GitHub Actions. An older
- * success does not override a newer in-progress or failed ci.yml run.
+ * latest workflow run must be a completed success from GitHub Actions.
+ * Ordering is the workflow run's start, then its attempt and id. An older
+ * success does not override a newer in-progress or failed ci.yml run, even
+ * when the runs overlap and the older aggregate job started later.
  *
  * @param runs - Candidate check runs. Only ci.yml aggregates are considered.
  * @param expectedSha - Full commit SHA that will be published.
@@ -214,16 +226,21 @@ export function collectCiAggregateChecks(
         status: job.status,
         conclusion: job.conclusion,
         head_sha: sha,
-        // A queued job has no started_at. Stamp the workflow run time so it
-        // still sorts ahead of an older completed success.
+        // GitHub stamps a queued job with year 1. That is unset, so keep the
+        // workflow run time. Ordering itself uses the workflow run, below.
         started_at:
-          job.started_at ??
-          workflowRun.run_started_at ??
-          workflowRun.created_at,
+          realTimestamp(job.started_at) ??
+          realTimestamp(workflowRun.run_started_at) ??
+          realTimestamp(workflowRun.created_at),
         completed_at: job.completed_at,
         html_url: job.html_url,
         app: { slug: GITHUB_ACTIONS_SLUG },
         workflow_path: CI_WORKFLOW_PATH,
+        run_started_at:
+          realTimestamp(workflowRun.run_started_at) ??
+          realTimestamp(workflowRun.created_at),
+        run_attempt: workflowRun.run_attempt ?? null,
+        run_id: workflowRun.id ?? null,
       });
     }
   }
@@ -296,7 +313,9 @@ function missingAggregate(
   checkName: string,
 ): CheckRunRef {
   const completed = workflowRun.status === 'completed';
-  const startedAt = workflowRun.run_started_at ?? workflowRun.created_at ?? null;
+  const startedAt =
+    realTimestamp(workflowRun.run_started_at) ??
+    realTimestamp(workflowRun.created_at);
   return {
     id: workflowRun.id,
     name: checkName,
@@ -308,11 +327,27 @@ function missingAggregate(
     html_url: workflowRun.html_url,
     app: { slug: GITHUB_ACTIONS_SLUG },
     workflow_path: CI_WORKFLOW_PATH,
+    run_started_at: startedAt,
+    run_attempt: workflowRun.run_attempt ?? null,
+    run_id: workflowRun.id ?? null,
   };
 }
 
 function pickLatest(runs: CheckRunRef[]): CheckRunRef {
   return [...runs].sort((left, right) => {
+    const byRunStart = timestamp(right.run_started_at) - timestamp(left.run_started_at);
+    if (byRunStart !== 0) {
+      return byRunStart;
+    }
+    const byAttempt = (right.run_attempt ?? 0) - (left.run_attempt ?? 0);
+    if (byAttempt !== 0) {
+      return byAttempt;
+    }
+    const byRunId = (right.run_id ?? 0) - (left.run_id ?? 0);
+    if (byRunId !== 0) {
+      return byRunId;
+    }
+    // Check fixtures that are not workflow runs still order by job time.
     const byStart = timestamp(right.started_at) - timestamp(left.started_at);
     if (byStart !== 0) {
       return byStart;
@@ -326,11 +361,20 @@ function pickLatest(runs: CheckRunRef[]): CheckRunRef {
   })[0];
 }
 
+/** GitHub uses year 1 when a queued job has not actually started. */
+function realTimestamp(value: string | null | undefined): string | null {
+  if (!value || value.startsWith('0001-')) {
+    return null;
+  }
+  return value;
+}
+
 function timestamp(value: string | null | undefined): number {
-  if (!value) {
+  const real = realTimestamp(value);
+  if (!real) {
     return 0;
   }
-  const parsed = Date.parse(value);
+  const parsed = Date.parse(real);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
 
