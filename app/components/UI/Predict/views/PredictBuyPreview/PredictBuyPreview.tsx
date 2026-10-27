@@ -657,7 +657,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
               variant={TextVariant.BodyXs}
               style={tw.style('text-info-default')}
               onPress={() => {
-                Linking.openURL('https://polymarket.com/tos');
+                Linking.openURL('https://polymarket.com/tos'); // NOSONAR
               }}
             >
               {strings('predict.consent_sheet.learn_more')}

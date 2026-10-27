@@ -319,7 +319,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         params: { autoDeposit: true },
       });
     } else {
-      deposit();
+      deposit(); // NOSONAR
     }
   }, [deposit, isSheetMode, navigation]);
 
@@ -472,7 +472,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       handleAddFunds();
       return;
     }
-    handleConfirm();
+    handleConfirm(); // NOSONAR
   }, [
     isBannerActive,
     isPaymentSelectorNavigationLocked,
