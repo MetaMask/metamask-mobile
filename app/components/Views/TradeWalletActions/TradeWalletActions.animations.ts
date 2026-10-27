@@ -9,8 +9,9 @@ import {
 } from 'react-native-reanimated';
 
 const ENTER_SCALE = 0.78;
-const EXIT_SCALE = 0.9;
-const EXIT_SCALE_DURATION = 120;
+// Small enough that a bottom-anchored scale lands on the source control.
+const EXIT_SCALE = 0.35;
+const EXIT_DURATION = 200;
 
 // Response 0.35s at a 0.72 damping ratio: the quick, slightly underdamped
 // spring of the SpringBoard context menu.
@@ -39,9 +40,11 @@ export const SPRINGBOARD_FADE_OUT: WithTimingConfig = {
 // The glass path grows the surface's own frame instead of scaling its layer:
 // `UIGlassEffect` renders its refraction at the layer's size, so a scaled glass
 // layer warps and its corner radius visibly wobbles mid-flight.
+// Close plays that morph backward: most of the collapse is immediate, then the
+// opaque surface eases into the source button. It does not bounce.
 export const MORPH_COLLAPSE: WithTimingConfig = {
-  duration: 180,
-  easing: Easing.in(Easing.cubic),
+  duration: 200,
+  easing: Easing.out(Easing.cubic),
   reduceMotion: ReduceMotion.System,
 };
 
@@ -53,8 +56,8 @@ export const MORPH_CONTENT_FADE_IN: WithTimingConfig = {
 };
 
 export const MORPH_CONTENT_FADE_OUT: WithTimingConfig = {
-  duration: 90,
-  easing: Easing.in(Easing.quad),
+  duration: 70,
+  easing: Easing.out(Easing.quad),
   reduceMotion: ReduceMotion.Never,
 };
 
@@ -124,7 +127,10 @@ export const springboardEnter = (): LayoutAnimation => {
   };
 };
 
-/** Shrinks the menu back toward its `transformOrigin` while it fades. */
+/**
+ * Retracts the menu into its `transformOrigin`. The scale is front-loaded so
+ * the surface is already small while the fade, eased in, is still holding.
+ */
 export const springboardExit = (): LayoutAnimation => {
   'worklet';
 
@@ -134,12 +140,16 @@ export const springboardExit = (): LayoutAnimation => {
       transform: [{ scale: 1 }],
     },
     animations: {
-      opacity: withTiming(0, SPRINGBOARD_FADE_OUT),
+      opacity: withTiming(0, {
+        duration: EXIT_DURATION,
+        easing: Easing.in(Easing.quad),
+        reduceMotion: ReduceMotion.Never,
+      }),
       transform: [
         {
           scale: withTiming(EXIT_SCALE, {
-            duration: EXIT_SCALE_DURATION,
-            easing: Easing.in(Easing.cubic),
+            duration: EXIT_DURATION,
+            easing: Easing.out(Easing.cubic),
             reduceMotion: ReduceMotion.System,
           }),
         },
