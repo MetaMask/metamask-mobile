@@ -111,7 +111,16 @@ const PositionCardShell: React.FC<PositionCardShellProps> = ({
 }) => {
   const { colors, themeAppearance } = useTheme();
   const tw = useTailwind();
-  const clipRadius = StyleSheet.flatten(tw.style('rounded-2xl')).borderRadius;
+  // `flatten` can return a primitive style, which has no radius. The token
+  // class resolves to a style object; anything else leaves the clip square.
+  const flattenedCardRadius = StyleSheet.flatten(tw.style('rounded-2xl'));
+  const clipRadius =
+    typeof flattenedCardRadius === 'object' &&
+    flattenedCardRadius !== null &&
+    'borderRadius' in flattenedCardRadius &&
+    typeof flattenedCardRadius.borderRadius === 'number'
+      ? flattenedCardRadius.borderRadius
+      : undefined;
   const showWash = themeAppearance === AppThemeKey.dark && tone !== 'neutral';
   const colorsForWash =
     tone === 'positive'

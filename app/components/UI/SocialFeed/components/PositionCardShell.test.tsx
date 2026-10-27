@@ -6,12 +6,12 @@ import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { mockTheme } from '../../../../util/theme';
-import { AppThemeKey } from '../../../../util/theme/models';
+import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import PositionCardShell, { type PositionCardTone } from './PositionCardShell';
 
 const CARD_TEST_ID = 'position-card-shell-body';
 
-const darkMockTheme = {
+const darkMockTheme: Theme = {
   ...mockTheme,
   colors: darkTheme.colors,
   typography: darkTheme.typography,
