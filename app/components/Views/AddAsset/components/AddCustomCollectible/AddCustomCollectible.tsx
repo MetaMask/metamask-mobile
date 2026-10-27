@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import { TextInput } from 'react-native';
+import { Source } from '@metamask/assets-controllers';
 import Engine from '../../../../../core/Engine';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -228,7 +229,9 @@ const AddCustomCollectible = ({
       const { NftController } = Engine.context as any;
 
       trace({ name: TraceName.ImportNfts });
-      await NftController.addNft(address, tokenId, networkClientId);
+      await NftController.addNft(address, tokenId, networkClientId, {
+        source: Source.Custom,
+      });
       endTrace({ name: TraceName.ImportNfts });
 
       try {

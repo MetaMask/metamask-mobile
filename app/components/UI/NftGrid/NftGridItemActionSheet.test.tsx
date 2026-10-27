@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import NftGridItemActionSheet from './NftGridItemActionSheet';
-import { Nft } from '@metamask/assets-controllers';
+import { Nft, Source } from '@metamask/assets-controllers';
 
 const mockStore = configureMockStore();
 
@@ -134,6 +134,7 @@ describe('NftGridItemActionSheet', () => {
       '0x123',
       '456',
       'mainnet',
+      { source: Source.Detected },
     );
   });
 
