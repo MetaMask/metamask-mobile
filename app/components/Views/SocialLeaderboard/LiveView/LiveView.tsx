@@ -15,11 +15,12 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { playSelection } from '../../../../util/haptics';
+import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
@@ -41,12 +42,6 @@ import {
 
 const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
 
-const LIVE_FEED_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  scope: 'all',
-};
-
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
@@ -56,6 +51,8 @@ export interface LiveViewProps {
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /** Clears the applied Live filters. */
+  onClearFilters?: () => void;
   /** Filters committed in the Live filter sheet. */
   appliedFilters?: SocialShellFilters;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
@@ -68,6 +65,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   pageRef,
   onOpenFilters,
   isFilterActive = false,
+  onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
@@ -191,10 +189,20 @@ const LiveView: React.FC<LiveViewProps> = ({
     [handleLiveToggle, isFilterActive, isLive, onOpenFilters],
   );
 
+  const liveEmpty = (
+    <Box twClassName="-mt-2">
+      {isFilterActive ? (
+        <SocialFilterEmptyState onClear={onClearFilters ?? (() => undefined)} />
+      ) : (
+        <SocialV1FeedEmptyState tab="live" />
+      )}
+    </Box>
+  );
+
   return (
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
-        source={LIVE_FEED_SOURCE}
+        scope="all"
         location="social_live"
         analyticsSource={source}
         isActive={isActive}
@@ -202,6 +210,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         realtime={isActive}
         paused={!isLive}
         filterPost={filterPost}
+        emptyState={liveEmpty}
         renderHeader={renderHeader}
         onScroll={onScroll}
         pageRef={feedPageRef}

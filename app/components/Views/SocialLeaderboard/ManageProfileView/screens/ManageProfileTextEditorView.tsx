@@ -12,7 +12,7 @@ import ManageProfileTextEditor from '../components/ManageProfileTextEditor';
 import { MANAGE_PROFILE_TEXT_EDITOR_FIELD_CONFIG } from './manageProfileTextEditorFields';
 import { normalizeUsername } from '../../ProfileOnboarding/profileOnboardingDraft';
 import { useProfileController } from '../hooks/useProfileController';
-import { useManageProfileAnalytics } from '../../analytics';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const ManageProfileTextEditorView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();

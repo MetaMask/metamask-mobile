@@ -13,6 +13,7 @@ export const ManageProfileViewSelectorsIDs = {
   TRADING_ACTIVITY_ROW: 'manage-profile-view-trading-activity-row',
   LINKED_ACCOUNT_ROW: 'manage-profile-view-linked-account-row',
   LINKED_ACCOUNT_AVATAR: 'manage-profile-view-linked-account-avatar',
+  X_CONNECT_ERROR: 'manage-profile-view-x-connect-error',
 } as const;
 
 export const ManageProfileEditorSelectorsIDs = {

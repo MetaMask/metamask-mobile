@@ -45,7 +45,7 @@ outputs:
     description: 'AI confidence score (0-100)'
     value: ${{ steps.final-outputs.outputs.ai_confidence }}
   ai_performance_test_tags:
-    description: 'Performance tags from Smart E2E Selection. Recorded for the analysis comment only. PR CI does not run performance tests from this output; the run-performance-tests label is the only PR trigger.'
+    description: 'Always []. Performance tests are not part of Smart E2E Selection. PR performance runs only from the run-performance-tests labels.'
     value: ${{ steps.final-outputs.outputs.ai_performance_test_tags }}
   ai_performance_test_reasoning:
     description: 'Reasoning for the performance test selection'
