@@ -1,3 +1,4 @@
+import { CommonActions, type NavigationState } from '@react-navigation/native';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -8,15 +9,20 @@ import {
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
 import Engine from '../../../Engine';
 import ReduxService from '../../../redux';
-import { selectIsFirstTimePerpsUser } from '../../../../components/UI/Perps/selectors/perpsController';
+import {
+  selectIsFirstTimePerpsUser,
+  selectPerpsLastViewedMarketSymbol,
+} from '../../../../components/UI/Perps/selectors/perpsController';
 import { selectPerpsProModeEnabledFlag } from '../../../../components/UI/Perps/selectors/featureFlags';
 import {
   parsePerpsUtmFromPath,
   setPerpsUtmAttribution,
 } from '../../../../components/UI/Perps/utils/perpsAnalyticsAttribution';
 import {
+  dropPerpsHomeFromStackHistory,
   getPerpsHomeNavigationTarget,
   PERPS_DEFAULT_PRO_MARKET_SYMBOL,
+  resolvePerpsHomeNavigationTarget,
 } from '../../../../components/UI/Perps/utils/perpsModeSwitch';
 import type { DeeplinkIntent } from '../../types/DeeplinkIntent';
 import { executeDeeplinkIntent } from '../../utils/executeDeeplinkIntent';
@@ -29,6 +35,12 @@ import { PriceAlertAnalytics } from '../../../../components/UI/Assets/PriceAlert
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
+  /**
+   * Warm-path signal that Pro mode was persisted. Cold start does not pass
+   * this; Lite-home history cleanup only applies when an existing Perps stack
+   * can still contain Home.
+   */
+  onProModeActivated?: (activated: boolean) => void;
 }
 
 /**
@@ -92,12 +104,104 @@ const shouldActivateProMode = (perpsPath: string): boolean =>
   readPerpsQueryParams(perpsPath).get('mode') === 'pro' &&
   selectPerpsProModeEnabledFlag(ReduxService.store.getState());
 
-const activateProMode = (): void => {
+const activateProMode = (): boolean => {
   try {
     Engine.context.PerpsController.setPerpsMode(PerpsMode.Pro);
+    return true;
   } catch (error) {
     DevLogger.log('[handlePerpsUrl] Failed to set Pro mode:', error);
+    return false;
   }
+};
+
+interface DeeplinkStackState {
+  key?: string;
+  index: number;
+  routes: {
+    key?: string;
+    name: string;
+    params?: object;
+    state?: DeeplinkStackState;
+  }[];
+}
+
+const isDeeplinkStackState = (value: unknown): value is DeeplinkStackState =>
+  Boolean(
+    value &&
+      typeof value === 'object' &&
+      'routes' in value &&
+      Array.isArray((value as DeeplinkStackState).routes),
+  );
+
+/**
+ * The Perps stack that still contains Lite home. Root `getState()` is the
+ * main stack, so Home is one level down on `Routes.PERPS.ROOT`.
+ */
+const findPerpsStackContainingHome = (
+  state: DeeplinkStackState | undefined,
+): DeeplinkStackState | undefined => {
+  if (!state?.routes) {
+    return undefined;
+  }
+
+  for (const route of state.routes) {
+    if (route.name === Routes.PERPS.ROOT && isDeeplinkStackState(route.state)) {
+      const containsHome = route.state.routes.some(
+        (entry) => entry.name === Routes.PERPS.PERPS_HOME,
+      );
+      if (containsHome) {
+        return route.state;
+      }
+    }
+    if (isDeeplinkStackState(route.state)) {
+      const nested = findPerpsStackContainingHome(route.state);
+      if (nested) {
+        return nested;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * `navigate` on NavigationService is deferred to the next frame. Read the
+ * stack after that frame so Home is dropped only once the requested market
+ * is already on it. `dropPerpsHomeFromStackHistory` no-ops when Home is the
+ * only entry, which would be the pre-navigate stack.
+ */
+const scheduleDropPerpsHomeFromDeeplinkHistory = (): void => {
+  requestAnimationFrame(() => {
+    try {
+      const navigation = NavigationService.navigation;
+      if (typeof navigation.getState !== 'function') {
+        return;
+      }
+      const perpsState = findPerpsStackContainingHome(
+        navigation.getState() as DeeplinkStackState | undefined,
+      );
+      if (!perpsState?.key) {
+        return;
+      }
+      dropPerpsHomeFromStackHistory({
+        getState: () => perpsState as NavigationState,
+        reset: (nextState) => {
+          if (typeof navigation.dispatch !== 'function') {
+            return;
+          }
+          navigation.dispatch({
+            ...CommonActions.reset(nextState),
+            target: perpsState.key,
+          });
+        },
+      });
+    } catch (error) {
+      DevLogger.log(
+        '[handlePerpsUrl] Failed to drop Lite home from history:',
+        error,
+      );
+    }
+  });
 };
 
 /**
@@ -171,10 +275,20 @@ const perpsScreenTarget = (
  * the default Pro market instead of `PerpsHomeView`, which must never be
  * shown while Pro mode is on (TAT-3612).
  */
-const perpsHomeTarget = (): DeeplinkIntent['target'] => {
-  const { screen, params } = getPerpsHomeNavigationTarget(
-    ReduxService.store.getState(),
-  );
+/**
+ * Home while the current mode is Lite is `PerpsHomeView`. When this link will
+ * persist Pro before navigation, resolve the Pro home market now — reading
+ * the store still sees Lite because `prepare` has not run.
+ */
+const perpsHomeTarget = (activatePro: boolean): DeeplinkIntent['target'] => {
+  const state = ReduxService.store.getState();
+  const { screen, params } = activatePro
+    ? resolvePerpsHomeNavigationTarget(
+        true,
+        {},
+        selectPerpsLastViewedMarketSymbol(state),
+      )
+    : getPerpsHomeNavigationTarget(state);
   return perpsScreenTarget(screen, params);
 };
 
@@ -201,8 +315,8 @@ const perpsHomeTarget = (): DeeplinkIntent['target'] => {
  * - Returning users: Route based on screen parameter
  * - No screen param: Defaults to screen=tabs behavior
  * - screen=tabs: Navigate to wallet home with Perps tab selected
- * - screen=home: Navigate directly to PerpsHomeView
- * - screen=markets: Navigate to PerpsHomeView (backwards compatibility)
+ * - screen=home: Navigate directly to PerpsHomeView, or the Pro home market when mode=pro will be persisted
+ * - screen=markets: Navigate to PerpsHomeView (backwards compatibility), or the Pro home market when mode=pro will be persisted
  * - screen=market-list: Navigate to PerpsMarketListView with optional tab filter
  * - screen=asset&symbol=X: Navigate directly to asset market details
  *
@@ -232,19 +346,23 @@ const resolvePerpsTarget = ({
     };
   }
 
+  // Mode is persisted in `prepare`, after this target is chosen. Home and
+  // markets must follow the mode that navigation will actually run under.
+  const activatePro = shouldActivateProMode(perpsPath);
+
   // Returning users: route based on screen parameter
   switch (navParams.screen) {
     case 'home':
-      // Explicit navigation to PerpsHomeView
-      DevLogger.log('[handlePerpsUrl] Navigating to PerpsHomeView');
-      return perpsHomeTarget();
+      // Explicit navigation to Perps home (Lite hub, or the Pro market).
+      DevLogger.log('[handlePerpsUrl] Navigating to Perps home');
+      return perpsHomeTarget(activatePro);
 
     case 'markets':
-      // Backwards compatibility: screen=markets → PerpsHomeView
+      // Backwards compatibility: screen=markets → Perps home
       DevLogger.log(
-        '[handlePerpsUrl] Navigating to PerpsHomeView (backwards compat)',
+        '[handlePerpsUrl] Navigating to Perps home (backwards compat)',
       );
-      return perpsHomeTarget();
+      return perpsHomeTarget(activatePro);
 
     case 'market-list': {
       // Navigate to PerpsMarketListView with optional market type filter
@@ -271,7 +389,7 @@ const resolvePerpsTarget = ({
         DevLogger.log(
           '[handlePerpsUrl] No symbol provided, fallback to markets list',
         );
-        return perpsHomeTarget();
+        return perpsHomeTarget(activatePro);
       }
       return perpsScreenTarget(Routes.PERPS.MARKET_DETAILS, {
         market: buildPerpsMarket(rawSymbol),
@@ -347,6 +465,7 @@ const trackPriceAlertNotificationIfApplicable = (perpsPath: string): void => {
 
 export const createPerpsDeeplinkIntent = ({
   perpsPath,
+  onProModeActivated,
 }: HandlePerpsUrlParams): DeeplinkIntent => {
   // Track notification-opened on every entry path:
   //  - Cold/startup path: called directly from handleUniversalLink (locked/killed app)
@@ -355,8 +474,14 @@ export const createPerpsDeeplinkIntent = ({
   return {
     target: resolvePerpsTarget({ perpsPath }),
     // prepare runs before navigation on both the warm and cold-start paths,
-    // so the market screen mounts the Pro layout once.
-    ...(shouldActivateProMode(perpsPath) && { prepare: activateProMode }),
+    // so the market screen mounts the Pro layout once. The destination above
+    // already uses this same requested mode, so it does not wait on prepare.
+    ...(shouldActivateProMode(perpsPath) && {
+      prepare: () => {
+        const activated = activateProMode();
+        onProModeActivated?.(activated);
+      },
+    }),
   };
 };
 
@@ -378,10 +503,28 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     );
   }
 
+  let proModeActivated = false;
+  const intent = createPerpsDeeplinkIntent({
+    perpsPath,
+    onProModeActivated: (activated) => {
+      proModeActivated = activated;
+    },
+  });
+
   try {
     // createPerpsDeeplinkIntent calls trackPriceAlertNotificationIfApplicable
     // internally, covering both warm (here) and cold/startup paths consistently.
-    await executeDeeplinkIntent(createPerpsDeeplinkIntent({ perpsPath }));
+    await executeDeeplinkIntent(intent);
+    // Drop Lite home only after the market is on the stack. A single Home
+    // entry cannot be removed first: that reset would leave Perps with no
+    // screen. Cold start builds a fresh stack and does not come through here.
+    if (
+      proModeActivated &&
+      intent.target.type === 'main-stack' &&
+      intent.target.routeName === Routes.PERPS.ROOT
+    ) {
+      scheduleDropPerpsHomeFromDeeplinkHistory();
+    }
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
     // Fallback to markets list on error
