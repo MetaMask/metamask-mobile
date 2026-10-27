@@ -38,6 +38,9 @@ CHANGELOG_FILE="${CHANGELOG_FILE:-CHANGELOG.md}"
 RELEASE_TAG="${DESIRED_BASE#ota-base/}"
 TITLE="release: ${SEMVER} (OTA)"
 OTA_VERSION_SENTINEL="vX.XX.X"
+# Left in the body after the base edit until close_extras succeeds. Reopen runs
+# first, and a retry planned as `use` reopens again while the marker remains.
+CI_REOPEN_MARKER='<!-- ota-ci-reopen-pending -->'
 
 PRS=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$HEAD_BRANCH" --state open --json number,baseRefName,state,title)
 PLAN=$(
@@ -148,6 +151,20 @@ reopen_for_ci() {
   gh pr reopen "$number" --repo "$GITHUB_REPOSITORY"
 }
 
+body_needs_ci_reopen() {
+  local number="$1"
+  local body
+  body=$(gh pr view "$number" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // empty')
+  if printf '%s' "$body" | grep -F -q "$CI_REOPEN_MARKER"; then
+    printf 'yes'
+  fi
+}
+
+clear_ci_reopen_marker() {
+  local number="$1"
+  gh pr edit "$number" --repo "$GITHUB_REPOSITORY" --body "$BODY"
+}
+
 case "$ACTION" in
   create)
     if [[ "${ALLOW_CREATE:-true}" != "true" ]]; then
@@ -175,19 +192,27 @@ case "$ACTION" in
     fi
     ;;
   retarget)
-    gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --base "$DESIRED_BASE" --body "$BODY"
-    close_extras
+    # Reopen before close_extras so a failed close cannot skip CI. The marker
+    # stays until close_extras succeeds; a retry planned as `use` reopens too.
+    gh pr edit "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --base "$DESIRED_BASE" \
+      --body "$(printf '%s\n\n%s\n' "$BODY" "$CI_REOPEN_MARKER")"
     REMOVED=$(remove_blocking_label "$PR_NUMBER" || true)
     reopen_for_ci "$PR_NUMBER" "Reopening so pull_request CI runs against \`${DESIRED_BASE}\` (MCRM-164)."
+    close_extras
+    clear_ci_reopen_marker "$PR_NUMBER"
     if [[ "$REMOVED" == "removed" ]]; then
       echo "Removed pr-not-ready-for-e2e from #${PR_NUMBER}" >&2
     fi
     ;;
   use)
-    close_extras
+    PENDING=$(body_needs_ci_reopen "$PR_NUMBER" || true)
     REMOVED=$(remove_blocking_label "$PR_NUMBER" || true)
-    if [[ "$REMOVED" == "removed" ]]; then
-      reopen_for_ci "$PR_NUMBER" "Reopening so pull_request CI runs without the pr-not-ready-for-e2e label (MCRM-164)."
+    if [[ "$PENDING" == "yes" || "$REMOVED" == "removed" ]]; then
+      reopen_for_ci "$PR_NUMBER" "Reopening so pull_request CI runs against \`${DESIRED_BASE}\` (MCRM-164)."
+    fi
+    close_extras
+    if [[ "$PENDING" == "yes" ]]; then
+      clear_ci_reopen_marker "$PR_NUMBER"
     fi
     ;;
   *)

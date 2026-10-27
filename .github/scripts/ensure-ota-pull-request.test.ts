@@ -65,7 +65,7 @@ exit 0
     CHANGELOG_FILE: changelogFile,
   };
 
-  const ran = spawnSync('bash', [SCRIPT], { encoding: 'utf8', env });
+  const ran = spawnSync('bash', [SCRIPT], { cwd: root, encoding: 'utf8', env });
   const exitCode = ran.status ?? 1;
   const stdout = ran.stdout ?? '';
   const stderr = ran.stderr ?? '';
@@ -260,5 +260,107 @@ describe('ensure-ota-pull-request.sh', () => {
     expect(result.log).not.toContain('pr edit');
     expect(result.log).not.toContain('pr create');
     expect(result.output).toContain('skip_bump=true');
+  });
+
+  it('reopens CI on retry when the base edit succeeded and closing the extra pull request failed', () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ota-retry-'));
+    const bin = path.join(root, 'bin');
+    const state = path.join(root, 'state');
+    const log = path.join(root, 'gh.log');
+    const output = path.join(root, 'github.output');
+    execFileSync('mkdir', ['-p', bin, state]);
+    writeFileSync(
+      path.join(bin, 'gh'),
+      `#!/usr/bin/env bash
+printf '%s\\n' "$*" >> "$GH_LOG"
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  if [[ -f "$GH_STATE/retargeted" ]]; then
+    printf '%s\\n' "$GH_PRS_AFTER"
+  else
+    printf '%s\\n' "$GH_PRS_BEFORE"
+  fi
+  exit 0
+fi
+if [[ "$1" == "pr" && "$2" == "edit" && "$*" == *" --base "* ]]; then
+  touch "$GH_STATE/retargeted"
+  exit 0
+fi
+if [[ "$1" == "pr" && "$2" == "view" ]]; then
+  if [[ -f "$GH_STATE/retargeted" && "$*" == *"--json body"* ]]; then
+    printf '%s\\n' '<!-- ota-ci-reopen-pending -->'
+    exit 0
+  fi
+  printf '%s\\n' "\${GH_LABELS:-}"
+  exit 0
+fi
+if [[ "$1" == "pr" && "$2" == "close" && "$3" == "9" && ! -f "$GH_STATE/allow-close-9" ]]; then
+  exit 1
+fi
+exit 0
+`,
+    );
+    chmodSync(path.join(bin, 'gh'), 0o755);
+    writeFileSync(log, '');
+    writeFileSync(output, '');
+    const otaFile = path.join(root, 'ota.ts');
+    writeFileSync(otaFile, "export const OTA_VERSION: string = 'v8.15.1';\n");
+    const stable = [
+      {
+        number: 7,
+        baseRefName: 'stable',
+        state: 'OPEN',
+        title: 'release: 8.15.1 (OTA)',
+      },
+      {
+        number: 9,
+        baseRefName: 'stable',
+        state: 'OPEN',
+        title: 'release: 8.15.1 (OTA)',
+      },
+    ];
+    const afterEdit = [
+      {
+        number: 7,
+        baseRefName: 'ota-base/v8.15.0',
+        state: 'OPEN',
+        title: 'release: 8.15.1 (OTA)',
+      },
+      stable[1],
+    ];
+    const env: NodeJS.ProcessEnv = {
+      ...process.env,
+      PATH: `${bin}:${process.env.PATH ?? ''}`,
+      GH_LOG: log,
+      GH_STATE: state,
+      GH_PRS_BEFORE: JSON.stringify(stable),
+      GH_PRS_AFTER: JSON.stringify(afterEdit),
+      GH_LABELS: '',
+      HEAD_BRANCH: 'release/8.15.1-ota',
+      DESIRED_BASE: 'ota-base/v8.15.0',
+      SEMVER: '8.15.1',
+      GITHUB_REPOSITORY: 'MetaMask/metamask-mobile',
+      GH_TOKEN: 'test-token',
+      GITHUB_OUTPUT: output,
+      OTA_CONSTANTS_FILE: otaFile,
+      CHANGELOG_FILE: path.join(root, 'CHANGELOG.md'),
+    };
+    writeFileSync(env.CHANGELOG_FILE ?? '', '# Changelog\n');
+
+    const first = spawnSync('bash', [SCRIPT], { cwd: root, encoding: 'utf8', env });
+    const firstLog = readFileSync(log, 'utf8');
+    writeFileSync(log, '');
+    writeFileSync(path.join(state, 'allow-close-9'), '');
+
+    const retry = spawnSync('bash', [SCRIPT], { cwd: root, encoding: 'utf8', env });
+    const retryLog = readFileSync(log, 'utf8');
+    rmSync(root, { recursive: true, force: true });
+
+    expect(first.status).not.toBe(0);
+    expect(firstLog).toContain('pr edit 7');
+    expect(firstLog).toContain('--base ota-base/v8.15.0');
+    expect(firstLog).toContain('pr close 9');
+    expect(retry.status).toBe(0);
+    expect(retryLog).toContain('pr close 9');
+    expect(retryLog).toContain('pr reopen 7');
   });
 });
