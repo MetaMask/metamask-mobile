@@ -38,8 +38,14 @@ type DisconnectPhase = 'idle' | 'pending' | 'settled';
 const ManageProfileXAccount = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
-  const { isConnected, xProfile, isDisconnecting, error, disconnect, refresh } =
-    useXAuth();
+  const {
+    isConnected,
+    xProfile,
+    isDisconnecting,
+    disconnectError,
+    disconnect,
+    refresh,
+  } = useXAuth();
   const { toastRef } = useContext(ToastContext);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   // `pending` is set by the sheet's confirm so a screen that is merely
@@ -68,9 +74,15 @@ const ManageProfileXAccount = () => {
       return;
     }
     // `disconnect` resolves void, so success is read from the controller having
-    // cleared the link without recording an error.
-    if (disconnectPhase === 'pending' && !error) {
-      setDisconnectPhase('settled');
+    // cleared the link without recording a disconnect failure. `disconnectError`
+    // is written only by `disconnect`, so a failed `refresh` of the same link
+    // cannot be mistaken for a failed disconnect.
+    const didDisconnect = disconnectPhase === 'pending' && !disconnectError;
+    // Latch before the toast and the navigation: the outcome state that
+    // released this effect is in the dependency list, so a re-run must not
+    // toast, or pop the navigator, a second time.
+    setDisconnectPhase('settled');
+    if (didDisconnect) {
       // The toast is hosted by the global ToastContext, so it survives the
       // navigation back to Manage profile.
       toastRef?.current?.showToast({
@@ -98,8 +110,8 @@ const ManageProfileXAccount = () => {
     }
     navigation.goBack();
   }, [
+    disconnectError,
     disconnectPhase,
-    error,
     isConnected,
     isDisconnecting,
     navigation,
@@ -125,7 +137,7 @@ const ManageProfileXAccount = () => {
   }, [disconnect]);
 
   const disconnectErrorMessage =
-    disconnectPhase === 'pending' && error && !isDisconnecting
+    disconnectPhase === 'pending' && disconnectError && !isDisconnecting
       ? strings('manage_profile.x_account_disconnect_error')
       : null;
 

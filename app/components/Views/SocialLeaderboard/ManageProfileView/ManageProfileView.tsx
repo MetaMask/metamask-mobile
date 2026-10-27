@@ -42,7 +42,7 @@ const ManageProfileView: React.FC = () => {
     isConnected: isConnectedToX,
     xProfile,
     isConnecting: isConnectingX,
-    error: xAuthError,
+    connectError: xAuthConnectError,
     connect: connectX,
   } = useXAuth();
   useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE, {
@@ -51,10 +51,10 @@ const ManageProfileView: React.FC = () => {
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   // `connect` resolves void, so the outcome is read from hook state rather than
-  // a return value: `error` is set on failure and cleared when a flow starts.
-  // A user-cancelled OAuth stays silent.
+  // a return value: `connectError` is set on failure and cleared when the next
+  // connect starts. A user-cancelled OAuth stays silent.
   const errorMessage =
-    xAuthError && xAuthError.type !== XAuthErrorType.UserCancelled
+    xAuthConnectError && xAuthConnectError.type !== XAuthErrorType.UserCancelled
       ? strings('social_leaderboard.profile_onboarding.connect_x_error')
       : null;
 

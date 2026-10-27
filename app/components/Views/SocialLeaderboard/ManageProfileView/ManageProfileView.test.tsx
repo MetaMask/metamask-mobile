@@ -64,7 +64,9 @@ const xAuthResult = (overrides: Partial<UseXAuth> = {}): UseXAuth => ({
   isConnecting: false,
   isDisconnecting: false,
   isRefreshing: false,
-  error: undefined,
+  connectError: undefined,
+  disconnectError: undefined,
+  refreshError: undefined,
   connect: mockConnect,
   disconnect: jest.fn().mockResolvedValue(undefined),
   refresh: jest.fn().mockResolvedValue(undefined),
@@ -288,7 +290,10 @@ describe('ManageProfileView', () => {
       mockUseXAuth.mockReturnValue(
         xAuthResult({
           isConnected: false,
-          error: new XAuthError(XAuthErrorType.UserCancelled, 'cancelled'),
+          connectError: new XAuthError(
+            XAuthErrorType.UserCancelled,
+            'cancelled',
+          ),
         }),
       );
 
@@ -305,7 +310,7 @@ describe('ManageProfileView', () => {
       mockUseXAuth.mockReturnValue(
         xAuthResult({
           isConnected: false,
-          error: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+          connectError: new XAuthError(XAuthErrorType.BackendError, 'boom'),
         }),
       );
 
@@ -333,7 +338,7 @@ describe('ManageProfileView', () => {
         mockUseXAuth.mockReturnValue(
           xAuthResult({
             isConnected: false,
-            error: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+            connectError: new XAuthError(XAuthErrorType.BackendError, 'boom'),
           }),
         );
 
@@ -362,7 +367,10 @@ describe('ManageProfileView', () => {
         mockUseXAuth.mockReturnValue(
           xAuthResult({
             isConnected: false,
-            error: new XAuthError(XAuthErrorType.NetworkFailure, 'offline'),
+            connectError: new XAuthError(
+              XAuthErrorType.NetworkFailure,
+              'offline',
+            ),
           }),
         );
         rerender(<ManageProfileView />);
@@ -376,7 +384,10 @@ describe('ManageProfileView', () => {
         mockUseXAuth.mockReturnValue(
           xAuthResult({
             isConnected: false,
-            error: new XAuthError(XAuthErrorType.UserCancelled, 'cancelled'),
+            connectError: new XAuthError(
+              XAuthErrorType.UserCancelled,
+              'cancelled',
+            ),
           }),
         );
 

@@ -60,7 +60,9 @@ const defaultXAuth = (): UseXAuth => ({
   isConnecting: false,
   isDisconnecting: false,
   isRefreshing: false,
-  error: undefined,
+  connectError: undefined,
+  disconnectError: undefined,
+  refreshError: undefined,
   connect: mockConnect,
   disconnect: mockDisconnect,
   refresh: mockRefresh,
@@ -269,7 +271,10 @@ describe('ManageProfileXAccount', () => {
 
       // A failed disconnect leaves the link in place and records an error.
       utils.updateXAuth({
-        error: new XAuthError(XAuthErrorType.BackendError, 'backend down'),
+        disconnectError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'backend down',
+        ),
       });
 
       expect(
@@ -278,6 +283,80 @@ describe('ManageProfileXAccount', () => {
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
       ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('toasts success and goes back once when the refresh failure lands after the link is cleared', async () => {
+      xAuthState = { ...xAuthState, xProfile: undefined };
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      // The screen refreshed because it mounted connected without a profile.
+      expect(mockRefresh).toHaveBeenCalledTimes(1);
+
+      // The disconnect succeeds and clears the link, while the in-flight
+      // refresh fails because the link is gone. Only `refreshError` moves.
+      utils.updateXAuth({
+        isConnected: false,
+        xProfile: undefined,
+        refreshError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'Failed to fetch and update the X account',
+        ),
+      });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0].labelOptions).toStrictEqual([
+        {
+          label: strings('manage_profile.x_account_disconnect_success'),
+          isBold: true,
+        },
+      ]);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      // A later write to the refresh error re-runs the effect; the settled
+      // latch must keep it from navigating a second time.
+      utils.updateXAuth({
+        refreshError: new XAuthError(XAuthErrorType.NetworkFailure, 'offline'),
+      });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not report a refresh failure as a failed disconnect', async () => {
+      xAuthState = { ...xAuthState, xProfile: undefined };
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      // The link is still connected and only the profile refresh failed, so
+      // the sheet stays open and shows no disconnect error.
+      utils.updateXAuth({
+        refreshError: new XAuthError(XAuthErrorType.NetworkFailure, 'offline'),
+      });
+
+      expect(
+        utils.queryByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR,
+        ),
+      ).toBeNull();
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
