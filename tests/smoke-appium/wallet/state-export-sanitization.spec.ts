@@ -11,40 +11,34 @@ import {
   waitForSeededState,
 } from './state-export-sanitization.helpers.js';
 
-// Skipped until the in-app state export honors controller includeInStateLogs metadata.
-appiumTest.describe.skip(
-  SmokeWalletPlatform('State export sanitization'),
-  () => {
-    appiumTest.describe.configure({ timeout: 240000 });
+appiumTest.describe(SmokeWalletPlatform('State export sanitization'), () => {
+  appiumTest.describe.configure({ timeout: 240000 });
 
-    appiumTest(
-      'omits sensitive material from the in-app state export',
-      async ({ driver: _driver, currentDeviceDetails }) => {
-        await withFixtures(
-          {
-            fixture: new FixtureBuilder()
-              .withBackupAndSyncSettings()
-              .withStateLogOmittedFields()
-              .build(),
-            restartDevice: true,
-            currentDeviceDetails,
-            useCommandQueueServer: true,
-            testSpecificMock: mockUserStorage,
-          },
-          async ({ commandQueueServer }: TestSuiteParams) => {
-            if (!commandQueueServer) {
-              throw new Error('Command queue server not available');
-            }
+  appiumTest(
+    'omits sensitive material from the in-app state export',
+    async ({ driver: _driver, currentDeviceDetails }) => {
+      await withFixtures(
+        {
+          fixture: new FixtureBuilder()
+            .withBackupAndSyncSettings()
+            .withStateLogOmittedFields()
+            .build(),
+          restartDevice: true,
+          currentDeviceDetails,
+          useCommandQueueServer: true,
+          testSpecificMock: mockUserStorage,
+        },
+        async ({ commandQueueServer }: TestSuiteParams) => {
+          if (!commandQueueServer) {
+            throw new Error('Command queue server not available');
+          }
 
-            await loginToAppPlaywright({ scenarioType: 'e2e' });
-            await waitForProfileSession(commandQueueServer);
-            await waitForSeededState(commandQueueServer);
-            await assertInAppStateExportOmitsSensitiveFields(
-              commandQueueServer,
-            );
-          },
-        );
-      },
-    );
-  },
-);
+          await loginToAppPlaywright({ scenarioType: 'e2e' });
+          await waitForProfileSession(commandQueueServer);
+          await waitForSeededState(commandQueueServer);
+          await assertInAppStateExportOmitsSensitiveFields(commandQueueServer);
+        },
+      );
+    },
+  );
+});

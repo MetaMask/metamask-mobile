@@ -34,6 +34,45 @@ const SEEDLESS_CREDENTIAL_FIELDS = [
   'encryptedKeyringEncryptionKey',
 ] as const;
 
+interface SanitizedAuthenticationExport {
+  srpSessionData?: Record<
+    string,
+    {
+      token?: Record<string, unknown>;
+      profile?: Record<string, unknown>;
+    }
+  >;
+  enrolledCredentials?: Record<string, unknown>[];
+}
+
+function assertSanitizedAuthenticationExport(
+  auth: SanitizedAuthenticationExport | undefined,
+): void {
+  const sessions = auth?.srpSessionData;
+  if (!sessions || Object.keys(sessions).length === 0) {
+    throw new Error('State export is missing sanitized profile session data');
+  }
+  for (const session of Object.values(sessions)) {
+    if (session.token && 'accessToken' in session.token) {
+      throw new Error('State export includes a profile access token');
+    }
+    if (session.profile && 'pairedIdentifierIds' in session.profile) {
+      throw new Error('State export includes paired profile identifiers');
+    }
+    if (
+      typeof session.profile?.profileId !== 'string' ||
+      session.profile.profileId.length === 0
+    ) {
+      throw new Error('State export is missing the profile id');
+    }
+  }
+  for (const credential of auth.enrolledCredentials ?? []) {
+    if ('email' in credential || 'displayName' in credential) {
+      throw new Error('State export includes credential personal data');
+    }
+  }
+}
+
 function assertValueAbsent(serialized: string, value: string, label: string) {
   if (value.length > 0 && serialized.includes(value)) {
     throw new Error(`${label} was included in the exported state`);
@@ -153,12 +192,11 @@ export async function assertInAppStateExportOmitsSensitiveFields(
   if (JWT_PATTERN.test(serialized)) {
     throw new Error('State export includes a JWT-shaped token');
   }
-  if (serialized.includes('srpSessionData')) {
-    throw new Error('State export includes profile sync session data');
-  }
-  if (appBackground?.AuthenticationController !== undefined) {
-    throw new Error('State export still includes authentication state');
-  }
+  assertSanitizedAuthenticationExport(
+    appBackground?.AuthenticationController as
+      | SanitizedAuthenticationExport
+      | undefined,
+  );
   if (!appKeyring || 'vault' in appKeyring) {
     throw new Error('State export still includes the keyring vault field');
   }
