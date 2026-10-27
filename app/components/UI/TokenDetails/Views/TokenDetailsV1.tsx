@@ -353,7 +353,6 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
     marketData,
     isMarketDataLoading,
     securityData,
-    launchpadData: tokenAsset?.launchpadData,
     tokenApiHoldersCount: tokenAsset?.holders?.count,
     currentCurrency: selectedCurrency,
   });
