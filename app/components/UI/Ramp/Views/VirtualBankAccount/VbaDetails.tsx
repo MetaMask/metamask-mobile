@@ -652,14 +652,10 @@ const VbaDetails = () => {
     contentState: accountDetailsContentState,
   });
   useEffect(() => {
-    if (
-      hasCurrentAccountState &&
-      instructions?.type === 'Pix' &&
-      rows.length > 0
-    ) {
+    if (hasCurrentAccountState && rows.length > 0) {
       endVbaCufJourney(true);
     }
-  }, [hasCurrentAccountState, instructions?.type, rows.length]);
+  }, [hasCurrentAccountState, rows.length]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');

@@ -191,6 +191,7 @@ const restoreNeoBankService = () => {
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
@@ -351,6 +352,7 @@ describe('VbaDetails', () => {
       expect(getByText('Lead Bank')).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     });
 
     it('copies the routing number', async () => {
