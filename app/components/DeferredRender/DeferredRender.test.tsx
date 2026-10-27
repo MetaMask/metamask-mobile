@@ -245,6 +245,32 @@ describe('DeferredRender', () => {
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
+    it('releases a placeholder gate on transitionEnd without warning', () => {
+      const view = render(
+        <DeferredRender
+          placeholder={
+            <DeferredRender placeholder={<View testID="inner-placeholder" />}>
+              <View testID="inner-content" />
+            </DeferredRender>
+          }
+        >
+          <View testID="outer-content" />
+        </DeferredRender>,
+      );
+
+      expect(view.getByTestId('inner-placeholder')).toBeOnTheScreen();
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      emit('transitionEnd');
+
+      // Child effects subscribe first, so frame 1 is the placeholder gate.
+      expect(queuedFrameIds()).toStrictEqual([1, 2]);
+      flushFrame(1);
+
+      expect(view.getByTestId('inner-content')).toBeOnTheScreen();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
     it('releases a nested gate on its own 450 ms fallback plus a frame', () => {
       const view = render(
         gate(
