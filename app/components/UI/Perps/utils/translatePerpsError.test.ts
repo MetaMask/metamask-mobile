@@ -51,6 +51,8 @@ import {
   translatePerpsError,
   isPerpsErrorCode,
   isNoPositionFoundError,
+  isPostOnlyWindowError,
+  isPostOnlyWouldCrossError,
   handlePerpsError,
 } from './translatePerpsError';
 
@@ -407,6 +409,103 @@ describe('isNoPositionFoundError', () => {
 
     // Act
     const result = isNoPositionFoundError(error);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+});
+
+describe('post-only rejections', () => {
+  const POST_ONLY_WINDOW_ERROR =
+    'order 0: Only post-only orders allowed immediately after network upgrade';
+  // bbo digits include "503" to guard against the generic service-unavailable pattern
+  const POST_ONLY_WOULD_CROSS_MODIFY_ERROR =
+    'Error placing new order during modify: Post only order would have immediately matched, bbo was 2503.1@2503.2.';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('translatePerpsError maps the post-only window rejection to restriction copy', () => {
+    // Act
+    const result = translatePerpsError(POST_ONLY_WINDOW_ERROR);
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('translatePerpsError maps the post-only would-cross rejection without bbo details', () => {
+    // Act
+    const result = translatePerpsError(
+      new Error(POST_ONLY_WOULD_CROSS_MODIFY_ERROR),
+    );
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it('handlePerpsError maps the post-only window rejection instead of the fallback', () => {
+    // Act
+    const result = handlePerpsError({
+      error: { error: POST_ONLY_WINDOW_ERROR },
+      fallbackMessage: 'Your funds have been returned to you',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWindow');
+  });
+
+  it('handlePerpsError maps the post-only would-cross rejection before generic patterns', () => {
+    // Act
+    const result = handlePerpsError({
+      error: POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+      fallbackMessage: 'Fallback message',
+    });
+
+    // Assert
+    expect(result).toBe('perps.errors.postOnlyWouldCross');
+  });
+
+  it.each([
+    ['a string', POST_ONLY_WINDOW_ERROR],
+    ['an Error', new Error(POST_ONLY_WINDOW_ERROR)],
+    ['a structured failure', { error: POST_ONLY_WINDOW_ERROR }],
+  ])(
+    'isPostOnlyWindowError detects the post-only window in %s',
+    (_label, error) => {
+      // Act
+      const result = isPostOnlyWindowError(error);
+
+      // Assert
+      expect(result).toBe(true);
+    },
+  );
+
+  it('isPostOnlyWindowError ignores the post-only would-cross rejection', () => {
+    // Act
+    const result = isPostOnlyWindowError(POST_ONLY_WOULD_CROSS_MODIFY_ERROR);
+
+    // Assert
+    expect(result).toBe(false);
+  });
+
+  it('isPostOnlyWouldCrossError detects the post-only would-cross modify rejection', () => {
+    // Act
+    const result = isPostOnlyWouldCrossError(
+      POST_ONLY_WOULD_CROSS_MODIFY_ERROR,
+    );
+
+    // Assert
+    expect(result).toBe(true);
+  });
+
+  it.each([
+    ['the post-only window rejection', POST_ONLY_WINDOW_ERROR],
+    ['an unrelated error', 'Insufficient margin'],
+    ['undefined', undefined],
+  ])('isPostOnlyWouldCrossError ignores %s', (_label, error) => {
+    // Act
+    const result = isPostOnlyWouldCrossError(error);
 
     // Assert
     expect(result).toBe(false);

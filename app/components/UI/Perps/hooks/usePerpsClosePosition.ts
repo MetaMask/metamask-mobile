@@ -17,6 +17,7 @@ import {
   isPerpsErrorCode,
   type PerpsErrorInput,
   isNoPositionFoundError,
+  isPostOnlyWindowError,
 } from '../utils/translatePerpsError';
 import { PerpsCacheInvalidator } from '../services/PerpsCacheInvalidator';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
@@ -216,10 +217,11 @@ export const usePerpsClosePosition = (
         }
 
         const shouldExplainFailure =
-          orderType === 'market' &&
-          (isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED) ||
-            isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
-            isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED));
+          isPostOnlyWindowError(failure) ||
+          (orderType === 'market' &&
+            (isPerpsErrorCode(failure, PERPS_ERROR_CODES.PRICE_MOVED) ||
+              isPerpsErrorCode(failure, PERPS_ERROR_CODES.IOC_CANCEL) ||
+              isPerpsErrorCode(failure, PERPS_ERROR_CODES.SLIPPAGE_EXCEEDED)));
 
         if (!shouldExplainFailure) {
           showToast(toast);
