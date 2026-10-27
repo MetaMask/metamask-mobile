@@ -2668,7 +2668,7 @@ const matchSellOrder = ({
 }: {
   bids: OrderSummary[];
   shareAmount: number;
-}): { price: number; size: number } => {
+}): { price: number; size: number; worstPrice: number } => {
   if (!bids.length) {
     throw new Error('no order match');
   }
@@ -2677,6 +2677,8 @@ const matchSellOrder = ({
 
   let dollarAmount = 0;
   let sharesMatched = 0;
+  // Lowest bid level that contributed shares to the fill.
+  let worstPrice = sharePrice;
 
   for (let i = bids.length - 1; i >= 0; i--) {
     const e = bids[i];
@@ -2686,10 +2688,16 @@ const matchSellOrder = ({
     if (sharesMatched + entrySize <= shareAmount) {
       sharesMatched += entrySize;
       dollarAmount += entrySize * entryPrice;
+      if (entrySize > 0) {
+        worstPrice = entryPrice;
+      }
     } else {
       const remainingShares = shareAmount - sharesMatched;
       dollarAmount += remainingShares * entryPrice;
-      return { price: sharePrice, size: dollarAmount };
+      if (remainingShares > 0) {
+        worstPrice = entryPrice;
+      }
+      return { price: sharePrice, size: dollarAmount, worstPrice };
     }
   }
 
@@ -2697,6 +2705,7 @@ const matchSellOrder = ({
     return {
       price: sharePrice,
       size: dollarAmount,
+      worstPrice,
     };
   }
 
@@ -2895,7 +2904,11 @@ export const previewOrder = async (
   if (!bids || bids.length === 0) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_MATCH_SELL);
   }
-  const { price: bestPrice, size: dollarAmount } = matchSellOrder({
+  const {
+    price: bestPrice,
+    size: dollarAmount,
+    worstPrice: worstFillPrice,
+  } = matchSellOrder({
     bids,
     shareAmount: size,
   });
@@ -2913,6 +2926,7 @@ export const previewOrder = async (
     side: Side.SELL,
     positionId: params.positionId,
     sharePrice: bestPrice,
+    worstFillPrice,
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,

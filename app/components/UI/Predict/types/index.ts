@@ -813,6 +813,11 @@ export interface OrderPreview {
   timestamp: number;
   side: Side;
   sharePrice: number;
+  /**
+   * Sell previews only: the lowest bid price used to fill the full size from
+   * the order book snapshot.
+   */
+  worstFillPrice?: number;
   maxAmountSpent: number;
   minAmountReceived: number;
   slippage: number;
