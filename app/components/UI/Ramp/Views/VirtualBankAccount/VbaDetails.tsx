@@ -253,7 +253,6 @@ const VbaDetails = () => {
     useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
-  const mountGenerationRef = useRef(0);
   const pollingDoneRef = useRef(false);
   const pixFetchTraceIdRef = useRef<string | null>(null);
   const pixFetchTraceSettledRef = useRef(false);
@@ -283,15 +282,11 @@ const VbaDetails = () => {
   );
 
   useEffect(() => {
-    const mountGeneration = ++mountGenerationRef.current;
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
       queueMicrotask(() => {
-        if (
-          !isMountedRef.current &&
-          mountGenerationRef.current === mountGeneration
-        ) {
+        if (!isMountedRef.current) {
           finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
         }
       });
