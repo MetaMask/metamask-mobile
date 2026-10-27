@@ -14,19 +14,26 @@ const NOW = 1_800_000_000_000;
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 
-const passkey: EnrolledCredential = { type: 'passkey', status: 'active' };
+const passkey: EnrolledCredential = {
+  id: 'passkey',
+  type: 'passkey',
+  status: 'active',
+};
 const email: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   email: 'a@b.co',
   verified: true,
 };
 const providerEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'active',
   verified: true,
 };
 const pendingEmail: EnrolledCredential = {
+  id: 'email_otp',
   type: 'email_otp',
   status: 'pending',
   email: 'pending@b.co',
@@ -466,15 +473,24 @@ describe('planEnroll', () => {
     expect(
       planEnroll(
         'totp',
-        buildContext({ credentials: [{ type: 'totp', status: 'active' }] }),
+        buildContext({
+          credentials: [{ id: 'totp', type: 'totp', status: 'active' }],
+        }),
       ),
     ).toStrictEqual({ ok: false, code: 'totp_already_enrolled' });
   });
 
-  it('does not offer the authenticator app on the extension yet', () => {
-    expect(
-      planEnroll('totp', buildContext({ platform: 'extension' })),
-    ).toStrictEqual({ ok: false, code: 'passkey_unsupported' });
+  it('offers the authenticator app on the extension, unlike passkeys', () => {
+    const context = buildContext({ platform: 'extension' });
+
+    expect(planEnroll('totp', context)).toStrictEqual({
+      ok: true,
+      steps: [{ kind: 'setup', method: 'totp', prefillEmail: undefined }],
+    });
+    expect(planEnroll('passkey', context)).toStrictEqual({
+      ok: false,
+      code: 'passkey_unsupported',
+    });
   });
 });
 

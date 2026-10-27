@@ -10,10 +10,13 @@ export const PredictHomeTestIds = {
   BALANCE_LOADING: 'predict-next-home-balance-loading',
   BALANCE_ERROR: 'predict-next-home-balance-error',
   BALANCE_RETRY: 'predict-next-home-balance-retry',
+  BALANCE_GEO_BLOCKED: 'predict-next-home-balance-geo-blocked',
   ACTIONS: 'predict-next-home-portfolio-actions',
   POSITIONS: 'predict-next-home-positions',
-  ADD_FUNDS: 'predict-next-home-add-funds',
-  WITHDRAW: 'predict-next-home-withdraw',
+  SECTIONS_LOADING: 'predict-next-home-sections-loading',
+  SECTIONS_ERROR: 'predict-next-home-sections-error',
+  SECTIONS_RETRY: 'predict-next-home-sections-retry',
+  SECTIONS_UNAVAILABLE: 'predict-next-home-sections-unavailable',
   section: (feedScreenId: string) =>
     `predict-next-home-section-${feedScreenId}`,
   sectionHeader: (feedScreenId: string) =>

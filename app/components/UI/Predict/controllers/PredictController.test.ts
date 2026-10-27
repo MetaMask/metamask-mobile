@@ -7,8 +7,6 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import { DiscountType } from '@metamask/bridge-controller';
-
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import type { NetworkState } from '@metamask/network-controller';
 import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
@@ -46,6 +44,8 @@ import {
 import {
   getDefaultPredictControllerState,
   OPTIMISTIC_BALANCE_MAX_AGE_MS,
+  PREDICT_BLOCK_TRACKER_TIMEOUT_MS,
+  PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
   PredictController,
   PredictControllerMessenger,
   type PredictControllerState,
@@ -55,8 +55,11 @@ import type { PredictFeatureFlags } from '../types/flags';
 import { PREDICT_ERROR_CODES } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
 import {
+  COLLATERAL_ONRAMP_ADDRESS,
   MATIC_CONTRACTS_V2,
+  MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 // Mock the PolymarketProvider and its dependencies
 jest.mock('../providers/polymarket/PolymarketProvider');
@@ -134,7 +137,6 @@ const ELIGIBLE_PREDICT_MEMBERSHIP_BENEFITS = {
     },
     perps: {
       builderFeeBips: null,
-      builderCode: null,
       remainingMicroUsd: null,
       exhausted: false,
     },
@@ -1678,7 +1680,6 @@ describe('PredictController', () => {
           } as NonNullable<OrderPreview['fees']>;
           const preview = createMockOrderPreview({
             feePolicy: {
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             },
             fees: {
@@ -1749,7 +1750,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toEqual({
@@ -1818,7 +1818,6 @@ describe('PredictController', () => {
             });
             const preview = createMockOrderPreview({
               feePolicy: {
-                discountType: DiscountType.SUBSCRIPTION,
                 builderCode: 'predict-pro-builder',
               },
               fees: waivedFees,
@@ -1832,7 +1831,6 @@ describe('PredictController', () => {
             expect(submittedPreview.fees).toEqual(waivedFees);
             expect(submittedPreview.originalFees).toEqual(standardFees);
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
           },
@@ -1911,7 +1909,6 @@ describe('PredictController', () => {
         } as NonNullable<OrderPreview['fees']>;
         const preview = createMockOrderPreview({
           feePolicy: {
-            discountType: DiscountType.SUBSCRIPTION,
             builderCode: 'predict-pro-builder',
           },
           fees: waivedFees,
@@ -1967,7 +1964,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toEqual({
@@ -2025,7 +2021,6 @@ describe('PredictController', () => {
             const submittedPreview =
               mockPolymarketProvider.placeOrder.mock.calls[0][0].preview;
             expect(submittedPreview.feePolicy).toEqual({
-              discountType: DiscountType.SUBSCRIPTION,
               builderCode: 'predict-pro-builder',
             });
             expect(submittedPreview.fees).toBeUndefined();
@@ -2799,6 +2794,41 @@ describe('PredictController', () => {
 
         expect(mockInvalidateQueries).not.toHaveBeenCalled();
       });
+    });
+
+    it('logs the routed outcome version to Sentry when an order fails', async () => {
+      const orderError = new Error('Order placement failed');
+      const errorSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      try {
+        await withController(async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(orderError);
+          const preview = createMockOrderPreview({
+            side: Side.BUY,
+            outcomeVersion: 'v2',
+          });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          expect(errorSpy).toHaveBeenCalledWith(
+            orderError,
+            expect.objectContaining({
+              context: expect.objectContaining({
+                data: expect.objectContaining({
+                  method: 'placeOrder',
+                  outcomeVersion: 'v2',
+                }),
+              }),
+            }),
+          );
+        });
+      } finally {
+        errorSpy.mockRestore();
+      }
     });
 
     it('does not invalidate queries when buy order fails', async () => {
@@ -5142,6 +5172,273 @@ describe('PredictController', () => {
             overwriteUpgrade: true,
           }),
         );
+      });
+    });
+
+    describe('when the provider skips positions', () => {
+      const address = '0x1234567890123456789012345678901234567890';
+      const v1Position = createMockPosition({
+        id: 'v1-position',
+        outcomeId: 'v1-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createMockPosition({
+        id: 'v2-position',
+        outcomeId: 'v2-outcome',
+        status: PredictPositionStatus.WON,
+      });
+
+      const givenClaimablePositions = async (controller: PredictController) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([v1Position, v2Position]);
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        (addTransactionBatch as jest.Mock).mockResolvedValue({
+          batchId: 'claim-batch-1',
+        });
+        await controller.getPositions({ claimable: true });
+      };
+
+      it('keeps only the claimed positions so confirmClaim leaves the skipped ones', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockResolvedValue({ ...mockClaim, positions: [v1Position] });
+
+          await controller.claimWithConfirmation({});
+
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+          ]);
+
+          controller.confirmClaim({ address });
+
+          expect(mockPolymarketProvider.confirmClaim).toHaveBeenCalledWith(
+            expect.objectContaining({ positions: [v1Position] }),
+          );
+        });
+      });
+
+      it.each([
+        ['no positions', undefined],
+        ['every position', [v1Position, v2Position]],
+      ])(
+        'leaves claimable positions untouched when the provider returns %s',
+        async (_label, claimedPositions) => {
+          await withController(async ({ controller }) => {
+            await givenClaimablePositions(controller);
+            const claimableBefore =
+              controller.state.claimablePositions[address];
+            mockPolymarketProvider.prepareClaim = jest
+              .fn()
+              .mockResolvedValue({ ...mockClaim, positions: claimedPositions });
+
+            await controller.claimWithConfirmation({});
+
+            expect(controller.state.claimablePositions[address]).toBe(
+              claimableBefore,
+            );
+          });
+        },
+      );
+
+      it('re-throws MARKET_UNAVAILABLE and releases the pending claim', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaimablePositions(controller);
+          mockPolymarketProvider.prepareClaim = jest
+            .fn()
+            .mockRejectedValue(
+              new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE),
+            );
+
+          await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+            PREDICT_ERROR_CODES.MARKET_UNAVAILABLE,
+          );
+
+          expect(controller.state.pendingClaims[address]).toBeUndefined();
+          expect(controller.state.claimablePositions[address]).toEqual([
+            v1Position,
+            v2Position,
+          ]);
+          expect(addTransactionBatch).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('outcome version analytics', () => {
+      const address = '0x1234567890123456789012345678901234567890';
+      const v1Position = createMockPosition({
+        id: 'v1-position',
+        outcomeId: 'v1-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const v2Position = createMockPosition({
+        id: 'v2-position',
+        outcomeId: 'v2-outcome',
+        status: PredictPositionStatus.WON,
+      });
+      const userDenied = new Error('User denied transaction signature');
+
+      const givenClaim = async (
+        controller: PredictController,
+        claimResult: Record<string, unknown>,
+      ) => {
+        mockPolymarketProvider.getPositions = jest
+          .fn()
+          .mockResolvedValue([v1Position, v2Position]);
+        mockPolymarketProvider.confirmClaim = jest.fn();
+        mockPolymarketProvider.prepareClaim = jest
+          .fn()
+          .mockResolvedValue({ ...mockClaim, ...claimResult });
+        await controller.getPositions({ claimable: true });
+        (analytics.trackEvent as jest.Mock).mockClear();
+      };
+
+      const findClaimEvent = (status: string) =>
+        (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_claim' &&
+              arg?.properties?.status === status,
+          );
+
+      it.each([
+        [
+          'v1',
+          {
+            [v1Position.outcomeId]: undefined,
+            [v2Position.outcomeId]: undefined,
+          },
+        ],
+        [
+          'v2',
+          {
+            [v1Position.outcomeId]: 'v2',
+            [v2Position.outcomeId]: 'v2',
+          },
+        ],
+        [
+          'mixed',
+          {
+            [v1Position.outcomeId]: undefined,
+            [v2Position.outcomeId]: 'v2',
+          },
+        ],
+      ])(
+        'tracks a cancelled claim with outcome_version %s',
+        async (expected, marketVersions) => {
+          await withController(async ({ controller }) => {
+            await givenClaim(controller, { marketVersions });
+            (addTransactionBatch as jest.Mock).mockRejectedValue(userDenied);
+
+            const result = await controller.claimWithConfirmation({});
+
+            expect(result.status).toBe(PredictClaimStatus.CANCELLED);
+            expect(findClaimEvent('cancelled').properties.outcome_version).toBe(
+              expected,
+            );
+          });
+        },
+      );
+
+      it('tracks outcome_version v1 when the kill switch leaves only CTF positions', async () => {
+        await withController(async ({ controller }) => {
+          await givenClaim(controller, {
+            positions: [v1Position],
+            marketVersions: {
+              [v1Position.outcomeId]: undefined,
+              [v2Position.outcomeId]: 'v2',
+            },
+          });
+          (addTransactionBatch as jest.Mock).mockRejectedValue(userDenied);
+
+          await controller.claimWithConfirmation({});
+
+          expect(findClaimEvent('cancelled').properties.outcome_version).toBe(
+            'v1',
+          );
+        });
+      });
+
+      it.each([
+        [TransactionStatus.confirmed, 'succeeded'],
+        [TransactionStatus.failed, 'failed'],
+      ])(
+        'tracks the terminal %s claim with outcome_version',
+        async (transactionStatus, eventStatus) => {
+          await withController(async ({ controller, messenger }) => {
+            await givenClaim(controller, {
+              marketVersions: {
+                [v1Position.outcomeId]: 'v2',
+                [v2Position.outcomeId]: 'v2',
+              },
+            });
+            (addTransactionBatch as jest.Mock).mockResolvedValue({
+              batchId: 'claim-batch-1',
+            });
+            await controller.claimWithConfirmation({});
+
+            messenger.publish(
+              'TransactionController:transactionStatusUpdated',
+              {
+                transactionMeta: {
+                  id: 'claim-tx',
+                  status: transactionStatus,
+                  txParams: {
+                    from: address,
+                    to: '0x0000000000000000000000000000000000000001',
+                    value: '0x0',
+                    data: '0x',
+                  },
+                  nestedTransactions: [{ type: TransactionType.predictClaim }],
+                },
+              } as unknown as { transactionMeta: TransactionMeta },
+            );
+
+            expect(findClaimEvent(eventStatus).properties.outcome_version).toBe(
+              'v2',
+            );
+          });
+        },
+      );
+
+      it('logs the claim outcome version to Sentry when the claim fails before submission', async () => {
+        const batchError = new Error('Batch submission failed');
+        const errorSpy = jest
+          .spyOn(Logger, 'error')
+          .mockImplementation(() => undefined);
+
+        try {
+          await withController(async ({ controller }) => {
+            await givenClaim(controller, {
+              marketVersions: {
+                [v1Position.outcomeId]: undefined,
+                [v2Position.outcomeId]: 'v2',
+              },
+            });
+            (addTransactionBatch as jest.Mock).mockRejectedValue(batchError);
+
+            await expect(controller.claimWithConfirmation({})).rejects.toThrow(
+              'Batch submission failed',
+            );
+
+            expect(errorSpy).toHaveBeenCalledWith(
+              batchError,
+              expect.objectContaining({
+                context: expect.objectContaining({
+                  data: expect.objectContaining({
+                    method: 'claimWithConfirmation',
+                    outcomeVersion: 'mixed',
+                  }),
+                }),
+              }),
+            );
+          });
+        } finally {
+          errorSpy.mockRestore();
+        }
       });
     });
 
@@ -7946,6 +8243,40 @@ describe('PredictController', () => {
       };
     };
 
+    const transferInterface = new Interface([
+      'event Transfer(address indexed from, address indexed to, uint256 value)',
+    ]);
+
+    const createPUsdMintTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        '0x0000000000000000000000000000000000000000',
+        accountAddress,
+        valueRaw,
+      ]);
+
+      return {
+        address: MATIC_CONTRACTS_V2.collateral,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
+    const createLegacySweepTransferLog = (valueRaw: bigint) => {
+      const transferEvent = transferInterface.getEvent('Transfer');
+      const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+        accountAddress,
+        COLLATERAL_ONRAMP_ADDRESS,
+        valueRaw,
+      ]);
+
+      return {
+        address: USDC_E_ADDRESS,
+        topics: encodedLog.topics,
+        data: encodedLog.data,
+      };
+    };
+
     it('does not publish transaction status when no sender address can be resolved', () => {
       withController(
         ({ messenger }) => {
@@ -8230,6 +8561,287 @@ describe('PredictController', () => {
           }),
           txReceipt: {
             logs: [createPayoutRedemptionLog(0n)],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 0,
+          }),
+        );
+      });
+    });
+
+    it('uses the final pUSD mint for a mixed confirmed claim receipt', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 42,
+            cashPnl: 20,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createPayoutRedemptionLog(BigInt(30_000_000)),
+              createPUsdMintTransferLog(BigInt(42_000_000)),
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses the CTF payout when a legacy sweep mints pUSD', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 30,
+          }),
+        );
+      });
+    });
+
+    it('removes a legacy sweep from the mixed claim settlement mint', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              createLegacySweepTransferLog(5_000_000n),
+              createPUsdMintTransferLog(5_000_000n),
+              createPayoutRedemptionLog(30_000_000n),
+              createPUsdMintTransferLog(42_000_000n),
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 42,
+          }),
+        );
+      });
+    });
+
+    it('uses a mixed claim receipt when simulation reports zero', () => {
+      withController(({ messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              // The CTF payout is subsequently wrapped into pUSD, so summing
+              // both receipt events would report 3.14 instead of 2.09.
+              createPayoutRedemptionLog(1_050_000n),
+              createPUsdMintTransferLog(2_090_000n),
+            ],
+          },
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '0x0',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            amount: 2.09,
+          }),
+        );
+      });
+    });
+
+    it('uses v2 mint transfer logs for confirmed claims without CTF redemptions', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 12,
+            cashPnl: 4,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [createPUsdMintTransferLog(BigInt(12_000_000))],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'confirmed',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 12,
+          }),
+        );
+      });
+    });
+
+    it('ignores collateral transfers not sourced by the zero address', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transferEvent = transferInterface.getEvent('Transfer');
+        const encodedLog = transferInterface.encodeEventLog(transferEvent, [
+          // Gas top-up and unrelated transfers come from the Safe or other
+          // addresses, not the v2 payout sources.
+          accountAddress,
+          MATIC_POSITIONS_PROTOCOL_CONTRACTS.router,
+          BigInt(12_000_000),
+        ]);
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.confirmed,
+          }),
+          txReceipt: {
+            logs: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                topics: encodedLog.topics,
+                data: encodedLog.data,
+              },
+            ],
           },
         };
 
@@ -9793,7 +10405,6 @@ describe('PredictController', () => {
             expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),
@@ -9887,7 +10498,6 @@ describe('PredictController', () => {
             expect(mockPolymarketProvider.previewOrder).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),
@@ -9996,7 +10606,6 @@ describe('PredictController', () => {
             ).toHaveBeenCalledWith(
               expect.objectContaining({
                 feePolicy: {
-                  discountType: DiscountType.SUBSCRIPTION,
                   builderCode: 'predict-pro-builder',
                 },
               }),
@@ -10803,7 +11412,7 @@ describe('PredictController', () => {
             to: '0xOldTarget',
             data: '0xolddata',
             gas: '0x1111',
-            gasLimit: '0x2222',
+            gasLimit: '0x1111',
           },
         };
 
@@ -11355,6 +11964,31 @@ describe('PredictController', () => {
         );
       });
     });
+
+    it('rejects getPositions after the portfolio deadline', async () => {
+      jest.useFakeTimers();
+      mockPolymarketProvider.getPositions.mockImplementation(
+        () => new Promise<PredictPosition[]>(() => undefined),
+      );
+
+      try {
+        const request = withController(({ controller }) =>
+          controller.getPositions({ address: MOCK_ADDRESS }),
+        );
+        const settledRequest = request.catch((error: unknown) => error);
+
+        await jest.advanceTimersByTimeAsync(
+          PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+        );
+
+        const error = await settledRequest;
+        expect(error).toMatchObject({
+          message: `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+        });
+      } finally {
+        jest.useRealTimers();
+      }
+    });
   });
 
   describe('invalidateQueryCache', () => {
@@ -11516,6 +12150,41 @@ describe('PredictController', () => {
             getNetworkClientById: mockGetNetworkClientById,
           },
         },
+      );
+    });
+
+    it('logs a block tracker deadline during cache invalidation', async () => {
+      const mockCheckForLatestBlock = jest.fn(
+        () => new Promise<void>(() => undefined),
+      );
+      const mockGetNetworkClientById = jest.fn().mockReturnValue({
+        blockTracker: {
+          checkForLatestBlock: mockCheckForLatestBlock,
+        },
+      });
+
+      const invalidation = withController(
+        ({ controller }) =>
+          // eslint-disable-next-line dot-notation
+          controller['invalidateQueryCache'](137),
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest
+              .fn()
+              .mockReturnValue('polygon-mainnet'),
+            getNetworkClientById: mockGetNetworkClientById,
+          },
+        },
+      );
+
+      jest.advanceTimersByTime(PREDICT_BLOCK_TRACKER_TIMEOUT_MS);
+
+      await expect(invalidation).resolves.toBeUndefined();
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'PredictController: Error invalidating query cache',
+        expect.objectContaining({
+          error: `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
+        }),
       );
     });
   });
@@ -12040,6 +12709,23 @@ describe('PredictController', () => {
         // Assert
         expect(result).toBe(1000);
         expect(mockPolymarketProvider.getBalance).toHaveBeenCalled();
+      });
+    });
+
+    it('rejects getBalance after the portfolio deadline', async () => {
+      mockPolymarketProvider.getBalance.mockImplementation(
+        () => new Promise<number>(() => undefined),
+      );
+      const request = withController(({ controller }) =>
+        controller.getBalance({}),
+      );
+      const settledRequest = request.catch((error: unknown) => error);
+
+      await jest.advanceTimersByTimeAsync(PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS);
+
+      const error = await settledRequest;
+      expect(error).toMatchObject({
+        message: `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
       });
     });
 

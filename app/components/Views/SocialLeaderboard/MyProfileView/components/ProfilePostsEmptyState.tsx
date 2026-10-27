@@ -4,7 +4,6 @@ import {
   Button,
   ButtonVariant,
   FontWeight,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -32,7 +31,7 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   <Box
     alignItems={BoxAlignItems.Center}
     paddingHorizontal={4}
-    paddingTop={5}
+    paddingTop={4}
     paddingBottom={4}
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >
@@ -99,13 +98,6 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
         >
           {strings('social_leaderboard.my_profile.empty_description')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center pt-5"
-        >
-          {strings('social_leaderboard.my_profile.empty_fee_description')}
-        </Text>
       </>
     ) : (
       <>
@@ -130,7 +122,6 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
       <Button
         variant={ButtonVariant.Primary}
         isFullWidth
-        endIconName={IconName.Arrow2Right}
         onPress={onShareFirstTrade}
         twClassName="mt-3"
         testID={MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON}

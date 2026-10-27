@@ -3,12 +3,10 @@ import type { LayoutChangeEvent } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
-  FilterButton,
-  FilterButtonGroup,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   SectionDivider,
-  Text,
-  TextColor,
-  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_EVENT_PROPERTY,
@@ -19,23 +17,22 @@ import type { TabItem } from '../../../../../component-library/components-temp/T
 import { strings } from '../../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  SocialLeaderboard,
+  type SocialLeaderboardSource,
+} from '../../../SocialLeaderboard';
 import { usePerpsEventTracking } from '../../hooks';
-import type { UsePerpsTopTradersOptions } from '../../hooks/usePerpsTopTraders';
 import {
   getPerpsMarketDetailsTabSelector,
   PerpsMarketDetailsViewSelectorsIDs,
 } from '../../Perps.testIds';
 import PerpsSocialTrending from '../PerpsSocialFeedSection/PerpsSocialTrending';
-import PerpsSocialTopTraders from '../PerpsSocialFeedSection/PerpsSocialTopTraders';
 
 const TABS = ['overview', 'feed', 'top_traders'] as const;
 const FEED_POST_COUNT = 5;
 const TOP_TRADERS_LIMIT = 10;
-const TOP_TRADERS_TIMEFRAMES = ['7d', '30d'] as const;
 const SOURCE = PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN;
-
-type TopTradersTimeframe = NonNullable<UsePerpsTopTradersOptions['timeframe']>;
 
 interface PerpsMarketSocialTabsProps {
   /** Raw market symbol (`BTC`, `xyz:NVDA`); the social perp feed keys on it exactly. */
@@ -54,7 +51,10 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
   const navigation = useNavigation<AppNavigationProp>();
   const { track } = usePerpsEventTracking();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [timeframe, setTimeframe] = useState<TopTradersTimeframe>('7d');
+  const leaderboardSource = useMemo<SocialLeaderboardSource>(
+    () => ({ kind: 'perp', symbol }),
+    [symbol],
+  );
 
   const tabs = useMemo<TabItem[]>(
     () =>
@@ -86,11 +86,14 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
     [activeIndex, onOverviewVisibilityChange, symbol, track],
   );
 
-  const handleOpenSocial = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate, { source: SOURCE });
-  }, [navigation]);
-
   const activeTab = TABS[activeIndex];
+
+  const handleOpenSocial = useCallback(() => {
+    pushSocialLeaderboard(navigation.navigate, {
+      source: SOURCE,
+      initialTab: activeTab === 'top_traders' ? 'leaderboard' : 'trending',
+    });
+  }, [activeTab, navigation]);
 
   return (
     <>
@@ -121,42 +124,25 @@ const PerpsMarketSocialTabs: React.FC<PerpsMarketSocialTabsProps> = ({
       ) : null}
       {activeTab === 'top_traders' ? (
         <Box
+          twClassName="pt-6"
           testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_TAB_CONTENT}
         >
-          <Box twClassName="px-4 pt-6 pb-3">
-            <FilterButtonGroup
-              value={timeframe}
-              onChange={(value) => setTimeframe(value as TopTradersTimeframe)}
-              twClassName="gap-2"
-            >
-              {TOP_TRADERS_TIMEFRAMES.map((value) => (
-                <FilterButton
-                  key={value}
-                  value={value}
-                  twClassName={timeframe !== value ? 'bg-muted' : undefined}
-                  testID={getPerpsMarketDetailsTabSelector(
-                    `top-traders-${value}`,
-                  )}
-                >
-                  {strings(`perps.market.top_traders_timeframe.${value}`)}
-                </FilterButton>
-              ))}
-            </FilterButtonGroup>
-          </Box>
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextAlternative}
-            twClassName="px-4 pb-3"
-          >
-            {strings('perps.market.top_traders_scope')}
-          </Text>
-          <PerpsSocialTopTraders
+          <SocialLeaderboard
+            source={leaderboardSource}
+            location="perps_market_details"
             limit={TOP_TRADERS_LIMIT}
-            timeframe={timeframe}
-            source={SOURCE}
-            onSeeMorePress={handleOpenSocial}
-            emptyMessage={strings('perps.market.top_traders_empty')}
           />
+          <Box twClassName="px-4 pt-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              isFullWidth
+              onPress={handleOpenSocial}
+              testID={PerpsMarketDetailsViewSelectorsIDs.TOP_TRADERS_SEE_MORE}
+            >
+              {strings('perps.home.see_more')}
+            </Button>
+          </Box>
         </Box>
       ) : null}
     </>
