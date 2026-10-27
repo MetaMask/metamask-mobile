@@ -390,9 +390,18 @@ export const TokenInputArea = forwardRef<
       }
 
       return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
+        ? formatAmountWithLocaleSeparators(
+            tokenType === TokenInputAreaType.Destination
+              ? (formatSecondaryTokenAmount(amount) ?? amount)
+              : amount,
+          )
         : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,
