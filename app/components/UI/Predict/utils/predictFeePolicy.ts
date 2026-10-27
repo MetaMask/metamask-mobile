@@ -1,5 +1,10 @@
 import type { SubscriptionBenefitsResponse } from '@metamask/subscription-controller';
-import type { PredictFeePolicy } from '../types';
+import type { OrderPreview, PredictFeePolicy } from '../types';
+
+type PredictFeePolicyParams = Pick<
+  OrderPreview,
+  'feePolicy' | 'fees' | 'originalFees'
+>;
 
 /**
  * Resolves the client-side Predict fee hint.
@@ -39,4 +44,33 @@ export function resolvePredictFeePolicy({
   return {
     builderCode,
   };
+}
+
+/**
+ * Synchronizes fee policy metadata and fee snapshots with the current policy.
+ *
+ * @param params - Preview or provider parameters that may contain fee policy data.
+ * @param feePolicy - The currently available fee policy.
+ * @returns Parameters with stale policy metadata removed and the current policy applied.
+ */
+export function syncPreviewWithFeePolicy<T extends PredictFeePolicyParams>(
+  params: T,
+  feePolicy?: PredictFeePolicy,
+): T {
+  const previousFeePolicy = params.feePolicy;
+  const paramsWithFeePolicy = { ...params };
+  delete paramsWithFeePolicy.feePolicy;
+
+  if (!feePolicy) {
+    if (previousFeePolicy && params.originalFees) {
+      paramsWithFeePolicy.fees = params.originalFees;
+    } else if (previousFeePolicy) {
+      delete paramsWithFeePolicy.fees;
+    }
+
+    delete paramsWithFeePolicy.originalFees;
+    return paramsWithFeePolicy;
+  }
+
+  return { ...paramsWithFeePolicy, feePolicy };
 }

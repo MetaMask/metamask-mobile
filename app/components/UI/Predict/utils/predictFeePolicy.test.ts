@@ -2,7 +2,11 @@ import type {
   PredictBenefitUsage,
   SubscriptionBenefitsResponse,
 } from '@metamask/subscription-controller';
-import { resolvePredictFeePolicy } from './predictFeePolicy';
+import type { OrderPreview } from '../types';
+import {
+  resolvePredictFeePolicy,
+  syncPreviewWithFeePolicy,
+} from './predictFeePolicy';
 
 const createBenefits = (
   predictOverrides: Partial<PredictBenefitUsage> = {},
@@ -88,5 +92,76 @@ describe('Predict fee policy', () => {
         },
       }),
     ).toBeUndefined();
+  });
+
+  describe('syncPreviewWithFeePolicy', () => {
+    const feePolicy = {
+      builderCode: 'predict-pro-builder',
+    };
+
+    const createFees = (
+      overrides: Partial<NonNullable<OrderPreview['fees']>> = {},
+    ): NonNullable<OrderPreview['fees']> => ({
+      metamaskFee: 0.2,
+      providerFee: 0.3,
+      totalFee: 0.5,
+      totalFeePercentage: 5,
+      collector: '0x1111111111111111111111111111111111111111',
+      executors: [],
+      permit2Enabled: true,
+      ...overrides,
+    });
+
+    it('attaches the current policy and preserves fee snapshots', () => {
+      const fees = createFees({ metamaskFee: 0 });
+      const originalFees = createFees();
+      const params = {
+        feePolicy: { builderCode: 'previous-builder' },
+        fees,
+        originalFees,
+      };
+
+      const result = syncPreviewWithFeePolicy(params, feePolicy);
+
+      expect(result).toEqual({
+        feePolicy,
+        fees,
+        originalFees,
+      });
+    });
+
+    it('restores standard fees when the current policy is unavailable', () => {
+      const fees = createFees({ metamaskFee: 0 });
+      const originalFees = createFees();
+      const params = {
+        feePolicy,
+        fees,
+        originalFees,
+      };
+
+      const result = syncPreviewWithFeePolicy(params);
+
+      expect(result).toEqual({ fees: originalFees });
+    });
+
+    it('removes waived fees when the standard fee snapshot is unavailable', () => {
+      const params = {
+        feePolicy,
+        fees: createFees({ metamaskFee: 0 }),
+      };
+
+      const result = syncPreviewWithFeePolicy(params);
+
+      expect(result).toEqual({});
+    });
+
+    it('preserves standard fees when no previous policy is attached', () => {
+      const fees = createFees();
+      const params = { fees };
+
+      const result = syncPreviewWithFeePolicy(params);
+
+      expect(result).toEqual({ fees });
+    });
   });
 });
