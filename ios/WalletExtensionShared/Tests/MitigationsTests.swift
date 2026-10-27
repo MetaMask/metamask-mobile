@@ -257,9 +257,19 @@ final class MitigationsTests: XCTestCase {
         process.executableURL = binary
         process.arguments = [directory.path, "3"]
         try process.run()
-        Thread.sleep(forTimeInterval: 0.4)
         let lock = AppGroupRefreshLock(directory: directory)
-        XCTAssertFalse(lock.acquire(timeout: 1))
+        let deadline = Date().addingTimeInterval(2)
+        var blocked = false
+        while Date() < deadline {
+            if !lock.acquire(timeout: 0.2) {
+                blocked = true
+                break
+            }
+            // The other process has not taken the lock yet. Release and retry.
+            lock.release()
+            Thread.sleep(forTimeInterval: 0.05)
+        }
+        XCTAssertTrue(blocked)
         process.waitUntilExit()
         XCTAssertTrue(lock.acquire(timeout: 1))
         lock.release()
