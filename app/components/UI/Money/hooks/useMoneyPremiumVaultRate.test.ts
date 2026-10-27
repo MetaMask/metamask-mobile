@@ -186,6 +186,14 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.ratePercentFormatted).toBeUndefined();
   });
 
+  it('disables the positions query when enabled is false', () => {
+    renderHook(() => useMoneyPremiumVaultRate({ enabled: false }));
+
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+  });
+
   it('returns no rate when the positions query has no data', () => {
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 

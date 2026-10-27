@@ -1,7 +1,7 @@
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
 import type { NormalizedVaultApyResponse } from '@metamask/money-account-balance-service';
-import type { VaultRateResponse } from '@metamask/money-account-api-data-service';
+import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import type { UseQueryResult } from '@tanstack/react-query';
 import { selectHasMoneyAccountPremiumApyEntitlement } from '../../../../selectors/subscriptionController';
 import { MoneyAccountBalanceServiceQueryKeys } from '../queryKeys';
@@ -13,12 +13,12 @@ const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 export interface UseMoneyVaultApyResult {
   /**
-   * Query that backs the displayed APY: the premium vault-rate query when the
+   * Query that backs the displayed APY: the premium positions query when the
    * user is entitled, otherwise the base vault APY query.
    */
   vaultApyQuery:
     | UseQueryResult<NormalizedVaultApyResponse>
-    | UseQueryResult<VaultRateResponse>;
+    | UseQueryResult<PositionResponse>;
   /** Effective APY decimal shown across Money surfaces. */
   apyDecimal: number | undefined;
   apyPercent: number | undefined;

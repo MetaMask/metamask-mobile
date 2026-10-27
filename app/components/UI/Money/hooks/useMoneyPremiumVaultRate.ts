@@ -10,6 +10,13 @@ import useMoneyAccountInfo from './useMoneyAccountInfo';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
+export interface UseMoneyPremiumVaultRateOptions {
+  /**
+   * When false, the positions query does not run. Defaults to true.
+   */
+  enabled?: boolean;
+}
+
 interface UseMoneyPremiumVaultRateResult {
   /** Positions query that carries `current_apy` per vault. */
   vaultRateQuery: UseQueryResult<PositionResponse>;
@@ -28,14 +35,18 @@ interface UseMoneyPremiumVaultRateResult {
  * the Plus subscription's crypto payment method. The account address comes
  * from the primary Money account.
  *
+ * @param options - Optional enable flag. Defaults to true. When false the
+ * positions query does not run, even if an account and vault address exist.
  * @returns The positions query, the raw APY decimal, and the APY as a percentage.
  */
-const useMoneyPremiumVaultRate = (): UseMoneyPremiumVaultRateResult => {
+const useMoneyPremiumVaultRate = ({
+  enabled = true,
+}: UseMoneyPremiumVaultRateOptions = {}): UseMoneyPremiumVaultRateResult => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
   const address = primaryMoneyAccount?.address?.toLowerCase();
   const vaultAddress = readVaultAddress(plusSubscription?.paymentMethod);
-  const isEnabled = Boolean(address && vaultAddress);
+  const isEnabled = Boolean(enabled && address && vaultAddress);
 
   const vaultRateQuery = useQuery({
     queryKey: [
