@@ -38,7 +38,6 @@ import {
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { useTheme } from '../../../../util/theme';
 import { useMfa } from '../../../../util/identity/mfa';
-import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { removeMfaCredential } from '../../../../util/identity/mfa/removeMfaCredential';
@@ -54,7 +53,7 @@ import { getMfaUsedFor } from './mfaUsedFor';
 
 export interface MfaMethodDetailsParams {
   method: MfaMethod;
-  /** The passkey's position among the active ones; 0 for email. */
+  /** The passkey's position among the active ones; 0 for other methods. */
   index: number;
 }
 
@@ -94,6 +93,17 @@ const COPY: Record<
     removed: 'mfa.settings.email_removed',
     operation: 'settings.removeEmail',
   },
+  totp: {
+    title: 'mfa.method_totp',
+    icon: IconName.QrCode,
+    remove: 'mfa.settings.remove_totp',
+    removeDescription: 'mfa.settings.remove_totp_description',
+    confirm: 'mfa.settings.remove',
+    lastTitle: 'mfa.settings.last_totp_title',
+    lastDescription: 'mfa.settings.last_totp_description',
+    removed: 'mfa.settings.totp_removed',
+    operation: 'settings.removeAuthenticatorApp',
+  },
 };
 
 /**
@@ -118,8 +128,13 @@ const MfaMethodDetails = () => {
   const credential =
     method === 'passkey'
       ? getActivePasskeys(credentials)[index]
-      : active.find(({ type }) => type === 'email_otp');
-  const others = active.filter((other) => other !== credential);
+      : active.find(({ type }) => type === method);
+  // The server only accepts a verification with another type of method.
+  const others = active.filter(({ type }) => type !== method);
+  // Other passkeys can't prove it's the user for removing a passkey.
+  const hasOtherPasskeys =
+    method === 'passkey' &&
+    active.some((other) => other !== credential && other.type === 'passkey');
   const copy = COPY[method];
 
   if (!credential) {
@@ -130,7 +145,7 @@ const MfaMethodDetails = () => {
   let name = getMethodLabel(method);
   if (credential.type === 'passkey') {
     name = getPasskeyName(credential, index);
-  } else if (credential.email) {
+  } else if (credential.type === 'email_otp' && credential.email) {
     name = maskEmail(credential.email);
   }
 
@@ -149,16 +164,14 @@ const MfaMethodDetails = () => {
     const verifyWith = [...new Set(others.map(({ type }) => type))];
     setIsRemoving(true);
     try {
-      const { token } = await verifyOrEnroll({
+      const reason = { operation: copy.operation };
+      await verifyOrEnroll({
         methods: verifyWith,
         verifyWith,
         maxSessionAgeMs: ENROLLMENT_MAX_SESSION_AGE_MS,
-        reason: { operation: copy.operation },
+        reason,
       });
-      await removeMfaCredential(credential, token);
-      await mobileMfaControllerAdapter
-        .refreshEnrolledCredentials()
-        .catch(() => undefined);
+      await removeMfaCredential(credential, reason);
       showToast(strings(copy.removed), true);
       navigation.dispatch(StackActions.popTo(Routes.MFA.SETTINGS));
     } catch (error) {
@@ -169,6 +182,15 @@ const MfaMethodDetails = () => {
     } finally {
       setIsRemoving(false);
     }
+  };
+
+  const getSheetDescription = () => {
+    if (sheet === 'confirm') {
+      return copy.removeDescription;
+    }
+    return hasOtherPasskeys
+      ? 'mfa.settings.only_passkeys_description'
+      : copy.lastDescription;
   };
 
   const closeSheet = (then?: () => void) =>
@@ -244,16 +266,16 @@ const MfaMethodDetails = () => {
               title={strings(
                 sheet === 'confirm' ? copy.remove : copy.lastTitle,
               )}
+              titleProps={{
+                style: { textAlign: 'center' },
+                twClassName: 'flex-1',
+              }}
             />
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
             >
-              {strings(
-                sheet === 'confirm'
-                  ? copy.removeDescription
-                  : copy.lastDescription,
-              )}
+              {strings(getSheetDescription())}
             </Text>
             {sheet === 'confirm' ? (
               <Button

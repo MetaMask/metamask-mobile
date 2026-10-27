@@ -12,13 +12,13 @@ import {
 
 describe('Feature Flag Registry', () => {
   describe('FEATURE_FLAG_REGISTRY', () => {
-    it('registers Chase as in-prod, version-gated and default-off', () => {
+    it('registers Chase as in-prod, version-gated and default-on', () => {
       expect(FEATURE_FLAG_REGISTRY.perpsMobileChase).toMatchObject({
         name: 'perpsMobileChase',
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
       });
     });
@@ -60,8 +60,8 @@ describe('Feature Flag Registry', () => {
         type: FeatureFlagType.Remote,
         inProd: true,
         productionDefault: {
-          enabled: false,
-          minimumVersion: '8.13.0',
+          enabled: true,
+          minimumVersion: '8.15.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -76,7 +76,7 @@ describe('Feature Flag Registry', () => {
         inProd: true,
         productionDefault: {
           enabled: false,
-          minimumVersion: '8.11.0',
+          minimumVersion: '8.15.0',
         },
         status: FeatureFlagStatus.Active,
       });
@@ -150,16 +150,51 @@ describe('Feature Flag Registry', () => {
       );
     });
 
+    it('registers the Predict subscription fee waiver default-off and out of production', () => {
+      expect(
+        getRegistryEntry('predictSubscriptionFeeWaiverEnabled'),
+      ).toMatchObject({
+        name: 'predictSubscriptionFeeWaiverEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: false,
+        productionDefault: {
+          enabled: false,
+          minimumVersion: '0.0.0',
+        },
+        status: FeatureFlagStatus.Active,
+      });
+    });
+
     it('keeps Perps Mobile TWAP default-off and version-gated', () => {
       expect(getRegistryEntry('perpsMobileTwap')?.productionDefault).toEqual({
-        enabled: false,
-        minimumVersion: '8.13.0',
+        enabled: true,
+        minimumVersion: '8.15.0',
+      });
+    });
+
+    it('registers pending VBA activity as in-production and default-off', () => {
+      expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
+        name: 'moneyVbaPendingActivityEnabled',
+        type: FeatureFlagType.Remote,
+        inProd: true,
+        productionDefault: false,
+        status: FeatureFlagStatus.Active,
       });
     });
 
     it('keeps the Money hub default-off', () => {
       expect(
         getRegistryEntry('earnMoneyHubEnabled')?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '0.0.0',
+      });
+    });
+
+    it('keeps the Money deposit Braze campaign default-off', () => {
+      expect(
+        getRegistryEntry('earnMoneyDepositBrazeCampaignEnabled')
+          ?.productionDefault,
       ).toEqual({
         enabled: false,
         minimumVersion: '0.0.0',
@@ -374,6 +409,16 @@ describe('Feature Flag Registry', () => {
       ).toEqual({
         enabled: true,
         minimumVersion: '8.5.0',
+      });
+    });
+
+    it('keeps Social AI comment translation off until the flag is enabled', () => {
+      expect(
+        getRegistryEntry('aiSocialCommentTranslationEnabled')
+          ?.productionDefault,
+      ).toEqual({
+        enabled: false,
+        minimumVersion: '8.19.0',
       });
     });
 

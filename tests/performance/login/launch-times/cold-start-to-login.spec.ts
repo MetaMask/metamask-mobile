@@ -34,12 +34,18 @@ perfTest.describe(
       ) => {
         await loginToAppPlaywright();
 
-        await WalletView.waitForBalanceToStabilize();
+        await AppiumAssertions.expectElementToBeVisible(
+          WalletView.totalBalance,
+          {
+            description:
+              'Wallet account icon should be visible before warm start',
+          },
+        );
         await AppiumGestures.terminateApp(currentDeviceDetails);
 
         const timer1 = new TimerHelper(
           'Time since the the app is launched, until login screen appears',
-          { ios: 3000, android: 5000 },
+          { ios: 3000, android: 3000 },
           currentDeviceDetails.platform,
         );
 

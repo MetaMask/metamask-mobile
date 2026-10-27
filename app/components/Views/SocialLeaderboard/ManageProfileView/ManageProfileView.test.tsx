@@ -8,6 +8,8 @@ import {
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
+import { renderShortAddress } from '../../../../util/address';
+import type { LinkableSocialAccount } from '../hooks/useLinkableSocialAccounts';
 import type { UseMyProfileResult } from '../MyProfileView/hooks/useMyProfile';
 import type { UseProfileControllerResult } from './hooks/useProfileController';
 import ManageProfileView from './ManageProfileView';
@@ -17,6 +19,11 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockUseMyProfile = jest.fn<UseMyProfileResult, []>();
 const mockUseProfileController = jest.fn<UseProfileControllerResult, []>();
+const mockUseLinkableSocialAccounts = jest.fn<LinkableSocialAccount[], []>();
+
+jest.mock('../hooks/useLinkableSocialAccounts', () => ({
+  useLinkableSocialAccounts: () => mockUseLinkableSocialAccounts(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -97,6 +104,15 @@ describe('ManageProfileView', () => {
       refresh: jest.fn().mockResolvedValue(undefined),
     });
     mockUseProfileController.mockReturnValue(controllerResult());
+    mockUseLinkableSocialAccounts.mockReturnValue([
+      {
+        id: 'account-2',
+        name: 'Trading Account',
+        address: MOCK_ADDRESS_2.toLowerCase(),
+        balanceLabel: '$10.00',
+        linkedAddresses: [`eip155:1:${MOCK_ADDRESS_2.toLowerCase()}`],
+      },
+    ]);
   });
 
   it('renders mocked identity on About rows', () => {
@@ -253,15 +269,28 @@ describe('ManageProfileView', () => {
     );
   });
 
-  it('shows the linked wallet account on the linked social account row', () => {
+  it('shows the linked account name on the linked social account row', () => {
     renderWithProvider(<ManageProfileView />, { state });
 
     expect(
       screen.getByTestId(ManageProfileViewSelectorsIDs.LINKED_ACCOUNT_ROW),
-    ).toHaveTextContent(/Account 2/);
+    ).toHaveTextContent(/Trading Account/);
     expect(
       screen.getByTestId(ManageProfileViewSelectorsIDs.LINKED_ACCOUNT_AVATAR),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the short linked address when the account is not in the wallet', () => {
+    mockUseLinkableSocialAccounts.mockReturnValue([]);
+
+    renderWithProvider(<ManageProfileView />, { state });
+
+    expect(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.LINKED_ACCOUNT_ROW),
+    ).toHaveTextContent(new RegExp(renderShortAddress(MOCK_ADDRESS_2)));
+    expect(
+      screen.queryByTestId(ManageProfileViewSelectorsIDs.LINKED_ACCOUNT_AVATAR),
+    ).not.toBeOnTheScreen();
   });
 
   it('navigates to the linked social account picker', () => {
@@ -274,6 +303,20 @@ describe('ManageProfileView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT,
     );
+  });
+
+  it('opens the avatar picker from the avatar and pencil', () => {
+    renderWithProvider(<ManageProfileView />, { state });
+
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+
+    expect(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('disables editor rows when no controller profile exists', () => {
@@ -297,6 +340,12 @@ describe('ManageProfileView', () => {
     );
     fireEvent.press(
       screen.getByTestId(ManageProfileViewSelectorsIDs.SOCIALS_ROW),
+    );
+    fireEvent.press(screen.getByTestId(ManageProfileViewSelectorsIDs.AVATAR));
+    fireEvent.press(
+      screen.getByTestId(ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     );
 
     expect(mockNavigate).not.toHaveBeenCalled();

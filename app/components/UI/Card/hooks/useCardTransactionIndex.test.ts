@@ -34,6 +34,11 @@ import { cardQueries } from '../queries';
 notifyManager.setBatchNotifyFunction((callback: () => void) => {
   callback();
 });
+// The default scheduler is setTimeout(0). A remount refetch notifies after
+// the test's act() has finished, which warns and leaves the worker open.
+notifyManager.setScheduler((callback: () => void) => {
+  callback();
+});
 
 const mockListTransactions = jest.fn();
 
@@ -513,6 +518,63 @@ describe('useCardTransactionIndex', () => {
     expect(mockListTransactions).not.toHaveBeenCalled();
     expect(result.current.isFetching).toBe(false);
     expect(result.current.isSettling).toBe(false);
+  });
+
+  it('refetches on remount even when the app cache still considers the index fresh', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false, staleTime: 1000 * 60 * 5 },
+        mutations: { retry: false },
+      },
+    });
+    activeQueryClient = queryClient;
+    const Wrapper = ({ children }: { children: React.ReactNode }) =>
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        children,
+      );
+
+    let resolveRefetch: (page: CardTransactionPage) => void = () => undefined;
+    const settled = createTx({
+      id: 'ma-settled',
+      fundingSources: [moneyAccountFunding],
+    });
+    mockListTransactions
+      .mockResolvedValueOnce(buildPage([settled]))
+      .mockReturnValueOnce(
+        new Promise<CardTransactionPage>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+      );
+
+    const { result, unmount } = renderHook(() => useCardTransactionIndex(), {
+      wrapper: Wrapper,
+    });
+    await waitFor(() => expect(result.current.isSettling).toBe(false));
+    expect(result.current.bySettlementHash.get('0xabc')?.id).toBe('ma-settled');
+    expect(mockListTransactions).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    const { result: remounted } = renderHook(() => useCardTransactionIndex(), {
+      wrapper: Wrapper,
+    });
+
+    expect(remounted.current.bySettlementHash.get('0xabc')?.id).toBe(
+      'ma-settled',
+    );
+    await waitFor(() => expect(mockListTransactions).toHaveBeenCalledTimes(2));
+    expect(remounted.current.bySettlementHash.get('0xabc')?.id).toBe(
+      'ma-settled',
+    );
+
+    await act(async () => {
+      resolveRefetch(buildPage([]));
+    });
+    await waitFor(() =>
+      expect(remounted.current.bySettlementHash.has('0xabc')).toBe(false),
+    );
   });
 
   it('returns negative infinity oldestFetchedTime when there are no items', async () => {

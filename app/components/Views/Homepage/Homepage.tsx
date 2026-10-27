@@ -33,7 +33,10 @@ import useHomeSessionSummary from './hooks/useHomeSessionSummary';
 import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
+  shouldPlaceTopTradersAboveAllocation,
+  shouldShowTopTradersAboveAllocation,
 } from './hooks/homepageSectionMountPolicy';
+import { useIsSocialTopTradersEligible } from './hooks/useIsSocialTopTradersEligible';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useABTest } from '../../../hooks';
 import { useNetworkTierState } from '../../../hooks/useNetworkTier';
@@ -53,6 +56,10 @@ import {
   PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
   PERPS_SECTION_PRIORITY_VARIANTS,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+} from '../../../constants/socialV1';
 import { selectIsHomepageEarnSectionVisible } from '../../UI/Earn/selectors/visibility';
 
 /**
@@ -152,6 +159,11 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       PERPS_SECTION_PRIORITY_VARIANTS,
       PERPS_SECTION_PRIORITY_AB_TEST_EXPOSURE_OPTIONS,
     );
+    const { variant: socialV1Variant } = useABTest(
+      SOCIAL_V1_AB_KEY,
+      SOCIAL_V1_VARIANTS,
+      { trackExposure: false },
+    );
     const isActivePerpsTrader = useIsActivePerpsTrader();
     const shouldRenderPerps = isPerpsEnabled && shouldMountOptionalSections;
     // Decide the Perps position from the initial Homepage layout. Deferred
@@ -167,6 +179,31 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
       }),
     );
     const showPerpsAboveTokens = perpsAboveTokensPlacement && shouldRenderPerps;
+    const isSocialV1PriorityEnabled =
+      isTopTradersEnabled && socialV1Variant.useSocialV1;
+    const shouldHydrateSocialProfile =
+      isSocialV1PriorityEnabled &&
+      networkTierResolved &&
+      networkTier !== 'NONE' &&
+      hardwareTier !== 'LOW';
+    const isSocialTopTradersEligible = useIsSocialTopTradersEligible(
+      isSocialV1PriorityEnabled,
+      shouldHydrateSocialProfile,
+    );
+    const [topTradersAboveAllocationPlacement] = useState(() =>
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount:
+          effectiveSectionMountMode === 'immediate' && networkTierResolved,
+        isSocialV1PriorityEnabled,
+        isSocialTopTradersEligible,
+      }),
+    );
+    const showTopTradersAboveAllocation = shouldShowTopTradersAboveAllocation({
+      topTradersAboveAllocationPlacement,
+      shouldMountOptionalSections,
+      isTopTradersEnabled,
+      isSocialV1PriorityEnabled,
+    });
 
     const { enableAllPopularNetworks, isNetworkEnabled, popularNetworks } =
       useNetworkEnablement();
@@ -201,6 +238,9 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
     const enabledSections = useMemo(
       () =>
         [
+          ...(showTopTradersAboveAllocation
+            ? [{ name: HomeSectionNames.TOP_TRADERS, enabled: true }]
+            : []),
           // Order must match the JSX below — this drives `sectionIndex` on Home Viewed.
           ...(showPerpsAboveTokens
             ? [
@@ -222,7 +262,10 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
           },
           {
             name: HomeSectionNames.TOP_TRADERS,
-            enabled: isTopTradersEnabled && shouldMountOptionalSections,
+            enabled:
+              isTopTradersEnabled &&
+              shouldMountOptionalSections &&
+              !showTopTradersAboveAllocation,
           },
           {
             name: HomeSectionNames.DEFI,
@@ -234,6 +277,7 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
         shouldRenderPerps,
         shouldMountOptionalSections,
         showPerpsAboveTokens,
+        showTopTradersAboveAllocation,
         shouldRenderEarnSection,
         isPredictEnabled,
         isDeFiEnabled,
@@ -302,8 +346,19 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
               accessible={false}
             >
               {balanceBreakdownSectionProps ? (
-                <BalanceBreakdownSection {...balanceBreakdownSectionProps} />
+                <BalanceBreakdownSection
+                  {...balanceBreakdownSectionProps}
+                  deviceCapability={homepageDeviceCapability}
+                />
               ) : null}
+              {showTopTradersAboveAllocation && (
+                <TopTradersSection
+                  key="top-traders"
+                  ref={topTradersSectionRef}
+                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                  totalSectionsLoaded={totalSectionsLoaded}
+                />
+              )}
               {showPerpsAboveTokens ? (
                 <>
                   {perpsSection}
@@ -337,13 +392,16 @@ const Homepage = forwardRef<SectionRefreshHandle, HomepageProps>(
                   totalSectionsLoaded={totalSectionsLoaded}
                 />
               )}
-              {shouldMountOptionalSections && isTopTradersEnabled && (
-                <TopTradersSection
-                  ref={topTradersSectionRef}
-                  sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
-                  totalSectionsLoaded={totalSectionsLoaded}
-                />
-              )}
+              {shouldMountOptionalSections &&
+                isTopTradersEnabled &&
+                !showTopTradersAboveAllocation && (
+                  <TopTradersSection
+                    key="top-traders"
+                    ref={topTradersSectionRef}
+                    sectionIndex={getSectionIndex(HomeSectionNames.TOP_TRADERS)}
+                    totalSectionsLoaded={totalSectionsLoaded}
+                  />
+                )}
               {shouldMountOptionalSections && isDeFiEnabled && (
                 <DeFiSection
                   ref={defiSectionRef}

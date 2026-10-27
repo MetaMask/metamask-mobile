@@ -543,4 +543,80 @@ describe('PredictNext Order Preview request', () => {
     await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
     expect(balanceCalls()).toBe(2);
   });
+
+  describe('platform reset', () => {
+    /** A pending Receipt: accepted, still working, so it is re-POSTed. */
+    const pendingReceipt = {
+      ...buyReceiptResponse,
+      status: 'pending',
+      venueOrderId: null,
+      filledContracts: null,
+      averageFillPrice: null,
+      fee: null,
+      actualSpend: null,
+      payoutExposure: null,
+    };
+
+    it('stops an observation loop without further commits or portfolio refreshes', async () => {
+      let commitCalls = 0;
+      let releaseObservation: (body: unknown) => void = () => undefined;
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).includes('/balance')) {
+          return {
+            body: { venueId: 'kalshi', currency: 'USD', available: '100.00' },
+          };
+        }
+        if (String(url).endsWith('/orders/commit')) {
+          commitCalls += 1;
+          if (commitCalls === 1) {
+            return { body: pendingReceipt };
+          }
+          // The observation the test abandons: it stays open until released.
+          return new Promise<{ body: unknown }>((resolve) => {
+            releaseObservation = (body) => resolve({ body });
+          });
+        }
+        return { status: 404 };
+      });
+      // Composed on the harness root, like the Engine does, so a terminal
+      // receipt can invalidate the real portfolio cache.
+      const orderService = new PredictOrderService({
+        messenger: getPredictOrderServiceMessenger(
+          harness.messenger as unknown as Parameters<
+            typeof getPredictOrderServiceMessenger
+          >[0],
+        ),
+        trading: harness.adapter.trading,
+        venueId: harness.adapter.venueId,
+        observationDelayMs: 0,
+      });
+      const balanceCalls = () =>
+        harness.fetchMock.mock.calls.filter(([url]) =>
+          String(url).includes('/balance'),
+        ).length;
+
+      // Prime the portfolio cache: a terminal receipt refreshes it.
+      await harness.portfolioService.getBalance(KALSHI_VENUE_ID);
+      expect(balanceCalls()).toBe(1);
+
+      const commit = orderService.commitPreview(
+        KALSHI_VENUE_ID,
+        buyReceiptResponse.previewId,
+      );
+      await until(() => commitCalls === 2);
+
+      // The platform reset replaces the Predict User while the second
+      // observation is in flight.
+      orderService.abandonCommits();
+      await expect(commit).rejects.toMatchObject({ code: 'UNAUTHENTICATED' });
+
+      // The observation's terminal receipt arrives after the reset: the loop
+      // sends no further Commit and refreshes no portfolio read.
+      releaseObservation(buyReceiptResponse);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      expect(commitCalls).toBe(2);
+      expect(balanceCalls()).toBe(1);
+    });
+  });
 });

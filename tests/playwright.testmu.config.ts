@@ -3,8 +3,8 @@ import { defineConfig } from './framework/config';
 
 /**
  * Playwright config for TestMu AI HyperExecute performance runs.
- * Separate from playwright.config.ts so the BrowserStack projects stay unchanged.
- * Android only: iOS performance builds are still supplied as BrowserStack URLs.
+ * Cloud performance tests are Android-only and live here, separate from the
+ * local emulator and simulator projects in playwright.config.ts.
  */
 export default defineConfig({
   testDir: './',

@@ -74,7 +74,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
 
   const shareToFeed = canShareToFeed ? { onShare: shareToFeedPress } : {};
   const traderPositionPnl =
-    header.positionValue !== undefined || header.isLoading
+    header.positionValue !== undefined
       ? {
           positionValue: header.positionValue,
           pnl: header.pnl,
@@ -98,6 +98,7 @@ const TraderPositionPnlSection: FC<TraderPositionPnlSectionProps> = ({
         token={token}
         securityData={securityData}
         isTokenDetailsV1
+        tdpVersion="v3"
         currentTokenBalance={balance}
         hasTokenBalance={hasTokenBalance}
         onQuickBuyPress={onQuickBuyPress}

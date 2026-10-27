@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Linking, ScrollView } from 'react-native';
+import { Linking, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -11,13 +13,14 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
+  ListItem,
+  ListItemVariant,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
@@ -25,11 +28,18 @@ import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { isPositiveNumberOrZero } from '../../../Money/utils/number';
-import vbaIntroHero from '../../../../../images/vba-intro-hero.png';
 import MoonPayPoweredByLogo from '../../../../../images/moonpay-powered-by-logo.svg';
 import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount.testIds';
+import { MOONPAY_PRIVACY_POLICY_URL } from './constants';
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
 
 const FeatureRow = ({
   icon,
@@ -40,21 +50,14 @@ const FeatureRow = ({
   title: string;
   description: string;
 }) => (
-  <Box
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    twClassName="min-h-14 gap-3 px-4 py-3"
-  >
-    <Icon name={icon} size={IconSize.Md} color={IconColor.IconDefault} />
-    <Box twClassName="flex-1">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {title}
-      </Text>
-      <Text variant={TextVariant.BodySm} twClassName="opacity-72">
-        {description}
-      </Text>
-    </Box>
-  </Box>
+  <ListItem
+    variant={ListItemVariant.TwoLines}
+    avatar={
+      <AvatarIcon iconName={icon} severity={AvatarIconSeverity.Neutral} />
+    }
+    title={title}
+    description={description}
+  />
 );
 
 interface CreateVirtualBankAccountProps {
@@ -71,19 +74,34 @@ const CreateVirtualBankAccount = ({
     disclaimers,
     isLoading,
     isAccepting,
-    error,
+    error: disclaimersError,
     acceptDisclaimers,
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
+  let vendorTermsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (disclaimersError) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState: vendorTermsContentState,
+  });
+
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
     !isAccepting &&
     !isAdvancing &&
-    !error &&
+    !disclaimersError &&
     Boolean(disclaimers?.length);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -134,88 +152,72 @@ const CreateVirtualBankAccount = ({
         contentContainerStyle={tw.style('flex-grow pb-6')}
         testID={CreateVirtualBankAccountSelectorsIDs.CONTAINER}
       >
-        <Image
-          source={vbaIntroHero}
-          style={tw.style('h-22 w-full')}
-          resizeMode="contain"
+        <TitleStandard
+          title={strings(
+            'virtual_bank_account.create_virtual_bank_account.title',
+          )}
+          bottomLabel={strings(
+            'virtual_bank_account.create_virtual_bank_account.description',
+          )}
+          twClassName="px-4 pb-4"
         />
-        <Box twClassName="gap-2 p-4">
-          <Text
-            variant={TextVariant.HeadingLg}
-            fontWeight={FontWeight.Bold}
-            twClassName="text-center"
-          >
-            {strings('virtual_bank_account.create_virtual_bank_account.title')}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {strings(
-              'virtual_bank_account.create_virtual_bank_account.description',
-            )}
-          </Text>
-        </Box>
 
-        <Box twClassName="px-4 py-2.5">
-          <Box twClassName="rounded-3xl bg-muted">
-            <FeatureRow
-              icon={IconName.MoneyBag}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
-              )}
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.Clock}
-              title={
-                arrivalTimeframe
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
-                      { timeframe: arrivalTimeframe },
-                    )
-                  : strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
-                    )
-              }
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.Refresh}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
-              )}
-              description={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
-              )}
-            />
-            <FeatureRow
-              icon={IconName.TrendUp}
-              title={strings(
-                'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
-              )}
-              description={
-                isPositiveNumberOrZero(apyPercent)
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
-                      { percentage: apyPercent },
-                    )
-                  : strings(
-                      'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
-                    )
-              }
-            />
-          </Box>
+        <Box>
+          <FeatureRow
+            icon={IconName.MoneyBag}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_title',
+            )}
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_no_fees_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.Clock}
+            title={
+              arrivalTimeframe
+                ? strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title',
+                    { timeframe: arrivalTimeframe },
+                  )
+                : strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_arrives_title_no_timeframe',
+                  )
+            }
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_arrives_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.Refresh}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_title',
+            )}
+            description={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_set_up_description',
+            )}
+          />
+          <FeatureRow
+            icon={IconName.TrendUp}
+            title={strings(
+              'virtual_bank_account.create_virtual_bank_account.feature_earn_title',
+            )}
+            description={
+              isPositiveNumberOrZero(apyPercent)
+                ? strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description',
+                    { percentage: apyPercent },
+                  )
+                : strings(
+                    'virtual_bank_account.create_virtual_bank_account.feature_earn_description_no_apy',
+                  )
+            }
+          />
         </Box>
       </ScrollView>
 
       <Box twClassName="gap-4 px-4 pt-4 pb-2">
-        {error ? (
+        {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}
@@ -225,16 +227,15 @@ const CreateVirtualBankAccount = ({
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_error',
               )}
             </Text>
-            <Text
+            <TextButton
               variant={TextVariant.BodyXs}
-              color={TextColor.PrimaryDefault}
               onPress={retry}
               testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_RETRY}
             >
               {strings(
                 'virtual_bank_account.create_virtual_bank_account.disclaimers_retry',
               )}
-            </Text>
+            </TextButton>
           </Box>
         ) : (
           <Text
@@ -250,29 +251,49 @@ const CreateVirtualBankAccount = ({
             {strings(
               'virtual_bank_account.create_virtual_bank_account.agreement_prefix',
             )}
-            {disclaimers?.map((disclaimer, index) => (
-              <React.Fragment key={disclaimer.id}>
-                {index > 0
-                  ? strings(
-                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
-                    )
-                  : ''}
-                <Text
+            {disclaimers?.length ? (
+              <>
+                {/* TRAM-4169: this URL ships with the app instead of coming from
+                    the vendor catalog. It renders with the catalog documents and
+                    waits for them, so loading and error states never show a
+                    partial legal line. */}
+                <TextButton
                   variant={TextVariant.BodyXs}
-                  fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
-                  onPress={() => Linking.openURL(disclaimer.url)}
-                  testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                  onPress={() => Linking.openURL(MOONPAY_PRIVACY_POLICY_URL)}
+                  testID={
+                    CreateVirtualBankAccountSelectorsIDs.MOONPAY_PRIVACY_POLICY_LINK
+                  }
                 >
-                  {disclaimer.display_name}
-                </Text>
-              </React.Fragment>
-            ))}
-            {disclaimers?.length
-              ? strings(
+                  {strings(
+                    'virtual_bank_account.create_virtual_bank_account.moonpay_privacy_policy_link',
+                  )}
+                </TextButton>
+                {disclaimers.map((disclaimer) => (
+                  <React.Fragment key={disclaimer.id}>
+                    {strings(
+                      'virtual_bank_account.create_virtual_bank_account.agreement_separator',
+                    )}
+                    <TextButton
+                      variant={TextVariant.BodyXs}
+                      onPress={() => Linking.openURL(disclaimer.url)}
+                      testID={`${CreateVirtualBankAccountSelectorsIDs.DISCLAIMER_LINK}-${disclaimer.id}`}
+                    >
+                      {/* A single document carries the MoonPay label
+                          (TRAM-4169); with several, the vendor labels keep each
+                          link distinguishable. */}
+                      {disclaimers.length === 1
+                        ? strings(
+                            'virtual_bank_account.create_virtual_bank_account.moonpay_terms_link',
+                          )
+                        : disclaimer.display_name}
+                    </TextButton>
+                  </React.Fragment>
+                ))}
+                {strings(
                   'virtual_bank_account.create_virtual_bank_account.agreement_suffix',
-                )
-              : null}
+                )}
+              </>
+            ) : null}
           </Text>
         )}
 

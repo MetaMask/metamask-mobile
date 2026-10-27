@@ -39,6 +39,8 @@ import { selectHasUnapprovedTransactions } from '../../../../../selectors/transa
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { getBankAccountEntryVisibility } from '../../utils/getBankAccountEntryVisibility';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -162,6 +164,7 @@ const MoneyAddMoneySheet: React.FC = () => {
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleBankAccount = useCallback(() => {
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET);
     trackSurfaceClicked({
       component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,

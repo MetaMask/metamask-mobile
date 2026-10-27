@@ -3,6 +3,14 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: jest.fn().mockResolvedValue({
+    type: 'success',
+    url: 'https://link.metamask.io/x-oauth-redirect?code=mock-code&state=mock-oauth-state',
+  }),
+  dismissAuthSession: jest.fn(),
+}));
+
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {
@@ -238,11 +246,21 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ profileId: 'mock-profile-id' }),
         updateProfile: jest.fn().mockResolvedValue(undefined),
         checkUsernameAvailability: jest.fn().mockResolvedValue({
-          username: 'wen-cat',
+          username: 'wen_cat',
           available: true,
           valid: true,
-          normalized: 'wen-cat',
+          normalized: 'wen_cat',
           errors: [],
+        }),
+        connectX: jest.fn().mockResolvedValue({
+          xUserId: 'x-user-1',
+          xProfileUrl: 'https://x.com/degangirl',
+          username: 'degangirl',
+          displayName: 'Degan Giri',
+          avatarUrl:
+            'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
         }),
         getXAuthorizationUrl: jest.fn().mockResolvedValue({
           authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
@@ -268,6 +286,15 @@ jest.mock('../../app/core/Engine', () => {
           location: 'US',
         },
         refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      KycService: {
+        getGeoCountry: jest.fn().mockResolvedValue('BR'),
+      },
+      KycController: {
+        readSessionStatus: jest.fn().mockReturnValue(null),
+        startSession: jest.fn().mockResolvedValue(undefined),
+        fetchVendorDisclaimers: jest.fn().mockResolvedValue([]),
+        recordVendorDisclaimers: jest.fn().mockResolvedValue(undefined),
       },
       SeedlessOnboardingController: {
         state: {
@@ -337,6 +364,14 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ methods: [], selected: null }),
         getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
         getBuyWidgetData: jest.fn().mockResolvedValue(null),
+        hydrateVbaOnboarding: jest.fn().mockResolvedValue({
+          sessionExists: false,
+          vendorDisclaimersComplete: false,
+          sessionDisclaimersComplete: false,
+          providerFlowStatus: 'not_started',
+          kycStatus: 'none',
+          autorampStatus: 'not_ready',
+        }),
         transakSetApiKey: jest.fn(),
       },
       AssetsContractController: {
@@ -626,6 +661,7 @@ jest.mock('../../app/core/Engine', () => {
         getTradeConfiguration: jest.fn().mockResolvedValue(null),
         getMarketFilterPreferences: jest.fn().mockResolvedValue({}),
         getOrderBookGrouping: jest.fn().mockResolvedValue(null),
+        saveOrderBookGrouping: jest.fn(),
         getWithdrawalRoutes: jest.fn(() => [
           {
             assetId: 'usdc-mainnet',
@@ -649,6 +685,9 @@ jest.mock('../../app/core/Engine', () => {
       call: jest.fn((action: string, ...args: unknown[]) => {
         // Non-EVM (e.g. TRON) amount validation calls SnapController:handleRequest with onAmountInput
         const params = args[0] as { request?: { method?: string } } | undefined;
+        if (action === 'MoneyAccountBalanceService:getVaultApy') {
+          return Promise.resolve({ apy: '0.042' });
+        }
         if (
           action === 'SnapController:handleRequest' &&
           params?.request?.method === 'onAmountInput'

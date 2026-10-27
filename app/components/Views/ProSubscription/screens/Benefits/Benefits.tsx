@@ -131,7 +131,9 @@ const Benefits = ({
     onCheckoutStart();
 
     try {
-      const { outcome } = await startSubscription(checkoutPlan);
+      const { outcome } = await startSubscription(checkoutPlan, {
+        isTrial: selectedPlanOffersTrial,
+      });
       if (outcome === StartProSubscriptionOutcome.Processing) {
         onProcessing();
         return;
@@ -149,6 +151,7 @@ const Benefits = ({
     onSuccess,
     plusPricing,
     resolvedPlan,
+    selectedPlanOffersTrial,
     startSubscription,
   ]);
 

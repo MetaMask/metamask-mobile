@@ -16,6 +16,7 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
   getEthAccounts,
+  getEthAccountsForScope,
   isInternalAccountInPermittedAccountIds,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
@@ -506,12 +507,13 @@ export const removePermittedChain = (
  * @param {string} origin - The origin whose exposed accounts to retrieve.
  * @param {object} [options] - The options object
  * @param {boolean} [options.ignoreLock] - If accounts should be returned even if the wallet is locked.
+ * @param {CaipChainId} [options.scope] - If specified, only the accounts permitted for this CAIP-2 scope are returned.
  * @returns {string[]} The origin's permitted accounts, or an empty
  * array.
  */
 export const getPermittedAccounts = (
   origin: string,
-  { ignoreLock }: { ignoreLock?: boolean } = {},
+  { ignoreLock, scope }: { ignoreLock?: boolean; scope?: CaipChainId } = {},
 ) => {
   const { AccountsController, PermissionController, KeyringController } =
     Engine.context;
@@ -543,7 +545,9 @@ export const getPermittedAccounts = (
     return [];
   }
 
-  const ethAccounts = getEthAccounts(caveat.value);
+  const ethAccounts = scope
+    ? getEthAccountsForScope(caveat.value, scope)
+    : getEthAccounts(caveat.value);
   return sortAddressesByLastSelected(ethAccounts);
 };
 
