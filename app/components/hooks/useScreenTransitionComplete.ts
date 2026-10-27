@@ -12,8 +12,8 @@ export { SCREEN_TRANSITION_FALLBACK_MS } from './subscribeScreenTransition';
  * whatever sits behind it, so opening it mid-push makes it flash dark grey
  * before settling.
  *
- * Falls back to `SCREEN_TRANSITION_FALLBACK_MS` so the value always becomes
- * `true`, even when no `transitionEnd` event is emitted.
+ * Falls back to {@link SCREEN_TRANSITION_FALLBACK_MS} so the value always
+ * becomes `true`, even when no `transitionEnd` event is emitted.
  *
  * @returns `true` once the transition has ended or the fallback has elapsed.
  */
