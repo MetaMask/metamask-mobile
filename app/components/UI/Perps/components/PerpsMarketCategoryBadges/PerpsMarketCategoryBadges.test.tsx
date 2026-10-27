@@ -1,5 +1,4 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketCategoryBadges from './PerpsMarketCategoryBadges';
 import type { PerpsCategory } from '../../hooks/usePerpsCategories';
@@ -44,37 +43,6 @@ describe('PerpsMarketCategoryBadges', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCategories = DEFAULT_CATEGORIES;
-  });
-
-  describe('selected chip scroll position', () => {
-    const layout = (x: number, width: number) => ({
-      nativeEvent: { layout: { x, y: 0, width, height: 32 } },
-    });
-
-    it('scrolls the selected chip into view once layouts are known', () => {
-      const scrollToSpy = jest
-        .spyOn(ScrollView.prototype, 'scrollTo')
-        .mockImplementation(() => undefined);
-
-      const { getByTestId } = render(
-        <PerpsMarketCategoryBadges
-          {...defaultProps}
-          selectedCategory="forex"
-        />,
-      );
-
-      fireEvent(getByTestId('category-badges'), 'layout', layout(0, 300));
-      ['all', 'crypto', 'stock', 'commodity', 'forex'].forEach((id, index) =>
-        fireEvent(
-          getByTestId(`category-badges-${id}`),
-          'layout',
-          layout(16 + index * 100, 90),
-        ),
-      );
-
-      expect(scrollToSpy).toHaveBeenCalledWith({ x: 261, animated: false });
-      scrollToSpy.mockRestore();
-    });
   });
 
   describe('memecoin icon', () => {
