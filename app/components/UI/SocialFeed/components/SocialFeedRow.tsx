@@ -12,15 +12,21 @@ import SocialFeedPostShell, {
 
 export interface SocialFeedRowProps {
   post: SocialV1FeedPost;
-  /** Set on every row but the first, which has no divider above it. */
+  /**
+   * Set on every row but the last, which has no divider below it. The divider
+   * sits under the post so a post inserted at the top brings its own, and the
+   * rows already on screen keep their height.
+   */
   dividerTestID?: string;
   /** Realtime entrances; rows without one never animate. */
   entrances?: SocialFeedEntrances;
-  scheduleEntryDelay?: () => number;
+  scheduleEntryDelay?: (eventId: string) => number;
   reducedMotion?: boolean;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  /** Clock for relative timestamps; a new value re-renders the row. */
+  now?: number;
 }
 
 const areReactionsEqual = (
@@ -49,6 +55,7 @@ export const areSocialFeedRowPropsEqual = (
   previous.onAuthorPress === next.onAuthorPress &&
   previous.onCopyTrade === next.onCopyTrade &&
   previous.onPositionPress === next.onPositionPress &&
+  previous.now === next.now &&
   previous.post.id === next.post.id &&
   previous.post.realtimeEventId === next.post.realtimeEventId &&
   previous.post.authorHandle === next.post.authorHandle &&
@@ -80,6 +87,7 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
   onAuthorPress,
   onCopyTrade,
   onPositionPress,
+  now,
 }) => {
   const eventId = useSocialFeedEntranceEventId(entrances, post.realtimeEventId);
   return (
@@ -89,17 +97,18 @@ const SocialFeedRow: React.FC<SocialFeedRowProps> = ({
       onAnimationComplete={entrances.markPlayed}
       reducedMotion={reducedMotion}
     >
-      {dividerTestID ? (
-        <SectionDivider marginVertical={1} testID={dividerTestID} />
-      ) : null}
       <Box twClassName="px-4">
         <SocialFeedPostShell
           post={post}
           onAuthorPress={onAuthorPress}
           onCopyTrade={onCopyTrade}
           onPositionPress={post.position ? onPositionPress : undefined}
+          now={now}
         />
       </Box>
+      {dividerTestID ? (
+        <SectionDivider marginVertical={1} testID={dividerTestID} />
+      ) : null}
     </FeedItemEntryAnimation>
   );
 };

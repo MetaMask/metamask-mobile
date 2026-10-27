@@ -155,8 +155,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
         entryPoint,
         predictFeedTab,
         predictScreen,
+        outcome,
       ),
-    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen, outcome],
   );
 
   const { availableBalance, isBalanceLoading, isPredictBalanceSelected } =

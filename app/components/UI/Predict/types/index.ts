@@ -3,7 +3,10 @@
 import { Hex } from '@metamask/utils';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
-import type { PredictPaymentMethodValue } from '../constants/eventNames';
+import type {
+  PredictOutcomeVersionValue,
+  PredictPaymentMethodValue,
+} from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -620,6 +623,11 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
+  /**
+   * `outcome_version` analytics value: `v1`, `v2`, or `mixed` (claims only).
+   * Normalized, unlike the raw Gamma version in `OrderPreview.outcomeVersion`.
+   */
+  outcomeVersion?: PredictOutcomeVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;
