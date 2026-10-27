@@ -255,6 +255,10 @@ const MfaMethodDetails = () => {
               title={strings(
                 sheet === 'confirm' ? copy.remove : copy.lastTitle,
               )}
+              titleProps={{
+                style: { textAlign: 'center' },
+                twClassName: 'flex-1',
+              }}
             />
             <Text
               variant={TextVariant.BodyMd}
