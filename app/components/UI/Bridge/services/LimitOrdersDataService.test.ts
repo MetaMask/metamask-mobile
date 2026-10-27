@@ -10,10 +10,7 @@ import {
   MOCK_LIMIT_OPEN_ORDER,
 } from '../api/limitOrders/getLimitOrders/mock';
 import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
-import {
-  limitOrdersQueries,
-  type LimitOrdersQueryParams,
-} from '../queries/limitOrders';
+import { type LimitOrdersQueryParams } from '../queries/limitOrders';
 import {
   LimitOrdersDataService,
   type LimitOrdersDataServiceActions,
@@ -129,9 +126,7 @@ describe('LimitOrdersDataService', () => {
     expect(secondPage.orders).toStrictEqual([MOCK_LIMIT_FILLED_ORDER]);
   });
 
-  // This is what `useCancelLimitOrder` relies on: without it, a cancelled
-  // order would stay in the open orders for as long as the cache is fresh.
-  it('fetches the open orders and the history again once every limit orders query is invalidated', async () => {
+  it('fetches the orders from the API every time they are requested rather than from the cache', async () => {
     const historyParams: LimitOrdersQueryParams = {
       ...PARAMS,
       states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
@@ -145,26 +140,19 @@ describe('LimitOrdersDataService', () => {
     // Freshness is measured against the clock, which the test setup stubs and
     // `resetAllMocks` leaves returning nothing.
     jest.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000);
-    const { messenger } = createMessenger();
-    const service = buildService(messenger);
+    const service = buildService();
 
     await service.getLimitOrders(PARAMS);
     await service.getLimitOrders(historyParams);
-    // Fresh lists are served from the cache.
-    await service.getLimitOrders(PARAMS);
-    await service.getLimitOrders(historyParams);
-    expect(mockGetLimitOrders).toHaveBeenCalledTimes(2);
 
-    // The order is cancelled: it leaves the open orders for the history.
+    // The order is cancelled server side: it leaves the open orders for the
+    // history.
     mockGetLimitOrders.mockImplementation(async ({ states }) => ({
       orders: states?.includes(LimitOrderState.Cancelled)
         ? [MOCK_LIMIT_CANCELLED_ORDER]
         : [],
       total: states?.includes(LimitOrderState.Cancelled) ? 1 : 0,
     }));
-    await messenger.call('LimitOrdersDataService:invalidateQueries', {
-      queryKey: limitOrdersQueries.allOrdersKey(),
-    });
 
     expect((await service.getLimitOrders(PARAMS)).orders).toStrictEqual([]);
     expect((await service.getLimitOrders(historyParams)).orders).toStrictEqual([
