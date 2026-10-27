@@ -102,6 +102,40 @@ const PATTERN_PERF_SPEC_FILE = /\.spec\.js$/;
 let _runId = null;
 let _artifactList = null;
 
+/** Successful `push`/`schedule` ci.yml runs on main, newest first. */
+async function listRecentSuccessfulCiRuns() {
+  const headers = {
+    Authorization: `Bearer ${GITHUB_TOKEN}`,
+    Accept: 'application/vnd.github+json',
+  };
+
+  const fetchSuccessfulForEvent = async (event) => {
+    const maxPages = 3;
+    const successful = [];
+    for (let page = 1; page <= maxPages; page += 1) {
+      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
+      const res = await fetch(url, { headers });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
+      }
+      const data = await res.json();
+      const runs = data.workflow_runs ?? [];
+      successful.push(...runs.filter((r) => r.conclusion === 'success'));
+      if (runs.length < 30) break;
+    }
+    return successful;
+  };
+
+  const [pushRuns, scheduleRuns] = await Promise.all([
+    fetchSuccessfulForEvent('push'),
+    fetchSuccessfulForEvent('schedule'),
+  ]);
+
+  return [...pushRuns, ...scheduleRuns].sort(
+    (a, b) => new Date(b.created_at) - new Date(a.created_at),
+  );
+}
+
 /**
  * Fetches the ID of the latest successful CI workflow run on `main` triggered
  * by a `push` (merge-queue merge) or `schedule` event.
@@ -123,36 +157,7 @@ let _artifactList = null;
  * @returns {Promise<string>}
  */
 async function getLatestCiRunId() {
-  const headers = {
-    Authorization: `Bearer ${GITHUB_TOKEN}`,
-    Accept: 'application/vnd.github+json',
-  };
-
-  const fetchLatestForEvent = async (event) => {
-    const maxPages = 3;
-    for (let page = 1; page <= maxPages; page += 1) {
-      const url = `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/ci.yml/runs?branch=main&status=completed&event=${event}&per_page=30&page=${page}`;
-      const res = await fetch(url, { headers });
-      if (!res.ok) {
-        throw new Error(`Failed to fetch CI workflow runs (event=${event}): ${res.status} ${res.statusText}`);
-      }
-      const data = await res.json();
-      const runs = data.workflow_runs ?? [];
-      const successful = runs.find((r) => r.conclusion === 'success');
-      if (successful) return successful;
-      if (runs.length < 30) break;
-    }
-    return null;
-  };
-
-  const [pushRun, scheduleRun] = await Promise.all([
-    fetchLatestForEvent('push'),
-    fetchLatestForEvent('schedule'),
-  ]);
-
-  const run = [pushRun, scheduleRun]
-    .filter(Boolean)
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+  const [run] = await listRecentSuccessfulCiRuns();
 
   if (!run) {
     throw new Error('No successful CI workflow runs found on main (push or schedule)');
@@ -177,7 +182,11 @@ async function getRunId() {
 async function getArtifactList() {
   if (_artifactList) return _artifactList;
 
-  const runId = await getRunId();
+  _artifactList = await listRunArtifacts(await getRunId());
+  return _artifactList;
+}
+
+async function listRunArtifacts(runId) {
   const artifacts = [];
   let page = 1;
 
@@ -201,8 +210,7 @@ async function getArtifactList() {
     page++;
   }
 
-  _artifactList = artifacts;
-  return _artifactList;
+  return artifacts;
 }
 
 /**
@@ -212,10 +220,12 @@ async function getArtifactList() {
  * @param {string} artifactName
  * @returns {Promise<string>} Path to the directory containing the extracted files
  */
-async function downloadArtifact(artifactName) {
-  const artifacts = await getArtifactList();
+async function downloadArtifact(artifactName, source = null) {
+  const defaultRunId = await getRunId();
+  const runId = source?.runId ?? defaultRunId;
+  const artifacts = source?.artifacts ?? (await getArtifactList());
   const artifact = artifacts.find((a) => a.name === artifactName);
-  const runId = await getRunId();
+  const dirName = runId === defaultRunId ? artifactName : `${artifactName}-run-${runId}`;
 
   if (!artifact) {
     throw new Error(
@@ -227,7 +237,7 @@ async function downloadArtifact(artifactName) {
   // this process, reuse the existing directory (collectors may request the
   // same artifact). The presence of the marker zip is enough to confirm a
   // previous successful extraction.
-  const destDirCached = `./${artifactName}`;
+  const destDirCached = `./${dirName}`;
   const cachedZip = join(destDirCached, `${artifactName}.zip`);
   try {
     await access(cachedZip, fsConstants.F_OK);
@@ -258,7 +268,7 @@ async function downloadArtifact(artifactName) {
     );
   }
 
-  const destDir = `./${artifactName}`;
+  const destDir = `./${dirName}`;
   await mkdir(destDir, { recursive: true });
   const zipPath = join(destDir, `${artifactName}.zip`);
   await writeFile(zipPath, Buffer.from(await zipRes.arrayBuffer()));
@@ -928,14 +938,66 @@ async function readPlaywrightJsonReport(destDir) {
   return JSON.parse(await readFile(found[0], 'utf8'));
 }
 
+const MAX_FALLBACK_RUNS_TO_SCAN = 10;
+
+/**
+ * Pushes to main only run Android Appium; iOS runs on scheduled runs only. When the
+ * selected run lacks a platform, pull it from the newest successful scheduled run.
+ */
+async function findFallbackPlatformArtifacts(platform) {
+  const defaultRunId = await getRunId();
+  const runs = (await listRecentSuccessfulCiRuns())
+    .filter((r) => String(r.id) !== defaultRunId && r.event === 'schedule')
+    .slice(0, MAX_FALLBACK_RUNS_TO_SCAN);
+
+  for (const run of runs) {
+    const runId = String(run.id);
+    const artifacts = await listRunArtifacts(runId);
+    const matching = artifacts
+      .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
+      .filter(({ dims }) => dims?.platform === platform);
+    if (matching.length > 0) {
+      console.log(
+        `[e2e_test_times] no ${platform} Appium reports on the selected run; ` +
+          `using ${matching.length} from ci run #${run.run_number} (id=${runId}, event=${run.event})`,
+      );
+      return matching.map((m) => ({ ...m, source: { runId, artifacts } }));
+    }
+  }
+  console.warn(
+    `[e2e_test_times] no ${platform} Appium reports in the last ${runs.length} fallback run(s)`,
+  );
+  return [];
+}
+
+/**
+ * Appium report artifacts for the selected run, plus a per-platform fallback to
+ * the newest scheduled run for any platform the selected run lacks.
+ */
+let _appiumReports = null;
+
+async function collectAppiumReportArtifacts() {
+  if (_appiumReports) return _appiumReports;
+  const artifacts = await getArtifactList();
+  const reports = artifacts
+    .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name), source: null }))
+    .filter(({ dims }) => dims);
+
+  for (const platform of ['android', 'ios']) {
+    if (!reports.some(({ dims }) => dims.platform === platform)) {
+      reports.push(...(await findFallbackPlatformArtifacts(platform)));
+    }
+  }
+  _appiumReports = reports;
+  return reports;
+}
+
 // Collects Appium E2E test counts from Playwright JSON artifacts.
 async function collectE2ECounts() {
-  const artifacts = await getArtifactList();
-
   const platformCounts = { android: 0, ios: 0 };
   const suiteCounts = {};
 
-  const e2eArtifacts = artifacts.filter((a) => getE2EArtifactDimensions(a.name));
+  const e2eArtifacts = await collectAppiumReportArtifacts();
   console.log(`[e2e] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
 
   if (e2eArtifacts.length === 0) {
@@ -943,10 +1005,10 @@ async function collectE2ECounts() {
       '[e2e] no Appium Playwright report artifacts found — skipping run counts (see `metametrics` namespace for static event coverage)',
     );
   } else {
-    for (const artifact of e2eArtifacts) {
-      const { platform, suiteTag } = getE2EArtifactDimensions(artifact.name);
+    for (const { artifact, dims, source } of e2eArtifacts) {
+      const { platform, suiteTag } = dims;
 
-      const destDir = await downloadArtifact(artifact.name);
+      const destDir = await downloadArtifact(artifact.name, source);
       const report = await readPlaywrightJsonReport(destDir);
       const count = countExecutedTestsFromPlaywrightJson(report);
       console.log(`[e2e] ${artifact.name}: ${count} test(s)`);
@@ -994,10 +1056,7 @@ async function collectE2ECounts() {
 }
 
 async function collectE2ETestTimes() {
-  const artifacts = await getArtifactList();
-  const e2eArtifacts = artifacts
-    .map((a) => ({ artifact: a, dims: getE2EArtifactDimensions(a.name) }))
-    .filter(({ dims }) => dims);
+  const e2eArtifacts = await collectAppiumReportArtifacts();
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
   if (e2eArtifacts.length === 0) {
@@ -1018,8 +1077,8 @@ async function collectE2ETestTimes() {
   }
 
   const acc = {};
-  for (const { artifact, dims } of e2eArtifacts) {
-    const destDir = await downloadArtifact(artifact.name);
+  for (const { artifact, dims, source } of e2eArtifacts) {
+    const destDir = await downloadArtifact(artifact.name, source);
     const report = await readPlaywrightJsonReport(destDir);
     aggregateTimingsFromPlaywrightJson(report, dims.platform, acc);
   }
