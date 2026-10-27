@@ -578,8 +578,8 @@ function SendTransaction() {
           {validationError ? (
             <Row>
               <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.ErrorDefault}
+                variant={TextVariant.BodySM}
+                color={TextColor.Error}
                 testID="send-transaction-validation-error"
               >
                 {validationError}
