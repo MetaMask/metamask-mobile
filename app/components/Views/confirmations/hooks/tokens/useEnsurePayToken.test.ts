@@ -15,7 +15,7 @@ jest.mock('../../../../../core/Engine', () => ({
   context: {
     AssetsController: {
       addCustomAsset: jest.fn(),
-      getAssets: jest.fn(),
+      syncAssetsPrices: jest.fn(),
     },
   },
 }));
@@ -72,13 +72,15 @@ describe('useEnsurePayToken', () => {
   const mockAddCustomAsset = jest.mocked(
     Engine.context.AssetsController.addCustomAsset,
   );
-  const mockGetAssets = jest.mocked(Engine.context.AssetsController.getAssets);
+  const mockSyncAssetsPrices = jest.mocked(
+    Engine.context.AssetsController.syncAssetsPrices,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     mockAddCustomAsset.mockResolvedValue(undefined);
-    mockGetAssets.mockResolvedValue({});
+    mockSyncAssetsPrices.mockResolvedValue(undefined);
 
     (
       selectSelectedAccountGroupEvmInternalAccount as unknown as jest.Mock
@@ -119,17 +121,12 @@ describe('useEnsurePayToken', () => {
     );
   });
 
-  it('refreshes the price via getAssets', async () => {
+  it('refreshes the price via syncAssetsPrices', async () => {
     await runEnsure();
 
-    expect(mockGetAssets).toHaveBeenCalledWith(
-      [expect.objectContaining({ id: ACCOUNT_ID_MOCK })],
-      expect.objectContaining({
-        dataTypes: ['price'],
-        forceUpdate: true,
-        assetsForPriceUpdate: [expect.stringContaining('erc20')],
-      }),
-    );
+    expect(mockSyncAssetsPrices).toHaveBeenCalledWith([
+      expect.stringContaining('erc20'),
+    ]);
   });
 
   it('skips registration and price when there is no EVM account', async () => {
@@ -140,14 +137,14 @@ describe('useEnsurePayToken', () => {
     await runEnsure();
 
     expect(mockAddCustomAsset).not.toHaveBeenCalled();
-    expect(mockGetAssets).not.toHaveBeenCalled();
+    expect(mockSyncAssetsPrices).not.toHaveBeenCalled();
   });
 
   it('does not throw when addCustomAsset rejects', async () => {
     mockAddCustomAsset.mockRejectedValue(new Error('boom'));
 
     await expect(runEnsure()).resolves.toBeUndefined();
-    expect(mockGetAssets).toHaveBeenCalled();
+    expect(mockSyncAssetsPrices).toHaveBeenCalled();
   });
 
   it('registers the token under the transaction pay account override when set', async () => {
@@ -171,10 +168,7 @@ describe('useEnsurePayToken', () => {
       expect.any(String),
       expect.anything(),
     );
-    expect(mockGetAssets).toHaveBeenCalledWith(
-      [expect.objectContaining({ id: OVERRIDE_ACCOUNT_ID_MOCK })],
-      expect.anything(),
-    );
+    expect(mockSyncAssetsPrices).toHaveBeenCalled();
   });
 
   it('falls back to the selected account when the override address has no matching account', async () => {
