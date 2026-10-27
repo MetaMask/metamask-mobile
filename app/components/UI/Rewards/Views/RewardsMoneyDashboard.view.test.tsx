@@ -17,6 +17,7 @@ import { renderRewardsMoneyDashboard } from '../../../../../tests/component-view
 import {
   CLAIMABLE_EARNINGS_SUMMARY,
   EARNINGS_HISTORY_ROW,
+  REFERRAL_LOCALIZED_TEXT,
 } from '../../../../../tests/component-view/presets/rewardsMoney';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
@@ -48,7 +49,9 @@ describe('RewardsMoneyDashboard', () => {
     const historyRow = await findByTestId(
       `${EARNINGS_HISTORY_TEST_IDS.ROW}-${EARNINGS_HISTORY_ROW.id}`,
     );
-    expect(within(historyRow).getByText('Rebate')).toBeOnTheScreen();
+    expect(
+      within(historyRow).getByText(REFERRAL_LOCALIZED_TEXT.historyRebate),
+    ).toBeOnTheScreen();
     expect(within(historyRow).getByText('+$1.00')).toBeOnTheScreen();
 
     await waitFor(() => {

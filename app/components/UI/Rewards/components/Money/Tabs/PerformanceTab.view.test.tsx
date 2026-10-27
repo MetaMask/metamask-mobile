@@ -98,9 +98,7 @@ describe('PerformanceTab', () => {
       ).toEqual([
         ['RewardsMoneyController:getReferralFunnel', { forceFresh: undefined }],
       ]);
-      expect(
-        callsFor(engine, 'RewardsMoneyController:getCommissions'),
-      ).toEqual(
+      expect(callsFor(engine, 'RewardsMoneyController:getCommissions')).toEqual(
         expect.arrayContaining([
           [
             'RewardsMoneyController:getCommissions',
@@ -146,9 +144,7 @@ describe('PerformanceTab', () => {
     expect(
       callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),
     ).toHaveLength(0);
-    expect(
-      callsFor(engine, 'RewardsMoneyController:getCommissions'),
-    ).toEqual(
+    expect(callsFor(engine, 'RewardsMoneyController:getCommissions')).toEqual(
       expect.arrayContaining([
         [
           'RewardsMoneyController:getCommissions',
