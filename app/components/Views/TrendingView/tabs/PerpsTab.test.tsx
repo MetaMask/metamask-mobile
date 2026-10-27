@@ -171,17 +171,22 @@ jest.mock(
   },
 );
 
+const mockTopTradersMounted = jest.fn();
 jest.mock('../../Homepage/Sections/TopTraders/TopTradersSection', () => {
   const MockReact = jest.requireActual('react');
   const { View, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: ({ source }: { source?: string }) =>
-      MockReact.createElement(
+    default: ({ source }: { source?: string }) => {
+      MockReact.useEffect(() => {
+        mockTopTradersMounted();
+      }, []);
+      return MockReact.createElement(
         View,
         { testID: 'top-traders-section', accessibilityHint: source },
         MockReact.createElement(Text, null, 'Top traders'),
-      ),
+      );
+    },
   };
 });
 
@@ -357,7 +362,7 @@ describe('PerpsTab', () => {
     expect(queryByTestId('perps-tab-market-list')).toBeNull();
   });
 
-  it('renders skeleton rows instead of the market list while loading', () => {
+  it('renders skeleton rows without market rows or the filter bar while loading', () => {
     mockUsePerpsMarkets.mockReturnValue({
       markets: [],
       isLoading: true,
@@ -367,7 +372,30 @@ describe('PerpsTab', () => {
 
     expect(getByTestId('perps-tab-loading')).toBeOnTheScreen();
     expect(getByTestId('perps-row-skeleton')).toBeOnTheScreen();
-    expect(queryByTestId('perps-tab-market-list')).toBeNull();
+    expect(getByTestId('perps-tab-market-list').props.accessibilityLabel).toBe(
+      'market-count-0',
+    );
+    expect(queryByTestId('perps-tab-filters')).toBeNull();
+  });
+
+  it('keeps top traders mounted when markets finish loading', () => {
+    mockUsePerpsMarkets.mockReturnValue({ markets: [], isLoading: true });
+    const { rerender, queryByTestId, getByTestId } = renderPerpsTab();
+
+    mockUsePerpsMarkets.mockReturnValue({
+      markets: mockMarkets,
+      isLoading: false,
+    });
+    rerender(
+      <NavigationContainer>
+        <PerpsTab {...defaultTabProps} />
+      </NavigationContainer>,
+    );
+
+    expect(mockTopTradersMounted).toHaveBeenCalledTimes(1);
+    expect(getByTestId('top-traders-section')).toBeOnTheScreen();
+    expect(queryByTestId('perps-tab-loading')).toBeNull();
+    expect(getByTestId('perps-tab-filters')).toBeOnTheScreen();
   });
 
   it('signals the shared refresh when pulled', () => {

@@ -54,9 +54,14 @@ describe('PerpsTab', () => {
 
     fireEvent.press(await findFilter('categories-crypto'));
 
+    // The mock markets are all crypto, so the category keeps both rows but must
+    // not switch the list to the watchlist view.
     await waitFor(() => {
       expect(screen.getByTestId(rowLabel('BTC'))).toBeOnTheScreen();
     });
+    expect(
+      screen.queryByTestId('perps-watchlist-suggested-section'),
+    ).not.toBeOnTheScreen();
     expect(
       store.getState().settings.perpsMarketListPreferences?.marketTypeFilter,
     ).not.toBe('crypto');
@@ -82,10 +87,15 @@ describe('PerpsTab', () => {
   it('shows the watchlist pill and suggested markets when the flag is enabled', async () => {
     renderPerpsTab({ perpsWatchlistV2Enabled: enabledFlag });
 
+    expect(
+      screen.queryByTestId('perps-watchlist-suggested-section'),
+    ).not.toBeOnTheScreen();
     fireEvent.press(await findFilter('categories-watchlist'));
 
     expect(
       await screen.findByTestId('perps-watchlist-suggested-section'),
     ).toBeOnTheScreen();
+    // The empty watchlist replaces the main list, so the market count drops.
+    expect(await findFilter('market-count')).toHaveTextContent(/^0 /);
   });
 });

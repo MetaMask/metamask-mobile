@@ -296,26 +296,26 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     return null;
   }
 
-  // Avoid the list's "no markets" footer flashing while data loads. A fixed
-  // handful of skeleton rows is not a virtualization concern.
-  if (isLoading) {
-    return (
-      <View testID="perps-tab-loading" style={contentContainerStyle}>
-        {listHeader}
-        <PerpsRowSkeleton count={8} />
-      </View>
-    );
-  }
-
   return (
     <>
       <PerpsMarketList
         contentContainerStyle={contentContainerStyle}
-        markets={showFavoritesOnly ? [] : markets}
-        emptyComponent={watchlistContent}
+        markets={showFavoritesOnly || isLoading ? [] : markets}
+        // The list stays mounted while loading so the header (top traders) is
+        // not remounted when markets arrive; skeleton rows fill the body, and
+        // the filter bar is hidden until there are markets to count.
+        emptyComponent={
+          isLoading ? (
+            <View testID="perps-tab-loading">
+              <PerpsRowSkeleton count={8} />
+            </View>
+          ) : (
+            watchlistContent
+          )
+        }
         onMarketPress={handleMarketPress}
         ListHeaderComponent={listHeader}
-        stickyHeader={stickyHeader}
+        stickyHeader={isLoading ? null : stickyHeader}
         keepHeaderHiddenOnReset
         sortBy={sortBy}
         showBadge={false}
