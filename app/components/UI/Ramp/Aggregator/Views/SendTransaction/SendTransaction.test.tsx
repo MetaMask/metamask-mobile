@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import { SellOrder } from '@consensys/on-ramp-sdk/dist/API';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
@@ -1172,6 +1173,111 @@ describe('SendTransaction View', () => {
       expect(mockValidateTronTransferAmount).toHaveBeenCalledTimes(3);
       expect(mockSendMultichainTransactionForReview).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalled();
+    });
+
+    describe('Tron validation accessibility', () => {
+      const TRON_RESOURCES_ERROR =
+        'This account needs more TRX or network resources to complete the transaction.';
+      let announceSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        announceSpy = jest
+          .spyOn(AccessibilityInfo, 'announceForAccessibility')
+          .mockImplementation(() => undefined);
+        // The react-native jest preset already mocks this function, so clear
+        // calls made by earlier tests in this file.
+        announceSpy.mockClear();
+      });
+
+      afterEach(() => {
+        announceSpy.mockRestore();
+      });
+
+      it('announces the validation error and exposes it as an alert', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        mockValidateTronTransferAmount.mockResolvedValueOnce({
+          valid: false,
+          errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+        });
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith(TRON_RESOURCES_ERROR);
+        expect(
+          screen.getByTestId('send-transaction-validation-error'),
+        ).toHaveProp('accessibilityRole', 'alert');
+      });
+
+      it('announces again when a retry fails with the same error', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        mockValidateTronTransferAmount.mockResolvedValue({
+          valid: false,
+          errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+        });
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+        await act(async () =>
+          fireEvent.press(
+            screen.getByTestId('send-transaction-retry-validation'),
+          ),
+        );
+
+        expect(announceSpy).toHaveBeenCalledTimes(2);
+        expect(announceSpy).toHaveBeenNthCalledWith(2, TRON_RESOURCES_ERROR);
+      });
+
+      it('marks Try again as busy while validation is running', async () => {
+        mockUseParamsValues = { orderId: 'test-id-tron' };
+        mockGetInternalAccountByAddress.mockReturnValue(mockTronAccount);
+        let resolveRetry: (value: unknown) => void = () => undefined;
+        mockValidateTronTransferAmount
+          .mockResolvedValueOnce({
+            valid: false,
+            errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+          })
+          .mockImplementationOnce(
+            () =>
+              new Promise((resolve) => {
+                resolveRetry = resolve;
+              }),
+          );
+
+        render(SendTransaction);
+        await act(async () =>
+          fireEvent.press(screen.getByRole('button', { name: 'Next' })),
+        );
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: false, disabled: false });
+
+        await act(async () => {
+          fireEvent.press(
+            screen.getByTestId('send-transaction-retry-validation'),
+          );
+        });
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: true, disabled: true });
+
+        await act(async () => {
+          resolveRetry({
+            valid: false,
+            errors: [{ code: 'InsufficientBalanceToCoverFee' }],
+          });
+        });
+        expect(
+          screen.getByTestId('send-transaction-retry-validation'),
+        ).toHaveProp('accessibilityState', { busy: false, disabled: false });
+      });
     });
 
     it('blocks Stellar sends until provider memo support is wired', async () => {

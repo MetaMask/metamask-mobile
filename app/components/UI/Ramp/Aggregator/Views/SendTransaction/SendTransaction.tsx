@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ImageSourcePropType, View } from 'react-native';
+import { AccessibilityInfo, ImageSourcePropType, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
@@ -208,7 +208,11 @@ function SendTransaction() {
       setValidationError(undefined);
       return true;
     }
-    setValidationError(getTronValidationErrorMessage(result));
+    const errorMessage = getTronValidationErrorMessage(result);
+    setValidationError(errorMessage);
+    // Announce on every failed attempt, including a retry that returns the
+    // same message, so screen reader users know the check ran again.
+    AccessibilityInfo.announceForAccessibility(errorMessage);
     return false;
   }, [orderData, fromAccount]);
 
@@ -577,6 +581,7 @@ function SendTransaction() {
                 variant={TextVariant.BodySM}
                 color={TextColor.Error}
                 testID="send-transaction-validation-error"
+                accessibilityRole="alert"
               >
                 {validationError}
               </Text>
@@ -590,6 +595,10 @@ function SendTransaction() {
                 width={ButtonWidthTypes.Full}
                 onPress={handleRetryValidation}
                 isDisabled={isValidating}
+                accessibilityState={{
+                  busy: isValidating,
+                  disabled: isValidating,
+                }}
                 label={strings(
                   'fiat_on_ramp_aggregator.send_transaction.retry_validation',
                 )}
