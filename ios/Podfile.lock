@@ -601,12 +601,10 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - OpenSSL-Universal (3.6.2000)
   - PromisesObjC (2.4.1)
-  - QuickCrypto (1.1.5):
+  - QuickCrypto (1.1.9):
     - hermes-engine
     - NitroModules
-    - OpenSSL-Universal (~> 3.6.2000)
     - RCTRequired
     - RCTTypeSafety
     - React-callinvoker
@@ -3678,7 +3676,6 @@ DEPENDENCIES:
   - NitroFetchWebsockets (from `../node_modules/react-native-nitro-websockets`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
   - NitroTextDecoder (from `../node_modules/react-native-nitro-text-decoder`)
-  - OpenSSL-Universal
   - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -3841,7 +3838,6 @@ SPEC REPOS:
     - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
-    - OpenSSL-Universal
     - PromisesObjC
     - ReachabilitySwift
     - RiveRuntime
@@ -4294,9 +4290,8 @@ SPEC CHECKSUMS:
   NitroFetchWebsockets: cdd416ee66b2e16282b2c42f8b0785f71ba0f507
   NitroModules: 994eaa7fc39d1fb4b76bb61054312c9796c4a649
   NitroTextDecoder: 87ccc6809d473ea811f0a36b7fe3db521ce47e0c
-  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   PromisesObjC: 752c3227f599e3467650e47ea36f433eeb10c273
-  QuickCrypto: 78b9ff82f1fe3710345e250c980ceee93dcaad5a
+  QuickCrypto: f0d41b4933cfff875e87628e2fade6d98ccb99e1
   RCTDeprecation: 96f68ebf33f8762466b01d57d6e873c4f30efb07
   RCTRequired: 166eed8ad6d8440e73e56d09a9090366609823d2
   RCTSearchApi: 5fc36140c598a74fd831dca924a28ed53bc7aa18
@@ -4441,6 +4436,6 @@ SPEC CHECKSUMS:
   Yoga: 18b74b3ade30bebc1904004dfaceae1dd02a330a
   YttriumWrapper: cbddb60c835ebc4232d9f57064084ab30686a18e
 
-PODFILE CHECKSUM: 5bacecfa816415e82ed78377c470ca41de949c43
+PODFILE CHECKSUM: f791f13bce24454ffdafb4b07d609da8bc714ef5
 
 COCOAPODS: 1.16.2
