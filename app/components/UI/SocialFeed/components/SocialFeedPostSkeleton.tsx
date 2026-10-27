@@ -63,7 +63,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
 }) => {
   const tw = useTailwind();
   const cardChromeStyle = tw.style(
-    'rounded-xl border border-muted p-3 gap-2 bg-background-alternative',
+    'rounded-2xl border border-muted p-3 gap-2 bg-background-alternative',
   ) as Record<string, unknown>;
   const dividerStyle = tw.style('bg-border-muted') as Record<string, unknown>;
 
@@ -98,7 +98,7 @@ const SocialFeedPostSkeleton: React.FC<SocialFeedPostSkeletonProps> = ({
                 alignItems="center"
                 justifyContent="space-between"
               >
-                <Item flexDirection="row" alignItems="center" gap={8} flex={1}>
+                <Item flexDirection="row" alignItems="center" gap={12} flex={1}>
                   <Item {...TOKEN_AVATAR_BONE} />
                   <Item gap={4}>
                     <Item {...CARD_SYMBOL_BONE} />

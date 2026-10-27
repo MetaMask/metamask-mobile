@@ -25,6 +25,10 @@ import {
 import { SOCIAL_FEED_ERROR_TEST_ID } from '../../../UI/SocialFeed/components/SocialFeedStates.testIds';
 import { getSocialFeedPostSkeletonTestId } from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton.testIds';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
+import {
+  SOCIAL_FILTER_EMPTY_CLEAR_TEST_ID,
+  SOCIAL_FILTER_EMPTY_STATE_TEST_ID,
+} from '../shared/SocialFilterEmptyState';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
@@ -690,7 +694,9 @@ describe('EmptyShellTabPage', () => {
       screen.getByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID),
     ).toBeOnTheScreen();
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.following.title'),
+      screen.getByText(
+        'social_leaderboard.feed.v1_empty.following.description',
+      ),
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
@@ -726,7 +732,7 @@ describe('EmptyShellTabPage', () => {
     expect(emptyAt).toBeGreaterThan(-1);
     expect(railAt).toBeGreaterThan(emptyAt);
     expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.trending.title'),
+      screen.getByText('social_leaderboard.feed.v1_empty.trending.description'),
     ).toBeOnTheScreen();
   });
 
@@ -768,6 +774,61 @@ describe('EmptyShellTabPage', () => {
 
     expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
     expect(screen.getByTestId(SOCIAL_FEED_ERROR_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('shows the empty state when Following filters match no posts', () => {
+    const { DEFAULT_FILTERS } = jest.requireActual(
+      './filters/filterDefaults',
+    ) as typeof import('./filters/filterDefaults');
+
+    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
+      posts: [
+        {
+          id: 'perp-only',
+          authorHandle: 'ada',
+          timestampMs: 1,
+          reactions: [],
+          item: mockOpenPerpsFeedItem({ id: 'perp-only-item' }),
+        },
+      ],
+      pinnedPosts: [],
+      isLoading: false,
+      isFetchingNextPage: false,
+      hasNextPage: false,
+      loadMore: () => undefined,
+      error: null,
+      refresh: () => Promise.resolve(),
+    }));
+
+    const onClearFilters = jest.fn();
+    renderWithProvider(
+      <EmptyShellTabPage
+        tab="following"
+        isActive
+        isFilterActive
+        onClearFilters={onClearFilters}
+        appliedFilters={{ ...DEFAULT_FILTERS, type: 'tokens' }}
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(SOCIAL_FILTER_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.filter_empty.title'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText('social_leaderboard.feed.filter_empty.description'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+    expect(
+      screen.queryByTestId('social-v1-feed-card-perp-only-item'),
+    ).toBeNull();
+
+    fireEvent.press(screen.getByTestId(SOCIAL_FILTER_EMPTY_CLEAR_TEST_ID));
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
   });
 
   it('hides the empty state when the feed has posts', () => {
