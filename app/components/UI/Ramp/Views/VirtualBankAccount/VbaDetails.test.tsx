@@ -524,6 +524,39 @@ describe('VbaDetails', () => {
     expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith('vba-child-id', true);
   });
 
+  it.each(['resolves', 'rejects'] as const)(
+    'ends the Pix fetch trace when details %s after unmount',
+    async (outcome) => {
+      let settleDetails = () => undefined;
+      mockGetDepositInstructions.mockReturnValue(
+        new Promise((resolve, reject) => {
+          settleDetails = () =>
+            outcome === 'resolves'
+              ? resolve(pixInstructions)
+              : reject(new Error('stale details failure'));
+        }),
+      );
+      const { unmount } = renderWithProvider(<VbaDetails />);
+      await waitFor(() => {
+        expect(mockStartVbaCufChildTrace).toHaveBeenCalledTimes(1);
+      });
+      expect(mockEndVbaCufChildTrace).not.toHaveBeenCalled();
+
+      unmount();
+      await act(async () => {
+        settleDetails();
+      });
+
+      expect(mockEndVbaCufChildTrace).toHaveBeenCalledTimes(1);
+      expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+        'vba-child-id',
+        false,
+        VBA_CUF_END_REASON.BAILED,
+      );
+      expect(Logger.error).not.toHaveBeenCalled();
+    },
+  );
+
   it('does not fetch Pix instructions while offline', () => {
     mockNetworkTier = 'NONE';
 
