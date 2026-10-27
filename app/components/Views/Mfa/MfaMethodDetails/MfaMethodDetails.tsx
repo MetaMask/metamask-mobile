@@ -131,9 +131,10 @@ const MfaMethodDetails = () => {
       : active.find(({ type }) => type === method);
   // The server only accepts a verification with another type of method.
   const others = active.filter(({ type }) => type !== method);
-  const hasSameType = active.some(
-    (other) => other !== credential && other.type === method,
-  );
+  // Other passkeys can't prove it's the user for removing a passkey.
+  const hasOtherPasskeys =
+    method === 'passkey' &&
+    active.some((other) => other !== credential && other.type === 'passkey');
   const copy = COPY[method];
 
   if (!credential) {
@@ -187,8 +188,7 @@ const MfaMethodDetails = () => {
     if (sheet === 'confirm') {
       return copy.removeDescription;
     }
-    // Other passkeys can't prove it's the user for removing a passkey.
-    return hasSameType
+    return hasOtherPasskeys
       ? 'mfa.settings.only_passkeys_description'
       : copy.lastDescription;
   };
