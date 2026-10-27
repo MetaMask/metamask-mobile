@@ -103,7 +103,7 @@ const DEFAULT_PROPS: PerpsToggleBlockProps = {
   onViewAll: jest.fn(),
   sortOptionId: 'volume',
   tabName: 'RWAs',
-  sectionName: 'perps_stocks_commodities',
+  sectionName: 'perps_markets',
   headerTestID: 'section-header-view-all-test',
   idPrefix: 'test',
   testIdPrefix: 'test-toggle',
@@ -307,7 +307,7 @@ describe('PerpsToggleBlock', () => {
         expect.objectContaining({
           interaction_type: 'section_item_tapped',
           tab_name: 'RWAs',
-          section_name: 'perps_stocks_commodities',
+          section_name: 'perps_markets',
           asset_type: 'perp',
           item_clicked: 'AAPL',
         }),

@@ -106,7 +106,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - Watchlist: `'watchlist'` — emitted instead of the filter when the watchlist toggle is active
 - `source_section` (optional): Specific sub-section within the origin screen. Present on `asset_details` events and on per-section `perps_home` impression events. Values vary by `source`:
   - **`source = perps_home`**: `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_gainers'` | `'top_losers'` | `'crypto'` | `'commodity'` | `'stock'` | `'forex'`
-  - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_stocks_commodities'` | `'perps_markets'` | `'perps_tab_markets'`
+  - **`source = explore`**: `'perps_movers'` | `'perps_crypto'` | `'perps_markets'` | `'perps_tab_markets'`
   - **`source = perp_markets`**: `'all_markets'` | `'crypto'` | `'stock'` | `'commodity'` | `'forex'` | `'new'` | `'watchlist'` | `'active_search'`
   - _All values come from `PERPS_EVENT_VALUE.SOURCE_SECTION` in `@metamask/perps-controller`._
 - `section_name` (optional): Stable identifier for a home screen section viewed via scroll impression. Present only on `perps_home` impression events emitted by `usePerpsHomeSectionTracking`. Values: `'balance'` | `'positions'` | `'orders'` | `'watchlist'` | `'whats_happening'` | `'products'` | `'top_movers'` | `'explore_crypto'` | `'explore_commodities'` | `'explore_stocks'` | `'explore_forex'` | `'recent_activity'` | `'explore'` | `'recently_added'`. _(`PERPS_EVENT_PROPERTY.SECTION_NAME`; values from `PERPS_EVENT_VALUE.SECTION_NAME`, including `EXPLORE` and `RECENTLY_ADDED`.)_

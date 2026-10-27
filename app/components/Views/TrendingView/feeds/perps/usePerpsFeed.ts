@@ -24,7 +24,7 @@ export type { PerpsFeedItem } from '../../../../UI/Perps/types/perpsFeedTypes';
 
 const EMPTY_WATCHLIST_SYMBOLS: string[] = [];
 
-export type PerpsVariant = 'all' | 'crypto' | 'rwa' | 'macro';
+export type PerpsVariant = 'all' | 'crypto' | 'rwa';
 export type PerpsPriceChangeDirection = 'gainers' | 'losers';
 
 interface UsePerpsFeedOptions {
@@ -58,7 +58,6 @@ export const PERPS_VARIANT_SORT_OPTION: Record<PerpsVariant, SortOptionId> = {
   all: 'priceChange',
   crypto: 'priceChange',
   rwa: 'priceChange',
-  macro: 'volume',
 };
 
 export const PERPS_PRICE_CHANGE_SORT_DIRECTION: Record<
@@ -105,12 +104,6 @@ const filterByVariant = (
           isEquityAsset(m.marketType) ||
           m.marketType === MarketCategory.Commodity ||
           m.marketType === MarketCategory.Forex,
-      );
-    case 'macro':
-      return markets.filter(
-        (m) =>
-          isEquityAsset(m.marketType) ||
-          m.marketType === MarketCategory.Commodity,
       );
     case 'all':
     default:
@@ -167,10 +160,8 @@ export const usePerpsFeed = ({
     }
     const queryFiltered = filterMarketsByQuery(subset, query);
     const fused = fuseSearch(queryFiltered, query, PERPS_FUSE_OPTIONS);
-    // Preserve Fuse.js relevance ordering for variants that sort by price change
-    // (the relevance signal is more useful than a metric sort during search).
-    // Macro sorts by volume even in search results, consistent with its feed order.
-    return variant === 'macro' ? [...fused].sort(sortFn) : fused;
+    // Preserve Fuse.js relevance ordering (more useful than a metric sort during search).
+    return fused;
   }, [connectionContext?.error, markets, variant, query]);
 
   // Only visible carousel tiles need sparklines. Preserve trends to avoid candle requests.

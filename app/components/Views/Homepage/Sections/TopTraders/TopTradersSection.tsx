@@ -75,11 +75,7 @@ type TopTradersCarouselItem =
   | { kind: 'view_more' };
 
 interface TopTradersSectionProps {
-  /**
-   * Homepage section index for analytics. When omitted (e.g. Explore tab),
-   * homepage-specific analytics (useHomeViewedEvent, useSectionPerformance)
-   * are disabled while the component renders identically.
-   */
+  /** Homepage-only; omit when rendered elsewhere (e.g. Explore). */
   sectionIndex?: number;
   totalSectionsLoaded?: number;
   /** Analytics source for navigation and follow events. */
@@ -119,8 +115,7 @@ const TopTradersSection = forwardRef<
     }
   }, [hasEverBeenVisible, isSectionVisible]);
 
-  // Outside the homepage (e.g. Explore Perps tab) there is no homepage scroll
-  // context, so the viewport hook can never report visible. Fetch right away.
+  // Off the homepage there is no scroll context: skip homepage analytics and fetch right away.
   const isHomepageContext = sectionIndex !== undefined;
 
   // Keep the query warm after its first reveal. A continuous visibility gate
@@ -219,7 +214,6 @@ const TopTradersSection = forwardRef<
     // Disable telemetry once we render the error UI so the in-flight TTC and
     // data-fetch spans get closed via the hook's cleanup instead of remaining
     // open until the user navigates away.
-    // Skip homepage-only performance tracking when rendered outside the homepage.
     enabled: isEnabled && !showError && isHomepageContext,
   });
 

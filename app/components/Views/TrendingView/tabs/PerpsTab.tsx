@@ -54,11 +54,13 @@ const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
 }) => (
   <Box>
     {showTopTraders && (
-      <Box twClassName="pb-1">
-        <TopTradersSection source="explore_perps" />
-      </Box>
+      <>
+        <Box twClassName="pb-1">
+          <TopTradersSection source="explore_perps" />
+        </Box>
+        <SectionDivider />
+      </>
     )}
-    {showTopTraders && <SectionDivider />}
     <SectionHeader
       title={strings('trending.perps_trending_lists')}
       testID="section-header-perps-trending-lists"
@@ -85,9 +87,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   );
 
   const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
-  // Explore keeps its own category/watchlist/sort state: nothing is restored
-  // from or saved to the Perps screen's preferences. The watchlist and the
-  // categories are mutually exclusive, so they share one selection.
+  // Local (not persisted) state; the watchlist and categories are exclusive.
   const { markets: allMarkets, isLoading } = usePerpsMarkets({
     showZeroVolume: false,
     showZeroOpenInterest: false,
@@ -106,10 +106,6 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
 
   const showFavoritesOnly = isWatchlistEnabled && selection === 'watchlist';
   const marketTypeFilter = selection === 'watchlist' ? 'all' : selection;
-  const setShowFavoritesOnly = useCallback(
-    (show: boolean) => setSelection(show ? 'watchlist' : 'all'),
-    [],
-  );
 
   const markets = useMemo(() => {
     const byCategory =
@@ -145,8 +141,9 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     [track],
   );
 
-  const handleCategorySelect = useCallback(
-    (category: MarketTypeFilter) => {
+  // Like the Perps screen: filter_applied only fires when applying a filter.
+  const trackFilter = useCallback(
+    (category: string, applied = true) => {
       trackPerpsUi({
         [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
           PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
@@ -154,37 +151,30 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
           PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
       });
-      trackPerpsUi({
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
-        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]: category,
-      });
-      setSelection(category);
+      if (applied) {
+        trackPerpsUi({
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
+          [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]: category,
+        });
+      }
     },
     [trackPerpsUi],
   );
 
+  const handleCategorySelect = useCallback(
+    (category: MarketTypeFilter) => {
+      trackFilter(category);
+      setSelection(category);
+    },
+    [trackFilter],
+  );
+
   const handleWatchlistToggle = useCallback(() => {
     const willActivate = !showFavoritesOnly;
-    trackPerpsUi({
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER,
-      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
-        PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
-      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
-    });
-    // Like the Perps screen: filter_applied only when applying, not clearing.
-    if (willActivate) {
-      trackPerpsUi({
-        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-          PERPS_EVENT_VALUE.INTERACTION_TYPE.FILTER_APPLIED,
-        [PERPS_EVENT_PROPERTY.FILTER_CATEGORY]:
-          PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
-      });
-    }
-    setShowFavoritesOnly(willActivate);
-  }, [showFavoritesOnly, setShowFavoritesOnly, trackPerpsUi]);
+    trackFilter(PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST, willActivate);
+    setSelection(willActivate ? 'watchlist' : 'all');
+  }, [showFavoritesOnly, trackFilter]);
 
   const handleSortChange = useCallback<typeof handleOptionChange>(
     (optionId, field, sortDirection) => {
@@ -228,24 +218,36 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     [isTopTradersEnabled],
   );
 
-  // Watchlist view: reuse the Perps screen's watchlist block (rows + suggested
-  // markets). It is bounded (watchlist cap + a few suggestions), so it is
-  // rendered as the list's "empty" content while the list itself gets no rows.
-  const watchlistContent = useMemo(
-    () =>
-      showFavoritesOnly ? (
-        <PerpsWatchlistMarkets
-          markets={markets}
-          suggestedMarkets={suggestedMarkets}
-          showHeader={false}
-          enableShowMore={false}
-          onMarketPress={handleMarketPress}
-          displayMetric={sortBy}
-          addSource={PERPS_EVENT_VALUE.SOURCE.EXPLORE}
-        />
-      ) : undefined,
-    [showFavoritesOnly, markets, suggestedMarkets, handleMarketPress, sortBy],
-  );
+  // Body shown instead of rows. While loading: skeletons (the list stays
+  // mounted so the header, e.g. top traders, is not remounted). Watchlist view:
+  // the Perps screen's bounded watchlist block (rows + suggested markets).
+  const emptyComponent = useMemo(() => {
+    if (isLoading) {
+      return (
+        <View testID="perps-tab-loading">
+          <PerpsRowSkeleton count={8} />
+        </View>
+      );
+    }
+    return showFavoritesOnly ? (
+      <PerpsWatchlistMarkets
+        markets={markets}
+        suggestedMarkets={suggestedMarkets}
+        showHeader={false}
+        enableShowMore={false}
+        onMarketPress={handleMarketPress}
+        displayMetric={sortBy}
+        addSource={PERPS_EVENT_VALUE.SOURCE.EXPLORE}
+      />
+    ) : undefined;
+  }, [
+    isLoading,
+    showFavoritesOnly,
+    markets,
+    suggestedMarkets,
+    handleMarketPress,
+    sortBy,
+  ]);
 
   const refreshControl = useMemo(
     () => (
@@ -301,22 +303,11 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
       <PerpsMarketList
         contentContainerStyle={contentContainerStyle}
         markets={showFavoritesOnly || isLoading ? [] : markets}
-        // The list stays mounted while loading so the header (top traders) is
-        // not remounted when markets arrive; skeleton rows fill the body, and
-        // the filter bar is hidden until there are markets to count.
-        emptyComponent={
-          isLoading ? (
-            <View testID="perps-tab-loading">
-              <PerpsRowSkeleton count={8} />
-            </View>
-          ) : (
-            watchlistContent
-          )
-        }
+        emptyComponent={emptyComponent}
         onMarketPress={handleMarketPress}
         ListHeaderComponent={listHeader}
+        // No filter bar until there are markets to count.
         stickyHeader={isLoading ? null : stickyHeader}
-        keepHeaderHiddenOnReset
         sortBy={sortBy}
         showBadge={false}
         filterKey={`${marketTypeFilter}|${showFavoritesOnly}`}

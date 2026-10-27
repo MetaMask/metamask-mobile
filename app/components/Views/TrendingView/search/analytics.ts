@@ -102,7 +102,6 @@ export type ExploreSectionName =
   | 'tokens_movers'
   | 'tokens_trending'
   | 'perps_movers'
-  | 'perps_stocks_commodities'
   | 'perps_markets'
   | 'perps_tab_markets'
   | 'perps_crypto'

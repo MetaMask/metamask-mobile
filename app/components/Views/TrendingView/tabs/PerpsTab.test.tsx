@@ -48,9 +48,7 @@ jest.mock('../../../UI/Perps/components/PerpsMarketList', () => {
       onMarketPress,
       contentContainerStyle,
       refreshControl,
-      filterKey,
       emptyComponent,
-      showBadge,
     }: {
       testID?: string;
       markets: { symbol: string }[];
@@ -59,17 +57,13 @@ jest.mock('../../../UI/Perps/components/PerpsMarketList', () => {
       onMarketPress: (market: { symbol: string }) => void;
       contentContainerStyle?: unknown;
       refreshControl?: React.ReactElement;
-      filterKey?: string;
       emptyComponent?: React.ReactElement;
-      showBadge?: boolean;
     }) =>
       MockReact.createElement(
         View,
         {
           testID,
           accessibilityLabel: `market-count-${m.length}`,
-          accessibilityHint: filterKey,
-          accessibilityValue: { text: String(showBadge) },
           style: contentContainerStyle,
         },
         refreshControl,
@@ -251,25 +245,6 @@ describe('PerpsTab', () => {
         (mockFiltersBarProps.current.onWatchlistToggle as () => void)();
       });
 
-    it('shows the watchlist pill when enabled', () => {
-      renderPerpsTab();
-      expect(mockFiltersBarProps.current.showWatchlistBadge).toBe(true);
-    });
-
-    it('hides the watchlist pill when disabled', () => {
-      mockUseSelector.mockImplementation((selector: unknown) => {
-        if (selector === selectPerpsEnabledFlag) return true;
-        if (selector === selectSocialLeaderboardEnabled) return true;
-        if (selector === selectPerpsWatchlistEnabledFlag) return false;
-        if (selector === selectPerpsWatchlistMarkets) return [];
-        return undefined;
-      });
-
-      renderPerpsTab();
-
-      expect(mockFiltersBarProps.current.showWatchlistBadge).toBe(false);
-    });
-
     it('toggles the watchlist filter on and off', () => {
       renderPerpsTab();
       expect(mockFiltersBarProps.current.isWatchlistSelected).toBe(false);
@@ -309,20 +284,6 @@ describe('PerpsTab', () => {
       expect(
         getByTestId('perps-tab-market-list').props.accessibilityLabel,
       ).toBe('market-count-2');
-    });
-
-    it('hides the market type badge on rows, matching the Perps screen', () => {
-      const { getByTestId } = renderPerpsTab();
-      expect(
-        getByTestId('perps-tab-market-list').props.accessibilityValue,
-      ).toEqual({ text: 'false' });
-    });
-
-    it('includes the watchlist state in the list filter key', () => {
-      const { getByTestId } = renderPerpsTab();
-      expect(getByTestId('perps-tab-market-list').props.accessibilityHint).toBe(
-        'all|false',
-      );
     });
   });
 

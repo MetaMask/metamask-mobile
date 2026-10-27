@@ -37,13 +37,6 @@ export interface PerpsMarketListProps {
    */
   stickyHeader?: React.ReactElement | null;
   /**
-   * On filter change, reset only to just below {@link ListHeaderComponent}
-   * (and only if the user scrolled past it) instead of offset 0, so the header
-   * (e.g. Explore's top traders) is not re-revealed. Requires `stickyHeader`.
-   * @default false
-   */
-  keepHeaderHiddenOnReset?: boolean;
-  /**
    * Replaces the default "no markets" message when `markets` is empty (e.g. the
    * watchlist block with suggestions).
    */
