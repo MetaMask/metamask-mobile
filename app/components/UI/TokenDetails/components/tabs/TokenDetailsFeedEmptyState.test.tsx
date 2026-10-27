@@ -78,7 +78,10 @@ describe('TokenDetailsFeedEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
-    mockUseOpenPositionHeader.mockReturnValue({ sharePosition: null });
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition: null,
+      isPositionLoading: false,
+    });
   });
 
   it('invites a trade without a button when the wallet does not hold the token', () => {

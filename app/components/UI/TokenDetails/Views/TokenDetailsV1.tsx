@@ -923,11 +923,10 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
           token={token}
           tokenKey={traderPositionTokenKey}
           securityData={securityData}
-          onFooterLayout={
-            isEmptyFeed && hasBalanceValue
-              ? handleBalanceFooterLayout
-              : undefined
-          }
+          // Measured on the first layout. Attaching this only after the feed
+          // is known empty misses that layout, leaves the height at 0, and the
+          // create-post button stays under the position bar.
+          onFooterLayout={handleBalanceFooterLayout}
         />
 
         {/* Both sheets sit outside the ScrollView on purpose: the design

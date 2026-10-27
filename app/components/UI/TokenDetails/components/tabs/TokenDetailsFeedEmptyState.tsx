@@ -29,7 +29,7 @@ import { toComposerPosition } from '../../TraderPositionPnl/composerPosition';
 import { useOpenPositionHeader } from '../../TraderPositionPnl/useOpenPositionHeader';
 
 /** Artboard inside `social_v1_social-onboarding.riv`. */
-const MEGAPHONE_ARTBOARD = 'Megaphone';
+const MEGAPHONE_ARTBOARD = 'Megaphone / Pixel waves';
 const ILLUSTRATION_SIZE = 96;
 
 const FEED_EMPTY_TEST_ID = 'token-details-feed-empty';
@@ -82,6 +82,7 @@ const FeedEmptyMegaphone: React.FC = () => {
         <RiveView
           file={riveFile}
           artboardName={MEGAPHONE_ARTBOARD}
+          stateMachineName="State Machine 1"
           autoPlay
           fit={Fit.Contain}
           alignment={Alignment.Center}
@@ -104,8 +105,11 @@ const CreateBalancePostButton: React.FC<{ token: TokenDetailsRouteParams }> = ({
   token,
 }) => {
   const { openComposer } = useOpenSocialPostComposer();
-  const { sharePosition } = useOpenPositionHeader(token);
+  const { sharePosition, isPositionLoading } = useOpenPositionHeader(token);
   const handlePress = useCallback(() => {
+    if (isPositionLoading) {
+      return;
+    }
     if (!sharePosition) {
       openComposer();
       return;
@@ -114,11 +118,12 @@ const CreateBalancePostButton: React.FC<{ token: TokenDetailsRouteParams }> = ({
       position: toComposerPosition(sharePosition),
       entryPoint: 'token_details',
     });
-  }, [openComposer, sharePosition]);
+  }, [isPositionLoading, openComposer, sharePosition]);
 
   return (
     <Button
       variant={ButtonVariant.Secondary}
+      isLoading={isPositionLoading}
       onPress={handlePress}
       twClassName="mt-4 self-center"
       testID={CREATE_POST_TEST_ID}
