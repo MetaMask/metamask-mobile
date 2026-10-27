@@ -141,7 +141,7 @@ jobs:
     steps:
       - name: Skip CI gate for non-production channels
         if: inputs.channel != 'production'
-        run: echo "Channel '${{ inputs.channel }}' does not require Check all jobs pass."
+        run: echo "Channel '${TARGET_CHANNEL}' does not require Check all jobs pass."
 
       - name: Checkout gate script
         if: inputs.channel == 'production'
@@ -516,7 +516,7 @@ jobs:
     steps:
       - name: Skip CI gate for non-production channels
         if: inputs.channel != 'production'
-        run: echo "Channel '${{ inputs.channel }}' does not require Check all jobs pass."
+        run: echo "Channel '${TARGET_CHANNEL}' does not require Check all jobs pass."
 
       - name: Checkout gate script
         if: inputs.channel == 'production'
