@@ -30,7 +30,7 @@ import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 export const PERPS_TRENDING_POST_COUNT = 3;
 
 const PERPS_TRENDING_SOURCE: SocialFeedSource = {
-  scope: 'leaderboard',
+  scope: 'trending',
   chains: [HYPERLIQUID_CAIP2_CHAIN_ID],
 };
 
