@@ -435,20 +435,6 @@ const SimpleWebviewScreen = () => (
   </NativeStack.Navigator>
 );
 
-/**
- * Same `Webview` stack as Main, without the modal inset. Registered on
- * AppFlow so a push from an AppFlow screen stays on this stack. Resolving
- * `Webview` only inside Main focuses HomeNav and pops the address list first.
- */
-const AppFlowWebview = () => (
-  <NativeStack.Navigator screenOptions={{ headerShown: false }}>
-    <NativeStack.Screen
-      name={Routes.WEBVIEW.SIMPLE}
-      component={SimpleWebview}
-    />
-  </NativeStack.Navigator>
-);
-
 const OnboardingRootNav = () => {
   const { colors } = useTheme();
 
@@ -1301,8 +1287,8 @@ const AppFlow = () => {
         }}
       />
       <NativeStack.Screen
-        name={Routes.WEBVIEW.MAIN}
-        component={AppFlowWebview}
+        name={Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW}
+        component={SimpleWebview}
         options={{
           ...slideFromRightNativeOptions,
           presentation: 'card',

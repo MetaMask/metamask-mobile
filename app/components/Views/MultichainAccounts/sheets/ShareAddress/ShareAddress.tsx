@@ -87,12 +87,9 @@ export const ShareAddress = () => {
       // Sheet `goBack` pops this route before the callback, so the explorer
       // pushes onto the screen under the sheet.
       sheetRef.current?.onCloseBottomSheet(() => {
-        navigation.navigate(Routes.WEBVIEW.MAIN, {
-          screen: Routes.WEBVIEW.SIMPLE,
-          params: {
-            url: blockExplorer.url,
-            title: blockExplorer.title,
-          },
+        navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW, {
+          url: blockExplorer.url,
+          title: blockExplorer.title,
         });
       });
     }

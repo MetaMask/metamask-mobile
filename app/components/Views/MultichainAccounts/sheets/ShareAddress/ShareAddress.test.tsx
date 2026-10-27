@@ -338,13 +338,13 @@ describe('ShareAddress', () => {
 
     // Assert — sheet pops before the explorer opens.
     expect(mockGoBack).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: {
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.EXPLORER_WEBVIEW,
+      {
         url: 'https://etherscan.io',
         title: 'Etherscan',
       },
-    });
+    );
     expect(mockNavigate).toHaveBeenCalledTimes(1);
     expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
       mockNavigate.mock.invocationCallOrder[0],
