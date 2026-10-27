@@ -52,15 +52,16 @@ describe('KYC analytics event handlers', () => {
     expect(trackKycVerificationUpdated).not.toHaveBeenCalled();
   });
 
-  it('passes a missing previous status through for a first status', () => {
+  it('passes the none previous status through for a first status', () => {
     handleKycStatusChangedForMetrics({
+      previousKycStatus: 'none',
       kycStatus: 'new',
       providerFlowStatus: 'not_started',
       vendor: 'iron',
     });
 
     expect(trackKycStatusUpdated).toHaveBeenCalledWith({
-      previousKycStatus: undefined,
+      previousKycStatus: 'none',
       kycStatus: 'new',
       providerFlowStatus: 'not_started',
     });

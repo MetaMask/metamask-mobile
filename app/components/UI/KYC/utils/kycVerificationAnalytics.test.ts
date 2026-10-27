@@ -108,20 +108,26 @@ describe('kycVerificationAnalytics', () => {
     });
 
     it.each([[undefined], ['UNKNOWN'], ['XX']])(
-      'omits region for location %s',
+      'reports an unknown region for location %s',
       (location) => {
         mockGetState.mockReturnValue(stateWithLocation(location));
 
-        expect(buildKycBaseProperties()).not.toHaveProperty('region');
+        expect(buildKycBaseProperties().region).toBe('unknown');
       },
     );
 
-    it('omits region when the store is unavailable', () => {
+    it('reports an unknown region when the store is unavailable', () => {
       mockGetState.mockImplementation(() => {
         throw new Error('no store');
       });
 
-      expect(buildKycBaseProperties()).not.toHaveProperty('region');
+      expect(buildKycBaseProperties().region).toBe('unknown');
+    });
+
+    it('uses the screen name the caller passes', () => {
+      expect(
+        buildKycBaseProperties({ screenName: 'other_funnel' }),
+      ).toMatchObject({ screen_name: 'other_funnel' });
     });
 
     it('uses the schema defaults when the controller state is missing', () => {
@@ -184,6 +190,21 @@ describe('kycVerificationAnalytics', () => {
         tags: { feature: 'vba-kyc', event: 'KYC Verification Updated' },
       });
     });
+
+    it('logs instead of throwing when building the properties fails', () => {
+      const error = new Error('controller exploded');
+      mockGetKycAnalyticsStatus.mockImplementation(() => {
+        throw error;
+      });
+
+      expect(() =>
+        trackKycVerificationUpdated({ status: 'started' }),
+      ).not.toThrow();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        tags: { feature: 'vba-kyc', event: 'KYC Verification Updated' },
+      });
+    });
   });
 
   describe('trackKycStatusUpdated', () => {
@@ -204,15 +225,16 @@ describe('kycVerificationAnalytics', () => {
       });
     });
 
-    it('omits previous_kyc_status the first time a status is stored', () => {
+    it('sends previous_kyc_status none the first time a status is stored', () => {
       trackKycStatusUpdated({
+        previousKycStatus: 'none',
         kycStatus: 'new',
         providerFlowStatus: 'not_started',
       });
 
-      expect(mockTrackEvent.mock.calls[0][0].properties).not.toHaveProperty(
-        'previous_kyc_status',
-      );
+      expect(mockTrackEvent.mock.calls[0][0].properties).toMatchObject({
+        previous_kyc_status: 'none',
+      });
     });
 
     it('logs instead of throwing when tracking fails', () => {
@@ -220,7 +242,9 @@ describe('kycVerificationAnalytics', () => {
         throw new Error('tracking failed');
       });
 
-      expect(() => trackKycStatusUpdated({ kycStatus: 'new' })).not.toThrow();
+      expect(() =>
+        trackKycStatusUpdated({ previousKycStatus: 'none', kycStatus: 'new' }),
+      ).not.toThrow();
       expect(Logger.error).toHaveBeenCalledTimes(1);
     });
   });
