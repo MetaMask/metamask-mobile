@@ -77,6 +77,7 @@ import {
   usePerpsNetwork,
   usePerpsOrderExecution,
   usePerpsOrderFees,
+  usePerpsQuotedFeeReservation,
   usePerpsOrderValidation,
   usePerpsToasts,
   usePerpsTrading,
@@ -1772,6 +1773,8 @@ export const usePerpsProOrderForm = ({
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
   });
+  // Size the max off the same resolved quote that drives the displayed fee.
+  usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
   const estimatedFees = feeResults.totalFee;
   const undiscountedEstimatedFees = feeResults.undiscountedTotalFee;
   // Scale endpoints are compared against the side of the book they would hit:

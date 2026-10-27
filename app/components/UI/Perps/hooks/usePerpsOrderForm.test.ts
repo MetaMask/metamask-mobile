@@ -1274,6 +1274,70 @@ describe('usePerpsOrderForm', () => {
     });
   });
 
+  describe('fee-adjusted max amount', () => {
+    const feeRate = 0.0045;
+
+    it('reserves the trading fee so margin plus fee fits the balance at 100%', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+
+      const notional = Number(result.current.orderForm.amount);
+      const { leverage } = result.current.orderForm;
+      expect(result.current.maxPossibleAmount).toBeLessThan(unreservedMax);
+      expect(notional).toBe(result.current.maxPossibleAmount);
+      expect(notional / leverage + notional * feeRate).toBeLessThanOrEqual(
+        1000,
+      );
+    });
+
+    it('lowers an amount held at max when the quoted fee rate rises', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0.001);
+      });
+      act(() => {
+        result.current.handlePercentageAmount(1);
+      });
+      const lowFeeMax = Number(result.current.orderForm.amount);
+
+      act(() => {
+        result.current.setEstimatedFeeRate(0.02);
+      });
+
+      expect(result.current.maxPossibleAmount).toBeLessThan(lowFeeMax);
+      expect(Number(result.current.orderForm.amount)).toBe(
+        result.current.maxPossibleAmount,
+      );
+    });
+
+    it('restores the unreserved max when the quote is cleared', () => {
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const unreservedMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setEstimatedFeeRate(feeRate);
+      });
+      act(() => {
+        result.current.setEstimatedFeeRate(0);
+      });
+
+      expect(result.current.maxPossibleAmount).toBe(unreservedMax);
+    });
+  });
+
   describe('limit order price adjustment', () => {
     it('uses limit price for maxPossibleAmount when order type is limit', () => {
       // Use low-precision asset where price difference causes rounding differences
