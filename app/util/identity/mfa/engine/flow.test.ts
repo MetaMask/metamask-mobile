@@ -586,6 +586,17 @@ describe('createMfaFlow', () => {
         step: { name: 'emailEntry', prefillEmail: 'taken@b.co' },
         error: 'credential_already_enrolled',
       });
+
+      // The spent challenge is not resumed: the same address gets a new code.
+      await act(flow, { type: 'submitEmail', email: 'taken@b.co' });
+      expect(fake.controller.beginCredentialEnrollment).toHaveBeenCalledTimes(
+        2,
+      );
+      expect(flow.getState().step).toMatchObject({
+        name: 'otp',
+        purpose: 'setup',
+        method: 'email_otp',
+      });
     });
 
     it('keeps email entry when another profile uses the address', async () => {
