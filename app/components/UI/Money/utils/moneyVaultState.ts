@@ -82,6 +82,34 @@ const matchesVault = (
   return position.vault_key === vaultKey;
 };
 
+const getVaultBalances = ({
+  positions,
+  baseVaultAddress,
+  premiumVaultAddress,
+}: Pick<
+  GetMoneyVaultStateParams,
+  'positions' | 'baseVaultAddress' | 'premiumVaultAddress'
+>): { baseUsd: BigNumber; premiumUsd: BigNumber } => {
+  let baseUsd = ZERO;
+  let premiumUsd = ZERO;
+
+  for (const position of positions ?? []) {
+    const value = parseUsd(position.current_value_usd);
+    if (value.lte(0)) {
+      continue;
+    }
+    if (matchesVault(position, baseVaultAddress, 'standard')) {
+      baseUsd = baseUsd.plus(value);
+      continue;
+    }
+    if (matchesVault(position, premiumVaultAddress, 'premium')) {
+      premiumUsd = premiumUsd.plus(value);
+    }
+  }
+
+  return { baseUsd, premiumUsd };
+};
+
 const weightedApy = ({
   baseUsd,
   premiumUsd,
@@ -145,22 +173,11 @@ export const getMoneyVaultState = ({
     };
   }
 
-  let baseUsd = ZERO;
-  let premiumUsd = ZERO;
-
-  for (const position of positions) {
-    const value = parseUsd(position.current_value_usd);
-    if (value.lte(0)) {
-      continue;
-    }
-    if (matchesVault(position, baseVaultAddress, 'standard')) {
-      baseUsd = baseUsd.plus(value);
-      continue;
-    }
-    if (matchesVault(position, premiumVaultAddress, 'premium')) {
-      premiumUsd = premiumUsd.plus(value);
-    }
-  }
+  const { baseUsd, premiumUsd } = getVaultBalances({
+    positions,
+    baseVaultAddress,
+    premiumVaultAddress,
+  });
 
   const inBase = baseUsd.gt(0);
   const inPremium = premiumUsd.gt(0);
