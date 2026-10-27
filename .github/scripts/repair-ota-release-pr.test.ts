@@ -98,9 +98,16 @@ exit 0
 });
 
 describe('ensure-ota-release-pr.yml', () => {
-  it('opens a pull request from workflow_run only after a successful conclusion', () => {
+  it('accepts a successful Auto Create run triggered by create or push', () => {
     const workflow = readFileSync(WORKFLOW, 'utf8');
 
     expect(workflow).toContain("github.event.workflow_run.conclusion == 'success'");
+    expect(workflow).toContain(
+      "github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'create'",
+    );
+    expect(workflow).toContain("endsWith(github.event.workflow_run.head_branch, '-ota')");
+    expect(workflow).toContain(
+      'github.event.workflow_run.head_repository.full_name == github.repository',
+    );
   });
 });
