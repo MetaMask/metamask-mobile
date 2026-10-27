@@ -8,16 +8,32 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React from 'react';
+import {
+  Alignment,
+  Fit,
+  RiveView,
+  useRiveFile,
+  type RiveError,
+} from '@rive-app/react-native';
+import React, { useCallback, useState } from 'react';
 import { Image } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
+import SocialOnboardingAnimation from '../../../../../animations/social_v1_social-onboarding.riv';
+import megaphoneFallback from '../../../../../images/socialV1/megaphone.png';
 import { strings } from '../../../../../../locales/i18n';
-import feedEmptyMegaphone from '../../../../../images/socialV1/post-trade-create-profile.png';
+import { PROFILE_ONBOARDING_RIVE_ASSETS } from '../../../../Views/SocialLeaderboard/ProfileOnboarding/profileOnboardingRive';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
+import Logger from '../../../../../util/Logger';
 
-const ILLUSTRATION_SIZE = 64;
+/** Artboard inside `social_v1_social-onboarding.riv`. */
+const MEGAPHONE_ARTBOARD = 'Megaphone';
+const ILLUSTRATION_SIZE = 96;
 
 const FEED_EMPTY_TEST_ID = 'token-details-feed-empty';
 const CREATE_POST_TEST_ID = 'token-details-feed-empty-create-post';
+const MEGAPHONE_TEST_ID = 'token-details-feed-empty-megaphone';
+const MEGAPHONE_FALLBACK_TEST_ID =
+  'token-details-feed-empty-megaphone-fallback';
 
 export interface TokenDetailsFeedEmptyStateProps {
   /** True when this wallet holds the token the feed is about. */
@@ -25,20 +41,53 @@ export interface TokenDetailsFeedEmptyStateProps {
 }
 
 /**
- * Same megaphone PNG as `PostTradeShareBottomSheet`'s create-profile card
- * (`app/images/socialV1/post-trade-create-profile.png`), with `@2x`/`@3x`.
+ * Megaphone from the Social onboarding Rive file. The static PNG is the
+ * Reduce Motion and error fallback, and what shows until the file loads.
  */
-const FeedEmptyMegaphone: React.FC = () => (
-  <Box twClassName="mb-4">
-    <Image
-      source={feedEmptyMegaphone}
-      resizeMode="contain"
-      style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    />
-  </Box>
-);
+const FeedEmptyMegaphone: React.FC = () => {
+  const prefersReducedMotion = useReducedMotion();
+  const [hasRiveError, setHasRiveError] = useState(false);
+  const { riveFile, error: riveFileError } = useRiveFile(
+    prefersReducedMotion ? undefined : SocialOnboardingAnimation,
+    { referencedAssets: PROFILE_ONBOARDING_RIVE_ASSETS },
+  );
+  const showFallback =
+    Boolean(prefersReducedMotion) || hasRiveError || Boolean(riveFileError);
+
+  const handleError = useCallback((riveError: RiveError) => {
+    Logger.error(
+      new Error(riveError.message),
+      `TokenDetailsFeedEmptyState: Rive error (${riveError.type})`,
+    );
+    setHasRiveError(true);
+  }, []);
+
+  return (
+    <Box twClassName="mb-4">
+      {showFallback || !riveFile ? (
+        <Image
+          source={megaphoneFallback}
+          resizeMode="contain"
+          style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={MEGAPHONE_FALLBACK_TEST_ID}
+        />
+      ) : (
+        <RiveView
+          file={riveFile}
+          artboardName={MEGAPHONE_ARTBOARD}
+          autoPlay
+          fit={Fit.Contain}
+          alignment={Alignment.Center}
+          style={{ width: ILLUSTRATION_SIZE, height: ILLUSTRATION_SIZE }}
+          onError={handleError}
+          testID={MEGAPHONE_TEST_ID}
+        />
+      )}
+    </Box>
+  );
+};
 
 /**
  * Empty token feed.
