@@ -68,6 +68,16 @@ jest.mock('../Views/CardAuthentication/CardAuthentication', () => {
   return () => <View testID="card-authentication" />;
 });
 
+jest.mock('../Views/CardMfa/CardMfaMethod', () => {
+  const { View } = require('react-native');
+  return () => <View testID="card-mfa-method" />;
+});
+
+jest.mock('../Views/CardMfa/CardMfaCode', () => {
+  const { View } = require('react-native');
+  return () => <View testID="card-mfa-code" />;
+});
+
 jest.mock('../Views/ContactDetails/ContactDetails', () => {
   const { View } = require('react-native');
   return () => <View testID="contact-details" />;
@@ -207,6 +217,8 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     SET_PIN: 'CardSetPin',
     CONFIRM_PIN: 'CardConfirmPin',
     AUTHENTICATION: 'CardAuthentication',
+    MFA_METHOD: 'CardMfaMethod',
+    MFA_CODE: 'CardMfaCode',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
       ROOT: 'CardOnboarding',

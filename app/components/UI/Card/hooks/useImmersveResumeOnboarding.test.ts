@@ -46,6 +46,11 @@ jest.mock('./useImmersveOnboardingRouter', () => ({
   useImmersveOnboardingRouter: () => mockRoute,
 }));
 
+const mockHandoffMfa = jest.fn();
+jest.mock('./useImmersveMfaHandoff', () => ({
+  useImmersveMfaHandoff: () => mockHandoffMfa,
+}));
+
 const mockDispatch = jest.fn();
 let mockImmersveConfig: unknown = { fundingChannelId: 'base-channel' };
 jest.mock('react-redux', () => ({
@@ -496,6 +501,36 @@ describe('useImmersveResumeOnboarding', () => {
       'fs-arbitrum',
       expect.any(Object),
     );
+  });
+
+  it('hands off to MFA and does not resume when sign-in returns a method step', async () => {
+    mockSignIn.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_select',
+        options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+      },
+    });
+
+    const { result } = renderHook(() => useImmersveResumeOnboarding());
+    await act(async () => {
+      await result.current(PARAMS);
+    });
+
+    expect(mockHandoffMfa).toHaveBeenCalledWith({
+      country: 'GB',
+      address: '0xabc',
+      options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+      continuation: {
+        entrypoint: 'SIGN_UP',
+        email: 'user@example.com',
+        phone: '+447911123456',
+        showAccountExistsToast: undefined,
+        navigateFromRoot: undefined,
+      },
+    });
+    expect(mockGetResumeCardInfo).not.toHaveBeenCalled();
+    expect(mockRoute).not.toHaveBeenCalled();
   });
 
   it('falls back to the configured funding channel when there is no existing card', async () => {

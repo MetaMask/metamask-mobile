@@ -1202,6 +1202,8 @@ export type RootStackParamList = {
   CardHome: CardScreensStackParamList['CardHome'];
   CardWelcome: CardScreensStackParamList['CardWelcome'];
   CardAuthentication: CardScreensStackParamList['CardAuthentication'];
+  CardMfaMethod: CardScreensStackParamList['CardMfaMethod'];
+  CardMfaCode: CardScreensStackParamList['CardMfaCode'];
   CardSpendingLimit: CardScreensStackParamList['CardSpendingLimit'];
   ChooseYourCard: CardScreensStackParamList['ChooseYourCard'];
   CardCashback: CardScreensStackParamList['CardCashback'];

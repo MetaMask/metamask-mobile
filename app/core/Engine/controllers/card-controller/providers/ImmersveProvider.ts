@@ -26,6 +26,8 @@ import {
   CardCreateResult,
   CardCredentials,
   CardDetails,
+  CardMfaMethod,
+  CardMfaOption,
   CardFundingAsset,
   CardFundingSourceResult,
   ApplePayProvisioningParams,
@@ -65,6 +67,45 @@ const IMMERSVE_LOCATION = 'international';
 export const IMMERSVE_NO_ACCOUNT_ERROR_CODES: ReadonlySet<string> = new Set([
   'ACCOUNT_DOES_NOT_EXIST',
 ]);
+
+/** Synthetic code when MFA is required but the account has no verified contact. */
+export const IMMERSVE_NO_VERIFIED_CONTACT_CODE = 'NO_VERIFIED_CONTACT';
+
+const IMMERSVE_MFA_FORBIDDEN_CODES: Readonly<
+  Record<string, CardProviderErrorCode>
+> = {
+  MFA_CODE_INVALID: CardProviderErrorCode.InvalidOtp,
+  MFA_METHOD_MISMATCH: CardProviderErrorCode.MfaDestinationMismatch,
+  MFA_CODE_EXPIRED: CardProviderErrorCode.AuthRestartRequired,
+  MFA_ATTEMPTS_EXCEEDED: CardProviderErrorCode.AuthRestartRequired,
+  CHALLENGE_EXPIRED: CardProviderErrorCode.AuthRestartRequired,
+  LOGIN_STEP_INVALID: CardProviderErrorCode.AuthRestartRequired,
+};
+
+function isExpectedMfaLoginError(error: unknown): boolean {
+  return (
+    error instanceof CardApiError &&
+    error.statusCode === 403 &&
+    typeof error.errorCode === 'string' &&
+    error.errorCode in IMMERSVE_MFA_FORBIDDEN_CODES
+  );
+}
+
+function mapMfaForbiddenError(error: CardApiError): CardProviderError | null {
+  const code = error.errorCode;
+  if (!code) return null;
+  const mapped = IMMERSVE_MFA_FORBIDDEN_CODES[code];
+  if (!mapped) return null;
+
+  let message = `Login must be restarted (${code})`;
+  if (mapped === CardProviderErrorCode.InvalidOtp) {
+    message = 'Invalid MFA code';
+  } else if (mapped === CardProviderErrorCode.MfaDestinationMismatch) {
+    message = 'MFA destination does not match';
+  }
+
+  return new CardProviderError(mapped, message, 403, code);
+}
 
 const IMMERSVE_KYC_TYPE = 'immersve-conducted';
 const IMMERSVE_KYC_HIDDEN_STEPS = ['region', 'contact-channels'];
@@ -119,7 +160,8 @@ function reportAndMap(
 ): never {
   const isAuthFailure =
     isCardAuthTokenError(error) ||
-    (error instanceof CardApiError && error.statusCode === 401);
+    (error instanceof CardApiError && error.statusCode === 401) ||
+    isExpectedMfaLoginError(error);
   if (!isAuthFailure) {
     Logger.error(
       error as Error,
@@ -155,6 +197,8 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
     }
 
     if (error.statusCode === 403) {
+      const mfaError = mapMfaForbiddenError(error);
+      if (mfaError) return mfaError;
       return new CardProviderError(
         CardProviderErrorCode.Forbidden,
         `Forbidden on ${operation}`,
@@ -227,10 +271,181 @@ interface ImmersveLoginInitResponse {
   };
 }
 
-interface ImmersveLoginCompleteResponse {
+interface ImmersveLoginTokensResponse {
   accessToken: string;
   refreshToken?: string;
   cardholderAccountId: string;
+}
+
+interface ImmersveMfaOptionPayload {
+  method?: string;
+  maskedDestination?: string;
+}
+
+interface ImmersveMfaStepPayload {
+  type?: string;
+  mfaOptions?: ImmersveMfaOptionPayload[];
+  mfaOption?: ImmersveMfaOptionPayload;
+  expiresAt?: string;
+}
+
+/**
+ * Immersve returns the step as an object (`nextStep.type`); the flat shape
+ * (`nextStep` as a string, fields at the root) is still accepted.
+ */
+interface ImmersveMfaStepResponse extends Omit<ImmersveMfaStepPayload, 'type'> {
+  loginRequestId?: string;
+  nextStep: string | ImmersveMfaStepPayload;
+}
+
+type ImmersveLoginCompleteResponse =
+  | ImmersveLoginTokensResponse
+  | ImmersveMfaStepResponse;
+
+function isCardMfaMethod(value: string | undefined): value is CardMfaMethod {
+  return value === 'phone' || value === 'email';
+}
+
+function toCardMfaOption(
+  raw: ImmersveMfaOptionPayload | undefined,
+): CardMfaOption | null {
+  if (!raw || !isCardMfaMethod(raw.method)) return null;
+  if (
+    typeof raw.maskedDestination !== 'string' ||
+    raw.maskedDestination.length === 0
+  ) {
+    return null;
+  }
+  return { method: raw.method, maskedDestination: raw.maskedDestination };
+}
+
+function parseExpiresAt(value: string | undefined): number | null {
+  if (!value) return null;
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function readMfaStep(
+  response: ImmersveLoginCompleteResponse,
+): ImmersveMfaStepPayload | null {
+  if (!('nextStep' in response) || !response.nextStep) return null;
+  const { nextStep, ...rest } = response;
+  if (typeof nextStep === 'string') {
+    return { ...rest, type: nextStep };
+  }
+  return nextStep;
+}
+
+function isLoginTokens(
+  response: ImmersveLoginCompleteResponse,
+): response is ImmersveLoginTokensResponse {
+  return 'accessToken' in response && typeof response.accessToken === 'string';
+}
+
+function buildImmersveTokenSet(
+  response: ImmersveLoginTokensResponse,
+  session: CardAuthSession,
+): CardAuthTokens {
+  return {
+    accessToken: response.accessToken,
+    refreshToken: response.refreshToken,
+    accessTokenExpiresAt: decodeJwtExpiryMs(response.accessToken) ?? 0,
+    refreshTokenExpiresAt: response.refreshToken
+      ? (decodeJwtExpiryMs(response.refreshToken) ?? undefined)
+      : undefined,
+    location: IMMERSVE_LOCATION,
+    providerUserId: response.cardholderAccountId,
+    cardholderAccountId: response.cardholderAccountId,
+    accountAddress: session._metadata.address as string | undefined,
+  };
+}
+
+function loginCompleteRequest(
+  session: CardAuthSession,
+  credentials: CardCredentials,
+  mfaEnabled: boolean,
+): { path: string; body: Record<string, string> } {
+  const loginRequestId = session.id;
+  switch (credentials.type) {
+    case 'siwe':
+      return {
+        path: mfaEnabled
+          ? '/auth/login-complete?mfa=true'
+          : '/auth/login-complete',
+        body: { loginRequestId, signature: credentials.signature },
+      };
+    case 'mfa_method':
+      return {
+        path: '/auth/login-complete',
+        body: {
+          loginRequestId,
+          mfaMethod: credentials.method,
+          mfaDestination: credentials.destination,
+        },
+      };
+    case 'mfa_code':
+      return {
+        path: '/auth/login-complete',
+        body: { loginRequestId, mfaCode: credentials.code },
+      };
+    default:
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        `Unsupported credential type: ${credentials.type}`,
+      );
+  }
+}
+
+function mapLoginCompleteResponse(
+  response: ImmersveLoginCompleteResponse,
+  session: CardAuthSession,
+): CardAuthResult {
+  const step = readMfaStep(response);
+
+  if (step?.type === 'select-mfa-method') {
+    const options = (step.mfaOptions ?? [])
+      .map(toCardMfaOption)
+      .filter((option): option is CardMfaOption => option !== null);
+    if (options.length === 0) {
+      throw new CardProviderError(
+        CardProviderErrorCode.AuthRestartRequired,
+        'No verified contact is available for verification',
+        undefined,
+        IMMERSVE_NO_VERIFIED_CONTACT_CODE,
+      );
+    }
+    return { done: false, nextStep: { type: 'mfa_select', options } };
+  }
+
+  if (step?.type === 'submit-mfa-code') {
+    const option = toCardMfaOption(step.mfaOption);
+    if (!option) {
+      throw new CardProviderError(
+        CardProviderErrorCode.AuthRestartRequired,
+        'Login must be restarted',
+        undefined,
+        'LOGIN_STEP_INVALID',
+      );
+    }
+    return {
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: option.method,
+        maskedDestination: option.maskedDestination,
+        expiresAt: parseExpiresAt(step.expiresAt),
+      },
+    };
+  }
+
+  if (isLoginTokens(response)) {
+    return { done: true, tokenSet: buildImmersveTokenSet(response, session) };
+  }
+
+  throw new CardProviderError(
+    CardProviderErrorCode.Unknown,
+    'Unexpected login-complete response',
+  );
 }
 
 interface ImmersveTokenResponse {
@@ -423,19 +638,23 @@ export class ImmersveProvider implements ICardProvider {
   private readonly service: ImmersveService;
   private readonly config: ImmersveProviderConfig;
   private readonly getProgramConfig: () => ImmersveProgramConfig;
+  private readonly isMfaEnabled: () => boolean;
 
   constructor({
     service,
     config,
     getProgramConfig,
+    isMfaEnabled,
   }: {
     service: ImmersveService;
     config: ImmersveProviderConfig;
     getProgramConfig?: () => ImmersveProgramConfig | null | undefined;
+    isMfaEnabled?: () => boolean;
   }) {
     this.service = service;
     this.config = config;
     this.getProgramConfig = () => getProgramConfig?.() ?? {};
+    this.isMfaEnabled = isMfaEnabled ?? (() => false);
   }
 
   private get programConfig(): ImmersveProgramConfig {
@@ -567,21 +786,17 @@ export class ImmersveProvider implements ICardProvider {
     session: CardAuthSession,
     credentials: CardCredentials,
   ): Promise<CardAuthResult> {
-    if (credentials.type !== 'siwe') {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        `Unsupported credential type: ${credentials.type}`,
-      );
-    }
+    const request = loginCompleteRequest(
+      session,
+      credentials,
+      this.isMfaEnabled(),
+    );
 
     let response: ImmersveLoginCompleteResponse;
     try {
       response = await this.service.post<ImmersveLoginCompleteResponse>(
-        '/auth/login-complete',
-        {
-          loginRequestId: session.id,
-          signature: credentials.signature,
-        },
+        request.path,
+        request.body,
       );
     } catch (error) {
       reportAndMap(error, 'submitCredentials', {
@@ -593,20 +808,7 @@ export class ImmersveProvider implements ICardProvider {
       });
     }
 
-    const tokenSet: CardAuthTokens = {
-      accessToken: response.accessToken,
-      refreshToken: response.refreshToken,
-      accessTokenExpiresAt: decodeJwtExpiryMs(response.accessToken) ?? 0,
-      refreshTokenExpiresAt: response.refreshToken
-        ? (decodeJwtExpiryMs(response.refreshToken) ?? undefined)
-        : undefined,
-      location: IMMERSVE_LOCATION,
-      providerUserId: response.cardholderAccountId,
-      cardholderAccountId: response.cardholderAccountId,
-      accountAddress: session._metadata.address as string | undefined,
-    };
-
-    return { done: true, tokenSet };
+    return mapLoginCompleteResponse(response, session);
   }
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {

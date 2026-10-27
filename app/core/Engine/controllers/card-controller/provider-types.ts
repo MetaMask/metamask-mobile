@@ -25,6 +25,10 @@ export enum CardProviderErrorCode {
   Timeout = 'timeout',
   Network = 'network',
   Unknown = 'unknown',
+  /** Full phone or email did not match a verified MFA option. */
+  MfaDestinationMismatch = 'mfa_destination_mismatch',
+  /** Login challenge or MFA code can no longer continue. Start sign-in again. */
+  AuthRestartRequired = 'auth_restart_required',
 }
 
 export class CardProviderError extends Error {
@@ -184,10 +188,26 @@ export interface CardAuthResult {
 
 // -- Auth Flow --
 
+export type CardMfaMethod = 'phone' | 'email';
+
+export interface CardMfaOption {
+  method: CardMfaMethod;
+  /** Provider-masked contact, for example "+64 *****1234" or "j***@example.com". */
+  maskedDestination: string;
+}
+
 export type CardAuthStep =
   | { type: 'email_password' }
   | { type: 'otp'; destination: string }
   | { type: 'siwe'; message: string }
+  | { type: 'mfa_select'; options: CardMfaOption[] }
+  | {
+      type: 'mfa_code';
+      method: CardMfaMethod;
+      maskedDestination: string;
+      /** Epoch ms when the one-time code expires, or null when the provider omits it. */
+      expiresAt: number | null;
+    }
   | { type: 'complete' };
 
 export interface CardAuthSession {
@@ -203,7 +223,9 @@ export type CardCredentials =
       password: string;
       otpCode?: string;
     }
-  | { type: 'siwe'; signature: string };
+  | { type: 'siwe'; signature: string }
+  | { type: 'mfa_method'; method: CardMfaMethod; destination: string }
+  | { type: 'mfa_code'; code: string };
 
 // -- Capabilities --
 
