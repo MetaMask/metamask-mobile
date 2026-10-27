@@ -939,15 +939,17 @@ async function readPlaywrightJsonReport(destDir) {
 }
 
 const MAX_FALLBACK_RUNS_TO_SCAN = 10;
+const PLATFORM_FALLBACK_EVENT = { android: 'push', ios: 'schedule' };
 
 /**
- * Pushes to main only run Android Appium; iOS runs on scheduled runs only. When the
- * selected run lacks a platform, pull it from the newest successful scheduled run.
+ * Pushes to main only run Android Appium; scheduled runs only run iOS. When the
+ * selected run lacks a platform, pull it from the newest successful run of the
+ * event that runs that platform.
  */
 async function findFallbackPlatformArtifacts(platform) {
   const defaultRunId = await getRunId();
   const runs = (await listRecentSuccessfulCiRuns())
-    .filter((r) => String(r.id) !== defaultRunId && r.event === 'schedule')
+    .filter((r) => String(r.id) !== defaultRunId && r.event === PLATFORM_FALLBACK_EVENT[platform])
     .slice(0, MAX_FALLBACK_RUNS_TO_SCAN);
 
   for (const run of runs) {
