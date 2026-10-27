@@ -26,6 +26,23 @@ import { getMinAmountReceivedWithSlippage } from './slippage';
 
 export type ProtocolDefinition = PolymarketProtocolDefinition;
 
+/**
+ * The protocol surface the order-signing engine reads. Satisfied by every
+ * protocol definition: the CTF protocol (domain version "2") and the
+ * positions protocol (domain version "3").
+ */
+export interface OrderSigningProtocol {
+  order: {
+    domainVersion: '2' | '3';
+    metadata: string;
+    getBuilderCode: () => string;
+  };
+  contracts: {
+    exchange: string;
+    negRiskExchange: string;
+  };
+}
+
 export interface OrderDataV2 {
   maker: string;
   signer?: string;
@@ -92,7 +109,7 @@ function buildProtocolOrderDomain({
   verifyingContract,
   chainId,
 }: {
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   verifyingContract: string;
   chainId: number;
 }) {
@@ -144,13 +161,15 @@ export function buildProtocolUnsignedOrder({
   preview,
   makerAddress,
   signerAddress,
+  builderCode,
   signatureType = SignatureType.POLY_GNOSIS_SAFE,
   nowInSeconds = Math.floor(Date.now() / 1000),
 }: {
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   preview: OrderPreview;
   makerAddress: string;
   signerAddress: string;
+  builderCode?: string;
   signatureType?: SignatureType;
   nowInSeconds?: number;
 }): ProtocolUnsignedOrder {
@@ -166,7 +185,7 @@ export function buildProtocolUnsignedOrder({
   ).toString();
   const takerAmount = getTakerAmountWithSlippage(preview);
   const side = preview.side === Side.BUY ? UtilsSide.BUY : UtilsSide.SELL;
-  const builder = protocol.order.getBuilderCode();
+  const builder = builderCode ?? protocol.order.getBuilderCode();
 
   if (!builder) {
     throw new Error('Missing Polymarket CLOB v2 builder code');
@@ -192,7 +211,7 @@ export function getProtocolVerifyingContract({
   protocol,
   negRisk,
 }: {
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   negRisk: boolean;
 }): string {
   return negRisk
@@ -206,7 +225,7 @@ export function getProtocolOrderTypedData({
   verifyingContract,
   chainId = POLYGON_MAINNET_CHAIN_ID,
 }: {
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   order: ProtocolUnsignedOrder;
   verifyingContract: string;
   chainId?: number;
@@ -228,7 +247,7 @@ function getProtocolAppDomainSeparator({
   verifyingContract,
   chainId,
 }: {
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   verifyingContract: string;
   chainId: number;
 }): string {
@@ -297,7 +316,7 @@ export async function signProtocolOrder({
   chainId = POLYGON_MAINNET_CHAIN_ID,
 }: {
   signer: Signer;
-  protocol: PolymarketProtocolDefinition;
+  protocol: OrderSigningProtocol;
   order: ProtocolUnsignedOrder;
   verifyingContract: string;
   chainId?: number;

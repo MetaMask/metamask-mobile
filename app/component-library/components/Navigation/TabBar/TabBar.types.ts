@@ -38,6 +38,7 @@ export interface ExtendedBottomTabNavigationOptions
   rootScreenName: string;
   isSelected?: (rootScreenName: string) => boolean;
   isHidden?: boolean;
+  showNewBadge?: boolean;
   /**
    * Callback fired when leaving this tab (switching to another tab).
    * Useful for cleanup actions like ending analytics sessions.

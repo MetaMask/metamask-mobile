@@ -4,7 +4,7 @@
 /**
  * Ad-hoc per-scenario Hermes CPU-profile analysis.
  *
- * Only Hermes `.cpuprofile` files are analyzed. BrowserStack app-profiling
+ * Only Hermes `.cpuprofile` files are analyzed. TestMu app-profiling
  * JSON (CPU %, memory, slow frames, and detected issues) is intentionally
  * excluded.
  *
@@ -20,6 +20,8 @@
  *   … --weekly
  *   … --collect-only --run 123456789
  *   … --scheduled-exception --run 123456789
+ *   … --scheduled-exception --run 123456789 --github-issues
+ *   … --weekly --github-issues
  *   … --scenario "Cold Start"
  *   … --current-dir ./downloaded-test-results --skip-ai
  *
@@ -38,9 +40,18 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import transformerModule from '@margelo/hermes-profile-transformer';
-import { proposeProfilingGroundedActions } from './profiling-regression-actions.mjs';
+import {
+  extractProfilingFrames,
+  proposeProfilingGroundedActions,
+} from './profiling-regression-actions.mjs';
+import {
+  listIssuesOpenedInWindow,
+  syncProfilingRegressionIssues,
+} from './profiling-regression-issues.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
+  buildIssueVerdictDm,
+  buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
   buildScheduledExceptionSlack,
@@ -64,6 +75,7 @@ const transformHermesProfile =
 
 const DEFAULT_REPO = 'MetaMask/metamask-mobile';
 const DEFAULT_WORKFLOW = 'run-performance-e2e-manual.yml';
+const ANALYSIS_WORKFLOW = 'analyze-app-profiling.yml';
 const DEFAULT_BRANCH = 'main';
 const DEFAULT_MODEL = 'claude-sonnet-4-6';
 const MAX_PROFILE_BYTES = 50 * 1024 * 1024;
@@ -88,11 +100,17 @@ const TAIL_RUNS = 2;
 // stop when the budget is gone. `--max-runs-per-week` can still cap it.
 const DEFAULT_ANALYSIS_BUDGET_MINUTES = 25;
 const BUDGET_EXHAUSTED = 'analysis time budget exhausted';
+// Playwright project names of the TestMu performance lane. Longest prefix
+// first: profile files are named `<project>-<scenario>.cpuprofile`.
 const KNOWN_PROJECTS = [
-  'android-onboarding-seedless',
-  'browserstack-android',
-  'android-onboarding',
+  'testmu-android-onboarding-seedless',
+  'testmu-android-onboarding',
+  'testmu-android',
 ];
+// The TestMu runner publishes profiles and raw results under a `testmu-he-`
+// prefix (performance-test-runner.yml).
+const HERMES_PROFILE_ARTIFACT_PATTERN = 'testmu-he-hermes-cpuprofiles-*';
+const RAW_RESULTS_ARTIFACT_PATTERN = 'testmu-he-*-test-results-*';
 const SKILL_ANALYZER_CANDIDATES = [
   '.claude/skills/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
   '.cursor/rules/mms-swaps-cpu-profile-audit/scripts/analyze-cpuprofile.cjs',
@@ -122,6 +140,7 @@ function parseArgs(argv) {
     collectOnly: false,
     scheduledException: false,
     skipScenarioArtifacts: false,
+    githubIssues: false,
     now: null,
     maxRunsPerWeek: null,
     maxAnalysisMinutes: DEFAULT_ANALYSIS_BUDGET_MINUTES,
@@ -195,6 +214,9 @@ function parseArgs(argv) {
       case '--skip-scenario-artifacts':
         args.skipScenarioArtifacts = true;
         break;
+      case '--github-issues':
+        args.githubIssues = true;
+        break;
       case '--now':
         args.now = next;
         index += 1;
@@ -252,8 +274,10 @@ Options:
   --max-runs-per-week <n>  Cap uncollected runs re-analyzed per week (default: every run)
   --max-analysis-minutes <n>  Wall clock spent rebuilding uncollected runs (default: ${DEFAULT_ANALYSIS_BUDGET_MINUTES})
   --collect-only         Analyze one run without Slack-sized scenario zips
-  --scheduled-exception  Collect one run and compare it with the previous two scheduled runs
+  --scheduled-exception  Collect one run and compare it with the average of the previous clean scheduled runs
   --skip-scenario-artifacts  Skip per-scenario profile bundles
+  --github-issues        With --scheduled-exception: open or reference one GitHub issue per finding.
+                         With --weekly: list the issues opened during the reported week
   --now <iso>            Clock used by --weekly week bounds (tests)
   --scenario <text>      Analyze matching scenario names only
   --repo <owner/name>    GitHub repo (default: ${DEFAULT_REPO})
@@ -478,7 +502,7 @@ function tryReadCollectedReport(repo, analysisRunId) {
   }
 }
 
-function listCompletedAnalysisRuns(repo) {
+function listWorkflowRunsForCollection(repo, workflow, branch = null) {
   return JSON.parse(
     runGh([
       'run',
@@ -486,12 +510,37 @@ function listCompletedAnalysisRuns(repo) {
       '--repo',
       repo,
       '--workflow',
-      'analyze-app-profiling.yml',
+      workflow,
+      ...(branch ? ['--branch', branch] : []),
       '--limit',
       '80',
       '--json',
       'databaseId,conclusion,createdAt,status',
     ]) || '[]',
+  );
+}
+
+/**
+ * Runs that may hold an `app-profiling-analysis` artifact, newest first.
+ * Chained analyses run inside the performance run they analyze, so their
+ * report lives there; that run can still fail (a flaky scenario) after a
+ * valid report was uploaded. Standalone analyses (Monday, manual dispatch,
+ * and reports from before the analysis was chained) live in
+ * `analyze-app-profiling.yml` runs and only count when they succeeded.
+ */
+function listCompletedAnalysisRuns(
+  repo,
+  { listRuns = listWorkflowRunsForCollection } = {},
+) {
+  const standalone = listRuns(repo, ANALYSIS_WORKFLOW).map((run) => ({
+    ...run,
+    requiresSuccess: true,
+  }));
+  const chained = listRuns(repo, DEFAULT_WORKFLOW, DEFAULT_BRANCH).map(
+    (run) => ({ ...run, requiresSuccess: false }),
+  );
+  return [...standalone, ...chained].sort(
+    (left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt),
   );
 }
 
@@ -508,7 +557,8 @@ function loadCollectedReports(
   for (const analysisRun of analysisRuns) {
     if (
       analysisRun.status !== 'completed' ||
-      analysisRun.conclusion !== 'success'
+      (analysisRun.requiresSuccess !== false &&
+        analysisRun.conclusion !== 'success')
     ) {
       continue;
     }
@@ -563,10 +613,10 @@ function sourcemapVariant(filePath) {
 
 function profileSourcemapVariant(profilePath) {
   const { project } = parseProfileFileName(profilePath);
-  if (project.startsWith('android-onboarding')) {
+  if (project.startsWith('testmu-android-onboarding')) {
     return 'without-srp';
   }
-  if (project === 'browserstack-android') {
+  if (project === 'testmu-android') {
     return 'with-srp';
   }
   return null;
@@ -736,7 +786,7 @@ function findHermesProfiles(directory, output = []) {
       entry.endsWith('.cpuprofile') &&
       fullPath
         .split(path.sep)
-        .some((segment) => segment.startsWith('hermes-cpuprofiles'))
+        .some((segment) => segment.includes('hermes-cpuprofiles'))
     ) {
       output.push(fullPath);
     }
@@ -1383,7 +1433,7 @@ The deterministic report is already generated from the installed
 \`mms-swaps-cpu-profile-audit\` parser. Add optional context only.
 
 Rules:
-- Use the skill-generated timing evidence only. Do not discuss BrowserStack
+- Use the skill-generated timing evidence only. Do not discuss TestMu
   CPU, memory, slow frames, app profiling, network calls, or quality gates.
 - Logical segment 1 is the plain \`.cpuprofile\`; \`.segment-2\`,
   \`.segment-3\`, etc. continue the same scenario.
@@ -1545,7 +1595,7 @@ function buildMarkdown(report) {
     lines.push('## Downloads', '', ...downloadLines, '');
   }
   lines.push(
-    '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
+    '_Hermes CPU sampling only. TestMu app-profiling metrics are excluded._',
     '',
   );
   return lines.join('\n');
@@ -1608,7 +1658,7 @@ function buildSlack(report) {
   }
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling excluded.',
+    '_Source:_ Hermes CPU sampling only; TestMu app-profiling excluded.',
   );
   if (report.meta.symbolicatedProfileCount < report.meta.profileCount) {
     lines.push(
@@ -1949,7 +1999,7 @@ function buildWindowMarkdown(window) {
     );
   }
   lines.push(
-    '_Hermes CPU sampling only. BrowserStack app-profiling metrics are excluded._',
+    '_Hermes CPU sampling only. TestMu app-profiling metrics are excluded._',
     '',
   );
   return lines.join('\n');
@@ -2025,7 +2075,7 @@ function buildWindowSlack(window) {
   }
   lines.push(
     '',
-    '_Source:_ Hermes CPU sampling only; BrowserStack app-profiling data excluded.',
+    '_Source:_ Hermes CPU sampling only; TestMu app-profiling data excluded.',
   );
   if (meta.symbolicatedProfileCount < meta.profileCount) {
     lines.push(
@@ -2058,6 +2108,31 @@ function writeWindowOutputs(outputDirectory, window) {
   );
 }
 
+/**
+ * Issues the scheduled checks opened during the reported week. A GitHub
+ * error is reported in the digest instead of failing the whole Monday report.
+ */
+function loadWeeklyIssues({ repo, bounds }) {
+  try {
+    const items = listIssuesOpenedInWindow({
+      repo,
+      runGh,
+      sinceIso: bounds.thisWeek.since,
+      untilIso: bounds.thisWeek.until,
+    });
+    console.log(
+      `🐙 GitHub issues opened this week: ${items.length}${
+        items.length ? ` (${items.map((issue) => `#${issue.number}`).join(', ')})` : ''
+      }`,
+    );
+    return { items };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.log(`ℹ️ Could not list this week's GitHub issues: ${message}`);
+    return { error: message };
+  }
+}
+
 function writeWeeklyOutputs(outputDirectory, weekly) {
   fs.mkdirSync(outputDirectory, { recursive: true });
   writeEmptyScenarioManifest(outputDirectory);
@@ -2078,14 +2153,12 @@ function writeWeeklyOutputs(outputDirectory, weekly) {
   );
 }
 
-function writeScheduledExceptionOutputs(
-  outputDirectory,
-  currentReport,
-  exception,
-) {
-  // Keep report.json as the reusable per-run collection consumed by Monday's
-  // report. The notification decision is a separate artifact.
-  writeOutputs(outputDirectory, currentReport);
+/**
+ * The notification files only. Rewritten after the GitHub issue sync adds
+ * issue links to the findings, without touching `slack-cards.json`, which
+ * the AI proposal may already have written.
+ */
+function writeScheduledExceptionNotification(outputDirectory, exception) {
   fs.writeFileSync(
     path.join(outputDirectory, 'notification.json'),
     `${JSON.stringify(exception, null, 2)}\n`,
@@ -2097,6 +2170,24 @@ function writeScheduledExceptionOutputs(
     path.join(outputDirectory, 'slack.md'),
     `${buildScheduledExceptionSlack(exception)}\n`,
   );
+  const performancePath = path.join(outputDirectory, 'slack-performance.md');
+  const performanceSlack = buildPerformanceChannelSlack(exception);
+  if (performanceSlack) {
+    fs.writeFileSync(performancePath, `${performanceSlack}\n`);
+  } else if (fs.existsSync(performancePath)) {
+    fs.unlinkSync(performancePath);
+  }
+}
+
+function writeScheduledExceptionOutputs(
+  outputDirectory,
+  currentReport,
+  exception,
+) {
+  // Keep report.json as the reusable per-run collection consumed by Monday's
+  // report. The notification decision is a separate artifact.
+  writeOutputs(outputDirectory, currentReport);
+  writeScheduledExceptionNotification(outputDirectory, exception);
   fs.writeFileSync(
     path.join(outputDirectory, 'slack-cards.json'),
     '[]\n',
@@ -2279,17 +2370,22 @@ function downloadRunInputs({ runId, repo, workingDirectory }) {
   const sourceDirectory = path.join(workingDirectory, 'source-profiles');
   const sourcemapDirectory = path.join(workingDirectory, 'source-sourcemaps');
 
-  // New runs expose small dedicated artifacts. Existing 6-hour runs keep
-  // the same named profiles inside their raw test-result artifacts.
+  // Small dedicated artifacts first; older runs keep the same named profiles
+  // inside their raw test-result artifacts.
   const dedicated = downloadArtifactPattern(
     runId,
-    'hermes-cpuprofiles-*',
+    HERMES_PROFILE_ARTIFACT_PATTERN,
     sourceDirectory,
     repo,
   );
   if (!dedicated || findHermesProfiles(sourceDirectory).length === 0) {
-    console.log('📥 Falling back to raw *-test-results-* artifacts');
-    downloadArtifactPattern(runId, '*-test-results-*', sourceDirectory, repo);
+    console.log(`📥 Falling back to raw ${RAW_RESULTS_ARTIFACT_PATTERN} artifacts`);
+    downloadArtifactPattern(
+      runId,
+      RAW_RESULTS_ARTIFACT_PATTERN,
+      sourceDirectory,
+      repo,
+    );
   }
 
   // Sourcemaps are accepted only from the same workflow run. Repacked APKs
@@ -2557,10 +2653,16 @@ async function runScheduledExceptionAnalysis({
     },
   );
   const baselineReports = selectBaselineReports(scheduledRuns, collected);
-  const exception = buildScheduledException(currentReport, baselineReports);
+  const previousReport = scheduledRuns[0]
+    ? collected.get(String(scheduledRuns[0].databaseId)) || null
+    : null;
+  const exception = buildScheduledException(currentReport, baselineReports, {
+    previousReport,
+  });
   writeScheduledExceptionOutputs(outputDirectory, currentReport, exception);
+  let aiText = null;
   if (exception.meta.hasFindings && !args.skipAi && !args.dryRun) {
-    await proposeProfilingGroundedActions({
+    aiText = await proposeProfilingGroundedActions({
       exception,
       currentReport,
       previousRun: scheduledRuns[0] || null,
@@ -2572,6 +2674,34 @@ async function runScheduledExceptionAnalysis({
       runGh,
       callClaude,
     });
+  }
+  // Findings would have opened or commented a GitHub issue. Filing stays
+  // off unless --github-issues is passed. The verdict file is the DM body.
+  const issueDmPath = path.join(outputDirectory, 'issue-dm.md');
+  if (exception.meta.hasFindings && !args.dryRun && !args.githubIssues) {
+    fs.writeFileSync(
+      issueDmPath,
+      `${buildIssueVerdictDm(exception, aiText)}\n`,
+    );
+  } else if (fs.existsSync(issueDmPath)) {
+    fs.unlinkSync(issueDmPath);
+  }
+  if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
+    const synced = syncProfilingRegressionIssues({
+      exception,
+      currentReport,
+      frames: extractProfilingFrames(currentReport, exception.findings),
+      aiText,
+      repo: args.repo,
+      runGh,
+      outputDirectory,
+    });
+    writeScheduledExceptionNotification(outputDirectory, exception);
+    for (const issue of synced.issues) {
+      console.log(
+        `${issue.created ? '🆕 Opened' : '🔁 Referenced'} ${issue.url} — ${issue.title}`,
+      );
+    }
   }
   console.log(
     `✅ Checked run ${currentReport.meta.runId} against ${baselineReports.length} collected runs: ${exception.findings.length} finding(s)`,
@@ -2942,6 +3072,9 @@ async function runWeeklyAnalysis({ args, outputDirectory, skillAnalyzerPath }) {
     lastWeekRunsAvailable: lastWeekComparable.runs.length,
     thisWeekDays: lastWeekComparable.thisWeekDays,
     lastWeekDays: lastWeekComparable.lastWeekDays,
+    issues: args.githubIssues
+      ? loadWeeklyIssues({ repo: args.repo, bounds })
+      : undefined,
   });
   writeWeeklyOutputs(outputDirectory, weekly);
   console.log(
@@ -2965,6 +3098,7 @@ export {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  listCompletedAnalysisRuns,
   loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
@@ -2979,6 +3113,8 @@ export {
   findSkillAnalyzer,
   runSkillAnalyzer,
   parseProfileFileName,
+  HERMES_PROFILE_ARTIFACT_PATTERN,
+  RAW_RESULTS_ARTIFACT_PATTERN,
   summarizeHermesProfile,
   mergeFrameLists,
   groupProfiles,

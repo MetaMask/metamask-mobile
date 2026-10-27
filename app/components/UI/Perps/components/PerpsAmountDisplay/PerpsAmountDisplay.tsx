@@ -1,12 +1,7 @@
-import React, { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Platform,
-  Pressable,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React from 'react';
+import { Platform, Pressable, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import { useTheme } from '../../../../../util/theme';
@@ -36,6 +31,26 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 
+/**
+ * Formats a trade-sheet coin amount.
+ *
+ * An in-progress keypad draft is shown as typed. `formatPositionSize` rounds
+ * amounts at or above 1 to two decimals, which would change the digits still
+ * being entered. Idle amounts keep that display formatting.
+ */
+const formatTradeSheetTokenAmount = (
+  tokenAmount: string,
+  preserveExactAmount: boolean,
+): string => {
+  if (preserveExactAmount) {
+    return tokenAmount;
+  }
+  if (tokenAmount.endsWith('.')) {
+    return `${formatPositionSize(tokenAmount.slice(0, -1) || '0')}.`;
+  }
+  return formatPositionSize(tokenAmount);
+};
+
 interface PerpsAmountDisplayProps {
   amount: string;
   showWarning?: boolean;
@@ -54,6 +69,7 @@ interface PerpsAmountDisplayProps {
   onDisplayToggle?: () => void;
   displayToggleAccessibilityLabel?: string;
   displayToggleTestID?: string;
+  twClassName?: string;
   /**
    * Custom glyph for the `tradeSheet` fiat/token toggle. When omitted the
    * toggle is the MMDS `ButtonIcon` with `IconName.SwapVertical`; callers
@@ -81,12 +97,11 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
   displayToggleAccessibilityLabel,
   displayToggleTestID,
   displayToggleIcon,
+  twClassName,
 }) => {
   const { colors } = useTheme();
   const tw = useTailwind();
   const styles = createStyles(colors);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
   // Calculate display value - extracted from nested ternary for clarity
   const displayValue = (() => {
     if (showTokenAmount && tokenAmount && tokenSymbol) {
@@ -107,29 +122,6 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         )}`
       : undefined;
 
-  useEffect(() => {
-    if (isActive) {
-      // Start blinking animation
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(fadeAnim, {
-            toValue: 1,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-          Animated.timing(fadeAnim, {
-            toValue: 0,
-            duration: 500,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    } else {
-      // Stop animation and hide cursor
-      fadeAnim.setValue(0);
-    }
-  }, [isActive, fadeAnim]);
-
   if (variant === 'tradeSheet') {
     const isTokenPrimary = Boolean(
       showTokenAmount && tokenAmount && tokenSymbol,
@@ -138,12 +130,15 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
     // number rather than after the symbol.
     const primaryDisplayValue =
       isTokenPrimary && tokenAmount
-        ? formatPositionSize(tokenAmount)
+        ? formatTradeSheetTokenAmount(tokenAmount, isActive)
         : fiatDisplayValue;
     const primaryDisplayUnit =
       isTokenPrimary && tokenSymbol
         ? getPerpsDisplaySymbol(tokenSymbol)
         : undefined;
+    const primaryAccessibilityLabel = `${accessibilityLabel ?? primaryDisplayValue}${
+      primaryDisplayUnit ? ` ${primaryDisplayUnit}` : ''
+    }`;
     const secondaryDisplayValue = showTokenAmount
       ? fiatDisplayValue
       : tokenDisplayValue;
@@ -152,44 +147,29 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       : TextColor.TextDefault;
 
     const primaryAmount = (
-      <Box
-        accessible={false}
+      <AnimatedAmountDisplay
+        accessible={!onPress}
+        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+        accessibilityLabel={primaryAccessibilityLabel}
+        color={primaryColor}
+        cursor={isActive ? { testID: 'cursor', style: styles.cursor } : false}
+        loading={isLoading}
+        loadingContent={<Skeleton width={80} height={40} />}
+        suffix={
+          primaryDisplayUnit ? (
+            <Text
+              testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
+              variant={TextVariant.DisplayLg}
+              color={primaryColor}
+            >
+              {` ${primaryDisplayUnit}`}
+            </Text>
+          ) : undefined
+        }
         testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_ROW}
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-      >
-        {isLoading ? (
-          <Skeleton width={80} height={40} />
-        ) : (
-          <Text
-            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-            variant={TextVariant.DisplayLg}
-            color={primaryColor}
-          >
-            {primaryDisplayValue}
-          </Text>
-        )}
-        {isActive ? (
-          <Animated.View
-            testID="cursor"
-            style={[
-              styles.cursor,
-              {
-                opacity: fadeAnim,
-              },
-            ]}
-          />
-        ) : null}
-        {!isLoading && primaryDisplayUnit ? (
-          <Text
-            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_UNIT_LABEL}
-            variant={TextVariant.DisplayLg}
-            color={primaryColor}
-          >
-            {` ${primaryDisplayUnit}`}
-          </Text>
-        ) : null}
-      </Box>
+        value={primaryDisplayValue}
+        variant={TextVariant.DisplayLg}
+      />
     );
 
     return (
@@ -197,12 +177,13 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={2}
         testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
+        twClassName={twClassName}
       >
         {onPress ? (
           <TouchableOpacity
             testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
             accessibilityRole="button"
-            accessibilityLabel={accessibilityLabel}
+            accessibilityLabel={primaryAccessibilityLabel}
             onPress={onPress}
             activeOpacity={0.7}
           >
@@ -275,7 +256,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   const content = (
     <View
-      style={styles.container}
+      style={[styles.container, tw.style(twClassName)]}
       testID={PerpsAmountDisplaySelectorsIDs.CONTAINER}
     >
       {label && (
@@ -287,37 +268,29 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
           {label}
         </Text>
       )}
-      <View style={styles.amountRow}>
-        {/* Text only takes 1 arg */}
-        {isLoading ? (
-          <Skeleton width={80} height={20} />
-        ) : (
-          <Text
-            testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-            color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Bold}
-            style={
-              Platform.OS === 'android'
-                ? styles.amountValueTokenAndroid
-                : styles.amountValueToken
-            }
-          >
-            {displayValue}
-          </Text>
-        )}
-        {isActive && (
-          <Animated.View
-            testID="cursor"
-            style={[
-              styles.cursor,
-              {
-                opacity: fadeAnim,
-              },
-            ]}
-          />
-        )}
-      </View>
+      <AnimatedAmountDisplay
+        amountTestID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
+        color={hasError ? TextColor.ErrorDefault : TextColor.TextDefault}
+        containerStyle={styles.amountRow}
+        cursor={
+          isActive
+            ? {
+                testID: 'cursor',
+                style: styles.cursor,
+              }
+            : false
+        }
+        fontWeight={FontWeight.Bold}
+        loading={isLoading}
+        loadingContent={<Skeleton width={80} height={20} />}
+        style={
+          Platform.OS === 'android'
+            ? styles.amountValueTokenAndroid
+            : styles.amountValueToken
+        }
+        value={displayValue}
+        variant={TextVariant.BodyMd}
+      />
       {/* Display token amount equivalent for current input */}
       {showMaxAmount && tokenAmount && tokenSymbol && (
         <Text

@@ -1,6 +1,7 @@
 import type { Fixtures, TestInfo } from '@playwright/test';
 import {
   collectAppProfiling,
+  isHermesCpuProfileCollectionEnabled,
   resetAppProfilingSegments,
 } from '../../../performance/helpers/appProfiling.ts';
 import { onBeforeAppTerminate } from '../../appLifecycle.ts';
@@ -18,12 +19,16 @@ function isPerformanceTest(testInfo: TestInfo): boolean {
 const logger = createAppiumLogger('appProfiling');
 
 /**
- * Collects a Hermes CPU profile for every performance spec.
+ * Collects a Hermes CPU profile for performance specs when enabled.
  *
- * Nothing here starts profiling: the app arms itself on startup, so the trace
- * covers the launch the launch-time specs measure, and a spec that restarts the
- * app gets the new process profiled for free. This fixture only decides when to
- * harvest what the app has recorded.
+ * Opt-in via `COLLECT_HERMES_CPUPROFILES=true`. Schedule/manual performance
+ * workflows set that flag; PR runs leave it unset so they skip background +
+ * `pullFile` harvest (analyze-app-profiling never consumes PR artifacts).
+ *
+ * Nothing here starts profiling. The app arms itself on startup so a cold
+ * launch is in the trace. Specs that measure a later team-specific flow call
+ * `enableHermesAppProfiling` to drop the setup samples before that flow. This
+ * fixture only decides when to harvest what the app has recorded.
  *
  * A session cannot outlive the process that opened it, so specs that kill the
  * app have to be harvested first — `terminateApp` runs the before-terminate
@@ -46,7 +51,10 @@ export const appProfilingFixture: Fixtures<
       use: () => Promise<void>,
       testInfo: TestInfo,
     ) => {
-      if (!isPerformanceTest(testInfo)) {
+      if (
+        !isPerformanceTest(testInfo) ||
+        !isHermesCpuProfileCollectionEnabled()
+      ) {
         await use();
         return;
       }

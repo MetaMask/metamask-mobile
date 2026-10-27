@@ -1,27 +1,31 @@
 import React from 'react';
-import { Pressable } from 'react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   BoxAlignItems,
-  BoxBackgroundColor,
   BoxFlexDirection,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
+  type ButtonProps,
 } from '@metamask/design-system-react-native';
 
-export interface ExplorePillProps {
+export interface ExplorePillProps
+  extends Pick<ButtonProps, 'accessibilityState' | 'twClassName'> {
   onPress: () => void;
   testID: string;
   /** Icon or logo on the left (e.g. token logo, with or without a network badge wrapper). */
   leading: React.ReactNode;
   title: string;
+  titleTextColor?: TextColor;
+  titleVariant?: TextVariant;
+  /** Defaults to the 40px pill. Trending chips use the 32px size. */
+  size?: ButtonSize;
   changeLabel?: string;
   changeTextColor?: TextColor;
-  /** Draws the pill as the active filter. */
-  isSelected?: boolean;
   /** Accessory after the label (e.g. a check on the active filter). */
   trailing?: React.ReactNode;
 }
@@ -35,49 +39,42 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
   testID,
   leading,
   title,
+  titleTextColor = TextColor.TextDefault,
+  titleVariant = TextVariant.BodyMd,
+  size = ButtonSize.Md,
   changeLabel,
   changeTextColor = TextColor.TextAlternative,
-  isSelected = false,
   trailing,
+  ...props
 }) => {
-  const tw = useTailwind();
   const showChange = changeLabel !== undefined && changeLabel.length > 0;
 
   return (
-    <Pressable
+    <Button
       onPress={onPress}
       testID={testID}
-      accessibilityRole="button"
-      accessibilityState={{ selected: isSelected }}
-      style={({ pressed }) => tw.style('shrink', pressed && 'opacity-80')}
+      size={size}
+      variant={ButtonVariant.Secondary}
+      startAccessory={leading}
+      endAccessory={trailing}
+      {...props}
     >
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         gap={2}
-        backgroundColor={
-          isSelected
-            ? BoxBackgroundColor.BackgroundSection
-            : BoxBackgroundColor.BackgroundMuted
-        }
-        paddingHorizontal={2}
-        paddingVertical={2}
-        twClassName={
-          isSelected ? 'rounded-full border border-default' : 'rounded-full'
-        }
       >
-        {leading}
         <Text
-          variant={TextVariant.BodySm}
+          variant={titleVariant}
           fontWeight={FontWeight.Medium}
-          color={TextColor.TextDefault}
+          color={titleTextColor}
           numberOfLines={1}
         >
           {title}
         </Text>
         {showChange ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
             color={changeTextColor}
             numberOfLines={1}
@@ -85,9 +82,8 @@ const ExplorePill: React.FC<ExplorePillProps> = ({
             {changeLabel}
           </Text>
         ) : null}
-        {trailing}
       </Box>
-    </Pressable>
+    </Button>
   );
 };
 

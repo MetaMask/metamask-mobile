@@ -19,6 +19,7 @@ import {
 } from '../../constants/eventNames';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 // Mock Engine
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -65,8 +66,10 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
   usePredictOrderRetry: () => ({
     retrySheetRef: { current: null },
     retrySheetVariant: 'busy' as const,
+    retryQuote: null,
     isRetrying: false,
-    handleRetryWithBestPrice: jest.fn(),
+    handleRetry: jest.fn(),
+    handleRetryConfirm: jest.fn(),
   }),
 }));
 
@@ -145,6 +148,19 @@ jest.mock('../../hooks/usePredictDeposit', () => ({
     status: null,
   }),
 }));
+
+jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return ({ hasProEntitlement }: { hasProEntitlement?: boolean }) =>
+    hasProEntitlement
+      ? ReactActual.createElement(
+          Text,
+          { testID: 'rewards-member-badge' },
+          'Member',
+        )
+      : null;
+});
 
 // Mock usePredictRewards hook
 let mockRewardsEnabled = false;
@@ -1394,6 +1410,49 @@ describe('PredictBuyPreview', () => {
       // Fee summary should not be visible when input is focused
       expect(screen.queryByText('Fees')).not.toBeOnTheScreen();
     });
+
+    it('shows the original total and member badge for a membership fee waiver', () => {
+      mockPreviewOverride = {
+        marketId: 'market-123',
+        outcomeId: 'outcome-456',
+        outcomeTokenId: 'outcome-token-789',
+        timestamp: Date.now(),
+        side: 'BUY',
+        sharePrice: 0.5,
+        maxAmountSpent: 50,
+        minAmountReceived: 120,
+        slippage: 0.005,
+        tickSize: 0.01,
+        minOrderSize: 1,
+        negRisk: false,
+        fees: {
+          metamaskFee: 0,
+          providerFee: 1,
+          marketFee: 0,
+          totalFee: 1,
+          totalFeePercentage: 2,
+        },
+        originalFees: {
+          metamaskFee: 2,
+          providerFee: 1,
+          marketFee: 0,
+          totalFee: 3,
+          totalFeePercentage: 6,
+        },
+        feePolicy: {
+          builderCode: 'predict-pro-builder',
+        },
+      };
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      fireEvent.press(screen.getByText('$50'));
+      fireEvent.press(screen.getByText('Done'));
+
+      expect(screen.getByText('$53')).toBeOnTheScreen();
+      expect(screen.getByText('$51')).toBeOnTheScreen();
+      expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
+    });
   });
 
   describe('conditional branch coverage for new code', () => {
@@ -2284,6 +2343,33 @@ describe('PredictBuyPreview', () => {
       );
     });
 
+    it('tracks outcome version v2 for a Protocol V2 outcome', () => {
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          outcome: { ...mockRoute.params.outcome, version: 'v2' },
+        },
+      });
+      mockBalance = 1000;
+      mockBalanceLoading = false;
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      const trackPredictOrderEvent =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackPredictOrderEvent;
+
+      expect(trackPredictOrderEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          analyticsProperties: expect.objectContaining({
+            outcomeVersion: PredictEventValues.OUTCOME_VERSION.V2,
+          }),
+        }),
+      );
+    });
+
     it('handles undefined entryPoint with fallback', () => {
       const routeWithoutEntryPoint = {
         ...mockRoute,
@@ -2619,11 +2705,11 @@ describe('PredictBuyPreview', () => {
 
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
 
-      const key0 = screen.getByText('0');
+      const key0 = screen.getByTestId(KeypadTestIds.KEY_0);
       fireEvent.press(key0);
-      const dot = screen.getByText('.');
+      const dot = screen.getByTestId(KeypadTestIds.KEY_DOT);
       fireEvent.press(dot);
-      const key5 = screen.getByText('5');
+      const key5 = screen.getByTestId(KeypadTestIds.KEY_5);
       fireEvent.press(key5);
 
       expect(screen.getByText(/Minimum amount/)).toBeOnTheScreen();

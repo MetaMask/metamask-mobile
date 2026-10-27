@@ -26,6 +26,7 @@ import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptIn
 import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import PushNotificationOnboardingView from '../../page-objects/Notifications/PushNotificationOnboardingView';
 import { closePredictModal } from '../../flows/wallet.flow';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 import {
   Performance,
   PerformanceOnboarding,
@@ -185,7 +186,7 @@ const waitForPostOnboardingDestination = async (
         if (!visible) {
           if (tracking) {
             // These optional UI probes are known infrastructure lookups when
-            // absent. BrowserStack can spend several seconds resolving a
+            // absent. TestMu can spend several seconds resolving a
             // missing native element, so do not charge that RTT to the app.
             recordInfrastructureCommand(Date.now() - t0);
           }
@@ -333,6 +334,7 @@ perfTest.describe(`${Performance} ${System} ${PerformanceOnboarding}`, () => {
         },
       );
 
+      await enableHermesAppProfiling();
       await OnboardingView.tapCreateNewWalletButton();
       await onboardingSheetTimer.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(

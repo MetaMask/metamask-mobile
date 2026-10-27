@@ -21,7 +21,7 @@ import { QuickBuySheetSelectorsIDs } from './QuickBuySheet.testIds';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import { getGaslessFeeAsset } from '../Bridge/utils/getGaslessFeeAsset';
 import { DiscountType } from '@metamask/bridge-controller';
-import RewardsVipBadge from '../Rewards/components/RewardsVipBadge';
+import MembershipVipBadge from '../shared/MembershipVipBadge';
 import { RewardsDiscountBadge } from '../Rewards/components/RewardsDiscountBadge';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 import QuickBuyQuoteCountdown from './components/QuickBuyQuoteCountdown';
@@ -51,9 +51,12 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
     metamaskFeePercent,
     quotesLastFetchedAt,
     quoteRefreshRateMs,
-    onClose,
     setActiveScreen,
   } = useQuickBuyContext();
+
+  const isRewardsTierBadge =
+    discountBadge?.type === DiscountType.VIP ||
+    discountBadge?.type === DiscountType.SUBSCRIPTION;
 
   // No quote to detail yet: show an actionable empty state instead of a table
   // of dashes. The rate pill is reachable pre-quote (it shows an estimate), so
@@ -84,7 +87,6 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
       <QuickBuySubScreenHeader
         title={strings('social_leaderboard.quick_buy.quote_details_title')}
         onBack={() => setActiveScreen('amount')}
-        onClose={onClose}
       />
 
       {isBlockingQuoteLoad ? (
@@ -209,11 +211,16 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 alignItems={BoxAlignItems.Center}
                 gap={1}
               >
-                {discountBadge?.type === DiscountType.VIP ? (
-                  <RewardsVipBadge />
-                ) : null}
-                {discountBadge && discountBadge.type !== DiscountType.VIP ? (
-                  <RewardsDiscountBadge label={discountBadge.label ?? ''} />
+                {discountBadge ? (
+                  isRewardsTierBadge ? (
+                    <MembershipVipBadge
+                      hasProEntitlement={
+                        discountBadge.type === DiscountType.SUBSCRIPTION
+                      }
+                    />
+                  ) : (
+                    <RewardsDiscountBadge label={discountBadge.label} />
+                  )
                 ) : null}
                 {baseFeePercentage ? (
                   <Text

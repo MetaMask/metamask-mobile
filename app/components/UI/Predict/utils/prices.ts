@@ -1,11 +1,96 @@
-import type {
-  GetPriceResponse,
-  PredictOutcomeToken,
-  PriceUpdate,
+import {
+  Side,
+  type GetPriceResponse,
+  type OrderPreview,
+  type PredictOutcomeToken,
+  type PriceUpdate,
 } from '../types';
 
 export const isValidPrice = (price: number | undefined): price is number =>
   typeof price === 'number' && Number.isFinite(price) && price > 0;
+
+/**
+ * How many whole ticks the fresh price is worse than the price the user last
+ * confirmed, by side: a lower price is worse for a SELL (less received), a
+ * higher price is worse for a BUY (more paid). Better or equal prices are 0.
+ * The tick size comes from the fresh preview so finer books measure honestly.
+ */
+export const getPredictTicksWorse = ({
+  side,
+  referencePrice,
+  freshPrice,
+  tickSize,
+}: {
+  side: Side;
+  referencePrice: number;
+  freshPrice: number;
+  tickSize: number;
+}): number => {
+  if (!isValidPrice(referencePrice) || !isValidPrice(freshPrice)) {
+    return 0;
+  }
+  if (!Number.isFinite(tickSize) || tickSize <= 0) {
+    return 0;
+  }
+
+  const worseDelta =
+    side === Side.SELL
+      ? referencePrice - freshPrice
+      : freshPrice - referencePrice;
+  if (worseDelta <= 0) {
+    return 0;
+  }
+
+  // Epsilon guards against float drift on same-tick comparisons
+  // (e.g. 0.65 - 0.64 landing just under 0.01).
+  return Math.floor((worseDelta + Number.EPSILON) / tickSize);
+};
+
+export type PredictSellSubmitDecision = 'submit' | 'price_moved' | 'no_match';
+
+// Tolerance for float drift when comparing a fill price with the band floor.
+const BAND_FLOOR_EPSILON = 1e-9;
+
+/**
+ * Decides what a sell does with a freshly fetched preview, against the price
+ * the user approved.
+ *
+ * Returns 'price_moved' when the fresh price is more than one tick worse: the
+ * user must confirm the new price before anything is submitted.
+ *
+ * Returns 'no_match' when the full size cannot fill inside the slippage band.
+ * The band is measured from the approved price, or from the fresh price when
+ * it moved more than one tick (that is the price the user will confirm).
+ *
+ * Returns 'submit' when the fresh price is better, equal, or at most one tick
+ * worse, and the full size fills inside the band.
+ */
+export const getPredictSellSubmitDecision = ({
+  approvedPrice,
+  freshPreview,
+}: {
+  approvedPrice: number;
+  freshPreview: OrderPreview;
+}): PredictSellSubmitDecision => {
+  const { sharePrice, tickSize, slippage, worstFillPrice } = freshPreview;
+  const movedBeyondOneTick =
+    getPredictTicksWorse({
+      side: Side.SELL,
+      referencePrice: approvedPrice,
+      freshPrice: sharePrice,
+      tickSize,
+    }) > 1;
+  const bandReferencePrice = movedBeyondOneTick ? sharePrice : approvedPrice;
+  const bandFloor = bandReferencePrice * (1 - slippage);
+
+  if (
+    worstFillPrice === undefined ||
+    worstFillPrice + BAND_FLOOR_EPSILON < bandFloor
+  ) {
+    return 'no_match';
+  }
+  return movedBeyondOneTick ? 'price_moved' : 'submit';
+};
 
 /**
  * Price to display on a BUY CTA from an already-priced token: the best ask

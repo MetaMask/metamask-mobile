@@ -13,6 +13,7 @@ import {
 } from '../../components/Views/Homepage/abTestConfig';
 import {
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 } from '../../components/UI/TokenDetails/components/abTestConfig';
 import { SWAPS5094_QUICK_BUY_ENTRYPOINTS_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/QuickBuy/abTestConfig';
@@ -26,6 +27,11 @@ import {
 } from '../../components/Views/TrendingView/search/abTestConfig';
 import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import { SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING } from '../../components/UI/Perps/abTestConfig';
+import {
+  BUTTON_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
+  SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
+} from '../../components/UI/Perps/abTestConfig';
 import { PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING } from '../../components/Views/ProSubscription/abTestConfig';
 import {
   MONEY_ACCOUNT_DEPOSIT_PREFILL_AB_TEST_ANALYTICS_MAPPING,
@@ -57,6 +63,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Token Details
   AMBIENT_PRICE_COLOR_AB_TEST_ANALYTICS_MAPPING,
+  EARN_MONEY_DEPOSIT_BALANCE_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
   EARN_MONEY_DEPOSIT_FOOTER_CTA_VISIBILITY_AB_TEST_ANALYTICS_MAPPING,
 
   // Quick Buy
@@ -69,6 +76,7 @@ export const AB_TEST_ANALYTICS_MAPPINGS: readonly ABTestAnalyticsMapping[] = [
 
   // Perps
   SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING,
+  PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING,
 
   // Pro Subscription
   PRO_SUBSCRIPTION_FLOW_AB_TEST_ANALYTICS_MAPPING,

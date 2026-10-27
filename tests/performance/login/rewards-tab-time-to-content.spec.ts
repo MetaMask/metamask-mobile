@@ -10,6 +10,7 @@ import {
   PerformanceLogin,
   PerformanceRewards,
 } from '../../tags.performance.js';
+import { enableHermesAppProfiling } from '../helpers/appProfiling';
 
 const waitForFirstSuccessful = async <T>(promises: Promise<T>[]): Promise<T> =>
   await new Promise<T>((resolve, reject) => {
@@ -51,11 +52,12 @@ perfTest.describe(
 
         const rewardsContentTimer = new TimerHelper(
           'Time since the user taps Rewards until Rewards content is visible (onboarding or dashboard)',
-          { ios: 8000, android: 5000 },
+          { ios: 8000, android: 3000 },
           currentDeviceDetails.platform,
         );
 
         await ToastModal.waitForToastToDismiss();
+        await enableHermesAppProfiling();
         await TabBarComponent.tapRewards();
 
         await rewardsContentTimer.measure(async () => {

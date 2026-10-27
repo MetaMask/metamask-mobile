@@ -35,6 +35,8 @@ describe('TermsAndConditions', () => {
       params: {
         url: AppConstants.URLS.TERMS_AND_CONDITIONS,
         title: strings('terms_and_conditions.title'),
+        hideShareButton: true,
+        useGlassHeader: true,
       },
     });
   });

@@ -1,9 +1,10 @@
 import React, { useCallback, useRef, useState } from 'react';
 import {
   RefreshControl,
+  ScrollView,
+  type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
-  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -34,37 +35,46 @@ import {
 import { SwapsInputs } from '../../../components/SwapsInputs';
 import { SwapsKeypad } from '../../../components/SwapsKeypad';
 import { SwapsRecurringBuyConfirmButton } from '../../../components/SwapsRecurringBuyConfirmButton';
-import {
-  BridgeQuoteDataProvider,
-  useBridgeQuoteDataContext,
-} from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
+import { useBridgeQuoteDataContext } from '../../../hooks/useBridgeQuoteData/BridgeQuoteDataContext';
 import { useRecurringOrders } from '../../../hooks/useRecurringOrders';
-import { useLatestBalance } from '../../../hooks/useLatestBalance';
 import { formatPriceRangeBounds } from '../../../utils/priceRange';
 import { strings } from '../../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../BridgeView.testIds';
 import {
   type RecurringOrder,
-  RecurringOrderStatus,
+  RecurringOrderState,
 } from '../../../api/recurringOrders.types';
 import { useRecurringBuyKeypad } from './useRecurringBuyKeypad';
 import { useRecurringBuySwapInputs } from './useRecurringBuySwapInputs';
 import { BridgeRecurringBuyFooterView } from './BridgeRecurringBuyFooterView';
 import { useBridgeSession } from '../../../hooks/useBridgeSession';
 import { createRecurringOrdersTab } from './RecurringOrderRow';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import {
+  FeatureId,
+  type MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
+import { getOrderTypeFromDraftPriceRange } from '../../../utils/recurringOrders';
 
-const OPEN_ORDER_STATUSES = [RecurringOrderStatus.Open];
-const HISTORY_ORDER_STATUSES = [
-  RecurringOrderStatus.Completed,
-  RecurringOrderStatus.Cancelled,
+const OPEN_ORDER_STATES = [RecurringOrderState.Open];
+const HISTORY_ORDER_STATES = [
+  RecurringOrderState.Completed,
+  RecurringOrderState.Cancelled,
+  RecurringOrderState.Expired,
 ];
 const LOAD_MORE_SCROLL_THRESHOLD = 200;
 
-const BridgeRecurringBuyViewContent = () => {
+const BridgeRecurringBuyViewContent = ({
+  location,
+}: {
+  location: MetaMetricsSwapsEventSource;
+}) => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const inputRef = useRef<TokenInputAreaRef>(null);
   const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
+  const [hasVisibleBanner, setHasVisibleBanner] = useState(false);
   const {
     latestSourceBalance,
     recurringOrdersTab = OrdersTabKey.OpenOrders,
@@ -96,13 +106,13 @@ const BridgeRecurringBuyViewContent = () => {
   const { activeQuote, isLoading } = useBridgeQuoteDataContext();
   const openOrdersQuery = useRecurringOrders({
     walletAddress,
-    status: OPEN_ORDER_STATUSES,
+    orderStates: OPEN_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: recurringOrdersTab === OrdersTabKey.OpenOrders,
   });
   const historyQuery = useRecurringOrders({
     walletAddress,
-    status: HISTORY_ORDER_STATUSES,
+    orderStates: HISTORY_ORDER_STATES,
     chainId: ordersNetworkFilter,
     enabled: recurringOrdersTab === OrdersTabKey.History,
   });
@@ -123,14 +133,38 @@ const BridgeRecurringBuyViewContent = () => {
     closeKeypad();
   }, [closeKeypad]);
 
+  const handleBannersLayout = useCallback((event: LayoutChangeEvent) => {
+    const nextHasVisibleBanner = event.nativeEvent.layout.height > 0;
+    setHasVisibleBanner((current) =>
+      current === nextHasVisibleBanner ? current : nextHasVisibleBanner,
+    );
+  }, []);
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canPreviewOrder = Boolean(activeQuote) && scheduleValidation.isValid;
 
   const handlePreviewOrder = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.ADVANCED_ORDER_SUBMITTED)
+        .addProperties({
+          location,
+          feature_id: FeatureId.RECURRING_ORDER,
+          order_type: getOrderTypeFromDraftPriceRange(priceRange),
+        })
+        .build(),
+    );
     dismissInputAndKeypad();
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.RECURRING_CONFIRM_ORDER_MODAL,
     });
-  }, [dismissInputAndKeypad, navigation]);
+  }, [
+    dismissInputAndKeypad,
+    navigation,
+    priceRange,
+    trackEvent,
+    createEventBuilder,
+    location,
+  ]);
 
   const handleOrderPress = useCallback(
     (order: RecurringOrder) => {
@@ -271,24 +305,34 @@ const BridgeRecurringBuyViewContent = () => {
             }
           />
 
-          <Box onTouchEnd={dismissInputAndKeypad}>
-            <SwapsBanners onAdjustSourceAmount={handleSourcePresetAmountSelect}>
-              <HardwareWalletUnsupportedBanner />
-              <QuoteErrorBanner />
-              <TokenWarningBanner />
-              <DestAssetRequireActivateBanner />
-              <InsufficientNativeReserveBanner />
-              <MissingQuoteAndAssetsPriceDataBanner />
-            </SwapsBanners>
-          </Box>
+          <Box twClassName="-mt-1">
+            <Box
+              testID={BridgeViewSelectorsIDs.RECURRING_BANNERS_WRAPPER}
+              onLayout={handleBannersLayout}
+              twClassName={hasVisibleBanner ? 'mb-2' : undefined}
+              onTouchEnd={dismissInputAndKeypad}
+            >
+              <SwapsBanners
+                gap={2}
+                onAdjustSourceAmount={handleSourcePresetAmountSelect}
+              >
+                <HardwareWalletUnsupportedBanner />
+                <QuoteErrorBanner />
+                <TokenWarningBanner />
+                <DestAssetRequireActivateBanner />
+                <InsufficientNativeReserveBanner />
+                <MissingQuoteAndAssetsPriceDataBanner />
+              </SwapsBanners>
+            </Box>
 
-          <RecurringScheduleFields
-            onEveryPress={focusEvery}
-            onRepeatPress={focusRepeat}
-            onDismissKeypad={dismissInputAndKeypad}
-            onUnitPress={handleUnitPress}
-            onRepeatInfoPress={handleRepeatInfoPress}
-          />
+            <RecurringScheduleFields
+              onEveryPress={focusEvery}
+              onRepeatPress={focusRepeat}
+              onDismissKeypad={dismissInputAndKeypad}
+              onUnitPress={handleUnitPress}
+              onRepeatInfoPress={handleRepeatInfoPress}
+            />
+          </Box>
 
           <PriceRangeRow
             token={priceRange ? priceRangeToken : undefined}

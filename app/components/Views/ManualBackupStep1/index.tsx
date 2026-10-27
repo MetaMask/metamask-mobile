@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { KeyboardAvoidingView, FlatList, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
@@ -14,17 +17,17 @@ import {
   TextColor,
   Text,
   TextVariant,
+  FontWeight,
   TextField,
-  Button,
-  ButtonVariant,
   ButtonSize,
   BoxAlignItems,
   BoxJustifyContent,
-  HeaderStandard,
   TitleStandard,
   TextButton,
-  BottomSheetFooter,
 } from '@metamask/design-system-react-native';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { strings } from '../../../../locales/i18n';
 import trackErrorAsAnalytics from '../../../util/metrics/TrackError/trackErrorAsAnalytics';
@@ -64,6 +67,11 @@ const ManualBackupStep1 = () => {
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
 
   const saveOnboardingEvent = useCallback(
     (event: ITrackingEvent) => {
@@ -322,16 +330,16 @@ const ManualBackupStep1 = () => {
             </Box>
           </Box>
           <Box justifyContent={BoxJustifyContent.End} twClassName="flex-1">
-            <Button
-              variant={ButtonVariant.Primary}
-              onPress={tryUnlock}
-              testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
-              isFullWidth
-              size={ButtonSize.Lg}
-              isDisabled={!password}
-            >
-              {strings('manual_backup_step_1.confirm')}
-            </Button>
+            <FooterGlass
+              twClassName="px-0"
+              primaryButtonProps={{
+                children: strings('manual_backup_step_1.confirm'),
+                onPress: tryUnlock,
+                size: ButtonSize.Lg,
+                isDisabled: !password,
+                testID: ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON,
+              }}
+            />
           </Box>
         </Box>
       </KeyboardAwareScrollView>
@@ -343,24 +351,31 @@ const ManualBackupStep1 = () => {
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col gap-4"
+        twClassName="flex-1 flex-col gap-6"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Box gap={1}>
-          <TitleStandard
-            title={strings('manual_backup_step_1.action')}
-            bottomLabel={strings('manual_backup_step_1.description')}
-          />
-          <TextButton
-            variant={TextVariant.BodySm}
-            onPress={showWhatIsSeedphrase}
-            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
-          >
-            {strings('manual_backup_step_1.what_is_srp')}
-          </TextButton>
-        </Box>
+        <TitleStandard
+          title={strings('manual_backup_step_1.action')}
+          bottomLabel={
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="flex-1"
+            >
+              {strings('manual_backup_step_1.description')}{' '}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={showWhatIsSeedphrase}
+                testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
+              >
+                {strings('manual_backup_step_1.what_is_srp')}
+              </TextButton>
+            </Text>
+          }
+        />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (
@@ -403,29 +418,26 @@ const ManualBackupStep1 = () => {
           </SecureContentView>
         )}
       </Box>
-      <Box twClassName={`gap-4 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}>
-        <BottomSheetFooter
-          twClassName="px-0"
-          primaryButtonProps={{
-            children: strings('manual_backup_step_1.continue'),
-            onPress: goNext,
-            size: ButtonSize.Lg,
-            isDisabled: seedPhraseHidden,
-            testID: ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
-          }}
-        />
-        {showRemindLaterButton ? (
-          <Button
-            variant={ButtonVariant.Tertiary}
-            onPress={showRemindLater}
-            size={ButtonSize.Lg}
-            isFullWidth
-            testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
-          >
-            {strings('account_backup_step_1.remind_me_later')}
-          </Button>
-        ) : null}
-      </Box>
+      <FooterGlass
+        twClassName={`px-0 ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
+        primaryButtonProps={{
+          children: strings('manual_backup_step_1.continue'),
+          onPress: goNext,
+          size: ButtonSize.Lg,
+          isDisabled: seedPhraseHidden,
+          testID: ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+        }}
+        tertiaryButtonProps={
+          showRemindLaterButton
+            ? {
+                children: strings('account_backup_step_1.remind_me_later'),
+                onPress: showRemindLater,
+                size: ButtonSize.Lg,
+                testID: ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+              }
+            : undefined
+        }
+      />
     </Box>
   );
 
@@ -438,7 +450,9 @@ const ManualBackupStep1 = () => {
       edges={{ bottom: 'additive' }}
       style={tw.style('bg-default flex-1')}
     >
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         onBack={showHeader ? () => navigation.goBack() : undefined}
         backButtonProps={
@@ -449,7 +463,7 @@ const ManualBackupStep1 = () => {
             : undefined
         }
       />
-      <Box twClassName="flex-1 px-4">
+      <Box twClassName="flex-1 px-4" style={{ marginTop: headerInset }}>
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

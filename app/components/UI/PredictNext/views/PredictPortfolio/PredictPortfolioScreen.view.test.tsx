@@ -1,9 +1,11 @@
 import '../../../../../../tests/component-view/mocks';
 import { renderPredictPortfolioScreen } from '../../../../../../tests/component-view/renderers/predictNext';
+import { createComponentViewQueryClient } from '../../../../../../tests/component-view/render';
 import { fireEvent, waitFor, within, act } from '@testing-library/react-native';
 import { focusManager, onlineManager } from '@tanstack/react-query';
 import {
   composePredictNextOrderService,
+  composePredictNextPortfolioTrading,
   configurePredictNextFeeds,
   makePredictNextFill,
   makePredictNextPosition,
@@ -11,6 +13,7 @@ import {
   makePredictNextSellReceipt,
   makePredictNextSettlement,
   messengerCall,
+  mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
 import { KALSHI_VENUE_ID } from '../../types';
@@ -20,6 +23,74 @@ import * as Trace from '../../../../../util/trace';
 import { PredictHomeTestIds } from '../PredictHome/PredictHome.testIds';
 import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.testIds';
 import { PredictPortfolioScreenTestIds } from './PredictPortfolioScreen.testIds';
+
+/**
+ * Routes the renderer's UI query client to real Predict services: its
+ * messenger adapter calls the Engine controller messenger, so point the
+ * portfolio actions and cache events at the composition root the composed
+ * services share. Every other action keeps the fixture answers.
+ *
+ * @param rootMessenger - The composition root the real services run on.
+ * @returns A restore function for the caller's cleanup.
+ */
+const routePredictPortfolioServicesTo = (
+  rootMessenger: ReturnType<
+    typeof composePredictNextPortfolioTrading
+  >['rootMessenger'],
+) => {
+  const controllerMessenger = Engine.controllerMessenger as unknown as {
+    call: (action: string, ...params: unknown[]) => Promise<unknown>;
+    subscribe: (event: string, callback: (...args: unknown[]) => void) => void;
+    unsubscribe: (
+      event: string,
+      callback: (...args: unknown[]) => void,
+    ) => void;
+  };
+  const originalCall = controllerMessenger.call;
+  const originalSubscribe = controllerMessenger.subscribe;
+  const originalUnsubscribe = controllerMessenger.unsubscribe;
+  // Direct property swap, not jest.spyOn: the mocked controllerMessenger's
+  // methods are already Jest mocks, and a spy here can re-enter itself when
+  // the fixture delegate is the same mock.
+  controllerMessenger.call = (action: string, ...params: unknown[]) => {
+    if (action.startsWith('PredictPortfolioService:')) {
+      // The composition root is a MockAnyNamespace messenger: it accepts any
+      // action the real services registered.
+      return (
+        rootMessenger.call as unknown as (
+          action: string,
+          ...params: unknown[]
+        ) => Promise<unknown>
+      )(action, ...params);
+    }
+    return originalCall(action, ...params);
+  };
+  controllerMessenger.subscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.subscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  controllerMessenger.unsubscribe = (event, callback) => {
+    if (event.startsWith('PredictPortfolioService:')) {
+      (
+        rootMessenger.unsubscribe as unknown as (
+          event: string,
+          callback: (...args: unknown[]) => void,
+        ) => void
+      )(event, callback);
+    }
+  };
+  return () => {
+    controllerMessenger.call = originalCall;
+    controllerMessenger.subscribe = originalSubscribe;
+    controllerMessenger.unsubscribe = originalUnsubscribe;
+  };
+};
 
 describe('PredictPortfolioScreen', () => {
   beforeEach(() => {
@@ -66,7 +137,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('retries a failed Balance read', async () => {
     let fails = true;
-    messengerCall.mockImplementation((action: string) =>
+    mockPredictNextMessenger((action: string) =>
       action === 'PredictPortfolioService:getBalance'
         ? fails
           ? Promise.reject(new Error('Balance failed'))
@@ -100,7 +171,7 @@ describe('PredictPortfolioScreen', () => {
     await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     messengerCall.mockClear();
-    messengerCall.mockImplementation((action: string) =>
+    mockPredictNextMessenger((action: string) =>
       action === 'PredictPortfolioService:getBalance'
         ? Promise.reject(new Error('Balance refetch failed'))
         : Promise.resolve({
@@ -247,7 +318,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('does not complete Portfolio TTI while the active list is still loading', async () => {
     const endTraceSpy = jest.spyOn(Trace, 'endTrace');
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -343,7 +414,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('fetches the next Positions page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -369,7 +440,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getPositions') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -409,7 +480,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('fetches the next Activity page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -439,7 +510,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getActivity') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -543,7 +614,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('renders first-load skeletons for Positions and Activity', async () => {
     // Never-resolving reads keep both panels in their loading state.
-    messengerCall.mockImplementation(() => new Promise(() => undefined));
+    mockPredictNextMessenger(() => new Promise(() => undefined));
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
@@ -573,7 +644,7 @@ describe('PredictPortfolioScreen', () => {
       view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
 
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getPositions') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -717,6 +788,12 @@ describe('PredictPortfolioScreen', () => {
 
   describe('Cash Out', () => {
     const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+    /** Composed real services to destroy after each test. */
+    const composedServices: ReturnType<
+      typeof composePredictNextPortfolioTrading
+    >[] = [];
+    /** Engine boundary restorations registered by a test. */
+    const testRestores: (() => void)[] = [];
 
     /** Stubs the sell (Cash Out) preview and commit routes. The preview
      * echoes the requested contract count; the commit replies with the
@@ -799,6 +876,8 @@ describe('PredictPortfolioScreen', () => {
     };
 
     afterEach(() => {
+      testRestores.splice(0).forEach((restore) => restore());
+      composedServices.splice(0).forEach((composed) => composed.destroy());
       delete (Engine.context as Record<string, unknown>).PredictOrderService;
     });
 
@@ -862,6 +941,209 @@ describe('PredictPortfolioScreen', () => {
         view.getByTestId(PredictPortfolioScreenTestIds.EMPTY_STATE),
       ).toBeOnTheScreen();
       expect(view.queryByText('Lakers · 75 shares')).not.toBeOnTheScreen();
+    });
+
+    it('updates the mounted Position and Balance reads after a Cash Out', async () => {
+      // Real services over the stubbed transport: the reads the screen
+      // observes run through the real Portfolio service cache and its
+      // cacheUpdated events, the way the Engine composes them.
+      let positionsBody: unknown = {
+        venueId: 'kalshi',
+        positions: [makePredictNextPosition()],
+      };
+      let balanceBody: unknown = {
+        venueId: 'kalshi',
+        currency: 'USD',
+        available: '123.12',
+      };
+      fetchMock.mockImplementation(async (url, init) => {
+        if (String(url).endsWith('/orders/commit')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => makePredictNextSellReceipt(),
+          } as Response;
+        }
+        if (String(url).endsWith('/orders/preview')) {
+          const body = JSON.parse(String(init?.body)) as {
+            marketId: string;
+            contracts: string;
+          };
+          return {
+            ok: true,
+            status: 200,
+            json: async () =>
+              makePredictNextSellPreview({
+                marketId: body.marketId,
+                requestedContracts: Number(body.contracts),
+              }),
+          } as Response;
+        }
+        if (String(url).includes('/venues/kalshi/positions')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => positionsBody,
+          } as Response;
+        }
+        if (String(url).includes('/venues/kalshi/balance')) {
+          return {
+            ok: true,
+            status: 200,
+            json: async () => balanceBody,
+          } as Response;
+        }
+        return { ok: false, status: 404, json: async () => ({}) } as Response;
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const trading = composePredictNextPortfolioTrading();
+      composedServices.push(trading);
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        trading.orderService;
+
+      // The shared renderer's UI query client delegates its messenger
+      // adapter to the Engine controller messenger: route the Predict
+      // service actions and cache events to the real services' root. The
+      // remaining actions keep the fixture answers.
+      testRestores.push(routePredictPortfolioServicesTo(trading.rootMessenger));
+
+      const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
+
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$123.12'),
+      );
+      await waitFor(() =>
+        expect(view.getByText('Lakers · 75 shares')).toBeOnTheScreen(),
+      );
+
+      fireEvent.press(
+        view.getByTestId(PredictPortfolioScreenTestIds.POSITION_ROW_CASH_OUT),
+      );
+      await view.findByTestId(PredictOrderFlowTestIds.SHEET);
+      fireEvent.press(
+        view.getByTestId(PredictOrderFlowTestIds.QUICK_CONTRACT('max')),
+      );
+      await waitFor(() =>
+        expect(view.getByTestId(PredictOrderFlowTestIds.REVIEW)).toBeEnabled(),
+      );
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.REVIEW));
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictOrderFlowTestIds.APPROVAL),
+        ).toBeOnTheScreen(),
+      );
+      // Real elapsed time between the pre-trade reads and the receipt, so
+      // the refreshed snapshot's dataUpdatedAt is strictly newer — the
+      // property the UI cache's hydration applies.
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      });
+
+      // The venue reports the post-trade reads while the sheet is up: the
+      // terminal receipt's invalidation must refresh them through the
+      // service without any focus or staleTime workaround.
+      positionsBody = {
+        venueId: 'kalshi',
+        positions: [
+          makePredictNextPosition({ shares: '33.00', marketExposure: '18.15' }),
+        ],
+      };
+      balanceBody = {
+        venueId: 'kalshi',
+        currency: 'USD',
+        available: '153.75',
+      };
+
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.APPROVE));
+      await view.findByTestId(PredictOrderFlowTestIds.DONE);
+      fireEvent.press(view.getByTestId(PredictOrderFlowTestIds.DONE));
+
+      await waitFor(() =>
+        expect(view.getByText('Lakers · 33 shares')).toBeOnTheScreen(),
+      );
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$153.75'),
+      );
+    });
+  });
+
+  describe('platform reset', () => {
+    const fetchMock = jest.fn<Promise<Response>, [string, RequestInit?]>();
+    const composedServices: ReturnType<
+      typeof composePredictNextPortfolioTrading
+    >[] = [];
+    const testRestores: (() => void)[] = [];
+
+    afterEach(() => {
+      testRestores.splice(0).forEach((restore) => restore());
+      composedServices.splice(0).forEach((composed) => composed.destroy());
+      delete (Engine.context as Record<string, unknown>).PredictOrderService;
+    });
+
+    it('shows no previous Balance on a screen that remounts after a reset', async () => {
+      // Real services over the stubbed transport, as the Engine composes
+      // them: both caches under test are real.
+      let balance = '123.12';
+      fetchMock.mockImplementation(async (url) => {
+        const payload = String(url).includes('/balance')
+          ? { venueId: 'kalshi', currency: 'USD', available: balance }
+          : String(url).includes('/positions')
+            ? { venueId: 'kalshi', positions: [] }
+            : { venueId: 'kalshi', activity: [] };
+        return {
+          ok: true,
+          status: 200,
+          json: async () => payload,
+        } as Response;
+      });
+      globalThis.fetch = fetchMock as unknown as typeof fetch;
+
+      const trading = composePredictNextPortfolioTrading();
+      composedServices.push(trading);
+      (Engine.context as Record<string, unknown>).PredictOrderService =
+        trading.orderService;
+      testRestores.push(routePredictPortfolioServicesTo(trading.rootMessenger));
+
+      // One shared UI query client for both mounts: it stands in for the
+      // app-wide cache, which survives the reset in production.
+      const queryClient = createComponentViewQueryClient();
+      const view = renderPredictPortfolioScreen(
+        { venueId: KALSHI_VENUE_ID },
+        false,
+        queryClient,
+      );
+      await waitFor(() =>
+        expect(
+          view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$123.12'),
+      );
+
+      // The reset: the portfolio purge, then the shared client clear.
+      balance = '500.00';
+      await act(async () => {
+        await trading.portfolioService.clearAccountData();
+        queryClient.clear();
+      });
+
+      // The reset lands on onboarding, so the screen remounts afterwards.
+      // Neither cache may answer for the new person first.
+      view.unmount();
+      const remounted = renderPredictPortfolioScreen(
+        { venueId: KALSHI_VENUE_ID },
+        false,
+        queryClient,
+      );
+      expect(remounted.queryByText('$123.12')).not.toBeOnTheScreen();
+      await waitFor(() =>
+        expect(
+          remounted.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
+        ).toHaveTextContent('$500.00'),
+      );
     });
   });
 });

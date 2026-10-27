@@ -35,7 +35,8 @@ export type PredictEntryPoint =
   | typeof PredictEventValues.ENTRY_POINT.TRENDING
   | typeof PredictEventValues.ENTRY_POINT.BUY_PREVIEW
   | typeof PredictEventValues.ENTRY_POINT.HOME_SECTION
-  | typeof PredictEventValues.ENTRY_POINT.EXPLORE;
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE
+  | typeof PredictEventValues.ENTRY_POINT.EXPLORE_SEARCH;
 
 /** Predict market list route parameters */
 export interface PredictMarketListRouteParams {
@@ -161,6 +162,7 @@ export type PredictSellPreviewProps =
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PredictModalsNavigationParamList = {
   PredictUnavailable: undefined;
+  PredictMarketUnavailable: undefined;
   PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
   PredictActivityDetail: PredictActivityDetailParams;
   RedesignedConfirmations: undefined;

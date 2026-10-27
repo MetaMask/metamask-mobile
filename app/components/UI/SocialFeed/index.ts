@@ -12,6 +12,8 @@ export type {
   SocialFeedState,
   UseSocialFeedOptions,
 } from './data/useSocialFeed';
+export { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from './data/socialFeedRealtime';
+export type { SocialFeedRealtimeState } from './data/useSocialFeedRealtime';
 
 export { default as SocialFeedPostShell } from './components/SocialFeedPostShell';
 export type { SocialFeedPostShellProps } from './components/SocialFeedPostShell';
@@ -23,6 +25,12 @@ export {
 } from './components/SocialFeedPositionCard';
 export { default as SocialFeedSkeleton } from './components/SocialFeedSkeleton';
 export { default as SocialFeedError } from './components/SocialFeedError';
+export { default as SocialFeed } from './components/SocialFeed';
+export type {
+  SocialFeedHeaderProps,
+  SocialFeedProps,
+  SocialFeedScrollMode,
+} from './components/SocialFeed';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
 export {
@@ -32,6 +40,11 @@ export {
 export type {
   SocialFeedLocation,
   SocialFeedSurface,
+  SocialSurfaceLocation,
 } from './SocialFeedSurface';
 
-export type { SocialV1FeedItem, SocialV1FeedPost } from './types';
+export type {
+  SocialAssetClass,
+  SocialV1FeedItem,
+  SocialV1FeedPost,
+} from './types';

@@ -17,25 +17,25 @@ const rangesEqual = (
 ) => a.min === b.min && a.max === b.max;
 
 /**
- * Compares only the fields a tab can edit, so leftover hidden values (network,
- * leaderboard ranges) do not light the filter icon.
+ * Compares only the fields a tab can edit, so the leaderboard's chip-owned
+ * asset type and leftover hidden values do not light the filter icon.
  */
 const tabFiltersEqual = (
   tab: SocialShellTab,
   a: SocialShellFilters,
   b: SocialShellFilters,
 ): boolean => {
-  if (a.type !== b.type || a.traderCohort !== b.traderCohort) {
+  const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
+  const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
+  if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
     return false;
   }
   if (tab === 'leaderboard') {
     return a.timeframe === b.timeframe;
   }
-  return (
-    a.verification === b.verification &&
-    rangesEqual(a.marketCap, b.marketCap) &&
-    rangesEqual(a.volume24h, b.volume24h)
-  );
+  // Verification and 24h volume are hidden until the API can honor them, so
+  // leftover values must not light the filter icon.
+  return rangesEqual(a.marketCap, b.marketCap);
 };
 
 export interface UseSocialShellFiltersResult {
@@ -56,8 +56,10 @@ export interface UseSocialShellFiltersResult {
   updateDraft: (patch: Partial<SocialShellFilters>) => void;
   /** Applies the draft to the open tab and closes the sheet. */
   applyFilters: () => void;
-  /** Resets the open tab's draft to defaults. Apply still required to commit. */
+  /** Resets sheet-owned fields to defaults. Apply still required to commit. */
   resetDraftToDefaults: () => void;
+  /** Updates the leaderboard asset type owned by the chip outside the sheet. */
+  setLeaderboardType: (type: SocialShellFilters['type']) => void;
 }
 
 /**
@@ -73,7 +75,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
   >(() => ({
     trending: cloneFilters(DEFAULT_TAB_FILTER_STATE.trending),
     following: cloneFilters(DEFAULT_TAB_FILTER_STATE.following),
-    liveTrades: cloneFilters(DEFAULT_TAB_FILTER_STATE.liveTrades),
+    live: cloneFilters(DEFAULT_TAB_FILTER_STATE.live),
     leaderboard: cloneFilters(DEFAULT_TAB_FILTER_STATE.leaderboard),
   }));
   const [openTab, setOpenTab] = useState<SocialShellTab | null>(null);
@@ -108,8 +110,22 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     if (!openTab) {
       return;
     }
-    setDraft(cloneFilters(DEFAULT_FILTERS));
-  }, [openTab]);
+    const resetFilters = cloneFilters(DEFAULT_FILTERS);
+    if (openTab === 'leaderboard') {
+      resetFilters.type = draft.type;
+    }
+    setDraft(resetFilters);
+  }, [draft.type, openTab]);
+
+  const setLeaderboardType = useCallback((type: SocialShellFilters['type']) => {
+    setApplied((prev) => ({
+      ...prev,
+      leaderboard: {
+        ...prev.leaderboard,
+        type,
+      },
+    }));
+  }, []);
 
   const applyFilters = useCallback(() => {
     if (!openTab) {
@@ -151,5 +167,6 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    setLeaderboardType,
   };
 }

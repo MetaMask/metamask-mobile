@@ -1,6 +1,6 @@
 import React from 'react';
-import { brandColor } from '@metamask/design-tokens';
 import { fireEvent, render } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -17,13 +17,17 @@ import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors
 import { selectEvmChainId } from '../../../../../selectors/networkController';
 import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import { selectIsMoneyAccountGeoEligible } from '../../../../UI/Money/selectors/eligibility';
 import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { getHomepageBalanceColor } from './HomepageBalanceBreakdownHero';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
+const mockInitiateMoneyDeposit = jest.fn();
+const mockTrackMoneyButtonClicked = jest.fn();
 const mockNavigateToPerpsHome = jest.fn();
 const mockUsePerpsNavigationHandlers = jest.fn((_options?: unknown) => ({
   navigateToPerpsHome: mockNavigateToPerpsHome,
@@ -38,6 +42,7 @@ const mockCreateEventBuilder = jest.fn(() => ({
 }));
 let mockPrivacyMode = false;
 let mockIsWalletHomeOnboardingActive = false;
+let mockIsMoneyAccountGeoEligible = true;
 const mockAccountGroupBalance = jest.fn();
 const originalLocale = I18n.locale;
 
@@ -74,6 +79,18 @@ jest.mock('../../context/HomepageScrollContext', () => ({
 jest.mock('../../../../UI/Money/hooks/useMoneyNavigation', () => ({
   useMoneyNavigation: () => ({
     navigateToMoneyHome: mockNavigateToMoneyHome,
+  }),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({
+    initiateDeposit: mockInitiateMoneyDeposit,
+  }),
+}));
+
+jest.mock('../../../../UI/Money/hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: () => ({
+    trackButtonClicked: mockTrackMoneyButtonClicked,
   }),
 }));
 
@@ -135,7 +152,6 @@ const makeSlice = (
   overrides: Partial<SliceData> = {},
 ): SliceData => ({
   key,
-  color: 'transparent',
   isVisible: true,
   valueFiat: 10,
   percentOfTotal: 0.2,
@@ -161,14 +177,33 @@ const breakdown: BreakdownData = {
   },
 };
 
+describe('getHomepageBalanceColor', () => {
+  it('returns muted text while the aggregate is partially loaded', () => {
+    const color = getHomepageBalanceColor(true);
+
+    expect(color).toBe(TextColor.TextMuted);
+  });
+
+  it('returns default text after all loading settles', () => {
+    const color = getHomepageBalanceColor(false);
+
+    expect(color).toBe(TextColor.TextDefault);
+  });
+});
+
 describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockInitiateMoneyDeposit.mockResolvedValue(undefined);
     I18n.locale = 'en-US';
     mockPrivacyMode = false;
     mockIsWalletHomeOnboardingActive = false;
+    mockIsMoneyAccountGeoEligible = true;
     jest.mocked(useSelector).mockImplementation((selector) => {
       if (selector === selectPrivacyMode) return mockPrivacyMode;
+      if (selector === selectIsMoneyAccountGeoEligible) {
+        return mockIsMoneyAccountGeoEligible;
+      }
       if (selector === selectEvmChainId) return '0x1';
       if (selector === selectAccountGroupBalanceForEmptyState) {
         return { totalBalanceInUserCurrency: 0 };
@@ -185,9 +220,9 @@ describe('HomepageBalanceBreakdown', () => {
     I18n.locale = originalLocale;
   });
 
-  it('renders the aggregate hero and rows in screenshot order', () => {
-    const { getByTestId, getAllByRole, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
+  it('renders the aggregate hero and iconless rows in screenshot order', () => {
+    const { getByTestId, getAllByTestId } = render(
+      <HomepageBalanceBreakdown />,
     );
 
     expect(mockAccountGroupBalance).not.toHaveBeenCalled();
@@ -204,9 +239,9 @@ describe('HomepageBalanceBreakdown', () => {
       gap: 4,
     });
     expect(
-      getAllByRole('button')
-        .slice(1)
-        .map((row) => row.props.testID),
+      getAllByTestId(/^homepage-balance-breakdown-row-/).map(
+        (row) => row.props.testID,
+      ),
     ).toEqual([
       HomepageBalanceBreakdownTestIds.ROW('money'),
       HomepageBalanceBreakdownTestIds.ROW('tokens'),
@@ -218,26 +253,21 @@ describe('HomepageBalanceBreakdown', () => {
       '4.1% APY',
     );
     expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessibilityLabel,
+    ).toBe('Money, USD 10.00, 20%, 4.1% APY');
+    expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
     ).toHaveTextContent('20%');
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ICON('money')).props.name,
-    ).toBe('Musd');
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE('tokens')),
+    ).toBeOnTheScreen();
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ICON('tokens')).props.name,
-    ).toBe('Ethereum');
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
+    ).toHaveTextContent('USD 10.00');
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ICON('perps')),
-    ).toHaveTextContent('∞');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ICON('predict')).props.name,
-    ).toBe('Predictions');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ICON('defi')),
-    ).toHaveTextContent('%');
-    expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.ARROW('money')),
-    ).not.toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).toHaveTextContent('Add');
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO).props
         .accessibilityLabel,
@@ -262,27 +292,10 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBe('Perps, USD 10.00, 20%');
   });
 
-  it('renders a right arrow on every icon row when enabled', () => {
-    const { getByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" showRowArrows />,
-    );
-
-    (['money', 'tokens', 'perps', 'predict', 'defi'] as const).forEach(
-      (key) => {
-        expect(
-          getByTestId(HomepageBalanceBreakdownTestIds.ARROW(key)).props.name,
-        ).toBe('ArrowRight');
-        expect(
-          getByTestId(HomepageBalanceBreakdownTestIds.ICON(key)),
-        ).toBeOnTheScreen();
-      },
-    );
-  });
-
-  it('localizes allocation percentages and APY numbers', () => {
+  it('localizes balance percentages and APY numbers', () => {
     I18n.locale = 'de-DE';
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('money')),
@@ -297,6 +310,10 @@ describe('HomepageBalanceBreakdown', () => {
       ...breakdown,
       slices: {
         ...breakdown.slices,
+        money: makeSlice('money', {
+          isVisible: false,
+          status: 'ineligible',
+        }),
         predict: makeSlice('predict', {
           isVisible: false,
           status: 'ineligible',
@@ -304,12 +321,16 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.ROW('predict')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('money')),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
     ).not.toBeOnTheScreen();
   });
 
@@ -322,9 +343,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
@@ -337,7 +356,7 @@ describe('HomepageBalanceBreakdown', () => {
     ).toHaveTextContent('Today');
   });
 
-  it('mutes a partially loaded aggregate hero', () => {
+  it('renders a partially loaded aggregate hero balance', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -346,14 +365,14 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
-    });
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
   });
 
-  it('mutes an incomplete aggregate without treating an error as loading', () => {
+  it('renders an incomplete aggregate without treating an error as loading', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       hero: {
@@ -363,11 +382,51 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
-    expect(getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT)).toHaveStyle({
-      color: mockTheme.colors.text.muted,
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+  });
+
+  it('shows a muted zero without a delta while the aggregate is loading', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        status: 'loading',
+      },
     });
+
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 0.00');
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.HERO_DELTA_AMOUNT),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('rolls every aggregate balance update', () => {
+    const { rerender, getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      hero: {
+        ...breakdown.hero,
+        totalFiat: 75,
+      },
+    });
+    rerender(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 75.00');
   });
 
   it('renders the experiment empty state for a settled zero portfolio', () => {
@@ -379,9 +438,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER),
@@ -391,44 +448,15 @@ describe('HomepageBalanceBreakdown', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders allocation segments and colored row dots', () => {
+  it('hides settled rows without a balance while keeping Money visible', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
         ...breakdown.slices,
-        tokens: makeSlice('tokens', { color: brandColor.blue700 }),
-      },
-    });
-
-    const { getByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
-    );
-
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ALLOCATION_TITLE),
-    ).toHaveTextContent('Allocation');
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens')),
-    ).toHaveStyle({
-      backgroundColor: brandColor.blue700,
-      borderRadius: 999,
-    });
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.DOT('tokens')),
-    ).toHaveStyle({ backgroundColor: brandColor.blue700 });
-    expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('tokens')),
-    ).toHaveTextContent('20%');
-    expect(getByTestId(HomepageBalanceBreakdownTestIds.APY)).toHaveTextContent(
-      '4.1% APY',
-    );
-  });
-
-  it('uses alternative text color for a ready zero balance', () => {
-    jest.mocked(useBalanceBreakdown).mockReturnValue({
-      ...breakdown,
-      slices: {
-        ...breakdown.slices,
+        money: makeSlice('money', {
+          valueFiat: 0,
+          percentOfTotal: 0,
+        }),
         tokens: makeSlice('tokens', {
           valueFiat: 0,
           percentOfTotal: 0,
@@ -436,14 +464,81 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
-    const value = getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens'));
-    expect(value).toHaveTextContent('USD 0.00');
-    expect(value).toHaveStyle({ color: mockTheme.colors.text.alternative });
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+    ).not.toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('money')),
+    ).toHaveTextContent('USD 0.00');
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).toHaveTextContent('Add');
+    expect(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY)).toHaveStyle({
+      borderRadius: 9999,
+      height: 28,
+    });
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessibilityLabel,
+    ).toBe('Money, USD 0.00, 0%');
   });
 
-  it('renders less than one percent for a non-zero rounded allocation', () => {
+  it('initiates a Money deposit when the Add button is pressed', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        money: makeSlice('money', { valueFiat: 0, percentOfTotal: 0 }),
+      },
+    });
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY));
+
+    expect(mockInitiateMoneyDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the geo-block sheet when Add is pressed by an ineligible user', () => {
+    mockIsMoneyAccountGeoEligible = false;
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        money: makeSlice('money', { valueFiat: 0, percentOfTotal: 0 }),
+      },
+    });
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+    expect(mockInitiateMoneyDeposit).not.toHaveBeenCalled();
+  });
+
+  it('keeps a settled non-zero debt row visible', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        defi: makeSlice('defi', { valueFiat: -10, percentOfTotal: 0 }),
+      },
+    });
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders less than one percent for a non-zero rounded percentage', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -455,9 +550,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
-    );
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.PERCENTAGE('tokens')),
@@ -475,9 +568,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
-    );
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens')),
@@ -500,9 +591,7 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
-    );
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
       getByTestId(HomepageBalanceBreakdownTestIds.APY_SKELETON),
@@ -510,39 +599,15 @@ describe('HomepageBalanceBreakdown', () => {
     expect(queryByTestId(HomepageBalanceBreakdownTestIds.APY)).toBeNull();
   });
 
-  it('keeps the category dot when its allocation segment is zero', () => {
-    jest.mocked(useBalanceBreakdown).mockReturnValue({
-      ...breakdown,
-      slices: {
-        ...breakdown.slices,
-        tokens: makeSlice('tokens', { percentOfTotal: 0 }),
-      },
-    });
-
-    const { queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
-    );
-
-    expect(
-      queryByTestId(
-        HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens'),
-      ),
-    ).not.toBeOnTheScreen();
-    expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.DOT('tokens')),
-    ).toBeOnTheScreen();
-  });
-
   it('opens the canonical primitive destinations from each row', () => {
     const transactionActiveAbTests = [
       createActiveABTestAssignment(
-        'homeTMCU1209AbtestHomepageBalanceBreakdown',
-        'icons',
+        'homeTMCU1209AbtestHomepageBalanceBreakdownV2',
+        'treatment',
       ),
     ];
     const { getByTestId } = render(
       <HomepageBalanceBreakdown
-        layout="icons"
         transactionActiveAbTests={transactionActiveAbTests}
       />,
     );
@@ -642,7 +707,19 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockTrackEvent).toHaveBeenCalledTimes(5);
   });
 
-  it('renders skeletons while loading and em dashes for failed rows', () => {
+  it('opens the Money geo-block sheet from the Money row when geo-ineligible', () => {
+    mockIsMoneyAccountGeoEligible = false;
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    fireEvent.press(getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
+      screen: Routes.MONEY.MODALS.GEO_BLOCK_SHEET,
+    });
+    expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
+  });
+
+  it('keeps Money Add visible while hiding unresolved non-Money rows', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -653,26 +730,23 @@ describe('HomepageBalanceBreakdown', () => {
       },
     });
 
-    const { getByTestId } = render(<HomepageBalanceBreakdown layout="icons" />);
+    const { getByTestId, queryByTestId } = render(<HomepageBalanceBreakdown />);
 
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.SKELETON('money')).props
-        .accessibilityState,
-    ).toEqual({ busy: true });
+      getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
+    ).toHaveTextContent('Add');
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('tokens')),
-    ).toHaveTextContent('—');
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+    ).not.toBeOnTheScreen();
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.VALUE('defi')),
-    ).toHaveTextContent('—');
+      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')),
+    ).not.toBeOnTheScreen();
   });
 
   it('keeps fiat and PnL values privacy-sensitive', () => {
     mockPrivacyMode = true;
 
-    const { getByTestId, queryByText } = render(
-      <HomepageBalanceBreakdown layout="icons" />,
-    );
+    const { getByTestId, queryByText } = render(<HomepageBalanceBreakdown />);
 
     expect(queryByText('USD 20.00')).not.toBeOnTheScreen();
     expect(queryByText('20%')).not.toBeOnTheScreen();
@@ -686,33 +760,37 @@ describe('HomepageBalanceBreakdown', () => {
     ).toBe('Tokens');
   });
 
+  it('displays the balance without animation when returning from privacy mode', () => {
+    mockPrivacyMode = true;
+
+    const { getByTestId, rerender } = render(<HomepageBalanceBreakdown />);
+
+    mockPrivacyMode = false;
+    rerender(<HomepageBalanceBreakdown />);
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
+    ).toHaveTextContent('USD 50.00');
+  });
+
   it('does not expose proportional allocation while privacy mode is enabled', () => {
     mockPrivacyMode = true;
 
     const { getByLabelText, getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown layout="allocation" />,
+      <HomepageBalanceBreakdown />,
     );
 
     expect(
-      getByTestId(HomepageBalanceBreakdownTestIds.ALLOCATION_PRIVATE),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(
-        HomepageBalanceBreakdownTestIds.ALLOCATION_SEGMENT('tokens'),
-      ),
-    ).not.toBeOnTheScreen();
-    expect(getByLabelText('Show total balance')).toBeOnTheScreen();
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('money')).props
+        .accessibilityLabel,
+    ).toBe('Money');
   });
 
   it('does not render rows during the onboarding checklist flow', () => {
     mockIsWalletHomeOnboardingActive = true;
 
     const { queryByTestId } = render(
-      <HomepageBalanceBreakdown
-        hideRows
-        accountGroupBalanceProps={{}}
-        layout="icons"
-      />,
+      <HomepageBalanceBreakdown hideRows accountGroupBalanceProps={{}} />,
     );
 
     expect(
@@ -724,7 +802,7 @@ describe('HomepageBalanceBreakdown', () => {
 
   it('keeps the experiment hero when rows are hidden outside onboarding', () => {
     const { getByTestId, queryByTestId } = render(
-      <HomepageBalanceBreakdown hideRows layout="icons" />,
+      <HomepageBalanceBreakdown hideRows />,
     );
 
     expect(getByTestId(HomepageBalanceBreakdownTestIds.HERO)).toBeOnTheScreen();

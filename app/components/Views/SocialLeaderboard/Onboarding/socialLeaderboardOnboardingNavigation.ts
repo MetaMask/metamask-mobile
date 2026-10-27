@@ -13,16 +13,19 @@ import {
   SOCIAL_V1_AB_KEY,
   SocialV1Variant,
 } from '../SocialV1View/abTestConfig';
+import type { SocialShellTab } from '../shell/types';
 
 /**
  * Params forwarded to Follow Trading home when onboarding is not shown.
- * `landingTab` is only meaningful on the legacy `SocialV0View` (TSA-1042).
+ * `landingTab` is only meaningful on the legacy `SocialV0View` (TSA-1042), and
+ * `initialTab` only on `SocialV1View`.
  */
 interface SocialLeaderboardViewParams {
   source?: string;
   landingTab?: 'leaderboard' | 'feed';
   landingFeedAudience?: 'all' | 'following';
   showNotificationsBanner?: boolean;
+  initialTab?: SocialShellTab;
 }
 
 /**
@@ -79,21 +82,21 @@ const toHomeRouteParams = (
     return {
       source: params.source,
       showNotificationsBanner: params.showNotificationsBanner,
+      initialTab: params.initialTab,
     };
   }
   return params;
 };
 
 /**
- * Entry point into the Social Leaderboard feature. Routes a first-time user
- * straight to the onboarding (so no leaderboard/loading frame is shown first),
- * otherwise opens Follow Trading home (legacy or Social V1) with the
- * caller's `source`.
+ * Opens Follow Trading home (legacy or Social V1) as a pushed screen on top of
+ * the current flow, after the first-time onboarding gate. Perps uses this so
+ * Social stays inside the Perps flow.
  *
- * @param navigate - The caller's navigate function (React or deeplink).
+ * @param navigate - The caller's navigate function.
  * @param params - Params forwarded to the home route when onboarding is skipped.
  */
-export const navigateToSocialLeaderboard = (
+export const pushSocialLeaderboard = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
@@ -105,17 +108,49 @@ export const navigateToSocialLeaderboard = (
 };
 
 /**
+ * Entry point into the Social Leaderboard feature. Routes a first-time user
+ * straight to the onboarding (so no leaderboard/loading frame is shown first),
+ * otherwise opens Follow Trading home with the caller's `source`. Social V1
+ * treatment selects the Social tab so the bottom tab bar stays visible; control
+ * pushes the legacy home.
+ *
+ * @param navigate - The caller's navigate function (React or deeplink).
+ * @param params - Params forwarded to the home route when onboarding is skipped.
+ */
+export const navigateToSocialLeaderboard = (
+  navigate: SocialLeaderboardNavigate,
+  params?: SocialLeaderboardViewParams,
+): void => {
+  if (!isSocialV1Treatment()) {
+    pushSocialLeaderboard(navigate, params);
+    return;
+  }
+  if (shouldShowSocialLeaderboardOnboarding()) {
+    navigate(Routes.SOCIAL.ONBOARDING, { returnToTab: true });
+    return;
+  }
+  navigate(
+    Routes.HOME_TABS,
+    { screen: Routes.SOCIAL.TAB, params: toHomeRouteParams(params) },
+    { pop: true },
+  );
+};
+
+/**
  * Navbar Social tab entry. Same onboarding gate as
- * `navigateToSocialLeaderboard`, but lands on `SOCIAL.TAB` so the floating
- * bar selects the tab. TSA-1122 chooses V1 vs V0 as that tab's mounted
- * component, not as a root-stack push.
+ * `navigateToSocialLeaderboard`, but always lands on `SOCIAL.TAB` (control
+ * too) so the floating bar selects the tab. TSA-1122 chooses V1 vs V0 as that
+ * tab's mounted component, not as a root-stack push.
  */
 export const navigateToSocialTab = (
   navigate: SocialLeaderboardNavigate,
   params?: SocialLeaderboardViewParams,
 ): void => {
   if (shouldShowSocialLeaderboardOnboarding()) {
-    navigate(Routes.SOCIAL.ONBOARDING);
+    navigate(
+      Routes.SOCIAL.ONBOARDING,
+      isSocialV1Treatment() ? { returnToTab: true } : undefined,
+    );
     return;
   }
   navigate(Routes.SOCIAL.TAB, toHomeRouteParams(params));

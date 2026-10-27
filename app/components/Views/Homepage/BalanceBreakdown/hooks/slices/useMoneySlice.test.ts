@@ -1,19 +1,25 @@
 import { renderHook } from '@testing-library/react-native';
+import BigNumber from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
 import useMoneyVaultApy from '../../../../../UI/Money/hooks/useMoneyVaultApy';
 import useMoneyAccountInfo from '../../../../../UI/Money/hooks/useMoneyAccountInfo';
 import { getMoneySliceStatus, useMoneySlice } from './useMoneySlice';
 
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance');
 jest.mock('../../../../../UI/Money/hooks/useMoneyVaultApy');
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountInfo');
 
+const mockUseSelector = jest.mocked(useSelector);
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 
 const READY_INPUT = {
-  isFeatureEnabled: true,
+  isMoneyAccountVisible: true,
   hasMoneyAccount: true,
   isBalanceLoading: false,
   isBalanceFetchError: false,
@@ -21,12 +27,12 @@ const READY_INPUT = {
 };
 
 describe('getMoneySliceStatus', () => {
-  it('requires the feature and an existing account', () => {
+  it('requires Money visibility and an existing account', () => {
     expect(
       getMoneySliceStatus({ ...READY_INPUT, hasMoneyAccount: false }),
     ).toBe('ineligible');
     expect(
-      getMoneySliceStatus({ ...READY_INPUT, isFeatureEnabled: false }),
+      getMoneySliceStatus({ ...READY_INPUT, isMoneyAccountVisible: false }),
     ).toBe('ineligible');
   });
 
@@ -44,12 +50,13 @@ describe('getMoneySliceStatus', () => {
 describe('useMoneySlice', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockReturnValue(true);
     mockUseMoneyAccountInfo.mockReturnValue({
       isMoneyAccountFeatureEnabled: true,
       hasMoneyAccount: true,
     } as ReturnType<typeof useMoneyAccountInfo>);
     mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: { toNumber: () => 100 },
+      tokenTotal: new BigNumber(100),
       isBalanceLoading: false,
       isBalanceFetchError: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
@@ -133,31 +140,41 @@ describe('useMoneySlice', () => {
     expect(result.current.apyLoading).toBe(false);
   });
 
-  it('suppresses APY when the Money feature is disabled', () => {
-    mockUseMoneyAccountInfo.mockReturnValue({
-      isMoneyAccountFeatureEnabled: false,
-      hasMoneyAccount: false,
-    } as ReturnType<typeof useMoneyAccountInfo>);
-    mockUseMoneyVaultApy.mockReturnValue({
-      apyPercent: 4.1,
-      vaultApyQuery: { isLoading: false },
-    } as ReturnType<typeof useMoneyVaultApy>);
+  it('hides an empty Money account when the account is geo-ineligible', () => {
+    mockUseSelector.mockReturnValue(false);
     mockUseMoneyAccountBalance.mockReturnValue({
-      tokenTotal: undefined,
+      tokenTotal: new BigNumber(0),
       isBalanceLoading: false,
       isBalanceFetchError: false,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     const { result } = renderHook(() => useMoneySlice((amount) => amount));
 
-    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: false });
-    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: false });
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
     expect(result.current).toEqual({
       key: 'money',
       isVisible: false,
       valueFiat: 0,
       status: 'ineligible',
       apyPercent: undefined,
+      apyLoading: false,
+    });
+  });
+
+  it('shows a funded Money account with APY when the account is geo-ineligible', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    const { result } = renderHook(() => useMoneySlice((amount) => amount));
+
+    expect(mockUseMoneyAccountBalance).toHaveBeenCalledWith({ enabled: true });
+    expect(mockUseMoneyVaultApy).toHaveBeenCalledWith({ enabled: true });
+    expect(result.current).toEqual({
+      key: 'money',
+      isVisible: true,
+      valueFiat: 100,
+      status: 'ready',
+      apyPercent: 4.1,
       apyLoading: false,
     });
   });

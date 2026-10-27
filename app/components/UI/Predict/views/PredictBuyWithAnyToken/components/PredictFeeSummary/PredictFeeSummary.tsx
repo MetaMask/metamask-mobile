@@ -27,13 +27,16 @@ import AddRewardsAccount from '../../../../../Rewards/components/AddRewardsAccou
 import RewardsAnimations, {
   RewardAnimationState,
 } from '../../../../../Rewards/components/RewardPointsAnimation';
+import PredictFeeTotal from '../../../../components/PredictFeeTotal/PredictFeeTotal';
 import { usePredictRewards } from '../../../../hooks/usePredictRewards';
-import { formatPrice } from '../../../../utils/format';
+import type { PredictFeePolicy } from '../../../../types';
 
 interface PredictFeeSummaryProps {
   disabled: boolean;
   loading?: boolean;
   total: number;
+  originalTotal?: number;
+  feePolicy?: PredictFeePolicy;
   rewardsFeeAmountUsd?: number;
   rewardsLoadingOverride?: boolean;
   handleFeesInfoPress: () => void;
@@ -44,6 +47,8 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
   loading = false,
   handleFeesInfoPress,
   total,
+  originalTotal,
+  feePolicy,
   rewardsFeeAmountUsd,
   rewardsLoadingOverride = false,
 }) => {
@@ -115,13 +120,12 @@ const PredictFeeSummary: React.FC<PredictFeeSummaryProps> = ({
                 color={IconColor.IconAlternative}
               />
             </Box>
-            <Text
-              variant={TextVariant.BodyMd}
+            <PredictFeeTotal
+              total={total}
+              originalTotal={originalTotal}
+              feePolicy={feePolicy}
               fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {formatPrice(total, { maximumDecimals: 2 })}
-            </Text>
+            />
           </Box>
         </TouchableOpacity>
 

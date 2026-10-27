@@ -1,11 +1,11 @@
-import { useMemo, useSyncExternalStore } from 'react';
-import { useTraderFeed } from '../../../FeedView/hooks/useTraderFeed';
-import { toSocialFeedPosts } from '../../../../../UI/SocialFeed/utils/toSocialFeedPosts';
-import {
-  getSocialV1ComposedFeedSnapshot,
-  subscribeSocialV1ComposedFeed,
-} from '../store/socialV1ComposedFeedStore';
+import { useMemo } from 'react';
+import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
+import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
+import { useSelector } from 'react-redux';
+import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlagController/socialV1';
+import { SOCIAL_TRACE_TABS } from '../../../../../../util/social/socialPerformance';
 
 /** Trending reads the generic `leaderboard` scope, Following the per-user one. */
 const TAB_AUDIENCE = {
@@ -13,62 +13,73 @@ const TAB_AUDIENCE = {
   following: 'following',
 } as const;
 
+const TAB_TRACE = {
+  trending: SOCIAL_TRACE_TABS.Trending,
+  following: SOCIAL_TRACE_TABS.Following,
+} as const satisfies Record<SocialV1FeedTab, 'trending' | 'following'>;
+
+export interface UseSocialV1FeedOptions {
+  /**
+   * The viewer's social profile id. On Following, their just-written posts
+   * are pinned on top until the feed returns them.
+   */
+  ownerProfileId?: string;
+  /** Whether the tab is on screen; gates the pending-post refetches. */
+  isActive?: boolean;
+}
+
 /**
  * V1 feed data source: live trader activity from `SocialService:fetchFeed`,
  * mapped into the V1 card model with the missing enrichment mocked and flagged.
  *
- * Delegates fetching to `useTraderFeed`, so V1 inherits V0's unlock gate,
- * telemetry and error normalisation -- and shares its query keys, which means
- * either surface warms the cache for the other. Composed posts from the
- * plus-button composer still prepend on Trending only.
+ * Delegates fetching to `useSocialFeed`, which shares its query key with V0's
+ * `useTraderFeed`, so either surface warms the cache for the other. The
+ * viewer's own new posts appear on Following only: it is the feed that serves
+ * them (Trending reads the leaderboard traders' activity).
  */
 export const useSocialV1Feed = (
   tab: SocialV1FeedTab = 'trending',
+  { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
-  // Everything composer-related must come off this snapshot rather than a
-  // direct store read: React Compiler memoizes this hook's result, so a read
-  // that isn't a reactive input can be cached across mutations and strand the
-  // feed on an older revision (no posting banner, no new card).
-  const snapshot = useSyncExternalStore(
-    subscribeSocialV1ComposedFeed,
-    getSocialV1ComposedFeedSnapshot,
-    getSocialV1ComposedFeedSnapshot,
+  const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
+  const source = useMemo(
+    (): SocialFeedSource => ({
+      kind: 'all',
+      audience: TAB_AUDIENCE[tab],
+    }),
+    [tab],
   );
 
   const {
-    rows,
+    posts: livePosts,
     isLoading,
     isFetchingNextPage,
     hasNextPage,
     loadMore,
     error,
-    refresh,
-  } = useTraderFeed({ audience: TAB_AUDIENCE[tab] });
+    refresh: refetch,
+    dataUpdatedAt,
+  } = useSocialFeed(source, {
+    performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
+  });
 
-  const livePosts = useMemo(() => toSocialFeedPosts(rows), [rows]);
-
-  const pagination = {
-    isLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    loadMore,
-    error,
-    refresh,
-  };
-
-  if (tab === 'following') {
-    return {
-      posts: livePosts,
-      pendingPost: null,
-      pendingStartedAtMs: null,
-      ...pagination,
-    };
-  }
+  const overlay = usePendingPostsOverlay({
+    surface: 'following',
+    ownerProfileId: tab === 'following' ? ownerProfileId : undefined,
+    serverPosts: livePosts,
+    refetch,
+    isActive,
+  });
 
   return {
-    posts: [...snapshot.composedPosts, ...livePosts],
-    pendingPost: snapshot.pendingPost,
-    pendingStartedAtMs: snapshot.pendingStartedAtMs,
-    ...pagination,
+    posts: overlay.posts,
+    pinnedPosts: overlay.pinnedPosts,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error,
+    refresh: overlay.refresh,
+    dataUpdatedAt,
   };
 };

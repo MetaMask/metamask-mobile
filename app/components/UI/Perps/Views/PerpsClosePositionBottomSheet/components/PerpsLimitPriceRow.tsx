@@ -13,7 +13,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import { PerpsClosePositionBottomSheetSelectorsIDs } from '../../../Perps.testIds';
-import { useBlinkingCursor } from '../../../../Ramp/hooks/useBlinkingCursor';
+import { useBlinkingCursor } from '../../../../../../component-library/components-temp/AnimatedAmountDisplay';
 
 /** Muted stand-in that reads as an input the keypad is waiting to fill. */
 const EMPTY_LIMIT_PRICE_DISPLAY = '0.00';
@@ -66,7 +66,11 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
     <>
       <TouchableOpacity
         accessibilityRole="button"
-        accessibilityLabel={strings('perps.order.limit_price')}
+        accessibilityLabel={`${strings('perps.order.limit_price')}, ${
+          isEmptyInReview
+            ? strings('perps.order.set_price')
+            : `$${hasValue ? value : EMPTY_LIMIT_PRICE_DISPLAY}`
+        }`}
         onPress={onPress}
         testID={PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_ROW}
       >
@@ -83,7 +87,7 @@ const PerpsLimitPriceRow: React.FC<PerpsLimitPriceRowProps> = ({
             {isEmptyInReview ? (
               <Text
                 variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
+                color={TextColor.ErrorDefault}
                 testID={
                   PerpsClosePositionBottomSheetSelectorsIDs.LIMIT_PRICE_INPUT
                 }

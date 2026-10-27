@@ -13,6 +13,7 @@ Historical note: this doc previously described a Perps-local `usePerpsABTest` ho
 | Flag key (Redux / `useABTest`)           | Variants               | Purpose                                                                   |
 | ---------------------------------------- | ---------------------- | ------------------------------------------------------------------------- |
 | `perpsTAT3938AbtestScreenVsBottomSheet`  | `control`, `treatment` | Shared screen vs bottom-sheet experience                                  |
+| `perpsTAT3793AbtestPerpsHomeExplore`     | `control`, `treatment` | Perps home Explore table replacing stacked market sections (TAT-3793)     |
 | `perpsTAT3597AbtestPerpsSectionPriority` | `control`, `treatment` | Perps section above Tokens on wallet home for eligible traders (TAT-3597) |
 
 The `perpsTAT1937AbtestButtonColor` experiment has concluded. Its color

@@ -8,8 +8,11 @@ import Engine from '../../../app/core/Engine';
 import { KalshiRemoteAdapter } from '../../../app/components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import { PredictApiReadClient } from '../../../app/components/UI/PredictNext/adapters/remote/PredictApiReadClient';
 import { PredictOrderService } from '../../../app/components/UI/PredictNext/services/PredictOrderService';
+import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/services/PredictPortfolioService';
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
+import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
 import type {
   PredictGameLive,
   PredictQuote,
@@ -368,6 +371,82 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** Kalshi's Feed IDs, as its static Venue catalog maps them. */
+export const PREDICT_NEXT_FEED_IDS = {
+  nflGames: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] as PredictFeedId,
+  nflProps: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-props'] as PredictFeedId,
+  ncaaGames: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-games'
+  ] as PredictFeedId,
+  ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-props'
+  ] as PredictFeedId,
+} as const;
+
+/**
+ * The Venue catalog the messenger serves: a value (valid or malformed), an
+ * Error to reject with, or `'pending'` for a read that never settles.
+ */
+export type PredictNextCatalogFixture = unknown;
+
+let catalogFixture: PredictNextCatalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+
+/** Serves `catalog` for every later Venue catalog read until reset by
+ * {@link configurePredictNextFeeds}. */
+export const configurePredictNextCatalog = (
+  catalog: PredictNextCatalogFixture,
+) => {
+  catalogFixture = catalog;
+};
+
+/** Restores the default (valid Kalshi) Venue catalog. */
+export const resetPredictNextCatalog = () => {
+  catalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+};
+
+/**
+ * Answers `PredictMarketDataService:getVenueCatalog`, or returns undefined
+ * for any other action. Custom messenger implementations call it first so
+ * capability-gated UI keeps resolving.
+ */
+export const answerPredictNextCatalog = (
+  action: string,
+): Promise<unknown> | undefined => {
+  if (action !== 'PredictMarketDataService:getVenueCatalog') {
+    return undefined;
+  }
+  if (catalogFixture === 'pending') {
+    return new Promise(() => undefined);
+  }
+  return catalogFixture instanceof Error
+    ? Promise.reject(catalogFixture)
+    : Promise.resolve(catalogFixture);
+};
+
+/**
+ * Installs a messenger implementation that serves the configured Venue
+ * catalog (see {@link configurePredictNextCatalog}) and delegates every other
+ * action to `implementation`. Use it instead of
+ * `messengerCall.mockImplementation` so capability-gated UI keeps resolving.
+ */
+export const mockPredictNextMessenger = (
+  implementation: (action: string, ...params: never[]) => unknown,
+) =>
+  messengerCall.mockImplementation(
+    (action: string, ...params: unknown[]) =>
+      answerPredictNextCatalog(action) ??
+      implementation(action, ...(params as never[])),
+  );
+
+/** One cursor-addressable Positions page: `cursor` is the incoming page
+ * cursor (absent for the first page) and `nextCursor` links to the next
+ * page, mirroring `PredictPositionsPage`. */
+export interface PredictNextPositionsPageFixture {
+  cursor?: string;
+  positions: readonly unknown[];
+  nextCursor?: string;
+}
+
 /**
  * Composes the real Order workflow service the way the Engine init does,
  * against whatever `globalThis.fetch` is installed when called: the concrete
@@ -396,6 +475,54 @@ export const composePredictNextOrderService = (): PredictOrderService => {
     trading: adapter.trading,
     venueId: adapter.venueId,
   });
+};
+
+/**
+ * Composes the real Order workflow and Portfolio read services the way the
+ * Engine init does — both on one root messenger, with the concrete adapters
+ * bound to whatever `globalThis.fetch` is installed when called. Compose
+ * per-test after stubbing fetch. A UI query client observes these services
+ * by delegating its messenger adapter to the returned root.
+ */
+export const composePredictNextPortfolioTrading = () => {
+  const rootMessenger = new Messenger<MockAnyNamespace, never, never>({
+    namespace: MOCK_ANY_NAMESPACE,
+  });
+  const adapter = new KalshiRemoteAdapter(
+    new PredictApiReadClient({
+      baseUrl: 'https://predict.example',
+      clientVersion: '1.0.0',
+      getBearerToken: () =>
+        Engine.context.AuthenticationController.getBearerToken(),
+    }),
+  );
+  const portfolioService = new PredictPortfolioService({
+    messenger: getPredictPortfolioServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictPortfolioServiceMessenger
+      >[0],
+    ),
+    portfolio: adapter.portfolio,
+    venueId: adapter.venueId,
+  });
+  const orderService = new PredictOrderService({
+    messenger: getPredictOrderServiceMessenger(
+      rootMessenger as unknown as Parameters<
+        typeof getPredictOrderServiceMessenger
+      >[0],
+    ),
+    trading: adapter.trading,
+    venueId: adapter.venueId,
+  });
+  return {
+    rootMessenger,
+    orderService,
+    portfolioService,
+    destroy: () => {
+      orderService.destroy();
+      portfolioService.destroy();
+    },
+  };
 };
 
 export const makePredictNextPosition = (
@@ -530,12 +657,16 @@ export const configurePredictNextFeeds = ({
   ncaa = ncaaEvents,
   details,
   positions,
+  positionPages,
   activity,
 }: {
   nfl?: readonly PredictEvent[] | Error;
   ncaa?: readonly PredictEvent[] | Error;
   details?: readonly PredictEvent[] | Error;
   positions?: readonly unknown[] | Error;
+  /** Cursor-addressable Positions pages, for tests that exercise
+   * pagination; `positions` is ignored when this is set. */
+  positionPages?: readonly PredictNextPositionsPageFixture[];
   activity?: readonly unknown[] | Error;
 } = {}) => {
   const defaultDetails = [
@@ -543,8 +674,14 @@ export const configurePredictNextFeeds = ({
     ...(ncaa instanceof Error ? [] : ncaa),
   ];
 
+  resetPredictNextCatalog();
   messengerCall.mockImplementation(
-    (action: string, _venueId: string, resourceId: string) => {
+    (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      const catalogResponse = answerPredictNextCatalog(action);
+      if (catalogResponse) {
+        return catalogResponse;
+      }
+
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -554,6 +691,19 @@ export const configurePredictNextFeeds = ({
       }
 
       if (action === 'PredictPortfolioService:getPositions') {
+        if (positionPages) {
+          const page = positionPages.find(
+            (candidate) => candidate.cursor === cursor,
+          );
+          if (!page) {
+            return Promise.reject(new Error('Unknown Positions page'));
+          }
+          return Promise.resolve({
+            venueId: 'kalshi',
+            positions: page.positions,
+            ...(page.nextCursor ? { nextCursor: page.nextCursor } : {}),
+          });
+        }
         return positions instanceof Error
           ? Promise.reject(positions)
           : Promise.resolve({
@@ -588,7 +738,7 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === 'sports-football-nfl-games' ? nfl : ncaa;
+      const result = feedId === PREDICT_NEXT_FEED_IDS.nflGames ? nfl : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -597,7 +747,9 @@ export const configurePredictNextFeeds = ({
         venueId: 'kalshi',
         id: feedId,
         title:
-          feedId === 'sports-football-nfl-games' ? 'NFL Games' : 'NCAAF Games',
+          feedId === PREDICT_NEXT_FEED_IDS.nflGames
+            ? 'NFL Games'
+            : 'NCAAF Games',
         events: result,
       });
     },

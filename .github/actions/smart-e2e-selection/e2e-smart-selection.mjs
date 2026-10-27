@@ -8,7 +8,10 @@
 import { appendFileSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import { mapSmartE2eOutputs, parseResultJson } from './map-smart-e2e-outputs.mjs';
+import {
+  mapSmartE2eOutputs,
+  parseResultJson,
+} from './map-smart-e2e-outputs.mjs';
 
 const env = {
   GITHUB_OUTPUT: process.env.GITHUB_OUTPUT || '',
@@ -61,7 +64,7 @@ function loadResult() {
 const parsedResult = loadResult();
 if (!parsedResult) {
   console.error(
-    '❌ No smart-e2e result_json or smart-e2e.json; using conservative fallback',
+    '❌ No smart-e2e result_json or smart-e2e.json; E2E falls back to all tags. Performance tests are not part of Smart E2E selection',
   );
 }
 

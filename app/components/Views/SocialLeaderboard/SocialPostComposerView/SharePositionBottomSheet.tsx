@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import {
   BottomSheet,
@@ -18,13 +17,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -34,17 +34,17 @@ const styles = StyleSheet.create({
 const SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
 
 export interface SharePositionBottomSheetProps {
+  address: string;
   onSelect: (position: Position, isClosed: boolean) => void;
   onClose: () => void;
 }
 
 const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
+  address,
   onSelect,
   onClose,
 }) => {
   const { colors } = useTheme();
-  const address =
-    useSelector(selectSelectedInternalAccountFormattedAddress) ?? '';
   const [tab, setTab] = useState<'open' | 'closed'>('open');
   // Wallet-only PerpsController rows are not included — they have no
   // `positionUid` and cannot be posted.
@@ -53,12 +53,14 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
-    error,
+    openError,
+    closedError,
     refetch,
   } = useTraderPositions(address);
 
   const isLoading = tab === 'open' ? isLoadingOpen : isLoadingClosed;
   const positions = tab === 'open' ? openPositions : closedPositions;
+  const error = tab === 'open' ? openError : closedError;
   const bothEmpty =
     !isLoadingOpen &&
     !isLoadingClosed &&
@@ -73,16 +75,30 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     () => openPositions.filter((position) => isPerpPosition(position)),
     [openPositions],
   );
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.SHARE_POSITION_SHEET,
+    {
+      state: [isLoading, Boolean(error), positions.length > 0],
+    },
+  );
 
   const handleTabChange = useCallback((value: string) => {
     setTab(value === 'closed' ? 'closed' : 'open');
   }, []);
 
+  const handleClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, Outcome.DISMISSED);
+    onClose();
+  }, [onClose, trackInteraction]);
+
   const handleSelect = useCallback(
     (position: Position) => {
+      trackInteraction(Interaction.TAP, {
+        trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
+      });
       onSelect(position, tab === 'closed');
     },
-    [onSelect, tab],
+    [onSelect, tab, trackInteraction],
   );
 
   const emptyMessage = bothEmpty
@@ -151,7 +167,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
@@ -161,16 +177,16 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 StyleSheet.absoluteFill,
                 { backgroundColor: colors.overlay.default },
               ]}
-              onPress={onClose}
+              onPress={handleClose}
               accessibilityRole="button"
               testID={SharePositionBottomSheetSelectorsIDs.BACKDROP}
             />
             <BottomSheet
-              onClose={onClose}
+              onClose={handleClose}
               testID={SharePositionBottomSheetSelectorsIDs.SHEET}
             >
               <BottomSheetHeader
-                onClose={onClose}
+                onClose={handleClose}
                 closeButtonProps={{
                   testID: SharePositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}

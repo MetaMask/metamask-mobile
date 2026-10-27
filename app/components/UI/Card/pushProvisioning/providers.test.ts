@@ -2,10 +2,11 @@ import { Platform } from 'react-native';
 import { getCardProvider, getWalletProvider } from './providers';
 import { ControllerCardAdapter } from './adapters/card';
 import { GoogleWalletAdapter, AppleWalletAdapter } from './adapters/wallet';
+import type { CardProviderCapabilities } from '../../../../core/Engine/controllers/card-controller/provider-types';
 
 jest.mock('./adapters/card', () => ({
   ControllerCardAdapter: jest.fn().mockImplementation(() => ({
-    providerId: 'controller',
+    providerId: 'baanx',
   })),
 }));
 
@@ -19,6 +20,10 @@ jest.mock('./adapters/wallet', () => ({
     platform: 'android',
   })),
 }));
+
+const capabilities = {
+  pushProvisioning: { applePay: true, googlePay: false },
+} as CardProviderCapabilities;
 
 describe('Push Provisioning Providers', () => {
   const originalPlatform = Platform.OS;
@@ -35,24 +40,21 @@ describe('Push Provisioning Providers', () => {
   });
 
   describe('getCardProvider', () => {
-    it('returns ControllerCardAdapter for US location', () => {
-      const result = getCardProvider('us');
+    it('returns the controller adapter when the platform wallet is supported', () => {
+      const result = getCardProvider(capabilities, 'apple_wallet');
 
       expect(result).toBeDefined();
       expect(ControllerCardAdapter).toHaveBeenCalled();
     });
 
-    it('returns null for international location', () => {
-      const result = getCardProvider('international');
+    it('returns null when the platform wallet is not supported', () => {
+      const result = getCardProvider(capabilities, 'google_wallet');
 
       expect(result).toBeNull();
     });
 
-    it('returns null for unknown location', () => {
-      // @ts-expect-error - Testing invalid input
-      const result = getCardProvider('unknown');
-
-      expect(result).toBeNull();
+    it('returns null when capabilities are missing', () => {
+      expect(getCardProvider(null, 'apple_wallet')).toBeNull();
     });
   });
 

@@ -12,6 +12,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  FontFamily,
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -91,9 +92,10 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
           testID={`${testID}-image`}
         />
         <Text
-          variant={TextVariant.HeadingLg}
+          variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
-          twClassName="text-center"
+          fontFamily={FontFamily.Hero}
+          twClassName="leading-[32px]"
           testID={`${testID}-title`}
         >
           {strings('wallet.fund_your_wallet')}

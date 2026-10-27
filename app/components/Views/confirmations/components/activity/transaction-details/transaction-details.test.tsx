@@ -9,6 +9,7 @@ import {
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
+import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import {
   TransactionDetails,
   SUMMARY_SECTION_TYPES,
@@ -24,6 +25,9 @@ import { TransactionDetailsDateRow } from '../transaction-details-date-row';
 jest.mock('../../../hooks/activity/useTransactionDetails');
 jest.mock('../../../hooks/activity/useIsMoneyAccountContext', () => ({
   useIsMoneyAccountContext: jest.fn().mockReturnValue(false),
+}));
+jest.mock('../../../../../../selectors/moneyAccountController', () => ({
+  selectPrimaryMoneyAccount: jest.fn(),
 }));
 jest.mock('../transaction-details-hero', () => ({
   TransactionDetailsHero: jest.fn(() => null),
@@ -571,6 +575,59 @@ describe('TransactionDetails', () => {
 
         expect(getByText(strings('money.transaction.sent'))).toBeTruthy();
       });
+    });
+
+    it('incoming confirmed mUSD transfer returns received', () => {
+      const sender = '0x000000000000000000000000000000000000000a';
+      const recipient = '0x000000000000000000000000000000000000000b';
+      const state = merge({}, otherControllersMock, {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {},
+            },
+            MoneyAccountController: {
+              moneyAccounts: {
+                account: {
+                  address: recipient,
+                  options: {
+                    entropy: { type: 'mnemonic', id: 'primary-keyring' },
+                  },
+                },
+              },
+            },
+            KeyringController: {
+              keyrings: [
+                {
+                  type: 'HD Key Tree',
+                  accounts: [],
+                  metadata: { id: 'primary-keyring', name: '' },
+                },
+              ],
+            },
+          },
+        },
+      });
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.incoming,
+          status: TransactionStatus.confirmed,
+          chainId: CHAIN_IDS.MONAD,
+          txParams: { from: sender, to: recipient },
+          transferInformation: {
+            amount: '1000000',
+            symbol: 'mUSD',
+            decimals: 6,
+            contractAddress: MUSD_TOKEN_ADDRESS,
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = renderWithProvider(<TransactionDetails />, {
+        state,
+      });
+      expect(getByText(strings('money.transaction.received'))).toBeTruthy();
     });
 
     it('incoming transfer returns received', () => {

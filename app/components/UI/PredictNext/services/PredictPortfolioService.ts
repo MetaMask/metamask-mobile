@@ -3,6 +3,7 @@ import {
   type DataServiceCacheUpdatedEvent,
   type DataServiceGranularCacheUpdatedEvent,
   type DataServiceInvalidateQueriesAction,
+  type QueryKey,
 } from '@metamask/base-data-service';
 import {
   createServicePolicy,
@@ -12,6 +13,15 @@ import {
 } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
+import {
+  hashKey,
+  partialMatchKey,
+  QueryCache,
+  type InvalidateOptions,
+  type InvalidateQueryFilters,
+} from '@tanstack/query-core';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import type { VenuePortfolioAdapter } from '../adapters/types';
 import { PredictError, PredictErrorCode } from '../errors';
@@ -28,6 +38,39 @@ import { withPredictNextTrace } from './withPredictNextTrace';
 
 export const PREDICT_PORTFOLIO_SERVICE_NAME =
   'PredictPortfolioService' as const;
+
+/** Bound on remembered reads so a pathological caller cannot grow the
+ * registry without limit; the real cardinality is the distinct page
+ * parameters product code uses. */
+const MAX_CACHED_READS = 32;
+
+/** A cached read the service can refresh in place: the key it cached under
+ * and a zero-argument re-read that refetches through the same wrapped query
+ * function, so completing it republishes `cacheUpdated` for the entry. */
+interface CachedRead {
+  queryKey: QueryKey;
+  refresh: () => Promise<unknown>;
+}
+
+/** Whether a cached read's key matches invalidation filters. Applies the
+ * same key matching TanStack uses to select queries for invalidation:
+ * keyless filters match everything, exact filters compare hashes, and
+ * otherwise the cached key must extend the filter key. Filters other than
+ * the key (type, staleness) still apply to the stale-marking pass; every
+ * key-matching entry is refreshed regardless. */
+const matchesReadFilters = (
+  queryKey: QueryKey,
+  filters?: InvalidateQueryFilters<QueryKey>,
+): boolean => {
+  const filterKey = filters?.queryKey;
+  if (!filterKey) {
+    return true;
+  }
+  if (filters.exact) {
+    return hashKey(queryKey) === hashKey(filterKey);
+  }
+  return partialMatchKey(queryKey, filterKey);
+};
 
 export interface PredictPortfolioServiceGetBalanceAction {
   type: 'PredictPortfolioService:getBalance';
@@ -97,6 +140,12 @@ export class PredictPortfolioService extends BaseDataService<
   readonly #balancePolicy: ServicePolicy;
   readonly #positionsPolicy: ServicePolicy;
   readonly #activityPolicy: ServicePolicy;
+  /** Reads this service has cached, by query hash, for invalidation
+   * refreshes. */
+  readonly #cachedReads = new Map<string, CachedRead>();
+  /** The service's own cache, held here so a reset can remove its entries:
+   * the base class only exposes invalidation. */
+  readonly #queryCache: QueryCache;
 
   constructor({
     messenger,
@@ -104,9 +153,14 @@ export class PredictPortfolioService extends BaseDataService<
     venueId,
     policyOptions,
   }: PredictPortfolioServiceOptions) {
+    const queryCache = new QueryCache();
     super({
       name: PREDICT_PORTFOLIO_SERVICE_NAME,
       messenger,
+      // Injected so `clearAccountData` can remove entries instead of only
+      // marking them stale. The base class builds its QueryClient from these
+      // options.
+      queryClientConfig: { queryCache },
       // Inert pass-through policy. Retries and circuit breaking live in the
       // per-read policies below so that Balance, Positions, and Activity can
       // load and retry independently: exhausting one read's retries must not
@@ -118,6 +172,7 @@ export class PredictPortfolioService extends BaseDataService<
         isServiceFailure: isRetryablePredictError,
       },
     });
+    this.#queryCache = queryCache;
     this.#portfolio = portfolio;
     this.#venueId = venueId;
     this.#readPolicyOptions = policyOptions ?? {};
@@ -154,6 +209,10 @@ export class PredictPortfolioService extends BaseDataService<
   ): Promise<GetBalanceResult> {
     this.#assertVenue(venueId);
     const descriptor = portfolioQueries.getBalance(venueId);
+    // Remember the read so invalidateQueries can refresh its cache entry.
+    this.#registerCachedRead(descriptor.queryKey, () =>
+      this.getBalance(venueId),
+    );
     // Account-scoped: trace timing and outcome only, never the amount.
     return withPredictNextTrace(
       {
@@ -185,6 +244,10 @@ export class PredictPortfolioService extends BaseDataService<
   ): Promise<GetPositionsResult> {
     this.#assertVenue(venueId);
     const descriptor = portfolioQueries.getPositions(venueId, params);
+    // Remember the read so invalidateQueries can refresh its cache entry.
+    this.#registerCachedRead(descriptor.queryKey, () =>
+      this.getPositions(venueId, params),
+    );
     // Account-scoped: trace timing and page shape only, never the amounts.
     return withPredictNextTrace(
       {
@@ -231,6 +294,10 @@ export class PredictPortfolioService extends BaseDataService<
   ): Promise<GetActivityResult> {
     this.#assertVenue(venueId);
     const descriptor = portfolioQueries.getActivity(venueId, params);
+    // Remember the read so invalidateQueries can refresh its cache entry.
+    this.#registerCachedRead(descriptor.queryKey, () =>
+      this.getActivity(venueId, params),
+    );
     // Account-scoped: trace timing and page shape only, never the amounts.
     return withPredictNextTrace(
       {
@@ -267,6 +334,89 @@ export class PredictPortfolioService extends BaseDataService<
           cursor,
         ),
     );
+  }
+
+  /** Remembers a cached read for invalidation refreshes, evicting the
+   * oldest read past the bound. */
+  #registerCachedRead(
+    queryKey: QueryKey,
+    refresh: () => Promise<unknown>,
+  ): void {
+    const hash = hashKey(queryKey);
+    if (
+      !this.#cachedReads.has(hash) &&
+      this.#cachedReads.size >= MAX_CACHED_READS
+    ) {
+      // Maps iterate in insertion order: evict the oldest read.
+      const oldest = this.#cachedReads.keys().next();
+      if (!oldest.done) {
+        this.#cachedReads.delete(oldest.value);
+      }
+    }
+    this.#cachedReads.set(hash, { queryKey, refresh });
+  }
+
+  /**
+   * Refreshes the authoritative reads named by `filters` and republishes
+   * them. The base implementation only marks entries stale: this cache is
+   * never observed, so its refetch-on-invalidate is inert and the
+   * `cacheUpdated` events a UI query client hydrates from would carry the
+   * same pre-invalidation data forever. Marking stale first, then re-reading
+   * every cached entry through its own query function, makes each completed
+   * read publish fresh state with a newer `dataUpdatedAt` — the newer-data
+   * property the UI cache's hydration applies.
+   *
+   * @param filters - Optional filter for selecting specific reads.
+   * @param options - Additional optional options for query invalidations.
+   * @returns Nothing.
+   */
+  async invalidateQueries(
+    filters?: InvalidateQueryFilters<QueryKey>,
+    options?: InvalidateOptions,
+  ): Promise<void> {
+    // Stale first: the refreshes below must not return cached data.
+    await super.invalidateQueries({ ...filters, refetchType: 'none' }, options);
+    // Re-read every cached entry matching the key filters. A failed refresh
+    // keeps the prior cached data and must not fail the caller: the reads
+    // stay stale only until their next fetch.
+    await Promise.all(
+      [...this.#cachedReads.values()]
+        .filter((read) => matchesReadFilters(read.queryKey, filters))
+        .map((read) =>
+          read.refresh().catch((error) => {
+            Logger.error(
+              ensureError(error, 'PredictPortfolioService.invalidateQueries'),
+              'PredictNext: failed to refresh a portfolio read on invalidation',
+            );
+          }),
+        ),
+    );
+  }
+
+  /**
+   * Drops every cached account read and stops publishing the ones it held.
+   * Called when the platform replaces the Predict User: a wallet reset runs
+   * in process, so nothing else evicts this cache. Cancelling first aborts
+   * in-flight reads (the adapters forward the abort signal) so their callers
+   * fail instead of receiving the previous person's data.
+   *
+   * The entries are then removed, not merely invalidated: a stale entry keeps
+   * its data and republishes it on its next fetch, which would hydrate the
+   * previous person's values into the app query client the reset just
+   * cleared. Forgetting the remembered reads keeps the `invalidateQueries`
+   * override from re-reading them.
+   *
+   * @returns Nothing.
+   */
+  async clearAccountData(): Promise<void> {
+    await this.cancelQueries();
+    this.#queryCache.clear();
+    this.#cachedReads.clear();
+  }
+
+  destroy(): void {
+    this.#cachedReads.clear();
+    super.destroy();
   }
 
   #assertVenue(venueId: PredictVenueId): void {

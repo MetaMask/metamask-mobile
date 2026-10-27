@@ -15,6 +15,7 @@ import TraderPositionView from './TraderPositionView';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import type { Position, Trade } from '@metamask/social-controllers';
 import type { TradeAction } from '../../../UI/SocialFeed/utils/tradeAction';
+import { Share } from 'react-native';
 import { handleFetch } from '@metamask/controller-utils';
 import ClipboardManager from '../../../../core/ClipboardManager';
 import Routes from '../../../../constants/navigation/Routes';
@@ -312,6 +313,7 @@ jest.mock('../../../../util/Logger', () => ({
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
+    selectSocialLeaderboardEnabled: () => false,
     selectSocialLeaderboardPerpsEnabled: () =>
       mockSelectSocialLeaderboardPerpsEnabled(),
   }),
@@ -408,6 +410,24 @@ describe('TraderPositionView', () => {
       tokenSymbol: 'PEPE',
       position: makeDefaultPosition(),
     };
+  });
+
+  it('shares the position deeplink from the header', () => {
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    fireEvent.press(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    );
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social/profile/position?positionId=pepe-base&traderId=trader-1',
+    });
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.SHARE_BUTTON),
+    ).toHaveProp('accessibilityLabel', 'Share position');
   });
 
   it('renders the container with real position data', () => {
@@ -826,8 +846,8 @@ describe('TraderPositionView', () => {
     it('renders the perp candle period selector instead of the spot time period selector', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(screen.getByText('1min')).toBeOnTheScreen();
-      expect(screen.getByText('15min')).toBeOnTheScreen();
+      expect(screen.getByText('1m')).toBeOnTheScreen();
+      expect(screen.getByText('5m')).toBeOnTheScreen();
       expect(screen.queryByText('1H')).not.toBeOnTheScreen();
       expect(screen.queryByText('1W')).not.toBeOnTheScreen();
     });
@@ -883,7 +903,7 @@ describe('TraderPositionView', () => {
     it('updates the local candle period without persisting to Redux settings', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      fireEvent.press(screen.getByText('5min'));
+      fireEvent.press(screen.getByText('5m'));
 
       expect(mockUseSocialPerpsChartAdapter).toHaveBeenCalledWith(
         expect.objectContaining({
