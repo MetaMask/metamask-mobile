@@ -16,7 +16,8 @@ export interface PredictImplementationSwitchProps {
   resolving: ReactNode;
   /**
    * Serves this Venue instead of the Active Venue. Only the root router's
-   * route-level Polymarket pinning uses it; PRED-1379 removes it.
+   * route-level Polymarket pinning and the legacy market-list route, which
+   * resolves its own lane, use it; PRED-1379 removes it.
    */
   pinnedVenue?: PredictConfiguredVenue;
 }

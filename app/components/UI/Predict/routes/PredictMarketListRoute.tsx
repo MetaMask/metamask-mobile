@@ -8,12 +8,15 @@ import type { PredictStackParamList } from '../types/navigation';
 import { selectPredictConfig } from '../../PredictNext/selectors/predictConfig';
 import { resolvePredictMarketListLane } from '../../PredictNext/navigation/root/laneResolution';
 import PredictNextStack from '../../PredictNext/navigation/PredictNextStack';
+import { PredictImplementationSwitch } from '../../PredictNext/implementation';
 
 /**
  * MARKET_LIST route component selector.
  *
- * Renders the redesigned `PredictHome` shell when `predictHomeRedesign` is
- * enabled, otherwise falls back to the existing `PredictFeed`. Kept in its own
+ * Serves the market-list lane's Venue through the implementation switch, so
+ * the PredictNext stack gets that Venue. On the legacy branch it renders the
+ * redesigned `PredictHome` shell when `predictHomeRedesign` is enabled,
+ * otherwise the existing `PredictFeed`. Kept in its own
  * module (not `routes/index.tsx`) so it can be imported by tests without
  * pulling the full Predict navigation stack.
  */
@@ -23,10 +26,14 @@ const PredictMarketListRoute = () => {
   const params =
     useRoute<RouteProp<PredictStackParamList, 'PredictMarketList'>>().params;
 
-  if (resolvePredictMarketListLane(config, params) === 'kalshi') {
-    return <PredictNextStack />;
-  }
-  return homeRedesignEnabled ? <PredictHome /> : <PredictFeed />;
+  return (
+    <PredictImplementationSwitch
+      pinnedVenue={resolvePredictMarketListLane(config, params)}
+      legacy={homeRedesignEnabled ? <PredictHome /> : <PredictFeed />}
+      next={<PredictNextStack />}
+      resolving={null}
+    />
+  );
 };
 
 export default PredictMarketListRoute;
