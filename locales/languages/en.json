@@ -9522,8 +9522,7 @@
       "dismiss": "Dismiss",
       "badge_label": "2-step verification is on",
       "toast_on": "2-step verification is on",
-      "toast_off": "2-step verification is off",
-      "setup_operation_description": "Protect your Money account with a passkey"
+      "toast_off": "2-step verification is off"
     },
     "transfer_sheet": {
       "title": "Send funds to",
