@@ -7224,6 +7224,11 @@
   },
   "balance_breakdown": {
     "allocation": "Allocation",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "Unable to load balance"
+    },
     "hide_balance": "Hide total balance",
     "show_balance": "Show total balance"
   },
