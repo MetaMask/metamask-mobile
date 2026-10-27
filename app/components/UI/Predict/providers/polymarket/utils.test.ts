@@ -1,4 +1,3 @@
-import { DiscountType } from '@metamask/bridge-controller';
 import { query } from '@metamask/controller-utils';
 import EthQuery from '@metamask/eth-query';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
@@ -3199,7 +3198,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
         marketId: 'market-1',
@@ -3227,7 +3225,7 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+  it('returns zero fees when market fees are waived', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValue({
@@ -3256,17 +3254,13 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
       marketId: 'market-1',
       userBetAmount: 10,
     });
 
-    expect(result).toEqual({
-      fees: waivedFees,
-      originalFees: waivedFees,
-    });
+    expect(result).toEqual({ fees: waivedFees });
   });
 
   it('uses configured service fees when no membership policy is available', async () => {
@@ -3340,7 +3334,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });
@@ -3504,7 +3497,6 @@ describe('polymarket utils', () => {
           permit2Enabled: false,
         },
         feePolicy: {
-          discountType: DiscountType.SUBSCRIPTION,
           builderCode: 'predict-pro-builder',
         },
       });
@@ -3868,7 +3860,6 @@ describe('polymarket utils', () => {
         permit2Enabled: false,
       },
       feePolicy: {
-        discountType: DiscountType.SUBSCRIPTION,
         builderCode: 'predict-pro-builder',
       },
     });

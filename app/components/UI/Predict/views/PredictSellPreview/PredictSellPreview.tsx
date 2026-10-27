@@ -9,6 +9,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 import {
   RouteProp,
   StackActions,
@@ -404,7 +405,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
                 <>
                   <Skeleton
                     width={160}
-                    height={56}
+                    height={typography.sAmountDisplayLg.lineHeight}
                     style={tw.style('rounded-lg')}
                   />
                   <Skeleton
@@ -464,7 +465,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               loading={isPreviewLoading}
               total={total}
               originalTotal={originalFeeBreakdown?.total}
-              feePolicyDiscountType={preview?.feePolicy?.discountType}
+              feePolicy={preview?.feePolicy}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>
@@ -483,8 +484,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}
           betAmount={feeBreakdown.order}

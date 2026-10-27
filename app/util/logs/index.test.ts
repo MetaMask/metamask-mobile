@@ -1000,6 +1000,7 @@ describe('logs :: generateStateLogs', () => {
         },
         enrolledCredentials: [
           {
+            id: 'email_otp',
             type: 'email_otp',
             status: 'active',
             enrolledAt: 1700000000000,

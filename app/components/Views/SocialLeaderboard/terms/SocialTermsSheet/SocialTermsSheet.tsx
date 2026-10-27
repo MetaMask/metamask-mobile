@@ -159,6 +159,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
           isDisabled={!hasReachedEnd}
           onChange={setIsChecked}
           label={strings('social_leaderboard.terms.checkbox')}
+          labelProps={{ style: { flex: 1 } }}
           testID={SocialTermsSheetSelectorsIDs.CHECKBOX}
         />
         <Button
