@@ -2785,6 +2785,7 @@ export class PolymarketProvider implements PredictProvider {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
         positions: claimPositions,
+        marketVersions,
       };
     } catch (error) {
       // Log error for debugging

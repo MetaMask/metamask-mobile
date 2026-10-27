@@ -75,9 +75,9 @@ describe('useNativeCurrencySymbol', () => {
     expect(result.current).toEqual({ nativeCurrencySymbol: 'ETH' });
   });
 
-  it('returns pathUSD when chainId is Hex Tempo Mainnet chainId', () => {
+  it('returns OUSD when chainId is Hex Tempo Mainnet chainId', () => {
     const { result } = renderWithMock({ chainId: '0x1079' });
-    expect(result.current).toEqual({ nativeCurrencySymbol: 'pathUSD' });
+    expect(result.current).toEqual({ nativeCurrencySymbol: 'OUSD' });
   });
 
   it('returns pathUSD when chainId is Hex Tempo Testnet chainId', () => {

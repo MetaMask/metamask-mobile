@@ -23,7 +23,7 @@ jest.mock('../../Logger', () => ({ error: jest.fn() }));
 const mockStartMfaFlow = jest.mocked(startMfaFlow);
 
 const enrolledCredentials: EnrolledCredential[] = [
-  { type: 'email_otp', status: 'active', verified: true },
+  { id: 'email_otp', type: 'email_otp', status: 'active', verified: true },
 ];
 
 const renderUseMfa = () =>

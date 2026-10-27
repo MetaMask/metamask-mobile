@@ -141,10 +141,14 @@ import {
 } from '../utils/analytics';
 import { resolveCryptoTargetPrice } from '../utils/cryptoUpDown';
 import { validateMarketBettable } from '../utils/marketState';
+import { getPredictClaimOutcomeVersion } from '../utils/marketVersion';
 import { generateOrderId } from '../utils/orders';
 import { isActionableClaimablePosition } from '../utils/positions';
 import { ensureError } from '../utils/predictErrorHandler';
-import { resolvePredictFeePolicy } from '../utils/predictFeePolicy';
+import {
+  resolvePredictFeePolicy,
+  syncPreviewWithFeePolicy,
+} from '../utils/predictFeePolicy';
 import { resolvePredictFeatureFlags } from '../utils/resolvePredictFeatureFlags';
 import {
   findLiveMarket,
@@ -155,6 +159,46 @@ import { validateDepositTransactions } from '../utils/validateTransactions';
 import { PredictAnalytics } from './PredictAnalytics';
 import type { PredictControllerMethodActions } from './PredictController-method-action-types';
 import { withTrace, type TraceableController } from './utils/withTrace';
+
+export const PREDICT_BLOCK_TRACKER_TIMEOUT_MS = 10_000;
+/**
+ * The provider's HTTP requests time out after 35 seconds. This longer
+ * controller deadline also bounds non-HTTP provider work without allowing a
+ * request to remain pending indefinitely.
+ */
+export const PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS = 60_000;
+
+/**
+ * Rejects an operation that does not settle within its deadline.
+ *
+ * @param request - Promise returned by the underlying operation.
+ * @param timeoutMs - Maximum time to wait.
+ * @param timeoutMessage - Error message used when the deadline expires.
+ * @returns The operation result.
+ */
+async function withTimeout<T>(
+  request: Promise<T>,
+  timeoutMs: number,
+  timeoutMessage: string,
+): Promise<T> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+
+  try {
+    return await Promise.race([
+      request,
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(
+          () => reject(new Error(timeoutMessage)),
+          timeoutMs,
+        );
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
+}
 
 /**
  * State shape for PredictController
@@ -704,50 +748,6 @@ export class PredictController extends BaseController<
   }
 
   /**
-   * Adds the current fee policy to provider parameters when a waiver is
-   * available. A previously attached policy is removed before revalidation so
-   * stale previews cannot carry a fee waiver into submission. Membership
-   * previews retain their standard fees in `originalFees`; restore those fees
-   * when the policy is no longer available so standard submissions use the
-   * correct Permit2 amount.
-   *
-   * Preview calls stop here. `previewOrder` assigns the waived fees. Submit
-   * calls `priceSubmitPreviewWithFeePolicy` when the policy was not present
-   * while the preview was priced.
-   *
-   * @param params - Provider parameters that may contain a previous policy.
-   * @returns Provider parameters with the current waiver policy, if any.
-   */
-  private async withPredictFeePolicy<
-    T extends {
-      feePolicy?: PredictFeePolicy;
-      fees?: OrderPreview['fees'];
-      originalFees?: OrderPreview['originalFees'];
-    },
-  >(params: T): Promise<T> {
-    const previousFeePolicy = params.feePolicy;
-    const paramsWithFeePolicy = { ...params };
-    delete paramsWithFeePolicy.feePolicy;
-
-    const feePolicy = await this.getPredictFeePolicy();
-
-    if (!feePolicy) {
-      if (previousFeePolicy && params.originalFees) {
-        paramsWithFeePolicy.fees = params.originalFees;
-      } else if (previousFeePolicy) {
-        // Do not submit a stale waived fee when an older preview does not
-        // contain the standard fee snapshot needed to restore it.
-        delete paramsWithFeePolicy.fees;
-      }
-
-      delete paramsWithFeePolicy.originalFees;
-      return paramsWithFeePolicy;
-    }
-
-    return { ...paramsWithFeePolicy, feePolicy };
-  }
-
-  /**
    * Prices a submit preview with the same subscription fee assignment preview
    * uses. Runs only when membership appears after the preview was priced at
    * the standard rate, so the builder code and Permit2 amount match.
@@ -829,7 +829,11 @@ export class PredictController extends BaseController<
       networkClientId,
     );
     try {
-      await networkClient.blockTracker.checkForLatestBlock();
+      await withTimeout(
+        networkClient.blockTracker.checkForLatestBlock(),
+        PREDICT_BLOCK_TRACKER_TIMEOUT_MS,
+        `Block tracker update timed out after ${PREDICT_BLOCK_TRACKER_TIMEOUT_MS}ms`,
+      );
     } catch (error) {
       DevLogger.log('PredictController: Error invalidating query cache', {
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1390,10 +1394,14 @@ export class PredictController extends BaseController<
       },
       async () => {
         try {
-          return await this.provider.getPositions({
-            ...params,
-            address: selectedAddress,
-          });
+          return await withTimeout(
+            this.provider.getPositions({
+              ...params,
+              address: selectedAddress,
+            }),
+            PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+            `Predict positions request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+          );
         } catch (error) {
           this.update((state) => {
             state.lastError =
@@ -1923,7 +1931,8 @@ export class PredictController extends BaseController<
       const provider = this.provider;
 
       const signer = this.getSigner();
-      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
       return provider.previewOrder({
         ...paramsWithFeePolicy,
@@ -1951,7 +1960,8 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
       const signer = this.getSigner();
-      const paramsWithFeePolicy = await this.withPredictFeePolicy(params);
+      const feePolicy = await this.getPredictFeePolicy();
+      const paramsWithFeePolicy = syncPreviewWithFeePolicy(params, feePolicy);
 
       return provider.previewMaxBuyOrder({
         ...paramsWithFeePolicy,
@@ -2041,9 +2051,10 @@ export class PredictController extends BaseController<
     let previewWithFeePolicy: OrderPreview;
 
     try {
-      previewWithFeePolicy = await this.priceSubmitPreviewWithFeePolicy(
-        await this.withPredictFeePolicy(params.preview),
-      );
+      const feePolicy = await this.getPredictFeePolicy();
+      const syncedPreview = syncPreviewWithFeePolicy(params.preview, feePolicy);
+      previewWithFeePolicy =
+        await this.priceSubmitPreviewWithFeePolicy(syncedPreview);
       await validateMarketBettable({
         provider: this.provider,
         preview: previewWithFeePolicy,
@@ -2551,6 +2562,7 @@ export class PredictController extends BaseController<
           marketTitle: analyticsProperties?.marketTitle,
           transactionType: analyticsProperties?.transactionType,
           entryPoint: analyticsProperties?.entryPoint,
+          outcomeVersion: previewWithFeePolicy.outcomeVersion,
           completionDuration,
         }),
       );
@@ -2712,12 +2724,16 @@ export class PredictController extends BaseController<
             signer.address;
           state.claimablePositions[addressKey] = [...claimedPositions];
         });
-        this.pendingClaimAnalytics[signer.address.toLowerCase()] =
-          this.buildClaimAnalyticsProperties(
-            analyticsContext,
-            claimedPositions,
-          );
       }
+
+      // Re-stash the claim analytics with the claimed positions and their
+      // market versions, which are only known after prepareClaim.
+      this.pendingClaimAnalytics[signer.address.toLowerCase()] =
+        this.buildClaimAnalyticsProperties(
+          analyticsContext,
+          claimablePositions,
+          prepareClaimResult.marketVersions,
+        );
 
       // Find network client - can fail if chain is not supported
       const networkClientId = this.messenger.call(
@@ -2820,6 +2836,9 @@ export class PredictController extends BaseController<
         e,
         this.getErrorContext('claimWithConfirmation', {
           providerId: POLYMARKET_PROVIDER_ID,
+          outcomeVersion:
+            this.pendingClaimAnalytics[signer.address.toLowerCase()]
+              ?.outcomeVersion,
         }),
       );
 
@@ -2857,10 +2876,12 @@ export class PredictController extends BaseController<
    * event. Always sets `transaction_type: mm_predict_claim`. When a single
    * market is being claimed, `market_id`/`market_title` are populated; for
    * multi-market claims they are omitted in favor of `claimable_positions_count`.
+   * `outcome_version` is set when the positions' market versions are passed.
    */
   private buildClaimAnalyticsProperties(
     analyticsContext?: PredictTradeAnalyticsProperties,
     claimablePositions?: PredictPosition[],
+    marketVersions?: Record<string, string | undefined>,
   ): PredictTradeAnalyticsProperties {
     const properties: PredictTradeAnalyticsProperties = {
       entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
@@ -2879,6 +2900,14 @@ export class PredictController extends BaseController<
         properties.marketId = properties.marketId ?? singlePosition.marketId;
         properties.marketTitle = properties.marketTitle ?? singlePosition.title;
       }
+    }
+
+    const outcomeVersion = getPredictClaimOutcomeVersion(
+      claimablePositions,
+      marketVersions,
+    );
+    if (outcomeVersion) {
+      properties.outcomeVersion = outcomeVersion;
     }
 
     return properties;
@@ -4586,7 +4615,11 @@ export class PredictController extends BaseController<
         }
 
         await this.invalidateQueryCache(this.provider.chainId);
-        return this.provider.getBalance({ ...params, address });
+        return withTimeout(
+          this.provider.getBalance({ ...params, address }),
+          PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS,
+          `Predict balance request timed out after ${PREDICT_PORTFOLIO_REQUEST_TIMEOUT_MS}ms`,
+        );
       },
     );
   }
