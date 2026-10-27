@@ -175,9 +175,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       // non-empty list and ListEmptyComponent never runs. Render the empty
       // copy as a footer in that case.
       ListFooterComponent={
-        markets.length === 0 && hasStickyHeader
-          ? (emptyComponent ?? renderEmpty)
-          : undefined
+        markets.length === 0 && hasStickyHeader ? renderEmpty : undefined
       }
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       // Disabled so the scroll-to-top on filter change reliably reaches the
