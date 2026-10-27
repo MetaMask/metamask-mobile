@@ -128,4 +128,49 @@ describe('SocialTermsSheet', () => {
       queryByTestId(SocialTermsSheetSelectorsIDs.BODY),
     ).not.toBeOnTheScreen();
   });
+
+  it('allows only same-origin navigation for the bundled terms page', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    const onShouldStartLoadWithRequest = getByTestId(
+      SocialTermsSheetSelectorsIDs.WEBVIEW,
+    ).props.onShouldStartLoadWithRequest;
+
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
+    ).toBe(true);
+    expect(
+      onShouldStartLoadWithRequest({
+        url: 'https://metamask.com.evil.example/terms',
+      }),
+    ).toBe(false);
+    expect(
+      onShouldStartLoadWithRequest({ url: 'http://metamask.com/terms' }),
+    ).toBe(false);
+  });
+
+  it('allows same-origin navigation for a hosted terms page', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        uri="https://metamask.com/social-tos"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+    const onShouldStartLoadWithRequest = getByTestId(
+      SocialTermsSheetSelectorsIDs.WEBVIEW,
+    ).props.onShouldStartLoadWithRequest;
+
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://metamask.com/privacy' }),
+    ).toBe(true);
+    expect(
+      onShouldStartLoadWithRequest({ url: 'https://evil.example/terms' }),
+    ).toBe(false);
+  });
 });

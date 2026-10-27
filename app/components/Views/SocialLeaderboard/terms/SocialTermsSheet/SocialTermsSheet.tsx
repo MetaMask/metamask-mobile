@@ -27,6 +27,7 @@ const SCROLL_END_THRESHOLD = 20;
 /** Body height as a share of the window, matching the design. */
 const BODY_HEIGHT_RATIO = 0.6;
 const WEBVIEW_SCROLL_END_EVENT = 'social-terms-scroll-end';
+const TERMS_BASE_URL = 'https://metamask.com';
 
 const WEBVIEW_SCROLL_END_JS = `(function () {
   function check() {
@@ -38,6 +39,20 @@ const WEBVIEW_SCROLL_END_JS = `(function () {
   check();
 })();
 true;`;
+
+const getUrlOrigin = (url: string): string | null => {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return null;
+  }
+};
+
+const isAllowedTermsUrl = (
+  requestUrl: string,
+  allowedOrigin: string | null,
+): boolean =>
+  getUrlOrigin(requestUrl) === allowedOrigin && allowedOrigin !== null;
 
 export interface SocialTermsSheetProps {
   /**
@@ -73,6 +88,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const [hasReachedEnd, setHasReachedEnd] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(0);
+  const allowedOrigin = getUrlOrigin(html ? TERMS_BASE_URL : (uri ?? ''));
 
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
@@ -141,9 +157,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
             onShouldStartLoadWithRequest={(request) =>
-              html
-                ? request.url.startsWith('https://metamask.com')
-                : request.url === uri
+              isAllowedTermsUrl(request.url, allowedOrigin)
             }
             testID={SocialTermsSheetSelectorsIDs.WEBVIEW}
           />
