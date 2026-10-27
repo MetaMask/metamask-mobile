@@ -386,7 +386,7 @@ describe('EarningsTab', () => {
         },
         labels: {
           breakdown: 'Breakdown',
-          recordedEarningsLabel: 'Recorded earnings',
+          recordedEarningsLabel: 'Total earnings',
           availableToClaim: 'Available to claim',
           held: 'Held',
           blocked: 'Blocked',
@@ -432,6 +432,59 @@ describe('EarningsTab', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
+  });
+
+  it('opens the balance breakdown from the info button while Claim is shown', () => {
+    const { getByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        lifetime_total: '132000000',
+        claimable: '1000000',
+        held: '100000000',
+        blocked: '12000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          blocking_reason: 'SUSPENDED',
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    fireEvent.press(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      {
+        variant: 'breakdown',
+        title: 'Breakdown',
+        totals: {
+          lifetime_total: '132000000',
+          claimable: '1000000',
+          held: '100000000',
+          blocked: '12000000',
+          voided: undefined,
+          pending: '0',
+          claimed: '0',
+        },
+        labels: {
+          breakdown: 'Breakdown',
+          recordedEarningsLabel: 'Total earnings',
+          availableToClaim: 'Available to claim',
+          held: 'Held',
+          blocked: 'Blocked',
+          voided: 'Voided',
+          pending: 'Pending',
+          claimed: 'Claimed',
+        },
+      },
+    );
   });
 
   it('shows Paused for blocked cashback with nothing held', () => {

@@ -12,7 +12,6 @@ export const ProfileDrawerSelectorsIDs = {
   PROFILE_IDENTITY: 'profile-drawer-profile-identity',
   PROFILE_AVATAR: 'profile-drawer-profile-avatar',
   PROFILE_HANDLE: 'profile-drawer-profile-handle',
-  PROFILE_ACCOUNT_NAME: 'profile-drawer-profile-account-name',
   NOTIFICATIONS_ROW: 'profile-drawer-notifications-row',
   ACTIVITY_ROW: 'profile-drawer-activity-row',
   METAMASK_ORANGE: 'profile-drawer-metamask-orange-row',
