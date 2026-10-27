@@ -1658,7 +1658,7 @@
       "username_label": "Nutzername",
       "display_name_label": "Anzeigename",
       "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and underscores.",
+      "username_invalid": "Use letters, numbers, and hyphens.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
       "connect_x_error": "Couldn't connect X. Check your connection and try again.",
