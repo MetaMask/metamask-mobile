@@ -210,7 +210,7 @@ async function listRunArtifacts(runId) {
     page++;
   }
 
-  return artifacts;
+  return artifacts.filter((a) => !a.expired);
 }
 
 /**
@@ -1059,10 +1059,12 @@ async function collectE2ECounts() {
 
 async function collectE2ETestTimes() {
   const e2eArtifacts = await collectAppiumReportArtifacts();
+  const defaultRunId = await getRunId();
 
   console.log(`[e2e_test_times] found ${e2eArtifacts.length} Appium Playwright artifact(s)`);
+  const { samples: previous, sources: previousSources } = await fetchPreviousTimingSamples();
+
   if (e2eArtifacts.length === 0) {
-    const previous = await fetchPreviousTimingSamples();
     const timings = summarizeTimingSamples(previous);
     if (Object.keys(timings).length === 0) {
       console.warn(
@@ -1075,11 +1077,18 @@ async function collectE2ETestTimes() {
       `[e2e_test_times] no playwright-json-report-appium-* artifacts on the selected CI run — ` +
         `republishing retained timing history for ${Object.keys(previous).length} spec file(s)`,
     );
-    return { timings, samples: previous };
+    return { timings, samples: previous, sources: previousSources };
   }
 
+  // A run's durations may only enter the retained window once. Fallback runs are
+  // reused across collections, so skip platforms whose source run is already in.
+  const sources = { ...previousSources };
   const acc = {};
   for (const { artifact, dims, source } of e2eArtifacts) {
+    const runId = source?.runId ?? defaultRunId;
+    if (previousSources[dims.platform] === runId) continue;
+    sources[dims.platform] = runId;
+
     const destDir = await downloadArtifact(artifact.name, source);
     const report = await readPlaywrightJsonReport(destDir);
     aggregateTimingsFromPlaywrightJson(report, dims.platform, acc);
@@ -1091,14 +1100,13 @@ async function collectE2ETestTimes() {
     }
   }
 
-  const previous = await fetchPreviousTimingSamples();
   const samples = mergePlatformTimingSamples(previous, acc);
   const timings = summarizeTimingSamples(samples);
   console.log(
     `[e2e_test_times] aggregated ${Object.keys(acc).length} spec file(s); ` +
       `publishing p75 across ${Object.keys(samples).length} retained spec history entries`,
   );
-  return { timings, samples };
+  return { timings, samples, sources };
 }
 
 const MAX_PREVIOUS_QA_STATS_ZIP_BYTES = 50 * 1024 * 1024;
@@ -1188,14 +1196,26 @@ function findEndOfCentralDirectory(buffer) {
   throw new Error('qa-stats artifact is not a zip file');
 }
 
+/**
+ * @param {object | null | undefined} parsed
+ * @returns {{ samples: object, sources: Record<string, string> }}
+ */
+function previousTimingStateFromQaStats(parsed) {
+  const sources = parsed?.e2e_test_time_sources;
+  return {
+    samples: timingSamplesFromQaStats(parsed),
+    sources: sources && typeof sources === 'object' ? sources : {},
+  };
+}
+
 async function fetchPreviousTimingSamples() {
   const override = process.env.PREVIOUS_QA_STATS_PATH?.trim();
   if (override) {
     const parsed = JSON.parse(await readFile(override, 'utf8'));
-    return timingSamplesFromQaStats(parsed);
+    return previousTimingStateFromQaStats(parsed);
   }
 
-  if (!GITHUB_TOKEN) return {};
+  if (!GITHUB_TOKEN) return { samples: {}, sources: {} };
 
   try {
     const headers = {
@@ -1209,7 +1229,7 @@ async function fetchPreviousTimingSamples() {
       throw new Error(`qa-stats runs → ${runsRes.status} ${runsRes.statusText}`);
     }
     const run = (await runsRes.json())?.workflow_runs?.[0];
-    if (!run?.id) return {};
+    if (!run?.id) return { samples: {}, sources: {} };
 
     const artifactsRes = await fetch(
       `https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${run.id}/artifacts`,
@@ -1221,14 +1241,14 @@ async function fetchPreviousTimingSamples() {
     const artifact = ((await artifactsRes.json())?.artifacts ?? []).find(
       (entry) => entry?.name === 'qa-stats' && !entry?.expired,
     );
-    if (!artifact?.archive_download_url) return {};
+    if (!artifact?.archive_download_url) return { samples: {}, sources: {} };
 
     const redirectRes = await fetch(artifact.archive_download_url, {
       headers,
       redirect: 'manual',
     });
     const downloadUrl = redirectRes.headers.get('location');
-    if (!downloadUrl) return {};
+    if (!downloadUrl) return { samples: {}, sources: {} };
     const zipRes = await fetch(downloadUrl);
     if (!zipRes.ok) {
       throw new Error(`qa-stats download → ${zipRes.status} ${zipRes.statusText}`);
@@ -1245,11 +1265,11 @@ async function fetchPreviousTimingSamples() {
       readQaStatsJsonFromZip(Buffer.from(await zipRes.arrayBuffer())),
     );
     console.log(`[e2e_test_times] retained timing history from qa-stats run #${run.id}`);
-    return timingSamplesFromQaStats(parsed);
+    return previousTimingStateFromQaStats(parsed);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.warn(`[e2e_test_times] previous timing history unavailable: ${message}`);
-    return {};
+    return { samples: {}, sources: {} };
   }
 }
 
@@ -1357,10 +1377,14 @@ async function main() {
       if (namespace === 'e2e_test_times') {
         const timings = nested?.timings ?? nested;
         const samples = nested?.samples;
+        const sources = nested?.sources;
         if (!timings || Object.keys(timings).length === 0) continue;
         stats.e2e_test_times = timings;
         if (samples && Object.keys(samples).length > 0) {
           stats.e2e_test_time_samples = samples;
+        }
+        if (sources && Object.keys(sources).length > 0) {
+          stats.e2e_test_time_sources = sources;
         }
         continue;
       }
