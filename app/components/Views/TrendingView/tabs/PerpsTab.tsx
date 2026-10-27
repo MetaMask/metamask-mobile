@@ -294,7 +294,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     ],
   );
 
-  if (!isPerpsEnabled && !isLoading) {
+  if (!isPerpsEnabled) {
     return null;
   }
 
@@ -320,7 +320,13 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
         // (above the floating tab bar) instead of being clipped to the tab.
         // Android: wrap <Modal> in a plain <View> to avoid rendering issues.
         <View>
-          <Modal visible transparent animationType="none" statusBarTranslucent>
+          <Modal
+            visible
+            transparent
+            animationType="none"
+            statusBarTranslucent
+            onRequestClose={() => setIsSortSheetVisible(false)}
+          >
             <ModalSafeAreaProvider>
               <PerpsMarketSortFieldBottomSheet
                 isVisible

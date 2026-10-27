@@ -1,5 +1,5 @@
 import React from 'react';
-import { RefreshControl } from 'react-native';
+import { Modal, RefreshControl } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import type { TabProps } from '../hooks/useExploreRefresh';
@@ -311,16 +311,35 @@ describe('PerpsTab', () => {
     expect(queryByTestId('top-traders-section')).toBeNull();
   });
 
-  it('returns null when perps is disabled and not loading', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectPerpsEnabledFlag) return false;
-      if (selector === selectSocialLeaderboardEnabled) return true;
-      if (selector === selectPerpsWatchlistMarkets) return [];
-      return undefined;
+  it.each([false, true])(
+    'returns null when perps is disabled (isLoading: %s)',
+    (isLoading) => {
+      mockUsePerpsMarkets.mockReturnValue({ markets: [], isLoading });
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEnabledFlag) return false;
+        if (selector === selectSocialLeaderboardEnabled) return true;
+        if (selector === selectPerpsWatchlistMarkets) return [];
+        return undefined;
+      });
+
+      const { queryByTestId } = renderPerpsTab();
+      expect(queryByTestId('perps-tab-market-list')).toBeNull();
+      expect(queryByTestId('top-traders-section')).toBeNull();
+    },
+  );
+
+  it('closes the sort sheet on Android back press', () => {
+    const { UNSAFE_getByType, queryByTestId } = renderPerpsTab();
+    act(() => {
+      (mockFiltersBarProps.current.onSortPress as () => void)();
+    });
+    expect(queryByTestId('perps-tab-sort-sheet')).toBeOnTheScreen();
+
+    act(() => {
+      UNSAFE_getByType(Modal).props.onRequestClose();
     });
 
-    const { queryByTestId } = renderPerpsTab();
-    expect(queryByTestId('perps-tab-market-list')).toBeNull();
+    expect(queryByTestId('perps-tab-sort-sheet')).toBeNull();
   });
 
   it('renders skeleton rows without market rows or the filter bar while loading', () => {
