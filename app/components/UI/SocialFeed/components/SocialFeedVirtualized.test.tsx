@@ -458,6 +458,22 @@ describe('SocialFeedVirtualized', () => {
     expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
+  it('clears the refresh spinner when the host callback throws', async () => {
+    const onRefresh = jest.fn(() => {
+      throw new Error('analytics down');
+    });
+    renderFeed({ onRefresh });
+    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
+
+    await act(async () => {
+      await expect(getRefreshControl().props.onRefresh()).rejects.toThrow(
+        'analytics down',
+      );
+    });
+
+    expect(getRefreshControl().props.refreshing).toBe(false);
+  });
+
   it('holds the refresh spinner for the minimum duration', async () => {
     jest.useFakeTimers();
     renderFeed();

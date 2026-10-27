@@ -288,8 +288,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    onRefresh?.();
     try {
+      onRefresh?.();
       await Promise.all([refresh(), waitForMinimumRefresh()]);
     } finally {
       setRefreshing(false);
