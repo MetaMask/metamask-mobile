@@ -4,6 +4,7 @@
  */
 import '../../../../../../tests/component-view/mocks';
 
+import { Text } from 'react-native';
 import {
   act,
   cleanup,
@@ -1084,11 +1085,14 @@ describe('PerpsOrderView', () => {
 
     const renderAtMax = () => renderWithAmount(ABOVE_MAX_AMOUNT);
 
+    // The amount renders as one animated Text per glyph, so join their text.
     const readDisplayedAmount = () =>
       Number(
         screen
           .getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)
-          .props.children.toString()
+          .findAllByType(Text)
+          .map((glyph) => glyph.props.children)
+          .join('')
           .replace(/[^0-9.]/g, ''),
       );
 
