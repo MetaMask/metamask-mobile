@@ -35,6 +35,13 @@ import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
 
 const VENDOR_TERMS_SCREEN_NAME = 'vba_vendor_terms';
 
@@ -83,19 +90,34 @@ const CreateVirtualBankAccount = ({
     disclaimers,
     isLoading,
     isAccepting,
-    error,
+    error: disclaimersError,
     acceptDisclaimers,
     retry,
   } = useKycDisclaimers();
   const { apyPercent } = useMoneyVaultApy();
   const { arrivalTimeframe } = useVbaArrivalTime();
 
+  let vendorTermsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (disclaimersError) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    vendorTermsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+    contentReady: !isLoading,
+    contentState: vendorTermsContentState,
+  });
+
   // The user can't agree to disclaimers they haven't been shown.
   const canAgreeAndContinue =
     !isLoading &&
     !isAccepting &&
     !isAdvancing &&
-    !error &&
+    !disclaimersError &&
     Boolean(disclaimers?.length);
 
   useEffect(() => {
@@ -104,10 +126,10 @@ const CreateVirtualBankAccount = ({
 
   // Fires when a load, empty-catalog or save error appears, not on each render.
   useEffect(() => {
-    if (error) {
+    if (disclaimersError) {
       trackVendorTerms('failed', 'terms_unavailable');
     }
-  }, [error]);
+  }, [disclaimersError]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -223,7 +245,7 @@ const CreateVirtualBankAccount = ({
       </ScrollView>
 
       <Box twClassName="gap-4 px-4 pt-4 pb-2">
-        {error ? (
+        {disclaimersError ? (
           <Box
             alignItems={BoxAlignItems.Center}
             testID={CreateVirtualBankAccountSelectorsIDs.DISCLAIMERS_ERROR}

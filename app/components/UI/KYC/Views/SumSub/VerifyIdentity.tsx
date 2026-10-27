@@ -40,6 +40,13 @@ import {
   buildKycBaseProperties,
   trackVbaEvent,
 } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  KYC_SCREEN_CONTENT_STATE,
+  KYC_SCREEN_ID,
+  KYC_SCREEN_PERFORMANCE_CONFIG,
+  type KycScreenContentState,
+} from '../../kycScreenPerformance';
 
 const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
   trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, {
@@ -84,6 +91,21 @@ const VbaVerifyIdentity = ({ onSuccess }: VbaVerifyIdentityProps) => {
   const tw = useTailwind();
   const { disclaimers, isLoading, error, retry } = useKycSessionDisclaimers();
   const [isTermsSheetOpen, setIsTermsSheetOpen] = useState(false);
+
+  let identityTermsContentState: KycScreenContentState =
+    KYC_SCREEN_CONTENT_STATE.EMPTY;
+  if (error) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.ERROR;
+  } else if (disclaimers?.length) {
+    identityTermsContentState = KYC_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: KYC_SCREEN_PERFORMANCE_CONFIG,
+    screenId: KYC_SCREEN_ID.IDENTITY_VERIFICATION_TERMS,
+    contentReady: !isLoading,
+    contentState: identityTermsContentState,
+  });
 
   // The sheet can't open without the idOS / SumSub terms to review.
   const canContinue = !isLoading && !error && Boolean(disclaimers?.length);

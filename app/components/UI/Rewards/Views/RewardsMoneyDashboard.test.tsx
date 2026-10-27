@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
@@ -697,12 +697,30 @@ describe('RewardsMoneyDashboard', () => {
     ).toBeNull();
   });
 
-  it('renders the earnings indicator when there is a claimable balance', () => {
+  it('renders the earnings indicator when a referee can claim at least $1', () => {
     const { getByTestId } = renderDashboard({
+      referralMeEntry: {
+        loading: false,
+        error: false,
+        data: createReferralMe({ roles: ['REFEREE'], ui_variant: 'REFEREE' }),
+      },
       earningsSummaryEntry: {
         loading: false,
         error: false,
-        data: { ...EARNINGS_SUMMARY, claimable: '50' },
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
       },
     });
 
@@ -715,6 +733,33 @@ describe('RewardsMoneyDashboard', () => {
       width: 6,
       height: 6,
     });
+  });
+
+  it('renders no earnings indicator for a referrer with cashback of at least $1', () => {
+    const { queryByTestId } = renderDashboard({
+      earningsSummaryEntry: {
+        loading: false,
+        error: false,
+        data: {
+          ...EARNINGS_SUMMARY,
+          claimable: '1000000',
+          self_earned: {
+            ...EARNINGS_SUMMARY.self_earned,
+            by_claim_family: {
+              REFERRAL_TRADE_FEE_CASHBACK: {
+                ...emptyBranch,
+                lifetime: '7650000',
+                claimable: '1000000',
+              },
+            },
+          },
+        } as unknown as EarningsSummaryDto,
+      },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
+    ).toBeNull();
   });
 
   it('switches to the Earnings tab body', () => {
@@ -818,5 +863,60 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
+  });
+
+  it('pads a short panel so the title clip can scroll into view', () => {
+    const { getByTestId } = renderDashboard({ subscriptionId: null });
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 640 } },
+    });
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER).props
+          .style,
+      ).height,
+    ).toBe(76);
+  });
+
+  it('leaves a tall panel without a clip spacer', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 800 } },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER),
+    ).toBeNull();
   });
 });

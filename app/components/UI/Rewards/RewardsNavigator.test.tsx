@@ -454,18 +454,25 @@ describe('RewardsNavigator', () => {
     mockIsFocused.mockReturnValue(true);
   });
 
-  const buildNavWrapper = (component: React.ReactElement) => (
+  const buildNavWrapper = (
+    component: React.ReactElement,
+    initialParams?: object,
+  ) => (
     <Provider store={store}>
       <NavigationContainer>
         <Stack.Navigator>
-          <Stack.Screen name="Test">{() => component}</Stack.Screen>
+          <Stack.Screen name="Test" initialParams={initialParams}>
+            {() => component}
+          </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
   );
 
-  const renderWithNavigation = (component: React.ReactElement) =>
-    render(buildNavWrapper(component));
+  const renderWithNavigation = (
+    component: React.ReactElement,
+    initialParams?: object,
+  ) => render(buildNavWrapper(component, initialParams));
 
   describe('Version guard refresh key', () => {
     it('passes the active Rewards route to the version guard', () => {
@@ -560,6 +567,68 @@ describe('RewardsNavigator', () => {
         expect(mockCanGoBack).toHaveBeenCalled();
       });
       expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('opens a money ledger screen without a points subscription', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_EARNINGS_HISTORY_VIEW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-earnings-history-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('opens a money ledger screen from the nested screen param before the stack mounts', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_FLOW }],
+          }),
+      );
+
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />, {
+        screen: Routes.REWARDS_TRADING_REBATES_VIEW,
+      });
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-trading-rebates-view')).toBeOnTheScreen();
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dismisses the flow when a points screen is focused and the subscription is absent', async () => {
+      mockSelectRewardsSubscriptionId.mockReturnValue(null);
+      mockGoBack.mockClear();
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: unknown) => unknown) =>
+          selector({
+            index: 0,
+            routes: [{ name: Routes.REWARDS_SETTINGS_VIEW }],
+          }),
+      );
+
+      const { queryByTestId } = renderWithNavigation(<RewardsNavigator />, {
+        screen: Routes.REWARDS_EARNINGS_HISTORY_VIEW,
+      });
+
+      await waitFor(() => {
+        expect(mockGoBack).toHaveBeenCalledTimes(1);
+      });
+      expect(queryByTestId('rewards-earnings-history-view')).toBeNull();
+      expect(queryByTestId('rewards-settings-view')).toBeNull();
     });
 
     it('does not dismiss the flow while a subscription exists', async () => {

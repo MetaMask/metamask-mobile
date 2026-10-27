@@ -21,7 +21,7 @@ import {
   COHORT_LABEL_KEY,
   COHORT_OPTIONS_FOLLOWING,
   COHORT_OPTIONS_LEADERBOARD,
-  COHORT_OPTIONS_LIVE_TRADES,
+  COHORT_OPTIONS_LIVE,
   MARKET_CAP_RANGE,
   TIMEFRAME_LABEL_KEY,
   TIMEFRAME_OPTIONS,
@@ -88,8 +88,8 @@ const cohortOptionsForTab = (tab: SocialShellTab): SocialTraderCohort[] => {
   if (tab === 'leaderboard') {
     return COHORT_OPTIONS_LEADERBOARD;
   }
-  if (tab === 'liveTrades') {
-    return COHORT_OPTIONS_LIVE_TRADES;
+  if (tab === 'live') {
+    return COHORT_OPTIONS_LIVE;
   }
   return COHORT_OPTIONS_FOLLOWING;
 };

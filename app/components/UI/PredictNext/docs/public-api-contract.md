@@ -35,6 +35,8 @@ Every surface that shows Polymarket today also shows Kalshi at launch, so every 
 
 Code outside PredictNext imports only from one curated entry point, `app/components/UI/PredictNext/index.ts`. That file exports only the public surface below. It is not a catch-all barrel that re-exports modules. Internal modules keep using their own module-root `index.ts` files with each other. The only exception is named composition wiring, such as Engine service initialization and messengers, and navigator registration, which stays on a small explicit allowlist.
 
+The entry point's first export is `PredictRoot`, the root router that `MainNavigator` registers for the `Predict` route (PRED-1375). It is a permanent, Venue-neutral component: after PRED-1356 it renders only the PredictNext stack, so that import does not change. `MainNavigator`'s legacy imports (`PredictModalStack`, `PredictPreviewSheetProvider`) stay named composition wiring.
+
 Names are proposals. The implementing ticket finalizes each name and adds its export only when it migrates a real caller. Do not create empty modules.
 
 | Proposed API                                                                    | Polymarket branch (transition)                               | Kalshi branch                                | After PRED-1356                            |
@@ -53,10 +55,11 @@ Public inputs are intents, consumer-owned types, and callbacks with Venue-neutra
 - Each public API resolves the Active Venue internally. Callers do not pass, read, or branch on a Venue. Under PRED-1340, a known US location defaults to Kalshi, a known non-US location defaults to Polymarket, and a valid explicit Venue Selection Preference takes precedence. PRED-1377 owns that resolution. The Active Venue can therefore change during a session.
 - On an Active Venue change, the public API remounts the newly active branch. Kalshi cancels its own unsubmitted previews. Legacy Polymarket keeps its existing behavior, including toast registration and observation of submitted operations, which stay mounted regardless of Active Venue.
 - A surface whose action has no implementation for the Active Venue hides that action. For example, while Kalshi is active, Money and pay-with must not offer the Polymarket deposit or add-funds flow. That is an availability gate, not a wrapper around legacy execution.
-- Prefer switching at component level: render the legacy component or the Kalshi component, and mount only the active one.
-- Hooks follow the Rules of Hooks. If both implementations' hooks must be called, the inactive branch must be disabled and side-effect free. Some legacy hooks have mount side effects; `usePredictActivity`, for example, ensures the Polygon network. Prefer a small internal provider or component boundary that mounts only the active implementation.
+- Every public API resolves its branch through `implementation/`. `usePredictImplementation()` returns `{ status: 'resolving' }`, `{ status: 'ready', implementation: 'legacy' }`, or `{ status: 'ready', implementation: 'next', venueId }`. One internal map sends each Venue to an implementation (`polymarket → legacy`, `kalshi → next`); PRED-1356 changes only that map.
+- Prefer switching at component level with `<PredictImplementationSwitch legacy={…} next={…} resolving={…} />`. It mounts only the active branch, keyed by implementation and Venue, so an Active Venue change remounts it.
+- Hooks follow the Rules of Hooks. A projection hook calls both implementations' hooks, passes `enabled: false` to the inactive one, and returns the active result. The inactive hook must run no side effects: legacy `usePredictActivity`, for example, calls `ensurePolygonNetworkExists` only while enabled. Prove it with `expectInactiveHookHasNoSideEffects` (`implementation/inactiveHook.testUtils.ts`). If a legacy hook cannot be disabled cleanly, use the component switch or a small provider that mounts only the active implementation instead.
 - With Kalshi disabled, every public API is behaviorally identical to today's production path. Test that explicitly for each migrated surface.
-- The switch lives under the owning PredictNext module, for example `portfolio/internal/legacy/`. Legacy code never imports PredictNext public wrappers, so dependencies stay one-way.
+- Each public API's legacy pass-through lives under its owning PredictNext module, for example `portfolio/internal/legacy/`. PredictNext may import legacy `UI/Predict/` to render the legacy branch. Legacy code never imports PredictNext public wrappers, so dependencies stay one-way.
 
 ## Protecting production Polymarket
 
@@ -86,7 +89,7 @@ These apply to PredictNext's own contract and to the eventual Polymarket backend
 - **Decimal share quantities.** Positions and the sell intent use decimal-string shares. Kalshi's whole-contract sell restriction is Kalshi-specific and stays in its implementation (see ADR-0001). Never round holdings at the public boundary.
 - **Authoritative Trade direction.** Kalshi's reported `outcomeSide` and matching-leg price do not establish bought or sold direction. Canonical `trade` Activity entries take their buy or sell Action from the backend's own Order records instead. See [the portfolio, Activity, and catalog contract](./canonical-portfolio-activity-catalog-contract.md).
 - **Process-local Order observation.** Order completion observation survives screen closure but not process death. No mobile Order persistence is introduced.
-- **Person-scoped account cache.** Kalshi account query keys must not be Venue-only once real per-person Venue Accounts exist (PRED-1162). PRED-1381 owns the key shape and teardown. PredictNext does not cache legacy Polymarket account data, so no wallet-scoped Polymarket keys are needed.
+- **Account caches are purged by the platform reset.** Kalshi account query keys stay Venue-only. Only a wallet reset or a new wallet replaces the Predict User, and both run the platform reset, so `Engine.resetState` cancels in-flight account reads, removes the cached results, and abandons in-flight Order commits. The shared app query client that mirrors those reads is cleared on that reset and on no other event; lock/unlock, account switches, and sign-out/sign-in keep the cache. No raw identity, token, or PII enters a query key. PredictNext does not cache legacy Polymarket account data, so no wallet-scoped Polymarket keys are needed.
 
 ## Inputs for PRED-1356 (Polymarket backend adapter)
 

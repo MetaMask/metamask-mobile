@@ -4,6 +4,12 @@ import Logger from '../../../../../util/Logger';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { buildVbaBaseProperties, trackVbaEvent } from './vbaAnalytics';
+import {
+  AccountCreateRegistrationError,
+  getAccountCreateFiatFailureResult,
+  getAccountCreateResultFromError,
+  getAccountCreateResultFromResponse,
+} from './accountCreateError';
 
 /** Destination of every VBA autoramp: mUSD on Monad (CAIP-2 `eip155:143`). */
 const AUTORAMP_DESTINATION = {
@@ -11,35 +17,14 @@ const AUTORAMP_DESTINATION = {
   token_chain_id: 'eip155:143',
 } as const;
 
-/**
- * Creates the fiat to mUSD autoramp and reports the call's outcome as
- * `Money VBA Autoramp Create Updated`. A failure is reported once and rethrown
- * for the caller's existing handling.
- */
-const createAutorampTracked = async (
-  walletAddress: string,
-  sourceCurrency: VbaSourceCurrency,
-): Promise<void> => {
-  try {
-    const autoramp = await Engine.context.RampsController.createAutoramp(
-      buildMusdAutorampRequest(walletAddress, sourceCurrency),
-    );
-    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
-      ...buildVbaBaseProperties({ currencySource: sourceCurrency }),
-      status: 'succeeded',
-      autoramp_id: autoramp.id,
-      ...AUTORAMP_DESTINATION,
-    });
-  } catch (error) {
-    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
-      ...buildVbaBaseProperties({
-        currencySource: sourceCurrency,
-        failureReason: 'vba_create_failed',
-      }),
-      status: 'failed',
-    });
-    throw error;
-  }
+const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+    ...buildVbaBaseProperties({
+      currencySource: sourceCurrency,
+      failureReason: 'vba_create_failed',
+    }),
+    status: 'failed',
+  });
 };
 
 /**
@@ -72,6 +57,9 @@ const isForWallet = (autoramp: AutorampCursor, walletAddress: string) =>
 const isTerminal = (autoramp: AutorampCursor) =>
   autoramp.status === 'Rejected' || autoramp.status === 'Cancelled';
 
+const isAccountCreateFailure = (autoramp: AutorampCursor) =>
+  getAccountCreateFiatFailureResult(autoramp.status) !== null;
+
 const knownCurrency = (autoramp: AutorampCursor): string | undefined =>
   autoramp.depositRailsSummary?.currency;
 
@@ -87,7 +75,10 @@ export const findUsableAutoramp = <T extends AutorampCursor>(
   sourceCurrency?: string,
 ): T | undefined => {
   const usable = autoramps.filter(
-    (autoramp) => isForWallet(autoramp, walletAddress) && !isTerminal(autoramp),
+    (autoramp) =>
+      isForWallet(autoramp, walletAddress) &&
+      !isTerminal(autoramp) &&
+      !isAccountCreateFailure(autoramp),
   );
   if (!sourceCurrency) {
     return usable[0];
@@ -110,11 +101,73 @@ const isTerminalForCurrency = (
 const readAutoramps = (): AutorampCursor[] =>
   Engine.context.RampsController.state?.autoramps ?? [];
 
+const throwExistingAccountCreateFailure = (
+  autoramps: readonly AutorampCursor[],
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): void => {
+  const failedAutoramps = autoramps.filter(
+    (autoramp) =>
+      isForWallet(autoramp, walletAddress) && isAccountCreateFailure(autoramp),
+  );
+  const failedAutoramp = failedAutoramps.find(
+    (autoramp) => knownCurrency(autoramp) === sourceCurrency,
+  );
+  const result = getAccountCreateFiatFailureResult(failedAutoramp?.status);
+  if (result) {
+    throw new AccountCreateRegistrationError(result);
+  }
+};
+
+/**
+ * Creates the fiat to mUSD autoramp and reports the call as
+ * `Money VBA Autoramp Create Updated`. A failure is reported once, then thrown
+ * as an account-creation error for the caller's existing handling.
+ */
+const createAutoramp = async (
+  walletAddress: string,
+  sourceCurrency: VbaSourceCurrency,
+): Promise<void> => {
+  try {
+    const response = await Engine.context.RampsController.createAutoramp(
+      buildMusdAutorampRequest(walletAddress, sourceCurrency),
+    );
+    const result = getAccountCreateResultFromResponse(response);
+    if (
+      result?.kind === 'fiat' &&
+      (result.status === 'AuthorizationFailed' ||
+        result.status === 'RegistrationFailed')
+    ) {
+      trackAutorampCreateFailed(sourceCurrency);
+      throw new AccountCreateRegistrationError(result);
+    }
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+      ...buildVbaBaseProperties({ currencySource: sourceCurrency }),
+      status: 'succeeded',
+      autoramp_id: response.id,
+      ...AUTORAMP_DESTINATION,
+    });
+  } catch (error) {
+    if (error instanceof AccountCreateRegistrationError) {
+      throw error;
+    }
+    trackAutorampCreateFailed(sourceCurrency);
+    throw new AccountCreateRegistrationError(
+      getAccountCreateResultFromError(error),
+    );
+  }
+};
+
 const runSetup = async (
   walletAddress: string,
   sourceCurrency: VbaSourceCurrency,
   replaceTerminal: boolean,
 ): Promise<MusdAutorampSetupOutcome> => {
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
@@ -125,6 +178,11 @@ const runSetup = async (
     refreshAutoramps: true,
   });
 
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
@@ -132,7 +190,7 @@ const runSetup = async (
   // Hydrate reports ready when any fiat is usable. A different known fiat
   // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
-    await createAutorampTracked(walletAddress, sourceCurrency);
+    await createAutoramp(walletAddress, sourceCurrency);
     return 'ready';
   }
 
@@ -166,22 +224,36 @@ const runSetup = async (
   }
 
   if (snapshot.autorampStatus === 'needs_wallet_registration') {
-    const registration =
-      await Engine.context.RampsController.registerMoneyAccountWallet({
-        address: walletAddress,
-      });
+    const registration = await (async () => {
+      try {
+        return await Engine.context.RampsController.registerMoneyAccountWallet({
+          address: walletAddress,
+        });
+      } catch (error) {
+        throw new AccountCreateRegistrationError(
+          getAccountCreateResultFromError(error),
+        );
+      }
+    })();
     if (registration.type === 'lookupUnavailable') {
-      return 'failed';
+      throw new AccountCreateRegistrationError(
+        getAccountCreateResultFromError(registration.error),
+      );
     }
   } else if (snapshot.autorampStatus !== 'needs_source_currency') {
     return 'waiting';
   }
 
+  throwExistingAccountCreateFailure(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
   if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 
-  await createAutorampTracked(walletAddress, sourceCurrency);
+  await createAutoramp(walletAddress, sourceCurrency);
   return 'ready';
 };
 
@@ -203,6 +275,9 @@ export const ensureMusdAutoramp = (
 
   const run = runSetup(walletAddress, sourceCurrency, replaceTerminal)
     .catch((error: unknown) => {
+      if (error instanceof AccountCreateRegistrationError) {
+        throw error;
+      }
       Logger.error(error as Error, {
         tags: { feature: 'vba-onboarding' },
         context: { name: 'ensureMusdAutoramp', data: { sourceCurrency } },

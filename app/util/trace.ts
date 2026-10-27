@@ -76,6 +76,8 @@ export enum TraceName {
   /** Buy quote fetch CUF; nests under RampBuyToOrderDetails when active. */
   RampBuyQuoteFetch = 'Ramp Buy Quote Fetch',
   RampScreenLoad = 'Ramp Screen Load',
+  VbaScreenLoad = 'VBA Screen Load',
+  KycScreenLoad = 'KYC Screen Load',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
@@ -329,6 +331,9 @@ export enum TraceName {
   // Notifications & Braze Performance
   NotificationListTimeToContent = 'Notification List Time To Content',
   BrazeBannerTimeToContent = 'Braze Banner Time To Content',
+  // Social V1 Performance
+  SocialTabTimeToContent = 'Social Tab Time To Content',
+  SocialTabDataFetch = 'Social Tab Data Fetch',
 }
 
 export enum TraceOperation {
@@ -409,7 +414,11 @@ export enum TraceOperation {
   // Notifications & Braze Performance
   NotificationPerformance = 'notification.performance',
   BrazeBannerPerformance = 'braze_banner.performance',
+  SocialPerformance = 'social.performance',
+  SocialDataFetch = 'social.data_fetch',
   RampOperation = 'ramp.operation',
+  VbaOperation = 'vba.operation',
+  KycOperation = 'kyc.operation',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
