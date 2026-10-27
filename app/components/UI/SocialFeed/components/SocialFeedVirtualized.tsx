@@ -82,6 +82,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   title,
   renderHeader,
   filterPost,
+  emptyState,
   realtime = false,
   paused = false,
   onScroll,
@@ -301,6 +302,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                   ? CONSTRAINED_SKELETON_COUNT
                   : undefined
               }
+              emptyState={emptyState}
             />
           }
           ListFooterComponent={

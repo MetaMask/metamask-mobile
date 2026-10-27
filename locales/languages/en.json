@@ -1388,6 +1388,11 @@
           "description": "Live activity will show up here."
         }
       },
+      "filter_empty": {
+        "title": "No matches",
+        "description": "Try fewer filters, or clear them all.",
+        "clear": "Clear filters"
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
@@ -1402,7 +1407,8 @@
       },
       "load_more": "Load more",
       "error": {
-        "title": "Couldn't load the feed",
+        "title": "The feed didn't load",
+        "description": "Give it a moment, then try again.",
         "retry": "Try again"
       },
       "sub_header": {
@@ -1428,7 +1434,8 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
     "composer": {
