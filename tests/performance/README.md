@@ -81,13 +81,13 @@ Local emulator and simulator projects live in `tests/playwright.config.ts`. Clou
 
 ### Available Projects
 
-| Project Name                        | Platform | Environment     | Test Scope            |
-| ----------------------------------- | -------- | --------------- | --------------------- |
-| `android`                           | Android  | Local Emulator  | Demo fixture spec     |
-| `ios`                               | iOS      | Local Simulator | Demo fixture spec     |
-| `testmu-android`                    | Android  | TestMu          | Login tests only      |
-| `testmu-android-onboarding`         | Android  | TestMu          | Onboarding tests      |
-| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding   |
+| Project Name                         | Platform | Environment     | Test Scope          |
+| ------------------------------------ | -------- | --------------- | ------------------- |
+| `android`                            | Android  | Local Emulator  | Demo fixture spec   |
+| `ios`                                | iOS      | Local Simulator | Demo fixture spec   |
+| `testmu-android`                     | Android  | TestMu          | Login tests only    |
+| `testmu-android-onboarding`          | Android  | TestMu          | Onboarding tests    |
+| `testmu-android-onboarding-seedless` | Android  | TestMu          | Seedless onboarding |
 
 ### Configuration Details
 
@@ -124,21 +124,48 @@ The `tests/performance/device-matrix.json` file defines device configurations fo
 
 ## CI Triggers
 
-Performance E2E never runs on push. Coverage comes from PR selection on `main` plus a fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
+Performance E2E never runs on push. On a PR it runs only from a performance label. `run-performance-tests` runs the full suite. An area label such as `run-performance-perps-tests` runs only that area, and several area labels run their union. Coverage otherwise comes from the fixed schedule, with manual dispatch for everything else (release branches, ad-hoc `exp`/`rc` runs, etc.).
 
-| Event                                 | Behavior                                                                                                                                                                                                                           |
-| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                                                                                                                                              |
-| PR targeting `main`                   | Smart E2E Selection: `ALL` runs every performance test, specific tags run only those tests, and `[]`, a blank output, or a selection error runs none. The `run-performance-tests` label forces the full Android low-profile suite. |
-| PR targeting `release/*` or `stable`  | No automatic performance run — CI ignores AI performance selection for these base branches. The `run-performance-tests` label still forces a full run.                                                                             |
-| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.                                                                                                                                 |
-| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                                                                                                                                             |
+| Event                                 | Behavior                                                                                                 |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Push to `main`, `stable`, `release/*` | No performance tests.                                                                                    |
+| PR without a performance label        | No performance tests. Smart E2E Selection does not start them.                                           |
+| PR with `run-performance-tests`       | Full performance suite. Ignored on fork PRs and when the base branch is `stable`.                        |
+| PR with area performance labels       | Only the labeled areas. Several labels run their union. The full-suite label wins when both are present. |
+| Scheduled (Mon–Sat)                   | `e2e` builds from `main` every 6 hours starting at 00:00 UTC. Experimental builds are manual-only.       |
+| Manual dispatch                       | Run against any selected branch or tag with any build variant (`e2e`, `exp`, or `rc`).                   |
 
 Workflow layout:
 
 - [`run-performance-e2e.yml`](../../.github/workflows/run-performance-e2e.yml) — reusable execution engine (`workflow_call` only). Builds the apps, runs the Playwright suite on TestMu HyperExecute, aggregates results, and posts the PR comment/Slack notification. Never triggered directly.
 - [`run-performance-e2e-manual.yml`](../../.github/workflows/run-performance-e2e-manual.yml) — the only workflow with `schedule`/`workflow_dispatch` triggers. Wraps `run-performance-e2e.yml` for both the scheduled cadence and manual runs.
-- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` for PRs targeting `main`, wired to Smart E2E Selection's `ai_performance_test_tags` output and the `run-performance-tests` label.
+- `ci.yml` (`run-performance-tests-pr` job) — calls `run-performance-e2e.yml` when the PR has `run-performance-tests` or an area label such as `run-performance-perps-tests`. The general label runs the full suite. Area labels run only their tags.
+
+### TestMu scheduled-performance dashboard
+
+A pull request does not run performance tests unless it has
+`run-performance-tests` or an area performance label, so an ordinary PR never
+creates TestMu sessions. The
+four daily scheduled runs (Monday–Saturday) use one stable project and build.
+Manual TestMu dispatches and labeled PR runs keep a branch build name, so they
+do not join this history:
+
+- Project: `MetaMask Mobile Scheduled Performance`
+- Build: `TestMu-Android-Performance-main-Scheduled-HyperExecute`
+- Device: Google Pixel 8 Pro / Android 14
+- Test name: the Playwright performance scenario title
+
+In TestMu, open **Insights**, create an **App Automation** dashboard, and filter
+all widgets by that project and build. Useful widgets are pass/fail count and
+rate over `create_timestamp`, average/p90 `duration` grouped by `test_name`, and
+a failed-tests table with `failure_category`, device, and OS version. The
+**App Profiling** view uses the same sessions for CPU, memory, FPS, network,
+battery, and temperature trends; filter by the scenario names and Android
+device/build version.
+
+The TestMu duration is the full Appium session duration. Step timers and their
+quality gates remain in `performance-results.json`, the generated HTML report,
+and Sentry; they are not native TestMu widget metrics.
 
 For PRs, `run-performance-e2e.yml` builds against the exact PR merge commit (`source_ref: github.sha`), the same ref used by the standard E2E builds, so performance results reflect the same code. `branch_name` (`github.head_ref`) is only used for human-readable build names/reports.
 
@@ -655,11 +682,11 @@ ci_build_variant:rc release_version:7.58.0
 
 After each test, the custom reporter generates:
 
-| File Type | Location                                                                      | Content                                             |
-| --------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
-| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                           |
-| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                           |
-| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                                    |
+| File Type | Location                                                                      | Content                                       |
+| --------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
+| HTML      | `reporters/reports/performance-report-{test}-{timestamp}.html`                | Visual report with charts                     |
+| CSV       | `reporters/reports/performance-report-{test}-{timestamp}.csv`                 | Spreadsheet-friendly data                     |
+| JSON      | `reporters/reports/performance-metrics-{test}-{device}.json`                  | Raw metrics data                              |
 | Profiling | `reporters/reports/app-profiling/app-profiling-{scenario}-{device}-{os}.json` | Per-scenario TestMu app profiling + API calls |
 
 ### HTML Report Contents

@@ -1,4 +1,3 @@
-import { MY_PROFILE_SHEET_MOCK_DEFAULTS } from '../utils/myProfileMockDefaults';
 import type { MySocialProfile } from './useMyProfile';
 
 type Listener = () => void;
@@ -17,11 +16,15 @@ interface StoreState {
 
 const STORE_GLOBAL_KEY = '__mmLocalSocialProfileStore__';
 
+/** Placeholder thesis used until a profile has its own bio. */
+export const LOCAL_SOCIAL_PROFILE_DUMMY_BIO =
+  'Trading in the open. Copy my moves or fade them, either way we learn.';
+
 const createDefaultProfile = (): MySocialProfile => ({
   profileId: 'current-user',
   displayName: 'Giga Whale',
   handle: 'giga-whale',
-  bio: 'Trading in the open. Copy my moves or fade them, either way we learn.',
+  bio: LOCAL_SOCIAL_PROFILE_DUMMY_BIO,
   imageUrl: null,
   rankingTag: 'whale',
   xHandle: 'giga-whale',
@@ -29,8 +32,6 @@ const createDefaultProfile = (): MySocialProfile => ({
   shareUrl: 'https://metamask.io/social/giga-whale',
   winRatePercent: 60,
   pnlUsd: 7100,
-  timesCopied: 981,
-  ...MY_PROFILE_SHEET_MOCK_DEFAULTS,
 });
 
 const bootstrap = (): StoreState => {

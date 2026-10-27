@@ -90,7 +90,8 @@ import {
   useVbaHomeCardRefresh,
   type VbaHomeCard,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import {
   useVbaEligibility,
   type VbaEligibility,
@@ -224,6 +225,20 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock(
@@ -441,13 +456,14 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
   STEPPER_IDS: { MONEY: 'money-home-onboarding-stepper' },
 }));
 
-const mockOpenVbaOnboarding = jest.fn();
 jest.mock(
   '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting',
   () => ({
-    useOpenVbaOnboarding: jest.fn(() => mockOpenVbaOnboarding),
+    openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
+
+const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
@@ -784,7 +800,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '11.37',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       sinceInceptionQuery: {
@@ -792,7 +807,6 @@ describe('MoneyHomeView', () => {
           interest_earned_usd: '139.02',
         },
         isLoading: false,
-        isInitialLoading: false,
         isError: false,
       },
       refetchInterest: mockRefetchInterest,
@@ -817,7 +831,7 @@ describe('MoneyHomeView', () => {
     // Default to no VBA card so variant tests cannot leak into others.
     mockUseVbaHomeCard.mockReturnValue({ type: 'none' });
     mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_NOT_ELIGIBLE);
-    mockOpenVbaOnboarding.mockClear();
+    mockOpenAsOnlyOnboardingRoute.mockClear();
 
     mockUseMoneyAccountInfo.mockReturnValue({
       hasMoneyAccount: true,
@@ -1112,17 +1126,12 @@ describe('MoneyHomeView', () => {
       ).toBeNull();
     });
 
-    it('tracks and opens the same destination as the VBA card on press', async () => {
+    it('tracks and routes straight to the loading screen on press', () => {
       mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
-      mockOpenVbaOnboarding.mockResolvedValue(undefined);
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
       jest.clearAllMocks();
 
-      await act(async () => {
-        fireEvent.press(
-          getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON),
-        );
-      });
+      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON));
 
       expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
       expect(mockTrackButtonClicked).toHaveBeenCalledWith({
@@ -1134,7 +1143,35 @@ describe('MoneyHomeView', () => {
         button_position: 4,
         button_row_button_count: 4,
       });
-      expect(mockOpenVbaOnboarding).toHaveBeenCalledTimes(1);
+      expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledWith(
+        expect.objectContaining({ goBack: mockGoBack }),
+        VbaOnboardingRoutes.LOADING,
+        { source: 'vba-action-row-details' },
+      );
+    });
+
+    it('ignores a repeat Details tap while the first is still presenting', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      jest.clearAllMocks();
+
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+      fireEvent.press(details);
+      fireEvent.press(details);
+
+      expect(mockOpenAsOnlyOnboardingRoute).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not put the Details button into a busy state', () => {
+      mockUseVbaEligibility.mockReturnValue(VBA_ELIGIBILITY_ELIGIBLE);
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+      const details = getByTestId(MoneyActionButtonRowTestIds.DETAILS_BUTTON);
+
+      fireEvent.press(details);
+
+      expect(details.props.accessibilityState?.busy).toBeFalsy();
+      expect(details.props.accessibilityState?.disabled).toBeFalsy();
     });
 
     it('counts four buttons in the Add tracking payload when Details is shown', () => {
@@ -1162,14 +1199,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1214,13 +1251,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -1250,13 +1285,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2536,13 +2569,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2569,13 +2600,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
           isLoading: false,
-          isInitialLoading: false,
           isError: true,
         },
         refetchInterest: mockRefetchInterest,
@@ -2596,13 +2625,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: { interest_earned_usd: 'invalid' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: 'NaN' },
           isLoading: false,
-          isInitialLoading: false,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2626,13 +2653,11 @@ describe('MoneyHomeView', () => {
         last30DaysQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: undefined,
           isLoading: true,
-          isInitialLoading: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,
@@ -2652,14 +2677,14 @@ describe('MoneyHomeView', () => {
       mockUseMoneyAccountInterest.mockReturnValue({
         last30DaysQuery: {
           data: { interest_earned_usd: '11.37' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         sinceInceptionQuery: {
           data: { interest_earned_usd: '139.02' },
-          isLoading: true,
-          isInitialLoading: false,
+          isLoading: false,
+          isFetching: true,
           isError: false,
         },
         refetchInterest: mockRefetchInterest,

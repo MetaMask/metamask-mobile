@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, within } from '@testing-library/react-native';
 import { IconColor } from '@metamask/design-system-react-native';
 import { Provider } from 'react-redux';
 import {
@@ -30,6 +30,7 @@ import {
   MoneyAccountPlusBenefitsStatus,
   useMoneyAccountPlusBenefits,
 } from './hooks/useMoneyAccountPlusBenefits';
+import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
 
@@ -76,6 +77,15 @@ const mockUseMoneyPremiumAccountInterest = jest.mocked(
 jest.mock('../../UI/Money/hooks/useMoneyPremiumAccountInterest', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+const mockUseMoneyAccountSinceInceptionInterest = jest.mocked(
+  useMoneyAccountSinceInceptionInterest,
+);
+jest.mock('../../UI/Money/hooks/useMoneyAccountInterest', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  useMoneyAccountSinceInceptionInterest: jest.fn(),
 }));
 
 const mockUseMoneyPremiumVaultRate = jest.mocked(useMoneyPremiumVaultRate);
@@ -136,10 +146,11 @@ const ACTIVE_MEMBERSHIP_BANNER = getMembershipBannerModel(
   createPlusSubscription(SUBSCRIPTION_STATUSES.active),
 );
 
-// The money-balance row is covered by mocking useMoneyPremiumAccountInterest
-// and useMoneyPremiumVaultRate. Access and benefits still depend on the
-// subscriptions query, so this screen test mocks those hooks. The banner
-// model and the displayed-subscription selector have their own unit tests.
+// Interest totals are covered by mocking useMoneyPremiumAccountInterest,
+// useMoneyAccountSinceInceptionInterest, and useMoneyPremiumVaultRate.
+// Access and benefits still depend on the subscriptions query, so this
+// screen test mocks those hooks. The banner model and the
+// displayed-subscription selector have their own unit tests.
 
 // ─── Suite ────────────────────────────────────────────────────────────────────
 
@@ -160,13 +171,16 @@ describe('ProHub', () => {
     mockUseMoneyPremiumAccountInterest.mockReturnValue({
       sinceInceptionQuery: {
         data: { interest_earned_usd: '12.5' },
+        isError: false,
       },
       sinceInceptionInterest: '+$12.50',
     } as ReturnType<typeof useMoneyPremiumAccountInterest>);
+    mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+      data: undefined,
+      isError: false,
+    } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
     mockUseMoneyPremiumVaultRate.mockReturnValue({
-      vaultRateQuery: {
-        data: { rate: '0.041' },
-      },
+      vaultRateQuery: { data: undefined },
       rate: '0.041',
       ratePercent: 4.1,
       ratePercentFormatted: '4.1%',
@@ -317,6 +331,10 @@ describe('ProHub', () => {
       expect(lifetimeEarningsSection).toHaveTextContent(
         toRegex(strings('pro_hub.lifetime_earnings')),
       );
+      expect(
+        within(lifetimeEarningsSection).getAllByText('+$12.50'),
+      ).toHaveLength(2);
+      expect(lifetimeEarningsSection).not.toHaveTextContent(toRegex('$86.42'));
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(
           strings('pro_hub.money_balance', {
@@ -362,12 +380,55 @@ describe('ProHub', () => {
       } as ReturnType<typeof useMoneyPremiumVaultRate>);
 
       const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
       const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
 
       expect(moneyBalanceRow).toHaveTextContent(
         toRegex(strings('pro_hub.money_balance', { apy: '—' })),
       );
       expect(moneyBalanceRow).toHaveTextContent(toRegex('$0.00'));
+      // Headline, Money balance row, and the still-mocked mUSD back amount.
+      expect(
+        within(lifetimeEarningsSection).getAllByText('$0.00'),
+      ).toHaveLength(3);
+    });
+
+    it('shows premium plus base interest on the headline and the money balance row', () => {
+      mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+        data: { interest_earned_usd: '2.5' },
+        isError: false,
+      } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
+
+      const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(
+        within(lifetimeEarningsSection).getAllByText('+$15.00'),
+      ).toHaveLength(2);
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('+$15.00'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
+    });
+
+    it('shows an em dash for interest when base-vault interest failed', () => {
+      mockUseMoneyAccountSinceInceptionInterest.mockReturnValue({
+        data: undefined,
+        isError: true,
+      } as ReturnType<typeof useMoneyAccountSinceInceptionInterest>);
+
+      const { getByTestId } = renderProHub();
+      const lifetimeEarningsSection = getByTestId(
+        ProHubTestIds.LIFETIME_EARNINGS_SECTION,
+      );
+      const moneyBalanceRow = getByTestId(ProHubTestIds.MONEY_BALANCE_ROW);
+
+      expect(within(lifetimeEarningsSection).getAllByText('—')).toHaveLength(2);
+      expect(moneyBalanceRow).toHaveTextContent(toRegex('—'));
+      expect(moneyBalanceRow).not.toHaveTextContent(toRegex('+$12.50'));
     });
 
     it('renders an active plan without a membership alert', () => {

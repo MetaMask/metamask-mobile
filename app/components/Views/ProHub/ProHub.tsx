@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,8 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontFamily,
+  FontWeight,
   HeaderBase,
   Icon,
   IconColor,
@@ -22,7 +24,6 @@ import {
   Text,
   TextColor,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
@@ -38,8 +39,10 @@ import {
   useMoneyAccountPlusAccess,
 } from '../../../hooks/useMoneyAccountPlusAccess';
 import { selectIsMoneyAccountPlusTrialing } from '../../../selectors/subscriptionController';
+import { useMoneyAccountSinceInceptionInterest } from '../../UI/Money/hooks/useMoneyAccountInterest';
 import useMoneyPremiumAccountInterest from '../../UI/Money/hooks/useMoneyPremiumAccountInterest';
 import useMoneyPremiumVaultRate from '../../UI/Money/hooks/useMoneyPremiumVaultRate';
+import { formatCombinedSinceInceptionInterest } from '../../UI/Money/utils/formatCombinedSinceInceptionInterest';
 import PhysicalCardBanner from './components/PhysicalCardBanner';
 import MemberPricingOnTrades from './components/MemberPricingOnTrades';
 
@@ -113,8 +116,29 @@ const ProHub = () => {
   const { model: membershipBanner } = useMembershipBannerModel();
   const proAccess = useMoneyAccountPlusAccess();
   const isTrialing = useSelector(selectIsMoneyAccountPlusTrialing);
-  const { sinceInceptionInterest } = useMoneyPremiumAccountInterest();
+  const { sinceInceptionQuery: premiumSinceInceptionQuery } =
+    useMoneyPremiumAccountInterest();
+  const baseSinceInceptionQuery = useMoneyAccountSinceInceptionInterest();
   const { ratePercentFormatted } = useMoneyPremiumVaultRate();
+  const totalInterest = useMemo(
+    () =>
+      formatCombinedSinceInceptionInterest({
+        premium: {
+          usd: premiumSinceInceptionQuery.data?.interest_earned_usd,
+          failed: premiumSinceInceptionQuery.isError,
+        },
+        base: {
+          usd: baseSinceInceptionQuery.data?.interest_earned_usd,
+          failed: baseSinceInceptionQuery.isError,
+        },
+      }),
+    [
+      baseSinceInceptionQuery.data?.interest_earned_usd,
+      baseSinceInceptionQuery.isError,
+      premiumSinceInceptionQuery.data?.interest_earned_usd,
+      premiumSinceInceptionQuery.isError,
+    ],
+  );
   const moneyBalanceApy = ratePercentFormatted ?? '—';
   const showHubContent = proAccess === MoneyAccountPlusAccess.Subscriber;
 
@@ -213,10 +237,11 @@ const ProHub = () => {
                   {strings('pro_hub.lifetime_earnings')}
                 </Text>
                 <Text
-                  variant={TextVariant.DisplayLg}
+                  variant={TextVariant.AmountDisplayLg}
+                  fontFamily={FontFamily.Hero}
                   color={TextColor.TextDefault}
                 >
-                  {MOCK_PRO_HUB_STATS.lifetimeEarnings}
+                  {totalInterest}
                 </Text>
               </Box>
 
@@ -226,7 +251,7 @@ const ProHub = () => {
                   label={strings('pro_hub.money_balance', {
                     apy: moneyBalanceApy,
                   })}
-                  value={sinceInceptionInterest}
+                  value={totalInterest}
                   testID={ProHubTestIds.MONEY_BALANCE_ROW}
                 />
                 <StatRow

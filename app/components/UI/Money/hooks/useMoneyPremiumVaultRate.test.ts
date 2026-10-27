@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import { selectMoneyAccountPremiumVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
 import useMoneyPremiumVaultRate from './useMoneyPremiumVaultRate';
@@ -18,8 +18,9 @@ jest.mock('@metamask/react-data-query', () => ({
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
 
+const MOCK_ADDRESS = '0xAb5801a7D398351b8bE11C439e05C5B3259aeC9B';
 const MOCK_VAULT_ADDRESS = '0xBFeC8c2b1ccea3931a1363E4CaC27352c1C908B7';
-const MOCK_RATE = '1.000000000000000000';
+const OTHER_VAULT_ADDRESS = '0x1111111111111111111111111111111111111111';
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 const MOCK_QUERY_RESULT = {
   data: undefined,
@@ -28,25 +29,17 @@ const MOCK_QUERY_RESULT = {
 };
 
 function setSelectors({
+  address = MOCK_ADDRESS,
   tokenAddress = MOCK_VAULT_ADDRESS,
   paymentType = 'crypto',
-  premiumChainId = '0x8f',
 }: {
+  address?: string;
   tokenAddress?: string;
   paymentType?: 'crypto' | 'card';
-  premiumChainId?: string;
 } = {}) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectMoneyAccountPremiumVaultConfig) {
-      return premiumChainId
-        ? {
-            chainId: premiumChainId,
-            boringVault: MOCK_VAULT_ADDRESS,
-            tellerAddress: '0x2D49EA58A4C70b62c8B56DE971310d9e999c8117',
-            accountantAddress: '0x7382c5b8B51B8C4f127B3123C1039581BAA5A06B',
-            lensAddress: '0xA816ECd922de94c6879AD23B9A884dB257F20947',
-          }
-        : undefined;
+    if (selector === selectPrimaryMoneyAccount) {
+      return address ? { address } : undefined;
     }
     if (selector === selectMoneyAccountPlusSubscription) {
       if (paymentType === 'card') {
@@ -84,6 +77,16 @@ function setSelectors({
   });
 }
 
+function mockPositions(
+  positions: { vault_address: string; current_apy: string }[],
+) {
+  mockUseQuery.mockReturnValue({
+    data: { positions },
+    isLoading: false,
+    isError: false,
+  } as never);
+}
+
 describe('useMoneyPremiumVaultRate', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -91,14 +94,13 @@ describe('useMoneyPremiumVaultRate', () => {
     mockUseQuery.mockReturnValue(MOCK_QUERY_RESULT as never);
   });
 
-  it('queries the premium vault rate using the premium vault chain id', () => {
+  it('queries positions for the lowercased money account address', () => {
     renderHook(() => useMoneyPremiumVaultRate());
 
     expect(mockUseQuery).toHaveBeenCalledWith({
       queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
-        MOCK_VAULT_ADDRESS,
-        { chainId: 143 },
+        MoneyAccountApiDataServiceQueryKeys.FETCH_POSITIONS,
+        MOCK_ADDRESS.toLowerCase(),
       ],
       enabled: true,
       refetchInterval: FIVE_MINUTES_MS,
@@ -106,67 +108,53 @@ describe('useMoneyPremiumVaultRate', () => {
   });
 
   it.each([
-    ['premium vault config', { premiumChainId: '' }],
-    ['valid premium vault chain id', { premiumChainId: 'invalid' }],
-  ])('disables the rate query without a %s', (_label, selectorOverrides) => {
-    setSelectors(selectorOverrides);
+    ['money account address', { address: '' }],
+    ['subscription token address', { tokenAddress: '' }],
+    ['crypto payment method', { paymentType: 'card' as const }],
+  ])(
+    'disables the positions query without a %s',
+    (_label, selectorOverrides) => {
+      setSelectors(selectorOverrides);
 
-    renderHook(() => useMoneyPremiumVaultRate());
+      renderHook(() => useMoneyPremiumVaultRate());
 
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
-  });
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ enabled: false }),
+      );
+    },
+  );
 
-  it('falls back to the premium vault config address after a crypto payment lapse', () => {
-    setSelectors({ tokenAddress: '' });
-
-    renderHook(() => useMoneyPremiumVaultRate());
-
-    expect(mockUseQuery).toHaveBeenCalledWith({
-      queryKey: [
-        MoneyAccountApiDataServiceQueryKeys.FETCH_VAULT_RATE,
-        MOCK_VAULT_ADDRESS,
-        { chainId: 143 },
-      ],
-      enabled: true,
-      refetchInterval: FIVE_MINUTES_MS,
-    });
-  });
-
-  it('falls back to the premium vault config address for a card payment method', () => {
-    setSelectors({ paymentType: 'card' });
-
-    renderHook(() => useMoneyPremiumVaultRate());
-
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queryKey: expect.arrayContaining([MOCK_VAULT_ADDRESS]),
-        enabled: true,
-      }),
-    );
-  });
-
-  it('returns the raw rate and a one-decimal percentage', () => {
-    mockUseQuery.mockReturnValue({
-      data: { rate: MOCK_RATE },
-      isLoading: false,
-      isError: false,
-    } as never);
+  it('returns the premium position APY as a one-decimal percentage', () => {
+    mockPositions([
+      { vault_address: OTHER_VAULT_ADDRESS, current_apy: '0.04' },
+      { vault_address: MOCK_VAULT_ADDRESS, current_apy: '0.07' },
+    ]);
 
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 
-    expect(result.current.rate).toBe(MOCK_RATE);
-    expect(result.current.ratePercent).toBe(100);
-    expect(result.current.ratePercentFormatted).toBe('100%');
+    expect(result.current.rate).toBe('0.07');
+    expect(result.current.ratePercent).toBe(7);
+    expect(result.current.ratePercentFormatted).toBe('7%');
   });
 
-  it('rounds a fractional rate to one decimal place', () => {
-    mockUseQuery.mockReturnValue({
-      data: { rate: '0.07149' },
-      isLoading: false,
-      isError: false,
-    } as never);
+  it('matches the premium vault address regardless of casing', () => {
+    setSelectors({ tokenAddress: MOCK_VAULT_ADDRESS.toUpperCase() });
+    mockPositions([
+      {
+        vault_address: MOCK_VAULT_ADDRESS.toLowerCase(),
+        current_apy: '0.07',
+      },
+    ]);
+
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.ratePercentFormatted).toBe('7%');
+  });
+
+  it('rounds a fractional APY to one decimal place', () => {
+    mockPositions([
+      { vault_address: MOCK_VAULT_ADDRESS, current_apy: '0.07149' },
+    ]);
 
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 
@@ -174,21 +162,11 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.ratePercentFormatted).toBe('7.1%');
   });
 
-  it('returns no percentage for a rate that is not a number', () => {
-    mockUseQuery.mockReturnValue({
-      data: { rate: 'not-a-rate' },
-      isLoading: false,
-      isError: false,
-    } as never);
+  it('returns no percentage when the premium position is absent', () => {
+    mockPositions([
+      { vault_address: OTHER_VAULT_ADDRESS, current_apy: '0.04' },
+    ]);
 
-    const { result } = renderHook(() => useMoneyPremiumVaultRate());
-
-    expect(result.current.rate).toBe('not-a-rate');
-    expect(result.current.ratePercent).toBeUndefined();
-    expect(result.current.ratePercentFormatted).toBeUndefined();
-  });
-
-  it('returns no rate when the vault rate query has no data', () => {
     const { result } = renderHook(() => useMoneyPremiumVaultRate());
 
     expect(result.current.rate).toBeUndefined();
@@ -196,11 +174,23 @@ describe('useMoneyPremiumVaultRate', () => {
     expect(result.current.ratePercentFormatted).toBeUndefined();
   });
 
-  it('disables the rate query when enabled is false', () => {
-    renderHook(() => useMoneyPremiumVaultRate({ enabled: false }));
+  it('returns no percentage for an APY that is not a number', () => {
+    mockPositions([
+      { vault_address: MOCK_VAULT_ADDRESS, current_apy: 'not-an-apy' },
+    ]);
 
-    expect(mockUseQuery).toHaveBeenCalledWith(
-      expect.objectContaining({ enabled: false }),
-    );
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.rate).toBe('not-an-apy');
+    expect(result.current.ratePercent).toBeUndefined();
+    expect(result.current.ratePercentFormatted).toBeUndefined();
+  });
+
+  it('returns no rate when the positions query has no data', () => {
+    const { result } = renderHook(() => useMoneyPremiumVaultRate());
+
+    expect(result.current.rate).toBeUndefined();
+    expect(result.current.ratePercent).toBeUndefined();
+    expect(result.current.ratePercentFormatted).toBeUndefined();
   });
 });

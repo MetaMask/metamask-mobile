@@ -301,13 +301,14 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     });
   });
 
-  it('opens the Social V1 shell without a landing tab when the Social V1 treatment is assigned', async () => {
+  it('switches to the Social tab without a landing tab when the Social V1 treatment is assigned', async () => {
     renderHomeTopTradersSection(
       [
         { name: Routes.SOCIAL.V0 },
+        { name: Routes.SOCIAL.V1 },
         {
-          name: Routes.SOCIAL.V1,
-          Component: createRouteParamsProbe(Routes.SOCIAL.V1),
+          name: Routes.HOME_TABS,
+          Component: createRouteParamsProbe(Routes.HOME_TABS),
         },
       ],
       {
@@ -322,19 +323,23 @@ describeForPlatforms('Homepage TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
 
-    expect(await readRouteParams(Routes.SOCIAL.V1)).toEqual({
-      source: 'home_carousel',
+    expect(await readRouteParams(Routes.HOME_TABS)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { source: 'home_carousel' },
     });
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V0)),
     ).not.toBeOnTheScreen();
   });
 
   // -------------------------------------------------------------------------
-  // Follow is intercepted when notifications are off
+  // Follow runs, then trading-signals setup opens when notifications are off
   // -------------------------------------------------------------------------
 
-  it('routes a Follow tap to the trading signals setup when both notification channels are off', async () => {
+  it('follows and then opens trading signals setup when both notification channels are off', async () => {
     clearLeaderboardApiMock();
     setupLeaderboardApiMock({
       notificationPrefs: { pushEnabled: false, inAppEnabled: false },
@@ -355,7 +360,7 @@ describeForPlatforms('Homepage TopTradersSection', () => {
         getRouteProbeTestId(Routes.SOCIAL.TRADING_SIGNALS_SETUP),
       ),
     ).toBeOnTheScreen();
-    expect(getLeaderboardMessengerSpy()).not.toHaveBeenCalledWith(
+    expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
       'SocialController:followTrader',
       expect.anything(),
     );

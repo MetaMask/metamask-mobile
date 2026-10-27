@@ -677,7 +677,7 @@ const SignUp = () => {
           <Box>
             <Label>
               {strings(
-                'card.card_onboarding.set_phone_number.phone_number_label',
+                'card.card_onboarding.sign_up.phone_number_label_immersve',
               )}
             </Label>
             <Box twClassName="flex flex-row items-center justify-center gap-2">
@@ -700,7 +700,7 @@ const SignUp = () => {
                     keyboardType: 'phone-pad',
                     maxLength: 255,
                     accessibilityLabel: strings(
-                      'card.card_onboarding.set_phone_number.phone_number_label',
+                      'card.card_onboarding.sign_up.phone_number_label_immersve',
                     ),
                     testID: 'signup-immersve-phone-number-input',
                     onSubmitEditing: Keyboard.dismiss,

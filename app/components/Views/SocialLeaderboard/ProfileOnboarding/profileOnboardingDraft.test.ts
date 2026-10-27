@@ -144,8 +144,25 @@ describe('profileOnboardingDraft', () => {
       display_name: 'Wen Cat',
       bio: null,
       linked_addresses: ['eip155:1:0xabc'],
-      avatar_url: 'foxicon://visor/purple',
+      avatar_url: 'foxicon://vr/background3',
       trading_privacy: 'private',
     });
+  });
+
+  it('links every address in the chosen account, Solana included', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      linkedAccountAddress: '0xabc',
+    };
+    const linkedAddresses = [
+      'eip155:1:0xabc',
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp:7EcDhSYGxXyscszYEp35KHN8vvw3svAuLKTzXwCFLtV',
+    ] as const;
+
+    expect(
+      buildCreateProfileParams(draft, SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID, [
+        ...linkedAddresses,
+      ]).linked_addresses,
+    ).toEqual(linkedAddresses);
   });
 });
