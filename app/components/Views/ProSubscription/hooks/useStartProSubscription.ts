@@ -21,6 +21,10 @@ import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount'
 import { createMoneyAccountBatchId } from '../../../UI/Money/utils/createMoneyAccountBatchId';
 import { strings } from '../../../../../locales/i18n';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
+import {
+  resolveProSubscriptionStartOutcome,
+  type StartProSubscriptionOutcome,
+} from '../utils/proSubscriptionPaymentStatus';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
 
 const PAYMENT_UNAVAILABLE_ERROR =
@@ -221,8 +225,14 @@ function reportStartSubscriptionError(
   throw loggedError;
 }
 
+export interface StartProSubscriptionResult {
+  outcome: StartProSubscriptionOutcome;
+}
+
 export interface UseStartProSubscriptionResult {
-  startSubscription: (plan: SelectedPlusPlan) => Promise<void>;
+  startSubscription: (
+    plan: SelectedPlusPlan,
+  ) => Promise<StartProSubscriptionResult>;
   isSubmitting: boolean;
   errorMessage: string | undefined;
 }
@@ -241,8 +251,11 @@ export interface UseStartProSubscriptionResult {
  * expects the caller to obtain consent before the call. The shortfall path
  * does that through the MetaMask Pay top-up.
  *
- * Resolves after the subscription starts. The caller shows the success screen;
- * this hook does not navigate. The delegation start refreshes subscriptions
+ * Resolves after the subscription starts. A crypto payment (balance already
+ * in the Money Account) returns `ready` and the caller shows the success
+ * screen. An on-ramp or bridge top-up that is still provisional or awaiting
+ * funds returns `processing`; the caller shows a toast and opens Pro Hub.
+ * This hook does not navigate. The delegation start refreshes subscriptions
  * before it resolves.
  *
  * @returns Subscription start callback and its request state.
@@ -264,7 +277,7 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
   );
 
   const startSubscription = useCallback(
-    async (plan: SelectedPlusPlan): Promise<void> => {
+    async (plan: SelectedPlusPlan): Promise<StartProSubscriptionResult> => {
       if (isSubmittingRef.current) {
         throw new Error(SUBSCRIPTION_IN_PROGRESS_ERROR);
       }
@@ -298,10 +311,18 @@ export function useStartProSubscription(): UseStartProSubscriptionResult {
           );
         }
 
-        await SubscriptionDelegationService.startSubscriptionWithDelegation({
-          ...subscriptionParams,
-          chainId,
-        });
+        const startedSubscription =
+          await SubscriptionDelegationService.startSubscriptionWithDelegation({
+            ...subscriptionParams,
+            chainId,
+          });
+
+        return {
+          outcome: resolveProSubscriptionStartOutcome(
+            hasSufficientBalance,
+            startedSubscription.status,
+          ),
+        };
       } catch (error) {
         reportStartSubscriptionError(
           error,

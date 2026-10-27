@@ -22,6 +22,7 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { useSubscriptionPricing } from './hooks/useSubscriptionPricing';
 import { useMoneyAccountPlusTrialEligibility } from './hooks/useMoneyAccountPlusTrialEligibility';
 import { useStartProSubscription } from '../../hooks/useStartProSubscription';
+import { StartProSubscriptionOutcome } from '../../utils/proSubscriptionPaymentStatus';
 import { formatSubscriptionFiat } from './utils/formatSubscriptionFiat';
 import type {
   MoneyAccountPlusPricingView,
@@ -51,7 +52,10 @@ const mockUseMoneyAccountPlusTrialEligibility = jest.mocked(
 );
 const mockUseStartProSubscription = jest.mocked(useStartProSubscription);
 const mockRetry = jest.fn();
-const mockStartSubscription = jest.fn<Promise<void>, [unknown]>();
+const mockStartSubscription = jest.fn<
+  Promise<{ outcome: StartProSubscriptionOutcome }>,
+  [unknown]
+>();
 
 const MONTHLY_PLAN: PlanPricingView = {
   interval: RECURRING_INTERVALS.month,
@@ -82,6 +86,7 @@ const READY_PLUS_PRICING: MoneyAccountPlusPricingView = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const mockOnSuccess = jest.fn();
+const mockOnProcessing = jest.fn();
 const mockOnCheckoutStart = jest.fn();
 const mockOnCheckoutError = jest.fn();
 
@@ -120,6 +125,7 @@ const renderBenefits = (initialPlan?: PlanId) =>
   render(
     <Benefits
       onSuccess={mockOnSuccess}
+      onProcessing={mockOnProcessing}
       onCheckoutStart={mockOnCheckoutStart}
       onCheckoutError={mockOnCheckoutError}
       initialPlan={initialPlan}
@@ -132,7 +138,9 @@ describe('Benefits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsProduction.mockReturnValue(false);
-    mockStartSubscription.mockResolvedValue(undefined);
+    mockStartSubscription.mockResolvedValue({
+      outcome: StartProSubscriptionOutcome.Ready,
+    });
     mockPricingState();
     mockUseMoneyAccountPlusTrialEligibility.mockReturnValue({
       isEligibleForTrial: false,
@@ -405,6 +413,19 @@ describe('Benefits', () => {
       await waitFor(() => expect(mockOnSuccess).toHaveBeenCalledTimes(1));
       expect(mockStartSubscription).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
       expect(mockOnSuccess).toHaveBeenCalledWith(ANNUAL_CHECKOUT_PLAN);
+    });
+
+    it('calls onProcessing and skips the success screen when funding is still in progress', async () => {
+      mockStartSubscription.mockResolvedValue({
+        outcome: StartProSubscriptionOutcome.Processing,
+      });
+      const { getByTestId } = renderBenefits();
+
+      fireEvent.press(getByTestId(BenefitsTestIds.CTA_BUTTON));
+
+      await waitFor(() => expect(mockOnProcessing).toHaveBeenCalledTimes(1));
+      expect(mockOnSuccess).not.toHaveBeenCalled();
+      expect(mockOnCheckoutError).not.toHaveBeenCalled();
     });
 
     it('starts the subscription and calls onSuccess with the monthly checkout plan after Monthly is selected', async () => {

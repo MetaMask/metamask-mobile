@@ -12,6 +12,7 @@ import { formatSubscriptionPeriodEnd } from '../../ProHub.utils';
 
 export const MembershipStatusKind = {
   Active: 'active',
+  Processing: 'processing',
   Overdue: 'overdue',
   Deactivated: 'deactivated',
   Cancelled: 'cancelled',
@@ -52,6 +53,11 @@ export interface MembershipBannerModel {
 const ACTIVE_MODEL: MembershipBannerModel = {
   statusKind: MembershipStatusKind.Active,
   statusKey: 'pro_hub.membership_status.active',
+};
+
+const PROCESSING_MODEL: MembershipBannerModel = {
+  statusKind: MembershipStatusKind.Processing,
+  statusKey: 'pro_hub.membership_status.processing',
 };
 
 const UNAVAILABLE_MODEL: MembershipBannerModel = {
@@ -143,7 +149,8 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
 /**
  * Maps a Money Account Plus subscription onto the Pro Hub status labels.
  *
- * `active`, `trialing`, `provisional`, and `awaiting_funds` show Active. A
+ * `provisional` shows Processing while an on-ramp or bridge payment is still
+ * moving funds. `active`, `trialing`, and `awaiting_funds` show Active. A
  * plan waiting for funds, or an active plan whose latest invoice failed, also
  * shows the existing add-funds or renewal-failed alert. `past_due` shows
  * Overdue. `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
@@ -157,6 +164,10 @@ export const getMembershipBannerModel = (
 ): MembershipBannerModel => {
   if (!subscription) {
     return UNAVAILABLE_MODEL;
+  }
+
+  if (subscription.status === SUBSCRIPTION_STATUSES.provisional) {
+    return PROCESSING_MODEL;
   }
 
   if (subscription.status === SUBSCRIPTION_STATUSES.canceled) {

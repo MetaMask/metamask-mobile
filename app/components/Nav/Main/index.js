@@ -39,6 +39,7 @@ import MainNavigator from './MainNavigator';
 import { query } from '@metamask/controller-utils';
 import EarnTransactionMonitor from '../../UI/Earn/components/EarnTransactionMonitor';
 import MoneyTransactionMonitor from '../../UI/Money/components/MoneyTransactionMonitor/MoneyTransactionMonitor';
+import ProSubscriptionPaymentMonitor from '../../Views/ProSubscription/components/ProSubscriptionPaymentMonitor/ProSubscriptionPaymentMonitor';
 
 import {
   setInfuraAvailabilityBlocked,
@@ -404,6 +405,7 @@ const Main = (props) => {
         <RampOrders />
         <EarnTransactionMonitor />
         <MoneyTransactionMonitor />
+        <ProSubscriptionPaymentMonitor />
         {renderDeprecatedNetworkAlert(
           props.chainId,
           props.backUpSeedphraseVisible,

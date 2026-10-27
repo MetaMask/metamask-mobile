@@ -12879,6 +12879,7 @@
     "membership_label": "Pro",
     "membership_status": {
       "active": "Active",
+      "processing": "Processing",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
       "cancelled": "Cancelled",
@@ -13088,8 +13089,17 @@
         "description": "Get priority customer support from a real human—anytime, any day."
       }
     },
+    "payment": {
+      "processing_title": "Processing payment",
+      "processing_body": "This may take a few minutes.",
+      "active_title": "Your membership is active",
+      "view_membership": "View membership",
+      "failed_title": "Payment failed",
+      "failed_body": "Move funds to your Money account to keep access to your benefits.",
+      "try_again": "Try again"
+    },
     "success": {
-      "title": "You just leveled up, {{name}}",
+      "title": "You just leveled up",
       "description": "Time to start earning.",
       "cta": "Continue"
     }

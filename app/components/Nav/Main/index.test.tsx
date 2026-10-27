@@ -64,6 +64,11 @@ jest.mock(
   () => () => mockReact.createElement('MoneyTransactionMonitorMock'),
 );
 
+jest.mock(
+  '../../Views/ProSubscription/components/ProSubscriptionPaymentMonitor/ProSubscriptionPaymentMonitor',
+  () => () => mockReact.createElement('ProSubscriptionPaymentMonitorMock'),
+);
+
 jest.mock('../../UI/ProtectYourWalletModal', () => ({
   __esModule: true,
   default: () => mockReact.createElement('ProtectYourWalletModalMock'),

@@ -28,6 +28,7 @@ import {
   type PlanId,
 } from './screens/Benefits/Benefits.constants';
 import type { SelectedPlusPlan } from './screens/Benefits/utils/getSelectedPlusPlan';
+import { useProSubscriptionPaymentToasts } from './hooks/useProSubscriptionPaymentToasts';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 
 const ProSubscriptionScreen = {
@@ -60,6 +61,7 @@ const ProSubscription = () => {
     SelectedPlusPlan | undefined
   >();
   const [isCheckoutInProgress, setIsCheckoutInProgress] = useState(false);
+  const { showProcessingToast } = useProSubscriptionPaymentToasts();
 
   // Dismiss when the Pro flag is off, and send anyone already entitled to the
   // hub so an existing subscriber never lands on the upsell.
@@ -106,6 +108,11 @@ const ProSubscription = () => {
     setCurrentScreen(ProSubscriptionScreen.Success);
   }, []);
 
+  const handleProcessing = useCallback(() => {
+    showProcessingToast();
+    navigation.replace(Routes.PRO_HUB.ROOT);
+  }, [navigation, showProcessingToast]);
+
   const handleSubscriptionOnSuccess = useCallback(async () => {
     // Card checkout completes outside the controller, so wait for canonical
     // state before opening the hub. Stay on success if the refresh fails:
@@ -129,6 +136,7 @@ const ProSubscription = () => {
     screenContent = (
       <Benefits
         onSuccess={handleSuccess}
+        onProcessing={handleProcessing}
         onCheckoutStart={handleCheckoutStart}
         onCheckoutError={handleCheckoutError}
         onPlanChange={handlePlanChange}

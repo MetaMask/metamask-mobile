@@ -45,12 +45,14 @@ jest.mock('./screens/Benefits', () => {
   const { TouchableOpacity, Text } = require('react-native');
   return ({
     onSuccess,
+    onProcessing,
     onCheckoutStart,
     onCheckoutError,
     onPlanChange,
     initialPlan,
   }: {
     onSuccess: (plan: { planId: string }) => void;
+    onProcessing: () => void;
     onCheckoutStart: () => void;
     onCheckoutError: () => void;
     onPlanChange?: (planId: string) => void;
@@ -63,6 +65,7 @@ jest.mock('./screens/Benefits', () => {
       >
         <Text testID="mock-benefits-plan">{initialPlan ?? 'none'}</Text>
       </TouchableOpacity>
+      <TouchableOpacity testID="mock-processing" onPress={onProcessing} />
       <TouchableOpacity
         testID="mock-checkout-start"
         onPress={onCheckoutStart}
@@ -86,6 +89,15 @@ jest.mock('./screens/Success', () => {
   );
 });
 /* eslint-enable @typescript-eslint/no-require-imports */
+
+const mockShowProcessingToast = jest.fn();
+jest.mock('./hooks/useProSubscriptionPaymentToasts', () => ({
+  useProSubscriptionPaymentToasts: () => ({
+    showProcessingToast: mockShowProcessingToast,
+    showActiveToast: jest.fn(),
+    dismissPaymentToast: jest.fn(),
+  }),
+}));
 
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
@@ -182,6 +194,16 @@ describe('ProSubscription', () => {
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
       expect(queryByTestId('mock-benefits')).not.toBeOnTheScreen();
+    });
+
+    it('shows the processing toast and opens Pro Hub when funding is still in progress', () => {
+      const { getByTestId, queryByTestId } = render(<ProSubscription />);
+
+      fireEvent.press(getByTestId('mock-processing'));
+
+      expect(mockShowProcessingToast).toHaveBeenCalledTimes(1);
+      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expect(queryByTestId('mock-success')).toBeNull();
     });
   });
 

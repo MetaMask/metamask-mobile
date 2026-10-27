@@ -56,23 +56,33 @@ describe('getMembershipBannerModel', () => {
     I18n.locale = originalLocale;
   });
 
-  it.each([
-    SUBSCRIPTION_STATUSES.active,
-    SUBSCRIPTION_STATUSES.trialing,
-    SUBSCRIPTION_STATUSES.provisional,
-  ])('shows Active with no alert for a %s plan', (status) => {
-    const subscription = createSubscription({
-      status,
-      trialPeriodDays: 14,
-      trialEnd: '2026-10-04T12:00:00.000Z',
-      cancelAtPeriodEnd: true,
-    });
+  it.each([SUBSCRIPTION_STATUSES.active, SUBSCRIPTION_STATUSES.trialing])(
+    'shows Active with no alert for a %s plan',
+    (status) => {
+      const subscription = createSubscription({
+        status,
+        trialPeriodDays: 14,
+        trialEnd: '2026-10-04T12:00:00.000Z',
+        cancelAtPeriodEnd: true,
+      });
 
-    const model = getMembershipBannerModel(subscription);
+      const model = getMembershipBannerModel(subscription);
+
+      expect(model).toEqual({
+        statusKind: MembershipStatusKind.Active,
+        statusKey: 'pro_hub.membership_status.active',
+      });
+    },
+  );
+
+  it('shows Processing with no alert while a plan is provisional', () => {
+    const model = getMembershipBannerModel(
+      createSubscription({ status: SUBSCRIPTION_STATUSES.provisional }),
+    );
 
     expect(model).toEqual({
-      statusKind: MembershipStatusKind.Active,
-      statusKey: 'pro_hub.membership_status.active',
+      statusKind: MembershipStatusKind.Processing,
+      statusKey: 'pro_hub.membership_status.processing',
     });
   });
 
