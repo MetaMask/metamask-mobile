@@ -260,6 +260,27 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('hides the back arrow on the intro and shows it on later steps', () => {
+    renderSocialProfileOnboarding();
+
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('defaults the avatar backdrop to the centered color', async () => {
     renderSocialProfileOnboarding();
 

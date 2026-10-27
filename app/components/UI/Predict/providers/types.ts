@@ -160,6 +160,11 @@ export interface ClaimOrderResponse {
    * provider skipped some (Protocol V2 positions while the kill switch is on).
    */
   positions?: PredictPosition[];
+  /**
+   * The Gamma market version of each requested position, keyed by outcome id.
+   * A missing entry means a CTF position.
+   */
+  marketVersions?: Record<string, string | undefined>;
 }
 
 export interface SignWithdrawParams {
