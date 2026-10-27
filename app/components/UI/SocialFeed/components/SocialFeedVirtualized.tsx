@@ -145,6 +145,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, posts],

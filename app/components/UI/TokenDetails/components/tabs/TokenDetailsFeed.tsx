@@ -66,6 +66,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, posts],

@@ -184,6 +184,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, posts],
@@ -196,6 +197,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, pinnedPosts],
@@ -258,6 +260,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
           postId: post.id,
           authorId: post.item.author.id,
           authorHandle: post.authorHandle,
+          commentId: post.commentId,
         })
       ) {
         return false;
