@@ -1301,7 +1301,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
 
       await waitFor(() => {
-        expect(getByTestId('fiat_toggle')).toHaveTextContent('$ 20.00');
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 20.00');
       });
     });
 
@@ -1317,7 +1319,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
 
       await waitFor(() => {
-        expect(getByTestId('fiat_toggle')).toHaveTextContent('$ 20.00');
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 20.00');
       });
     });
 
@@ -1332,7 +1336,9 @@ describeForPlatforms('Send', () => {
       fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
 
       await waitFor(() => {
-        expect(getByTestId('fiat_toggle')).toHaveTextContent('$ 4,000.00');
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 4,000.00');
       });
     });
   });
