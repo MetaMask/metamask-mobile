@@ -31,6 +31,7 @@ let mockRouteParams: {
   addressOrId?: string;
 } = { initialTab: 'followers' };
 
+jest.mock('../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({

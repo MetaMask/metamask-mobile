@@ -6,6 +6,7 @@ import {
   isSocialV1Treatment,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 import { navigateToSocialV1Profile } from '../../../../components/Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 interface HandleSocialTraderUrlParams {
   actionPath: string;
@@ -43,6 +44,9 @@ export const handleSocialTraderUrl = ({
   );
 
   try {
+    if (!ensureSocialTermsAccepted(NavigationService.navigation.navigate)) {
+      return;
+    }
     const traderId = parseTraderId(actionPath);
     DevLogger.log('[handleSocialTraderUrl] Parsed navigation parameters:', {
       traderId,

@@ -17,6 +17,7 @@ import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
     reactions: [{ emotion: '🔥', count: 1 }],

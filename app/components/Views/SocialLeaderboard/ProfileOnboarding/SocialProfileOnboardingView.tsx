@@ -61,6 +61,7 @@ import {
   getUsernameStatus,
   normalizeUsername,
   type ProfileOnboardingDraft,
+  type ProfileOnboardingPath,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
 import OnboardingProgress from './OnboardingProgress';
@@ -77,6 +78,11 @@ import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
+import SocialTermsSheet from '../terms/SocialTermsSheet';
+import {
+  acceptSocialTerms,
+  hasAcceptedSocialTerms,
+} from '../terms/socialTermsAcceptance';
 
 const { Interaction, Outcome, Screen, Step } = SocialEvent;
 const AVATAR_TILE_SIZE = 60;
@@ -263,6 +269,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  // Path the user picked while the terms sheet is open; null when it is closed.
+  const [pendingTermsPath, setPendingTermsPath] =
+    useState<ProfileOnboardingPath | null>(null);
   const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
   const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
     step: analyticsStep,
@@ -433,18 +442,57 @@ const SocialProfileOnboardingView: React.FC = () => {
     [trackInteraction],
   );
 
-  const handleConnectX = useCallback(() => {
-    playSelection().catch(() => undefined);
-    setDraft((current) => applyXOnboardingProfile(current));
-    setStep('x-identity');
-  }, [playSelection]);
-
-  const handleCreateManually = useCallback(() => {
-    playSelection().catch(() => undefined);
+  const startPath = useCallback((path: ProfileOnboardingPath) => {
+    if (path === 'x') {
+      setDraft((current) => applyXOnboardingProfile(current));
+      setStep('x-identity');
+      return;
+    }
     setUsernameClaimError(null);
     setDraft((current) => startManualOnboarding(current));
     setStep('username');
-  }, [playSelection]);
+  }, []);
+
+  const requestPath = useCallback(
+    (path: ProfileOnboardingPath) => {
+      playSelection().catch(() => undefined);
+      if (hasAcceptedSocialTerms()) {
+        startPath(path);
+        return;
+      }
+      trackInteraction(Interaction.SHEET_DISPLAYED, { step: Step.TERMS });
+      setPendingTermsPath(path);
+    },
+    [playSelection, startPath, trackInteraction],
+  );
+
+  const handleConnectX = useCallback(() => requestPath('x'), [requestPath]);
+
+  const handleCreateManually = useCallback(
+    () => requestPath('manual'),
+    [requestPath],
+  );
+
+  const handleTermsAgree = useCallback(() => {
+    if (!pendingTermsPath) {
+      return;
+    }
+    trackInteraction(Interaction.BUTTON_CLICKED, {
+      outcome: Outcome.SUCCESS,
+      step: Step.TERMS,
+    });
+    acceptSocialTerms().catch(() => undefined);
+    setPendingTermsPath(null);
+    startPath(pendingTermsPath);
+  }, [pendingTermsPath, startPath, trackInteraction]);
+
+  const handleTermsClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, {
+      outcome: Outcome.DISMISSED,
+      step: Step.TERMS,
+    });
+    setPendingTermsPath(null);
+  }, [trackInteraction]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
@@ -952,6 +1000,12 @@ const SocialProfileOnboardingView: React.FC = () => {
           ) : null}
         </Box>
       </KeyboardAvoidingView>
+      {pendingTermsPath ? (
+        <SocialTermsSheet
+          onAgree={handleTermsAgree}
+          onClose={handleTermsClose}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -24,6 +24,7 @@ const mockFollowWithSetup = jest.fn(
 );
 const mockRefresh = jest.fn().mockResolvedValue(undefined);
 
+jest.mock('../../../terms/socialTermsAcceptance');
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),

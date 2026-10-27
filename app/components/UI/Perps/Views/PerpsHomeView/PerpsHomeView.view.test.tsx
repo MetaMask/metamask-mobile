@@ -74,6 +74,10 @@ import {
 } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import { wirePerpsControllerForStore } from '../../../../../../tests/component-view/helpers/perpsViewTestHelpers';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../../../../Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 const TIMEOUT_MS = 5000;
 
@@ -98,6 +102,14 @@ const ineligibleOverrides = {
     },
   },
 };
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describe('PerpsHomeView', () => {
   beforeEach(() => {

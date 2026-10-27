@@ -11,6 +11,7 @@ const mockNavigate = jest.fn();
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
 let mockHasFetched = true;
 
+jest.mock('../../../SocialLeaderboard/terms/socialTermsAcceptance');
 jest.mock('../../../../../util/haptics', () => ({
   playErrorNotification: () => mockPlayErrorNotification(),
 }));

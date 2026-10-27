@@ -45,6 +45,8 @@ import { useFollowWithNotificationSetup } from '../../../SocialLeaderboard/hooks
 import { navigateToSocialLeaderboard } from '../../../SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { rankTradersByMetric } from '../../../SocialLeaderboard/TopTradersView/traderMetric';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useSocialTermsGate } from '../../../SocialLeaderboard/terms/useSocialTermsGate';
 import {
   LEADERBOARD_LANDING_FEED_AB_KEY,
   LEADERBOARD_LANDING_FEED_VARIANTS,
@@ -92,6 +94,7 @@ const TopTradersSection = forwardRef<
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
   const { followWithSetup } = useFollowWithNotificationSetup();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -252,6 +255,9 @@ const TopTradersSection = forwardRef<
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
+      if (!ensureSocialTermsAccepted()) {
+        return;
+      }
       const trader = traders.find((t) => t.id === traderId);
       navigation.navigate(Routes.SOCIAL.PROFILE, {
         traderId,
@@ -261,7 +267,7 @@ const TopTradersSection = forwardRef<
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders],
+    [ensureSocialTermsAccepted, navigation, traders],
   );
 
   const handleFollowPress = useCallback(

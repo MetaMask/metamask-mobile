@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
+import { useSocialTermsGate } from '../terms/useSocialTermsGate';
 
 /** The follow or unfollow write. A follow runs before notification setup. */
 type PerformFollow = () => void | Promise<void>;
@@ -37,9 +38,13 @@ export interface UseFollowWithNotificationSetupResult {
 export const useFollowWithNotificationSetup =
   (): UseFollowWithNotificationSetupResult => {
     const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
+    const { ensureSocialTermsAccepted } = useSocialTermsGate();
 
     const followWithSetup = useCallback(
       async (isFollowing: boolean, performFollow: PerformFollow) => {
+        if (!ensureSocialTermsAccepted()) {
+          return;
+        }
         await performFollow();
         // Setup has no deferred follow. Passing `performFollow` would toggle
         // again once a channel is enabled and unfollow the trader.
@@ -47,7 +52,7 @@ export const useFollowWithNotificationSetup =
           openSetupIfNeeded();
         }
       },
-      [openSetupIfNeeded],
+      [ensureSocialTermsAccepted, openSetupIfNeeded],
     );
 
     return { followWithSetup };

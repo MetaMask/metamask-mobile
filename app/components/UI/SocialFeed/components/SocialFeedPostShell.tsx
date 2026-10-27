@@ -21,6 +21,7 @@ import EmojiAddIcon from '../../../../images/emoji-add.svg';
 import { useTheme } from '../../../../util/theme';
 import { EnsureAccessRestricted } from '../../Compliance/contexts/AccessRestrictedContext';
 import { useRequireSocialProfileOnboarding } from '../../../Views/SocialLeaderboard/hooks/useRequireSocialProfileOnboarding';
+import { useSocialTermsGate } from '../../../Views/SocialLeaderboard/terms/useSocialTermsGate';
 import { useSocialEntryOptions } from './SocialEntryOptionsBottomSheet';
 import SocialTraderIdentityRow from './SocialTraderIdentityRow';
 import { useCopyTradeToPerps } from '../hooks/useCopyTradeToPerps';
@@ -71,6 +72,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const reactionAnchorRef = useRef<View>(null);
   const [pickerVisible, setPickerVisible] = useState(false);
   const { ensureSocialProfileOnboarding } = useRequireSocialProfileOnboarding();
+  const { ensureSocialTermsAccepted } = useSocialTermsGate();
   const optionsTarget = useMemo(
     () => ({
       postId: post.id,
@@ -80,10 +82,16 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     [post.authorHandle, post.id, post.item.author.id],
   );
   const {
-    open: openOptions,
+    open: openEntryOptions,
     sheet: optionsSheet,
     isHidden,
   } = useSocialEntryOptions(optionsTarget);
+  const openOptions = useCallback(() => {
+    if (!ensureSocialTermsAccepted()) {
+      return;
+    }
+    openEntryOptions();
+  }, [ensureSocialTermsAccepted, openEntryOptions]);
   const [pickerAnchor, setPickerAnchor] = useState<ReactionPickerAnchor | null>(
     null,
   );
@@ -100,13 +108,25 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   // Perps opens the order sheet. Spot hands the item to the feed so QuickBuy
   // can target that token. A closed position has nothing to copy.
   const handleSpotCopyTrade = useCallback(() => {
+    if (!ensureSocialTermsAccepted()) {
+      return;
+    }
     notifyCopy?.('spot');
     onSpotCopyTrade?.(post.item, post.commentId);
-  }, [notifyCopy, onSpotCopyTrade, post.item, post.commentId]);
+  }, [
+    ensureSocialTermsAccepted,
+    notifyCopy,
+    onSpotCopyTrade,
+    post.item,
+    post.commentId,
+  ]);
   const handlePerpsCopyTrade = useCallback(() => {
+    if (!ensureSocialTermsAccepted()) {
+      return;
+    }
     notifyCopy?.('perps');
     onPerpsCopyTrade?.();
-  }, [notifyCopy, onPerpsCopyTrade]);
+  }, [ensureSocialTermsAccepted, notifyCopy, onPerpsCopyTrade]);
   const copyTradeHandler =
     post.item.variant === 'perpsOpen'
       ? onPerpsCopyTrade
@@ -119,7 +139,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   const chips = visibleReactions(reactions);
 
   const openPicker = useCallback(() => {
-    if (!ensureSocialProfileOnboarding()) {
+    if (!ensureSocialTermsAccepted() || !ensureSocialProfileOnboarding()) {
       return;
     }
 
@@ -128,7 +148,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
       setPickerVisible(true);
       notifyPicker?.();
     });
-  }, [ensureSocialProfileOnboarding, notifyPicker]);
+  }, [ensureSocialProfileOnboarding, ensureSocialTermsAccepted, notifyPicker]);
 
   const closePicker = useCallback(() => {
     setPickerVisible(false);
@@ -136,7 +156,11 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
 
   const toggleEmotion = useCallback(
     (emotion: string) => {
-      if (!ensureSocialProfileOnboarding() || isPending) {
+      if (
+        !ensureSocialTermsAccepted() ||
+        !ensureSocialProfileOnboarding() ||
+        isPending
+      ) {
         return;
       }
 
@@ -145,6 +169,7 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
     },
     [
       ensureSocialProfileOnboarding,
+      ensureSocialTermsAccepted,
       isPending,
       notifyReaction,
       pickEmotion,
@@ -161,18 +186,24 @@ const SocialFeedPostShell: React.FC<SocialFeedPostShellProps> = ({
   );
 
   const handleIdentityPress = useCallback(() => {
+    if (!ensureSocialTermsAccepted()) {
+      return;
+    }
     tracked.onAuthorTap?.();
     onAuthorPress?.(post);
-  }, [onAuthorPress, post, tracked]);
+  }, [ensureSocialTermsAccepted, onAuthorPress, post, tracked]);
 
   const handlePositionPress = useCallback(() => {
+    if (!ensureSocialTermsAccepted()) {
+      return;
+    }
     tracked.onPositionTap?.(
       post.item.variant === 'perpsOpen' || post.item.variant === 'perpsClosed'
         ? 'perps'
         : 'spot',
     );
     onPositionPress?.(post);
-  }, [onPositionPress, post, tracked]);
+  }, [ensureSocialTermsAccepted, onPositionPress, post, tracked]);
 
   if (isHidden) {
     return null;
