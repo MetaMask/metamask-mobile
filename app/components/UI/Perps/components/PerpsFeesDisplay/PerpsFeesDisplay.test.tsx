@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
 
 jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
@@ -23,8 +24,8 @@ jest.mock('../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
 });
 
 describe('PerpsFeesDisplay', () => {
-  it('shows a promotional label and original fee without a VIP badge', () => {
-    const { getByText, getByTestId, queryByTestId } = render(
+  it('shows a promotional seal and original fee without a VIP badge', () => {
+    const { getByTestId, queryByTestId, queryByText } = render(
       <PerpsFeesDisplay
         fee={0}
         originalFee={10}
@@ -34,7 +35,10 @@ describe('PerpsFeesDisplay', () => {
       />,
     );
 
-    expect(getByText('Promotional discount')).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(queryByText('Promotional discount')).not.toBeOnTheScreen();
     expect(getByTestId('fee-original')).toBeOnTheScreen();
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),

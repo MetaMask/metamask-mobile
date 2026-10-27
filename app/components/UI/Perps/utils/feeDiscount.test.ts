@@ -1,5 +1,7 @@
 import type { FeeCalculationResult } from '@metamask/perps-controller';
 import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
   getPresentedOriginalMetamaskFeeRate,
   getPerpsFeeDiscount,
   getPerpsFeeDiscountPercentage,
@@ -137,5 +139,30 @@ describe('getPerpsFeeDiscountPercentage', () => {
     const percentage = getPerpsFeeDiscountPercentage(0.001, 0.000999999);
 
     expect(percentage).toBeUndefined();
+  });
+});
+
+describe('formatCombinedFeePercentage', () => {
+  it('formats a positive combined rate to 3 decimals', () => {
+    expect(formatCombinedFeePercentage(0.00043, 0.0002)).toBe('0.063');
+  });
+
+  it('returns undefined when the combined rate is not positive', () => {
+    expect(formatCombinedFeePercentage(0, 0)).toBeUndefined();
+    expect(formatCombinedFeePercentage(undefined, undefined)).toBeUndefined();
+  });
+});
+
+describe('formatOriginalCombinedFeePercentage', () => {
+  it('returns the pre-discount combined rate when it is higher', () => {
+    expect(formatOriginalCombinedFeePercentage(0.00043, 0.0002, 0.001)).toBe(
+      '0.143',
+    );
+  });
+
+  it('omits the original rate when it matches the discounted rate', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(0.00045, 0, undefined),
+    ).toBeUndefined();
   });
 });

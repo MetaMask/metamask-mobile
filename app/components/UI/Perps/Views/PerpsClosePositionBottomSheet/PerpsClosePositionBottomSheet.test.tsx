@@ -977,6 +977,24 @@ describe('PerpsClosePositionBottomSheet', () => {
       ).toBeNull();
     });
 
+    it('shows the struck-through promo fee when a grant discount applies', () => {
+      usePerpsOrderFeesMock.mockReturnValue({
+        ...defaultPerpsOrderFeesMock,
+        protocolFeeRate: 0.00043,
+        metamaskFeeRate: 0.0002,
+        originalMetamaskFeeRate: 0.001,
+        feeDiscountPercentage: 80,
+        feeDiscountKind: 'promotional',
+      });
+
+      const { getByTestId, queryByTestId } = renderSheet();
+
+      expect(
+        getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
+      ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
+      expect(queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+    });
+
     it('shows the VIP badge when the fee discount is active', () => {
       usePerpsOrderFeesMock.mockReturnValue({
         ...defaultPerpsOrderFeesMock,

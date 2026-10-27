@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { MembershipVipBadgeSelectorsIDs } from '../../../../shared/MembershipVipBadge/MembershipVipBadge';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../../Perps.testIds';
 import FeesTooltipContent from './FeesTooltipContent';
 
 jest.mock('../../../../shared/MembershipVipBadge/MembershipVipBadge', () => {
@@ -32,15 +33,16 @@ describe('FeesTooltipContent', () => {
   };
 
   it('explains the promotional discount without VIP branding', () => {
-    const { getByText, queryByTestId, queryByText } = render(
+    const { getByText, getByTestId, queryByTestId, queryByText } = render(
       <FeesTooltipContent
         testID="fees-tooltip"
         data={{ ...mockData, feeDiscountKind: 'promotional' }}
       />,
     );
 
+    expect(getByText('25% off the MetaMask fee.')).toBeOnTheScreen();
     expect(
-      getByText('Promotional discount: 25% off the MetaMask fee.'),
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),

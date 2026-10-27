@@ -16,6 +16,7 @@ import type PerpsSlider from '../PerpsSlider';
 import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import {
   PerpsAmountDisplaySelectorsIDs,
+  PerpsFeeDiscountLabelSelectorsIDs,
   PerpsTradeSheetSelectorsIDs,
 } from '../../Perps.testIds';
 import { convertAssetAmountToUsd } from '../../utils/assetAmountInput';
@@ -539,6 +540,44 @@ describe('PerpsTradeScreen errors', () => {
     );
 
     expect(screen.getByTestId('rewards-vip-badge')).toBeOnTheScreen();
+  });
+
+  it('shows a struck-through promo fee under the order button', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        feePercentage="0.063"
+        originalFeePercentage="0.143"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
+  });
+
+  it('keeps the bridge fee on a promo caption', () => {
+    render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        originalFeePercentage="0.200"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+        bridgeFee="$0.15"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+    ).toHaveTextContent(
+      'Includes 0.200% 0.143% fee after promo + $0.15 bridge fee',
+    );
   });
 
   it('shows the trade fee without a bridge fee', () => {

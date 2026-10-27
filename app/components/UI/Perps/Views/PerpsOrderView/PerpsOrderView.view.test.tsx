@@ -288,7 +288,10 @@ describe('PerpsOrderView', () => {
 
     expect(
       await screen.findByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
-    ).toHaveTextContent(strings('perps.tooltips.fees.promotional_discount'));
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(strings('perps.tooltips.fees.promotional_discount')),
+    ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(PerpsOrderViewSelectorsIDs.ORIGINAL_FEES_VALUE),
     ).toHaveTextContent('$1.45');

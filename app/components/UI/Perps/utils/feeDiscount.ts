@@ -20,6 +20,41 @@ export interface PerpsFeeDiscount {
 const FEE_DISCOUNT_PERCENTAGE_SCALE = 100;
 
 /**
+ * Combined protocol + MetaMask rate as a 3-decimal percent, matching the
+ * trade-sheet caption. Undefined when the combined rate is not positive.
+ */
+export function formatCombinedFeePercentage(
+  protocolFeeRate: number | undefined,
+  metamaskFeeRate: number | undefined,
+): string | undefined {
+  const totalRate = (protocolFeeRate ?? 0) + (metamaskFeeRate ?? 0);
+  if (!(totalRate > 0) || !Number.isFinite(totalRate)) {
+    return undefined;
+  }
+  return (totalRate * 100).toFixed(3);
+}
+
+/**
+ * Pre-discount combined rate for the caption. Omitted when it matches the
+ * discounted rate so the caption does not strike through an unchanged value.
+ */
+export function formatOriginalCombinedFeePercentage(
+  protocolFeeRate: number | undefined,
+  metamaskFeeRate: number | undefined,
+  originalMetamaskFeeRate: number | undefined,
+): string | undefined {
+  const current = formatCombinedFeePercentage(protocolFeeRate, metamaskFeeRate);
+  const original = formatCombinedFeePercentage(
+    protocolFeeRate,
+    originalMetamaskFeeRate ?? metamaskFeeRate,
+  );
+  if (original === undefined || original === current) {
+    return undefined;
+  }
+  return original;
+}
+
+/**
  * Original MetaMask rate for presentation.
  *
  * Core supplies the undiscounted rate whenever a resolved quote has a
