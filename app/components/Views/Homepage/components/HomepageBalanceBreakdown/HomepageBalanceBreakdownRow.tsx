@@ -45,7 +45,7 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
 }: HomepageBalanceBreakdownMoneyAddButtonProps) => {
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.WALLET_HOME,
-    component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
+    component_name: COMPONENT_NAMES.MONEY_ROW_BALANCE_BREAKDOWN,
   });
   const { handleAddPress } = useMoneyAddMoney({
     buttonLabelKey: 'money.balance_card.add',
