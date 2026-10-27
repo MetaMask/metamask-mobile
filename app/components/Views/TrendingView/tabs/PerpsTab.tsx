@@ -53,7 +53,11 @@ const PerpsTabListHeader: React.FC<{ showTopTraders: boolean }> = ({
   showTopTraders,
 }) => (
   <Box>
-    {showTopTraders && <TopTradersSection source="explore_perps" />}
+    {showTopTraders && (
+      <Box twClassName="pb-1">
+        <TopTradersSection source="explore_perps" />
+      </Box>
+    )}
     {showTopTraders && <SectionDivider />}
     <SectionHeader
       title={strings('trending.perps_trending_lists')}
@@ -76,7 +80,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   const [isSortSheetVisible, setIsSortSheetVisible] = useState(false);
   const floatingTabBarInset = useFloatingTabBarInset();
   const contentContainerStyle = useMemo(
-    () => ({ paddingBottom: 16 + floatingTabBarInset }),
+    () => ({ paddingTop: 12, paddingBottom: 16 + floatingTabBarInset }),
     [floatingTabBarInset],
   );
 
@@ -257,20 +261,24 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
 
   const stickyHeader = useMemo(
     () => (
-      <PerpsMarketFiltersBar
-        selectedOptionId={selectedOptionId}
-        onSortPress={() => setIsSortSheetVisible(true)}
-        sortDirection={direction}
-        marketTypeFilter={marketTypeFilter}
-        onCategorySelect={handleCategorySelect}
-        marketCount={markets.length}
-        showWatchlistBadge={isWatchlistEnabled}
-        isWatchlistSelected={showFavoritesOnly}
-        onWatchlistToggle={handleWatchlistToggle}
-        showCategoryRow
-        showSortRow
-        testID="perps-tab-filters"
-      />
+      // The top padding gives the pinned bar the same gap below the Explore
+      // tab bar as there is between the pills and the count/sort row.
+      <Box twClassName="bg-default pt-2">
+        <PerpsMarketFiltersBar
+          selectedOptionId={selectedOptionId}
+          onSortPress={() => setIsSortSheetVisible(true)}
+          sortDirection={direction}
+          marketTypeFilter={marketTypeFilter}
+          onCategorySelect={handleCategorySelect}
+          marketCount={markets.length}
+          showWatchlistBadge={isWatchlistEnabled}
+          isWatchlistSelected={showFavoritesOnly}
+          onWatchlistToggle={handleWatchlistToggle}
+          showCategoryRow
+          showSortRow
+          testID="perps-tab-filters"
+        />
+      </Box>
     ),
     [
       selectedOptionId,
@@ -292,7 +300,7 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
   // handful of skeleton rows is not a virtualization concern.
   if (isLoading) {
     return (
-      <View testID="perps-tab-loading">
+      <View testID="perps-tab-loading" style={contentContainerStyle}>
         {listHeader}
         <PerpsRowSkeleton count={8} />
       </View>

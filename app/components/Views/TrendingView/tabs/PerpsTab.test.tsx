@@ -386,6 +386,7 @@ describe('PerpsTab', () => {
     const { getByTestId } = renderPerpsTab();
 
     expect(getByTestId('perps-tab-market-list')).toHaveStyle({
+      paddingTop: 12,
       paddingBottom: 56,
     });
   });
