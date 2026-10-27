@@ -21,6 +21,23 @@ export const hasAcceptedSocialTerms = (): boolean =>
   hasAcceptedThisSession ||
   StorageWrapper.getItemSync(SOCIAL_TERMS_ACCEPTED) === SOCIAL_TERMS_VERSION;
 
+/**
+ * Loads a stored acceptance through the async storage path, which also reads
+ * E2E fixture state that `getItemSync` cannot. Called once on app start.
+ */
+export const hydrateSocialTermsAcceptance = async (): Promise<void> => {
+  try {
+    if (
+      (await StorageWrapper.getItem(SOCIAL_TERMS_ACCEPTED)) ===
+      SOCIAL_TERMS_VERSION
+    ) {
+      hasAcceptedThisSession = true;
+    }
+  } catch {
+    // The gate falls back to the synchronous read.
+  }
+};
+
 export const acceptSocialTerms = (): Promise<void> => {
   hasAcceptedThisSession = true;
   return StorageWrapper.setItem(SOCIAL_TERMS_ACCEPTED, SOCIAL_TERMS_VERSION);

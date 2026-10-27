@@ -31,11 +31,16 @@ const TERMS_BASE_URL = 'https://metamask.com';
 
 const WEBVIEW_SCROLL_END_JS = `(function () {
   function check() {
-    if (window.scrollY + window.innerHeight + ${SCROLL_END_THRESHOLD} >= document.documentElement.scrollHeight) {
+    var scrollHeight = document.documentElement.scrollHeight;
+    if (
+      scrollHeight > 0 &&
+      window.scrollY + window.innerHeight + ${SCROLL_END_THRESHOLD} >= scrollHeight
+    ) {
       window.ReactNativeWebView.postMessage('${WEBVIEW_SCROLL_END_EVENT}');
     }
   }
   window.addEventListener('scroll', check);
+  window.addEventListener('load', check);
   check();
 })();
 true;`;
@@ -66,13 +71,19 @@ export interface SocialTermsSheetProps {
   onClose: () => void;
 }
 
+type ScrollMetrics = Pick<
+  NativeScrollEvent,
+  'layoutMeasurement' | 'contentOffset' | 'contentSize'
+>;
+
 const isAtEnd = ({
   layoutMeasurement,
   contentOffset,
   contentSize,
-}: NativeScrollEvent): boolean =>
+}: ScrollMetrics): boolean =>
+  contentSize.height > 0 &&
   layoutMeasurement.height + contentOffset.y >=
-  contentSize.height - SCROLL_END_THRESHOLD;
+    contentSize.height - SCROLL_END_THRESHOLD;
 
 /**
  * Social Supplemental Terms consent sheet. The user must scroll to the end
@@ -93,7 +104,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   const markReachedEnd = useCallback(() => setHasReachedEnd(true), []);
 
   const handleScroll = useCallback(
-    ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
+    ({ nativeEvent }: NativeSyntheticEvent<ScrollMetrics>) => {
       if (isAtEnd(nativeEvent)) {
         markReachedEnd();
       }
@@ -156,6 +167,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             nestedScrollEnabled
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
+            onScroll={handleScroll}
             onShouldStartLoadWithRequest={(request) =>
               isAllowedTermsUrl(request.url, allowedOrigin)
             }

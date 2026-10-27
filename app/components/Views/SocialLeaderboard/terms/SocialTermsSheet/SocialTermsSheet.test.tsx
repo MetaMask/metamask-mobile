@@ -129,6 +129,47 @@ describe('SocialTermsSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('marks the WebView terms as read from native scroll events', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.scroll(
+      getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
+      scrollToEnd,
+    );
+
+    expect(
+      queryByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('does not mark the terms as read before the content is measured', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.scroll(getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW), {
+      nativeEvent: {
+        layoutMeasurement: { height: 0 },
+        contentOffset: { y: 0 },
+        contentSize: { height: 0 },
+      },
+    });
+
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+  });
+
   it('allows only same-origin navigation for the bundled terms page', () => {
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet

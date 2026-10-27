@@ -6,6 +6,7 @@ import {
   acceptSocialTerms,
   ensureSocialTermsAccepted,
   hasAcceptedSocialTerms,
+  hydrateSocialTermsAcceptance,
   resetSocialTermsAcceptance,
 } from './socialTermsAcceptance';
 
@@ -13,12 +14,14 @@ jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
     getItemSync: jest.fn(),
+    getItem: jest.fn(),
     setItem: jest.fn(() => Promise.resolve()),
     removeItem: jest.fn(() => Promise.resolve()),
   },
 }));
 
 const mockGetItemSync = jest.mocked(StorageWrapper.getItemSync);
+const mockGetItem = jest.mocked(StorageWrapper.getItem);
 const mockSetItem = jest.mocked(StorageWrapper.setItem);
 const mockRemoveItem = jest.mocked(StorageWrapper.removeItem);
 
@@ -64,6 +67,36 @@ describe('socialTermsAcceptance', () => {
     await acceptSocialTerms();
 
     expect(hasAcceptedSocialTerms()).toBe(true);
+  });
+
+  describe('hydrateSocialTermsAcceptance', () => {
+    it('accepts for the session when async storage holds the current version', async () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockGetItem.mockResolvedValue(SOCIAL_TERMS_VERSION);
+
+      await hydrateSocialTermsAcceptance();
+
+      expect(mockGetItem).toHaveBeenCalledWith(SOCIAL_TERMS_ACCEPTED);
+      expect(hasAcceptedSocialTerms()).toBe(true);
+    });
+
+    it('stays not accepted when async storage holds an older version', async () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockGetItem.mockResolvedValue('v0');
+
+      await hydrateSocialTermsAcceptance();
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('stays not accepted when the async read fails', async () => {
+      mockGetItemSync.mockReturnValue(null);
+      mockGetItem.mockRejectedValue(new Error('read failed'));
+
+      await hydrateSocialTermsAcceptance();
+
+      expect(hasAcceptedSocialTerms()).toBe(false);
+    });
   });
 
   it('resetSocialTermsAcceptance removes the stored and session acceptance', async () => {

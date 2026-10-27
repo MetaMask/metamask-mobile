@@ -241,6 +241,7 @@ class FixtureBuilder {
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:PUSH_PRE_PROMPT_SHOWN': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
+      '@MetaMask:socialTermsAccepted': 'v1',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;

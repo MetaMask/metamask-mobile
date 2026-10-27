@@ -6,11 +6,10 @@ import {
 import {
   HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS,
   OPTIN_META_METRICS_UI_SEEN,
-  SOCIAL_TERMS_ACCEPTED,
   TRUE,
   USE_TERMS,
 } from '../constants/storage';
-import { SOCIAL_TERMS_VERSION } from '../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
+import { acceptSocialTerms } from '../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 import { storePrivacyPolicyClickedOrClosed } from '../actions/legalNotices';
 import { Authentication } from '../core';
 import AUTHENTICATION_TYPE from '../constants/userProperties';
@@ -90,7 +89,7 @@ async function applyVaultInitialization() {
 
     // removes the necessity of the user to see the terms of use modal
     await StorageWrapper.setItem(USE_TERMS, TRUE);
-    await StorageWrapper.setItem(SOCIAL_TERMS_ACCEPTED, SOCIAL_TERMS_VERSION);
+    await acceptSocialTerms();
 
     // removes the necessity of the user to see the opt-in metrics modal
     await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
