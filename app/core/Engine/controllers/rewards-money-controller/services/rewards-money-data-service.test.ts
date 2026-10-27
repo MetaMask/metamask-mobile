@@ -359,7 +359,8 @@ describe('RewardsMoneyDataService', () => {
         // `.rejects.toMatchObject(...)` attaches its handler to the service
         // promise synchronously, so the pending rejection below is never
         // unobserved while the timer still has to advance to produce it.
-        const pending = await expect(
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
+        const pending = expect(
           service.validateReferralCode('ABC123'),
         ).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
@@ -426,7 +427,8 @@ describe('RewardsMoneyDataService', () => {
         // `.rejects.toMatchObject(...)` attaches its handler to the service
         // promise synchronously, so the pending rejection below is never
         // unobserved while the timer still has to advance to produce it.
-        const pending = await expect(service.getReferralMe()).rejects.toMatchObject({
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `pending`, not here
+        const pending = expect(service.getReferralMe()).rejects.toMatchObject({
           name: 'RewardsMoneyHttpError',
           status: 503,
           message: 'Get referral me failed: 503',
@@ -1073,7 +1075,8 @@ describe('RewardsMoneyDataService', () => {
         // `.rejects.toMatchObject(...)` attaches its handler to the service
         // promise synchronously, so the pending rejection below is never
         // unobserved while the timer still has to advance to produce it.
-        const busyQuotePending = await expect(
+        // eslint-disable-next-line jest/valid-expect -- awaited below via `busyQuotePending`, not here
+        const busyQuotePending = expect(
           service.getRebateQuote({ product: 'perps' }),
         ).rejects.toMatchObject({
           status: 503,
