@@ -464,7 +464,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               loading={isPreviewLoading}
               total={total}
               originalTotal={originalFeeBreakdown?.total}
-              feePolicyDiscountType={preview?.feePolicy?.discountType}
+              feePolicy={preview?.feePolicy}
               handleFeesInfoPress={handleFeesInfoPress}
             />
             <View style={styles.cashOutButtonContainer}>
@@ -483,8 +483,8 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
         <PredictFeeBreakdownSheet
           providerFee={feeBreakdown.exchangeFee}
           metamaskFee={feeBreakdown.metamaskFee}
-          feePolicyDiscountType={preview?.feePolicy?.discountType}
           originalTotal={originalFeeBreakdown?.total}
+          feePolicy={preview?.feePolicy}
           sharePrice={currentPrice}
           contractCount={preview?.maxAmountSpent ?? 0}
           betAmount={feeBreakdown.order}
