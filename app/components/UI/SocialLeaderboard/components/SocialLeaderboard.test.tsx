@@ -267,6 +267,34 @@ describe('SocialLeaderboard', () => {
     ).toBeOnTheScreen();
   });
 
+  it('shows the clear-filters empty state when applied filters match no traders', () => {
+    const onClearFilters = jest.fn();
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+      filteredEmpty: true,
+      onClearFilters,
+    });
+
+    fireEvent.press(screen.getByTestId('social-filter-empty-clear'));
+
+    expect(onClearFilters).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeNull();
+  });
+
+  it('shows the empty state when the cohort filter matches no traders', () => {
+    renderLeaderboard({
+      filters: { timeframe: '7d', ranking: 'pnl', cohort: 'whale' },
+    });
+
+    expect(
+      screen.getByTestId(SocialLeaderboardSelectorsIDs.EMPTY),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SocialLeaderboardSelectorsIDs.ROWS)).toBeNull();
+  });
+
   it('shows the empty state when the ranking has no traders', () => {
     mockQueryResult({ traders: [] });
 
