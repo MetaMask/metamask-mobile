@@ -26,6 +26,7 @@ import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
+import { useManageProfileAnalytics } from '../../analytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
   try {
@@ -45,6 +46,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
   const avatarVariant = getAvatarAccountVariant(avatarAccountType);
   const { isControllerBacked, linkedAddresses, updateProfile } =
     useProfileController();
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isUpdating, setIsUpdating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -71,6 +73,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
 
       try {
         await updateProfile({ linked_addresses: nextLinkedAddresses });
+        trackProfileEdited();
       } catch {
         setErrorMessage(
           strings('social_leaderboard.manage_profile.save_error'),
@@ -79,7 +82,7 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         setIsUpdating(false);
       }
     },
-    [isControllerBacked, updateProfile],
+    [isControllerBacked, trackProfileEdited, updateProfile],
   );
 
   return (
@@ -159,13 +162,15 @@ const ManageProfileLinkedAccountView: React.FC = () => {
         ) : null}
         <Box
           flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
           twClassName="mx-4 mt-4 px-3 py-3 rounded-2xl border border-muted"
-          gap={2}
+          gap={1}
         >
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
             color={IconColor.IconAlternative}
+            twClassName="mt-0.5"
           />
           <Text
             variant={TextVariant.BodySm}

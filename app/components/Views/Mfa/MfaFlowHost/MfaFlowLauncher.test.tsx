@@ -62,7 +62,13 @@ describe('MfaFlowLauncher', () => {
 
   it('stays closed when the flow settles without a screen', async () => {
     controller.refreshEnrolledCredentials.mockResolvedValue([
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
     ]);
     renderWithProvider(<MfaFlowLauncher />, { state: {} });
 

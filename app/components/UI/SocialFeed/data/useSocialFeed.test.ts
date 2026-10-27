@@ -12,9 +12,25 @@ import { FEED_PAGE_LIMIT, buildSocialFeedQueryKey } from './socialFeedQueries';
 import { mockFeedResponse, mockSpotFeedItem } from '../mocks/coreFeed.mock';
 import { toSocialFeedRequest, type SocialFeedSource } from './socialFeedSource';
 import { useSocialFeed } from './useSocialFeed';
+import {
+  useSocialFeedRealtime,
+  type UseSocialFeedRealtimeResult,
+} from './useSocialFeedRealtime';
+import { createSocialFeedEntrances } from './socialFeedEntrances';
+import type { SocialV1FeedPost } from '../types';
+import { mapFeedItem } from '../utils/mapFeedItem';
+import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import { measureSocialDataFetch } from '../../../../util/social/socialPerformance';
 
 const mockCall = jest.fn();
+
+jest.mock('./useSocialFeedRealtime', () => {
+  const actual = jest.requireActual('./useSocialFeedRealtime');
+  return {
+    ...actual,
+    useSocialFeedRealtime: jest.fn(actual.useSocialFeedRealtime),
+  };
+});
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -49,6 +65,7 @@ jest.mock('../../../../util/social/socialPerformance', () => ({
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseLogSocialQueryError = jest.mocked(useLogSocialQueryError);
+const mockUseSocialFeedRealtime = jest.mocked(useSocialFeedRealtime);
 const mockMeasureSocialDataFetch = jest.mocked(measureSocialDataFetch);
 
 const createWrapper = (staleTime = 0) => {
@@ -75,6 +92,9 @@ describe('useSocialFeed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockReturnValue(true);
+    mockUseSocialFeedRealtime.mockImplementation(
+      jest.requireActual('./useSocialFeedRealtime').useSocialFeedRealtime,
+    );
   });
 
   it('stays idle for a null source', () => {
@@ -400,6 +420,161 @@ describe('useSocialFeed', () => {
     result.current.loadMore();
 
     expect(mockCall).not.toHaveBeenCalled();
+  });
+
+  it('applies filterPost to the posts but not the rows', async () => {
+    mockCall.mockResolvedValue(mockFeedResponse([olderItem, newerItem]));
+    const filterPost = (post: SocialV1FeedPost) =>
+      post.position?.positionId === 'older';
+
+    const { result } = renderHook(
+      () => useSocialFeed(perpSource, { filterPost }),
+      { wrapper: createWrapper().wrapper },
+    );
+
+    await waitFor(() => expect(result.current.rows).toHaveLength(2));
+    expect(
+      result.current.posts.map((post) => post.position?.positionId),
+    ).toEqual(['older']);
+  });
+
+  describe('realtime', () => {
+    const trendingSource: SocialFeedSource = {
+      kind: 'all',
+      audience: 'all',
+      scope: 'trending',
+    };
+
+    it('keeps realtime off and omits its state by default', async () => {
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      const { result } = renderHook(() => useSocialFeed(trendingSource), {
+        wrapper: createWrapper().wrapper,
+      });
+
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+      expect(result.current).not.toHaveProperty('realtime');
+    });
+
+    it('ignores realtime for a source without a socket channel', () => {
+      renderHook(() => useSocialFeed(perpSource, { realtime: true }), {
+        wrapper: createWrapper().wrapper,
+      });
+
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.anything(),
+        expect.objectContaining({ realtimeScope: null }),
+      );
+    });
+
+    it('streams the source scope with the hold options', () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      mockUseSelector.mockReturnValue(false);
+      const filterPost = jest.fn(() => true);
+
+      renderHook(
+        () =>
+          useSocialFeed(trendingSource, {
+            realtime: true,
+            paused: true,
+            nearTop: false,
+            holdNewPosts: true,
+            filterPost,
+          }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      expect(mockUseSocialFeedRealtime).toHaveBeenLastCalledWith(
+        expect.objectContaining({ rows: [], dataUpdatedAt: undefined }),
+        {
+          realtimeScope: 'trending',
+          active: false,
+          paused: true,
+          nearTop: false,
+          holdNewPosts: true,
+          filterPost,
+        },
+      );
+    });
+
+    it('returns the realtime posts and state while streaming', () => {
+      const liveCore = mockSpotFeedItem({ positionId: 'live-post' });
+      const liveItem = mapFeedItem(liveCore);
+      if (!liveItem) {
+        throw new Error('Expected the feed item to map');
+      }
+      const [livePost] = toSocialFeedPosts(
+        [{ core: liveCore, item: liveItem }],
+        0,
+      );
+      const live: UseSocialFeedRealtimeResult = {
+        posts: [livePost],
+        realtime: {
+          pendingNewCount: 3,
+          revealPending: jest.fn(),
+          entrances: createSocialFeedEntrances(),
+        },
+      };
+      mockUseSocialFeedRealtime.mockReturnValue(live);
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+
+      const { result } = renderHook(
+        () => useSocialFeed(trendingSource, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+
+      expect(result.current.posts).toEqual([livePost]);
+      expect(result.current.realtime).toBe(live.realtime);
+    });
+
+    it('never marks the pages stale while streaming', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      mockCall.mockResolvedValue(mockFeedResponse([]));
+      const { client, wrapper } = createWrapper();
+
+      renderHook(() => useSocialFeed(trendingSource, { realtime: true }), {
+        wrapper,
+      });
+      await waitFor(() => expect(mockCall).toHaveBeenCalled());
+
+      const observer = client.getQueryCache().getAll()[0]?.observers[0];
+      expect(observer?.options.staleTime).toBe(Infinity);
+    });
+
+    it('keeps every loaded page while streaming', async () => {
+      mockUseSocialFeedRealtime.mockReturnValue(null);
+      const oldestItem = mockSpotFeedItem({
+        positionId: 'oldest',
+        timestamp: 1_699_999_000,
+      });
+      mockCall.mockImplementation(
+        (_action: string, options: { olderThan?: string }) => {
+          if (options.olderThan === 'cursor-2') {
+            return Promise.resolve(mockFeedResponse([oldestItem]));
+          }
+          if (options.olderThan === 'cursor-1') {
+            return Promise.resolve(mockFeedResponse([olderItem], 'cursor-2'));
+          }
+          return Promise.resolve(mockFeedResponse([newerItem], 'cursor-1'));
+        },
+      );
+      const { result } = renderHook(
+        () => useSocialFeed(trendingSource, { realtime: true }),
+        { wrapper: createWrapper().wrapper },
+      );
+      await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+
+      act(() => result.current.loadMore());
+      await waitFor(() => expect(result.current.posts).toHaveLength(2));
+      act(() => result.current.loadMore());
+
+      await waitFor(() => expect(result.current.posts).toHaveLength(3));
+      expect(result.current.hasNextPage).toBe(false);
+    });
   });
 
   it('measures the first Social V1 initial-page request as cold', async () => {

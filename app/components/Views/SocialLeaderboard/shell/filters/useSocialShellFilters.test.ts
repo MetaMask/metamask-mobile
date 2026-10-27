@@ -13,10 +13,10 @@ describe('useSocialShellFilters', () => {
 
     expect(result.current.openTab).toBeNull();
     expect(result.current.applied.trending).toEqual(DEFAULT_FILTERS);
-    expect(result.current.applied.liveTrades).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.live).toEqual(DEFAULT_FILTERS);
     expect(result.current.applied.leaderboard).toEqual(DEFAULT_FILTERS);
     expect(result.current.hasActiveFilters('trending')).toBe(false);
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.hasActiveFilters('live')).toBe(false);
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
@@ -46,17 +46,17 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.applied.trending.type).toBe('tokens');
-    expect(result.current.applied.liveTrades.type).toBe('all');
+    expect(result.current.applied.live.type).toBe('all');
     expect(result.current.applied.leaderboard.type).toBe('all');
     expect(result.current.hasActiveFilters('trending')).toBe(true);
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.hasActiveFilters('live')).toBe(false);
   });
 
   it('closing the sheet without applying discards the draft', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
     act(() => {
-      result.current.openSheet('liveTrades');
+      result.current.openSheet('live');
     });
     act(() => {
       result.current.updateDraft({ traderCohort: 'whale' });
@@ -66,8 +66,8 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.openTab).toBeNull();
-    expect(result.current.applied.liveTrades.traderCohort).toBe('all');
-    expect(result.current.hasActiveFilters('liveTrades')).toBe(false);
+    expect(result.current.applied.live.traderCohort).toBe('all');
+    expect(result.current.hasActiveFilters('live')).toBe(false);
   });
 
   it('resetDraftToDefaults restores the draft to defaults without applying', () => {
@@ -86,6 +86,35 @@ describe('useSocialShellFilters', () => {
     });
     expect(result.current.draft.timeframe).toBe('7d');
     expect(result.current.applied.leaderboard.timeframe).toBe('7d');
+  });
+
+  it('updates the leaderboard type without marking the sheet filter as active', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.setLeaderboardType('perps');
+    });
+
+    expect(result.current.applied.leaderboard.type).toBe('perps');
+    expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
+  });
+
+  it('keeps the leaderboard type when resetting sheet filters', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.setLeaderboardType('tokens');
+    });
+    act(() => {
+      result.current.openSheet('leaderboard');
+      result.current.updateDraft({ timeframe: '30d' });
+    });
+    act(() => {
+      result.current.resetDraftToDefaults();
+    });
+
+    expect(result.current.draft.type).toBe('tokens');
+    expect(result.current.draft.timeframe).toBe('7d');
   });
 
   it('does not treat leftover leaderboard ranges as active filters', () => {

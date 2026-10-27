@@ -463,6 +463,7 @@ const Routes = {
     MANAGE_PROFILE_TEXT_EDITOR: 'ManageProfileTextEditorView',
     MANAGE_PROFILE_TRADING_ACTIVITY: 'ManageProfileTradingActivityView',
     MANAGE_PROFILE_LINKED_ACCOUNT: 'ManageProfileLinkedAccountView',
+    EDIT_AVATAR: 'EditProfileAvatarView',
     POSITION: 'TraderPositionView',
     POSITION_SHEET: 'SocialPositionDetailsSheet',
     ONBOARDING: 'SocialLeaderboardOnboarding',
@@ -483,6 +484,7 @@ const Routes = {
       BUY_PREVIEW: 'PredictBuyPreview',
       SELL_PREVIEW: 'PredictSellPreview',
       UNAVAILABLE: 'PredictUnavailable',
+      MARKET_UNAVAILABLE: 'PredictMarketUnavailable',
       ADD_FUNDS_SHEET: 'PredictAddFundsSheet',
     },
   },
@@ -538,6 +540,7 @@ const Routes = {
     FIRST_TIME_DEPOSIT: 'MoneyFirstTimeDeposit',
     TRANSACTION_DETAILS: 'MoneyTransactionDetails',
     CARD_TRANSACTION_DETAILS: 'MoneyCardTransactionDetails',
+    DEPOSIT_DEEPLINK: 'MoneyDepositDeeplink',
     MODALS: {
       ROOT: 'MoneyModals',
       ADD_MONEY_SHEET: 'MoneyAddMoneySheet',

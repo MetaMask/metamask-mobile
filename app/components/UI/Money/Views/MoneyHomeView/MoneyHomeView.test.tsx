@@ -88,6 +88,8 @@ import {
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   useVbaEligibility,
   type VbaEligibility,
@@ -221,6 +223,20 @@ jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
 
 jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
   useMoneyAccountApiActivity: jest.fn(),
+}));
+jest.mock('../../hooks/useMoneyVbaTransfers', () => ({
+  useMoneyVbaTransfers: jest.fn(() => ({
+    data: undefined,
+    isLoading: false,
+    refetch: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks/useNeobankAutorampActivity', () => ({
+  useNeobankAutorampActivity: jest.fn(() => ({
+    activity: [],
+    refetch: jest.fn(),
+  })),
 }));
 
 jest.mock(
@@ -438,8 +454,12 @@ jest.mock(
     openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
 
 const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockUseVbaHomeCard = jest.mocked(useVbaHomeCard);
 const mockUseVbaHomeCardRefresh = jest.mocked(useVbaHomeCardRefresh);
@@ -1106,6 +1126,9 @@ describe('MoneyHomeView', () => {
         expect.objectContaining({ goBack: mockGoBack }),
         VbaOnboardingRoutes.LOADING,
         { source: 'vba-action-row-details' },
+      );
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW,
       );
     });
 

@@ -43,6 +43,8 @@ export interface UsePerpsProSizeInputParams {
   preserveMaxIntent?: boolean;
   /** Keep a venue-owned Scale base quantity exact instead of snapping through USD cents. */
   preserveAssetIntent?: boolean;
+  /** Exact base size from an order-book row fill, shown instead of the USD projection. */
+  fillAssetAmount?: string;
 }
 
 export interface UsePerpsProSizeInputResult {
@@ -59,7 +61,7 @@ export interface UsePerpsProSizeInputResult {
 const getDecimalPlaces = (szDecimals: number) =>
   Number.isInteger(szDecimals) && szDecimals >= 0 ? szDecimals : 0;
 
-const getUsdFromAsset = (
+export const getUsdFromAsset = (
   assetAmount: string,
   effectivePrice: number,
 ): string => {
@@ -145,6 +147,7 @@ export const usePerpsProSizeInput = ({
   keepSizeEmpty = false,
   preserveMaxIntent = false,
   preserveAssetIntent = false,
+  fillAssetAmount,
 }: UsePerpsProSizeInputParams): UsePerpsProSizeInputResult => {
   const canToggleDenomination =
     Number.isFinite(effectivePrice) && effectivePrice > 0;
@@ -162,7 +165,8 @@ export const usePerpsProSizeInput = ({
   const [assetDraftState, setAssetDraftState] = useState<AssetDraftState>(
     () => ({
       value: canToggleDenomination
-        ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
+        ? (fillAssetAmount ??
+          getAssetFromUsd(usdAmount, effectivePrice, szDecimals))
         : '0',
       source: 'canonical',
     }),
@@ -245,7 +249,9 @@ export const usePerpsProSizeInput = ({
         pendingInternalUsdRef.current === null
       ) {
         setAssetDraftState({
-          value: getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
+          value:
+            fillAssetAmount ??
+            getAssetFromUsd(usdAmount, effectivePrice, szDecimals),
           source: 'canonical',
         });
       }
@@ -279,7 +285,8 @@ export const usePerpsProSizeInput = ({
     setUsdDraft(usdAmount);
     setAssetDraftState((previous) => ({
       value: canToggleDenomination
-        ? getAssetFromUsd(usdAmount, effectivePrice, szDecimals)
+        ? (fillAssetAmount ??
+          getAssetFromUsd(usdAmount, effectivePrice, szDecimals))
         : previous.value,
       source: 'canonical',
     }));
@@ -290,6 +297,7 @@ export const usePerpsProSizeInput = ({
     clearSliderPreview,
     activeDenominationUnit,
     effectivePrice,
+    fillAssetAmount,
     isSizeFocused,
     maxPossibleAmount,
     preserveMaxIntent,
@@ -454,7 +462,8 @@ export const usePerpsProSizeInput = ({
         if (!hasAssetIntent) {
           setAssetDraftState({
             value: canToggleDenomination
-              ? getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals)
+              ? (fillAssetAmount ??
+                getAssetFromUsd(canonicalUsdDraft, effectivePrice, szDecimals))
               : '0',
             source: 'canonical',
           });
@@ -484,6 +493,7 @@ export const usePerpsProSizeInput = ({
       commitUsdAmount,
       activeDenominationUnit,
       effectivePrice,
+      fillAssetAmount,
       hasAssetIntent,
       preserveAssetIntent,
       clearSliderMaxIntent,

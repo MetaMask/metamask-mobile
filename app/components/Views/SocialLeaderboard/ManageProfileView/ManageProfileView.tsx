@@ -19,7 +19,7 @@ import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import EditableProfileAvatar from '../MyProfileView/components/EditableProfileAvatar';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
@@ -29,12 +29,21 @@ import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
+import {
+  SocialEvent,
+  useManageProfileAnalytics,
+  useSocialScreenAnalytics,
+} from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
   const { isControllerBacked, disconnectX } = useProfileController();
+  useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE, {
+    resetWhenInactive: false,
+  });
+  const trackProfileEdited = useManageProfileAnalytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
   const [isDisconnectingX, setIsDisconnectingX] = useState(false);
@@ -77,6 +86,13 @@ const ManageProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT);
   }, [isControllerBacked, navigation]);
 
+  const handleEditAvatar = useCallback(() => {
+    if (!isControllerBacked) {
+      return;
+    }
+    navigation.navigate(Routes.SOCIAL.EDIT_AVATAR);
+  }, [isControllerBacked, navigation]);
+
   const handleDisconnectX = useCallback(async (): Promise<void> => {
     if (!isControllerBacked || !profile?.profileId || !profile.connectedToX) {
       return;
@@ -87,6 +103,7 @@ const ManageProfileView: React.FC = () => {
 
     try {
       await disconnectX(profile.profileId);
+      trackProfileEdited();
     } catch {
       setErrorMessage(strings('social_leaderboard.manage_profile.save_error'));
     } finally {
@@ -97,6 +114,7 @@ const ManageProfileView: React.FC = () => {
     isControllerBacked,
     profile?.connectedToX,
     profile?.profileId,
+    trackProfileEdited,
   ]);
 
   const displayName = profile?.displayName ?? '';
@@ -129,15 +147,16 @@ const ManageProfileView: React.FC = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-6')}
       >
         <Box twClassName="items-center py-4">
-          <ProfileAvatar
+          <EditableProfileAvatar
             imageUrl={profile?.imageUrl}
             avatarPresetId={profile?.avatarPresetId}
             avatarBackgroundId={profile?.avatarBackgroundId}
-            size="lg"
+            onPress={handleEditAvatar}
+            avatarTestID={ManageProfileViewSelectorsIDs.AVATAR}
+            editTestID={ManageProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
             accessibilityLabel={strings(
               'social_leaderboard.manage_profile.avatar_accessibility_label',
             )}
-            testID={ManageProfileViewSelectorsIDs.AVATAR}
           />
         </Box>
 

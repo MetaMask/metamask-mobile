@@ -39,7 +39,11 @@ import MoneyAccountSweepstakesCampaignWinningView from './Views/MoneyAccountSwee
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
-import { useNavigation, useNavigationState } from '@react-navigation/native';
+import {
+  useNavigation,
+  useNavigationState,
+  useRoute,
+} from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import useRewardsVersionGuard from './hooks/useRewardsVersionGuard';
 import RewardsUpdateRequired from './components/RewardsUpdateRequired/RewardsUpdateRequired';
@@ -48,6 +52,11 @@ import useRewardsToast from './hooks/useRewardsToast';
 import { strings } from '../../../../locales/i18n';
 import PerpsTradingCampaignWinningView from './Views/PerpsTradingCampaignWinningView';
 import { getActiveRouteNameFromNavigationState } from './utils';
+import {
+  isRewardsMoneyFlowScreen,
+  rewardsFlowFocusedScreen,
+  rewardsFlowRequestedScreen,
+} from './utils/rewardsFlowSubscriptionGate';
 import type { RewardsStackParamList } from './types/navigation';
 
 let sessionNotificationsNudgeShown = false;
@@ -57,10 +66,24 @@ const RewardsNavigator: React.FC = () => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isVersionBlocked = useSelector(selectIsRewardsVersionBlocked);
   const navigation = useNavigation<AppNavigationProp>();
+  const route = useRoute();
 
   const activeRewardsRoute = useNavigationState(
     getActiveRouteNameFromNavigationState,
   );
+  const focusedScreen = rewardsFlowFocusedScreen(
+    activeRewardsRoute,
+    rewardsFlowRequestedScreen(route.params),
+  );
+  const focusedMoneyScreen = isRewardsMoneyFlowScreen(focusedScreen)
+    ? focusedScreen
+    : undefined;
+  // Points screens are omitted without a subscription. A money ledger screen
+  // stays: it reads the profile, and the stack still has a registered route.
+  // Any other focused route is dismissed so an opt-out cannot leave a points
+  // screen registered in navigation state.
+  const closeFlow =
+    !isVersionBlocked && !subscriptionId && focusedMoneyScreen === undefined;
 
   useRewardsVersionGuard({ refreshKey: activeRewardsRoute });
 
@@ -143,32 +166,28 @@ const RewardsNavigator: React.FC = () => {
     showEnableNotificationsNudge,
   ]);
 
-  // Recover from a lost subscription while the flow is mounted.
+  // Recover from a lost subscription while a points screen is focused.
   //
-  // REWARDS_FLOW is a screen on the root MainNavigator stack; it is normally
-  // pushed from the dashboard, which only renders for subscribed users. But if
-  // the subscription disappears while the flow is still mounted (account switch
-  // or opt-out), subscriptionId flips to falsy and the native stack below would
-  // be left with zero registered screens — which throws — and its navigation
-  // state would still reference sub-page routes that no longer exist (blank flow
-  // / broken back). Dismiss the flow so the user returns to the Rewards tab and
-  // the stale state is discarded.
+  // REWARDS_FLOW is a screen on the root MainNavigator stack. If the
+  // subscription disappears while a points screen is still mounted (account
+  // switch or opt-out), dropping every screen would throw, and leaving those
+  // routes registered would keep a blank flow. Dismiss it. A money ledger
+  // screen does not use the subscription, so it stays mounted instead.
   useEffect(() => {
-    if (isVersionBlocked || subscriptionId) {
+    if (!closeFlow) {
       return;
     }
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
-  }, [isVersionBlocked, subscriptionId, navigation]);
+  }, [closeFlow, navigation]);
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
   }
 
-  // Never render an empty native stack navigator (it throws). When there is no
-  // subscription, render nothing while the effect above dismisses the flow.
-  if (!subscriptionId) {
+  // Never render an empty native stack navigator (it throws).
+  if (closeFlow) {
     return null;
   }
 
@@ -179,6 +198,31 @@ const RewardsNavigator: React.FC = () => {
       backgroundColor: darkTheme.colors.background.default,
     },
   };
+
+  if (!subscriptionId) {
+    if (!focusedMoneyScreen) {
+      return null;
+    }
+    return (
+      <Stack.Navigator
+        initialRouteName={focusedMoneyScreen}
+        screenOptions={{ headerShown: false }}
+      >
+        <Stack.Screen
+          name={Routes.REWARDS_TRADING_COMMISSIONS_VIEW}
+          component={RewardsTradingCommissionsView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_TRADING_REBATES_VIEW}
+          component={RewardsTradingRebatesView}
+        />
+        <Stack.Screen
+          name={Routes.REWARDS_EARNINGS_HISTORY_VIEW}
+          component={RewardsEarningsHistoryView}
+        />
+      </Stack.Navigator>
+    );
+  }
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>

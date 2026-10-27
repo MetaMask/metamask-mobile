@@ -33,6 +33,7 @@ import type {
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
@@ -64,6 +65,19 @@ import {
 } from './accountCreateError';
 import { navigateToVbaOnboardingDestination } from './hooks/useVbaOnboardingRouting';
 import VbaCreatingAccount from './VbaCreatingAccount';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+  type VbaScreenContentState,
+} from './vbaScreenPerformance';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
@@ -240,16 +254,44 @@ const VbaDetails = () => {
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const isMountedRef = useRef(true);
   const pollingDoneRef = useRef(false);
-  const accountKeyRef = useRef(
-    `${walletAddress ?? ''}:${sourceCurrency ?? ''}`,
+  const pixFetchTraceIdRef = useRef<string | null>(null);
+  const pixFetchTraceSettledRef = useRef(false);
+  const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
+  const accountKeyRef = useRef(accountKey);
+  const [stateAccountKey, setStateAccountKey] = useState(accountKey);
+
+  const finishPixFetchTrace = useCallback(
+    (
+      success: boolean,
+      reason?: VbaCufEndReason,
+      expectedTraceId = pixFetchTraceIdRef.current,
+    ) => {
+      const traceId = pixFetchTraceIdRef.current;
+      if (!traceId || traceId !== expectedTraceId) {
+        return;
+      }
+      pixFetchTraceIdRef.current = null;
+      pixFetchTraceSettledRef.current = true;
+      if (reason) {
+        endVbaCufChildTrace(traceId, success, reason);
+      } else {
+        endVbaCufChildTrace(traceId, success);
+      }
+    },
+    [],
   );
 
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      queueMicrotask(() => {
+        if (!isMountedRef.current) {
+          finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+        }
+      });
     };
-  }, []);
+  }, [finishPixFetchTrace]);
 
   const refreshDeposit = useCallback(
     async (replaceTerminal = false) => {
@@ -362,6 +404,7 @@ const VbaDetails = () => {
       const terminal = isTerminalStatus(status);
       if (terminal) {
         pollingDoneRef.current = true;
+        finishPixFetchTrace(false, VBA_CUF_END_REASON.ERROR);
         setInstructions(null);
         navigateToVbaOnboardingDestination(
           navigation,
@@ -383,18 +426,42 @@ const VbaDetails = () => {
         return;
       }
 
-      // Fetch details on their own so a flaky transaction poll cannot hide them.
+      // One logical trace covers all retries so polling cannot flood Sentry.
+      if (!pixFetchTraceIdRef.current && !pixFetchTraceSettledRef.current) {
+        pixFetchTraceIdRef.current = startVbaCufChildTrace(
+          TraceName.VbaPixFetch,
+        );
+      }
+      const requestTraceId = pixFetchTraceIdRef.current;
       try {
         const details = await neoBank.getDepositInstructions(autoramp.id);
         if (!stillCurrent()) {
+          finishPixFetchTrace(
+            false,
+            isMountedRef.current
+              ? VBA_CUF_END_REASON.SUPERSEDED
+              : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
+          );
           return;
         }
         if (details) {
+          finishPixFetchTrace(true, undefined, requestTraceId);
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
           pollingDoneRef.current = !debugEnabled;
         }
       } catch (error) {
+        if (!stillCurrent()) {
+          finishPixFetchTrace(
+            false,
+            isMountedRef.current
+              ? VBA_CUF_END_REASON.SUPERSEDED
+              : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
+          );
+          return;
+        }
         Logger.error(error as Error, {
           message: 'VbaDetails: failed to load deposit instructions',
         });
@@ -416,7 +483,13 @@ const VbaDetails = () => {
         }
       }
     },
-    [debugEnabled, navigation, sourceCurrency, walletAddress],
+    [
+      debugEnabled,
+      finishPixFetchTrace,
+      navigation,
+      sourceCurrency,
+      walletAddress,
+    ],
   );
 
   useEffect(() => {
@@ -425,6 +498,9 @@ const VbaDetails = () => {
       return;
     }
     accountKeyRef.current = nextKey;
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.SUPERSEDED);
+    pixFetchTraceSettledRef.current = false;
+    setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     setInstructions(null);
@@ -437,7 +513,7 @@ const VbaDetails = () => {
             ?.status ?? null)
         : null,
     );
-  }, [sourceCurrency, walletAddress]);
+  }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
 
   useEffect(() => {
     if (networkTier === 'NONE') {
@@ -513,20 +589,24 @@ const VbaDetails = () => {
   }, [instructions, isApproved, loadError]);
 
   const handleDone = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
-  }, [navigation]);
+  }, [finishPixFetchTrace, navigation]);
 
   const handleBack = useCallback(() => {
+    finishPixFetchTrace(false, VBA_CUF_END_REASON.BAILED);
+    endVbaCufJourney(false, VBA_CUF_END_REASON.BAILED);
     if (navigation.canGoBack()) {
       navigation.goBack();
       return;
     }
 
     handleDone();
-  }, [handleDone, navigation]);
+  }, [finishPixFetchTrace, handleDone, navigation]);
 
   const handleCopy = useCallback(
     (value: string, label: string) => () => {
@@ -549,6 +629,28 @@ const VbaDetails = () => {
   }, []);
 
   const rows = buildDetailRows(instructions);
+  const hasCurrentAccountState = stateAccountKey === accountKey;
+  let accountDetailsContentState: VbaScreenContentState =
+    VBA_SCREEN_CONTENT_STATE.EMPTY;
+  if (loadError) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.ERROR;
+  } else if (rows.length > 0) {
+    accountDetailsContentState = VBA_SCREEN_CONTENT_STATE.POPULATED;
+  }
+
+  useScreenPerformance({
+    config: VBA_SCREEN_PERFORMANCE_CONFIG,
+    screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+    resetKey: accountKey,
+    enabled: isApproved && hasCurrentAccountState,
+    contentReady: hasCurrentAccountState && (rows.length > 0 || loadError),
+    contentState: accountDetailsContentState,
+  });
+  useEffect(() => {
+    if (hasCurrentAccountState && rows.length > 0) {
+      endVbaCufJourney(true);
+    }
+  }, [hasCurrentAccountState, rows.length]);
   const isBankTransfer =
     instructions?.type === 'UsBank' ||
     (!instructions && sourceCurrency === 'USD');

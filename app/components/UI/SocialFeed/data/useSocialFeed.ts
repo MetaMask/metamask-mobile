@@ -21,10 +21,15 @@ import type { TraderFeedRow, SocialV1FeedPost } from '../types';
 import { mapFeedItem } from '../utils/mapFeedItem';
 import { toSocialFeedPosts } from '../utils/toSocialFeedPosts';
 import {
+  toSocialFeedRealtimeScope,
   toSocialFeedRequest,
   type SocialFeedRequest,
   type SocialFeedSource,
 } from './socialFeedSource';
+import {
+  useSocialFeedRealtime,
+  type SocialFeedRealtimeState,
+} from './useSocialFeedRealtime';
 import {
   measureSocialDataFetch,
   type SocialDataFetchTab,
@@ -35,6 +40,19 @@ export interface UseSocialFeedOptions {
   enabled?: boolean;
   /** Items per page. Part of the cache key. */
   pageSize?: number;
+  /**
+   * Keeps only matching posts. With realtime, also drops non-matching new
+   * posts before they are held or counted. Memoize it.
+   */
+  filterPost?: (post: SocialV1FeedPost) => boolean;
+  /** Streams socket events in. Ignored for sources without a socket channel. */
+  realtime?: boolean;
+  /** Holds new posts behind `realtime.pendingNewCount`. */
+  paused?: boolean;
+  /** Whether the list is at the top. Holding also applies when false. */
+  nearTop?: boolean;
+  /** Holds new posts even at the top; catch-up refreshes still run there. */
+  holdNewPosts?: boolean;
   /** Social V1-only tracing for the first real initial-page request. */
   performance?: Readonly<{ tab: SocialDataFetchTab }>;
 }
@@ -42,7 +60,7 @@ export interface UseSocialFeedOptions {
 export interface SocialFeedState {
   /** Loaded posts, newest first, in the card model `SocialFeedPostShell` renders. */
   posts: SocialV1FeedPost[];
-  /** The same posts' mapped items, each paired with its raw API row. */
+  /** Server rows behind `posts`, before realtime merging and `filterPost`. */
   rows: TraderFeedRow[];
   /** True during the first fetch only (never for a disabled or unsupported source). */
   isLoading: boolean;
@@ -58,6 +76,8 @@ export interface SocialFeedState {
   refresh: () => Promise<void>;
   /** When the loaded pages were fetched, or `undefined` before the first success. */
   dataUpdatedAt: number | undefined;
+  /** Present only while realtime streams this source. */
+  realtime?: SocialFeedRealtimeState;
 }
 
 const IDLE_QUERY_KEY = ['SocialFeed', 'idle'] as const;
@@ -107,7 +127,16 @@ export const useSocialFeed = (
   source: SocialFeedSource | null,
   options: UseSocialFeedOptions = {},
 ): SocialFeedState => {
-  const { enabled = true, pageSize = FEED_PAGE_LIMIT, performance } = options;
+  const {
+    enabled = true,
+    pageSize = FEED_PAGE_LIMIT,
+    filterPost,
+    realtime = false,
+    paused = false,
+    nearTop = true,
+    holdNewPosts = false,
+    performance,
+  } = options;
   const isUnlocked = useSelector(selectIsUnlocked);
   const queryClient = useQueryClient();
   const initialRequestAccountedForRef = useRef(false);
@@ -115,6 +144,11 @@ export const useSocialFeed = (
   const request = useMemo(
     () => (source ? toSocialFeedRequest(source) : null),
     [source],
+  );
+  const realtimeScope = useMemo(
+    () =>
+      realtime && source && request ? toSocialFeedRealtimeScope(source) : null,
+    [realtime, request, source],
   );
   const queryKey = useMemo(
     () =>
@@ -158,6 +192,9 @@ export const useSocialFeed = (
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
+    // A stale refetch reloads every loaded page and moves rows under a reader
+    // who scrolled down; realtime refreshes through its catch-up instead.
+    ...(realtimeScope ? { staleTime: Infinity } : {}),
   });
 
   useEffect(() => {
@@ -233,9 +270,25 @@ export const useSocialFeed = (
     await refetch();
   }, [queryClient, queryKey, refetch, request]);
 
+  const live = useSocialFeedRealtime(
+    { rows, dataUpdatedAt, refresh },
+    {
+      realtimeScope,
+      active: Boolean(request) && enabled && isUnlocked,
+      paused,
+      nearTop,
+      holdNewPosts,
+      filterPost,
+    },
+  );
+  const filteredPosts = useMemo(
+    () => (filterPost ? posts.filter(filterPost) : posts),
+    [filterPost, posts],
+  );
+
   const hasRequest = Boolean(request);
   return {
-    posts,
+    posts: live ? live.posts : filteredPosts,
     rows,
     isLoading: hasRequest && query.isLoading,
     isFetchingNextPage: hasRequest && isFetchingNextPage,
@@ -244,5 +297,6 @@ export const useSocialFeed = (
     error: hasRequest ? formatSocialQueryErrorMessage(error) : null,
     refresh,
     dataUpdatedAt,
+    ...(live ? { realtime: live.realtime } : {}),
   };
 };
