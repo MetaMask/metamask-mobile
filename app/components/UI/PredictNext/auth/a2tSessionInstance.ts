@@ -1,9 +1,5 @@
 import { HandlerType } from '@metamask/snaps-utils';
 import type { SnapId } from '@metamask/snaps-sdk';
-// PoC local issuer. Remove these imports once the A2T service has an external
-// URL. They exist to rewrite localhost for an Android emulator.
-import { Platform } from 'react-native';
-import { isEmulatorSync } from 'react-native-device-info';
 
 import Engine from '../../../../core/Engine';
 import { handleSnapRequest } from '../../../../core/Snaps/utils';
@@ -23,18 +19,17 @@ const MESSAGE_SIGNING_SNAP_ID: SnapId =
   'npm:@metamask/message-signing-snap' as SnapId;
 
 /**
- * PoC local issuer. Remove this default once the A2T service has an external
- * URL. `yarn start:a2t` serves it on port 3333.
+ * `MM_A2T_URL` overrides the issuer in every build. Debug builds with it
+ * unset issue against the dev Predict API. Release builds with it unset
+ * skip issuance.
  */
-const DEV_ISSUER_URL = 'http://localhost:3333';
+const DEV_ISSUER_URL = 'https://predict-api.dev-api.cx.metamask.io';
 
 const configuredIssuerUrl = (): string | undefined => {
   const fromEnv = process.env.MM_A2T_URL;
   if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
     return fromEnv;
   }
-  // PoC local issuer. Remove this development fallback once the A2T service
-  // has an external URL.
   return __DEV__ ? DEV_ISSUER_URL : undefined;
 };
 
@@ -56,14 +51,7 @@ const invokeMessageSigningSnap = (
  * `predict-service-init`, and deletes this module singleton.
  */
 export const a2tSession = new A2tSession({
-  getIssuerUrl: () =>
-    // PoC local issuer. Remove the host argument once the A2T service has an
-    // external URL. It tells the resolver when to rewrite localhost. A missing
-    // URL comes back undefined, and issuance skips instead of throwing.
-    resolveA2tIssuerUrl(configuredIssuerUrl(), {
-      os: Platform.OS,
-      isEmulator: isEmulatorSync(),
-    }),
+  getIssuerUrl: () => resolveA2tIssuerUrl(configuredIssuerUrl()),
   getAccessToken: () =>
     Engine.context.AuthenticationController.getBearerToken(),
   getCanonicalProfileId: () =>

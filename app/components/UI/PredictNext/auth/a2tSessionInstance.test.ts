@@ -16,10 +16,6 @@ import {
   watchWalletLockForA2tSession,
 } from './a2tSessionInstance';
 
-jest.mock('react-native-device-info', () => ({
-  isEmulatorSync: () => true,
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     AuthenticationController: {
