@@ -1,6 +1,40 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import ShareAddressQR from '.';
+
+// The design-system sheet closes on an animation. Run goBack, then the
+// post-close callback, in the same order as BottomSheet.onCloseCB.
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual<typeof React>('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const BottomSheet = ReactActual.forwardRef(
+    (
+      {
+        children,
+        goBack,
+      }: {
+        children?: React.ReactNode;
+        goBack?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (callback?: () => void) => {
+          goBack?.();
+          callback?.();
+        },
+      }));
+      return children;
+    },
+  );
+  BottomSheet.displayName = 'BottomSheet';
+  return {
+    ...actual,
+    BottomSheet,
+  };
+});
 import {
   createMockSnapInternalAccount,
   internalAccount1,
@@ -400,7 +434,13 @@ describe('ShareAddressQR', () => {
     // Act
     fireEvent.press(explorerButton);
 
-    // Assert
+    // Assert — sheet pops before the explorer opens, so back lands on the
+    // address list rather than the QR sheet.
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockToBlockExplorer).toHaveBeenCalledTimes(1);
+    expect(mockGoBack.mock.invocationCallOrder[0]).toBeLessThan(
+      mockToBlockExplorer.mock.invocationCallOrder[0],
+    );
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         name: 'External Link Clicked',

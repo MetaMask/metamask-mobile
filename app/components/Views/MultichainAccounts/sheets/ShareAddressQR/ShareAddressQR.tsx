@@ -105,7 +105,11 @@ export const ShareAddressQR = () => {
       text: explorerButtonText,
       url,
     });
-    toBlockExplorer(address);
+    // Sheet `goBack` pops this route before the callback, so the explorer
+    // pushes onto the address list instead of sitting above the QR sheet.
+    sheetRef.current?.onCloseBottomSheet(() => {
+      toBlockExplorer(address);
+    });
   }, [
     address,
     createEventBuilder,
