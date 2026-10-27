@@ -21,6 +21,7 @@ import SocialFeedPostShell, {
 } from '../../../SocialFeed/components/SocialFeedPostShell';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
+import type { TokenDetailsRouteParams } from '../../constants/constants';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
 const NEXT_PAGE_TEST_ID = 'token-details-feed-next-page';
@@ -33,6 +34,8 @@ export interface TokenDetailsFeedProps {
   isActive?: boolean;
   /** True when this wallet holds the token. Picks the empty-state copy. */
   hasBalance?: boolean;
+  /** Token on screen, so the empty-state post opens on this holding. */
+  token?: TokenDetailsRouteParams;
   /** Reports whether the feed is showing its empty state. */
   onEmptyChange?: (isEmpty: boolean) => void;
 }
@@ -43,6 +46,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   onCopyTrade,
   isActive = true,
   hasBalance = false,
+  token,
   onEmptyChange,
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
@@ -107,7 +111,7 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
           />
         ) : null}
         {showEmpty ? (
-          <TokenDetailsFeedEmptyState hasBalance={hasBalance} />
+          <TokenDetailsFeedEmptyState hasBalance={hasBalance} token={token} />
         ) : null}
         {error ? <SocialFeedError onRetry={() => refresh()} /> : null}
         {isFetchingNextPage ? (

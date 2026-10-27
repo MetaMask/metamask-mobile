@@ -30,6 +30,7 @@ describe('TokenDetailsFeedTab', () => {
       onCopyTrade: undefined,
       isActive: undefined,
       hasBalance: undefined,
+      token: undefined,
       onEmptyChange: undefined,
     });
   });

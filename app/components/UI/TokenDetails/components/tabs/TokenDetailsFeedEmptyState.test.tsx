@@ -2,6 +2,8 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { useReducedMotion } from 'react-native-reanimated';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { TokenDetailsRouteParams } from '../../constants/constants';
+import type { TraderPosition } from '../../TraderPositionPnl/types';
 import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
 jest.mock('@rive-app/react-native', () => {
@@ -28,6 +30,7 @@ jest.mock('react-native-reanimated', () => {
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
 
 const mockOpenComposer = jest.fn();
+const mockUseOpenPositionHeader = jest.fn(() => ({ sharePosition: null }));
 
 jest.mock(
   '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
@@ -36,10 +39,46 @@ jest.mock(
   }),
 );
 
+jest.mock('../../TraderPositionPnl/useOpenPositionHeader', () => ({
+  useOpenPositionHeader: () => mockUseOpenPositionHeader(),
+}));
+
+const token = {
+  address: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  chainId: '0x1',
+  symbol: 'PEPE',
+  name: 'Pepe',
+} as TokenDetailsRouteParams;
+
+const sharePosition = {
+  positionId: 'pepe-open',
+  tokenSymbol: 'PEPE',
+  tokenName: 'Pepe',
+  tokenAddress: '0x6982508145454ce325ddbe47a25d4ec3d2311933',
+  chain: 'ethereum',
+  isOpen: true,
+  positionAmount: 100,
+  costBasis: 20,
+  currentValueUSD: 25,
+  realizedPnl: 0,
+  pnlValueUsd: 5,
+  pnlPercent: 25,
+  boughtUsd: 20,
+  soldUsd: 0,
+  perpPositionType: null,
+  perpLeverage: null,
+  positionAmountWithLeverage: null,
+  costBasisWithLeverage: null,
+  marginUsd: null,
+  trades: [],
+  lastTradeAt: 1,
+} as TraderPosition;
+
 describe('TokenDetailsFeedEmptyState', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseReducedMotion.mockReturnValue(false);
+    mockUseOpenPositionHeader.mockReturnValue({ sharePosition: null });
   });
 
   it('invites a trade without a button when the wallet does not hold the token', () => {
@@ -67,9 +106,28 @@ describe('TokenDetailsFeedEmptyState', () => {
     fireEvent.press(screen.getByText('Create MetaMask Post'));
 
     expect(mockOpenComposer).toHaveBeenCalledTimes(1);
+    expect(mockOpenComposer).toHaveBeenCalledWith();
     expect(
       screen.getByTestId('token-details-feed-empty-megaphone'),
     ).toBeOnTheScreen();
+  });
+
+  it('opens the composer on this token when the wallet holds it', () => {
+    mockUseOpenPositionHeader.mockReturnValue({
+      sharePosition,
+    } as never);
+
+    renderWithProvider(<TokenDetailsFeedEmptyState hasBalance token={token} />);
+
+    fireEvent.press(screen.getByText('Create MetaMask Post'));
+
+    expect(mockOpenComposer).toHaveBeenCalledWith({
+      position: expect.objectContaining({
+        positionId: 'pepe-open',
+        tokenSymbol: 'PEPE',
+      }),
+      entryPoint: 'token_details',
+    });
   });
 
   it('shows the static megaphone when Reduce Motion is on', () => {

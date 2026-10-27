@@ -24,6 +24,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { PROFILE_ONBOARDING_RIVE_ASSETS } from '../../../../Views/SocialLeaderboard/ProfileOnboarding/profileOnboardingRive';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import Logger from '../../../../../util/Logger';
+import type { TokenDetailsRouteParams } from '../../constants/constants';
+import { toComposerPosition } from '../../TraderPositionPnl/composerPosition';
+import { useOpenPositionHeader } from '../../TraderPositionPnl/useOpenPositionHeader';
 
 /** Artboard inside `social_v1_social-onboarding.riv`. */
 const MEGAPHONE_ARTBOARD = 'Megaphone';
@@ -38,6 +41,8 @@ const MEGAPHONE_FALLBACK_TEST_ID =
 export interface TokenDetailsFeedEmptyStateProps {
   /** True when this wallet holds the token the feed is about. */
   hasBalance: boolean;
+  /** Token on screen. Used to attach that holding when the post composer opens. */
+  token?: TokenDetailsRouteParams;
 }
 
 /**
@@ -90,6 +95,56 @@ const FeedEmptyMegaphone: React.FC = () => {
 };
 
 /**
+ * Same entry as the profile's removed "Create MetaMask post" button:
+ * onboarding when this wallet has no social profile, otherwise the composer.
+ * A known open position is attached so the composer asks them to post this
+ * holding instead of making them pick it.
+ */
+const CreateBalancePostButton: React.FC<{ token: TokenDetailsRouteParams }> = ({
+  token,
+}) => {
+  const { openComposer } = useOpenSocialPostComposer();
+  const { sharePosition } = useOpenPositionHeader(token);
+  const handlePress = useCallback(() => {
+    if (!sharePosition) {
+      openComposer();
+      return;
+    }
+    openComposer({
+      position: toComposerPosition(sharePosition),
+      entryPoint: 'token_details',
+    });
+  }, [openComposer, sharePosition]);
+
+  return (
+    <Button
+      variant={ButtonVariant.Secondary}
+      onPress={handlePress}
+      twClassName="mt-4 self-center"
+      testID={CREATE_POST_TEST_ID}
+    >
+      {strings('token_details_v1.feed_tab.empty.create_post')}
+    </Button>
+  );
+};
+
+/** Composer entry with no position attached. */
+const CreatePostButton: React.FC = () => {
+  const { openComposer } = useOpenSocialPostComposer();
+
+  return (
+    <Button
+      variant={ButtonVariant.Secondary}
+      onPress={() => openComposer()}
+      twClassName="mt-4 self-center"
+      testID={CREATE_POST_TEST_ID}
+    >
+      {strings('token_details_v1.feed_tab.empty.create_post')}
+    </Button>
+  );
+};
+
+/**
  * Empty token feed.
  *
  * Holding the token: invite a first post, with the create-post button. No
@@ -100,9 +155,8 @@ const FeedEmptyMegaphone: React.FC = () => {
  */
 const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
   hasBalance,
+  token,
 }) => {
-  const { openComposer } = useOpenSocialPostComposer();
-
   return (
     <Box
       alignItems={BoxAlignItems.Center}
@@ -130,14 +184,11 @@ const TokenDetailsFeedEmptyState: React.FC<TokenDetailsFeedEmptyStateProps> = ({
         {strings('token_details_v1.feed_tab.empty.description')}
       </Text>
       {hasBalance ? (
-        <Button
-          variant={ButtonVariant.Secondary}
-          onPress={() => openComposer()}
-          twClassName="mt-4 self-center"
-          testID={CREATE_POST_TEST_ID}
-        >
-          {strings('token_details_v1.feed_tab.empty.create_post')}
-        </Button>
+        token ? (
+          <CreateBalancePostButton token={token} />
+        ) : (
+          <CreatePostButton />
+        )
       ) : null}
     </Box>
   );

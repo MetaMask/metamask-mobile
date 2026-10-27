@@ -714,6 +714,7 @@ export const TokenDetailsV1: React.FC<TokenDetailsV1Props> = ({
         return (
           <TokenDetailsFeedTab
             assetId={caip19AssetId}
+            token={token}
             isActive={isActive}
             onCopyTrade={handleFeedCopyTrade}
             hasBalance={hasBalanceValue}
