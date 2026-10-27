@@ -38811,6 +38811,7 @@ __metadata:
     tldts: "npm:^7.4.13"
     ts-loader: "npm:^9.5.0"
     ts-node: "npm:^10.9.2"
+    tslib: "npm:^2.8.1"
     tsx: "npm:^4.21.0"
     typescript: "npm:~5.8.3"
     unicode-confusables: "npm:^0.1.1"
