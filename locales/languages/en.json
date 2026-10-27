@@ -8548,7 +8548,6 @@
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
       "description_totp": "Open your authenticator app and enter the 6-digit code.",
-      "verify": "Verify",
       "retry": "Try again",
       "retry_in": "Try again in {{seconds}}s",
       "sending": "Sending code...",
@@ -8563,8 +8562,6 @@
     "totp_setup": {
       "title": "Set up authenticator app",
       "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
-      "open_app": "Open authenticator app",
-      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
       "copied": "Setup key copied",
