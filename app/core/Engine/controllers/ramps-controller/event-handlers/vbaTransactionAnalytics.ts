@@ -6,19 +6,13 @@ import Logger from '../../../../../util/Logger';
 import ReduxService from '../../../../redux';
 
 /**
- * Payload of `RampsController:autorampTransactionStatusChanged`.
- * Declared here until `@metamask/ramps-controller` exports
- * `RampsControllerAutorampTransactionStatusChangedEvent`.
+ * Payload of `trackAutorampTransactionStatusChanged`. Declared here until
+ * `@metamask/ramps-controller` exports `AutorampTransactionStatusChangedPayload`.
  */
 export interface AutorampTransactionStatusChangedPayload {
   autorampId: string;
   transaction: AutorampTransactionSummary;
   previousStatus?: string;
-}
-
-export interface RampsControllerAutorampTransactionStatusChangedEvent {
-  type: 'RampsController:autorampTransactionStatusChanged';
-  payload: [AutorampTransactionStatusChangedPayload];
 }
 
 const PENDING_TRANSACTION_STATUSES = new Set([
@@ -28,9 +22,9 @@ const PENDING_TRANSACTION_STATUSES = new Set([
 ]);
 
 /**
- * Terminal vendor statuses that mean the transaction failed. The schema's
- * `failure_reason` enum has no per-status values, so each one is reported as
- * `vendor_error`; the raw `transaction_status` carries the specific status.
+ * Terminal vendor statuses that mean the transaction failed. The raw value is
+ * `transaction_status`. `failure_reason` is the onboarding failure enum and is
+ * not sent on this event.
  */
 const FAILED_TRANSACTION_STATUSES = new Set([
   'Failed',
@@ -38,7 +32,11 @@ const FAILED_TRANSACTION_STATUSES = new Set([
   'RejectedFraud',
   'RejectedMinAmount',
 ]);
-const FAILURE_REASON = 'vendor_error';
+const TRANSACTION_STATUSES = new Set([
+  ...PENDING_TRANSACTION_STATUSES,
+  'Completed',
+  ...FAILED_TRANSACTION_STATUSES,
+]);
 
 /** Entry point of the VBA funnel (`metamask-money-vba-base`). */
 const VBA_ENTRY_POINT = 'add_funds_bank_account';
@@ -79,7 +77,7 @@ interface BackgroundControllers {
 }
 
 export interface MoneyVbaTransactionUpdatedProperties {
-  status?: AnalyticsStatus;
+  status: AnalyticsStatus;
   transaction_status: string;
   previous_status?: string;
   transaction_id: string;
@@ -87,11 +85,10 @@ export interface MoneyVbaTransactionUpdatedProperties {
   source_amount?: number;
   destination_amount?: number;
   seconds_since_created?: number;
-  failure_reason?: string;
   entry_point: string;
-  kyc_status?: string;
+  kyc_status: string;
   autoramp_status: string;
-  provider_flow_status?: string;
+  provider_flow_status: string;
   vendor: string;
   region?: string;
   currency_source?: string;
@@ -235,15 +232,20 @@ export function readVbaTransactionBaseProperties(
  * @param payload - Controller event payload.
  * @param base - VBA properties already known at emission time.
  * @param now - Epoch ms used for `seconds_since_created`.
- * @returns Event properties. `previous_status` is absent for a new transaction.
+ * @returns Event properties, or null when the vendor status is outside the
+ * schema. `previous_status` is absent for a new transaction and for a previous
+ * status outside the schema.
  */
 export function buildMoneyVbaTransactionUpdatedProperties(
   payload: AutorampTransactionStatusChangedPayload,
   base: ReturnType<typeof readVbaTransactionBaseProperties>,
   now: number,
-): MoneyVbaTransactionUpdatedProperties {
+): MoneyVbaTransactionUpdatedProperties | null {
   const { transaction, previousStatus, autorampId } = payload;
   const status = mapAnalyticsStatus(transaction.status);
+  if (!status) {
+    return null;
+  }
   const seconds = secondsSinceCreated(transaction.createdAt, now);
   const sourceAmount = parseAmount(transaction.sourceAmount);
   const destinationAmount = parseAmount(transaction.destinationAmount);
@@ -252,13 +254,16 @@ export function buildMoneyVbaTransactionUpdatedProperties(
     entry_point: VBA_ENTRY_POINT,
     vendor: VBA_ANALYTICS_VENDOR,
     autoramp_status: VBA_AUTORAMP_STATUS,
+    kyc_status: base.kyc_status ?? 'none',
+    provider_flow_status: base.provider_flow_status ?? 'not_started',
     ...VBA_DESTINATION,
-    ...base,
-    ...(status ? { status } : {}),
+    ...(base.region ? { region: base.region } : {}),
+    ...(base.currency_source ? { currency_source: base.currency_source } : {}),
+    status,
     transaction_status: transaction.status,
-    ...(previousStatus === undefined
-      ? {}
-      : { previous_status: previousStatus }),
+    ...(previousStatus !== undefined && TRANSACTION_STATUSES.has(previousStatus)
+      ? { previous_status: previousStatus }
+      : {}),
     transaction_id: transaction.id,
     autoramp_id: autorampId,
     ...(sourceAmount === undefined ? {} : { source_amount: sourceAmount }),
@@ -266,14 +271,13 @@ export function buildMoneyVbaTransactionUpdatedProperties(
       ? {}
       : { destination_amount: destinationAmount }),
     ...(seconds === undefined ? {} : { seconds_since_created: seconds }),
-    ...(status === 'failed' ? { failure_reason: FAILURE_REASON } : {}),
   };
 }
 
 /**
  * Tracks Money VBA Transaction Updated for one controller status change.
  *
- * @param payload - Published autoramp transaction change.
+ * @param payload - Autoramp transaction change from the controller.
  */
 export function handleAutorampTransactionStatusChangedForMetrics(
   payload: AutorampTransactionStatusChangedPayload,
@@ -287,6 +291,9 @@ export function handleAutorampTransactionStatusChangedForMetrics(
       ),
       Date.now(),
     );
+    if (!properties) {
+      return;
+    }
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.MONEY_VBA_TRANSACTION_UPDATED,

@@ -4,7 +4,6 @@ import {
   RampsControllerMessenger,
   type RampsControllerOrderStatusChangedEvent,
 } from '@metamask/ramps-controller';
-import type { RampsControllerAutorampTransactionStatusChangedEvent } from '../../controllers/ramps-controller/event-handlers/vbaTransactionAnalytics';
 import {
   Messenger,
   MessengerActions,
@@ -72,7 +71,6 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
     'RampsControllerInit',
     RemoteFeatureFlagControllerGetStateAction,
     | RampsControllerOrderStatusChangedEvent
-    | RampsControllerAutorampTransactionStatusChangedEvent
     | RemoteFeatureFlagControllerStateChangeEvent,
     RootMessenger
   >({
@@ -82,18 +80,10 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     actions: ['RemoteFeatureFlagController:getState'],
-    // autorampTransactionStatusChanged is published by the ramps-controller
-    // bump that adds refreshAutorampTransactions. The installed package's
-    // root event union does not include it yet, so the delegate list is
-    // asserted as the events that union already allows.
     events: [
       'RampsController:orderStatusChanged',
-      'RampsController:autorampTransactionStatusChanged',
       'RemoteFeatureFlagController:stateChange', // React when flags arrive (avoids race with async fetch)
-    ] as (
-      | 'RampsController:orderStatusChanged'
-      | 'RemoteFeatureFlagController:stateChange'
-    )[],
+    ],
     messenger,
   });
 
