@@ -89,8 +89,11 @@ describe('EarningsTab', () => {
     });
 
     expect(
-      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+      await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
     ).toHaveTextContent('$1.00');
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).not.toBeOnTheScreen();
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).not.toBeOnTheScreen();
@@ -175,7 +178,7 @@ describe('EarningsTab', () => {
       },
       labels: {
         breakdown: REFERRAL_LOCALIZED_TEXT.breakdown,
-        recordedEarningsLabel: REFERRAL_LOCALIZED_TEXT.recordedEarnings,
+        recordedEarningsLabel: REFERRAL_LOCALIZED_TEXT.totalEarningsLabel,
         availableToClaim: REFERRAL_LOCALIZED_TEXT.availableToClaim,
         held: REFERRAL_LOCALIZED_TEXT.held,
         blocked: REFERRAL_LOCALIZED_TEXT.blocked,
