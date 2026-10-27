@@ -33,9 +33,14 @@ const mockConnect = jest.fn();
 const mockDisconnect = jest.fn();
 const mockRefresh = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrackProfileEdited = jest.fn();
 const mockToastRef = {
   current: { showToast: mockShowToast, closeToast: jest.fn() },
 };
+
+jest.mock('../../../../hooks/useManageProfileAnalytics', () => ({
+  useManageProfileAnalytics: () => mockTrackProfileEdited,
+}));
 
 const X_PROFILE: XProfile = {
   xUserId: 'x-user-1',
@@ -156,6 +161,8 @@ describe('ManageProfileXAccount', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockShowToast).not.toHaveBeenCalled();
+    // Merely opening the screen while already disconnected is not an edit.
+    expect(mockTrackProfileEdited).not.toHaveBeenCalled();
   });
 
   it('does not go back while a disconnect is in flight', () => {
@@ -255,6 +262,9 @@ describe('ManageProfileXAccount', () => {
         ),
       ).toBeOnTheScreen();
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      // A successful unlink is a Manage profile edit, so it reports the same
+      // `profile_edited` event as the other editors.
+      expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
     });
 
     it('keeps the sheet open with an error and does not navigate on failure', async () => {
@@ -285,6 +295,7 @@ describe('ManageProfileXAccount', () => {
       ).toHaveTextContent(strings('manage_profile.x_account_disconnect_error'));
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockTrackProfileEdited).not.toHaveBeenCalled();
     });
 
     it('toasts success and goes back once when the refresh failure lands after the link is cleared', async () => {
@@ -322,6 +333,7 @@ describe('ManageProfileXAccount', () => {
         },
       ]);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
 
       // A later write to the refresh error re-runs the effect; the settled
       // latch must keep it from navigating a second time.
@@ -331,6 +343,7 @@ describe('ManageProfileXAccount', () => {
 
       expect(mockShowToast).toHaveBeenCalledTimes(1);
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
     });
 
     it('does not report a refresh failure as a failed disconnect', async () => {

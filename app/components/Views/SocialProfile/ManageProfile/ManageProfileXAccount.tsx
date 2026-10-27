@@ -29,6 +29,7 @@ import {
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import ProfileAvatar from './ProfileAvatar';
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
+import { useManageProfileAnalytics } from '../../../../hooks/useManageProfileAnalytics';
 
 const AVATAR_SIZE = 72;
 
@@ -47,6 +48,7 @@ const ManageProfileXAccount = () => {
     refresh,
   } = useXAuth();
   const { toastRef } = useContext(ToastContext);
+  const trackProfileEdited = useManageProfileAnalytics();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   // `pending` is set by the sheet's confirm so a screen that is merely
   // disconnected does not toast. `settled` stops the effect from toasting, or
@@ -83,6 +85,10 @@ const ManageProfileXAccount = () => {
     // toast, or pop the navigator, a second time.
     setDisconnectPhase('settled');
     if (didDisconnect) {
+      // Unlinking X is a Manage profile edit, so it shares the same
+      // `profile_edited` event as the other editors. Tracked here because this
+      // screen owns the confirmed disconnect, and only on success.
+      trackProfileEdited();
       // The toast is hosted by the global ToastContext, so it survives the
       // navigation back to Manage profile.
       toastRef?.current?.showToast({
@@ -116,6 +122,7 @@ const ManageProfileXAccount = () => {
     isDisconnecting,
     navigation,
     toastRef,
+    trackProfileEdited,
   ]);
 
   const handleBack = useCallback(() => {
