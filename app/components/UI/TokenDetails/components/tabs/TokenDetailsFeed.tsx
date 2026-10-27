@@ -1,5 +1,5 @@
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
@@ -15,13 +15,13 @@ import {
   SocialEntryOptionsProvider,
   useSocialEntryModeration,
 } from '../../../SocialFeed/components/SocialEntryOptionsBottomSheet';
-import SocialFeedEmpty from '../../../SocialFeed/components/SocialFeedEmpty';
 import SocialFeedError from '../../../SocialFeed/components/SocialFeedError';
 import SocialFeedPostShell, {
   type SocialFeedPostShellProps,
 } from '../../../SocialFeed/components/SocialFeedPostShell';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
+import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
 const NEXT_PAGE_TEST_ID = 'token-details-feed-next-page';
 
@@ -31,6 +31,10 @@ export interface TokenDetailsFeedProps {
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   /** The visible tab pages alone follow the page scroll for more posts. */
   isActive?: boolean;
+  /** True when this wallet holds the token. Picks the empty-state copy. */
+  hasBalance?: boolean;
+  /** Reports whether the feed is showing its empty state. */
+  onEmptyChange?: (isEmpty: boolean) => void;
 }
 
 const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
@@ -38,6 +42,8 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   location,
   onCopyTrade,
   isActive = true,
+  hasBalance = false,
+  onEmptyChange,
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
@@ -76,12 +82,18 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
     onLoadMore: loadMore,
   });
 
+  const showEmpty =
+    enabled && !isLoading && !error && visiblePosts.length === 0;
+
+  useEffect(() => {
+    onEmptyChange?.(showEmpty);
+  }, [onEmptyChange, showEmpty]);
+
   if (!enabled) {
     return null;
   }
 
   const showSkeleton = isLoading && posts.length === 0;
-  const showEmpty = !isLoading && !error && visiblePosts.length === 0;
 
   return (
     <SocialFeedSurfaceProvider location={location}>
@@ -94,7 +106,9 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             renderPost={renderPost}
           />
         ) : null}
-        {showEmpty ? <SocialFeedEmpty /> : null}
+        {showEmpty ? (
+          <TokenDetailsFeedEmptyState hasBalance={hasBalance} />
+        ) : null}
         {error ? <SocialFeedError onRetry={() => refresh()} /> : null}
         {isFetchingNextPage ? (
           <Box

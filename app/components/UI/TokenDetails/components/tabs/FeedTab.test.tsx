@@ -27,6 +27,10 @@ describe('TokenDetailsFeedTab', () => {
     expect(mockFeed.mock.calls[0][0]).toEqual({
       source: { kind: 'token', assetId },
       location: 'token_details',
+      onCopyTrade: undefined,
+      isActive: undefined,
+      hasBalance: undefined,
+      onEmptyChange: undefined,
     });
   });
 

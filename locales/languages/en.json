@@ -6280,6 +6280,14 @@
       "feed": "Feed",
       "holders": "Holders"
     },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
+    },
     "holders_tab": {
       "empty": "No holders to show yet",
       "error": {
