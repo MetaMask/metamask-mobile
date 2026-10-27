@@ -34,6 +34,8 @@ interface SocialFeedBaseProps {
   renderHeader?: (props: SocialFeedHeaderProps) => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  /** Replaces the default empty line when the filtered feed has no posts. */
+  emptyState?: React.ReactNode;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;
