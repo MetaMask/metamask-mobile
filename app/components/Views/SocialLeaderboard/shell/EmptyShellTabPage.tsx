@@ -1,6 +1,5 @@
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -17,16 +16,13 @@ import {
   type ScrollView,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
-import Routes from '../../../../constants/navigation/Routes';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Logger from '../../../../util/Logger';
-import { playSelection } from '../../../../util/haptics';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
 import { type QuickBuyTarget } from '../../../UI/QuickBuy';
 import type { CopyTradeOrigin } from '../../../../util/social/copyTradeIntent';
 import { useMyProfile } from '../MyProfileView/hooks';
-import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
+import { useSocialFeedPostNavigation } from '../hooks/useSocialFeedPostNavigation';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
 import SocialFeedError from '../../../UI/SocialFeed/components/SocialFeedError';
@@ -145,8 +141,11 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   onQuickBuy,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation<AppNavigationProp>();
   const { profile: myProfile } = useMyProfile();
+  const {
+    onAuthorPress: handleAuthorPress,
+    onPositionPress: handlePositionPress,
+  } = useSocialFeedPostNavigation();
   const livePrices = useSocialLivePrices();
   const scrollRef = useRef<ScrollView>(null);
   const {
@@ -349,42 +348,6 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       );
     },
     [onQuickBuy],
-  );
-
-  const handleAuthorPress = useCallback(
-    (post: SocialV1FeedPost) => {
-      playSelection().catch(() => undefined);
-      navigateToSocialV1Profile(navigation, {
-        traderId: post.item.author.id,
-        traderName: post.authorHandle,
-        traderAddress: post.item.author.address,
-        traderAvatarUri:
-          post.authorImageUrl ?? post.item.author.avatarUri ?? undefined,
-        source: 'trader_feed',
-        viewerProfileId: myProfile?.profileId ?? undefined,
-        viewerAddress: myProfile?.linkedAccountAddress ?? undefined,
-      });
-    },
-    [myProfile, navigation],
-  );
-
-  const handlePositionPress = useCallback(
-    (post: SocialV1FeedPost) => {
-      if (!post.position) {
-        return;
-      }
-      playSelection().catch(() => undefined);
-      navigation.navigate(Routes.SOCIAL.POSITION_SHEET, {
-        positionId: post.position.positionId,
-        position: post.position,
-        author: post.item.author,
-        comment: post.item.comment,
-        isClosed:
-          post.item.variant === 'perpsClosed' ||
-          post.item.variant === 'spotClosed',
-      });
-    },
-    [navigation],
   );
 
   const renderPost = useCallback(
