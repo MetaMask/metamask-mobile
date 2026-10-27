@@ -94,7 +94,10 @@ const PerpsTabContent: React.FC<Pick<TabProps, 'refreshing' | 'onRefresh'>> = ({
     'all',
   );
   const { selectedOptionId, sortBy, direction, handleOptionChange } =
-    usePerpsSorting();
+    usePerpsSorting({
+      initialOptionId: 'priceChange',
+      initialDirection: 'desc',
+    });
   const { track } = usePerpsEventTracking();
 
   const showFavoritesOnly = isWatchlistEnabled && selection === 'watchlist';

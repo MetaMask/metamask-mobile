@@ -321,6 +321,13 @@ describe('PerpsTab', () => {
     });
   });
 
+  it('sorts by price change, high to low, by default', () => {
+    renderPerpsTab();
+
+    expect(mockFiltersBarProps.current.selectedOptionId).toBe('priceChange');
+    expect(mockFiltersBarProps.current.sortDirection).toBe('desc');
+  });
+
   it('renders the top traders section when the feature flag is enabled', () => {
     const { getByTestId } = renderPerpsTab();
     expect(getByTestId('top-traders-section')).toBeOnTheScreen();
