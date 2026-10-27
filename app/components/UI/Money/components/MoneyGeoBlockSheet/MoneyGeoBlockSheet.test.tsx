@@ -1,4 +1,5 @@
 import React from 'react';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyGeoBlockSheet from './MoneyGeoBlockSheet';
@@ -84,6 +85,50 @@ describe('MoneyGeoBlockSheet', () => {
   it('renders geo-block description copy', () => {
     const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />);
 
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
+      strings('money.geo_block.description'),
+    );
+  });
+
+  it('renders eligibility failure copy when geolocation errors without a known location', () => {
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location: UNKNOWN_LOCATION,
+              status: 'error',
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('fiat_on_ramp_aggregator.eligibility_failed_modal.title'),
+    );
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
+      strings('fiat_on_ramp_aggregator.eligibility_failed_modal.description'),
+    );
+  });
+
+  it('renders geo-block copy when geolocation errors with a known location', () => {
+    const { getByTestId } = renderWithProvider(<MoneyGeoBlockSheet />, {
+      state: {
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location: 'US',
+              status: 'error',
+            },
+          },
+        },
+      },
+    });
+
+    expect(getByTestId(MoneyGeoBlockSheetTestIds.TITLE)).toHaveTextContent(
+      strings('money.geo_block.title'),
+    );
     expect(getByTestId(MoneyGeoBlockSheetTestIds.BODY)).toHaveTextContent(
       strings('money.geo_block.description'),
     );

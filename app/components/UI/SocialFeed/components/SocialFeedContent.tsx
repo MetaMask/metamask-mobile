@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef } from 'react';
 import { Dimensions, StyleSheet, View } from 'react-native';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { useSocialFeedScreenView } from '../socialFeedTracking';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import type { SocialFeedContentProps } from './SocialFeed.types';
@@ -90,6 +91,8 @@ const LoadMoreSentinel: React.FC<{
 const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   source,
   location,
+  analyticsSource,
+  isActive,
   title,
   renderHeader,
   filterPost,
@@ -112,6 +115,12 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     isLoading,
     error,
   });
+  useSocialFeedScreenView(
+    location,
+    analyticsSource,
+    [isLoading, Boolean(error), posts.length > 0],
+    isActive,
+  );
 
   const renderPost = useCallback(
     (post: SocialV1FeedPost) => (
@@ -126,7 +135,10 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   );
 
   return (
-    <SocialFeedSurfaceProvider location={location}>
+    <SocialFeedSurfaceProvider
+      location={location}
+      analyticsSource={analyticsSource}
+    >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}
         {renderHeader?.({ pendingNewCount: 0, onRevealPending: noop })}
