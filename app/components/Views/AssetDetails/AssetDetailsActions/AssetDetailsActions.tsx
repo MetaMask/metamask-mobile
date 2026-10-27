@@ -74,6 +74,8 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
+    // Homepage control row owns ACTION_BUTTON_CLICKED so MainView is not reported as navbar.
+    skipActionButtonClickTracking: true,
   });
 
   // Prevent rapid navigation clicks - locks all buttons during navigation
@@ -139,8 +141,16 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   ]);
 
   const handleSwapPress = useCallback(() => {
-    withNavigationLock(goToSwaps);
-  }, [withNavigationLock, goToSwaps]);
+    withNavigationLock(() => {
+      trackActionButtonClick(trackEvent, createEventBuilder, {
+        action_name: ActionButtonType.SWAP,
+        action_position: ActionPosition.SECOND_POSITION,
+        button_label: strings('asset_overview.swap'),
+        location: ActionLocation.HOME,
+      });
+      goToSwaps();
+    });
+  }, [withNavigationLock, trackEvent, createEventBuilder, goToSwaps]);
 
   const handleSendPress = useCallback(() => {
     withNavigationLock(onSend);
