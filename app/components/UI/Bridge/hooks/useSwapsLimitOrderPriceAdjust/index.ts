@@ -192,8 +192,16 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
+      executionType,
+      isLimitFiatMode,
     });
-  }, [getLimitPriceFromSignedPercent, isTrackingMarket, limitPrice]);
+  }, [
+    executionType,
+    getLimitPriceFromSignedPercent,
+    isLimitFiatMode,
+    isTrackingMarket,
+    limitPrice,
+  ]);
 
   const canToggleLimitPrice = Boolean(
     destFiatRate && destFiatRate > 0 && sourceFiatRate && sourceFiatRate > 0,
