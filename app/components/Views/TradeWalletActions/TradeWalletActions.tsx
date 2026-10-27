@@ -331,7 +331,9 @@ function TradeWalletActions() {
       // Defer navigation until RootModalFlow is fully dismissed so screens
       // on MainNavigator (e.g. StakeModals) are not opened underneath it.
       requestAnimationFrame(() => {
-        callback();
+        // Perps navigation is async. The menu has already closed, so the
+        // result is intentionally not awaited.
+        void callback();
       });
     }
   }, [dismissRootModalFlow]);
