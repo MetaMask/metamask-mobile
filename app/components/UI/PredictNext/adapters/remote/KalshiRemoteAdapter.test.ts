@@ -83,6 +83,38 @@ describe('KalshiRemoteAdapter', () => {
     adapter = new KalshiRemoteAdapter(client);
   });
 
+  it('serves the static Kalshi catalog without a network read', async () => {
+    const result = await adapter.marketData.fetchVenueCatalog();
+
+    expect(result).toEqual({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: {
+        sports: 'sports-football-nfl-games',
+        'nfl-games': 'sports-football-nfl-games',
+        'nfl-props': 'sports-football-nfl-win-totals',
+        'college-football-games': 'sports-football-ncaa-games',
+        'college-football-props': 'sports-football-ncaa-win-totals',
+      },
+      searchSupported: true,
+    });
+    expect(Object.values(client).some((fn) => fn.mock.calls.length)).toBe(
+      false,
+    );
+  });
+
+  it('lists only the actions its adapter structure implements', async () => {
+    const { actions } = await adapter.marketData.fetchVenueCatalog();
+
+    // Buy and sell are served by the trading capability; there is no
+    // funding or Claim capability, so those actions must stay absent.
+    expect(typeof adapter.trading.previewOrder).toBe('function');
+    expect(typeof adapter.trading.commitOrder).toBe('function');
+    expect(adapter).not.toHaveProperty('funding');
+    expect(adapter).not.toHaveProperty('claims');
+    expect([...actions].sort()).toEqual(['buy', 'sell']);
+  });
+
   it('parses canonical Events from the Predict API', async () => {
     client.fetchFeed.mockResolvedValue({
       venueId: 'kalshi',

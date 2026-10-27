@@ -9,6 +9,7 @@ import {
   MARKET_DATA_FEED_STALE_TIME,
   MARKET_DATA_MARKET_HISTORY_STALE_TIME,
   MARKET_DATA_SEARCH_STALE_TIME,
+  MARKET_DATA_VENUE_CATALOG_STALE_TIME,
   MARKET_DATA_VENUE_STATUS_STALE_TIME,
   marketDataQueries,
 } from './marketDataQueries';
@@ -29,6 +30,18 @@ describe('market data query descriptors', () => {
       staleTime: MARKET_DATA_VENUE_STATUS_STALE_TIME,
       scope: 'venue',
     });
+  });
+
+  it('qualifies Venue catalog queries by Venue with a five-minute stale time', () => {
+    const descriptor = marketDataQueries.getVenueCatalog(venueId);
+
+    expect(descriptor).toEqual({
+      queryKey: ['PredictMarketDataService:getVenueCatalog', venueId],
+      family: ['PredictMarketDataService:getVenueCatalog', venueId],
+      staleTime: MARKET_DATA_VENUE_CATALOG_STALE_TIME,
+      scope: 'venue',
+    });
+    expect(MARKET_DATA_VENUE_CATALOG_STALE_TIME).toBe(300_000);
   });
 
   it('qualifies event list queries by venue and cursor-free parameters', () => {

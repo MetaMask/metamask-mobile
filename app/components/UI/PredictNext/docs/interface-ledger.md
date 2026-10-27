@@ -52,9 +52,10 @@ marketDataQueries.getFeed(venueId, feedId, params);
 marketDataQueries.getEvent(venueId, eventId);
 marketDataQueries.getMarketHistory(venueId, marketId, range);
 marketDataQueries.searchEvents(venueId, { q, limit });
+marketDataQueries.getVenueCatalog(venueId);
 ```
 
-All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling.
+All descriptors have Venue-qualified keys, semantic invalidation families, explicit `venue` scope, and centralized stale-time policy. Market-history identity is additionally Market-qualified, while range is part of the exact query key and omitted from its invalidation family. Search keys carry the trimmed query text and limit; the invalidation family is Venue-wide. The first price-bearing Event list/detail, Market history, and Venue Status policy is one minute, with no background polling. The Venue catalog is fresh for five minutes, matching the catalog route's `Cache-Control: max-age=300`.
 
 ## Portfolio
 

@@ -76,6 +76,7 @@ describe('MfaSettings', () => {
     const { queryByTestId, getByTestId } = renderSettings(
       [
         {
+          id: 'email_otp',
           type: 'email_otp',
           status: 'active',
           email: 'a@b.co',
@@ -116,6 +117,7 @@ describe('MfaSettings', () => {
   it('offers to add an email whose setup is not finished', () => {
     const { getByTestId } = renderSettings([
       {
+        id: 'email_otp',
         type: 'email_otp',
         status: 'pending',
         email: 'a@b.co',
@@ -130,7 +132,13 @@ describe('MfaSettings', () => {
 
   it('opens an active email', () => {
     const { getByTestId } = renderSettings([
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
     ]);
 
     expect(
@@ -247,7 +255,7 @@ describe('MfaSettings', () => {
 
   it('lists the only passkey', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -259,8 +267,8 @@ describe('MfaSettings', () => {
 
   it('lists several passkeys', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -294,7 +302,7 @@ describe('MfaSettings', () => {
 
   it('opens an authenticator app that is set up', () => {
     const { getByTestId } = renderSettings([
-      { type: 'totp', status: 'active' },
+      { id: 'totp', type: 'totp', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).not.toHaveTextContent(
