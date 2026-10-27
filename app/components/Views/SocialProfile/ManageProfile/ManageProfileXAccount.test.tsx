@@ -346,6 +346,35 @@ describe('ManageProfileXAccount', () => {
       expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
     });
 
+    it('blocks disconnect while a refresh is in flight and re-enables it once settled', () => {
+      xAuthState = { ...xAuthState, xProfile: undefined, isRefreshing: true };
+      const utils = renderScreen();
+
+      expect(
+        utils.getByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON,
+        ),
+      ).toBeDisabled();
+      openSheet(utils);
+      expect(
+        utils.queryByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET,
+        ),
+      ).toBeNull();
+
+      utils.updateXAuth({ isRefreshing: false });
+
+      expect(
+        utils.getByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON,
+        ),
+      ).not.toBeDisabled();
+      openSheet(utils);
+      expect(
+        utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET),
+      ).toBeOnTheScreen();
+    });
+
     it('does not report a refresh failure as a failed disconnect', async () => {
       xAuthState = { ...xAuthState, xProfile: undefined };
       const utils = renderScreen();

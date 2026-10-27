@@ -44,6 +44,7 @@ const ManageProfileXAccount = () => {
     xProfile,
     isDisconnecting,
     disconnectError,
+    isRefreshing,
     disconnect,
     refresh,
   } = useXAuth();
@@ -58,6 +59,12 @@ const ManageProfileXAccount = () => {
   const [hasRequestedRefresh, setHasRequestedRefresh] = useState(false);
 
   const needsRefresh = isConnected && !xProfile;
+  // A refresh that lands after a disconnect re-writes `xProfile`, and
+  // `selectIsConnectedToX` treats any `xProfile` as connected, which would
+  // resurrect the link. So disconnect is blocked from the moment a refresh is
+  // due (before its effect has run) until it settles.
+  const isRefreshPending =
+    isRefreshing || (needsRefresh && !hasRequestedRefresh);
 
   useEffect(() => {
     if (!needsRefresh || hasRequestedRefresh) {
@@ -130,8 +137,11 @@ const ManageProfileXAccount = () => {
   }, [navigation]);
 
   const handleOpenSheet = useCallback(() => {
+    if (isRefreshPending) {
+      return;
+    }
     setIsSheetOpen(true);
-  }, []);
+  }, [isRefreshPending]);
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
@@ -139,9 +149,12 @@ const ManageProfileXAccount = () => {
   }, []);
 
   const handleConfirmDisconnect = useCallback(async () => {
+    if (isRefreshPending) {
+      return;
+    }
     setDisconnectPhase('pending');
     await disconnect();
-  }, [disconnect]);
+  }, [disconnect, isRefreshPending]);
 
   const disconnectErrorMessage =
     disconnectPhase === 'pending' && disconnectError && !isDisconnecting
@@ -197,6 +210,7 @@ const ManageProfileXAccount = () => {
           isDanger
           isFullWidth
           size={ButtonSize.Lg}
+          isDisabled={isRefreshPending}
           onPress={handleOpenSheet}
           testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON}
         >
