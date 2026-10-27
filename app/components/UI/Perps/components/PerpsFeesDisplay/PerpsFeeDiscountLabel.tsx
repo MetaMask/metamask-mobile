@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  IconColor,
   Text,
   TextColor,
   TextVariant,
@@ -44,6 +45,7 @@ const PerpsFeeDiscountLabel = ({
         size={iconSize}
         testID={PerpsFeeDiscountLabelSelectorsIDs.LABEL}
         accessibilityLabel={accessibilityLabel}
+        color={IconColor.IconAlternative}
       />
     );
   }

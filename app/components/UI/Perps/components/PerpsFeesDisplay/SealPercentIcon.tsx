@@ -1,7 +1,8 @@
+import { IconColor } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTheme } from '../../../../../util/theme';
 
 /**
  * Phosphor seal-percent, the promo mark from the fee-discount designs.
@@ -25,14 +26,22 @@ interface SealPercentIconProps {
    * icon stays decorative.
    */
   accessibilityLabel?: string;
+  /**
+   * Design-system icon color. Defaults to `IconDefault`, which matches
+   * `TextDefault` (the fees-sheet title). Form rows pass `IconAlternative`,
+   * the same grey as `TextAlternative` in light and dark themes.
+   */
+  color?: IconColor;
 }
 
 const SealPercentIcon = ({
   size,
   testID,
   accessibilityLabel,
+  color = IconColor.IconDefault,
 }: SealPercentIconProps) => {
-  const { colors } = useTheme();
+  const tw = useTailwind();
+  const { color: fill } = StyleSheet.flatten(tw.style(color));
   const isInformative = Boolean(accessibilityLabel);
 
   return (
@@ -52,7 +61,7 @@ const SealPercentIcon = ({
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Path d={SEAL_PERCENT_PATH} fill={colors.icon.default} />
+        <Path d={SEAL_PERCENT_PATH} fill={fill} />
       </Svg>
     </View>
   );
