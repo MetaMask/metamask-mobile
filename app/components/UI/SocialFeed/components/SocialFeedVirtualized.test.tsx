@@ -448,7 +448,11 @@ describe('SocialFeedVirtualized', () => {
     renderFeed({ onRefresh });
 
     await act(async () => {
-      screen.UNSAFE_getByType(RefreshControl).props.onRefresh();
+      const refreshing = screen
+        .UNSAFE_getByType(RefreshControl)
+        .props.onRefresh();
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+      await refreshing;
     });
 
     expect(onRefresh).toHaveBeenCalledTimes(1);
