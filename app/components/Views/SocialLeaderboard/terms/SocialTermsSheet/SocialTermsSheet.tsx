@@ -41,9 +41,12 @@ true;`;
 
 export interface SocialTermsSheetProps {
   /**
-   * Hosted terms page. When omitted, the placeholder copy renders instead.
+   * Hosted terms page. When omitted, the local HTML or placeholder copy
+   * renders instead.
    */
   uri?: string;
+  /** Locally bundled HTML document used for the build-time preview. */
+  html?: string;
   onAgree: () => void;
   onClose: () => void;
 }
@@ -62,6 +65,7 @@ const isAtEnd = ({
  */
 const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
   uri,
+  html,
   onAgree,
   onClose,
 }) => {
@@ -126,13 +130,21 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
         style={{ height: windowHeight * BODY_HEIGHT_RATIO }}
         twClassName="border-b border-muted"
       >
-        {uri ? (
+        {uri || html ? (
           <WebView
-            source={{ uri }}
+            source={
+              html
+                ? { html, baseUrl: 'https://metamask.com' }
+                : { uri: uri ?? '' }
+            }
             nestedScrollEnabled
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
-            onShouldStartLoadWithRequest={(request) => request.url === uri}
+            onShouldStartLoadWithRequest={(request) =>
+              html
+                ? request.url.startsWith('https://metamask.com')
+                : request.url === uri
+            }
             testID={SocialTermsSheetSelectorsIDs.WEBVIEW}
           />
         ) : (

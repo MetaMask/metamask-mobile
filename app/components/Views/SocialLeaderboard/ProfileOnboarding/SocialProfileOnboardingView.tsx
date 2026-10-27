@@ -35,6 +35,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
+import socialTermsOfUseContent from '../../../../util/termsOfUse/socialTermsOfUseContent';
 import {
   connectX,
   XAuthError,
@@ -85,6 +86,7 @@ import {
 } from '../terms/socialTermsAcceptance';
 
 const { Interaction, Outcome, Screen, Step } = SocialEvent;
+// Future live source: https://metamask.com/terms-of-use
 /** Wait until typing pauses before asking if a handle is free. */
 const USERNAME_CHECK_DEBOUNCE_MS = 400;
 
@@ -1218,6 +1220,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       </KeyboardAvoidingView>
       {pendingTermsPath ? (
         <SocialTermsSheet
+          html={socialTermsOfUseContent}
           onAgree={handleTermsAgree}
           onClose={handleTermsClose}
         />

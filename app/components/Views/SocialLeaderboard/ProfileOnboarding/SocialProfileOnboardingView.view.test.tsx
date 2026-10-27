@@ -357,13 +357,11 @@ describe('SocialProfileOnboardingView', () => {
 
   describe('Social Terms of Use', () => {
     const agreeToTerms = () => {
-      fireEvent.scroll(screen.getByTestId(SocialTermsSheetSelectorsIDs.BODY), {
-        nativeEvent: {
-          layoutMeasurement: { height: 400 },
-          contentOffset: { y: 600 },
-          contentSize: { height: 1000 },
-        },
-      });
+      fireEvent(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
+        'message',
+        { nativeEvent: { data: 'social-terms-scroll-end' } },
+      );
       fireEvent.press(
         screen.getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX),
       );
