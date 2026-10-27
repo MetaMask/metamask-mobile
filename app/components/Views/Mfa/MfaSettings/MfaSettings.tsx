@@ -23,7 +23,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
@@ -167,7 +167,7 @@ const MfaSettings = () => {
             testID={ROW_TEST_IDS[method]}
           />
         ))}
-        {isMfaKitEnabled() ? <MfaQaPresets /> : null}
+        {isMfaDevBuild() ? <MfaQaPresets /> : null}
       </ScrollView>
     </SafeAreaView>
   );
