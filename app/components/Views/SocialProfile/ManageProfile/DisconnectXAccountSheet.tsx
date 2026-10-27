@@ -84,6 +84,10 @@ const DisconnectXAccountSheet = ({
       <BottomSheet
         ref={sheetRef}
         isFullscreen={false}
+        // The header and Android back button route through `dismiss`, but the
+        // backdrop press and the pan-to-dismiss gesture bypass it. Disabling
+        // interaction keeps a confirmed disconnect from being rewound to idle.
+        isInteractable={!isDisconnecting}
         keyboardAvoidingViewEnabled={false}
         goBack={onClose}
         testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET}

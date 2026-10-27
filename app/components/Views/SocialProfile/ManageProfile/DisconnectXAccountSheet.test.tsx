@@ -1,6 +1,7 @@
 import React from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
+import { BottomSheet } from '@metamask/design-system-react-native';
 
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -168,5 +169,23 @@ describe('DisconnectXAccountSheet', () => {
     fireEvent.press(cancel);
 
     expect(mockOnConfirm).not.toHaveBeenCalled();
+  });
+
+  it('blocks backdrop and swipe dismissal only while disconnecting', () => {
+    const { UNSAFE_getByType, rerender } = renderSheet();
+
+    expect(UNSAFE_getByType(BottomSheet).props.isInteractable).toBe(true);
+
+    rerender(
+      <DisconnectXAccountSheet
+        handle="tester"
+        isDisconnecting
+        errorMessage={null}
+        onClose={mockOnClose}
+        onConfirm={mockOnConfirm}
+      />,
+    );
+
+    expect(UNSAFE_getByType(BottomSheet).props.isInteractable).toBe(false);
   });
 });

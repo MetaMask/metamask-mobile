@@ -52,8 +52,10 @@ const ManageProfileXAccount = () => {
   const trackProfileEdited = useManageProfileAnalytics();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   // `pending` is set by the sheet's confirm so a screen that is merely
-  // disconnected does not toast. `settled` stops the effect from toasting, or
-  // navigating, a second time when it re-runs after the latch is written.
+  // disconnected does not toast. `settled` is terminal: it stops the effect
+  // from toasting, or navigating, a second time when it re-runs after the latch
+  // is written, and every write below refuses to rewind it. `goBack` does not
+  // unmount this screen synchronously, so a rewind would toast and pop twice.
   const [disconnectPhase, setDisconnectPhase] =
     useState<DisconnectPhase>('idle');
   const [hasRequestedRefresh, setHasRequestedRefresh] = useState(false);
@@ -137,22 +139,28 @@ const ManageProfileXAccount = () => {
   }, [navigation]);
 
   const handleOpenSheet = useCallback(() => {
-    if (isRefreshPending) {
+    if (isRefreshPending || disconnectPhase === 'settled') {
       return;
     }
+    // Opening clears a failure left by the previous attempt. Phase is cleared
+    // here rather than on close because the backdrop press and the pan gesture
+    // bypass the sheet's `isDisconnecting` guard, and rewinding `pending`
+    // mid-flight would drop the success toast and the `profile_edited` event.
+    setDisconnectPhase((phase) =>
+      phase === 'pending' && isDisconnecting ? phase : 'idle',
+    );
     setIsSheetOpen(true);
-  }, [isRefreshPending]);
+  }, [disconnectPhase, isDisconnecting, isRefreshPending]);
 
   const handleCloseSheet = useCallback(() => {
     setIsSheetOpen(false);
-    setDisconnectPhase('idle');
   }, []);
 
   const handleConfirmDisconnect = useCallback(async () => {
     if (isRefreshPending) {
       return;
     }
-    setDisconnectPhase('pending');
+    setDisconnectPhase((phase) => (phase === 'settled' ? phase : 'pending'));
     await disconnect();
   }, [disconnect, isRefreshPending]);
 
@@ -210,7 +218,7 @@ const ManageProfileXAccount = () => {
           isDanger
           isFullWidth
           size={ButtonSize.Lg}
-          isDisabled={isRefreshPending}
+          isDisabled={isRefreshPending || disconnectPhase === 'settled'}
           onPress={handleOpenSheet}
           testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON}
         >

@@ -5,6 +5,7 @@ import type { XProfile } from '@metamask/profile-controller';
 import ManageProfileXAccount from './ManageProfileXAccount';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
+import { BottomSheet } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ManageProfileSelectorsIDs } from './ManageProfile.testIds';
 import { useXAuth, type UseXAuth } from '../../../../hooks/useXAuth';
@@ -373,6 +374,111 @@ describe('ManageProfileXAccount', () => {
       expect(
         utils.getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET),
       ).toBeOnTheScreen();
+    });
+
+    it('keeps the settled disconnect terminal when Disconnect is pressed again', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({ isConnected: false, xProfile: undefined });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+
+      // `goBack` does not unmount this screen synchronously, so the settled
+      // latch has to survive a second confirm attempt.
+      const disconnectButton = utils.getByTestId(
+        ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_BUTTON,
+      );
+      expect(disconnectButton).toBeDisabled();
+
+      fireEvent.press(disconnectButton);
+
+      expect(
+        utils.queryByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_SHEET,
+        ),
+      ).toBeNull();
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
+    });
+
+    it('still reports a successful disconnect dismissed through the backdrop mid-flight', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({ isDisconnecting: true });
+
+      const sheet = utils.UNSAFE_getByType(BottomSheet);
+      expect(sheet.props.isInteractable).toBe(false);
+
+      // The backdrop press and the pan gesture call `goBack` directly, so the
+      // screen has to hold the pending phase against them itself.
+      act(() => {
+        sheet.props.goBack();
+      });
+
+      utils.updateXAuth({
+        isConnected: false,
+        xProfile: undefined,
+        isDisconnecting: false,
+      });
+
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockTrackProfileEdited).toHaveBeenCalledTimes(1);
+    });
+
+    it('clears a failed disconnect error when the sheet is reopened after Cancel', async () => {
+      const utils = renderScreen();
+      openSheet(utils);
+
+      await act(async () => {
+        fireEvent.press(
+          utils.getByTestId(
+            ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CONFIRM,
+          ),
+        );
+      });
+
+      utils.updateXAuth({
+        disconnectError: new XAuthError(
+          XAuthErrorType.BackendError,
+          'backend down',
+        ),
+      });
+
+      fireEvent.press(
+        utils.getByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_CANCEL,
+        ),
+      );
+      openSheet(utils);
+
+      expect(
+        utils.queryByTestId(
+          ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR,
+        ),
+      ).toBeNull();
+      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
     });
 
     it('does not report a refresh failure as a failed disconnect', async () => {
