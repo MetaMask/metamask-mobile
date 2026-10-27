@@ -21,7 +21,6 @@ const createBenefits = (
     },
     perps: {
       builderFeeBips: null,
-      builderCode: null,
       remainingMicroUsd: null,
       exhausted: false,
     },
