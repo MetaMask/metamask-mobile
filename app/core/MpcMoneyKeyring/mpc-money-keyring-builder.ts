@@ -163,7 +163,7 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
-      getMfaWhitelistConfig: async () => MPC_MFA_WHITELIST_CONFIG,
+      getMfaWhitelistConfig: () => Promise.resolve(MPC_MFA_WHITELIST_CONFIG),
       webSocket: WebSocket,
     });
   };
