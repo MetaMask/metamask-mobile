@@ -50,9 +50,13 @@ import StorageWrapper from '../../../store/storage-wrapper';
 import { HOMEPAGE_APP_SESSION_ID } from '../../../util/analytics/homepageSessionId';
 import { baseStyles } from '../../../styles/common';
 import { PERPS_GTM_MODAL_SHOWN } from '../../../constants/storage';
-import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectIsMoneyDepositBrazeCampaignEnabledFlag,
+  selectMoneyEnableMoneyAccountFlag,
+} from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountVisible } from '../../UI/Money/selectors/visibility';
 import MoneyBalanceCard from '../../UI/Money/components/MoneyBalanceCard';
+import MoneyDepositBrazeCampaignObserver from '../../UI/Money/components/MoneyDepositBrazeCampaignObserver/MoneyDepositBrazeCampaignObserver';
 import WalletHeader from './components/WalletHeader/WalletHeader';
 import WalletHeaderAccountPickerRow from './components/WalletHeader/WalletHeaderAccountPickerRow';
 import WalletHeaderCompact from './components/WalletHeader/WalletHeaderCompact';
@@ -419,6 +423,9 @@ const Wallet = ({
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 
   const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
+  const isMoneyDepositBrazeCampaignEnabled = useSelector(
+    selectIsMoneyDepositBrazeCampaignEnabledFlag,
+  );
   const isMoneyAccountVisible = useSelector(selectIsMoneyAccountVisible);
   const showMoneyBalanceCard =
     isMoneyAccountEnabled && !inWalletHomePostOnboardingFlow;
@@ -1383,6 +1390,9 @@ const Wallet = ({
         >
           {selectedInternalAccount ? (
             <>
+              {isMoneyAccountVisible && isMoneyDepositBrazeCampaignEnabled && (
+                <MoneyDepositBrazeCampaignObserver />
+              )}
               {isNativeHeader ? null : isCompactHeader ? (
                 <WalletHeaderCompact
                   accountAddress={selectedInternalAccount.address}

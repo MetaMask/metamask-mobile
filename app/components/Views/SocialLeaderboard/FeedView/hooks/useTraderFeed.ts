@@ -25,8 +25,8 @@ import {
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
+  toFeedScope,
 } from './traderFeedQueries';
-import { toFeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 
 export interface UseTraderFeedOptions {
   /**
@@ -192,7 +192,7 @@ export const useTraderFeed = (
     query;
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
@@ -216,9 +216,9 @@ export const useTraderFeed = (
     items,
     rows,
     hasLoadedItems,
-    // `isInitialLoading` (not `isLoading`) so a disabled query never reports
-    // loading and a background refetch doesn't flash the skeleton.
-    isLoading: query.isInitialLoading,
+    // TanStack v5 `isLoading` is pending and fetching: a disabled query never
+    // reports loading and a background refetch doesn't flash the skeleton.
+    isLoading: query.isLoading,
     isFetchingNextPage,
     hasNextPage: hasNextPage === true && !isError,
     loadMore,

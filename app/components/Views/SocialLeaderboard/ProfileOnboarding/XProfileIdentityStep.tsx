@@ -3,7 +3,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  FontWeight,
   Icon,
   IconName,
   IconSize,
@@ -32,7 +31,9 @@ import type {
   NetworkTier,
 } from '../../../../util/deviceCapability/types';
 import { useTheme } from '../../../../util/theme';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import { MAX_USERNAME_LENGTH } from './generateUsername';
 import type {
   ProfileOnboardingDraft,
   UsernameStatus,
@@ -256,13 +257,12 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
       twClassName="flex-1"
       testID={SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP}
     >
-      <Text
-        variant={TextVariant.DisplayMd}
-        fontWeight={FontWeight.Bold}
+      <MarketingMomentTitle
+        variant={TextVariant.DisplayLg}
         twClassName="w-full text-center px-2"
       >
         {strings('social_leaderboard.profile_onboarding.choose_x_identity')}
-      </Text>
+      </MarketingMomentTitle>
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
@@ -379,6 +379,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 inputProps={{
                   autoCapitalize: 'none',
                   autoCorrect: false,
+                  maxLength: MAX_USERNAME_LENGTH,
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
               />

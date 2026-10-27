@@ -23,9 +23,17 @@ import {
   hasAcceptedVbaVendorTerms,
 } from '../vbaVendorTermsStorage';
 import { VbaOnboardingRoutes, type VbaOnboardingParamList } from '../routes';
+import {
+  accountCreateErrorVariantForDestination,
+  isAccountCreateErrorDestination,
+  type AccountCreateFailureFields,
+} from '../accountCreateError';
 import { applyVbaDevOverrides } from '../vbaDevOverrides';
 import { VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
+import { TraceName } from '../../../../../../util/trace';
+import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import { VBA_CUF_END_REASON } from '../vbaCufTags';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -47,12 +55,16 @@ const DEFAULT_CALLER_ROUTE = {
 };
 
 const getCallerRoute = (state: NavigationState) => {
-  const activeRoute = state.routes[state.index];
-  if (activeRoute?.name !== Routes.RAMP.VBA_ONBOARDING) {
-    return activeRoute ?? DEFAULT_CALLER_ROUTE;
+  for (let index = state.index; index >= 0; index -= 1) {
+    const route = state.routes[index];
+    if (
+      route?.name !== Routes.RAMP.VBA_ONBOARDING &&
+      route?.name !== Routes.RAMP.VBA_DETAILS
+    ) {
+      return route;
+    }
   }
-
-  return state.routes[state.index - 1] ?? DEFAULT_CALLER_ROUTE;
+  return DEFAULT_CALLER_ROUTE;
 };
 
 /**
@@ -168,6 +180,9 @@ export const navigateToVbaOnboardingDestination = (
   navigation: AppNavigationProp,
   destinationId: VbaOnboardingDestinationId,
   snapshot?: VbaOnboardingSnapshot,
+  failure?: AccountCreateFailureFields,
+  sourceCurrency?: VbaSourceCurrency,
+  retryable?: boolean,
 ): void => {
   if (destinationId === 'complete') {
     openCompletedVbaAccount(navigation);
@@ -187,6 +202,19 @@ export const navigateToVbaOnboardingDestination = (
     openAsOnlyOnboardingRoute(
       navigation,
       VbaOnboardingRoutes.IDENTITY_VERIFIED,
+    );
+    return;
+  }
+  if (isAccountCreateErrorDestination(destinationId)) {
+    openAsOnlyOnboardingRoute(
+      navigation,
+      VbaOnboardingRoutes.ACCOUNT_CREATE_ERROR,
+      {
+        variant: accountCreateErrorVariantForDestination(destinationId),
+        ...(failure ? { failure } : {}),
+        ...(sourceCurrency ? { sourceCurrency } : {}),
+        ...(retryable ? { retryable } : {}),
+      },
     );
     return;
   }
@@ -267,11 +295,13 @@ export type ResolvedVbaOnboarding =
 export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
+  const hydrateTraceId = startVbaCufChildTrace(TraceName.VbaHydrate);
   try {
     const walletAddress = selectSelectedVbaWalletAddress(
       ReduxService.store.getState() as RootState,
     );
     if (!walletAddress) {
+      endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
       return { status: 'error' };
     }
 
@@ -312,12 +342,14 @@ export const resolveVbaOnboarding = async (
         accountSnapshot.vendorDisclaimersComplete ||
         (await hasAcceptedVbaVendorTerms(walletAddress)),
     };
+    endVbaCufChildTrace(hydrateTraceId, true);
     return {
       status: 'ready',
       destinationId: getVbaDestinationForSnapshot(snapshot),
       snapshot,
     };
   } catch (error) {
+    endVbaCufChildTrace(hydrateTraceId, false, VBA_CUF_END_REASON.ERROR);
     Logger.error(error as Error, {
       tags: { feature: 'vba-onboarding' },
       context: {

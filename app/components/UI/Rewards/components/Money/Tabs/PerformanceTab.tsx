@@ -484,11 +484,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
       ) : null}
       {commissions.show ? (
         <ActivitySection
-          title={
-            isReferrer
-              ? localizedText.tradeCommissions
-              : localizedText.tradingCommissionsSection
-          }
+          title={localizedText.tradingCommissionsSection}
           testIDs={{
             header: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER,
             divider: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER,

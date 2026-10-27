@@ -1,13 +1,18 @@
 import React, { useContext, useMemo } from 'react';
+import type { SocialEventSource } from '../../Views/SocialLeaderboard/analytics/socialEvents';
+import {
+  SocialFeedTrackingProvider,
+  socialFeedTracksLocation,
+} from './socialFeedTracking';
 
 /**
- * Where a social surface (feed or leaderboard) is shown. Attached to events
- * once those events exist; nothing reads it for tracking yet.
+ * Where a social surface (feed or leaderboard) is shown. Feed locations
+ * record post interactions from here; the host does not.
  */
 export type SocialSurfaceLocation =
   | 'social_trending'
   | 'social_following'
-  | 'social_live_trades'
+  | 'social_live'
   | 'social_leaderboard'
   | 'my_profile'
   | 'social_post_composer'
@@ -39,6 +44,14 @@ export interface SocialFeedSurfaceProviderProps {
   location?: SocialSurfaceLocation;
   /** Replaces the outer surface's mocked-field flag. Omitted keeps it. */
   showMockedFields?: boolean;
+  /**
+   * Where the user came from. Overrides the origin `location` already implies
+   * (`perps_home`, `perp_asset_screen`). Omitted on a nested provider does not
+   * inherit.
+   */
+  analyticsSource?: SocialEventSource;
+  /** Owner-only surfaces pass false so a visitor's view stays silent. */
+  analyticsEnabled?: boolean;
   children: React.ReactNode;
 }
 
@@ -49,7 +62,13 @@ export interface SocialFeedSurfaceProviderProps {
  */
 export const SocialFeedSurfaceProvider: React.FC<
   SocialFeedSurfaceProviderProps
-> = ({ location, showMockedFields, children }) => {
+> = ({
+  location,
+  showMockedFields,
+  analyticsSource,
+  analyticsEnabled = true,
+  children,
+}) => {
   const outer = useContext(SocialFeedSurfaceContext);
   const value = useMemo(
     (): SocialFeedSurface => ({
@@ -58,10 +77,22 @@ export const SocialFeedSurfaceProvider: React.FC<
     }),
     [location, outer.location, outer.showMockedFields, showMockedFields],
   );
+  const body =
+    value.location && socialFeedTracksLocation(value.location) ? (
+      <SocialFeedTrackingProvider
+        location={value.location}
+        source={analyticsSource}
+        enabled={analyticsEnabled}
+      >
+        {children}
+      </SocialFeedTrackingProvider>
+    ) : (
+      children
+    );
 
   return (
     <SocialFeedSurfaceContext.Provider value={value}>
-      {children}
+      {body}
     </SocialFeedSurfaceContext.Provider>
   );
 };

@@ -66,6 +66,11 @@ export interface HotTokensCarouselProps {
   selectedTokenId?: string | null;
   /** Filters the feed to this asset. Pressing the selected chip clears it. */
   onTokenPress?: (token: SocialV1HotToken) => void;
+  /**
+   * False while the rail's pager page is off screen. Stops the crawl, since the
+   * pager keeps every page mounted.
+   */
+  isActive?: boolean;
 }
 
 const HotTokenChip: React.FC<{
@@ -164,6 +169,7 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   isLoading: feedIsLoading = false,
   selectedTokenId = null,
   onTokenPress,
+  isActive = true,
 }) => {
   const { tokens, isLoading } = useSocialV1HotTokens(
     posts,
@@ -291,7 +297,11 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     [offset, parked, paused, trackWidthSv, viewportWidthSv],
   );
 
-  useFrameCallback(tickMarquee);
+  const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
+
+  useEffect(() => {
+    marqueeFrameCallback.setActive(isActive);
+  }, [isActive, marqueeFrameCallback]);
 
   const trackStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -offset.value }],

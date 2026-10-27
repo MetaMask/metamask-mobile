@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
-import { Image, Linking } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo, Pressable } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import QRCode from 'react-native-qrcode-svg';
 import {
   BannerAlert,
   BannerAlertSeverity,
@@ -8,12 +9,11 @@ import {
   BottomSheetHeader,
   Box,
   Button,
-  ButtonIcon,
   ButtonSize,
   ButtonVariant,
   FontWeight,
-  HelpText,
-  HelpTextSeverity,
+  HeaderStandard,
+  Icon,
   IconColor,
   IconName,
   Text,
@@ -36,10 +36,13 @@ import StepLayout, { type StepProps } from './StepLayout';
 const formatSetupKey = (secret: string) =>
   secret.match(/.{1,4}/g)?.join(' ') ?? secret;
 
+/** How long the copied checkmark stays before the copy icon returns. */
+const COPIED_ICON_DURATION_MS = 2000;
+
 /**
- * Adds MetaMask to the user's authenticator app: opens the app on this phone,
- * or copies the setup key, or shows the QR code for another device (a phone
- * cannot scan its own screen). The secret and QR code are never stored.
+ * Adds MetaMask to the user's authenticator app: copies the setup key or shows
+ * the QR code from the header for another device (a phone cannot scan its own
+ * screen). The secret and QR code are never stored.
  *
  * @param props - The step's props.
  * @param props.step - The setup step, with the secret, QR code and link.
@@ -50,22 +53,47 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
   const tw = useTailwind();
   const { brandColors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [noApp, setNoApp] = useState(false);
 
-  const openApp = () => {
-    setNoApp(false);
-    Linking.openURL(step.setupUri).catch(() => setNoApp(true));
-  };
+  useEffect(
+    () => () => {
+      clearTimeout(copiedTimer.current);
+    },
+    [],
+  );
 
   const copyKey = () => {
     Clipboard.setString(step.secret);
+    AccessibilityInfo.announceForAccessibility(
+      strings('mfa.totp_setup.copied'),
+    );
     setIsCopied(true);
+    clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(
+      () => setIsCopied(false),
+      COPIED_ICON_DURATION_MS,
+    );
   };
 
   return (
     <>
+      <HeaderStandard
+        onBack={() => onAction({ type: 'cancel' })}
+        backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.QrCode,
+            onPress: () => setIsQrOpen(true),
+            accessibilityLabel: strings('mfa.totp_setup.show_qr'),
+            testID: MfaFlowSelectorsIDs.TOTP_SHOW_QR,
+          },
+        ]}
+        includesTopInset
+      />
       <StepLayout
         title={strings('mfa.totp_setup.title')}
         description={strings('mfa.totp_setup.description')}
@@ -90,22 +118,21 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
               description={strings('mfa.totp_setup.restarted')}
             />
           ) : null}
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            startIconName={IconName.Export}
-            onPress={openApp}
-            testID={MfaFlowSelectorsIDs.TOTP_OPEN_APP}
+          <Pressable
+            onPress={copyKey}
+            accessibilityRole="button"
+            accessibilityLabel={`${strings(
+              'mfa.totp_setup.setup_key',
+            )}, ${formatSetupKey(step.secret)}`}
+            accessibilityHint={strings('mfa.totp_setup.copy')}
+            style={({ pressed }) =>
+              tw.style(
+                'flex-row items-center gap-3 rounded-2xl p-4',
+                pressed ? 'bg-muted-pressed' : 'bg-muted',
+              )
+            }
+            testID={MfaFlowSelectorsIDs.TOTP_COPY_KEY}
           >
-            {strings('mfa.totp_setup.open_app')}
-          </Button>
-          {noApp ? (
-            <HelpText severity={HelpTextSeverity.Danger}>
-              {strings('mfa.totp_setup.no_app')}
-            </HelpText>
-          ) : null}
-          <Box twClassName="flex-row items-center gap-3 rounded-2xl bg-muted p-4">
             <Box twClassName="flex-1 gap-1">
               <Text
                 variant={TextVariant.BodySm}
@@ -121,24 +148,13 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
                 {formatSetupKey(step.secret)}
               </Text>
             </Box>
-            <ButtonIcon
-              iconName={isCopied ? IconName.CopySuccess : IconName.Copy}
-              iconProps={
-                isCopied ? { color: IconColor.SuccessDefault } : undefined
+            <Icon
+              name={isCopied ? IconName.CopySuccess : IconName.Copy}
+              color={
+                isCopied ? IconColor.SuccessDefault : IconColor.IconDefault
               }
-              onPress={copyKey}
-              accessibilityLabel={strings('mfa.totp_setup.copy')}
-              testID={MfaFlowSelectorsIDs.TOTP_COPY_KEY}
             />
-          </Box>
-          <Button
-            variant={ButtonVariant.Tertiary}
-            startIconName={IconName.QrCode}
-            onPress={() => setIsQrOpen(true)}
-            testID={MfaFlowSelectorsIDs.TOTP_OTHER_DEVICE}
-          >
-            {strings('mfa.totp_setup.other_device')}
-          </Button>
+          </Pressable>
         </Box>
       </StepLayout>
       {isQrOpen ? (
@@ -159,14 +175,17 @@ const TotpSetupStep = ({ step, state, onAction }: StepProps<'totpSetup'>) => {
             >
               {strings('mfa.totp_setup.qr_description')}
             </Text>
-            {/* The QR code needs a light background to scan in dark mode. */}
+            {/* The QR code needs a light background to scan in dark mode. It
+                encodes the setup link itself, as the server's image has a
+                wide margin built in. */}
             <Box
-              twClassName="rounded-2xl p-3"
+              twClassName="mb-4 rounded-2xl p-4"
               style={tw.style({ backgroundColor: brandColors.white })}
             >
-              <Image
-                source={{ uri: step.qrCode }}
-                style={tw.style('w-50 h-50')}
+              <QRCode
+                value={step.setupUri}
+                size={200}
+                quietZone={0}
                 testID={MfaFlowSelectorsIDs.TOTP_QR_IMAGE}
               />
             </Box>

@@ -498,14 +498,26 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
     );
   };
 
+  // The trader-position footer renders inside a design-system BottomSheetDialog
+  // whose surface fill is `elevated1`. When collapsed the footer blends into the
+  // page (`background.default`); when expanded it must match the sheet shell, so
+  // its inner surface is raised to `elevated1`. Otherwise the inner surface
+  // (`background.default`) sits on the `elevated1` shell and leaves a visible
+  // color seam at the top of the expanded sheet (ASSETS-4183).
   const footerStyle = useMemo(
     () => ({
-      backgroundColor: colors.background.default,
+      backgroundColor: traderPositionPnl?.isExpanded
+        ? colors.background.elevated1
+        : colors.background.default,
       paddingHorizontal: 16,
       paddingTop: traderPositionPnl?.isExpanded ? 22 : 0,
       paddingBottom: 0,
     }),
-    [colors.background.default, traderPositionPnl?.isExpanded],
+    [
+      colors.background.elevated1,
+      colors.background.default,
+      traderPositionPnl?.isExpanded,
+    ],
   );
   const legacyFooterStyle = useMemo(
     () => ({
@@ -518,10 +530,18 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   );
   const bottomSheetStyle = useMemo(
     () => ({
+      // Design spec: expanded sheet uses a 38px top corner radius (ASSETS-4183).
+      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      borderTopRightRadius: traderPositionPnl?.isExpanded ? 38 : 0,
+      // The design-system dialog paints a faint `border-muted` hairline on
+      // top/left/right. When collapsed the top edge is flat, so keep that top
+      // line as the divider shown in the design. When expanded, the large 38px
+      // corner + `overflow-hidden` renders the stroke unevenly around the curve
+      // (broken border), and the design has no border there — so drop it and
+      // rely on the shadow + overlay for separation (ASSETS-4183).
+      borderWidth: 0,
       borderTopColor: colors.border.muted,
-      borderTopLeftRadius: traderPositionPnl?.isExpanded ? 32 : 0,
-      borderTopRightRadius: traderPositionPnl?.isExpanded ? 32 : 0,
-      borderTopWidth: 1,
+      borderTopWidth: traderPositionPnl?.isExpanded ? 0 : 1,
       paddingBottom: skipBottomInset ? 4 : insets.bottom + 6,
     }),
     [
