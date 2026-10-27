@@ -16,6 +16,8 @@ import { strings } from '../../../../../../locales/i18n';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_BUTTON_INTENTS,
@@ -97,6 +99,7 @@ const MoneyVbaHomeCard = ({
     if (hasPendingCtaOpenRef.current || config.cta.isDisabled) {
       return;
     }
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
     hasPendingCtaOpenRef.current = true;
     // Self-clears so the CTA recovers if no navigator presents the route.
     setTimeout(() => {

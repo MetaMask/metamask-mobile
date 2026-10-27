@@ -15,6 +15,8 @@ import { useReduceMotion } from '../../hooks/useReduceMotion';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   COMPONENT_NAMES,
   MONEY_BUTTON_INTENTS,
@@ -39,6 +41,9 @@ jest.mock(
     openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -119,6 +124,7 @@ const refocus = async () => {
 const mockUseReduceMotion = jest.mocked(useReduceMotion);
 const mockUseMoneyAnalytics = jest.mocked(useMoneyAnalytics);
 const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 const mockLoggerError = jest.mocked(Logger.error);
 
 const VARIANTS: MoneyVbaHomeCardVariant[] = [
@@ -244,6 +250,9 @@ describe('MoneyVbaHomeCard', () => {
         mockNavigation,
         VbaOnboardingRoutes.LOADING,
         { source: expectations.source },
+      );
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.HOME_CARD,
       );
     },
   );
