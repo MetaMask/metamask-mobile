@@ -73,7 +73,7 @@ const ProfilePositionsTab: React.FC<ProfilePositionsTabProps> = ({
     ));
 
   return (
-    <Box paddingTop={6} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
+    <Box paddingTop={4} testID={MyProfileViewSelectorsIDs.POSITIONS_LIST}>
       <FilterButtonGroup
         value={filter}
         onChange={(value) => onFilterChange(value as ProfileAssetFilter)}
