@@ -6,7 +6,9 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
+import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
 import type { SocialV1FeedPost } from '../types';
 import { translateComment } from '../translateComment';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
@@ -110,6 +112,9 @@ const TranslationStatus = ({
 };
 
 const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
+  const translationEnabled = useSelector(
+    selectAiSocialCommentTranslationEnabled,
+  );
   const [phase, setPhase] = useState<TranslationPhase>('idle');
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const requestId = useRef(0);
@@ -158,7 +163,7 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
       <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
         {visibleComment}
       </Text>
-      {showsTranslationControl(post) ? (
+      {translationEnabled && showsTranslationControl(post) ? (
         <TranslationStatus
           phase={phase}
           onTranslate={onTranslate}

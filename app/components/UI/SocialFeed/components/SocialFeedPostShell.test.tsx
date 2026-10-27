@@ -18,6 +18,17 @@ import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
+jest.mock('react-native-device-info', () => ({
+  getModel: () => Promise.resolve('iPhone 12'),
+  getApplicationName: () => Promise.resolve('applicationName'),
+  getVersion: jest.fn(() => '99.0.0'),
+  getSystemVersion: () => '14.5',
+  getBuildNumber: () => Promise.resolve('500'),
+  hasNotch: () => true,
+  getBrand: () => 'Apple',
+  getTotalMemorySync: () => 4 * 1024 ** 3,
+}));
+
 jest.mock('../translateComment', () => ({
   translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
 }));
@@ -135,6 +146,8 @@ const renderShell = (
     onPositionPress?: (post: SocialV1FeedPost) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
+    /** Turns on `aiSocialCommentTranslationEnabled` for this render. */
+    translationEnabled?: boolean;
   },
 ) => {
   const queryClient = new QueryClient({
@@ -160,6 +173,24 @@ const renderShell = (
         </SocialFeedSurfaceProvider>
       )}
     </QueryClientProvider>,
+    options?.translationEnabled
+      ? {
+          state: {
+            engine: {
+              backgroundState: {
+                RemoteFeatureFlagController: {
+                  remoteFeatureFlags: {
+                    aiSocialCommentTranslationEnabled: {
+                      enabled: true,
+                      minimumVersion: '0.0.0',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }
+      : undefined,
   );
 };
 
@@ -743,20 +774,33 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('offers translation when the Call language is missing or not English', () => {
-      renderShell(basePost({ sourceLanguage: null }));
+      renderShell(basePost({ sourceLanguage: null }), {
+        translationEnabled: true,
+      });
 
       expect(screen.getByText('See translation')).toBeOnTheScreen();
     });
 
+    it('hides translation when the feature flag is off', () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }));
+
+      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
     it('hides translation for an English Call', () => {
-      renderShell(basePost({ sourceLanguage: 'en' }));
+      renderShell(basePost({ sourceLanguage: 'en' }), {
+        translationEnabled: true,
+      });
 
       expect(screen.queryByText('See translation')).toBeNull();
       expect(screen.getByText('Amazing position')).toBeOnTheScreen();
     });
 
     it('hides translation on a pending post', () => {
-      renderShell(basePost({ isPending: true, sourceLanguage: 'ko' }));
+      renderShell(basePost({ isPending: true, sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
 
       expect(screen.queryByText('See translation')).toBeNull();
     });
@@ -775,6 +819,7 @@ describe('SocialFeedPostShell', () => {
             comment: '이 내용은 한국어입니다.',
           }),
         }),
+        { translationEnabled: true },
       );
 
       fireEvent.press(screen.getByText('See translation'));
@@ -794,7 +839,9 @@ describe('SocialFeedPostShell', () => {
     });
 
     it('keeps the original text and offers a retry when translation fails', async () => {
-      renderShell(basePost({ sourceLanguage: 'ko' }));
+      renderShell(basePost({ sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
 
       fireEvent.press(screen.getByText('See translation'));
 
@@ -823,6 +870,7 @@ describe('SocialFeedPostShell', () => {
           sourceLanguage: 'ko',
           translations: { en: 'Already translated' },
         }),
+        { translationEnabled: true },
       );
 
       fireEvent.press(screen.getByText('See translation'));
