@@ -35,7 +35,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -125,6 +130,7 @@ const getPositionListKey = (position: Position): string =>
 
 const PROFILE_TABS = ['open', 'closed', 'posts'] as const;
 const POST_SKELETON_KEYS = ['post-1', 'post-2', 'post-3', 'post-4'] as const;
+const END_REACHED_THRESHOLD_PX = 600;
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
@@ -168,6 +174,8 @@ const TraderProfileView = () => {
     posts,
     isLoading: isPostsLoading,
     isFetchingNextPage,
+    hasNextPage,
+    loadMore,
     error: postsError,
     refresh: refreshPosts,
   } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
@@ -384,6 +392,22 @@ const TraderProfileView = () => {
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
 
+  const handlePostsScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (activeTab !== 'posts' || !hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [activeTab, hasNextPage, loadMore],
+  );
+
   const headerTitle = profile?.profile.name;
 
   return (
@@ -441,7 +465,10 @@ const TraderProfileView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           onScroll={onScroll}
+          onMomentumScrollEnd={handlePostsScrollSettled}
+          onScrollEndDrag={handlePostsScrollSettled}
           scrollEventThrottle={16}
+          testID={TraderProfileViewSelectorsIDs.SCROLL}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}

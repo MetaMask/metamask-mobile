@@ -856,6 +856,32 @@ describe('TraderProfileView', () => {
     expect(screen.queryByText('No posts yet')).not.toBeOnTheScreen();
   });
 
+  it('requests the next posts page when a scroll settles near the end', () => {
+    const loadMore = jest.fn();
+    mockPostsResult = {
+      ...mockPostsResult,
+      posts: [{ id: 'post-1' }],
+      hasNextPage: true,
+      loadMore,
+    };
+    renderWithProvider(<TraderProfileView />);
+    fireEvent.press(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_POSTS),
+    );
+    fireEvent(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SCROLL),
+      'momentumScrollEnd',
+      {
+        nativeEvent: {
+          contentOffset: { y: 400, x: 0 },
+          contentSize: { height: 500, width: 400 },
+          layoutMeasurement: { height: 400, width: 400 },
+        },
+      },
+    );
+    expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
   it('renders skeleton placeholders when profile is loading', () => {
     mockProfileResult.isLoading = true;
     mockProfileResult.profile = null;

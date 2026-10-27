@@ -19,4 +19,5 @@ export const TraderProfileViewSelectorsIDs = {
   ERROR_BANNER: 'trader-profile-error-banner',
   TWITTER_LINK: 'trader-profile-twitter-link',
   REFRESH_CONTROL: 'trader-profile-refresh-control',
+  SCROLL: 'trader-profile-scroll',
 } as const;
