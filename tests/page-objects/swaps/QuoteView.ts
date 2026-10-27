@@ -267,22 +267,23 @@ class QuoteView {
   }
 
   async dismissKeypad(): Promise<void> {
-    // Tap beside Rate when a quote is present. Rate opens a tooltip, and
-    // rate-arrow-button opens providers. Tapping BRIDGE_VIEW_SCROLL can also
-    // open QuoteSelectorView. When there is no quote (e.g. RWA geo-block),
-    // the dismiss target is absent; fall back to the scroll view.
+    // The countdown is plain text, so the tap reaches the screen responder and
+    // closes the keypad. Rate opens a tooltip, the rate value opens providers,
+    // and the scroll view can open the quote selector. Static text can report
+    // enabled:false on iOS. If the timer is not mounted, the destination amount
+    // calls keypadRef.close() directly.
     try {
       await Gestures.waitAndTap(this.quoteKeypadDismissTarget, {
         checkForDisplayed: true,
-        checkEnabled: true,
+        checkEnabled: false,
         timeout: 5000,
-        elemDescription: 'Tap quote row to dismiss keypad',
+        elemDescription: 'Tap quote timer to dismiss keypad',
       });
     } catch {
-      await Gestures.waitAndTap(this.bridgeViewScroll, {
+      await Gestures.waitAndTap(this.destinationTokenInput, {
         checkForDisplayed: true,
-        checkEnabled: true,
-        elemDescription: 'Tap bridge scroll view to dismiss keypad',
+        checkEnabled: false,
+        elemDescription: 'Tap destination amount to dismiss keypad',
       });
     }
   }
