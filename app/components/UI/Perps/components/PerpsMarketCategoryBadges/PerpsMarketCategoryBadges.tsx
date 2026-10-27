@@ -47,6 +47,7 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
   const categories = usePerpsCategories();
   const hasNewMarkets = useHasNewMarkets();
   const { colors } = useTheme();
+
   const displayCategories = useMemo(
     () => (hasNewMarkets ? [...categories, NEW_CATEGORY] : categories),
     [categories, hasNewMarkets],
@@ -57,9 +58,9 @@ const PerpsMarketCategoryBadges: React.FC<PerpsMarketCategoryBadgesProps> = ({
     : selectedCategory;
 
   // Chip order must match the render order below. The hook scrolls the selected
-  // chip into view on mount and on selection change, so a persisted right-hand
-  // category is visible, and both copies of the bar (in-flow and FlashList's
-  // pinned sticky overlay) land on the same chip when one swaps for the other.
+  // chip into view on mount and on selection change, so a right-hand category
+  // is visible, and both copies of the bar (in-flow and FlashList's pinned
+  // sticky overlay) land on the same chip when one swaps for the other.
   const chipIds = useMemo(
     () => [
       ...(showWatchlistBadge ? [WATCHLIST_FILTER_VALUE] : []),
