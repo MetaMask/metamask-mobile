@@ -12,8 +12,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { ScrollView } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { getAvatarAccountVariant } from '../../../../component-library/components-temp/MultichainAccounts/avatarAccountVariant';
@@ -60,6 +60,16 @@ const ManageProfileView: React.FC = () => {
     xAuthError && xAuthError.type !== XAuthErrorType.UserCancelled
       ? strings('social_leaderboard.profile_onboarding.connect_x_error')
       : null;
+
+  // The live region on the error line covers TalkBack, but VoiceOver keeps
+  // focus on the row that started OAuth and does not re-read a changed
+  // sibling. Announce the failure explicitly for both (WCAG 4.1.3).
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(errorMessage);
+  }, [errorMessage]);
 
   const linkedAccount = profile?.linkedAccountAddress
     ? accounts.find(
@@ -260,7 +270,10 @@ const ManageProfileView: React.FC = () => {
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.ErrorDefault}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
             twClassName="mt-3"
+            testID={ManageProfileViewSelectorsIDs.X_CONNECT_ERROR}
           >
             {errorMessage}
           </Text>

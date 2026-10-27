@@ -1,5 +1,5 @@
-import React, { useCallback, useRef } from 'react';
-import { Modal, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { AccessibilityInfo, Modal, StyleSheet } from 'react-native';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -56,6 +56,16 @@ const DisconnectXAccountSheet = ({
     onConfirm();
   }, [isDisconnecting, onConfirm]);
 
+  // The live region below covers TalkBack, but VoiceOver keeps focus on the
+  // Disconnect button and does not re-read a changed sibling. Announce the
+  // failure explicitly so both screen readers hear it (WCAG 4.1.3).
+  useEffect(() => {
+    if (!errorMessage) {
+      return;
+    }
+    AccessibilityInfo.announceForAccessibility(errorMessage);
+  }, [errorMessage]);
+
   const body = handle
     ? strings('manage_profile.x_account_disconnect_sheet_body', {
         handle: `@${handle}`,
@@ -89,6 +99,8 @@ const DisconnectXAccountSheet = ({
             <Text
               variant={TextVariant.BodySm}
               color={TextColor.ErrorDefault}
+              accessibilityRole="alert"
+              accessibilityLiveRegion="polite"
               testID={ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR}
             >
               {errorMessage}

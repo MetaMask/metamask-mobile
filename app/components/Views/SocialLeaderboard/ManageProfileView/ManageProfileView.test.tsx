@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
@@ -315,6 +316,74 @@ describe('ManageProfileView', () => {
           strings('social_leaderboard.profile_onboarding.connect_x_error'),
         ),
       ).toBeOnTheScreen();
+    });
+
+    describe('connect error announcement', () => {
+      let announceSpy: jest.SpyInstance;
+
+      beforeEach(() => {
+        announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+      });
+
+      afterEach(() => {
+        announceSpy.mockRestore();
+      });
+
+      it('exposes the connect error as a polite alert', () => {
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            error: new XAuthError(XAuthErrorType.BackendError, 'boom'),
+          }),
+        );
+
+        renderWithProvider(<ManageProfileView />, { state });
+
+        expect(
+          screen.getByTestId(ManageProfileViewSelectorsIDs.X_CONNECT_ERROR)
+            .props,
+        ).toEqual(
+          expect.objectContaining({
+            accessibilityRole: 'alert',
+            accessibilityLiveRegion: 'polite',
+          }),
+        );
+      });
+
+      it('announces the connect error when it appears', () => {
+        mockUseXAuth.mockReturnValue(xAuthResult({ isConnected: false }));
+
+        const { rerender } = renderWithProvider(<ManageProfileView />, {
+          state,
+        });
+
+        expect(announceSpy).not.toHaveBeenCalled();
+
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            error: new XAuthError(XAuthErrorType.NetworkFailure, 'offline'),
+          }),
+        );
+        rerender(<ManageProfileView />);
+
+        expect(announceSpy).toHaveBeenCalledWith(
+          strings('social_leaderboard.profile_onboarding.connect_x_error'),
+        );
+      });
+
+      it('does not announce when the user cancels X OAuth', () => {
+        mockUseXAuth.mockReturnValue(
+          xAuthResult({
+            isConnected: false,
+            error: new XAuthError(XAuthErrorType.UserCancelled, 'cancelled'),
+          }),
+        );
+
+        renderWithProvider(<ManageProfileView />, { state });
+
+        expect(announceSpy).not.toHaveBeenCalled();
+      });
     });
 
     it('shows the X username from the controller before the profile refetches', () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { fireEvent, within } from '@testing-library/react-native';
 
 import DisconnectXAccountSheet from './DisconnectXAccountSheet';
@@ -95,6 +96,59 @@ describe('DisconnectXAccountSheet', () => {
     expect(
       queryByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR),
     ).toBeNull();
+  });
+
+  describe('screen reader announcement', () => {
+    let announceSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+    });
+
+    afterEach(() => {
+      announceSpy.mockRestore();
+    });
+
+    it('exposes the error line as a polite alert', () => {
+      const { getByTestId } = renderSheet({
+        errorMessage: strings('manage_profile.x_account_disconnect_error'),
+      });
+
+      expect(
+        getByTestId(ManageProfileSelectorsIDs.X_ACCOUNT_DISCONNECT_ERROR).props,
+      ).toEqual(
+        expect.objectContaining({
+          accessibilityRole: 'alert',
+          accessibilityLiveRegion: 'polite',
+        }),
+      );
+    });
+
+    it('announces the error when it appears', () => {
+      const { rerender } = renderSheet();
+
+      expect(announceSpy).not.toHaveBeenCalled();
+
+      rerender(
+        <DisconnectXAccountSheet
+          handle="tester"
+          isDisconnecting={false}
+          errorMessage={strings('manage_profile.x_account_disconnect_error')}
+          onClose={mockOnClose}
+          onConfirm={mockOnConfirm}
+        />,
+      );
+
+      expect(announceSpy).toHaveBeenCalledWith(
+        strings('manage_profile.x_account_disconnect_error'),
+      );
+    });
+
+    it('does not announce when there is no error', () => {
+      renderSheet();
+
+      expect(announceSpy).not.toHaveBeenCalled();
+    });
   });
 
   it('disables both buttons and ignores presses while disconnecting', () => {
