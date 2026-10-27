@@ -129,7 +129,7 @@ describe('useXAuth', () => {
           }),
       );
 
-      let connectPromise!: Promise<void>;
+      let connectPromise!: Promise<XAuthError | undefined>;
       act(() => {
         connectPromise = result.current.connect();
       });
@@ -137,11 +137,13 @@ describe('useXAuth', () => {
       expect(result.current.isConnecting).toBe(true);
       expect(result.current.error).toBeUndefined();
 
+      let resolved: XAuthError | undefined;
       await act(async () => {
         resolveConnect();
-        await connectPromise;
+        resolved = await connectPromise;
       });
 
+      expect(resolved).toBeUndefined();
       expect(result.current.isConnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(mockConnectX).toHaveBeenCalledTimes(2);
@@ -156,10 +158,12 @@ describe('useXAuth', () => {
 
       const { result } = renderHook(() => useXAuth());
 
+      let resolved: XAuthError | undefined;
       await act(async () => {
-        await result.current.connect();
+        resolved = await result.current.connect();
       });
 
+      expect(resolved).toBe(failure);
       expect(result.current.error).toBe(failure);
       expect(result.current.isConnecting).toBe(false);
     });
@@ -214,7 +218,7 @@ describe('useXAuth', () => {
           }),
       );
 
-      let disconnectPromise!: Promise<void>;
+      let disconnectPromise!: Promise<XAuthError | undefined>;
       act(() => {
         disconnectPromise = result.current.disconnect();
       });
@@ -224,11 +228,13 @@ describe('useXAuth', () => {
       expect(result.current.isRefreshing).toBe(false);
       expect(result.current.error).toBeUndefined();
 
+      let resolved: XAuthError | undefined;
       await act(async () => {
         resolveDisconnect();
-        await disconnectPromise;
+        resolved = await disconnectPromise;
       });
 
+      expect(resolved).toBeUndefined();
       expect(result.current.isDisconnecting).toBe(false);
       expect(result.current.error).toBeUndefined();
       expect(mockDisconnectXAccount).toHaveBeenCalledTimes(2);
@@ -258,10 +264,12 @@ describe('useXAuth', () => {
 
       const { result } = renderHook(() => useXAuth());
 
+      let resolved: XAuthError | undefined;
       await act(async () => {
-        await result.current.disconnect();
+        resolved = await result.current.disconnect();
       });
 
+      expect(resolved).toBe(failure);
       expect(result.current.error).toBe(failure);
       expect(result.current.isDisconnecting).toBe(false);
     });

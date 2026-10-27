@@ -125,7 +125,7 @@ _main_dev_env: &main_dev_env
   # The profile API is not live yet; the dev social API serves a
   # Redis-backed stand-in under /api. Point back at the profile host once
   # it ships.
-  PROFILE_API_URL: 'https://social.dev-api.cx.metamask.io/api'
+  PROFILE_API_URL: 'https://profile.dev-api.cx.metamask.io'
   MM_PROFILE_API_ENABLED: 'true'
 
 # Common secrets (shared across ALL builds - same names, GitHub Environment determines values)

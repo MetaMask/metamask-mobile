@@ -25,6 +25,8 @@ import { renderShortAddress } from '../../../../util/address';
 import { useLinkableSocialAccounts } from '../hooks/useLinkableSocialAccounts';
 import { useMyProfile } from '../MyProfileView/hooks';
 import { useProfileController } from './hooks/useProfileController';
+import { useXAuth } from '../../../../hooks/useXAuth';
+import { XAuthErrorType } from '../../../../core/XAuthService';
 import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
@@ -39,14 +41,19 @@ const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { profile } = useMyProfile();
-  const { isControllerBacked, disconnectX } = useProfileController();
+  const { isControllerBacked } = useProfileController();
+  const {
+    isConnected: isConnectedToX,
+    xProfile,
+    isConnecting: isConnectingX,
+    connect: connectX,
+  } = useXAuth();
   useSocialScreenAnalytics(SocialEvent.Screen.MANAGE_PROFILE, {
     resetWhenInactive: false,
   });
   const trackProfileEdited = useManageProfileAnalytics();
   const accounts = useLinkableSocialAccounts();
   const avatarAccountType = useSelector(selectAvatarAccountType);
-  const [isDisconnectingX, setIsDisconnectingX] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const linkedAccount = profile?.linkedAccountAddress
@@ -86,37 +93,45 @@ const ManageProfileView: React.FC = () => {
     navigation.navigate(Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT);
   }, [isControllerBacked, navigation]);
 
-  const handleDisconnectX = useCallback(async (): Promise<void> => {
-    if (!isControllerBacked || !profile?.profileId || !profile.connectedToX) {
+  // Connected: open the X account screen, which owns the confirmed disconnect.
+  // Not connected: start X OAuth in place.
+  const handleOpenSocials = useCallback(async (): Promise<void> => {
+    if (!isControllerBacked || isConnectingX) {
+      return;
+    }
+    if (isConnectedToX) {
+      navigation.navigate(Routes.SOCIAL_PROFILE.X_ACCOUNT);
       return;
     }
 
-    setIsDisconnectingX(true);
     setErrorMessage(null);
-
-    try {
-      await disconnectX(profile.profileId);
+    const connectError = await connectX();
+    if (!connectError) {
       trackProfileEdited();
-    } catch {
-      setErrorMessage(strings('social_leaderboard.manage_profile.save_error'));
-    } finally {
-      setIsDisconnectingX(false);
+      return;
+    }
+    if (connectError.type !== XAuthErrorType.UserCancelled) {
+      setErrorMessage(strings('manage_profile.x_account_connect_error'));
     }
   }, [
-    disconnectX,
+    connectX,
+    isConnectedToX,
+    isConnectingX,
     isControllerBacked,
-    profile?.connectedToX,
-    profile?.profileId,
+    navigation,
     trackProfileEdited,
   ]);
 
   const displayName = profile?.displayName ?? '';
   const handle = profile?.handle ? `@${profile.handle}` : '';
   const bio = profile?.bio ?? '';
+  // Prefer the controller's X profile: connectX writes it immediately, while
+  // the profile's xHandle only updates after a refetch.
+  const xHandle = xProfile?.username || profile?.xHandle;
   let socials = '';
-  if (profile?.xHandle) {
-    socials = `X @${profile.xHandle}`;
-  } else if (profile?.connectedToX) {
+  if (xHandle) {
+    socials = `X @${xHandle}`;
+  } else if (isConnectedToX || profile?.connectedToX) {
     socials = 'X';
   }
   const tradingActivityValue = strings(
@@ -125,8 +140,7 @@ const ManageProfileView: React.FC = () => {
       : 'social_leaderboard.manage_profile.trading_activity_off',
   );
   const editorsDisabled = !isControllerBacked;
-  const socialsDisabled =
-    !isControllerBacked || !profile?.connectedToX || isDisconnectingX;
+  const socialsDisabled = !isControllerBacked || isConnectingX;
 
   return (
     <ManageProfileScreenChrome
@@ -191,7 +205,7 @@ const ManageProfileView: React.FC = () => {
             value={socials}
             disabled={socialsDisabled}
             onPress={() => {
-              handleDisconnectX().catch(() => undefined);
+              handleOpenSocials().catch(() => undefined);
             }}
             showTopBorder
             testID={ManageProfileViewSelectorsIDs.SOCIALS_ROW}
