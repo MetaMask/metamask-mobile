@@ -2,6 +2,10 @@ import type { AutorampTransactionSummary } from '@metamask/ramps-controller';
 import { MetaMetricsEvents } from '../../../../Analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
+import {
+  ANALYTICS_REGION_UNKNOWN,
+  toAnalyticsRegion,
+} from '../../../../../util/analytics/analyticsRegion';
 import Logger from '../../../../../util/Logger';
 import ReduxService from '../../../../redux';
 
@@ -90,7 +94,7 @@ export interface MoneyVbaTransactionUpdatedProperties {
   autoramp_status: string;
   provider_flow_status: string;
   vendor: string;
-  region?: string;
+  region: string;
   currency_source?: string;
   currency_destination_symbol: string;
   token_chain_id: string;
@@ -170,21 +174,6 @@ const readBackgroundControllers = (): BackgroundControllers | undefined => {
 };
 
 /**
- * Lowercase ISO 3166-1 alpha-2 country from the geolocation controller
- * (`BR-SP` becomes `br`). Absent while the location is unknown.
- *
- * @param location - Geolocation controller `location`.
- * @returns The region, or undefined.
- */
-const toRegion = (location: unknown): string | undefined => {
-  const country =
-    typeof location === 'string' ? location.split('-')[0] : undefined;
-  return country && country.length === 2 && country !== 'XX'
-    ? country.toLowerCase()
-    : undefined;
-};
-
-/**
  * VBA properties read from state when the transaction event is emitted.
  * Screen name is omitted: this fires from the controller fetch, not from a
  * screen. Constant properties (entry point, vendor, autoramp status and the
@@ -197,9 +186,11 @@ const toRegion = (location: unknown): string | undefined => {
 export function readVbaTransactionBaseProperties(
   autorampId: string,
   backgroundState: BackgroundControllers | undefined,
-): Pick<
-  MoneyVbaTransactionUpdatedProperties,
-  'kyc_status' | 'provider_flow_status' | 'region' | 'currency_source'
+): Partial<
+  Pick<
+    MoneyVbaTransactionUpdatedProperties,
+    'kyc_status' | 'provider_flow_status' | 'region' | 'currency_source'
+  >
 > {
   if (!backgroundState) {
     return {};
@@ -210,7 +201,9 @@ export function readVbaTransactionBaseProperties(
   );
   const fiatCode = autoramp?.depositRailsSummary?.currency;
   const kyc = backgroundState.KycController;
-  const region = toRegion(backgroundState.GeolocationController?.location);
+  const region = toAnalyticsRegion(
+    backgroundState.GeolocationController?.location,
+  );
 
   return {
     ...(kyc
@@ -221,7 +214,7 @@ export function readVbaTransactionBaseProperties(
             : {}),
         }
       : {}),
-    ...(region ? { region } : {}),
+    region,
     ...(fiatCode ? { currency_source: fiatCode } : {}),
   };
 }
@@ -257,7 +250,7 @@ export function buildMoneyVbaTransactionUpdatedProperties(
     kyc_status: base.kyc_status ?? 'none',
     provider_flow_status: base.provider_flow_status ?? 'not_started',
     ...VBA_DESTINATION,
-    ...(base.region ? { region: base.region } : {}),
+    region: base.region ?? ANALYTICS_REGION_UNKNOWN,
     ...(base.currency_source ? { currency_source: base.currency_source } : {}),
     status,
     transaction_status: transaction.status,

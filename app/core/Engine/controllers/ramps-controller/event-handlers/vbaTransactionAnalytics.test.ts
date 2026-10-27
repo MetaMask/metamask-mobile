@@ -55,6 +55,7 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         "entry_point": "add_funds_bank_account",
         "kyc_status": "none",
         "provider_flow_status": "not_started",
+        "region": "unknown",
         "seconds_since_created": 90,
         "source_amount": 100,
         "status": "pending",
@@ -185,6 +186,7 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         "entry_point": "add_funds_bank_account",
         "kyc_status": "none",
         "provider_flow_status": "not_started",
+        "region": "unknown",
         "status": "completed",
         "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
@@ -229,6 +231,9 @@ describe('readVbaTransactionBaseProperties', () => {
   it.each([
     ['BR-SP', 'br'],
     ['us', 'us'],
+    ['UNKNOWN', 'unknown'],
+    ['XX', 'unknown'],
+    [undefined, 'unknown'],
   ])('normalizes location %s to region %s', (location, region) => {
     expect(
       readVbaTransactionBaseProperties('ar-1', {
@@ -237,7 +242,7 @@ describe('readVbaTransactionBaseProperties', () => {
     ).toBe(region);
   });
 
-  it('reads known VBA base properties and skips an unknown region', () => {
+  it('reads known VBA base properties and reports an unknown region', () => {
     expect(
       readVbaTransactionBaseProperties('ar-1', {
         RampsController: {
@@ -260,6 +265,7 @@ describe('readVbaTransactionBaseProperties', () => {
         "currency_source": "USD",
         "kyc_status": "approved",
         "provider_flow_status": "submitted",
+        "region": "unknown",
       }
     `);
   });
