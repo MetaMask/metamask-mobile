@@ -160,6 +160,7 @@ function refereeReferralMe(): ReferralMeDto {
     earn_rates: EARN_RATES,
     localized_text: LOCALIZED_TEXT,
     invite_hero: null,
+    excluded_regions: [],
   };
 }
 
