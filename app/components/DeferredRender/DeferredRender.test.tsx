@@ -227,6 +227,14 @@ describe('DeferredRender', () => {
       expect(warnSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('stays silent for a gate inside a disabled gate', () => {
+      render(gate(gate(), false));
+
+      release();
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
     it('stays silent outside development', () => {
       devGlobal.__DEV__ = false;
 

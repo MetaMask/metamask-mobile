@@ -18,8 +18,9 @@ export interface DeferredRenderProps extends UseDeferredRenderOptions {
  * Renders `placeholder` until {@link useDeferredRender} releases `children`.
  * Passes `enabled` through to the hook.
  *
- * Marks its subtree through {@link DeferredRenderContext} so a second gate or
- * a bare `useDeferredRender` below it can warn in development.
+ * While it is enabled, marks its subtree through {@link DeferredRenderContext}
+ * so a second gate or a bare `useDeferredRender` below it can warn in
+ * development.
  *
  * @param props - Placeholder, children, and `enabled`.
  * @returns The placeholder or the deferred children.
@@ -32,7 +33,7 @@ export function DeferredRender({
   const isReady = useDeferredRender({ enabled });
 
   return (
-    <DeferredRenderContext.Provider value>
+    <DeferredRenderContext.Provider value={enabled !== false}>
       {isReady ? children : placeholder}
     </DeferredRenderContext.Provider>
   );
