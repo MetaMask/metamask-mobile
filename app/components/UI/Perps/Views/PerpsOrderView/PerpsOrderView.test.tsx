@@ -499,7 +499,7 @@ jest.mock(
 jest.mock('../../../../Views/confirmations/hooks/useConfirmActions', () => ({
   useConfirmActions: jest.fn(() => ({
     onConfirm: jest.fn(),
-    onReject: jest.fn(),
+    onReject: jest.fn().mockResolvedValue(undefined),
   })),
 }));
 
