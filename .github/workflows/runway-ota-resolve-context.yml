@@ -73,10 +73,11 @@ jobs:
           BRANCH="${SOURCE_BRANCH#refs/heads/}"
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
-          # Prefer an open PR targeting ota-base/* so a leftover stable PR cannot
-          # win. jq '.[0].number' on an empty array is the string "null"; `// empty` clears it.
+          # Prefer an open PR targeting ota-base/*. gh pr list is newest first;
+          # plan-ota-pull-request.mts keeps the lowest number. Sort so both pick
+          # that pull request. `// empty` clears jq's null on an empty list.
           # Keep this filter in sync with select-ota-pull-request.test.ts.
-          SELECT_OTA_PR='(map(select(.baseRefName | startswith("ota-base/"))) | .[0].number) // .[0].number // empty'
+          SELECT_OTA_PR='(map(select(.baseRefName | startswith("ota-base/"))) | sort_by(.number) | .[0].number) // (sort_by(.number) | .[0].number) // empty'
           PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number,baseRefName --jq "$SELECT_OTA_PR" 2>/dev/null || echo "")
           if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
             PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --state open --json number,baseRefName --jq "$SELECT_OTA_PR" 2>/dev/null || echo "")
