@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Animated, View } from 'react-native';
+import { View } from 'react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   useNavigation,
   useFocusEffect,
@@ -14,6 +15,7 @@ import {
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { CaipChainId } from '@metamask/utils';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
+import { AnimatedAmountDisplay } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { providerSupportsAsset } from '../../utils/providerSupportsAsset';
@@ -50,7 +52,6 @@ import { useContinueWithQuote } from '../../hooks/useContinueWithQuote';
 import useEmbeddedCheckout from '../../hooks/useEmbeddedCheckout';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
 import useRampAccountAddress from '../../hooks/useRampAccountAddress';
-import { useBlinkingCursor } from '../../hooks/useBlinkingCursor';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import { BuildQuoteSelectors } from '../../Aggregator/Views/BuildQuote/BuildQuote.testIds';
 import { BUILD_QUOTE_TEST_IDS } from './BuildQuote.testIds';
@@ -72,6 +73,8 @@ import {
   RAMP_SCREEN_CONTENT_STATE,
   RAMP_V2_SCREEN_ID,
 } from '../../constants/rampScreenPerformance';
+import { getHardwareTier } from '../../../../../util/deviceCapability';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -137,8 +140,13 @@ function BuildQuote() {
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
   const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { formatCurrency } = useFormatters();
-  const cursorOpacity = useBlinkingCursor();
+  const hardwareTier = useMemo(() => getHardwareTier(), []);
+  const networkTier = useNetworkTier();
+  const amountAnimationEnabled = !(
+    hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR'
+  );
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
@@ -339,11 +347,12 @@ function BuildQuote() {
     const formatted = formatCurrency(1, currency, {
       currencyDisplay: 'narrowSymbol',
     });
-    // Match: prefix (non-digit chars), digits/separators, suffix (non-digit chars)
-    const match = formatted.match(/^([^\d]*?)[\d.,]+\s*([^\d\s].*)?$/);
+    // Keep locale spacing around suffix currencies while separating the digits
+    // so the input cursor remains immediately beside the editable amount.
+    const match = formatted.match(/^([^\d]*?)[\d.,]+(.*)$/);
     return {
       currencyPrefix: match?.[1] ?? '',
-      currencySuffix: match?.[2]?.trim() ?? '',
+      currencySuffix: match?.[2] ?? '',
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
@@ -801,42 +810,35 @@ function BuildQuote() {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
-              <View style={styles.amountRow}>
-                <Text
-                  testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
-                  color={
-                    amountInputHasError ? TextColor.ErrorDefault : undefined
-                  }
-                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  numberOfLines={1}
-                >
-                  {currencyPrefix}
-                  {amount}
-                </Text>
-                <Animated.View
-                  style={[
+              <AnimatedAmountDisplay
+                accessibilityLabel={amountDisplayString}
+                animated={amountAnimationEnabled}
+                color={
+                  amountInputHasError
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextDefault
+                }
+                containerStyle={styles.amountRow}
+                cursor={{
+                  animated: amountAnimationEnabled,
+                  style: [
                     styles.cursor,
                     {
                       height: Math.max(amountLineHeight - 4, 16),
-                      opacity: cursorOpacity,
                     },
-                  ]}
-                />
-                {currencySuffix ? (
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
-                    color={
-                      amountInputHasError ? TextColor.ErrorDefault : undefined
-                    }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
-                  >
-                    {currencySuffix}
-                  </Text>
-                ) : null}
-              </View>
+                  ],
+                  testID: BUILD_QUOTE_TEST_IDS.AMOUNT_CURSOR,
+                }}
+                fontWeight={FontWeight.Regular}
+                prefix={currencyPrefix}
+                style={tw.style(
+                  `text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`,
+                )}
+                suffix={currencySuffix || undefined}
+                testID={BuildQuoteSelectors.AMOUNT_INPUT}
+                value={amount}
+                variant={TextVariant.BodyMd}
+              />
               <PaymentMethodPill
                 label={
                   selectedPaymentMethod?.name ||

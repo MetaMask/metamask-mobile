@@ -75,6 +75,20 @@ describe('formatAmount', () => {
     jest.spyOn(Intl, 'NumberFormat').mockClear();
   });
 
+  it('preserves locale group separators when formatting integer parts', () => {
+    jest.spyOn(IntlModule, 'getIntlNumberFormatter').mockReturnValue({
+      formatToParts: jest.fn(() => [
+        { type: 'integer', value: '123' },
+        { type: 'group', value: ',' },
+        { type: 'integer', value: '456' },
+      ]),
+    } as unknown as Intl.NumberFormat);
+
+    const result = formatAmount(123456, true);
+
+    expect(result).toBe('123,456');
+  });
+
   it('should return input amount as string if Intl throws', () => {
     jest.spyOn(IntlModule, 'getIntlNumberFormatter').mockImplementation(
       () =>

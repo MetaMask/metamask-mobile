@@ -33,6 +33,7 @@ import { mockNetworkState } from '../../../../../../util/test/network';
 import { RampIntent } from '../../types';
 import { SolScope } from '@metamask/keyring-api';
 import { BottomSheetDialog } from '@metamask/design-system-react-native';
+import { KeypadTestIds } from '../../../../../Base/Keypad/Keypad.testIds';
 
 const mockSetActiveNetwork = jest.fn();
 const mockEngineContext = {
@@ -46,8 +47,31 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-const getByRoleButton = (name?: string | RegExp) =>
-  screen.getByRole('button', { name });
+const KEYPAD_TEST_IDS_BY_LABEL: Record<string, string> = {
+  '0': KeypadTestIds.KEY_0,
+  '1': KeypadTestIds.KEY_1,
+  '2': KeypadTestIds.KEY_2,
+  '3': KeypadTestIds.KEY_3,
+  '4': KeypadTestIds.KEY_4,
+  '5': KeypadTestIds.KEY_5,
+  '6': KeypadTestIds.KEY_6,
+  '7': KeypadTestIds.KEY_7,
+  '8': KeypadTestIds.KEY_8,
+  '9': KeypadTestIds.KEY_9,
+  '.': KeypadTestIds.KEY_DOT,
+};
+
+const getByRoleButton = (name?: string | RegExp) => {
+  const matches = screen.getAllByRole('button', { name });
+  if (matches.length === 1 || typeof name !== 'string') {
+    return matches[0];
+  }
+
+  const keypadTestID = KEYPAD_TEST_IDS_BY_LABEL[name];
+  return (
+    matches.find(({ props }) => props.testID === keypadTestID) ?? matches[0]
+  );
+};
 
 function render(Component: React.ComponentType) {
   return renderScreen(
