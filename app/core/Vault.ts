@@ -4,6 +4,7 @@ import ReduxService from './redux';
 
 import { selectSeedlessOnboardingLoginFlow } from '../selectors/seedlessOnboardingController';
 import { Authentication } from './Authentication/Authentication';
+import { signOutCardAfterPasswordChange } from './signOutCardAfterPasswordChange';
 import { endTrace, trace, TraceName, TraceOperation } from '../util/trace';
 
 /**
@@ -91,6 +92,7 @@ export const recreateVaultsWithNewPassword = async (
   }
 
   await KeyringController.changePassword(newPassword);
+  await signOutCardAfterPasswordChange();
 
   if (isSeedlessFlow) {
     await Authentication.syncKeyringEncryptionKey();
