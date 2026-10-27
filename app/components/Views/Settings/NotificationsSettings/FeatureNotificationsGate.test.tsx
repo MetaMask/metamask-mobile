@@ -1,6 +1,8 @@
 import React from 'react';
 import { InteractionManager } from 'react-native';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-namespace
+import * as NotificationActions from '../../../../actions/notification/helpers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { FeatureNotificationsGate } from './FeatureNotificationsGate';
 import {
@@ -16,20 +18,27 @@ import NotificationService, {
   isPushPermissionPromptable,
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
+// eslint-disable-next-line import-x/no-namespace
+import * as NotificationStorageKeys from '../../../../util/notifications/constants/notification-storage-keys';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
-import { useEnableNotifications } from '../../../../util/notifications/hooks/useNotifications';
+// eslint-disable-next-line import-x/no-namespace
+import * as UsePushNotifications from '../../../../util/notifications/hooks/usePushNotifications';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('./MainNotificationToggle.hooks');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../../../util/notifications/hooks/useNotifications');
+jest.mock('../../../../util/notifications/hooks/usePushNotifications');
+jest.mock('../../../../util/notifications/constants', () => ({
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockEnableNotifications = jest.fn().mockResolvedValue(undefined);
+const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
 const mockRefetch = jest.fn();
 const mockShowToast = jest.fn();
 const mockToastRef = {
@@ -49,6 +58,8 @@ jest.mock('@react-navigation/native', () => ({
 let mockIsMasterEnabled = false;
 jest.mock('../../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: () => mockIsMasterEnabled,
+  selectIsFeatureAnnouncementsEnabled: () => false,
+  selectIsUpdatingMetamaskNotifications: () => false,
 }));
 
 // `useSelector` memoizes against store state, which never changes here — re-read
@@ -416,14 +427,23 @@ describe('FeatureNotificationsGateSheet', () => {
     mockSheetParams = { feature: 'priceAlerts' };
     arrangePreferences();
     mockEnableNotifications.mockResolvedValue(undefined);
-    jest.mocked(useEnableNotifications).mockReturnValue({
-      enableNotifications: mockEnableNotifications,
-      isEnablingNotifications: false,
-      isEnablingPushNotifications: false,
-      loading: false,
-      error: null,
-      data: false,
-    });
+    mockTogglePushNotification.mockResolvedValue(true);
+    jest
+      .spyOn(NotificationActions, 'enableNotifications')
+      .mockImplementation(mockEnableNotifications);
+    jest
+      .spyOn(
+        NotificationStorageKeys,
+        'updateNotificationSubscriptionExpiration',
+      )
+      .mockResolvedValue(undefined);
+    jest
+      .mocked(UsePushNotifications.usePushNotificationsToggle)
+      .mockReturnValue({
+        data: false,
+        loading: false,
+        togglePushNotification: mockTogglePushNotification,
+      });
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
