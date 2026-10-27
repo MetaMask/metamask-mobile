@@ -22,6 +22,8 @@ import {
 } from '../../../Views/SocialLeaderboard/analytics';
 import { useFollowWithNotificationSetup } from '../../../Views/SocialLeaderboard/hooks/useFollowWithNotificationSetup';
 import { navigateToSocialV1Profile } from '../../../Views/SocialLeaderboard/navigation/navigateToSocialV1Profile';
+import SocialEmptyState from '../../../Views/SocialLeaderboard/shared/SocialEmptyState';
+import SocialFilterEmptyState from '../../../Views/SocialLeaderboard/shared/SocialFilterEmptyState';
 import { matchesShellTraderCohort } from '../../../Views/SocialLeaderboard/shell/filters/matchShellFilters';
 import {
   SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT,
@@ -85,6 +87,12 @@ export interface SocialLeaderboardProps {
   limit?: number;
   /** Ranking options. The host renders any filter UI. */
   filters?: SocialLeaderboardFilters;
+  /** The host's filter sheet is applied and matched nothing. */
+  filteredEmpty?: boolean;
+  /** Clears the host's applied filters. */
+  onClearFilters?: () => void;
+  /** Pulls an empty result up to cancel the host filter bar's bottom padding. */
+  emptyClassName?: string;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
   onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
@@ -105,6 +113,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   title,
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
+  filteredEmpty = false,
+  onClearFilters,
+  emptyClassName,
   showViewerRow = false,
   onOutcomeChange,
   performance,
@@ -324,11 +335,19 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       );
     }
     if (hasFetched) {
-      return (
-        <SocialLeaderboardMessage
-          message={strings('social_leaderboard.profiles_to_follow.empty')}
-          testID={SocialLeaderboardSelectorsIDs.EMPTY}
-        />
+      const empty =
+        filteredEmpty && onClearFilters ? (
+          <SocialFilterEmptyState onClear={onClearFilters} />
+        ) : (
+          <SocialEmptyState
+            description={strings('social_leaderboard.profiles_to_follow.empty')}
+            testID={SocialLeaderboardSelectorsIDs.EMPTY}
+          />
+        );
+      return emptyClassName ? (
+        <Box twClassName={emptyClassName}>{empty}</Box>
+      ) : (
+        empty
       );
     }
     return null;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+import { BackHandler } from 'react-native';
 import { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import type {
   EnrolledCredential,
@@ -291,6 +292,48 @@ describe('MfaFlowHost', () => {
     });
 
     expect(getByText('Set up authenticator app')).toBeOnTheScreen();
+    expect(mockRemoveSelf).not.toHaveBeenCalled();
+  });
+
+  it('returns to the setup with Android back from its code screen', async () => {
+    type BackPressHandler = Parameters<typeof BackHandler.addEventListener>[1];
+    const handlers: BackPressHandler[] = [];
+    jest
+      .spyOn(BackHandler, 'addEventListener')
+      .mockImplementation((_event, handler) => {
+        handlers.push(handler);
+        return {
+          remove: () => {
+            handlers.splice(handlers.indexOf(handler), 1);
+          },
+        };
+      });
+    await start({ kind: 'enroll', method: 'email_otp' }, createController());
+    const { getByTestId, getByText } = renderHost();
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    await act(async () => {
+      fireEvent.changeText(
+        getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT),
+        'a@b.co',
+      );
+    });
+    await act(async () => {
+      fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    });
+    expect(getByText('Enter your verification code')).toBeOnTheScreen();
+    // The newest listener runs first: this screen's.
+    const onBack = handlers[handlers.length - 1];
+
+    let handled: boolean | null | undefined;
+    await act(async () => {
+      handled = onBack({ type: 'hardwareBackPress', timeStamp: 0 });
+    });
+
+    expect(handled).toBe(true);
+    expect(getByTestId(MfaFlowSelectorsIDs.EMAIL_INPUT)).toBeOnTheScreen();
+    expect(handlers).not.toContain(onBack);
     expect(mockRemoveSelf).not.toHaveBeenCalled();
   });
 

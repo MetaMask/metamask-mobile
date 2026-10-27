@@ -84,7 +84,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
             // long value truncate instead of pushing its neighbours off-card.
             <Box
               key={row.key}
-              twClassName="flex-1 min-w-0 gap-1"
+              twClassName="flex-1 min-w-0 py-0.5"
               testID={row.testID}
             >
               <Text
@@ -118,7 +118,7 @@ const PositionCardStats: React.FC<PositionCardStatsProps> = ({
               >
                 {row.label}
               </Text>
-              <StatValue row={row} variant={TextVariant.BodyXs} />
+              <StatValue row={row} variant={TextVariant.BodySm} />
             </Box>
           ))}
         </Box>

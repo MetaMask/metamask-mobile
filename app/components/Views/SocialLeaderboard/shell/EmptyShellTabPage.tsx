@@ -42,6 +42,7 @@ import { useSocialLivePrices } from '../../../UI/SocialFeed/live/SocialLivePrice
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import SocialFeedPostEntrance from '../SocialV1View/feed/components/SocialFeedPostEntrance';
+import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
 import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import {
   DEFAULT_FEED_SORT,
@@ -126,6 +127,8 @@ export interface EmptyShellTabPageProps {
   scrollTestID: string;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /** Clears the applied Following filters. */
+  onClearFilters?: () => void;
   appliedFilters?: SocialShellFilters;
   /**
    * Requests the spot QuickBuy sheet for a copy-traded post. The sheet is
@@ -154,6 +157,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
   scrollTestID,
   onOpenFilters,
   isFilterActive = false,
+  onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
   onQuickBuy,
 }) => {
@@ -523,9 +527,17 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
     showInitialFeedSkeletons &&
     !visibleAssetFeed &&
     visiblePinnedPosts.length > 0;
-  // The tab feed itself came back empty. A selected token, Following filters,
-  // or hidden posts can also leave the list blank; those stay quiet.
+  // The tab feed itself came back empty. A selected token or hidden posts can
+  // also leave the list blank; those stay quiet. Following filters that
+  // remove every post get their own empty state.
+  const showFilteredEmpty =
+    tab === 'following' &&
+    isFilterActive &&
+    !isLoading &&
+    error == null &&
+    sortedPosts.length === 0;
   const showTrueEmptyFeed =
+    !showFilteredEmpty &&
     !isLoading &&
     error == null &&
     posts.length === 0 &&
@@ -560,7 +572,7 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
       ? 'content'
       : visibleError && visibleFeedEmpty
         ? 'error'
-        : showTrueEmptyFeed
+        : showFilteredEmpty || showTrueEmptyFeed
           ? 'empty'
           : null;
 
@@ -636,8 +648,18 @@ const EmptyShellTabPage: React.FC<EmptyShellTabPageProps> = ({
                 <SocialFeedSkeleton />
               ) : (
                 <>
-                  {showTrueEmptyFeed ? (
-                    <SocialV1FeedEmptyState tab={tab} />
+                  {showFilteredEmpty || showTrueEmptyFeed ? (
+                    // Cancel the padding above this slot so the copy starts
+                    // 48px under the tabs, or under the filter row.
+                    <Box twClassName={showFollowingChrome ? '-mt-2' : '-mt-4'}>
+                      {showFilteredEmpty ? (
+                        <SocialFilterEmptyState
+                          onClear={onClearFilters ?? (() => undefined)}
+                        />
+                      ) : (
+                        <SocialV1FeedEmptyState tab={tab} />
+                      )}
+                    </Box>
                   ) : null}
                   {feedBlocks.map((block, blockIndex) => (
                     <Fragment key={block.key}>
