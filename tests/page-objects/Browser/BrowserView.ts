@@ -532,16 +532,17 @@ class Browser {
     //
     // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
     // rescan can cover the URL bar again about a second later. While the modal
-    // is up, display text is often missing / empty (got ""). Read text when the
-    // node exists; if Back to safety reappears, re-dismiss (bounded). Create
-    // each locator inside a 300ms implicit wait so a missing Cancel does not
-    // burn the 3.5s session wait.
+    // is up, display text may be empty or may still show the blocked origin.
+    // Read text when the node exists. A URL that no longer shows the blocked
+    // origin passes. Otherwise, if Back to safety is visible, re-dismiss
+    // (bounded) and re-read. Create each locator inside a 300ms
+    // implicit wait so a missing Cancel does not burn the 3.5s session wait.
     await AppiumContextHelpers.switchToNativeContext();
     const assertionDescription =
       description ?? `URL input box text is not "${text}"`;
     // Same budget as AppiumAssertions poll probes.
     const probeImplicitWaitMs = 300;
-    // Cap re-dismisses so an stuck phishing modal fails with a clear error.
+    // Cap re-dismisses so a stuck phishing modal fails with a clear error.
     let phishingReDismisses = 0;
     const maxPhishingReDismisses = 2;
 
@@ -558,8 +559,38 @@ class Browser {
           },
         );
 
+        // A safe URL satisfies this assertion. Do not re-dismiss after that,
+        // or a leftover overlay can exhaust the re-tap cap and fail a pass.
         if (urlText && !urlText.includes(text)) {
           return;
+        }
+
+        // The URL is still empty or still shows the blocked origin. Re-tap
+        // whenever Back to safety is visible, then re-read the URL.
+        const phishingVisible = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const back = await this.backToSafetyButton;
+            return (
+              (await back.unwrap().isExisting()) && (await back.isVisible())
+            );
+          },
+        );
+        if (phishingVisible) {
+          if (phishingReDismisses >= maxPhishingReDismisses) {
+            throw new Error(
+              'Phishing modal still visible after re-dismiss limit',
+            );
+          }
+          phishingReDismisses += 1;
+          await Gestures.waitAndTap(this.backToSafetyButton, {
+            elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
+            timeout: 5_000,
+          });
+          await this.waitForBackToSafetyButtonGone(10_000);
+          throw new Error(
+            `Phishing modal reappeared (re-dismiss ${phishingReDismisses})`,
+          );
         }
 
         // Display text is opacity 0 while the editor is focused. Dismiss only
@@ -580,26 +611,6 @@ class Browser {
               elemDescription: 'Cancel URL input (dismiss URL editor)',
               timeout: 2_000,
             });
-          }
-
-          // Iframe phishing can re-show the modal after the first dismiss;
-          // empty URL text while Back to safety is visible is that residual.
-          const phishingVisible = await withImplicitWait(
-            probeImplicitWaitMs,
-            async () => {
-              const back = await this.backToSafetyButton;
-              return (
-                (await back.unwrap().isExisting()) && (await back.isVisible())
-              );
-            },
-          );
-          if (phishingVisible && phishingReDismisses < maxPhishingReDismisses) {
-            phishingReDismisses += 1;
-            await Gestures.waitAndTap(this.backToSafetyButton, {
-              elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
-              timeout: 5_000,
-            });
-            await this.waitForBackToSafetyButtonGone(10_000);
           }
         }
 
