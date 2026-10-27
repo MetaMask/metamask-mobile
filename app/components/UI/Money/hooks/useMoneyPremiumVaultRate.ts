@@ -2,9 +2,9 @@ import { useSelector } from 'react-redux';
 import type { UseQueryResult } from '@tanstack/react-query';
 import type { PositionResponse } from '@metamask/money-account-api-data-service';
 import { useQuery } from '@metamask/react-data-query';
-import BigNumber from 'bignumber.js';
 import { selectMoneyAccountPlusSubscription } from '../../../../selectors/subscriptionController';
 import { MoneyAccountApiDataServiceQueryKeys } from '../queryKeys';
+import { parseApy, toApyPercent } from '../utils/apy';
 import { readVaultAddress } from '../utils/readVaultAddress';
 import useMoneyAccountInfo from './useMoneyAccountInfo';
 
@@ -20,28 +20,6 @@ interface UseMoneyPremiumVaultRateResult {
   /** `ratePercent` with a percent sign (for example `7.1%`). */
   ratePercentFormatted: string | undefined;
 }
-
-/**
- * Converts a decimal APY into a one-decimal percentage.
- *
- * @param rate - Decimal `current_apy` from the positions response.
- * @returns The percentage, or undefined when the rate is not a finite number.
- */
-const parseRatePercent = (rate: string | undefined): number | undefined => {
-  if (rate === undefined) {
-    return undefined;
-  }
-
-  const rateDecimal = new BigNumber(rate);
-  if (rateDecimal.isNaN() || !rateDecimal.isFinite()) {
-    return undefined;
-  }
-
-  return rateDecimal
-    .multipliedBy(100)
-    .dp(1, BigNumber.ROUND_HALF_UP)
-    .toNumber();
-};
 
 /**
  * Current APY for the premium vault, shown on Pro Hub.
@@ -76,7 +54,7 @@ const useMoneyPremiumVaultRate = (): UseMoneyPremiumVaultRateResult => {
           (position) =>
             position.vault_address.toLowerCase() === normalizedVaultAddress,
         )?.current_apy;
-  const ratePercent = parseRatePercent(rate);
+  const ratePercent = toApyPercent(parseApy(rate));
   const ratePercentFormatted =
     ratePercent !== undefined ? `${ratePercent}%` : undefined;
 
