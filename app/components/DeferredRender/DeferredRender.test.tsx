@@ -39,7 +39,8 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-let queuedFrames: FrameRequestCallback[] = [];
+let queuedFrames: Record<number, FrameRequestCallback> = {};
+let nextFrameId = 0;
 const originalRequestAnimationFrame = global.requestAnimationFrame;
 const originalCancelAnimationFrame = global.cancelAnimationFrame;
 
@@ -49,11 +50,16 @@ function emit(type: string, closing = false) {
   });
 }
 
-function flushFrame() {
-  const frame = queuedFrames.shift();
+function queuedFrameIds() {
+  return Object.keys(queuedFrames).map(Number);
+}
+
+function flushFrame(frameId = queuedFrameIds()[0]) {
+  const frame = queuedFrames[frameId];
   if (!frame) {
     throw new Error('expected a pending animation frame');
   }
+  delete queuedFrames[frameId];
   act(() => {
     frame(0);
   });
@@ -87,13 +93,15 @@ describe('DeferredRender', () => {
     mockIsFocused.mockReturnValue(true);
     listeners.focus.clear();
     listeners.transitionEnd.clear();
-    queuedFrames = [];
+    queuedFrames = {};
+    nextFrameId = 0;
     global.requestAnimationFrame = jest.fn((callback: FrameRequestCallback) => {
-      queuedFrames.push(callback);
-      return queuedFrames.length;
+      nextFrameId += 1;
+      queuedFrames[nextFrameId] = callback;
+      return nextFrameId;
     }) as typeof requestAnimationFrame;
-    global.cancelAnimationFrame = jest.fn(() => {
-      queuedFrames = [];
+    global.cancelAnimationFrame = jest.fn((frameId: number) => {
+      delete queuedFrames[frameId];
     }) as typeof cancelAnimationFrame;
   });
 
@@ -149,6 +157,8 @@ describe('DeferredRender', () => {
     render(gate());
 
     emit('transitionEnd');
+    expect(jest.getTimerCount()).toBe(0);
+
     act(() => {
       jest.advanceTimersByTime(SCREEN_TRANSITION_FALLBACK_MS * 2);
     });
@@ -268,17 +278,34 @@ describe('DeferredRender', () => {
     expect(global.requestAnimationFrame).not.toHaveBeenCalled();
   });
 
-  it('cancels the frame, the timer and both listeners on unmount', () => {
+  it('clears the fallback and both listeners when it unmounts before the transition ends', () => {
     const { unmount } = renderHook(() => useDeferredRender());
 
-    emit('transitionEnd');
-    expect(queuedFrames).toHaveLength(1);
+    expect(jest.getTimerCount()).toBe(1);
 
     unmount();
 
-    expect(global.cancelAnimationFrame).toHaveBeenCalledTimes(1);
-    expect(queuedFrames).toHaveLength(0);
-    expect(mockUnsubscribe).toHaveBeenCalledTimes(2);
     expect(jest.getTimerCount()).toBe(0);
+    expect(mockUnsubscribe).toHaveBeenCalledTimes(2);
+    expect(global.requestAnimationFrame).not.toHaveBeenCalled();
+    expect(global.cancelAnimationFrame).not.toHaveBeenCalled();
+  });
+
+  it('cancels only its own frame when one of two mounted hooks unmounts', () => {
+    const first = renderHook(() => useDeferredRender());
+    const second = renderHook(() => useDeferredRender());
+
+    emit('transitionEnd');
+    expect(queuedFrameIds()).toStrictEqual([1, 2]);
+
+    first.unmount();
+
+    expect(global.cancelAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(global.cancelAnimationFrame).toHaveBeenCalledWith(1);
+    expect(queuedFrameIds()).toStrictEqual([2]);
+
+    flushFrame(2);
+
+    expect(second.result.current).toBe(true);
   });
 });
