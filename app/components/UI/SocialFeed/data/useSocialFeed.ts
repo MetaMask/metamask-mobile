@@ -248,7 +248,7 @@ export const useSocialFeed = (
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
 

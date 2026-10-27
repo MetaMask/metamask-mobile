@@ -81,7 +81,7 @@ export const prefetchTraderFeeds = async (
   await Promise.allSettled(
     PREFETCH_FEED_AUDIENCES.map((audience) => {
       const scope = toFeedScope(audience);
-      return queryClient.prefetchInfiniteQuery({
+      return queryClient.infiniteQuery({
         queryKey: buildTraderFeedQueryKey(scope),
         queryFn: ({ pageParam }: { pageParam?: string }) =>
           fetchTraderFeedPage(scope, pageParam),
