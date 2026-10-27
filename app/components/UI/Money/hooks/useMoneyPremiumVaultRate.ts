@@ -15,6 +15,12 @@ export interface UseMoneyPremiumVaultRateOptions {
    * When false, the positions query does not run. Defaults to true.
    */
   enabled?: boolean;
+  /**
+   * Vault used when the Plus payment method has no crypto token address.
+   * Cancelled plans and card payments have none, but the user can still hold
+   * premium funds. Money home passes the premium config `boringVault`.
+   */
+  vaultAddress?: string;
 }
 
 interface UseMoneyPremiumVaultRateResult {
@@ -32,20 +38,24 @@ interface UseMoneyPremiumVaultRateResult {
  * Current APY for the premium vault, shown on Pro Hub.
  *
  * Reads `current_apy` from the premium position. The vault address comes from
- * the Plus subscription's crypto payment method. The account address comes
- * from the primary Money account.
+ * the Plus subscription's crypto payment method, then from `options.vaultAddress`
+ * when that payment method has no token. The account address comes from the
+ * primary Money account.
  *
- * @param options - Optional enable flag. Defaults to true. When false the
- * positions query does not run, even if an account and vault address exist.
+ * @param options - Optional enable flag and fallback vault. `enabled` defaults
+ * to true. When false the positions query does not run, even if an account and
+ * vault address exist.
  * @returns The positions query, the raw APY decimal, and the APY as a percentage.
  */
 const useMoneyPremiumVaultRate = ({
   enabled = true,
+  vaultAddress: fallbackVaultAddress,
 }: UseMoneyPremiumVaultRateOptions = {}): UseMoneyPremiumVaultRateResult => {
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const plusSubscription = useSelector(selectMoneyAccountPlusSubscription);
   const address = primaryMoneyAccount?.address?.toLowerCase();
-  const vaultAddress = readVaultAddress(plusSubscription?.paymentMethod);
+  const vaultAddress =
+    readVaultAddress(plusSubscription?.paymentMethod) ?? fallbackVaultAddress;
   const isEnabled = Boolean(enabled && address && vaultAddress);
 
   const vaultRateQuery = useQuery({

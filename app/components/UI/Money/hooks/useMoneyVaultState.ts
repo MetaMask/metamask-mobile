@@ -122,6 +122,7 @@ const useMoneyVaultState = (): UseMoneyVaultStateResult => {
 
   const { rate, vaultRateQuery } = useMoneyPremiumVaultRate({
     enabled: isEntitled || hasPremiumPosition,
+    vaultAddress: premiumVaultAddress,
   });
   const premiumApyDecimal = parseApy(rate);
 

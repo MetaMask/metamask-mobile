@@ -266,6 +266,7 @@ describe('useMoneyVaultState', () => {
 
     expect(mockUseMoneyPremiumVaultRate).toHaveBeenCalledWith({
       enabled: true,
+      vaultAddress: PREMIUM_VAULT,
     });
     expect(result.current.status).toBe('downgrading');
     expect(result.current.apyDecimal).toBe(0.08);
