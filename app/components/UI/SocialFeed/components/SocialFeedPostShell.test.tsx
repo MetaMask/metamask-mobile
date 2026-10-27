@@ -6,6 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
 import { reactToComment, removeCommentReaction } from '../commentReactionApi';
+import { translateComment } from '../translateComment';
 import {
   mockClosedPerpsFeedItem,
   mockOpenPerpsFeedItem,
@@ -16,6 +17,10 @@ import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
 import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
+
+jest.mock('../translateComment', () => ({
+  translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
+}));
 
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
@@ -726,6 +731,104 @@ describe('SocialFeedPostShell', () => {
         ).toBeOnTheScreen();
       });
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('translation', () => {
+    const translate = translateComment as jest.Mock;
+
+    beforeEach(() => {
+      translate.mockReset();
+      translate.mockResolvedValue({ state: 'translationFailed' });
+    });
+
+    it('offers translation when the Call language is missing or not English', () => {
+      renderShell(basePost({ sourceLanguage: null }));
+
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
+    });
+
+    it('hides translation for an English Call', () => {
+      renderShell(basePost({ sourceLanguage: 'en' }));
+
+      expect(screen.queryByText('See translation')).toBeNull();
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+    });
+
+    it('hides translation on a pending post', () => {
+      renderShell(basePost({ isPending: true, sourceLanguage: 'ko' }));
+
+      expect(screen.queryByText('See translation')).toBeNull();
+    });
+
+    it('swaps in the English text after a successful translation', async () => {
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'This content is in Korean.' },
+      });
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          item: mockOpenPerpsFeedItem({
+            id: 'item-1',
+            comment: '이 내용은 한국어입니다.',
+          }),
+        }),
+      );
+
+      fireEvent.press(screen.getByText('See translation'));
+
+      expect(screen.getByText('Translating...')).toBeOnTheScreen();
+      await waitFor(() => {
+        expect(
+          screen.getByText('This content is in Korean.'),
+        ).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      expect(screen.queryByText('이 내용은 한국어입니다.')).toBeNull();
+      expect(translate).toHaveBeenCalledWith({
+        commentId: 'comment-1',
+        targetLanguage: 'en',
+      });
+    });
+
+    it('keeps the original text and offers a retry when translation fails', async () => {
+      renderShell(basePost({ sourceLanguage: 'ko' }));
+
+      fireEvent.press(screen.getByText('See translation'));
+
+      await waitFor(() => {
+        expect(screen.getByText("Couldn't translate.")).toBeOnTheScreen();
+      });
+      expect(screen.getByText('Amazing position')).toBeOnTheScreen();
+
+      translate.mockResolvedValue({
+        state: 'translated',
+        sourceLanguage: 'ko',
+        translations: { en: 'Amazing position, in English' },
+      });
+      fireEvent.press(screen.getByText('Try again'));
+
+      await waitFor(() => {
+        expect(
+          screen.getByText('Amazing position, in English'),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('uses an English translation already on the post', () => {
+      renderShell(
+        basePost({
+          sourceLanguage: 'ko',
+          translations: { en: 'Already translated' },
+        }),
+      );
+
+      fireEvent.press(screen.getByText('See translation'));
+
+      expect(screen.getByText('Already translated')).toBeOnTheScreen();
+      expect(translate).not.toHaveBeenCalled();
     });
   });
 });

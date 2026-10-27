@@ -1431,6 +1431,13 @@
         "closed_ago": "Closed {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
       "placeholder": "Share your thoughts about a position",
       "post": "Post",
