@@ -49,6 +49,26 @@ class HermesProfilerModule(reactContext: ReactApplicationContext) :
         }
     }
 
+    /**
+     * Opens the measured window: dumps the buffer only to clear it, then writes
+     * `<nonce>\n<highest segment on disk>` to the marker the test waits for.
+     * Both steps run in one call so no segment can land between them.
+     */
+    @ReactMethod
+    fun armProfiling(nonce: String, promise: Promise) {
+        try {
+            val documentsDirectory = requireDocumentsDirectory()
+            val scratchFile = File(documentsDirectory, SCRATCH_FILE_NAME)
+            HermesSamplingProfiler.dumpSampledTraceToFile(scratchFile.absolutePath)
+            scratchFile.delete()
+            File(documentsDirectory, "$PROFILE_FILE_PREFIX.armed")
+                .writeText("$nonce\n${nextSegmentIndex(documentsDirectory) - 1}\n")
+            promise.resolve(true)
+        } catch (error: Throwable) {
+            promise.reject(ERROR_CODE, error)
+        }
+    }
+
     @ReactMethod
     fun stopProfilingToAppStorage(promise: Promise) {
         try {

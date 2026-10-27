@@ -172,15 +172,12 @@ describe('Feature Flag Registry', () => {
       });
     });
 
-    it('registers pending VBA activity as default-off and version-gated', () => {
+    it('registers pending VBA activity as in-production and default-off', () => {
       expect(getRegistryEntry('moneyVbaPendingActivityEnabled')).toMatchObject({
         name: 'moneyVbaPendingActivityEnabled',
         type: FeatureFlagType.Remote,
-        inProd: false,
-        productionDefault: {
-          enabled: false,
-          minimumVersion: '0.0.0',
-        },
+        inProd: true,
+        productionDefault: false,
         status: FeatureFlagStatus.Active,
       });
     });

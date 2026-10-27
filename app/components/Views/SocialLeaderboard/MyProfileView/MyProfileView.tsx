@@ -609,20 +609,20 @@ const MyProfileView: React.FC = () => {
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleEditProfile}
-                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
+                      onPress={handleShareProfile}
+                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.edit_profile')}
+                      {strings('social_leaderboard.my_profile.share_profile')}
                     </Button>
                   </Box>
                   <Box twClassName="flex-1">
                     <Button
                       variant={ButtonVariant.Secondary}
                       isFullWidth
-                      onPress={handleShareProfile}
-                      testID={MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON}
+                      onPress={handleEditProfile}
+                      testID={MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON}
                     >
-                      {strings('social_leaderboard.my_profile.share_profile')}
+                      {strings('social_leaderboard.my_profile.edit_profile')}
                     </Button>
                   </Box>
                 </Box>

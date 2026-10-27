@@ -301,13 +301,14 @@ describeForPlatforms('Homepage TopTradersSection', () => {
     });
   });
 
-  it('opens the Social V1 shell without a landing tab when the Social V1 treatment is assigned', async () => {
+  it('switches to the Social tab without a landing tab when the Social V1 treatment is assigned', async () => {
     renderHomeTopTradersSection(
       [
         { name: Routes.SOCIAL.V0 },
+        { name: Routes.SOCIAL.V1 },
         {
-          name: Routes.SOCIAL.V1,
-          Component: createRouteParamsProbe(Routes.SOCIAL.V1),
+          name: Routes.HOME_TABS,
+          Component: createRouteParamsProbe(Routes.HOME_TABS),
         },
       ],
       {
@@ -322,9 +323,13 @@ describeForPlatforms('Homepage TopTradersSection', () => {
 
     fireEvent.press(screen.getByTestId(SECTION_TITLE_ID));
 
-    expect(await readRouteParams(Routes.SOCIAL.V1)).toEqual({
-      source: 'home_carousel',
+    expect(await readRouteParams(Routes.HOME_TABS)).toEqual({
+      screen: Routes.SOCIAL.TAB,
+      params: { source: 'home_carousel' },
     });
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toBeOnTheScreen();
     expect(
       screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V0)),
     ).not.toBeOnTheScreen();
