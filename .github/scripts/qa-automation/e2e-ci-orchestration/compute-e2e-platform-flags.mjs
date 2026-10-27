@@ -2,6 +2,9 @@
  * Pure decision logic for CI E2E platform and native-build requirements.
  */
 
+/** Brand-new Appium smoke specs that force both platforms on an eligible PR. */
+const ADDED_SMOKE_SPEC_PATTERN = /^tests\/smoke-appium\/.+\.spec\.ts$/u;
+
 /**
  * @param {object} input
  * @returns {object}
@@ -35,8 +38,9 @@ function computeE2EPlatformFlags(input) {
   const isMainBranchPush =
     githubEventName === 'push' && githubRefName === 'main';
 
-  // PRs do not build iOS from path filters alone. Labels opt back in — see
-  // applyE2ELabelOverrides.
+  // PRs do not build iOS from path filters alone. Labels and brand-new smoke
+  // specs opt back in — see applyE2ELabelOverrides and
+  // applyNewSmokeSpecPlatformForce.
   const isIOSOptInRequiredForPullRequest =
     githubEventName === 'pull_request';
 
@@ -181,6 +185,79 @@ function applyE2ELabelOverrides(flags, input) {
 }
 
 /**
+ * Smoke specs this pull request genuinely added.
+ *
+ * Each line is `status<TAB>filename<TAB>previousFilename` from the pull
+ * request files API. Only `added` rows with no previous filename count.
+ * Edits, renames, copies, and bare paths do not.
+ *
+ * @param {string} [addedSmokeSpecFiles]
+ * @returns {string[]}
+ */
+function listAddedSmokeSpecFiles(addedSmokeSpecFiles = '') {
+  return String(addedSmokeSpecFiles)
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .flatMap((line) => {
+      const [status, filename = '', previousFilename = ''] = line.split('\t');
+      const specPath = filename.trim();
+      if (
+        status !== 'added' ||
+        previousFilename.trim() !== '' ||
+        !ADDED_SMOKE_SPEC_PATTERN.test(specPath)
+      ) {
+        return [];
+      }
+      return [specPath];
+    });
+}
+
+/**
+ * Eligible PRs that add a brand-new Appium smoke spec run both platforms.
+ * Hard skips still win. Edits, renames, and copies do not.
+ *
+ * @param {object} flags
+ * @param {object} input
+ * @returns {object}
+ */
+function applyNewSmokeSpecPlatformForce(flags, input) {
+  const {
+    githubEventName,
+    prBaseRef = '',
+    isFork,
+    shouldSkipE2E,
+    addedSmokeSpecFiles = '',
+  } = input;
+
+  const { ignorableOnly } = classifyE2EChanges(input);
+  const addedSmokeSpecs = listAddedSmokeSpecFiles(addedSmokeSpecFiles);
+  const isEligiblePullRequest =
+    githubEventName === 'pull_request' &&
+    prBaseRef !== 'stable' &&
+    !isFork &&
+    !shouldSkipE2E &&
+    !ignorableOnly;
+
+  if (!isEligiblePullRequest || addedSmokeSpecs.length === 0) {
+    return flags;
+  }
+
+  const message = flags.message.replace(
+    / — iOS not requested for this PR \(add run-appium-ios-tests\)/u,
+    '',
+  );
+
+  return {
+    ...flags,
+    android: true,
+    ios: true,
+    e2eNeeded: true,
+    runSmartE2ESelection: true,
+    message: `${message} + both platforms (brand-new Appium smoke spec)`,
+  };
+}
+
+/**
  * Resolve final E2E platform flags for CI.
  *
  * @param {object} input
@@ -201,7 +278,7 @@ function resolveE2EPlatformRequirements(input) {
     e2eSmokeInfraCount,
   });
 
-  return flags;
+  return applyNewSmokeSpecPlatformForce(flags, pathFilterInput);
 }
 
 /**

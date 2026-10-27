@@ -680,6 +680,7 @@
     "stream-browserify": "3.0.0",
     "through2": "3.0.1",
     "tldts": "^7.4.13",
+    "tslib": "^2.8.1",
     "unicode-confusables": "^0.1.1",
     "uri-js": "^4.4.1",
     "url": "0.11.0",
