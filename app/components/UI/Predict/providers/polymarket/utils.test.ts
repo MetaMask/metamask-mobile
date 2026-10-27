@@ -3227,7 +3227,7 @@ describe('polymarket utils', () => {
     });
   });
 
-  it('zeros both fee snapshots when a membership market tag is on the waive list', async () => {
+  it('returns zero fees when market fees are waived', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: jest.fn().mockResolvedValue({
@@ -3263,10 +3263,7 @@ describe('polymarket utils', () => {
       userBetAmount: 10,
     });
 
-    expect(result).toEqual({
-      fees: waivedFees,
-      originalFees: waivedFees,
-    });
+    expect(result).toEqual({ fees: waivedFees });
   });
 
   it('uses configured service fees when no membership policy is available', async () => {
