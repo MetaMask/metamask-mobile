@@ -53,6 +53,8 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         "currency_destination_symbol": "mUSD",
         "destination_amount": 18,
         "entry_point": "add_funds_bank_account",
+        "kyc_status": "none",
+        "provider_flow_status": "not_started",
         "seconds_since_created": 90,
         "source_amount": 100,
         "status": "pending",
@@ -72,7 +74,7 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
           payload(status, 'FundsReviewInProgress'),
           {},
           NOW,
-        ).status,
+        )?.status,
       ).toBe('pending');
     },
   );
@@ -92,7 +94,9 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         "currency_source": "BRL",
         "destination_amount": 18,
         "entry_point": "add_funds_bank_account",
+        "kyc_status": "none",
         "previous_status": "PayoutInProgress",
+        "provider_flow_status": "not_started",
         "region": "br",
         "seconds_since_created": 90,
         "source_amount": 100,
@@ -106,20 +110,20 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
   });
 
   it.each(['Failed', 'RejectedAml', 'RejectedFraud', 'RejectedMinAmount'])(
-    'maps %s to failed with the schema failure_reason and keeps the raw status',
+    'maps %s to failed and keeps the raw status',
     (status) => {
-      expect(
-        buildMoneyVbaTransactionUpdatedProperties(
-          payload(status, 'PayoutInProgress'),
-          {},
-          NOW,
-        ),
-      ).toMatchObject({
+      const properties = buildMoneyVbaTransactionUpdatedProperties(
+        payload(status, 'PayoutInProgress'),
+        {},
+        NOW,
+      );
+
+      expect(properties).toMatchObject({
         status: 'failed',
         transaction_status: status,
-        failure_reason: 'vendor_error',
         previous_status: 'PayoutInProgress',
       });
+      expect(properties).not.toHaveProperty('failure_reason');
     },
   );
 
@@ -179,6 +183,8 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         "autoramp_status": "ready",
         "currency_destination_symbol": "mUSD",
         "entry_point": "add_funds_bank_account",
+        "kyc_status": "none",
+        "provider_flow_status": "not_started",
         "status": "completed",
         "token_chain_id": "eip155:143",
         "transaction_id": "tx-1",
@@ -198,29 +204,24 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
     ).toBe(0);
   });
 
-  it('keeps an unmapped raw status and omits status', () => {
+  it('returns null when the vendor status is outside the schema', () => {
     expect(
       buildMoneyVbaTransactionUpdatedProperties(
         payload('SomethingNew', 'Completed'),
         {},
         NOW,
       ),
-    ).toMatchInlineSnapshot(`
-      {
-        "autoramp_id": "ar-1",
-        "autoramp_status": "ready",
-        "currency_destination_symbol": "mUSD",
-        "destination_amount": 18,
-        "entry_point": "add_funds_bank_account",
-        "previous_status": "Completed",
-        "seconds_since_created": 90,
-        "source_amount": 100,
-        "token_chain_id": "eip155:143",
-        "transaction_id": "tx-1",
-        "transaction_status": "SomethingNew",
-        "vendor": "moonpay",
-      }
-    `);
+    ).toBeNull();
+  });
+
+  it('omits a previous status that is outside the schema', () => {
+    expect(
+      buildMoneyVbaTransactionUpdatedProperties(
+        payload('Completed', 'SomethingNew'),
+        {},
+        NOW,
+      ),
+    ).not.toHaveProperty('previous_status');
   });
 });
 
@@ -307,6 +308,12 @@ describe('handleAutorampTransactionStatusChangedForMetrics', () => {
       handleAutorampTransactionStatusChangedForMetrics(payload('Failed')),
     ).not.toThrow();
     expect(Logger.error).toHaveBeenCalled();
+  });
+
+  it('does not track a vendor status outside the schema', () => {
+    handleAutorampTransactionStatusChangedForMetrics(payload('SomethingNew'));
+
+    expect(analytics.trackEvent).not.toHaveBeenCalled();
   });
 
   it('does not throw when the redux store is unavailable', () => {
