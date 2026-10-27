@@ -105,23 +105,40 @@ describe('EarningsTab', () => {
     ).toHaveLength(0);
   });
 
-  it('refuses a claim when the Monad Money account is not sponsored', async () => {
-    const { findByTestId, getByTestId, engine } = renderEarningsTab({
-      persona: 'referee',
-      summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
-      claimReady: false,
-      initiateClaim: 'hang',
-    });
+  it.each([
+    {
+      label: 'Monad vault',
+      claimGates: { monadVault: false },
+    },
+    {
+      label: 'gas sponsorship',
+      claimGates: { gasSponsorship: false },
+    },
+    {
+      label: 'Money account',
+      claimGates: { moneyAccount: false },
+    },
+  ])('refuses a claim when the $label is missing', async ({ claimGates }) => {
+    const { findByTestId, findByText, getByTestId, engine } = renderEarningsTab(
+      {
+        persona: 'referee',
+        summary: EXACT_DOLLAR_EARNINGS_SUMMARY,
+        claimReady: true,
+        claimGates,
+        initiateClaim: 'hang',
+      },
+    );
 
     fireEvent.press(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     );
 
-    await waitFor(() => {
-      expect(
-        callsFor(engine, 'RewardsMoneyController:initiateClaim'),
-      ).toHaveLength(0);
-    });
+    expect(
+      await findByText(REFERRAL_LOCALIZED_TEXT.claimFailureToast),
+    ).toBeOnTheScreen();
+    expect(
+      callsFor(engine, 'RewardsMoneyController:initiateClaim'),
+    ).toHaveLength(0);
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
     ).toBeOnTheScreen();
@@ -181,7 +198,11 @@ describe('EarningsTab', () => {
       summary: PAUSED_EARNINGS_SUMMARY,
     });
 
-    expect(await findByText('Balance • mUSD')).toBeOnTheScreen();
+    expect(
+      await findByText(
+        `${REFERRAL_LOCALIZED_TEXT.balance} \u2022 ${REFERRAL_LOCALIZED_TEXT.mUSD}`,
+      ),
+    ).toBeOnTheScreen();
     expect(
       await findByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
     ).toHaveTextContent('$112.50');
@@ -199,8 +220,8 @@ describe('EarningsTab', () => {
 
     expect(JSON.parse(String(paramsProbe.props.children))).toEqual(
       expect.objectContaining({
-        title: 'Claims paused',
-        description: 'You cannot claim rewards right now.',
+        title: REFERRAL_LOCALIZED_TEXT.claimsPausedTitle,
+        description: REFERRAL_LOCALIZED_TEXT.claimsPausedDescription,
         totals: expect.objectContaining({
           lifetime_total: PAUSED_EARNINGS_SUMMARY.lifetime_total,
           claimable: '500000',

@@ -1,6 +1,7 @@
 export const PERFORMANCE_TAB_TEST_IDS = {
   CONTAINER: 'rewards-money-performance-tab',
   FUNNEL: 'rewards-money-performance-funnel',
+  FUNNEL_ROW: 'rewards-money-performance-funnel-row',
   FUNNEL_BAR: 'rewards-money-performance-funnel-bar',
   COMMISSIONS: 'rewards-money-performance-commissions',
   COMMISSIONS_HEADER: 'rewards-money-performance-commissions-header',

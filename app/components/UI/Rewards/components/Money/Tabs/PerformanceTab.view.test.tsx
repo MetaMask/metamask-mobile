@@ -4,14 +4,19 @@
  * yarn jest -c jest.config.view.js app/components/UI/Rewards/components/Money/Tabs/PerformanceTab.view.test.tsx --runInBand --coverage=false
  */
 import '../../../../../../../tests/component-view/mocks';
-import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
+import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
 import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton.testIds';
 import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
 import { getRouteProbeTestId } from '../../../../../../../tests/component-view/render';
 import { renderPerformanceTab } from '../../../../../../../tests/component-view/renderers/rewardsMoney';
-import { REFERRER_FUNNEL_SUMMARY } from '../../../../../../../tests/component-view/presets/rewardsMoney';
+import {
+  REFERRAL_FUNNEL_FIXTURE,
+  REFERRAL_LOCALIZED_TEXT,
+  REFERRER_FUNNEL_SUMMARY,
+  RETIRED_FUNNEL_COPY,
+} from '../../../../../../../tests/component-view/presets/rewardsMoney';
 
 function callsFor(engine: jest.Mock, action: string): unknown[][] {
   return engine.mock.calls.filter((call) => call[0] === action);
@@ -31,21 +36,58 @@ describe('PerformanceTab', () => {
       summary: REFERRER_FUNNEL_SUMMARY,
     });
 
-    expect(await findByText('Confirmed referrals')).toBeOnTheScreen();
+    expect(
+      await findByText(REFERRAL_LOCALIZED_TEXT.funnelConfirmed),
+    ).toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeOnTheScreen();
-    expect(getByText('Fee-generating referrals')).toBeOnTheScreen();
-    expect(getByText('People who confirmed your code')).toBeOnTheScreen();
-    expect(getByText('Referrals that generated fees')).toBeOnTheScreen();
+
+    const confirmedRow = within(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.FUNNEL_ROW}-confirmed`),
+    );
+    const feeGeneratingRow = within(
+      getByTestId(`${PERFORMANCE_TAB_TEST_IDS.FUNNEL_ROW}-feeGenerating`),
+    );
+
+    expect(
+      confirmedRow.getByText(REFERRAL_LOCALIZED_TEXT.funnelConfirmed),
+    ).toBeOnTheScreen();
+    expect(
+      confirmedRow.getByText(
+        REFERRAL_LOCALIZED_TEXT.funnelConfirmedDescription,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      confirmedRow.getByText(String(REFERRAL_FUNNEL_FIXTURE.enrolled)),
+    ).toBeOnTheScreen();
+    expect(
+      feeGeneratingRow.getByText(REFERRAL_LOCALIZED_TEXT.funnelFeeGenerating),
+    ).toBeOnTheScreen();
+    expect(
+      feeGeneratingRow.getByText(
+        REFERRAL_LOCALIZED_TEXT.funnelFeeGeneratingDescription,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      feeGeneratingRow.getByText(
+        String(REFERRAL_FUNNEL_FIXTURE.earning_generating),
+      ),
+    ).toBeOnTheScreen();
     expect(getByText('$41.75')).toBeOnTheScreen();
-    expect(getByText('Eligible fees')).toBeOnTheScreen();
-    expect(getByText('Updated daily')).toBeOnTheScreen();
-    expect(getByText('12')).toBeOnTheScreen();
-    expect(getByText('5')).toBeOnTheScreen();
-    expect(queryByText('Last 30 days · Updated daily')).not.toBeOnTheScreen();
-    expect(queryByText('Code uses')).not.toBeOnTheScreen();
-    expect(queryByText('Active referrals')).not.toBeOnTheScreen();
+    expect(getByText(REFERRAL_LOCALIZED_TEXT.eligibleFees)).toBeOnTheScreen();
+    expect(getByText(REFERRAL_LOCALIZED_TEXT.updatedDaily)).toBeOnTheScreen();
+    expect(
+      queryByText(RETIRED_FUNNEL_COPY.last30DaysUpdatedDaily),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(REFERRAL_LOCALIZED_TEXT.funnelCodeUses),
+    ).not.toBeOnTheScreen();
+    expect(
+      queryByText(REFERRAL_LOCALIZED_TEXT.funnelActive),
+    ).not.toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
-    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(
+      getByText(REFERRAL_LOCALIZED_TEXT.tradingCommissionsSection),
+    ).toBeOnTheScreen();
     expect(
       queryByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES),
     ).not.toBeOnTheScreen();
@@ -84,7 +126,9 @@ describe('PerformanceTab', () => {
       ).toHaveLength(5);
     });
     const rebates = within(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES));
-    expect(rebates.getAllByText('Swaps volume')).toHaveLength(5);
+    expect(
+      rebates.getAllByText(REFERRAL_LOCALIZED_TEXT.rebateSwapsVolume),
+    ).toHaveLength(5);
     expect(rebates.getAllByText('+$1.00')).toHaveLength(5);
     expect(
       queryByTestId(`${PERFORMANCE_ACTIVITY_TEST_IDS.REBATE_ROW}-earn-5`),
@@ -96,7 +140,9 @@ describe('PerformanceTab', () => {
       queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL),
     ).not.toBeOnTheScreen();
     expect(getByTestId(PERFORMANCE_TAB_TEST_IDS.COMMISSIONS)).toBeOnTheScreen();
-    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(
+      getByText(REFERRAL_LOCALIZED_TEXT.tradingCommissionsSection),
+    ).toBeOnTheScreen();
     expect(
       callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),
     ).toHaveLength(0);
@@ -152,15 +198,15 @@ describe('PerformanceTab', () => {
   });
 
   it('does not read funnel, commissions, or the ledger while another tab is selected', async () => {
-    const { engine } = renderPerformanceTab({
+    const { findByTestId, engine } = renderPerformanceTab({
       persona: 'referrer',
       summary: REFERRER_FUNNEL_SUMMARY,
       active: false,
     });
 
-    await act(async () => {
-      await Promise.resolve();
-    });
+    expect(
+      await findByTestId(PERFORMANCE_TAB_TEST_IDS.CONTAINER),
+    ).toBeOnTheScreen();
 
     expect(
       callsFor(engine, 'RewardsMoneyController:getReferralFunnel'),

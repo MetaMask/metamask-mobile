@@ -262,7 +262,10 @@ const FunnelSection: React.FC<{
               </Text>
             </Box>
             {rows.map((row, index) => (
-              <Box key={row.key}>
+              <Box
+                key={row.key}
+                testID={`${PERFORMANCE_TAB_TEST_IDS.FUNNEL_ROW}-${row.key}`}
+              >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   justifyContent={BoxJustifyContent.Between}

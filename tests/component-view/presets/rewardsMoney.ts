@@ -141,6 +141,14 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   rewardsPausedLearnMore: 'Learn more',
 };
 
+/**
+ * Funnel labels the referrer tab must not render. Not Contentful keys, so
+ * they stay out of {@link REFERRAL_LOCALIZED_TEXT}.
+ */
+export const RETIRED_FUNNEL_COPY = {
+  last30DaysUpdatedDaily: 'Last 30 days · Updated daily',
+} as const;
+
 function totals(
   lifetime: string,
   overrides: Partial<SummaryTotalsDto> = {},
@@ -413,6 +421,19 @@ function moneyAccount(): MoneyAccount {
   };
 }
 
+/**
+ * The three gates a claim checks before it asks for a voucher. An omitted
+ * gate follows `claimReady`.
+ */
+export interface ClaimSubmissionGates {
+  /** `moneyAccountVaultConfig` for Monad mainnet. */
+  monadVault?: boolean;
+  /** Gas sponsorship for the vault chain. */
+  gasSponsorship?: boolean;
+  /** Primary Money account the voucher pays into. */
+  moneyAccount?: boolean;
+}
+
 export interface RewardsMoneyViewStateOptions {
   persona?: MoneyDashboardPersona;
   summary?: EarningsSummaryDto | null;
@@ -421,6 +442,11 @@ export interface RewardsMoneyViewStateOptions {
    * batch checks before it asks for a voucher.
    */
   claimReady?: boolean;
+  /**
+   * Turns one claim gate off while the others stay ready. Unset fields
+   * follow `claimReady`.
+   */
+  claimGates?: ClaimSubmissionGates;
 }
 
 /**
@@ -431,10 +457,23 @@ export function rewardsMoneyViewState({
   persona = 'referee',
   summary = CLAIMABLE_EARNINGS_SUMMARY,
   claimReady = false,
+  claimGates,
 }: RewardsMoneyViewStateOptions = {}) {
   const profileId = REWARDS_MONEY_PROFILE_ID;
   const referralMe = referralMeFixture(persona);
   const account = moneyAccount();
+  const monadVault = claimGates?.monadVault ?? claimReady;
+  const gasSponsorship = claimGates?.gasSponsorship ?? claimReady;
+  const includeMoneyAccount = claimGates?.moneyAccount ?? claimReady;
+  const remoteFeatureFlags: Record<string, unknown> = {};
+  if (monadVault) {
+    remoteFeatureFlags.moneyAccountVaultConfig = MONAD_VAULT;
+  }
+  if (gasSponsorship) {
+    remoteFeatureFlags.gasFeesSponsoredNetwork = {
+      [MONAD_MAINNET_CHAIN_ID]: true,
+    };
+  }
 
   return createStateFixture()
     .withMinimalAccounts()
@@ -442,14 +481,7 @@ export function rewardsMoneyViewState({
     .withMinimalKeyringController()
     .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
-    .withRemoteFeatureFlags(
-      claimReady
-        ? {
-            moneyAccountVaultConfig: MONAD_VAULT,
-            gasFeesSponsoredNetwork: { [MONAD_MAINNET_CHAIN_ID]: true },
-          }
-        : {},
-    )
+    .withRemoteFeatureFlags(remoteFeatureFlags)
     .withOverrides({
       rewards: {
         ...pointsRewardsInitialState,
@@ -487,7 +519,7 @@ export function rewardsMoneyViewState({
             },
           },
           MoneyAccountController: {
-            moneyAccounts: claimReady ? { [account.id]: account } : {},
+            moneyAccounts: includeMoneyAccount ? { [account.id]: account } : {},
           },
         },
       },

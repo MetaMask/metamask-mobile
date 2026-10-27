@@ -2,6 +2,8 @@ import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { ToastContext } from '../../../app/component-library/components/Toast/Toast.context';
+import type { ToastRef } from '../../../app/component-library/components/Toast/Toast.types';
 import Engine from '../../../app/core/Engine';
 import EarningsTab from '../../../app/components/UI/Rewards/components/Money/Tabs/EarningsTab';
 import PerformanceTab from '../../../app/components/UI/Rewards/components/Money/Tabs/PerformanceTab';
@@ -185,6 +187,36 @@ export function installRewardsMoneyEngine({
   return engineCall;
 }
 
+/**
+ * The claim hook refuses through the app toast. Component-view renders do not
+ * mount that host, so this one surfaces the toast label for the refusal tests.
+ */
+function RewardsMoneyToastHost({ children }: { children: React.ReactNode }) {
+  const [label, setLabel] = React.useState<string | null>(null);
+  const api = React.useMemo<ToastRef>(
+    () => ({
+      showToast: (options) => {
+        const next = options.labelOptions[0]?.label;
+        setLabel(typeof next === 'string' ? next : null);
+      },
+      closeToast: () => {
+        setLabel(null);
+      },
+    }),
+    [],
+  );
+  const toastRef = React.useRef<ToastRef | null>(api);
+  toastRef.current = api;
+  const value = React.useMemo(() => ({ toastRef }), []);
+
+  return (
+    <ToastContext.Provider value={value}>
+      {children}
+      {label === null ? null : <Text>{label}</Text>}
+    </ToastContext.Provider>
+  );
+}
+
 const FlowStack = createNativeStackNavigator();
 
 function routeProbe(routeName: string): React.FC {
@@ -245,8 +277,16 @@ function renderMoneyScreen(
   });
   const state = rewardsMoneyViewState(options);
 
+  function ScreenWithToast() {
+    return (
+      <RewardsMoneyToastHost>
+        <Component />
+      </RewardsMoneyToastHost>
+    );
+  }
+
   return {
-    ...renderScreenWithRoutes(Component, { name }, rewardsFlowRoutes(), {
+    ...renderScreenWithRoutes(ScreenWithToast, { name }, rewardsFlowRoutes(), {
       state,
     }),
     engine,
