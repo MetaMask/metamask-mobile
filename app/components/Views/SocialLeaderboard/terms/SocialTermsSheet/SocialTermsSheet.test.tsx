@@ -148,6 +148,28 @@ describe('SocialTermsSheet', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('ignores a WebView scroll event that reports a viewport-sized document', () => {
+    const { getByTestId } = renderWithProvider(
+      <SocialTermsSheet
+        html="<html><body>Terms</body></html>"
+        onAgree={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    fireEvent.scroll(getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW), {
+      nativeEvent: {
+        layoutMeasurement: { height: 400 },
+        contentOffset: { y: 0 },
+        contentSize: { height: 400 },
+      },
+    });
+
+    expect(
+      getByTestId(SocialTermsSheetSelectorsIDs.SCROLL_HELPER),
+    ).toBeOnTheScreen();
+  });
+
   it('does not mark the terms as read before the content is measured', () => {
     const { getByTestId } = renderWithProvider(
       <SocialTermsSheet

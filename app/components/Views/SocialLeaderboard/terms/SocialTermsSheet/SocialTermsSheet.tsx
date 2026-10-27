@@ -112,6 +112,18 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
     [markReachedEnd],
   );
 
+  // Native WebView metrics can report a viewport-sized document before it
+  // loads, so only a real scroll counts here. Short documents are covered by
+  // the injected script, which reads the loaded document height.
+  const handleWebViewScroll = useCallback(
+    ({ nativeEvent }: NativeSyntheticEvent<ScrollMetrics>) => {
+      if (nativeEvent.contentOffset.y > 0 && isAtEnd(nativeEvent)) {
+        markReachedEnd();
+      }
+    },
+    [markReachedEnd],
+  );
+
   const handleLayout = useCallback((event: LayoutChangeEvent) => {
     setViewportHeight(event.nativeEvent.layout.height);
   }, []);
@@ -167,7 +179,7 @@ const SocialTermsSheet: React.FC<SocialTermsSheetProps> = ({
             nestedScrollEnabled
             injectedJavaScript={WEBVIEW_SCROLL_END_JS}
             onMessage={handleWebViewMessage}
-            onScroll={handleScroll}
+            onScroll={handleWebViewScroll}
             onShouldStartLoadWithRequest={(request) =>
               isAllowedTermsUrl(request.url, allowedOrigin)
             }
