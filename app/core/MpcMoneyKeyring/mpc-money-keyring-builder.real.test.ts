@@ -2,6 +2,7 @@ import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-
 import { sha256 } from '@noble/hashes/sha2';
 import {
   buildRealMpcMoneyKeyringBuilder,
+  MPC_MFA_WHITELIST_CONFIG,
   setMpcTwoFactorTokenProvider,
 } from './mpc-money-keyring-builder';
 import { applyEmptyIkmHkdfWorkaround } from './empty-ikm-hkdf-workaround';
@@ -81,6 +82,14 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     expect(getBearerToken).toHaveBeenCalledTimes(1);
 
     setMpcTwoFactorTokenProvider(undefined);
+  });
+
+  it('pins the Money Account whitelist config', async () => {
+    const { options } = buildKeyring();
+
+    expect(await options.getMfaWhitelistConfig?.()).toBe(
+      MPC_MFA_WHITELIST_CONFIG,
+    );
   });
 
   it('derives a 32-byte backup key from the profile id', async () => {

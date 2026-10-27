@@ -6,7 +6,10 @@ import {
   MpcMoneyKeyring as MpcMoneyKeyringV2,
   type MpcMoneyKeyringOptions,
 } from '@metamask/eth-money-mpc-keyring/v2';
-import { MpcMoneyKeyring as RealMpcMoneyKeyring } from '@metamask/eth-money-mpc-keyring';
+import {
+  MpcMoneyKeyring as RealMpcMoneyKeyring,
+  type MfaWhitelistConfig,
+} from '@metamask/eth-money-mpc-keyring';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
 import { applyEmptyIkmHkdfWorkaround } from './empty-ikm-hkdf-workaround';
@@ -18,6 +21,34 @@ const MPC_CLOUD_URL =
 const MPC_RELAYER_URL =
   process.env.MM_MONEY_MPC_RELAYER_URL ||
   'wss://mfa-relayer.dev-api.cx.metamask.io/connection/websocket';
+
+/**
+ * The Money Account contracts on Monad. Signatures that only touch these skip
+ * 2FA; without the config, every signature requires it.
+ */
+export const MPC_MFA_WHITELIST_CONFIG: MfaWhitelistConfig = {
+  chainId: '0x8f',
+  contracts: {
+    DelegationManager: '0xdb9B1e94B5b69Df7e401DDbedE43491141047dB3',
+    EIP7702StatelessDeleGatorImpl: '0x63c0c19a282a1B52b07dD5a65b58948A07DAE32B',
+    ERC20TransferAmountEnforcer: '0xf100b0819427117EcF76Ed94B358B1A5b5C6D2Fc',
+    ExactExecutionBatchEnforcer: '0x1e141e455d08721Dd5BCDA1BaA6Ea5633Afd5017',
+    ExactExecutionEnforcer: '0x146713078D39eCC1F5338309c28405ccf85Abfbb',
+    LimitedCallsEnforcer: '0x04658B29F6b82ed55274221a06Fc97D318E25416',
+    RedeemerEnforcer: '0xE144b0b2618071B4E56f746313528a669c7E65c5',
+    ValueLteEnforcer: '0x92Bf12322527cAA612fd31a0e810472BBB106A8F',
+  },
+  musdTokenAddress: '0xacA92E438df0B2401fF60dA7E4337B687a2435DA',
+  chompDelegateAddress: '0x923BfB282a77265b5374AAd0314CB27fEB1917F7',
+  vaults: [
+    {
+      boringVault: '0x1C8a336051D2024E318A229d01F9F6CF96efD316',
+      tellerAddress: '0xB30755C750E0A7E5BeD3dDAf0D9948Cf2b1CDc87',
+      vedaVaultAdapterAddress: '0x8E6baE671D7406898D958B9799C37B96058aBA01',
+    },
+  ],
+  cardSignInDomain: 'link.metamask.io',
+};
 
 /**
  * Build the V1 keyring builder for the Money MPC keyring stub.
@@ -132,6 +163,7 @@ export function buildRealMpcMoneyKeyringBuilder({
             `mm-mobile-dev-backup:${getProfileId(await getBearerToken())}`,
           ),
         ),
+      getMfaWhitelistConfig: async () => MPC_MFA_WHITELIST_CONFIG,
       webSocket: WebSocket,
     });
   };
