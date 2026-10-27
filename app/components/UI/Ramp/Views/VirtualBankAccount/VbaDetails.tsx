@@ -262,9 +262,13 @@ const VbaDetails = () => {
   const [stateAccountKey, setStateAccountKey] = useState(accountKey);
 
   const finishPixFetchTrace = useCallback(
-    (success: boolean, reason?: VbaCufEndReason) => {
+    (
+      success: boolean,
+      reason?: VbaCufEndReason,
+      expectedTraceId = pixFetchTraceIdRef.current,
+    ) => {
       const traceId = pixFetchTraceIdRef.current;
-      if (!traceId) {
+      if (!traceId || traceId !== expectedTraceId) {
         return;
       }
       pixFetchTraceIdRef.current = null;
@@ -433,6 +437,7 @@ const VbaDetails = () => {
           TraceName.VbaPixFetch,
         );
       }
+      const requestTraceId = pixFetchTraceIdRef.current;
       try {
         const details = await neoBank.getDepositInstructions(autoramp.id);
         if (!stillCurrent()) {
@@ -441,11 +446,12 @@ const VbaDetails = () => {
             isMountedRef.current
               ? VBA_CUF_END_REASON.SUPERSEDED
               : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
           );
           return;
         }
         if (details) {
-          finishPixFetchTrace(true);
+          finishPixFetchTrace(true, undefined, requestTraceId);
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
           pollingDoneRef.current = !debugEnabled;
@@ -457,6 +463,7 @@ const VbaDetails = () => {
             isMountedRef.current
               ? VBA_CUF_END_REASON.SUPERSEDED
               : VBA_CUF_END_REASON.BAILED,
+            requestTraceId,
           );
           return;
         }
