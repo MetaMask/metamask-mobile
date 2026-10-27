@@ -13,7 +13,11 @@ import type {
   NavigationProp,
   NavigatorScreenParams,
 } from '@react-navigation/native';
-import { isSolanaAccount } from '../../../core/Multichain/utils';
+import {
+  isBtcAccount,
+  isSolanaAccount,
+  isTronAccount,
+} from '../../../core/Multichain/utils';
 import { getAddressAccountType } from '../../../util/address';
 import Routes from '../../../constants/navigation/Routes';
 import type { RewardsStackParamList } from './types/navigation';
@@ -118,11 +122,16 @@ export const deriveAccountMetricProps = (account?: InternalAccount) => {
     };
   }
 
-  const scope = isEvmAccountType(account.type)
-    ? 'evm'
-    : isSolanaAccount(account)
-      ? 'solana'
-      : account.type; // Fallback to account.type for other types
+  let scope: string = account.type;
+  if (isEvmAccountType(account.type)) {
+    scope = 'evm';
+  } else if (isSolanaAccount(account)) {
+    scope = 'solana';
+  } else if (isBtcAccount(account)) {
+    scope = 'bitcoin';
+  } else if (isTronAccount(account)) {
+    scope = 'tron';
+  }
   let type = account.metadata?.keyring?.type;
 
   try {
