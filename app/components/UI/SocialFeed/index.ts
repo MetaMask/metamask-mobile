@@ -1,5 +1,6 @@
 export {
   socialFeedSourceFromAsset,
+  toFeedAssetId,
   toSocialFeedRequest,
 } from './data/socialFeedSource';
 export type {
