@@ -100,10 +100,9 @@ describe('VbaOnboardingStub', () => {
       );
 
       expect(trackVbaEvent).toHaveBeenCalledTimes(1);
-      expect(trackVbaEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ category: 'Money VBA Error Viewed' }),
-        expect.objectContaining({ screen_name: screenName }),
-      );
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({ category: 'Money VBA Error Viewed' });
+      expect(buildProperties()).toMatchObject({ screen_name: screenName });
     },
   );
 });

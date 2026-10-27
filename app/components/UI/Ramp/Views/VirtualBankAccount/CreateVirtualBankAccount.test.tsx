@@ -395,13 +395,15 @@ describe('CreateVirtualBankAccount', () => {
   });
 
   describe('analytics', () => {
-    const vendorTermsStatuses = () =>
+    const vendorTermsProperties = () =>
       jest
         .mocked(trackVbaEvent)
         .mock.calls.filter(
           ([event]) => event.category === 'Money VBA Vendor Terms Updated',
         )
-        .map(([, properties]) => properties.status);
+        .map(([, buildProperties]) => buildProperties());
+    const vendorTermsStatuses = () =>
+      vendorTermsProperties().map((properties) => properties.status);
 
     it('tracks viewed once when the screen opens', () => {
       renderWithProvider(
@@ -426,10 +428,9 @@ describe('CreateVirtualBankAccount', () => {
       );
 
       expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
-      expect(trackVbaEvent).toHaveBeenLastCalledWith(
-        expect.anything(),
-        expect.objectContaining({ failure_reason: 'terms_unavailable' }),
-      );
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_unavailable',
+      });
     });
 
     it('tracks accepted after the terms are saved and before advancing', async () => {
@@ -456,7 +457,7 @@ describe('CreateVirtualBankAccount', () => {
       );
     });
 
-    it('does not track accepted when the terms were not saved', async () => {
+    it('tracks a submission failure when the terms loaded but were not saved', async () => {
       mockAcceptDisclaimers.mockResolvedValue(false);
       const { getByTestId } = renderWithProvider(
         <CreateVirtualBankAccount onSuccess={mockOnSuccess} />,
@@ -470,7 +471,11 @@ describe('CreateVirtualBankAccount', () => {
         );
       });
 
-      expect(vendorTermsStatuses()).toStrictEqual(['viewed']);
+      expect(vendorTermsStatuses()).toStrictEqual(['viewed', 'failed']);
+      expect(vendorTermsProperties().at(-1)).toMatchObject({
+        failure_reason: 'terms_submission_failed',
+      });
+      expect(mockOnSuccess).not.toHaveBeenCalled();
     });
   });
 });

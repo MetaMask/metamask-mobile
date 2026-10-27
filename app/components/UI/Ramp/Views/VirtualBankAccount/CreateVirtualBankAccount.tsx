@@ -49,13 +49,13 @@ const trackVendorTerms = (
   status: 'viewed' | 'accepted' | 'failed',
   failureReason?: string,
 ) =>
-  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_VENDOR_TERMS_UPDATED, {
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_VENDOR_TERMS_UPDATED, () => ({
     ...buildVbaBaseProperties({
       screenName: VENDOR_TERMS_SCREEN_NAME,
       failureReason,
     }),
     status,
-  });
+  }));
 
 const FeatureRow = ({
   icon,
@@ -124,12 +124,14 @@ const CreateVirtualBankAccount = ({
     trackVendorTerms('viewed');
   }, []);
 
-  // Fires when a load, empty-catalog or save error appears, not on each render.
+  // Only the load and empty-catalog failures leave the screen without usable
+  // terms. A save failure keeps them on screen and is reported from the
+  // handler as terms_submission_failed.
   useEffect(() => {
-    if (disclaimersError) {
+    if (disclaimersError && !disclaimers?.length) {
       trackVendorTerms('failed', 'terms_unavailable');
     }
-  }, [disclaimersError]);
+  }, [disclaimersError, disclaimers]);
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
 
@@ -147,6 +149,9 @@ const CreateVirtualBankAccount = ({
         trackVendorTerms('accepted');
         await onSuccess();
         didAdvance = true;
+      } else {
+        // The terms loaded but the accepted ids could not be stored.
+        trackVendorTerms('failed', 'terms_submission_failed');
       }
     } catch (error) {
       Logger.error(error as Error, {

@@ -3,7 +3,6 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import Logger from '../../../../../util/Logger';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  buildKycBaseProperties,
   buildVbaBaseProperties,
   recordVbaOnboardingSnapshot,
   resetVbaOnboardingSnapshotForAnalytics,
@@ -92,42 +91,28 @@ describe('vbaAnalytics', () => {
     });
 
     it.each([[undefined], ['UNKNOWN'], ['XX']])(
-      'omits region for location %s',
+      'reports an unknown region for location %s',
       (location) => {
         mockGetState.mockReturnValue(stateWithLocation(location));
 
-        expect(buildVbaBaseProperties()).not.toHaveProperty('region');
+        expect(buildVbaBaseProperties().region).toBe('unknown');
       },
     );
 
-    it('omits region when the store is unavailable', () => {
+    it('reports an unknown region when the store is unavailable', () => {
       mockGetState.mockImplementation(() => {
         throw new Error('no store');
       });
 
-      expect(buildVbaBaseProperties()).not.toHaveProperty('region');
-    });
-  });
-
-  describe('buildKycBaseProperties', () => {
-    it('builds the KYC funnel properties', () => {
-      expect(buildKycBaseProperties({ kycStatus: 'rejected' })).toStrictEqual({
-        screen_name: 'vba_onboarding',
-        entry_point: 'add_funds_bank_account',
-        vendor: 'moonpay',
-        kyc_provider: 'sumsub',
-        kyc_status: 'rejected',
-        provider_flow_status: 'not_started',
-        region: 'br',
-      });
+      expect(buildVbaBaseProperties().region).toBe('unknown');
     });
   });
 
   describe('trackVbaEvent', () => {
     it('tracks the event with its properties', () => {
-      trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, {
+      trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () => ({
         screen_name: 'vba_details',
-      });
+      }));
 
       const event = jest.mocked(analytics.trackEvent).mock.calls[0][0];
       expect(event.name).toBe('Money VBA Details Viewed');
@@ -141,8 +126,22 @@ describe('vbaAnalytics', () => {
       });
 
       expect(() =>
-        trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, {}),
+        trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () => ({})),
       ).not.toThrow();
+      expect(Logger.error).toHaveBeenCalledWith(error, {
+        tags: { feature: 'vba-onboarding', event: 'Money VBA Details Viewed' },
+      });
+    });
+
+    it('logs instead of throwing when building the properties fails', () => {
+      const error = new Error('properties failed');
+
+      expect(() =>
+        trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () => {
+          throw error;
+        }),
+      ).not.toThrow();
+      expect(jest.mocked(analytics.trackEvent)).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error, {
         tags: { feature: 'vba-onboarding', event: 'Money VBA Details Viewed' },
       });

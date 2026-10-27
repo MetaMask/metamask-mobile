@@ -319,25 +319,24 @@ describe('VbaVerifyIdentity', () => {
   });
 
   describe('analytics', () => {
-    const identityTermsStatuses = () =>
+    const identityTermsProperties = () =>
       jest
         .mocked(trackVbaEvent)
         .mock.calls.filter(
           ([event]) => event.category === 'KYC Identity Terms Updated',
         )
-        .map(([, properties]) => properties.status);
+        .map(([, buildProperties]) => buildProperties());
+    const identityTermsStatuses = () =>
+      identityTermsProperties().map((properties) => properties.status);
 
     it('tracks viewed once when the page opens', () => {
       renderScreen();
 
       expect(identityTermsStatuses()).toStrictEqual(['viewed']);
-      expect(trackVbaEvent).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({
-          screen_name: 'vba_onboarding',
-          kyc_provider: 'sumsub',
-        }),
-      );
+      expect(identityTermsProperties()[0]).toMatchObject({
+        screen_name: 'vba_onboarding',
+        kyc_provider: 'sumsub',
+      });
     });
 
     it('tracks failed when the terms fail to load', () => {

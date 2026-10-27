@@ -1139,7 +1139,7 @@ describe('VbaDetails', () => {
       });
       expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
       expect(detailsViewedCalls()).toHaveLength(1);
-      expect(detailsViewedCalls()[0][1]).toMatchObject({
+      expect(detailsViewedCalls()[0][1]()).toMatchObject({
         screen_name: 'vba_details',
       });
     });

@@ -36,10 +36,8 @@ import { VbaVerifyIdentitySelectorsIDs } from './VerifyIdentity.testIds';
 import VbaProviderTermsSheet from './ProviderTermsSheet';
 import { useKycSessionDisclaimers } from '../../hooks/useKycSessionDisclaimers';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import {
-  buildKycBaseProperties,
-  trackVbaEvent,
-} from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { trackVbaEvent } from '../../../Ramp/Views/VirtualBankAccount/vbaAnalytics';
+import { buildKycBaseProperties } from '../../utils/kycBaseProperties';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
   KYC_SCREEN_CONTENT_STATE,
@@ -49,10 +47,10 @@ import {
 } from '../../kycScreenPerformance';
 
 const trackIdentityTerms = (status: 'viewed' | 'accepted' | 'failed') =>
-  trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, {
+  trackVbaEvent(MetaMetricsEvents.KYC_IDENTITY_TERMS_UPDATED, () => ({
     ...buildKycBaseProperties(),
     status,
-  });
+  }));
 
 const VERIFICATION_STEPS = [
   {

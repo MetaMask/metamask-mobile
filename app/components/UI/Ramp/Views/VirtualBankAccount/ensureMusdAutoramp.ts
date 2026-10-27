@@ -18,13 +18,13 @@ const AUTORAMP_DESTINATION = {
 } as const;
 
 const trackAutorampCreateFailed = (sourceCurrency: VbaSourceCurrency) => {
-  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+  trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
     ...buildVbaBaseProperties({
       currencySource: sourceCurrency,
       failureReason: 'vba_create_failed',
     }),
     status: 'failed',
-  });
+  }));
 };
 
 /**
@@ -141,12 +141,12 @@ const createAutoramp = async (
       trackAutorampCreateFailed(sourceCurrency);
       throw new AccountCreateRegistrationError(result);
     }
-    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, {
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_AUTORAMP_CREATE_UPDATED, () => ({
       ...buildVbaBaseProperties({ currencySource: sourceCurrency }),
       status: 'succeeded',
       autoramp_id: response.id,
       ...AUTORAMP_DESTINATION,
-    });
+    }));
   } catch (error) {
     if (error instanceof AccountCreateRegistrationError) {
       throw error;

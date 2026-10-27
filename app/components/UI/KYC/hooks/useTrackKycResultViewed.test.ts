@@ -18,13 +18,12 @@ describe('useTrackKycResultViewed', () => {
       renderHook(() => useTrackKycResultViewed(kycStatus));
 
       expect(trackVbaEvent).toHaveBeenCalledTimes(1);
-      expect(trackVbaEvent).toHaveBeenCalledWith(
-        expect.objectContaining({ category: 'KYC Result Viewed' }),
-        expect.objectContaining({
-          kyc_status: kycStatus,
-          screen_name: 'vba_onboarding',
-        }),
-      );
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({ category: 'KYC Result Viewed' });
+      expect(buildProperties()).toMatchObject({
+        kyc_status: kycStatus,
+        screen_name: 'vba_onboarding',
+      });
     },
   );
 

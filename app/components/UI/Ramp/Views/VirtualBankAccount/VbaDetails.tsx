@@ -521,8 +521,7 @@ const VbaDetails = () => {
       return;
     }
     detailsViewedRef.current = true;
-    trackVbaEvent(
-      MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED,
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_DETAILS_VIEWED, () =>
       buildVbaBaseProperties({
         screenName: 'vba_details',
         currencySource: sourceCurrency,

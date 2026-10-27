@@ -36,8 +36,7 @@ const VbaOnboardingStub = ({ variant, onContinue }: VbaOnboardingStubProps) => {
   const navigation = useNavigation<AppNavigationProp>();
 
   useEffect(() => {
-    trackVbaEvent(
-      MetaMetricsEvents.MONEY_VBA_ERROR_VIEWED,
+    trackVbaEvent(MetaMetricsEvents.MONEY_VBA_ERROR_VIEWED, () =>
       buildVbaBaseProperties({ screenName: `vba_${variant}` }),
     );
   }, [variant]);

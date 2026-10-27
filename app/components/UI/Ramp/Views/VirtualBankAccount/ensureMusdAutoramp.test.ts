@@ -294,15 +294,14 @@ describe('ensureMusdAutoramp', () => {
           result: { kind: 'fiat', status },
         }),
       );
-      expect(trackVbaEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          category: 'Money VBA Autoramp Create Updated',
-        }),
-        expect.objectContaining({
-          status: 'failed',
-          failure_reason: 'vba_create_failed',
-        }),
-      );
+      const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+      expect(event).toMatchObject({
+        category: 'Money VBA Autoramp Create Updated',
+      });
+      expect(buildProperties()).toMatchObject({
+        status: 'failed',
+        failure_reason: 'vba_create_failed',
+      });
     },
   );
 
@@ -310,18 +309,17 @@ describe('ensureMusdAutoramp', () => {
     await ensureMusdAutoramp('0xabc', 'BRL');
 
     expect(trackVbaEvent).toHaveBeenCalledTimes(1);
-    expect(trackVbaEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        category: 'Money VBA Autoramp Create Updated',
-      }),
-      expect.objectContaining({
-        status: 'succeeded',
-        autoramp_id: 'ar-new',
-        currency_destination_symbol: 'mUSD',
-        token_chain_id: 'eip155:143',
-        currency_source: 'BRL',
-      }),
-    );
+    const [event, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    expect(event).toMatchObject({
+      category: 'Money VBA Autoramp Create Updated',
+    });
+    expect(buildProperties()).toMatchObject({
+      status: 'succeeded',
+      autoramp_id: 'ar-new',
+      currency_destination_symbol: 'mUSD',
+      token_chain_id: 'eip155:143',
+      currency_source: 'BRL',
+    });
   });
 
   it('tracks a failed create once with a failure reason', async () => {
@@ -334,7 +332,8 @@ describe('ensureMusdAutoramp', () => {
     );
 
     expect(trackVbaEvent).toHaveBeenCalledTimes(1);
-    const [, properties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    const [, buildProperties] = jest.mocked(trackVbaEvent).mock.calls[0];
+    const properties = buildProperties();
     expect(properties).toMatchObject({
       status: 'failed',
       failure_reason: 'vba_create_failed',
