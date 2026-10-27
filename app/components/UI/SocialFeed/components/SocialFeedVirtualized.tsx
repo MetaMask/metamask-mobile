@@ -17,6 +17,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
@@ -75,7 +76,11 @@ const keyExtractor = (post: SocialV1FeedPost) =>
  * scales its render window and entrances to the device.
  */
 const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
-  source,
+  scope,
+  chains,
+  assetIds,
+  profileId,
+  commentedOnly,
   location,
   analyticsSource,
   isActive,
@@ -110,6 +115,17 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const isOffline = networkTier === 'NONE';
   const listWindow = isLowHardware ? LIST_WINDOW.low : LIST_WINDOW.default;
 
+  const query = useMemo(
+    (): SocialFeedQuery => ({
+      scope,
+      chains,
+      assetIds,
+      profileId,
+      commentedOnly,
+    }),
+    [assetIds, chains, commentedOnly, profileId, scope],
+  );
+
   const {
     posts,
     isLoading,
@@ -119,7 +135,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     refresh,
     dataUpdatedAt,
     realtime: live,
-  } = useSocialFeed(source, {
+  } = useSocialFeed(query, {
     enabled: isFocused && !isOffline,
     realtime,
     paused,
