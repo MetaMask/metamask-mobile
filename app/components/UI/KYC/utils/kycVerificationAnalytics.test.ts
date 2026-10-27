@@ -124,10 +124,14 @@ describe('kycVerificationAnalytics', () => {
       expect(buildKycBaseProperties()).not.toHaveProperty('region');
     });
 
-    it('omits statuses that are unknown', () => {
+    it('uses the schema defaults when the controller state is missing', () => {
       mockEngine.context.KycController = undefined;
 
-      expect(buildKycBaseProperties()).toStrictEqual(BASE_PROPERTIES);
+      expect(buildKycBaseProperties()).toStrictEqual({
+        ...BASE_PROPERTIES,
+        kyc_status: 'none',
+        provider_flow_status: 'not_started',
+      });
     });
 
     it('never includes session or personal data', () => {

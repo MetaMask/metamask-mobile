@@ -3,7 +3,6 @@ import {
   type KycControllerMessenger,
 } from '@metamask/kyc-controller';
 import type { MessengerClientInitFunction } from '../../types';
-import type { KycControllerInitMessenger } from '../../messengers/kyc/kyc-controller-messenger';
 import {
   handleKycStatusChangedForMetrics,
   handleVerificationStatusChangedForMetrics,
@@ -17,9 +16,9 @@ import { sumsubLauncher } from './sumSubLauncher';
  * and the SumSub hand-off. Platform-specific SDK presentation is delegated to
  * the injected {@link sumsubLauncher}.
  *
- * SumSub launch outcomes (`KycController:analyticsVerificationOutcome`) and KYC
- * status changes (`KycController:analyticsStatusChanged`) are mapped to analytics
- * here.
+ * `trackKycAnalytics` records SumSub launch outcomes and stored KYC status
+ * changes. `started` and `retry_started` are UI moments and are tracked by
+ * the screens that see them.
  *
  * Money-account wallet registration and autoramp creation after KYC approval
  * run in the VBA onboarding coordinator (`resolveVbaOnboarding`), not in
@@ -28,28 +27,24 @@ import { sumsubLauncher } from './sumSubLauncher';
  * @param request - The request object.
  * @param request.controllerMessenger - The messenger for the controller.
  * @param request.persistedState - Persisted state to hydrate from.
- * @param request.initMessenger - The init messenger for event subscriptions.
  * @returns The initialized KycController.
  */
 export const kycControllerInit: MessengerClientInitFunction<
   KycController,
-  KycControllerMessenger,
-  KycControllerInitMessenger
-> = ({ controllerMessenger, persistedState, initMessenger }) => {
-  const controller = new KycController({
+  KycControllerMessenger
+> = ({ controllerMessenger, persistedState }) => {
+  // `trackKycAnalytics` lands with the @metamask/kyc-controller release that
+  // adds it. The installed type does not include the option yet.
+  const options = {
     messenger: controllerMessenger,
     state: persistedState.KycController,
     sumsubLauncher,
-  });
-
-  initMessenger.subscribe(
-    'KycController:analyticsVerificationOutcome',
-    handleVerificationStatusChangedForMetrics,
-  );
-  initMessenger.subscribe(
-    'KycController:analyticsStatusChanged',
-    handleKycStatusChangedForMetrics,
-  );
+    trackKycAnalytics: {
+      verificationOutcome: handleVerificationStatusChangedForMetrics,
+      statusChanged: handleKycStatusChangedForMetrics,
+    },
+  };
+  const controller = new KycController(options);
 
   return { controller };
 };

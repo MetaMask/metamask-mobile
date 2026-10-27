@@ -97,9 +97,9 @@ export function buildKycBaseProperties(
     entry_point: KYC_ANALYTICS_ENTRY_POINT,
     vendor: KYC_ANALYTICS_VENDOR,
     kyc_provider: KYC_ANALYTICS_PROVIDER,
+    kyc_status: kycStatus ?? 'none',
+    provider_flow_status: providerFlowStatus ?? 'not_started',
     ...(region ? { region } : {}),
-    ...(kycStatus ? { kyc_status: kycStatus } : {}),
-    ...(providerFlowStatus ? { provider_flow_status: providerFlowStatus } : {}),
   };
 }
 

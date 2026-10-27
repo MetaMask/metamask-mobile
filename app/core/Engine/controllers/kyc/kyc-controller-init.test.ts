@@ -1,10 +1,6 @@
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
-import {
-  getKycControllerInitMessenger,
-  getKycControllerMessenger,
-  type KycControllerInitMessenger,
-} from '../../messengers/kyc/kyc-controller-messenger';
+import { getKycControllerMessenger } from '../../messengers/kyc/kyc-controller-messenger';
 import { MessengerClientInitRequest } from '../../types';
 import { kycControllerInit } from './kyc-controller-init';
 import {
@@ -51,9 +47,7 @@ function getInitRequestMock(
   overrides: {
     persistedState?: { KycController?: Partial<KycControllerState> };
   } = {},
-): jest.Mocked<
-  MessengerClientInitRequest<KycControllerMessenger, KycControllerInitMessenger>
-> {
+): jest.Mocked<MessengerClientInitRequest<KycControllerMessenger>> {
   const { persistedState = {} } = overrides;
 
   const baseMessenger = new ExtendedMessenger<MockAnyNamespace, never>({
@@ -63,7 +57,6 @@ function getInitRequestMock(
   const requestMock = {
     ...buildMessengerClientInitRequestMock(baseMessenger),
     controllerMessenger: getKycControllerMessenger(baseMessenger),
-    initMessenger: getKycControllerInitMessenger(baseMessenger),
     persistedState,
   };
 
@@ -126,19 +119,12 @@ describe('kycControllerInit', () => {
     expect(getLastConstructorArgs()?.sumsubLauncher).toBe(sumsubLauncher);
   });
 
-  it('maps verification and KYC status events to analytics', () => {
-    const request = getInitRequestMock();
-    const subscribeSpy = jest.spyOn(request.initMessenger, 'subscribe');
+  it('passes the analytics callbacks to the controller', () => {
+    kycControllerInit(getInitRequestMock());
 
-    kycControllerInit(request);
-
-    expect(subscribeSpy).toHaveBeenCalledWith(
-      'KycController:analyticsVerificationOutcome',
-      handleVerificationStatusChangedForMetrics,
-    );
-    expect(subscribeSpy).toHaveBeenCalledWith(
-      'KycController:analyticsStatusChanged',
-      handleKycStatusChangedForMetrics,
-    );
+    expect(getLastConstructorArgs()?.trackKycAnalytics).toStrictEqual({
+      verificationOutcome: handleVerificationStatusChangedForMetrics,
+      statusChanged: handleKycStatusChangedForMetrics,
+    });
   });
 });

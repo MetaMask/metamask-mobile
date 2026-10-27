@@ -8,10 +8,10 @@ import {
 } from '../../../../../components/UI/KYC/utils/kycVerificationAnalytics';
 
 /**
- * Maps `KycController:analyticsVerificationOutcome` to `KYC Verification Updated`.
- * The controller publishes it once per SumSub launch attempt.
+ * Maps a SumSub launch outcome from `trackKycAnalytics.verificationOutcome`
+ * to `KYC Verification Updated`. The controller calls it once per attempt.
  *
- * @param payload - The event payload.
+ * @param payload - The launch outcome.
  */
 export function handleVerificationStatusChangedForMetrics(
   payload: KycAnalyticsVerificationOutcomePayload,
@@ -24,11 +24,11 @@ export function handleVerificationStatusChangedForMetrics(
 }
 
 /**
- * Maps `KycController:analyticsStatusChanged` to `KYC Status Updated`. The controller
- * publishes it after a write that changes the derived KYC status, and not when
- * an already-decided session is loaded into empty state.
+ * Maps a `trackKycAnalytics.statusChanged` call to `KYC Status Updated`. The
+ * controller calls it after a write that changes the analytics KYC status, and
+ * not when an already-decided session is loaded into empty state.
  *
- * @param payload - The event payload.
+ * @param payload - The status change.
  */
 export function handleKycStatusChangedForMetrics(
   payload: KycAnalyticsStatusChangedPayload,
