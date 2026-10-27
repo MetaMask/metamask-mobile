@@ -8,12 +8,10 @@ import {
   buildSocialFeedQueryKey,
   FEED_PAGE_LIMIT,
 } from '../../../../UI/SocialFeed/data/socialFeedQueries';
-import {
-  toFeedScope,
-  toSocialFeedRequest,
-} from '../../../../UI/SocialFeed/data/socialFeedSource';
+import { toSocialFeedRequest } from '../../../../UI/SocialFeed/data/socialFeedSource';
 import {
   PREFETCH_FEED_AUDIENCES,
+  toFeedScope,
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
@@ -71,7 +69,7 @@ describe('traderFeedQueries', () => {
     });
 
     it('matches the useSocialFeed key for the global feed, so both share a cache', () => {
-      const request = toSocialFeedRequest({ kind: 'all', audience: 'all' });
+      const request = toSocialFeedRequest({ scope: 'leaderboard' });
 
       expect(buildTraderFeedQueryKey('leaderboard')).toEqual(
         request && buildSocialFeedQueryKey(request, FEED_PAGE_LIMIT),

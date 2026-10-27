@@ -25,8 +25,8 @@ import {
   buildTraderFeedQueryKey,
   fetchTraderFeedPage,
   getTraderFeedNextPageParam,
+  toFeedScope,
 } from './traderFeedQueries';
-import { toFeedScope } from '../../../../UI/SocialFeed/data/socialFeedSource';
 
 export interface UseTraderFeedOptions {
   /**

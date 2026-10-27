@@ -19,7 +19,6 @@ import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
@@ -40,12 +39,6 @@ import {
 } from '../analytics';
 
 const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
-
-const LIVE_FEED_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  scope: 'all',
-};
 
 type LiveStreamState = 'paused' | 'live';
 
@@ -194,7 +187,7 @@ const LiveView: React.FC<LiveViewProps> = ({
   return (
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
-        source={LIVE_FEED_SOURCE}
+        scope="all"
         location="social_live"
         analyticsSource={source}
         isActive={isActive}

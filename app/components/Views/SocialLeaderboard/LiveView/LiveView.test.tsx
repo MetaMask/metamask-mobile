@@ -19,7 +19,7 @@ import LiveView from './LiveView';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 
 interface MockSocialFeedProps {
-  source: unknown;
+  scope: string;
   location: string;
   scrollMode: string;
   realtime?: boolean;
@@ -160,7 +160,7 @@ describe('LiveView', () => {
 
     expect(lastFeedProps()).toEqual(
       expect.objectContaining({
-        source: { kind: 'all', audience: 'all', scope: 'all' },
+        scope: 'all',
         location: 'social_live',
         scrollMode: 'virtualized',
         realtime: true,
