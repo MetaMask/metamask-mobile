@@ -59,29 +59,14 @@ enum FontRegistration {
 
 enum AuthorizationPhase {
     case checking
-    case verify
     case signInRequired
     case unavailable
-    case error
     case verificationFailed
 }
 
 final class AuthorizationModel: ObservableObject {
     @Published var phase: AuthorizationPhase = .checking
     @Published var statusMessage = ""
-
-    var biometricTitle: String {
-        let context = LAContext()
-        _ = context.canEvaluatePolicy(.deviceOwnerAuthentication, error: nil)
-        switch context.biometryType {
-        case .faceID:
-            return NSLocalizedString("Continue with Face ID", comment: "")
-        case .touchID:
-            return NSLocalizedString("Continue with Touch ID", comment: "")
-        default:
-            return NSLocalizedString("Continue with passcode", comment: "")
-        }
-    }
 
     func start() {
         phase = .checking
@@ -188,23 +173,12 @@ struct AuthorizationView: View {
             Text("Checking your MetaMask Card")
                 .font(WalletFont.body)
                 .foregroundStyle(WalletColor.text)
-        case .verify:
-            Text("Verify it's you")
-                .font(WalletFont.title)
-                .foregroundStyle(WalletColor.text)
-            primaryButton(model.biometricTitle) { model.start() }
         case .signInRequired, .unavailable:
             Text("Open the MetaMask app and sign in to your MetaMask Card, then return to Wallet.")
                 .font(WalletFont.body)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(WalletColor.text)
             primaryButton("Close") { cancel() }
-        case .error:
-            Text("Something went wrong.")
-                .font(WalletFont.body)
-                .foregroundStyle(WalletColor.error)
-            primaryButton("Try again") { model.retry() }
-            secondaryButton("Close") { cancel() }
         case .verificationFailed:
             Text("Verification failed or was canceled.")
                 .font(WalletFont.body)
@@ -256,7 +230,6 @@ enum WalletColor {
     static let background = adaptive(light: 0xFFFFFF, dark: 0x000000)
     static let text = adaptive(light: 0x131416, dark: 0xFFFFFF)
     static let primary = adaptive(light: 0x4459FF, dark: 0x8B99FF)
-    static let error = adaptive(light: 0xCA3542, dark: 0xFF7584)
 
     private static func adaptive(light: UInt32, dark: UInt32) -> Color {
         Color(uiColor: UIColor { traits in
@@ -275,7 +248,6 @@ enum WalletColor {
 }
 
 enum WalletFont {
-    static let title = Font.custom("MM Sans", size: 22).weight(.bold)
     static let body = Font.custom("MM Sans", size: 16)
     static let button = Font.custom("MM Sans", size: 16).weight(.medium)
 }
