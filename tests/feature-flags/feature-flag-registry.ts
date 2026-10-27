@@ -4707,6 +4707,28 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyVbaCompletedActivityEnabled: {
+    name: 'moneyVbaCompletedActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyVbaPendingActivityEnabled: {
+    name: 'moneyVbaPendingActivityEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableActivityDetails: {
     name: 'moneyEnableActivityDetails',
     type: FeatureFlagType.Remote,
@@ -8607,16 +8629,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyVbaActivityDepositFromAddresses: {
-    name: 'moneyVbaActivityDepositFromAddresses',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      enabled: false,
     },
     status: FeatureFlagStatus.Active,
   },

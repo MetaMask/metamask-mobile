@@ -16,7 +16,6 @@ export const TrendingViewSelectorsIDs = {
   PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
-  HEADER_ROOT: AppTrendingViewSelectorsIDs.EXPLORE_HEADER_ROOT,
   NOW_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW,
   RWAS_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW,
   CRYPTO_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW,

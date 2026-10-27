@@ -3,6 +3,7 @@ import type { ScrollHandlerProcessed } from 'react-native-reanimated';
 import type { SocialFeedSource } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
+import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
 import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
 
 /**
@@ -21,8 +22,12 @@ export interface SocialFeedHeaderProps {
 interface SocialFeedBaseProps {
   /** Which slice to load. The component fetches it; the host does not. */
   source: SocialFeedSource;
-  /** Where this feed is shown. Stored for later analytics. */
+  /** Where this feed is shown. Post events use it; the host does not track. */
   location: SocialSurfaceLocation;
+  /** Entry point when it is not already implied by `location`. */
+  analyticsSource?: SocialEventSource;
+  /** Inactive tabs wait to record the screen view. Defaults to active. */
+  isActive?: boolean;
   /** Optional heading above the posts. */
   title?: string;
   /** Rendered below the title, scrolling with the posts. */

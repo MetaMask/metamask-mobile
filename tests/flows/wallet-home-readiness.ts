@@ -15,7 +15,7 @@ interface AppiumElement {
 
 /**
  * Child chrome that can report displayed while the parent `wallet-screen`
- * wrapper exists but returns `displayed === false`.
+ * wrapper exists but returns `displayed === false` (Appium a11y flake).
  */
 const WALLET_HOME_CHILD_INDICATOR_IDS = [
   WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
@@ -59,6 +59,30 @@ const isAnyWalletHomeChildIndicatorDisplayed = async (): Promise<boolean> => {
 };
 
 /**
+ * iOS only. `wallet-screen` may exist while `isDisplayed` is false.
+ * Android must not use this: the wallet node can exist under the lock screen
+ * before login is mounted (`waitForAppReady` in general.flow.ts).
+ */
+const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
+  try {
+    return await withImplicitWait(500, async () => {
+      const walletScreen = (await Matchers.getElementByID(
+        WalletViewSelectorsIDs.WALLET_CONTAINER,
+      )) as AppiumElement;
+      if (!(await walletScreen.unwrap().isExisting())) {
+        return false;
+      }
+      const loginContainer = (await Matchers.getElementByID(
+        LoginViewSelectors.CONTAINER,
+      )) as AppiumElement;
+      return !(await loginContainer.isVisible());
+    });
+  } catch {
+    return false;
+  }
+};
+
+/**
  * Android Appium wallet readiness. Login must be hidden first — the wallet
  * node can exist under the lock screen. Then accept the parent container or a
  * displayed child. Do not treat mere hierarchy existence as ready.
@@ -79,25 +103,6 @@ export const isWalletHomeReadyOnAndroidStable = async (): Promise<boolean> => {
   }
   await sleep(READINESS_STABILITY_MS);
   return isWalletHomeReadyOnAndroid();
-};
-
-const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
-  try {
-    return await withImplicitWait(500, async () => {
-      const walletScreen = (await Matchers.getElementByID(
-        WalletViewSelectorsIDs.WALLET_CONTAINER,
-      )) as AppiumElement;
-      if (!(await walletScreen.unwrap().isExisting())) {
-        return false;
-      }
-      const loginContainer = (await Matchers.getElementByID(
-        LoginViewSelectors.CONTAINER,
-      )) as AppiumElement;
-      return !(await loginContainer.isVisible());
-    });
-  } catch {
-    return false;
-  }
 };
 
 /**

@@ -35,7 +35,36 @@ export type AccountsApiActivity =
   | (AccountsApiSettlement & {
       kind: 'refund';
       receivedFrom: Hex;
+    })
+  | (AccountsApiSettlement & {
+      /** VBA / Iron (or QA test-wallet) mUSD credit to the Money Account. */
+      kind: 'bank_transfer';
+      receivedFrom: Hex;
+      /**
+       * Money Account API transfer status. Only `confirmed` transfers with an
+       * on-chain hash become completed API activity; in-flight and errored
+       * transfers stay NeoBank rows.
+       */
+      status: 'confirmed';
     });
+
+/**
+ * Off-chain VBA / NeoBank autoramp deposit (PIX → mUSD), before or without an
+ * Accounts-API on-chain settlement row. Status is MoonPay `transaction_status`.
+ */
+export interface NeobankBankTransferActivity {
+  id: string;
+  autorampId: string;
+  /** MoonPay status: Pending, Completed, Failed, Cancelled, … */
+  status: string;
+  time: number;
+  /** Source fiat decimal string when present (BRL). */
+  sourceAmount?: string;
+  /** Destination mUSD decimal string when present. */
+  destinationAmount?: string;
+  /** On-chain payout hash when MoonPay has one (used to dedupe vs Accounts API). */
+  transactionHash?: Hex;
+}
 
 /**
  * One row in the Money activity list, tagged by source.
@@ -43,7 +72,13 @@ export type AccountsApiActivity =
 export type MoneyActivityItem =
   | { kind: 'onchain'; id: string; time: number; tx: TransactionMeta }
   | { kind: 'accountsApi'; id: string; time: number; tx: AccountsApiActivity }
-  | { kind: 'cardProvider'; id: string; time: number; tx: CardTransaction };
+  | { kind: 'cardProvider'; id: string; time: number; tx: CardTransaction }
+  | {
+      kind: 'neobank';
+      id: string;
+      time: number;
+      tx: NeobankBankTransferActivity;
+    };
 
 export const onchainItem = (tx: TransactionMeta): MoneyActivityItem => ({
   kind: 'onchain',
@@ -65,5 +100,14 @@ export const cardProviderItem = (tx: CardTransaction): MoneyActivityItem => ({
   kind: 'cardProvider',
   id: tx.id,
   time: tx.timestamp,
+  tx,
+});
+
+export const neobankItem = (
+  tx: NeobankBankTransferActivity,
+): MoneyActivityItem => ({
+  kind: 'neobank',
+  id: tx.id,
+  time: tx.time,
   tx,
 });
