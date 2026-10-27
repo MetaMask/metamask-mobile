@@ -86,8 +86,6 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
-// Allowlisted PredictNext composition wiring (docs/public-api-contract.md).
-// Goes away when the A2T session becomes an Engine service.
 import { deleteKalshiTradingSession } from '../../components/UI/PredictNext/auth/a2tSessionInstance';
 import {
   setAllowLoginWithRememberMe,
