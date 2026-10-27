@@ -1,0 +1,81 @@
+diff --git a/dist/data-sources/AccountsApiDataSource.js b/dist/data-sources/AccountsApiDataSource.js
+index b29235795270023c0c14035f2df5775a98310fbe..c055304c19fc2d54d70373c5256ec69df0258669 100644
+--- a/dist/data-sources/AccountsApiDataSource.js
++++ b/dist/data-sources/AccountsApiDataSource.js
+@@ -253,6 +253,8 @@ export class AccountsApiDataSource extends AbstractDataSource {
+             this.#markUnsupportedChains(response, request);
+             return response;
+         }
++
++        console.log('AccountsApiDataSource: fetchV5', request, chainsToFetch);
+         try {
+             const accountIds = this.#buildAccountIds(request, chainsToFetch);
+             // Skip API call if no valid account-chain combinations
+@@ -298,13 +300,16 @@ export class AccountsApiDataSource extends AbstractDataSource {
+             this.#markUnsupportedChains(response, request);
+             return response;
+         }
++        console.log('AccountsApiDataSource: fetchV6', request, chainsToFetch);
+         try {
+             const accountIds = this.#buildAccountIds(request, chainsToFetch);
+             if (accountIds.length === 0) {
+                 return response;
+             }
+             const { visibleAssetIds, hiddenAssetIds } = this.#getAssetVisibility(request.accountsWithSupportedChains.map(({ account }) => account.id), chainsToFetch);
++            console.log('AccountsApiDataSource: fetchV6Balances params', this.#buildFetchOptions(request), request, visibleAssetIds.length > 0 ? visibleAssetIds : undefined, hiddenAssetIds.length > 0 ? hiddenAssetIds : undefined);
+             const { unprocessedNetworks, unprocessedIncludeAssetIds, assetsBalance } = await this.#fetchV6Balances(accountIds, this.#buildFetchOptions(request), request, visibleAssetIds.length > 0 ? visibleAssetIds : undefined, hiddenAssetIds.length > 0 ? hiddenAssetIds : undefined);
++            console.log('AccountsApiDataSource: fetchV6Balances', unprocessedNetworks, unprocessedIncludeAssetIds, assetsBalance);
+             response.updateMode = 'full';
+             const unprocessedChainIds = unprocessedNetworks.map(caipChainIdToChainId);
+             // Chains answered without every requested `includeAssetIds`. The
+diff --git a/dist/data-sources/SnapDataSource.js b/dist/data-sources/SnapDataSource.js
+index 9a951a6a842814b05482d61f4141c87e71789a6f..91de1d6a113df31e7b652f5cbab87b4a0d3dc529 100644
+--- a/dist/data-sources/SnapDataSource.js
++++ b/dist/data-sources/SnapDataSource.js
+@@ -300,6 +300,8 @@ export class SnapDataSource extends AbstractDataSource {
+             assetsInfo: {},
+             updateMode: 'merge',
+         };
++
++        console.log('SnapDataSource: fetchV5', request);
+         // Fetch balances for each account using its snap ID from metadata
+         for (const { account } of request.accountsWithSupportedChains) {
+             // Skip accounts without snap metadata (non-snap accounts)
+@@ -362,6 +364,8 @@ export class SnapDataSource extends AbstractDataSource {
+             assetsInfo: {},
+             updateMode: 'full',
+         };
++
++        console.log('SnapDataSource: fetchV6', request);
+         // Fetch balances for each account using its snap ID from metadata
+         for (const { account } of request.accountsWithSupportedChains) {
+             // Skip accounts without snap metadata (non-snap accounts)
+@@ -379,16 +383,20 @@ export class SnapDataSource extends AbstractDataSource {
+                 const client = this.#getKeyringClient(snapId);
+                 const { visibleAssetIds, hiddenAssetIds } = this.#getAssetVisibility([accountId], supportedChainIds);
+                 // Step 1: Get the list of assets for this account
++                console.log('SnapDataSource: listAccountAssets', accountId);
+                 const accountAssets = await client.listAccountAssets(accountId);
++                console.log('SnapDataSource: accountAssets', accountAssets);
+                 const assetsToFetch = this.#selectAssetsToFetchV6(accountAssets ?? [], visibleAssetIds, supportedChainIds, hiddenAssetIds);
+                 // TEMPORARY: delete this call with `#includeSnapRollbackBalanceStateTokens` after Snaps Migration.
+                 this.#includeSnapRollbackBalanceStateTokens(accountId, assetsToFetch, supportedChainIds, hiddenAssetIds);
+                 // Step 2: Get balances for those specific assets. An empty map is a
+                 // failed fetch (or nothing to ask for), not a zero snapshot. Leave
+                 // this account out so `full` cannot replace last-known amounts with 0.
++                console.log('SnapDataSource: getAccountBalances', accountId, assetsToFetch);
+                 const balances = assetsToFetch.length
+                     ? await client.getAccountBalances(accountId, assetsToFetch)
+                     : {};
++                console.log('SnapDataSource: balances', balances);
+                 if (!balances ||
+                     typeof balances !== 'object' ||
+                     Object.keys(balances).length === 0) {
+@@ -411,6 +419,7 @@ export class SnapDataSource extends AbstractDataSource {
+                 }
+             }
+             catch {
++                console.log('SnapDataSource: error', accountId);
+                 // Snap failed or the account does not belong to this snap. Contribute
+                 // nothing so previous balances stay in state.
+             }
