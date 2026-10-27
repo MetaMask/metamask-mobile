@@ -1392,8 +1392,7 @@
         "hold_time": "Hold time",
         "buy": "購入",
         "sell": "売却",
-        "closed_ago": "Closed · {{age}}",
-        "sold_ago": "Sold · {{age}}"
+        "closed_ago": "Closed {{age}}"
       }
     },
     "composer": {

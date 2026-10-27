@@ -1392,8 +1392,7 @@
         "hold_time": "Hold time",
         "buy": "खरीदें",
         "sell": "बेचें",
-        "closed_ago": "Closed · {{age}}",
-        "sold_ago": "Sold · {{age}}"
+        "closed_ago": "Closed {{age}}"
       }
     },
     "composer": {
