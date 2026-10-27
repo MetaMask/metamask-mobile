@@ -352,10 +352,19 @@ function BuildQuote() {
     });
     // Keep locale spacing around suffix currencies while separating the digits
     // so the input cursor remains immediately beside the editable amount.
-    const match = formatted.match(/^([^\d]*?)[\d.,]+(.*)$/);
+    const isDigit = (character: string) => character >= '0' && character <= '9';
+    const firstDigitIndex = [...formatted].findIndex(isDigit);
+    let lastDigitIndex = formatted.length - 1;
+
+    while (lastDigitIndex >= 0 && !isDigit(formatted[lastDigitIndex])) {
+      lastDigitIndex -= 1;
+    }
+
     return {
-      currencyPrefix: match?.[1] ?? '',
-      currencySuffix: match?.[2] ?? '',
+      currencyPrefix:
+        firstDigitIndex >= 0 ? formatted.slice(0, firstDigitIndex) : '',
+      currencySuffix:
+        lastDigitIndex >= 0 ? formatted.slice(lastDigitIndex + 1) : '',
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];

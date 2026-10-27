@@ -175,13 +175,12 @@ const QuickBuyAmountSection: React.FC<QuickBuyAmountSectionProps> = ({
     !isUnpricedSource && currencySymbol && currencySymbolIsPrefix
       ? currencySymbol
       : undefined;
-  const editingSuffix = isUnpricedSource
-    ? sourceSymbol
-      ? ` ${sourceSymbol}`
-      : undefined
-    : currencySymbol && !currencySymbolIsPrefix
-      ? ` ${currencySymbol}`
-      : undefined;
+  let editingSuffix: string | undefined;
+  if (isUnpricedSource && sourceSymbol) {
+    editingSuffix = ` ${sourceSymbol}`;
+  } else if (currencySymbol && !currencySymbolIsPrefix) {
+    editingSuffix = ` ${currencySymbol}`;
+  }
   const editingAccessibilityLabel = `${editingPrefix ?? ''}${editingValue}${
     editingSuffix ?? ''
   }`;
