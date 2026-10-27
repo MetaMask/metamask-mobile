@@ -112,6 +112,13 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
                   : TextColor.TextMuted
               }
               style={styles.strikethroughText}
+              accessibilityLabel={
+                isPromotionalDiscount
+                  ? strings('perps.tooltips.fees.original_fee_value', {
+                      fee: originalFee,
+                    })
+                  : undefined
+              }
             >
               {originalFee}
             </Text>

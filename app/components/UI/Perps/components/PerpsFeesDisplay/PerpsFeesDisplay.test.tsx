@@ -1,5 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { MembershipVipBadgeSelectorsIDs } from '../../../shared/MembershipVipBadge/MembershipVipBadge';
 import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeesDisplay from './PerpsFeesDisplay';
@@ -38,8 +39,16 @@ describe('PerpsFeesDisplay', () => {
     expect(
       getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBe(strings('perps.tooltips.fees.promotional_discount'));
     expect(queryByText('Promotional discount')).not.toBeOnTheScreen();
-    expect(getByTestId('fee-original')).toBeOnTheScreen();
+    expect(getByTestId('fee-original').props.accessibilityLabel).toBe(
+      strings('perps.tooltips.fees.original_fee_value', {
+        fee: getByTestId('fee-original').props.children,
+      }),
+    );
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();

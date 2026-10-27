@@ -987,11 +987,14 @@ describe('PerpsClosePositionBottomSheet', () => {
         feeDiscountKind: 'promotional',
       });
 
-      const { getByTestId, queryByTestId } = renderSheet();
+      const { getByLabelText, getByTestId, queryByTestId } = renderSheet();
 
       expect(
         getByTestId(PerpsClosePositionBottomSheetSelectorsIDs.FEE_DISCLAIMER),
       ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
+      expect(
+        getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
+      ).toBeOnTheScreen();
       expect(queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
     });
 

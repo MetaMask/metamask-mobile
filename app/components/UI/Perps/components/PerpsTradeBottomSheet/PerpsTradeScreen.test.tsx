@@ -557,6 +557,13 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
     ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
     expect(
+      screen.getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBeUndefined();
+    expect(
       screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('rewards-vip-badge')).not.toBeOnTheScreen();
@@ -578,6 +585,11 @@ describe('PerpsTradeScreen errors', () => {
     ).toHaveTextContent(
       'Includes 0.200% 0.143% fee after promo + $0.15 bridge fee',
     );
+    expect(
+      screen.getByLabelText(
+        'Includes 0.143% fee after promo, was 0.200%, plus $0.15 bridge fee',
+      ),
+    ).toBeOnTheScreen();
   });
 
   it('shows the trade fee without a bridge fee', () => {

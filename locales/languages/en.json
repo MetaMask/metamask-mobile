@@ -1903,6 +1903,8 @@
       "includes_fee_after_promo_lead": "Includes",
       "includes_fee_after_promo_tail": "fee after promo",
       "includes_fee_after_promo_tail_with_bridge": "fee after promo + {{bridgeFee}} bridge fee",
+      "includes_fee_after_promo_a11y": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%",
+      "includes_fee_after_promo_a11y_with_bridge": "Includes {{feePercentage}}% fee after promo, was {{originalFeePercentage}}%, plus {{bridgeFee}} bridge fee",
       "amount_slider_accessibility_label": "Order amount",
       "order_type_accessibility_label": "{{orderType}} order type",
       "show_asset_value": "Show asset value",
@@ -3104,6 +3106,7 @@
         "discount_message": "You're saving {{percentage}}% on fees as a VIP.",
         "member_discount_message": "You're saving {{percentage}}% on fees as a member.",
         "promotional_discount": "Promotional discount",
+        "original_fee_value": "was {{fee}}",
         "fee_discount": "Fee discount",
         "promotional_discount_message": "{{percentage}}% off the MetaMask fee.",
         "fee_discount_message": "You're saving {{percentage}}% on the MetaMask fee."

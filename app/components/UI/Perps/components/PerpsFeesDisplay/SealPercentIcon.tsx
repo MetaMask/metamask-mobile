@@ -19,13 +19,31 @@ const SEAL_PERCENT_PATH =
 interface SealPercentIconProps {
   size: number;
   testID?: string;
+  /**
+   * Spoken name when this icon is the only indication of a promo.
+   * Leave unset when adjacent text already describes the discount so the
+   * icon stays decorative.
+   */
+  accessibilityLabel?: string;
 }
 
-const SealPercentIcon = ({ size, testID }: SealPercentIconProps) => {
+const SealPercentIcon = ({
+  size,
+  testID,
+  accessibilityLabel,
+}: SealPercentIconProps) => {
   const { colors } = useTheme();
+  const isInformative = Boolean(accessibilityLabel);
 
   return (
-    <View testID={testID} collapsable={false}>
+    <View
+      testID={testID}
+      collapsable={false}
+      accessible={isInformative}
+      accessibilityRole={isInformative ? 'image' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      importantForAccessibility={isInformative ? 'yes' : 'no'}
+    >
       <Svg
         width={size}
         height={size}

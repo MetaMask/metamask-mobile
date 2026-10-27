@@ -33,7 +33,13 @@ describe('FeesTooltipContent', () => {
   };
 
   it('explains the promotional discount without VIP branding', () => {
-    const { getByText, getByTestId, queryByTestId, queryByText } = render(
+    const {
+      getByLabelText,
+      getByText,
+      getByTestId,
+      queryByTestId,
+      queryByText,
+    } = render(
       <FeesTooltipContent
         testID="fees-tooltip"
         data={{ ...mockData, feeDiscountKind: 'promotional' }}
@@ -44,6 +50,11 @@ describe('FeesTooltipContent', () => {
     expect(
       getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL).props
+        .accessibilityLabel,
+    ).toBeUndefined();
+    expect(getByLabelText('was 1.500%')).toBeOnTheScreen();
     expect(
       queryByTestId(MembershipVipBadgeSelectorsIDs.VIP_BADGE),
     ).not.toBeOnTheScreen();

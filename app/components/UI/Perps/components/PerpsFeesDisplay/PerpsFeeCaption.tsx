@@ -61,6 +61,19 @@ const PerpsFeeCaption = ({
         bridgeFee,
       })
     : strings('perps.trade_sheet.includes_fee_after_promo_tail');
+  // Strikethrough is visual only. Name the previous rate when it is shown.
+  const promoAccessibilityLabel = showOriginalRate
+    ? bridgeFee
+      ? strings('perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge', {
+          feePercentage,
+          originalFeePercentage,
+          bridgeFee,
+        })
+      : strings('perps.trade_sheet.includes_fee_after_promo_a11y', {
+          feePercentage,
+          originalFeePercentage,
+        })
+    : undefined;
 
   return (
     <Box
@@ -78,7 +91,11 @@ const PerpsFeeCaption = ({
         iconSize={SEAL_PERCENT_ICON_SIZE.caption}
       />
       {isPromotionalDiscount ? (
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          accessibilityLabel={promoAccessibilityLabel}
+        >
           {`${strings('perps.trade_sheet.includes_fee_after_promo_lead')} `}
           {showOriginalRate ? (
             <Text

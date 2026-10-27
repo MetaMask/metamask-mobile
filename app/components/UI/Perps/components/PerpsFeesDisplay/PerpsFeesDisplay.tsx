@@ -1,6 +1,7 @@
 import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -93,6 +94,11 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           <PerpsFeeDiscountLabel
             feeDiscountPercentage={feeDiscountPercentage}
             feeDiscountKind={feeDiscountKind}
+            accessibilityLabel={
+              isPromotionalDiscount
+                ? strings('perps.tooltips.fees.promotional_discount')
+                : undefined
+            }
           />
         </View>
       ) : null}
@@ -102,6 +108,13 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           color={TextColor.TextAlternative}
           style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
+          accessibilityLabel={
+            isPromotionalDiscount
+              ? strings('perps.tooltips.fees.original_fee_value', {
+                  fee: originalFeeText,
+                })
+              : undefined
+          }
         >
           {originalFeeText}
         </Text>

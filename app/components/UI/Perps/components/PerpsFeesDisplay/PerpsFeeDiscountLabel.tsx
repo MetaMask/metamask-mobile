@@ -15,12 +15,18 @@ interface PerpsFeeDiscountLabelProps {
   feeDiscountKind?: PerpsFeeDiscountKind;
   /** Promo seal size in px. Ignored for VIP and member badges. */
   iconSize?: number;
+  /**
+   * Spoken name for the promo seal. Omit when nearby text already says the
+   * fee is promotional, so the icon stays decorative.
+   */
+  accessibilityLabel?: string;
 }
 
 const PerpsFeeDiscountLabel = ({
   feeDiscountPercentage,
   feeDiscountKind,
   iconSize = SEAL_PERCENT_ICON_SIZE.feeRow,
+  accessibilityLabel,
 }: PerpsFeeDiscountLabelProps) => {
   if (!feeDiscountPercentage || feeDiscountPercentage <= 0) {
     return null;
@@ -37,6 +43,7 @@ const PerpsFeeDiscountLabel = ({
       <SealPercentIcon
         size={iconSize}
         testID={PerpsFeeDiscountLabelSelectorsIDs.LABEL}
+        accessibilityLabel={accessibilityLabel}
       />
     );
   }
