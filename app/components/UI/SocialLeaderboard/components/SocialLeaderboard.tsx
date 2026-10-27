@@ -1,6 +1,11 @@
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
-import React, { useCallback, useImperativeHandle, useMemo } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import { useWindowDimensions } from 'react-native';
 import Animated, { Easing, LinearTransition } from 'react-native-reanimated';
 import { useSelector } from 'react-redux';
@@ -47,6 +52,11 @@ import {
 } from '../types';
 import SocialLeaderboardMessage from './SocialLeaderboardMessage';
 import { SocialLeaderboardSelectorsIDs } from './SocialLeaderboard.testIds';
+import {
+  SOCIAL_TRACE_TABS,
+  type SocialPerformanceContext,
+} from '../../../../util/social/socialPerformance';
+import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
 
 /**
  * Slide a row runs when the ranking reshuffles, matched to the row's own
@@ -77,6 +87,9 @@ export interface SocialLeaderboardProps {
   filters?: SocialLeaderboardFilters;
   /** Pins the signed-in viewer's card above the rows. */
   showViewerRow?: boolean;
+  onOutcomeChange?: (outcome: 'content' | 'empty' | 'error' | null) => void;
+  /** Enables treatment-only Social V1 fetch and first-content tracing. */
+  performance?: SocialPerformanceContext;
   ref?: React.Ref<SocialLeaderboardHandle>;
 }
 
@@ -93,6 +106,8 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   limit = LEADERBOARD_FETCH_LIMIT,
   filters = DEFAULT_SOCIAL_LEADERBOARD_FILTERS,
   showViewerRow = false,
+  onOutcomeChange,
+  performance,
   ref,
 }) => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -121,6 +136,9 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
     timeframe,
     sort,
     enabled: !isOffline,
+    performance: performance?.enabled
+      ? { tab: SOCIAL_TRACE_TABS.Leaderboard }
+      : undefined,
   });
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -221,6 +239,36 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
   const handleRetry = useCallback(() => {
     refresh().catch(() => undefined);
   }, [refresh]);
+
+  const firstContentState =
+    !isEnabled || resolution.status === 'hidden'
+      ? null
+      : resolution.status === 'unavailable'
+        ? 'empty'
+        : rows.length > 0 || viewerRow
+          ? 'content'
+          : error || (isOffline && !hasFetched)
+            ? 'error'
+            : hasFetched
+              ? 'empty'
+              : null;
+  const outcome =
+    resolution.status === 'unavailable'
+      ? 'empty'
+      : isLoading && traders.length === 0 && !isShowingSnapshot
+        ? null
+        : firstContentState;
+
+  useEffect(() => {
+    onOutcomeChange?.(outcome);
+  }, [onOutcomeChange, outcome]);
+
+  useSocialTabFirstContentTrace({
+    tab: SOCIAL_TRACE_TABS.Leaderboard,
+    contentState: firstContentState,
+    hasUsableData: hasFetched || isShowingSnapshot || freshTraders.length > 0,
+    performance,
+  });
 
   if (!isEnabled || resolution.status === 'hidden') {
     return null;

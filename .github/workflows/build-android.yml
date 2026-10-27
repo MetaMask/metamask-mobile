@@ -68,6 +68,10 @@ on:
 permissions:
   contents: read
 
+# Builds from this workflow can be signed with the RC or production signer, so they must not
+# restore caches.
+cache-mode: none
+
 jobs:
   validate-inputs:
     name: Validate inputs

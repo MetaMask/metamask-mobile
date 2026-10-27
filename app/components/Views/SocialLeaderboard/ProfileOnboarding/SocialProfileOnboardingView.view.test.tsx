@@ -11,7 +11,13 @@
 import '../../../../../tests/component-view/mocks';
 import type { Profile } from '@metamask/profile-controller';
 import NetInfo from '@react-native-community/netinfo';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -252,6 +258,27 @@ describe('SocialProfileOnboardingView', () => {
         trading_privacy: 'public',
       },
     );
+  });
+
+  it('hides the back arrow on the intro and shows it on later steps', () => {
+    renderSocialProfileOnboarding();
+
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('defaults the avatar backdrop to the centered color', async () => {
@@ -763,6 +790,52 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
       expect.objectContaining({ profile_id: 'signed-in-profile' }),
+    );
+  });
+
+  it('creates a private profile when trading activity is turned off', async () => {
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP),
+    ).toHaveTextContent(
+      /shows this account's trades[\s\S]*Earn 15% on fees[\s\S]*address stays private[\s\S]*can follow your profile/,
+    );
+
+    const activitySwitch = within(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.SHARE_ACTIVITY_SWITCH,
+      ),
+    ).getByRole('switch');
+    expect(activitySwitch).toHaveProp('value', true);
+
+    fireEvent(activitySwitch, 'valueChange', false);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(Engine.context.ProfileController.createProfile).toHaveBeenCalledWith(
+      expect.objectContaining({ trading_privacy: 'private' }),
+    );
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(
+      expect.objectContaining({ shareTradingActivity: false }),
     );
   });
 

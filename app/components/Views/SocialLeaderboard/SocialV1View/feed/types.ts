@@ -18,6 +18,8 @@ export interface UseSocialV1FeedResult {
   /** Request the next page; no-op if none remain or one is in flight. */
   loadMore: () => void;
   error: string | null;
+  /** Timestamp of the latest successful server response, including empty data. */
+  dataUpdatedAt?: number;
   /**
    * Reset to the first page and refetch -- also the recovery path after an
    * error. Releases pinned posts the feed now serves or never will.
