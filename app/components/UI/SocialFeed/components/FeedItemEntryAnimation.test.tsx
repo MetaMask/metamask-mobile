@@ -1,10 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
-import { act, render, screen } from '@testing-library/react-native';
+import { Text } from 'react-native';
+import { render, screen } from '@testing-library/react-native';
 import {
+  ReduceMotion,
   useReducedMotion,
-  withDelay,
-  withTiming,
+  type LayoutAnimation,
 } from 'react-native-reanimated';
 import FeedItemEntryAnimation, {
   FEED_ITEM_ENTRY_DURATION_MS,
@@ -13,82 +13,31 @@ import FeedItemEntryAnimation, {
   createFeedItemEntryScheduler,
 } from './FeedItemEntryAnimation';
 
-const timingCallbacks: ((finished: boolean) => void)[] = [];
-
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
-  const { useRef } = jest.requireActual('react');
-  const identity = (value: number) => value;
-
   return {
     ...Reanimated,
-    Easing: {
-      ...Reanimated.Easing,
-      bezierFn: () => identity,
-      linear: identity,
-    },
-    cancelAnimation: jest.fn(),
     useReducedMotion: jest.fn(() => false),
-    useSharedValue: (initialValue: number) =>
-      useRef({ value: initialValue }).current,
-    useAnimatedStyle: (factory: () => unknown) => factory(),
-    withDelay: jest.fn((_delay: number, animation: number) => animation),
-    withTiming: jest.fn(
-      (
-        value: number,
-        _config: unknown,
-        callback?: (finished: boolean) => void,
-      ) => {
-        if (callback) {
-          timingCallbacks.push(callback);
-        }
-        return value;
-      },
-    ),
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => {
-  const { lightTheme } = jest.requireActual('@metamask/design-tokens');
-  const twStyles: Record<string, object> = {
-    'overflow-hidden': { overflow: 'hidden' },
-    'bg-default': { backgroundColor: lightTheme.colors.background.default },
-  };
-  return {
-    useTailwind: () => ({
-      style: (className: string) => twStyles[className],
+    withDelay: (delay: number, animation: unknown) => ({ delay, animation }),
+    withTiming: (toValue: number, config: unknown) => ({
+      timing: toValue,
+      config,
+    }),
+    withSpring: (toValue: number, config: unknown) => ({
+      spring: toValue,
+      config,
     }),
   };
 });
 
 const mockUseReducedMotion = jest.mocked(useReducedMotion);
-const mockWithDelay = jest.mocked(withDelay);
-const mockWithTiming = jest.mocked(withTiming);
 
-const IDENTITY_TRANSFORM = [{ translateY: 0 }, { scale: 1 }];
-const PINNED_TO_TOP = { left: 0, position: 'absolute', right: 0, top: 0 };
-const EXPECTED_ENTRY_DURATION_MS = 520;
-const EXPECTED_REDUCED_MOTION_DURATION_MS = 200;
-const EXPECTED_STAGGER_MS = 70;
+const ENTRY_SPRING = { duration: 500, dampingRatio: 1 };
 
-const getClip = () => screen.getByTestId('entry-animation');
-const getMotion = () => getClip().props.children;
-const getContent = () => getMotion().props.children;
-const flattenStyle = (node: { props: { style?: StyleProp<ViewStyle> } }) =>
-  StyleSheet.flatten(node.props.style) ?? {};
+type EnteringFn = () => LayoutAnimation;
 
-const advance = async (ms = 0): Promise<void> => {
-  await act(async () => {
-    await jest.advanceTimersByTimeAsync(ms);
-  });
-};
-
-const layoutContent = async (height = 160): Promise<void> => {
-  await act(async () => {
-    getContent().props.onLayout({ nativeEvent: { layout: { height } } });
-  });
-  await advance();
-};
+const getEntering = (): EnteringFn | undefined =>
+  screen.getByTestId('entry-animation').props.entering;
 
 const renderLiveEntry = (
   props: Partial<React.ComponentProps<typeof FeedItemEntryAnimation>> = {},
@@ -105,165 +54,120 @@ const renderLiveEntry = (
 
 describe('FeedItemEntryAnimation', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
     jest.clearAllMocks();
-    timingCallbacks.length = 0;
     mockUseReducedMotion.mockReturnValue(false);
   });
 
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
   it('keeps production timing constants independent of debug slow motion', () => {
-    expect(FEED_ITEM_ENTRY_DURATION_MS).toBe(EXPECTED_ENTRY_DURATION_MS);
-    expect(FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS).toBe(
-      EXPECTED_REDUCED_MOTION_DURATION_MS,
-    );
-    expect(FEED_ITEM_ENTRY_STAGGER_MS).toBe(EXPECTED_STAGGER_MS);
+    expect(FEED_ITEM_ENTRY_DURATION_MS).toBe(500);
+    expect(FEED_ITEM_ENTRY_REDUCED_MOTION_DURATION_MS).toBe(200);
+    expect(FEED_ITEM_ENTRY_STAGGER_MS).toBe(70);
   });
 
   it('renders cached rows without an entrance', () => {
-    render(
-      <FeedItemEntryAnimation testID="entry-animation">
-        <Text>cached feed item</Text>
-      </FeedItemEntryAnimation>,
-    );
+    renderLiveEntry({ eventId: undefined });
 
-    expect(screen.getByText('cached feed item')).toBeOnTheScreen();
-    expect(flattenStyle(getClip())).toEqual({ height: 'auto' });
-    expect(flattenStyle(getMotion())).toEqual({
-      opacity: 1,
-      transform: IDENTITY_TRANSFORM,
-    });
-    expect(mockWithTiming).not.toHaveBeenCalled();
+    expect(screen.getByText('live feed item')).toBeOnTheScreen();
+    expect(getEntering()).toBeUndefined();
   });
 
-  it('runs the entrance after the row is measured', async () => {
+  it('enters a live row with a fade, a rise and a spring settle', () => {
     renderLiveEntry();
 
-    await layoutContent();
+    const animation = getEntering()?.();
 
-    expect(flattenStyle(getClip())).toEqual({ height: 0, overflow: 'hidden' });
-    expect(flattenStyle(getMotion())).toEqual({
-      ...PINNED_TO_TOP,
+    expect(animation?.initialValues).toEqual({
       opacity: 0,
       transform: [{ translateY: 20 }, { scale: 0.97 }],
     });
-    expect(mockWithTiming).toHaveBeenCalledTimes(1);
-    expect(mockWithTiming).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({ duration: EXPECTED_ENTRY_DURATION_MS }),
-      expect.any(Function),
+    expect(animation?.animations).toEqual({
+      opacity: {
+        delay: 0,
+        animation: { timing: 1, config: { duration: 300 } },
+      },
+      transform: [
+        {
+          translateY: {
+            delay: 0,
+            animation: { spring: 0, config: ENTRY_SPRING },
+          },
+        },
+        { scale: { delay: 0, animation: { spring: 1, config: ENTRY_SPRING } } },
+      ],
+    });
+  });
+
+  it('fades in only when the OS asks for reduced motion', () => {
+    mockUseReducedMotion.mockReturnValue(true);
+    renderLiveEntry();
+
+    const animation = getEntering()?.();
+
+    expect(animation?.initialValues).toEqual({ opacity: 0 });
+    expect(animation?.animations).toEqual({
+      opacity: {
+        delay: 0,
+        animation: {
+          timing: 1,
+          config: { duration: 200, reduceMotion: ReduceMotion.Never },
+        },
+      },
+    });
+  });
+
+  it('fades in only when the caller asks for reduced motion', () => {
+    renderLiveEntry({ reducedMotion: true });
+
+    const animation = getEntering()?.();
+
+    expect(animation?.initialValues).toEqual({ opacity: 0 });
+    expect(Object.keys(animation?.animations ?? {})).toEqual(['opacity']);
+  });
+
+  it('starts after the scheduled stagger delay', () => {
+    const scheduleEntryDelay = jest.fn(() => 140);
+    renderLiveEntry({ scheduleEntryDelay });
+
+    const animation = getEntering()?.();
+
+    expect(scheduleEntryDelay).toHaveBeenCalledWith('event-1');
+    expect(animation?.animations.opacity).toEqual(
+      expect.objectContaining({ delay: 140 }),
     );
   });
 
-  it('opens the wrapper to the natural height of the floating row', async () => {
-    const { rerender } = renderLiveEntry();
-    await layoutContent(142);
+  it('marks the entrance played only once it finishes', async () => {
+    const onAnimationComplete = jest.fn();
+    renderLiveEntry({ onAnimationComplete });
+    const animation = getEntering()?.();
+
+    animation?.callback?.(false);
+    animation?.callback?.(true);
+    await Promise.resolve();
+
+    expect(onAnimationComplete).toHaveBeenCalledTimes(1);
+    expect(onAnimationComplete).toHaveBeenCalledWith('event-1');
+  });
+
+  it('marks an event that reaches a mounted row as played without animating', () => {
+    const onAnimationComplete = jest.fn();
+    const { rerender } = renderLiveEntry({
+      eventId: undefined,
+      onAnimationComplete,
+    });
 
     rerender(
-      <FeedItemEntryAnimation eventId="event-1" testID="entry-animation">
+      <FeedItemEntryAnimation
+        eventId="event-2"
+        testID="entry-animation"
+        onAnimationComplete={onAnimationComplete}
+      >
         <Text>live feed item</Text>
       </FeedItemEntryAnimation>,
     );
 
-    expect(flattenStyle(getClip())).toEqual({
-      height: 142,
-      overflow: 'hidden',
-    });
-    expect(flattenStyle(getMotion())).toEqual(
-      expect.objectContaining(PINNED_TO_TOP),
-    );
-  });
-
-  it('replays the entrance once for each new socket event id', async () => {
-    const { rerender } = renderLiveEntry();
-    await layoutContent();
-
-    rerender(
-      <FeedItemEntryAnimation eventId="event-1" testID="entry-animation">
-        <Text>updated live feed item</Text>
-      </FeedItemEntryAnimation>,
-    );
-    await advance();
-    const timingCallsForSameEvent = mockWithTiming.mock.calls.length;
-    rerender(
-      <FeedItemEntryAnimation eventId="event-2" testID="entry-animation">
-        <Text>second live feed item</Text>
-      </FeedItemEntryAnimation>,
-    );
-    await advance();
-
-    expect(timingCallsForSameEvent).toBe(1);
-    expect(mockWithTiming).toHaveBeenCalledTimes(2);
-  });
-
-  it('restores neutral styles when the entrance completes', async () => {
-    const onAnimationComplete = jest.fn();
-    renderLiveEntry({ onAnimationComplete });
-    await layoutContent();
-
-    await act(async () => {
-      timingCallbacks[0]?.(true);
-    });
-    await advance();
-
-    expect(flattenStyle(getClip())).toEqual({ height: 'auto' });
-    expect(flattenStyle(getMotion())).toEqual({
-      opacity: 1,
-      transform: IDENTITY_TRANSFORM,
-    });
-    expect(getContent().props.style).toBeUndefined();
-    expect(onAnimationComplete).toHaveBeenCalledWith('event-1');
-  });
-
-  it('uses a 200ms fade and height entrance without transform for reduced motion', async () => {
-    mockUseReducedMotion.mockReturnValue(true);
-    renderLiveEntry();
-
-    await layoutContent();
-
-    expect(mockWithTiming).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({
-        duration: EXPECTED_REDUCED_MOTION_DURATION_MS,
-      }),
-      expect.any(Function),
-    );
-    expect(flattenStyle(getMotion())).toEqual({
-      ...PINNED_TO_TOP,
-      opacity: 0,
-      transform: IDENTITY_TRANSFORM,
-    });
-  });
-
-  it('uses the reduced motion entrance when the caller asks for it', async () => {
-    renderLiveEntry({ reducedMotion: true });
-
-    await layoutContent();
-
-    expect(mockWithTiming).toHaveBeenCalledWith(
-      1,
-      expect.objectContaining({
-        duration: EXPECTED_REDUCED_MOTION_DURATION_MS,
-      }),
-      expect.any(Function),
-    );
-    expect(flattenStyle(getMotion())).toEqual({
-      ...PINNED_TO_TOP,
-      opacity: 0,
-      transform: IDENTITY_TRANSFORM,
-    });
-  });
-
-  it('waits for the scheduled stagger delay before starting', async () => {
-    const scheduleEntryDelay = jest.fn(() => EXPECTED_STAGGER_MS * 2);
-    renderLiveEntry({ scheduleEntryDelay });
-    await layoutContent();
-
-    expect(scheduleEntryDelay).toHaveBeenCalledTimes(1);
-    expect(mockWithDelay).toHaveBeenCalledWith(EXPECTED_STAGGER_MS * 2, 1);
+    expect(onAnimationComplete).toHaveBeenCalledWith('event-2');
+    expect(getEntering()).toBeUndefined();
   });
 });
 
@@ -276,14 +180,24 @@ describe('createFeedItemEntryScheduler', () => {
     );
 
     const burstDelays = [
-      scheduleEntryDelay(),
-      scheduleEntryDelay(),
-      scheduleEntryDelay(),
+      scheduleEntryDelay('a'),
+      scheduleEntryDelay('b'),
+      scheduleEntryDelay('c'),
     ];
     now = 2_000;
-    const laterDelay = scheduleEntryDelay();
+    const laterDelay = scheduleEntryDelay('d');
 
     expect(burstDelays).toEqual([0, 70, 140]);
     expect(laterDelay).toBe(0);
+  });
+
+  it('returns the same delay when asked twice for one entrance', () => {
+    const scheduleEntryDelay = createFeedItemEntryScheduler(undefined, () => 0);
+
+    const first = scheduleEntryDelay('a');
+    const second = scheduleEntryDelay('b');
+    const firstAgain = scheduleEntryDelay('a');
+
+    expect([first, second, firstAgain]).toEqual([0, 70, 0]);
   });
 });

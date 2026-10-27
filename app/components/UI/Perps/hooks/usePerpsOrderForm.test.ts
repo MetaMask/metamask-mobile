@@ -1201,6 +1201,23 @@ describe('usePerpsOrderForm', () => {
       expect(at100).toBe(result.current.maxPossibleAmount);
     });
 
+    it('caps an amount set above the margin max at that max', () => {
+      // The Pro order-book size fill (TAT-4085) relies on this cap.
+      const { result } = renderHook(() => usePerpsOrderForm(), {
+        wrapper: createWrapper(),
+      });
+      const marginMax = result.current.maxPossibleAmount;
+
+      act(() => {
+        result.current.setAmount(String(marginMax * 10));
+      });
+
+      expect(marginMax).toBeGreaterThan(0);
+      expect(result.current.orderForm.amount).toBe(
+        String(Math.floor(marginMax)),
+      );
+    });
+
     it('does not clamp typed amounts while a max override is set', () => {
       const { result } = renderHook(() => usePerpsOrderForm(), {
         wrapper: createWrapper(),

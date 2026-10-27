@@ -42,6 +42,7 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useHaptics } from '../../../../util/haptics';
 import { getSessionProfileId } from '../../../../util/notifications/utils/get-session-profile-id';
 import MarketingMoment from '../../../UI/MarketingMoment';
+import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import { useProfileController } from '../ManageProfileView/hooks/useProfileController';
 import Foxicon from '../../../../component-library/components-temp/Foxicon';
 import { PROFILE_AVATAR_PRESETS } from '../MyProfileView/avatarPresets';
@@ -75,7 +76,9 @@ import {
 import LinkedAccountPicker from './LinkedAccountPicker';
 import UsernameShuffleDie from './UsernameShuffleDie';
 import XProfileIdentityStep from './XProfileIdentityStep';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Step } = SocialEvent;
 const AVATAR_TILE_SIZE = 60;
 /** Four 60pt tiles with 20pt gaps. */
 const AVATAR_GRID_WIDTH = 300;
@@ -116,20 +119,23 @@ const LIVE_ACTIVITY = [
 ];
 
 /**
- * Step title: Display Md size on the 32px heading line height, medium weight,
- * centered.
+ * Step title. Grotzec Cond Bold via the marketing-moment title, which is the
+ * design-system hero face and falls back when the language is not in the font.
+ * Spacing stays on the wrapper. The title paints its metrics as a style, so a
+ * padding class on the text would lose to that style.
  */
 const OnboardingTitle: React.FC<{
   children: React.ReactNode;
   twClassName?: string;
 }> = ({ children, twClassName }) => (
-  <Text
-    variant={TextVariant.DisplayMd}
-    fontWeight={FontWeight.Medium}
-    twClassName={`text-center leading-heading-lg ${twClassName ?? ''}`}
-  >
-    {children}
-  </Text>
+  <Box twClassName={twClassName}>
+    <MarketingMomentTitle
+      variant={TextVariant.DisplayLg}
+      twClassName="w-full text-center"
+    >
+      {children}
+    </MarketingMomentTitle>
+  </Box>
 );
 
 const LiveActivityFallback: React.FC = () => (
@@ -257,6 +263,10 @@ const SocialProfileOnboardingView: React.FC = () => {
     null,
   );
   const [finishError, setFinishError] = useState<string | null>(null);
+  const analyticsStep = step === 'x-identity' ? Step.X_IDENTITY : step;
+  const trackInteraction = useSocialScreenAnalytics(Screen.PROFILE_ONBOARDING, {
+    step: analyticsStep,
+  });
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -268,6 +278,10 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, []);
 
   useEffect(() => clearUsernameCheckTimer, [clearUsernameCheckTimer]);
+
+  useEffect(() => {
+    trackInteraction(Interaction.STEP_VIEWED);
+  }, [analyticsStep, trackInteraction]);
 
   useEffect(() => {
     if (accounts.length === 0) {
@@ -286,8 +300,9 @@ const SocialProfileOnboardingView: React.FC = () => {
   }, [accounts]);
 
   const handleClose = useCallback(() => {
+    trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [navigation]);
+  }, [navigation, trackInteraction]);
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -374,6 +389,7 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleShuffleUsername = useCallback(() => {
     clearUsernameCheckTimer();
+    trackInteraction(Interaction.USERNAME_SHUFFLED);
     const claimGeneratedUsername = async () => {
       let username = generateUsername();
       applyUsername(username);
@@ -387,7 +403,7 @@ const SocialProfileOnboardingView: React.FC = () => {
       await checkHandle(username);
     };
     claimGeneratedUsername().catch(() => undefined);
-  }, [applyUsername, checkHandle, clearUsernameCheckTimer]);
+  }, [applyUsername, checkHandle, clearUsernameCheckTimer, trackInteraction]);
 
   const handleDisplayNameChange = useCallback((value: string) => {
     setDraft((current) => ({
@@ -403,14 +419,19 @@ const SocialProfileOnboardingView: React.FC = () => {
         return;
       }
       playSelection().catch(() => undefined);
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, avatarPresetId: presetId }));
     },
-    [draft.avatarPresetId, playSelection],
+    [draft.avatarPresetId, playSelection, trackInteraction],
   );
 
-  const handleAvatarBackgroundSelect = useCallback((backgroundId: string) => {
-    setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
-  }, []);
+  const handleAvatarBackgroundSelect = useCallback(
+    (backgroundId: string) => {
+      trackInteraction(Interaction.AVATAR_CHANGED);
+      setDraft((current) => ({ ...current, avatarBackgroundId: backgroundId }));
+    },
+    [trackInteraction],
+  );
 
   const handleConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
@@ -455,9 +476,13 @@ const SocialProfileOnboardingView: React.FC = () => {
   const handleToggleXAvatar = useCallback(
     (enabled: boolean) => {
       playSelection().catch(() => undefined);
+      if (enabled === draft.useXAvatar) {
+        return;
+      }
+      trackInteraction(Interaction.AVATAR_CHANGED);
       setDraft((current) => ({ ...current, useXAvatar: enabled }));
     },
-    [playSelection],
+    [draft.useXAvatar, playSelection, trackInteraction],
   );
 
   const handleContinue = useCallback(async () => {
@@ -514,6 +539,10 @@ const SocialProfileOnboardingView: React.FC = () => {
         ),
       );
       saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
+      trackInteraction(Interaction.USERNAME_CLAIMED, {
+        outcome: Outcome.SUCCESS,
+        step: draft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
+      });
       navigation.navigate(
         draft.path === 'x' ? Routes.SOCIAL.MY_PROFILE : Routes.SOCIAL.V1,
       );
@@ -524,7 +553,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [accounts, createProfile, draft, navigation]);
+  }, [accounts, createProfile, draft, navigation, trackInteraction]);
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
@@ -554,9 +583,11 @@ const SocialProfileOnboardingView: React.FC = () => {
         title=""
         onBack={step === 'intro' ? undefined : handleBack}
         onClose={handleClose}
-        backButtonProps={{
-          testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON,
-        }}
+        backButtonProps={
+          step === 'intro'
+            ? undefined
+            : { testID: SocialProfileOnboardingSelectorsIDs.BACK_BUTTON }
+        }
         closeButtonProps={{
           testID: SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON,
         }}
@@ -578,6 +609,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 titleProps={{
                   testID: SocialProfileOnboardingSelectorsIDs.INTRO_TITLE,
                   twClassName: 'px-1',
+                  variant: TextVariant.DisplayLg,
                 }}
                 artwork={
                   <ProfileOnboardingIntroAnimation
@@ -814,7 +846,16 @@ const SocialProfileOnboardingView: React.FC = () => {
                   <LinkedAccountPicker
                     accounts={accounts}
                     selectedAccountId={draft.linkedAccountId}
+                    shareTradingActivity={draft.shareTradingActivity}
+                    onShareTradingActivityChange={(enabled) => {
+                      playSelection().catch(() => undefined);
+                      setDraft((current) => ({
+                        ...current,
+                        shareTradingActivity: enabled,
+                      }));
+                    }}
                     onSelect={(account) => {
+                      trackInteraction(Interaction.LINKED_ACCOUNT_SELECTED);
                       playSelection().catch(() => undefined);
                       setDraft((current) => ({
                         ...current,

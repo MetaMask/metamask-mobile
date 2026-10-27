@@ -1,5 +1,6 @@
 import '../mocks';
 import React from 'react';
+import type { QueryClient } from '@tanstack/react-query';
 import { renderComponentViewScreen, renderScreenWithRoutes } from '../render';
 import { initialStatePredictNext } from '../presets/predictNext';
 import { PredictHome } from '../../../app/components/UI/PredictNext/views/PredictHome/PredictHome';
@@ -87,6 +88,7 @@ export const renderPredictEventScreen = (
 export const renderPredictPortfolioScreen = (
   initialParams: PredictNextPortfolioParams,
   privacyMode = false,
+  queryClient?: QueryClient,
 ) =>
   renderScreenWithRoutes(
     PortfolioScreen,
@@ -97,6 +99,7 @@ export const renderPredictPortfolioScreen = (
     ],
     { state: initialStatePredictNext(privacyMode).build() },
     { ...initialParams },
+    queryClient,
   );
 
 export const renderPredictFeedScreen = (initialParams: PredictNextFeedParams) =>
