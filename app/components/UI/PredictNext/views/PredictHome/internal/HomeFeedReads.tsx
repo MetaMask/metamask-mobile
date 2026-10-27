@@ -88,9 +88,7 @@ const HomeFeedReadStep = ({
         events,
         isLoading,
         isError,
-        refetch: () => {
-          refetch();
-        },
+        refetch: () => refetch(),
       },
     ],
     [reads, sectionId, feedId, events, isLoading, isError, refetch],
