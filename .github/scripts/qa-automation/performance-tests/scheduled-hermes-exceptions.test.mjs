@@ -5,6 +5,7 @@ import {
   BASELINE_CANDIDATE_RUNS,
   BASELINE_PREVIOUS_RUNS,
   MIN_BASELINE_RUNS,
+  buildIssueVerdictDm,
   buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
@@ -141,6 +142,24 @@ test('an all-clear names the scenarios that have no clean baseline yet', () => {
 
   assert.match(slack, /_Checked:_ 1\/2 scenarios/);
   assert.match(slack, /1 without 4 clean baseline runs yet/);
+});
+
+test('a finding DM carries the verdict and does not claim an issue was opened', () => {
+  const exception = confirmedFinding();
+  const message = buildIssueVerdictDm(
+    exception,
+    'Look at the perps deposit frame.',
+  );
+
+  assert.match(message, /Possible regression/);
+  assert.match(message, /no issue was opened/);
+  assert.match(message, /AI proposal/);
+  assert.match(message, /Look at the perps deposit frame/);
+  const clear = buildScheduledException(
+    report('8', [scenario(PERPS, 140)]),
+    baselineOf(STEADY),
+  );
+  assert.equal(buildIssueVerdictDm(clear), '');
 });
 
 test('a scenario at 1.5 times the recent average becomes a finding when the previous run was also over', () => {

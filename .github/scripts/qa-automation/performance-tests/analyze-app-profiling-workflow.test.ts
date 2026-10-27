@@ -108,6 +108,7 @@ describe('Analyze App Profiling triggers', () => {
     });
     expect(workflow.on.workflow_call?.secrets).toStrictEqual({
       E2E_CLAUDE_API_KEY: { required: false },
+      SLACK_BOT_TOKEN: { required: false },
     });
   });
 
@@ -311,9 +312,15 @@ describe('Analyze App Profiling triggers', () => {
     );
   });
 
-  it('does not post Hermes profiling through the wallet platform Slack bot', () => {
+  it('DMs a scheduled issue verdict to one person and does not post channels', () => {
     const workflow = loadWorkflow();
     const notify = workflow.jobs['publish-summary'];
+    const slackSteps = Object.values(workflow.jobs).flatMap((job) =>
+      job.steps.filter((step) =>
+        (step.run ?? '').includes('post-app-profiling-slack.mjs'),
+      ),
+    );
+    const dm = slackSteps[0];
 
     expect(workflow.env).toBeUndefined();
     expect(notify.needs).toStrictEqual([
@@ -323,14 +330,17 @@ describe('Analyze App Profiling triggers', () => {
     expect(
       notify.steps.find((step) => step.name === 'Post Slack summary'),
     ).toBeUndefined();
-
-    for (const job of Object.values(workflow.jobs)) {
-      for (const step of job.steps) {
-        expect(step.run ?? '').not.toContain('post-app-profiling-slack.mjs');
-        expect(step.env?.SLACK_BOT_TOKEN).toBeUndefined();
-        expect(step.env?.SLACK_TARGET).toBeUndefined();
-      }
-    }
+    expect(slackSteps).toHaveLength(1);
+    expect(dm?.name).toBe('DM issue verdict');
+    expect(dm?.env?.SLACK_TARGET).toBe('UEYQL2PEV');
+    expect(dm?.env?.SLACK_BOT_TOKEN).toBe('${{ secrets.SLACK_BOT_TOKEN }}');
+    expect(dm?.env?.SLACK_PLAIN).toBe('1');
+    expect(dm?.['continue-on-error']).toBe(true);
+    expect(dm?.run).toContain('issue-dm.md');
+    expect(dm?.run).not.toContain('slack.md');
+    expect(dm?.run).not.toContain('slack-performance.md');
+    expect(dm?.run).not.toContain('C07KB8HRZ4J');
+    expect(dm?.run).not.toContain('C0C3WSWNKS5');
   });
 
   it('keeps digests for a week and collected history for two', () => {
@@ -460,6 +470,7 @@ describe('Run Performance E2E Tests Manually calls the analysis', () => {
 
     expect(job.secrets).toStrictEqual({
       E2E_CLAUDE_API_KEY: '${{ secrets.E2E_CLAUDE_API_KEY }}',
+      SLACK_BOT_TOKEN: '${{ secrets.SLACK_BOT_TOKEN }}',
     });
   });
 

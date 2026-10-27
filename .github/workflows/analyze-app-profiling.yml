@@ -21,12 +21,12 @@
 #   `app-profiling-analysis` artifact. No per-scenario profile zips.
 #   Findings also get an optional proposal from the pinned
 #   `mms-profiling-regression-proposal` skill (MetaMask/skills#179). The model
-#   only sees Evidence JSON from this job; it does not classify. That proposal
-#   stays in the artifact (`slack.md`); this workflow does not post it.
-#   Findings are not filed as GitHub issues until that is turned back on.
-#   A scheduled run still compares the profile with that baseline and
-#   writes the digest. The Monday report can still list issues that were
-#   already opened; it does not open or comment on any.
+#   only sees Evidence JSON from this job; it does not classify.
+#   A finding is not filed as a GitHub issue. The verdict, including that
+#   proposal when one was produced, is sent as a Slack DM to UEYQL2PEV.
+#   An all-clear, a manual digest, and the Monday report are not sent.
+#   The Monday report can still list issues that were already opened; it
+#   does not open or comment on any.
 # - After a *manually dispatched* performance run: full digest in the Actions
 #   summary and the analysis artifact.
 # - Monday 09:00 UTC: week-over-week exception report (this completed UTC
@@ -35,10 +35,9 @@
 #   one-line brief and link each. Stable scenarios are omitted. The report is
 #   the Actions summary and the analysis artifact.
 #
-# Slack delivery is disabled. Posts used `SLACK_BOT_TOKEN`, which
-# authenticates as the metamask-wallet-platform-bot Slack app. That bot is
-# not used for this Hermes profiling task. Nightly, RC, and dependency-audit
-# workflows still use the same secret.
+# The only Slack post is that finding DM. It uses `SLACK_BOT_TOKEN`, which
+# authenticates as the metamask-wallet-platform-bot Slack app. Channels stay
+# quiet. Nightly, RC, and dependency-audit workflows still use the same secret.
 #
 # `lookback_hours` remains available on workflow_dispatch for an ad-hoc
 # window. `--weekly` is the Monday path.
@@ -69,6 +68,8 @@ on:
         type: string
     secrets:
       E2E_CLAUDE_API_KEY:
+        required: false
+      SLACK_BOT_TOKEN:
         required: false
   workflow_dispatch:
     inputs:
@@ -394,6 +395,25 @@ jobs:
             /tmp/analyze-app-profiling/github-summary-linked.md \
             --style markdown --optional
           cat /tmp/analyze-app-profiling/github-summary-linked.md >> "$GITHUB_STEP_SUMMARY"
+
+      # Only a scheduled finding writes issue-dm.md. All-clear, manual, and
+      # Monday runs leave the file absent, so this posts nothing.
+      - name: DM issue verdict
+        continue-on-error: true
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_TARGET: UEYQL2PEV
+          SLACK_PLAIN: '1'
+          GITHUB_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          GITHUB_RUN_LABEL: Analysis run
+        run: |
+          set -euo pipefail
+          if [ ! -s /tmp/analyze-app-profiling/issue-dm.md ]; then
+            echo "No issue verdict to send"
+            exit 0
+          fi
+          node .github/scripts/qa-automation/performance-tests/post-app-profiling-slack.mjs \
+            /tmp/analyze-app-profiling/issue-dm.md
 
   report-scenario-upload-failure:
     name: Report scenario artifact upload failure

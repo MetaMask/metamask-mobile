@@ -184,3 +184,4 @@ jobs:
       performance_result: ${{ github.event_name == 'schedule' && needs.scheduled-e2e.result || needs.manual.result }}
     secrets:
       E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
