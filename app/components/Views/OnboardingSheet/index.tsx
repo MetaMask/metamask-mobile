@@ -118,6 +118,8 @@ const OnboardingSheet = () => {
       navigation.navigate(Routes.WEBVIEW.SIMPLE, {
         url,
         title,
+        hideShareButton: true,
+        useGlassHeader: true,
       });
     },
     [navigation],
@@ -241,6 +243,7 @@ const OnboardingSheet = () => {
           <Box twClassName="flex-1 h-px bg-border-muted" />
         </Box>
         <ButtonGlass
+          isGlass={false}
           variant={ButtonVariant.Secondary}
           onPress={createWallet ? onPressCreateAction : onPressImportAction}
           testID={OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON}

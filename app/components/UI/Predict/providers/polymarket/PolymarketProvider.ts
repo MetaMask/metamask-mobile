@@ -30,6 +30,7 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   CryptoPriceHistoryPoint,
   CryptoPriceSubscriptionOptions,
@@ -98,6 +99,7 @@ import {
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
   V1_MARKET_VERSION,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -112,6 +114,7 @@ import {
   SignatureType,
   PolymarketApiEvent,
   PolymarketApiEventsKeysetResponse,
+  PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketDataApiV2Response,
   PolymarketPositionV2,
@@ -172,6 +175,7 @@ import { submitProtocolClobOrder } from './protocol/transport';
 import {
   buildClaimTransaction,
   planDepositWalletClaim,
+  type ClaimMarketVersions,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
@@ -382,6 +386,11 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  /** True while the Protocol V2 markets kill switch is on. */
+  #shouldHideV2Markets(): boolean {
+    return this.#getFeatureFlags().disablePolymarketV2Markets;
+  }
+
   #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
     const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
 
@@ -449,6 +458,7 @@ export class PolymarketProvider implements PredictProvider {
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+      hideV2Markets: this.#shouldHideV2Markets(),
     });
 
     if (filterEmptyOutcomes) {
@@ -1045,6 +1055,18 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     marketId: string;
   }): Promise<PredictMarket> {
+    // Details always include v2 markets, so a position or deeplink can still
+    // open one while the kill switch hides it from listings.
+    return this.#getMarketDetails({ marketId, hideV2Markets: false });
+  }
+
+  async #getMarketDetails({
+    marketId,
+    hideV2Markets,
+  }: {
+    marketId: string;
+    hideV2Markets: boolean;
+  }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
@@ -1090,6 +1112,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues,
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets,
       });
 
       if (!parsedMarket) {
@@ -1117,8 +1140,11 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      // Highlights are a listing: with the kill switch on, an all-v2 market
+      // fails to parse and is dropped like any other failed id.
+      const hideV2Markets = this.#shouldHideV2Markets();
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId }).catch((error) => {
+        this.#getMarketDetails({ marketId, hideV2Markets }).catch((error) => {
           DevLogger.log(
             `PolymarketProvider: Failed to fetch market ${marketId}`,
             error,
@@ -1368,6 +1394,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1409,6 +1436,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
@@ -2638,6 +2666,77 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  async #resolveClaimMarketVersions(
+    positions: PredictPosition[],
+  ): Promise<ClaimMarketVersions> {
+    // Gamma is fetched per event id (`position.marketId`) and shared across
+    // positions; versions are keyed by condition id because one event can
+    // hold several markets. A failed or unmatched lookup keeps the CTF claim.
+    const eventMarkets = new Map<string, Promise<PolymarketApiMarket[]>>();
+
+    const getMarketsForEvent = (
+      marketId: string,
+    ): Promise<PolymarketApiMarket[]> => {
+      const cached = eventMarkets.get(marketId);
+      if (cached) {
+        return cached;
+      }
+
+      const markets = getMarketDetailsFromGammaApi({ marketId })
+        .then((event) => event.markets ?? [])
+        .catch((error) => {
+          DevLogger.log('PolymarketProvider: claim version lookup failed', {
+            marketId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          return [];
+        });
+      eventMarkets.set(marketId, markets);
+      return markets;
+    };
+
+    const versions = await Promise.all(
+      positions.map(async (position) => {
+        const markets = await getMarketsForEvent(position.marketId);
+        const market = markets.find(
+          (candidate) => candidate.conditionId === position.outcomeId,
+        );
+
+        return [
+          position.outcomeId,
+          market?.version === V2_MARKET_VERSION ? V2_MARKET_VERSION : undefined,
+        ] as const;
+      }),
+    );
+
+    return Object.fromEntries(versions);
+  }
+
+  /**
+   * While the Protocol V2 kill switch is on, v2 positions stay unclaimed and
+   * the rest are claimed. Throws `MARKET_UNAVAILABLE` when no winning
+   * position is left, so the user is never sent a claim that pays nothing.
+   * With the switch off, every position is claimed.
+   */
+  #excludeV2ClaimPositions(
+    positions: PredictPosition[],
+    marketVersions: ClaimMarketVersions,
+  ): PredictPosition[] {
+    if (!this.#shouldHideV2Markets()) {
+      return positions;
+    }
+
+    const claimPositions = positions.filter(
+      (position) => marketVersions[position.outcomeId] !== V2_MARKET_VERSION,
+    );
+
+    if (!claimPositions.some(isActionableClaimablePosition)) {
+      throw new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+    }
+
+    return claimPositions;
+  }
+
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
@@ -2668,17 +2767,25 @@ export class PolymarketProvider implements PredictProvider {
         safeAddress,
         protocol,
       });
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
+      const claimPositions = this.#excludeV2ClaimPositions(
+        positions,
+        marketVersions,
+      );
       const claimTransaction = await buildClaimTransaction({
         signer,
-        positions,
+        positions: claimPositions,
         safeAddress,
         protocol,
+        marketVersions,
         safeLegacyUsdceBalance,
       });
 
       return {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
+        positions: claimPositions,
+        marketVersions,
       };
     } catch (error) {
       // Log error for debugging
@@ -2757,10 +2864,12 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
       const calls = await planDepositWalletClaim({
         positions,
         walletAddress: accountState.address,
         protocol,
+        marketVersions,
       });
 
       DevLogger.log(
@@ -3241,15 +3350,20 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
 
-    const depositPusdRaw = await getRawBalance({
-      address: accountState.address,
-      tokenAddress: protocol.collateral.tradingToken,
-    });
+    // Deposit-wallet collateral and the legacy Safe code check share no data.
+    // Overlap them so the balance read waits for one round trip. Legacy
+    // collateral is read only after that Safe is known to exist.
     const legacySafeAddress = computeProxyAddress(address);
-    const legacySafeDeployed = await isSmartContractAddress(
-      legacySafeAddress,
-      numberToHex(POLYGON_MAINNET_CHAIN_ID),
-    );
+    const [depositPusdRaw, legacySafeDeployed] = await Promise.all([
+      getRawBalance({
+        address: accountState.address,
+        tokenAddress: protocol.collateral.tradingToken,
+      }),
+      isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      ),
+    ]);
 
     let legacyPusdRaw = 0n;
     let legacyUsdceRaw = 0n;
