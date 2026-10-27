@@ -210,6 +210,34 @@ describe('PredictAnalytics', () => {
         retry_outcome: 'success',
       });
     });
+
+    it('copies Cash Out price check properties onto the tracked event, keeping a false reconfirmed flag', async () => {
+      await predictAnalytics.trackPredictOrderEvent({
+        status: PredictTradeStatus.PRESUBMIT_CHECKED,
+        analyticsProperties: {
+          marketId: 'm1',
+          transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_SELL,
+        },
+        sharePrice: 0.58,
+        completionDuration: 320,
+        presubmitOutcome: PredictEventValues.PRESUBMIT_OUTCOME.PRICE_MOVED,
+        approvedPrice: 0.6,
+        worstFillPrice: 0.57,
+        reconfirmed: false,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.properties).toMatchObject({
+        status: 'presubmit_checked',
+        share_price: 0.58,
+        completion_duration: 320,
+        presubmit_outcome: 'price_moved',
+        approved_price: 0.6,
+        worst_fill_price: 0.57,
+        reconfirmed: false,
+      });
+    });
   });
 
   describe('trackTradeConsidered', () => {

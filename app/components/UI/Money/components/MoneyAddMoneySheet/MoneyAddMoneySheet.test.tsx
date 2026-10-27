@@ -22,6 +22,8 @@ import {
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -41,8 +43,12 @@ jest.mock(
     openAsOnlyOnboardingRoute: jest.fn(),
   }),
 );
+jest.mock('../../../Ramp/Views/VirtualBankAccount/vbaCufTrace', () => ({
+  startVbaCufJourney: jest.fn(),
+}));
 
 const mockOpenAsOnlyOnboardingRoute = jest.mocked(openAsOnlyOnboardingRoute);
+const mockStartVbaCufJourney = jest.mocked(startVbaCufJourney);
 
 const mockOnCloseBottomSheet = jest.fn((cb?: () => void) => cb?.());
 const mockNavigate = jest.fn();
@@ -792,6 +798,9 @@ describe('MoneyAddMoneySheet', () => {
         component_name: COMPONENT_NAMES.MONEY_ADD_MONEY_SHEET_BANK_ACCOUNT,
         redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
       });
+      expect(mockStartVbaCufJourney).toHaveBeenCalledWith(
+        VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET,
+      );
     });
 
     it('calls trackSurfaceClicked with CONVERT_CRYPTO component when "Convert crypto" row is pressed', () => {

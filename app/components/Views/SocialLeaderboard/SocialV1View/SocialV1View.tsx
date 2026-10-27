@@ -262,6 +262,7 @@ const SocialV1ViewContent: React.FC = () => {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    setLeaderboardType,
   } = useSocialShellFilters();
   const [filterScreen, filterTab] =
     SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
@@ -660,6 +661,9 @@ const SocialV1ViewContent: React.FC = () => {
               accessibilityLabel={strings(
                 'social_leaderboard.my_profile.open_profile',
               )}
+              // Header chrome is inset 8px. The feed tabs use 16px, so the
+              // avatar needs the other 8px to share that left edge.
+              style={tw.style('ml-2')}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
                 {myProfile ? (
@@ -781,6 +785,7 @@ const SocialV1ViewContent: React.FC = () => {
                           appliedFilters={applied.leaderboard}
                           onOpenFilters={handleOpenLeaderboardFilters}
                           isFilterActive={hasActiveFilters('leaderboard')}
+                          onTypeChange={setLeaderboardType}
                         />
                       ) : tab === 'live' ? (
                         <LiveView

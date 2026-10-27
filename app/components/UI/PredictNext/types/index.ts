@@ -213,6 +213,47 @@ export interface PredictVenueStatus {
   termsUrl?: string;
 }
 
+/** A product action a Venue supports. Support is not rollout, Venue Status,
+ * eligibility, or Account Readiness; the backend still authorizes every write. */
+export const PREDICT_VENUE_ACTIONS = [
+  'buy',
+  'sell',
+  'claim',
+  'deposit',
+  'withdraw',
+] as const;
+export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
+
+/**
+ * Stable, kebab-case product keys for discovery Feeds. A surface section or
+ * tab names a key, never a concrete Feed ID; each Venue's catalog maps the
+ * keys it supports to its own Feed IDs. Keys outside this list are dropped
+ * when a catalog is parsed.
+ */
+export const PREDICT_FEED_KEYS = [
+  'trending',
+  'live',
+  'sports',
+  'crypto',
+  'politics',
+  'crypto-up-down-live',
+  'world-cup',
+  'nfl-games',
+  'nfl-props',
+  'college-football-games',
+  'college-football-props',
+] as const;
+export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
+
+/** The support part of a Venue descriptor: the wire shape of the Venue
+ * catalog (`GET /v1/venues/{venueId}/catalog`). */
+export interface PredictVenueCatalog {
+  venueId: PredictVenueId;
+  actions: readonly PredictVenueAction[];
+  feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  searchSupported: boolean;
+}
+
 export interface PredictBalance {
   venueId: PredictVenueId;
   currency: 'USD';

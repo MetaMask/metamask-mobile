@@ -51,6 +51,10 @@ PredictNext/
     a2tIssuerUrl.ts
     KalshiA2tSessionBootstrap.tsx
 
+  capabilities/
+    index.ts                   # Venue descriptors, capability hooks and selectors
+    surfaceFeedKeys.ts         # The surface section/tab to Feed key table
+
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy

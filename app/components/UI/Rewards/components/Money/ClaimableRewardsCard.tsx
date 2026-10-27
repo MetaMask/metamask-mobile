@@ -5,8 +5,13 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
   ButtonSize,
   ButtonVariant,
+  IconColor,
+  IconName,
+  IconSize,
   FontWeight,
   Skeleton,
   Text,
@@ -19,6 +24,7 @@ import type { ReferralLocalizedText } from '../../../../../core/Engine/controlle
 export const CLAIMABLE_REWARDS_CARD_TEST_IDS = {
   CONTAINER: 'claimable-rewards-card',
   AMOUNT: 'claimable-rewards-card-amount',
+  BALANCE_BREAKDOWN: 'claimable-rewards-card-balance-breakdown',
   CLAIM_BUTTON: 'claimable-rewards-card-claim-button',
   PAUSED_BUTTON: 'claimable-rewards-card-paused-button',
   CLAIMED_BUTTON: 'claimable-rewards-card-claimed-button',
@@ -93,8 +99,12 @@ export interface ClaimableRewardsCardProps {
   /** The cashback family reaches the summary minimum, so the press can call a claim route. */
   canClaim?: boolean;
   isClaiming?: boolean;
+  /** A Retry-After window. The button stays disabled without a spinner. */
+  isClaimWaiting?: boolean;
   onClaim?: () => void;
   onPaused?: () => void;
+  /** Opens the balance breakdown. Shown beside the amount when set. */
+  onBalanceBreakdown?: () => void;
 }
 
 const ClaimableRewardsCardSkeleton: React.FC<{
@@ -160,8 +170,10 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
   isLast7Loading,
   canClaim = false,
   isClaiming = false,
+  isClaimWaiting = false,
   onClaim,
   onPaused,
+  onBalanceBreakdown,
 }) => {
   const tw = useTailwind();
 
@@ -176,6 +188,9 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
     paused ? localizedText.balance : localizedText.availableToClaim,
     localizedText.mUSD,
   );
+  const claimInProgress = button === 'claim' && isClaiming;
+  const claimCoolingDown =
+    button === 'claim' && isClaimWaiting && !claimInProgress;
   const buttonLabel =
     button === 'claim'
       ? localizedText.claim
@@ -204,21 +219,39 @@ const ClaimableRewardsCard: React.FC<ClaimableRewardsCardProps> = ({
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {heading}
           </Text>
-          <Text
-            variant={TextVariant.HeadingLg}
-            testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
           >
-            {paused ? recordedAmount : claimableAmount}
-          </Text>
+            <Text
+              variant={TextVariant.HeadingLg}
+              testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT}
+            >
+              {paused ? recordedAmount : claimableAmount}
+            </Text>
+            {onBalanceBreakdown ? (
+              <ButtonIcon
+                iconName={IconName.Info}
+                size={ButtonIconSize.Md}
+                iconProps={{
+                  color: IconColor.IconAlternative,
+                  size: IconSize.Md,
+                }}
+                twClassName="-mr-1.5"
+                onPress={onBalanceBreakdown}
+                accessibilityLabel={localizedText.breakdown}
+                testID={CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN}
+              />
+            ) : null}
+          </Box>
         </Box>
         {button === 'hidden' ? null : (
           <Box>
             <Button
               variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
-              isDisabled={
-                button === 'claimed' || (button === 'claim' && isClaiming)
-              }
+              isDisabled={button === 'claimed' || claimCoolingDown}
+              isLoading={claimInProgress}
               onPress={
                 button === 'claim'
                   ? onClaim

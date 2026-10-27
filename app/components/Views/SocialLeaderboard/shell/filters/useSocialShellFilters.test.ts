@@ -88,6 +88,35 @@ describe('useSocialShellFilters', () => {
     expect(result.current.applied.leaderboard.timeframe).toBe('7d');
   });
 
+  it('updates the leaderboard type without marking the sheet filter as active', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.setLeaderboardType('perps');
+    });
+
+    expect(result.current.applied.leaderboard.type).toBe('perps');
+    expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
+  });
+
+  it('keeps the leaderboard type when resetting sheet filters', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.setLeaderboardType('tokens');
+    });
+    act(() => {
+      result.current.openSheet('leaderboard');
+      result.current.updateDraft({ timeframe: '30d' });
+    });
+    act(() => {
+      result.current.resetDraftToDefaults();
+    });
+
+    expect(result.current.draft.type).toBe('tokens');
+    expect(result.current.draft.timeframe).toBe('7d');
+  });
+
   it('does not treat leftover leaderboard ranges as active filters', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 

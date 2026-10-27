@@ -10,7 +10,6 @@ import {
   toCaipAccountId,
 } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
 import { getBaseSemVerVersion } from '../../../../util/version';
 import {
   MOCK_RECURRING_OPEN_ORDER,
@@ -39,6 +38,7 @@ import {
   parseGetRecurringSwapsResponse,
   parseRecurringApiError,
 } from './recurringOrders.validators';
+import { getRecurringOrdersBaseUrl } from './getRecurringOrdersBaseUrl';
 
 const RECURRING_ORDERS_PATH = '/v2/orders/recurring';
 const DEFAULT_ORDERS_PAGE_LIMIT = 20;
@@ -94,10 +94,7 @@ async function throwRecurringApiRequestError(
 }
 
 function getRecurringOrdersUrl(path = ''): string {
-  return `${BRIDGE_API_BASE_URL.replace(
-    /\/+$/u,
-    '',
-  )}${RECURRING_ORDERS_PATH}${path}`;
+  return `${getRecurringOrdersBaseUrl()}${RECURRING_ORDERS_PATH}${path}`;
 }
 
 function recurringAssetIdsMatch(left: string, right: string): boolean {
