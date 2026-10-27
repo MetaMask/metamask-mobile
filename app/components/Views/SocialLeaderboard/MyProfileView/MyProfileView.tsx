@@ -275,9 +275,6 @@ const MyProfileView: React.FC = () => {
     playSelection().catch(() => undefined);
     openComposer();
   }, [openComposer]);
-  const handleShareFirstTrade = useCallback(() => {
-    openComposer();
-  }, [openComposer]);
 
   const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -723,13 +720,7 @@ const MyProfileView: React.FC = () => {
                 ))}
               </Box>
             ) : showPostsEmptyState ? (
-              <ProfilePostsEmptyState
-                isOwner={isOwner}
-                onShareFirstTrade={handleShareFirstTrade}
-                imageUrl={displayProfile.imageUrl}
-                avatarPresetId={displayProfile.avatarPresetId}
-                avatarBackgroundId={displayProfile.avatarBackgroundId}
-              />
+              <ProfilePostsEmptyState />
             ) : postsError && posts.length === 0 ? (
               <Box
                 alignItems={BoxAlignItems.Center}

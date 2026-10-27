@@ -51,8 +51,6 @@ export const MyProfileViewSelectorsIDs = {
   POSTS_ERROR: 'my-profile-view-posts-error',
   POSTS_RETRY_BUTTON: 'my-profile-view-posts-retry-button',
   EMPTY_STATE: 'my-profile-view-empty-state',
-  EMPTY_STATE_AVATAR: 'my-profile-view-empty-state-avatar',
-  SHARE_FIRST_TRADE_BUTTON: 'my-profile-view-share-first-trade-button',
   NO_PROFILE: 'my-profile-view-no-profile',
   CREATE_PROFILE_BUTTON: 'my-profile-view-create-profile-button',
   LOADING: 'my-profile-view-loading',
