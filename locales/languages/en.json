@@ -3659,6 +3659,11 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "Retry",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
       "your_positions": "Your positions"
     },
