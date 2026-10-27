@@ -31,10 +31,7 @@ import ManageProfileNavRow from './components/ManageProfileNavRow';
 import ManageProfileScreenChrome from './components/ManageProfileScreenChrome';
 import { ManageProfileViewSelectorsIDs } from './ManageProfileView.testIds';
 import type { ManageProfileTextEditorField } from './screens/manageProfileTextEditorFields';
-import {
-  SocialEvent,
-  useSocialScreenAnalytics,
-} from '../analytics';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const ManageProfileView: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -120,13 +117,7 @@ const ManageProfileView: React.FC = () => {
     }
 
     await connectX();
-  }, [
-    connectX,
-    isConnectedToX,
-    isConnectingX,
-    isControllerBacked,
-    navigation,
-  ]);
+  }, [connectX, isConnectedToX, isConnectingX, isControllerBacked, navigation]);
 
   const displayName = profile?.displayName ?? '';
   const handle = profile?.handle ? `@${profile.handle}` : '';
