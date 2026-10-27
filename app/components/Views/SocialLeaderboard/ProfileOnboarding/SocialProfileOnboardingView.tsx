@@ -65,6 +65,7 @@ import {
   displayNameFromUsername,
   getUsernameStatus,
   normalizeUsername,
+  onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
@@ -259,7 +260,8 @@ const SocialProfileOnboardingView: React.FC = () => {
   );
   const accounts = useLinkableSocialAccounts();
   const { playSelection } = useHaptics();
-  const { checkUsernameAvailability, createProfile } = useProfileController();
+  const { checkUsernameAvailability, createProfile, updateProfile } =
+    useProfileController();
   const [step, setStep] = useState<ProfileOnboardingStep>('intro');
   const [draft, setDraft] = useState<ProfileOnboardingDraft>(
     createInitialOnboardingDraft,
@@ -279,8 +281,24 @@ const SocialProfileOnboardingView: React.FC = () => {
   const usernameCheckId = useRef(0);
   const usernameCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const profileCreatedRef = useRef(false);
-  const creatingProfileRef = useRef(false);
-  const createAttemptRef = useRef(0);
+  /** Fingerprint of the profile already stored on the server. */
+  const serverProfileFingerprintRef = useRef<string | null>(null);
+  const syncPromiseRef = useRef<Promise<void> | null>(null);
+  const startSyncRef = useRef<() => Promise<void>>(async () => undefined);
+  const connectAbortRef = useRef<AbortController | null>(null);
+  const draftRef = useRef(draft);
+  const accountsRef = useRef(accounts);
+  const stepRef = useRef(step);
+  const previousStepRef = useRef(step);
+  const createProfileRef = useRef(createProfile);
+  const updateProfileRef = useRef(updateProfile);
+  const trackInteractionRef = useRef(trackInteraction);
+  draftRef.current = draft;
+  accountsRef.current = accounts;
+  stepRef.current = step;
+  createProfileRef.current = createProfile;
+  updateProfileRef.current = updateProfile;
+  trackInteractionRef.current = trackInteraction;
 
   const clearUsernameCheckTimer = useCallback(() => {
     if (usernameCheckTimer.current) {
@@ -311,10 +329,19 @@ const SocialProfileOnboardingView: React.FC = () => {
     });
   }, [accounts]);
 
+  const cancelConnectX = useCallback(() => {
+    connectAbortRef.current?.abort();
+    connectAbortRef.current = null;
+  }, []);
+
+  useEffect(() => cancelConnectX, [cancelConnectX]);
+
   const handleClose = useCallback(() => {
+    cancelConnectX();
+    setIsConnectingX(false);
     trackInteraction(Interaction.BUTTON_CLICKED, Outcome.DISMISSED);
     navigation.goBack();
-  }, [navigation, trackInteraction]);
+  }, [cancelConnectX, navigation, trackInteraction]);
 
   const handleBack = useCallback(() => {
     setStep((current) => {
@@ -447,11 +474,17 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const handleConnectX = useCallback(() => {
     playSelection().catch(() => undefined);
+    cancelConnectX();
+    const controller = new AbortController();
+    connectAbortRef.current = controller;
     setConnectXError(null);
     setIsConnectingX(true);
     const connect = async () => {
       try {
-        const xProfile = await connectX();
+        const xProfile = await connectX({ signal: controller.signal });
+        if (controller.signal.aborted) {
+          return;
+        }
         setDraft((current) =>
           applyXOnboardingProfile(current, {
             username: xProfile.username,
@@ -462,8 +495,9 @@ const SocialProfileOnboardingView: React.FC = () => {
         setStep('x-identity');
       } catch (error) {
         if (
-          error instanceof XAuthError &&
-          error.type === XAuthErrorType.UserCancelled
+          controller.signal.aborted ||
+          (error instanceof XAuthError &&
+            error.type === XAuthErrorType.UserCancelled)
         ) {
           return;
         }
@@ -471,18 +505,25 @@ const SocialProfileOnboardingView: React.FC = () => {
           strings('social_leaderboard.profile_onboarding.connect_x_error'),
         );
       } finally {
-        setIsConnectingX(false);
+        if (connectAbortRef.current === controller) {
+          connectAbortRef.current = null;
+        }
+        if (!controller.signal.aborted) {
+          setIsConnectingX(false);
+        }
       }
     };
     connect().catch(() => undefined);
-  }, [playSelection]);
+  }, [cancelConnectX, playSelection]);
 
   const handleCreateManually = useCallback(() => {
+    cancelConnectX();
+    setIsConnectingX(false);
     playSelection().catch(() => undefined);
     setUsernameClaimError(null);
     setDraft((current) => startManualOnboarding(current));
     setStep('username');
-  }, [playSelection]);
+  }, [cancelConnectX, playSelection]);
 
   const handleToggleXUsername = useCallback(
     (enabled: boolean) => {
@@ -540,6 +581,9 @@ const SocialProfileOnboardingView: React.FC = () => {
     }
 
     clearUsernameCheckTimer();
+    if (!canContinueUsernameStep(draft)) {
+      return;
+    }
     setUsernameClaimError(null);
     setIsSubmitting(true);
     try {
@@ -551,82 +595,176 @@ const SocialProfileOnboardingView: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [
-    checkHandle,
-    clearUsernameCheckTimer,
-    draft.path,
-    draft.username,
-    playSelection,
-    step,
-  ]);
+  }, [checkHandle, clearUsernameCheckTimer, draft, playSelection, step]);
 
-  const createOnboardingProfile = useCallback(async () => {
-    if (profileCreatedRef.current || creatingProfileRef.current) {
+  const fingerprintForDraft = (
+    current: ProfileOnboardingDraft,
+  ): string | null => {
+    const linkedAccount = accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+    return onboardingProfileFingerprint(
+      current,
+      linkedAccount?.linkedAddresses,
+    );
+  };
+
+  const writeOnboardingProfile = async (current: ProfileOnboardingDraft) => {
+    const linkedAccount = accountsRef.current.find(
+      (account) => account.id === current.linkedAccountId,
+    );
+    const profileId =
+      (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
+    const params = buildCreateProfileParams(
+      current,
+      profileId,
+      linkedAccount?.linkedAddresses,
+    );
+    // createProfile has no abort signal. Keep a successful in-flight create
+    // and patch it when the draft changes, instead of issuing a second create
+    // that fails because the username or profile already exists.
+    if (serverProfileFingerprintRef.current) {
+      await updateProfileRef.current({
+        username: params.username,
+        display_name: params.display_name,
+        bio: params.bio,
+        linked_addresses: params.linked_addresses,
+        avatar_url: params.avatar_url,
+        trading_privacy: params.trading_privacy,
+      });
       return;
     }
-    creatingProfileRef.current = true;
-    const attempt = createAttemptRef.current + 1;
-    createAttemptRef.current = attempt;
-    setFinishError(null);
-    setIsSubmitting(true);
-    try {
-      const profileId =
-        (await getSessionProfileId()) ?? SOCIAL_ONBOARDING_FALLBACK_PROFILE_ID;
-      const linkedAccount = accounts.find(
-        (account) => account.id === draft.linkedAccountId,
-      );
-      await createProfile(
-        buildCreateProfileParams(
-          draft,
-          profileId,
-          linkedAccount?.linkedAddresses,
-        ),
-      );
-      if (attempt !== createAttemptRef.current) {
-        return;
-      }
-      saveLocalSocialProfile(buildOnboardedSocialProfile(draft));
-      profileCreatedRef.current = true;
-      setProfileCreated(true);
-      trackInteraction(Interaction.USERNAME_CLAIMED, {
-        outcome: Outcome.SUCCESS,
-        step: draft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
-      });
-    } catch {
-      if (attempt !== createAttemptRef.current) {
-        return;
-      }
-      setFinishError(
-        strings('social_leaderboard.profile_onboarding.save_error'),
-      );
-    } finally {
-      if (attempt === createAttemptRef.current) {
-        creatingProfileRef.current = false;
-        setIsSubmitting(false);
-      }
-    }
-  }, [accounts, createProfile, draft, trackInteraction]);
+    await createProfileRef.current(params);
+  };
 
-  const createOnboardingProfileRef = useRef(createOnboardingProfile);
-  createOnboardingProfileRef.current = createOnboardingProfile;
-  const stepRef = useRef(step);
+  const publishCreatedProfile = (current: ProfileOnboardingDraft) => {
+    saveLocalSocialProfile(buildOnboardedSocialProfile(current));
+    profileCreatedRef.current = true;
+    setProfileCreated(true);
+    setIsSubmitting(false);
+  };
+
+  const runSync = async (): Promise<void> => {
+    while (stepRef.current === 'ready') {
+      const currentDraft = draftRef.current;
+      const fingerprint = fingerprintForDraft(currentDraft);
+      if (!fingerprint) {
+        setIsSubmitting(false);
+        return;
+      }
+      if (serverProfileFingerprintRef.current === fingerprint) {
+        publishCreatedProfile(currentDraft);
+        return;
+      }
+      profileCreatedRef.current = false;
+      setProfileCreated(false);
+      setFinishError(null);
+      setIsSubmitting(true);
+      const hadProfile = serverProfileFingerprintRef.current !== null;
+      try {
+        await writeOnboardingProfile(currentDraft);
+      } catch {
+        if (stepRef.current === 'ready') {
+          setFinishError(
+            strings('social_leaderboard.profile_onboarding.save_error'),
+          );
+        }
+        setIsSubmitting(false);
+        return;
+      }
+      serverProfileFingerprintRef.current = fingerprint;
+      if (!hadProfile) {
+        trackInteractionRef.current(Interaction.USERNAME_CLAIMED, {
+          outcome: Outcome.SUCCESS,
+          step: currentDraft.path === 'x' ? Step.X_IDENTITY : Step.USERNAME,
+        });
+      }
+      if (stepRef.current !== 'ready') {
+        setIsSubmitting(false);
+        return;
+      }
+      if (fingerprintForDraft(draftRef.current) !== fingerprint) {
+        continue;
+      }
+      publishCreatedProfile(currentDraft);
+      return;
+    }
+    setIsSubmitting(false);
+  };
+
+  const startSync = (): Promise<void> => {
+    const inFlight = syncPromiseRef.current;
+    if (inFlight) {
+      return inFlight.then(() => {
+        if (stepRef.current !== 'ready') {
+          return undefined;
+        }
+        const latest = fingerprintForDraft(draftRef.current);
+        if (latest && serverProfileFingerprintRef.current === latest) {
+          publishCreatedProfile(draftRef.current);
+          return undefined;
+        }
+        if (
+          latest &&
+          serverProfileFingerprintRef.current &&
+          serverProfileFingerprintRef.current !== latest
+        ) {
+          return startSync();
+        }
+        return undefined;
+      });
+    }
+
+    const run = runSync().finally(() => {
+      if (syncPromiseRef.current === run) {
+        syncPromiseRef.current = null;
+      }
+    });
+    syncPromiseRef.current = run;
+    return run;
+  };
+  startSyncRef.current = startSync;
+
+  const profileFingerprint = useMemo(() => {
+    const linkedAccount = accounts.find(
+      (account) => account.id === draft.linkedAccountId,
+    );
+    return onboardingProfileFingerprint(draft, linkedAccount?.linkedAddresses);
+  }, [accounts, draft]);
 
   useEffect(() => {
-    const previousStep = stepRef.current;
-    stepRef.current = step;
+    const previousStep = previousStepRef.current;
+    previousStepRef.current = step;
     if (step !== 'ready') {
       if (previousStep === 'ready') {
-        createAttemptRef.current += 1;
-        creatingProfileRef.current = false;
         setIsSubmitting(false);
+      }
+      if (
+        serverProfileFingerprintRef.current &&
+        profileFingerprint &&
+        serverProfileFingerprintRef.current !== profileFingerprint
+      ) {
+        profileCreatedRef.current = false;
+        setProfileCreated(false);
+        setFinishError(null);
       }
       return;
     }
-    if (profileCreatedRef.current) {
+    if (
+      profileCreatedRef.current &&
+      serverProfileFingerprintRef.current === profileFingerprint
+    ) {
       return;
     }
-    createOnboardingProfileRef.current().catch(() => undefined);
-  }, [step]);
+    if (serverProfileFingerprintRef.current !== profileFingerprint) {
+      profileCreatedRef.current = false;
+      setProfileCreated(false);
+    }
+    setFinishError(null);
+    startSyncRef.current().catch(() => undefined);
+  }, [profileFingerprint, step]);
+
+  const createOnboardingProfile = useCallback(() => startSyncRef.current(), []);
 
   const handleFinish = useCallback(() => {
     if (!profileCreatedRef.current) {
@@ -730,6 +868,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     'social_leaderboard.profile_onboarding.create_manually',
                   ),
                   onPress: handleCreateManually,
+                  isDisabled: isConnectingX,
                   testID:
                     SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
                 }}

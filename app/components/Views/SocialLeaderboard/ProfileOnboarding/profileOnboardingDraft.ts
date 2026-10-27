@@ -200,8 +200,51 @@ export const buildOnboardedSocialProfile = (
   };
 };
 
+/**
+ * The handle copied from X, still selected. Pattern checks wait until the
+ * user turns that off and edits the handle.
+ */
+export const isUneditedXUsername = (draft: ProfileOnboardingDraft): boolean =>
+  draft.useXUsername &&
+  Boolean(draft.xUsername) &&
+  normalizeUsername(draft.username) ===
+    normalizeUsername(draft.xUsername ?? '');
+
+/**
+ * Identity of the profile that would be written. `profile_id` is omitted so
+ * a session id does not look like an edit.
+ */
+export const onboardingProfileFingerprint = (
+  draft: ProfileOnboardingDraft,
+  linkedAddresses?: CaipAccountId[],
+): string | null => {
+  if (!draft.linkedAccountAddress) {
+    return null;
+  }
+
+  const params = buildCreateProfileParams(
+    draft,
+    'fingerprint',
+    linkedAddresses,
+  );
+  return JSON.stringify({
+    username: params.username,
+    display_name: params.display_name,
+    bio: params.bio ?? null,
+    linked_addresses: params.linked_addresses,
+    avatar_url: params.avatar_url ?? null,
+    trading_privacy: params.trading_privacy,
+  });
+};
+
 export const canContinueUsernameStep = (
   draft: ProfileOnboardingDraft,
-): boolean =>
-  getUsernameStatus(draft.username) === 'available' &&
-  draft.displayName.trim().length > 0;
+): boolean => {
+  if (draft.displayName.trim().length === 0) {
+    return false;
+  }
+  if (isUneditedXUsername(draft)) {
+    return normalizeUsername(draft.username).length > 0;
+  }
+  return getUsernameStatus(draft.username) === 'available';
+};

@@ -52,16 +52,40 @@ const continueFromUsername = async () => {
   ).toBeOnTheScreen();
 };
 
+const letsGoDisabled = (): boolean =>
+  screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON).props
+    .accessibilityState?.disabled === true;
+
 const leaveReadyStep = async () => {
   await waitFor(() => {
-    expect(
-      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON)
-        .props.accessibilityState?.disabled,
-    ).not.toBe(true);
+    expect(letsGoDisabled()).toBe(false);
   });
   fireEvent.press(
     screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
   );
+};
+
+const pressBack = () => {
+  fireEvent.press(
+    screen.getByTestId(SocialProfileOnboardingSelectorsIDs.BACK_BUTTON),
+  );
+};
+
+const deferUpdateProfile = () => {
+  let resolveUpdate: () => void = () => undefined;
+  jest
+    .mocked(Engine.context.ProfileController.updateProfile)
+    .mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveUpdate = () => {
+            resolve(undefined);
+          };
+        }),
+    );
+  return () => {
+    resolveUpdate();
+  };
 };
 
 const reachReadyStep = async () => {
@@ -125,6 +149,21 @@ const CREATED_PROFILE: Profile = {
   updatedAt: '',
 };
 
+const deferCreateProfile = () => {
+  let resolveCreate: (profile: Profile) => void = () => undefined;
+  jest
+    .mocked(Engine.context.ProfileController.createProfile)
+    .mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveCreate = resolve;
+        }),
+    );
+  return () => {
+    resolveCreate(CREATED_PROFILE);
+  };
+};
+
 /** Empty profile id so onboarding falls back when nobody is signed in. */
 const SIGNED_OUT_SESSION: Awaited<
   ReturnType<typeof Engine.context.AuthenticationController.getSessionProfile>
@@ -168,6 +207,30 @@ const restoreProfileControllerMocks = () => {
   jest
     .mocked(Engine.context.AuthenticationController.getSessionProfile)
     .mockResolvedValue(SIGNED_OUT_SESSION);
+  jest.mocked(Engine.context.ProfileController.updateProfile).mockReset();
+  jest
+    .mocked(Engine.context.ProfileController.updateProfile)
+    .mockResolvedValue(undefined);
+  jest
+    .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+    .mockReset();
+  jest
+    .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+    .mockResolvedValue({
+      authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
+      state: 'mock-oauth-state',
+    });
+  jest.mocked(Engine.context.ProfileController.connectX).mockReset();
+  jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
+    xUserId: 'x-user-1',
+    xProfileUrl: 'https://x.com/degangirl',
+    username: 'degangirl',
+    displayName: 'Degan Giri',
+    avatarUrl:
+      'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+  });
 };
 
 describe('SocialProfileOnboardingView', () => {
@@ -1100,6 +1163,336 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.AVATAR_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps a single in-flight create when ready is left and reopened', async () => {
+    const resolveCreate = deferCreateProfile();
+    renderSocialProfileOnboarding();
+
+    await reachReadyStep();
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.createProfile,
+      ).toHaveBeenCalledTimes(1);
+    });
+    expect(letsGoDisabled()).toBe(true);
+
+    pressBack();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP),
+    ).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      Engine.context.ProfileController.updateProfile,
+    ).not.toHaveBeenCalled();
+
+    await act(async () => {
+      resolveCreate();
+    });
+
+    await waitFor(() => {
+      expect(letsGoDisabled()).toBe(false);
+    });
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the created profile when the linked account changes', async () => {
+    const resolveUpdate = deferUpdateProfile();
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }], {
+      includeSecondEvmAccount: true,
+    });
+
+    await reachReadyStep();
+    await waitFor(() => {
+      expect(letsGoDisabled()).toBe(false);
+    });
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+
+    pressBack();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_SELECTOR),
+    );
+    fireEvent.press(
+      screen.getByTestId(
+        `${SocialProfileOnboardingSelectorsIDs.ACCOUNT_ROW}-${SECOND_ONBOARDING_EVM_ACCOUNT.id}`,
+      ),
+    );
+    expect(await screen.findByText('Account 2')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+    expect(letsGoDisabled()).toBe(true);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.LETS_GO_BUTTON),
+    );
+    expect(
+      screen.queryByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.updateProfile,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          linked_addresses: [
+            `eip155:1:${SECOND_ONBOARDING_EVM_ACCOUNT.address}`,
+          ],
+        }),
+      );
+    });
+
+    await act(async () => {
+      resolveUpdate();
+    });
+    await leaveReadyStep();
+
+    expect(
+      await screen.findByTestId(getRouteProbeTestId(Routes.SOCIAL.V1)),
+    ).toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the created profile when the username changes', async () => {
+    const resolveUpdate = deferUpdateProfile();
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.V1 }]);
+
+    await reachReadyStep();
+    await waitFor(() => {
+      expect(letsGoDisabled()).toBe(false);
+    });
+
+    pressBack();
+    pressBack();
+    pressBack();
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent.changeText(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT),
+      'moon_fox',
+    );
+    await continueFromUsername();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(await screen.findByText('Account 1')).toBeOnTheScreen();
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(SocialProfileOnboardingSelectorsIDs.READY_STEP),
+    ).toBeOnTheScreen();
+    expect(letsGoDisabled()).toBe(true);
+    expect(
+      Engine.context.ProfileController.createProfile,
+    ).toHaveBeenCalledTimes(1);
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.updateProfile,
+      ).toHaveBeenCalledWith(expect.objectContaining({ username: 'moon_fox' }));
+    });
+
+    await act(async () => {
+      resolveUpdate();
+    });
+    await waitFor(() => {
+      expect(letsGoDisabled()).toBe(false);
+    });
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.READY_HANDLE),
+    ).toHaveTextContent('@moon_fox');
+
+    await leaveReadyStep();
+    expect(getLocalSocialProfileSnapshot().profile).toEqual(
+      expect.objectContaining({ handle: 'moon_fox' }),
+    );
+  });
+
+  it('continues with an X handle that fails the username pattern until it is edited', async () => {
+    jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
+      xUserId: 'x-user-1',
+      xProfileUrl: 'https://x.com/_bad__name',
+      username: '_bad__name',
+      displayName: 'Bad Name',
+      avatarUrl: '',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('@_bad__name')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Use letters, numbers, and underscores.'),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).not.toBe(true);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    pressBack();
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+    fireEvent(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.USE_X_USERNAME_SWITCH,
+      ),
+      'valueChange',
+      false,
+    );
+    const usernameInput = await screen.findByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+    );
+    fireEvent.changeText(usernameInput, '_bad__name');
+
+    expect(
+      await screen.findByText('Use letters, numbers, and underscores.'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).toBe(true);
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.ACCOUNT_STEP),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('keeps create manually disabled while X is connecting', async () => {
+    let resolveUrl: (session: {
+      authorizationUrl: string;
+      state: string;
+    }) => void = () => undefined;
+    jest
+      .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveUrl = resolve;
+          }),
+      );
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ).props.accessibilityState?.disabled,
+      ).toBe(true);
+    });
+
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+    ).not.toBeOnTheScreen();
+
+    await act(async () => {
+      resolveUrl({
+        authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
+        state: 'mock-oauth-state',
+      });
+    });
+
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('drops an in-flight X connect when onboarding is closed', async () => {
+    let resolveUrl: (session: {
+      authorizationUrl: string;
+      state: string;
+    }) => void = () => undefined;
+    jest
+      .mocked(Engine.context.ProfileController.getXAuthorizationUrl)
+      .mockImplementation(
+        () =>
+          new Promise((resolve) => {
+            resolveUrl = resolve;
+          }),
+      );
+    renderSocialProfileOnboarding();
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.getXAuthorizationUrl,
+      ).toHaveBeenCalledTimes(1);
+    });
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CLOSE_BUTTON),
+    );
+
+    await act(async () => {
+      resolveUrl({
+        authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',
+        state: 'mock-oauth-state',
+      });
+    });
+
+    expect(Engine.context.ProfileController.connectX).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP),
     ).not.toBeOnTheScreen();
   });
 });

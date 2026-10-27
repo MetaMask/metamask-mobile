@@ -8,7 +8,9 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
   normalizeUsername,
+  onboardingProfileFingerprint,
   type XOnboardingIdentity,
 } from './profileOnboardingDraft';
 
@@ -48,6 +50,52 @@ describe('profileOnboardingDraft', () => {
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
+  });
+
+  it('accepts an unedited X handle that fails the username pattern', () => {
+    const draft = applyXOnboardingProfile(createInitialOnboardingDraft(), {
+      ...X_IDENTITY,
+      username: '_bad__name',
+    });
+
+    expect(getUsernameStatus(draft.username)).toBe('invalid');
+    expect(isUneditedXUsername(draft)).toBe(true);
+    expect(canContinueUsernameStep(draft)).toBe(true);
+    expect(canContinueUsernameStep({ ...draft, useXUsername: false })).toBe(
+      false,
+    );
+    expect(
+      canContinueUsernameStep({
+        ...draft,
+        useXUsername: false,
+        username: 'still_bad__name',
+      }),
+    ).toBe(false);
+  });
+
+  it('changes the profile fingerprint when the username or account changes', () => {
+    const draft = {
+      ...createInitialOnboardingDraft(),
+      username: 'wen_cat',
+      displayName: 'Wen Cat',
+      linkedAccountAddress: '0xabc',
+    };
+
+    const fingerprint = onboardingProfileFingerprint(draft);
+
+    expect(fingerprint).toBe(onboardingProfileFingerprint(draft));
+    expect(
+      onboardingProfileFingerprint({ ...draft, username: 'moon_fox' }),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint(draft, ['eip155:1:0xabc', 'eip155:1:0xdef']),
+    ).not.toBe(fingerprint);
+    expect(
+      onboardingProfileFingerprint({
+        ...draft,
+        linkedAccountAddress: null,
+      }),
+    ).toBeNull();
   });
 
   it('blocks continue until the handle and display name are filled', () => {

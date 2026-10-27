@@ -8,6 +8,7 @@ jest.mock('expo-web-browser', () => ({
     type: 'success',
     url: 'https://link.metamask.io/x-oauth-redirect?code=mock-code&state=mock-oauth-state',
   }),
+  dismissAuthSession: jest.fn(),
 }));
 
 // Engine mock (singleton default export)
