@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { act, fireEvent } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
@@ -586,13 +586,15 @@ describe('RewardsMoneyDashboard', () => {
     expect(mockUseEarningsSummary).toHaveBeenCalledWith(PROFILE_ID);
   });
 
-  it('feeds the referrer hero the referrals total and hides trading commissions', () => {
-    const { getByText, queryByTestId } = renderDashboard();
+  it('feeds the referrer hero the referrals total and trading commissions', () => {
+    const { getByText, getByTestId } = renderDashboard();
 
     expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
     expect(
-      queryByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
-    ).not.toBeOnTheScreen();
+      getByTestId(REFERER_HERO_CARD_TEST_IDS.TRADE_COMMISSIONS_TOTAL),
+    ).toBeOnTheScreen();
   });
 
   it('feeds the referee hero its own cashback as rebates', () => {
@@ -621,7 +623,7 @@ describe('RewardsMoneyDashboard', () => {
     });
 
     expect(getByTestId(REFERER_HERO_CARD_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('-')).toHaveLength(1);
+    expect(getAllByText('-')).toHaveLength(2);
     expect(queryByText('$41.75')).not.toBeOnTheScreen();
     expect(queryByText('$0.00')).not.toBeOnTheScreen();
     expect(
@@ -863,5 +865,60 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
     ).toBeOnTheScreen();
+  });
+
+  it('pads a short panel so the title clip can scroll into view', () => {
+    const { getByTestId } = renderDashboard({ subscriptionId: null });
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 640 } },
+    });
+
+    expect(
+      StyleSheet.flatten(
+        getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER).props
+          .style,
+      ).height,
+    ).toBe(76);
+  });
+
+  it('leaves a tall panel without a clip spacer', () => {
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 64 } },
+      },
+    );
+    fireEvent(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW),
+      'layout',
+      {
+        nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 652 } },
+      },
+    );
+    fireEvent(getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL), 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 800 } },
+    });
+
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER),
+    ).toBeNull();
   });
 });

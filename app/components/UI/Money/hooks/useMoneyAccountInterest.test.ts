@@ -9,7 +9,9 @@ import {
   clearReportedMoneyInterestError,
   reportMoneyInterestError,
 } from '../utils/reportMoneyInterestError';
-import useMoneyAccountInterest from './useMoneyAccountInterest';
+import useMoneyAccountInterest, {
+  useMoneyAccountSinceInceptionInterest,
+} from './useMoneyAccountInterest';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -234,5 +236,31 @@ describe('useMoneyAccountInterest', () => {
     expect(mockClearReportedMoneyInterestError).toHaveBeenCalledWith(
       'since_inception',
     );
+  });
+});
+
+describe('useMoneyAccountSinceInceptionInterest', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setSelectors();
+    mockUseQuery.mockReturnValue(MOCK_QUERY_RESULT as never);
+  });
+
+  it('queries since inception without the 30-day window', () => {
+    renderHook(() => useMoneyAccountSinceInceptionInterest());
+
+    expect(mockUseQuery).toHaveBeenCalledTimes(1);
+    expect(mockUseQuery).toHaveBeenCalledWith({
+      queryKey: [
+        MoneyAccountApiDataServiceQueryKeys.FETCH_INTEREST,
+        MOCK_ADDRESS,
+        {
+          vaultAddress: MOCK_VAULT_ADDRESS,
+          chainId: 143,
+          window: 'since_inception',
+        },
+      ],
+      enabled: true,
+    });
   });
 });

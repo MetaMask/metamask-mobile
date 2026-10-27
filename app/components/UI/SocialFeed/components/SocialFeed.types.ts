@@ -1,6 +1,6 @@
 import type React from 'react';
 import type { ScrollHandlerProcessed } from 'react-native-reanimated';
-import type { SocialFeedSource } from '../data/socialFeedSource';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import type { SocialSurfaceLocation } from '../SocialFeedSurface';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import type { SocialEventSource } from '../../../Views/SocialLeaderboard/analytics/socialEvents';
@@ -19,9 +19,12 @@ export interface SocialFeedHeaderProps {
   onRevealPending: () => void;
 }
 
-interface SocialFeedBaseProps {
-  /** Which slice to load. The component fetches it; the host does not. */
-  source: SocialFeedSource;
+/**
+ * The query fields (`scope`, `chains`, `assetIds`, `profileId`,
+ * `commentedOnly`) say which slice to load, as `SocialService:fetchFeed`
+ * takes them. The component fetches it; the host does not. Memoize the arrays.
+ */
+interface SocialFeedBaseProps extends SocialFeedQuery {
   /** Where this feed is shown. Post events use it; the host does not track. */
   location: SocialSurfaceLocation;
   /** Entry point when it is not already implied by `location`. */
@@ -34,6 +37,8 @@ interface SocialFeedBaseProps {
   renderHeader?: (props: SocialFeedHeaderProps) => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
   filterPost?: (post: SocialV1FeedPost) => boolean;
+  /** Replaces the default empty line when the filtered feed has no posts. */
+  emptyState?: React.ReactNode;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
   onPositionPress?: (post: SocialV1FeedPost) => void;

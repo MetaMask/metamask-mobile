@@ -10,7 +10,6 @@ import rewardsReducer, {
   resetRewardsState,
   setOnboardingActiveStep,
   resetOnboarding,
-  setOnboardingReferralCode,
   setCandidateSubscriptionId,
   setGeoRewardsMetadata,
   setGeoRewardsMetadataLoading,
@@ -557,12 +556,11 @@ describe('rewardsReducer', () => {
   });
 
   describe('resetOnboarding', () => {
-    it('should reset onboarding to INTRO step and clear referral code', () => {
+    it('should reset onboarding to INTRO step', () => {
       // Arrange
       const stateWithStep = {
         ...initialState,
         onboardingActiveStep: OnboardingStep.STEP_3,
-        onboardingReferralCode: 'REF123',
       };
       const action = resetOnboarding();
 
@@ -571,7 +569,6 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-      expect(state.onboardingReferralCode).toBeNull();
     });
 
     it('should not affect other state properties', () => {
@@ -579,7 +576,6 @@ describe('rewardsReducer', () => {
       const stateWithData = {
         ...initialState,
         onboardingActiveStep: OnboardingStep.STEP_4,
-        onboardingReferralCode: 'REF456',
         referralDetails: preservedReferralDetails('KEEP123'),
         seasonUserStatuses: preservedSeasonUserStatuses(1500),
       };
@@ -590,7 +586,6 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.onboardingActiveStep).toBe(OnboardingStep.INTRO);
-      expect(state.onboardingReferralCode).toBeNull();
       expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
         'KEEP123',
       );
@@ -599,74 +594,6 @@ describe('rewardsReducer', () => {
       ).toBe(1500);
     });
   });
-
-  describe('setOnboardingReferralCode', () => {
-    it('should set onboarding referral code', () => {
-      // Arrange
-      const action = setOnboardingReferralCode('REF123');
-
-      // Act
-      const state = rewardsReducer(initialState, action);
-
-      // Assert
-      expect(state.onboardingReferralCode).toBe('REF123');
-    });
-
-    it('should update existing onboarding referral code', () => {
-      // Arrange
-      const stateWithCode = {
-        ...initialState,
-        onboardingReferralCode: 'OLD_REF',
-      };
-      const action = setOnboardingReferralCode('NEW_REF');
-
-      // Act
-      const state = rewardsReducer(stateWithCode, action);
-
-      // Assert
-      expect(state.onboardingReferralCode).toBe('NEW_REF');
-    });
-
-    it('should set onboarding referral code to null', () => {
-      // Arrange
-      const stateWithCode = {
-        ...initialState,
-        onboardingReferralCode: 'REF123',
-      };
-      const action = setOnboardingReferralCode(null);
-
-      // Act
-      const state = rewardsReducer(stateWithCode, action);
-
-      // Assert
-      expect(state.onboardingReferralCode).toBeNull();
-    });
-
-    it('should not affect other state properties', () => {
-      // Arrange
-      const stateWithData = {
-        ...initialState,
-        onboardingActiveStep: OnboardingStep.STEP_2,
-        referralDetails: preservedReferralDetails('KEEP123'),
-        seasonUserStatuses: preservedSeasonUserStatuses(1500),
-      };
-      const action = setOnboardingReferralCode('REF789');
-
-      // Act
-      const state = rewardsReducer(stateWithData, action);
-
-      // Assert
-      expect(state.onboardingReferralCode).toBe('REF789');
-      expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
-      expect(state.referralDetails[TEST_SUBSCRIPTION_ID]?.referralCode).toBe(
-        'KEEP123',
-      );
-      expect(
-        state.seasonUserStatuses[seasonUserKey('season-1')]?.balanceTotal,
-      ).toBe(1500);
-    });
-  });
-
   describe('setGeoRewardsMetadata', () => {
     it('should update geo metadata when payload is provided', () => {
       // Arrange
@@ -979,7 +906,6 @@ describe('rewardsReducer', () => {
           campaigns,
           campaignsHasLoaded: true,
           onboardingActiveStep: OnboardingStep.STEP_2,
-          onboardingReferralCode: 'ONBOARDING_REF',
         };
         const action = setCandidateSubscriptionId('new-subscription-id');
 
@@ -999,7 +925,6 @@ describe('rewardsReducer', () => {
           'REF123',
         );
         expect(state.onboardingActiveStep).toBe(OnboardingStep.STEP_2);
-        expect(state.onboardingReferralCode).toBe('ONBOARDING_REF');
       });
 
       it('preserves keyed maps when changing from valid ID to pending', () => {

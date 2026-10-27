@@ -785,6 +785,16 @@ describe('SocialV1View', () => {
     ).toHaveLength(2);
   });
 
+  it('insets the header avatar so it shares the 16px tab padding', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
+      ).marginLeft,
+    ).toBe(8);
+  });
+
   it('uses the profile image URL for the header avatar when available', () => {
     mockUseMyProfile.mockReturnValue({
       profile: {

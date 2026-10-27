@@ -14,7 +14,6 @@ import { NetworkNonPemittedBottomSheetSelectorsText } from '../../../../app/comp
 import Browser from '../../../page-objects/Browser/BrowserView.js';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal.js';
 import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector.js';
-import ToastModal from '../../../page-objects/wallet/ToastModal.js';
 import AccountListBottomSheet from '../../../page-objects/wallet/AccountListBottomSheet.js';
 
 appiumTest.describe(
@@ -46,7 +45,7 @@ appiumTest.describe(
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
-            await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+            await ConnectedAccountsModal.openFromBrowser();
 
             await ConnectedAccountsModal.tapPermissionsSummaryTab();
             await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
@@ -95,10 +94,7 @@ appiumTest.describe(
 
             await Browser.navigateToTestDApp();
             await waitForTestDappToLoad();
-            await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-            await Assertions.expectElementToNotBeVisible(
-              ToastModal.notificationTitle,
-            );
+            await ConnectedAccountsModal.openFromBrowser();
             await ConnectedAccountsModal.expectConnectedAccountDisplayed(
               'Account 1',
             );

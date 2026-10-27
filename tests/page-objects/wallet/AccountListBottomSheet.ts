@@ -301,12 +301,15 @@ class AccountListBottomSheet {
   async tapAddAccountButtonV2(options?: {
     srpIndex?: number;
     shouldWait?: boolean;
+    /** Cap pre/post-tap sync waits (default 90s). Keep short inside re-tap loops. */
+    syncTimeoutMs?: number;
   }): Promise<void> {
     const buttonIndex = options?.srpIndex ?? 0;
+    const syncTimeoutMs = options?.syncTimeoutMs ?? 90_000;
 
     // Account sync/discovery can keep the row visible but not yet tappable.
     // Wait for the sync phase to settle before tapping "Add account".
-    await this.waitForAccountSyncToComplete(90_000, {
+    await this.waitForAccountSyncToComplete(syncTimeoutMs, {
       addAccountButtonIndex: buttonIndex,
     });
 
@@ -325,13 +328,17 @@ class AccountListBottomSheet {
     // Account creation restarts sync/discovery. The new row is not in the
     // tree until that settles, and the default text assertion only gets a
     // couple of probes before its timeout.
-    await this.waitForAccountSyncToComplete();
+    await this.waitForAccountSyncToComplete(syncTimeoutMs);
   }
 
   /**
    * Tap "Add account" and prove the new account row exists.
    * Appium can report a successful click while FlashList / InteractionManager
    * abandons create — re-tap until the named row is visible (scroll-aware).
+   *
+   * Outer budget must allow multiple tap+prove cycles: nested sync waits used
+   * to consume the whole 50s window so abandoned creates never re-tapped
+   * (permission multi-account smoke: Account 3).
    */
   async addAccountAndExpectVisibleV2(
     accountName: string,
@@ -341,18 +348,26 @@ class AccountListBottomSheet {
       timeout?: number;
     },
   ): Promise<void> {
-    const timeout = options?.timeout ?? 50_000;
+    const timeout = options?.timeout ?? 120_000;
+    // Keep each attempt short enough that the outer loop can re-tap after an
+    // abandoned create (video: Edit accounts still shows only Account 1/2).
+    const perAttemptSyncTimeoutMs = 25_000;
+    const visibilityTimeoutMs = 20_000;
 
     await Utilities.executeWithRetry(
       async () => {
         const existing =
           await this.getAccountElementsByAccountNameV2(accountName);
         if (existing.length === 0) {
-          await this.tapAddAccountButtonV2(options);
+          await this.tapAddAccountButtonV2({
+            srpIndex: options?.srpIndex,
+            shouldWait: options?.shouldWait,
+            syncTimeoutMs: perAttemptSyncTimeoutMs,
+          });
         }
 
         await this.expectAccountVisibleByNameV2(accountName, {
-          timeout: 15_000,
+          timeout: visibilityTimeoutMs,
           description: `${accountName} visible after Add account`,
         });
       },
@@ -880,7 +895,10 @@ class AccountListBottomSheet {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
-    const initialWaitTimeout = 2000; // 2 seconds to wait for syncing/discovering to appear
+    // Brief window for sync/discovery chrome to appear after create/open.
+    // Must be long enough to catch a late "Syncing" flash; too short and we
+    // skip settle while creation is still in flight (Account 3 add flake).
+    const initialWaitTimeout = 5_000;
 
     const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
 
@@ -896,9 +914,9 @@ class AccountListBottomSheet {
       }
     };
 
-    // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
+    // Step 1: Wait up to initialWaitTimeout for "Syncing" or "Discovering" to appear
     logger.debug(
-      '⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...',
+      `⏳ Step 1: Waiting up to ${initialWaitTimeout / 1000}s for "Syncing" or "Discovering" to appear...`,
     );
     let syncingDetected = false;
     const footerIndex = options?.addAccountButtonIndex;
