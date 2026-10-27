@@ -4,13 +4,24 @@ import fs from 'node:fs';
  * Fail-closed gate for the ci.yml aggregate check on one commit.
  *
  * Production OTA publishes a pull request head SHA. This module allows that
- * publish only when the latest "Check all jobs pass" run recorded on that
- * exact SHA completed with conclusion success. A missing run, a run still
- * in progress, a run on any other SHA, or any other conclusion blocks.
+ * publish only when the latest ci.yml "Check all jobs pass" job on that exact
+ * SHA completed with conclusion success. A missing job, a job still in
+ * progress, a job on any other SHA, a same-named job from another workflow,
+ * or any other conclusion blocks.
+ *
+ * The OTA gate jobs must not use this check name. A top-level Actions job
+ * records a check run under its own name, so a gate named "Check all jobs
+ * pass" would be the newest run on the shipped SHA and would either block
+ * (while in progress) or satisfy a later production gate (when a non-production
+ * run succeeds).
  */
 
 export const CHECK_ALL_JOBS_PASS_NAME = 'Check all jobs pass';
 
+/** Workflow file whose aggregate job is the only accepted CI result. */
+export const CI_WORKFLOW_PATH = '.github/workflows/ci.yml';
+
+const CI_WORKFLOW_FILE = 'ci.yml';
 const FULL_SHA = /^[0-9a-f]{40}$/;
 const GITHUB_ACTIONS_SLUG = 'github-actions';
 
@@ -24,6 +35,30 @@ export interface CheckRunRef {
   completed_at?: string | null;
   html_url?: string | null;
   app?: { slug?: string | null } | null;
+  /** Workflow file that created the check. Required for a pass. */
+  workflow_path?: string | null;
+}
+
+export interface WorkflowRunRef {
+  id?: number;
+  path?: string | null;
+  head_sha?: string | null;
+  status?: string | null;
+  conclusion?: string | null;
+  run_started_at?: string | null;
+  created_at?: string | null;
+  html_url?: string | null;
+}
+
+export interface WorkflowJobRef {
+  id?: number;
+  name?: string;
+  status?: string | null;
+  conclusion?: string | null;
+  head_sha?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  html_url?: string | null;
 }
 
 export interface GateDecision {
@@ -54,13 +89,14 @@ export function readCheckRuns(payload: unknown): CheckRunRef[] {
  *
  * Runs whose `head_sha` is not `expectedSha` are ignored, so a pull_request
  * check attached to a merge commit cannot satisfy the gate for the branch
- * tip. Among the remaining runs, the latest one must be a completed success
- * from GitHub Actions. An older success does not override a newer in-progress
- * or failed run on the same SHA.
+ * tip. Runs that are not the ci.yml aggregate are ignored too, including a
+ * same-named job from the OTA gate itself. Among the remaining runs, the
+ * latest one must be a completed success from GitHub Actions. An older
+ * success does not override a newer in-progress or failed ci.yml run.
  *
- * @param runs - Check runs named "Check all jobs pass", or a wider list.
+ * @param runs - Candidate check runs. Only ci.yml aggregates are considered.
  * @param expectedSha - Full commit SHA that will be published.
- * @param checkName - Check run name. Defaults to the ci.yml aggregate job.
+ * @param checkName - Job name. Defaults to the ci.yml aggregate job.
  * @returns A pass/fail decision. `ok` is false for every uncertain case.
  */
 export function evaluateCheckAllJobsPass(
@@ -80,13 +116,16 @@ export function evaluateCheckAllJobsPass(
     if (run.name !== checkName) {
       return false;
     }
+    if (run.workflow_path !== CI_WORKFLOW_PATH) {
+      return false;
+    }
     return (run.head_sha ?? '').toLowerCase() === sha;
   });
 
   if (onThisSha.length === 0) {
     return {
       ok: false,
-      reason: `no "${checkName}" check run on ${sha}; production OTA is blocked`,
+      reason: `no ci.yml "${checkName}" check run on ${sha}; production OTA is blocked`,
     };
   }
 
@@ -119,20 +158,91 @@ export function evaluateCheckAllJobsPass(
 
   return {
     ok: true,
-    reason: `"${checkName}" succeeded on ${sha}`,
+    reason: `ci.yml "${checkName}" succeeded on ${sha}`,
     htmlUrl,
   };
 }
 
 /**
- * Fetch every page of check runs for one name.
+ * Turn ci.yml workflow runs and their jobs into aggregate check runs.
+ *
+ * A run that matches the SHA and workflow path but has no aggregate job yet
+ * still produces a record, so a newer in-progress ci.yml run blocks an older
+ * success. A completed run with no aggregate job is a failure. Jobs from any
+ * other workflow are not represented here.
+ *
+ * @param workflowRuns - Runs from the Actions API, or a fixture.
+ * @param jobsByRunId - Jobs for those runs, keyed by workflow run id.
+ * @param expectedSha - Full commit SHA that will be published.
+ * @param checkName - Aggregate job name.
+ * @returns Check runs the gate can evaluate. Each has `workflow_path` set.
+ */
+export function collectCiAggregateChecks(
+  workflowRuns: WorkflowRunRef[],
+  jobsByRunId: Readonly<Record<string, WorkflowJobRef[] | undefined>>,
+  expectedSha: string,
+  checkName: string = CHECK_ALL_JOBS_PASS_NAME,
+): CheckRunRef[] {
+  const sha = expectedSha.trim().toLowerCase();
+  const collected: CheckRunRef[] = [];
+
+  for (const workflowRun of workflowRuns) {
+    if (workflowRun.path !== CI_WORKFLOW_PATH) {
+      continue;
+    }
+    if ((workflowRun.head_sha ?? '').toLowerCase() !== sha) {
+      continue;
+    }
+
+    const jobs = jobsByRunId[String(workflowRun.id ?? '')] ?? [];
+    const aggregates = jobs.filter((job) => {
+      if (job.name !== checkName) {
+        return false;
+      }
+      return (job.head_sha ?? '').toLowerCase() === sha;
+    });
+
+    if (aggregates.length === 0) {
+      collected.push(missingAggregate(workflowRun, sha, checkName));
+      continue;
+    }
+
+    for (const job of aggregates) {
+      collected.push({
+        id: job.id,
+        name: checkName,
+        status: job.status,
+        conclusion: job.conclusion,
+        head_sha: sha,
+        // A queued job has no started_at. Stamp the workflow run time so it
+        // still sorts ahead of an older completed success.
+        started_at:
+          job.started_at ??
+          workflowRun.run_started_at ??
+          workflowRun.created_at,
+        completed_at: job.completed_at,
+        html_url: job.html_url,
+        app: { slug: GITHUB_ACTIONS_SLUG },
+        workflow_path: CI_WORKFLOW_PATH,
+      });
+    }
+  }
+
+  return collected;
+}
+
+/**
+ * Fetch ci.yml runs for one SHA and return only that workflow's aggregate jobs.
  * Throws when the API does not return a complete list.
+ *
+ * Listing by workflow file, not by check name, keeps a same-named job from
+ * runway-ota-production.yml or push-eas-update.yml out of the result.
  *
  * @param repository - `owner/repo`.
  * @param sha - Commit SHA.
- * @param token - Token with `checks: read`.
- * @param checkName - Exact check run name.
- * @returns All matching check runs.
+ * @param token - Token with `actions: read`.
+ * @param checkName - Exact aggregate job name inside ci.yml.
+ * @returns Aggregate jobs, plus a blocking record for a ci.yml run that has none.
  */
 export async function listCheckRunsForSha(
   repository: string,
@@ -140,54 +250,65 @@ export async function listCheckRunsForSha(
   token: string,
   checkName: string,
 ): Promise<CheckRunRef[]> {
-  const runs: CheckRunRef[] = [];
-  let page = 1;
+  if (!/^[^/\s]+\/[^/\s]+$/.test(repository)) {
+    throw new Error('GITHUB_REPOSITORY must be owner/repo');
+  }
 
-  for (;;) {
+  const workflowRuns = await listPages(token, (page) => {
     const url = new URL(
-      `https://api.github.com/repos/${repository}/commits/${sha}/check-runs`,
+      `https://api.github.com/repos/${repository}/actions/workflows/${CI_WORKFLOW_FILE}/runs`,
     );
-    url.searchParams.set('check_name', checkName);
+    url.searchParams.set('head_sha', sha);
     url.searchParams.set('per_page', '100');
     url.searchParams.set('page', String(page));
+    return url;
+  }, readWorkflowRuns);
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'metamask-mobile-ota-ci-gate',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `GitHub check-runs request failed with HTTP ${response.status} for ${sha}`,
+  const jobsByRunId: Record<string, WorkflowJobRef[]> = {};
+  for (const workflowRun of workflowRuns) {
+    if (workflowRun.path !== CI_WORKFLOW_PATH) {
+      continue;
+    }
+    if ((workflowRun.head_sha ?? '').toLowerCase() !== sha.toLowerCase()) {
+      continue;
+    }
+    if (workflowRun.id === undefined) {
+      throw new Error(`ci.yml run for ${sha} is missing an id`);
+    }
+    const runId = workflowRun.id;
+    jobsByRunId[String(runId)] = await listPages(token, (page) => {
+      const url = new URL(
+        `https://api.github.com/repos/${repository}/actions/runs/${runId}/jobs`,
       );
-    }
-
-    const body: unknown = await response.json();
-    const batch = readCheckRuns(body);
-    runs.push(...batch);
-
-    const total = isRecord(body) && typeof body.total_count === 'number'
-      ? body.total_count
-      : runs.length;
-
-    if (batch.length === 0 || runs.length >= total) {
-      if (runs.length < total) {
-        throw new Error(
-          `GitHub returned ${runs.length} of ${total} check runs for ${sha}`,
-        );
-      }
-      return runs;
-    }
-
-    page += 1;
-    if (page > 20) {
-      throw new Error(`refusing to page check runs for ${sha} past 20 pages`);
-    }
+      url.searchParams.set('filter', 'latest');
+      url.searchParams.set('per_page', '100');
+      url.searchParams.set('page', String(page));
+      return url;
+    }, readWorkflowJobs);
   }
+
+  return collectCiAggregateChecks(workflowRuns, jobsByRunId, sha, checkName);
+}
+
+function missingAggregate(
+  workflowRun: WorkflowRunRef,
+  sha: string,
+  checkName: string,
+): CheckRunRef {
+  const completed = workflowRun.status === 'completed';
+  const startedAt = workflowRun.run_started_at ?? workflowRun.created_at ?? null;
+  return {
+    id: workflowRun.id,
+    name: checkName,
+    status: completed ? 'completed' : (workflowRun.status ?? 'in_progress'),
+    conclusion: completed ? 'missing' : null,
+    head_sha: sha,
+    started_at: startedAt,
+    completed_at: completed ? startedAt : null,
+    html_url: workflowRun.html_url,
+    app: { slug: GITHUB_ACTIONS_SLUG },
+    workflow_path: CI_WORKFLOW_PATH,
+  };
 }
 
 function pickLatest(runs: CheckRunRef[]): CheckRunRef {
@@ -216,8 +337,80 @@ function timestamp(value: string | null | undefined): number {
 function isRecord(value: unknown): value is CheckRunRef & {
   check_runs?: unknown;
   total_count?: unknown;
+  workflow_runs?: unknown;
+  jobs?: unknown;
 } {
   return typeof value === 'object' && value !== null;
+}
+
+async function listPages<T>(
+  token: string,
+  buildUrl: (page: number) => URL,
+  readItems: (body: unknown) => T[],
+): Promise<T[]> {
+  const items: T[] = [];
+  let page = 1;
+
+  for (;;) {
+    const url = buildUrl(page);
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'User-Agent': 'metamask-mobile-ota-ci-gate',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(
+        `GitHub request failed with HTTP ${response.status} for ${url.pathname}`,
+      );
+    }
+
+    const body: unknown = await response.json();
+    const batch = readItems(body);
+    items.push(...batch);
+
+    const total = isRecord(body) && typeof body.total_count === 'number'
+      ? body.total_count
+      : items.length;
+
+    if (batch.length === 0 || items.length >= total) {
+      if (items.length < total) {
+        throw new Error(
+          `GitHub returned ${items.length} of ${total} results for ${url.pathname}`,
+        );
+      }
+      return items;
+    }
+
+    page += 1;
+    if (page > 20) {
+      throw new Error(`refusing to page ${url.pathname} past 20 pages`);
+    }
+  }
+}
+
+function readWorkflowRuns(body: unknown): WorkflowRunRef[] {
+  if (!isRecord(body) || !Array.isArray(body.workflow_runs)) {
+    return [];
+  }
+  return body.workflow_runs.filter(isRecord);
+}
+
+function readWorkflowJobs(body: unknown): WorkflowJobRef[] {
+  if (!isRecord(body) || !Array.isArray(body.jobs)) {
+    return [];
+  }
+  return body.jobs.filter(isRecord);
+}
+
+function isWorkflowFixture(payload: unknown): payload is {
+  workflow_runs: WorkflowRunRef[];
+  jobs?: Record<string, WorkflowJobRef[]>;
+} {
+  return isRecord(payload) && Array.isArray(payload.workflow_runs);
 }
 
 async function main(): Promise<void> {
@@ -234,7 +427,21 @@ async function main(): Promise<void> {
       report(false, 'CHECK_RUNS_JSON is not valid JSON');
       return;
     }
-    runs = readCheckRuns(parsed);
+    if (isWorkflowFixture(parsed)) {
+      const jobs = isRecord(parsed.jobs) ? parsed.jobs : {};
+      const jobsByRunId: Record<string, WorkflowJobRef[]> = {};
+      for (const [runId, value] of Object.entries(jobs)) {
+        jobsByRunId[runId] = readWorkflowJobs({ jobs: value });
+      }
+      runs = collectCiAggregateChecks(
+        readWorkflowRuns({ workflow_runs: parsed.workflow_runs }),
+        jobsByRunId,
+        sha,
+        checkName,
+      );
+    } else {
+      runs = readCheckRuns(parsed);
+    }
   } else {
     const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN || '';
     const repository = process.env.GITHUB_REPOSITORY ?? '';

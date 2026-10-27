@@ -15,6 +15,7 @@ interface CheckRunFixture {
   completed_at?: string;
   html_url?: string;
   app?: { slug?: string | null } | null;
+  workflow_path?: string;
 }
 
 function runOnThisSha(overrides: Partial<CheckRunFixture> = {}): CheckRunFixture {
@@ -28,6 +29,7 @@ function runOnThisSha(overrides: Partial<CheckRunFixture> = {}): CheckRunFixture
     completed_at: '2026-10-26T12:05:00Z',
     html_url: 'https://github.com/example/actions/runs/1',
     app: { slug: 'github-actions' },
+    workflow_path: '.github/workflows/ci.yml',
     ...overrides,
   };
 }
@@ -71,7 +73,7 @@ describe('require-check-all-jobs-pass', () => {
 
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain(SHA);
-    expect(result.stderr).toContain('no "Check all jobs pass"');
+    expect(result.stderr).toContain('no ci.yml "Check all jobs pass"');
   });
 
   it('blocks a short commit SHA before looking at runs', () => {
@@ -125,7 +127,63 @@ describe('require-check-all-jobs-pass', () => {
     ]);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain(`"Check all jobs pass" succeeded on ${SHA}`);
+    expect(result.stdout).toContain(`ci.yml "Check all jobs pass" succeeded on ${SHA}`);
+  });
+
+  it('passes when ci.yml succeeded and a newer same-name gate run is in progress', () => {
+    const result = runCli([
+      runOnThisSha({
+        id: 1,
+        started_at: '2026-10-26T11:00:00Z',
+        completed_at: '2026-10-26T11:10:00Z',
+      }),
+      runOnThisSha({
+        id: 2,
+        status: 'in_progress',
+        conclusion: null,
+        started_at: '2026-10-26T12:30:00Z',
+        completed_at: null,
+        workflow_path: '.github/workflows/runway-ota-production.yml',
+        html_url: 'https://github.com/example/actions/runs/gate',
+      }),
+    ]);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain(`ci.yml "Check all jobs pass" succeeded on ${SHA}`);
+  });
+
+  it('blocks a newer same-name success from another workflow when ci.yml failed', () => {
+    const result = runCli([
+      runOnThisSha({
+        id: 1,
+        conclusion: 'failure',
+        started_at: '2026-10-26T11:00:00Z',
+        completed_at: '2026-10-26T11:10:00Z',
+      }),
+      runOnThisSha({
+        id: 2,
+        conclusion: 'success',
+        started_at: '2026-10-26T12:30:00Z',
+        completed_at: '2026-10-26T12:31:00Z',
+        workflow_path: '.github/workflows/push-eas-update.yml',
+        html_url: 'https://github.com/example/actions/runs/rc-skip',
+      }),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('failure');
+    expect(result.stderr).not.toContain('succeeded');
+  });
+
+  it('blocks when the only same-name success is not from ci.yml', () => {
+    const result = runCli([
+      runOnThisSha({
+        workflow_path: '.github/workflows/push-eas-update.yml',
+      }),
+    ]);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('no ci.yml "Check all jobs pass"');
   });
 
   it('ignores a success recorded on a different SHA', () => {
@@ -137,7 +195,7 @@ describe('require-check-all-jobs-pass', () => {
     ]);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('no "Check all jobs pass"');
+    expect(result.stderr).toContain('no ci.yml "Check all jobs pass"');
   });
 
   it('blocks a success posted by an app other than GitHub Actions', () => {
@@ -151,7 +209,7 @@ describe('require-check-all-jobs-pass', () => {
     const result = runCli([runOnThisSha({ head_sha: undefined })]);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain('no "Check all jobs pass"');
+    expect(result.stderr).toContain('no ci.yml "Check all jobs pass"');
   });
 
   it('blocks a skipped conclusion', () => {
@@ -186,6 +244,209 @@ describe('require-check-all-jobs-pass', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(SHA);
+  });
+
+  it('accepts the aggregate job from a ci.yml workflow run', () => {
+    const result = runCli({
+      workflow_runs: [
+        {
+          id: 40,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T11:00:00Z',
+        },
+      ],
+      jobs: {
+        40: [
+          {
+            id: 400,
+            name: 'Check all jobs pass',
+            status: 'completed',
+            conclusion: 'success',
+            head_sha: SHA,
+            started_at: '2026-10-26T11:05:00Z',
+            completed_at: '2026-10-26T11:10:00Z',
+          },
+        ],
+      },
+    });
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain(`ci.yml "Check all jobs pass" succeeded on ${SHA}`);
+  });
+
+  it('blocks when a newer completed ci.yml run has no aggregate job', () => {
+    const result = runCli({
+      workflow_runs: [
+        {
+          id: 40,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T11:00:00Z',
+        },
+        {
+          id: 50,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T12:30:00Z',
+        },
+      ],
+      jobs: {
+        40: [
+          {
+            id: 400,
+            name: 'Check all jobs pass',
+            status: 'completed',
+            conclusion: 'success',
+            head_sha: SHA,
+            started_at: '2026-10-26T11:05:00Z',
+            completed_at: '2026-10-26T11:10:00Z',
+          },
+        ],
+        50: [],
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('missing');
+  });
+
+  it('blocks when a newer ci.yml aggregate job is queued and has no start time', () => {
+    const result = runCli({
+      workflow_runs: [
+        {
+          id: 40,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T11:00:00Z',
+        },
+        {
+          id: 50,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'queued',
+          conclusion: null,
+          run_started_at: '2026-10-26T12:30:00Z',
+        },
+      ],
+      jobs: {
+        40: [
+          {
+            id: 400,
+            name: 'Check all jobs pass',
+            status: 'completed',
+            conclusion: 'success',
+            head_sha: SHA,
+            started_at: '2026-10-26T11:05:00Z',
+            completed_at: '2026-10-26T11:10:00Z',
+          },
+        ],
+        50: [
+          {
+            id: 500,
+            name: 'Check all jobs pass',
+            status: 'queued',
+            conclusion: null,
+            head_sha: SHA,
+            started_at: null,
+            completed_at: null,
+          },
+        ],
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('queued');
+  });
+
+  it('blocks when a newer ci.yml run has not created the aggregate job', () => {
+    const result = runCli({
+      workflow_runs: [
+        {
+          id: 40,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T11:00:00Z',
+          html_url: 'https://github.com/example/actions/runs/40',
+        },
+        {
+          id: 50,
+          path: '.github/workflows/ci.yml',
+          head_sha: SHA,
+          status: 'in_progress',
+          conclusion: null,
+          run_started_at: '2026-10-26T12:30:00Z',
+          html_url: 'https://github.com/example/actions/runs/50',
+        },
+      ],
+      jobs: {
+        40: [
+          {
+            id: 400,
+            name: 'Check all jobs pass',
+            status: 'completed',
+            conclusion: 'success',
+            head_sha: SHA,
+            started_at: '2026-10-26T11:05:00Z',
+            completed_at: '2026-10-26T11:10:00Z',
+          },
+        ],
+        50: [
+          {
+            id: 500,
+            name: 'lint',
+            status: 'in_progress',
+            conclusion: null,
+            head_sha: SHA,
+            started_at: '2026-10-26T12:31:00Z',
+          },
+        ],
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('in_progress');
+  });
+
+  it('ignores a ci.yml run recorded on a different SHA', () => {
+    const result = runCli({
+      workflow_runs: [
+        {
+          id: 40,
+          path: '.github/workflows/ci.yml',
+          head_sha: OTHER_SHA,
+          status: 'completed',
+          conclusion: 'success',
+          run_started_at: '2026-10-26T12:30:00Z',
+        },
+      ],
+      jobs: {
+        40: [
+          {
+            id: 400,
+            name: 'Check all jobs pass',
+            status: 'completed',
+            conclusion: 'success',
+            head_sha: OTHER_SHA,
+            started_at: '2026-10-26T12:31:00Z',
+            completed_at: '2026-10-26T12:40:00Z',
+          },
+        ],
+      },
+    });
+
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain('no ci.yml "Check all jobs pass"');
   });
 
   it('exits 1 when no fixture is provided and no token is available', () => {

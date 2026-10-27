@@ -7,10 +7,13 @@
 # This workflow does not build binaries and does not bump the build version — the release PR is
 # expected to bump OTA_VERSION (app/constants/ota.ts) before dispatch.
 #
-# Production publish is fail-closed on ci.yml's "Check all jobs pass" job for the
-# exact PR head SHA. A missing, pending, or unsuccessful check blocks the push.
-# Runway's workflow_dispatch inputs are unchanged. The gate evaluates the SHA on
-# the ref that is actually published (see push-eas-update.yml).
+# Production publish is fail-closed on the ci.yml job "Check all jobs pass" for
+# the exact PR head SHA. The gate reads that workflow's runs, not every check
+# with the same name. This job is named "Require ci.yml success" so its own
+# in-progress check cannot satisfy or block that lookup. A missing, pending,
+# or unsuccessful ci.yml result blocks the push. Runway's workflow_dispatch
+# inputs are unchanged. push-eas-update.yml checks the same SHA again after
+# release-team approval, immediately before the EAS push.
 #
 ##############################################################################################
 name: Runway OTA Production
@@ -29,6 +32,7 @@ permissions:
   contents: read
   pull-requests: read
   checks: read
+  actions: read # list ci.yml workflow runs for the shipped SHA
 
 cache-mode: none
 
@@ -55,7 +59,7 @@ jobs:
           echo "Using PR #${{ needs.resolve-context.outputs.pr_number }}"
 
   require-ci:
-    name: Check all jobs pass
+    name: Require ci.yml success
     needs: [resolve-context, validate-ota-pr]
     runs-on: ubuntu-latest
     outputs:
@@ -97,7 +101,8 @@ jobs:
     needs: [resolve-context, validate-ota-pr, require-ci]
     permissions:
       contents: read
-      checks: read # reusable workflow re-checks the shipped SHA
+      checks: read
+      actions: read # reusable workflow lists ci.yml runs for the shipped SHA
       id-token: write # AWS OIDC for the EAS update push in push-eas-update.yml
     uses: ./.github/workflows/push-eas-update.yml
     with:
