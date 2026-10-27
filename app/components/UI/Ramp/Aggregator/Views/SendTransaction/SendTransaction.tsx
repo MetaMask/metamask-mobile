@@ -61,20 +61,16 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getMemoizedInternalAccountByAddress } from '../../../../../../selectors/accountsController';
+import { sendMultichainTransactionForReview } from '../../../../../Views/confirmations/utils/multichain-snaps';
 import {
-  sendMultichainTransactionForReview,
-  validateAmountMultichain,
-} from '../../../../../Views/confirmations/utils/multichain-snaps';
+  SnapAmountValidationResult,
+  validateTronTransferAmount,
+} from '../../../../../../core/Multichain/tron';
 
 import { RAMPS_SEND } from '../../constants';
 
 interface SendTransactionParams {
   orderId?: string;
-}
-
-interface SnapAmountValidationResult {
-  valid: boolean;
-  errors?: { code: string }[];
 }
 
 // A missing result means the Snap threw or returned nothing. We fail closed
@@ -198,12 +194,12 @@ function SendTransaction() {
 
     let result: SnapAmountValidationResult | undefined;
     try {
-      result = (await validateAmountMultichain(fromAccount, {
+      result = await validateTronTransferAmount(fromAccount, {
         accountId: fromAccount.id,
         assetId: `${chainId}/${assetReference}` as CaipAssetType,
         value: String(orderData.cryptoAmount ?? '0'),
         toAddress: orderData.depositWallet,
-      })) as SnapAmountValidationResult | undefined;
+      });
     } catch {
       result = undefined;
     }
