@@ -2415,6 +2415,8 @@ class FixtureBuilder {
         dataCollectionForMarketing: true,
         isNFTAutoDetectionModalViewed: false,
         osAuthEnabled: true,
+        shouldShowConsentSheet: true,
+        dataSharingPreference: null,
       },
       attribution: {
         attribution: {

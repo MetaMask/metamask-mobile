@@ -14,7 +14,10 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   KeyboardAwareScrollView,
@@ -56,6 +59,9 @@ import { passwordSet, seedphraseBackedUp } from '../../../actions/user';
 import { QRTabSwitcherScreens } from '../../../components/Views/QRTabSwitcher';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import FooterGlass from '../../../component-library/components-temp/FooterGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -63,11 +69,9 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BottomSheetFooter,
   ButtonIcon,
   ButtonSize,
   FontWeight,
-  HeaderStandard,
   HelpText,
   HelpTextSeverity,
   IconName,
@@ -245,6 +249,11 @@ const ImportFromSecretRecoveryPhrase = () => {
   );
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
@@ -457,7 +466,7 @@ const ImportFromSecretRecoveryPhrase = () => {
     }
   };
 
-  // The header is rendered in-screen via HeaderStandard, so hide the native one.
+  // The header is rendered in-screen via HeaderStandardGlass, so hide the native one.
   const updateNavBar = useCallback(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -756,7 +765,9 @@ const ImportFromSecretRecoveryPhrase = () => {
 
   return (
     <Box twClassName="flex-1 bg-default">
-      <HeaderStandard
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
         includesTopInset
         backButtonProps={{
           accessibilityLabel: strings('navigation.back'),
@@ -776,6 +787,7 @@ const ImportFromSecretRecoveryPhrase = () => {
         }
       />
       <KeyboardAwareScrollView
+        style={{ marginTop: headerInset }}
         contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
@@ -790,7 +802,7 @@ const ImportFromSecretRecoveryPhrase = () => {
           ]}
         >
           {currentStep === 0 && (
-            <Box twClassName="gap-y-2">
+            <Box twClassName="gap-y-6">
               <TitleStandard
                 title={strings('import_from_seed.title')}
                 titleProps={{
@@ -837,6 +849,7 @@ const ImportFromSecretRecoveryPhrase = () => {
                 onCurrentWordChange={setCurrentInputWord}
                 autoFocus={false}
                 includeTopMargin={false}
+                showPasteOnlyWithClipboard
               />
             </Box>
           )}
@@ -962,7 +975,7 @@ const ImportFromSecretRecoveryPhrase = () => {
             Platform.OS === 'android' ? 'mb-6' : 'mb-4',
           )}
         >
-          <BottomSheetFooter
+          <FooterGlass
             primaryButtonProps={{
               children: strings('import_from_seed.import_create_password_cta'),
               onPress: onPressCreatePassword,
@@ -976,7 +989,7 @@ const ImportFromSecretRecoveryPhrase = () => {
       )}
       {currentStep === 0 && (
         <SafeAreaView edges={['bottom']} style={tw.style('py-4 bg-default')}>
-          <BottomSheetFooter
+          <FooterGlass
             primaryButtonProps={{
               children: strings('import_from_seed.continue'),
               onPress: handleContinueImportFlow,

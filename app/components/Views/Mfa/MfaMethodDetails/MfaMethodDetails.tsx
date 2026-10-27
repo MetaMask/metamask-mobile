@@ -54,7 +54,7 @@ import { getMfaUsedFor } from './mfaUsedFor';
 
 export interface MfaMethodDetailsParams {
   method: MfaMethod;
-  /** The passkey's position among the active ones; 0 for email. */
+  /** The passkey's position among the active ones; 0 for other methods. */
   index: number;
 }
 
@@ -94,6 +94,17 @@ const COPY: Record<
     removed: 'mfa.settings.email_removed',
     operation: 'settings.removeEmail',
   },
+  totp: {
+    title: 'mfa.method_totp',
+    icon: IconName.QrCode,
+    remove: 'mfa.settings.remove_totp',
+    removeDescription: 'mfa.settings.remove_totp_description',
+    confirm: 'mfa.settings.remove',
+    lastTitle: 'mfa.settings.last_totp_title',
+    lastDescription: 'mfa.settings.last_totp_description',
+    removed: 'mfa.settings.totp_removed',
+    operation: 'settings.removeAuthenticatorApp',
+  },
 };
 
 /**
@@ -118,7 +129,7 @@ const MfaMethodDetails = () => {
   const credential =
     method === 'passkey'
       ? getActivePasskeys(credentials)[index]
-      : active.find(({ type }) => type === 'email_otp');
+      : active.find(({ type }) => type === method);
   const others = active.filter((other) => other !== credential);
   const copy = COPY[method];
 
@@ -130,7 +141,7 @@ const MfaMethodDetails = () => {
   let name = getMethodLabel(method);
   if (credential.type === 'passkey') {
     name = getPasskeyName(credential, index);
-  } else if (credential.email) {
+  } else if (credential.type === 'email_otp' && credential.email) {
     name = maskEmail(credential.email);
   }
 
@@ -244,6 +255,10 @@ const MfaMethodDetails = () => {
               title={strings(
                 sheet === 'confirm' ? copy.remove : copy.lastTitle,
               )}
+              titleProps={{
+                style: { textAlign: 'center' },
+                twClassName: 'flex-1',
+              }}
             />
             <Text
               variant={TextVariant.BodyMd}

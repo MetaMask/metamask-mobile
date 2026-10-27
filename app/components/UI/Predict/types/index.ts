@@ -4,7 +4,10 @@ import { Hex } from '@metamask/utils';
 import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
-import type { PredictPaymentMethodValue } from '../constants/eventNames';
+import type {
+  PredictOutcomeVersionValue,
+  PredictPaymentMethodValue,
+} from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -382,6 +385,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market, as reported by Gamma.
+   * Informational only: order routing reads `OrderPreview.outcomeVersion`,
+   * which the provider resolves when it builds the preview.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -615,6 +624,11 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
+  /**
+   * `outcome_version` analytics value: `v1`, `v2`, or `mixed` (claims only).
+   * Normalized, unlike the raw Gamma version in `OrderPreview.outcomeVersion`.
+   */
+  outcomeVersion?: PredictOutcomeVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;
@@ -817,6 +831,12 @@ export interface OrderPreview {
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Gamma market version of the traded outcome's market, resolved when the
+   * provider builds the preview. Routes the order: "v2" uses the positions
+   * protocol; any other value uses the CTF path.
+   */
+  outcomeVersion?: string;
 }
 
 export type OrderResult = Result<{

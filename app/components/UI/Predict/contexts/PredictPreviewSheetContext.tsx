@@ -35,6 +35,7 @@ import {
 import {
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictBottomSheetEnabledFlag,
+  selectPredictDisablePolymarketV2MarketsFlag,
 } from '../selectors/featureFlags';
 import {
   PredictBuyPreviewParams,
@@ -59,6 +60,10 @@ import { PREDICT_BUY_CANCELLATION_REASONS } from '../constants/errors';
 import { parseAnalyticsProperties } from '../utils/analytics';
 import PredictRegTimeTag from '../components/PredictRegTimeTag';
 import { getBuyOutcomeImage } from '../utils/sports';
+import {
+  getPredictOutcomeVersion,
+  isPolymarketV2Outcome,
+} from '../utils/marketVersion';
 import { usePredictRegTimeBuyAccessory } from '../hooks/usePredictRegTimeBuyAccessory';
 
 // Registration stack of sheet-mode providers — multiple providers can be
@@ -220,8 +225,43 @@ export const usePredictPreviewSheet = (): PredictPreviewSheetContextValue => {
     }),
     [navigation],
   );
+  const sheet = ctx ?? fallback;
+  const isV2MarketsDisabled = useSelector(
+    selectPredictDisablePolymarketV2MarketsFlag,
+  );
 
-  return ctx ?? fallback;
+  // While the Protocol V2 kill switch is on, buy and cash out on a v2 outcome
+  // open the Market unavailable sheet instead. Every other outcome — and every
+  // outcome while the switch is off — goes through unchanged.
+  return useMemo(() => {
+    if (!isV2MarketsDisabled) {
+      return sheet;
+    }
+
+    const showMarketUnavailable = () => {
+      navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
+        screen: Routes.PREDICT.MODALS.MARKET_UNAVAILABLE,
+      });
+    };
+
+    return {
+      ...sheet,
+      openBuySheet: (params: PredictBuyPreviewParams) => {
+        if (isPolymarketV2Outcome(params.outcome)) {
+          showMarketUnavailable();
+          return;
+        }
+        sheet.openBuySheet(params);
+      },
+      openSellSheet: (params: PredictSellPreviewParams) => {
+        if (isPolymarketV2Outcome(params.outcome)) {
+          showMarketUnavailable();
+          return;
+        }
+        sheet.openSellSheet(params);
+      },
+    };
+  }, [isV2MarketsDisabled, navigation, sheet]);
 };
 
 interface PredictPreviewSheetProviderProps {
@@ -417,6 +457,7 @@ export const PredictPreviewSheetProvider: React.FC<
       marketCategory: lastParams.market?.category,
       entryPoint: lastParams.entryPoint,
       transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_BUY,
+      outcomeVersion: getPredictOutcomeVersion(lastParams.outcome),
     };
 
     if (isPaymentFailure) {

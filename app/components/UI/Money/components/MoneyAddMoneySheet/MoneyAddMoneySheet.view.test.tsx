@@ -4,13 +4,15 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import type NetInfoMock from '../../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../../core/Engine';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { VBA_TEST_MONEY_ADDRESS } from '../../../../../../tests/component-view/presets/vba';
 import {
   renderVbaMoneyEntry,
   restoreVbaReduxServiceStore,
   VbaRendererTestIds,
 } from '../../../../../../tests/component-view/renderers/vba';
 import { CreateVirtualBankAccountSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/CreateVirtualBankAccount.testIds';
-import { resetBrazilMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureBrazilMusdAutoramp';
+import { resetMusdAutorampSetupGuard } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
+import { VbaAccountCreateErrorSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaAccountCreateError';
 import { VbaDetailsSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaDetails';
 import { VbaOnboardingLoadingSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingLoading';
 import { VbaOnboardingStubSelectorsIDs } from '../../../Ramp/Views/VirtualBankAccount/VbaOnboardingStub';
@@ -48,7 +50,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
 
   afterEach(() => {
     restoreVbaReduxServiceStore();
-    resetBrazilMusdAutorampSetupGuard();
+    resetMusdAutorampSetupGuard();
     netInfoMock.__resetMockNetInfo();
   });
 
@@ -140,22 +142,14 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('shows the generic setup error without loading when no wallet is selected', async () => {
+    // Clear HD keyrings so selectPrimaryMoneyAccount / selectSelectedVbaWalletAddress
+    // resolve to null (moneyAccounts alone is not enough after the Money-address fix).
     const { findByTestId } = renderVbaMoneyEntry({
       overrides: {
         engine: {
           backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  'entropy:wallet1': {
-                    groups: {
-                      'entropy:wallet1/0': {
-                        accounts: [],
-                      },
-                    },
-                  },
-                },
-              },
+            KeyringController: {
+              keyrings: [],
             },
           },
         },
@@ -196,6 +190,18 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
   });
 
   it('returns to Money home from completed Pix details', async () => {
+    const ramps = Engine.context.RampsController as { state?: unknown };
+    const previousState = ramps.state;
+    ramps.state = {
+      autoramps: [
+        {
+          id: 'ar-1',
+          // Must match selectSelectedVbaWalletAddress (Money account), not Account 1.
+          walletAddress: VBA_TEST_MONEY_ADDRESS,
+          status: 'Approved',
+        },
+      ],
+    };
     mockHydrateVbaOnboarding.mockResolvedValue({
       sessionExists: true,
       vendorDisclaimersComplete: true,
@@ -221,6 +227,7 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.CONTAINER),
     ).not.toBeOnTheScreen();
+    ramps.state = previousState;
   });
 
   it('shows the account setup error when creating the account fails', async () => {
@@ -249,16 +256,22 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     );
 
     expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`,
+      ),
     ).toBeOnTheScreen();
 
-    fireEvent.press(await findByTestId(VbaDetailsSelectorsIDs.RETRY_BUTTON));
+    fireEvent.press(
+      await findByTestId(VbaAccountCreateErrorSelectorsIDs.PRIMARY_BUTTON),
+    );
 
     await waitFor(() => {
       expect(mockHydrateVbaOnboarding).toHaveBeenCalledTimes(3);
     });
     expect(
-      await findByTestId(VbaDetailsSelectorsIDs.SETUP_ERROR),
+      await findByTestId(
+        `${VbaAccountCreateErrorSelectorsIDs.CONTAINER}-generic`,
+      ),
     ).toBeOnTheScreen();
   });
 

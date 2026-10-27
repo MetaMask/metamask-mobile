@@ -10,6 +10,7 @@ import { isEvmAccountType } from '@metamask/keyring-api';
 import { selectCurrentSubscriptionAccounts } from '../../../../selectors/rewards';
 import { selectInternalAccountsByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
+import { isMnemonicMoneyAccount } from '../../../../lib/Money/money-accounts';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
@@ -97,10 +98,16 @@ export const useSubscriptionLinkedMusdHoldings =
      * absent from the subscription and cannot be the thing we check.
      */
     const moneyAccountGroupEvmAddress = useMemo(() => {
-      const entropy = primaryMoneyAccount?.options?.entropy;
-      if (!entropy) {
+      // Only consider mnemonic-based money accounts here, since the money
+      // account is a BIP-44 account and uses the primary SRP used by other
+      // BIP-44 accounts/groups.
+      if (
+        !primaryMoneyAccount ||
+        !isMnemonicMoneyAccount(primaryMoneyAccount)
+      ) {
         return undefined;
       }
+      const { entropy } = primaryMoneyAccount.options;
       const groupId = toMultichainAccountGroupId(
         toMultichainAccountWalletId(entropy.id),
         entropy.groupIndex,

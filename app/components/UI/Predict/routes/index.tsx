@@ -11,6 +11,7 @@ import { PayWithBottomSheet } from '../../../Views/confirmations/components/moda
 import { PayWithModal } from '../../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import PredictMarketDetails from '../views/PredictMarketDetails';
 import PredictUnavailableModal from '../views/PredictUnavailableModal';
+import PredictMarketUnavailableModal from '../views/PredictMarketUnavailableModal';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
 import PredictActivityDetail from '../components/PredictActivityDetail/PredictActivityDetail';
 import {
@@ -45,6 +46,10 @@ const PredictModalStack = () => {
       <ModalStack.Screen
         name={Routes.PREDICT.MODALS.UNAVAILABLE}
         component={PredictUnavailableModal}
+      />
+      <ModalStack.Screen
+        name={Routes.PREDICT.MODALS.MARKET_UNAVAILABLE}
+        component={PredictMarketUnavailableModal}
       />
       <ModalStack.Screen
         name={Routes.PREDICT.MODALS.ADD_FUNDS_SHEET}

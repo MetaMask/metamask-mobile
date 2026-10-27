@@ -29,6 +29,27 @@ import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors
 
 jest.mock('../../../../../util/haptics');
 
+const mockSetTitleSectionHeight = jest.fn();
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  return {
+    ...actual,
+    useHeaderStandardAnimated: () => {
+      const animated = actual.useHeaderStandardAnimated();
+
+      return {
+        ...animated,
+        setTitleSectionHeight: (height: number) => {
+          mockSetTitleSectionHeight(height);
+          animated.setTitleSectionHeight(height);
+        },
+      };
+    },
+  };
+});
+
 jest.mock('../../selectors/featureFlags', () => ({
   ...jest.requireActual('../../selectors/featureFlags'),
   selectPerpsServiceInterruptionBannerEnabledFlag: jest.fn(() => false),
@@ -74,6 +95,9 @@ interface MockChartPanelProps {
   selectedCandlePeriod: CandlePeriod;
   onCandlePeriodChange: (period: CandlePeriod) => void;
   onMorePress: () => void;
+  onSummaryLayout?: (event: {
+    nativeEvent: { layout: { height: number } };
+  }) => void;
   currentPrice?: number;
   onLatestPriceChange?: (price: number | undefined) => void;
 }
@@ -119,8 +143,21 @@ const mockCommitLimitPrice = jest.fn();
 const mockCommitTriggerPrice = jest.fn();
 const mockSetOrderType = jest.fn();
 const mockSetTriggerPrice = jest.fn();
-let mockOrderFormType: 'market' | 'limit' | 'stop_market' | 'stop_limit' =
-  'market';
+const mockCommitPriceToField = jest.fn(() => false);
+let mockActivePriceField:
+  | 'limit'
+  | 'trigger'
+  | 'scaleStart'
+  | 'scaleEnd'
+  | 'chaseMaxDistance'
+  | null = null;
+let mockOrderFormType:
+  | 'market'
+  | 'limit'
+  | 'stop_market'
+  | 'stop_limit'
+  | 'scale'
+  | 'chase' = 'market';
 let mockOrderBookPosition: 'left' | 'right' = 'left';
 let mockIsOrderBookExpanded = true;
 const mockSetOrderBookExpanded = jest.fn();
@@ -150,11 +187,12 @@ const mockPerpsProChartPanel = jest.fn(
     selectedCandlePeriod,
     onCandlePeriodChange,
     onMorePress,
+    onSummaryLayout,
   }: MockChartPanelProps) => (
     <>
       <Box
         testID={PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY}
-        twClassName="h-[76px]"
+        onLayout={onSummaryLayout}
       />
       <Box
         testID={PerpsProMarketViewSelectorsIDs.CHART_PANEL}
@@ -464,6 +502,8 @@ jest.mock('../../contexts/PerpsOrderContext', () => ({
     commitTriggerPrice: mockCommitTriggerPrice,
     setOrderType: mockSetOrderType,
     setTriggerPrice: mockSetTriggerPrice,
+    activePriceField: mockActivePriceField,
+    commitPriceToField: mockCommitPriceToField,
   }),
 }));
 
@@ -551,6 +591,8 @@ describe('PerpsProMarketView', () => {
     jest.clearAllMocks();
     mockConnectionInitialized = true;
     mockOrderFormType = 'market';
+    mockActivePriceField = null;
+    mockCommitPriceToField.mockReset().mockReturnValue(false);
     mockSzDecimals = undefined;
     mockOrderBookPosition = 'left';
     mockIsOrderBookExpanded = true;
@@ -1170,15 +1212,31 @@ describe('PerpsProMarketView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('sets the header crossfade threshold from the measured summary height', () => {
+    mockSetTitleSectionHeight.mockClear();
+    const { getByTestId } = renderView();
+    const summary = getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY);
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 0, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).not.toHaveBeenCalled();
+
+    fireEvent(summary, 'layout', {
+      nativeEvent: { layout: { height: 96, width: 390, x: 0, y: 0 } },
+    });
+
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledTimes(1);
+    expect(mockSetTitleSectionHeight).toHaveBeenCalledWith(96);
+  });
+
   it('uses the Figma shell heights', () => {
     const { getByTestId } = renderView();
 
     expect(getByTestId(PerpsProMarketViewSelectorsIDs.HEADER)).toHaveStyle({
       height: 64,
     });
-    expect(
-      getByTestId(PerpsProMarketViewSelectorsIDs.MARKET_SUMMARY),
-    ).toHaveStyle({ height: 76 });
     expect(
       getByTestId(PerpsProMarketViewSelectorsIDs.CHART_CONTENT),
     ).toHaveStyle({ height: 344 });
@@ -1392,6 +1450,100 @@ describe('PerpsProMarketView', () => {
     expect(mockSetTriggerPrice).not.toHaveBeenCalled();
     expect(mockCommitLimitPrice).not.toHaveBeenCalled();
   });
+
+  describe('focused price field routing', () => {
+    const singleBidBook: OrderBookData = {
+      bids: [
+        {
+          price: '89950',
+          size: '1.5',
+          total: '1.5',
+          notional: '134925',
+          totalNotional: '134925',
+        },
+      ],
+      asks: [],
+      spread: '100',
+      spreadPercentage: '0.11',
+      midPrice: '90000',
+      lastUpdated: 1700000000000,
+      maxTotal: '1.5',
+    };
+
+    beforeEach(() => {
+      mockUsePerpsLiveOrderBook.mockImplementation(() => ({
+        orderBook: singleBidBook,
+        isLoading: false,
+        error: null,
+        connectionStatus: 'connected',
+        reconnect: jest.fn(),
+      }));
+    });
+
+    it('fills a focused Scale field in place instead of switching order type', () => {
+      mockOrderFormType = 'scale';
+      mockActivePriceField = 'scaleStart';
+      mockCommitPriceToField.mockReturnValue(true);
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).toHaveBeenCalledWith(
+        'scaleStart',
+        '89950',
+      );
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+      expect(mockCommitLimitPrice).not.toHaveBeenCalled();
+      expect(mockCommitTriggerPrice).not.toHaveBeenCalled();
+    });
+
+    it('falls back to switching to limit when Scale has no field focused', () => {
+      // With nothing focused, a Scale order-book tap still falls back to Limit.
+      mockOrderFormType = 'scale';
+      mockActivePriceField = null;
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).not.toHaveBeenCalled();
+      expect(mockSetOrderType).toHaveBeenCalledWith('limit');
+      expect(mockCommitLimitPrice).toHaveBeenCalledWith('89950');
+    });
+
+    it('falls back to the order-type default when the focused field has no registered handler', () => {
+      // A stale selection (e.g. left over after a type switch outside this
+      // hook's reset) must not silently swallow the tap.
+      mockOrderFormType = 'stop_market';
+      mockActivePriceField = 'scaleStart';
+      mockCommitPriceToField.mockReturnValue(false);
+
+      const { getByTestId } = renderView();
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsProMarketViewSelectorsIDs.ORDER_BOOK_PANEL}-bid-row-0`,
+        ),
+      );
+
+      expect(mockCommitPriceToField).toHaveBeenCalledWith(
+        'scaleStart',
+        '89950',
+      );
+      expect(mockCommitTriggerPrice).toHaveBeenCalledWith('89950');
+      expect(mockSetOrderType).not.toHaveBeenCalled();
+    });
+  });
+
   it('commits a book price unchanged while the asset precision is unknown', () => {
     // szDecimals arrives asynchronously. Canonicalizing against the fallback
     // precision rounds a sub-dollar book price to 0, which would then be

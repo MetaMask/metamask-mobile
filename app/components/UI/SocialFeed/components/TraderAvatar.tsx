@@ -6,6 +6,11 @@ import {
   AvatarAccountSize,
   AvatarAccountVariant,
 } from '@metamask/design-system-react-native';
+import {
+  isFoxiconAvatarUrl,
+  parseFoxiconAvatarUrl,
+} from '../../../Views/SocialLeaderboard/MyProfileView/avatarPresets';
+import ProfileAvatar from '../../../Views/SocialLeaderboard/MyProfileView/components/ProfileAvatar';
 import { hasRealAvatar } from '../utils/avatarFallback';
 
 /** Maps a pixel diameter to the nearest AvatarAccount size token. */
@@ -19,8 +24,9 @@ const toAvatarAccountSize = (size: number): AvatarAccountSize => {
 
 export interface TraderAvatarProps {
   /**
-   * Backend-provided avatar URL. Missing, empty, or known shared placeholder
-   * URLs fall through to the address-derived Maskicon.
+   * Backend-provided avatar URL. A `foxicon://` preset renders the same
+   * artwork as the profile page. Missing, empty, unknown foxicon, or known
+   * shared placeholder URLs fall through to the address-derived Maskicon.
    */
   imageUrl?: string | null;
   /** Wallet address used to derive the Maskicon fallback. */
@@ -39,6 +45,7 @@ export interface TraderAvatarProps {
 /**
  * TraderAvatar -- renders a trader's profile image when a real one is
  * available, otherwise falls back to the address-derived Maskicon identicon.
+ * `foxicon://{preset}/{background}` URLs render the local profile preset.
  *
  * Centralizes the `hasRealAvatar` + Maskicon-fallback pattern shared across the
  * follow-trading surfaces (leaderboard rows/cards, profile and position
@@ -52,8 +59,20 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const foxicon = parseFoxiconAvatarUrl(imageUrl);
 
-  if (hasRealAvatar(imageUrl)) {
+  if (foxicon) {
+    return (
+      <ProfileAvatar
+        avatarPresetId={foxicon.avatarPresetId}
+        avatarBackgroundId={foxicon.avatarBackgroundId}
+        diameter={size}
+        testID={testID}
+      />
+    );
+  }
+
+  if (hasRealAvatar(imageUrl) && !isFoxiconAvatarUrl(imageUrl)) {
     return (
       <Image
         source={{ uri: imageUrl }}

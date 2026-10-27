@@ -50,8 +50,18 @@ const getServiceConstructorOptions = (): MoneyAccountApiDataServiceOptions => {
 };
 
 describe('moneyAccountApiDataServiceInit', () => {
+  const originalApiEnv = process.env.MM_API_ENV;
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    if (originalApiEnv === undefined) {
+      delete process.env.MM_API_ENV;
+    } else {
+      process.env.MM_API_ENV = originalApiEnv;
+    }
   });
 
   it('returns a MoneyAccountApiDataService instance', () => {
@@ -60,11 +70,32 @@ describe('moneyAccountApiDataServiceInit', () => {
     expect(controller).toBeDefined();
   });
 
-  it('passes messenger and Env.PRD to the service', () => {
+  it.each([
+    ['dev', Env.DEV],
+    ['uat', Env.UAT],
+    ['prod', Env.PRD],
+  ] as const)(
+    'passes the Money API env for MM_API_ENV=%s',
+    (apiEnv, expected) => {
+      process.env.MM_API_ENV = apiEnv;
+
+      moneyAccountApiDataServiceInit(getInitRequestMock());
+
+      expect(jest.mocked(MoneyAccountApiDataService)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messenger: expect.any(Object),
+          env: expected,
+        }),
+      );
+    },
+  );
+
+  it('passes Env.PRD when MM_API_ENV is unset', () => {
+    delete process.env.MM_API_ENV;
+
     moneyAccountApiDataServiceInit(getInitRequestMock());
 
-    const serviceMock = jest.mocked(MoneyAccountApiDataService);
-    expect(serviceMock).toHaveBeenCalledWith(
+    expect(jest.mocked(MoneyAccountApiDataService)).toHaveBeenCalledWith(
       expect.objectContaining({
         messenger: expect.any(Object),
         env: Env.PRD,
