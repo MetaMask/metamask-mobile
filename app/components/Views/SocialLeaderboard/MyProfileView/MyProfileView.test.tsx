@@ -747,14 +747,14 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('opens the avatar picker from the owner avatar and pencil', () => {
+  it('opens the avatar picker from the owner avatar without an edit badge', () => {
     renderWithProvider(<MyProfileView />);
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
         includeHiddenElements: true,
       }),
-    ).toBeOnTheScreen();
+    ).toBeNull();
 
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.AVATAR));
 

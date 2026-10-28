@@ -12,7 +12,9 @@ interface EditableProfileAvatarProps {
   diameter?: number;
   onPress: () => void;
   avatarTestID: string;
-  editTestID: string;
+  editTestID?: string;
+  /** The profile screen hides the badge. Edit profile still shows it. */
+  showEditIcon?: boolean;
   accessibilityLabel: string;
 }
 
@@ -28,6 +30,7 @@ const EditableProfileAvatar: React.FC<EditableProfileAvatarProps> = ({
   onPress,
   avatarTestID,
   editTestID,
+  showEditIcon = true,
   accessibilityLabel,
 }) => {
   const tw = useTailwind();
@@ -49,18 +52,20 @@ const EditableProfileAvatar: React.FC<EditableProfileAvatarProps> = ({
         avatarBackgroundId={avatarBackgroundId}
         diameter={diameter}
       />
-      <View
-        pointerEvents="none"
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        testID={editTestID}
-        style={tw.style(
-          'absolute bottom-0 right-0 h-6 w-6 items-center justify-center rounded-full border border-muted bg-default',
-        )}
-      >
-        <Icon name={IconName.Edit} size={IconSize.Sm} />
-      </View>
+      {showEditIcon ? (
+        <View
+          pointerEvents="none"
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          testID={editTestID}
+          style={tw.style(
+            'absolute bottom-0 right-0 h-6 w-6 items-center justify-center rounded-full border border-muted bg-default',
+          )}
+        >
+          <Icon name={IconName.Edit} size={IconSize.Sm} />
+        </View>
+      ) : null}
     </Pressable>
   );
 };

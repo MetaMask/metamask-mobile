@@ -71,7 +71,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
             diameter={56}
             onPress={onEditAvatar}
             avatarTestID={MyProfileViewSelectorsIDs.AVATAR}
-            editTestID={MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
+            showEditIcon={false}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}
