@@ -1,4 +1,3 @@
-import { StepUpRequiredError } from '@metamask/profile-sync-controller/sdk';
 import {
   createMpcTwoFactorApproval,
   MPC_APPROVAL_AUDIENCE,
@@ -16,11 +15,15 @@ const expectedRequest = {
 };
 
 describe('createMpcTwoFactorApproval', () => {
-  it('returns the approval bound to the signature hash', async () => {
-    const requestMfaApproval = jest
-      .fn()
-      .mockResolvedValue({ approval: 'approval-token', expiresIn: 60 });
-    const verify = jest.fn();
+  it('verifies, then returns the approval bound to the signature hash', async () => {
+    const calls: string[] = [];
+    const verify = jest.fn(async () => {
+      calls.push('verify');
+    });
+    const requestMfaApproval = jest.fn(async () => {
+      calls.push('approval');
+      return { approval: 'approval-token', expiresIn: 60 };
+    });
 
     const approval = await createMpcTwoFactorApproval({
       requestMfaApproval,
@@ -29,35 +32,29 @@ describe('createMpcTwoFactorApproval', () => {
 
     expect(approval).toBe('approval-token');
     expect(requestMfaApproval).toHaveBeenCalledWith(expectedRequest);
-    expect(verify).not.toHaveBeenCalled();
+    expect(calls).toStrictEqual(['verify', 'approval']);
   });
 
-  it('verifies and asks again when a verification is required', async () => {
-    const requestMfaApproval = jest
-      .fn()
-      .mockRejectedValueOnce(new StepUpRequiredError('aal2_required'))
-      .mockResolvedValueOnce({ approval: 'approval-token', expiresIn: 60 });
+  it('verifies again for every signature', async () => {
     const verify = jest.fn().mockResolvedValue(undefined);
-
-    const approval = await createMpcTwoFactorApproval({
-      requestMfaApproval,
-      verify,
-    })(HASH);
-
-    expect(approval).toBe('approval-token');
-    expect(verify).toHaveBeenCalledTimes(1);
-    expect(requestMfaApproval).toHaveBeenCalledTimes(2);
-  });
-
-  it('rethrows other errors without verifying', async () => {
     const requestMfaApproval = jest
       .fn()
-      .mockRejectedValue(new Error('network down'));
-    const verify = jest.fn();
+      .mockResolvedValue({ approval: 'approval-token', expiresIn: 60 });
+    const approve = createMpcTwoFactorApproval({ requestMfaApproval, verify });
+
+    await approve(HASH);
+    await approve(HASH);
+
+    expect(verify).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not request an approval when verification fails', async () => {
+    const verify = jest.fn().mockRejectedValue(new Error('flow_cancelled'));
+    const requestMfaApproval = jest.fn();
 
     await expect(
       createMpcTwoFactorApproval({ requestMfaApproval, verify })(HASH),
-    ).rejects.toThrow('network down');
-    expect(verify).not.toHaveBeenCalled();
+    ).rejects.toThrow('flow_cancelled');
+    expect(requestMfaApproval).not.toHaveBeenCalled();
   });
 });

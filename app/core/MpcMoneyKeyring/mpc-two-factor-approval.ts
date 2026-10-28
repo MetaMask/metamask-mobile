@@ -1,7 +1,6 @@
-import {
-  StepUpRequiredError,
-  type MfaApproval,
-  type RequestMfaApprovalRequest,
+import type {
+  MfaApproval,
+  RequestMfaApprovalRequest,
 } from '@metamask/profile-sync-controller/sdk';
 import { bytesToHex } from '@metamask/utils';
 
@@ -13,18 +12,18 @@ export interface MpcTwoFactorApprovalOptions {
   requestMfaApproval: (
     request: RequestMfaApprovalRequest,
   ) => Promise<MfaApproval>;
-  /** Runs the 2-step verification prompt. */
+  /** Runs a fresh 2-step verification prompt. */
   verify: () => Promise<void>;
 }
 
 /**
  * Returns a function that gets a one-time approval for an MPC signature,
- * bound to its hash. When there's no recent verification, it prompts for one
- * and asks again.
+ * bound to its hash. Every signature gets its own verification, so it always
+ * prompts first.
  *
  * @param options - Approval and verification calls.
  * @param options.requestMfaApproval - Requests the approval from the auth API.
- * @param options.verify - Runs the 2-step verification prompt.
+ * @param options.verify - Runs a fresh 2-step verification prompt.
  * @returns A function from the signature hash to the approval token.
  */
 export const createMpcTwoFactorApproval =
@@ -37,13 +36,6 @@ export const createMpcTwoFactorApproval =
       includeIdentifiers: false,
       reason: { operation: 'money.mpcSign' },
     };
-    try {
-      return (await requestMfaApproval(request)).approval;
-    } catch (error) {
-      if (!(error instanceof StepUpRequiredError)) {
-        throw error;
-      }
-    }
     await verify();
     return (await requestMfaApproval(request)).approval;
   };

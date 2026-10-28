@@ -87,7 +87,7 @@ async function verifyMoneyMpcSignature(): Promise<void> {
   const { token } = await verifyOrEnroll({
     methods: MONEY_MFA_METHODS,
     verifyWith: MONEY_MFA_METHODS,
-    // The approval API just rejected the current session, so verify again.
+    // Every transfer needs its own verification; never reuse a session.
     maxSessionAgeMs: 0,
     reason: { operation: 'money.mpcSign' },
   });
