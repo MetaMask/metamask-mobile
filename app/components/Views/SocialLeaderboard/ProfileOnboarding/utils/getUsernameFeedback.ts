@@ -14,10 +14,17 @@ export const getUsernameFeedback = ({
   localError,
   claimError,
   status,
+  showAvailable,
 }: {
   localError: string | null;
   claimError: string | null;
   status: UsernameStatus;
+  /**
+   * False when no verdict exists for the handle. An unedited X handle skips
+   * both the local rules and the server check, so a pattern-valid value is not
+   * a claim and must not be announced as available.
+   */
+  showAvailable: boolean;
 }): UsernameFeedback | null => {
   if (localError) {
     return { message: localError, tone: 'error' };
@@ -25,7 +32,7 @@ export const getUsernameFeedback = ({
   if (claimError) {
     return { message: claimError, tone: 'error' };
   }
-  if (status === 'available') {
+  if (showAvailable && status === 'available') {
     return {
       message: strings(`${STRING_PREFIX}.username_available`),
       tone: 'success',

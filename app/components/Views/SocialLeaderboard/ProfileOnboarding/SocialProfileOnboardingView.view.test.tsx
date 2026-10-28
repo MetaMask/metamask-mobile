@@ -811,6 +811,29 @@ describe('SocialProfileOnboardingView', () => {
     );
   });
 
+  it('does not announce a kept X handle as available before the server answers', async () => {
+    signIn();
+    renderSocialProfileOnboarding([{ name: Routes.SOCIAL.MY_PROFILE }]);
+
+    fireEvent.press(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON),
+    );
+    expect(
+      await screen.findByTestId(
+        SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+      ),
+    ).toBeOnTheScreen();
+
+    expect(screen.getByText('@degangirl')).toBeOnTheScreen();
+    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS),
+    ).not.toBeOnTheScreen();
+    expect(
+      Engine.context.ProfileController.checkUsernameAvailability,
+    ).not.toHaveBeenCalled();
+  });
+
   it('starts a fresh manual flow after leaving the X path', async () => {
     signIn();
     renderSocialProfileOnboarding([

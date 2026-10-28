@@ -57,6 +57,7 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
   normalizeUsername,
   onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
@@ -778,6 +779,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     localError: usernameLocalError,
     claimError: usernameClaimError,
     status: usernameStatus,
+    showAvailable: !isUneditedXUsername(draft),
   });
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
