@@ -5635,7 +5635,8 @@ describe('PerpsOrderView', () => {
         expect.objectContaining({ includeFeeRateBreakdown: true }),
       );
       await waitFor(() => {
-        expect(screen.getByText('Taker 0.143% / Maker 0.114%')).toBeDefined();
+        expect(screen.getByText('Taker 0.143% /')).toBeDefined();
+        expect(screen.getByText('Maker 0.114%')).toBeDefined();
       });
     });
   });

@@ -277,7 +277,8 @@ describe('PerpsFeesDisplay', () => {
         />,
       );
 
-      expect(getByText('Taker 0.143% / Maker 0.114%')).toBeTruthy();
+      expect(getByText('Taker 0.143% /')).toBeTruthy();
+      expect(getByText('Maker 0.114%')).toBeTruthy();
       // The dollar-mode formatted fee text must not leak through.
       expect(queryByText('$8.50')).toBeNull();
     });
@@ -324,7 +325,8 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByTestId('fee-original')).toBeNull();
       // The VIP attribution label is independent of display mode and still renders.
       expect(getByTestId('rewards-vip-badge')).toBeTruthy();
-      expect(getByText('Taker 0.143% / Maker 0.114%')).toBeTruthy();
+      expect(getByText('Taker 0.143% /')).toBeTruthy();
+      expect(getByText('Maker 0.114%')).toBeTruthy();
     });
 
     it('defaults to dollar mode when feeDisplayMode is omitted', () => {

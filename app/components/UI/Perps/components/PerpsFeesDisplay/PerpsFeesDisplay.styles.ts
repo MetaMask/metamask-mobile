@@ -11,6 +11,17 @@ const createStyles = (_colors: Theme['colors']) =>
       flexShrink: 1,
       gap: 4,
     },
+    // Narrow Pro summary columns cannot fit "Taker X% / Maker Y%" on one
+    // line. Keep each rate intact and right-align the pair so a wrap lands
+    // between them instead of splitting "Maker" from its percentage.
+    percentageFeeContent: {
+      alignSelf: 'flex-end',
+      justifyContent: 'flex-end',
+      maxWidth: '100%',
+    },
+    percentageRate: {
+      flexShrink: 0,
+    },
     vipBadgeContainer: {
       flexShrink: 0,
       alignSelf: 'center',

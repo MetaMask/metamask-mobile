@@ -103,23 +103,44 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
     const takerValue = formatRateValue(takerFeeRate);
     const makerValue = formatRateValue(makerFeeRate);
     if (takerValue === undefined || makerValue === undefined) {
-      return placeholder;
+      return { full: placeholder, taker: undefined, maker: undefined };
     }
-    return strings('perps.order.fees_taker_maker', {
+    const full = strings('perps.order.fees_taker_maker', {
       taker: takerValue,
       maker: makerValue,
     });
+    const separator = ' / ';
+    const separatorIndex = full.indexOf(separator);
+    if (separatorIndex === -1) {
+      return { full, taker: undefined, maker: undefined };
+    }
+    return {
+      full,
+      taker: `${full.slice(0, separatorIndex)}${separator}`,
+      maker: full.slice(separatorIndex + separator.length),
+    };
   }, [takerFeeRate, makerFeeRate, placeholder]);
 
-  const feeText = isPercentageMode ? takerMakerFeeText : dollarFeeText;
+  const feeText = isPercentageMode ? takerMakerFeeText.full : dollarFeeText;
 
   const originalFeeText = useMemo(() => {
     if (!showStrikethrough || originalFee === undefined) return undefined;
     return formatPerpsFiat(originalFee, { ranges: PRICE_RANGES_MINIMAL_VIEW });
   }, [showStrikethrough, originalFee]);
 
+  const percentageRates =
+    isPercentageMode &&
+    takerMakerFeeText.taker !== undefined &&
+    takerMakerFeeText.maker !== undefined;
+
   return (
-    <View style={styles.feeRowContent}>
+    <View
+      style={[
+        styles.feeRowContent,
+        percentageRates ? styles.percentageFeeContent : null,
+      ]}
+      accessibilityLabel={percentageRates ? takerMakerFeeText.full : undefined}
+    >
       {hasDiscount ? (
         <View style={styles.vipBadgeContainer}>
           <PerpsFeeDiscountLabel
@@ -139,14 +160,39 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           {originalFeeText}
         </Text>
       ) : null}
-      <Text
-        variant={variant}
-        color={color}
-        fontWeight={fontWeight}
-        testID={testID}
-      >
-        {feeText}
-      </Text>
+      {percentageRates ? (
+        <>
+          <Text
+            variant={variant}
+            color={color}
+            fontWeight={fontWeight}
+            numberOfLines={1}
+            style={styles.percentageRate}
+            testID={testID ? `${testID}-taker` : undefined}
+          >
+            {takerMakerFeeText.taker}
+          </Text>
+          <Text
+            variant={variant}
+            color={color}
+            fontWeight={fontWeight}
+            numberOfLines={1}
+            style={styles.percentageRate}
+            testID={testID ? `${testID}-maker` : undefined}
+          >
+            {takerMakerFeeText.maker}
+          </Text>
+        </>
+      ) : (
+        <Text
+          variant={variant}
+          color={color}
+          fontWeight={fontWeight}
+          testID={testID}
+        >
+          {feeText}
+        </Text>
+      )}
     </View>
   );
 };
