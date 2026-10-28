@@ -187,6 +187,36 @@ describe('PredictApiReadClient', () => {
     );
   });
 
+  it('sends the Positions status filter as a comma-separated list', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+
+    await client.fetchPositions(venueId, {
+      limit: 3,
+      status: ['open', 'claimable'],
+      sort: 'value',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=3&sort=value&status=open%2Cclaimable',
+      expect.anything(),
+    );
+  });
+
+  it('authenticates Portfolio Summary requests', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+
+    await client.fetchPortfolioSummary(venueId);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/portfolio/summary',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
   it('authenticates Activity requests with encoded page parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
 

@@ -3696,12 +3696,11 @@
       "positions": "Positions",
       "activity_empty": {
         "title": "No activity yet",
-        "description": "Your fills and settlements will appear here."
+        "description": "Your trades and settlements will appear here."
       },
       "load_failed": "Couldn't load.",
       "load_failed_retry": "Try again",
       "outcome_shares": "{{outcome}} · {{shares}} shares",
-      "active_positions": "Active positions",
       "cash_out": "Cash Out",
       "add_funds": "Add Funds",
       "withdraw": "Withdraw",
@@ -3712,9 +3711,29 @@
       },
       "activity": "History",
       "activity_rows": {
-        "settled": "Settled",
-        "shares_at_price": "{{shares}} @ {{price}}"
-      }
+        "shares_at_price": "{{shares}} @ {{price}}",
+        "bought": "Bought {{outcome}}",
+        "sold": "Sold {{outcome}}",
+        "settled_outcome": "Settled · {{outcome}}"
+      },
+      "total_value": "Total value",
+      "positions_value": "Positions",
+      "claimable_value": "Claimable",
+      "unrealized_pnl": "Unrealized P&L",
+      "summary_incomplete": "Partial total: some positions couldn't be valued right now.",
+      "summary_unavailable": "Portfolio value unavailable",
+      "value_unavailable": "No price",
+      "unknown_market": "Market details unavailable",
+      "outcome_side": {
+        "yes": "Yes",
+        "no": "No"
+      },
+      "position_status": {
+        "claimable": "Claimable",
+        "settled": "Settled"
+      },
+      "pnl_with_percent": "{{amount}} ({{percent}})",
+      "settlements_complete_from": "Settlements are complete from {{date}}. Earlier ones may be missing."
     },
     "order_preview": {
       "amount": "USD amount",
@@ -6254,10 +6273,10 @@
           "title": "Market capitalization",
           "description": "Current market capitalization of the circulating token supply."
         },
-          "liquidity": {
-            "title": "Total liquidity",
-            "description": "Value currently available in the token's trading pools."
-          },
+        "liquidity": {
+          "title": "Total liquidity",
+          "description": "Value currently available in the token's trading pools."
+        },
         "volume_24h": {
           "title": "24-hour trading volume",
           "description": "Value traded over the last 24 hours."
@@ -6274,38 +6293,38 @@
           "title": "Liquidity to market capitalization",
           "description": "Total liquidity divided by market cap. This is a standalone statistic, not part of the Blockaid verdict."
         },
-          "tax": {
-            "title": "Buy and sell tax",
-            "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
-          },
-          "high_low_24h": {
-            "title": "24-hour high and low",
-            "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
-          },
-          "circulating_supply": {
-            "title": "Circulating supply",
-            "description": "Amount of this token currently circulating."
-          },
-          "lp_burned_locked": {
-            "title": "Liquidity pool tokens burned or locked",
-            "description": "Share of the primary pool liquidity that is burned or locked."
-          },
-          "primary_pool": {
-            "title": "Primary pool",
-            "description": "The main trading pool reported for this token."
-          },
-          "volume_flags": {
-            "title": "Volume flags",
-            "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
-          },
-          "listed_on_exchange": {
-            "title": "Listed on exchange",
-            "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
-          },
-          "created": {
-            "title": "Created",
-            "description": "Date the token contract was created, when reported by its source."
-          }
+        "tax": {
+          "title": "Buy and sell tax",
+          "description": "The buy and sell fees reported for EVM tokens. Missing data does not mean zero fees."
+        },
+        "high_low_24h": {
+          "title": "24-hour high and low",
+          "description": "Highest and lowest traded prices in the past 24 hours, shown in that order."
+        },
+        "circulating_supply": {
+          "title": "Circulating supply",
+          "description": "Amount of this token currently circulating."
+        },
+        "lp_burned_locked": {
+          "title": "Liquidity pool tokens burned or locked",
+          "description": "Share of the primary pool liquidity that is burned or locked."
+        },
+        "primary_pool": {
+          "title": "Primary pool",
+          "description": "The main trading pool reported for this token."
+        },
+        "volume_flags": {
+          "title": "Volume flags",
+          "description": "A warning appears only if Blockaid reports INORGANIC_VOLUME, WASH_TRADING, FAKE_VOLUME, or FAKE_TRADE_MAKER_COUNT."
+        },
+        "listed_on_exchange": {
+          "title": "Listed on exchange",
+          "description": "Whether Blockaid reports the token as listed on a leading centralized exchange."
+        },
+        "created": {
+          "title": "Created",
+          "description": "Date the token contract was created, when reported by its source."
+        }
       }
     },
     "tabs": {

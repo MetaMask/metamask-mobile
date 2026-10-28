@@ -171,6 +171,9 @@ const positionsFilter = {
 const activityFilter = {
   queryKey: ['PredictPortfolioService:getActivity', KALSHI_VENUE_ID],
 };
+const summaryFilter = {
+  queryKey: ['PredictPortfolioService:getPortfolioSummary', KALSHI_VENUE_ID],
+};
 
 describe('PredictOrderService', () => {
   it('requests a quote through the trading capability', async () => {
@@ -244,10 +247,11 @@ describe('PredictOrderService', () => {
 
         expect(result).toEqual(receiptWith({ status }));
         expect(trading.commitOrder).toHaveBeenCalledTimes(1);
-        expect(invalidateQueries).toHaveBeenCalledTimes(3);
+        expect(invalidateQueries).toHaveBeenCalledTimes(4);
         expect(invalidateQueries).toHaveBeenNthCalledWith(1, balanceFilter);
         expect(invalidateQueries).toHaveBeenNthCalledWith(2, positionsFilter);
         expect(invalidateQueries).toHaveBeenNthCalledWith(3, activityFilter);
+        expect(invalidateQueries).toHaveBeenNthCalledWith(4, summaryFilter);
       },
     );
 
@@ -272,7 +276,7 @@ describe('PredictOrderService', () => {
 
         expect(result.status).toBe(status);
         expect(trading.commitOrder).toHaveBeenCalledTimes(1);
-        expect(invalidateQueries).toHaveBeenCalledTimes(3);
+        expect(invalidateQueries).toHaveBeenCalledTimes(4);
       },
     );
 
@@ -331,7 +335,7 @@ describe('PredictOrderService', () => {
 
       expect(second).toEqual(receiptWith({ status: 'filled' }));
       expect(trading.commitOrder).toHaveBeenCalledTimes(2);
-      expect(invalidateQueries).toHaveBeenCalledTimes(3);
+      expect(invalidateQueries).toHaveBeenCalledTimes(4);
     });
 
     it('coalesces repeated commits of one operation into the in-flight commit', async () => {
@@ -345,7 +349,7 @@ describe('PredictOrderService', () => {
 
       expect(first).toBe(second);
       expect(trading.commitOrder).toHaveBeenCalledTimes(1);
-      expect(invalidateQueries).toHaveBeenCalledTimes(3);
+      expect(invalidateQueries).toHaveBeenCalledTimes(4);
     });
 
     it('shares rejections across coalesced calls and allows a fresh commit afterwards', async () => {
@@ -463,7 +467,7 @@ describe('PredictOrderService', () => {
       await expect(
         orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
       ).resolves.toEqual(receiptWith({ status: 'filled' }));
-      expect(invalidateQueries).toHaveBeenCalledTimes(3);
+      expect(invalidateQueries).toHaveBeenCalledTimes(4);
     });
 
     it('abandons in-flight commits when the service is destroyed', async () => {
