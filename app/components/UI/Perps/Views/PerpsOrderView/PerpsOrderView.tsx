@@ -128,6 +128,7 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsMarkets,
+  usePerpsFeeDisplayAbTest,
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
   usePerpsOrderFees,
@@ -816,6 +817,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     };
   }, [currentPrice]);
 
+  // Perps Fee Display Format A/B test (TAT-4046): $ amount vs. Taker/Maker
+  // % rates on this fee row. Read once per mount so the format itself does
+  // not change mid-session as the amount/token recompute the underlying
+  // number (AC).
+  const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
+
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -830,6 +837,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
+    // Only the treatment variant needs the opposite side's rate; control
+    // keeps the single-call $ path with no added cost.
+    includeFeeRateBreakdown: feeDisplayMode === 'percentage',
   });
 
   // Size the max off the same resolved quote that drives the displayed fee.
@@ -3096,6 +3106,13 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   }
                   placeholder={PERPS_CONSTANTS.FallbackDataDisplay}
                   testID={PerpsOrderViewSelectorsIDs.FEES_VALUE}
+                  feeDisplayMode={feeDisplayMode}
+                  takerFeeRate={
+                    hasValidAmount ? feeResults.takerFeeRate : undefined
+                  }
+                  makerFeeRate={
+                    hasValidAmount ? feeResults.makerFeeRate : undefined
+                  }
                 />
               )
             }

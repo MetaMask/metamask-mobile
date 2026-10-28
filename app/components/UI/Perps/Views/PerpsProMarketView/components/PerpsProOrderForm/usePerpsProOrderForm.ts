@@ -101,6 +101,7 @@ import {
   unmountPerpsUiScaleForm,
 } from '../../../../utils/perpsUiObservations';
 import { usePerpsScreenVsBottomSheetAbTest } from '../../../../hooks/usePerpsScreenVsBottomSheetAbTest';
+import { usePerpsFeeDisplayAbTest } from '../../../../hooks/usePerpsFeeDisplayAbTest';
 import { usePerpsMarginModeLock } from '../../../../hooks/usePerpsMarginModeLock';
 import { selectPerpsSelectedAccountAddress } from '../../../../selectors/selectedAccountAddress';
 import type { PerpsStackParamList } from '../../../../types/navigation';
@@ -696,6 +697,11 @@ export const usePerpsProOrderForm = ({
   // this cannot double-count — and silencing it here would drop exposure
   // entirely whenever that panel is absent.
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
+  // Perps Fee Display Format A/B test (TAT-4046): $ amount vs. Taker/Maker
+  // % rates on the fee row below. Read once per mount so the format itself
+  // does not change mid-session as the amount/token recompute the
+  // underlying number (AC).
+  const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
 
   const {
     orderForm,
@@ -1768,6 +1774,9 @@ export const usePerpsProOrderForm = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
+    // Only the treatment variant needs the opposite side's rate; control
+    // keeps the single-call $ path with no added cost.
+    includeFeeRateBreakdown: feeDisplayMode === 'percentage',
   });
   // Size the max off the same resolved quote that drives the displayed fee.
   usePerpsQuotedFeeReservation(feeResults.totalFeeRate);
@@ -4106,6 +4115,10 @@ export const usePerpsProOrderForm = ({
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
+      // Perps Fee Display Format A/B test (TAT-4046).
+      feeDisplayMode,
+      takerFeeRate: hasValidAmount ? feeResults.takerFeeRate : undefined,
+      makerFeeRate: hasValidAmount ? feeResults.makerFeeRate : undefined,
       twapSummary: isTwapOrder
         ? {
             runtime: twapRuntimeSummary,
@@ -4131,6 +4144,9 @@ export const usePerpsProOrderForm = ({
     undiscountedEstimatedFees,
     feeResults.feeDiscountPercentage,
     feeResults.feeDiscountKind,
+    feeResults.takerFeeRate,
+    feeResults.makerFeeRate,
+    feeDisplayMode,
     onSlippagePress,
     isPositionModifyPreviewEnabled,
     positionModifySummaryDisplay,

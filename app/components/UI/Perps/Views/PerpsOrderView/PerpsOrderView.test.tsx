@@ -120,6 +120,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.margin': 'Margin',
       'perps.order.liquidation_price': 'Liquidation price',
       'perps.order.fees': 'Fees',
+      'perps.order.fees_taker_maker': 'Taker {{taker}}% / Maker {{maker}}%',
       'perps.order.off': 'off',
       'perps.order.tp': 'TP',
       'perps.order.sl': 'SL',
@@ -358,6 +359,11 @@ jest.mock('../../hooks', () => {
     usePerpsMarketData: jest.fn(),
     usePerpsLiquidationPrice: jest.fn(),
     usePerpsQuotedFeeReservation: jest.fn(),
+    usePerpsFeeDisplayAbTest: jest.fn(() => ({
+      feeDisplayMode: 'dollar',
+      variantName: 'control',
+      isActive: false,
+    })),
     usePerpsOrderFees: jest.fn(() => ({
       totalFee: 45,
       undiscountedTotalFee: 45,
@@ -5573,6 +5579,64 @@ describe('PerpsOrderView', () => {
       });
 
       // Fees should still be displayed but without discount
+    });
+  });
+
+  describe('Fee Display Format A/B test (TAT-4046)', () => {
+    const getHooksMock = () =>
+      jest.requireMock('../../hooks') as {
+        usePerpsFeeDisplayAbTest: jest.Mock;
+        usePerpsOrderFees: jest.Mock;
+      };
+
+    it('keeps the $ fee row and does not request the breakdown for control', async () => {
+      const { usePerpsFeeDisplayAbTest, usePerpsOrderFees } = getHooksMock();
+      usePerpsFeeDisplayAbTest.mockReturnValue({
+        feeDisplayMode: 'dollar',
+        variantName: 'control',
+        isActive: false,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      await waitFor(() => {
+        expect(screen.getByText('Fees')).toBeDefined();
+      });
+
+      expect(usePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: false }),
+      );
+    });
+
+    it('requests the taker/maker breakdown and renders both rates for treatment', async () => {
+      const { usePerpsFeeDisplayAbTest, usePerpsOrderFees } = getHooksMock();
+      usePerpsFeeDisplayAbTest.mockReturnValue({
+        feeDisplayMode: 'percentage',
+        variantName: 'treatment',
+        isActive: true,
+      });
+      usePerpsOrderFees.mockReturnValue({
+        totalFee: 45,
+        undiscountedTotalFee: 45,
+        protocolFee: 45,
+        metamaskFee: 0,
+        totalFeeRate: 0.00045,
+        protocolFeeRate: 0.00045,
+        metamaskFeeRate: 0,
+        takerFeeRate: 0.00143,
+        makerFeeRate: 0.00114,
+        isLoadingMetamaskFee: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+      expect(usePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({ includeFeeRateBreakdown: true }),
+      );
+      await waitFor(() => {
+        expect(screen.getByText('Taker 0.143% / Maker 0.114%')).toBeDefined();
+      });
     });
   });
 

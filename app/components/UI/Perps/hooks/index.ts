@@ -107,6 +107,7 @@ export {
 // A/B tests
 export { usePerpsScreenVsBottomSheetAbTest } from './usePerpsScreenVsBottomSheetAbTest';
 export { usePerpsHomeExploreAbTest } from './usePerpsHomeExploreAbTest';
+export { usePerpsFeeDisplayAbTest } from './usePerpsFeeDisplayAbTest';
 
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';

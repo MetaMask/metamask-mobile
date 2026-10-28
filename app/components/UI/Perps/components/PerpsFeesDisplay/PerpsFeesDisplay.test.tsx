@@ -263,4 +263,69 @@ describe('PerpsFeesDisplay', () => {
       expect(getByText('Fee discount')).toBeTruthy();
     });
   });
+
+  describe('Percentage mode (Perps Fee Display Format A/B test, TAT-4046)', () => {
+    it('renders "Taker X% / Maker Y%" from the rates and ignores fee/originalFee', () => {
+      const { getByText, queryByText } = render(
+        <PerpsFeesDisplay
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          fee={8.5}
+          originalFee={10}
+          testID="fee"
+        />,
+      );
+
+      expect(getByText('Taker 0.143% / Maker 0.114%')).toBeTruthy();
+      // The dollar-mode formatted fee text must not leak through.
+      expect(queryByText('$8.50')).toBeNull();
+    });
+
+    it('renders the placeholder when either rate is undefined', () => {
+      const { getByText } = render(
+        <PerpsFeesDisplay
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={undefined}
+        />,
+      );
+
+      expect(getByText('--')).toBeTruthy();
+    });
+
+    it('renders a custom placeholder when both rates are undefined', () => {
+      const { getByText } = render(
+        <PerpsFeesDisplay feeDisplayMode="percentage" placeholder="-" />,
+      );
+
+      expect(getByText('-')).toBeTruthy();
+    });
+
+    it('suppresses the strikethrough original fee even when a discount is present', () => {
+      const { queryByTestId, getByTestId, getByText } = render(
+        <PerpsFeesDisplay
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          fee={8.5}
+          originalFee={10}
+          feeDiscountPercentage={15}
+          feeDiscountKind="vip"
+          testID="fee"
+        />,
+      );
+
+      expect(queryByTestId('fee-original')).toBeNull();
+      // The VIP attribution label is independent of display mode and still renders.
+      expect(getByTestId('rewards-vip-badge')).toBeTruthy();
+      expect(getByText('Taker 0.143% / Maker 0.114%')).toBeTruthy();
+    });
+
+    it('defaults to dollar mode when feeDisplayMode is omitted', () => {
+      const { getByText } = render(<PerpsFeesDisplay fee={25.5} />);
+
+      expect(getByText('$25.50')).toBeTruthy();
+    });
+  });
 });
