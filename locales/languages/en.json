@@ -1288,7 +1288,8 @@
       "submit_report": "Submit",
       "post_hidden_confirmation": "Post hidden",
       "user_blocked_confirmation": "{{username}} has been blocked",
-      "report_confirmation": "Report submitted"
+      "report_confirmation": "Report submitted",
+      "action_failed": "Something went wrong. Try again."
     },
     "feed_sort": {
       "title": "Sort",
