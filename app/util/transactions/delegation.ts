@@ -41,35 +41,6 @@ export type SignMessenger = Messenger<
   KeyringControllerUnlockEvent
 >;
 
-/**
- * Resolves once the keyring is unlocked. Quote refreshes run on a timer and
- * can fire while the wallet is locked (e.g. after the app was backgrounded),
- * where signing would fail with `ControllerLocked` and leave a sticky quote
- * error. Waiting lets the pending refresh complete after the user unlocks.
- */
-async function waitForKeyringUnlock<MessengerType extends SignMessenger>(
-  messenger: MessengerType,
-  transactionId: string,
-): Promise<void> {
-  const { isUnlocked } = messenger.call('KeyringController:getState');
-
-  if (isUnlocked) {
-    return;
-  }
-
-  log('Keyring locked, waiting for unlock before signing', { transactionId });
-
-  await new Promise<void>((resolve) => {
-    const handler = () => {
-      messenger.unsubscribe('KeyringController:unlock', handler);
-      resolve();
-    };
-    messenger.subscribe('KeyringController:unlock', handler);
-  });
-
-  log('Keyring unlocked, resuming signing', { transactionId });
-}
-
 export interface DelegationTransaction {
   authorizationList?: AuthorizationList;
   data: Hex;
@@ -314,4 +285,33 @@ function normalizeCallData(data: unknown): Hex {
   }
 
   return prefixed as Hex;
+}
+
+/**
+ * Resolves once the keyring is unlocked. Quote refreshes run on a timer and
+ * can fire while the wallet is locked (e.g. after the app was backgrounded),
+ * where signing would fail with `ControllerLocked` and leave a sticky quote
+ * error. Waiting lets the pending refresh complete after the user unlocks.
+ */
+async function waitForKeyringUnlock<MessengerType extends SignMessenger>(
+  messenger: MessengerType,
+  transactionId: string,
+): Promise<void> {
+  const { isUnlocked } = messenger.call('KeyringController:getState');
+
+  if (isUnlocked) {
+    return;
+  }
+
+  log('Keyring locked, waiting for unlock before signing', { transactionId });
+
+  await new Promise<void>((resolve) => {
+    const handler = () => {
+      messenger.unsubscribe('KeyringController:unlock', handler);
+      resolve();
+    };
+    messenger.subscribe('KeyringController:unlock', handler);
+  });
+
+  log('Keyring unlocked, resuming signing', { transactionId });
 }
