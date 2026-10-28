@@ -93,17 +93,17 @@ const position = {
   venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL',
   side: 'yes',
+  status: 'open',
   shares: '75.00',
-  marketExposure: '41.25',
-  realizedPnl: '-2.50',
-  feesPaid: '0.14',
-  totalTraded: '41.25',
-  updatedAt: '2026-09-01T12:00:00.000Z',
+  averagePrice: '0.55',
+  costBasis: '41.25',
+  currentValue: '45.00',
+  unrealizedPnl: '3.75',
+  unrealizedPnlPercent: '9.09',
   context: {
     eventId: 'KXNBAGAME-26MAY12-LALBOS',
     eventTitle: 'Lakers vs Celtics',
     marketQuestion: 'Will the Lakers win?',
-    outcomeId: 'KXNBAGAME-26MAY12-LALBOS-LAL-YES',
     outcomeLabel: 'Lakers',
   },
 };
@@ -402,7 +402,16 @@ describe('PredictNext Order Preview request', () => {
     // The venue now reports the reduced Position the Cash Out left behind.
     positionsBody = {
       venueId: 'kalshi',
-      positions: [{ ...position, shares: '37.50', marketExposure: '20.63' }],
+      positions: [
+        {
+          ...position,
+          shares: '37.50',
+          costBasis: '20.63',
+          currentValue: '22.50',
+          unrealizedPnl: '1.87',
+          unrealizedPnlPercent: '9.06',
+        },
+      ],
     };
     // A later wall clock stamps the refresh's dataUpdatedAt: the UI cache
     // hydrates a service snapshot only when it is strictly newer.

@@ -19,7 +19,7 @@ interface PortfolioTabsProps {
 const tabs = [
   {
     key: 'positions',
-    label: 'predict_next.portfolio.active_positions',
+    label: 'predict_next.portfolio.positions',
     testID: PredictPortfolioScreenTestIds.POSITIONS_TAB,
   },
   {

@@ -92,10 +92,13 @@ export const useNativeSystemSlotTab = (
     return {
       name: SEARCH_TAB_NAME,
       options: { tabBarSystemItem: 'search' },
-      listeners: () => ({
+      listeners: ({ navigation }) => ({
         tabPress: () => {
           playImpact(ImpactMoment.TabChange);
-          trackExploreSearchOpened('nav_bar');
+          // tabPress also fires on a re-tap of the focused tab, which is not a new open.
+          if (!navigation.isFocused()) {
+            trackExploreSearchOpened('nav_bar');
+          }
         },
       }),
       component: ExploreSearchScreen,

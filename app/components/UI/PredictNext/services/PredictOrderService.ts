@@ -105,8 +105,8 @@ export interface PredictOrderServiceOptions {
  * operation coalesce into the single in-flight Commit, and an unfinished
  * operation is observed by committing the same Preview again, which never
  * places a second Order. After a terminal receipt the service invalidates
- * the authoritative Balance, Positions, and Activity reads. Nothing is
- * persisted: after a restart the outcome surfaces through those reads.
+ * the authoritative Balance, Positions, Activity, and Summary reads. Nothing
+ * is persisted: after a restart the outcome surfaces through those reads.
  */
 export class PredictOrderService {
   readonly #messenger: PredictOrderServiceMessenger;
@@ -281,9 +281,9 @@ export class PredictOrderService {
     }
   }
 
-  /** Fire-and-forget: a terminal receipt changed Balance, Positions, or
-   * Activity. A failed invalidation must not fail the committed Order; the
-   * reads stay stale only until their next fetch. */
+  /** Fire-and-forget: a terminal receipt changed Balance, Positions,
+   * Activity, or the Summary. A failed invalidation must not fail the
+   * committed Order; the reads stay stale only until their next fetch. */
   #invalidatePortfolioReads(): void {
     for (const family of portfolioQueryFamilies(this.#venueId)) {
       // #invalidateFamily contains its own errors; this catch only marks the
