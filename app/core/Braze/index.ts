@@ -10,6 +10,17 @@ import {
 } from '../../constants/engagement';
 import { hasPendingBrazePushUnregistrationSync } from './pushRegistrationState';
 import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController/brazeEventBlocklist';
+import type { AnalyticsHelper } from '../../util/analytics/analytics';
+
+/**
+ * Lazy import the analytics helper to avoid a circular dependency.
+ * A static import pulls in the Redux store, which pulls in Engine, and Engine
+ * imports this module while the analytics controller initializes.
+ * The helper is only accessed at runtime, not at module load time.
+ */
+const getAnalytics = (): AnalyticsHelper =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+  require('../../util/analytics/analytics').analytics;
 
 /**
  * Banner impression, click, and custom events call the Braze SDK directly.
@@ -17,17 +28,11 @@ import { getBrazeBlockedEventNames } from '../../selectors/featureFlagController
  * granted, so these calls check the same consent and skip when it is off or
  * unreadable.
  *
- * Loaded lazily because this module is imported while the analytics controller
- * initializes, and the analytics helper pulls in the Redux store.
- *
  * @returns True when the user has granted MetaMetrics consent.
  */
 function hasMetaMetricsConsent(): boolean {
   try {
-    const { analytics } =
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('../../util/analytics/analytics') as typeof import('../../util/analytics/analytics');
-    return analytics.isEnabled();
+    return getAnalytics().isEnabled();
   } catch (error) {
     Logger.log(
       '[Braze] Failed to read MetaMetrics consent, skipping Braze event',
