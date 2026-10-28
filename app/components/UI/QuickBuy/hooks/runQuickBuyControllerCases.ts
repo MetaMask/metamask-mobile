@@ -3296,7 +3296,10 @@ export const runQuickBuyControllerCases = ({
         const expectedIntent = {
           origin: { kind: 'comment', id: copyTradeOrigin.commentId },
           copierAccount: { caip10: 'eip155:1:0xWALLET' },
-          execution: { product: 'swaps', quoteId: 'quote-request-1' },
+          execution: {
+            product: 'swaps',
+            quoteId: 'b16f3319-fb64-4b15-9a16-ff8769195eb2',
+          },
         };
         const mockMessengerCall = () =>
           Engine.controllerMessenger.call as jest.Mock;
@@ -3305,6 +3308,7 @@ export const runQuickBuyControllerCases = ({
           setupQuoteSourceMock(
             createQuoteState({
               activeQuote: createActiveQuote({
+                quoteId: 'b16f3319-fb64-4b15-9a16-ff8769195eb2',
                 quote: { requestId: 'quote-request-1' },
               }),
               destTokenAmount: '1',
@@ -3379,6 +3383,35 @@ export const runQuickBuyControllerCases = ({
         it('posts no intent without a copy-trade origin', async () => {
           mockQuote();
           const { result } = renderHook(createTarget(), jest.fn());
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).not.toHaveBeenCalled();
+          expect(
+            Engine.context.BridgeStatusController.submitTx,
+          ).toHaveBeenCalled();
+        });
+
+        it('posts no intent when the quote has no Bridge quoteId', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote({
+                quote: { requestId: 'quote-request-1' },
+              }),
+              destTokenAmount: '1',
+            }),
+          );
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
 
           await act(async () => {
             await result.current.handleConfirm();
