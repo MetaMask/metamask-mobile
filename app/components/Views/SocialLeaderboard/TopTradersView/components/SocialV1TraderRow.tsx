@@ -112,8 +112,6 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
             -
           </Text>
         ) : showMedal ? (
-          <RankMedal rank={trader.rank} size={MEDAL_HEIGHT} />
-        {hideRank ? null : showMedal ? (
           <RankMedal rank={trader.rank} size={MEDAL_SIZE} />
         ) : (
           <Text
