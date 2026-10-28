@@ -191,9 +191,7 @@ describe('PerpsModeSelectionView', () => {
         ),
       );
 
-      expect(
-        await readLandedParams(Routes.PERPS.MARKET_DETAILS),
-      ).toEqual(
+      expect(await readLandedParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
         expect.objectContaining({
           market: expect.objectContaining({ symbol: 'BTC' }),
           source: PERPS_EVENT_VALUE.SOURCE.TRADE_MENU_ACTION,
@@ -231,7 +229,9 @@ describe('PerpsModeSelectionView', () => {
         ),
       );
 
-      await screen.findByTestId(getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME));
+      await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME),
+      );
 
       expect(sequence).not.toContain('experiment-viewed');
     });
@@ -273,7 +273,9 @@ describe('PerpsModeSelectionView', () => {
         ),
       );
 
-      await screen.findByTestId(getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME));
+      await screen.findByTestId(
+        getRouteParamsProbeTestId(Routes.PERPS.PERPS_HOME),
+      );
 
       expect(sequence).not.toContain('experiment-viewed');
     });
@@ -300,8 +302,7 @@ describe('PerpsModeSelectionView', () => {
                       enabled: true,
                       minimumVersion: '0.0.0',
                     },
-                    [PERPS_HEADER_AB_TEST_KEY]:
-                      PerpsHeaderNavVariant.Treatment,
+                    [PERPS_HEADER_AB_TEST_KEY]: PerpsHeaderNavVariant.Treatment,
                   },
                 },
               },
@@ -356,8 +357,7 @@ describe('PerpsModeSelectionView', () => {
                       enabled: true,
                       minimumVersion: '0.0.0',
                     },
-                    [PERPS_HEADER_AB_TEST_KEY]:
-                      PerpsHeaderNavVariant.Treatment,
+                    [PERPS_HEADER_AB_TEST_KEY]: PerpsHeaderNavVariant.Treatment,
                   },
                 },
               },
@@ -433,9 +433,7 @@ describe('PerpsModeSelectionView', () => {
         ),
       );
 
-      expect(
-        await readLandedParams(Routes.PERPS.MARKET_DETAILS),
-      ).toEqual(
+      expect(await readLandedParams(Routes.PERPS.MARKET_DETAILS)).toEqual(
         expect.objectContaining({
           market: { symbol: 'BTC' },
           source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
