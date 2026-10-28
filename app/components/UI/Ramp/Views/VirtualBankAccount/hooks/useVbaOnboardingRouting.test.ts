@@ -12,10 +12,15 @@ import {
 import { readVbaKycStatusOverrideEnv } from '../vbaDevOverrides.env';
 import { EMPTY_VBA_ONBOARDING_SNAPSHOT } from '../vbaOnboardingSnapshot';
 import { VbaOnboardingRoutes } from '../routes';
-import { VBA_KYC_VENDOR } from '../constants';
+import { VBA_ACCOUNT_PENDING_SOURCE, VBA_KYC_VENDOR } from '../constants';
 import { TraceName } from '../../../../../../util/trace';
-import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
+import {
+  endVbaCufChildTrace,
+  startVbaCufChildTrace,
+  startVbaCufJourney,
+} from '../vbaCufTrace';
 import { VBA_CUF_END_REASON } from '../vbaCufTags';
+import NavigationService from '../../../../../../core/NavigationService';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
@@ -111,6 +116,12 @@ jest.mock('../../../../../../core/redux', () => ({
 jest.mock('../vbaCufTrace', () => ({
   startVbaCufChildTrace: jest.fn(() => 'vba-hydrate-id'),
   endVbaCufChildTrace: jest.fn(),
+  startVbaCufJourney: jest.fn(),
+}));
+
+const mockRegionSourceCurrency = jest.fn<string | undefined, []>(() => 'BRL');
+jest.mock('./useVbaRegionSourceCurrency', () => ({
+  selectVbaRegionSourceCurrency: () => mockRegionSourceCurrency(),
 }));
 
 const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
@@ -120,6 +131,24 @@ jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
     (state: { address?: string }) => state.address ?? null,
   ),
+}));
+
+jest.mock('../../../../../../selectors/kycController', () => ({
+  ...jest.requireActual('../../../../../../selectors/kycController'),
+  selectKycSessionStatus: jest.fn(
+    (state: { kycSessionStatus?: unknown }) => state.kycSessionStatus ?? null,
+  ),
+  selectKycProviderFlowStatus: jest.fn(
+    (state: { kycProviderFlowStatus?: string }) =>
+      state.kycProviderFlowStatus ?? 'not_started',
+  ),
+}));
+
+jest.mock('../../../../../../core/NavigationService', () => ({
+  __esModule: true,
+  default: {
+    getCurrentRoute: jest.fn(),
+  },
 }));
 
 jest.mock('../../../../../../util/Logger', () => ({
@@ -1112,11 +1141,21 @@ describe('openVbaEntry', () => {
 
   it('opens the loading screen when a dev KYC override is set', () => {
     jest.mocked(readVbaKycStatusOverrideEnv).mockReturnValue('rejected');
+    mockGetState.mockReturnValue({
+      address: '0xabc',
+      kycSessionStatus: { finalStatus: 'pending', kycStatus: 'pending' },
+    });
 
     openVbaEntry(entryNavigation);
 
     expect(lastResetRoutes()[1]).toEqual(
-      expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
+      expect.objectContaining({
+        name: Routes.RAMP.VBA_ONBOARDING,
+        state: {
+          index: 0,
+          routes: [{ name: VbaOnboardingRoutes.LOADING }],
+        },
+      }),
     );
     expect(mockHydrate).not.toHaveBeenCalled();
   });
@@ -1129,5 +1168,226 @@ describe('openVbaEntry', () => {
     expect(lastResetRoutes()[1]).toEqual(
       expect.objectContaining({ name: Routes.RAMP.VBA_ONBOARDING }),
     );
+  });
+
+  describe('with a known KYC session', () => {
+    const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+    const expectOnboardingScreen = (screen: string) =>
+      expect(lastResetRoutes()[1]).toEqual(
+        expect.objectContaining({
+          name: Routes.RAMP.VBA_ONBOARDING,
+          state: { index: 0, routes: [{ name: screen }] },
+        }),
+      );
+    const givenSession = (
+      sessionStatus: { finalStatus: string; kycStatus: string },
+      providerFlowStatus = 'not_started',
+    ) =>
+      mockGetState.mockReturnValue({
+        address: '0xabc',
+        kycSessionStatus: sessionStatus,
+        kycProviderFlowStatus: providerFlowStatus,
+      });
+    const pendingSnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      providerFlowStatus: 'submitted' as const,
+      kycStatus: 'pending' as const,
+    };
+    const approvedReadySnapshot = {
+      ...EMPTY_VBA_ONBOARDING_SNAPSHOT,
+      sessionExists: true,
+      vendorDisclaimersComplete: true,
+      sessionDisclaimersComplete: true,
+      kycStatus: 'approved' as const,
+      autorampStatus: 'ready' as const,
+    };
+
+    beforeEach(() => {
+      mockRampsState.autoramps = [];
+      mockReadSessionStatus.mockReturnValue(null);
+      mockHasAcceptedVbaVendorTerms.mockResolvedValue(true);
+      mockGetVbaVendorTermsAcceptance.mockResolvedValue(null);
+      mockHydrate.mockResolvedValue(pendingSnapshot);
+      jest.mocked(NavigationService.getCurrentRoute).mockReturnValue(undefined);
+    });
+
+    it('opens details for the account-pending source without an approved autoramp', () => {
+      givenSession({ finalStatus: 'approved', kycStatus: 'approved' });
+
+      openVbaEntry(entryNavigation, { source: VBA_ACCOUNT_PENDING_SOURCE });
+
+      expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    });
+
+    it('opens identity verified for the account-pending source without a region currency', () => {
+      givenSession({ finalStatus: 'approved', kycStatus: 'approved' });
+      mockRegionSourceCurrency.mockReturnValueOnce(undefined);
+
+      openVbaEntry(entryNavigation, { source: VBA_ACCOUNT_PENDING_SOURCE });
+
+      expectOnboardingScreen(VbaOnboardingRoutes.IDENTITY_VERIFIED);
+    });
+
+    it('opens details for an approved session with a usable autoramp that is not approved yet', () => {
+      mockRampsState.autoramps = [
+        { id: 'ar-1', walletAddress: '0xabc', status: 'Created' },
+      ];
+      givenSession({ finalStatus: 'approved', kycStatus: 'approved' });
+
+      openVbaEntry(entryNavigation);
+
+      expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+    });
+
+    it('opens identity verified for an approved session without an autoramp', () => {
+      givenSession({ finalStatus: 'approved', kycStatus: 'approved' });
+
+      openVbaEntry(entryNavigation);
+
+      expectOnboardingScreen(VbaOnboardingRoutes.IDENTITY_VERIFIED);
+    });
+
+    it.each([
+      ['a rejected session', 'rejected', 'rejected', 'not_started'],
+      [
+        'a retry session that was not resubmitted',
+        'retry',
+        'rejected',
+        'started',
+      ],
+    ])(
+      'opens kyc rejected for %s',
+      (_case, finalStatus, kycStatus, providerFlowStatus) => {
+        givenSession({ finalStatus, kycStatus }, providerFlowStatus);
+
+        openVbaEntry(entryNavigation);
+
+        expectOnboardingScreen(VbaOnboardingRoutes.KYC_REJECTED);
+      },
+    );
+
+    it.each([['a pending session', 'pending', 'pending', 'not_started']])(
+      'opens kyc pending for %s',
+      (_case, finalStatus, kycStatus, providerFlowStatus) => {
+        givenSession({ finalStatus, kycStatus }, providerFlowStatus);
+
+        openVbaEntry(entryNavigation);
+
+        expectOnboardingScreen(VbaOnboardingRoutes.KYC_PENDING);
+      },
+    );
+
+    it('opens the loading screen for a resubmitted retry session', () => {
+      givenSession(
+        { finalStatus: 'retry', kycStatus: 'rejected' },
+        'submitted',
+      );
+
+      openVbaEntry(entryNavigation);
+
+      expectOnboardingScreen(VbaOnboardingRoutes.LOADING);
+    });
+
+    it('opens the loading screen when no session exists', () => {
+      openVbaEntry(entryNavigation);
+
+      expectOnboardingScreen(VbaOnboardingRoutes.LOADING);
+    });
+
+    it('moves a user still on the opened screen to the resolved destination in a new journey', async () => {
+      givenSession({ finalStatus: 'pending', kycStatus: 'pending' });
+      mockHydrate.mockResolvedValue(approvedReadySnapshot);
+      jest.mocked(NavigationService.getCurrentRoute).mockReturnValue({
+        key: 'pending-1',
+        name: VbaOnboardingRoutes.KYC_PENDING,
+      });
+
+      openVbaEntry(entryNavigation, { source: 'vba-action-row-details' });
+      await flushPromises();
+
+      expect(dispatch).toHaveBeenCalledTimes(2);
+      expect(lastResetRoutes()[1]).toEqual({ name: Routes.RAMP.VBA_DETAILS });
+      expect(jest.mocked(startVbaCufJourney)).toHaveBeenCalledWith(
+        'money_action_row',
+      );
+    });
+
+    it.each([
+      [
+        'the resolved destination matches',
+        VbaOnboardingRoutes.KYC_PENDING,
+        false,
+      ],
+      ['the user already left the opened screen', Routes.MONEY.HOME, true],
+    ])(
+      'keeps the opened screen when %s',
+      async (_case, currentRoute, differs) => {
+        givenSession({ finalStatus: 'pending', kycStatus: 'pending' });
+        if (differs) {
+          mockHydrate.mockResolvedValue(approvedReadySnapshot);
+        }
+        jest
+          .mocked(NavigationService.getCurrentRoute)
+          .mockReturnValue({ key: 'route-1', name: currentRoute });
+
+        openVbaEntry(entryNavigation);
+        await flushPromises();
+
+        expect(mockHydrate).toHaveBeenCalled();
+        expect(dispatch).toHaveBeenCalledTimes(1);
+        expectOnboardingScreen(VbaOnboardingRoutes.KYC_PENDING);
+      },
+    );
+
+    it('keeps the opened screen when hydrating the destination fails', async () => {
+      givenSession({ finalStatus: 'pending', kycStatus: 'pending' });
+      jest.mocked(NavigationService.getCurrentRoute).mockReturnValue({
+        key: 'pending-1',
+        name: VbaOnboardingRoutes.KYC_PENDING,
+      });
+      mockHydrate.mockRejectedValue(new Error('offline'));
+
+      openVbaEntry(entryNavigation);
+      await flushPromises();
+
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: { source: 'money-add-money-bank-account' },
+          }),
+        }),
+      );
+    });
+
+    it('logs and does not navigate when correcting the destination throws', async () => {
+      givenSession({ finalStatus: 'pending', kycStatus: 'pending' });
+      jest.mocked(NavigationService.getCurrentRoute).mockReturnValue({
+        key: 'pending-1',
+        name: VbaOnboardingRoutes.KYC_PENDING,
+      });
+      jest.mocked(Logger.log).mockImplementationOnce(() => {
+        throw new Error('log failed');
+      });
+      mockHydrate.mockResolvedValue(approvedReadySnapshot);
+
+      openVbaEntry(entryNavigation);
+      await flushPromises();
+
+      expect(dispatch).toHaveBeenCalledTimes(1);
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: {
+            name: 'openVbaEntry',
+            data: { step: 'correct', source: 'money-add-money-bank-account' },
+          },
+        }),
+      );
+    });
   });
 });

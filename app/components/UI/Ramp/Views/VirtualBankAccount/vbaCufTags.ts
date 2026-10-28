@@ -23,6 +23,19 @@ export const VBA_CUF_ENTRY_SURFACE = {
 export type VbaCufEntrySurface =
   (typeof VBA_CUF_ENTRY_SURFACE)[keyof typeof VBA_CUF_ENTRY_SURFACE];
 
+/** Entry surface for a Money entry `source` (home card, action row, sheet). */
+export const getVbaCufEntrySurfaceForSource = (
+  source: string,
+): VbaCufEntrySurface => {
+  if (source.startsWith('vba-home-card-')) {
+    return VBA_CUF_ENTRY_SURFACE.HOME_CARD;
+  }
+  if (source === 'vba-action-row-details') {
+    return VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW;
+  }
+  return VBA_CUF_ENTRY_SURFACE.ADD_MONEY_SHEET;
+};
+
 export const VBA_CUF_LIFECYCLE_CONTEXT = {
   COLD_PROCESS: 'cold_process',
   WARM: 'warm',
@@ -33,6 +46,7 @@ export type VbaCufLifecycleContext =
   (typeof VBA_CUF_LIFECYCLE_CONTEXT)[keyof typeof VBA_CUF_LIFECYCLE_CONTEXT];
 
 export const VBA_CUF_END_REASON = {
+  AWAITING_PROVIDER: 'awaiting_provider',
   BAILED: 'bailed',
   ERROR: 'error',
   KYC_PENDING: 'kyc_pending',

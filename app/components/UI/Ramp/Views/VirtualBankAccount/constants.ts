@@ -3,6 +3,9 @@ import AppConstants from '../../../../../core/AppConstants';
 // Identity vendor for VBA onboarding. Passed to `KycController.startSession`.
 export const VBA_KYC_VENDOR = 'iron' as const;
 
+// Money home card source whose CTA re-checks a pending provider approval.
+export const VBA_ACCOUNT_PENDING_SOURCE = 'vba-home-card-account-pending';
+
 // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- Pix's brand teal has no design-token equivalent
 export const PIX_BRAND_COLOR = '#2CBFB0';
 

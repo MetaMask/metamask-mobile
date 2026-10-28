@@ -8,6 +8,7 @@ import {
 import moneyVbaIdentityArt from '../../../../../images/money-vba-identity-art.png';
 import moneyVbaAccountReadyArt from '../../../../../images/money-vba-account-ready-art.png';
 import moneyVbaKycDecisionArt from '../../../../../images/money-vba-kyc-decision-art.png';
+import { VBA_ACCOUNT_PENDING_SOURCE } from '../../../Ramp/Views/VirtualBankAccount/constants';
 
 /** A VBA home card status that renders a card (`VbaHomeCard` minus `none`). */
 export type MoneyVbaHomeCardVariant = Exclude<VbaHomeCard['type'], 'none'>;
@@ -80,6 +81,19 @@ export const MONEY_VBA_HOME_CARD_CONFIG: Record<
     },
     ctaClassName: 'bg-icon-default',
     ctaTextClassName: 'text-primary-inverse',
+  },
+  account_pending: {
+    componentName: COMPONENT_NAMES.MONEY_VBA_ACCOUNT_PENDING_CARD,
+    source: VBA_ACCOUNT_PENDING_SOURCE,
+    i18nPrefix: 'money.vba_home_card.account_pending',
+    buttonIntent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+    heroArt: {
+      source: moneyVbaAccountReadyArt,
+      width: 98,
+      height: 74.5,
+    },
+    ctaClassName: 'bg-muted',
+    ctaTextClassName: 'text-default',
   },
   kyc_pending: {
     componentName: COMPONENT_NAMES.MONEY_VBA_KYC_PENDING_CARD,
