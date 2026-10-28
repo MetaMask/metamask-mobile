@@ -1,10 +1,6 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../../util/haptics';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
   SocialFeedRealtimeContext,
@@ -22,7 +18,6 @@ jest.mock('../../../../../util/haptics', () => ({
 }));
 
 const mockPlayImpact = jest.mocked(playImpact);
-const mockPlaySelection = jest.mocked(playSelection);
 
 const renderControls = (
   realtime: Partial<SocialFeedRealtimeContextValue>,
@@ -64,6 +59,12 @@ describe('SocialFeedRealtimeControls', () => {
     ).toBeNull();
   });
 
+  it('renders nothing without a toggle or a post waiting', () => {
+    renderControls({});
+
+    expect(screen.queryByLabelText(/new post/)).toBeNull();
+  });
+
   it('shows only the pill without onPausedChange', () => {
     renderControls({ pendingNewCount: 2 });
 
@@ -81,7 +82,7 @@ describe('SocialFeedRealtimeControls', () => {
     expect(screen.getByLabelText('Paused')).toBeOnTheScreen();
   });
 
-  it('pauses without revealing and plays a selection haptic', () => {
+  it('pauses without revealing', () => {
     const onPausedChange = jest.fn();
     const { revealPending } = renderControls({}, { onPausedChange });
 
@@ -89,11 +90,9 @@ describe('SocialFeedRealtimeControls', () => {
 
     expect(onPausedChange).toHaveBeenCalledWith(true);
     expect(revealPending).not.toHaveBeenCalled();
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
-  it('resumes without held posts with a selection haptic', () => {
+  it('reveals held posts when resuming', () => {
     const onPausedChange = jest.fn();
     const { revealPending } = renderControls(
       { paused: true },
@@ -104,26 +103,20 @@ describe('SocialFeedRealtimeControls', () => {
 
     expect(onPausedChange).toHaveBeenCalledWith(false);
     expect(revealPending).toHaveBeenCalledTimes(1);
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
-  it('resumes with held posts with a pull-to-refresh impact', () => {
-    const onPausedChange = jest.fn();
-    const { revealPending } = renderControls(
+  it('tells the toggle about held posts', () => {
+    renderControls(
       { paused: true, pendingNewCount: 3 },
-      { onPausedChange },
+      { onPausedChange: jest.fn() },
     );
 
     pressStreamButton();
 
-    expect(onPausedChange).toHaveBeenCalledWith(false);
-    expect(revealPending).toHaveBeenCalledTimes(1);
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
-    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 
-  it('reveals from the pill with a selection haptic next to the toggle', () => {
+  it('reveals from the pill', () => {
     const { revealPending } = renderControls(
       { pendingNewCount: 3 },
       { onPausedChange: jest.fn() },
@@ -132,15 +125,5 @@ describe('SocialFeedRealtimeControls', () => {
     fireEvent.press(screen.getByLabelText('3 new posts'));
 
     expect(revealPending).toHaveBeenCalledTimes(1);
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-  });
-
-  it('reveals from a pill-only header without a haptic', () => {
-    const { revealPending } = renderControls({ pendingNewCount: 3 });
-
-    fireEvent.press(screen.getByLabelText('3 new posts'));
-
-    expect(revealPending).toHaveBeenCalledTimes(1);
-    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,5 @@
 import { Box, TextColor } from '@metamask/design-system-react-native';
 import React from 'react';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../../util/haptics';
 import LiveButton from './LiveButton';
 import PendingPostsButton from './PendingPostsButton';
 import { useSocialFeedRealtime } from './SocialFeedRealtimeContext';
@@ -37,23 +32,10 @@ const SocialFeedRealtimeControls: React.FC<SocialFeedRealtimeControlsProps> = ({
   }
 
   const handleLivePress = () => {
-    if (paused && pendingNewCount > 0) {
-      // Resuming with held posts reloads the feed, like a pull-to-refresh commit.
-      playImpact(ImpactMoment.PullToRefresh).catch(() => undefined);
-    } else {
-      playSelection().catch(() => undefined);
-    }
     if (paused) {
       revealPending();
     }
     onPausedChange?.(!paused);
-  };
-
-  const handlePendingPostsPress = () => {
-    if (onPausedChange) {
-      playSelection().catch(() => undefined);
-    }
-    revealPending();
   };
 
   return (
@@ -61,11 +43,15 @@ const SocialFeedRealtimeControls: React.FC<SocialFeedRealtimeControlsProps> = ({
       twClassName={`flex-row items-center gap-2${twClassName ? ` ${twClassName}` : ''}`}
     >
       {onPausedChange ? (
-        <LiveButton isLive={!paused} onPress={handleLivePress} />
+        <LiveButton
+          isLive={!paused}
+          hasPendingPosts={pendingNewCount > 0}
+          onPress={handleLivePress}
+        />
       ) : null}
       <PendingPostsButton
         pendingNewCount={pendingNewCount}
-        onPress={handlePendingPostsPress}
+        onPress={revealPending}
         textColor={TextColor.SuccessDefault}
       />
     </Box>

@@ -14,6 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
+import { playSelection } from '../../../../../util/haptics';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
@@ -60,6 +61,11 @@ const PendingPostsButton = ({
 
   const label = getPendingPostsLabel(pendingNewCount);
 
+  const handlePress = () => {
+    playSelection().catch(() => undefined);
+    onPress();
+  };
+
   return (
     <Animated.View
       entering={PENDING_POSTS_FADE_IN}
@@ -72,7 +78,7 @@ const PendingPostsButton = ({
         <ButtonBase
           accessibilityLabel={label}
           size={ButtonBaseSize.Sm}
-          onPress={onPress}
+          onPress={handlePress}
         >
           <AnimatedBalanceText
             accessible={false}

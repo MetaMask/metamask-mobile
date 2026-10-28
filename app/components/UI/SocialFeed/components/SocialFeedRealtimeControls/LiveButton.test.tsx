@@ -9,16 +9,40 @@ import {
 } from '@metamask/design-system-react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import {
+  ImpactMoment,
+  playImpact,
+  playSelection,
+} from '../../../../../util/haptics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SocialFeedRealtimeControlsSelectorsIDs } from './SocialFeedRealtimeControls.testIds';
 import LiveButton from './LiveButton';
 
+jest.mock('../../../../../util/haptics', () => ({
+  ImpactMoment: { PullToRefresh: 'pullToRefresh' },
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
+
+const mockPlayImpact = jest.mocked(playImpact);
+const mockPlaySelection = jest.mocked(playSelection);
+
 const getButton = () => screen.UNSAFE_getByType(Button);
 const getIcon = () => screen.UNSAFE_getByType(Icon);
+const pressButton = () =>
+  fireEvent.press(
+    screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
+  );
 
 describe('LiveButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders a medium secondary button with the play icon while live', () => {
-    renderWithProvider(<LiveButton isLive onPress={jest.fn()} />);
+    renderWithProvider(
+      <LiveButton isLive hasPendingPosts={false} onPress={jest.fn()} />,
+    );
 
     expect(screen.getByLabelText('Live')).toBeOnTheScreen();
 
@@ -35,7 +59,9 @@ describe('LiveButton', () => {
   });
 
   it('renders the pause icon in muted colors while paused', () => {
-    renderWithProvider(<LiveButton isLive={false} onPress={jest.fn()} />);
+    renderWithProvider(
+      <LiveButton isLive={false} hasPendingPosts={false} onPress={jest.fn()} />,
+    );
 
     expect(screen.getByLabelText('Paused')).toBeOnTheScreen();
 
@@ -56,12 +82,46 @@ describe('LiveButton', () => {
 
   it('calls onPress when pressed', () => {
     const onPress = jest.fn();
-    renderWithProvider(<LiveButton isLive onPress={onPress} />);
-
-    fireEvent.press(
-      screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
+    renderWithProvider(
+      <LiveButton isLive hasPendingPosts={false} onPress={onPress} />,
     );
 
+    pressButton();
+
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a selection haptic when pausing', () => {
+    renderWithProvider(
+      <LiveButton isLive hasPendingPosts onPress={jest.fn()} />,
+    );
+
+    pressButton();
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays a selection haptic when resuming without held posts', () => {
+    renderWithProvider(
+      <LiveButton isLive={false} hasPendingPosts={false} onPress={jest.fn()} />,
+    );
+
+    pressButton();
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
+  });
+
+  it('plays a pull-to-refresh impact when resuming with held posts', () => {
+    renderWithProvider(
+      <LiveButton isLive={false} hasPendingPosts onPress={jest.fn()} />,
+    );
+
+    pressButton();
+
+    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
+    expect(mockPlaySelection).not.toHaveBeenCalled();
   });
 });

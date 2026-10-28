@@ -1,11 +1,24 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 
+import { playImpact, playSelection } from '../../../../../util/haptics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 import PendingPostsButton from './PendingPostsButton';
 
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
+
+const mockPlayImpact = jest.mocked(playImpact);
+const mockPlaySelection = jest.mocked(playSelection);
+
 describe('PendingPostsButton', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('renders the singular pending post label', () => {
     renderWithProvider(
       <PendingPostsButton pendingNewCount={1} onPress={jest.fn()} />,
@@ -61,5 +74,16 @@ describe('PendingPostsButton', () => {
     fireEvent.press(screen.getByLabelText('3 new posts'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a selection haptic when pressed', () => {
+    renderWithProvider(
+      <PendingPostsButton pendingNewCount={3} onPress={jest.fn()} />,
+    );
+
+    fireEvent.press(screen.getByLabelText('3 new posts'));
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 });

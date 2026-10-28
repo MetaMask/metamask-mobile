@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
+import { playSelection } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 import type { SocialFeedInlineRow } from '../../../UI/SocialFeed/components/SocialFeed';
@@ -99,6 +100,18 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
 
   return { __esModule: true, default: MockSocialFeed };
 });
+
+jest.mock('../../../../util/haptics', () => ({
+  ImpactMoment: {
+    PullToRefresh: 'pullToRefresh',
+    SecondaryCTA: 'secondaryCTA',
+  },
+  fireImpact: jest.fn(),
+  playImpact: jest.fn(() => Promise.resolve()),
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
+
+const mockPlaySelection = jest.mocked(playSelection);
 
 jest.mock('./hooks/useTrendingHotTokens', () => ({
   useTrendingHotTokens: jest.fn(),
@@ -269,6 +282,17 @@ describe('TrendingView', () => {
     );
 
     expect(mockRevealPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('plays a selection haptic when revealing from the pill', () => {
+    mockPendingNewCount = 3;
+    renderWithProvider(<TrendingView />);
+
+    fireEvent.press(
+      screen.getByLabelText('social_leaderboard.feed.live_stream.new_posts'),
+    );
+
+    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
   });
 
   it('hides the pill without held posts', () => {
