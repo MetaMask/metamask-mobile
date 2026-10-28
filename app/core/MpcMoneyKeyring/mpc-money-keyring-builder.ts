@@ -120,7 +120,7 @@ export const setMpcTwoFactorTokenProvider = (
 
 // JWT segments are base64url; the React Native `buffer` polyfill only decodes base64.
 const getProfileId = (token: string): string => {
-  const payload = token.split('.')[1].replace(/-/gu, '+').replace(/_/gu, '/');
+  const payload = token.split('.')[1].replaceAll('-', '+').replaceAll('_', '/');
   return (
     JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as {
       sub: string;
