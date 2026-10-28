@@ -104,7 +104,17 @@ interface TelegramVerifyResponse {
     identifier_type: string;
     profile_id: string;
   };
+  /**
+   * Auth-server JWT used as the Hydra jwt-bearer assertion
+   * (`iss` = authentication.*.cx.metamask.io). Not Telegram's ID token.
+   */
   token: string;
+  /**
+   * Raw Telegram OIDC ID token (`iss` = oauth.telegram.org), including the
+   * initiate `nonce` when one was sent. Used by MFA recovery as
+   * `provider_id_token`.
+   */
+  id_token?: string;
 }
 
 interface TelegramVerifyTokenPayload {
@@ -279,9 +289,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * exchanges that token through Hydra's JWT bearer grant,
    * then mints the standard auth-service token set used by seedless onboarding.
    *
-   * The verify token is also returned as `provider_id_token` so MFA recovery can
-   * use Telegram's raw ID token as the escrow assertion without changing the
-   * Hydra mint path for normal login.
+   * Verify also returns Telegram's raw `id_token` (separate from auth-server
+   * `token`). That value is exposed as `provider_id_token` for MFA recovery
+   * without changing the Hydra mint path for normal login.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
    * the stored one-time login record, and returns the full auth response.
@@ -404,8 +414,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';
-    // Raw Telegram OIDC token from verify (before Hydra). Used by MFA recovery.
-    mintResponse.provider_id_token = verifyData.token;
+    // Auth-server `token` is the Hydra assertion — not Telegram's ID token.
+    // MFA recovery needs verify's separate Telegram `id_token`.
+    if (verifyData.id_token?.trim()) {
+      mintResponse.provider_id_token = verifyData.id_token;
+    }
 
     return mintResponse;
   }
