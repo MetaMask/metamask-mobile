@@ -22,8 +22,13 @@ export {
 export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
+<<<<<<< HEAD
 } from './adapters/earn/staking-activity';
 export { mapPredictActivity } from './adapters/predict-activity';
+=======
+} from './adapters/staking-activity';
+export { mapPredictActivity } from './adapters/predict/predict-activity';
+>>>>>>> 151ee2b1684 (refactor: move Predict activity code into co-owned subfolders)
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,

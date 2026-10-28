@@ -486,9 +486,15 @@ app/util/activity/                                          @MetaMask/mobile-cor
 app/core/Analytics/events/activity/                         @MetaMask/mobile-core-ux
 # Feature-specific Activity templates (co-owned)
 app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/templates/Predict/     @MetaMask/predict @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
+<<<<<<< HEAD
 app/components/Views/ActivityDetails/templates/Earn/        @MetaMask/earn @MetaMask/mobile-core-ux
 app/util/activity-adapters/adapters/earn/                   @MetaMask/earn @MetaMask/mobile-core-ux
+=======
+app/components/Views/ActivityList/predict/                  @MetaMask/predict @MetaMask/mobile-core-ux
+app/util/activity-adapters/adapters/predict/                @MetaMask/predict @MetaMask/mobile-core-ux
+>>>>>>> 151ee2b1684 (refactor: move Predict activity code into co-owned subfolders)
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

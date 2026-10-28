@@ -11,7 +11,7 @@ import { DepositDetails } from './Earn/DepositDetails';
 import { NftDetails } from './NftDetails';
 import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
 import { PerpsDetails } from './Perps/PerpsDetails';
-import { PredictDetails } from './PredictDetails/PredictDetails';
+import { PredictDetails } from './Predict/PredictDetails';
 import { RampDetails } from './Ramps/RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
