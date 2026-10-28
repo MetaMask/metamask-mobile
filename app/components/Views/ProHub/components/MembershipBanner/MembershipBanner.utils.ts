@@ -36,8 +36,9 @@ export interface MembershipAlert {
   descriptionKey?: string;
   /** Shared by the title and description. Either string may use `{{date}}`. */
   descriptionValues?: Record<string, string>;
-  actionKey: string;
-  action: MembershipAlertAction;
+  /** Set together with `action`. Omitted when the alert has no button. */
+  actionKey?: string;
+  action?: MembershipAlertAction;
 }
 
 export interface MembershipBannerModel {
@@ -90,22 +91,17 @@ const cancelledAlert = (date: string | undefined): MembershipAlert => {
   };
 };
 
-const addFundsAlert = (date: string | undefined): MembershipAlert => {
-  const formattedDate = formatSubscriptionPeriodEnd(date);
-
-  return {
-    severity: BannerAlertSeverity.Info,
-    titleKey: formattedDate
-      ? 'pro_hub.membership_alert.low_balance.title'
-      : 'pro_hub.membership_alert.low_balance.description',
-    descriptionKey: formattedDate
-      ? 'pro_hub.membership_alert.low_balance.description'
-      : undefined,
-    descriptionValues: formattedDate ? { date: formattedDate } : undefined,
-    actionKey: 'pro_hub.membership_alert.low_balance.action',
-    action: MembershipAlertAction.AddFunds,
-  };
-};
+/**
+ * Shown while the server waits for a checkout top-up to land. The deposit is
+ * usually already in flight, so the copy is neutral, has no deadline (the
+ * plan's period dates are placeholders until the server promotes it), and
+ * offers no add-funds button that would invite a second top-up.
+ */
+const awaitingFundsAlert = (): MembershipAlert => ({
+  severity: BannerAlertSeverity.Info,
+  titleKey: 'pro_hub.membership_alert.awaiting_funds.title',
+  descriptionKey: 'pro_hub.membership_alert.awaiting_funds.description',
+});
 
 const renewalFailedAlert = (): MembershipAlert => ({
   severity: BannerAlertSeverity.Warning,
@@ -120,9 +116,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
     return {
       ...ACTIVE_MODEL,
       iconColor: IconColor.PrimaryDefault,
-      alert: addFundsAlert(
-        subscription.currentPeriodEnd || subscription.endDate,
-      ),
+      alert: awaitingFundsAlert(),
     };
   }
 
@@ -145,7 +139,7 @@ const activeModel = (subscription: Subscription): MembershipBannerModel => {
  *
  * `active`, `trialing`, `provisional`, and `awaiting_funds` show Active. A
  * plan waiting for funds, or an active plan whose latest invoice failed, also
- * shows the existing add-funds or renewal-failed alert. `past_due` shows
+ * shows the waiting-for-funds or renewal-failed alert. `past_due` shows
  * Overdue. `paused` and `unpaid` show Deactivated. `canceled` shows Cancelled.
  * A missing plan, or a status this screen does not map, shows Unavailable.
  *
