@@ -50,6 +50,14 @@ on:
         required: false
         type: string
         default: ''
+      cache_mode:
+        description: >-
+          The caller's effective `cache-mode` (none, read, write or write-only). Namespace runners
+          do not expose ACTIONS_CACHE_MODE, so callers that may use caches must pass it. The
+          default, `none`, disables every cache in this workflow.
+        required: false
+        type: string
+        default: 'none'
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -164,8 +172,14 @@ jobs:
       # restores and commits, so it only runs when the mode is `write`.
       - name: Resolve cache mode
         id: cache-mode
+        env:
+          CACHE_MODE_INPUT: ${{ inputs.cache_mode }}
         run: |
-          mode="${ACTIONS_CACHE_MODE:-write}"
+          mode="${ACTIONS_CACHE_MODE:-${CACHE_MODE_INPUT:-none}}"
+          case "$mode" in
+            none|read|write|write-only) ;;
+            *) echo "::error::Unknown cache mode '${mode}'"; exit 1 ;;
+          esac
           echo "Cache mode: ${mode}"
           echo "mode=${mode}" >> "$GITHUB_OUTPUT"
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
@@ -249,6 +263,7 @@ jobs:
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
+      cache_mode: ${{ needs.prepare.outputs.cache_mode }}
 
   # Build
   build:
@@ -527,8 +542,18 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.release android/gradle.properties
 
+      - name: Configure Namespace Gradle cache (Android)
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER == 'namespace' && needs.prepare.outputs.cache_mode == 'write' }}
+        uses: namespacelabs/nscloud-cache-action@15799a6b54e5765f85b2aac25b3f0df43ed571c0 # v1.4.3
+        with:
+          cache: gradle
+          path: |
+            ${{ env.GRADLE_USER_HOME }}/caches
+            ${{ env.GRADLE_USER_HOME }}/wrapper
+
+      # Rollback (`current`) arm only; Namespace runners use the cache volume above.
       - name: Restore Gradle dependencies from branch cache (Android)
-        if: matrix.platform == 'android' && needs.prepare.outputs.cache_mode != 'none'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' }}
         id: gradle-cache-restore
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -538,7 +563,7 @@ jobs:
           key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore Gradle dependencies from main cache (Android)
-        if: matrix.platform == 'android' && needs.prepare.outputs.cache_mode != 'none' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
+        if: ${{ matrix.platform == 'android' && env.RESOLVED_RUNNER_PROVIDER != 'namespace' && needs.prepare.outputs.cache_mode != 'none' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |

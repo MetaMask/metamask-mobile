@@ -2,10 +2,8 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import ClaimableRewardsCard, {
-  CLAIMABLE_REWARDS_CARD_TEST_IDS,
-  claimButtonState,
-} from './ClaimableRewardsCard';
+import ClaimableRewardsCard, { claimButtonState } from './ClaimableRewardsCard';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from './ClaimableRewardsCard.testIds';
 
 const LOCALIZED_TEXT = {
   availableToClaim: 'Available to claim',
@@ -81,6 +79,51 @@ describe('ClaimableRewardsCard', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
+  });
+
+  it('shows Claim as loading while a claim is in progress', () => {
+    const { getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isClaiming
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toHaveProp('accessibilityState', { busy: true, disabled: true });
+  });
+
+  it('keeps Claim disabled without a spinner during the retry wait', () => {
+    const { getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimable="1000000"
+        claimed="0"
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        canClaim
+        isClaimWaiting
+      />,
+    );
+
+    const button = getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON);
+    expect(button).toBeDisabled();
+    expect(button).not.toHaveProp(
+      'accessibilityState',
+      expect.objectContaining({ busy: true }),
+    );
   });
 
   it('renders a disabled Claimed button when only claimed is positive', () => {
@@ -167,5 +210,84 @@ describe('ClaimableRewardsCard', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
+  });
+
+  it('opens the balance breakdown from the info button beside the amount', () => {
+    const onBalanceBreakdown = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={{
+          ...LOCALIZED_TEXT,
+          breakdown: 'Breakdown',
+        }}
+        claimable="1000000"
+        claimed="0"
+        canClaim
+        claimableAmount="$1.00"
+        recordedAmount="$132.00"
+        last7Amount="$0.25"
+        isSummaryLoading={false}
+        isLast7Loading={false}
+        onBalanceBreakdown={onBalanceBreakdown}
+      />,
+    );
+
+    fireEvent.press(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
+    );
+    expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the claimable amount row for a referrer', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } =
+      renderWithProvider(
+        <ClaimableRewardsCard
+          localizedText={LOCALIZED_TEXT}
+          claimable="1000000"
+          claimed="0"
+          claimableAmount="$1.00"
+          recordedAmount="$4.00"
+          last7Amount="$0.25"
+          isSummaryLoading={false}
+          isLast7Loading={false}
+          canClaim
+          isReferrer
+        />,
+      );
+
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
+    ).toHaveTextContent('$0.25');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$4.00');
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
+  });
+
+  it('hides the claimable amount row in the referrer skeleton', () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount={null}
+        isSummaryLoading
+        isLast7Loading
+        isReferrer
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
   });
 });

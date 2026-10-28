@@ -17,11 +17,19 @@ import {
   VBA_SCREEN_ID,
   VBA_SCREEN_PERFORMANCE_CONFIG,
 } from './vbaScreenPerformance';
+import { TraceName } from '../../../../../util/trace';
+import {
+  endVbaCufChildTrace,
+  endVbaCufJourney,
+  startVbaCufChildTrace,
+} from './vbaCufTrace';
+import { VBA_CUF_END_REASON } from './vbaCufTags';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockGetDepositInstructions = jest.fn();
 const mockListTransactions = jest.fn();
+const mockRefreshAutorampTransactions = jest.fn();
 const mockRefreshAutoramp = jest.fn();
 const mockHydrate = jest.fn();
 const mockRegisterWallet = jest.fn();
@@ -83,6 +91,15 @@ jest.mock('../../../../../util/deviceCapability', () => ({
 jest.mock('../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
+jest.mock('./vbaCufTrace', () => ({
+  startVbaCufChildTrace: jest.fn(() => 'vba-child-id'),
+  endVbaCufChildTrace: jest.fn(),
+  endVbaCufJourney: jest.fn(),
+}));
+
+const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
+const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
+const mockEndVbaCufJourney = jest.mocked(endVbaCufJourney);
 
 jest.mock('../../../../../util/Logger', () => ({
   __esModule: true,
@@ -121,6 +138,8 @@ jest.mock('../../../../../core/Engine', () => ({
       registerMoneyAccountWallet: (...args: unknown[]) =>
         mockRegisterWallet(...args),
       createAutoramp: (...args: unknown[]) => mockCreateAutoramp(...args),
+      refreshAutorampTransactions: (...args: unknown[]) =>
+        mockRefreshAutorampTransactions(...args),
     },
     NeoBankService: {
       getDepositInstructions: (...args: unknown[]) =>
@@ -175,6 +194,7 @@ const restoreNeoBankService = () => {
 describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
@@ -187,6 +207,7 @@ describe('VbaDetails', () => {
     mockCanGoBack = true;
     mockGetDepositInstructions.mockResolvedValue(null);
     mockListTransactions.mockResolvedValue([]);
+    mockRefreshAutorampTransactions.mockResolvedValue([]);
     mockRefreshAutoramp.mockResolvedValue(approvedAutoramp);
     mockHydrate.mockResolvedValue({ autorampStatus: 'not_ready' });
     mockRegisterWallet.mockResolvedValue({ type: 'alreadyRegistered' });
@@ -200,17 +221,22 @@ describe('VbaDetails', () => {
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toHaveProp(
-      'importantForAccessibility',
-      'no',
-    );
+    expect(queryByTestId('vba-details-logo')).not.toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
       strings('virtual_bank_account.vba_details.title'),
     );
+    expect(
+      getByText(
+        'Add funds directly from your bank. Funds usually land in your Money account within minutes.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON)).toBeOnTheScreen();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
     ).not.toBeOnTheScreen();
@@ -218,10 +244,11 @@ describe('VbaDetails', () => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
   });
 
   it('returns to the caller from the header', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
@@ -230,7 +257,44 @@ describe('VbaDetails', () => {
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  it('returns to the caller from the Done button, like the header back', async () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    const doneButton = getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON);
+    expect(doneButton).toHaveTextContent('Done');
+    fireEvent.press(doneButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  it('returns to Money home from the Done button when there is no navigation history', async () => {
+    mockCanGoBack = false;
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('returns to Money home when there is no navigation history', async () => {
@@ -258,6 +322,11 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     });
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledWith(
+      TraceName.VbaPixFetch,
+    );
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith('vba-child-id', true);
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     expect(mockUseScreenPerformance).toHaveBeenCalledWith({
       config: VBA_SCREEN_PERFORMANCE_CONFIG,
       screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
@@ -266,19 +335,37 @@ describe('VbaDetails', () => {
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
     });
-    expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
+    expect(getByText('Pix Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
-    expect(getByText('PIX key')).toBeOnTheScreen();
+    expect(getByText('Pix key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
     expect(
       queryByTestId('vba-details-row-icon-copia-cola'),
     ).not.toBeOnTheScreen();
     expect(queryByTestId('vba-details-row-icon-pix-key')).not.toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix Copia e Cola')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
+    expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('lists the Pix key before Copia e Cola', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getAllByLabelText, getByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    expect(
+      getAllByLabelText(/^Copy Pix/).map(
+        (button) => button.props.accessibilityLabel,
+      ),
+    ).toEqual(['Copy Pix key', 'Copy Pix Copia e Cola']);
   });
 
   it('copies a Pix value', async () => {
@@ -289,11 +376,11 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByLabelText('Copy PIX key'));
+    fireEvent.press(getByLabelText('Copy Pix key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Copied PIX key',
+      'Copied Pix key',
     );
   });
 
@@ -326,6 +413,7 @@ describe('VbaDetails', () => {
       expect(getByText('Lead Bank')).toBeOnTheScreen();
       expect(getByTestId(VbaDetailsSelectorsIDs.BANK_NAME)).toBeOnTheScreen();
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+      expect(mockEndVbaCufJourney).toHaveBeenCalledWith(true);
     });
 
     it('copies the routing number', async () => {
@@ -485,6 +573,21 @@ describe('VbaDetails', () => {
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
   });
 
+  it('ends the Pix fetch trace after unmount', async () => {
+    mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+    const { unmount } = renderWithProvider(<VbaDetails />);
+    expect(mockStartVbaCufChildTrace).toHaveBeenCalledTimes(1);
+
+    unmount();
+    await act(async () => undefined);
+
+    expect(mockEndVbaCufChildTrace).toHaveBeenCalledWith(
+      'vba-child-id',
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
   it('does not fetch Pix instructions while offline', () => {
     mockNetworkTier = 'NONE';
 
@@ -512,7 +615,9 @@ describe('VbaDetails', () => {
   it('keeps the Pix code when the debug transaction poll fails', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockRejectedValue(new Error('tx poll failed'));
+    mockRefreshAutorampTransactions.mockRejectedValue(
+      new Error('tx poll failed'),
+    );
 
     const { getByTestId, getByText, queryByTestId } = renderWithProvider(
       <VbaDetails />,
@@ -531,7 +636,7 @@ describe('VbaDetails', () => {
   it('shows the newest deposit status in the debug sheet', async () => {
     mockDebugEnv = 'true';
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-    mockListTransactions.mockResolvedValue([
+    mockRefreshAutorampTransactions.mockResolvedValue([
       { id: 'tx-old', status: 'Completed', createdAt: '2026-01-01T00:00:00Z' },
       { id: 'tx-new', status: 'Pending', createdAt: '2026-06-01T00:00:00Z' },
     ]);
@@ -539,7 +644,7 @@ describe('VbaDetails', () => {
     const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockListTransactions).toHaveBeenCalledWith('ar-1');
+      expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
     });
     fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DEBUG_BUTTON));
 
@@ -909,6 +1014,9 @@ describe('VbaDetails', () => {
 
   it('drops a details response that belongs to the previous currency', async () => {
     let resolvePix: (value: typeof pixInstructions) => void = () => undefined;
+    mockStartVbaCufChildTrace.mockImplementation(
+      () => `pix-fetch-${mockStartVbaCufChildTrace.mock.calls.length}`,
+    );
     mockGetDepositInstructions.mockImplementation(
       (autorampId: string) =>
         new Promise((resolve) => {
@@ -931,7 +1039,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
-
+    const brlTraceId = mockStartVbaCufChildTrace.mock.results.at(-1)?.value;
     mockRouteParams = { sourceCurrency: 'USD' };
     mockLocation = 'US';
     setAutoramps([]);
@@ -940,7 +1048,7 @@ describe('VbaDetails', () => {
       const created: TestAutoramp = {
         id: 'ar-usd',
         walletAddress: '0xabc',
-        status: 'Created',
+        status: 'Approved',
         depositRailsSummary: { currency: 'USD' },
       };
       setAutoramps([created]);
@@ -955,15 +1063,17 @@ describe('VbaDetails', () => {
       contentReady: false,
       contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
     });
-    resolvePix(pixInstructions);
-
     await waitFor(() => {
-      expect(mockCreateAutoramp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          source_currencies: [{ type: 'Fiat', code: 'USD' }],
-        }),
-      );
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-usd');
     });
+    resolvePix(pixInstructions);
+    await act(async () => undefined);
+
+    expect(mockEndVbaCufChildTrace.mock.calls[0]).toEqual([
+      brlTraceId,
+      false,
+      VBA_CUF_END_REASON.SUPERSEDED,
+    ]);
     expect(view.queryByText('00020126')).toBeNull();
     expect(
       view.queryByText(strings('virtual_bank_account.vba_details.title')),

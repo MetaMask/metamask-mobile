@@ -1,6 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList } from 'react-native';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { useActivity } from '../../../hooks/useActivity';
 import type { PredictActivityEntry, PredictEntityId } from '../../../types';
@@ -9,6 +14,7 @@ import { PortfolioActivityRow } from './PortfolioActivityRow';
 import { PortfolioEmptyState } from './PortfolioEmptyState';
 import { PortfolioPanelError } from './PortfolioPanelError';
 import { PortfolioPanelSkeleton } from './PortfolioPanelSkeleton';
+import { formatActivityDate } from './portfolioFormatting';
 
 interface PortfolioActivityPanelProps {
   query: ReturnType<typeof useActivity>;
@@ -17,7 +23,13 @@ interface PortfolioActivityPanelProps {
   onBrowseMarkets: () => void;
 }
 
-/** Renders the independently cached Activity list (Fills and Settlements) for one Venue. */
+/**
+ * Renders the independently cached Activity list (Trades and Settlements) for
+ * one Venue in the backend's pinned order, never re-sorted. When a loaded
+ * page reaches the Venue's settlement archive, the list says from when its
+ * Settlements are complete instead of presenting a truncated history as
+ * whole.
+ */
 export const PortfolioActivityPanel = ({
   query,
   isPrivacyMode,
@@ -37,6 +49,12 @@ export const PortfolioActivityPanel = ({
     () => data?.pages.flatMap((page) => page.activity) ?? [],
     [data],
   );
+  const settlementsCompleteFrom = useMemo(
+    () =>
+      data?.pages.find((page) => page.settlementsCompleteFrom)
+        ?.settlementsCompleteFrom,
+    [data],
+  );
   const hasInitialError = isError && entries.length === 0;
 
   const handleEndReached = useCallback(() => {
@@ -53,10 +71,10 @@ export const PortfolioActivityPanel = ({
 
   const handlePress = useCallback(
     (entry: PredictActivityEntry) => {
-      // Fills and Settlements both navigate through the catalog context.
-      const eventId = entry.context?.eventId;
-      if (eventId) {
-        onOpenEvent(eventId, entry.context?.eventTitle ?? entry.marketId);
+      // Trades and Settlements both navigate through the catalog context.
+      const { context } = entry;
+      if (context) {
+        onOpenEvent(context.eventId, context.eventTitle);
       }
     },
     [onOpenEvent],
@@ -104,7 +122,7 @@ export const PortfolioActivityPanel = ({
         testID={PredictPortfolioScreenTestIds.ACTIVITY_LIST}
         data={entries}
         renderItem={renderItem}
-        keyExtractor={(entry) => entry.id}
+        keyExtractor={(entry) => `${entry.type}:${entry.id}`}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.6}
         showsVerticalScrollIndicator={false}
@@ -122,5 +140,21 @@ export const PortfolioActivityPanel = ({
     );
   }
 
-  return <Box twClassName="flex-1">{content}</Box>;
+  return (
+    <Box twClassName="flex-1">
+      {settlementsCompleteFrom && !isPending && !hasInitialError ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="py-2"
+          testID={PredictPortfolioScreenTestIds.ACTIVITY_SETTLEMENTS_HORIZON}
+        >
+          {strings('predict_next.portfolio.settlements_complete_from', {
+            date: formatActivityDate(settlementsCompleteFrom),
+          })}
+        </Text>
+      ) : null}
+      {content}
+    </Box>
+  );
 };

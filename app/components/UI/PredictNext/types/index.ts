@@ -14,10 +14,12 @@ export type PredictAmount = string & { readonly __brand: 'PredictAmount' };
 export type PredictSignedAmount = string & {
   readonly __brand: 'PredictSignedAmount';
 };
+/** Signed decimal string in percent units: "-12.5" means -12.5%. */
+export type PredictSignedPercent = string & {
+  readonly __brand: 'PredictSignedPercent';
+};
 export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
 export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
-
-export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
 export type PredictMarketStatus =
   | 'initialized'
@@ -211,6 +213,47 @@ export interface PredictVenueStatus {
   /** Backend-owned link for the platform-terms affordance. Absent when the
    * Venue has no agreement to link, in which case no link is rendered. */
   termsUrl?: string;
+}
+
+/** A product action a Venue supports. Support is not rollout, Venue Status,
+ * eligibility, or Account Readiness; the backend still authorizes every write. */
+export const PREDICT_VENUE_ACTIONS = [
+  'buy',
+  'sell',
+  'claim',
+  'deposit',
+  'withdraw',
+] as const;
+export type PredictVenueAction = (typeof PREDICT_VENUE_ACTIONS)[number];
+
+/**
+ * Stable, kebab-case product keys for discovery Feeds. A surface section or
+ * tab names a key, never a concrete Feed ID; each Venue's catalog maps the
+ * keys it supports to its own Feed IDs. Keys outside this list are dropped
+ * when a catalog is parsed.
+ */
+export const PREDICT_FEED_KEYS = [
+  'trending',
+  'live',
+  'sports',
+  'crypto',
+  'politics',
+  'crypto-up-down-live',
+  'world-cup',
+  'nfl-games',
+  'nfl-props',
+  'college-football-games',
+  'college-football-props',
+] as const;
+export type PredictFeedKey = (typeof PREDICT_FEED_KEYS)[number];
+
+/** The support part of a Venue descriptor: the wire shape of the Venue
+ * catalog (`GET /v1/venues/{venueId}/catalog`). */
+export interface PredictVenueCatalog {
+  venueId: PredictVenueId;
+  actions: readonly PredictVenueAction[];
+  feeds: Readonly<Partial<Record<PredictFeedKey, PredictFeedId>>>;
+  searchSupported: boolean;
 }
 
 export interface PredictBalance {
@@ -408,77 +451,135 @@ export interface FetchPortfolioPageParams {
   limit?: number;
 }
 
+/** `opened` pages by status group, then newest holding first. `value` is
+ * the unpaginated top `limit` Positions by current value. */
+export type PredictPositionsSort = 'opened' | 'value';
+
+export interface FetchPositionsParams extends FetchPortfolioPageParams {
+  /** Subset of statuses to read; all statuses when absent. */
+  status?: PredictPositionStatus[];
+  sort?: PredictPositionsSort;
+}
+
 /**
  * Catalog-derived presentation data for an account-scoped entry. Present only
- * when the entry's venue market exists in the canonical catalog; a missing
- * match omits the context and the entry is never enriched from tickers or
- * labels.
+ * when the entry's Market exists in the canonical catalog; a missing match
+ * omits the context and the entry is never enriched from tickers or labels.
  */
 export interface PredictEntryContext {
   eventId: PredictEntityId;
   eventTitle: string;
-  eventImageUrl?: PredictHttpsUrl;
   marketQuestion: string;
-  outcomeId?: PredictEntityId;
-  outcomeLabel?: string;
+  /** Label of the held, traded, or settled Outcome. */
+  outcomeLabel: string;
+  /** The most specific approved image: the Market's, else the Event's. */
+  imageUrl?: PredictHttpsUrl;
 }
 
+/** `open` until the Market's result is determined. `claimable` needs a
+ * Claim to pay out; `settled` needs no user action. Only advances. */
+export type PredictPositionStatus = 'open' | 'claimable' | 'settled';
+
+/**
+ * One held Outcome, valued by the backend. Valuation fields are absent, never
+ * zero, when the backend has no authoritative source for them.
+ */
 export interface PredictPosition {
   venueId: PredictVenueId;
   marketId: PredictEntityId;
   side: PredictOutcomeSide;
+  status: PredictPositionStatus;
+  /** Exact decimal shares, always greater than zero. */
   shares: PredictAmount;
-  marketExposure?: PredictAmount;
-  realizedPnl?: PredictSignedAmount;
-  feesPaid?: PredictAmount;
-  totalTraded?: PredictAmount;
-  updatedAt?: PredictTimestamp;
+  /** Fee-exclusive average execution price of the held shares. Absent when
+   * the backend's Order ledger cannot account for the holding. */
+  averagePrice?: PredictDecimal;
+  /** USD paid for the held shares, entry fees included. Absent when the
+   * backend's Order ledger cannot account for the holding. */
+  costBasis?: PredictAmount;
+  /** USD at a fresh best Bid (`open`) or the determined payout (resolved).
+   * Absent without an authoritative price. */
+  currentValue?: PredictAmount;
+  /** `currentValue` − `costBasis`; present only with both. */
+  unrealizedPnl?: PredictSignedAmount;
+  /** `unrealizedPnl` / `costBasis` × 100; absent with no PnL or a zero cost
+   * basis. */
+  unrealizedPnlPercent?: PredictSignedPercent;
   context?: PredictEntryContext;
 }
 
-export interface PredictFill {
-  id: PredictEntityId;
+/**
+ * Totals over every holding, computed by the backend, never from a loaded
+ * Positions page. When `complete` is false the sums cover only the valued
+ * holdings and are lower bounds.
+ */
+export interface PredictPortfolioSummary {
   venueId: PredictVenueId;
+  currency: 'USD';
+  /** The same value the Balance read returns. */
+  availableBalance: PredictAmount;
+  /** Σ `currentValue` of `open` and `settled` Positions that have one. */
+  positionsValue: PredictAmount;
+  /** Σ `currentValue` of `claimable` Positions; "0" without Claims. */
+  claimableValue: PredictAmount;
+  /** `availableBalance` + `positionsValue` + `claimableValue`, exactly. */
+  totalValue: PredictAmount;
+  /** Over `open` Positions with a current value; "0" when there are none. */
+  unrealizedPnl: PredictSignedAmount;
+  /** Absent when the cost basis of those Positions sums to zero. */
+  unrealizedPnlPercent?: PredictSignedPercent;
+  asOf: PredictTimestamp;
+  /** True only when every holding was traversed and valued. */
+  complete: boolean;
+}
+
+interface PredictActivityEntryBase {
+  venueId: PredictVenueId;
+  /** Opaque and stable; `(venueId, id)` is the entry's identity. */
+  id: PredictEntityId;
+  /** The traded or settled Outcome. */
   marketId: PredictEntityId;
-  /**
-   * Kalshi's canonical fill direction field: documented as the exposure the
-   * fill created (buy-yes ≡ sell-no → 'yes'), while the demo API currently
-   * echoes the transacted side. The contract deliberately carries no
-   * buy/sell direction — the legacy action/side fields are deprecated — and
-   * outcomeSide plus the matching leg's price are correct under either
-   * semantics.
-   */
-  outcomeSide: PredictOutcomeSide;
+  side: PredictOutcomeSide;
+  /** Trade: filled shares. Settlement: shares net held at Settlement. */
   shares: PredictAmount;
-  price: PredictDecimal;
-  fee?: PredictAmount;
+  /** Trade: the Order's last Fill. Settlement: the Venue settlement time. */
   timestamp: PredictTimestamp;
   context?: PredictEntryContext;
+}
+
+/** The executed part of one Order: its Fills aggregated. The action comes
+ * from the backend's own Order records, never from a Venue Fill. */
+export interface PredictTradeEntry extends PredictActivityEntryBase {
+  type: 'trade';
+  action: 'buy' | 'sell';
+  /** Fee-exclusive VWAP of the Order's Fills. */
+  price: PredictDecimal;
+  /** Balance movement: a buy's debit including the fee, a sell's credit net
+   * of it. */
+  amount: PredictAmount;
+  fee: PredictAmount;
+  /** Sells only: `amount` minus the cost basis of the sold shares. Absent on
+   * buys, and when that cost basis cannot be established. */
+  realizedPnl?: PredictSignedAmount;
 }
 
 export type PredictSettlementResult = 'yes' | 'no' | 'scalar';
 
-export interface PredictSettlement {
-  id: PredictEntityId;
-  venueId: PredictVenueId;
-  marketId: PredictEntityId;
+/** One Market's Settlement, for the side the Predict User net held. */
+export interface PredictSettlementEntry extends PredictActivityEntryBase {
+  type: 'settlement';
+  /** The Market's result, which is often not the held side. */
   result: PredictSettlementResult;
-  /**
-   * The side the user held at settlement (the nonzero count), not the
-   * winning side. Omitted for scalar results and fully flat positions.
-   */
-  side?: PredictOutcomeSide;
-  shares?: PredictAmount;
+  /** USD credited by the Settlement; "0" for a losing Position. */
   proceeds: PredictAmount;
-  costBasis?: PredictAmount;
-  fee?: PredictAmount;
-  timestamp: PredictTimestamp;
-  context?: PredictEntryContext;
+  /** `proceeds` minus the cost basis of the settled shares. Absent only when
+   * that cost basis cannot be established. */
+  realizedPnl?: PredictSignedAmount;
 }
 
-export type PredictActivityEntry =
-  | (PredictFill & { type: 'fill' })
-  | (PredictSettlement & { type: 'settlement' });
+/** Ordered by `timestamp` descending, then `trade` before `settlement`, then
+ * `id` ascending. */
+export type PredictActivityEntry = PredictTradeEntry | PredictSettlementEntry;
 
 export interface PredictPositionsPage {
   venueId: PredictVenueId;
@@ -490,6 +591,9 @@ export interface PredictActivityPage {
   venueId: PredictVenueId;
   activity: PredictActivityEntry[];
   nextCursor?: string;
+  /** Present when the page reaches history the Venue has archived:
+   * Settlements before this instant may be missing. Trades stay complete. */
+  settlementsCompleteFrom?: PredictTimestamp;
 }
 
 export interface PredictReadOptions {

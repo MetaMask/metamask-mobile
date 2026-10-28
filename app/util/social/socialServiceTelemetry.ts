@@ -18,7 +18,8 @@ export type SocialSurface =
   | 'trader_profile'
   | 'trader_position'
   | 'followed_traders'
-  | 'follow';
+  | 'follow'
+  | 'moderation';
 
 /**
  * SocialService / SocialController operations we instrument.
@@ -34,7 +35,10 @@ export type SocialEndpoint =
   | 'position_by_id'
   | 'trader_profile'
   | 'follow'
-  | 'unfollow';
+  | 'unfollow'
+  | 'moderation_block'
+  | 'blocked_profiles'
+  | 'blocked_content';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.
@@ -327,16 +331,31 @@ export function reportSocialServiceFailure(
 }
 
 /**
- * Emit Sentry telemetry when a react-query hook surfaces an error.
+ * Errors already sent by {@link useLogSocialQueryError}. Every observer of a
+ * react-query query receives the same error instance, so a query watched by
+ * two hooks would otherwise be reported twice.
+ */
+const reportedQueryErrors = new WeakSet<object>();
+
+/**
+ * Emit Sentry telemetry when a react-query hook surfaces an error. An error
+ * object is reported once, however many observers surface it.
  */
 export function useLogSocialQueryError(
   error: unknown,
   context: SocialServiceFailureContext,
 ): void {
   useEffect(() => {
-    if (error) {
-      reportSocialServiceFailure(error, context);
+    if (!error) {
+      return;
     }
+    if (typeof error === 'object') {
+      if (reportedQueryErrors.has(error)) {
+        return;
+      }
+      reportedQueryErrors.add(error);
+    }
+    reportSocialServiceFailure(error, context);
     // Only re-run when `error` changes; context is fixed per hook call site.
     // eslint-disable-next-line react-hooks/exhaustive-deps -- context is stable per mount
   }, [error]);

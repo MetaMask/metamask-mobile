@@ -67,22 +67,10 @@ import { EarningsHistoryRow } from '../EarningsHistoryRows';
 import RewardsPausedBanner from '../RewardsPausedBanner';
 import TradingActivityListSkeleton from '../TradingActivityListSkeleton';
 
+import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
+
 /** Rows shown under History before "see all". Matches the Performance preview. */
 const EARNINGS_HISTORY_PREVIEW_COUNT = 5;
-
-export const EARNINGS_TAB_TEST_IDS = {
-  CONTAINER: 'rewards-money-earnings-tab',
-  SUMMARY_ERROR: 'rewards-money-earnings-summary-error',
-  LAST_7_ERROR: 'rewards-money-earnings-last-7-error',
-  HISTORY_ERROR: 'rewards-money-earnings-history-error',
-  BREAKDOWN: 'rewards-money-earnings-breakdown',
-  BREAKDOWN_HEADER: 'rewards-money-earnings-breakdown-header',
-  BREAKDOWN_SKELETON: 'rewards-money-earnings-breakdown-skeleton',
-  BREAKDOWN_ROW: 'rewards-money-earnings-breakdown-row',
-  HISTORY: 'rewards-money-earnings-history',
-  HISTORY_HEADER: 'rewards-money-earnings-history-header',
-  HISTORY_EMPTY: 'rewards-money-earnings-history-empty',
-} as const;
 
 /** mUSD base units as a two-decimal amount, or a dash when there is none. */
 const musdAmount = (baseUnits: string | null | undefined): string =>
@@ -107,7 +95,7 @@ function claimsPausedLabels(
 ): ClaimsPausedLabels {
   return {
     breakdown: localizedText.breakdown,
-    recordedEarningsLabel: localizedText.recordedEarnings,
+    recordedEarningsLabel: localizedText.totalEarningsLabel,
     availableToClaim: localizedText.availableToClaim,
     held: localizedText.held,
     blocked: localizedText.blocked,
@@ -288,16 +276,13 @@ function breakdownRows(
   const social: BreakdownRow = {
     key: 'social',
     iconName: IconName.Copy,
-    label:
-      persona === 'referrer'
-        ? localizedText.tradeCommissions
-        : localizedText.tradingCommissionsSection,
+    label: localizedText.tradingCommissionsSection,
     description: localizedText.breakdownSocialDescription,
     amount: musdAmount(earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE')),
   };
 
   if (persona === 'referrer') {
-    return [trading, referrals, social];
+    return [referrals, social];
   }
 
   return [trading, social];
@@ -510,6 +495,20 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
     selectEarningsSummaryEntry(state, profileId),
   );
   const { fetchEarningsSummary } = useEarningsSummary(profileId);
+  const openBalanceBreakdown = useCallback(
+    (summaryData: EarningsSummaryDto) => {
+      if (!localizedText) {
+        return;
+      }
+      navigation.navigate(Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL, {
+        variant: 'breakdown',
+        title: localizedText.breakdown,
+        totals: claimsPausedTotals(summaryData),
+        labels: claimsPausedLabels(localizedText),
+      });
+    },
+    [localizedText, navigation],
+  );
   const openClaimsPaused = useCallback(
     (
       summaryData:
@@ -614,12 +613,14 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 persona === 'referee' ? summary.data?.blocked : undefined
               }
               claimableAmount={musdAmount(summary.data?.claimable)}
+              isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}
               isLast7Loading={last7Loading}
               canClaim={claimEnabled}
-              isClaiming={isClaiming || isClaimWaiting}
+              isClaiming={isClaiming}
+              isClaimWaiting={isClaimWaiting}
               onClaim={
                 summary.data
                   ? () => {
@@ -632,6 +633,17 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                   : undefined
               }
               onPaused={() => openClaimsPaused()}
+              onBalanceBreakdown={
+                summary.data
+                  ? () => {
+                      const summaryData = summary.data;
+                      if (!summaryData) {
+                        return;
+                      }
+                      openBalanceBreakdown(summaryData);
+                    }
+                  : undefined
+              }
             />
           ) : null}
         </Box>

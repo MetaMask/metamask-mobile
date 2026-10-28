@@ -18,6 +18,7 @@ import {
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
+import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
 
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
@@ -25,6 +26,7 @@ const mockOpenComposer = jest.fn();
 const mockTrack = jest.fn();
 const mockFeedInteractions = {};
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
 const mockOpenSystemSettings = jest.fn();
 const mockRefreshMyProfile = jest.fn().mockResolvedValue(undefined);
 const mockMarkSocialTabVisited = jest.fn();
@@ -35,7 +37,17 @@ const mockUseMyProfile = jest.fn<UseMyProfileResult, []>(() => ({
   error: null,
   refresh: mockRefreshMyProfile,
 }));
-let mockRouteParams: { showNotificationsBanner?: boolean } = {};
+let mockRouteParams: {
+  showNotificationsBanner?: boolean;
+  initialTab?: SocialShellTab;
+} = {};
+
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
 
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
@@ -79,6 +91,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   ) as typeof import('react-native');
 
   interface MockSocialFeedProps {
+    location?: string;
     realtime?: boolean;
     filterPost?: (post: unknown) => boolean;
     renderHeader?: (props: {
@@ -238,7 +251,10 @@ jest.mock('@react-navigation/native', () => {
   const ReactActual = jest.requireActual('react');
   return {
     ...actual,
-    useNavigation: () => ({ navigate: mockNavigate }),
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      setParams: mockSetParams,
+    }),
     useRoute: () => ({ params: mockRouteParams, name: 'SocialV1View' }),
     useIsFocused: () => true,
     useFocusEffect: (callback: () => void | (() => void)) => {
@@ -347,14 +363,40 @@ describe('SocialV1View', () => {
     expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
   });
 
-  it('renders the three mocked position cards on Trending', () => {
+  it('switches the mounted view to a newly requested initial tab and clears the request', () => {
+    const { rerender } = renderWithProvider(<SocialV1View />);
+    expect(screen.queryByTestId('top-traders-view')).toBeNull();
+
+    mockRouteParams = { initialTab: 'leaderboard' };
+    rerender(<SocialV1View />);
+
+    expect(screen.getByTestId('top-traders-view')).toBeOnTheScreen();
+    expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_FOLLOW_TRADING_INTERACTION,
+      expect.anything(),
+    );
+  });
+
+  it('renders Trending through the shared virtualized feed', () => {
     renderWithProvider(<SocialV1View />);
 
-    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
-      expect(
-        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
-      ).toBeOnTheScreen();
-    });
+    const trendingFeed = mockSocialFeed.mock.calls
+      .map(([props]) => props)
+      .filter((props) => props.location === 'social_trending')
+      .pop();
+
+    expect(trendingFeed).toEqual(
+      expect.objectContaining({
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        performance: expect.objectContaining({ tab: 'trending' }),
+        testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
+        scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
+      }),
+    );
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
@@ -563,6 +605,28 @@ describe('SocialV1View', () => {
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
   });
 
+  it('opens Trending Custom filters with Positions and without Verification', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'open')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'closed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('verification', 'verified')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('type', 'predictions')),
+    ).toBeNull();
+  });
+
   it('opens the filters bottom sheet from the Following filter button', () => {
     renderWithProvider(<SocialV1View />);
 
@@ -753,13 +817,22 @@ describe('SocialV1View', () => {
     );
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getAllByTestId(
+      within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+      ).getByTestId(
         getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
       ),
-    ).toHaveLength(2);
+    ).toBeOnTheScreen();
+  });
+
+  it('insets the header avatar so it shares the 16px tab padding', () => {
+    renderWithProvider(<SocialV1View />);
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.AVATAR_BUTTON).props.style,
+      ).marginLeft,
+    ).toBe(8);
   });
 
   it('uses the profile image URL for the header avatar when available', () => {

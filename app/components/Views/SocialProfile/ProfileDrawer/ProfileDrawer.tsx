@@ -15,19 +15,21 @@ import {
   IconName,
   Skeleton,
   Text,
-  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import Routes from '../../../../constants/navigation/Routes';
+import { METAMASK_SUPPORT_URL } from '../../../../constants/urls';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ActivityScreenEntryPoint } from '../../../../core/Analytics/events/activity';
 import { strings } from '../../../../../locales/i18n';
-import { useAccountGroupName } from '../../../hooks/multichainAccounts/useAccountGroupName';
-import { useAccountName } from '../../../hooks/useAccountName';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import { useMetamaskOrangeEntry } from '../../../../hooks/useMetamaskOrangeEntry';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
+import { getBetaSupportUrl } from '../../../../util/support/betaSupportUrl';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import { navigateToSocialV1Profile } from '../../SocialLeaderboard/navigation/navigateToSocialV1Profile';
@@ -58,6 +60,8 @@ const ProfileDrawer = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
   const { openQRScanner } = useQRScanner();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { openSupportWithConsent } = useSupportConsent();
 
   // The list stays populated while notifications are off, so gate the badge on
   // the feature flag and the user's setting, as AccountsMenu does.
@@ -99,9 +103,6 @@ const ProfileDrawer = () => {
   // controller. A refresh is a network fetch, so those cells skip it.
   const canRefreshProfile = networkTier !== 'NONE' && hardwareTier !== 'LOW';
   const { profile, isLoading } = useMyProfile({ enabled: canRefreshProfile });
-  const accountGroupName = useAccountGroupName();
-  const accountName = useAccountName();
-  const accountLabel = accountGroupName || accountName;
 
   const handleCreateProfile = useCallback(() => {
     navigation.navigate(Routes.SOCIAL.PROFILE_ONBOARDING);
@@ -117,14 +118,37 @@ const ProfileDrawer = () => {
     onPress: onPressOrange,
   } = useMetamaskOrangeEntry();
 
-  // TODO: wire Help and support once that screen exists.
-  const handlePress = useCallback(() => undefined, []);
+  const handleHelpAndSupport = useCallback(() => {
+    const openWebview = (url: string) =>
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: {
+          url,
+          title: strings('app_settings.contact_support'),
+        },
+      });
+
+    const trackGetHelp = () =>
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP).build(),
+      );
+
+    const betaSupportUrl = getBetaSupportUrl();
+
+    if (betaSupportUrl) {
+      openWebview(betaSupportUrl);
+      trackGetHelp();
+      return;
+    }
+
+    openSupportWithConsent(openWebview, METAMASK_SUPPORT_URL, trackGetHelp);
+  }, [navigation, openSupportWithConsent, trackEvent, createEventBuilder]);
 
   const menuItems: {
     iconName: IconName;
     label: string;
     badgeCount?: number;
-    onPress?: () => void;
+    onPress: () => void;
     testID: string;
   }[] = [
     {
@@ -159,6 +183,7 @@ const ProfileDrawer = () => {
     {
       iconName: IconName.Question,
       label: strings('profile_drawer.help_and_support'),
+      onPress: handleHelpAndSupport,
       testID: ProfileDrawerSelectorsIDs.HELP_AND_SUPPORT_ROW,
     },
   ];
@@ -222,15 +247,6 @@ const ProfileDrawer = () => {
                 >
                   {formatProfileHandle(profile)}
                 </Text>
-                {accountLabel ? (
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.TextAlternative}
-                    testID={ProfileDrawerSelectorsIDs.PROFILE_ACCOUNT_NAME}
-                  >
-                    {accountLabel}
-                  </Text>
-                ) : null}
               </Box>
             </Box>
           </Pressable>
@@ -297,7 +313,7 @@ const ProfileDrawer = () => {
               iconName={iconName}
               label={label}
               badgeCount={badgeCount}
-              onPress={onPress ?? handlePress}
+              onPress={onPress}
               testID={testID}
             />
           ))}

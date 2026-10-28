@@ -14,8 +14,9 @@ import {
 import React, { useCallback } from 'react';
 import { Linking, Pressable } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
+import Logger from '../../../../../util/Logger';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
-import ProfileAvatar from './ProfileAvatar';
+import EditableProfileAvatar from './EditableProfileAvatar';
 
 import TraderAvatar from '../../../../UI/SocialFeed/components/TraderAvatar';
 
@@ -28,6 +29,7 @@ interface MyProfileHeaderProps {
   overlayedStats: OverlayedMyProfileStats;
   followingCount: number;
   isOwner?: boolean;
+  onEditAvatar?: () => void;
   onFollowersPress: () => void;
   onFollowingPress: () => void;
 }
@@ -37,12 +39,17 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   overlayedStats,
   followingCount,
   isOwner = true,
+  onEditAvatar,
   onFollowersPress,
   onFollowingPress,
 }) => {
   const handleXPress = useCallback(() => {
     if (profile.xHandle) {
-      Linking.openURL(`https://x.com/${profile.xHandle}`);
+      Linking.openURL(`https://x.com/${profile.xHandle}`).catch(
+        (error: Error) => {
+          Logger.error(error, 'MyProfileHeader: failed to open the X profile');
+        },
+      );
     }
   }, [profile.xHandle]);
 
@@ -56,16 +63,18 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
         alignItems={BoxAlignItems.Center}
         gap={4}
       >
-        {isOwner ? (
-          <ProfileAvatar
+        {isOwner && onEditAvatar ? (
+          <EditableProfileAvatar
             imageUrl={profile.imageUrl}
             avatarPresetId={profile.avatarPresetId}
             avatarBackgroundId={profile.avatarBackgroundId}
             diameter={56}
+            onPress={onEditAvatar}
+            avatarTestID={MyProfileViewSelectorsIDs.AVATAR}
+            editTestID={MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON}
             accessibilityLabel={strings(
               'social_leaderboard.my_profile.avatar_accessibility_label',
             )}
-            testID={MyProfileViewSelectorsIDs.AVATAR}
           />
         ) : (
           <TraderAvatar
