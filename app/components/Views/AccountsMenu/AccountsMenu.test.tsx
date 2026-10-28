@@ -205,7 +205,9 @@ describe('AccountsMenu', () => {
     jest.clearAllMocks();
     jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
     jest.mocked(selectIsSwapsEnabled).mockReturnValue(true);
-    jest.mocked(selectSelectedInternalAccountAddress).mockReturnValue(null);
+    jest
+      .mocked(selectSelectedInternalAccountAddress)
+      .mockReturnValue(undefined);
     jest.mocked(isHardwareAccount).mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
