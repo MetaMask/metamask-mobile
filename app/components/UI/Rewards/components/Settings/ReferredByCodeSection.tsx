@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -25,10 +25,7 @@ import {
   selectSettingsReferralAvailable,
 } from '../../../../../reducers/rewardsMoney/selectors';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
-import {
-  useAcceptMoneyReferralCode,
-  type ReferralRefusalReason,
-} from '../../hooks/useAcceptMoneyReferralCode';
+import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCode';
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import {
@@ -53,8 +50,8 @@ export interface ReferredByCodeSectionProps {
  *
  * A stored `referralMe.referred_by` code is read-only. Otherwise the field
  * validates and submits through the Money hooks. Section copy comes from
- * `referralMe.localized_text`. The offer funnel records one `viewed`, then
- * `accepted` or `refused`. Leaving Settings records nothing.
+ * `referralMe.localized_text`. A successful apply records `accepted`.
+ * Opening Settings, and a refused apply, record nothing.
  *
  * Renders nothing when the Money controller is off, or when referral me has
  * no cached payload.
@@ -78,13 +75,6 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
   const storedCode =
     referralMeEntry?.data?.referred_by?.referral_code?.trim() ?? '';
   const hasStoredCode = storedCode.length > 0;
-  const isReferralPending =
-    !profileId ||
-    referralMeEntry == null ||
-    (referralMeEntry.loading && referralMeEntry.data == null);
-  const hasReferralError = Boolean(
-    referralMeEntry?.error && referralMeEntry.data == null,
-  );
   const localizedText = referralMeEntry?.data?.localized_text;
 
   const {
@@ -102,7 +92,6 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
     clearError,
   } = useAcceptMoneyReferralCode();
 
-  const hasTrackedOfferViewedRef = useRef(false);
   const hasAcceptedRef = useRef(false);
   const acceptInFlightRef = useRef(false);
   const referralCodeRef = useRef(referralCode);
@@ -132,32 +121,9 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
     !isAccepting &&
     !isRateLimited &&
     acceptAllowedForGeo;
-  const isOfferOnScreen =
-    settingsReferralAvailable &&
-    referralMeEntry?.data != null &&
-    !isReferralPending &&
-    !hasReferralError &&
-    !hasStoredCode &&
-    acceptAllowedForGeo;
-
-  useEffect(() => {
-    if (!isOfferOnScreen || hasTrackedOfferViewedRef.current) {
-      return;
-    }
-    hasTrackedOfferViewedRef.current = true;
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
-      )
-        .addProperties({
-          interaction_type: 'viewed',
-        })
-        .build(),
-    );
-  }, [createEventBuilder, isOfferOnScreen, trackEvent]);
 
   const trackAccepted = useCallback(() => {
-    if (hasAcceptedRef.current || !hasTrackedOfferViewedRef.current) {
+    if (hasAcceptedRef.current) {
       return;
     }
     hasAcceptedRef.current = true;
@@ -172,26 +138,6 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
         .build(),
     );
   }, [createEventBuilder, trackEvent]);
-
-  const trackRefused = useCallback(
-    (reason: ReferralRefusalReason) => {
-      if (!hasTrackedOfferViewedRef.current) {
-        return;
-      }
-      trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
-        )
-          .addProperties({
-            referral_code: referralCodeRef.current,
-            interaction_type: 'refused',
-            refusal_reason: reason,
-          })
-          .build(),
-      );
-    },
-    [createEventBuilder, trackEvent],
-  );
 
   const handleChangeReferralCode = useCallback(
     (code: string) => {
@@ -210,17 +156,13 @@ const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
       .then((result) => {
         if (result.accepted) {
           trackAccepted();
-          return;
-        }
-        if (result.refusalReason) {
-          trackRefused(result.refusalReason);
         }
       })
       .catch(() => undefined)
       .finally(() => {
         acceptInFlightRef.current = false;
       });
-  }, [acceptReferralCode, canApply, referralCode, trackAccepted, trackRefused]);
+  }, [acceptReferralCode, canApply, referralCode, trackAccepted]);
 
   if (!settingsReferralAvailable || referralMeEntry?.data == null) {
     return null;

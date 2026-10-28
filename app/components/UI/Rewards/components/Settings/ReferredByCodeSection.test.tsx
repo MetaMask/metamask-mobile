@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -292,17 +292,13 @@ describe('ReferredByCodeSection', () => {
   });
 
   describe('analytics', () => {
-    it('tracks viewed once for an open offer', () => {
+    it('does not track viewed or declined when the offer is on screen', () => {
       renderSection();
 
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(mockCreateEventBuilder).not.toHaveBeenCalledWith(
         MetaMetricsEvents.REWARDS_MONEY_REFERRAL_OFFER_INTERACTED,
       );
-      const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
-      expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
-        interaction_type: 'viewed',
-      });
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
     });
 
     it('tracks accepted only after apply succeeds', async () => {
@@ -318,15 +314,15 @@ describe('ReferredByCodeSection', () => {
       const { getByTestId } = renderSection();
       fireEvent.press(getByTestId('referred-by-code-apply'));
 
-      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(2));
-      const acceptedBuilder = mockCreateEventBuilder.mock.results[1]?.value;
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      const acceptedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(acceptedBuilder.addProperties).toHaveBeenCalledWith({
         referral_code: 'ABC123',
         interaction_type: 'accepted',
       });
     });
 
-    it('tracks refused without blocking a later accept', async () => {
+    it('does not track a refused apply, and a later accept still tracks accepted', async () => {
       mockAcceptReferralCode
         .mockResolvedValueOnce({
           accepted: false,
@@ -345,18 +341,15 @@ describe('ReferredByCodeSection', () => {
       const { getByTestId } = renderSection();
       fireEvent.press(getByTestId('referred-by-code-apply'));
 
-      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(2));
-      const refusedBuilder = mockCreateEventBuilder.mock.results[1]?.value;
-      expect(refusedBuilder.addProperties).toHaveBeenCalledWith({
-        referral_code: 'ABC123',
-        interaction_type: 'refused',
-        refusal_reason: 'invalid_code',
+      await act(async () => {
+        await mockAcceptReferralCode.mock.results[0]?.value;
       });
+      expect(mockTrackEvent).not.toHaveBeenCalled();
 
       fireEvent.press(getByTestId('referred-by-code-apply'));
 
-      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(3));
-      const acceptedBuilder = mockCreateEventBuilder.mock.results[2]?.value;
+      await waitFor(() => expect(mockTrackEvent).toHaveBeenCalledTimes(1));
+      const acceptedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(acceptedBuilder.addProperties).toHaveBeenCalledWith({
         referral_code: 'ABC123',
         interaction_type: 'accepted',
