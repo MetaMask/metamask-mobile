@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import {
   TouchableOpacity,
   View,
@@ -148,7 +149,7 @@ export const Fallback = (props) => {
   const [isConsentModalVisible, setConsentModalVisible] = React.useState(false);
   const isOnboardingError = Boolean(props.onboardingErrorConfig);
   const isDataCollectionForMarketingEnabled = useSelector(
-    (state) => state.security.dataCollectionForMarketing,
+    selectMarketingConsent,
   );
   const dataCollectionForMarketing =
     isDataCollectionForMarketingEnabled && !isOnboardingError;

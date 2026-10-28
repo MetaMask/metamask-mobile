@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { View, Alert, Linking } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { engineWithMarketingConsent } from '../../../util/test/marketingConsentState';
 import ErrorBoundary, { Fallback } from './';
 import {
   captureSentryFeedback,
@@ -82,9 +83,7 @@ describe('ErrorBoundary', () => {
   };
 
   const initialState = {
-    security: {
-      dataCollectionForMarketing: true,
-    },
+    engine: engineWithMarketingConsent(true),
   };
 
   beforeEach(() => {
@@ -112,9 +111,7 @@ describe('ErrorBoundary', () => {
 
   it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
     const stateWithoutDataCollection = {
-      security: {
-        dataCollectionForMarketing: false,
-      },
+      engine: engineWithMarketingConsent(false),
     };
 
     const { queryByText, getByText } = renderWithProvider(

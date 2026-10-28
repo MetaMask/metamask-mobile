@@ -69,3 +69,16 @@ export const selectMarketingConsentDecisionMade = createSelector(
     state &&
     analyticsControllerSelectors.selectMarketingConsentDecisionMade(state),
 );
+
+/**
+ * Selects the user's marketing consent, which MarketingConsentController keeps
+ * in sync with Authenticated User Storage.
+ *
+ * @returns True or false once the user decided, null while undecided or when
+ * controller state is unavailable.
+ */
+export const selectMarketingConsent = createSelector(
+  selectAnalyticsOptedInToMarketing,
+  selectMarketingConsentDecisionMade,
+  (optedIn, decided) => (decided ? optedIn === true : null),
+);

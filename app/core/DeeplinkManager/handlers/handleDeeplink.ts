@@ -1,4 +1,5 @@
 import { saveAttribution } from '../../redux/slices/attribution';
+import { selectMarketingConsent } from '../../../selectors/analyticsController';
 import { attributionPayloadFromDeeplink } from '../../redux/slices/attributionFromSources';
 import { checkForDeeplink } from '../../../actions/user';
 import Logger from '../../../util/Logger';
@@ -90,10 +91,7 @@ export function handleDeeplink(opts: { uri?: string; source?: string }) {
         });
       }
 
-      if (
-        ReduxService.store.getState().security.dataCollectionForMarketing ===
-        true
-      ) {
+      if (selectMarketingConsent(ReduxService.store.getState()) === true) {
         const payload = attributionPayloadFromDeeplink(uri);
         if (payload) {
           ReduxService.store.dispatch(saveAttribution(payload));

@@ -1,4 +1,5 @@
 import type { RootState } from '../../reducers';
+import { engineWithMarketingConsent } from '../../util/test/marketingConsentState';
 import {
   selectAttributionRecord,
   selectWalletSetupCompletedAttributionAnalyticsProps,
@@ -35,7 +36,7 @@ describe('attribution selectors', () => {
 
   it('returns null when attribution slice is missing from root state', () => {
     const state = {
-      security: { dataCollectionForMarketing: null },
+      engine: engineWithMarketingConsent(null),
     } as unknown as RootState;
 
     expect(selectAttributionRecord(state)).toBeNull();
@@ -48,7 +49,7 @@ describe('attribution selectors', () => {
     it('merges marketing consent and persisted attribution', () => {
       const now = Date.now();
       const state = {
-        security: { dataCollectionForMarketing: true },
+        engine: engineWithMarketingConsent(true),
         attribution: {
           attribution: {
             utm_source: 'x',
@@ -69,7 +70,7 @@ describe('attribution selectors', () => {
 
     it('returns empty object when marketing consent is false', () => {
       const state = {
-        security: { dataCollectionForMarketing: false },
+        engine: engineWithMarketingConsent(false),
         attribution: {
           attribution: {
             utm_source: 'x',
