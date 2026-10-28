@@ -27,8 +27,11 @@ const ALL_METHODS: MfaMethod[] = ['passkey', 'totp', 'email_otp'];
 export const selectMfaUiKitMethods = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): MfaMethod[] => {
-    const { methods } = (remoteFeatureFlags?.[FeatureFlagNames.mfaUiKit] ??
-      {}) as { methods?: unknown };
+    const flag = remoteFeatureFlags?.[FeatureFlagNames.mfaUiKit] as
+      | { methods?: unknown; value?: { methods?: unknown } }
+      | undefined;
+    // A progressive rollout wraps the value as `{ name, value }`.
+    const methods = flag?.methods ?? flag?.value?.methods;
     return Array.isArray(methods) ? (methods as MfaMethod[]) : ALL_METHODS;
   },
 );

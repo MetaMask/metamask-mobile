@@ -70,6 +70,21 @@ describe('selectMfaUiKitMethods', () => {
     ).toStrictEqual(['email_otp']);
   });
 
+  it('reads the methods of a progressive rollout', () => {
+    expect(
+      selectMfaUiKitMethods.resultFunc({
+        [FeatureFlagNames.mfaUiKit]: {
+          name: 'rollout',
+          value: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            methods: ['email_otp'],
+          },
+        },
+      }),
+    ).toStrictEqual(['email_otp']);
+  });
+
   it('allows every method when the flag lists none', () => {
     expect(selectMfaUiKitMethods.resultFunc({})).toStrictEqual([
       'passkey',
