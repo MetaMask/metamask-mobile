@@ -33,6 +33,7 @@ import type {
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -151,9 +152,18 @@ const readCachedInstructions = (
     walletAddress,
     sourceCurrency,
   );
-  return autoramp?.status === 'Approved'
-    ? getCachedDepositInstructions(autoramp.id)
-    : null;
+  if (autoramp?.status !== 'Approved') {
+    return null;
+  }
+  // An account without a stored fiat may be in another currency; refreshDeposit
+  // must confirm it before its details can show for this one.
+  if (
+    sourceCurrency &&
+    autoramp.depositRailsSummary?.currency !== sourceCurrency
+  ) {
+    return null;
+  }
+  return getCachedDepositInstructions(autoramp.id);
 };
 
 const buildDetailRows = (
@@ -224,6 +234,7 @@ const buildDetailRows = (
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { colors } = useTheme();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
@@ -665,6 +676,10 @@ const VbaDetails = () => {
   );
 
   const handleRefresh = useCallback(async () => {
+    // iOS ignores `enabled`, so the offline guard lives here too.
+    if (networkTier === 'NONE') {
+      return;
+    }
     setIsRefreshing(true);
     try {
       await refreshDeposit();
@@ -679,7 +694,7 @@ const VbaDetails = () => {
         setIsRefreshing(false);
       }
     }
-  }, [refreshDeposit]);
+  }, [networkTier, refreshDeposit]);
 
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
@@ -745,7 +760,13 @@ const VbaDetails = () => {
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
         refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            colors={[colors.primary.default]}
+            tintColor={colors.icon.default}
+            enabled={networkTier !== 'NONE'}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+          />
         }
       >
         <TitleStandard

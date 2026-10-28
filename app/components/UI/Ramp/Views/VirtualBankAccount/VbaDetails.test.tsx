@@ -337,6 +337,96 @@ describe('VbaDetails', () => {
     expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
   });
 
+  it('reopens instantly with details fetched on the first visit', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const first = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(
+        first.getByTestId(VbaDetailsSelectorsIDs.PIX_CODE),
+      ).toBeOnTheScreen();
+    });
+    first.unmount();
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+  });
+
+  it('ignores cached details for an account whose currency is not confirmed', () => {
+    setAutoramps([{ ...approvedAutoramp, depositRailsSummary: undefined }]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+  });
+
+  it('refetches details on pull to refresh', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const { getByTestId, getByText } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    const callsBeforePull = mockGetDepositInstructions.mock.calls.length;
+    mockGetDepositInstructions.mockResolvedValue({
+      ...pixInstructions,
+      pixKey: 'new@example.com',
+    });
+
+    await act(async () => {
+      await getByTestId(
+        VbaDetailsSelectorsIDs.CONTAINER,
+      ).props.refreshControl.props.onRefresh();
+    });
+
+    expect(getByText('new@example.com')).toBeOnTheScreen();
+    expect(mockGetDepositInstructions).toHaveBeenCalledTimes(
+      callsBeforePull + 1,
+    );
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.CONTAINER).props.refreshControl.props
+        .refreshing,
+    ).toBe(false);
+  });
+
+  it('shows the load error when pull to refresh fails without details', async () => {
+    mockGetDepositInstructions.mockResolvedValue(null);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalled();
+    });
+    mockGetDepositInstructions.mockRejectedValue(new Error('network'));
+
+    await act(async () => {
+      await getByTestId(
+        VbaDetailsSelectorsIDs.CONTAINER,
+      ).props.refreshControl.props.onRefresh();
+    });
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR)).toBeOnTheScreen();
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.CONTAINER).props.refreshControl.props
+        .refreshing,
+    ).toBe(false);
+  });
+
+  it('does not refetch on pull to refresh while offline', async () => {
+    mockNetworkTier = 'NONE';
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    const refreshControl = getByTestId(VbaDetailsSelectorsIDs.CONTAINER).props
+      .refreshControl;
+
+    await act(async () => {
+      await refreshControl.props.onRefresh();
+    });
+
+    expect(refreshControl.props.enabled).toBe(false);
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+  });
+
   it('shows both Pix rows without leading key icons', async () => {
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
 
