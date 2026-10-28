@@ -161,7 +161,7 @@ const RefererHeroCard: React.FC<RefererHeroCardProps> = ({
         {SHOW_TRADING_COMMISSIONS ? (
           <MoneyMetricCard
             iconName={IconName.Copy}
-            label={localizedText.tradeCommissions}
+            label={localizedText.tradingCommissionsSection}
             amount={
               unavailableAmount ??
               formatMusdBaseUnits(

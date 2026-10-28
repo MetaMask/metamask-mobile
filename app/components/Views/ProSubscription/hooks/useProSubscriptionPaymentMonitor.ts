@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import type { SubscriptionStatus } from '@metamask/subscription-controller';
+import {
+  SUBSCRIPTION_STATUSES,
+  type SubscriptionStatus,
+} from '@metamask/subscription-controller';
 import { useQuery } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
@@ -23,14 +26,16 @@ const UNSEEN_STATUS = Symbol('unseen-subscription-status');
  * Watches an in-flight Money Account Plus payment from anywhere in the app.
  *
  * The first observed status is recorded and not announced, so opening the
- * app onto an already active plan does not toast. A later change from
- * provisional or awaiting-funds to active or trialing shows the membership
+ * app onto an already active or awaiting-funds plan does not toast.
+ * Awaiting-funds on its own is an existing membership with a low balance.
+ * A later change from provisional, or from awaiting-funds after this
+ * session saw provisional, to active or trialing shows the membership
  * toast. A later change to a failed or missing plan opens the
  * payment-failed sheet. A hop between those two funding statuses stays
  * quiet and keeps watching.
  *
- * While the plan is still funding, subscriptions refresh faster than the
- * five-minute access poll. The interval follows the device and network
+ * While that checkout is still funding, subscriptions refresh faster than
+ * the five-minute access poll. The interval follows the device and network
  * tiers in `getProvisionalSubscriptionPollIntervalMs`. No usable network
  * skips this extra poll. The query stays gated on sign-in and unlock, same
  * as `useSubscriptions`.
@@ -48,10 +53,14 @@ export function useProSubscriptionPaymentMonitor(): {
     useProSubscriptionPaymentToasts();
   const [isPaymentFailedSheetOpen, setIsPaymentFailedSheetOpen] =
     useState(false);
+  const [sawProvisionalCheckout, setSawProvisionalCheckout] = useState(false);
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const status = subscription?.status;
-  const isStillFunding = isStillFundingSubscriptionStatus(status);
+  const isProvisional = status === SUBSCRIPTION_STATUSES.provisional;
+  const isCheckoutInFlight =
+    isProvisional ||
+    (status === SUBSCRIPTION_STATUSES.awaitingFunds && sawProvisionalCheckout);
   const pollInterval = getProvisionalSubscriptionPollIntervalMs(
     hardwareTier,
     networkTier,
@@ -68,7 +77,7 @@ export function useProSubscriptionPaymentMonitor(): {
     queryKey: SUBSCRIPTIONS_QUERY_KEY,
     queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
     enabled:
-      isStillFunding && pollInterval !== false && isSignedIn && isUnlocked,
+      isCheckoutInFlight && pollInterval !== false && isSignedIn && isUnlocked,
     refetchInterval: pollInterval === false ? false : pollInterval,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -78,10 +87,21 @@ export function useProSubscriptionPaymentMonitor(): {
     const previousStatus = previousStatusRef.current;
     previousStatusRef.current = status;
 
-    if (
-      previousStatus === UNSEEN_STATUS ||
-      !isStillFundingSubscriptionStatus(previousStatus)
+    if (isProvisional) {
+      setSawProvisionalCheckout(true);
+    } else if (
+      !isStillFundingSubscriptionStatus(status) &&
+      sawProvisionalCheckout
     ) {
+      setSawProvisionalCheckout(false);
+    }
+
+    const previousWasThisCheckout =
+      previousStatus === SUBSCRIPTION_STATUSES.provisional ||
+      (previousStatus === SUBSCRIPTION_STATUSES.awaitingFunds &&
+        sawProvisionalCheckout);
+
+    if (previousStatus === UNSEEN_STATUS || !previousWasThisCheckout) {
       return;
     }
 
@@ -95,7 +115,13 @@ export function useProSubscriptionPaymentMonitor(): {
       dismissPaymentToast();
       setIsPaymentFailedSheetOpen(true);
     }
-  }, [dismissPaymentToast, showActiveToast, status]);
+  }, [
+    dismissPaymentToast,
+    isProvisional,
+    sawProvisionalCheckout,
+    showActiveToast,
+    status,
+  ]);
 
   return { isPaymentFailedSheetOpen, closePaymentFailedSheet };
 }

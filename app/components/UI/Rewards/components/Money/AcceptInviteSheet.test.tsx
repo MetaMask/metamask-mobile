@@ -490,6 +490,50 @@ describe('AcceptInviteSheet', () => {
     expect(clearError).toHaveBeenCalled();
   });
 
+  it('omits refusal_reason on decline after the code is edited', async () => {
+    const clearError = jest.fn();
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: strings('rewards.error_messages.already_referred'),
+      refusalReason: 'already_referred',
+      acceptBlockedUntil: null,
+      clearError,
+    });
+
+    const view = await renderSheet('KOL1');
+    fireEvent.changeText(view.getByTestId(TEST_IDS.CODE_INPUT), 'AB12CD');
+    expect(clearError).toHaveBeenCalled();
+
+    mockUseAcceptMoneyReferralCode.mockReturnValue({
+      acceptReferralCode: mockAcceptReferralCode,
+      isLoading: false,
+      errorMessage: '',
+      refusalReason: null,
+      acceptBlockedUntil: null,
+      clearError,
+    });
+    view.rerender(
+      <Provider store={view.store}>
+        <AcceptInviteSheet route={{ params: { referralCode: 'KOL1' } }} />
+      </Provider>,
+    );
+    await advanceDebounce();
+    mockTrackEvent.mockClear();
+    mockCreateEventBuilder.mockClear();
+
+    fireEvent.press(view.getByTestId(TEST_IDS.DECLINE));
+
+    const builder = mockCreateEventBuilder.mock.results.at(-1)?.value;
+    expect(builder.addProperties).toHaveBeenCalledWith({
+      referral_code: 'AB12CD',
+      interaction_type: 'declined',
+    });
+    expect(builder.addProperties).not.toHaveBeenCalledWith(
+      expect.objectContaining({ refusal_reason: expect.anything() }),
+    );
+  });
+
   it('still allows accept when validation itself failed', async () => {
     mockEngineCall.mockImplementation(async (action: string) => {
       if (action === 'RewardsMoneyController:validateReferralCode') {
@@ -1246,11 +1290,19 @@ describe('AcceptInviteSheet', () => {
       ['declined', TEST_IDS.DECLINE],
       ['dismissed', TEST_IDS.CLOSE],
     ])(
-      'records %s without a refusal_reason after a refused Accept',
+      'records %s with the on-screen refusal_reason after a refused Accept',
       async (action, testId) => {
         mockAcceptReferralCode.mockResolvedValue({
           accepted: false,
           refusalReason: 'already_referred',
+        });
+        mockUseAcceptMoneyReferralCode.mockReturnValue({
+          acceptReferralCode: mockAcceptReferralCode,
+          isLoading: false,
+          errorMessage: '',
+          refusalReason: 'already_referred',
+          acceptBlockedUntil: null,
+          clearError: jest.fn(),
         });
 
         const { getByTestId } = await renderSheet('KOL1');
@@ -1277,10 +1329,8 @@ describe('AcceptInviteSheet', () => {
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
           interaction_type: action,
+          refusal_reason: 'already_referred',
         });
-        expect(builder.addProperties).not.toHaveBeenCalledWith(
-          expect.objectContaining({ refusal_reason: expect.anything() }),
-        );
       },
     );
 
@@ -1291,6 +1341,14 @@ describe('AcceptInviteSheet', () => {
           refusalReason: 'invalid_code',
         })
         .mockResolvedValueOnce({ accepted: true });
+      mockUseAcceptMoneyReferralCode.mockReturnValue({
+        acceptReferralCode: mockAcceptReferralCode,
+        isLoading: false,
+        errorMessage: '',
+        refusalReason: 'invalid_code',
+        acceptBlockedUntil: null,
+        clearError: jest.fn(),
+      });
 
       const { getByTestId } = await renderSheet('KOL1');
       mockTrackEvent.mockClear();

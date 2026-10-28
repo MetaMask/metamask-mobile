@@ -480,10 +480,17 @@ describe('planEnroll', () => {
     ).toStrictEqual({ ok: false, code: 'totp_already_enrolled' });
   });
 
-  it('does not offer the authenticator app on the extension yet', () => {
-    expect(
-      planEnroll('totp', buildContext({ platform: 'extension' })),
-    ).toStrictEqual({ ok: false, code: 'passkey_unsupported' });
+  it('offers the authenticator app on the extension, unlike passkeys', () => {
+    const context = buildContext({ platform: 'extension' });
+
+    expect(planEnroll('totp', context)).toStrictEqual({
+      ok: true,
+      steps: [{ kind: 'setup', method: 'totp', prefillEmail: undefined }],
+    });
+    expect(planEnroll('passkey', context)).toStrictEqual({
+      ok: false,
+      code: 'passkey_unsupported',
+    });
   });
 });
 

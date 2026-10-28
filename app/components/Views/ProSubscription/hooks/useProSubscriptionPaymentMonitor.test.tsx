@@ -174,6 +174,26 @@ describe('useProSubscriptionPaymentMonitor', () => {
     expect(mockShowActiveToast).not.toHaveBeenCalled();
   });
 
+  it('does not treat an existing awaiting-funds plan as this checkout', () => {
+    status = SUBSCRIPTION_STATUSES.awaitingFunds;
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    expect(mockedUseQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: false,
+      }),
+    );
+
+    status = SUBSCRIPTION_STATUSES.canceled;
+    rerender(undefined);
+
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
+    expect(mockDismissPaymentToast).not.toHaveBeenCalled();
+  });
+
   it('does not toast when an unrelated plan becomes active', () => {
     const { rerender, result } = renderHook(() =>
       useProSubscriptionPaymentMonitor(),

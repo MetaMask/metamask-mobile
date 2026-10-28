@@ -239,4 +239,57 @@ describe('ClaimableRewardsCard', () => {
     );
     expect(onBalanceBreakdown).toHaveBeenCalledTimes(1);
   });
+
+  it('hides the claimable amount row for a referrer', () => {
+    const { getByTestId, getByText, queryByTestId, queryByText } =
+      renderWithProvider(
+        <ClaimableRewardsCard
+          localizedText={LOCALIZED_TEXT}
+          claimable="1000000"
+          claimed="0"
+          claimableAmount="$1.00"
+          recordedAmount="$4.00"
+          last7Amount="$0.25"
+          isSummaryLoading={false}
+          isLast7Loading={false}
+          canClaim
+          isReferrer
+        />,
+      );
+
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(
+      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
+    ).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
+    ).toHaveTextContent('$0.25');
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toHaveTextContent('$4.00');
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
+  });
+
+  it('hides the claimable amount row in the referrer skeleton', () => {
+    const { getByTestId, getByText, queryByText } = renderWithProvider(
+      <ClaimableRewardsCard
+        localizedText={LOCALIZED_TEXT}
+        claimableAmount="$1.00"
+        recordedAmount="$4.00"
+        last7Amount={null}
+        isSummaryLoading
+        isLast7Loading
+        isReferrer
+      />,
+    );
+
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(queryByText('Available to claim • mUSD')).toBeNull();
+    expect(getByText('Last 7 days')).toBeOnTheScreen();
+    expect(getByText('Total earnings')).toBeOnTheScreen();
+  });
 });

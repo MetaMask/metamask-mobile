@@ -56,14 +56,15 @@ const STILL_FUNDING_STATUSES = new Set<SubscriptionStatus>([
 ]);
 
 /**
- * True while a Plus plan is still waiting on an on-ramp or bridge.
+ * True for a funding status, whether or not this session started the checkout.
  *
- * Both statuses keep the faster subscription poll and the in-session
- * watcher. A hop from provisional to awaiting-funds is still the same
+ * `awaiting_funds` is also the long-lived low-balance state Pro Hub shows as
+ * Active. Callers that announce a checkout must already have seen
+ * `provisional` in this session before treating `awaiting_funds` as that
  * payment.
  *
  * @param status - Latest Plus status, or undefined when the plan is gone.
- * @returns Whether the payment is still in flight.
+ * @returns Whether the status is provisional or awaiting funds.
  */
 export function isStillFundingSubscriptionStatus(
   status: SubscriptionStatus | undefined,
