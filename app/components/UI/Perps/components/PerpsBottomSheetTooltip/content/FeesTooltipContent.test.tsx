@@ -47,6 +47,13 @@ describe('FeesTooltipContent', () => {
     );
 
     expect(getByText('25% off the MetaMask fee.')).toBeOnTheScreen();
+    let promoBanner = getByTestId(
+      PerpsFeeDiscountLabelSelectorsIDs.LABEL,
+    ).parent;
+    while (promoBanner && promoBanner.props.style === undefined) {
+      promoBanner = promoBanner.parent;
+    }
+    expect(promoBanner).toHaveStyle({ gap: 8 });
     expect(
       getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
     ).toBeOnTheScreen();
