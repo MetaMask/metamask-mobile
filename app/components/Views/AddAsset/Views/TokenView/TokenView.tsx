@@ -16,8 +16,17 @@ import {
 } from '@metamask/multichain-network-controller';
 import { isNonEvmChainId } from '../../../../../core/Multichain/utils';
 import { useTheme } from '../../../../../util/theme';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FilterButton,
+  SegmentedControl,
+} from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/SearchTokenAutocomplete';
+import OwnedTokensList from '../../components/OwnedTokens/OwnedTokensList';
+import { useOwnedTokensMode } from '../../components/OwnedTokens/hooks/useOwnedTokensMode';
+import { OwnedTokensTestIds } from '../../components/OwnedTokens/OwnedTokens.testIds';
+import { selectOwnedTokensImportEnabled } from '../../../../../selectors/featureFlagController/ownedTokensImport';
 import NetworkSelector from '../../components/NetworkSelector/NetworkSelector';
 import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
@@ -35,6 +44,8 @@ const TokenView = ({
 }: TokenViewProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
+  const ownedTokensEnabled = useSelector(selectOwnedTokensImportEnabled);
+  const [importMode, setImportMode] = useOwnedTokensMode();
   const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   // Probe the search API with a test query to check if the selected network supports token search.
@@ -55,43 +66,75 @@ const TokenView = ({
     return !searchProbeError;
   }, [selectedNetwork, searchProbeError]);
 
+  const showOwnedTokens = ownedTokensEnabled && importMode === 'owned';
+
   return (
     <Box twClassName="flex-1">
-      <NetworkSelector
-        selectedNetwork={selectedNetwork}
-        openNetworkSelector={openNetworkSelector}
-        networkConfigurations={networkConfigurations}
-      />
-
-      {isLoadingSearchSupported ? (
-        <Box
-          twClassName="flex-1 justify-center items-center px-4"
-          testID="add-asset-loading-indicator"
-        >
-          <ActivityIndicator size="large" color={colors.primary.default} />
+      {ownedTokensEnabled ? (
+        <Box twClassName="px-4 pb-3">
+          <SegmentedControl
+            value={importMode}
+            onChange={(value) => {
+              if (value === 'find' || value === 'owned') {
+                setImportMode(value);
+              }
+            }}
+            isFullWidth
+            testID={OwnedTokensTestIds.MODE_SWITCH}
+          >
+            <FilterButton value="find" testID={OwnedTokensTestIds.MODE_FIND}>
+              {strings('add_asset.owned_tokens.find_tokens')}
+            </FilterButton>
+            <FilterButton value="owned" testID={OwnedTokensTestIds.MODE_OWNED}>
+              {strings('add_asset.owned_tokens.title')}
+            </FilterButton>
+          </SegmentedControl>
         </Box>
+      ) : null}
+      {showOwnedTokens ? (
+        <OwnedTokensList />
       ) : (
-        <Box twClassName="flex-1" testID="add-asset-tabs-container">
-          <ScrollableTabView key={selectedNetwork} renderTabBar={renderTabBar}>
-            {/* Show search tab when the chain is supported by the token search API */}
-            {chainSupportsSearch && (
-              <SearchTokenAutocomplete
-                navigation={navigation}
-                tabLabel={strings('add_asset.search_token')}
-                selectedChainId={selectedNetwork}
-              />
-            )}
+        <>
+          <NetworkSelector
+            selectedNetwork={selectedNetwork}
+            openNetworkSelector={openNetworkSelector}
+            networkConfigurations={networkConfigurations}
+          />
 
-            {/* Custom tokens are not supported on non-evm chains */}
-            {selectedNetwork && !isNonEvmChainId(selectedNetwork) && (
-              <AddCustomToken
-                chainId={selectedNetwork}
-                tabLabel={strings('add_asset.custom_token')}
-                isTokenDetectionSupported={chainSupportsSearch}
-              />
-            )}
-          </ScrollableTabView>
-        </Box>
+          {isLoadingSearchSupported ? (
+            <Box
+              twClassName="flex-1 justify-center items-center px-4"
+              testID="add-asset-loading-indicator"
+            >
+              <ActivityIndicator size="large" color={colors.primary.default} />
+            </Box>
+          ) : (
+            <Box twClassName="flex-1" testID="add-asset-tabs-container">
+              <ScrollableTabView
+                key={selectedNetwork}
+                renderTabBar={renderTabBar}
+              >
+                {/* Show search tab when the chain is supported by the token search API */}
+                {chainSupportsSearch && (
+                  <SearchTokenAutocomplete
+                    navigation={navigation}
+                    tabLabel={strings('add_asset.search_token')}
+                    selectedChainId={selectedNetwork}
+                  />
+                )}
+
+                {/* Custom tokens are not supported on non-evm chains */}
+                {selectedNetwork && !isNonEvmChainId(selectedNetwork) && (
+                  <AddCustomToken
+                    chainId={selectedNetwork}
+                    tabLabel={strings('add_asset.custom_token')}
+                    isTokenDetectionSupported={chainSupportsSearch}
+                  />
+                )}
+              </ScrollableTabView>
+            </Box>
+          )}
+        </>
       )}
     </Box>
   );

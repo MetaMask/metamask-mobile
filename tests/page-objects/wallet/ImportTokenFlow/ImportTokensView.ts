@@ -4,6 +4,10 @@ import {
   ImportTokenViewSelectorsIDs,
   ImportTokenViewSelectorsText,
 } from '../../../../app/components/Views/AddAsset/ImportAssetView.testIds';
+import {
+  OwnedTokensTestIds,
+  ownedTokenRowTestId,
+} from '../../../../app/components/Views/AddAsset/components/OwnedTokens/OwnedTokens.testIds';
 import { CellComponentSelectorsIDs } from '../../../../app/component-library/components/Cells/Cell/CellComponent.testIds';
 import { logger, type AppiumElement } from '../../../framework';
 
@@ -154,6 +158,43 @@ class ImportTokensView {
     await Gestures.waitAndTap(Matchers.getElementByText(networkName), {
       elemDescription: `Network option: ${networkName}`,
     });
+  }
+
+  get tokensIOwnTab(): Promise<AppiumElement> {
+    return Matchers.getElementByID(OwnedTokensTestIds.MODE_OWNED);
+  }
+
+  get addOwnedTokensButton(): Promise<AppiumElement> {
+    return Matchers.getElementByID(OwnedTokensTestIds.ADD_BUTTON);
+  }
+
+  ownedTokenRow(rowKey: string): Promise<AppiumElement> {
+    return Matchers.getElementByID(ownedTokenRowTestId(rowKey));
+  }
+
+  async tapTokensIOwn(): Promise<void> {
+    await Gestures.waitAndTap(this.tokensIOwnTab, {
+      elemDescription: 'Tokens I own mode',
+    });
+  }
+
+  async tapOwnedToken(rowKey: string): Promise<void> {
+    await Gestures.waitAndTap(this.ownedTokenRow(rowKey), {
+      elemDescription: 'Owned token row',
+    });
+  }
+
+  async tapAddOwnedTokens(): Promise<void> {
+    await Gestures.waitAndTap(this.addOwnedTokensButton, {
+      elemDescription: 'Add owned tokens button',
+    });
+  }
+
+  async tapBack(): Promise<void> {
+    await Gestures.waitAndTap(
+      Matchers.getElementByID('add-asset-back-button'),
+      { elemDescription: 'Import tokens back button' },
+    );
   }
 }
 

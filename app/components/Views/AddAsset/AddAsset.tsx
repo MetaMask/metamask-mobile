@@ -61,6 +61,7 @@ const AddAsset = () => {
           `add_asset.${assetType === 'token' ? 'title' : 'title_nft'}`,
         )}
         onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: 'add-asset-back-button' }}
       />
 
       {assetType === 'token' && (

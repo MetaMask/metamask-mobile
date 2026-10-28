@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a Tokens I own mode on Import tokens for hidden and undetected balances
+
 ## [8.17.0]
 
 ### Added

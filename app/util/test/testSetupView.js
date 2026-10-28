@@ -26,6 +26,13 @@ const getRandomValuesCompat = (arr) =>
 // 0. Mock native-bridge modules that cannot load in Jest
 // --------------------------------------------------------
 
+// FlashList v2's jest setup does not render rows. View tests that list tokens
+// need the items in the tree.
+jest.mock('@shopify/flash-list', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('./mockFlashList').flashListMock(),
+);
+
 jest.mock('react-native-mmkv', () => {
   const createInMemoryMMKV = () => {
     const store = new Map();

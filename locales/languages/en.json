@@ -4732,6 +4732,50 @@
       "custom_info_desc": "Token detection is not available on this network yet. Import the token manually and make sure you trust it. Learn about ",
       "custom_info_link": "token scams and security risks.",
       "custom_security_tips": "Security tips"
+    },
+    "owned_tokens": {
+      "find_tokens": "Find tokens",
+      "title": "Tokens I own",
+      "search_placeholder": "Search tokens",
+      "cancel": "Cancel",
+      "filter_all": "All",
+      "filter_hidden": "Hidden",
+      "filter_undetected": "Not detected",
+      "filter_count": "{{label}} {{count}}",
+      "category_hidden": "Hidden",
+      "category_undetected": "Not detected",
+      "spam_malicious": "Malicious",
+      "spam_warning": "Warning",
+      "selected": "Selected",
+      "not_selected": "Not selected",
+      "add_token": "Add token",
+      "add_button": {
+        "one": "Add {{count}} token",
+        "other": "Add {{count}} tokens"
+      },
+      "empty": "No tokens to add",
+      "empty_filter": "No tokens match this filter",
+      "empty_search": "No tokens match your search",
+      "error": "Couldn't load tokens",
+      "retry": "Retry",
+      "partial_networks": "Some networks could not be loaded",
+      "dismiss": "Dismiss",
+      "offline": "Connect to the internet to see tokens you own",
+      "held_by": "Held by {{name}}",
+      "warning_title": "Add risky token?",
+      "warning_body": "This token is flagged as risky. Only add it if you trust it.",
+      "warning_confirm": "Add anyway",
+      "warning_cancel": "Cancel",
+      "toast_title": "Import tokens",
+      "toast_success": {
+        "one": "Added {{count}} token",
+        "other": "Added {{count}} tokens"
+      },
+      "toast_failure": {
+        "one": "{{count}} token could not be added",
+        "other": "{{count}} tokens could not be added"
+      },
+      "toast_mixed": "Added {{successCount}} tokens. {{failureCount}} could not be added."
     }
   },
   "defi_positions": {
