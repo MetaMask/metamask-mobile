@@ -22,6 +22,8 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
 import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { selectKycSessionStatus } from '../../../selectors/kycController';
+import { selectMoneyMovementNeobank } from '../../../selectors/featureFlagController/moneyAccount';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     wrapper: {
@@ -71,6 +73,10 @@ const Settings = () => {
     navigation.navigate(Routes.SETTINGS.BACKUP_AND_SYNC);
   };
 
+  const onPressIdentityVerification = () => {
+    navigation.navigate(Routes.SETTINGS.IDENTITY_VERIFICATION);
+  };
+
   const onPressSecurity = () => {
     trackEvent(
       createEventBuilder(
@@ -115,6 +121,16 @@ const Settings = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const oauthFlow = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  // Identity verification is only meaningful to customers who have actually
+  // started KYC, so the row stays hidden until a session exists.
+  const { isEnabled: isNeobankEnabled } = useSelector(
+    selectMoneyMovementNeobank,
+  );
+  const kycSessionStatus = useSelector(selectKycSessionStatus);
+  const isIdentityVerificationVisible =
+    isNeobankEnabled && Boolean(kycSessionStatus);
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
       <HeaderStandard
@@ -157,6 +173,14 @@ const Settings = () => {
           title={strings('backupAndSync.title')}
           testID={SettingsViewSelectorsIDs.BACKUP_AND_SYNC}
         />
+        {isIdentityVerificationVisible && (
+          <SettingsDrawer
+            description={strings('identity_verification.settings_description')}
+            onPress={onPressIdentityVerification}
+            title={strings('identity_verification.title')}
+            testID={SettingsViewSelectorsIDs.IDENTITY_VERIFICATION}
+          />
+        )}
         {isNotificationsFeatureEnabled() && (
           <SettingsDrawer
             description={strings('app_settings.notifications_desc')}

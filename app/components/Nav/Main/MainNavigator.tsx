@@ -32,6 +32,7 @@ import Settings from '../../Views/Settings';
 import GeneralSettings from '../../Views/Settings/GeneralSettings';
 import AdvancedSettings from '../../Views/Settings/AdvancedSettings';
 import BackupAndSyncSettings from '../../Views/Settings/Identity/BackupAndSyncSettings';
+import IdentityVerification from '../../Views/Settings/IdentityVerification/IdentityVerification';
 import SecuritySettings from '../../Views/Settings/SecuritySettings';
 import { MfaMethodDetails, MfaPasskeys, MfaSettings } from '../../Views/Mfa';
 import NetworksManagementView from '../../Views/NetworksManagement/NetworksManagementView';
@@ -707,6 +708,10 @@ const SettingsFlow = () => {
       <NativeStack.Screen
         name={Routes.SETTINGS.BACKUP_AND_SYNC}
         component={BackupAndSyncSettings}
+      />
+      <NativeStack.Screen
+        name={Routes.SETTINGS.IDENTITY_VERIFICATION}
+        component={IdentityVerification}
       />
       <NativeStack.Screen
         name={Routes.SETTINGS.REGION_SELECTOR}
