@@ -11030,17 +11030,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "@metamask/money-account-api-data-service@npm:2.3.0"
+"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "@metamask/money-account-api-data-service@npm:2.3.1"
   dependencies:
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@tanstack/query-core": "npm:^5.103.2"
-  checksum: 10/5ae95216a16d5a4bf4ed481c7413b95590b546b6fcff50c9d5e13a3ab719a0eeb3526cc4bd20de8f43f7269918e550a310404f48da4e795410a2bb38590077fa
+  checksum: 10/ccf1b5a8ef53d82de12e889eb66fe39966e06af5c27711e91268dcc1691960f4d822058b613c0b060e57638b2634acd34c33d69d67d20b05faa10593c77457f1
   languageName: node
   linkType: hard
 
@@ -38411,7 +38411,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-api-data-service": "npm:^2.3.0"
+    "@metamask/money-account-api-data-service": "npm:^2.3.1"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
