@@ -21,7 +21,7 @@ jest.mock('../../../../core/NavigationService', () => ({
 }));
 
 jest.mock('../../../../util/haptics', () => ({
-  playNotification: jest.fn(),
+  playNotification: jest.fn().mockResolvedValue(undefined),
   NotificationMoment: {
     Success: 'success',
     Warning: 'warning',

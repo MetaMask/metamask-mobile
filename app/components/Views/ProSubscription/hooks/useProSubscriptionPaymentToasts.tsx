@@ -100,7 +100,7 @@ export function useProSubscriptionPaymentToasts(): ProSubscriptionPaymentToasts 
     (config: PaymentToastOptions) => {
       const { hapticsType, ...toastOptions } = config;
       toastRef?.current?.showToast(toastOptions as ToastOptions);
-      playNotification(hapticsType);
+      playNotification(hapticsType).catch(() => undefined);
     },
     [toastRef],
   );

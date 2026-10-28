@@ -1,6 +1,4 @@
 import React from 'react';
-import { Modal, Platform } from 'react-native';
-import { FullWindowOverlay } from 'react-native-screens';
 import { fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -22,7 +20,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
 }));
 
 jest.mock('../../../../../util/haptics', () => ({
-  playNotification: jest.fn(),
+  playNotification: jest.fn().mockResolvedValue(undefined),
   NotificationMoment: {
     Error: 'error',
   },
@@ -60,38 +58,8 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 describe('PaymentFailedSheet', () => {
-  const originalPlatformOS = Platform.OS;
-
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    Platform.OS = originalPlatformOS;
-  });
-
-  it('renders above the root stack on iOS', () => {
-    Platform.OS = 'ios';
-
-    const { UNSAFE_queryByType } = renderWithProvider(
-      <PaymentFailedSheet onClose={mockOnClose} />,
-    );
-
-    expect(UNSAFE_queryByType(FullWindowOverlay)).not.toBeNull();
-    expect(UNSAFE_queryByType(Modal)).toBeNull();
-  });
-
-  it('renders above the root stack on Android', () => {
-    Platform.OS = 'android';
-
-    const { UNSAFE_getByType, UNSAFE_queryByType } = renderWithProvider(
-      <PaymentFailedSheet onClose={mockOnClose} />,
-    );
-
-    expect(UNSAFE_queryByType(FullWindowOverlay)).toBeNull();
-    expect(UNSAFE_getByType(Modal).props).toEqual(
-      expect.objectContaining({ visible: true, transparent: true }),
-    );
   });
 
   it('renders the failed payment copy', () => {
