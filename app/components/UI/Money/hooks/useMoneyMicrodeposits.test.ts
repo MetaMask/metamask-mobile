@@ -140,9 +140,9 @@ describe('useMoneyMicrodeposits', () => {
     ]);
   });
 
-  it('returns an empty list when the pinned controller cannot serve microdeposits', async () => {
+  it('returns an empty list when the proxy has no microdeposits', async () => {
     const address = setup({ kycApproved: true });
-    setService({});
+    setService({ getMicrodeposits: jest.fn().mockResolvedValue([]) });
 
     const { result } = renderMicrodeposits(address);
 

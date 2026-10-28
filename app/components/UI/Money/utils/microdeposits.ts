@@ -1,45 +1,10 @@
 import { IconName } from '@metamask/design-system-react-native';
+import type { NeoBankMicrodeposit } from '@metamask/ramps-controller';
 import BigNumber from 'bignumber.js';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDisplayInfo';
 import type { MicrodepositActivity } from '../types/moneyActivity';
-
-/**
- * MoonPay microdeposit as returned by neobank-proxy
- * `GET /neobank/customers/{id}/microdeposits`. The proxy is a 1:1 pass-through
- * of MoonPay's `Microdeposit` schema.
- *
- * shortcut: structural copy of the `NeoBankMicrodeposit` type that ships with
- * `NeoBankService.getMicrodeposits` in `@metamask/ramps-controller`. Replace
- * this declaration with the imported type once mobile pins a controller
- * release that carries it.
- */
-export interface MicrodepositRemote {
-  amount: string;
-  currency_code: string;
-  created_at: string;
-  counterparty_name?: string;
-}
-
-/**
- * The subset of `NeoBankService` this feature calls. Narrowing here keeps the
- * hook compiling against the controller version mobile currently pins.
- *
- * @param service - The engine's `NeoBankService` instance.
- * @returns The service, or undefined when the pinned controller cannot serve
- * microdeposits.
- */
-export function asMicrodepositService(
-  service: unknown,
-): { getMicrodeposits(): Promise<MicrodepositRemote[]> } | undefined {
-  const candidate = service as
-    | { getMicrodeposits?: () => Promise<MicrodepositRemote[]> }
-    | undefined;
-  return typeof candidate?.getMicrodeposits === 'function'
-    ? (candidate as { getMicrodeposits(): Promise<MicrodepositRemote[]> })
-    : undefined;
-}
 
 /**
  * Builds the row identity. MoonPay sends no id, and its list is cumulative
@@ -52,7 +17,7 @@ export function asMicrodepositService(
  * @returns Stable row id.
  */
 export function getMicrodepositId(
-  deposit: MicrodepositRemote,
+  deposit: NeoBankMicrodeposit,
   time: number,
 ): string {
   return [
@@ -72,7 +37,7 @@ export function getMicrodepositId(
  * @returns Activity rows, deduped and time-descending.
  */
 export function mapMicrodeposits(
-  deposits: readonly MicrodepositRemote[],
+  deposits: readonly NeoBankMicrodeposit[],
 ): MicrodepositActivity[] {
   const seen = new Set<string>();
   const rows: MicrodepositActivity[] = [];

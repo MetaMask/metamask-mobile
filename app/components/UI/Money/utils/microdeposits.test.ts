@@ -1,14 +1,14 @@
 import { IconName } from '@metamask/design-system-react-native';
+import type { NeoBankMicrodeposit } from '@metamask/ramps-controller';
 import {
   getMicrodepositId,
   mapMicrodeposits,
   microdepositDisplayInfo,
-  type MicrodepositRemote,
 } from './microdeposits';
 
 const deposit = (
-  overrides: Partial<MicrodepositRemote> = {},
-): MicrodepositRemote => ({
+  overrides: Partial<NeoBankMicrodeposit> = {},
+): NeoBankMicrodeposit => ({
   amount: '0.34',
   currency_code: 'USD',
   created_at: '2026-10-26T15:04:05.000Z',

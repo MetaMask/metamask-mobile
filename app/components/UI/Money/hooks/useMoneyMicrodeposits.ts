@@ -10,10 +10,7 @@ import { selectKycSessionStatus } from '../../../../selectors/kycController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { MicrodepositActivity } from '../types/moneyActivity';
-import {
-  asMicrodepositService,
-  mapMicrodeposits,
-} from '../utils/microdeposits';
+import { mapMicrodeposits } from '../utils/microdeposits';
 
 const POLL_INTERVAL_MS = 10_000;
 const LOW_SLOW_POLL_INTERVAL_MS = 60_000;
@@ -99,12 +96,10 @@ export function useMoneyMicrodeposits(address?: string): {
   const query = useQuery({
     queryKey: moneyMicrodepositsQueryKey(normalizedAddress),
     queryFn: async (): Promise<MicrodepositActivity[]> => {
-      const service = asMicrodepositService(Engine.context.NeoBankService);
-      if (!service) {
-        return [];
-      }
       try {
-        return mapMicrodeposits(await service.getMicrodeposits());
+        return mapMicrodeposits(
+          await Engine.context.NeoBankService.getMicrodeposits(),
+        );
       } catch (error) {
         // Keep the last good rows: React Query retains the previous success
         // when the query rejects, while a transient failure would otherwise
