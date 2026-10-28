@@ -31,7 +31,7 @@ import {
 import { SocialV1TraderRowSelectorsIDs } from './SocialV1TraderRow.testIds';
 
 const AVATAR_SIZE = 40;
-const MEDAL_HEIGHT = 28;
+const MEDAL_SIZE = 24;
 const RANK_COLUMN_WIDTH = 32;
 /**
  * Single-line row: rank, avatar, name + badges, PnL. Locked so the skeleton
@@ -105,7 +105,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         testID={SocialV1TraderRowSelectorsIDs.RANK}
       >
         {hideRank ? null : showMedal ? (
-          <RankMedal rank={trader.rank} size={MEDAL_HEIGHT} />
+          <RankMedal rank={trader.rank} size={MEDAL_SIZE} />
         ) : (
           <Text
             variant={TextVariant.BodyMd}

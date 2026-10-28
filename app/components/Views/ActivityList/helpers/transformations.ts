@@ -45,24 +45,6 @@ export const isBridgeHistoryForEvmTransaction = (
     );
   });
 
-function isIncomingTokenTransfer(
-  address: string,
-  transaction: V1TransactionByHashResponse,
-) {
-  const normalizedAddress = address.toLowerCase();
-
-  return (
-    (transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
-    ) ??
-      false) &&
-    transaction.from?.toLowerCase() !== normalizedAddress
-  );
-}
-
 /**
  * Participation gate shared by the activity list and the Activity details
  * by-hash lookup: excluded hashes, transactions the subject does not take part
@@ -98,9 +80,8 @@ export function shouldSkipUnrelatedTransaction(
 }
 
 /**
- * List gate. On top of {@link shouldSkipUnrelatedTransaction} it drops rows
- * whose only relevance to the subject is an inbound value transfer, which the
- * list surfaces from other sources.
+ * List gate. Drops excluded hashes, transactions the subject does not take
+ * part in at the top level, and no-op self transfers.
  *
  * Details must not reuse this gate: the by-hash request always asks for
  * `includeValueTransfers`, so a plain receive the user explicitly opened would
@@ -111,11 +92,7 @@ export function shouldSkipTransaction(
   transaction: V1TransactionByHashResponse,
   excludedTxHashes?: Set<string>,
 ) {
-  if (shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes)) {
-    return true;
-  }
-
-  return isIncomingTokenTransfer(address, transaction);
+  return shouldSkipUnrelatedTransaction(address, transaction, excludedTxHashes);
 }
 
 function transformApiTransactions(
