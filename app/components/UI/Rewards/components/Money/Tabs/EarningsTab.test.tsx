@@ -257,22 +257,52 @@ describe('EarningsTab', () => {
     jest.clearAllMocks();
   });
 
-  it('hides the breakdown for a referrer and keeps the claim card', () => {
-    const { getByText, queryByText, queryByTestId } = renderTab('referrer');
+  it('shows the breakdown for a referrer and hides the claimable amount row', () => {
+    const { getByText, getByTestId, queryByTestId, queryByText } =
+      renderTab('referrer');
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
-    expect(queryByText('Referrals')).toBeNull();
-    expect(queryByText('Trade commissions')).toBeNull();
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-referrals`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+    ).toBeNull();
+    expect(getByText('Referrals')).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
+    expect(getByText('$41.75')).toBeOnTheScreen();
+    expect(getByText('$9.15')).toBeOnTheScreen();
+    expect(queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT)).toBeNull();
+    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.LAST_7_DAYS),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.RECORDED),
+    ).toBeOnTheScreen();
     expect(getByText('$2.00')).toBeOnTheScreen();
     expect(getByText('$58.50')).toBeOnTheScreen();
   });
 
-  it('hides the breakdown for a referee', () => {
-    const { queryByText, queryByTestId } = renderTab('referee');
+  it('shows the breakdown for a referee and keeps the claimable amount', () => {
+    const { getByText, getByTestId, queryByText } = renderTab('referee');
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
-    expect(queryByText('Trading commissions')).toBeNull();
+    expect(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-trading`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${EARNINGS_TAB_TEST_IDS.BREAKDOWN_ROW}-social`),
+    ).toBeOnTheScreen();
+    expect(getByText('Trading commissions')).toBeOnTheScreen();
     expect(queryByText('Trading rebates')).toBeNull();
+    expect(queryByText('Referrals')).toBeNull();
+    expect(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.AMOUNT),
+    ).toBeOnTheScreen();
   });
 
   it('omits the breakdown for a plain persona', () => {
@@ -386,7 +416,7 @@ describe('EarningsTab', () => {
         },
         labels: {
           breakdown: 'Breakdown',
-          recordedEarningsLabel: 'Recorded earnings',
+          recordedEarningsLabel: 'Total earnings',
           availableToClaim: 'Available to claim',
           held: 'Held',
           blocked: 'Blocked',
@@ -432,6 +462,59 @@ describe('EarningsTab', () => {
     expect(
       queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
     ).toBeNull();
+  });
+
+  it('opens the balance breakdown from the info button while Claim is shown', () => {
+    const { getByTestId } = renderTab('referee', {
+      summary: {
+        ...SUMMARY,
+        lifetime_total: '132000000',
+        claimable: '1000000',
+        held: '100000000',
+        blocked: '12000000',
+        self_earned: {
+          ...SUMMARY.self_earned,
+          blocking_reason: 'SUSPENDED',
+          by_claim_family: {
+            REFERRAL_TRADE_FEE_CASHBACK: {
+              ...SUMMARY.self_earned.by_claim_family
+                .REFERRAL_TRADE_FEE_CASHBACK,
+              claimable: '1000000',
+            },
+          },
+        },
+      },
+    });
+
+    fireEvent.press(
+      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.BALANCE_BREAKDOWN),
+    );
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MODAL.REWARDS_MONEY_CLAIMS_PAUSED_MODAL,
+      {
+        variant: 'breakdown',
+        title: 'Breakdown',
+        totals: {
+          lifetime_total: '132000000',
+          claimable: '1000000',
+          held: '100000000',
+          blocked: '12000000',
+          voided: undefined,
+          pending: '0',
+          claimed: '0',
+        },
+        labels: {
+          breakdown: 'Breakdown',
+          recordedEarningsLabel: 'Total earnings',
+          availableToClaim: 'Available to claim',
+          held: 'Held',
+          blocked: 'Blocked',
+          voided: 'Voided',
+          pending: 'Pending',
+          claimed: 'Claimed',
+        },
+      },
+    );
   });
 
   it('shows Paused for blocked cashback with nothing held', () => {
@@ -619,16 +702,19 @@ describe('EarningsTab', () => {
     });
   });
 
-  it('opens history from its header while the breakdown stays hidden', () => {
+  it('opens performance from the breakdown and history from its header', () => {
     const onViewPerformance = jest.fn();
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
+    const { getByTestId } = renderTab('referrer', {
       onViewPerformance,
     });
 
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER)).toBeNull();
+    fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_HEADER));
+
+    expect(onViewPerformance).toHaveBeenCalledTimes(1);
+    expect(navigateToRewardsRoute).not.toHaveBeenCalled();
+
     fireEvent.press(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY_HEADER));
 
-    expect(onViewPerformance).not.toHaveBeenCalled();
     expect(navigateToRewardsRoute).toHaveBeenCalledWith(
       expect.anything(),
       Routes.REWARDS_EARNINGS_HISTORY_VIEW,
@@ -636,7 +722,7 @@ describe('EarningsTab', () => {
   });
 
   it('skeletons the card and history while each is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
+    const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
       summary: null,
       summaryLoading: true,
       last7: null,
@@ -648,7 +734,10 @@ describe('EarningsTab', () => {
     expect(
       getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.SKELETON),
     ).toBeOnTheScreen();
-    expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON)).toBeNull();
+    expect(queryByText('Available to claim')).toBeNull();
+    expect(
+      getByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN_SKELETON),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();

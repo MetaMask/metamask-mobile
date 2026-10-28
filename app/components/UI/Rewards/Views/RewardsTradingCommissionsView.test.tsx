@@ -131,17 +131,6 @@ describe('RewardsTradingCommissionsView', () => {
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('falls back to the trade commissions label when the section title is missing', () => {
-    const { tradingCommissionsSection: _omitted, ...rest } = LOCALIZED_TEXT;
-
-    const { getByText } = renderWithProvider(
-      <RewardsTradingCommissionsView />,
-      { state: stateWith(rest) },
-    );
-
-    expect(getByText('Trade commissions')).toBeOnTheScreen();
-  });
-
   it('renders no rows until localized text is available', () => {
     const { queryByTestId } = renderWithProvider(
       <RewardsTradingCommissionsView />,

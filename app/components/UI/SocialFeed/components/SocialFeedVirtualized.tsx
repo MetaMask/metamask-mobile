@@ -14,11 +14,14 @@ import Animated, {
   useComposedEventHandler,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import useInterval from '../../../hooks/useInterval';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { useSocialFeedScreenView } from '../socialFeedTracking';
 import type { SocialV1FeedPost } from '../types';
 import { getSocialFeedListState } from '../utils/getSocialFeedListState';
 import {
@@ -37,6 +40,9 @@ import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testId
 
 /** Scroll offset under which the list counts as at the top. */
 const NEAR_TOP_OFFSET_PX = 4;
+
+/** How often relative post ages ("3 min ago") are recomputed. */
+const AGE_TICK_MS = 60_000;
 
 /** Skeleton rows when the device or network is constrained. */
 const CONSTRAINED_SKELETON_COUNT = 2;
@@ -70,11 +76,18 @@ const keyExtractor = (post: SocialV1FeedPost) =>
  * scales its render window and entrances to the device.
  */
 const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
-  source,
+  scope,
+  chains,
+  assetIds,
+  profileId,
+  commentedOnly,
   location,
+  analyticsSource,
+  isActive,
   title,
   renderHeader,
   filterPost,
+  emptyState,
   realtime = false,
   paused = false,
   onScroll,
@@ -94,11 +107,24 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   const listRef = useRef<Animated.FlatList<SocialV1FeedPost>>(null);
   const [nearTop, setNearTop] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [clock, setClock] = useState(() => Date.now());
+  useInterval(() => setClock(Date.now()), { delay: AGE_TICK_MS });
   const scheduleEntryDelay = useMemo(() => createFeedItemEntryScheduler(), []);
 
   const isLowHardware = hardwareTier === 'LOW';
   const isOffline = networkTier === 'NONE';
   const listWindow = isLowHardware ? LIST_WINDOW.low : LIST_WINDOW.default;
+
+  const query = useMemo(
+    (): SocialFeedQuery => ({
+      scope,
+      chains,
+      assetIds,
+      profileId,
+      commentedOnly,
+    }),
+    [assetIds, chains, commentedOnly, profileId, scope],
+  );
 
   const {
     posts,
@@ -109,7 +135,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     refresh,
     dataUpdatedAt,
     realtime: live,
-  } = useSocialFeed(source, {
+  } = useSocialFeed(query, {
     enabled: isFocused && !isOffline,
     realtime,
     paused,
@@ -117,6 +143,16 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     holdNewPosts: networkTier === 'SLOW_CELLULAR',
     filterPost,
   });
+  // A disabled query (offline, locked) reports not loading and no error.
+  // That is not an empty feed; wait until a fetch has settled.
+  const awaitingResult =
+    dataUpdatedAt === undefined && !error && posts.length === 0;
+  useSocialFeedScreenView(
+    location,
+    analyticsSource,
+    [isLoading || awaitingResult, Boolean(error), posts.length > 0],
+    isActive,
+  );
 
   const visiblePosts = useMemo(
     () =>
@@ -211,9 +247,11 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
         onAuthorPress={onAuthorPress}
         onCopyTrade={onCopyTrade}
         onPositionPress={onPositionPress}
+        now={clock}
       />
     ),
     [
+      clock,
       entrances,
       isLowHardware,
       lastIndex,
@@ -241,7 +279,10 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   return (
-    <SocialFeedSurfaceProvider location={location}>
+    <SocialFeedSurfaceProvider
+      location={location}
+      analyticsSource={analyticsSource}
+    >
       <Box twClassName="flex-1 bg-default" testID={testID}>
         <Animated.FlatList
           ref={listRef}
@@ -277,6 +318,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
                   ? CONSTRAINED_SKELETON_COUNT
                   : undefined
               }
+              emptyState={emptyState}
             />
           }
           ListFooterComponent={

@@ -7,6 +7,7 @@ import { MfaFlowError } from '../../../../util/identity/mfa/engine/errors';
 import { startMfaFlow } from '../../../../util/identity/mfa/engine/activeFlow';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import Routes from '../../../../constants/navigation/Routes';
+import { ToastContext } from '../../../../component-library/components/Toast';
 import { MfaSettingsSelectorsIDs } from '../Mfa.testIds';
 import {
   useMoneyMfa,
@@ -46,28 +47,40 @@ const mockMoneyMfaStatus = (status: MoneyMfaStatus) => {
   } as unknown as ReturnType<typeof useMoneyMfa>);
 };
 const mockAdapter = jest.mocked(mobileMfaControllerAdapter);
+const mockShowToast = jest.fn();
 
 const renderSettings = (
   enrolledCredentials: EnrolledCredential[] = [],
   seedlessVault?: string,
 ) =>
-  renderWithProvider(<MfaSettings />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          SeedlessOnboardingController: {
-            ...backgroundState.SeedlessOnboardingController,
-            vault: seedlessVault,
-          },
-          AuthenticationController: {
-            ...backgroundState.AuthenticationController,
-            enrolledCredentials,
+  renderWithProvider(
+    <ToastContext.Provider
+      value={{
+        toastRef: {
+          current: { showToast: mockShowToast, closeToast: jest.fn() },
+        },
+      }}
+    >
+      <MfaSettings />
+    </ToastContext.Provider>,
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            SeedlessOnboardingController: {
+              ...backgroundState.SeedlessOnboardingController,
+              vault: seedlessVault,
+            },
+            AuthenticationController: {
+              ...backgroundState.AuthenticationController,
+              enrolledCredentials,
+            },
           },
         },
       },
     },
-  });
+  );
 
 describe('MfaSettings', () => {
   beforeEach(() => {
@@ -82,6 +95,7 @@ describe('MfaSettings', () => {
     const { queryByTestId, getByTestId } = renderSettings(
       [
         {
+          id: 'email_otp',
           type: 'email_otp',
           status: 'active',
           email: 'a@b.co',
@@ -112,11 +126,17 @@ describe('MfaSettings', () => {
         reason: { operation: 'settings.addEmail' },
       }),
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Email verified' }],
+      }),
+    );
   });
 
   it('offers to add an email whose setup is not finished', () => {
     const { getByTestId } = renderSettings([
       {
+        id: 'email_otp',
         type: 'email_otp',
         status: 'pending',
         email: 'a@b.co',
@@ -131,7 +151,13 @@ describe('MfaSettings', () => {
 
   it('opens an active email', () => {
     const { getByTestId } = renderSettings([
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
     ]);
 
     expect(
@@ -239,11 +265,16 @@ describe('MfaSettings', () => {
         reason: { operation: 'settings.addPasskey' },
       }),
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Passkey added' }],
+      }),
+    );
   });
 
   it('lists the only passkey', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -255,8 +286,8 @@ describe('MfaSettings', () => {
 
   it('lists several passkeys', () => {
     const { getByTestId } = renderSettings([
-      { type: 'passkey', status: 'active' },
-      { type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
+      { id: 'passkey', type: 'passkey', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toHaveTextContent(
@@ -316,11 +347,16 @@ describe('MfaSettings', () => {
         reason: { operation: 'settings.addAuthenticatorApp' },
       }),
     );
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        labelOptions: [{ label: 'Authenticator app added' }],
+      }),
+    );
   });
 
   it('opens an authenticator app that is set up', () => {
     const { getByTestId } = renderSettings([
-      { type: 'totp', status: 'active' },
+      { id: 'totp', type: 'totp', status: 'active' },
     ]);
 
     expect(getByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).not.toHaveTextContent(

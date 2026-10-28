@@ -2,6 +2,8 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { usePredictOrderRetry } from './usePredictOrderRetry';
 import Engine from '../../../../core/Engine';
 import type { PlaceOrderOutcome } from './usePredictPlaceOrder';
+import type { RefetchPreviewResult } from './usePredictOrderPreview';
+import { CASH_OUT_PRICE_CHECK_TIMEOUT_MS } from './usePredictCashOutSubmit';
 import {
   type OrderPreview,
   type PlaceOrderParams,
@@ -528,6 +530,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.64,
             slippage: 0.05,
+            worstFillPrice: 0.64,
           }),
         }),
       });
@@ -558,6 +561,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.62,
             slippage: 0.05,
+            worstFillPrice: 0.62,
           }),
         }),
       });
@@ -589,6 +593,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.68,
             slippage: 0.05,
+            worstFillPrice: 0.68,
           }),
         }),
       });
@@ -650,6 +655,7 @@ describe('usePredictOrderRetry', () => {
             sharePrice: 0.098,
             tickSize: 0.001,
             slippage: 0.05,
+            worstFillPrice: 0.098,
           }),
         }),
       });
@@ -684,6 +690,7 @@ describe('usePredictOrderRetry', () => {
         side: Side.SELL,
         sharePrice: 0.62,
         slippage: 0.05,
+        worstFillPrice: 0.62,
       });
       const params = createDefaultParams({
         lastSubmittedPreview: createMockPreview({
@@ -733,6 +740,45 @@ describe('usePredictOrderRetry', () => {
       expect(result.current.retryQuote).toBeNull();
       expect(params.placeOrder).not.toHaveBeenCalled();
     });
+
+    it.each([
+      // 62¢ is the price on the sheet; 55¢ is under its 5% floor (58.9¢).
+      ['at the last price', 0.62],
+      // 3 ticks worse: the floor comes from the new price on the sheet.
+      ['after the price moved', 0.65],
+    ])(
+      'moves to no_match when a sell only fills outside the band %s',
+      async (_, lastSubmittedPrice) => {
+        const params = createDefaultParams({
+          lastSubmittedPreview: createMockPreview({
+            side: Side.SELL,
+            sharePrice: lastSubmittedPrice,
+            slippage: 0.05,
+          }),
+          refetchPreview: jest.fn().mockResolvedValue({
+            status: 'ok' as const,
+            preview: createMockPreview({
+              side: Side.SELL,
+              sharePrice: 0.62,
+              slippage: 0.05,
+              worstFillPrice: 0.55,
+            }),
+          }),
+        });
+        const { result, rerender } = renderHook(() =>
+          usePredictOrderRetry(params),
+        );
+
+        await act(async () => {
+          params.isOrderNotFilled = true;
+          rerender();
+        });
+
+        expect(result.current.retrySheetVariant).toBe('no_match');
+        expect(result.current.retryQuote).toBeNull();
+        expect(params.placeOrder).not.toHaveBeenCalled();
+      },
+    );
 
     it('submits nothing when confirming from the no_match state', async () => {
       const params = createDefaultParams({
@@ -788,6 +834,7 @@ describe('usePredictOrderRetry', () => {
       const freshPreview = createMockPreview({
         side: Side.SELL,
         slippage: 0.05,
+        worstFillPrice: 0.51,
       });
       const params = createDefaultParams({
         refetchPreview: jest.fn().mockResolvedValue({
@@ -1039,6 +1086,288 @@ describe('usePredictOrderRetry', () => {
     });
   });
 
+  describe('sell confirm re-checks the book', () => {
+    const confirmedQuote = createMockPreview({
+      side: Side.SELL,
+      sharePrice: 0.62,
+      slippage: 0.05,
+      worstFillPrice: 0.62,
+    });
+
+    function sellPreview(overrides?: Partial<OrderPreview>): OrderPreview {
+      return createMockPreview({ ...confirmedQuote, ...overrides });
+    }
+
+    function okResult(preview: OrderPreview): RefetchPreviewResult {
+      return { status: 'ok', preview };
+    }
+
+    /**
+     * Renders the hook on the confirm step for `confirmedQuote`. Each entry
+     * in `confirmResults` is what one later confirm re-fetches.
+     */
+    async function renderAtConfirm(...confirmResults: RefetchPreviewResult[]) {
+      const refetchPreview = jest
+        .fn<Promise<RefetchPreviewResult>, []>()
+        .mockResolvedValueOnce(okResult(confirmedQuote));
+      confirmResults.forEach((confirmResult) =>
+        refetchPreview.mockResolvedValueOnce(confirmResult),
+      );
+      const params = createDefaultParams({ refetchPreview });
+      const hook = renderHook(() => usePredictOrderRetry(params));
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        hook.rerender();
+      });
+      mockTrackEvent.mockClear();
+      return { ...hook, params, refetchPreview };
+    }
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('submits the re-fetched preview when the price is within 1 tick', async () => {
+      const freshPreview = sellPreview({
+        sharePrice: 0.61,
+        worstFillPrice: 0.61,
+      });
+      const { result, params, refetchPreview } = await renderAtConfirm(
+        okResult(freshPreview),
+      );
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(refetchPreview).toHaveBeenCalledTimes(2);
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ preview: freshPreview }),
+      );
+    });
+
+    it('asks again when the price moved more than 1 tick, then submits the newest preview', async () => {
+      const movedPreview = sellPreview({
+        sharePrice: 0.58,
+        worstFillPrice: 0.58,
+      });
+      const newestPreview = sellPreview({
+        sharePrice: 0.58,
+        worstFillPrice: 0.57,
+      });
+      const { result, params } = await renderAtConfirm(
+        okResult(movedPreview),
+        okResult(newestPreview),
+      );
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(result.current.retrySheetVariant).toBe('price_moved');
+      expect(result.current.retryQuote).toBe(movedPreview);
+      expect(result.current.retryPreviousPrice).toBe(0.62);
+      expect(params.placeOrder).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+      expect(params.placeOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ preview: newestPreview }),
+      );
+    });
+
+    it.each([
+      {
+        reason: 'the book cannot fill the full size within 5%',
+        confirmResult: okResult(sellPreview({ worstFillPrice: 0.5 })),
+        variant: 'no_match',
+      },
+      {
+        reason: 'the book is empty',
+        confirmResult: { status: 'no_match' } as RefetchPreviewResult,
+        variant: 'no_match',
+      },
+      {
+        reason: 'the fetch fails',
+        confirmResult: { status: 'unavailable' } as RefetchPreviewResult,
+        variant: 'quote_unavailable',
+      },
+    ])(
+      'shows $variant and submits nothing when $reason',
+      async ({ confirmResult, variant }) => {
+        const { result, params } = await renderAtConfirm(confirmResult);
+
+        await act(async () => {
+          await result.current.handleRetryConfirm();
+        });
+
+        expect(result.current.retrySheetVariant).toBe(variant);
+        expect(result.current.retryQuote).toBeNull();
+        expect(params.placeOrder).not.toHaveBeenCalled();
+      },
+    );
+
+    it('shows the timeout state when the book does not respond in time', async () => {
+      jest.useFakeTimers();
+      const { result, params, refetchPreview } = await renderAtConfirm();
+      refetchPreview.mockImplementationOnce(
+        () => new Promise<RefetchPreviewResult>(() => undefined),
+      );
+
+      let confirmPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        confirmPromise = result.current.handleRetryConfirm();
+      });
+      await act(async () => {
+        jest.advanceTimersByTime(CASH_OUT_PRICE_CHECK_TIMEOUT_MS);
+        await confirmPromise;
+      });
+
+      expect(result.current.retrySheetVariant).toBe('timeout');
+      expect(result.current.isRetrying).toBe(false);
+      expect(params.placeOrder).not.toHaveBeenCalled();
+    });
+
+    it('submits and tracks nothing when the sheet is dismissed during the check', async () => {
+      const { result, params, refetchPreview, rerender } =
+        await renderAtConfirm();
+      let resolveFetch: (value: RefetchPreviewResult) => void = () => undefined;
+      refetchPreview.mockImplementationOnce(
+        () =>
+          new Promise<RefetchPreviewResult>((resolve) => {
+            resolveFetch = resolve;
+          }),
+      );
+
+      let confirmPromise: Promise<void> = Promise.resolve();
+      act(() => {
+        confirmPromise = result.current.handleRetryConfirm();
+      });
+      params.isOrderNotFilled = false;
+      rerender();
+      await act(async () => {
+        resolveFetch(okResult(confirmedQuote));
+        await confirmPromise;
+      });
+
+      expect(params.placeOrder).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      [
+        'the sheet is closed',
+        (hook: Awaited<ReturnType<typeof renderAtConfirm>>) =>
+          hook.result.current.cancelRetry(),
+      ],
+      [
+        'the screen is left',
+        (hook: Awaited<ReturnType<typeof renderAtConfirm>>) => hook.unmount(),
+      ],
+    ])(
+      'submits and tracks nothing when %s during the check',
+      async (_, leave) => {
+        const hook = await renderAtConfirm();
+        let resolveFetch: (value: RefetchPreviewResult) => void = () =>
+          undefined;
+        hook.refetchPreview.mockImplementationOnce(
+          () =>
+            new Promise<RefetchPreviewResult>((resolve) => {
+              resolveFetch = resolve;
+            }),
+        );
+
+        let confirmPromise: Promise<void> = Promise.resolve();
+        act(() => {
+          confirmPromise = hook.result.current.handleRetryConfirm();
+        });
+        act(() => {
+          leave(hook);
+        });
+        await act(async () => {
+          resolveFetch(okResult(confirmedQuote));
+          await confirmPromise;
+        });
+
+        expect(hook.params.placeOrder).not.toHaveBeenCalled();
+        expect(mockTrackEvent).not.toHaveBeenCalled();
+      },
+    );
+
+    it('tracks each check and counts only the retry that is submitted', async () => {
+      const movedPreview = sellPreview({
+        sharePrice: 0.58,
+        worstFillPrice: 0.58,
+      });
+      const { result } = await renderAtConfirm(
+        okResult(movedPreview),
+        okResult(movedPreview),
+      );
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'presubmit_checked',
+          presubmitOutcome: 'price_moved',
+          approvedPrice: 0.62,
+          sharePrice: 0.58,
+          worstFillPrice: 0.58,
+          retryReason: 'order_not_filled',
+          retryCount: 1,
+        }),
+      );
+      expect(mockTrackEvent).not.toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'retry_submitted' }),
+      );
+
+      mockTrackEvent.mockClear();
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'presubmit_checked',
+          presubmitOutcome: 'submitted',
+          approvedPrice: 0.58,
+          retryCount: 1,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'retry_submitted',
+          retryCount: 1,
+          oneTickDecision: 'beyond_one_tick',
+        }),
+      );
+    });
+
+    it('submits a buy quote without re-fetching', async () => {
+      const params = createDefaultParams();
+      const { result, rerender } = renderHook(() =>
+        usePredictOrderRetry(params),
+      );
+      await act(async () => {
+        params.isOrderNotFilled = true;
+        rerender();
+      });
+
+      await act(async () => {
+        await result.current.handleRetryConfirm();
+      });
+
+      expect(params.refetchPreview).toHaveBeenCalledTimes(1);
+      expect(params.placeOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('state guard', () => {
     it.each(['pending', 'filled', 'canceled'] as const)(
       'does not fetch or submit when the order state is %s',
@@ -1216,6 +1545,7 @@ describe('usePredictOrderRetry', () => {
             side: Side.SELL,
             sharePrice: 0.62,
             slippage: 0.05,
+            worstFillPrice: 0.62,
           }),
         }),
       });

@@ -11666,9 +11666,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^35.0.0":
-  version: 35.0.0
-  resolution: "@metamask/profile-sync-controller@npm:35.0.0"
+"@metamask/profile-sync-controller@npm:^36.0.0":
+  version: 36.0.0
+  resolution: "@metamask/profile-sync-controller@npm:36.0.0"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11688,7 +11688,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/04a9224637f718667e75e3efb37da086f9193462e0b0ba9a2b5a8d89d9e62685c5eceed3ba7271e026f6695bc7f116a9c918c20175cd271aa174679fdc0c93dc
+  checksum: 10/c21e240c1d109e1c03261af74f5b09fdf43924135e19479f89474e11ebc00e4fb7ecef53745c59e3f42645ef7d7cf84be7816b0415d4efbe7370357572229bcf
   languageName: node
   linkType: hard
 
@@ -12182,9 +12182,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^22.0.0":
-  version: 22.0.0
-  resolution: "@metamask/snaps-controllers@npm:22.0.0"
+"@metamask/snaps-controllers@npm:^22.0.1":
+  version: 22.0.1
+  resolution: "@metamask/snaps-controllers@npm:22.0.1"
   dependencies:
     "@metamask/analytics-controller": "npm:^1.2.1"
     "@metamask/approval-controller": "npm:^9.0.2"
@@ -12218,17 +12218,17 @@ __metadata:
     semver: "npm:^7.5.4"
     tar-stream: "npm:^3.1.7"
   peerDependencies:
-    "@metamask/snaps-execution-environments": ^11.3.2
+    "@metamask/snaps-execution-environments": ^11.3.3
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/9d080b75db121cf47e54b72f812f0fe679d3e1b04ed045d123045801ea7c43810790a7f16fbf6802de65527694602497e30df5e0fcc38e3c672ede507edb1288
+  checksum: 10/357451dca8cdde6f4be421ea316b4eb06fa6a4ef44bbb623c0f53f8d7cc83b1c58990411190c566a3440d0c8ce57bd22bb9a4dc2952d01ff75cb1077f975d322
   languageName: node
   linkType: hard
 
-"@metamask/snaps-execution-environments@npm:^11.3.2":
-  version: 11.3.2
-  resolution: "@metamask/snaps-execution-environments@npm:11.3.2"
+"@metamask/snaps-execution-environments@npm:^11.3.3":
+  version: 11.3.3
+  resolution: "@metamask/snaps-execution-environments@npm:11.3.3"
   dependencies:
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/object-multiplex": "npm:^2.1.0"
@@ -12240,7 +12240,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     readable-stream: "npm:^3.6.2"
-  checksum: 10/d668aa06c2e5463316539fd07e7f70b50329366aa5a889cf9831bf84a3bb2d6955969014b7c3b0645b5f97788f7246983775966d0c7c9b1ee1f4d9f5d6faedeb
+  checksum: 10/b4a5df9d03e90f50fddecb86a257c1d342ea7a522cf1b4c38ecf31bb6ef763a0c5347ddb49aeb9430890ead815cc4e4dbcd2c8f92e784945e874f733a76b69a2
   languageName: node
   linkType: hard
 
@@ -12337,25 +12337,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "@metamask/social-controllers@npm:3.11.0"
+"@metamask/social-controllers@npm:^3.12.1":
+  version: 3.12.1
+  resolution: "@metamask/social-controllers@npm:3.12.1"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/core-backend": "npm:^12.3.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/b7d98c0e5ca7a41d20990596cb89264b2102ff1ff677f6b2a01ffc625b3b8fa327a32859eff9c122a751bf0c43bb6b57a3534b47c9fb18cda1a99a83366a47f0
+    "@metamask/utils": "npm:^12.0.0"
+  checksum: 10/cf45f9d7342fabb8ebf70214c75ed2d78de70b6ff7b54f0947c3614445e856f6cd72b133a6b32048c5e121c5b914d5d35c8c89e4971e46c5b5e72f61ef7f75bb
   languageName: node
   linkType: hard
 
-"@metamask/solana-wallet-snap@npm:^7.1.0":
-  version: 7.1.0
-  resolution: "@metamask/solana-wallet-snap@npm:7.1.0"
-  checksum: 10/2a48bdb0a41e553bbee86109d87f1522c6147a5e5ee915de08b88abae9825abfb979077c95567490a743c087e4c1b828ea8568ba0a840dd6c2b82ef4bea1cfe2
+"@metamask/solana-wallet-snap@npm:^7.2.0":
+  version: 7.2.0
+  resolution: "@metamask/solana-wallet-snap@npm:7.2.0"
+  checksum: 10/dde7895f40ac0e29490336c60b14479129c25471341127dc784c4f40b92959fa3714024730524802f614f36d637e4a63c8ff7d97b25eed96ec6c7cf164602db7
   languageName: node
   linkType: hard
 
@@ -12407,13 +12408,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:14.0.0, @metamask/subscription-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/subscription-controller@npm:14.0.0"
+"@metamask/subscription-controller@npm:15.0.0":
+  version: 15.0.0
+  resolution: "@metamask/subscription-controller@npm:15.0.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/chomp-api-service": "npm:^6.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -12426,16 +12427,16 @@ __metadata:
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
     "@metamask/money-account-utils": "npm:^2.1.0"
     "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/profile-sync-controller": "npm:^35.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^72.2.0"
+    "@metamask/transaction-controller": "npm:^72.2.1"
     "@metamask/utils": "npm:^12.0.0"
     "@tanstack/query-core": "npm:^5.103.2"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/97186587a4e6e02013a30bfa9fc83c7323d61fb934aca562c650d45484c34164b49cf78d2eb1ffa0dc675493df7aafbee3df10e29778804c5e54071bdad53872
+  checksum: 10/362d5d42fef90672b7d6fe51b85b0529eb5c1cda0131ba19489fd8c94bcbd5bf8d895ccaa2f07fc1b783f56cee69f8e35f3a94fb668495d7805185ba4dc131d3
   languageName: node
   linkType: hard
 
@@ -12599,10 +12600,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/tron-wallet-snap@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "@metamask/tron-wallet-snap@npm:4.2.0"
-  checksum: 10/cad7b1b0797d6a31dd82c2a608b047c02c4661c5ed0cfbd880f71537507e5bc197457453b314a1d9fd82611d5958a6b6a098ec882c5d04a7780c1738c2302792
+"@metamask/tron-wallet-snap@npm:^4.3.0":
+  version: 4.3.0
+  resolution: "@metamask/tron-wallet-snap@npm:4.3.0"
+  checksum: 10/e2c332fe66bdbd7e02d34c375ac335d7d2a847184700e9fbb673b1b1fd325222196d95a215b4f6360fdb423c8d626394a393442fb4b86c90baa8ec61b74f1c84
   languageName: node
   linkType: hard
 
@@ -38435,7 +38436,7 @@ __metadata:
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-controller": "npm:^1.1.0"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^27.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
@@ -38459,18 +38460,18 @@ __metadata:
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^27.1.0"
     "@metamask/snap-account-service": "npm:^4.0.0"
-    "@metamask/snaps-controllers": "npm:^22.0.0"
-    "@metamask/snaps-execution-environments": "npm:^11.3.2"
+    "@metamask/snaps-controllers": "npm:^22.0.1"
+    "@metamask/snaps-execution-environments": "npm:^11.3.3"
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.11.0"
-    "@metamask/solana-wallet-snap": "npm:^7.1.0"
+    "@metamask/social-controllers": "npm:^3.12.1"
+    "@metamask/solana-wallet-snap": "npm:^7.2.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^1.3.0"
     "@metamask/storage-service": "npm:^2.0.0"
-    "@metamask/subscription-controller": "npm:14.0.0"
+    "@metamask/subscription-controller": "npm:15.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/test-dapp": "npm:9.5.0"
@@ -38480,7 +38481,7 @@ __metadata:
     "@metamask/tooling-insight": "npm:^1.0.1"
     "@metamask/transaction-controller": "npm:^72.2.1"
     "@metamask/transaction-pay-controller": "npm:^30.2.0"
-    "@metamask/tron-wallet-snap": "npm:^4.2.0"
+    "@metamask/tron-wallet-snap": "npm:^4.3.0"
     "@metamask/utils": "npm:^12.0.0"
     "@metamask/wallet": "npm:^18.0.0"
     "@ngraveio/bc-ur": "npm:^1.1.6"
@@ -38722,8 +38723,6 @@ __metadata:
     react-native-blob-util: "patch:react-native-blob-util@npm%3A0.19.9#~/.yarn/patches/react-native-blob-util-npm-0.19.9-a15029792a.patch"
     react-native-branch: "npm:^5.6.2"
     react-native-browser-polyfill: "npm:0.1.2"
-    react-native-confetti: "npm:^0.1.0"
-    react-native-confetti-cannon: "npm:^1.5.0"
     react-native-confirmation-code-field: "npm:^7.6.1"
     react-native-crypto: "npm:2.2.1"
     react-native-default-preference: "npm:^1.4.3"
@@ -43962,13 +43961,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.16.0":
-  version: 6.16.0
-  resolution: "qs@npm:6.16.0"
+"qs@npm:6.16.1":
+  version: 6.16.1
+  resolution: "qs@npm:6.16.1"
   dependencies:
     es-define-property: "npm:^1.0.1"
     side-channel: "npm:^1.1.1"
-  checksum: 10/7fbf9c2eb9c9bbd8997700caecc4b057ac259635873deefd5027fb26d06d79426cf468da55da87ffd147a24e93d3641352d8ac6664bd84688ad5b2f0b8d04828
+  checksum: 10/e33e0a5ceecb7bef81ea1f855365482045f55ba55278f40b8dbf9ee18eae8ef82d44246fe4e4009d6b6f102cbf2885a34b88c4272536cd628cde40b4ac9912c2
   languageName: node
   linkType: hard
 
@@ -44450,20 +44449,6 @@ __metadata:
   version: 0.1.2
   resolution: "react-native-browser-polyfill@npm:0.1.2"
   checksum: 10/d88599fa495b4add9f57106a4560f62350aac8230a3540eafd1fe216680d3026eed3ca721745c660dca068af954ab66fa91d1240965f52425e7c6ce6d3de59eb
-  languageName: node
-  linkType: hard
-
-"react-native-confetti-cannon@npm:^1.5.0":
-  version: 1.5.2
-  resolution: "react-native-confetti-cannon@npm:1.5.2"
-  checksum: 10/0ca5d56eef9763e891d228017708c340b54cc87d46d1c38d7aff5b46d511d78b52d884b9492aa1022cdd4772ef974c0e2175831516b1aafda93208e97e5098a1
-  languageName: node
-  linkType: hard
-
-"react-native-confetti@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "react-native-confetti@npm:0.1.0"
-  checksum: 10/f1687bab6db8ccfe233d5e008128caa4f0c776c267ce5046ba90b54c54c6985f2170e39051d0971b2649f97ea59f596cf18908647f4c75e9c6811dd1be332b44
   languageName: node
   linkType: hard
 
