@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import {
-  SUBSCRIPTION_STATUSES,
-  type SubscriptionStatus,
-} from '@metamask/subscription-controller';
+import type { SubscriptionStatus } from '@metamask/subscription-controller';
 import { useQuery } from '@tanstack/react-query';
 import Engine from '../../../../core/Engine';
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
@@ -15,6 +12,7 @@ import { SUBSCRIPTIONS_QUERY_KEY } from '../../../hooks/useSubscriptions';
 import {
   ProvisionalPaymentTransition,
   getProvisionalSubscriptionPollIntervalMs,
+  isStillFundingSubscriptionStatus,
   resolveProvisionalPaymentTransition,
 } from '../utils/proSubscriptionPaymentStatus';
 import { useProSubscriptionPaymentToasts } from './useProSubscriptionPaymentToasts';
@@ -22,14 +20,16 @@ import { useProSubscriptionPaymentToasts } from './useProSubscriptionPaymentToas
 const UNSEEN_STATUS = Symbol('unseen-subscription-status');
 
 /**
- * Watches a provisional Money Account Plus plan from anywhere in the app.
+ * Watches an in-flight Money Account Plus payment from anywhere in the app.
  *
  * The first observed status is recorded and not announced, so opening the
  * app onto an already active plan does not toast. A later change from
- * provisional to active or trialing shows the membership toast. A later
- * change to a failed or missing plan opens the payment-failed sheet.
+ * provisional or awaiting-funds to active or trialing shows the membership
+ * toast. A later change to a failed or missing plan opens the
+ * payment-failed sheet. A hop between those two funding statuses stays
+ * quiet and keeps watching.
  *
- * While the plan is provisional, subscriptions refresh faster than the
+ * While the plan is still funding, subscriptions refresh faster than the
  * five-minute access poll. The interval follows the device and network
  * tiers in `getProvisionalSubscriptionPollIntervalMs`. No usable network
  * skips this extra poll. The query stays gated on sign-in and unlock, same
@@ -51,7 +51,7 @@ export function useProSubscriptionPaymentMonitor(): {
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const status = subscription?.status;
-  const isProvisional = status === SUBSCRIPTION_STATUSES.provisional;
+  const isStillFunding = isStillFundingSubscriptionStatus(status);
   const pollInterval = getProvisionalSubscriptionPollIntervalMs(
     hardwareTier,
     networkTier,
@@ -68,7 +68,7 @@ export function useProSubscriptionPaymentMonitor(): {
     queryKey: SUBSCRIPTIONS_QUERY_KEY,
     queryFn: () => Engine.context.SubscriptionController.getSubscriptions(),
     enabled:
-      isProvisional && pollInterval !== false && isSignedIn && isUnlocked,
+      isStillFunding && pollInterval !== false && isSignedIn && isUnlocked,
     refetchInterval: pollInterval === false ? false : pollInterval,
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -80,7 +80,7 @@ export function useProSubscriptionPaymentMonitor(): {
 
     if (
       previousStatus === UNSEEN_STATUS ||
-      previousStatus !== SUBSCRIPTION_STATUSES.provisional
+      !isStillFundingSubscriptionStatus(previousStatus)
     ) {
       return;
     }

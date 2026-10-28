@@ -132,6 +132,48 @@ describe('useProSubscriptionPaymentMonitor', () => {
     expect(mockDismissPaymentToast).toHaveBeenCalledTimes(1);
   });
 
+  it('keeps watching when a provisional plan starts awaiting funds', () => {
+    status = SUBSCRIPTION_STATUSES.provisional;
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    status = SUBSCRIPTION_STATUSES.awaitingFunds;
+    rerender(undefined);
+
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+    expect(mockedUseQuery).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        enabled: true,
+        refetchInterval: PROVISIONAL_POLL_INTERVAL_MS,
+      }),
+    );
+
+    status = SUBSCRIPTION_STATUSES.active;
+    rerender(undefined);
+
+    expect(mockShowActiveToast).toHaveBeenCalledTimes(1);
+    expect(result.current.isPaymentFailedSheetOpen).toBe(false);
+  });
+
+  it('opens the failed sheet when a plan awaiting funds is canceled', () => {
+    status = SUBSCRIPTION_STATUSES.provisional;
+    const { rerender, result } = renderHook(() =>
+      useProSubscriptionPaymentMonitor(),
+    );
+
+    status = SUBSCRIPTION_STATUSES.awaitingFunds;
+    rerender(undefined);
+
+    status = SUBSCRIPTION_STATUSES.canceled;
+    rerender(undefined);
+
+    expect(result.current.isPaymentFailedSheetOpen).toBe(true);
+    expect(mockDismissPaymentToast).toHaveBeenCalledTimes(1);
+    expect(mockShowActiveToast).not.toHaveBeenCalled();
+  });
+
   it('does not toast when an unrelated plan becomes active', () => {
     const { rerender, result } = renderHook(() =>
       useProSubscriptionPaymentMonitor(),

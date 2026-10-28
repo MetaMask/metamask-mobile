@@ -1,4 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Modal, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { FullWindowOverlay } from 'react-native-screens';
 import {
   BottomSheet,
   BottomSheetFooter,
@@ -14,6 +17,8 @@ import {
   TextVariant,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
@@ -32,6 +37,7 @@ interface PaymentFailedSheetProps {
  * Try again opens the Money Account add-funds sheet.
  */
 const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
+  const tw = useTailwind();
   const sheetRef = useRef<BottomSheetRef>(null);
   const tryAgainRef = useRef(false);
 
@@ -77,47 +83,73 @@ const PaymentFailedSheet = ({ onClose }: PaymentFailedSheetProps) => {
     [handleTryAgain],
   );
 
-  return (
-    <BottomSheet
-      ref={sheetRef}
-      testID={PaymentFailedSheetTestIds.SHEET}
-      keyboardAvoidingViewEnabled={false}
-      onClose={onClose}
-    >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: PaymentFailedSheetTestIds.CLOSE,
-        }}
-      >
-        <Box twClassName="flex-row items-center gap-2">
-          <Icon
-            name={IconName.Danger}
-            color={IconColor.ErrorDefault}
-            size={IconSize.Lg}
-          />
-          <Text
-            variant={TextVariant.HeadingSm}
-            testID={PaymentFailedSheetTestIds.TITLE}
-          >
-            {strings('pro_subscription.payment.failed_title')}
-          </Text>
-        </Box>
-      </BottomSheetHeader>
-      <Box twClassName="px-4">
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          testID={PaymentFailedSheetTestIds.BODY}
+  const sheet = (
+    <ModalSafeAreaProvider>
+      <GestureHandlerRootView style={tw.style('flex-1')}>
+        <BottomSheet
+          ref={sheetRef}
+          testID={PaymentFailedSheetTestIds.SHEET}
+          keyboardAvoidingViewEnabled={false}
+          onClose={onClose}
         >
-          {strings('pro_subscription.payment.failed_body')}
-        </Text>
-      </Box>
-      <BottomSheetFooter
-        primaryButtonProps={primaryButtonProps}
-        twClassName="pt-6"
-      />
-    </BottomSheet>
+          <BottomSheetHeader
+            onClose={handleClose}
+            closeButtonProps={{
+              testID: PaymentFailedSheetTestIds.CLOSE,
+            }}
+          >
+            <Box twClassName="flex-row items-center gap-2">
+              <Icon
+                name={IconName.Danger}
+                color={IconColor.ErrorDefault}
+                size={IconSize.Lg}
+              />
+              <Text
+                variant={TextVariant.HeadingSm}
+                testID={PaymentFailedSheetTestIds.TITLE}
+              >
+                {strings('pro_subscription.payment.failed_title')}
+              </Text>
+            </Box>
+          </BottomSheetHeader>
+          <Box twClassName="px-4">
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              testID={PaymentFailedSheetTestIds.BODY}
+            >
+              {strings('pro_subscription.payment.failed_body')}
+            </Text>
+          </Box>
+          <BottomSheetFooter
+            primaryButtonProps={primaryButtonProps}
+            twClassName="pt-6"
+          />
+        </BottomSheet>
+      </GestureHandlerRootView>
+    </ModalSafeAreaProvider>
+  );
+
+  // This sheet mounts from Main. Pro Hub is a root-stack screen above Main,
+  // so an in-tree sheet would be covered after checkout. iOS uses a separate
+  // window. Android FullWindowOverlay is a plain View, so use a transparent
+  // Modal. The monitor mounts this only while the payment has failed, so an
+  // idle overlay is not left over the app.
+  if (Platform.OS === 'ios') {
+    return <FullWindowOverlay>{sheet}</FullWindowOverlay>;
+  }
+
+  return (
+    <Modal
+      visible
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      presentationStyle="overFullScreen"
+      onRequestClose={handleClose}
+    >
+      {sheet}
+    </Modal>
   );
 };
 

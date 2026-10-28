@@ -56,6 +56,22 @@ const STILL_FUNDING_STATUSES = new Set<SubscriptionStatus>([
 ]);
 
 /**
+ * True while a Plus plan is still waiting on an on-ramp or bridge.
+ *
+ * Both statuses keep the faster subscription poll and the in-session
+ * watcher. A hop from provisional to awaiting-funds is still the same
+ * payment.
+ *
+ * @param status - Latest Plus status, or undefined when the plan is gone.
+ * @returns Whether the payment is still in flight.
+ */
+export function isStillFundingSubscriptionStatus(
+  status: SubscriptionStatus | undefined,
+): boolean {
+  return status !== undefined && STILL_FUNDING_STATUSES.has(status);
+}
+
+/**
  * Chooses the post-checkout screen from how the membership was funded.
  *
  * A balance that was already sufficient is a crypto payment and opens the
