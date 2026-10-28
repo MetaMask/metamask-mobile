@@ -76,7 +76,7 @@ describe('microdeposits', () => {
 
       const display = microdepositDisplayInfo(row);
 
-      expect(display.label).toBe('Test deposit');
+      expect(display.label).toBe('Test Deposit');
       expect(display.description).toBe('From CHASE');
       expect(display.primaryAmount).toBe('+0.34 USD');
       expect(display.isIncoming).toBe(true);
@@ -85,12 +85,12 @@ describe('microdeposits', () => {
       expect(display.showPrimaryAmount).toBe(true);
     });
 
-    it('falls back to the bank transfer description without a counterparty', () => {
+    it('falls back to the generic bank description without a counterparty', () => {
       const [row] = mapMicrodeposits([
         deposit({ counterparty_name: undefined }),
       ]);
 
-      expect(microdepositDisplayInfo(row).description).toBe('Bank transfer');
+      expect(microdepositDisplayInfo(row).description).toBe('From your bank');
     });
 
     it('hides a non-positive or malformed amount', () => {

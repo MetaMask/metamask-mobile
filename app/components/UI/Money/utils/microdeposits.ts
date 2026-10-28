@@ -126,7 +126,7 @@ export function microdepositDisplayInfo(
       ? strings('money.transaction.microdeposit_from', {
           name: activity.counterpartyName,
         })
-      : strings('money.transaction.bank_transfer'),
+      : strings('money.transaction.microdeposit_from_bank'),
     primaryAmount: hasValidAmount
       ? `+${formattedAmount} ${activity.currencyCode}`
       : '',
