@@ -265,7 +265,7 @@ export function useMoneyActivityItems({
     microdeposits,
     isLoading: isMicrodepositsLoading,
     refetch: refetchMicrodeposits,
-  } = useMoneyMicrodeposits();
+  } = useMoneyMicrodeposits(moneyAddress);
   const mappedVbaTransfers = useMemo(
     () =>
       moneyAddress

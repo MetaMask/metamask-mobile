@@ -6,9 +6,7 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import type { RootState } from '../../../../reducers';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectKycSessionStatus } from '../../../../selectors/kycController';
-import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { MicrodepositActivity } from '../types/moneyActivity';
@@ -36,15 +34,22 @@ export const moneyMicrodepositsQueryKey = (address: string) =>
  *
  * 404 (no MoonPay customer yet) already resolves to an empty list in
  * `NeoBankService.getMicrodeposits`.
+ *
+ * @param address - Primary Money Account address, already checksummed by
+ * `useMoneyAccountTransactions`. The query is disabled without one.
  */
-export function useMoneyMicrodeposits(): {
+export function useMoneyMicrodeposits(address?: string): {
   microdeposits: MicrodepositActivity[];
   isLoading: boolean;
   refetch: () => void;
 } {
-  const address = useSelector(selectPrimaryMoneyAccount)?.address;
   const normalizedAddress = address?.toLowerCase() ?? '';
-  const isUnlocked = useSelector(selectIsUnlocked);
+  // Read the lock state defensively: some view tests render Money with a
+  // minimal background state.
+  const isUnlocked = useSelector(
+    (state: RootState) =>
+      state.engine?.backgroundState?.KeyringController?.isUnlocked ?? false,
+  );
   const sessionStatus = useSelector(selectKycSessionStatus);
   const kycApproved =
     sessionStatus?.finalStatus === 'approved' ||

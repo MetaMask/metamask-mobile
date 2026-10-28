@@ -8,9 +8,7 @@ import { getHardwareTier } from '../../../../util/deviceCapability';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectKycSessionStatus } from '../../../../selectors/kycController';
-import { selectIsUnlocked } from '../../../../selectors/keyringController';
 
 jest.mock('../../../../core/Engine', () => ({ context: {} }));
 jest.mock('react-redux', () => ({
@@ -80,16 +78,13 @@ function setup(
     if (selector === selectKycSessionStatus) {
       return sessionStatus;
     }
-    if (selector === selectIsUnlocked) {
-      return isUnlocked;
-    }
-    if (selector === selectPrimaryMoneyAccount) {
-      return address ? { address } : undefined;
-    }
     if (typeof selector === 'function') {
       return (selector as (state: unknown) => unknown)({
         engine: {
-          backgroundState: { RampsController: rampsState },
+          backgroundState: {
+            KeyringController: { isUnlocked },
+            RampsController: rampsState,
+          },
         },
       });
     }
@@ -98,6 +93,13 @@ function setup(
   mockUseIsFocused.mockReturnValue(true);
   mockUseNetworkTierState.mockReturnValue({ tier, isResolved: true } as never);
   mockGetHardwareTier.mockReturnValue('MID');
+  return address;
+}
+
+function renderMicrodeposits(address: string | undefined) {
+  return renderHook(() => useMoneyMicrodeposits(address), {
+    wrapper: createWrapper(),
+  });
 }
 
 function setService(service: unknown) {
@@ -112,6 +114,7 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('maps the proxy response into activity rows, newest first', async () => {
+    const address = setup({ kycApproved: true });
     const getMicrodeposits = jest.fn().mockResolvedValue([
       {
         amount: '0.11',
@@ -126,9 +129,7 @@ describe('useMoneyMicrodeposits', () => {
     ]);
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -140,11 +141,10 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('returns an empty list when the pinned controller cannot serve microdeposits', async () => {
+    const address = setup({ kycApproved: true });
     setService({});
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -152,14 +152,13 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('logs a failed first fetch and shows no rows', async () => {
+    const address = setup({ kycApproved: true });
     const getMicrodeposits = jest
       .fn()
       .mockRejectedValue(new Error('upstream down'));
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(getMicrodeposits).toHaveBeenCalled());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
@@ -169,6 +168,7 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('keeps the last good rows when a later poll fails', async () => {
+    const address = setup({ kycApproved: true });
     const getMicrodeposits = jest
       .fn()
       .mockResolvedValueOnce([
@@ -181,9 +181,7 @@ describe('useMoneyMicrodeposits', () => {
       .mockRejectedValueOnce(new Error('upstream down'));
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.microdeposits).toHaveLength(1));
 
@@ -206,27 +204,23 @@ describe('useMoneyMicrodeposits', () => {
       { autorampWallet: ADDRESS.toLowerCase() },
     ],
   ])('fetches with %s', async (_label, options) => {
-    setup(options as Parameters<typeof setup>[0]);
+    const address = setup(options as Parameters<typeof setup>[0]);
 
     const getMicrodeposits = jest.fn().mockResolvedValue([]);
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(getMicrodeposits).toHaveBeenCalled());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
   });
 
   it('does not fetch for a wallet with no KYC decision and no VBA evidence', async () => {
-    setup();
+    const address = setup();
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -234,13 +228,11 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('does not fetch without a Money Account address', async () => {
-    setup({ address: undefined, kycApproved: true });
+    const address = setup({ address: undefined, kycApproved: true });
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -248,13 +240,11 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('does not fetch while the network is known to be offline', async () => {
-    setup({ tier: 'NONE', kycApproved: true });
+    const address = setup({ tier: 'NONE', kycApproved: true });
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -262,13 +252,11 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('does not fetch while the wallet is locked', async () => {
-    setup({ kycApproved: true, locked: true });
+    const address = setup({ kycApproved: true, locked: true });
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -276,13 +264,11 @@ describe('useMoneyMicrodeposits', () => {
   });
 
   it('does not refetch when the gate is closed', async () => {
-    setup();
+    const address = setup();
     const getMicrodeposits = jest.fn();
     setService({ getMicrodeposits });
 
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderMicrodeposits(address);
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
