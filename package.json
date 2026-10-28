@@ -643,7 +643,7 @@
     "react-native-progress": "3.5.0",
     "react-native-qrcode-svg": "6.3.21",
     "react-native-quick-base64": "3.0.0",
-    "react-native-quick-crypto": "1.1.5",
+    "react-native-quick-crypto": "^1.1.9",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "4.5.3",
     "react-native-release-profiler": "^0.4.4",

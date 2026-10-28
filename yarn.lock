@@ -38759,7 +38759,7 @@ __metadata:
     react-native-progress: "npm:3.5.0"
     react-native-qrcode-svg: "npm:6.3.21"
     react-native-quick-base64: "npm:3.0.0"
-    react-native-quick-crypto: "npm:1.1.5"
+    react-native-quick-crypto: "npm:^1.1.9"
     react-native-randombytes: "npm:^3.5.3"
     react-native-reanimated: "npm:4.5.3"
     react-native-release-profiler: "npm:^0.4.4"
@@ -44976,9 +44976,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-quick-crypto@npm:1.1.5":
-  version: 1.1.5
-  resolution: "react-native-quick-crypto@npm:1.1.5"
+"react-native-quick-crypto@npm:^1.1.9":
+  version: 1.1.9
+  resolution: "react-native-quick-crypto@npm:1.1.9"
   dependencies:
     "@craftzdog/react-native-buffer": "npm:^6.1.2"
     events: "npm:3.3.0"
@@ -44988,7 +44988,6 @@ __metadata:
     util: "npm:0.12.5"
   peerDependencies:
     expo: ">=48.0.0"
-    expo-build-properties: "*"
     react: "*"
     react-native: "*"
     react-native-nitro-modules: ">=0.31.2"
@@ -44996,9 +44995,7 @@ __metadata:
   peerDependenciesMeta:
     expo:
       optional: true
-    expo-build-properties:
-      optional: true
-  checksum: 10/c3c0d6bd10de8a4496184ad20dbe0aabf894cc5fa4b19904ad8bab4be463be3f57d191351a41d478edd1c66a32db102aef5dcef3ae0e9b392b9947e661bb6745
+  checksum: 10/3a72178f8fc3f84d41b0434b094041939ee34ab7514848d9846e3ec5fcd2cf633bc206725b292cd5e7004f5aa260c4e45bf17125973ef7f9e5eba8145969964d
   languageName: node
   linkType: hard
 
