@@ -8,17 +8,13 @@ import {
   BoxJustifyContent,
   FontWeight,
   Skeleton,
+  Tag,
+  TagSeverity,
   Text,
   TextColor,
   TextVariant as TextVariantDS,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { useTheme } from '../../../../../util/theme';
-import TagBase, {
-  TagSeverity,
-  TagShape,
-} from '../../../../../component-library/base-components/TagBase';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { useSelector } from 'react-redux';
 import { selectDestToken } from '../../../../../core/redux/slices/bridge';
@@ -57,7 +53,6 @@ export const QuoteRowView = React.memo(
     loading,
     receiveAmount,
   }: QuoteRowViewProps) => {
-    const theme = useTheme();
     const formattedReceiveAmount = useMemo(
       () =>
         receiveAmount && receiveAmount !== '0' && destTokenSymbol
@@ -74,9 +69,7 @@ export const QuoteRowView = React.memo(
           paddingVertical={3}
           paddingHorizontal={4}
           backgroundColor={
-            selected
-              ? BoxBackgroundColor.BackgroundMuted
-              : BoxBackgroundColor.BackgroundDefault
+            selected ? BoxBackgroundColor.BackgroundMuted : undefined
           }
           gap={2}
           flexDirection={BoxFlexDirection.Row}
@@ -99,21 +92,11 @@ export const QuoteRowView = React.memo(
                   </Text>
                 </View>
               </Skeleton>
-              <View>
-                {isLowestCost && !loading && (
-                  <TagBase
-                    shape={TagShape.Rectangle}
-                    textProps={{
-                      variant: TextVariant.BodySM,
-                      style: { fontWeight: 500 },
-                      color: theme.colors.success.default,
-                    }}
-                    severity={TagSeverity.Success}
-                  >
-                    {strings('bridge.lowest_cost')}
-                  </TagBase>
-                )}
-              </View>
+              {isLowestCost && !loading && (
+                <Tag severity={TagSeverity.Success}>
+                  {strings('bridge.lowest_cost')}
+                </Tag>
+              )}
             </Box>
             <Skeleton hideChildren={loading}>
               <Text
