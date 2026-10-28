@@ -2,6 +2,7 @@ import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import Utilities from '../../framework/Utilities';
+import { withImplicitWait } from '../../framework/AppiumUtilities';
 import { PerpsModeSelectionBottomSheetSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { type AppiumElement } from '../../framework';
 
@@ -32,11 +33,15 @@ class PerpsModeSelectionBottomSheet {
   /**
    * True when the chooser is in the hierarchy. Existence, not visibility:
    * iOS XCUITest reports BottomSheet children isDisplayed=false while the
-   * sheet is on screen, so a visibility probe would miss it.
+   * sheet is on screen, so a visibility probe would miss it. Uses
+   * isExisting under a short implicit wait — WebdriverIO waitForExist
+   * rejects (not false) when the element is absent, which would skip the
+   * no-op path in callers.
    */
   async isChooserPresent(timeoutMs: number): Promise<boolean> {
-    const el = await this.liteOption;
-    return el.unwrap().waitForExist({ timeout: timeoutMs });
+    return withImplicitWait(timeoutMs, async () =>
+      (await this.liteOption).unwrap().isExisting(),
+    );
   }
 
   /**
