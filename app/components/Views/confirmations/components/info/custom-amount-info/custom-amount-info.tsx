@@ -336,7 +336,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         !isPrefillPending &&
         !hasUserOpenedKeypadRef.current
       ) {
-        handleDone();
+        void handleDone();
       }
       wasPrefillPending.current = isPrefillPending;
     }, [isPrefillPending, handleDone]);
@@ -367,7 +367,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
       if (!hasAutoSubmittedPrefill.current && amountFiat !== '0') {
         hasAutoSubmittedPrefill.current = true;
         isPrefillSkipReleasedRef.current = false;
-        handleDone();
+        void handleDone();
       }
     }, [
       isDepositPrefilled,
@@ -379,7 +379,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleDonePress = useCallback(() => {
       hasUserCommittedAmountRef.current = true;
-      handleDone();
+      void handleDone();
     }, [handleDone]);
 
     const isMaxAutoSubmitPending = useRef(false);
@@ -412,7 +412,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
         amountFiat !== '0'
       ) {
         isMaxAutoSubmitPending.current = false;
-        handleDone();
+        void handleDone();
       }
     }, [amountFiat, handleDone, stage]);
 
@@ -451,7 +451,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     return (
       <Box style={styles.container}>
         <Box style={styles.inputContainer}>
-          <Box style={styles.amountBlock}>
+          <View style={styles.amountBlock}>
             <CustomAmount
               amountFiat={amountFiat}
               currency={currency}
@@ -469,7 +469,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                 stage === CustomAmountStage.AmountInput
               }
             />
-            <Box style={styles.amountCaption}>
+            <View style={styles.amountCaption}>
               {hasAlert ? (
                 <AlertMessage
                   content={alertContent}
@@ -496,8 +496,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
                   {!hidePayTokenAmount && children}
                 </>
               )}
-            </Box>
-          </Box>
+            </View>
+          </View>
         </Box>
         <Box
           gap={16}
@@ -647,12 +647,12 @@ export function CustomAmountInfoSkeleton() {
   return (
     <Box style={styles.container}>
       <Box style={styles.inputContainer}>
-        <Box style={styles.amountBlock}>
+        <View style={styles.amountBlock}>
           <CustomAmountSkeleton />
-          <Box style={styles.amountCaption} testID="custom-amount-caption">
+          <View style={styles.amountCaption} testID="custom-amount-caption">
             <PayTokenAmountSkeleton />
-          </Box>
-        </Box>
+          </View>
+        </View>
       </Box>
       <Box style={styles.bottomBlock}>
         <PayWithRowSkeleton />
