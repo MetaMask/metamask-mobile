@@ -33,6 +33,7 @@ import type {
 import { useTheme } from '../../../../util/theme';
 import MarketingMomentTitle from '../../../UI/MarketingMomentTitle';
 import ProfileAvatar from '../MyProfileView/components/ProfileAvatar';
+import { MAX_USERNAME_LENGTH } from './generateUsername';
 import type {
   ProfileOnboardingDraft,
   UsernameStatus,
@@ -378,6 +379,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 inputProps={{
                   autoCapitalize: 'none',
                   autoCorrect: false,
+                  maxLength: MAX_USERNAME_LENGTH,
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
               />

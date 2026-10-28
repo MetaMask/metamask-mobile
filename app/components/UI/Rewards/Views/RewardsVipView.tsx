@@ -57,7 +57,6 @@ import {
 } from '../utils/formatUtils';
 
 export const REWARDS_VIP_VIEW_TEST_IDS = {
-  INVITE_BUTTON: 'rewards-vip-view-invite-button',
   TRANSACTIONS_BUTTON: 'rewards-vip-view-transactions-button',
   SCROLL: 'rewards-vip-view-scroll',
   SKELETON: 'rewards-vip-view-skeleton',
@@ -179,12 +178,6 @@ const RewardsVipViewContent: React.FC = () => {
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
           endButtonIconProps={[
-            {
-              iconName: IconName.UserCircleAdd,
-              onPress: () =>
-                navigation.navigate(Routes.REFERRAL_REWARDS_VIEW as never),
-              testID: REWARDS_VIP_VIEW_TEST_IDS.INVITE_BUTTON,
-            },
             {
               iconName: IconName.Activity,
               onPress: () =>

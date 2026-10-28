@@ -639,7 +639,6 @@ export type RootStackParamList = {
   ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
   RewardsFlow: NavigatorScreenParams<RewardsStackParamList> | undefined;
-  ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
   TrendingView: ExploreFeedRouteParams | undefined;
@@ -1080,6 +1079,7 @@ export type RootStackParamList = {
   };
   ManageProfileTradingActivityView: undefined;
   ManageProfileLinkedAccountView: undefined;
+  EditProfileAvatarView: undefined;
   TraderProfileView: {
     traderId: string;
     traderName: string;

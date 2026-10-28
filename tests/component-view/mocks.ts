@@ -3,6 +3,14 @@
  * - ONLY Engine (business) and minimal native mocks.
  */
 
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: jest.fn().mockResolvedValue({
+    type: 'success',
+    url: 'https://link.metamask.io/x-oauth-redirect?code=mock-code&state=mock-oauth-state',
+  }),
+  dismissAuthSession: jest.fn(),
+}));
+
 // Engine mock (singleton default export)
 jest.mock('../../app/core/Engine', () => {
   const engine = {
@@ -238,11 +246,21 @@ jest.mock('../../app/core/Engine', () => {
           .mockResolvedValue({ profileId: 'mock-profile-id' }),
         updateProfile: jest.fn().mockResolvedValue(undefined),
         checkUsernameAvailability: jest.fn().mockResolvedValue({
-          username: 'wen-cat',
+          username: 'wen_cat',
           available: true,
           valid: true,
-          normalized: 'wen-cat',
+          normalized: 'wen_cat',
           errors: [],
+        }),
+        connectX: jest.fn().mockResolvedValue({
+          xUserId: 'x-user-1',
+          xProfileUrl: 'https://x.com/degangirl',
+          username: 'degangirl',
+          displayName: 'Degan Giri',
+          avatarUrl:
+            'https://pbs.twimg.com/profile_images/2079082606717779969/DcvmQxfE_400x400.jpg',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          updatedAt: '2026-01-01T00:00:00.000Z',
         }),
         getXAuthorizationUrl: jest.fn().mockResolvedValue({
           authorizationUrl: 'https://x.com/i/oauth2/authorize?mock=true',

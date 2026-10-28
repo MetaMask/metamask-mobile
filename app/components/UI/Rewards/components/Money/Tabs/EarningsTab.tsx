@@ -288,16 +288,13 @@ function breakdownRows(
   const social: BreakdownRow = {
     key: 'social',
     iconName: IconName.Copy,
-    label:
-      persona === 'referrer'
-        ? localizedText.tradeCommissions
-        : localizedText.tradingCommissionsSection,
+    label: localizedText.tradingCommissionsSection,
     description: localizedText.breakdownSocialDescription,
     amount: musdAmount(earnedByOthersLifetime(summary, 'SOCIAL_FOLLOW_TRADE')),
   };
 
   if (persona === 'referrer') {
-    return [trading, referrals, social];
+    return [referrals, social];
   }
 
   return [trading, social];
@@ -628,6 +625,7 @@ const EarningsTab: React.FC<EarningsTabProps> = ({
                 persona === 'referee' ? summary.data?.blocked : undefined
               }
               claimableAmount={musdAmount(summary.data?.claimable)}
+              isReferrer={persona === 'referrer'}
               recordedAmount={musdAmount(summary.data?.lifetime_total)}
               last7Amount={last7Amount}
               isSummaryLoading={summary.loading}

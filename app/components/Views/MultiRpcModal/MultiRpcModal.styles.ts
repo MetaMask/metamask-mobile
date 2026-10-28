@@ -34,7 +34,6 @@ const styleSheet = () =>
       marginRight: 16,
       paddingVertical: 16,
     },
-    spacer: { height: 8 },
   });
 
 export default styleSheet;

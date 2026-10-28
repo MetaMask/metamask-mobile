@@ -85,16 +85,31 @@ const GB_REGION = {
   code: 'GB',
   currency: 'GBP',
   flag: '🇬🇧',
+  canSignUp: false,
 };
+
+const US_REGION = {
+  key: 'US',
+  name: 'United States',
+  code: 'US',
+  canSignUp: true,
+};
+
+const FR_REGION = {
+  key: 'FR',
+  name: 'France',
+  code: 'FR',
+  canSignUp: false,
+};
+
+const MOCK_REGIONS = [GB_REGION, US_REGION, FR_REGION];
 
 jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: () => ({
-    allRegions: [GB_REGION, { key: 'US', name: 'United States', code: 'US' }],
+    allRegions: MOCK_REGIONS,
     getRegionByCode: (code: string) =>
-      code === 'GB'
-        ? GB_REGION
-        : { key: 'US', name: 'United States', code: 'US' },
+      MOCK_REGIONS.find((region) => region.key === code) ?? null,
     isLoading: false,
   }),
 }));
@@ -162,10 +177,13 @@ jest.mock('../../../../Views/AccountSelector', () => ({
 
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   navigateWithDetails: jest.fn(),
-  createNavigationDetails: jest.fn((a: string, b: string) => () => [
-    { name: a },
-    { screen: b },
-  ]),
+  createNavigationDetails: jest.fn(
+    (name: string, screenName?: string) =>
+      (params?: Record<string, unknown>) => [
+        name,
+        screenName ? { screen: screenName, params } : params,
+      ],
+  ),
 }));
 
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
@@ -1228,6 +1246,47 @@ describe('CardAuthentication', () => {
       expect(
         screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
       ).toBeOnTheScreen();
+    });
+
+    it('offers only live countries in the country picker', () => {
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.COUNTRY_SELECT),
+      );
+
+      expect(navigateWithDetails).toHaveBeenCalledWith(expect.anything(), [
+        Routes.CARD.MODALS.ID,
+        {
+          screen: Routes.CARD.MODALS.REGION_SELECTION,
+          params: {
+            regions: [GB_REGION, US_REGION],
+            selectedRegionKey: 'GB',
+          },
+        },
+      ]);
+    });
+
+    it('pre-selects a live geolocation country', () => {
+      mockGeoLocation = 'US';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.getByText(/United States/)).toBeOnTheScreen();
+      expect(mockUseCardSignIn).toHaveBeenCalledWith('US');
+      expect(mockSetUserLocation).toHaveBeenCalledWith('us');
+    });
+
+    it('does not pre-select a country that is not live', () => {
+      mockGeoLocation = 'FR';
+      setResolution({ kind: 'email', option: emailOption });
+      render();
+
+      expect(screen.queryByText(/France/)).toBeNull();
+      expect(mockUseCardSignIn).toHaveBeenCalledWith(null);
+      expect(mockUseCardSignIn).not.toHaveBeenCalledWith('FR');
+      expect(mockSetUserLocation).not.toHaveBeenCalled();
     });
 
     it('keeps a manually chosen country when geolocation arrives later', () => {
