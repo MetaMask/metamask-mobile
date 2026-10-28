@@ -1,0 +1,32 @@
+diff --git a/dist/mappers/api-transaction-mapper.js b/dist/mappers/api-transaction-mapper.js
+index 4746bfa666cb271b23f661d40670388d2e74b082..a975ca7cdd95d23c56ef1eb3999b617d6fa0f06d 100644
+--- a/dist/mappers/api-transaction-mapper.js
++++ b/dist/mappers/api-transaction-mapper.js
+@@ -301,6 +301,27 @@ export function mapApiTransaction({ transaction, subjectAddress, getKnownTokenDe
+             },
+         };
+     }
++    // Relayed / sponsored (gasless) ERC-20 send: a relayer submits the call to a
++    // delegation contract, so the subject is neither the top-level `from` nor
++    // `to`. Their outgoing token transfer is the only evidence it is their send.
++    if (transactionCategory === 'CONTRACT_CALL' &&
++        sentTransfer?.contractAddress &&
++        !receivedTransfer &&
++        !equalsIgnoreCase(from, subjectAddress) &&
++        !equalsIgnoreCase(transaction.to, subjectAddress)) {
++        return {
++            type: 'send',
++            ...common,
++            data: {
++                from: sentTransfer.from,
++                to: sentTransfer.to,
++                token: getToken(sentTransfer, 'out'),
++                // The relayer paid the gas, not the subject. Keep the field so
++                // hosts can attach their own (e.g. sponsored) fee marker.
++                fees: [],
++            },
++        };
++    }
+     const token = getToken(sentTransfer ?? receivedTransfer, sentTransfer ? 'out' : 'in');
+     return {
+         type: 'contractInteraction',
