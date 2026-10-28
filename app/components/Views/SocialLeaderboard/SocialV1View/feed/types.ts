@@ -1,3 +1,4 @@
+import type { CaipAssetType } from '@metamask/utils';
 import type { PositionTokenAvatarData } from '../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import type { SocialV1FeedPost } from '../../../../UI/SocialFeed/types';
 
@@ -40,27 +41,10 @@ export interface SocialV1HotToken {
   label: string;
   avatar: PositionTokenAvatarData;
   /**
-   * Chain name for `GET /v1/tokens/:chain/:contractAddress/feed`. Set from
-   * the first loaded row that has a contract. Absent for perp-only chips.
+   * Every asset the chip groups (spot and perp rows sharing the ticker), most
+   * frequent first, at most ten. Selecting the chip filters the feed to them.
    */
-  chain?: string;
-  /** Contract address paired with {@link chain}. Absent for perp-only chips. */
-  contractAddress?: string;
-}
-
-/**
- * Token-feed page the hot-token carousel loads for the selected chip.
- * `null` means the rail is not driving the feed (no selection, or a chip
- * with no contract).
- */
-export interface SocialV1TokenFeedState {
-  posts: SocialV1FeedPost[];
-  isLoading: boolean;
-  isFetchingNextPage: boolean;
-  hasNextPage: boolean;
-  loadMore: () => void;
-  error: string | null;
-  refresh: () => Promise<void>;
+  assetIds: CaipAssetType[];
 }
 
 export interface UseSocialV1HotTokensResult {
