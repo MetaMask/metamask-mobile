@@ -46,6 +46,7 @@ const NFTS_PER_ROW = 3;
 
 const styles = StyleSheet.create({
   flex1: { flex: 1 },
+  gridItem: { marginBottom: 0 },
 });
 
 interface NFTsSectionProps {
@@ -210,6 +211,7 @@ const NFTsSection = forwardRef<SectionRefreshHandle, NFTsSectionProps>(
                         item={nft}
                         onLongPress={handleLongPress}
                         source="mobile-nft-list"
+                        style={styles.gridItem}
                       />
                     </View>
                   ))}

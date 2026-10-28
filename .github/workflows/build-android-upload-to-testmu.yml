@@ -142,6 +142,9 @@ permissions:
   actions: read
   statuses: read
 
+# Builds from this workflow can be signed with the RC signer, so they must not restore caches.
+cache-mode: none
+
 jobs:
   check-builds-needed:
     name: Check if Android builds are needed

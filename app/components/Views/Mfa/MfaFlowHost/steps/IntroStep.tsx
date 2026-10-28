@@ -2,6 +2,7 @@ import React from 'react';
 import {
   AvatarIcon,
   AvatarIconSeverity,
+  AvatarIconSize,
   Box,
   Button,
   ButtonSize,
@@ -9,6 +10,7 @@ import {
   Icon,
   IconColor,
   IconName,
+  IconSize,
   ListItem,
   ListItemVariant,
 } from '@metamask/design-system-react-native';
@@ -79,10 +81,14 @@ const IntroStep = ({ step, state, reason, onAction }: StepProps<'intro'>) => (
             key={method}
             variant={ListItemVariant.TwoLines}
             avatar={
-              <AvatarIcon
-                iconName={METHOD_ICONS[method]}
-                severity={AvatarIconSeverity.Neutral}
-              />
+              <Box twClassName="-mr-1">
+                <AvatarIcon
+                  iconName={METHOD_ICONS[method]}
+                  severity={AvatarIconSeverity.Neutral}
+                  size={AvatarIconSize.Lg}
+                  iconProps={{ size: IconSize.Md }}
+                />
+              </Box>
             }
             endAccessory={
               isDone ? (

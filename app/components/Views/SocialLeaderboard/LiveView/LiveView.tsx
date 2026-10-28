@@ -15,11 +15,12 @@ import type { AppNavigationProp } from '../../../../core/NavigationService/types
 import { selectFollowingProfileIds } from '../../../../selectors/socialController';
 import { navigateToSocialV1Profile } from '../navigation/navigateToSocialV1Profile';
 import { playSelection } from '../../../../util/haptics';
+import SocialFilterEmptyState from '../shared/SocialFilterEmptyState';
+import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1FeedEmptyState';
 import SocialFeed, {
   type SocialFeedHeaderProps,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import type { SocialFeedSource } from '../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
@@ -33,21 +34,25 @@ import LiveButton from './components/LiveButton';
 import PendingPostsButton from './components/PendingPostsButton';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 import { useMyProfile } from '../MyProfileView/hooks';
+import {
+  SocialEvent,
+  type SocialEventSource,
+  useSocialInteraction,
+} from '../analytics';
 
-const LIVE_FEED_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  scope: 'all',
-};
+const { Filter, Interaction, Screen, StreamState, Tab } = SocialEvent;
 
 type LiveStreamState = 'paused' | 'live';
 
 export interface LiveViewProps {
   isActive?: boolean;
+  source?: SocialEventSource;
   onScroll?: ScrollHandlerProcessed;
   pageRef?: React.Ref<SocialTabPageHandle>;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /** Clears the applied Live filters. */
+  onClearFilters?: () => void;
   /** Filters committed in the Live filter sheet. */
   appliedFilters?: SocialShellFilters;
   onCopyTrade?: SocialFeedProps['onCopyTrade'];
@@ -55,10 +60,12 @@ export interface LiveViewProps {
 
 const LiveView: React.FC<LiveViewProps> = ({
   isActive = true,
+  source,
   onScroll,
   pageRef,
   onOpenFilters,
   isFilterActive = false,
+  onClearFilters,
   appliedFilters = DEFAULT_FILTERS,
   onCopyTrade,
 }) => {
@@ -89,6 +96,11 @@ const LiveView: React.FC<LiveViewProps> = ({
   );
 
   const previousFiltersRef = useRef(appliedFilters);
+  const trackInteraction = useSocialInteraction(
+    Screen.LIVE_TRADES,
+    { tab_name: Tab.LIVE_TRADES, source },
+    isActive,
+  );
   useEffect(() => {
     if (previousFiltersRef.current === appliedFilters) {
       return;
@@ -102,9 +114,16 @@ const LiveView: React.FC<LiveViewProps> = ({
       if (streamState === 'paused') {
         onRevealPending();
       }
-      setStreamState((previous) => (previous === 'live' ? 'paused' : 'live'));
+      const next = streamState === 'live' ? 'paused' : 'live';
+      setStreamState(next);
+      trackInteraction(Interaction.STREAM_TOGGLED, {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: next === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+        previous_filter_value:
+          streamState === 'live' ? StreamState.LIVE : StreamState.PAUSED,
+      });
     },
-    [streamState],
+    [streamState, trackInteraction],
   );
 
   const handleAuthorPress = useCallback(
@@ -151,7 +170,8 @@ const LiveView: React.FC<LiveViewProps> = ({
         onOpenFilters={onOpenFilters}
         isFilterActive={isFilterActive}
         filterTestID={LiveViewSelectorsIDs.FILTER_BUTTON}
-        twClassName="px-4 pt-[12px] pb-4"
+        testID={LiveViewSelectorsIDs.FILTER_BAR}
+        twClassName="px-4 pt-4 pb-2"
       >
         <Box twClassName="flex-row items-center gap-2">
           <LiveButton
@@ -169,15 +189,28 @@ const LiveView: React.FC<LiveViewProps> = ({
     [handleLiveToggle, isFilterActive, isLive, onOpenFilters],
   );
 
+  const liveEmpty = (
+    <Box twClassName="-mt-2">
+      {isFilterActive ? (
+        <SocialFilterEmptyState onClear={onClearFilters ?? (() => undefined)} />
+      ) : (
+        <SocialV1FeedEmptyState tab="live" />
+      )}
+    </Box>
+  );
+
   return (
     <Box twClassName="flex-1 bg-default">
       <SocialFeed
-        source={LIVE_FEED_SOURCE}
+        scope="all"
         location="social_live"
+        analyticsSource={source}
+        isActive={isActive}
         scrollMode="virtualized"
         realtime={isActive}
         paused={!isLive}
         filterPost={filterPost}
+        emptyState={liveEmpty}
         renderHeader={renderHeader}
         onScroll={onScroll}
         pageRef={feedPageRef}

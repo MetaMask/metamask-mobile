@@ -16,6 +16,7 @@ import type {
   PredictPositionsPage,
   PredictReadOptions,
   PredictSearchResults,
+  PredictVenueCatalog,
   PredictVenueStatus,
 } from '../types';
 
@@ -52,6 +53,9 @@ export interface VenueTradingAdapter {
 
 export interface VenueMarketDataAdapter {
   fetchVenueStatus(options?: PredictReadOptions): Promise<PredictVenueStatus>;
+  /** The Venue's product support: actions, discovery Feeds by key, and
+   * search. Parsed with `parsePredictVenueCatalog`, so it fails closed. */
+  fetchVenueCatalog(options?: PredictReadOptions): Promise<PredictVenueCatalog>;
   fetchFeed(
     feedId: PredictFeedId,
     params: FetchFeedParams,

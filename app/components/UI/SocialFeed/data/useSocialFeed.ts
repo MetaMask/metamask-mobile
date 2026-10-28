@@ -114,8 +114,8 @@ const byTimestampDesc = (a: TraderFeedRow, b: TraderFeedRow): number =>
   b.item.timestamp - a.item.timestamp;
 
 /**
- * Social feed for any {@link SocialFeedSource}: every trader, one token, one
- * perp market, or one trader.
+ * Social feed for any {@link SocialFeedSource}: a `fetchFeed` query (scope,
+ * chains, assets, trader), or a legacy token, perp or trader route.
  *
  * Owns the whole data path so a surface only has to say which feed it wants:
  * identifier normalisation, the unlock gate, cursor pagination, refresh to the
@@ -146,9 +146,8 @@ export const useSocialFeed = (
     [source],
   );
   const realtimeScope = useMemo(
-    () =>
-      realtime && source && request ? toSocialFeedRealtimeScope(source) : null,
-    [realtime, request, source],
+    () => (realtime ? toSocialFeedRealtimeScope(request) : null),
+    [realtime, request],
   );
   const queryKey = useMemo(
     () =>
@@ -249,7 +248,7 @@ export const useSocialFeed = (
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage && !isError) {
-      fetchNextPage();
+      fetchNextPage().catch(() => undefined);
     }
   }, [fetchNextPage, hasNextPage, isError, isFetchingNextPage]);
 

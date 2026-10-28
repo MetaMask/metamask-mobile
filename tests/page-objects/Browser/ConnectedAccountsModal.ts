@@ -7,7 +7,12 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Assertions from '../../framework/Assertions';
 import Utilities from '../../framework/Utilities';
+import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
 import { type AppiumElement } from '../../framework';
+import BrowserView from './BrowserView';
+import ToastModal from '../wallet/ToastModal';
+import NetworkListModal from '../Network/NetworkListModal';
+import DappConnectionModal from '../MMConnect/DappConnectionModal';
 
 class ConnectedAccountsModal {
   get container(): Promise<AppiumElement> {
@@ -167,6 +172,79 @@ class ConnectedAccountsModal {
       {
         timeout,
         description: 'Disconnect all accounts and networks control',
+      },
+    );
+  }
+
+  /**
+   * Open the browser connected-accounts sheet with toast + network-picker recovery.
+   *
+   * A single avatar tap is not enough: toasts can swallow the tap, and the
+   * browser account button can briefly open the network selector while the
+   * permitted account is still propagating to the URL bar. Retry until Edit
+   * accounts (`account-list-bottom-sheet`) is visible.
+   *
+   * When `waitForConnectSheetClosed` is true, wait for the native connect
+   * sheet to close first — `account-list-bottom-sheet` is also present on
+   * that sheet, so trusting the shared ID too early is wrong.
+   */
+  async openFromBrowser(
+    options: {
+      timeout?: number;
+      waitForConnectSheetClosed?: boolean;
+    } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 30_000;
+
+    await AppiumContextHelpers.switchToNativeContext();
+
+    if (options.waitForConnectSheetClosed) {
+      await Utilities.waitForElementToDisappear(
+        DappConnectionModal.connectButton,
+        15_000,
+      );
+    }
+
+    await ToastModal.waitForToastToDismiss();
+
+    await Utilities.executeWithRetry(
+      async () => {
+        if (
+          await Utilities.isElementVisible(this.accountListBottomSheet, 500)
+        ) {
+          return;
+        }
+
+        if (
+          await Utilities.isElementVisible(NetworkListModal.selectNetwork, 500)
+        ) {
+          await NetworkListModal.swipeToDismissModal();
+        }
+
+        if (
+          !(await Utilities.isElementVisible(
+            BrowserView.networkAvatarOrAccountButton,
+            1_500,
+          ))
+        ) {
+          throw new Error(
+            'Browser account button not visible while opening connected accounts',
+          );
+        }
+
+        await Gestures.waitAndTap(BrowserView.networkAvatarOrAccountButton, {
+          elemDescription: 'Network avatar or account button',
+          timeout: 3_000,
+        });
+        await Assertions.expectElementToBeVisible(this.accountListBottomSheet, {
+          timeout: 3_000,
+          description: 'Connected accounts sheet after browser avatar tap',
+        });
+      },
+      {
+        timeout,
+        interval: 500,
+        description: 'Open connected-accounts sheet from browser avatar',
       },
     );
   }

@@ -108,12 +108,14 @@ export function mergeContinueResult(
   ) {
     merged.confidence = Math.max(seed.confidence, aiResult.confidence);
   }
+  delete merged.performance_tests;
   return merged;
 }
 
 /**
- * Always continue so AI can still pick performance tags. mergeContinueResult
- * keeps E2E selected_tags as ALL when that was the hard-rule floor.
+ * Continue so the model can add smoke tags above the hard-rule floor.
+ * mergeContinueResult keeps selected_tags as ALL when that was the floor.
+ * Performance tags are not part of this selection.
  */
 export function allowContinue(_result: Record<string, unknown>): boolean {
   return true;

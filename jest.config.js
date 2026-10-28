@@ -110,7 +110,6 @@ const DEPENDENCIES_TO_TRANSPILE = [
   '@metamask/mfa-wallet-interface',
   '@metamask/mfa-wallet-network',
   '@metamask/mpc-interface',
-  '@metamask/cryptography',
   // 5.x ships ESM-only under dist/*.js (3.x used a CJS build).
   '@metamask/money-account-upgrade-controller',
   // 2.x ships ESM-only under dist/*.js (1.x used a CJS build).

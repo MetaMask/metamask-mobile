@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { TextColor } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import I18n from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
@@ -21,6 +22,7 @@ import { mockTheme } from '../../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
+import { getHomepageBalanceColor } from './HomepageBalanceBreakdownHero';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -174,6 +176,20 @@ const breakdown: BreakdownData = {
     defi: makeSlice('defi'),
   },
 };
+
+describe('getHomepageBalanceColor', () => {
+  it('returns muted text while the aggregate is partially loaded', () => {
+    const color = getHomepageBalanceColor(true);
+
+    expect(color).toBe(TextColor.TextMuted);
+  });
+
+  it('returns default text after all loading settles', () => {
+    const color = getHomepageBalanceColor(false);
+
+    expect(color).toBe(TextColor.TextDefault);
+  });
+});
 
 describe('HomepageBalanceBreakdown', () => {
   beforeEach(() => {

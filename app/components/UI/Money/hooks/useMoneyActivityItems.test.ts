@@ -182,6 +182,7 @@ describe('mergeMoneyActivity', () => {
       token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
       amount: '1000000',
       receivedFrom: '0xsender' as Hex,
+      status: 'confirmed',
     };
 
     expect(mergeMoneyActivity([local], [completed])).toEqual([
@@ -203,6 +204,7 @@ describe('mergeMoneyActivity', () => {
       token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
       amount: '1000000',
       receivedFrom: '0xsender' as Hex,
+      status: 'confirmed',
     };
     const neobank: NeobankBankTransferActivity[] = [
       {
@@ -562,6 +564,7 @@ describe('useMoneyActivityItems', () => {
       token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
       amount: '15000000',
       receivedFrom: '0xsender' as Hex,
+      status: 'confirmed' as const,
     };
     mockUseSelector.mockImplementation((selector: unknown) => {
       if (selector === selectMoneyVbaCompletedActivityEnabled) return true;

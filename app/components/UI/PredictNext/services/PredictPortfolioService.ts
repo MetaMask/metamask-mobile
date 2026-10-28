@@ -16,6 +16,7 @@ import type { Json } from '@metamask/utils';
 import {
   hashKey,
   partialMatchKey,
+  QueryCache,
   type InvalidateOptions,
   type InvalidateQueryFilters,
 } from '@tanstack/query-core';
@@ -142,6 +143,9 @@ export class PredictPortfolioService extends BaseDataService<
   /** Reads this service has cached, by query hash, for invalidation
    * refreshes. */
   readonly #cachedReads = new Map<string, CachedRead>();
+  /** The service's own cache, held here so a reset can remove its entries:
+   * the base class only exposes invalidation. */
+  readonly #queryCache: QueryCache;
 
   constructor({
     messenger,
@@ -149,9 +153,14 @@ export class PredictPortfolioService extends BaseDataService<
     venueId,
     policyOptions,
   }: PredictPortfolioServiceOptions) {
+    const queryCache = new QueryCache();
     super({
       name: PREDICT_PORTFOLIO_SERVICE_NAME,
       messenger,
+      // Injected so `clearAccountData` can remove entries instead of only
+      // marking them stale. The base class builds its QueryClient from these
+      // options.
+      queryClientConfig: { queryCache },
       // Inert pass-through policy. Retries and circuit breaking live in the
       // per-read policies below so that Balance, Positions, and Activity can
       // load and retry independently: exhausting one read's retries must not
@@ -163,6 +172,7 @@ export class PredictPortfolioService extends BaseDataService<
         isServiceFailure: isRetryablePredictError,
       },
     });
+    this.#queryCache = queryCache;
     this.#portfolio = portfolio;
     this.#venueId = venueId;
     this.#readPolicyOptions = policyOptions ?? {};
@@ -381,6 +391,27 @@ export class PredictPortfolioService extends BaseDataService<
           }),
         ),
     );
+  }
+
+  /**
+   * Drops every cached account read and stops publishing the ones it held.
+   * Called when the platform replaces the Predict User: a wallet reset runs
+   * in process, so nothing else evicts this cache. Cancelling first aborts
+   * in-flight reads (the adapters forward the abort signal) so their callers
+   * fail instead of receiving the previous person's data.
+   *
+   * The entries are then removed, not merely invalidated: a stale entry keeps
+   * its data and republishes it on its next fetch, which would hydrate the
+   * previous person's values into the app query client the reset just
+   * cleared. Forgetting the remembered reads keeps the `invalidateQueries`
+   * override from re-reading them.
+   *
+   * @returns Nothing.
+   */
+  async clearAccountData(): Promise<void> {
+    await this.cancelQueries();
+    this.#queryCache.clear();
+    this.#cachedReads.clear();
   }
 
   destroy(): void {

@@ -1,17 +1,15 @@
 /**
- * The Earnings tab mocks this hook, and the behavior here is toast choice,
- * challenge signing, and confirmation navigation rather than rendered screen
- * state, so this stays a hook unit test.
+ * The Earnings tab mocks this hook. The behavior here is which banner is
+ * queued, challenge signing, and that a claim does not navigate, rather than
+ * rendered screen state. A component-view test cannot drive the voucher batch
+ * without mocking this hook, so this stays a hook unit test.
  */
 import { act, renderHook } from '@testing-library/react-hooks';
 import type { Action } from '@reduxjs/toolkit';
-import { useNavigation } from '@react-navigation/native';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { BtcAccountType, BtcScope } from '@metamask/keyring-api';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Engine from '../../../../core/Engine';
-import NavigationService from '../../../../core/NavigationService/NavigationService';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   setClaimLock,
   setClaimWaitingUntil,
@@ -40,9 +38,17 @@ import type {
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
-import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import useRewardsToast from './useRewardsToast';
-import { submitClaimVoucher } from '../utils/claimEarnings';
+import {
+  ClaimBatchConfirmationError,
+  submitClaimVoucher,
+} from '../utils/claimEarnings';
+import {
+  claimRewardsNotification,
+  clearSettledClaimBatchBanners,
+  queueClaimRewardsInPlaceOfSettledBanner,
+  suppressSettledClaimBatchBanner,
+} from '../utils/claimBatchNotifications';
 import { useClaimEarnings } from './useClaimEarnings';
 
 const mockDispatch = jest.fn();
@@ -106,26 +112,27 @@ jest.mock('@metamask/eth-snap-keyring/v2', () => ({
     typeof keyring?.submitRequest === 'function',
 }));
 
-jest.mock('../../../../core/NavigationService/NavigationService', () => ({
-  __esModule: true,
-  default: {
-    navigation: { getCurrentRoute: jest.fn() },
-  },
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: jest.fn(),
-}));
-
-jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
-  useConfirmNavigation: jest.fn(),
-}));
-
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('./useRewardsToast', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../utils/claimBatchNotifications', () => ({
+  queueClaimRewardsInPlaceOfSettledBanner: jest.fn((show: () => void) => {
+    show();
+    return 0;
+  }),
+  claimRewardsNotification: jest.fn((id: string, title: string) => ({
+    type: 'CLAIM_REWARDS',
+    id,
+    title,
+  })),
+  suppressSettledClaimBatchBanner: jest.fn(),
+  clearSettledClaimBatchBanners: jest.fn(() => [
+    { type: 'REMOVE_NOTIFICATION_BY_ID', id: 'tx-1' },
+  ]),
 }));
 
 jest.mock('../utils/claimEarnings', () => {
@@ -236,10 +243,6 @@ describe('useClaimEarnings', () => {
   const mockEngineCall = Engine.controllerMessenger.call as jest.Mock;
   const mockSignPersonalMessage = Engine.context.KeyringController
     .signPersonalMessage as jest.Mock;
-  const mockGetCurrentRoute = NavigationService.navigation
-    .getCurrentRoute as jest.Mock;
-  const mockGoBack = jest.fn();
-  const mockNavigateToConfirmation = jest.fn();
   const mockShowToast = jest.fn();
   const mockSuccessToast = jest.fn((title: string) => ({
     variant: 'success',
@@ -274,10 +277,6 @@ describe('useClaimEarnings', () => {
     onOpened.mockReset();
     onSubmitted.mockReset();
     onClaimsPaused.mockReset();
-    global.requestAnimationFrame = (callback: FrameRequestCallback) => {
-      callback(0);
-      return 0;
-    };
     (selectReferralMeLocalizedText as jest.Mock).mockReturnValue(localizedText);
     (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
       address: MONEY_ACCOUNT,
@@ -289,10 +288,6 @@ describe('useClaimEarnings', () => {
       () => true,
     );
     jest.mocked(isMonadMainnetChainId).mockReturnValue(true);
-    (useNavigation as jest.Mock).mockReturnValue({ goBack: mockGoBack });
-    (useConfirmNavigation as jest.Mock).mockReturnValue({
-      navigateToConfirmation: mockNavigateToConfirmation,
-    });
     (useRewardsToast as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
       RewardsToastOptions: {
@@ -313,9 +308,8 @@ describe('useClaimEarnings', () => {
         createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       }),
     );
-    mockSubmitClaimVoucher.mockResolvedValue(undefined);
-    mockGetCurrentRoute.mockReturnValue({
-      name: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    mockSubmitClaimVoucher.mockImplementation(async (request) => {
+      request.onBatchSubmitted?.('0xbatch');
     });
   });
 
@@ -430,7 +424,6 @@ describe('useClaimEarnings', () => {
     });
 
     expect(mockEngineCall).not.toHaveBeenCalled();
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
     expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureToast,
@@ -449,17 +442,21 @@ describe('useClaimEarnings', () => {
       'referral-trade-fee-cashback',
       { money_account_address: MONEY_ACCOUNT },
     );
-    expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
-    });
     expect(mockSubmitClaimVoucher).toHaveBeenCalledWith({
       voucher,
       vaultConfig,
       moneyAccountAddress: MONEY_ACCOUNT,
+      onBatchSubmitted: expect.any(Function),
     });
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(suppressSettledClaimBatchBanner).toHaveBeenCalledWith('0xbatch');
+    expect(clearSettledClaimBatchBanners).toHaveBeenCalledWith('0xbatch');
+    expect(queueClaimRewardsInPlaceOfSettledBanner).toHaveBeenCalledTimes(1);
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
     expect(onOpened).toHaveBeenCalledTimes(1);
     expect(result.current.isClaiming).toBe(false);
@@ -485,9 +482,12 @@ describe('useClaimEarnings', () => {
       await result.current.claim(summary(ONE_DOLLAR));
     });
 
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimPartialSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(mockErrorToast).not.toHaveBeenCalled();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
   });
@@ -509,9 +509,12 @@ describe('useClaimEarnings', () => {
       }
     });
 
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(result.current.isClaiming).toBe(true);
 
     await act(async () => {
@@ -546,9 +549,12 @@ describe('useClaimEarnings', () => {
       await result.current.claim(stale);
     });
 
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(mockErrorToast).not.toHaveBeenCalled();
     expect(result.current.isClaiming).toBe(true);
 
@@ -935,7 +941,6 @@ describe('useClaimEarnings', () => {
         });
 
         expect(mockSignPersonalMessage).not.toHaveBeenCalled();
-        expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
         expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
         expect(mockErrorToast).toHaveBeenCalledWith(
           localizedText.claimFailureRetryToast,
@@ -946,7 +951,7 @@ describe('useClaimEarnings', () => {
     },
   );
 
-  it('goes back and shows the retry toast when the batch is rejected', async () => {
+  it('stays on the earnings tab and shows the retry toast when the batch is rejected', async () => {
     mockSubmitClaimVoucher.mockRejectedValue(new Error('User rejected'));
     const { result } = renderClaim();
 
@@ -954,7 +959,9 @@ describe('useClaimEarnings', () => {
       await result.current.claim(summary(ONE_DOLLAR));
     });
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(queueClaimRewardsInPlaceOfSettledBanner).not.toHaveBeenCalled();
+    expect(suppressSettledClaimBatchBanner).not.toHaveBeenCalled();
+    expect(claimRewardsNotification).not.toHaveBeenCalled();
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureRetryToast,
     );
@@ -962,22 +969,34 @@ describe('useClaimEarnings', () => {
     expect(onSubmitted).not.toHaveBeenCalled();
   });
 
-  it('stays on the current screen when confirmation is no longer open', async () => {
-    mockSubmitClaimVoucher.mockRejectedValue(new Error('User rejected'));
-    mockGetCurrentRoute.mockReturnValue({ name: 'Rewards' });
-    const { result } = renderClaim();
+  it.each(['CONFIRMATION_FAILED', 'CONFIRMATION_TIMEOUT'] as const)(
+    'replaces the settled trade banner with the retry line when confirmation ends in %s',
+    async (reason) => {
+      mockSubmitClaimVoucher.mockImplementation(async (request) => {
+        request.onBatchSubmitted?.('0xbatch');
+        throw new ClaimBatchConfirmationError(reason, reason);
+      });
+      const { result } = renderClaim();
 
-    await act(async () => {
-      await result.current.claim(summary(ONE_DOLLAR));
-    });
+      await act(async () => {
+        await result.current.claim(summary(ONE_DOLLAR));
+      });
 
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockErrorToast).toHaveBeenCalledWith(
-      localizedText.claimFailureRetryToast,
-    );
-  });
+      expect(suppressSettledClaimBatchBanner).toHaveBeenCalledWith('0xbatch');
+      expect(clearSettledClaimBatchBanners).toHaveBeenCalledWith('0xbatch');
+      expect(queueClaimRewardsInPlaceOfSettledBanner).toHaveBeenCalledTimes(1);
+      expect(claimRewardsNotification).toHaveBeenCalledWith(
+        expect.stringMatching(/^claim-rewards-\d+$/u),
+        localizedText.claimFailureRetryToast,
+        'error',
+      );
+      expect(mockErrorToast).not.toHaveBeenCalled();
+      expect(onOpened).toHaveBeenCalledTimes(1);
+      expect(onSubmitted).not.toHaveBeenCalled();
+    },
+  );
 
-  it('shows the generic failure toast without opening confirmation when the vault is missing', async () => {
+  it('shows the generic failure toast when the vault is missing', async () => {
     (selectMoneyAccountVaultConfig as unknown as jest.Mock).mockReturnValue(
       undefined,
     );
@@ -987,7 +1006,6 @@ describe('useClaimEarnings', () => {
       await result.current.claim(summary(ONE_DOLLAR));
     });
 
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
     expect(mockSubmitClaimVoucher).not.toHaveBeenCalled();
     expect(mockEngineCall).not.toHaveBeenCalled();
     expect(mockErrorToast).toHaveBeenCalledWith(
@@ -1077,9 +1095,12 @@ describe('useClaimEarnings', () => {
       await result.current.claim(summary(ONE_DOLLAR));
     });
 
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(mockErrorToast).not.toHaveBeenCalled();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
     expect(onOpened).toHaveBeenCalledTimes(1);
@@ -1147,9 +1168,12 @@ describe('useClaimEarnings', () => {
       await result.current.claim(summary(ONE_DOLLAR));
     });
 
-    expect(mockSuccessToast).toHaveBeenCalledWith(
+    expect(claimRewardsNotification).toHaveBeenCalledWith(
+      expect.stringMatching(/^claim-rewards-\d+$/u),
       localizedText.claimSuccessToast,
+      'success',
     );
+    expect(mockSuccessToast).not.toHaveBeenCalled();
     expect(onClaimsPaused).not.toHaveBeenCalled();
     expect(mockErrorToast).not.toHaveBeenCalled();
     expect(onSubmitted).toHaveBeenCalledTimes(1);
@@ -1181,7 +1205,6 @@ describe('useClaimEarnings', () => {
     });
 
     expect(mockSignPersonalMessage).not.toHaveBeenCalled();
-    expect(mockNavigateToConfirmation).not.toHaveBeenCalled();
     expect(mockErrorToast).toHaveBeenCalledWith(
       localizedText.claimFailureWaitToast,
     );

@@ -22,7 +22,9 @@ import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
+const { Interaction, Outcome, Screen, Trade } = SocialEvent;
 const styles = StyleSheet.create({
   root: {
     flex: 1,
@@ -73,16 +75,30 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     () => openPositions.filter((position) => isPerpPosition(position)),
     [openPositions],
   );
+  const trackInteraction = useSocialScreenAnalytics(
+    Screen.SHARE_POSITION_SHEET,
+    {
+      state: [isLoading, Boolean(error), positions.length > 0],
+    },
+  );
 
   const handleTabChange = useCallback((value: string) => {
     setTab(value === 'closed' ? 'closed' : 'open');
   }, []);
 
+  const handleClose = useCallback(() => {
+    trackInteraction(Interaction.SHEET_DISMISSED, Outcome.DISMISSED);
+    onClose();
+  }, [onClose, trackInteraction]);
+
   const handleSelect = useCallback(
     (position: Position) => {
+      trackInteraction(Interaction.TAP, {
+        trade_type: isPerpPosition(position) ? Trade.PERPS : Trade.SPOT,
+      });
       onSelect(position, tab === 'closed');
     },
-    [onSelect, tab],
+    [onSelect, tab, trackInteraction],
   );
 
   const emptyMessage = bothEmpty
@@ -151,7 +167,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
@@ -161,16 +177,16 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 StyleSheet.absoluteFill,
                 { backgroundColor: colors.overlay.default },
               ]}
-              onPress={onClose}
+              onPress={handleClose}
               accessibilityRole="button"
               testID={SharePositionBottomSheetSelectorsIDs.BACKDROP}
             />
             <BottomSheet
-              onClose={onClose}
+              onClose={handleClose}
               testID={SharePositionBottomSheetSelectorsIDs.SHEET}
             >
               <BottomSheetHeader
-                onClose={onClose}
+                onClose={handleClose}
                 closeButtonProps={{
                   testID: SharePositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}

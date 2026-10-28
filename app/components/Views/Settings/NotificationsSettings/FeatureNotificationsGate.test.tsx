@@ -1,6 +1,8 @@
 import React from 'react';
 import { InteractionManager } from 'react-native';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-namespace
+import * as NotificationActions from '../../../../actions/notification/helpers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { FeatureNotificationsGate } from './FeatureNotificationsGate';
 import {
@@ -16,18 +18,32 @@ import NotificationService, {
   isPushPermissionPromptable,
   requestPushPermissions,
 } from '../../../../util/notifications/services/NotificationService';
+// eslint-disable-next-line import-x/no-namespace
+import * as NotificationStorageKeys from '../../../../util/notifications/constants/notification-storage-keys';
 import { useNotificationStoragePreferences } from './hooks/useNotificationStoragePreferences';
 import { useMainNotificationToggle } from './MainNotificationToggle.hooks';
-import { useNotificationsToggle } from '../../../../util/notifications/hooks/useSwitchNotifications';
+// eslint-disable-next-line import-x/no-namespace
+import * as UsePushNotifications from '../../../../util/notifications/hooks/usePushNotifications';
 import { strings } from '../../../../../locales/i18n';
+import { ToastContext } from '../../../../component-library/components/Toast';
 
 jest.mock('./hooks/useNotificationStoragePreferences');
 jest.mock('./MainNotificationToggle.hooks');
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
-jest.mock('../../../../util/notifications/hooks/useSwitchNotifications');
+jest.mock('../../../../util/notifications/hooks/usePushNotifications');
+jest.mock('../../../../util/notifications/constants', () => ({
+  isNotificationsFeatureEnabled: () => true,
+}));
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockEnableNotifications = jest.fn().mockResolvedValue(undefined);
+const mockTogglePushNotification = jest.fn().mockResolvedValue(true);
+const mockRefetch = jest.fn();
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
 let mockIsFocused = true;
 let mockSheetParams: FeatureNotificationsGateSheetParams = {
   feature: 'priceAlerts',
@@ -42,6 +58,8 @@ jest.mock('@react-navigation/native', () => ({
 let mockIsMasterEnabled = false;
 jest.mock('../../../../selectors/notifications', () => ({
   selectIsMetamaskNotificationsEnabled: () => mockIsMasterEnabled,
+  selectIsFeatureAnnouncementsEnabled: () => false,
+  selectIsUpdatingMetamaskNotifications: () => false,
 }));
 
 // `useSelector` memoizes against store state, which never changes here — re-read
@@ -104,8 +122,6 @@ jest.mock('@metamask/design-system-react-native', () => {
 const TURN_ON_BUTTON =
   NotificationSettingsViewSelectorsIDs.FEATURE_GATE_TURN_ON_BUTTON;
 
-const mockSwitchNotifications = jest.fn().mockResolvedValue(undefined);
-
 const SHEET_ROUTE_ARGS = [
   Routes.MODAL.ROOT_MODAL_FLOW,
   {
@@ -127,38 +143,41 @@ const arrangePreferences = ({
   isLoading = false,
   hasPreferences = true,
 }: PreferencesState = {}) => {
+  const preferences = hasPreferences
+    ? {
+        walletActivity: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+          accounts: [],
+        },
+        marketing: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        },
+        perps: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        },
+        socialAI: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+          txAmountLimit: 500,
+          mutedTraderProfileIds: [],
+        },
+        agenticCli: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: true,
+        },
+        priceAlerts: {
+          pushNotificationsEnabled: isPushEnabled,
+          inAppNotificationsEnabled: isInAppEnabled,
+        },
+      }
+    : undefined;
+
+  mockRefetch.mockResolvedValue({ data: preferences });
   jest.mocked(useNotificationStoragePreferences).mockReturnValue({
-    preferences: hasPreferences
-      ? {
-          walletActivity: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-            accounts: [],
-          },
-          marketing: {
-            pushNotificationsEnabled: false,
-            inAppNotificationsEnabled: false,
-          },
-          perps: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-          },
-          socialAI: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-            txAmountLimit: 500,
-            mutedTraderProfileIds: [],
-          },
-          agenticCli: {
-            pushNotificationsEnabled: true,
-            inAppNotificationsEnabled: true,
-          },
-          priceAlerts: {
-            pushNotificationsEnabled: isPushEnabled,
-            inAppNotificationsEnabled: isInAppEnabled,
-          },
-        }
-      : undefined,
+    preferences,
     hasNotificationPreferences: hasPreferences,
     isLoading,
     isUpdatingPreferences: false,
@@ -166,8 +185,10 @@ const arrangePreferences = ({
     updatePreference: jest.fn(),
     updateSectionChannel: jest.fn().mockResolvedValue(undefined),
     updatePreferencesSection: jest.fn().mockResolvedValue(undefined),
-    refetch: jest.fn(),
+    refetch: mockRefetch,
   });
+
+  return preferences;
 };
 
 const renderGate = (
@@ -181,7 +202,11 @@ const renderSheet = (
   params: Partial<FeatureNotificationsGateSheetParams> = {},
 ) => {
   mockSheetParams = { feature: 'priceAlerts', ...params };
-  return renderWithProvider(<FeatureNotificationsGateSheet />);
+  return renderWithProvider(
+    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+      <FeatureNotificationsGateSheet />
+    </ToastContext.Provider>,
+  );
 };
 
 describe('FeatureNotificationsGate', () => {
@@ -401,14 +426,24 @@ describe('FeatureNotificationsGateSheet', () => {
     mockIsMasterEnabled = false;
     mockSheetParams = { feature: 'priceAlerts' };
     arrangePreferences();
-    mockSwitchNotifications.mockResolvedValue(undefined);
-
-    jest.mocked(useNotificationsToggle).mockReturnValue({
-      switchNotifications: mockSwitchNotifications,
-      data: false,
-      loading: false,
-      error: null,
-    });
+    mockEnableNotifications.mockResolvedValue(undefined);
+    mockTogglePushNotification.mockResolvedValue(true);
+    jest
+      .spyOn(NotificationActions, 'enableNotifications')
+      .mockImplementation(mockEnableNotifications);
+    jest
+      .spyOn(
+        NotificationStorageKeys,
+        'updateNotificationSubscriptionExpiration',
+      )
+      .mockResolvedValue(undefined);
+    jest
+      .mocked(UsePushNotifications.usePushNotificationsToggle)
+      .mockReturnValue({
+        data: false,
+        loading: false,
+        togglePushNotification: mockTogglePushNotification,
+      });
     jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
   });
 
@@ -465,10 +500,12 @@ describe('FeatureNotificationsGateSheet', () => {
       });
 
       renderSheet();
-      fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
 
       await waitFor(() => {
-        expect(mockSwitchNotifications).toHaveBeenCalledWith(true);
+        expect(mockEnableNotifications).toHaveBeenCalled();
       });
       expect(updatePreferencesSection).toHaveBeenCalledWith(
         'priceAlerts',
@@ -489,6 +526,24 @@ describe('FeatureNotificationsGateSheet', () => {
       });
     });
 
+    it('refreshes preferences after creating the preferences row', async () => {
+      const seededPreferences = arrangePreferences({
+        isPushEnabled: true,
+        isInAppEnabled: true,
+      });
+      arrangePreferences({ hasPreferences: false });
+      mockRefetch.mockResolvedValue({ data: seededPreferences });
+
+      renderSheet({ feature: 'socialAI' });
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
+
+      expect(mockEnableNotifications).toHaveBeenCalled();
+      expect(mockRefetch).toHaveBeenCalled();
+    });
+
     it('skips enabling master when it is already on', async () => {
       mockIsMasterEnabled = true;
       const updatePreferencesSection = jest.fn().mockResolvedValue(undefined);
@@ -499,12 +554,59 @@ describe('FeatureNotificationsGateSheet', () => {
       });
 
       renderSheet();
-      fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
 
       await waitFor(() => {
         expect(updatePreferencesSection).toHaveBeenCalled();
       });
-      expect(mockSwitchNotifications).not.toHaveBeenCalled();
+      expect(mockEnableNotifications).not.toHaveBeenCalled();
+    });
+
+    it('shows an error toast when preferences remain unavailable', async () => {
+      arrangePreferences({ hasPreferences: false });
+      mockRefetch.mockResolvedValue({ data: undefined });
+
+      renderSheet();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              isBold: true,
+              label: strings('notifications.feature_gate.error'),
+            },
+          ],
+        }),
+      );
+    });
+
+    it('shows an error toast when enabling notifications fails', async () => {
+      mockEnableNotifications.mockRejectedValueOnce(
+        new Error('Unable to enable notifications'),
+      );
+
+      renderSheet();
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId(TURN_ON_BUTTON));
+      });
+
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: [
+            {
+              isBold: true,
+              label: strings('notifications.feature_gate.error'),
+            },
+          ],
+        }),
+      );
     });
   });
 

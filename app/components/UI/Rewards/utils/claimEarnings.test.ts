@@ -1043,7 +1043,8 @@ describe('submitClaimVoucher', () => {
   });
 
   it('submits the voucher, approve, and deposit as one sponsored batch', async () => {
-    await submitLive();
+    const onBatchSubmitted = jest.fn();
+    await submitLive({ onBatchSubmitted });
 
     expect(mockBuildDepositBatch).toHaveBeenCalledWith({
       amount: BigInt(voucher.value),
@@ -1070,6 +1071,7 @@ describe('submitClaimVoucher', () => {
       skipInitialGasEstimate: true,
     });
     expect(request.batchId).toMatch(/^0x[0-9a-f]{32}$/u);
+    expect(onBatchSubmitted).toHaveBeenCalledWith(request.batchId);
     expect(request.transactions).toEqual([
       {
         params: {

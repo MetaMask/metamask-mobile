@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -21,8 +21,14 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
@@ -45,6 +51,12 @@ const ADD_OPERATIONS: Record<MfaMethod, string> = {
   totp: 'settings.addAuthenticatorApp',
 };
 
+const ADD_SUCCESS_MESSAGE_KEYS: Record<MfaMethod, string> = {
+  passkey: 'mfa.settings.passkey_added',
+  email_otp: 'mfa.settings.email_verified',
+  totp: 'mfa.settings.totp_added',
+};
+
 /**
  * The profile's verification methods: "Add" sets one up, the chevron opens
  * one that is set up. Passkeys open their list, where more can be added.
@@ -53,7 +65,9 @@ const ADD_OPERATIONS: Record<MfaMethod, string> = {
  */
 const MfaSettings = () => {
   const tw = useTailwind();
+  const theme = useTheme();
   const navigation = useNavigation();
+  const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
   const passkeyCount = getActivePasskeys(credentials).length;
@@ -73,7 +87,17 @@ const MfaSettings = () => {
     enroll({
       method,
       reason: { operation: ADD_OPERATIONS[method] },
-    }).catch(() => undefined);
+    })
+      .then(() => {
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          labelOptions: [{ label: strings(ADD_SUCCESS_MESSAGE_KEYS[method]) }],
+          iconName: ToastIconName.Confirmation,
+          iconColor: theme.colors.success.default,
+          hasNoTimeout: false,
+        });
+      })
+      .catch(() => undefined);
   };
 
   const rows: {
