@@ -13,9 +13,9 @@
  * to `'success'` — provider feeds only surface settled history items.
  */
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { PredictActivity } from '../../../components/UI/Predict/types';
+import type { PredictActivity } from '../../../../components/UI/Predict/types';
 import type { CaipChainId } from '@metamask/utils';
-import type { ActivityListItem, TokenAmount } from '../types';
+import type { ActivityListItem, TokenAmount } from '../../types';
 
 interface QuoteAsset {
   /** Display symbol, e.g. `"USDC"`. */

@@ -23,7 +23,7 @@ export {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,
 } from './adapters/staking-activity';
-export { mapPredictActivity } from './adapters/predict-activity';
+export { mapPredictActivity } from './adapters/predict/predict-activity';
 export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
