@@ -91,6 +91,7 @@ const TrendingFilterRail: React.FC<TrendingFilterRailProps> = ({
             accessibilityLabel={strings(
               'social_leaderboard.shell.filters.title',
             )}
+            accessibilityState={{ selected: isFilterActive }}
             twClassName={
               isFilterActive
                 ? 'rounded-full bg-primary-muted'

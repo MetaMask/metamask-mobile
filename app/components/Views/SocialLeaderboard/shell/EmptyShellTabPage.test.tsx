@@ -512,8 +512,35 @@ describe('EmptyShellTabPage', () => {
       scroll.getByTestId(FeedSortFilterSelectorsIDs.SELECTOR),
     ).toBeOnTheScreen();
     expect(
-      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
-    ).toBeOnTheScreen();
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
+  });
+
+  it('marks the filter button selected when a filter is applied', () => {
+    const page = (tab: 'trending' | 'following') => (
+      <EmptyShellTabPage
+        tab={tab}
+        isActive
+        isFilterActive
+        containerTestID={`${tab}-page-content`}
+        scrollTestID={`${tab}-page-scroll`}
+      />
+    );
+
+    const { rerender } = renderWithProvider(page('trending'));
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
+
+    rerender(page('following'));
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
   });
 
   it('omits the Popular traders carousel on Following', () => {
@@ -569,6 +596,10 @@ describe('EmptyShellTabPage', () => {
     );
 
     expect(onOpenFilters).toHaveBeenCalledTimes(1);
+    expect(
+      scroll.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
     expect(
       StyleSheet.flatten(
         scroll.getByTestId(TRENDING_FILTER_RAIL_TEST_ID).props.style,
