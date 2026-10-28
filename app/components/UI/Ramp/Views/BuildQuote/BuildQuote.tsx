@@ -873,8 +873,12 @@ function BuildQuote() {
 
           <View style={styles.actionSection}>
             {hasAmount ? (
-              <>
-                {actionSectionMessage}
+              <View style={styles.continueStack}>
+                {actionSectionMessage ? (
+                  <View style={styles.continueMessage} pointerEvents="box-none">
+                    {actionSectionMessage}
+                  </View>
+                ) : null}
                 {embeddedCheckout.renderOverlay?.({
                   interactive: canContinue,
                 })}
@@ -904,7 +908,7 @@ function BuildQuote() {
                     {strings('fiat_on_ramp.continue')}
                   </Button>
                 )}
-              </>
+              </View>
             ) : (
               quickAmounts.length > 0 && (
                 <QuickAmounts
