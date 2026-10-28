@@ -307,8 +307,8 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     }
     setNearTop(true);
     revealPending();
-    await refresh();
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    await refresh();
   }, [refresh, revealPending]);
 
   const wasPausedRef = useRef(paused);

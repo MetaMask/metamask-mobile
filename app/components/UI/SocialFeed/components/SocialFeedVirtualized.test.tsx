@@ -506,11 +506,15 @@ describe('SocialFeedVirtualized', () => {
     expect(getRefreshControl().props.refreshing).toBe(false);
   });
 
-  const trackRevealSteps = (pendingNewCount: number) => {
+  const trackRevealSteps = (
+    pendingNewCount: number,
+    settleRefresh: () => Promise<void> = async () => undefined,
+  ) => {
     const calls: string[] = [];
     const realtime = realtimeState(pendingNewCount);
     realtime.revealPending.mockImplementation(() => calls.push('reveal'));
     const refresh = jest.fn(async () => {
+      await settleRefresh();
       calls.push('refresh');
     });
     jest
@@ -522,7 +526,7 @@ describe('SocialFeedVirtualized', () => {
     return calls;
   };
 
-  it('reveals held posts from the pill, refreshes, then scrolls to the top', async () => {
+  it('reveals held posts from the pill, scrolls to the top, then refreshes', async () => {
     const calls = trackRevealSteps(3);
     renderFeed({ realtime: true });
 
@@ -530,7 +534,18 @@ describe('SocialFeedVirtualized', () => {
       fireEvent.press(screen.getByLabelText('3 new posts'));
     });
 
-    expect(calls).toEqual(['reveal', 'refresh', 'scroll 0']);
+    expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
+  });
+
+  it('scrolls to the top from the pill before the refresh settles', async () => {
+    const calls = trackRevealSteps(3, () => new Promise(() => undefined));
+    renderFeed({ realtime: true });
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText('3 new posts'));
+    });
+
+    expect(calls).toEqual(['reveal', 'scroll 0']);
   });
 
   it('hides the pill without held posts', () => {
@@ -560,7 +575,7 @@ describe('SocialFeedVirtualized', () => {
       );
     });
 
-    expect(calls).toEqual(['reveal', 'refresh', 'scroll 0']);
+    expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
   });
 
   it('reveals nothing while staying paused', async () => {
