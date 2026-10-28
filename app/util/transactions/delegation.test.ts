@@ -10,6 +10,7 @@ import { type FeatureFlags } from '@metamask/remote-feature-flag-controller';
 import { getDeleGatorEnvironment, type Caveat } from '../../core/Delegation';
 import { timestampBuilder } from '../../core/Delegation/caveatBuilder/timestampBuilder';
 import { CONFIRMATIONS_DELEGATIONS_FEATURE_FLAG_NAME } from './caveats';
+import type { KeyringControllerGetStateAction } from '@metamask/keyring-controller';
 
 const mockGetNonceLock = jest.fn();
 
@@ -40,6 +41,7 @@ const FIXED_NOW = 1_700_000_000_000;
 const NETWORK_CLIENT_ID_MOCK = 'mainnet';
 
 let remoteFeatureFlags: FeatureFlags = {};
+let isKeyringUnlocked = true;
 
 const buildExpectedTimestampTerms = (beforeThreshold: number) =>
   timestampBuilder(getDeleGatorEnvironment(1), 0, beforeThreshold).terms;
@@ -66,6 +68,7 @@ describe('Transaction Delegation Utils', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     remoteFeatureFlags = {};
+    isKeyringUnlocked = true;
 
     jest.spyOn(Date, 'now').mockReturnValue(FIXED_NOW);
 
@@ -86,6 +89,14 @@ describe('Transaction Delegation Utils', () => {
     messengerMock.registerActionHandler(
       'RemoteFeatureFlagController:getState',
       () => ({ cacheTimestamp: 0, remoteFeatureFlags }),
+    );
+
+    messengerMock.registerActionHandler(
+      'KeyringController:getState',
+      () =>
+        ({ isUnlocked: isKeyringUnlocked }) as ReturnType<
+          KeyringControllerGetStateAction['handler']
+        >,
     );
 
     signDelegationMock.mockResolvedValue(DELEGATION_SIGNATURE_MOCK);
@@ -113,6 +124,44 @@ describe('Transaction Delegation Utils', () => {
     caveats.find((caveat) => caveat.terms === terms);
 
   describe('getDelegationTransaction', () => {
+    describe('when keyring is locked', () => {
+      it('waits for unlock before signing', async () => {
+        isKeyringUnlocked = false;
+        let settled = false;
+
+        const resultPromise = getDelegationTransaction(
+          messengerMock,
+          TRANSACTION_META_MOCK,
+        ).then((result) => {
+          settled = true;
+          return result;
+        });
+
+        await new Promise(process.nextTick);
+
+        expect(settled).toBe(false);
+        expect(signDelegationMock).not.toHaveBeenCalled();
+        expect(sign7702Mock).not.toHaveBeenCalled();
+
+        isKeyringUnlocked = true;
+        messengerMock.publish('KeyringController:unlock');
+
+        const result = await resultPromise;
+
+        expect(signDelegationMock).toHaveBeenCalledTimes(1);
+        expect(sign7702Mock).toHaveBeenCalledTimes(1);
+        expect(result.data).toBeDefined();
+      });
+
+      it('signs immediately when already unlocked', async () => {
+        isKeyringUnlocked = true;
+
+        await getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK);
+
+        expect(signDelegationMock).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('returns delegation data', async () => {
       const result = await getDelegationTransaction(
         messengerMock,
