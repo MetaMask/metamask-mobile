@@ -21,14 +21,25 @@ const FEE_DISCOUNT_PERCENTAGE_SCALE = 100;
 
 /**
  * Combined protocol + MetaMask rate as a 3-decimal percent, matching the
- * trade-sheet caption. Undefined when the combined rate is not positive.
+ * trade-sheet caption. A missing rate stays undefined. A confirmed zero is a
+ * real rate and is added; the result is undefined when that total is not
+ * positive.
  */
 export function formatCombinedFeePercentage(
   protocolFeeRate: number | undefined,
   metamaskFeeRate: number | undefined,
 ): string | undefined {
-  const totalRate = (protocolFeeRate ?? 0) + (metamaskFeeRate ?? 0);
-  if (!(totalRate > 0) || !Number.isFinite(totalRate)) {
+  if (protocolFeeRate === undefined) {
+    return undefined;
+  }
+  if (metamaskFeeRate === undefined) {
+    return undefined;
+  }
+  const totalRate = protocolFeeRate + metamaskFeeRate;
+  if (!Number.isFinite(totalRate) || totalRate === 0) {
+    return undefined;
+  }
+  if (totalRate < 0) {
     return undefined;
   }
   return (totalRate * 100).toFixed(3);
@@ -44,6 +55,11 @@ export function formatOriginalCombinedFeePercentage(
   originalMetamaskFeeRate: number | undefined,
 ): string | undefined {
   const current = formatCombinedFeePercentage(protocolFeeRate, metamaskFeeRate);
+  // A missing discounted rate is not a zero rate, so there is no original to
+  // compare against.
+  if (current === undefined) {
+    return undefined;
+  }
   const original = formatCombinedFeePercentage(
     protocolFeeRate,
     originalMetamaskFeeRate ?? metamaskFeeRate,

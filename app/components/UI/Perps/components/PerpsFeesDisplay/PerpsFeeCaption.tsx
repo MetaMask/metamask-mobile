@@ -1,5 +1,4 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -14,11 +13,17 @@ import type { PerpsFeeDiscountKind } from '../../utils/feeDiscount';
 import PerpsFeeDiscountLabel from './PerpsFeeDiscountLabel';
 import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
 
-const styles = StyleSheet.create({
-  strikethrough: {
-    textDecorationLine: 'line-through',
-  },
-});
+/**
+ * Null-byte sentinels stand in for the rates inside one translated sentence.
+ * They cannot appear in locale copy, so a match is the placeholder itself.
+ * The percent sign stays in that sentence, which lets a translation place it
+ * before the number and control the surrounding word order.
+ */
+const ORIGINAL_RATE_PLACEHOLDER = '\u0000originalFeePercentage\u0000';
+const DISCOUNTED_RATE_PLACEHOLDER = '\u0000feePercentage\u0000';
+const PROMO_RATE_SPLIT = new RegExp(
+  `(${ORIGINAL_RATE_PLACEHOLDER}|${DISCOUNTED_RATE_PLACEHOLDER})`,
+);
 
 interface PerpsFeeCaptionProps {
   feePercentage: string;
@@ -30,6 +35,69 @@ interface PerpsFeeCaptionProps {
   testID: string;
   twClassName?: string;
 }
+
+const promoSentenceKey = (
+  hasOriginalRate: boolean,
+  hasBridgeFee: boolean,
+): string => {
+  if (hasOriginalRate && hasBridgeFee) {
+    return 'perps.trade_sheet.includes_fee_after_promo_with_bridge';
+  }
+  if (hasOriginalRate) {
+    return 'perps.trade_sheet.includes_fee_after_promo';
+  }
+  if (hasBridgeFee) {
+    return 'perps.trade_sheet.includes_fee_after_promo_discounted_with_bridge';
+  }
+  return 'perps.trade_sheet.includes_fee_after_promo_discounted';
+};
+
+/**
+ * Replaces rate sentinels with styled text and leaves every other character,
+ * including percent signs, in the translated sentence.
+ */
+const promoSentenceNodes = (
+  template: string,
+  feePercentage: string,
+  originalFeePercentage?: string,
+): React.ReactNode[] =>
+  template
+    .split(PROMO_RATE_SPLIT)
+    .filter((segment) => segment !== '')
+    .map((segment, index) => {
+      if (segment === ORIGINAL_RATE_PLACEHOLDER) {
+        return (
+          <Text
+            key={`original-rate-${index}`}
+            variant={TextVariant.BodyXs}
+            color={TextColor.TextAlternative}
+            twClassName="line-through"
+          >
+            {originalFeePercentage}
+          </Text>
+        );
+      }
+      if (segment === DISCOUNTED_RATE_PLACEHOLDER) {
+        return (
+          <Text
+            key={`discounted-rate-${index}`}
+            variant={TextVariant.BodyXs}
+            color={TextColor.SuccessDefault}
+          >
+            {feePercentage}
+          </Text>
+        );
+      }
+      return (
+        <Text
+          key={`promo-copy-${index}`}
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+        >
+          {segment}
+        </Text>
+      );
+    });
 
 const PerpsFeeCaption = ({
   feePercentage,
@@ -56,11 +124,14 @@ const PerpsFeeCaption = ({
       })
     : strings('perps.trade_sheet.includes_fee', { feePercentage });
 
-  const promoTail = bridgeFee
-    ? strings('perps.trade_sheet.includes_fee_after_promo_tail_with_bridge', {
-        bridgeFee,
-      })
-    : strings('perps.trade_sheet.includes_fee_after_promo_tail');
+  const promoCopy = strings(
+    promoSentenceKey(showOriginalRate, Boolean(bridgeFee)),
+    {
+      originalFeePercentage: ORIGINAL_RATE_PLACEHOLDER,
+      feePercentage: DISCOUNTED_RATE_PLACEHOLDER,
+      bridgeFee,
+    },
+  );
   // Strikethrough is visual only. Name the previous rate when it is shown.
   const promoAccessibilityLabel = showOriginalRate
     ? bridgeFee
@@ -96,21 +167,7 @@ const PerpsFeeCaption = ({
           color={TextColor.TextAlternative}
           accessibilityLabel={promoAccessibilityLabel}
         >
-          {`${strings('perps.trade_sheet.includes_fee_after_promo_lead')} `}
-          {showOriginalRate ? (
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-              style={styles.strikethrough}
-            >
-              {`${originalFeePercentage}%`}
-            </Text>
-          ) : null}
-          {showOriginalRate ? ' ' : null}
-          <Text variant={TextVariant.BodyXs} color={TextColor.SuccessDefault}>
-            {`${feePercentage}%`}
-          </Text>
-          {` ${promoTail}`}
+          {promoSentenceNodes(promoCopy, feePercentage, originalFeePercentage)}
         </Text>
       ) : (
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>

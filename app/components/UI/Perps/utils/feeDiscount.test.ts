@@ -147,9 +147,21 @@ describe('formatCombinedFeePercentage', () => {
     expect(formatCombinedFeePercentage(0.00043, 0.0002)).toBe('0.063');
   });
 
-  it('returns undefined when the combined rate is not positive', () => {
+  it('includes a confirmed zero rate in the total', () => {
+    expect(formatCombinedFeePercentage(0, 0.0002)).toBe('0.020');
+    expect(formatCombinedFeePercentage(0.00043, 0)).toBe('0.043');
+  });
+
+  it('returns undefined when the protocol rate is missing', () => {
+    expect(formatCombinedFeePercentage(undefined, 0.0002)).toBeUndefined();
+  });
+
+  it('returns undefined when the MetaMask rate is missing', () => {
+    expect(formatCombinedFeePercentage(0.00043, undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when the confirmed rates sum to zero', () => {
     expect(formatCombinedFeePercentage(0, 0)).toBeUndefined();
-    expect(formatCombinedFeePercentage(undefined, undefined)).toBeUndefined();
   });
 });
 
@@ -163,6 +175,18 @@ describe('formatOriginalCombinedFeePercentage', () => {
   it('omits the original rate when it matches the discounted rate', () => {
     expect(
       formatOriginalCombinedFeePercentage(0.00045, 0, undefined),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the protocol rate is missing', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(undefined, 0.0002, 0.001),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when the MetaMask rate is missing', () => {
+    expect(
+      formatOriginalCombinedFeePercentage(0.00043, undefined, 0.001),
     ).toBeUndefined();
   });
 });
