@@ -199,10 +199,14 @@ export const useSwapsLimitOrderPriceAdjust = ({
     dispatch({
       type: 'seedFromMarket',
       limitPrice: nextLimitPrice,
+      executionType,
+      isLimitFiatMode,
     });
   }, [
+    executionType,
     getLimitPriceFromSignedPercent,
     isDefaultPriceModeResetPending,
+    isLimitFiatMode,
     isTrackingMarket,
     limitPrice,
   ]);

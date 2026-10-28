@@ -1,5 +1,6 @@
 export {
   socialFeedSourceFromAsset,
+  toFeedAssetId,
   toSocialFeedRequest,
 } from './data/socialFeedSource';
 export type {
@@ -31,6 +32,7 @@ export { default as SocialFeedError } from './components/SocialFeedError';
 export { default as SocialFeed } from './components/SocialFeed';
 export type {
   SocialFeedHeaderProps,
+  SocialFeedInlineRow,
   SocialFeedProps,
   SocialFeedScrollMode,
 } from './components/SocialFeed';

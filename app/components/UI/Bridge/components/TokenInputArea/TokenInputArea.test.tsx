@@ -1196,6 +1196,29 @@ describe('TokenInputArea', () => {
         mockToken,
       );
     });
+
+    it('truncates the destination token amount for display only', () => {
+      const { getByTestId } = renderAmountOverrideInput({
+        amount: '1.234567890123456789',
+        tokenType: TokenInputAreaType.Destination,
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe('1.23456');
+      expect(mockUseDisplayCurrencyValue).toHaveBeenCalledWith(
+        '1.234567890123456789',
+        mockToken,
+      );
+    });
+
+    it('displays the full source token amount', () => {
+      const { getByTestId } = renderAmountOverrideInput({
+        amount: '1.234567890123456789',
+      });
+
+      expect(getByTestId('token-input-input').props.value).toBe(
+        '1.234567890123456789',
+      );
+    });
   });
 
   describe('token button vs select button', () => {

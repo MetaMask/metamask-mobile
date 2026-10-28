@@ -82,6 +82,14 @@ const renderSettings = (
     },
   );
 
+const mockAllMethods = ['passkey', 'totp', 'email_otp'];
+const mockEmailOnly = ['email_otp'];
+const mockMethods = jest.fn();
+jest.mock('../../../../selectors/featureFlagController/mfaUiKit', () => ({
+  selectMfaUiKitMethods: () => mockMethods(),
+}));
+beforeEach(() => mockMethods.mockReturnValue(mockAllMethods));
+
 describe('MfaSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -330,6 +338,15 @@ describe('MfaSettings', () => {
       screen: Routes.MONEY.MODALS.MFA_TURN_OFF_SHEET,
     });
     expect(mockTurnOnMoneyMfa).not.toHaveBeenCalled();
+  });
+
+  it('only offers to add the methods the flag allows', () => {
+    mockMethods.mockReturnValue(mockEmailOnly);
+    const { queryByTestId } = renderSettings();
+
+    expect(queryByTestId(MfaSettingsSelectorsIDs.EMAIL_ROW)).toBeOnTheScreen();
+    expect(queryByTestId(MfaSettingsSelectorsIDs.TOTP_ROW)).toBeNull();
+    expect(queryByTestId(MfaSettingsSelectorsIDs.PASSKEY_ROW)).toBeNull();
   });
 
   it('offers to add an authenticator app', async () => {
