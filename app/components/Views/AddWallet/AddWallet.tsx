@@ -2,22 +2,18 @@ import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
-import { Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+import {
+  AvatarIcon,
+  AvatarIconSeverity,
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
-  HeaderStandard,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
+  ListItem,
+  ListItemVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -28,7 +24,10 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
+import HeaderStandardGlass from '../../../component-library/components-temp/HeaderStandardGlass';
+import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { AddWalletTestIds } from './AddWallet.testIds';
+
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
   description: string;
@@ -40,6 +39,11 @@ interface ActionConfig {
 
 const AddWallet = () => {
   const tw = useTailwind();
+  const { top: safeAreaTop } = useSafeAreaInsets();
+  const { inset: headerInset, onLayout: onHeaderLayout } = useHeaderGlassInset(
+    true,
+    safeAreaTop,
+  );
   const navigation = useNavigation<AppNavigationProp>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
@@ -82,7 +86,7 @@ const AddWallet = () => {
               description: strings(
                 'multichain_accounts.link_metamask_extension_description',
               ),
-              iconName: IconName.Extension,
+              iconName: IconName.Monitor,
               routeName: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
               testID: AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
               title: strings('multichain_accounts.link_metamask_extension'),
@@ -115,75 +119,45 @@ const AddWallet = () => {
   return (
     <SafeAreaView
       edges={['bottom', 'left', 'right']}
-      style={tw`flex-1 bg-default`}
+      style={tw.style('flex-1 bg-default')}
     >
-      <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
-        <HeaderStandard
-          includesTopInset
-          backButtonProps={{
-            accessibilityLabel: strings('navigation.back'),
-            onPress: handleBack,
-            testID: AddWalletTestIds.BACK_BUTTON,
-          }}
+      <HeaderStandardGlass
+        backdrop="static"
+        onLayout={onHeaderLayout}
+        includesTopInset
+        onBack={handleBack}
+        backButtonProps={{
+          accessibilityLabel: strings('navigation.back'),
+          testID: AddWalletTestIds.BACK_BUTTON,
+        }}
+      />
+      <Box
+        testID={AddWalletTestIds.SCREEN}
+        twClassName="flex-1"
+        style={{ marginTop: headerInset }}
+      >
+        <TitleStandard
+          twClassName="mb-6 px-4"
+          title={strings('multichain_accounts.add_wallet')}
         />
 
-        <Box gap={6} paddingHorizontal={4}>
-          <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
-            {strings('multichain_accounts.add_wallet')}
-          </Text>
-
-          <Box gap={3}>
-            {actionConfigs.map((config) => (
-              <Pressable
-                key={config.testID}
-                onPress={() => handleActionPress(config)}
-                testID={config.testID}
-                accessibilityRole="button"
-                style={({ pressed }) =>
-                  tw.style(
-                    'w-full rounded-xl bg-background-muted px-4 py-3',
-                    pressed && 'opacity-80',
-                  )
-                }
-              >
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  flexDirection={BoxFlexDirection.Row}
-                  gap={4}
-                >
-                  <Box
-                    alignItems={BoxAlignItems.Center}
-                    justifyContent={BoxJustifyContent.Center}
-                    twClassName="h-10 w-10 rounded-xl bg-muted"
-                  >
-                    <Icon
-                      color={IconColor.IconAlternative}
-                      name={config.iconName}
-                      size={IconSize.Md}
-                    />
-                  </Box>
-
-                  <Box twClassName="flex-1">
-                    <Text
-                      color={TextColor.TextDefault}
-                      fontWeight={FontWeight.Medium}
-                      variant={TextVariant.BodyMd}
-                    >
-                      {config.title}
-                    </Text>
-                    <Text
-                      color={TextColor.TextAlternative}
-                      fontWeight={FontWeight.Medium}
-                      variant={TextVariant.BodySm}
-                    >
-                      {config.description}
-                    </Text>
-                  </Box>
-                </Box>
-              </Pressable>
-            ))}
-          </Box>
-        </Box>
+        {actionConfigs.map((config) => (
+          <ListItem
+            key={config.testID}
+            isInteractive
+            variant={ListItemVariant.MultiLine}
+            onPress={() => handleActionPress(config)}
+            testID={config.testID}
+            avatar={
+              <AvatarIcon
+                iconName={config.iconName}
+                severity={AvatarIconSeverity.Neutral}
+              />
+            }
+            title={config.title}
+            description={config.description}
+          />
+        ))}
       </Box>
     </SafeAreaView>
   );
