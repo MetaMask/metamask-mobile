@@ -1,6 +1,6 @@
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
 import type { CaipChainId } from '@metamask/utils';
-import type { Status, TokenAmount } from '../types';
+import type { Status, TokenAmount } from '../../types';
 import {
   caipChainIdFromAssetId,
   isPlausibleRampTxHash,

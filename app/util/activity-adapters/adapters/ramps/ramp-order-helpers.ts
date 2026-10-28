@@ -5,13 +5,13 @@ import {
   toCaipChainId,
   type CaipChainId,
 } from '@metamask/utils';
-import { FIAT_ORDER_STATES } from '../../../constants/on-ramp';
+import { FIAT_ORDER_STATES } from '../../../../constants/on-ramp';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { DepositOrderType } from '../../../components/UI/Ramp/types/legacyDeposit';
+import { DepositOrderType } from '../../../../components/UI/Ramp/types/legacyDeposit';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import type { FiatOrder } from '../../../reducers/fiatOrders/types';
-import { getDecimalChainId } from '../../../util/networks';
-import type { ActivityListItem, Status, TokenAmount } from '../types';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { getDecimalChainId } from '../../../../util/networks';
+import type { ActivityListItem, Status, TokenAmount } from '../../types';
 
 export type RampActivityKind = Extract<
   ActivityListItem['type'],

@@ -12,7 +12,7 @@ import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
 import { usePredictActivityItems } from './hooks/usePredictActivityItems';
-import { useRampActivityItems } from './hooks/useRampActivityItems';
+import { useRampActivityItems } from './ramps/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
@@ -264,7 +264,7 @@ jest.mock('./hooks/useLocalActivityItems', () => ({
   useLocalActivityItems: jest.fn(),
 }));
 
-jest.mock('./hooks/useRampActivityItems', () => ({
+jest.mock('./ramps/useRampActivityItems', () => ({
   useRampActivityItems: jest.fn(),
 }));
 

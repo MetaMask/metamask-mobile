@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import type { AppNavigationProp } from '../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   AvatarTokenSize,
   Box,
@@ -14,22 +14,22 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
-import { ButtonIconSizes } from '../../../../component-library/components/Buttons/ButtonIcon';
-import { IconColor as LegacyIconColor } from '../../../../component-library/components/Icons/Icon';
-import type { Status, TokenAmount } from '../../../../util/activity-adapters';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { ActivityDetailsAvatar } from '../components/ActivityDetailsAvatar';
-import { ActivityDetailsStatus } from '../components/ActivityDetailsStatus';
-import { ActivityDetailsTransactionId } from '../components/ActivityDetailsTransactionId';
+import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
+import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconColor as LegacyIconColor } from '../../../../../component-library/components/Icons/Icon';
+import type { Status, TokenAmount } from '../../../../../util/activity-adapters';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { ActivityDetailsAvatar } from '../../components/ActivityDetailsAvatar';
+import { ActivityDetailsStatus } from '../../components/ActivityDetailsStatus';
+import { ActivityDetailsTransactionId } from '../../components/ActivityDetailsTransactionId';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
-} from '../components/ActivityDetailsLayout';
-import { ActivityDetailsAccountValue } from '../components/ActivityDetailsAccountValue';
+} from '../../components/ActivityDetailsLayout';
+import { ActivityDetailsAccountValue } from '../../components/ActivityDetailsAccountValue';
 // eslint-disable-next-line import-x/no-restricted-paths -- reuse shared copy button (clipboard + CopySuccess feedback)
-import CopyButton from '../../confirmations/components/UI/copy-button/copy-button';
+import CopyButton from '../../../confirmations/components/UI/copy-button/copy-button';
 import { formatShortRampOrderId, valueOrUnavailable } from './rampDetailsUtils';
 
 /**

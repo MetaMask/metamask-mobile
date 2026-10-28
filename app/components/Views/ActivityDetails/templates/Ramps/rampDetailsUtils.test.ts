@@ -1,5 +1,5 @@
 import type { RampsOrder } from '@metamask/ramps-controller';
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
 import {
   formatShortRampOrderId,
   getFiatOrderProviderOrderLink,

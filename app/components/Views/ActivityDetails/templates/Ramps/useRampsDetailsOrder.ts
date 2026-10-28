@@ -7,8 +7,8 @@ import { useRampsOrders } from '../../../../UI/Ramp/hooks/useRampsOrders';
 import {
   getRampOrderTransactionHash,
   mapRampOrderType,
-} from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
-import { getRampsOrderTransactionHash } from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+} from '../../../../../util/activity-adapters/adapters/ramps/ramp-order-helpers';
+import { getRampsOrderTransactionHash } from '../../../../../util/activity-adapters/adapters/ramps/ramps-order-helpers';
 import { equalsIgnoreCase } from '../../../../../util/string';
 
 function matchesLegacyOrder(order: FiatOrder, identifier: string) {

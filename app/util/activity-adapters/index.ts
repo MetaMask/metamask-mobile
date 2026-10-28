@@ -28,12 +28,12 @@ export {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,
 } from './adapters/perps-transaction';
-export { mapRampOrder } from './adapters/ramp-order';
-export { mapRampsOrder } from './adapters/ramps-order';
+export { mapRampOrder } from './adapters/ramps/ramp-order';
+export { mapRampsOrder } from './adapters/ramps/ramps-order';
 export {
   isRampFiatOrder,
   isRampRampsOrder,
-} from './adapters/ramp-order-guards';
+} from './adapters/ramps/ramp-order-guards';
 export { mobileActivityAdapterEnvironment } from './adapters/environment';
 export type { TransactionGroup } from './adapters/transaction-group';
 export { GAS_FEE_SPONSORED } from './fees';

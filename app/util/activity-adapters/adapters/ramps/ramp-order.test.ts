@@ -2,10 +2,10 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../constants/on-ramp';
+} from '../../../../constants/on-ramp';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { DepositOrderType } from '../../../components/UI/Ramp/types/legacyDeposit';
-import type { FiatOrder } from '../../../reducers/fiatOrders/types';
+import { DepositOrderType } from '../../../../components/UI/Ramp/types/legacyDeposit';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { mapRampOrder } from './ramp-order';
 
 const baseOrder: FiatOrder = {
