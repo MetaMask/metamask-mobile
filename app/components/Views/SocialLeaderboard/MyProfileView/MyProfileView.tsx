@@ -12,7 +12,6 @@ import {
   HeaderStandardAnimated,
   IconColor,
   IconName,
-  SectionDivider,
   Spinner,
   Text,
   TextColor,
@@ -27,7 +26,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -65,9 +64,8 @@ import {
 } from '../TraderProfileView/hooks';
 import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
 import { SocialFeedSurfaceProvider } from '../../../UI/SocialFeed/SocialFeedSurface';
-import SocialFeedPostSkeleton from '../../../UI/SocialFeed/components/SocialFeedPostSkeleton';
+import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
 import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
-import { getSocialV1FeedEntryDividerTestId } from '../../../UI/SocialFeed/components/SocialV1FeedPostList.testIds';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import MyProfileHeader from './components/MyProfileHeader';
@@ -93,11 +91,6 @@ type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
-const INITIAL_POST_SKELETON_COUNT = 4;
-const INITIAL_POST_SKELETON_KEYS = Array.from(
-  { length: INITIAL_POST_SKELETON_COUNT },
-  (_, index) => `my-profile-post-skeleton-${index}`,
-);
 
 const MyProfileView: React.FC = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -688,23 +681,7 @@ const MyProfileView: React.FC = () => {
                 onRetry={handlePositionsRetry}
               />
             ) : showInitialPostSkeletons ? (
-              <Box paddingTop={4}>
-                {INITIAL_POST_SKELETON_KEYS.map((key, index) => (
-                  <Fragment key={key}>
-                    {index > 0 ? (
-                      <SectionDivider
-                        marginVertical={1}
-                        testID={getSocialV1FeedEntryDividerTestId(
-                          `loading-${index}`,
-                        )}
-                      />
-                    ) : null}
-                    <Box twClassName="px-4">
-                      <SocialFeedPostSkeleton index={index} />
-                    </Box>
-                  </Fragment>
-                ))}
-              </Box>
+              <ProfilePostsLoadingState />
             ) : showPostsEmptyState ? (
               <ProfilePostsEmptyState />
             ) : postsError && posts.length === 0 ? (
