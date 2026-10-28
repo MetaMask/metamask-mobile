@@ -3,6 +3,8 @@ import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import {
   Box,
   ButtonIcon,
+  ButtonIconSize,
+  IconColor,
   IconName,
   Text,
   TextVariant,
@@ -10,12 +12,19 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 
 export interface MoneyNativeHeaderParams {
   onMenuPress: () => void;
   onBack?: () => void;
   isEnabled: boolean;
+  /** Shows the green shield next to the title when 2-step verification is on. */
+  isMfaEnabled?: boolean;
+  /** Opens the 2-step verification sheet from the shield. */
+  onMfaBadgePress?: () => void;
 }
+
+const MFA_BADGE_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 /**
  * The Money header as a native iOS 26 bar: an inline "Money" title, with the
@@ -26,15 +35,33 @@ export const useMoneyNativeHeader = ({
   onMenuPress,
   onBack,
   isEnabled,
+  isMfaEnabled,
+  onMfaBadgePress,
 }: MoneyNativeHeaderParams): boolean => {
   const leftItems = useCallback((): NativeStackHeaderItem[] => {
     const titleItem: NativeStackHeaderItem = {
       type: 'custom',
       hidesSharedBackground: true,
       element: (
-        <Text variant={TextVariant.HeadingLg} testID={MoneyHeaderTestIds.TITLE}>
-          {strings('money.title')}
-        </Text>
+        <Box twClassName="flex-row items-center gap-1">
+          <Text
+            variant={TextVariant.HeadingLg}
+            testID={MoneyHeaderTestIds.TITLE}
+          >
+            {strings('money.title')}
+          </Text>
+          {isMfaEnabled ? (
+            <ButtonIcon
+              iconName={IconName.SecurityTick}
+              size={ButtonIconSize.Sm}
+              iconProps={{ color: IconColor.SuccessDefault }}
+              onPress={onMfaBadgePress}
+              hitSlop={MFA_BADGE_HIT_SLOP}
+              accessibilityLabel={strings('money.mfa.badge_label')}
+              testID={MoneyMfaTestIds.HEADER_BADGE}
+            />
+          ) : null}
+        </Box>
       ),
     };
     if (!onBack) {
@@ -50,7 +77,7 @@ export const useMoneyNativeHeader = ({
       },
       titleItem,
     ];
-  }, [onBack]);
+  }, [onBack, isMfaEnabled, onMfaBadgePress]);
 
   const rightItems = useCallback(
     (): NativeStackHeaderItem[] => [
