@@ -19,6 +19,9 @@ const baseConfig = require('./jest.config.js');
 // point view tests can seed the flag through Redux state like every other
 // feature already does.
 process.env.HAS_TEST_OVERRIDES = 'true';
+// Exercise the Batch sell UI path in component-view tests. The production
+// build-time gate remains controlled by MM_BATCH_SELL_ENABLED.
+process.env.MM_BATCH_SELL_ENABLED = 'true';
 
 // The Predict Order Flow transport bakes its base URL at first compile via
 // babel's inline-environment-variables plugin. Provide a deterministic origin

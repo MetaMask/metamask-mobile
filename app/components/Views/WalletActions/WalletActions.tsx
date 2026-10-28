@@ -1,8 +1,9 @@
 // Third party dependencies.
 import React, { useCallback, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { View, type ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
 // External dependencies.
@@ -23,7 +24,10 @@ import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import {
   selectPooledStakingEnabledFlag,
@@ -47,6 +51,12 @@ import {
   useGetPerpsHomeNavigationTarget,
 } from '../../UI/Perps/utils/perpsModeSwitch';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
+import { isHardwareAccount } from '../../../util/address';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+
+const batchSellIconStyle = {
+  transform: [{ rotate: '180deg' }],
+} satisfies ViewStyle;
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -67,6 +77,13 @@ const WalletActions = () => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
+  const shouldRenderBatchSell =
+    isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'MainView',
@@ -120,6 +137,17 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, goToSwapsBase]);
 
+  const onBatchSell = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.Unknown,
+        },
+      });
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       if (isFirstTimePerpsUser) {
@@ -170,6 +198,20 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {shouldRenderBatchSell && (
+          <ActionListItem
+            label={strings('asset_overview.batch_sell')}
+            description={strings('asset_overview.batch_sell_description')}
+            iconName={IconName.Merge}
+            iconProps={{
+              style: batchSellIconStyle,
+            }}
+            onPress={onBatchSell}
+            testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
+            isDisabled={!isSwapsEnabled}
+          />
+        )}
+
         {AppConstants.SWAPS.ACTIVE && (
           <ActionListItem
             label={strings('asset_overview.swap')}
