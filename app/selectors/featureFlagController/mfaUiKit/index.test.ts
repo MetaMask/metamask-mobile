@@ -1,4 +1,4 @@
-import { selectMfaUiKitEnabled } from './index';
+import { selectMfaUiKitEnabled, selectMfaUiKitMethods } from './index';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
 import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
 import { hasMinimumRequiredVersion } from '../../../util/remoteFeatureFlag';
@@ -54,5 +54,27 @@ describe('selectMfaUiKitEnabled', () => {
     jest.mocked(isMfaDevBuild).mockReturnValue(true);
 
     expect(selectMfaUiKitEnabled.resultFunc(flags)).toBe(true);
+  });
+});
+
+describe('selectMfaUiKitMethods', () => {
+  it('lists the flag methods', () => {
+    expect(
+      selectMfaUiKitMethods.resultFunc({
+        [FeatureFlagNames.mfaUiKit]: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+          methods: ['email_otp'],
+        },
+      }),
+    ).toStrictEqual(['email_otp']);
+  });
+
+  it('allows every method when the flag lists none', () => {
+    expect(selectMfaUiKitMethods.resultFunc({})).toStrictEqual([
+      'passkey',
+      'totp',
+      'email_otp',
+    ]);
   });
 });

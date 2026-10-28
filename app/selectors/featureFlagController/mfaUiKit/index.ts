@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { FeatureFlagNames } from '../../../constants/featureFlags';
+import type { MfaMethod } from '../../../util/identity/mfa/engine/types';
 import { isMfaDevBuild } from '../../../util/identity/mfa/isMfaDevBuild';
 import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFlag';
 
@@ -15,4 +16,19 @@ export const selectMfaUiKitEnabled = createSelector(
     validatedVersionGatedFeatureFlag(
       remoteFeatureFlags?.[FeatureFlagNames.mfaUiKit],
     ) ?? isMfaDevBuild(),
+);
+
+const ALL_METHODS: MfaMethod[] = ['passkey', 'totp', 'email_otp'];
+
+/**
+ * Methods users may add in the MFA settings: the `mfaUiKit` flag's `methods`,
+ * or all of them. Methods already set up stay listed.
+ */
+export const selectMfaUiKitMethods = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): MfaMethod[] => {
+    const { methods } = (remoteFeatureFlags?.[FeatureFlagNames.mfaUiKit] ??
+      {}) as { methods?: unknown };
+    return Array.isArray(methods) ? (methods as MfaMethod[]) : ALL_METHODS;
+  },
 );
