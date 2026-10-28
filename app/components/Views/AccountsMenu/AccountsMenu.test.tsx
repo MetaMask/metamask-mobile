@@ -1,12 +1,15 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import AccountsMenu from './AccountsMenu';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { useSelector } from 'react-redux';
 import { Authentication } from '../../../core/';
 import Routes from '../../../constants/navigation/Routes';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
+import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import {
   selectIsMetamaskNotificationsEnabled,
   getMetamaskNotificationsUnreadCount,
@@ -103,6 +106,18 @@ jest.mock('../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(() => 'US'),
 }));
 
+jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
+  selectBatchSellEnabled: jest.fn(),
+}));
+
+jest.mock('../../../core/redux/slices/bridge', () => ({
+  selectIsSwapsEnabled: jest.fn(() => true),
+}));
+
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(() => null),
+}));
+
 jest.mock('../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: jest.fn(() => false),
 }));
@@ -177,6 +192,7 @@ describe('AccountsMenu', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
     mockUseProSubscriptionEnabled.mockReturnValue({
       isProSubscriptionEnabled: false,
     });
@@ -219,6 +235,13 @@ describe('AccountsMenu', () => {
         const result = selector(mockState);
         if (result === 'US') {
           return 'US';
+        }
+        if (
+          selector === selectBatchSellEnabled ||
+          selector === selectSelectedInternalAccountAddress ||
+          selector.toString().includes('selectIsSwapsEnabled')
+        ) {
+          return result;
         }
       } catch {
         // Selector might not work with our limited mock state
@@ -373,6 +396,30 @@ describe('AccountsMenu', () => {
 
       // Verify trackEvent was called with the built event
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+  });
+
+  describe('Batch Sell Button', () => {
+    it('replaces the Buy button when enabled and navigates to batch sell', () => {
+      jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = render(<AccountsMenu />);
+
+      expect(
+        getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(AccountsMenuSelectorsIDs.BUY_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(AccountsMenuSelectorsIDs.BATCH_SELL_BUTTON));
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
+        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.Unknown,
+        },
+      });
     });
   });
 

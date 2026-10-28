@@ -114,46 +114,6 @@ describeForPlatforms('WalletActions', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows Batch sell in the Buy position and navigates to batch sell when pressed', async () => {
-    const state = initialStateWalletActions({ isEvmSelected: true })
-      .withRemoteFeatureFlags({
-        batchSell: {
-          enabled: true,
-        },
-      })
-      .build() as unknown as Record<string, unknown>;
-
-    const { getByTestId, findByTestId } = renderScreenWithRoutes(
-      WalletActions as unknown as React.ComponentType,
-      { name: Routes.MODAL.WALLET_ACTIONS },
-      [{ name: Routes.BRIDGE.ROOT }],
-      { state },
-    );
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    );
-
-    expect(
-      await findByTestId(getRouteProbeTestId(Routes.BRIDGE.ROOT)),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides Batch sell when the feature flag is disabled', () => {
-    const { queryByTestId } = renderWalletActionsView({
-      isEvmSelected: true,
-      remoteFeatureFlags: {
-        batchSell: {
-          enabled: false,
-        },
-      },
-    });
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).not.toBeOnTheScreen();
-  });
-
   it('navigates to Perps home when a returning user presses Perps', async () => {
     const state = initialStateWalletActions({ isEvmSelected: true })
       .withOverrides({
