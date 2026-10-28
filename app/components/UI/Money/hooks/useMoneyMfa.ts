@@ -20,6 +20,7 @@ import {
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
@@ -98,7 +99,12 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isMfaKitEnabled()) {
+  // Turning it on creates the MPC Money account, which needs the MPC keyring.
+  if (
+    !isFlagEnabled ||
+    !isMfaKitEnabled() ||
+    !isMpcMoneyKeyringBuildEnabled()
+  ) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';

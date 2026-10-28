@@ -6,6 +6,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
@@ -31,6 +32,10 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
   isMfaKitEnabled: jest.fn(),
+}));
+
+jest.mock('../../../../constants/featureFlags', () => ({
+  isMpcMoneyKeyringBuildEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../util/identity/mfa/bindings', () => ({
@@ -73,6 +78,7 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
 const mockIsMfaKitEnabled = jest.mocked(isMfaKitEnabled);
+const mockIsMpcKeyringEnabled = jest.mocked(isMpcMoneyKeyringBuildEnabled);
 const mockStart = jest.mocked(moneyAccountMigration.start);
 const setMigration = (status: MoneyAccountMigrationStatus) =>
   act(() => {
@@ -133,14 +139,17 @@ const wrapper = ({ children }: { children: React.ReactNode }) =>
 const arrange = ({
   isFlagEnabled = true,
   isKitEnabled = true,
+  isMpcKeyringEnabled = true,
   credentials = [],
 }: {
   isFlagEnabled?: boolean;
   isKitEnabled?: boolean;
+  isMpcKeyringEnabled?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
   mockUseSelector.mockReturnValue(isFlagEnabled);
   mockIsMfaKitEnabled.mockReturnValue(isKitEnabled);
+  mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
     enroll: mockEnroll,
@@ -184,6 +193,12 @@ describe('useMoneyMfa', () => {
 
     it('returns unavailable when the MFA kit is disabled', () => {
       const { result } = arrange({ isKitEnabled: false });
+
+      expect(result.current.status).toBe('unavailable');
+    });
+
+    it('returns unavailable when the build has no MPC Money keyring', () => {
+      const { result } = arrange({ isMpcKeyringEnabled: false });
 
       expect(result.current.status).toBe('unavailable');
     });
