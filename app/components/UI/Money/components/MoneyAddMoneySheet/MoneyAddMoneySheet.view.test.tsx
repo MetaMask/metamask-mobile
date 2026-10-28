@@ -275,24 +275,22 @@ describeForPlatforms('MoneyAddMoneySheet VBA entry', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the bank account entry only inside enabled regions', async () => {
+  it('enables the bank account entry only inside enabled regions', async () => {
     const eligible = renderVbaMoneyEntry({ location: 'BR' });
     fireEvent.press(
       await eligible.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
     );
     expect(
       await eligible.findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeOnTheScreen();
+    ).toBeEnabled();
     eligible.unmount();
 
     const ineligible = renderVbaMoneyEntry({ location: 'PT' });
     fireEvent.press(
       await ineligible.findByTestId(VbaRendererTestIds.OPEN_MONEY_SHEET),
     );
-    await waitFor(() => {
-      expect(
-        ineligible.queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-      ).not.toBeOnTheScreen();
-    });
+    expect(
+      await ineligible.findByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeDisabled();
   });
 });

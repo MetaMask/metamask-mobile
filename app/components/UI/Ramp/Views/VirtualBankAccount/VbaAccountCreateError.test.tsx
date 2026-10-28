@@ -42,6 +42,8 @@ describe('VbaAccountCreateError', () => {
     ['details', 'contactSupport', 'details'],
     ['generic', 'retry', 'generic'],
     ['generic', 'contactSupport', 'details'],
+    ['region', 'contactSupport', 'region'],
+    ['region', 'retry', 'region'],
   ] as const)(
     'shows %s copy with %s',
     (variant, primaryActionType, actionCopy) => {

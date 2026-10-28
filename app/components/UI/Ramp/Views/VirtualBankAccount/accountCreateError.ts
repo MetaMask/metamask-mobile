@@ -1,6 +1,10 @@
 import Logger from '../../../../../util/Logger';
 
-export const ACCOUNT_CREATE_ERROR_VARIANTS = ['details', 'generic'] as const;
+export const ACCOUNT_CREATE_ERROR_VARIANTS = [
+  'details',
+  'generic',
+  'region',
+] as const;
 
 export type AccountCreateErrorVariant =
   (typeof ACCOUNT_CREATE_ERROR_VARIANTS)[number];
@@ -8,6 +12,8 @@ export type AccountCreateErrorVariant =
 export const ACCOUNT_CREATE_ERROR_DESTINATION = {
   details: 'accountCreateDetails',
   generic: 'accountCreateGeneric',
+  /** No currency flag covers the person's country, so there is nothing to create. */
+  region: 'accountCreateRegion',
 } as const;
 
 export type AccountCreateErrorDestinationId =
@@ -151,14 +157,20 @@ export const isAccountCreateErrorDestination = (
   destinationId: string,
 ): destinationId is AccountCreateErrorDestinationId =>
   destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details ||
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.generic;
+  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.generic ||
+  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.region;
 
 export const accountCreateErrorVariantForDestination = (
   destinationId: AccountCreateErrorDestinationId,
-): AccountCreateErrorVariant =>
-  destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details
-    ? 'details'
-    : 'generic';
+): AccountCreateErrorVariant => {
+  if (destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.details) {
+    return 'details';
+  }
+  if (destinationId === ACCOUNT_CREATE_ERROR_DESTINATION.region) {
+    return 'region';
+  }
+  return 'generic';
+};
 
 export const getAccountCreateErrorVariant = (
   result: AccountCreateRegistrationResult,

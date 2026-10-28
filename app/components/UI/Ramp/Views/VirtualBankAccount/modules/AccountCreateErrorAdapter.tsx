@@ -95,6 +95,18 @@ const VbaAccountCreateErrorAdapter = () => {
     );
   }
 
+  if (variant === 'region') {
+    return (
+      <VbaAccountCreateError
+        variant="region"
+        primaryActionType="contactSupport"
+        onPrimary={leave}
+        onSecondary={contactSupport}
+        onBack={leave}
+      />
+    );
+  }
+
   return (
     <VbaAccountCreateError
       variant="generic"

@@ -168,4 +168,51 @@ describe('VbaAccountCreateErrorAdapter', () => {
       params: { screen: Routes.MONEY.HOME },
     });
   });
+
+  describe('region variant', () => {
+    beforeEach(() => {
+      mockRouteParams = { variant: 'region' };
+    });
+
+    it('leaves from Primary without retrying or contacting support', () => {
+      const props = renderAdapter();
+
+      expect(props.variant).toBe('region');
+      expect(props.primaryActionType).toBe('contactSupport');
+
+      props.onPrimary();
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      expect(mockOpenSupportWithConsent).not.toHaveBeenCalled();
+      expect(mockOpenCompletedVbaAccount).not.toHaveBeenCalled();
+      expect(mockResumeOnboarding).not.toHaveBeenCalled();
+    });
+
+    it('opens support from Secondary', async () => {
+      const props = renderAdapter();
+
+      props.onSecondary();
+
+      expect(mockOpenSupportWithConsent).toHaveBeenCalledTimes(1);
+      const [openUrl] = mockOpenSupportWithConsent.mock.calls[0];
+      await openUrl('https://support.example/path');
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        'https://support.example/path',
+      );
+    });
+
+    it('leaves from Back', () => {
+      const props = renderAdapter();
+
+      props.onBack?.();
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+  });
 });

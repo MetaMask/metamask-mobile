@@ -38,6 +38,16 @@ interface VbaAccountCreateErrorProps {
 
 type PendingAction = 'primary' | 'secondary';
 
+const getAccountCreateErrorCopyKey = (
+  variant: AccountCreateErrorVariant,
+  primaryActionType: AccountCreateErrorPrimaryAction,
+): 'region' | 'generic' | 'details' => {
+  if (variant === 'region') {
+    return 'region';
+  }
+  return primaryActionType === 'retry' ? 'generic' : 'details';
+};
+
 /**
  * Account-creation failure. The variant controls the title, while the action
  * controls whether the description directs the user to support or to retry.
@@ -81,15 +91,12 @@ const VbaAccountCreateError = ({
     [pendingAction],
   );
 
+  const copyKey = getAccountCreateErrorCopyKey(variant, primaryActionType);
   const description = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.description'
-      : 'virtual_bank_account.account_create_error.details.description',
+    `virtual_bank_account.account_create_error.${copyKey}.description`,
   );
   const primaryLabel = strings(
-    primaryActionType === 'retry'
-      ? 'virtual_bank_account.account_create_error.generic.primary'
-      : 'virtual_bank_account.account_create_error.details.primary',
+    `virtual_bank_account.account_create_error.${copyKey}.primary`,
   );
 
   return (

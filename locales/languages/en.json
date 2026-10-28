@@ -1226,6 +1226,12 @@
         "description": "We couldn't finish setting up bank transfers for you. Try again in a few minutes.",
         "primary": "Try again",
         "secondary": "Done"
+      },
+      "region": {
+        "title": "Not available in your region yet",
+        "description": "Bank transfers aren't available where you are right now. We'll let you know when that changes.",
+        "primary": "Done",
+        "secondary": "Contact support"
       }
     },
     "error": {

@@ -78,6 +78,9 @@ import { VBA_CUF_END_REASON, type VbaCufEndReason } from './vbaCufTags';
 
 const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const CONSTRAINED_POLL_INTERVAL_MS = 30_000;
+// Null deposit instructions mean ramps-controller could not parse a rail for
+// this account. Retry a few polls before showing the generic error.
+const MAX_NULL_INSTRUCTIONS_ATTEMPTS = 3;
 // Keep the Figma disclosure ready while Product finalizes the copy.
 const SHOW_ACCOUNT_PROVIDER_DISCLOSURE = false;
 
@@ -241,6 +244,9 @@ const VbaDetails = () => {
   const pixFetchTraceIdRef = useRef<string | null>(null);
   const pixFetchTraceSettledRef = useRef(false);
   const transactionsFetchedForRef = useRef<string | null>(null);
+  const nullInstructionsAttemptsRef = useRef(0);
+  // Debug builds keep polling after a load; a later null must not count.
+  const hasLoadedInstructionsRef = useRef(false);
   const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
   const accountKeyRef = useRef(accountKey);
   const [stateAccountKey, setStateAccountKey] = useState(accountKey);
@@ -333,7 +339,7 @@ const VbaDetails = () => {
           pollingDoneRef.current = true;
           navigateToVbaOnboardingDestination(
             navigation,
-            ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+            ACCOUNT_CREATE_ERROR_DESTINATION.region,
           );
           return;
         }
@@ -446,8 +452,31 @@ const VbaDetails = () => {
           if (details) {
             finishPixFetchTrace(true, undefined, requestTraceId);
             setInstructions(details);
+            nullInstructionsAttemptsRef.current = 0;
+            hasLoadedInstructionsRef.current = true;
             // Debug builds keep polling so the latest deposit stays visible.
             pollingDoneRef.current = !debugEnabled;
+          } else if (!hasLoadedInstructionsRef.current) {
+            nullInstructionsAttemptsRef.current += 1;
+            if (
+              nullInstructionsAttemptsRef.current >=
+              MAX_NULL_INSTRUCTIONS_ATTEMPTS
+            ) {
+              finishPixFetchTrace(
+                false,
+                VBA_CUF_END_REASON.ERROR,
+                requestTraceId,
+              );
+              pollingDoneRef.current = true;
+              navigateToVbaOnboardingDestination(
+                navigation,
+                ACCOUNT_CREATE_ERROR_DESTINATION.generic,
+                undefined,
+                undefined,
+                sourceCurrency,
+                true,
+              );
+            }
           }
         } catch (error) {
           if (!stillCurrent()) {
@@ -522,6 +551,8 @@ const VbaDetails = () => {
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
     transactionsFetchedForRef.current = null;
+    nullInstructionsAttemptsRef.current = 0;
+    hasLoadedInstructionsRef.current = false;
     setInstructions(null);
     setLoadError(false);
     setAwaitingProviderApproval(false);

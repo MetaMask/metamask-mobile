@@ -800,7 +800,7 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('opens the generic error when the region override has no currency', async () => {
+  it('opens the region error when the region override has no currency', async () => {
     setAutoramps([]);
     mockLocation = 'BR';
     mockRegionOverride = 'DE';
@@ -810,13 +810,13 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
-        'accountCreateGeneric',
+        'accountCreateRegion',
       );
     });
     expect(mockCreateAutoramp).not.toHaveBeenCalled();
   });
 
-  it('opens the generic error without creating when the country has no currency', async () => {
+  it('opens the region error without creating when the country has no currency', async () => {
     setAutoramps([]);
     mockLocation = 'DE';
 
@@ -825,7 +825,7 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
         expect.anything(),
-        'accountCreateGeneric',
+        'accountCreateRegion',
       );
     });
     expect(mockHydrate).not.toHaveBeenCalled();
@@ -1229,6 +1229,49 @@ describe('VbaDetails', () => {
 
     expect(mockNavigateToVbaOnboardingDestination).not.toHaveBeenCalled();
     expect(Logger.error).not.toHaveBeenCalled();
+  });
+
+  it('opens the generic error after repeated null deposit instructions', async () => {
+    jest.useFakeTimers();
+    try {
+      mockGetDepositInstructions.mockResolvedValue(null);
+
+      renderWithProvider(<VbaDetails />);
+
+      await jest.advanceTimersByTimeAsync(30_000);
+      const callsAtLimit = mockGetDepositInstructions.mock.calls.length;
+      await jest.advanceTimersByTimeAsync(30_000);
+
+      expect(mockGetDepositInstructions).toHaveBeenCalledTimes(callsAtLimit);
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+        true,
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('shows the rail when it loads before the null limit', async () => {
+    jest.useFakeTimers();
+    try {
+      mockGetDepositInstructions
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValue(pixInstructions);
+
+      renderWithProvider(<VbaDetails />);
+
+      await jest.advanceTimersByTimeAsync(30_000);
+
+      expect(mockNavigateToVbaOnboardingDestination).not.toHaveBeenCalled();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('shows a load error when account details fail', async () => {

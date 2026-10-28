@@ -289,32 +289,27 @@ describe('MoneyAddMoneySheet', () => {
     expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
-  it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {
-    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+  it.each([
+    ['outside its regions', 'US'],
+    ['unknown', UNKNOWN_LOCATION],
+  ])(
+    'shows the coming-soon Bank account row when the flag is on and geolocation is %s',
+    (_label, location) => {
+      (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+        location,
+      );
 
-    const { queryByTestId, queryByText, getAllByText } = renderWithProvider(
-      <MoneyAddMoneySheet />,
-    );
+      const { getByTestId, getAllByText, queryByText } = renderWithProvider(
+        <MoneyAddMoneySheet />,
+      );
 
-    expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeNull();
-    expect(queryByText('Bank transfer')).toBeNull();
-    expect(queryByText('New')).toBeNull();
-    expect(getAllByText('Coming soon')).toHaveLength(1);
-  });
-
-  it('hides the Bank account row when the flag is on and geolocation is unknown', () => {
-    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
-      UNKNOWN_LOCATION,
-    );
-
-    const { queryByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
-
-    expect(
-      queryByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
-    ).toBeNull();
-  });
+      expect(
+        getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+      ).toBeDisabled();
+      expect(getAllByText('Coming soon')).toHaveLength(2);
+      expect(queryByText('New')).toBeNull();
+    },
+  );
 
   it('enables the Bank account row for a listed US region', () => {
     (selectNeobankMarkets as unknown as jest.Mock).mockReturnValue([
