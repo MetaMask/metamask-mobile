@@ -94,8 +94,6 @@ const TraderRow: React.FC<TraderRowProps> = ({
               recyclingKey={trader.id}
             />
             {showMedal ? (
-              // Offset so the medal bottom (incl. its 2px border) sits ~10px
-              // below the avatar's bottom edge.
               <View style={tw.style('absolute -bottom-[10px] -right-2')}>
                 <RankMedal rank={trader.rank} />
               </View>

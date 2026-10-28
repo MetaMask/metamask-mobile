@@ -31,7 +31,7 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   <Box
     alignItems={BoxAlignItems.Center}
     paddingHorizontal={4}
-    paddingTop={5}
+    paddingTop={4}
     paddingBottom={4}
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >

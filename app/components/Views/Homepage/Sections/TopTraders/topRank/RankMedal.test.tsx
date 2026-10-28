@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render, screen } from '@testing-library/react-native';
 import RankMedal, { isTopRank } from './RankMedal';
 
@@ -19,10 +20,24 @@ describe('RankMedal', () => {
     expect(screen.getByTestId(`rank-medal-${rank}`)).toBeOnTheScreen();
   });
 
+  it('renders the medal at 24px so it matches the numeric rank slot', () => {
+    render(<RankMedal rank={1} />);
+
+    const style = StyleSheet.flatten(
+      screen.getByTestId('rank-medal-1').props.style,
+    );
+
+    expect(style).toEqual(expect.objectContaining({ width: 24, height: 24 }));
+  });
+
   it('sizes the medal from the size prop', () => {
     render(<RankMedal rank={2} size={30} />);
 
-    expect(screen.getByTestId('rank-medal-2').props.height).toBe(30);
+    const style = StyleSheet.flatten(
+      screen.getByTestId('rank-medal-2').props.style,
+    );
+
+    expect(style).toEqual(expect.objectContaining({ width: 30, height: 30 }));
   });
 
   it.each([0, 4, 5, 100, -1])(

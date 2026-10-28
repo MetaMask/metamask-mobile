@@ -809,43 +809,20 @@ const ImportFromSecretRecoveryPhrase = () => {
                   testID: ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
                 }}
                 bottomAccessory={
-                  isAddDeviceSyncEnabled ? (
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="gap-1"
+                  >
                     <Text
                       variant={TextVariant.BodyMd}
                       color={TextColor.TextAlternative}
                     >
                       {strings(
                         'import_from_seed.enter_your_secret_recovery_phrase',
-                      )}{' '}
-                      {strings('import_from_seed.or')}{' '}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
-                        accessibilityRole="link"
-                        onPress={onImportFromExtensionPress}
-                        testID={
-                          ImportFromSeedSelectorsIDs.IMPORT_FROM_EXTENSION_LINK_ID
-                        }
-                      >
-                        {strings(
-                          'import_from_seed.import_wallet_from_extension',
-                        )}
-                      </Text>
+                      )}
                     </Text>
-                  ) : (
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      twClassName="gap-1"
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'import_from_seed.enter_your_secret_recovery_phrase',
-                        )}
-                      </Text>
+                    {!isAddDeviceSyncEnabled && (
                       <ButtonIcon
                         iconName={IconName.Info}
                         iconProps={{
@@ -856,8 +833,8 @@ const ImportFromSecretRecoveryPhrase = () => {
                           ImportFromSeedSelectorsIDs.WHAT_IS_SEEDPHRASE_LINK_ID
                         }
                       />
-                    </Box>
-                  )
+                    )}
+                  </Box>
                 }
               />
               <SrpInputGrid

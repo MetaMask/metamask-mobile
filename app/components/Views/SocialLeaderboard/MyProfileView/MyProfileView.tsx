@@ -30,7 +30,6 @@ import {
 import React, { Fragment, useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Pressable,
   RefreshControl,
   Share,
   type LayoutChangeEvent,
@@ -39,6 +38,10 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  TabsBar,
+  type TabItem,
+} from '../../../../component-library/components-temp/Tabs';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import type {
@@ -85,41 +88,8 @@ import type { ProfileAssetFilter } from './utils/splitPositionsByType';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const { Filter, Interaction, Screen, Trade } = SocialEvent;
-type ProfileContentTab = 'open' | 'closed' | 'posts';
-
-interface ProfileTabButtonProps {
-  label: string;
-  isActive: boolean;
-  onPress: () => void;
-  testID: string;
-}
-
-const ProfileTabButton: React.FC<ProfileTabButtonProps> = ({
-  label,
-  isActive,
-  onPress,
-  testID,
-}) => (
-  <Pressable
-    onPress={onPress}
-    testID={testID}
-    accessibilityRole="tab"
-    accessibilityState={{ selected: isActive }}
-  >
-    <Box
-      twClassName={isActive ? 'border-b-2 border-default' : ''}
-      paddingBottom={3}
-    >
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={isActive ? FontWeight.Bold : FontWeight.Medium}
-        color={isActive ? TextColor.TextDefault : TextColor.TextAlternative}
-      >
-        {label}
-      </Text>
-    </Box>
-  </Pressable>
-);
+const PROFILE_CONTENT_TABS = ['open', 'closed', 'posts'] as const;
+type ProfileContentTab = (typeof PROFILE_CONTENT_TABS)[number];
 
 const END_REACHED_THRESHOLD_PX = 600;
 const REFRESH_MIN_DURATION_MS = 1000;
@@ -199,6 +169,35 @@ const MyProfileView: React.FC = () => {
   });
   const muteProfileId = isOwner ? undefined : displayProfile?.profileId;
   const [activeTab, setActiveTab] = useState<ProfileContentTab>('posts');
+  const profileTabs = useMemo<TabItem[]>(
+    () => [
+      {
+        key: 'open',
+        label: strings('social_leaderboard.trader_profile.open'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.OPEN_TAB,
+      },
+      {
+        key: 'closed',
+        label: strings('social_leaderboard.trader_profile.closed'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.CLOSED_TAB,
+      },
+      {
+        key: 'posts',
+        label: strings('social_leaderboard.my_profile.posts'),
+        content: null,
+        testID: MyProfileViewSelectorsIDs.POSTS_TAB,
+      },
+    ],
+    [],
+  );
+  const handleProfileTabPress = useCallback((index: number) => {
+    const nextTab = PROFILE_CONTENT_TABS[index];
+    if (nextTab) {
+      setActiveTab(nextTab);
+    }
+  }, []);
   const scrollRef = useRef<Animated.ScrollView>(null);
   useFocusEffect(
     useCallback(() => {
@@ -664,28 +663,11 @@ const MyProfileView: React.FC = () => {
               cells={overlayedStats.performanceCells}
             />
 
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="px-4 gap-4"
-              accessibilityRole="tablist"
-            >
-              <ProfileTabButton
-                label={strings('social_leaderboard.trader_profile.open')}
-                isActive={activeTab === 'open'}
-                onPress={() => setActiveTab('open')}
-                testID={MyProfileViewSelectorsIDs.OPEN_TAB}
-              />
-              <ProfileTabButton
-                label={strings('social_leaderboard.trader_profile.closed')}
-                isActive={activeTab === 'closed'}
-                onPress={() => setActiveTab('closed')}
-                testID={MyProfileViewSelectorsIDs.CLOSED_TAB}
-              />
-              <ProfileTabButton
-                label={strings('social_leaderboard.my_profile.posts')}
-                isActive={activeTab === 'posts'}
-                onPress={() => setActiveTab('posts')}
-                testID={MyProfileViewSelectorsIDs.POSTS_TAB}
+            <Box twClassName="bg-default mt-5">
+              <TabsBar
+                tabs={profileTabs}
+                activeIndex={PROFILE_CONTENT_TABS.indexOf(activeTab)}
+                onTabPress={handleProfileTabPress}
               />
             </Box>
 
@@ -742,12 +724,19 @@ const MyProfileView: React.FC = () => {
                 testID={MyProfileViewSelectorsIDs.POSTS_ERROR}
               >
                 <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
+                  variant={TextVariant.HeadingSm}
+                  fontWeight={FontWeight.Bold}
                   color={TextColor.TextDefault}
                   twClassName="text-center"
                 >
                   {strings('social_leaderboard.feed.error.title')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  twClassName="text-center"
+                >
+                  {strings('social_leaderboard.feed.error.description')}
                 </Text>
                 <Button
                   variant={ButtonVariant.Secondary}

@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { useSocialFeed } from '../../../../../UI/SocialFeed/data/useSocialFeed';
-import type { SocialFeedSource } from '../../../../../UI/SocialFeed/data/socialFeedSource';
+import type {
+  FeedScope,
+  SocialFeedQuery,
+} from '../../../../../UI/SocialFeed/data/socialFeedSource';
 import { usePendingPostsOverlay } from '../../../pendingPosts/usePendingPostsOverlay';
 import type { SocialV1FeedTab, UseSocialV1FeedResult } from '../types';
 import { useSelector } from 'react-redux';
@@ -8,10 +11,10 @@ import { selectIsSocialV1Enabled } from '../../../../../../selectors/featureFlag
 import { SOCIAL_TRACE_TABS } from '../../../../../../util/social/socialPerformance';
 
 /** Trending reads the generic `leaderboard` scope, Following the per-user one. */
-const TAB_AUDIENCE = {
-  trending: 'all',
+const TAB_SCOPE = {
+  trending: 'leaderboard',
   following: 'following',
-} as const;
+} as const satisfies Record<SocialV1FeedTab, FeedScope>;
 
 const TAB_TRACE = {
   trending: SOCIAL_TRACE_TABS.Trending,
@@ -42,11 +45,8 @@ export const useSocialV1Feed = (
   { ownerProfileId, isActive = true }: UseSocialV1FeedOptions = {},
 ): UseSocialV1FeedResult => {
   const isSocialV1Treatment = useSelector(selectIsSocialV1Enabled);
-  const source = useMemo(
-    (): SocialFeedSource => ({
-      kind: 'all',
-      audience: TAB_AUDIENCE[tab],
-    }),
+  const query = useMemo(
+    (): SocialFeedQuery => ({ scope: TAB_SCOPE[tab] }),
     [tab],
   );
 
@@ -59,7 +59,7 @@ export const useSocialV1Feed = (
     error,
     refresh: refetch,
     dataUpdatedAt,
-  } = useSocialFeed(source, {
+  } = useSocialFeed(query, {
     performance: isSocialV1Treatment ? { tab: TAB_TRACE[tab] } : undefined,
   });
 

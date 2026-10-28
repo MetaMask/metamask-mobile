@@ -1122,9 +1122,11 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
 
     requestPostsTabFocus();
     act(() => {
@@ -1132,9 +1134,11 @@ describe('MyProfileView', () => {
     });
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeNull();
   });
 
   it('scrolls back to the top when focused right after the viewer posts', () => {
