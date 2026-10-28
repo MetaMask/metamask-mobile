@@ -26,7 +26,7 @@ import {
 } from '../../../../../../tests/component-view/renderers/activity';
 import Engine from '../../../../../core/Engine';
 import { mapPredictActivity } from '../../../../../util/activity-adapters';
-import type { PredictActivity } from '../../../../../UI/Predict/types';
+import type { PredictActivity } from '../../../../UI/Predict/types';
 import { formatPredictDate } from './PredictDetails.types';
 import {
   ActivityDetailsSelectorsIDs,
