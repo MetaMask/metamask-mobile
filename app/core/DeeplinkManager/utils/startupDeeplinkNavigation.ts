@@ -18,7 +18,7 @@ import {
   clearUnlockAppStartType,
   getUnlockAppStartType,
 } from '../../Performance/unlockTraces';
-import { consumeVbaKycResumeState } from '../../../components/UI/Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker';
+import { consumePostUnlockResume } from '../../PostUnlockResume';
 
 // Set before the fallback parse so consumeNextParseAppStartType stamps it with
 // the unlock-session app_start_type. Cleared after one read.
@@ -126,15 +126,15 @@ export const retryPendingDeeplinkAfterDefaultNavigation = () => {
 
 export const navigateToPostUnlockHome = async (): Promise<void> => {
   // Read first so time spent resolving a deeplink does not count against the
-  // relaunch window. A handled deeplink still wins.
-  const vbaKycResumeState = await consumeVbaKycResumeState();
+  // resume window. A handled deeplink still wins.
+  const resumeState = await consumePostUnlockResume();
   const handledStartupDeeplink = await navigateToPendingStartupDeeplink();
   if (handledStartupDeeplink) {
     return;
   }
 
-  if (vbaKycResumeState) {
-    resetToHomeNav(vbaKycResumeState);
+  if (resumeState) {
+    resetToHomeNav(resumeState);
   } else {
     NavigationService.navigation?.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],

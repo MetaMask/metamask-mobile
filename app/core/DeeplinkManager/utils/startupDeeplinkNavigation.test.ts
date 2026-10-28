@@ -86,13 +86,10 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-const mockConsumeVbaKycResumeState = jest.fn();
-jest.mock(
-  '../../../components/UI/Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker',
-  () => ({
-    consumeVbaKycResumeState: () => mockConsumeVbaKycResumeState(),
-  }),
-);
+const mockConsumePostUnlockResume = jest.fn();
+jest.mock('../../PostUnlockResume', () => ({
+  consumePostUnlockResume: () => mockConsumePostUnlockResume(),
+}));
 
 const mockStartDeeplinkNavigatedTrace = jest.fn();
 const mockCancelDeeplinkNavigatedTrace = jest.fn();
@@ -123,7 +120,7 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
-    mockConsumeVbaKycResumeState.mockResolvedValue(undefined);
+    mockConsumePostUnlockResume.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -287,9 +284,9 @@ describe('startupDeeplinkNavigation', () => {
     expect(mockDispatch).not.toHaveBeenCalled();
   });
 
-  it('reopens VBA onboarding when a KYC relaunch marker is valid', async () => {
+  it('opens the pending post-unlock resume state instead of home', async () => {
     const resumeState = { index: 1, routes: [{ name: 'Home' }] };
-    mockConsumeVbaKycResumeState.mockResolvedValueOnce(resumeState);
+    mockConsumePostUnlockResume.mockResolvedValueOnce(resumeState);
 
     await navigateToPostUnlockHome();
 
@@ -298,16 +295,16 @@ describe('startupDeeplinkNavigation', () => {
     });
   });
 
-  it('lets a handled startup deeplink win over a KYC relaunch marker', async () => {
+  it('lets a handled startup deeplink win over a post-unlock resume', async () => {
     AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
-    mockConsumeVbaKycResumeState.mockResolvedValueOnce({
+    mockConsumePostUnlockResume.mockResolvedValueOnce({
       index: 0,
       routes: [{ name: 'Home' }],
     });
 
     await navigateToPostUnlockHome();
 
-    expect(mockConsumeVbaKycResumeState).toHaveBeenCalledTimes(1);
+    expect(mockConsumePostUnlockResume).toHaveBeenCalledTimes(1);
     expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
     expect(mockReset).not.toHaveBeenCalled();
   });

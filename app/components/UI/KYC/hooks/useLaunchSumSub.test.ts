@@ -3,10 +3,15 @@ import { act, renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { flushPromises } from '../../../../util/test/utils';
 import {
-  clearVbaKycRelaunchMarker,
-  markVbaKycRelaunch,
-} from '../../Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker';
-import { useLaunchSumSub } from './useLaunchSumSub';
+  clearPostUnlockResume,
+  setPostUnlockResume,
+} from '../../../../core/PostUnlockResume';
+import { getVbaOnboardingResumeState } from '../../Ramp/Views/VirtualBankAccount/routes';
+import {
+  VBA_KYC_RESUME_MAX_AGE_MS,
+  VBA_KYC_RESUME_OWNER,
+  useLaunchSumSub,
+} from './useLaunchSumSub';
 
 const mockGetGeoCountry = jest.fn();
 
@@ -23,9 +28,9 @@ jest.mock('../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker', () => ({
-  markVbaKycRelaunch: jest.fn(),
-  clearVbaKycRelaunchMarker: jest.fn(),
+jest.mock('../../../../core/PostUnlockResume', () => ({
+  setPostUnlockResume: jest.fn(),
+  clearPostUnlockResume: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
@@ -33,8 +38,8 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 const mockKycController = jest.mocked(Engine.context.KycController);
-const mockMark = jest.mocked(markVbaKycRelaunch);
-const mockClear = jest.mocked(clearVbaKycRelaunchMarker);
+const mockMark = jest.mocked(setPostUnlockResume);
+const mockClear = jest.mocked(clearPostUnlockResume);
 const mockRemoveAppStateListener = jest.fn();
 let appStateChangeHandler: ((state: AppStateStatus) => void) | undefined;
 
@@ -74,7 +79,7 @@ describe('useLaunchSumSub', () => {
   const renderLaunch = () =>
     renderHook(() => useLaunchSumSub(onSubmitted, onAbandoned));
 
-  it('marks the relaunch before the provider opens and clears it before reporting the outcome', async () => {
+  it('requests a post-unlock resume before the provider opens and clears it before reporting the outcome', async () => {
     let finishProvider: (outcome: string) => void = () => undefined;
     mockKycController.launchProviderFlow.mockReturnValue(
       new Promise((resolve) => {
@@ -86,6 +91,11 @@ describe('useLaunchSumSub', () => {
     await act(flushPromises);
 
     expect(mockMark).toHaveBeenCalledTimes(1);
+    expect(mockMark).toHaveBeenCalledWith({
+      owner: VBA_KYC_RESUME_OWNER,
+      state: getVbaOnboardingResumeState('vba-kyc-relaunch'),
+      maxAgeMs: VBA_KYC_RESUME_MAX_AGE_MS,
+    });
     expect(mockMark.mock.invocationCallOrder[0]).toBeLessThan(
       mockKycController.launchProviderFlow.mock.invocationCallOrder[0],
     );
@@ -96,14 +106,14 @@ describe('useLaunchSumSub', () => {
     });
 
     expect(mockRemoveAppStateListener).toHaveBeenCalled();
-    expect(mockClear).toHaveBeenCalledTimes(1);
+    expect(mockClear).toHaveBeenCalledWith(VBA_KYC_RESUME_OWNER);
     expect(mockClear.mock.invocationCallOrder[0]).toBeLessThan(
       onSubmitted.mock.invocationCallOrder[0],
     );
     expect(onSubmitted).toHaveBeenCalledWith({ status: 'submitted' });
   });
 
-  it('refreshes the marker each time the app goes to the background while the provider is open', async () => {
+  it('refreshes the request each time the app goes to the background while the provider is open', async () => {
     mockKycController.launchProviderFlow.mockReturnValue(
       new Promise(() => undefined) as ReturnType<
         typeof mockKycController.launchProviderFlow
@@ -120,7 +130,7 @@ describe('useLaunchSumSub', () => {
     expect(mockMark).toHaveBeenCalledTimes(3);
   });
 
-  it('clears the marker when the provider flow fails', async () => {
+  it('clears the request when the provider flow fails', async () => {
     mockKycController.launchProviderFlow.mockRejectedValue(
       new Error('sdk failed'),
     );
@@ -132,7 +142,7 @@ describe('useLaunchSumSub', () => {
     expect(result.current.hasError).toBe(true);
   });
 
-  it('does not mark when recording consents fails', async () => {
+  it('does not request a resume when recording consents fails', async () => {
     mockKycController.recordSessionDisclaimers.mockRejectedValue(
       new Error('consent failed'),
     );
