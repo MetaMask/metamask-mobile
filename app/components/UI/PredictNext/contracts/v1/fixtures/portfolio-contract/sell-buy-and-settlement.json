@@ -1,0 +1,65 @@
+{
+  "$comment": "Generated from the C1 contract (docs/canonical-portfolio-activity-catalog-contract.md), section \"Sell trade, buy trade, and a metadata-poor Settlement\". Payload is verbatim; nextCursor is an opaque placeholder.",
+  "requests": {
+    "activity": "/v1/venues/kalshi/activity"
+  },
+  "activity": {
+    "venueId": "kalshi",
+    "activity": [
+      {
+        "type": "trade",
+        "venueId": "kalshi",
+        "id": "0199f6a0-8c1e-7b3a-9d2e-4f1a2b3c4d5e",
+        "marketId": "KXNFLGAME-26OCT25KCBUF-KC",
+        "side": "yes",
+        "action": "sell",
+        "shares": "10",
+        "price": "0.61",
+        "amount": "5.93",
+        "fee": "0.17",
+        "realizedPnl": "0.27",
+        "timestamp": "2026-10-22T18:04:11.532Z",
+        "context": {
+          "eventId": "KXNFLGAME-26OCT25KCBUF",
+          "eventTitle": "Kansas City at Buffalo",
+          "marketQuestion": "Kansas City to win?",
+          "outcomeLabel": "Yes",
+          "imageUrl": "https://example.com/kc-buf.png"
+        }
+      },
+      {
+        "type": "settlement",
+        "venueId": "kalshi",
+        "id": "settlement-utah-byu-no-20261019",
+        "marketId": "KXNCAAFGAME-18OCT25UTAHBYU-UTAH",
+        "side": "no",
+        "shares": "8",
+        "result": "yes",
+        "proceeds": "0",
+        "realizedPnl": "-3.36",
+        "timestamp": "2026-10-19T04:12:00.000Z"
+      },
+      {
+        "type": "trade",
+        "venueId": "kalshi",
+        "id": "0199e2b4-1f0d-7c55-8a10-6b7c8d9e0f1a",
+        "marketId": "KXNFLGAME-26OCT25KCBUF-KC",
+        "side": "yes",
+        "action": "buy",
+        "shares": "50",
+        "price": "0.55",
+        "amount": "28.28",
+        "fee": "0.78",
+        "timestamp": "2026-10-18T16:30:02.118Z",
+        "context": {
+          "eventId": "KXNFLGAME-26OCT25KCBUF",
+          "eventTitle": "Kansas City at Buffalo",
+          "marketQuestion": "Kansas City to win?",
+          "outcomeLabel": "Yes",
+          "imageUrl": "https://example.com/kc-buf.png"
+        }
+      }
+    ],
+    "nextCursor": "opaque-activity-cursor"
+  }
+}

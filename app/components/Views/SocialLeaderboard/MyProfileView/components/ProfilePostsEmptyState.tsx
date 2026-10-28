@@ -1,9 +1,6 @@
 import {
   Box,
   BoxAlignItems,
-  Button,
-  ButtonVariant,
-  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -11,124 +8,33 @@ import {
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { MyProfileViewSelectorsIDs } from '../MyProfileView.testIds';
-import ProfileAvatar from './ProfileAvatar';
 
-interface ProfilePostsEmptyStateProps {
-  onShareFirstTrade?: () => void;
-  isOwner?: boolean;
-  imageUrl?: string | null;
-  avatarPresetId?: string | null;
-  avatarBackgroundId?: string | null;
+export interface ProfilePostsEmptyStateProps {
+  /** Defaults to "No posts yet". Open and Closed pass their own line. */
+  message?: string;
 }
 
+/**
+ * One centered line for an empty profile tab.
+ *
+ * The line uses the same type and box as the Open/Closed empty copy. The
+ * spacer above it stands in for that tab's filter row (32px small filter
+ * button plus 12px bottom padding) so the sentence lands in the same place.
+ */
 const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
-  onShareFirstTrade,
-  isOwner = true,
-  imageUrl,
-  avatarPresetId,
-  avatarBackgroundId,
+  message,
 }) => (
   <Box
-    alignItems={BoxAlignItems.Center}
-    paddingHorizontal={4}
     paddingTop={4}
-    paddingBottom={4}
+    twClassName="w-full"
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >
-    {isOwner ? (
-      <>
-        <Box
-          alignItems={BoxAlignItems.Center}
-          twClassName="relative w-full h-52"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        >
-          <Text
-            twClassName="absolute left-8 top-6"
-            variant={TextVariant.HeadingLg}
-          >
-            🦊
-          </Text>
-          <Text
-            twClassName="absolute right-8 top-4"
-            variant={TextVariant.HeadingLg}
-          >
-            🦊
-          </Text>
-          <Text
-            twClassName="absolute right-7 bottom-4"
-            variant={TextVariant.HeadingLg}
-          >
-            🦊
-          </Text>
-          <Box
-            twClassName="rounded-full bg-primary-default px-5 py-2"
-            marginBottom={2}
-          >
-            <Text
-              variant={TextVariant.BodyLg}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.PrimaryInverse}
-            >
-              {strings('social_leaderboard.my_profile.first_trade_prompt')}
-            </Text>
-          </Box>
-          <Box twClassName="rounded-full border-4 border-primary-default p-1">
-            <ProfileAvatar
-              imageUrl={imageUrl}
-              avatarPresetId={avatarPresetId}
-              avatarBackgroundId={avatarBackgroundId}
-              size="xl"
-              testID={MyProfileViewSelectorsIDs.EMPTY_STATE_AVATAR}
-            />
-          </Box>
-        </Box>
-
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.my_profile.empty_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center pt-2"
-        >
-          {strings('social_leaderboard.my_profile.empty_description')}
-        </Text>
-      </>
-    ) : (
-      <>
-        <Text
-          variant={TextVariant.HeadingLg}
-          fontWeight={FontWeight.Bold}
-          twClassName="text-center"
-        >
-          {strings('social_leaderboard.my_profile.other_empty_title')}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center pt-2"
-        >
-          {strings('social_leaderboard.my_profile.other_empty_description')}
-        </Text>
-      </>
-    )}
-
-    {isOwner && onShareFirstTrade ? (
-      <Button
-        variant={ButtonVariant.Primary}
-        isFullWidth
-        onPress={onShareFirstTrade}
-        twClassName="mt-3"
-        testID={MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON}
-      >
-        {strings('social_leaderboard.my_profile.share_first_trade')}
-      </Button>
-    ) : null}
+    <Box twClassName="h-8 mb-3" />
+    <Box alignItems={BoxAlignItems.Center} twClassName="px-4 py-8">
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {message ?? strings('social_leaderboard.my_profile.empty_title')}
+      </Text>
+    </Box>
   </Box>
 );
 

@@ -105,10 +105,6 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
     enabled: false,
     minimumVersion: '0.0.0',
   },
-  stellarAccounts: {
-    enabled: false,
-    minimumVersion: '0.0.1',
-  },
   nativeTabBarEnabled: true,
   // predictHomeRedesign stays at the prod value. Predict smoke waits for
   // predict-home-container, which only mounts when the redesign is enabled.

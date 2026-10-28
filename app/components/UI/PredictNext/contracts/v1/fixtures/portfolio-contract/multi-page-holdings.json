@@ -1,0 +1,129 @@
+{
+  "$comment": "Generated from the C1 contract (metamask-mobile app/components/UI/PredictNext/docs/canonical-portfolio-activity-catalog-contract.md), section \"Multi-page holdings with a complete Summary\". Payloads are verbatim; nextCursor values are opaque placeholders.",
+  "requests": {
+    "firstPage": "/v1/venues/kalshi/positions?limit=2",
+    "secondPage": "/v1/venues/kalshi/positions?limit=2&cursor={nextCursor}",
+    "topByValue": "/v1/venues/kalshi/positions?status=open&sort=value&limit=3",
+    "summary": "/v1/venues/kalshi/portfolio/summary"
+  },
+  "firstPage": {
+    "venueId": "kalshi",
+    "positions": [
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNFLGAME-26OCT25KCBUF-KC",
+        "side": "yes",
+        "status": "open",
+        "shares": "40",
+        "averagePrice": "0.55",
+        "costBasis": "22.62",
+        "currentValue": "24.40",
+        "unrealizedPnl": "1.78",
+        "unrealizedPnlPercent": "7.85",
+        "context": {
+          "eventId": "KXNFLGAME-26OCT25KCBUF",
+          "eventTitle": "Kansas City at Buffalo",
+          "marketQuestion": "Kansas City to win?",
+          "outcomeLabel": "Yes",
+          "imageUrl": "https://example.com/kc-buf.png"
+        }
+      },
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNCAAFGAME-25OCT25PSUOSU-PSU",
+        "side": "no",
+        "status": "open",
+        "shares": "12",
+        "averagePrice": "0.38",
+        "costBasis": "4.74",
+        "currentValue": "3.60",
+        "unrealizedPnl": "-1.14",
+        "unrealizedPnlPercent": "-24.05",
+        "context": {
+          "eventId": "KXNCAAFGAME-25OCT25PSUOSU",
+          "eventTitle": "Penn State at Ohio State",
+          "marketQuestion": "Penn State to win?",
+          "outcomeLabel": "No"
+        }
+      }
+    ],
+    "nextCursor": "opaque-positions-cursor"
+  },
+  "secondPage": {
+    "venueId": "kalshi",
+    "positions": [
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNFLGAME-19OCT25LVKC-KC",
+        "side": "yes",
+        "status": "settled",
+        "shares": "5",
+        "averagePrice": "0.62",
+        "costBasis": "3.22",
+        "currentValue": "5.00",
+        "unrealizedPnl": "1.78",
+        "unrealizedPnlPercent": "55.28",
+        "context": {
+          "eventId": "KXNFLGAME-19OCT25LVKC",
+          "eventTitle": "Las Vegas at Kansas City",
+          "marketQuestion": "Kansas City to win?",
+          "outcomeLabel": "Yes"
+        }
+      }
+    ]
+  },
+  "topByValue": {
+    "venueId": "kalshi",
+    "positions": [
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNFLGAME-26OCT25KCBUF-KC",
+        "side": "yes",
+        "status": "open",
+        "shares": "40",
+        "averagePrice": "0.55",
+        "costBasis": "22.62",
+        "currentValue": "24.40",
+        "unrealizedPnl": "1.78",
+        "unrealizedPnlPercent": "7.85",
+        "context": {
+          "eventId": "KXNFLGAME-26OCT25KCBUF",
+          "eventTitle": "Kansas City at Buffalo",
+          "marketQuestion": "Kansas City to win?",
+          "outcomeLabel": "Yes",
+          "imageUrl": "https://example.com/kc-buf.png"
+        }
+      },
+      {
+        "venueId": "kalshi",
+        "marketId": "KXNCAAFGAME-25OCT25PSUOSU-PSU",
+        "side": "no",
+        "status": "open",
+        "shares": "12",
+        "averagePrice": "0.38",
+        "costBasis": "4.74",
+        "currentValue": "3.60",
+        "unrealizedPnl": "-1.14",
+        "unrealizedPnlPercent": "-24.05",
+        "context": {
+          "eventId": "KXNCAAFGAME-25OCT25PSUOSU",
+          "eventTitle": "Penn State at Ohio State",
+          "marketQuestion": "Penn State to win?",
+          "outcomeLabel": "No"
+        }
+      }
+    ]
+  },
+  "summary": {
+    "venueId": "kalshi",
+    "currency": "USD",
+    "availableBalance": "120.50",
+    "positionsValue": "33.00",
+    "claimableValue": "0",
+    "totalValue": "153.50",
+    "unrealizedPnl": "0.64",
+    "unrealizedPnlPercent": "2.32",
+    "asOf": "2026-10-23T12:00:05.120Z",
+    "complete": true
+  }
+}
