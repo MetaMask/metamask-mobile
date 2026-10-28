@@ -222,7 +222,6 @@ const EarnWithdrawInputView = () => {
     percentageOptions,
     handleQuickAmountPress,
     handleKeypadChange,
-    earnBalanceValue,
   } = useEarnWithdrawInput({
     earnToken: withdrawalToken as EarnTokenDetails,
     conversionRate,
@@ -319,8 +318,6 @@ const EarnWithdrawInputView = () => {
     withdrawalToken?.address,
     withdrawalToken?.chainId,
   ]);
-
-  const stakedBalanceText = strings('stake.staked_balance');
 
   const stakingNavBarOptions = {
     hasCancelButton: true,
@@ -956,9 +953,6 @@ const EarnWithdrawInputView = () => {
           contentContainerStyle={styles.scrollViewContent}
         >
           <InputDisplay
-            isOverMaximum={isOverMaximum}
-            balanceText={stakedBalanceText}
-            balanceValue={earnBalanceValue}
             amountToken={amountToken}
             amountFiatNumber={amountFiatNumber}
             isFiat={isFiat}
@@ -968,11 +962,6 @@ const EarnWithdrawInputView = () => {
             currencyToggleValue={currencyToggleValue}
             maxWithdrawalAmount={maxRiskAwareWithdrawalText}
             onPressAmount={() => setIsPreviewVisible(false)}
-            error={
-              isWithdrawingMoreThanAvailableForLendingToken
-                ? strings('earn.amount_exceeds_safe_withdrawal_limit')
-                : undefined
-            }
           />
           {isStablecoinLendingEnabled && (
             <View style={styles.earnTokenSelectorContainer}>

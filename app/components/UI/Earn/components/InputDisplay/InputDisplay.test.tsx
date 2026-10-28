@@ -69,13 +69,6 @@ const mockToken = {
 };
 
 const defaultProps = {
-  isOverMaximum: {
-    isOverMaximumEth: false,
-    isOverMaximumToken: false,
-  },
-  balanceText: 'Balance',
-  balanceValue: '100',
-  isNonZeroAmount: true,
   isFiat: false,
   asset: mockToken,
   amountToken: '50',
@@ -106,36 +99,6 @@ describe('InputDisplay', () => {
     jest.useFakeTimers();
   });
 
-  it('renders balance text correctly', () => {
-    const { getByText } = renderComponent();
-
-    getByText('Balance: 100');
-  });
-
-  it('renders error text when over maximum token', () => {
-    const { getByText } = renderComponent({
-      ...defaultProps,
-      isOverMaximum: { isOverMaximumEth: false, isOverMaximumToken: true },
-      asset: {
-        ...mockToken,
-        symbol: 'USDC',
-        ticker: 'USDC',
-        name: 'USD Coin',
-      },
-    });
-
-    getByText('Not enough USDC');
-  });
-
-  it('renders error text when over maximum ETH', () => {
-    const { getByText } = renderComponent({
-      ...defaultProps,
-      isOverMaximum: { isOverMaximumEth: true, isOverMaximumToken: false },
-    });
-
-    getByText('Not enough ETH');
-  });
-
   it('exposes the fiat amount and unit as a combined text label', () => {
     const props = { ...defaultProps, isFiat: true };
     const { getByRole } = renderComponent(props);
@@ -156,6 +119,16 @@ describe('InputDisplay', () => {
     });
 
     expect(getByRole('text', { name: '50 USDC' })).toBeOnTheScreen();
+  });
+
+  it('sizes a short amount and its unit at 88px', () => {
+    const { getByTestId, getByText } = renderComponent();
+    const amountSize = { fontSize: 88, lineHeight: 88 };
+
+    expect(getByText('5')).toHaveStyle(amountSize);
+    expect(getByTestId(INPUT_DISPLAY_TEST_IDS.AMOUNT_SUFFIX)).toHaveStyle(
+      amountSize,
+    );
   });
 
   it('exposes and activates the amount row as a labeled button', () => {

@@ -97,13 +97,17 @@ const EarnTokenSelector = ({
     }
 
     return (
-      <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Md} />
+      <AssetLogo asset={tokenToRender as TokenI} size={AvatarTokenSize.Lg} />
     );
   };
+
+  const balanceFormatted = (tokenToRender as EarnTokenDetails | undefined)
+    ?.balanceFormatted;
 
   const renderStartAccessory = () => (
     <View style={styles.startAccessoryContainer}>
       <BadgeWrapper
+        style={styles.avatarWrapper}
         position={BadgeWrapperPosition.BottomRight}
         badge={
           <BadgeNetwork
@@ -120,20 +124,32 @@ const EarnTokenSelector = ({
       >
         {renderTokenAvatar()}
       </BadgeWrapper>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        style={styles.tokenText}
-        numberOfLines={1}
-      >
-        {tokenToRender?.name ?? ''}
-      </Text>
+      <View style={styles.tokenDetails}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
+          {tokenToRender?.name ?? ''}
+        </Text>
+        {balanceFormatted !== undefined && (
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {balanceFormatted}
+          </Text>
+        )}
+      </View>
     </View>
   );
 
-  const renderEndAccessory = () => (
-    <View style={styles.endAccessoryContainer}>
-      {apr ? (
+  const renderEndAccessory = () =>
+    apr ? (
+      <View style={styles.endAccessoryContainer}>
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
@@ -142,23 +158,8 @@ const EarnTokenSelector = ({
         >
           {`${apr}% APR`}
         </Text>
-      ) : null}
-
-      {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted !==
-        undefined && (
-        <Text
-          style={styles.balanceText}
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          numberOfLines={1}
-          ellipsizeMode="tail"
-        >
-          {(tokenToRender as EarnTokenDetails | undefined)?.balanceFormatted}
-        </Text>
-      )}
-    </View>
-  );
+      </View>
+    ) : null;
 
   return (
     <SelectButton
