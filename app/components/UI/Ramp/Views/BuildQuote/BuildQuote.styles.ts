@@ -21,12 +21,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
-    cursor: {
-      width: 2,
-      marginHorizontal: 1,
-      alignSelf: 'center',
-      backgroundColor: theme.colors.primary.default,
-    },
     actionSection: {
       paddingBottom: 16,
       gap: 16,

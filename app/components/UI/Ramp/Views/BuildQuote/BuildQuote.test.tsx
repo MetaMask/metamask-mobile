@@ -145,7 +145,10 @@ jest.mock('../../hooks/useTokenNetworkInfo', () => ({
 }));
 
 jest.mock('../../../../hooks/useStyles', () => ({
-  useStyles: () => ({ styles: {} }),
+  useStyles: () => ({
+    styles: {},
+    theme: { colors: { text: { muted: 'muted' } } },
+  }),
 }));
 
 jest.mock('../../../../hooks/useFormatters', () => ({
@@ -403,6 +406,31 @@ describe('BuildQuote', () => {
       setParams: jest.fn(),
       navigate: mockNavigate,
       goBack: mockGoBack,
+    });
+  });
+
+  describe('amount display', () => {
+    it('renders a short amount in Grotzec at 88px with the send caret', () => {
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      const cursor = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT_CURSOR);
+
+      expect(amountInput).toHaveStyle({
+        fontFamily: 'GrotzecCond-Bold',
+        fontSize: 88,
+        lineHeight: 88,
+      });
+      expect(cursor).toHaveStyle({
+        width: 1,
+        marginHorizontal: 0,
+        height: 84,
+        backgroundColor: 'muted',
+        transform: [{ translateY: -4 }],
+        opacity: 1,
+      });
     });
   });
 
