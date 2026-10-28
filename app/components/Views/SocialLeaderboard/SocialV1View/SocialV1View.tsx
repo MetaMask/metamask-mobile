@@ -262,6 +262,8 @@ const SocialV1ViewContent: React.FC = () => {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    clearAppliedFilters,
+    setLeaderboardType,
   } = useSocialShellFilters();
   const [filterScreen, filterTab] =
     SOCIAL_EVENT_TAB_CONTEXT[openTab ?? 'trending'];
@@ -660,6 +662,9 @@ const SocialV1ViewContent: React.FC = () => {
               accessibilityLabel={strings(
                 'social_leaderboard.my_profile.open_profile',
               )}
+              // Header chrome is inset 8px. The feed tabs use 16px, so the
+              // avatar needs the other 8px to share that left edge.
+              style={tw.style('ml-2')}
             >
               <SocialHeaderGlassSurface twClassName="w-10 justify-center">
                 {myProfile ? (
@@ -781,6 +786,10 @@ const SocialV1ViewContent: React.FC = () => {
                           appliedFilters={applied.leaderboard}
                           onOpenFilters={handleOpenLeaderboardFilters}
                           isFilterActive={hasActiveFilters('leaderboard')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('leaderboard')
+                          }
+                          onTypeChange={setLeaderboardType}
                         />
                       ) : tab === 'live' ? (
                         <LiveView
@@ -791,6 +800,7 @@ const SocialV1ViewContent: React.FC = () => {
                           onCopyTrade={handleCopyTrade}
                           onOpenFilters={handleOpenLiveFilters}
                           isFilterActive={hasActiveFilters('live')}
+                          onClearFilters={() => clearAppliedFilters('live')}
                           appliedFilters={applied.live}
                         />
                       ) : (
@@ -813,6 +823,9 @@ const SocialV1ViewContent: React.FC = () => {
                               : undefined
                           }
                           isFilterActive={hasActiveFilters('following')}
+                          onClearFilters={() =>
+                            clearAppliedFilters('following')
+                          }
                           appliedFilters={
                             tab === 'following' ? applied.following : undefined
                           }

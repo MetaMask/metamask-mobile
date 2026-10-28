@@ -221,6 +221,7 @@ import {
   ManageProfileTextEditorView,
   ManageProfileTradingActivityView,
   ManageProfileLinkedAccountView,
+  EditProfileAvatarView,
   TraderProfileView,
   TraderPositionView,
   PositionDetailsSheet,
@@ -1553,6 +1554,10 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.SOCIAL.MANAGE_PROFILE_LINKED_ACCOUNT}
             component={ManageProfileLinkedAccountView}
+          />
+          <NativeStack.Screen
+            name={Routes.SOCIAL.EDIT_AVATAR}
+            component={EditProfileAvatarView}
           />
           <NativeStack.Screen
             name={Routes.SOCIAL.PROFILE_ONBOARDING}

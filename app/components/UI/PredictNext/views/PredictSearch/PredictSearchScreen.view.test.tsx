@@ -7,6 +7,7 @@ import {
   configurePredictNextFeeds,
   makePredictNextEvent,
   messengerCall,
+  mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { KALSHI_VENUE_ID, type PredictEvent } from '../../types';
@@ -23,7 +24,7 @@ const configureSearch = (
   results: Record<string, readonly PredictEvent[] | Error>,
 ) => {
   const base = messengerCall.getMockImplementation();
-  messengerCall.mockImplementation(
+  mockPredictNextMessenger(
     (action: string, venueId: string, params: { q: string }) => {
       if (action !== 'PredictMarketDataService:searchEvents') {
         return base?.(action, venueId, params);
@@ -52,9 +53,9 @@ describe('PredictSearchScreen', () => {
 
   it('opens from the Home header search button', async () => {
     const view = renderPredictNext();
-    await view.findByTestId(PredictHomeTestIds.HOME);
 
-    fireEvent.press(view.getByTestId(PredictHomeTestIds.SEARCH));
+    // The entry appears once the Venue's capabilities report search support.
+    fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
 
     expect(
       await view.findByTestId(PredictSearchScreenTestIds.VIEW),
@@ -110,7 +111,7 @@ describe('PredictSearchScreen', () => {
 
   it('keeps the skeleton up and never flashes the empty state while a fresh search is in flight', async () => {
     const base = messengerCall.getMockImplementation();
-    messengerCall.mockImplementation((action: string, ...args: unknown[]) =>
+    mockPredictNextMessenger((action: string, ...args: unknown[]) =>
       action === 'PredictMarketDataService:searchEvents'
         ? new Promise(() => undefined)
         : base?.(action, ...args),

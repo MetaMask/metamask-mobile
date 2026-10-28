@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
-import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
 import type {
@@ -790,7 +789,6 @@ export interface PredictFees {
 }
 
 export interface PredictFeePolicy {
-  discountType: DiscountType.SUBSCRIPTION;
   builderCode: string;
 }
 
@@ -815,6 +813,11 @@ export interface OrderPreview {
   timestamp: number;
   side: Side;
   sharePrice: number;
+  /**
+   * Sell previews only: the lowest bid price used to fill the full size from
+   * the order book snapshot.
+   */
+  worstFillPrice?: number;
   maxAmountSpent: number;
   minAmountReceived: number;
   slippage: number;

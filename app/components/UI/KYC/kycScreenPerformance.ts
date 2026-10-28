@@ -1,4 +1,6 @@
 import { TraceName, TraceOperation } from '../../../util/trace';
+import { getVbaCufLifecycleContext } from '../Ramp/Views/VirtualBankAccount/vbaCufLifecycle';
+import { VBA_CUF_TAG } from '../Ramp/Views/VirtualBankAccount/vbaCufTags';
 
 export {
   SCREEN_CONTENT_STATE as KYC_SCREEN_CONTENT_STATE,
@@ -18,4 +20,7 @@ export const KYC_SCREEN_PERFORMANCE_CONFIG = {
   flow: 'vba',
   logMarker: '[KycCUF]',
   screenIds: Object.values(KYC_SCREEN_ID),
+  getAdditionalTags: () => ({
+    [VBA_CUF_TAG.LIFECYCLE_CONTEXT]: getVbaCufLifecycleContext(),
+  }),
 };

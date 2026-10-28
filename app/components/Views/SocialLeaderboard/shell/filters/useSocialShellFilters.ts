@@ -17,8 +17,8 @@ const rangesEqual = (
 ) => a.min === b.min && a.max === b.max;
 
 /**
- * Compares only the fields a tab can edit, so leftover hidden values (network,
- * leaderboard ranges) do not light the filter icon.
+ * Compares only the fields a tab can edit, so the leaderboard's chip-owned
+ * asset type and leftover hidden values do not light the filter icon.
  */
 const tabFiltersEqual = (
   tab: SocialShellTab,
@@ -27,7 +27,7 @@ const tabFiltersEqual = (
 ): boolean => {
   const cohortA = a.traderCohort === 'verified' ? 'all' : a.traderCohort;
   const cohortB = b.traderCohort === 'verified' ? 'all' : b.traderCohort;
-  if (a.type !== b.type || cohortA !== cohortB) {
+  if ((tab !== 'leaderboard' && a.type !== b.type) || cohortA !== cohortB) {
     return false;
   }
   if (tab === 'leaderboard') {
@@ -56,8 +56,12 @@ export interface UseSocialShellFiltersResult {
   updateDraft: (patch: Partial<SocialShellFilters>) => void;
   /** Applies the draft to the open tab and closes the sheet. */
   applyFilters: () => void;
-  /** Resets the open tab's draft to defaults. Apply still required to commit. */
+  /** Resets sheet-owned fields to defaults. Apply still required to commit. */
   resetDraftToDefaults: () => void;
+  /** Clears a tab's applied filters. The leaderboard type chip is kept. */
+  clearAppliedFilters: (tab: SocialShellTab) => void;
+  /** Updates the leaderboard asset type owned by the chip outside the sheet. */
+  setLeaderboardType: (type: SocialShellFilters['type']) => void;
 }
 
 /**
@@ -108,8 +112,35 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     if (!openTab) {
       return;
     }
-    setDraft(cloneFilters(DEFAULT_FILTERS));
-  }, [openTab]);
+    const resetFilters = cloneFilters(DEFAULT_FILTERS);
+    if (openTab === 'leaderboard') {
+      resetFilters.type = draft.type;
+    }
+    setDraft(resetFilters);
+  }, [draft.type, openTab]);
+
+  const setLeaderboardType = useCallback((type: SocialShellFilters['type']) => {
+    setApplied((prev) => ({
+      ...prev,
+      leaderboard: {
+        ...prev.leaderboard,
+        type,
+      },
+    }));
+  }, []);
+
+  const clearAppliedFilters = useCallback((tab: SocialShellTab) => {
+    setApplied((prev) => {
+      const resetFilters = cloneFilters(DEFAULT_FILTERS);
+      if (tab === 'leaderboard') {
+        resetFilters.type = prev.leaderboard.type;
+      }
+      return {
+        ...prev,
+        [tab]: resetFilters,
+      };
+    });
+  }, []);
 
   const applyFilters = useCallback(() => {
     if (!openTab) {
@@ -151,5 +182,7 @@ export function useSocialShellFilters(): UseSocialShellFiltersResult {
     updateDraft,
     applyFilters,
     resetDraftToDefaults,
+    clearAppliedFilters,
+    setLeaderboardType,
   };
 }

@@ -117,10 +117,7 @@ describe('useSocialV1Feed', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
-        {
-          kind: 'all',
-          audience: 'all',
-        },
+        { scope: 'leaderboard' },
         {
           performance: { tab: 'trending' },
         },
@@ -132,10 +129,7 @@ describe('useSocialV1Feed', () => {
       renderHook(() => useSocialV1Feed('following'));
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
-        {
-          kind: 'all',
-          audience: 'following',
-        },
+        { scope: 'following' },
         {
           performance: { tab: 'following' },
         },
@@ -148,7 +142,7 @@ describe('useSocialV1Feed', () => {
       renderHook(() => useSocialV1Feed('trending'));
 
       expect(mockUseSocialFeed).toHaveBeenCalledWith(
-        { kind: 'all', audience: 'all' },
+        { scope: 'leaderboard' },
         { performance: undefined },
       );
     });

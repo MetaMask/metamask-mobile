@@ -21,6 +21,7 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   getLocalSocialProfileSnapshot,
@@ -238,10 +239,14 @@ jest.mock('../NotificationPreferences/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  openURL: jest.fn(),
+  openURL: jest.fn(() => Promise.resolve()),
   canOpenURL: jest.fn(),
   getInitialURL: jest.fn(),
 }));
@@ -534,6 +539,21 @@ describe('MyProfileView', () => {
     expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/giga-whale');
   });
 
+  it('logs when the owner X profile cannot be opened', async () => {
+    const error = new Error('Cannot open URL');
+    jest.mocked(Linking.openURL).mockRejectedValueOnce(error);
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.X_LINK));
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'MyProfileHeader: failed to open the X profile',
+      );
+    });
+  });
+
   it('returns to SocialV1 from the MMDS back button', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -672,7 +692,7 @@ describe('MyProfileView', () => {
     expect(screen.getByText('No posts yet')).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
-    ).toHaveStyle({ paddingTop: 24 });
+    ).toHaveStyle({ paddingTop: 16 });
     expect(screen.queryByText('Make your first post')).toBeNull();
     expect(
       screen.queryByText(
@@ -704,6 +724,21 @@ describe('MyProfileView', () => {
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.INSIGHTS_BUTTON),
     ).not.toBeOnTheScreen();
+  });
+
+  it('opens the avatar picker from the owner avatar and pencil', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.AVATAR));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('opens Manage profile from Edit profile', () => {
@@ -914,6 +949,11 @@ describe('MyProfileView', () => {
       screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
     ).toBeNull();
     expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeNull();
+    expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
@@ -1073,9 +1113,11 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
 
     requestPostsTabFocus();
     act(() => {
@@ -1083,9 +1125,11 @@ describe('MyProfileView', () => {
     });
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeNull();
   });
 
   it('scrolls back to the top when focused right after the viewer posts', () => {

@@ -25,7 +25,7 @@ const ProfilePostsEmptyState: React.FC<ProfilePostsEmptyStateProps> = ({
   message,
 }) => (
   <Box
-    paddingTop={6}
+    paddingTop={4}
     twClassName="w-full"
     testID={MyProfileViewSelectorsIDs.EMPTY_STATE}
   >
