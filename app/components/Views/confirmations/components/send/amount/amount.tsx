@@ -249,7 +249,7 @@ export const Amount = () => {
             onPress={toggleFiatMode}
             size={ButtonSize.Md}
             testID="fiat_toggle"
-            twClassName="mt-3 self-center"
+            twClassName="mt-4 self-center"
             variant={ButtonVariant.Secondary}
           >
             {alternateDisplayValue}
