@@ -10,6 +10,7 @@ import { useAcceptMoneyReferralCode } from '../../hooks/useAcceptMoneyReferralCo
 import { useGeoRewardsMetadata } from '../../hooks/useGeoRewardsMetadata';
 import { useReferralMe } from '../../hooks/useReferralMe';
 import { useValidateMoneyReferralCode } from '../../hooks/useValidateMoneyReferralCode';
+import type { ReferralMeEntry } from '../../../../../reducers/rewardsMoney';
 import {
   selectMoneyReferralAllowedForGeo,
   selectReferralMeEntry,
@@ -73,7 +74,7 @@ const openEntry = {
       settingsReferralApply: 'Apply',
     },
   },
-};
+} as ReferralMeEntry;
 
 const renderSection = (
   props: React.ComponentProps<typeof ReferredByCodeSection> = {},
@@ -134,12 +135,13 @@ describe('ReferredByCodeSection', () => {
 
   it('shows the stored code without an apply button', () => {
     jest.mocked(selectReferralMeEntry).mockReturnValue({
-      loading: false,
-      error: false,
-      data: {
-        referred_by: { referral_code: 'ABC123' },
-        localized_text: openEntry.data.localized_text,
-      },
+      ...openEntry,
+      data: openEntry.data
+        ? {
+            ...openEntry.data,
+            referred_by: { referral_code: 'ABC123' },
+          }
+        : null,
     });
 
     const { getByTestId, getByText, queryByTestId } = renderSection();

@@ -139,6 +139,13 @@ export const REFERRAL_LOCALIZED_TEXT: ReferralLocalizedText = {
   rewardsPausedDescription: 'These rewards are paused while they are reviewed.',
   rewardsPausedBanner: '{amount} of rewards paused.',
   rewardsPausedLearnMore: 'Learn more',
+  settingsReferralTitle: 'Referral Code',
+  settingsReferralLinkedDescription:
+    'You are all set. Start trading to earn rewards.',
+  settingsReferralNotLinkedDescription:
+    'Have a referral code? Enter it below and you will be linked.',
+  settingsReferralPlaceholder: 'Enter referral code',
+  settingsReferralApply: 'Apply',
 };
 
 /**
