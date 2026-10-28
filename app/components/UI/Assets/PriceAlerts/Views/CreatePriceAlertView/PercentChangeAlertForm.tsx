@@ -244,7 +244,6 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
           prefix={directionToggle}
           suffix={percentSuffix}
           testID={CreatePriceAlertTestIds.PERCENT_INPUT}
-          cursorTwClassName="self-center h-10 w-0.5 bg-primary-default"
         />
 
         <Box twClassName="mt-4 w-full" alignItems={BoxAlignItems.Center}>
