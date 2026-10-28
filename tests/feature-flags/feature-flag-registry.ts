@@ -4850,6 +4850,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyMicrodepositsEnabled: {
+    name: 'moneyMicrodepositsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyEnableActivityDetails: {
     name: 'moneyEnableActivityDetails',
     type: FeatureFlagType.Remote,

@@ -51,6 +51,7 @@ export enum FeatureFlagNames {
   moneyBrandRefresh = 'moneyBrandRefresh',
   moneyVbaPendingActivityEnabled = 'moneyVbaPendingActivityEnabled',
   moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
+  moneyMicrodepositsEnabled = 'moneyMicrodepositsEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
   mfaUiKit = 'mfaUiKit',
@@ -86,6 +87,10 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
     minimumVersion: null,
   },
   [FeatureFlagNames.moneyVbaCompletedActivityEnabled]: {
+    enabled: false,
+    minimumVersion: null,
+  },
+  [FeatureFlagNames.moneyMicrodepositsEnabled]: {
     enabled: false,
     minimumVersion: null,
   },
