@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, RefreshControl, ScrollView } from 'react-native';
+import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -33,7 +33,6 @@ import type {
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { useTheme } from '../../../../../util/theme';
 import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
@@ -235,7 +234,6 @@ const buildDetailRows = (
 const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
-  const { colors } = useTheme();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
   const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
@@ -271,7 +269,6 @@ const VbaDetails = () => {
     useState<AutorampDepositInstructions | null>(() =>
       readCachedInstructions(walletAddress, sourceCurrency),
     );
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [revalidateCount, setRevalidateCount] = useState(0);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
@@ -733,27 +730,6 @@ const VbaDetails = () => {
     [],
   );
 
-  const handleRefresh = useCallback(async () => {
-    // iOS ignores `enabled`, so the offline guard lives here too.
-    if (networkTier === 'NONE') {
-      return;
-    }
-    setIsRefreshing(true);
-    try {
-      await refreshDeposit();
-      setLoadError(false);
-    } catch (error) {
-      setLoadError(true);
-      Logger.error(error as Error, {
-        message: 'VbaDetails: pull to refresh failed',
-      });
-    } finally {
-      if (isMountedRef.current) {
-        setIsRefreshing(false);
-      }
-    }
-  }, [networkTier, refreshDeposit]);
-
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -817,15 +793,6 @@ const VbaDetails = () => {
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
-        refreshControl={
-          <RefreshControl
-            colors={[colors.primary.default]}
-            tintColor={colors.icon.default}
-            enabled={networkTier !== 'NONE'}
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-          />
-        }
       >
         <TitleStandard
           title={strings(
