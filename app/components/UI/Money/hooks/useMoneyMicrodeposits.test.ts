@@ -9,6 +9,7 @@ import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
 import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectKycSessionStatus } from '../../../../selectors/kycController';
 
 jest.mock('../../../../core/Engine', () => ({ context: {} }));
 jest.mock('react-redux', () => ({
@@ -28,6 +29,9 @@ jest.mock('../../../../util/deviceCapability', () => ({
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: { error: jest.fn() },
+}));
+jest.mock('../../../../selectors/kycController', () => ({
+  selectKycSessionStatus: jest.fn(),
 }));
 
 const mockUseSelector = jest.mocked(useSelector);
@@ -50,13 +54,38 @@ function setup(
   options: {
     address?: string | undefined;
     tier?: 'WIFI' | 'SLOW_CELLULAR' | 'NONE';
+    kycApproved?: boolean;
+    registeredWallet?: string;
+    autorampWallet?: string;
   } = {},
 ) {
   const address = Object.hasOwn(options, 'address') ? options.address : ADDRESS;
   const tier = options.tier ?? 'WIFI';
+  const kycApproved = options.kycApproved ?? false;
+  const sessionStatus = kycApproved
+    ? { finalStatus: 'approved', kycStatus: 'approved' }
+    : null;
+  const rampsState = {
+    moneyAccountWalletRegistrations: options.registeredWallet
+      ? [{ walletAddress: options.registeredWallet }]
+      : [],
+    autoramps: options.autorampWallet
+      ? [{ id: 'ar-1', walletAddress: options.autorampWallet }]
+      : [],
+  };
   mockUseSelector.mockImplementation((selector: unknown) => {
+    if (selector === selectKycSessionStatus) {
+      return sessionStatus;
+    }
     if (selector === selectPrimaryMoneyAccount) {
       return address ? { address } : undefined;
+    }
+    if (typeof selector === 'function') {
+      return (selector as (state: unknown) => unknown)({
+        engine: {
+          backgroundState: { RampsController: rampsState },
+        },
+      });
     }
     return undefined;
   });
@@ -73,7 +102,7 @@ function setService(service: unknown) {
 describe('useMoneyMicrodeposits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    setup();
+    setup({ kycApproved: true });
   });
 
   it('maps the proxy response into activity rows, newest first', async () => {
@@ -131,6 +160,44 @@ describe('useMoneyMicrodeposits', () => {
 
     expect(result.current.microdeposits).toEqual([]);
     expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it.each([
+    ['an approved KYC decision', { kycApproved: true }],
+    [
+      'a wallet registration with no KYC session',
+      { registeredWallet: ADDRESS },
+    ],
+    [
+      'an autoramp with no KYC session',
+      { autorampWallet: ADDRESS.toLowerCase() },
+    ],
+  ])('fetches with %s', async (_label, options) => {
+    setup(options as Parameters<typeof setup>[0]);
+
+    const getMicrodeposits = jest.fn().mockResolvedValue([]);
+    setService({ getMicrodeposits });
+
+    const { result } = renderHook(() => useMoneyMicrodeposits(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(getMicrodeposits).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+  });
+
+  it('does not fetch for a wallet with no KYC decision and no VBA evidence', async () => {
+    setup();
+    const getMicrodeposits = jest.fn();
+    setService({ getMicrodeposits });
+
+    const { result } = renderHook(() => useMoneyMicrodeposits(), {
+      wrapper: createWrapper(),
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(getMicrodeposits).not.toHaveBeenCalled();
   });
 
   it('does not fetch without a Money Account address', async () => {

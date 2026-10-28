@@ -5,7 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import type { RootState } from '../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectKycSessionStatus } from '../../../../selectors/kycController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { MicrodepositActivity } from '../types/moneyActivity';
@@ -25,7 +27,12 @@ export const moneyMicrodepositsQueryKey = (address: string) =>
  * Polls the neobank-proxy microdeposit list for the active Money Account.
  *
  * Microdeposits are cumulative and settle nothing on-chain, so this is one
- * small extra fetch gated behind its own flag rather than a paged source.
+ * small extra fetch. It only runs for profiles that can actually receive one:
+ * an approved KYC decision, or a Money wallet that already registered with the
+ * provider or holds an autoramp. Users who have not onboarded (and users whose
+ * KYC state did not survive a reinstall) would otherwise pay for a request
+ * that can only return an empty list.
+ *
  * 404 (no MoonPay customer yet) already resolves to an empty list in
  * `NeoBankService.getMicrodeposits`.
  */
@@ -36,6 +43,29 @@ export function useMoneyMicrodeposits(): {
 } {
   const address = useSelector(selectPrimaryMoneyAccount)?.address;
   const normalizedAddress = address?.toLowerCase() ?? '';
+  const sessionStatus = useSelector(selectKycSessionStatus);
+  const kycApproved =
+    sessionStatus?.finalStatus === 'approved' ||
+    sessionStatus?.kycStatus === 'approved';
+  // Registration or an autoramp is durable evidence that onboarding happened,
+  // even when the persisted KYC session is gone.
+  const hasVbaEvidence = useSelector((state: RootState) => {
+    const ramps = state.engine?.backgroundState?.RampsController;
+    if (!ramps || !normalizedAddress) {
+      return false;
+    }
+    const isForMoneyWallet = (walletAddress?: string) =>
+      walletAddress?.toLowerCase() === normalizedAddress;
+    return (
+      (ramps.moneyAccountWalletRegistrations ?? []).some((registration) =>
+        isForMoneyWallet(registration.walletAddress),
+      ) ||
+      (ramps.autoramps ?? []).some((autoramp) =>
+        isForMoneyWallet(autoramp.walletAddress),
+      )
+    );
+  });
+  const canReceiveMicrodeposits = kycApproved || hasVbaEvidence;
   const isFocused = useIsFocused();
   const [appIsActive, setAppIsActive] = useState(
     AppState.currentState === 'active',
@@ -72,7 +102,8 @@ export function useMoneyMicrodeposits(): {
         return [];
       }
     },
-    enabled: Boolean(normalizedAddress) && !knownOffline,
+    enabled:
+      Boolean(normalizedAddress) && canReceiveMicrodeposits && !knownOffline,
     retry: false,
     staleTime: 0,
     // The list is refreshed on every mount; keeping it cached after unmount
