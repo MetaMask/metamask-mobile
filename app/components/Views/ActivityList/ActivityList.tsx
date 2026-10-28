@@ -103,14 +103,14 @@ import {
 } from './helpers/transformations';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
-import { useRampActivityItems } from './hooks/useRampActivityItems';
+import { useRampActivityItems } from './ramps/useRampActivityItems';
 import { useRampsOrders } from '../../UI/Ramp/hooks/useRampsOrders';
 import { getOrders } from '../../../reducers/fiatOrders';
 import type { FiatOrder } from '../../../reducers/fiatOrders/types';
 import {
   navigateToRampOrderTarget,
   resolveRampOrderTarget,
-} from './utils/resolveRampOrderTarget';
+} from './ramps/resolveRampOrderTarget';
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';

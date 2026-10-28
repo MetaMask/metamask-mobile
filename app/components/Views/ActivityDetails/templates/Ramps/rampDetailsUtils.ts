@@ -1,15 +1,15 @@
-import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
 import type { RampsOrder } from '@metamask/ramps-controller';
-import { getIntlDateTimeFormatter } from '../../../../util/intl';
-import { renderFiat } from '../../../../util/number/bigint';
+import { getIntlDateTimeFormatter } from '../../../../../util/intl';
+import { renderFiat } from '../../../../../util/number/bigint';
 import {
   getRampOrderTransactionHash,
   mapRampOrderStatus,
   mapRampOrderType,
   toRampOrderToken,
-} from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
-import { mapRampsOrderStatus } from '../../../../util/activity-adapters/adapters/ramps-order-helpers';
-import I18n, { strings } from '../../../../../locales/i18n';
+} from '../../../../../util/activity-adapters/adapters/ramps/ramp-order-helpers';
+import { mapRampsOrderStatus } from '../../../../../util/activity-adapters/adapters/ramps/ramps-order-helpers';
+import I18n, { strings } from '../../../../../../locales/i18n';
 
 type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
 

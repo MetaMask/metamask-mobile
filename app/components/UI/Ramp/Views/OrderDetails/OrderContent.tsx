@@ -35,7 +35,7 @@ import { toDateFormat } from '../../../../../util/date';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { toRampsOrderCaipChainId } from '../../../../../util/activity-adapters/adapters/ramps-order-helpers';
+import { toRampsOrderCaipChainId } from '../../../../../util/activity-adapters/adapters/ramps/ramps-order-helpers';
 import { getTokenImageSource } from '../../../ActivityListItemRow/tokenIcon';
 import Logger from '../../../../../util/Logger';
 import { hasDepositOrderField } from '../../utils/depositUtils';

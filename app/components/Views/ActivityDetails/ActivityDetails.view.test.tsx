@@ -67,7 +67,7 @@ import {
 import { renderActivityDetailsView } from '../../../../tests/component-view/renderers/activity';
 import { getRouteParamsProbeTestId } from '../../../../tests/component-view/render';
 import Routes from '../../../constants/navigation/Routes';
-import { formatShortRampOrderId } from './templates/rampDetailsUtils';
+import { formatShortRampOrderId } from './templates/Ramps/rampDetailsUtils';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 
 const findAmountTextColor = (
