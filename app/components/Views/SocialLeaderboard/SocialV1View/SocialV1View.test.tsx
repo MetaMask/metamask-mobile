@@ -42,6 +42,13 @@ let mockRouteParams: {
   initialTab?: SocialShellTab;
 } = {};
 
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
+
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
