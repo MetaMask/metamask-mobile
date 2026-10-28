@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState, type NativeEventSubscription } from 'react-native';
 import type {
   KycCatalogDocument,
   KycConsentDocument,
@@ -6,6 +7,10 @@ import type {
 } from '@metamask/kyc-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import {
+  clearVbaKycRelaunchMarker,
+  markVbaKycRelaunch,
+} from '../../Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker';
 import type { VbaIdentityVerificationCompletion } from '../Views/SumSub/types';
 
 export interface UseLaunchSumSubResult {
@@ -68,6 +73,9 @@ async function recordSessionConsents(): Promise<void> {
  * `launchProviderFlow` returns a durable provider-flow outcome. A submitted
  * run advances onboarding, an abandoned run returns to the caller, and a
  * failed run surfaces an error.
+ *
+ * While the provider is open, a relaunch marker lets the next cold start
+ * reopen onboarding. iOS kills the app when camera access changes in Settings.
  */
 export const useLaunchSumSub = (
   onSubmitted: (
@@ -96,6 +104,17 @@ export const useLaunchSumSub = (
     }
     inFlightRef.current = true;
     let cancelled = false;
+    let appStateSubscription: NativeEventSubscription | undefined;
+    let marked = false;
+
+    const stopRelaunchMarker = async () => {
+      appStateSubscription?.remove();
+      appStateSubscription = undefined;
+      if (marked) {
+        marked = false;
+        await clearVbaKycRelaunchMarker();
+      }
+    };
 
     const launch = async () => {
       try {
@@ -109,7 +128,16 @@ export const useLaunchSumSub = (
           return;
         }
 
+        await markVbaKycRelaunch();
+        marked = true;
+        appStateSubscription = AppState.addEventListener('change', (state) => {
+          if (state === 'background') {
+            markVbaKycRelaunch();
+          }
+        });
+
         const outcome = await KycController.launchProviderFlow({});
+        await stopRelaunchMarker();
         if (cancelled) {
           return;
         }
@@ -130,6 +158,7 @@ export const useLaunchSumSub = (
         setHasError(true);
         setIsLaunching(false);
       } finally {
+        await stopRelaunchMarker();
         if (attemptRef.current === attempt) {
           inFlightRef.current = false;
         }

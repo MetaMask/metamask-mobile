@@ -4,6 +4,8 @@ import type {
 } from './accountCreateError';
 import type { VbaOnboardingSnapshot } from './vbaOnboardingSnapshot';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
+import Routes from '../../../../../constants/navigation/Routes';
+import type { NavigationBranchState } from '../../../../../core/DeeplinkManager/utils/resetToHomeNav';
 
 export const VbaOnboardingRoutes = {
   VENDOR_TERMS: 'VbaVendorTerms',
@@ -41,6 +43,35 @@ export type VbaOnboardingParamList = {
   };
   VbaError: undefined;
 };
+
+/** Money home, where onboarding starts and where back returns to. */
+export const VBA_DEFAULT_CALLER_ROUTE = {
+  name: Routes.HOME_TABS,
+  params: {
+    screen: Routes.MONEY.ROOT,
+    params: { screen: Routes.MONEY.HOME },
+  },
+};
+
+/**
+ * Main stack state that opens onboarding on its loading screen above Money
+ * home, the same two-route shape `openAsOnlyOnboardingRoute` keeps.
+ */
+export const getVbaOnboardingResumeState = (
+  source: string,
+): NavigationBranchState => ({
+  index: 1,
+  routes: [
+    VBA_DEFAULT_CALLER_ROUTE,
+    {
+      name: Routes.RAMP.VBA_ONBOARDING,
+      state: {
+        index: 0,
+        routes: [{ name: VbaOnboardingRoutes.LOADING, params: { source } }],
+      },
+    },
+  ],
+});
 
 export const VbaIdentityVerificationRoutes = {
   PROVIDER_TERMS: 'VbaIdentityVerificationProviderTerms',

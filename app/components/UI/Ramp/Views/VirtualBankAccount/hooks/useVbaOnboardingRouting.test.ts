@@ -74,6 +74,9 @@ const mockStartSession = jest.fn();
 const mockKycState: { email: string | null } = { email: null };
 
 jest.mock('../../../../../../core/Engine', () => ({
+  get state() {
+    return mockGetState();
+  },
   context: {
     RampsController: {
       hydrateVbaOnboarding: (...args: unknown[]) => mockHydrate(...args),
@@ -101,7 +104,8 @@ jest.mock('../../../../../../core/redux', () => ({
 
 jest.mock('../../../../../../selectors/rampsController', () => ({
   selectSelectedVbaWalletAddress: jest.fn(
-    (state: { address?: string }) => state.address ?? null,
+    (state: { engine: { backgroundState: { address?: string } } }) =>
+      state.engine.backgroundState.address ?? null,
   ),
 }));
 

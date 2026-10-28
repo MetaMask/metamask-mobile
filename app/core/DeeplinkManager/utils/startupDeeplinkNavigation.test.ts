@@ -86,6 +86,14 @@ jest.mock('../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockConsumeVbaKycResumeState = jest.fn();
+jest.mock(
+  '../../../components/UI/Ramp/Views/VirtualBankAccount/vbaKycRelaunchMarker',
+  () => ({
+    consumeVbaKycResumeState: () => mockConsumeVbaKycResumeState(),
+  }),
+);
+
 const mockStartDeeplinkNavigatedTrace = jest.fn();
 const mockCancelDeeplinkNavigatedTrace = jest.fn();
 const mockCancelDeeplinkProcessedTrace = jest.fn();
@@ -115,6 +123,7 @@ describe('startupDeeplinkNavigation', () => {
     setRequestAnimationFrame(mockRequestAnimationFrame);
     mockResolve.mockResolvedValue(intent);
     mockExecuteStartupDeeplinkIntent.mockResolvedValue(true);
+    mockConsumeVbaKycResumeState.mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -276,5 +285,30 @@ describe('startupDeeplinkNavigation', () => {
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
     expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('reopens VBA onboarding when a KYC relaunch marker is valid', async () => {
+    const resumeState = { index: 1, routes: [{ name: 'Home' }] };
+    mockConsumeVbaKycResumeState.mockResolvedValueOnce(resumeState);
+
+    await navigateToPostUnlockHome();
+
+    expect(mockReset).toHaveBeenCalledWith({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV, state: resumeState }],
+    });
+  });
+
+  it('lets a handled startup deeplink win over a KYC relaunch marker', async () => {
+    AppStateEventProcessor.pendingDeeplink = 'https://link.metamask.io/rewards';
+    mockConsumeVbaKycResumeState.mockResolvedValueOnce({
+      index: 0,
+      routes: [{ name: 'Home' }],
+    });
+
+    await navigateToPostUnlockHome();
+
+    expect(mockConsumeVbaKycResumeState).toHaveBeenCalledTimes(1);
+    expect(mockExecuteStartupDeeplinkIntent).toHaveBeenCalledWith(intent);
+    expect(mockReset).not.toHaveBeenCalled();
   });
 });
