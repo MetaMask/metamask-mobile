@@ -2,7 +2,9 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  type ProviderValues,
+} from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
 import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
@@ -55,13 +57,15 @@ jest.mock('@react-native-clipboard/clipboard', () => ({
   setString: jest.fn(),
 }));
 
+const mockNavigation = {
+  canGoBack: () => mockCanGoBack,
+  goBack: (...args: unknown[]) => mockGoBack(...args),
+  navigate: (...args: unknown[]) => mockNavigate(...args),
+};
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    canGoBack: () => mockCanGoBack,
-    goBack: mockGoBack,
-    navigate: mockNavigate,
-  }),
+  // Stable like the real hook, so effects keyed on navigation do not rerun.
+  useNavigation: () => mockNavigation,
   useRoute: () => ({ params: mockRouteParams }),
 }));
 
@@ -180,6 +184,14 @@ const pixInstructions = {
   instruction: 'Pay with PIX',
   pixKey: 'pix@example.com',
 };
+
+// Test fixtures use plain status strings, not the controller's enum.
+const withPersistedAutoramps = (
+  autoramps: TestAutoramp[],
+): ProviderValues['state'] =>
+  ({
+    engine: { backgroundState: { RampsController: { autoramps } } },
+  }) as unknown as ProviderValues['state'];
 
 const setAutoramps = (autoramps: TestAutoramp[]) => {
   (
@@ -369,21 +381,13 @@ describe('VbaDetails', () => {
     expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
   });
 
-  it('leaves shown details when a background hydrate rejects the autoramp', async () => {
+  it('clears shown details when a background hydrate rejects the autoramp', async () => {
     setAutoramps([approvedAutoramp]);
     setCachedDepositInstructions('ar-1', pixInstructions);
     mockGetDepositInstructions.mockResolvedValue(pixInstructions);
     const { getByTestId, queryByTestId, store } = renderWithProvider(
       <VbaDetails />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              RampsController: { autoramps: [approvedAutoramp] },
-            },
-          },
-        },
-      },
+      { state: withPersistedAutoramps([approvedAutoramp]) },
     );
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
     await waitFor(() => {
@@ -407,7 +411,7 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('drops details that resolve after the autoramp was rejected', async () => {
+  it('drops late details and routes away when the autoramp is rejected mid-fetch', async () => {
     setAutoramps([approvedAutoramp]);
     let resolveDetails: (value: typeof pixInstructions) => void = () =>
       undefined;
@@ -418,15 +422,7 @@ describe('VbaDetails', () => {
     );
     const { queryByTestId, getByTestId, store } = renderWithProvider(
       <VbaDetails />,
-      {
-        state: {
-          engine: {
-            backgroundState: {
-              RampsController: { autoramps: [approvedAutoramp] },
-            },
-          },
-        },
-      },
+      { state: withPersistedAutoramps([approvedAutoramp]) },
     );
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
@@ -443,6 +439,16 @@ describe('VbaDetails', () => {
     expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     expect(getCachedDepositInstructions('ar-1')).toBeNull();
+    // Routes on an immediate re-poll, not the next 10s interval.
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
+    });
   });
 
   it('refetches details on pull to refresh', async () => {

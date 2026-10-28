@@ -272,6 +272,7 @@ const VbaDetails = () => {
       readCachedInstructions(walletAddress, sourceCurrency),
     );
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [revalidateCount, setRevalidateCount] = useState(0);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
@@ -481,11 +482,12 @@ const VbaDetails = () => {
           }
           // The autoramp may have been rejected, cancelled or replaced while
           // this request was in flight (for example by a background hydrate).
-          // Keep polling instead of showing details for it.
+          // Poll again right away instead of showing details for it.
           if (
             findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
               ?.id !== autoramp.id
           ) {
+            setRevalidateCount((count) => count + 1);
             return;
           }
           if (details) {
@@ -601,7 +603,6 @@ const VbaDetails = () => {
     );
     return autoramp ? `${autoramp.id}:${autoramp.status}` : '';
   });
-  const [revalidateCount, setRevalidateCount] = useState(0);
   const lastUsableAutorampRef = useRef({ accountKey, usableAutorampKey });
 
   useEffect(() => {
