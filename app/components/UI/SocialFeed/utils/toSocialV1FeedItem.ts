@@ -10,11 +10,11 @@ import type {
 } from '../types';
 import {
   formatAbbreviatedUsd,
-  formatHoldDuration,
   formatSignedAbbreviatedUsd,
   formatTradeUnitPrice,
   formatUsd,
 } from './formatters';
+import { formatSocialElapsed } from './formatSocialTime';
 import { isEntryAction } from './tradeAction';
 import { tradeTimestampToMs } from './tradeTimestamp';
 import { buildLivePriceSource } from '../live/buildLivePriceSource';
@@ -286,7 +286,7 @@ export function toSocialV1FeedItem(
     now,
   );
   const holdTimeLabel =
-    holdDurationMs == null ? undefined : formatHoldDuration(holdDurationMs);
+    holdDurationMs == null ? undefined : formatSocialElapsed(holdDurationMs);
 
   if (item.isClosed) {
     const exitPrice = deriveExitPrice(core);

@@ -32,6 +32,7 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
+import { formatSocialSecondsAgo } from '../../../UI/SocialFeed/utils/formatSocialTime';
 import Routes from '../../../../constants/navigation/Routes';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { useHaptics } from '../../../../util/haptics';
@@ -179,11 +180,7 @@ const LiveActivityFallback: React.FC = () => (
         </Text>
         <Box twClassName="flex-1" />
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {trade.seconds == null
-            ? strings('social_leaderboard.profile_onboarding.just_now')
-            : strings('social_leaderboard.profile_onboarding.seconds_ago', {
-                count: trade.seconds,
-              })}
+          {formatSocialSecondsAgo(trade.seconds ?? 0)}
         </Text>
       </Box>
     ))}
