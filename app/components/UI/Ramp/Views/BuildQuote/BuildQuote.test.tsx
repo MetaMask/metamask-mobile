@@ -431,6 +431,9 @@ describe('BuildQuote', () => {
         transform: [{ translateY: -4 }],
         opacity: 1,
       });
+      expect(getByTestId(BUILD_QUOTE_TEST_IDS.AMOUNT_ROW)).toHaveStyle({
+        height: 88,
+      });
     });
   });
 

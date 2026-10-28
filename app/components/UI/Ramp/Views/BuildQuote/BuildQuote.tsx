@@ -133,6 +133,9 @@ export const createBuildQuoteNavDetails = (
 
 const DEFAULT_AMOUNT = 100;
 const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
+// Largest step of the shared amount scale. The row keeps this height so the
+// payment pill stays put while longer amounts shrink inside it.
+const AMOUNT_ROW_HEIGHT = getFontSizeForInputLength(1);
 
 function BuildQuote() {
   const navigation = useNavigation<AppNavigationProp>();
@@ -815,7 +818,10 @@ function BuildQuote() {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
-              <View style={styles.amountRow}>
+              <View
+                testID={BUILD_QUOTE_TEST_IDS.AMOUNT_ROW}
+                style={[styles.amountRow, { height: AMOUNT_ROW_HEIGHT }]}
+              >
                 <Text
                   testID={BuildQuoteSelectors.AMOUNT_INPUT}
                   variant={TextVariant.DisplayMd}
