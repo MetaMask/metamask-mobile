@@ -86,7 +86,8 @@ function isPredictTradeKind(type: ActivityKind): boolean {
   return (
     type === 'predictionPlaced' ||
     type === 'predictionCashedOut' ||
-    type === 'predictionClaimWinnings'
+    type === 'predictionClaimWinnings' ||
+    type === 'predictionSettled'
   );
 }
 
@@ -264,6 +265,9 @@ function getPredictEventTitle(item: ActivityListItem): string | undefined {
 }
 
 function predictMarketSubtitle(item: ActivityListItem): string | undefined {
+  if (item.type === 'predictionSettled' && item.data.marketQuestion) {
+    return item.data.marketQuestion;
+  }
   return getPredictEventTitle(item);
 }
 
@@ -883,6 +887,7 @@ function resolveCoreContent(
     case 'predictionPlaced':
     case 'predictionCashedOut':
     case 'predictionClaimWinnings':
+    case 'predictionSettled':
       return {
         title: resolveFallbackTitle(item),
         subtitle: predictMarketSubtitle(item),

@@ -1,9 +1,28 @@
 import { strings } from '../../../../../../locales/i18n';
-import type { ActivityListItem } from '../../../../../util/activity-adapters';
+import type {
+  ActivityListItem,
+  PredictSettlementExtras,
+} from '../../../../../util/activity-adapters';
 import { formatPredictDate } from './PredictDetails.types';
 import type { ActivityDetailsStep } from '../../components';
 
 const POLYMARKET_BASE_URL = 'https://polymarket.com';
+
+export type PredictSettlementOutcome = 'won' | 'lost' | 'partial';
+
+/**
+ * Whether the held side won. A `scalar` result pays a fraction per share to
+ * both sides, so it is neither a win nor a loss.
+ */
+export function getPredictSettlementOutcome(
+  side: PredictSettlementExtras['side'],
+  result: PredictSettlementExtras['result'],
+): PredictSettlementOutcome {
+  if (result === 'scalar') {
+    return 'partial';
+  }
+  return side === result ? 'won' : 'lost';
+}
 
 function getPredictFundsStepLabels() {
   return [

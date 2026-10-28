@@ -2,6 +2,7 @@ import React from 'react';
 import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import { PredictFundsDetails } from './PredictFundsDetails';
 import { PredictProviderActivityDetails } from './PredictProviderActivityDetails';
+import { PredictSettlementDetails } from './PredictSettlementDetails';
 import type { PredictActivityListItem } from './PredictDetails.types';
 
 export function PredictDetails({ item }: { item: ActivityListItem }) {
@@ -20,6 +21,10 @@ export function PredictDetails({ item }: { item: ActivityListItem }) {
     predictItem.type === 'predictionClaimWinnings'
   ) {
     return <PredictProviderActivityDetails item={predictItem} />;
+  }
+
+  if (item.type === 'predictionSettled') {
+    return <PredictSettlementDetails item={item} />;
   }
 
   return null;

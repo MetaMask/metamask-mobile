@@ -73,6 +73,7 @@ export function TemplateLoader({
     case 'predictionsAddFunds':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':
+    case 'predictionSettled':
     case 'predictionCashedOut':
     case 'predictionPlaced':
       return <PredictDetails item={item} />;

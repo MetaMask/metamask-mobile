@@ -97,6 +97,7 @@ export const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   predictionsWithdrawFunds: () =>
     strings('transactions.activity_prediction_withdrawal'),
   predictionClaimWinnings: () => strings('predict.transactions.claim_title'),
+  predictionSettled: () => strings('predict.transactions.settled_title'),
   predictionCashedOut: () => strings('predict.transactions.sell_title'),
   // Design board copy: "Prediction placed" (not the legacy "Predicted").
   predictionPlaced: () => strings('transactions.activity_prediction_placed'),
