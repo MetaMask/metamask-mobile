@@ -56,7 +56,7 @@ const EventMarketListContent = ({
 }: EventMarketListProps) => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
-  const { animated, ...renderingPolicy } = getEventMarketListPolicy(
+  const renderingPolicy = getEventMarketListPolicy(
     getHardwareTier(),
     networkTier,
   );
@@ -196,7 +196,6 @@ const EventMarketListContent = ({
           {tabs.length > 0 ? (
             <TabsBar
               testID={EventMarketListTestIds.TABS}
-              animated={animated}
               twClassName="-mx-4 mb-4"
               tabs={tabs}
               activeIndex={tabs.findIndex((tab) => tab.key === activeTab)}

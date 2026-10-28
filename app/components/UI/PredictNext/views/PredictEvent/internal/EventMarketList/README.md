@@ -35,7 +35,8 @@ import { EventMarketList } from './internal/EventMarketList';
 - Discovery is serial, stops after five total pages of 20 or the first failed next page, and does not cancel an in-flight shared refresh. Already-cached pages beyond five are still consumed. Missing/failed/incomplete discovery never blocks Markets; cached holdings remain usable on refresh failure. Known offline transport disables initial and imperative next-page work; unknown transport is not offline.
 - The numeric badge counts **available deduplicated holdings**, including after failure or the cap; it is not a guaranteed complete Event total. Zero holdings remove Positions. At the badge helper seam, omitted count has no badge, explicit zero displays `0`, and more than 99 displays `99+`.
 - Privacy comes from `selectPrivacyMode` inside the list; `EventPositionRow` retains the existing shares/SensitiveText/Cash Out presentation. The old `EventPositionsSection` reuses that row without changing its current screen behavior.
-- LOW hardware with a known transport uses FlatList limits `6 / 6 / 5` (initial rows / batch / window) and no tab motion. Other cohorts, including unknown network, use `10 / 10 / 21`; known offline disables motion regardless of hardware. These limits never truncate the semantic row set. No Event/history/live subscription, polling, prefetch, or financial write is added.
+- Reuse the existing shared `TabsBar` as-is, including its selection, underline, scrolling, accessibility, and animation behavior. The Positions badge uses its existing `endAccessory` prop. No custom tab component or shared Tabs implementation, type, or test change is included.
+- LOW hardware with a known transport uses FlatList limits `6 / 6 / 5` (initial rows / batch / window). Other cohorts, including unknown network, use `10 / 10 / 21`. These limits never truncate the semantic row set; known offline transport disables fetching. The shared `TabsBar` does not expose a motion override. No Event/history/live subscription, polling, prefetch, or financial write is added.
 
 ## PRED-1418 integration handoff
 
@@ -54,7 +55,7 @@ No backend/mobile contract, dependency, external Predict API, legacy Polymarket 
 
 ## Verification and isolated stories
 
-`EventMarketList.view.test.tsx` owns real-query async/cache/offline/pagination/panel/privacy/action journeys through the shared component-view framework. Focused hook/helper tests cover canonical-object, deduplication, reference-stability, badge, and device-policy contracts. Shared Tabs tests cover accessibility forwarding, dynamic badge width, overflow, and opt-out/default motion; Market-card/projection tests retain their existing contracts.
+`EventMarketList.view.test.tsx` owns real-query async/cache/offline/pagination/panel/privacy/action journeys through the shared component-view framework. Focused hook/helper tests cover canonical-object, deduplication, reference-stability, badge, and device-policy contracts. Shared Tabs and Market-card/projection tests retain their existing contracts and remain unchanged.
 
 The `PredictNext / EventMarketList` Storybook group includes standard and Game Events, empty/cached/delayed Positions, count changes, a 320-point viewport, and 120 Markets/holdings across six cached pages. Stories use parser-validated synthetic data, the real Positions hook, and an isolated messenger-backed query client. Actions only update explanatory text; **Load Positions** resolves the delayed read; count controls update the shared-query shape. Unmount resolves pending story data and clears the isolated cache. Set actual system text scaling and both themes rather than treating the narrow story as a large-text simulation.
 

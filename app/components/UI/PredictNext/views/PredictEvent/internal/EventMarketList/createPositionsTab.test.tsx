@@ -1,19 +1,20 @@
 import React from 'react';
 import { render, within } from '@testing-library/react-native';
 import TabsBar from '../../../../../../../component-library/components-temp/Tabs/TabsBar';
+import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { createPositionsTab } from './createPositionsTab';
 
 // Narrow presentation seam: availability and query journeys live in the view tests.
 describe('createPositionsTab', () => {
   it.each([
-    { count: undefined, badge: undefined, label: 'Positions' },
-    { count: 0, badge: '0', label: 'Positions, 0' },
-    { count: 1, badge: '1', label: 'Positions, 1' },
-    { count: 99, badge: '99', label: 'Positions, 99' },
-    { count: 100, badge: '99+', label: 'Positions, 99+' },
+    { count: undefined, badge: undefined },
+    { count: 0, badge: '0' },
+    { count: 1, badge: '1' },
+    { count: 99, badge: '99' },
+    { count: 100, badge: '99+' },
   ])(
-    'represents count $count once for accessibility',
-    ({ count, badge, label }) => {
+    'renders the optional count $count using the shared TabsBar',
+    ({ count, badge }) => {
       const view = render(
         <TabsBar
           tabs={[createPositionsTab(count)]}
@@ -22,19 +23,13 @@ describe('createPositionsTab', () => {
         />,
       );
       const tab = within(
-        view.getByRole('tab', { name: label, selected: true }),
+        view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
       );
 
-      expect(tab.getAllByText('Positions')).toHaveLength(1);
-      expect(tab.queryByText(/^(0|1|99|99\+)$/)).not.toBeOnTheScreen();
       if (badge === undefined) {
-        expect(
-          tab.queryByText(/^(0|1|99|99\+)$/, { includeHiddenElements: true }),
-        ).not.toBeOnTheScreen();
+        expect(tab.queryByText(/^(0|1|99|99\+)$/)).not.toBeOnTheScreen();
       } else {
-        expect(
-          tab.getByText(badge, { includeHiddenElements: true }),
-        ).toBeOnTheScreen();
+        expect(tab.getByText(badge)).toBeOnTheScreen();
       }
     },
   );

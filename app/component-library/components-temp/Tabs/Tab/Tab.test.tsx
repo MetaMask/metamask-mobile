@@ -63,26 +63,6 @@ describe('Tab', () => {
   });
 
   describe('Active State', () => {
-    it('announces one visible label with tab role and updates selected state', () => {
-      const { getByRole, getAllByText, rerender } = render(
-        <Tab {...defaultProps} />,
-      );
-
-      expect(
-        getByRole('tab', { name: defaultProps.label, selected: false }),
-      ).toBeOnTheScreen();
-      expect(getAllByText(defaultProps.label)).toHaveLength(1);
-      expect(
-        getAllByText(defaultProps.label, { includeHiddenElements: true }),
-      ).toHaveLength(2);
-
-      rerender(<Tab {...defaultProps} isActive />);
-
-      expect(
-        getByRole('tab', { name: defaultProps.label, selected: true }),
-      ).toBeOnTheScreen();
-    });
-
     it('renders enabled when isActive is true', () => {
       const { getByTestId } = render(
         <Tab {...defaultProps} isActive testID="active-tab" />,

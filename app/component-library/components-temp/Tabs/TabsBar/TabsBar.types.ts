@@ -3,7 +3,6 @@ import React from 'react';
 
 // External dependencies.
 import { Box } from '@metamask/design-system-react-native';
-import type { TabProps } from '../Tab/Tab.types';
 
 // TODO: @MetaMask/design-system-engineers
 // Use the concrete Box component props here instead of BoxProps.
@@ -18,11 +17,7 @@ type BoxComponentProps = React.ComponentProps<typeof Box>;
 /**
  * Individual tab item data interface
  */
-export interface TabItem
-  extends Pick<
-    TabProps,
-    'accessibilityLabel' | 'accessibilityHint' | 'accessibilityValue'
-  > {
+export interface TabItem {
   key: string;
   label: string;
   content: React.ReactNode;
@@ -58,6 +53,4 @@ export interface TabsBarProps extends BoxComponentProps {
    * Tailwind CSS classes to apply to the main container
    */
   twClassName?: string;
-  /** Underline and automatic horizontal-scroll motion; enabled by default. */
-  animated?: boolean;
 }

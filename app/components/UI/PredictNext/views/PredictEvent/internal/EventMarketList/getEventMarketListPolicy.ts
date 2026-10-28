@@ -22,8 +22,5 @@ export const getEventMarketListPolicy = (
   // An unknown transport follows the product-default column of the UX matrix,
   // including on LOW hardware. Network never reclassifies hardware.
   const limitRendering = hardwareTier === 'LOW' && networkTier !== null;
-  return {
-    ...(limitRendering ? LOW_HARDWARE_RENDERING : DEFAULT_RENDERING),
-    animated: networkTier !== 'NONE' && !limitRendering,
-  };
+  return limitRendering ? LOW_HARDWARE_RENDERING : DEFAULT_RENDERING;
 };

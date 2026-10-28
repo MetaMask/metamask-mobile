@@ -14,7 +14,6 @@ import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import type { InfiniteData } from '@tanstack/react-query';
 import { FlatList } from 'react-native';
 import { getTotalMemorySync } from 'react-native-device-info';
-import TabsBar from '../../../../../../../component-library/components-temp/Tabs/TabsBar';
 import Engine from '../../../../../../../core/Engine';
 import { updateBgState } from '../../../../../../../core/redux/slices/engine';
 import NetInfo from '@react-native-community/netinfo';
@@ -33,9 +32,6 @@ import { EventMarketListTestIds } from './EventMarketList.testIds';
 import { formatSharesAmount } from '../../../../utils/formatShares';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
-const positionsTabLabel = (count: number) =>
-  strings('predict_next.event.positions_with_count', { count: `${count}` });
-
 const createPositionsCache = (
   event: PredictEvent,
   positions: readonly PredictPosition[],
@@ -65,7 +61,7 @@ describe('EventMarketList', () => {
     jest.mocked(getTotalMemorySync).mockReturnValue(6 * 1024 ** 3);
   });
 
-  it('applies device rendering and motion policy to both panels without changing their membership', async () => {
+  it('applies device rendering policy to both panels without changing their membership', async () => {
     jest.mocked(getTotalMemorySync).mockReturnValue(2 * 1024 ** 3);
     const event = makePredictNextMultiMarketEvent();
     const position = makePredictNextPosition({ marketId: event.markets[0].id });
@@ -93,7 +89,6 @@ describe('EventMarketList', () => {
         windowSize: 5,
       }),
     );
-    expect(view.UNSAFE_getByType(TabsBar).props.animated).toBe(false);
 
     fireEvent.press(view.getByTestId(EventMarketListTestIds.MARKETS_TAB));
 
@@ -124,7 +119,6 @@ describe('EventMarketList', () => {
         windowSize: 21,
       }),
     );
-    expect(view.UNSAFE_getByType(TabsBar).props.animated).toBe(true);
 
     act(() => {
       netInfoMock.__setMockNetInfo({
@@ -135,7 +129,6 @@ describe('EventMarketList', () => {
     });
     fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
 
-    expect(view.UNSAFE_getByType(TabsBar).props.animated).toBe(false);
     expect(
       view.getByTestId(
         EventMarketListTestIds.positionRow(position.marketId, position.side),
@@ -172,16 +165,10 @@ describe('EventMarketList', () => {
     expect(
       view.queryByTestId(MarketStandardCardTestIds.card(event.markets[0].id)),
     ).not.toBeOnTheScreen();
-    expect(
-      view.getByRole('tab', { name: positionsTabLabel(1), selected: true }),
-    ).toBeOnTheScreen();
     const positionsTab = within(
       view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
     );
-    expect(positionsTab.queryByText('1')).not.toBeOnTheScreen();
-    expect(
-      positionsTab.getByText('1', { includeHiddenElements: true }),
-    ).toBeOnTheScreen();
+    expect(positionsTab.getByText('1')).toBeOnTheScreen();
     fireEvent.press(view.getByTestId(EventMarketListTestIds.MARKETS_TAB));
 
     expect(
@@ -192,9 +179,6 @@ describe('EventMarketList', () => {
         EventMarketListTestIds.positionRow(position.marketId, position.side),
       ),
     ).not.toBeOnTheScreen();
-    expect(
-      view.getByRole('tab', { name: positionsTabLabel(1), selected: false }),
-    ).toBeOnTheScreen();
     fireEvent.press(view.getByTestId(EventMarketListTestIds.POSITIONS_TAB));
     fireEvent.press(
       view.getByTestId(
@@ -1005,7 +989,9 @@ describe('EventMarketList', () => {
       ).not.toBeOnTheScreen();
       expect(view.getByText(/^•+$/)).toBeOnTheScreen();
       expect(
-        view.getByRole('tab', { name: positionsTabLabel(1), selected: true }),
+        within(
+          view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
+        ).getByText('1'),
       ).toBeOnTheScreen();
 
       act(() => setPrivacy(false));
@@ -1051,7 +1037,9 @@ describe('EventMarketList', () => {
     });
     await waitFor(() =>
       expect(
-        view.getByRole('tab', { name: positionsTabLabel(2), selected: true }),
+        within(
+          view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
+        ).getByText('2'),
       ).toBeOnTheScreen(),
     );
 
@@ -1225,7 +1213,7 @@ describe('EventMarketList', () => {
       act(() => view.updateProps({ event: nextEvent, ...callbacks }));
 
       expect(
-        view.getByRole('tab', { name: positionsTabLabel(1), selected: true }),
+        view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
       ).toBeOnTheScreen();
       expect(
         view.getByTestId(
@@ -1287,7 +1275,12 @@ describe('EventMarketList', () => {
     expect(
       view.queryByTestId(EventMarketListTestIds.TABS),
     ).not.toBeOnTheScreen();
-    expect(view.queryAllByRole('tab')).toHaveLength(0);
+    expect(
+      view.queryByTestId(EventMarketListTestIds.POSITIONS_TAB),
+    ).not.toBeOnTheScreen();
+    expect(
+      view.queryByTestId(EventMarketListTestIds.MARKETS_TAB),
+    ).not.toBeOnTheScreen();
     expect(
       view.queryByTestId(
         EventMarketListTestIds.positionRow(position.marketId, position.side),
@@ -1300,7 +1293,7 @@ describe('EventMarketList', () => {
     act(() => view.updateProps({ event, ...callbacks }));
 
     expect(
-      view.getByRole('tab', { name: positionsTabLabel(1), selected: true }),
+      view.getByTestId(EventMarketListTestIds.POSITIONS_TAB),
     ).toBeOnTheScreen();
     expect(
       view.getByTestId(

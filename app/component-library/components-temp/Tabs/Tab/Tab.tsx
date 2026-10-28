@@ -49,9 +49,6 @@ const Tab: React.FC<TabProps> = ({
         onPress={isDisabled ? undefined : onPress}
         disabled={isDisabled}
         testID={testID}
-        accessibilityRole="tab"
-        accessibilityLabel={label}
-        accessibilityState={{ selected: isActive, disabled: isDisabled }}
         {...pressableProps}
       >
         {/* The label sizes itself, so endAccessory can sit beside it */}
@@ -62,9 +59,6 @@ const Tab: React.FC<TabProps> = ({
             fontWeight={FontWeight.Bold}
             numberOfLines={1}
             style={tw.style('opacity-0')}
-            accessible={false}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
           >
             {label}
           </Text>

@@ -2,12 +2,11 @@ import { getEventMarketListPolicy } from './getEventMarketListPolicy';
 
 describe('getEventMarketListPolicy', () => {
   it.each(['WIFI', 'FAST_CELLULAR', 'SLOW_CELLULAR'] as const)(
-    'limits render work and tab motion on LOW hardware with %s',
+    'limits render work on LOW hardware with %s',
     (networkTier) => {
       const policy = getEventMarketListPolicy('LOW', networkTier);
 
       expect(policy).toEqual({
-        animated: false,
         initialNumToRender: 6,
         maxToRenderPerBatch: 6,
         windowSize: 5,
@@ -21,7 +20,6 @@ describe('getEventMarketListPolicy', () => {
       const policy = getEventMarketListPolicy(hardwareTier, 'SLOW_CELLULAR');
 
       expect(policy).toEqual({
-        animated: true,
         initialNumToRender: 10,
         maxToRenderPerBatch: 10,
         windowSize: 21,
@@ -39,11 +37,10 @@ describe('getEventMarketListPolicy', () => {
   );
 
   it.each(['LOW', 'MID', 'HIGH', null] as const)(
-    'disables tab motion offline without inventing a lower hardware tier (%s)',
+    'retains hardware rendering limits offline (%s)',
     (hardwareTier) => {
       const policy = getEventMarketListPolicy(hardwareTier, 'NONE');
 
-      expect(policy.animated).toBe(false);
       expect(policy.windowSize).toBe(hardwareTier === 'LOW' ? 5 : 21);
     },
   );
