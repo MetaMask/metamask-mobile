@@ -469,13 +469,15 @@ describe('PredictFeedScreen', () => {
       feedScreenId: NFL_FEED_SCREEN_ID,
     });
 
-    expect(
-      await view.findByTestId(PredictFeedScreenTestIds.LOADING),
-    ).toBeOnTheScreen();
-    await waitFor(() => expect(getFeedCalls()).toHaveLength(1));
-    expect(
-      view.getByTestId(PredictFeedScreenTestIds.LOADING),
-    ).toBeOnTheScreen();
+    // Capabilities and the Feed share LOADING. The catalog promise can
+    // unmount the capabilities skeleton between findBy and toBeOnTheScreen.
+    // Wait until getFeed is in flight, then re-query the Feed loading node.
+    await waitFor(() => {
+      expect(getFeedCalls()).toHaveLength(1);
+      expect(
+        view.getByTestId(PredictFeedScreenTestIds.LOADING),
+      ).toBeOnTheScreen();
+    });
 
     await act(async () => {
       resolveFeed({
