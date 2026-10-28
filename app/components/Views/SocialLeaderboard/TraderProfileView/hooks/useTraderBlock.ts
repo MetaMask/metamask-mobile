@@ -40,6 +40,8 @@ export const useTraderBlock = (
   const { data, error, refetch } = useQuery<BlockedProfilesResponse>({
     queryKey: BLOCKED_PROFILES_QUERY_KEY,
     enabled: Boolean(profileId) && isUnlocked,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   useLogSocialQueryError(error, {

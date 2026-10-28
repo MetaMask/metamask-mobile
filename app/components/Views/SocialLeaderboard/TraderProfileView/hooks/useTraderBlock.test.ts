@@ -75,6 +75,8 @@ describe('useTraderBlock', () => {
     expect(mockUseQuery).toHaveBeenCalledWith({
       queryKey: BLOCKED_PROFILES_QUERY_KEY,
       enabled: true,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     });
   });
 

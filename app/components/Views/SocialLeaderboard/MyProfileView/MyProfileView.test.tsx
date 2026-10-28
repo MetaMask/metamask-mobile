@@ -301,6 +301,48 @@ const profile: UseMyProfileResult['profile'] = {
   pnlUsd: 7100,
 };
 
+const foreignTraderProfile: TraderProfileResponse = {
+  profile: {
+    profileId: 'foreign-profile-id',
+    address: '0xabc',
+    allAddresses: ['0xabc'],
+    name: 'alpha.eth',
+    imageUrl: null,
+  },
+  stats: {
+    pnl30d: 0,
+    winRate30d: 0,
+    medianHoldMinutes: 0,
+    tradeCount30d: 0,
+    volumeUsd30d: 0,
+  },
+  perChainBreakdown: {
+    perChainPnl: {},
+    perChainRoi: {},
+    perChainVolume: {},
+  },
+  socialHandles: {},
+  followerCount: 0,
+  followingCount: 0,
+  copytradedAllTime: {
+    count: 0,
+    volumeUSD: 0,
+    distinctActors: 0,
+  },
+} as TraderProfileResponse;
+
+const foreignTraderProfileResult = (
+  isFollowing = false,
+  toggleFollow = jest.fn().mockResolvedValue(undefined),
+): UseTraderProfileResult => ({
+  profile: foreignTraderProfile,
+  isLoading: false,
+  error: null,
+  isFollowing,
+  toggleFollow,
+  refresh: jest.fn().mockResolvedValue(undefined),
+});
+
 describe('MyProfileView', () => {
   afterEach(() => {
     restoreDefaultLocalSocialProfile();
@@ -955,12 +997,27 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('keeps profile options disabled until the live profile UUID is loaded', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON),
+    ).toBeDisabled();
+  });
+
   it('shows the blocked state and Unblock CTA for a blocked trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
       traderName: 'alpha.eth',
       traderAddress: '0xabc',
     };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
     mockUseTraderBlock.mockReturnValue({
       isBlocked: true,
       block: mockBlock,
@@ -990,6 +1047,7 @@ describe('MyProfileView', () => {
       traderName: 'alpha.eth',
       traderAddress: '0xabc',
     };
+    mockUseTraderProfile.mockReturnValue(foreignTraderProfileResult());
     mockUseTraderBlock.mockReturnValue({
       isBlocked: true,
       block: mockBlock,
@@ -1014,14 +1072,9 @@ describe('MyProfileView', () => {
       traderAddress: '0xabc',
     };
     const toggleFollow = jest.fn().mockResolvedValue(undefined);
-    mockUseTraderProfile.mockReturnValue({
-      profile: null,
-      isLoading: false,
-      error: null,
-      isFollowing: true,
-      toggleFollow,
-      refresh: jest.fn().mockResolvedValue(undefined),
-    });
+    mockUseTraderProfile.mockReturnValue(
+      foreignTraderProfileResult(true, toggleFollow),
+    );
 
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));

@@ -161,9 +161,10 @@ const MyProfileView: React.FC = () => {
     traderId,
     traderName,
   ]);
-  const { isBlocked, block, unblock } = useTraderBlock(
-    isOwner ? undefined : displayProfile?.profileId,
-  );
+  const blockProfileId = isOwner
+    ? undefined
+    : liveProfile.profile?.profile.profileId;
+  const { isBlocked, block, unblock } = useTraderBlock(blockProfileId);
   const trackInteraction = useSocialScreenAnalytics(Screen.MY_PROFILE, {
     state: [isLoading, Boolean(error), Boolean(displayProfile)],
     isActive: isOwner,
@@ -535,7 +536,7 @@ const MyProfileView: React.FC = () => {
                   iconProps={{ color: IconColor.IconDefault }}
                   size={ButtonIconSize.Md}
                   onPress={handleOpenProfileOptions}
-                  isDisabled={!displayProfile}
+                  isDisabled={!blockProfileId}
                   accessibilityLabel={strings(
                     'social_leaderboard.trader_profile.more_options',
                   )}
@@ -869,7 +870,7 @@ const MyProfileView: React.FC = () => {
             </Button>
           </Box>
         )}
-        {isProfileOptionsOpen && displayProfile && !isOwner ? (
+        {isProfileOptionsOpen && displayProfile && blockProfileId ? (
           <ProfileOptionsSheet
             traderName={displayProfile.displayName}
             onBlock={handleBlock}
