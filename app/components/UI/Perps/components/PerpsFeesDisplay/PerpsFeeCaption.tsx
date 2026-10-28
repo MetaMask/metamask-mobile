@@ -16,15 +16,19 @@ import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
 /**
  * Null-byte sentinels stand in for the rates inside one translated sentence.
  * They cannot appear in locale copy, so a match is the placeholder itself.
- * The percent sign stays in that sentence, which lets a translation place it
- * before the number and control the surrounding word order.
+ * A percent sign adjacent to the discounted sentinel joins its styled value,
+ * while the translation still controls whether it appears before or after.
  */
 const ORIGINAL_RATE_PLACEHOLDER = '\u0000originalFeePercentage\u0000';
 const DISCOUNTED_RATE_PLACEHOLDER = '\u0000feePercentage\u0000';
+const DISCOUNTED_RATE_PREFIX_PERCENT_PLACEHOLDER =
+  '\u0000feePercentagePrefixPercent\u0000';
+const DISCOUNTED_RATE_SUFFIX_PERCENT_PLACEHOLDER =
+  '\u0000feePercentageSuffixPercent\u0000';
 const ORIGINAL_RATE_KEY = 'original-fee-rate';
 const DISCOUNTED_RATE_KEY = 'discounted-fee-rate';
 const PROMO_RATE_SPLIT = new RegExp(
-  `(${ORIGINAL_RATE_PLACEHOLDER}|${DISCOUNTED_RATE_PLACEHOLDER})`,
+  `(${ORIGINAL_RATE_PLACEHOLDER}|${DISCOUNTED_RATE_PREFIX_PERCENT_PLACEHOLDER}|${DISCOUNTED_RATE_SUFFIX_PERCENT_PLACEHOLDER}|${DISCOUNTED_RATE_PLACEHOLDER})`,
 );
 
 /**
@@ -72,8 +76,17 @@ const promoSentenceNodes = (
   originalFeePercentage?: string,
 ): React.ReactNode[] => {
   const copyOccurrence = new Map<string, number>();
+  const templateWithStyledDiscountedPercent = template
+    .replace(
+      `%${DISCOUNTED_RATE_PLACEHOLDER}`,
+      DISCOUNTED_RATE_PREFIX_PERCENT_PLACEHOLDER,
+    )
+    .replace(
+      `${DISCOUNTED_RATE_PLACEHOLDER}%`,
+      DISCOUNTED_RATE_SUFFIX_PERCENT_PLACEHOLDER,
+    );
 
-  return template
+  return templateWithStyledDiscountedPercent
     .split(PROMO_RATE_SPLIT)
     .filter((segment) => segment !== '')
     .map((segment) => {
@@ -89,14 +102,24 @@ const promoSentenceNodes = (
           </Text>
         );
       }
-      if (segment === DISCOUNTED_RATE_PLACEHOLDER) {
+      if (
+        segment === DISCOUNTED_RATE_PLACEHOLDER ||
+        segment === DISCOUNTED_RATE_PREFIX_PERCENT_PLACEHOLDER ||
+        segment === DISCOUNTED_RATE_SUFFIX_PERCENT_PLACEHOLDER
+      ) {
+        let displayedRate = feePercentage;
+        if (segment === DISCOUNTED_RATE_PREFIX_PERCENT_PLACEHOLDER) {
+          displayedRate = `%${feePercentage}`;
+        } else if (segment === DISCOUNTED_RATE_SUFFIX_PERCENT_PLACEHOLDER) {
+          displayedRate = `${feePercentage}%`;
+        }
         return (
           <Text
             key={DISCOUNTED_RATE_KEY}
             variant={TextVariant.BodyXs}
             color={TextColor.SuccessDefault}
           >
-            {feePercentage}
+            {displayedRate}
           </Text>
         );
       }

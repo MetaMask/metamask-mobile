@@ -109,6 +109,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           color={TextColor.TextAlternative}
           style={strikethroughStyle}
           testID={testID ? `${testID}-original` : undefined}
+          twClassName="tabular-nums"
           accessibilityLabel={
             isPromotionalDiscount
               ? strings('perps.tooltips.fees.original_fee_value', {
@@ -125,6 +126,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         color={discountedFeeColor}
         fontWeight={fontWeight}
         testID={testID}
+        twClassName="tabular-nums"
       >
         {feeText}
       </Text>

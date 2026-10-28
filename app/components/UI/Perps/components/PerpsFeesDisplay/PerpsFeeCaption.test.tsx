@@ -64,7 +64,7 @@ describe('PerpsFeeCaption', () => {
     expect(screen.getByText('0.143')).toHaveStyle({
       textDecorationLine: 'line-through',
     });
-    expect(screen.getByText('0.063')).toBeOnTheScreen();
+    expect(screen.getByText('0.063%')).toBeOnTheScreen();
     expect(
       screen.getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
     ).toBeOnTheScreen();
@@ -83,7 +83,7 @@ describe('PerpsFeeCaption', () => {
 
     const discountedRate = screen
       .UNSAFE_getAllByType(Text)
-      .find((node) => node.props.children === '0.063');
+      .find((node) => node.props.children === '0.063%');
 
     expect(discountedRate?.props.color).toBe(TextColor.SuccessDefault);
   });
@@ -108,7 +108,7 @@ describe('PerpsFeeCaption', () => {
     });
   });
 
-  it('keeps a translated percent sign outside the styled rates', () => {
+  it('places a translated prefix percent sign with the styled discounted rate', () => {
     mockStrings.mockImplementation(
       (key: string, params?: Record<string, string | undefined>) => {
         if (key === 'perps.trade_sheet.includes_fee_after_promo') {
@@ -138,7 +138,7 @@ describe('PerpsFeeCaption', () => {
       textDecorationLine: 'line-through',
     });
     expect(screen.getByText('0.143').props.children).toBe('0.143');
-    expect(screen.getByText('0.063').props.children).toBe('0.063');
+    expect(screen.getByText('%0.063').props.children).toBe('%0.063');
   });
 
   it('uses the discounted-only sentence when the original rate is absent', () => {
@@ -154,7 +154,7 @@ describe('PerpsFeeCaption', () => {
     expect(screen.getByTestId(CAPTION_TEST_ID)).toHaveTextContent(
       'Includes 0.063% fee after promo',
     );
-    expect(screen.queryByText('0.063')).toBeOnTheScreen();
+    expect(screen.queryByText('0.063%')).toBeOnTheScreen();
     expect(screen.queryByLabelText(/was/)).not.toBeOnTheScreen();
   });
 
