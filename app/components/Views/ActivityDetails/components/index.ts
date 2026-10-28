@@ -10,10 +10,10 @@ export { ActivityDetailsApprovalTokenSection } from './ActivityDetailsApprovalTo
 export { ActivityDetailsBridgeMetadata } from './ActivityDetailsBridgeMetadata';
 export { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
 export { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
-export { ActivityDetailsPerpsExplorerButton } from './ActivityDetailsPerpsExplorerButton';
-export { ActivityDetailsPerpsHero } from './ActivityDetailsPerpsHero';
-export { ActivityDetailsPerpsMetadata } from './ActivityDetailsPerpsMetadata';
-export { ActivityDetailsPerpsStepTimeline } from './ActivityDetailsPerpsStepTimeline';
+export { ActivityDetailsPerpsExplorerButton } from '../templates/Perps/ActivityDetailsPerpsExplorerButton';
+export { ActivityDetailsPerpsHero } from '../templates/Perps/ActivityDetailsPerpsHero';
+export { ActivityDetailsPerpsMetadata } from '../templates/Perps/ActivityDetailsPerpsMetadata';
+export { ActivityDetailsPerpsStepTimeline } from '../templates/Perps/ActivityDetailsPerpsStepTimeline';
 export { ActivityDetailsTemplateFrame } from './ActivityDetailsTemplateFrame';
 export {
   ActivityDetailsStepTimeline,

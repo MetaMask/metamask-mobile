@@ -25,13 +25,13 @@ import {
   PerpsOrderTransactionStatusType,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
   type PerpsTransaction,
-} from '../../../components/UI/Perps/types/transactionHistory';
+} from '../../../../components/UI/Perps/types/transactionHistory';
 import {
   resolveOrderDirection,
   isClosingOrder,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../../../components/UI/Perps/utils/orderDirection';
-import type { ActivityListItem, Status, TokenAmount } from '../types';
+} from '../../../../components/UI/Perps/utils/orderDirection';
+import type { ActivityListItem, Status, TokenAmount } from '../../types';
 
 interface QuoteAsset {
   /** Display symbol for trade/funding amounts, e.g. `"USD"`. */

@@ -23,17 +23,17 @@ import {
   ActivityDetailRow,
   ActivityDetailSection,
   ActivityDetailsDoItAgainButton,
-  ActivityDetailsPerpsExplorerButton,
-  ActivityDetailsPerpsHero,
-  ActivityDetailsPerpsMetadata,
   ActivityDetailsPayFeesAndTotal,
-  ActivityDetailsPerpsStepTimeline,
   ActivityDetailsStatus,
   ActivityDetailsTemplateFrame,
   useActivityPayFiat,
   useFormatActivityTokenAmount,
 } from '../../components';
 import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { ActivityDetailsPerpsExplorerButton } from './ActivityDetailsPerpsExplorerButton';
+import { ActivityDetailsPerpsHero } from './ActivityDetailsPerpsHero';
+import { ActivityDetailsPerpsMetadata } from './ActivityDetailsPerpsMetadata';
+import { ActivityDetailsPerpsStepTimeline } from './ActivityDetailsPerpsStepTimeline';
 import {
   formatPerpsOrderFee,
   formatPositiveFiat,
@@ -46,7 +46,7 @@ import {
   type PerpsActivityListItem,
   type PerpsDepositWithdrawalStatus,
   type PerpsTransaction,
-} from '../../components/ActivityDetailsPerps.utils';
+} from './ActivityDetailsPerps.utils';
 import { usePerpsDetailsItem } from './usePerpsDetailsItem';
 import { DefaultDetails } from '../DefaultDetails';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog

@@ -9,9 +9,9 @@ import {
   PerpsOrderTransactionStatus,
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
-} from '../../../components/UI/Perps/types/transactionHistory';
+} from '../../../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- exercise the real perps order transform output
-import { transformOrdersToTransactions } from '../../../components/UI/Perps/utils/transactionTransforms';
+import { transformOrdersToTransactions } from '../../../../components/UI/Perps/utils/transactionTransforms';
 import {
   getPerpsActivityMappingIds,
   mapPerpsTransaction,

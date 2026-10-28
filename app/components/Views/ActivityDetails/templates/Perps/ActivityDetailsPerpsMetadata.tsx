@@ -1,15 +1,15 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../selectors/multichainAccounts/accountTreeController';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
-import { ActivityDetailsStatus } from './ActivityDetailsStatus';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { ActivityDetailsStatus } from '../../components/ActivityDetailsStatus';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
-} from './ActivityDetailsLayout';
-import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
-import { ActivityDetailsPayNetworkRow } from './ActivityDetailsPayNetworkRow';
+} from '../../components/ActivityDetailsLayout';
+import { ActivityDetailsAccountValue } from '../../components/ActivityDetailsAccountValue';
+import { ActivityDetailsPayNetworkRow } from '../../components/ActivityDetailsPayNetworkRow';
 import {
   formatPerpsTransactionDate,
   type PerpsActivityListItem,
