@@ -57,13 +57,14 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
-  isUneditedXUsername,
-  MIN_USERNAME_LENGTH,
   normalizeUsername,
   onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
   type ProfileOnboardingStep,
 } from './profileOnboardingDraft';
+import { getUsernameLocalError } from './utils/getUsernameLocalError';
+import { getUsernameFeedback } from './utils/getUsernameFeedback';
+import UsernameStatusLine from './UsernameStatusLine';
 import OnboardingProgress from './OnboardingProgress';
 import ProfileOnboardingIntroAnimation from './ProfileOnboardingIntroAnimation';
 import ProfileReadyAnimation from './ProfileReadyAnimation';
@@ -772,15 +773,12 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
-  const isUsernamePatternEnforced = !isUneditedXUsername(draft);
-  const usernameLocalError =
-    isUsernamePatternEnforced && usernameStatus === 'tooShort'
-      ? strings('social_leaderboard.profile_onboarding.username_too_short', {
-          min: MIN_USERNAME_LENGTH,
-        })
-      : isUsernamePatternEnforced && usernameStatus === 'invalid'
-        ? strings('social_leaderboard.profile_onboarding.username_invalid')
-        : null;
+  const usernameLocalError = getUsernameLocalError(draft, usernameStatus);
+  const usernameFeedback = getUsernameFeedback({
+    localError: usernameLocalError,
+    claimError: usernameClaimError,
+    status: usernameStatus,
+  });
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
@@ -887,9 +885,7 @@ const SocialProfileOnboardingView: React.FC = () => {
               {step === 'x-identity' ? (
                 <XProfileIdentityStep
                   draft={draft}
-                  usernameStatus={usernameStatus}
-                  usernameLocalError={usernameLocalError}
-                  usernameClaimError={usernameClaimError}
+                  usernameFeedback={usernameFeedback}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
                   onUsernameChange={handleUsernameChange}
@@ -923,10 +919,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                     <TextField
                       value={draft.username}
                       onChangeText={handleUsernameChange}
-                      isError={
-                        Boolean(usernameLocalError) ||
-                        Boolean(usernameClaimError)
-                      }
+                      isError={usernameFeedback?.tone === 'error'}
                       startAccessory={
                         <Text
                           variant={TextVariant.BodyMd}
@@ -954,42 +947,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameLocalError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameLocalError}
-                      </Text>
-                    ) : usernameClaimError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {usernameClaimError}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'available' &&
-                    !usernameClaimError &&
-                    !usernameLocalError ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.SuccessDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
+                    <UsernameStatusLine feedback={usernameFeedback} />
                   </Box>
                   <Box gap={2}>
                     <Text
