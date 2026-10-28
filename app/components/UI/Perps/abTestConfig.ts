@@ -104,7 +104,7 @@ export const SCREEN_VS_BOTTOM_SHEET_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMa
   };
 
 /**
- * TAT-4021: Pro-mode Perps entry points open the market list.
+ * Pro-mode Perps entry points open the market list.
  *
  * Eligible users are already in Pro mode, or are switching into Pro from the
  * Perps Home lite pill. Lite and casual callers still resolve the assignment,
