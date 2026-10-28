@@ -21,6 +21,12 @@ const TRANSLATION_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
 
 type TranslationPhase = 'idle' | 'pending' | 'translated' | 'failed';
 
+interface TranslationState {
+  identity: string;
+  phase: TranslationPhase;
+  translatedText: string | null;
+}
+
 /**
  * Shown under a Call whose language is missing or not English.
  * A pending composer post stays as written until the Call exists on the server.
@@ -129,10 +135,21 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   const translationEnabled = useSelector(
     selectAiSocialCommentTranslationEnabled,
   );
-  const [phase, setPhase] = useState<TranslationPhase>('idle');
-  const [translatedText, setTranslatedText] = useState<string | null>(null);
-  const requestId = useRef(0);
   const comment = post.item.comment ?? '';
+  const identity = JSON.stringify([post.commentId, comment]);
+  const [translation, setTranslation] = useState<TranslationState>({
+    identity,
+    phase: 'idle',
+    translatedText: null,
+  });
+  const requestId = useRef(0);
+  const currentIdentity = useRef(identity);
+  currentIdentity.current = identity;
+  const isCurrentTranslation = translation.identity === identity;
+  const phase = isCurrentTranslation ? translation.phase : 'idle';
+  const translatedText = isCurrentTranslation
+    ? translation.translatedText
+    : null;
   const visibleComment =
     phase === 'translated' && translatedText ? translatedText : comment;
 
@@ -158,31 +175,29 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
     }
     const cached = post.translations?.[ENGLISH];
     if (cached) {
-      setTranslatedText(cached);
-      setPhase('translated');
+      setTranslation({ identity, phase: 'translated', translatedText: cached });
       return;
     }
 
     const id = requestId.current + 1;
     requestId.current = id;
-    setPhase('pending');
+    setTranslation({ identity, phase: 'pending', translatedText: null });
     translateComment({ commentId, targetLanguage: ENGLISH })
       .then((result) => {
-        if (requestId.current !== id) {
+        if (requestId.current !== id || currentIdentity.current !== identity) {
           return;
         }
         const text =
           result.state === 'translated' ? result.translations[ENGLISH] : '';
         if (!text) {
-          setPhase('failed');
+          setTranslation({ identity, phase: 'failed', translatedText: null });
           return;
         }
-        setTranslatedText(text);
-        setPhase('translated');
+        setTranslation({ identity, phase: 'translated', translatedText: text });
       })
       .catch(() => {
-        if (requestId.current === id) {
-          setPhase('failed');
+        if (requestId.current === id && currentIdentity.current === identity) {
+          setTranslation({ identity, phase: 'failed', translatedText: null });
         }
       });
   };

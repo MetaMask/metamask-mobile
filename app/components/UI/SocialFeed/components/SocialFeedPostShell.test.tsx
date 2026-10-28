@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { AccessibilityInfo, View } from 'react-native';
@@ -898,6 +898,51 @@ describe('SocialFeedPostShell', () => {
 
       expect(screen.getByText('Already translated')).toBeOnTheScreen();
       expect(translate).not.toHaveBeenCalled();
+    });
+
+    it('ignores a stale translation when the comment changes', async () => {
+      let resolveTranslation: (value: {
+        state: string;
+        sourceLanguage: string;
+        translations: { en: string };
+      }) => void = jest.fn();
+      translate.mockReturnValue(
+        new Promise((resolve) => {
+          resolveTranslation = resolve;
+        }),
+      );
+      const { rerender } = renderShell(basePost({ sourceLanguage: 'ko' }), {
+        translationEnabled: true,
+      });
+
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
+      rerender(
+        <QueryClientProvider client={new QueryClient()}>
+          <SocialFeedSurfaceProvider showMockedFields>
+            <SocialFeedPostShell
+              post={basePost({
+                commentId: 'comment-2',
+                sourceLanguage: 'ko',
+                item: mockOpenPerpsFeedItem({
+                  id: 'item-1',
+                  comment: 'A newer comment',
+                }),
+              })}
+            />
+          </SocialFeedSurfaceProvider>
+        </QueryClientProvider>,
+      );
+      await act(async () => {
+        resolveTranslation({
+          state: 'translated',
+          sourceLanguage: 'ko',
+          translations: { en: 'Stale translation' },
+        });
+      });
+
+      expect(screen.getByText('A newer comment')).toBeOnTheScreen();
+      expect(screen.getByText('See translation')).toBeOnTheScreen();
+      expect(screen.queryByText('Stale translation')).toBeNull();
     });
   });
 });
