@@ -22,7 +22,7 @@ export const useMoneyMfaHomePrompt = () => {
     moneyMfaStore.subscribe,
     moneyMfaStore.getState,
   );
-  const isChecking = useRef(false);
+  const pendingCheck = useRef<Promise<boolean> | null>(null);
 
   const isFunded = (balance?.totalBalanceInUserCurrency ?? 0) > 0;
   const isEligible =
@@ -30,25 +30,30 @@ export const useMoneyMfaHomePrompt = () => {
 
   useFocusEffect(
     useCallback(() => {
-      if (
-        !isEligible ||
-        isChecking.current ||
-        moneyMfaHomePromptSession.hasPrompted()
-      ) {
+      if (!isEligible || moneyMfaHomePromptSession.hasPrompted()) {
         return;
       }
-      isChecking.current = true;
       let isFocused = true;
       // The stored credential list may predate this session, so confirm no
-      // passkey exists before prompting.
-      mobileMfaControllerAdapter
+      // passkey exists before prompting. A focus during a check reuses it.
+      pendingCheck.current ??= mobileMfaControllerAdapter
         .refreshEnrolledCredentials()
-        .then((credentials) => {
-          const hasPasskey = credentials.some(
+        .then((credentials) =>
+          credentials.some(
             ({ type, status: credentialStatus }) =>
               type === 'passkey' && credentialStatus === 'active',
-          );
-          if (!isFocused || hasPasskey) {
+          ),
+        )
+        .finally(() => {
+          pendingCheck.current = null;
+        });
+      pendingCheck.current
+        .then((hasPasskey) => {
+          if (
+            !isFocused ||
+            hasPasskey ||
+            moneyMfaHomePromptSession.hasPrompted()
+          ) {
             return;
           }
           moneyMfaHomePromptSession.markPrompted();
@@ -56,10 +61,7 @@ export const useMoneyMfaHomePrompt = () => {
             screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
           });
         })
-        .catch(() => undefined)
-        .finally(() => {
-          isChecking.current = false;
-        });
+        .catch(() => undefined);
       return () => {
         isFocused = false;
       };
