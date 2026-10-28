@@ -402,32 +402,32 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
     [],
   );
 
-  const ListHeaderComponent = useCallback(
-    () => (
-      <>
-        <ReferredByCodeSection showTrailingDivider />
-        <Box testID="rewards-settings-header" twClassName="px-4">
-          <Box twClassName="gap-2 pb-2">
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('rewards.settings.subtitle')}
-            </Text>
+  // An element, not a component function. FlashList mounts a function header
+  // with createElement, so a new callback identity remounts the referral field
+  // and drops the typed code.
+  const listHeader = (
+    <>
+      <ReferredByCodeSection showTrailingDivider />
+      <Box testID="rewards-settings-header" twClassName="px-4">
+        <Box twClassName="gap-2 pb-2">
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.settings.subtitle')}
+          </Text>
 
-            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-              {strings('rewards.settings.description')}
-            </Text>
-          </Box>
-
-          <Box twClassName="pt-3">
-            <AccountProgressSection
-              linkedAccounts={linkedAccounts}
-              totalAccounts={totalAccounts}
-              isLoading={isLoadingOptInSummary}
-            />
-          </Box>
+          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+            {strings('rewards.settings.description')}
+          </Text>
         </Box>
-      </>
-    ),
-    [isLoadingOptInSummary, linkedAccounts, totalAccounts],
+
+        <Box twClassName="pt-3">
+          <AccountProgressSection
+            linkedAccounts={linkedAccounts}
+            totalAccounts={totalAccounts}
+            isLoading={isLoadingOptInSummary}
+          />
+        </Box>
+      </Box>
+    </>
   );
 
   const SettingsFooterSections = useCallback(
@@ -443,7 +443,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
   if (isLoadingOptInSummary) {
     return (
       <Box testID="rewards-settings-loading">
-        <ListHeaderComponent />
+        {listHeader}
 
         <Box twClassName="mt-4 px-4">
           {[...Array(3)].map((_, index) => (
@@ -470,7 +470,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
   if (hasErrorOptInSummary) {
     return (
       <Box testID="rewards-settings-error">
-        <ListHeaderComponent />
+        {listHeader}
 
         <Box twClassName="mt-4 px-4">
           <RewardsErrorBanner
@@ -503,7 +503,7 @@ const SubscribedRewardSettingsAccountGroupList: React.FC<
       renderItem={renderFlatListItem}
       keyExtractor={keyExtractor}
       getItemType={getItemType}
-      ListHeaderComponent={ListHeaderComponent}
+      ListHeaderComponent={listHeader}
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
