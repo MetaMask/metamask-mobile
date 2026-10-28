@@ -485,21 +485,10 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
-    // Product `goBackToSafety` delays homepage nav + modal hide by 500ms, then
-    // animates out (~300ms). Wait until the button is gone so URL-bar asserts
-    // do not race the full-screen phishing overlay (iframe smoke residual).
-    await this.waitForBackToSafetyButtonGone();
-  }
-
-  /**
-   * Poll until the phishing Back to safety control is absent / not visible.
-   * Used after the initial dismiss and when an iframe rescan re-shows the modal.
-   */
-  async waitForBackToSafetyButtonGone(timeout = 15_000): Promise<void> {
-    await Assertions.expectElementToNotBeVisible(this.backToSafetyButton, {
-      timeout,
-      description: 'Phishing Back to safety button dismissed',
-    });
+    // Do not wait here for the button to stay gone. `goBackToSafety` hides the
+    // modal after 500ms, and an iframe rescan can show it again about a second
+    // later. iOS keeps the control displayed across that rescan, so a reverse
+    // visibility wait fails the tap before the URL assertion can re-dismiss.
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -587,7 +576,6 @@ class Browser {
             elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
             timeout: 5_000,
           });
-          await this.waitForBackToSafetyButtonGone(10_000);
           throw new Error(
             `Phishing modal reappeared (re-dismiss ${phishingReDismisses})`,
           );
