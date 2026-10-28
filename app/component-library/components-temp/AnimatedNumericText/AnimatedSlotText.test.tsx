@@ -2,7 +2,6 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { FontWeight, TextVariant } from '@metamask/design-system-react-native';
-import { Laminar } from 'react-native-laminar';
 
 import AnimatedSlotText from './AnimatedSlotText';
 
@@ -38,25 +37,6 @@ describe('AnimatedSlotText', () => {
     expect(getByText('$ ')).toBeOnTheScreen();
     expect(getByText('250.00')).toBeOnTheScreen();
     expect(getByText(' available')).toBeOnTheScreen();
-  });
-
-  it('sizes the reel to its rendered slots when a suffix follows it', () => {
-    const { UNSAFE_getByType } = render(
-      <AnimatedSlotText value="14 new posts" />,
-    );
-
-    const laminar = UNSAFE_getByType(Laminar);
-
-    expect(laminar.props.autoSize).toBe(false);
-    expect(laminar.props.text).toBe('14');
-  });
-
-  it('keeps the animated auto width when nothing follows the reel', () => {
-    const { UNSAFE_getByType } = render(<AnimatedSlotText value="$1,234.56" />);
-
-    const laminar = UNSAFE_getByType(Laminar);
-
-    expect(laminar.props.autoSize).toBe(true);
   });
 
   it('renders the latest formatted value', () => {

@@ -103,14 +103,11 @@ const AnimatedSlotText = ({
       ) : (
         <>
           {prefix ? renderStaticText(prefix) : null}
-          {/* autoSize measures proportional digits but draws every slot as wide
-              as `0`, so the reel would overflow onto the suffix (e.g. eat the
-              space in "14 new posts"). */}
           <Laminar
             align="left"
             animationDuration={400}
             animationPreset="smooth"
-            autoSize={!suffix}
+            autoSize
             clipToBounds={clipToBounds}
             style={textStyle}
             text={numeric}
