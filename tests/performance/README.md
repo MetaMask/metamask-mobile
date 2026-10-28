@@ -783,6 +783,26 @@ Recommended automation: schedule the prompt in
 That run collects metrics, adds a final **AI insights to investigate** section
 based on merged PR themes/hotspots, and DMs the report on Slack.
 
+### Daily performance test report (Cursor Automation)
+
+For a daily rollup of the scheduled performance E2E runs (`run-performance-e2e-manual.yml`, every 6 hours on `main`):
+
+```bash
+node .github/scripts/qa-automation/performance-tests/daily-performance-report.mjs --hours 24 --out-dir /tmp/daily-performance
+```
+
+The script compares the last 24 hours with the previous 24 hours and writes:
+
+| File | Description |
+| --- | --- |
+| `report.json` | Runs, scenario errors, stability, and duration / fail-rate trends |
+| `slack.md` | Slack markdown with summary, error, stability, and trend tables |
+| `ai-briefing.md` | Instructions for sending the DM without inventing metrics |
+
+Schedule the prompt in
+[`.cursor/automations/daily-performance-report.md`](../../.cursor/automations/daily-performance-report.md)
+every day at 09:00 Europe/Madrid. The message is a DM, not a channel post.
+
 ### HTML Dashboard Features
 
 The aggregated HTML report (`performance-report.html`) includes:
