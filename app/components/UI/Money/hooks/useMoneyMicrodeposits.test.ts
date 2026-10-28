@@ -7,9 +7,8 @@ import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import Logger from '../../../../util/Logger';
 import Engine from '../../../../core/Engine';
-import { selectMoneyMicrodepositsEnabled } from '../selectors/featureFlags';
-import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { useMoneyMicrodeposits } from './useMoneyMicrodeposits';
+import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 
 jest.mock('../../../../core/Engine', () => ({ context: {} }));
 jest.mock('react-redux', () => ({
@@ -49,16 +48,13 @@ function createWrapper() {
 
 function setup(
   options: {
-    enabled?: boolean;
     address?: string | undefined;
     tier?: 'WIFI' | 'SLOW_CELLULAR' | 'NONE';
   } = {},
 ) {
-  const enabled = options.enabled ?? true;
   const address = Object.hasOwn(options, 'address') ? options.address : ADDRESS;
   const tier = options.tier ?? 'WIFI';
   mockUseSelector.mockImplementation((selector: unknown) => {
-    if (selector === selectMoneyMicrodepositsEnabled) return enabled;
     if (selector === selectPrimaryMoneyAccount) {
       return address ? { address } : undefined;
     }
@@ -135,20 +131,6 @@ describe('useMoneyMicrodeposits', () => {
 
     expect(result.current.microdeposits).toEqual([]);
     expect(mockLoggerError).toHaveBeenCalled();
-  });
-
-  it('does not fetch while the feature flag is off', async () => {
-    setup({ enabled: false });
-    const getMicrodeposits = jest.fn();
-    setService({ getMicrodeposits });
-
-    const { result } = renderHook(() => useMoneyMicrodeposits(), {
-      wrapper: createWrapper(),
-    });
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-    expect(getMicrodeposits).not.toHaveBeenCalled();
   });
 
   it('does not fetch without a Money Account address', async () => {

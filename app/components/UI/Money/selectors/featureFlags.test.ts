@@ -15,7 +15,6 @@ import {
   selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyVbaPendingActivityEnabled,
   selectMoneyVbaCompletedActivityEnabled,
-  selectMoneyMicrodepositsEnabled,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyCardFlipAnimationEnabledFlag,
@@ -81,12 +80,6 @@ describe.each([
     'moneyVbaCompletedActivityEnabled',
     'MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED',
   ],
-  [
-    'selectMoneyMicrodepositsEnabled',
-    selectMoneyMicrodepositsEnabled,
-    'moneyMicrodepositsEnabled',
-    'MM_MONEY_MICRODEPOSITS_ENABLED',
-  ],
 ])('%s', (_name, selector, remoteKey, localKey) => {
   const originalProcessEnv = process.env;
 
@@ -95,7 +88,6 @@ describe.each([
     process.env = { ...process.env };
     delete process.env.MM_MONEY_VBA_PENDING_ACTIVITY_ENABLED;
     delete process.env.MM_MONEY_VBA_COMPLETED_ACTIVITY_ENABLED;
-    delete process.env.MM_MONEY_MICRODEPOSITS_ENABLED;
   });
 
   afterEach(() => {

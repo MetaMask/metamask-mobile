@@ -8,7 +8,6 @@ import Logger from '../../../../util/Logger';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
-import { selectMoneyMicrodepositsEnabled } from '../selectors/featureFlags';
 import type { MicrodepositActivity } from '../types/moneyActivity';
 import {
   asMicrodepositService,
@@ -35,7 +34,6 @@ export function useMoneyMicrodeposits(): {
   isLoading: boolean;
   refetch: () => void;
 } {
-  const enabled = useSelector(selectMoneyMicrodepositsEnabled);
   const address = useSelector(selectPrimaryMoneyAccount)?.address;
   const normalizedAddress = address?.toLowerCase() ?? '';
   const isFocused = useIsFocused();
@@ -74,7 +72,7 @@ export function useMoneyMicrodeposits(): {
         return [];
       }
     },
-    enabled: enabled && Boolean(normalizedAddress) && !knownOffline,
+    enabled: Boolean(normalizedAddress) && !knownOffline,
     retry: false,
     staleTime: 0,
     // The list is refreshed on every mount; keeping it cached after unmount
