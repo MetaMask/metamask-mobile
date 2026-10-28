@@ -36,8 +36,6 @@ import {
   Text,
   TextVariant,
   TextColor,
-  Button,
-  ButtonVariant,
   ButtonSize,
   Icon,
   IconName,
