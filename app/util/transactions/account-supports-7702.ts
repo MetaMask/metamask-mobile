@@ -1,3 +1,4 @@
+import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 
 /** Minimal shape; KeyringController.getKeyringForAccount is typed as Promise<unknown>. */
@@ -13,6 +14,7 @@ const KEYRING_TYPES_SUPPORTING_7702: string[] = [
   ExtendedKeyringTypes.hd,
   ExtendedKeyringTypes.simple,
   ExtendedKeyringTypes.money,
+  KeyringTypes.mpcMoney,
 ];
 
 /**
