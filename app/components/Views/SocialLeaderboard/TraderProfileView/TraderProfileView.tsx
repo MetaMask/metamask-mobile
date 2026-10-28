@@ -134,6 +134,18 @@ const END_REACHED_THRESHOLD_PX = 600;
 
 type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
+const PROFILE_TAB_TEST_IDS: Record<
+  TraderProfileTab,
+  (typeof TraderProfileViewSelectorsIDs)[
+    | 'TAB_OPEN'
+    | 'TAB_CLOSED'
+    | 'TAB_POSTS']
+> = {
+  open: TraderProfileViewSelectorsIDs.TAB_OPEN,
+  closed: TraderProfileViewSelectorsIDs.TAB_CLOSED,
+  posts: TraderProfileViewSelectorsIDs.TAB_POSTS,
+};
+
 // ---------------------------------------------------------------------------
 // Main screen
 // ---------------------------------------------------------------------------
@@ -246,12 +258,7 @@ const TraderProfileView = () => {
             ? strings('social_leaderboard.my_profile.posts')
             : strings(`social_leaderboard.trader_profile.${tab}`),
         content: null,
-        testID:
-          tab === 'open'
-            ? TraderProfileViewSelectorsIDs.TAB_OPEN
-            : tab === 'closed'
-              ? TraderProfileViewSelectorsIDs.TAB_CLOSED
-              : TraderProfileViewSelectorsIDs.TAB_POSTS,
+        testID: PROFILE_TAB_TEST_IDS[tab],
       })),
     [],
   );
@@ -316,7 +323,7 @@ const TraderProfileView = () => {
   }, [block, isFollowing, toggleFollow, traderAddress, profile]);
 
   const handleUnblock = useCallback(async () => {
-    playImpact(ImpactMoment.FollowToggle);
+    playImpact(ImpactMoment.FollowToggle).catch(() => undefined);
     await unblock();
   }, [unblock]);
 
@@ -444,6 +451,167 @@ const TraderProfileView = () => {
 
   const headerTitle = profile?.profile.name;
 
+  const renderStats = (): React.ReactNode => {
+    if (isBlocked) {
+      return null;
+    }
+    if (headlineStats) {
+      return (
+        <StatsRow
+          stats={headlineStats}
+          holdTimeMinutes={profile?.stats.medianHoldMinutes}
+          onPress={() => setIsStatsSheetOpen(true)}
+        />
+      );
+    }
+    return <StatsRowSkeleton />;
+  };
+
+  const renderPostsContent = (): React.ReactNode => {
+    if (isPostsLoading && posts.length === 0) {
+      return <ProfilePostsLoadingState />;
+    }
+    if (showPostsEmptyState) {
+      return <ProfilePostsEmptyState />;
+    }
+    if (postsError && posts.length === 0) {
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="w-full px-4 py-16 gap-3"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+            twClassName="text-center"
+          >
+            {strings('social_leaderboard.feed.error.title')}
+          </Text>
+          <Button
+            variant={ButtonVariant.Secondary}
+            size={ButtonSize.Sm}
+            onPress={() => {
+              refreshPosts().catch(() => undefined);
+            }}
+            twClassName="self-center"
+          >
+            {strings('social_leaderboard.feed.error.retry')}
+          </Button>
+        </Box>
+      );
+    }
+    return (
+      <Box paddingTop={4}>
+        <SocialV1FeedPostList
+          posts={posts}
+          dividerKeyPrefix="trader-profile"
+          renderPost={(post) => <SocialFeedPostShell post={post} />}
+        />
+        {isFetchingNextPage ? (
+          <Box alignItems={BoxAlignItems.Center} twClassName="px-4">
+            <ActivityIndicator size="small" />
+          </Box>
+        ) : null}
+      </Box>
+    );
+  };
+
+  const renderPositionsContent = (): React.ReactNode => {
+    if (isLoadingPositions && positions.length === 0) {
+      return POSITION_SKELETON_KEYS.map((key) => (
+        <PositionRowSkeleton key={key} />
+      ));
+    }
+    if (sortedPositions.length === 0) {
+      return (
+        <ProfilePostsEmptyState
+          message={strings(
+            activeTab === 'closed'
+              ? 'social_leaderboard.my_profile.empty_closed'
+              : 'social_leaderboard.my_profile.empty_open',
+          )}
+        />
+      );
+    }
+    return sortedPositions.map((position) => (
+      <PositionRow
+        key={getPositionListKey(position)}
+        position={position}
+        onPress={handlePositionPress}
+        isClosed={activeTab === 'closed'}
+        showTradeDate={currentSortKey === 'recent'}
+      />
+    ));
+  };
+
+  const renderBlockedState = (): React.ReactNode => (
+    <Box alignItems={BoxAlignItems.Center} twClassName="px-6 pt-12">
+      <TabEmptyState
+        icon={
+          <>
+            <Icon
+              name={IconName.Ban}
+              size={IconSize.Lg}
+              color={IconColor.IconAlternative}
+            />
+            <Text variant={TextVariant.HeadingSm} twClassName="text-center">
+              {strings('social_leaderboard.trader_profile.blocked_title', {
+                name: profile?.profile.name ?? '',
+              })}
+            </Text>
+          </>
+        }
+        description={strings(
+          'social_leaderboard.trader_profile.blocked_description',
+        )}
+        twClassName="max-w-80"
+        testID={TraderProfileViewSelectorsIDs.BLOCKED_STATE}
+      />
+    </Box>
+  );
+
+  const renderActivityContent = (): React.ReactNode => {
+    if (isBlocked) {
+      return renderBlockedState();
+    }
+    return (
+      <>
+        <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="mb-2"
+        >
+          <Box twClassName="flex-1">
+            <TabsBar
+              tabs={positionTabs}
+              activeIndex={PROFILE_TABS.indexOf(activeTab)}
+              onTabPress={handlePositionTabPress}
+            />
+          </Box>
+          {activeTab !== 'posts' && positions.length > 0 && (
+            <Box twClassName="pr-4">
+              <SortButton
+                label={strings(
+                  activeTab === 'open'
+                    ? OPEN_SORT_LABEL_KEYS[openSort]
+                    : CLOSED_SORT_LABEL_KEYS[closedSort],
+                )}
+                onPress={handleSortPress}
+                testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
+              />
+            </Box>
+          )}
+        </Box>
+        {activeTab === 'posts'
+          ? renderPostsContent()
+          : renderPositionsContent()}
+      </>
+    );
+  };
+
   return (
     // Top and bottom edges are deliberately off — see
     // `SCROLLABLE_SCREEN_SAFE_AREA_EDGES`. The top inset comes from
@@ -550,15 +718,7 @@ const TraderProfileView = () => {
                       profile={profile.profile}
                       twitterHandle={profile.socialHandles?.twitter}
                     />
-                    {isBlocked ? null : headlineStats ? (
-                      <StatsRow
-                        stats={headlineStats}
-                        holdTimeMinutes={profile.stats.medianHoldMinutes}
-                        onPress={() => setIsStatsSheetOpen(true)}
-                      />
-                    ) : (
-                      <StatsRowSkeleton />
-                    )}
+                    {renderStats()}
                   </>
                 ) : null}
               </Box>
@@ -608,142 +768,7 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  {isBlocked ? (
-                    <Box
-                      alignItems={BoxAlignItems.Center}
-                      twClassName="px-6 pt-12"
-                    >
-                      <TabEmptyState
-                        icon={
-                          <>
-                            <Icon
-                              name={IconName.Ban}
-                              size={IconSize.Lg}
-                              color={IconColor.IconAlternative}
-                            />
-                            <Text
-                              variant={TextVariant.HeadingSm}
-                              twClassName="text-center"
-                            >
-                              {strings(
-                                'social_leaderboard.trader_profile.blocked_title',
-                                { name: profile.profile.name },
-                              )}
-                            </Text>
-                          </>
-                        }
-                        description={strings(
-                          'social_leaderboard.trader_profile.blocked_description',
-                        )}
-                        twClassName="max-w-80"
-                        testID={TraderProfileViewSelectorsIDs.BLOCKED_STATE}
-                      />
-                    </Box>
-                  ) : (
-                    <>
-                      <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
-
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName="mb-2"
-                      >
-                        <Box twClassName="flex-1">
-                          <TabsBar
-                            tabs={positionTabs}
-                            activeIndex={PROFILE_TABS.indexOf(activeTab)}
-                            onTabPress={handlePositionTabPress}
-                          />
-                        </Box>
-                        {activeTab !== 'posts' && positions.length > 0 && (
-                          <Box twClassName="pr-4">
-                            <SortButton
-                              label={strings(
-                                activeTab === 'open'
-                                  ? OPEN_SORT_LABEL_KEYS[openSort]
-                                  : CLOSED_SORT_LABEL_KEYS[closedSort],
-                              )}
-                              onPress={handleSortPress}
-                              testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
-                            />
-                          </Box>
-                        )}
-                      </Box>
-
-                      {activeTab === 'posts' ? (
-                        isPostsLoading && posts.length === 0 ? (
-                          <ProfilePostsLoadingState />
-                        ) : showPostsEmptyState ? (
-                          <ProfilePostsEmptyState />
-                        ) : postsError && posts.length === 0 ? (
-                          <Box
-                            alignItems={BoxAlignItems.Center}
-                            justifyContent={BoxJustifyContent.Center}
-                            twClassName="w-full px-4 py-16 gap-3"
-                          >
-                            <Text
-                              variant={TextVariant.BodyMd}
-                              fontWeight={FontWeight.Medium}
-                              color={TextColor.TextDefault}
-                              twClassName="text-center"
-                            >
-                              {strings('social_leaderboard.feed.error.title')}
-                            </Text>
-                            <Button
-                              variant={ButtonVariant.Secondary}
-                              size={ButtonSize.Sm}
-                              onPress={() => {
-                                refreshPosts().catch(() => undefined);
-                              }}
-                              twClassName="self-center"
-                            >
-                              {strings('social_leaderboard.feed.error.retry')}
-                            </Button>
-                          </Box>
-                        ) : (
-                          <Box paddingTop={4}>
-                            <SocialV1FeedPostList
-                              posts={posts}
-                              dividerKeyPrefix="trader-profile"
-                              renderPost={(post) => (
-                                <SocialFeedPostShell post={post} />
-                              )}
-                            />
-                            {isFetchingNextPage ? (
-                              <Box
-                                alignItems={BoxAlignItems.Center}
-                                twClassName="px-4"
-                              >
-                                <ActivityIndicator size="small" />
-                              </Box>
-                            ) : null}
-                          </Box>
-                        )
-                      ) : isLoadingPositions && positions.length === 0 ? (
-                        POSITION_SKELETON_KEYS.map((key) => (
-                          <PositionRowSkeleton key={key} />
-                        ))
-                      ) : sortedPositions.length === 0 ? (
-                        <ProfilePostsEmptyState
-                          message={strings(
-                            activeTab === 'closed'
-                              ? 'social_leaderboard.my_profile.empty_closed'
-                              : 'social_leaderboard.my_profile.empty_open',
-                          )}
-                        />
-                      ) : (
-                        sortedPositions.map((position) => (
-                          <PositionRow
-                            key={getPositionListKey(position)}
-                            position={position}
-                            onPress={handlePositionPress}
-                            isClosed={activeTab === 'closed'}
-                            showTradeDate={currentSortKey === 'recent'}
-                          />
-                        ))
-                      )}
-                    </>
-                  )}
+                  {renderActivityContent()}
                 </>
               )}
             </>
