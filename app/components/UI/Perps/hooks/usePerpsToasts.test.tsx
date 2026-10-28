@@ -655,7 +655,7 @@ describe('usePerpsToasts', () => {
             },
           ]);
           expect(JSON.stringify(config.labelOptions)).not.toMatch(
-            /bbo|2347|still open/i,
+            /bbo|2347|still open|\[missing/i,
           );
         });
 
@@ -672,6 +672,7 @@ describe('usePerpsToasts', () => {
             label: strings('perps.order.order_update_failed_subtitle'),
             isBold: false,
           });
+          expect(JSON.stringify(config.labelOptions)).not.toMatch(/\[missing/);
         });
       });
     });

@@ -15,6 +15,7 @@ import {
 } from '../../../../../../tests/component-view/fixtures/perpsViewFixtures';
 import { renderPerpsClosePositionView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { resetPerpsCloseLocksForTests } from '../../hooks/usePerpsClosePosition';
+import { resetLastCloseOrderType } from '../../hooks/usePerpsClosePositionForm';
 import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
@@ -27,12 +28,58 @@ import type { RootState } from '../../../../../reducers';
 
 const TIMEOUT_MS = 5000;
 
+const POST_ONLY_WINDOW_ERROR =
+  'order 0: Only post-only orders allowed immediately after network upgrade';
+
+const limitCloseEnabledOverrides = {
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsClosePositionLimitOrderEnabled: {
+            enabled: true,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
+const selectMidLimitClosePrice = async () => {
+  fireEvent.press(
+    await screen.findByTestId(PerpsOrderHeaderSelectorsIDs.ORDER_TYPE_BUTTON),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsClosePositionViewSelectorsIDs.LIMIT_PRICE_ROW,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID,
+    ),
+  );
+  fireEvent.press(
+    await screen.findByTestId(
+      PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
+    ),
+  );
+};
+
 describe('PerpsClosePositionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // A filled close stays locked until the stream updates, which these
     // fixtures never do; reset so each test starts unlocked.
     resetPerpsCloseLocksForTests();
+    // The form reopens on the last Market/Limit choice for the session.
+    resetLastCloseOrderType();
   });
 
   it('submits a market close for a long position with custom take profit', async () => {
@@ -471,4 +518,84 @@ describe('PerpsClosePositionView', () => {
       );
     });
   });
+
+  it.each(['market', 'limit'] as const)(
+    'explains the post-only network-upgrade window when a %s close is rejected',
+    async (orderType) => {
+      const closePosition = Engine.context.PerpsController
+        .closePosition as jest.Mock;
+      closePosition.mockResolvedValueOnce({
+        success: false,
+        error: POST_ONLY_WINDOW_ERROR,
+      });
+      const position = createLongPositionForViews();
+
+      const { stream } = renderPerpsClosePositionView({
+        includeToasts: true,
+        initialParams: { position },
+        streamOverrides: {
+          account: createFundedAccountForViews('10000'),
+          positions: [position],
+          marketData: [createEthMarketForViews()],
+        },
+        overrides: limitCloseEnabledOverrides,
+      });
+
+      act(() => {
+        stream.emitPrices({
+          ETH: {
+            symbol: 'ETH',
+            price: '2500',
+            timestamp: Date.now(),
+            isTradable: true,
+          },
+        });
+      });
+
+      if (orderType === 'limit') {
+        await selectMidLimitClosePrice();
+      }
+
+      const confirmButton = await screen.findByTestId(
+        PerpsClosePositionViewSelectorsIDs.CLOSE_POSITION_CONFIRM_BUTTON,
+        {},
+        { timeout: TIMEOUT_MS },
+      );
+      await waitFor(() => {
+        expect(confirmButton).not.toBeDisabled();
+      });
+
+      // The close hook rethrows after showing its failure toast.
+      await act(async () => {
+        await expect(fireEvent.press(confirmButton)).rejects.toThrow(
+          strings('perps.errors.postOnlyWindow'),
+        );
+      });
+
+      expect(
+        await screen.findByText(
+          strings('perps.errors.postOnlyWindow'),
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toBeOnTheScreen();
+      expect(closePosition).toHaveBeenCalledWith(
+        expect.objectContaining({ orderType }),
+      );
+      expect(
+        screen.getByText(
+          strings('perps.close_position.failed_to_close_position'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(
+          strings('perps.close_position.your_position_is_still_active'),
+        ),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.queryAllByText(/only post-only orders allowed/i),
+      ).toHaveLength(0);
+      expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
+    },
+  );
 });

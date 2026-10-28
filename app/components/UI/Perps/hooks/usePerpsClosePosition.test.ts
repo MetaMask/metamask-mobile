@@ -912,7 +912,6 @@ describe('usePerpsClosePosition', () => {
                   position: mockPosition,
                   orderType,
                   limitPrice: orderType === 'limit' ? '3000' : undefined,
-                  slippage: { maxSlippageBps: 300 },
                 }),
               ).rejects.toThrow('perps.errors.postOnlyWindow');
             });

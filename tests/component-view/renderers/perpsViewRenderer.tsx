@@ -884,6 +884,7 @@ export function renderPerpsMarketDetailsView(
     streamOverrides?: PerpsStreamOverrides;
     extraRoutes?: PerpsExtraRoute[];
     socialEnabled?: boolean;
+    includeToasts?: boolean;
   } = {},
 ) {
   const {
@@ -892,11 +893,19 @@ export function renderPerpsMarketDetailsView(
     streamOverrides = { positions: [defaultSelectModifyActionPosition] },
     extraRoutes,
     socialEnabled,
+    includeToasts,
   } = options;
   return renderPerpsView(
     PerpsMarketDetailsView as unknown as React.ComponentType,
     'PerpsMarketDetails',
-    { overrides, initialParams, streamOverrides, extraRoutes, socialEnabled },
+    {
+      overrides,
+      initialParams,
+      streamOverrides,
+      extraRoutes,
+      socialEnabled,
+      includeToasts,
+    },
   );
 }
 
@@ -1020,6 +1029,7 @@ export function renderPerpsClosePositionView(
     overrides?: DeepPartial<RootState>;
     initialParams?: Record<string, unknown>;
     streamOverrides?: PerpsStreamOverrides;
+    includeToasts?: boolean;
   } = {},
 ) {
   const position = options.initialParams?.position ?? defaultPositionForViews;
