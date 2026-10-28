@@ -8628,6 +8628,7 @@
       "invalid_passkey": "Your passkey couldn't be verified. Try again.",
       "passkey_cancelled": "Passkey request was cancelled.",
       "email_taken": "This email is already in use. Try a different one.",
+      "learn_more": "Learn more",
       "cooldown": "Too many requests. Wait a moment and try again.",
       "limit_reached": "You've reached the limit for this method.",
       "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
