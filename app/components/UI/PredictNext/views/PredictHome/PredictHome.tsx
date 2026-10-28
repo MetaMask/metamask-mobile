@@ -19,9 +19,15 @@ import {
   FEED_SCREENS,
   NCAA_FEED_SCREEN_ID,
   NFL_FEED_SCREEN_ID,
-  getFeedScreenTab,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
+import {
+  PREDICT_SURFACE_FEED_KEYS,
+  canPerformVenueAction,
+  isVenueSearchSupported,
+  resolveSurfaceFeeds,
+  useVenueCapabilities,
+} from '../../capabilities';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
@@ -34,6 +40,7 @@ import {
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
+import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
@@ -41,12 +48,6 @@ import { strings } from '../../../../../../locales/i18n';
 
 const PREVIEW_LIMIT = 2;
 const NO_EVENTS: readonly PredictEvent[] = [];
-const NFL_GAMES_FEED_ID = getFeedScreenTab(
-  FEED_SCREENS[NFL_FEED_SCREEN_ID],
-).feedId;
-const NCAA_GAMES_FEED_ID = getFeedScreenTab(
-  FEED_SCREENS[NCAA_FEED_SCREEN_ID],
-).feedId;
 const FEED_SECTION_IDS: readonly FeedScreenId[] = [
   NFL_FEED_SCREEN_ID,
   NCAA_FEED_SCREEN_ID,
@@ -66,10 +67,27 @@ export const PredictHome = () => {
     onScrollSettled,
   } = useVisibleSections({ keys: FEED_SECTION_IDS, scrollY });
   const balanceQuery = useBalance(KALSHI_VENUE_ID);
-  const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
+  const capabilities = useVenueCapabilities(KALSHI_VENUE_ID);
+  // A section renders, and its Feed is read, only when the Venue has its key.
+  const sectionFeeds = useMemo(
+    () =>
+      resolveSurfaceFeeds(
+        capabilities,
+        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
+      ),
+    [capabilities],
+  );
+  const nflFeedId = sectionFeeds.find(
+    ({ sectionId }) => sectionId === NFL_FEED_SCREEN_ID,
+  )?.feedId;
+  const ncaaFeedId = sectionFeeds.find(
+    ({ sectionId }) => sectionId === NCAA_FEED_SCREEN_ID,
+  )?.feedId;
+  const canBuy = canPerformVenueAction(capabilities, 'buy');
+  const nflQuery = useFeed(KALSHI_VENUE_ID, nflFeedId, {
     limit: PREVIEW_LIMIT,
   });
-  const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
+  const ncaaQuery = useFeed(KALSHI_VENUE_ID, ncaaFeedId, {
     limit: PREVIEW_LIMIT,
   });
   const feedNflEvents = useMemo(
@@ -114,7 +132,11 @@ export const PredictHome = () => {
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
-    conditions: [!nflQuery.isLoading, !ncaaQuery.isLoading],
+    conditions: [
+      capabilities.status !== 'loading',
+      !nflQuery.isLoading,
+      !ncaaQuery.isLoading,
+    ],
     debugContext: {
       nflEventCount: nflEvents.length,
       nflError: nflQuery.isError,
@@ -189,15 +211,21 @@ export const PredictHome = () => {
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Search,
-            onPress: openSearch,
-            testID: PredictHomeTestIds.SEARCH,
-            accessibilityLabel: strings('predict_next.search.placeholder'),
-            accessibilityRole: 'button',
-          },
-        ]}
+        endButtonIconProps={
+          isVenueSearchSupported(capabilities)
+            ? [
+                {
+                  iconName: IconName.Search,
+                  onPress: openSearch,
+                  testID: PredictHomeTestIds.SEARCH,
+                  accessibilityLabel: strings(
+                    'predict_next.search.placeholder',
+                  ),
+                  accessibilityRole: 'button',
+                },
+              ]
+            : undefined
+        }
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
@@ -230,36 +258,41 @@ export const PredictHome = () => {
             error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
-          <PortfolioActions
-            onPositionsPress={openPortfolio}
-            // TODO(PRED-1162): Wire funding actions when the funding slice lands.
-            onAddFundsPress={() => undefined}
-            onWithdrawPress={() => undefined}
+          {/* Funding actions appear when PRED-1162 ships them and the
+              Venue descriptor lists deposit or withdraw. */}
+          <PortfolioActions onPositionsPress={openPortfolio} />
+          <HomeSectionsStatus
+            capabilities={capabilities}
+            hasSections={sectionFeeds.length > 0}
           />
-          <FeedPreviewSection
-            feedScreenId={NFL_FEED_SCREEN_ID}
-            onLayout={onSectionLayout(NFL_FEED_SCREEN_ID)}
-            title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}
-            events={nflEvents}
-            isLoading={nflQuery.isLoading}
-            isError={nflQuery.isError}
-            onOpen={() => openFeedScreen(NFL_FEED_SCREEN_ID)}
-            onOpenEvent={openEvent}
-            onOrder={openOrder}
-            onRetry={() => nflQuery.refetch()}
-          />
-          <FeedPreviewSection
-            feedScreenId={NCAA_FEED_SCREEN_ID}
-            onLayout={onSectionLayout(NCAA_FEED_SCREEN_ID)}
-            title={FEED_SCREENS[NCAA_FEED_SCREEN_ID].selectionLabel}
-            events={ncaaEvents}
-            isLoading={ncaaQuery.isLoading}
-            isError={ncaaQuery.isError}
-            onOpen={() => openFeedScreen(NCAA_FEED_SCREEN_ID)}
-            onOpenEvent={openEvent}
-            onOrder={openOrder}
-            onRetry={() => ncaaQuery.refetch()}
-          />
+          {nflFeedId ? (
+            <FeedPreviewSection
+              feedScreenId={NFL_FEED_SCREEN_ID}
+              onLayout={onSectionLayout(NFL_FEED_SCREEN_ID)}
+              title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}
+              events={nflEvents}
+              isLoading={nflQuery.isLoading}
+              isError={nflQuery.isError}
+              onOpen={() => openFeedScreen(NFL_FEED_SCREEN_ID)}
+              onOpenEvent={openEvent}
+              onOrder={canBuy ? openOrder : undefined}
+              onRetry={() => nflQuery.refetch()}
+            />
+          ) : null}
+          {ncaaFeedId ? (
+            <FeedPreviewSection
+              feedScreenId={NCAA_FEED_SCREEN_ID}
+              onLayout={onSectionLayout(NCAA_FEED_SCREEN_ID)}
+              title={FEED_SCREENS[NCAA_FEED_SCREEN_ID].selectionLabel}
+              events={ncaaEvents}
+              isLoading={ncaaQuery.isLoading}
+              isError={ncaaQuery.isError}
+              onOpen={() => openFeedScreen(NCAA_FEED_SCREEN_ID)}
+              onOpenEvent={openEvent}
+              onOrder={canBuy ? openOrder : undefined}
+              onRetry={() => ncaaQuery.refetch()}
+            />
+          ) : null}
         </Box>
       </Reanimated.ScrollView>
     </Box>

@@ -545,14 +545,12 @@
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
     "forgot_password_point_1_bold": "biometrics turned on",
-    "forgot_password_point_1_1": "(like Face ID), you can reset your password there.",
+    "forgot_password_point_1_1": "(like Face ID), reset your password there.",
     "forgot_password_point_2": "If you have your",
     "forgot_password_point_2_bold": "Secret Recovery Phrase,",
     "forgot_password_point_2_1": "you can reset your current wallet and reimport using Secret Recovery Phrase.",
     "reset_wallet": "Reset wallet",
-    "reset_wallet_desc": "Your wallet data will be",
-    "reset_wallet_desc_bold": "permanently erased",
-    "reset_wallet_desc_2": "from MetaMask on this device. This can’t be undone.",
+    "reset_wallet_desc": "Your wallet data will be erased from MetaMask on this device. This can’t be undone.",
     "reset_wallet_desc_login": "To restore your wallet, you can use your Secret Recovery Phrase, or your Google or Apple account password. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp": "To restore your wallet, make sure you have your Secret Recovery Phrase. MetaMask doesn’t have this information.",
     "reset_wallet_desc_srp_1": "To restore your wallet, make sure you have your",
@@ -1172,8 +1170,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1391,6 +1387,11 @@
           "description": "Live activity will show up here."
         }
       },
+      "filter_empty": {
+        "title": "No matches",
+        "description": "Try fewer filters, or clear them all.",
+        "clear": "Clear filters"
+      },
       "empty_type": {
         "tokens": {
           "title": "No token activity"
@@ -1405,7 +1406,8 @@
       },
       "load_more": "Load more",
       "error": {
-        "title": "Couldn't load the feed",
+        "title": "The feed didn't load",
+        "description": "Give it a moment, then try again.",
         "retry": "Try again"
       },
       "sub_header": {
@@ -1431,11 +1433,12 @@
         "hold_time": "Hold time",
         "buy": "Buy",
         "sell": "Sell",
-        "closed_ago": "Closed {{age}}"
+        "closed_ago": "Closed · {{age}}",
+        "sold_ago": "Sold · {{age}}"
       }
     },
     "composer": {
-      "placeholder": "Share your thoughts about a position",
+      "placeholder": "Add a position and a few words to post",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1450,12 +1453,15 @@
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "hide_keyboard": "Hide keyboard",
-      "share_position_title": "Share a position",
+      "add_position_title": "Add a position",
       "tab_open": "Open",
       "tab_closed": "Closed",
       "section_tokens": "Tokens",
       "section_perps": "Perps",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
+      "empty_help": "Why don't I see a position?",
+      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
@@ -1672,12 +1678,7 @@
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
-      "first_trade_prompt": "First trade?",
-      "empty_title": "Make your first post",
-      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
-      "other_empty_title": "No posts yet",
-      "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Create MetaMask post",
+      "empty_title": "No posts yet",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -1705,13 +1706,15 @@
       "username_label": "Username",
       "display_name_label": "Display name",
       "username_available": "Username available",
-      "username_invalid": "Use letters, numbers, and hyphens.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
       "connect_x_error": "Couldn't connect X. Check your connection and try again.",
       "save_error": "Couldn't create your profile. Check your connection and try again.",
+      "try_again": "Try again",
       "shuffle_username": "Suggest a username",
       "customize_avatar": "Choose an avatar",
+      "avatar_option_accessibility_label": "Avatar {{number}} of {{total}}",
       "avatar_background_peach": "Peach background",
       "avatar_background_lilac": "Lilac background",
       "avatar_background_sky": "Sky background",
@@ -3583,11 +3586,9 @@
       "title": "PnL Hero Card",
       "header_title": "Share your trade",
       "share_button": "Share",
-      "share_message_with_referral_code": "Trade {{asset}} perps on MetaMask. Sign up using my referral code {{code}} to earn extra rewards. {{link}}",
       "share_message_without_referral_code": "Trade {{asset}} perps on MetaMask.",
       "share_failed": "Failed to export image",
-      "export_success": "Exported image",
-      "referral_code_text": "Use my referral code to earn extra rewards."
+      "export_success": "Exported image"
     },
     "share_position": {
       "title": "Share position",
@@ -3658,6 +3659,11 @@
     },
     "unavailable_in_region": "Not available in your region",
     "home_title": "Predictions",
+    "home_sections": {
+      "error": "Markets couldn’t be loaded.",
+      "retry": "Retry",
+      "unavailable": "No markets are available right now."
+    },
     "event": {
       "your_positions": "Your positions"
     },
@@ -4282,8 +4288,12 @@
       "price_moved_body": "The price moved from {{previousPrice}} to {{currentPrice}} since you confirmed. Confirm to continue at the new price:",
       "no_match_title": "No match",
       "no_match_body": "There isn't enough liquidity to fill your order right now. Try again in a moment.",
+      "market_timeout_title": "Market timed out",
+      "market_timeout_body": "The market took too long to respond. Nothing was sold. Try again to get the latest price.",
       "try_later": "Try later",
       "retry_price_label": "Price",
+      "retry_expected_fill_label": "Expected fill",
+      "retry_expected_fill_value": "{{shares}} shares",
       "retry_proceeds_label": "You receive",
       "retry_payout_label": "To win",
       "retry_worst_case_label": "Worst case ({{band}} band)",
@@ -5097,7 +5107,13 @@
     "trading_activity_private": "Private and unavailable to copy",
     "trading_activity_info": "More information about trading activity",
     "trading_activity_info_description": "When this is on, other traders can see and copy your trades. You earn 15% of the fees from those copy trades. Turn it off to keep your positions, performance, and stats private.",
-    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way."
+    "trading_activity_footnote": "Changes apply immediately. Your identity and social content stay visible either way.",
+    "x_account_disconnect_body": "Disconnecting removes your X handle from your MetaMask profile. You can reconnect at any time.",
+    "x_account_disconnect_sheet_title": "Disconnect X account?",
+    "x_account_disconnect_sheet_body": "{{handle}} will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_sheet_body_no_handle": "Your X account will be removed from your profile. Your posts, bio, wallets, and privacy settings stay the same.",
+    "x_account_disconnect_error": "Couldn't disconnect X. Check your connection and try again.",
+    "x_account_disconnect_success": "X account has been disconnected"
   },
   "profile_drawer": {
     "close": "Close",
@@ -6281,6 +6297,14 @@
       "feed": "Feed",
       "holders": "Holders"
     },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
+    },
     "holders_tab": {
       "empty": "No holders to show yet",
       "error": {
@@ -7225,6 +7249,11 @@
   },
   "balance_breakdown": {
     "allocation": "Allocation",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "Unable to load balance"
+    },
     "hide_balance": "Hide total balance",
     "show_balance": "Show total balance"
   },
@@ -7583,6 +7612,7 @@
           "timestamp": "now"
         }
       },
+      "error": "Couldn't turn on notifications. Try again.",
       "cta": "Turn on notifications"
     },
     "received_payment_title": "Instant payment received",
@@ -8549,7 +8579,6 @@
       "description_with_email": "We sent a 6-digit code to {{email}}. Enter it below to verify your email.",
       "description": "We sent a 6-digit code to your email. Enter it below to verify your email.",
       "description_totp": "Open your authenticator app and enter the 6-digit code.",
-      "verify": "Verify",
       "retry": "Try again",
       "retry_in": "Try again in {{seconds}}s",
       "sending": "Sending code...",
@@ -8564,8 +8593,6 @@
     "totp_setup": {
       "title": "Set up authenticator app",
       "description": "In your authenticator app, add a new account and enter the setup key or scan the QR code.",
-      "open_app": "Open authenticator app",
-      "no_app": "We couldn’t open an authenticator app. Copy the setup key and add it in your app.",
       "setup_key": "Setup key",
       "copy": "Copy setup key",
       "copied": "Setup key copied",
@@ -8633,6 +8660,7 @@
       "last_email_description": "This email is the only security method for this account. Add a second method before removing it.",
       "last_totp_title": "Authenticator app can’t be removed",
       "last_totp_description": "This authenticator app is the only security method for this account. Add a second method before removing it.",
+      "only_passkeys_description": "Passkeys can only be removed after verifying with another type of method. Add an email or authenticator app first.",
       "got_it": "Got it",
       "passkey_added": "Passkey added",
       "passkey_removed": "Passkey removed",
@@ -10260,16 +10288,16 @@
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
-      "filled_at": "Filled at {{date}}",
+      "filled_at": "Filled on {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
       "duration_days": "{{count}}d",
       "duration_hours": "{{count}}h",
       "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
-      "canceled_at": "Canceled at {{date}}",
+      "canceled_at": "Canceled on {{date}}",
       "failed": "Failed",
-      "failed_at": "Failed at {{date}}",
+      "failed_at": "Failed on {{date}}",
       "buy_when": "Buy when",
       "sell_when": "Sell when",
       "is_at_or_below": "is at or below",
@@ -10309,6 +10337,7 @@
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
+      "open": "Open",
       "in_progress": "In progress",
       "submitted": "Submitted",
       "cancel_order": "Cancel order",
@@ -10633,7 +10662,7 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance": "Price tolerance",
     "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "Your limit order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
     "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
@@ -11702,7 +11731,7 @@
       "description_resolving": "Checking how your card was set up.",
       "description_resume": "Continue where you left off. This account stays linked to your card.",
       "auth_prompt_info": "Log in to your card account to access this feature.",
-      "country_label": "Country",
+      "country_label": "Country of residence",
       "location_button_text": "International",
       "location_button_text_us": "United States",
       "location_button_text_uk": "United Kingdom",
@@ -11904,10 +11933,6 @@
       "error_fetching_description": "Check your connection and try again.",
       "retry_button": "Retry"
     },
-    "referral_validation_unknown_error": {
-      "title": "Referral code couldn’t be validated",
-      "description": "Check your connection and try again."
-    },
     "active_activity_error": {
       "error_fetching_title": "Activity couldn’t be loaded",
       "error_fetching_description": "Check your connection and try again.",
@@ -11958,7 +11983,6 @@
       "progress_to_next_tier": "{{pointsRemaining}} points to next tier",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "Swaps",
       "perps_label": "Perps",
       "points_label": "Points",
@@ -12014,9 +12038,7 @@
       "retry_button": "Retry",
       "empty_title": "No transactions yet. Your VIP transactions will appear here once you have activity."
     },
-    "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
-    "referral_stats_referrals": "Referrals",
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
@@ -12081,8 +12103,6 @@
       "step_confirm": "Next",
       "step_finish": "Let's go",
       "step_skip": "Skip",
-      "step4_title_referral_validating": "Validating referral code...",
-      "step4_referral_input_error": "Invalid referral code",
       "title": "Start earning rewards",
       "description": "Win prizes, claim perks, and discover more ways to earn—just by using MetaMask.",
       "sign_up": "Join Rewards",
@@ -12091,9 +12111,6 @@
       "legal_disclaimer_2": "Terms of Use",
       "legal_disclaimer_3": ". We'll opt in all accounts on this device and track onchain activity to reward you automatically.",
       "legal_disclaimer_4": "Learn more",
-      "referral_prompt": "Have a referral code?",
-      "referral_hide": "Hide code",
-      "referral_placeholder": "Referral code (optional)",
       "referral_label": "Referral code"
     },
     "settings": {
@@ -12125,13 +12142,6 @@
       "off_device_accounts_sheet_title": "Missing Enrolled Accounts",
       "off_device_accounts_sheet_description": "These might belong to a wallet that has not yet been added after reinstalling MetaMask. Don't recognize any of these addresses?",
       "off_device_accounts_sheet_let_us_know": "Let us know"
-    },
-    "referred_by_code": {
-      "title": "Referral Code",
-      "description_linked": "Invite code is now linked, so your referrer will earn rewards when you trade.",
-      "description_not_linked": "Signed up before your friend could send you their code? Enter it below and you'll be linked.",
-      "input_placeholder": "Enter referral code",
-      "invalid_code": "Invalid referral code"
     },
     "bonus_code": {
       "input_placeholder": "Enter bonus code",
@@ -12178,22 +12188,6 @@
     },
     "ways_to_earn": {
       "title": "Ways to earn"
-    },
-    "referral": {
-      "referral_code": "Referral code",
-      "referral_link": "Referral link",
-      "actions": {
-        "share_referral_link": "Refer a friend",
-        "share_referral_subject": "Join MetaMask Rewards"
-      },
-      "info": {
-        "title": "Share your code with friends",
-        "description": "Referral bonuses vary by campaign. Check each one for details.",
-        "vip_title": "Earn revenue share on every swap and perp your referrals make. Your rate scales with your tier.",
-        "vip_referrals_label": "Referrals",
-        "vip_revenue_share_label": "Revenue share"
-      },
-      "referral_code_copied": "Referral code copied to clipboard"
     },
     "link_account_group": {
       "link_account": "Add account",

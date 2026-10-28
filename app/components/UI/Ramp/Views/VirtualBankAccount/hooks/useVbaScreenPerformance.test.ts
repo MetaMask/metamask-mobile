@@ -7,6 +7,8 @@ import {
   VBA_SCREEN_PERFORMANCE_CONFIG,
   type VbaScreenId,
 } from '../vbaScreenPerformance';
+import { resetVbaCufLifecycleContextForTests } from '../vbaCufLifecycle';
+import { VBA_CUF_LIFECYCLE_CONTEXT } from '../vbaCufTags';
 import { useScreenPerformance } from '../../../../../../hooks/useScreenPerformance';
 
 jest.mock('uuid', () => ({
@@ -50,6 +52,7 @@ describe('useVbaScreenPerformance', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    resetVbaCufLifecycleContextForTests();
     appState = 'active';
     appStateListeners = [];
     Object.defineProperty(AppState, 'currentState', {
@@ -65,6 +68,7 @@ describe('useVbaScreenPerformance', () => {
   });
 
   afterEach(() => {
+    resetVbaCufLifecycleContextForTests();
     jest.restoreAllMocks();
   });
 
@@ -90,6 +94,7 @@ describe('useVbaScreenPerformance', () => {
           flow: 'vba',
           metric_type: 'screen_load',
           screen_id: VBA_SCREEN_ID.VENDOR_TERMS,
+          lifecycle_context: VBA_CUF_LIFECYCLE_CONTEXT.COLD_PROCESS,
         },
       }),
     );
@@ -101,6 +106,7 @@ describe('useVbaScreenPerformance', () => {
         flow: 'vba',
         metric_type: 'screen_load',
         screen_id: VBA_SCREEN_ID.VENDOR_TERMS,
+        lifecycle_context: VBA_CUF_LIFECYCLE_CONTEXT.COLD_PROCESS,
         content_state: VBA_SCREEN_CONTENT_STATE.POPULATED,
         success: true,
       },
@@ -128,7 +134,7 @@ describe('useVbaScreenPerformance', () => {
     );
   });
 
-  it('ends on background and restarts when the app becomes active', () => {
+  it('ends on background and restarts with resume context after iOS inactive', () => {
     const { rerender } = renderHook(
       ({ contentReady }) =>
         useVbaScreenPerformance({
@@ -139,6 +145,7 @@ describe('useVbaScreenPerformance', () => {
     );
 
     act(() => emitAppState('background'));
+    act(() => emitAppState('inactive'));
     rerender({ contentReady: true });
     act(() => emitAppState('active'));
 
@@ -155,6 +162,14 @@ describe('useVbaScreenPerformance', () => {
     expect(mockEndTrace).toHaveBeenLastCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ success: true }),
+      }),
+    );
+    expect(mockTrace).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          lifecycle_context: VBA_CUF_LIFECYCLE_CONTEXT.BACKGROUND_RESUME,
+        }),
       }),
     );
   });
