@@ -4,8 +4,8 @@ import type { VbaEligibility } from '../../Ramp/Views/VirtualBankAccount/hooks/u
  * How the Add funds Bank account row should render.
  *
  * - `enabled`: live row. An account already exists, or VBA eligibility passed.
- * - `coming-soon`: no account and not eligible, including people outside every market.
- * - `hidden`: no account, the flag is on, and the region lookup is still loading.
+ * - `coming-soon`: flag is off. Keeps the pre-rollout placeholder.
+ * - `hidden`: flag is on, but the user is not eligible (or region still loading).
  */
 export type BankAccountEntryVisibility = 'enabled' | 'coming-soon' | 'hidden';
 
@@ -19,16 +19,15 @@ export type BankAccountEntryVisibility = 'enabled' | 'coming-soon' | 'hidden';
 export function getBankAccountEntryVisibility({
   isFlagEnabled,
   isEligible,
-  isLoading,
   hasUsableAutoramp,
-}: Pick<VbaEligibility, 'isFlagEnabled' | 'isEligible' | 'isLoading'> & {
+}: Pick<VbaEligibility, 'isFlagEnabled' | 'isEligible'> & {
   hasUsableAutoramp: boolean;
 }): BankAccountEntryVisibility {
-  if (hasUsableAutoramp || (isFlagEnabled && isEligible)) {
+  if (hasUsableAutoramp) {
     return 'enabled';
   }
-  if (isFlagEnabled && isLoading) {
-    return 'hidden';
+  if (!isFlagEnabled) {
+    return 'coming-soon';
   }
-  return 'coming-soon';
+  return isEligible ? 'enabled' : 'hidden';
 }
