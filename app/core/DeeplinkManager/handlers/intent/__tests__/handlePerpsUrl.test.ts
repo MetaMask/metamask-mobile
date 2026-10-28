@@ -621,6 +621,30 @@ describe('handlePerpsUrl', () => {
       expect(getNavigatedMarket().symbol).toBe('kPEPE');
     });
 
+    it('fetches standalone markets when the market cache has no match', async () => {
+      mockGetCachedMarketDataForActiveProvider.mockReturnValue([
+        { symbol: 'BTC' },
+      ]);
+      mockGetMarkets.mockResolvedValue([{ name: 'BTC' }, { name: 'kPEPE' }]);
+
+      await handlePerpsUrl({ perpsPath: 'perps?screen=asset&symbol=kpepe' });
+
+      expect(mockGetMarkets).toHaveBeenCalled();
+      expect(getNavigatedMarket().symbol).toBe('kPEPE');
+    });
+
+    it.each(['BTC', 'xyz:TSLA'])(
+      'opens %s without fetching markets when the cache is empty',
+      async (rawSymbol) => {
+        await handlePerpsUrl({
+          perpsPath: `perps?screen=asset&symbol=${rawSymbol}`,
+        });
+
+        expect(mockGetMarkets).not.toHaveBeenCalled();
+        expect(getNavigatedMarket().symbol).toBe(rawSymbol);
+      },
+    );
+
     it('opens the canonical HIP-3 symbol for a differently cased dex and asset', async () => {
       mockGetCachedMarketDataForActiveProvider.mockReturnValue([
         { symbol: 'xyz:TSLA' },
@@ -669,7 +693,7 @@ describe('handlePerpsUrl', () => {
       const onIntent = jest.fn();
 
       const pendingIntent = createPerpsDeeplinkIntent({
-        perpsPath: 'perps?screen=asset&symbol=BTC',
+        perpsPath: 'perps?screen=asset&symbol=kpepe',
       }).then(onIntent);
       await jest.advanceTimersByTimeAsync(1_999);
 
@@ -682,7 +706,7 @@ describe('handlePerpsUrl', () => {
         target: expect.objectContaining({
           params: expect.objectContaining({
             params: expect.objectContaining({
-              market: expect.objectContaining({ symbol: 'BTC' }),
+              market: expect.objectContaining({ symbol: 'KPEPE' }),
             }),
           }),
         }),

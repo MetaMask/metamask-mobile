@@ -105,45 +105,49 @@ const MARKET_FETCH_TIMEOUT_MS = 2_000;
 /**
  * Resolve a deeplink symbol to its canonical market symbol. Market symbols are
  * case-sensitive (e.g. 'kPEPE', 'kLUNC'), so match the market list
- * case-insensitively: the preloaded list when available, otherwise a
- * standalone fetch that works before Perps is initialized (e.g. cold start).
+ * case-insensitively: the preloaded list first, otherwise a standalone fetch
+ * that works before Perps is initialized (e.g. cold start). The fetch is
+ * skipped when the input already matches the normalized symbol (e.g. 'BTC').
  * Falls back to the normalized symbol (lowercase dex, uppercase asset) when
- * the list is unavailable, the fetch misses its deadline, or nothing matches.
+ * the fetch is skipped, fails, misses its deadline, or nothing matches;
+ * PerpsMarketDetailsView matches case-insensitively once its markets load.
  * @param rawSymbol The asset symbol from the deeplink (may include a dex prefix for HIP-3)
  */
 const resolvePerpsSymbol = async (rawSymbol: string): Promise<string> => {
   const { marketSource, symbol } = parseHip3Symbol(rawSymbol);
   const normalizedSymbol = marketSource ? `${marketSource}:${symbol}` : symbol;
   const lowerSymbol = rawSymbol.toLowerCase();
+  const findSymbol = (marketSymbols: string[]) =>
+    marketSymbols.find(
+      (marketSymbol) => marketSymbol.toLowerCase() === lowerSymbol,
+    );
 
   try {
     const controller = Engine.context.PerpsController;
-    const marketSymbols =
+    const cachedSymbol = findSymbol(
       controller
         .getCachedMarketDataForActiveProvider({ skipTTL: true })
-        ?.map((market) => market.symbol) ??
-      (
-        await Promise.race([
-          controller.getMarkets({
-            standalone: true,
-            useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
-              ReduxService.store.getState(),
-            ),
-          }),
-          new Promise<never>((_, reject) =>
-            setTimeout(
-              () => reject(new Error('Market fetch timeout')),
-              MARKET_FETCH_TIMEOUT_MS,
-            ),
-          ),
-        ])
-      ).map((market) => market.name);
-
-    return (
-      marketSymbols.find(
-        (marketSymbol) => marketSymbol.toLowerCase() === lowerSymbol,
-      ) ?? normalizedSymbol
+        ?.map((market) => market.symbol) ?? [],
     );
+    if (cachedSymbol || rawSymbol === normalizedSymbol) {
+      return cachedSymbol ?? normalizedSymbol;
+    }
+
+    const markets = await Promise.race([
+      controller.getMarkets({
+        standalone: true,
+        useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
+          ReduxService.store.getState(),
+        ),
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Market fetch timeout')),
+          MARKET_FETCH_TIMEOUT_MS,
+        ),
+      ),
+    ]);
+    return findSymbol(markets.map((market) => market.name)) ?? normalizedSymbol;
     // Market discovery is best-effort: on failure, log and keep the legacy
     // normalized symbol so the deeplink still opens the market page.
   } catch (error) {
