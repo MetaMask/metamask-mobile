@@ -1168,8 +1168,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1408,12 +1406,12 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
-      "share_position_title": "Share a position",
+      "add_position_title": "Add a position",
       "tab_open": "Offen",
       "tab_closed": "Geschlossen",
       "section_tokens": "Token",
       "section_perps": "Perps",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
       "empty_description": "Create a position to share it here.",
       "empty_open": "Keine offenen Positionen",
       "empty_closed": "No closed positions",

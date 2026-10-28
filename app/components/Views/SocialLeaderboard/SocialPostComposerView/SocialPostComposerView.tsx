@@ -89,7 +89,7 @@ import { mapPerpsOrderInFlightToFeedItem } from './mapPerpsOrderInFlightToFeedIt
 import { mapTradeInFlightToFeedItem } from './mapTradeInFlightToFeedItem';
 import type { SocialPostComposerViewParams } from './SocialPostComposerView.types';
 import GifPickerSheet from './GifPickerSheet';
-import SharePositionBottomSheet from './SharePositionBottomSheet';
+import AddPositionBottomSheet from './AddPositionBottomSheet';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
 import {
   SocialEvent,
@@ -723,7 +723,7 @@ const SocialPostComposerView: React.FC = () => {
         </KeyboardAvoidingView>
 
         {isShareSheetOpen ? (
-          <SharePositionBottomSheet
+          <AddPositionBottomSheet
             address={linkedAccountAddress}
             onSelect={handleSelectPosition}
             onClose={() => setIsShareSheetOpen(false)}

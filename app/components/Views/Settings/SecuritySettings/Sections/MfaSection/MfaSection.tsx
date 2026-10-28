@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -12,13 +13,14 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { isMfaKitEnabled } from '../../../../../../util/identity/mfa';
+import { selectMfaUiKitEnabled } from '../../../../../../selectors/featureFlagController/mfaUiKit';
 import { SecurityPrivacyViewSelectorsIDs } from '../../SecurityPrivacyView.testIds';
 
 const MfaSection = () => {
   const navigation = useNavigation();
+  const isMfaUiKitEnabled = useSelector(selectMfaUiKitEnabled);
 
-  if (!isMfaKitEnabled()) {
+  if (!isMfaUiKitEnabled) {
     return null;
   }
 

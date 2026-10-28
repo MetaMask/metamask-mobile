@@ -15,10 +15,6 @@ const createNetworkModalStyles = (colors: ThemeColors) =>
       justifyContent: 'flex-end',
       margin: 0,
     },
-    alertBar: {
-      width: '100%',
-      marginBottom: 15,
-    },
     modalContainer: {
       borderRadius: 10,
       backgroundColor: colors.background.default,
@@ -53,22 +49,6 @@ const createNetworkModalStyles = (colors: ThemeColors) =>
       alignSelf: 'stretch',
       padding: 4,
       alignItems: 'center',
-    },
-    textSection: {
-      marginBottom: 8,
-    },
-    accountCardWrapper: {
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      borderRadius: 10,
-      padding: 16,
-      marginVertical: 16,
-      maxHeight: '70%',
-    },
-    nestedScrollContent: { paddingBottom: 24 },
-    networkSection: { marginBottom: 16 },
-    textCentred: {
-      textAlign: 'center',
     },
   });
 

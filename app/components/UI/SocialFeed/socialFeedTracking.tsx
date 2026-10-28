@@ -24,7 +24,7 @@ interface FeedTarget {
 
 /** Surfaces whose posts emit Social events. Anything else stays silent. */
 const FEED_TRACKING: Partial<Record<SocialSurfaceLocation, FeedTarget>> = {
-  social_trending: { screen: Screen.TRENDING, tab: Tab.TRENDING },
+  social_trending: { screen: Screen.TRENDING, tab: Tab.TRENDING, view: true },
   social_following: { screen: Screen.FOLLOWING, tab: Tab.FOLLOWING },
   social_live: { screen: Screen.LIVE_TRADES, tab: Tab.LIVE_TRADES, view: true },
   my_profile: { screen: Screen.MY_PROFILE },

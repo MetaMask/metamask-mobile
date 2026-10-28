@@ -7,7 +7,6 @@ import {
   type SocialFeedState,
 } from '../../../SocialFeed/data/useSocialFeed';
 import { mockOpenPerpsFeedItem } from '../../../SocialFeed/mocks/socialV1Feed.mock';
-import { SOCIAL_FEED_EMPTY_TEST_ID } from '../../../SocialFeed/components/SocialFeedStates.testIds';
 import type { SocialV1FeedPost } from '../../../SocialFeed/types';
 import { TokenDetailsFeed } from './TokenDetailsFeed';
 
@@ -24,6 +23,13 @@ jest.mock(
 jest.mock('../../../SocialFeed/data/useSocialFeed', () => ({
   useSocialFeed: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer',
+  () => ({
+    useOpenSocialPostComposer: () => ({ openComposer: jest.fn() }),
+  }),
+);
 
 jest.mock(
   '../../../SocialFeed/components/SocialEntryOptionsBottomSheet',
@@ -145,6 +151,7 @@ describe('TokenDetailsFeed', () => {
       <TokenDetailsFeed source={source} location="token_details" />,
     );
 
-    expect(screen.getByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeOnTheScreen();
+    expect(screen.getByText('Post your trade')).toBeOnTheScreen();
+    expect(screen.queryByText('Start your first post')).toBeNull();
   });
 });
