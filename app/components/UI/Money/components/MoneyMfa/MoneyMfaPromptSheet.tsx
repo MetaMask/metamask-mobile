@@ -1,14 +1,12 @@
 import React, { useCallback, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import {
   BottomSheet,
   BottomSheetHeader,
   type BottomSheetRef,
 } from '@metamask/design-system-react-native';
-import { dismissBanner } from '../../../../../reducers/banners';
 import { useMoneyMfa } from '../../hooks/useMoneyMfa';
-import { MONEY_MFA_HOME_PROMPT_ID } from '../../hooks/useMoneyMfaHomePrompt';
+import { moneyMfaStore } from '../../../../../lib/Money/mfa/moneyMfaStore';
 import MoneyMfaPasskeyIntro from './MoneyMfaPasskeyIntro';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 
@@ -16,13 +14,12 @@ import { MoneyMfaTestIds } from './MoneyMfa.testIds';
 const MoneyMfaPromptSheet = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const dispatch = useDispatch();
   const { addPasskeyAndTurnOn } = useMoneyMfa();
 
   const handleClose = useCallback(() => {
-    dispatch(dismissBanner(MONEY_MFA_HOME_PROMPT_ID));
+    moneyMfaStore.setState({ isHomePromptDismissed: true });
     sheetRef.current?.onCloseBottomSheet();
-  }, [dispatch]);
+  }, []);
 
   const handleAddPasskey = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {

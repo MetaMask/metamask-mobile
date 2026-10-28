@@ -2,17 +2,24 @@ import { act, renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectDismissedBanners } from '../../../../selectors/banner';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../selectors/assets/balances';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa, type MoneyMfaStatus } from './useMoneyMfa';
-import {
-  MONEY_MFA_HOME_PROMPT_ID,
-  resetMoneyMfaHomePromptSession,
-  useMoneyMfaHomePrompt,
-} from './useMoneyMfaHomePrompt';
+import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
+import { moneyMfaHomePromptSession } from '../../../../lib/Money/mfa/moneyMfaHomePromptSession';
+import { useMoneyMfaHomePrompt } from './useMoneyMfaHomePrompt';
 
 const mockNavigate = jest.fn();
+
+jest.mock('../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(() => Promise.resolve(null)),
+    getItemSync: jest.fn(() => null),
+    setItem: jest.fn(() => Promise.resolve()),
+    removeItem: jest.fn(() => Promise.resolve()),
+  },
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -41,6 +48,7 @@ const mockRefreshEnrolledCredentials = jest.mocked(
 );
 
 const activePasskey: EnrolledCredential = {
+  id: 'passkey',
   type: 'passkey',
   status: 'active',
 };
@@ -51,14 +59,12 @@ const arrange = ({
   status = 'not_set_up',
   totalBalance = 10,
   hasBalance = true,
-  dismissedBanners = [],
   credentials = [],
   refreshError,
 }: {
   status?: MoneyMfaStatus;
   totalBalance?: number;
   hasBalance?: boolean;
-  dismissedBanners?: string[];
   credentials?: EnrolledCredential[];
   refreshError?: Error;
 } = {}) => {
@@ -78,9 +84,6 @@ const arrange = ({
         ? { totalBalanceInUserCurrency: totalBalance }
         : undefined;
     }
-    if (selector === selectDismissedBanners) {
-      return dismissedBanners;
-    }
     return undefined;
   });
   if (refreshError) {
@@ -94,7 +97,8 @@ const arrange = ({
 describe('useMoneyMfaHomePrompt', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetMoneyMfaHomePromptSession();
+    moneyMfaHomePromptSession.reset();
+    moneyMfaStore.reset();
   });
 
   it('opens the passkey prompt when the funded wallet has no passkey', async () => {
@@ -128,7 +132,9 @@ describe('useMoneyMfaHomePrompt', () => {
   });
 
   it('opens the prompt when the refreshed passkey is still pending', async () => {
-    arrange({ credentials: [{ type: 'passkey', status: 'pending' }] });
+    arrange({
+      credentials: [{ id: 'passkey', type: 'passkey', status: 'pending' }],
+    });
 
     await flushPromises();
 
@@ -177,7 +183,8 @@ describe('useMoneyMfaHomePrompt', () => {
   });
 
   it('does nothing when the prompt was already dismissed', async () => {
-    arrange({ dismissedBanners: [MONEY_MFA_HOME_PROMPT_ID] });
+    moneyMfaStore.setState({ isHomePromptDismissed: true });
+    arrange();
 
     await flushPromises();
 

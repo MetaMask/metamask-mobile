@@ -167,9 +167,10 @@ export const useMoneyMfa = () => {
 
   const turnOff = useCallback(async () => {
     try {
+      // The full list, so an empty or stale credential list can't skip the check.
       await verifyOrEnroll({
-        methods: activeMethods,
-        verifyWith: activeMethods,
+        methods: MONEY_MFA_METHODS,
+        verifyWith: MONEY_MFA_METHODS,
         maxSessionAgeMs: 0,
         reason: getTurnOffReason(),
       });
@@ -178,7 +179,7 @@ export const useMoneyMfa = () => {
     }
     moneyMfaStore.setState({ isMoneyAccountMfaEnabled: false });
     showToast('money.mfa.toast_off');
-  }, [activeMethods, verifyOrEnroll, showToast]);
+  }, [verifyOrEnroll, showToast]);
 
   const retry = useCallback(() => {
     moneyMfaStore.setState({ isMigrationBannerDismissed: false });
