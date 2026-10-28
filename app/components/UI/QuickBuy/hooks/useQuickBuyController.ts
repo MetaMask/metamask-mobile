@@ -1784,19 +1784,14 @@ export function useQuickBuyController(
             quotesReceivedContext: undefined,
             migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           })
-        : await Engine.context.BridgeStatusController.submitTx(
-            walletAddress,
-            activeQuote,
-            stxEnabled,
-            undefined, // quotesReceivedContext
-            undefined, // location
-            undefined, // abTests
-            undefined, // mergedActiveAbTests
-            undefined, // tokenSecurityTypeDestination
-            undefined, // batchSellTrades
-            undefined, // inputPrimaryDenomination
-            BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-          );
+        : await Engine.context.BridgeStatusController.submitTx({
+            accountAddress: walletAddress,
+            quoteResponses: [activeQuote],
+            isStxEnabled: stxEnabled,
+            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
+            inputPrimaryDenomination: 'token_amount',
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          });
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
       }
