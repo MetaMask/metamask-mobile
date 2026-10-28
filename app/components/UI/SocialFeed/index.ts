@@ -31,11 +31,12 @@ export { default as SocialFeedSkeleton } from './components/SocialFeedSkeleton';
 export { default as SocialFeedError } from './components/SocialFeedError';
 export { default as SocialFeed } from './components/SocialFeed';
 export type {
-  SocialFeedHeaderProps,
   SocialFeedInlineRow,
   SocialFeedProps,
   SocialFeedScrollMode,
 } from './components/SocialFeed';
+export { default as SocialFeedRealtimeControls } from './components/SocialFeedRealtimeControls';
+export type { SocialFeedRealtimeControlsProps } from './components/SocialFeedRealtimeControls';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
 export {

@@ -10,7 +10,7 @@ import {
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { LiveViewSelectorsIDs } from '../LiveView.testIds';
+import { SocialFeedRealtimeControlsSelectorsIDs } from './SocialFeedRealtimeControls.testIds';
 import LiveButton from './LiveButton';
 
 const getButton = () => screen.UNSAFE_getByType(Button);
@@ -58,7 +58,9 @@ describe('LiveButton', () => {
     const onPress = jest.fn();
     renderWithProvider(<LiveButton isLive onPress={onPress} />);
 
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    fireEvent.press(
+      screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
+    );
 
     expect(onPress).toHaveBeenCalledTimes(1);
   });

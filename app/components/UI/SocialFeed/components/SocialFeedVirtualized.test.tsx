@@ -21,13 +21,24 @@ import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
-import type {
-  SocialFeedHeaderProps,
-  SocialFeedInlineRow,
-} from './SocialFeed.types';
+import type { SocialFeedInlineRow } from './SocialFeed.types';
+import { useSocialFeedRealtime } from './SocialFeedRealtimeControls/SocialFeedRealtimeContext';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
 } from './SocialFeedVirtualized';
+
+const RealtimeProbe = () => {
+  const realtime = useSocialFeedRealtime();
+  if (!realtime) {
+    return null;
+  }
+  const { paused, pendingNewCount, revealPending } = realtime;
+  return (
+    <Text onPress={revealPending}>
+      {`${pendingNewCount} new${paused ? ', paused' : ''}`}
+    </Text>
+  );
+};
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -507,12 +518,7 @@ describe('SocialFeedVirtualized', () => {
         calls.push(`scroll ${offset}`);
       });
     mockUseSocialFeed.mockReturnValue(feedState({ refresh, realtime }));
-    const renderHeader = jest.fn(
-      ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
-        <Text onPress={onRevealPending}>{`${pendingNewCount} new`}</Text>
-      ),
-    );
-    renderFeed({ realtime: true, renderHeader });
+    renderFeed({ realtime: true, renderHeader: () => <RealtimeProbe /> });
 
     await act(async () => {
       fireEvent.press(screen.getByText('3 new'));
@@ -524,18 +530,26 @@ describe('SocialFeedVirtualized', () => {
   it('gives the header a no-op reveal without realtime', async () => {
     const refresh = jest.fn(async () => undefined);
     mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
-    const renderHeader = jest.fn(
-      ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
-        <Text onPress={onRevealPending}>{`${pendingNewCount} new`}</Text>
-      ),
-    );
-    renderFeed({ renderHeader });
+    renderFeed({ renderHeader: () => <RealtimeProbe /> });
 
     await act(async () => {
       fireEvent.press(screen.getByText('0 new'));
     });
 
     expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it('shares the paused prop with the header', () => {
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ realtime: realtimeState(0) }),
+    );
+    renderFeed({
+      realtime: true,
+      paused: true,
+      renderHeader: () => <RealtimeProbe />,
+    });
+
+    expect(screen.getByText('0 new, paused')).toBeOnTheScreen();
   });
 
   it('checks live price visibility once scrolling settles', () => {

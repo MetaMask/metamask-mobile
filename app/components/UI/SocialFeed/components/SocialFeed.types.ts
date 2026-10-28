@@ -16,13 +16,6 @@ import type { SocialFeedPostShellProps } from './SocialFeedPostShell';
  */
 export type SocialFeedScrollMode = 'content' | 'virtualized';
 
-export interface SocialFeedHeaderProps {
-  /** New posts waiting behind a pill. Always 0 without realtime. */
-  pendingNewCount: number;
-  /** Shows the waiting posts and scrolls to the top. A no-op without realtime. */
-  onRevealPending: () => void;
-}
-
 /** A host row spliced into the list between posts. */
 export interface SocialFeedInlineRow {
   /** Unique among the feed's inline rows. */
@@ -51,8 +44,11 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   isActive?: boolean;
   /** Optional heading above the posts. */
   title?: string;
-  /** Rendered below the title, scrolling with the posts. */
-  renderHeader?: (props: SocialFeedHeaderProps) => React.ReactNode;
+  /**
+   * Rendered below the title, scrolling with the posts. In virtualized mode it
+   * can hold `SocialFeedRealtimeControls`.
+   */
+  renderHeader?: () => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
   filterPost?: (post: SocialV1FeedPost) => boolean;
   /** Replaces the default empty line when the filtered feed has no posts. */
@@ -71,7 +67,7 @@ export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   scrollMode: 'virtualized';
   /** Streams new posts in. Ignored for sources without a socket channel. */
   realtime?: boolean;
-  /** Holds new posts behind `pendingNewCount`. */
+  /** Holds new posts back until revealed. */
   paused?: boolean;
   /**
    * Host rows between posts, hidden while the first page loads. With no

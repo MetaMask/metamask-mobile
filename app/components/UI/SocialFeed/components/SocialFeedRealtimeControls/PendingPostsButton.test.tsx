@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../../../UI/SocialFeed/data/socialFeedRealtime';
+import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 import PendingPostsButton from './PendingPostsButton';
 
 describe('PendingPostsButton', () => {

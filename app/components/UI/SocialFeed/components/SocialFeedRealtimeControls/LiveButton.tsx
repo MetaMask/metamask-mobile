@@ -7,7 +7,7 @@ import {
 } from '@metamask/design-system-react-native';
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
-import { LiveViewSelectorsIDs } from '../LiveView.testIds';
+import { SocialFeedRealtimeControlsSelectorsIDs } from './SocialFeedRealtimeControls.testIds';
 
 const PAUSED_COLOR_PROPS = { twClassName: TextColor.TextMuted };
 
@@ -16,7 +16,7 @@ export interface LiveButtonProps {
   onPress: () => void;
 }
 
-/** Live / Paused toggle for the Live feed header. */
+/** Live / Paused toggle for a realtime feed header. */
 const LiveButton: React.FC<LiveButtonProps> = ({ isLive, onPress }) => {
   const label = strings(
     isLive
@@ -29,7 +29,7 @@ const LiveButton: React.FC<LiveButtonProps> = ({ isLive, onPress }) => {
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
       onPress={onPress}
-      testID={LiveViewSelectorsIDs.STREAM_BUTTON}
+      testID={SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON}
       accessibilityLabel={label}
       textProps={isLive ? undefined : PAUSED_COLOR_PROPS}
       startIconName={isLive ? IconName.Play : IconName.Pause}

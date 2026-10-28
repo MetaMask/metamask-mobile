@@ -2,12 +2,8 @@ import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  ImpactMoment,
-  playImpact,
-  playSelection,
-} from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { SocialFeedRealtimeControlsSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtimeControls';
 import { mockPerpFeedItem } from '../../../UI/SocialFeed/mocks/coreFeed.mock';
 import {
   mockOpenPerpsFeedItem,
@@ -17,6 +13,7 @@ import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
+import { SocialEvent } from '../analytics/socialEvents';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
 import type { SocialShellFilters } from '../shell/filters/types';
@@ -30,10 +27,7 @@ interface MockSocialFeedProps {
   realtime?: boolean;
   paused?: boolean;
   filterPost?: (post: SocialV1FeedPost) => boolean;
-  renderHeader?: (props: {
-    pendingNewCount: number;
-    onRevealPending: () => void;
-  }) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
   pageRef?: React.Ref<SocialFeedPageHandle>;
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onPositionPress?: (post: SocialV1FeedPost) => void;
@@ -51,6 +45,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtimeControls/SocialFeedRealtimeContext',
+  );
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
@@ -58,12 +55,19 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       scrollToOffset: mockFeedScrollToOffset,
     }));
     return ReactActual.createElement(
-      View,
-      { testID: props.testID },
-      props.renderHeader?.({
-        pendingNewCount: mockPendingNewCount,
-        onRevealPending: mockRevealPending,
-      }),
+      SocialFeedRealtimeContext.Provider,
+      {
+        value: {
+          paused: props.paused ?? false,
+          pendingNewCount: mockPendingNewCount,
+          revealPending: mockRevealPending,
+        },
+      },
+      ReactActual.createElement(
+        View,
+        { testID: props.testID },
+        props.renderHeader?.(),
+      ),
     );
   };
 
@@ -92,8 +96,13 @@ jest.mock('../../../../util/haptics', () => ({
   playSelection: jest.fn(() => Promise.resolve()),
 }));
 
-const mockPlayImpact = jest.mocked(playImpact);
-const mockPlaySelection = jest.mocked(playSelection);
+const mockTrackInteraction = jest.fn();
+jest.mock('../analytics', () => ({
+  ...jest.requireActual('../analytics/socialEvents'),
+  useSocialInteraction: () => mockTrackInteraction,
+}));
+
+const { Filter, Interaction, StreamState } = SocialEvent;
 
 const post = (
   overrides: Partial<SocialV1FeedPost> & Pick<SocialV1FeedPost, 'id' | 'item'>,
@@ -148,6 +157,11 @@ const filters = (patch: Partial<SocialShellFilters>): SocialShellFilters => ({
   ...DEFAULT_FILTERS,
   ...patch,
 });
+
+const pressStreamButton = () =>
+  fireEvent.press(
+    screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
+  );
 
 describe('LiveView', () => {
   beforeEach(() => {
@@ -257,13 +271,39 @@ describe('LiveView', () => {
   it('pauses the feed, then reveals held posts when resumed', () => {
     renderWithProvider(<LiveView />, { state });
 
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    pressStreamButton();
     const pausedProps = lastFeedProps();
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
+    pressStreamButton();
 
     expect(pausedProps.paused).toBe(true);
     expect(lastFeedProps().paused).toBe(false);
     expect(mockRevealPending).toHaveBeenCalledTimes(1);
+  });
+
+  it('tracks each stream toggle with the previous state', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    pressStreamButton();
+    pressStreamButton();
+
+    expect(mockTrackInteraction).toHaveBeenNthCalledWith(
+      1,
+      Interaction.STREAM_TOGGLED,
+      {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: StreamState.PAUSED,
+        previous_filter_value: StreamState.LIVE,
+      },
+    );
+    expect(mockTrackInteraction).toHaveBeenNthCalledWith(
+      2,
+      Interaction.STREAM_TOGGLED,
+      {
+        filter_name: Filter.STREAM_STATE,
+        filter_value: StreamState.LIVE,
+        previous_filter_value: StreamState.PAUSED,
+      },
+    );
   });
 
   it('reveals pending posts from the pill', () => {
@@ -273,49 +313,6 @@ describe('LiveView', () => {
     fireEvent.press(screen.getByLabelText('3 new posts'));
 
     expect(mockRevealPending).toHaveBeenCalledTimes(1);
-  });
-
-  it('plays a selection haptic when pausing the feed', () => {
-    renderWithProvider(<LiveView />, { state });
-
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
-
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).not.toHaveBeenCalled();
-  });
-
-  it('plays a selection haptic when resuming without held posts', () => {
-    renderWithProvider(<LiveView />, { state });
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
-    mockPlaySelection.mockClear();
-
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
-
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).not.toHaveBeenCalled();
-  });
-
-  it('plays a pull-to-refresh impact when resuming with held posts', () => {
-    mockPendingNewCount = 3;
-    renderWithProvider(<LiveView />, { state });
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
-    mockPlaySelection.mockClear();
-
-    fireEvent.press(screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON));
-
-    expect(mockPlayImpact).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.PullToRefresh);
-    expect(mockPlaySelection).not.toHaveBeenCalled();
-  });
-
-  it('plays a selection haptic when revealing posts from the pill', () => {
-    mockPendingNewCount = 3;
-    renderWithProvider(<LiveView />, { state });
-
-    fireEvent.press(screen.getByLabelText('3 new posts'));
-
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 
   it('hides the pill without pending posts', () => {

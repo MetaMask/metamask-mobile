@@ -17,6 +17,7 @@ import {
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
+import { SocialFeedRealtimeControlsSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtimeControls';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
@@ -82,15 +83,16 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtimeControls/SocialFeedRealtimeContext',
+  );
 
   interface MockSocialFeedProps {
     location?: string;
     realtime?: boolean;
+    paused?: boolean;
     filterPost?: (post: unknown) => boolean;
-    renderHeader?: (props: {
-      pendingNewCount: number;
-      onRevealPending: () => void;
-    }) => React.ReactNode;
+    renderHeader?: () => React.ReactNode;
     scrollTestID?: string;
     testID?: string;
   }
@@ -102,10 +104,17 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
       return ReactActual.createElement(
         View,
         { testID: props.testID },
-        props.renderHeader?.({
-          pendingNewCount: 0,
-          onRevealPending: jest.fn(),
-        }),
+        ReactActual.createElement(
+          SocialFeedRealtimeContext.Provider,
+          {
+            value: {
+              paused: props.paused ?? false,
+              pendingNewCount: 0,
+              revealPending: jest.fn(),
+            },
+          },
+          props.renderHeader?.(),
+        ),
         ReactActual.createElement(View, { testID: props.scrollTestID }),
       );
     },
@@ -530,7 +539,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(LiveViewSelectorsIDs.STREAM_BUTTON),
+      screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
     ).toBeOnTheScreen();
   });
 

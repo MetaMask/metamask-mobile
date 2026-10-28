@@ -14,7 +14,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
-import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../../../UI/SocialFeed/data/socialFeedRealtime';
+import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
   .damping(14)

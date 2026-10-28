@@ -38,10 +38,7 @@ interface MockSocialFeedProps {
   scrollMode: string;
   showMockedFields?: boolean;
   isActive?: boolean;
-  renderHeader?: (props: {
-    pendingNewCount: number;
-    onRevealPending: () => void;
-  }) => React.ReactNode;
+  renderHeader?: () => React.ReactNode;
   inlineRows?: readonly SocialFeedInlineRow[];
   emptyState?: React.ReactNode;
   onRefresh?: () => void;
@@ -66,6 +63,9 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
+  const { SocialFeedRealtimeContext } = jest.requireActual(
+    '../../../UI/SocialFeed/components/SocialFeedRealtimeControls/SocialFeedRealtimeContext',
+  );
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
@@ -75,10 +75,17 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     return ReactActual.createElement(
       View,
       { testID: props.testID },
-      props.renderHeader?.({
-        pendingNewCount: mockPendingNewCount,
-        onRevealPending: mockRevealPending,
-      }),
+      ReactActual.createElement(
+        SocialFeedRealtimeContext.Provider,
+        {
+          value: {
+            paused: false,
+            pendingNewCount: mockPendingNewCount,
+            revealPending: mockRevealPending,
+          },
+        },
+        props.renderHeader?.(),
+      ),
       props.emptyState,
       props.inlineRows?.map((row) =>
         ReactActual.createElement(

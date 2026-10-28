@@ -50,6 +50,10 @@ import {
   SocialFeedFooter,
   SocialFeedPlaceholder,
 } from './SocialFeedListStates';
+import {
+  SocialFeedRealtimeContext,
+  type SocialFeedRealtimeContextValue,
+} from './SocialFeedRealtimeControls/SocialFeedRealtimeContext';
 import SocialFeedRow from './SocialFeedRow';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
 
@@ -367,6 +371,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   const pendingNewCount = live?.pendingNewCount ?? 0;
+  const isLive = Boolean(live);
+  const realtimeControls = useMemo<SocialFeedRealtimeContextValue>(
+    () => ({
+      paused,
+      pendingNewCount,
+      revealPending: isLive ? handleRevealPending : noop,
+    }),
+    [handleRevealPending, isLive, paused, pendingNewCount],
+  );
   const header = (
     <>
       {title ? (
@@ -374,10 +387,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           <Text variant={TextVariant.HeadingSm}>{title}</Text>
         </Box>
       ) : null}
-      {renderHeader?.({
-        pendingNewCount,
-        onRevealPending: live ? handleRevealPending : noop,
-      })}
+      {renderHeader?.()}
     </>
   );
 
@@ -387,67 +397,69 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       analyticsSource={analyticsSource}
       showMockedFields={showMockedFields}
     >
-      <Box twClassName="flex-1 bg-default" testID={testID}>
-        {performance ? (
-          <SocialFeedFirstContentTrace
-            tab={performance.tab}
-            contentState={firstContentState}
-            hasUsableData={dataUpdatedAt !== undefined}
-            performance={performance.context}
+      <SocialFeedRealtimeContext.Provider value={realtimeControls}>
+        <Box twClassName="flex-1 bg-default" testID={testID}>
+          {performance ? (
+            <SocialFeedFirstContentTrace
+              tab={performance.tab}
+              contentState={firstContentState}
+              hasUsableData={dataUpdatedAt !== undefined}
+              performance={performance.context}
+            />
+          ) : null}
+          <Animated.FlatList
+            ref={listRef}
+            data={listItems}
+            renderItem={renderItem}
+            keyExtractor={getSocialFeedListItemKey}
+            style={tw.style('flex-1')}
+            contentContainerStyle={tw.style('flex-grow pb-8')}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={listWindow.initialNumToRender}
+            maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
+            windowSize={listWindow.windowSize}
+            itemLayoutAnimation={
+              isLowHardware
+                ? FEED_ROW_LAYOUT_TRANSITION_LOW
+                : FEED_ROW_LAYOUT_TRANSITION
+            }
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}
+            onMomentumScrollEnd={handleScrollSettled}
+            onScrollEndDrag={handleScrollSettled}
+            onEndReached={loadMore}
+            onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+            ListHeaderComponent={header}
+            ListEmptyComponent={
+              <SocialFeedPlaceholder
+                state={state}
+                skeletonCount={
+                  isLowHardware || isOffline
+                    ? CONSTRAINED_SKELETON_COUNT
+                    : undefined
+                }
+                emptyState={emptyState}
+              />
+            }
+            ListFooterComponent={
+              <SocialFeedFooter
+                state={state}
+                isFetchingNextPage={isFetchingNextPage}
+                onRetry={() => refresh()}
+              />
+            }
+            testID={scrollTestID}
           />
-        ) : null}
-        <Animated.FlatList
-          ref={listRef}
-          data={listItems}
-          renderItem={renderItem}
-          keyExtractor={getSocialFeedListItemKey}
-          style={tw.style('flex-1')}
-          contentContainerStyle={tw.style('flex-grow pb-8')}
-          showsVerticalScrollIndicator={false}
-          initialNumToRender={listWindow.initialNumToRender}
-          maxToRenderPerBatch={MAX_TO_RENDER_PER_BATCH}
-          windowSize={listWindow.windowSize}
-          itemLayoutAnimation={
-            isLowHardware
-              ? FEED_ROW_LAYOUT_TRANSITION_LOW
-              : FEED_ROW_LAYOUT_TRANSITION
-          }
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          onMomentumScrollEnd={handleScrollSettled}
-          onScrollEndDrag={handleScrollSettled}
-          onEndReached={loadMore}
-          onEndReachedThreshold={0.5}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-          ListHeaderComponent={header}
-          ListEmptyComponent={
-            <SocialFeedPlaceholder
-              state={state}
-              skeletonCount={
-                isLowHardware || isOffline
-                  ? CONSTRAINED_SKELETON_COUNT
-                  : undefined
-              }
-              emptyState={emptyState}
-            />
-          }
-          ListFooterComponent={
-            <SocialFeedFooter
-              state={state}
-              isFetchingNextPage={isFetchingNextPage}
-              onRetry={() => refresh()}
-            />
-          }
-          testID={scrollTestID}
-        />
-      </Box>
+        </Box>
+      </SocialFeedRealtimeContext.Provider>
     </SocialFeedSurfaceProvider>
   );
 };
