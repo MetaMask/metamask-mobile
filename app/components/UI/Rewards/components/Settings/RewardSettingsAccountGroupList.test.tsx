@@ -14,6 +14,7 @@ import {
 import { useBulkLinkState } from '../../hooks/useBulkLinkState';
 import { AccountWalletType } from '@metamask/account-api';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -29,6 +30,38 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
     style: jest.fn(() => ({})),
   })),
 }));
+
+jest.mock('./RewardsEnvironmentToggle', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockRewardsEnvironmentToggle() {
+      return ReactActual.createElement(View, {
+        testID: 'rewards-environment-toggle',
+      });
+    },
+  };
+});
+
+jest.mock('./ReferredByCodeSection', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockReferredByCodeSection({
+      showTrailingDivider,
+    }: {
+      showTrailingDivider?: boolean;
+    }) {
+      return ReactActual.createElement(View, {
+        testID: showTrailingDivider
+          ? 'referred-by-code-section-with-divider'
+          : 'referred-by-code-section',
+      });
+    },
+  };
+});
 
 jest.mock('../../hooks/useRewardOptinSummary', () => ({
   useRewardOptinSummary: jest.fn(),
@@ -231,6 +264,18 @@ jest.mock('@metamask/design-system-react-native', () => {
       Primary: 'primary',
       Secondary: 'secondary',
     },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
+    },
+    SectionDivider: ({
+      testID,
+      ...props
+    }: {
+      testID?: string;
+      [key: string]: unknown;
+    }) => ReactActual.createElement(View, { testID, ...props }),
     ButtonVariants: {
       Primary: 'primary',
       Secondary: 'secondary',
@@ -519,6 +564,10 @@ describe('RewardSettingsAccountGroupList', () => {
       // Mock selectAvatarAccountType selector
       if (selector === selectAvatarAccountType) {
         return 'default';
+      }
+
+      if (selector === selectRewardsSubscriptionId) {
+        return 'subscription-1';
       }
 
       // Mock selectBulkLinkIsRunning selector
@@ -1204,6 +1253,9 @@ describe('RewardSettingsAccountGroupList', () => {
         if (selector === selectAvatarAccountType) {
           return 'default';
         }
+        if (selector === selectRewardsSubscriptionId) {
+          return 'subscription-1';
+        }
         if (selector === mockSelectBulkLinkIsRunning) {
           return true;
         }
@@ -1298,6 +1350,9 @@ describe('RewardSettingsAccountGroupList', () => {
         if (selector === selectAvatarAccountType) {
           return 'default';
         }
+        if (selector === selectRewardsSubscriptionId) {
+          return 'subscription-1';
+        }
         if (selector === mockSelectBulkLinkIsRunning) {
           return true;
         }
@@ -1316,6 +1371,41 @@ describe('RewardSettingsAccountGroupList', () => {
 
       // Should not show "Add all accounts" button when running
       expect(queryByTestId('rewards-settings-add-all-button')).toBeNull();
+    });
+  });
+
+  describe('referral section placement', () => {
+    it('renders the referral section and environment toggle when there is no subscription', () => {
+      mockUseSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectRewardsSubscriptionId) {
+          return null;
+        }
+        return undefined;
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <RewardSettingsAccountGroupList />,
+      );
+
+      expect(getByTestId('rewards-settings-referral-only')).toBeOnTheScreen();
+      expect(getByTestId('referred-by-code-section')).toBeOnTheScreen();
+      expect(getByTestId('rewards-environment-toggle')).toBeOnTheScreen();
+      expect(queryByTestId('rewards-settings-header')).toBeNull();
+      expect(queryByTestId('opt-out-section')).toBeNull();
+      expect(mockUseRewardOptinSummary).not.toHaveBeenCalled();
+    });
+
+    it('places the referral section above the accounts header when subscribed', () => {
+      const { getByTestId, getByLabelText } = render(
+        <RewardSettingsAccountGroupList onRequestOptOut={jest.fn()} />,
+      );
+
+      expect(
+        getByTestId('referred-by-code-section-with-divider'),
+      ).toBeOnTheScreen();
+      expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
+      expect(getByTestId('opt-out-section')).toBeOnTheScreen();
+      expect(getByLabelText('environmentToggle')).toBeOnTheScreen();
     });
   });
 });

@@ -36,6 +36,7 @@ import {
   moneyDashboardPersona,
   selectEarningsSummaryEntry,
   selectReferralMeEntry,
+  selectSettingsReferralAvailable,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -111,6 +112,10 @@ const RewardsMoneyDashboard: React.FC = () => {
     };
   });
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const settingsReferralAvailable = useSelector(
+    selectSettingsReferralAvailable,
+  );
+  const settingsDisabled = !subscriptionId && !settingsReferralAvailable;
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   // selectRewardsSubscriptionId hides a candidate still 'pending' or 'retry'
   // as null. Wait for that lookup, unless the account subscription is already
@@ -224,21 +229,17 @@ const RewardsMoneyDashboard: React.FC = () => {
     [localizedText, showEarningsDot],
   );
 
-  const headerEndAccessory = (
+  const headerEndAccessory = settingsDisabled ? null : (
     <Box twClassName="flex-row gap-2">
-      {/* Rewards settings only exist for a subscription, so an unsubscribed
-      user gets no control rather than a dead one. */}
-      {subscriptionId ? (
-        <ButtonIcon
-          iconName={IconName.Setting}
-          onPress={() =>
-            navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
-          }
-          size={ButtonIconSize.Md}
-          accessibilityLabel={strings('rewards.settings.title')}
-          testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON}
-        />
-      ) : null}
+      <ButtonIcon
+        iconName={IconName.Setting}
+        onPress={() =>
+          navigateToRewardsRoute(navigation, Routes.REWARDS_SETTINGS_VIEW)
+        }
+        size={ButtonIconSize.Md}
+        accessibilityLabel={strings('rewards.settings.title')}
+        testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SETTINGS_BUTTON}
+      />
     </Box>
   );
 

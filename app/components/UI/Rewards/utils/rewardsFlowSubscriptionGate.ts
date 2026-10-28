@@ -1,11 +1,13 @@
 import Routes from '../../../../constants/navigation/Routes';
 
 /**
- * Ledger screens on `REWARDS_FLOW` that do not need a points subscription.
- * A referee who never opted into points still opens these from the Money
- * dashboard.
+ * Screens on `REWARDS_FLOW` that do not need a points subscription.
+ * Settings is the Money referral code entry, and the navigator keeps it only
+ * while that section has a cached payload. The ledger screens are what a
+ * referee who never opted into points still opens from the Money dashboard.
  */
 export const REWARDS_MONEY_FLOW_SCREENS = [
+  Routes.REWARDS_SETTINGS_VIEW,
   Routes.REWARDS_TRADING_COMMISSIONS_VIEW,
   Routes.REWARDS_TRADING_REBATES_VIEW,
   Routes.REWARDS_EARNINGS_HISTORY_VIEW,

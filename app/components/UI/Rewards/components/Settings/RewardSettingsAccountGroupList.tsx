@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, memo, useState } from 'react';
+import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,12 +20,14 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { selectRewardsSubscriptionId } from '../../../../../selectors/rewards';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useRewardOptinSummary } from '../../hooks/useRewardOptinSummary';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { selectInternalAccountsByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardSettingsAccountGroup from './RewardSettingsAccountGroup';
 import OptOutSection from './OptOutSection';
+import ReferredByCodeSection from './ReferredByCodeSection';
 import { RewardSettingsAccountGroupListFlatListItem } from './types';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsEnvironmentToggle from './RewardsEnvironmentToggle';
@@ -159,7 +162,7 @@ interface RewardSettingsAccountGroupListProps {
   onRequestOptOut?: () => void;
 }
 
-const RewardSettingsAccountGroupList: React.FC<
+const SubscribedRewardSettingsAccountGroupList: React.FC<
   RewardSettingsAccountGroupListProps
 > = ({ onRequestOptOut }) => {
   const tw = useTailwind();
@@ -401,27 +404,30 @@ const RewardSettingsAccountGroupList: React.FC<
 
   const ListHeaderComponent = useCallback(
     () => (
-      <Box testID="rewards-settings-header" twClassName="px-4">
-        <Box twClassName="gap-2 pb-2">
-          <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.settings.subtitle')}
-          </Text>
+      <>
+        <ReferredByCodeSection showTrailingDivider />
+        <Box testID="rewards-settings-header" twClassName="px-4">
+          <Box twClassName="gap-2 pb-2">
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('rewards.settings.subtitle')}
+            </Text>
 
-          <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
-            {strings('rewards.settings.description')}
-          </Text>
-        </Box>
+            <Text variant={TextVariant.BodyMd} twClassName="text-alternative">
+              {strings('rewards.settings.description')}
+            </Text>
+          </Box>
 
-        <Box twClassName="pt-3">
-          <AccountProgressSection
-            linkedAccounts={linkedAccounts}
-            totalAccounts={totalAccounts}
-            isLoading={isLoadingOptInSummary}
-          />
+          <Box twClassName="pt-3">
+            <AccountProgressSection
+              linkedAccounts={linkedAccounts}
+              totalAccounts={totalAccounts}
+              isLoading={isLoadingOptInSummary}
+            />
+          </Box>
         </Box>
-      </Box>
+      </>
     ),
-    [linkedAccounts, totalAccounts, isLoadingOptInSummary],
+    [isLoadingOptInSummary, linkedAccounts, totalAccounts],
   );
 
   const SettingsFooterSections = useCallback(
@@ -501,6 +507,32 @@ const RewardSettingsAccountGroupList: React.FC<
       showsVerticalScrollIndicator={false}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
+    />
+  );
+};
+
+const RewardSettingsAccountGroupList: React.FC<
+  RewardSettingsAccountGroupListProps
+> = ({ onRequestOptOut }) => {
+  const tw = useTailwind();
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+
+  if (!subscriptionId) {
+    return (
+      <ScrollView
+        testID="rewards-settings-referral-only"
+        keyboardShouldPersistTaps="handled"
+        style={tw.style('flex-1')}
+      >
+        <ReferredByCodeSection />
+        <RewardsEnvironmentToggle />
+      </ScrollView>
+    );
+  }
+
+  return (
+    <SubscribedRewardSettingsAccountGroupList
+      onRequestOptOut={onRequestOptOut}
     />
   );
 };
