@@ -4,6 +4,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import { updateBgState } from '../../../../../core/redux/slices/engine';
 import Logger from '../../../../../util/Logger';
 import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
@@ -11,6 +12,7 @@ import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
 import {
   clearCachedDepositInstructions,
+  getCachedDepositInstructions,
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
@@ -126,6 +128,10 @@ jest.mock('../../../../../hooks/useScreenPerformance');
 const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 jest.mock('../../../../../core/Engine', () => ({
+  // Lets tests push RampsController changes into Redux via updateBgState.
+  get state() {
+    return { RampsController: this.context.RampsController.state };
+  },
   context: {
     RampsController: {
       state: {
@@ -361,6 +367,82 @@ describe('VbaDetails', () => {
 
     expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+  });
+
+  it('leaves shown details when a background hydrate rejects the autoramp', async () => {
+    setAutoramps([approvedAutoramp]);
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+    const { getByTestId, queryByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              RampsController: { autoramps: [approvedAutoramp] },
+            },
+          },
+        },
+      },
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalled();
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    await waitFor(() => {
+      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
+        expect.anything(),
+        'accountCreateGeneric',
+        undefined,
+        undefined,
+        'BRL',
+      );
+    });
+  });
+
+  it('drops details that resolve after the autoramp was rejected', async () => {
+    setAutoramps([approvedAutoramp]);
+    let resolveDetails: (value: typeof pixInstructions) => void = () =>
+      undefined;
+    mockGetDepositInstructions.mockReturnValue(
+      new Promise((resolve) => {
+        resolveDetails = resolve;
+      }),
+    );
+    const { queryByTestId, getByTestId, store } = renderWithProvider(
+      <VbaDetails />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              RampsController: { autoramps: [approvedAutoramp] },
+            },
+          },
+        },
+      },
+    );
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    setAutoramps([{ ...approvedAutoramp, status: 'Rejected' }]);
+    await act(async () => {
+      store.dispatch(updateBgState({ key: 'RampsController' }));
+    });
+    await act(async () => {
+      resolveDetails(pixInstructions);
+    });
+
+    expect(queryByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeNull();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(getCachedDepositInstructions('ar-1')).toBeNull();
   });
 
   it('refetches details on pull to refresh', async () => {

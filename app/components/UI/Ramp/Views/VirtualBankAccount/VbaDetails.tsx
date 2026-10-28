@@ -34,6 +34,7 @@ import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { useTheme } from '../../../../../util/theme';
+import type { RootState } from '../../../../../reducers';
 import { TraceName } from '../../../../../util/trace';
 import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
@@ -478,6 +479,15 @@ const VbaDetails = () => {
             );
             return;
           }
+          // The autoramp may have been rejected, cancelled or replaced while
+          // this request was in flight (for example by a background hydrate).
+          // Keep polling instead of showing details for it.
+          if (
+            findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)
+              ?.id !== autoramp.id
+          ) {
+            return;
+          }
           if (details) {
             finishPixFetchTrace(true, undefined, requestTraceId);
             setCachedDepositInstructions(autoramp.id, details);
@@ -570,6 +580,46 @@ const VbaDetails = () => {
     );
   }, [finishPixFetchTrace, sourceCurrency, walletAddress]);
 
+  // Opening from Money can skip the loading screen, so hydrate may land after
+  // details are shown. When it changes the usable autoramp (Rejected,
+  // Cancelled or replaced), drop the shown details and poll again so
+  // refreshDeposit routes or reloads.
+  const usableAutorampKey = useSelector((state: RootState) => {
+    if (!walletAddress) {
+      return null;
+    }
+    const autoramps =
+      (
+        state.engine?.backgroundState?.RampsController as
+          | { autoramps?: AutorampCursor[] }
+          | undefined
+      )?.autoramps ?? [];
+    const autoramp = findUsableAutoramp(
+      autoramps,
+      walletAddress,
+      sourceCurrency,
+    );
+    return autoramp ? `${autoramp.id}:${autoramp.status}` : '';
+  });
+  const [revalidateCount, setRevalidateCount] = useState(0);
+  const lastUsableAutorampRef = useRef({ accountKey, usableAutorampKey });
+
+  useEffect(() => {
+    const last = lastUsableAutorampRef.current;
+    lastUsableAutorampRef.current = { accountKey, usableAutorampKey };
+    if (
+      last.accountKey !== accountKey ||
+      last.usableAutorampKey === usableAutorampKey
+    ) {
+      return;
+    }
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
+    if (pollingDoneRef.current) {
+      pollingDoneRef.current = false;
+      setRevalidateCount((count) => count + 1);
+    }
+  }, [accountKey, sourceCurrency, usableAutorampKey, walletAddress]);
+
   useEffect(() => {
     if (networkTier === 'NONE') {
       return;
@@ -630,7 +680,14 @@ const VbaDetails = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [hardwareTier, navigation, networkTier, refreshDeposit, sourceCurrency]);
+  }, [
+    hardwareTier,
+    navigation,
+    networkTier,
+    refreshDeposit,
+    revalidateCount,
+    sourceCurrency,
+  ]);
 
   const isApproved = autorampStatus === 'Approved';
 
