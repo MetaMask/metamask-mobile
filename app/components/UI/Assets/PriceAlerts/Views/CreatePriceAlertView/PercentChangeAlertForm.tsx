@@ -229,7 +229,7 @@ const PercentChangeAlertForm: React.FC<PercentChangeAlertFormProps> = ({
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName="mb-2"
+          twClassName="mb-3"
         >
           {strings(
             direction === 'up'
