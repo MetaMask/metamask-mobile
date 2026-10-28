@@ -1,8 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import TradingActivityListSkeleton, {
-  TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS,
-} from './TradingActivityListSkeleton';
+import TradingActivityListSkeleton from './TradingActivityListSkeleton';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton.testIds';
 
 describe('TradingActivityListSkeleton', () => {
   it('renders the requested number of activity rows', () => {

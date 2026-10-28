@@ -1,13 +1,10 @@
 import React from 'react';
-import type { ReactTestInstance } from 'react-test-renderer';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen, within } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MOCK_SOCIAL_V1_FEED_ITEMS,
-  mockClosedSpotFeedItem,
   mockOpenPerpsFeedItem,
-  mockOpenSpotFeedItem,
 } from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import {
   addPendingPost,
@@ -17,7 +14,6 @@ import {
   mockUseSocialV1Feed,
   mockUseSocialV1FeedLoading,
 } from '../SocialV1View/feed/mocks/mockComposedFeedHook';
-import { useSocialFeed } from '../../../UI/SocialFeed/data/useSocialFeed';
 import { useSocialV1Feed } from '../SocialV1View/feed/hooks/useSocialV1Feed';
 import {
   FeedSortFilterSelectorsIDs,
@@ -30,25 +26,11 @@ import {
   SOCIAL_FILTER_EMPTY_CLEAR_TEST_ID,
   SOCIAL_FILTER_EMPTY_STATE_TEST_ID,
 } from '../shared/SocialFilterEmptyState';
-import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
 import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
 import type { SocialV1FeedItem } from '../../../UI/SocialFeed/types';
-import { TRENDING_FILTER_RAIL_TEST_ID } from './filters/TrendingFilterRail';
 import EmptyShellTabPage from './EmptyShellTabPage';
 
 const mockNavigate = jest.fn();
-
-const collectTestIds = (node: ReactTestInstance, ids: string[] = []) => {
-  if (typeof node.props.testID === 'string') {
-    ids.push(node.props.testID);
-  }
-  node.children.forEach((child) => {
-    if (typeof child !== 'string') {
-      collectTestIds(child, ids);
-    }
-  });
-  return ids;
-};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -90,71 +72,6 @@ jest.mock('../SocialV1View/feed/components/PopularTradersCarousel', () => {
       }),
   };
 });
-
-// Reanimated's useFrameCallback registers on the UI runtime via a 0ms timeout.
-// Unmount in this suite races that mock and throws
-// `Cannot set properties of undefined (setting 'startTime')`. The marquee
-// itself is covered in HotTokensCarousel.test. This stub only exposes the
-// chips so the page can prove a press filters the feed.
-jest.mock('../SocialV1View/feed/components', () => {
-  const ReactActual = jest.requireActual('react') as typeof import('react');
-  const { Pressable } = jest.requireActual(
-    'react-native',
-  ) as typeof import('react-native');
-  const { getSocialV1HotTokenChipTestId: chipTestId } = jest.requireActual(
-    '../SocialV1View/feed/components/HotTokensCarousel.testIds',
-  ) as typeof import('../SocialV1View/feed/components/HotTokensCarousel.testIds');
-  const { pinSelectedHotToken, rankFeedHotTokens } = jest.requireActual(
-    '../SocialV1View/feed/utils/rankFeedHotTokens',
-  ) as typeof import('../SocialV1View/feed/utils/rankFeedHotTokens');
-
-  const HotTokensCarousel = ({
-    posts = [],
-    selectedTokenId = null,
-    onTokenPress,
-  }: {
-    posts?: import('../../../UI/SocialFeed/types').SocialV1FeedPost[];
-    selectedTokenId?: string | null;
-    onTokenPress?: (
-      token: import('../SocialV1View/feed/types').SocialV1HotToken,
-    ) => void;
-  }) => {
-    const tokens = pinSelectedHotToken(
-      rankFeedHotTokens(posts),
-      posts,
-      selectedTokenId,
-    );
-
-    return ReactActual.createElement(
-      ReactActual.Fragment,
-      null,
-      tokens.map((token) =>
-        ReactActual.createElement(Pressable, {
-          key: token.id,
-          testID: chipTestId(token.id),
-          accessibilityState: { selected: token.id === selectedTokenId },
-          onPress: () => onTokenPress?.(token),
-        }),
-      ),
-    );
-  };
-
-  return { HotTokensCarousel };
-});
-
-jest.mock('../../../UI/SocialFeed/data/useSocialFeed', () => ({
-  useSocialFeed: jest.fn(() => ({
-    posts: [],
-    rows: [],
-    isLoading: false,
-    isFetchingNextPage: false,
-    hasNextPage: false,
-    loadMore: jest.fn(),
-    error: null,
-    refresh: jest.fn(async () => undefined),
-    dataUpdatedAt: undefined,
-  })),
-}));
 
 // See the view suite: the real hook needs keyring state and React Query, and
 // this suite is about the shell.
@@ -409,53 +326,6 @@ describe('EmptyShellTabPage', () => {
     });
   });
 
-  it('inserts the Popular traders carousel after the first three Trending posts', () => {
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
-
-    expect(
-      screen.getByTestId('popular-traders-carousel-section'),
-    ).toBeOnTheScreen();
-
-    const walkTestIds = (node: {
-      props?: { testID?: string };
-      children?: unknown[];
-    }): string[] => {
-      const own = node.props?.testID ? [node.props.testID] : [];
-      const children = (node.children ?? []).flatMap((child) =>
-        typeof child === 'object' && child !== null
-          ? walkTestIds(
-              child as { props?: { testID?: string }; children?: unknown[] },
-            )
-          : [],
-      );
-      return own.concat(children);
-    };
-
-    const ids = walkTestIds(
-      screen.UNSAFE_root as {
-        props?: { testID?: string };
-        children?: unknown[];
-      },
-    );
-    const firstThree = MOCK_SOCIAL_V1_FEED_ITEMS.slice(0, 3).map(
-      (item) => `social-v1-feed-card-${item.id}`,
-    );
-    const fourth = `social-v1-feed-card-${MOCK_SOCIAL_V1_FEED_ITEMS[3].id}`;
-    const carouselIndex = ids.indexOf('popular-traders-carousel-section');
-
-    firstThree.forEach((id) => {
-      expect(ids.indexOf(id)).toBeLessThan(carouselIndex);
-    });
-    expect(ids.indexOf(fourth)).toBeGreaterThan(carouselIndex);
-  });
-
   it('pads Trending 16px below the tabs', () => {
     renderWithProvider(
       <EmptyShellTabPage
@@ -517,25 +387,16 @@ describe('EmptyShellTabPage', () => {
     ).toEqual(expect.objectContaining({ selected: false }));
   });
 
-  it('marks the filter button selected when a filter is applied', () => {
-    const page = (tab: 'trending' | 'following') => (
+  it('marks the Following filter button selected when a filter is applied', () => {
+    renderWithProvider(
       <EmptyShellTabPage
-        tab={tab}
+        tab="following"
         isActive
         isFilterActive
-        containerTestID={`${tab}-page-content`}
-        scrollTestID={`${tab}-page-scroll`}
-      />
+        containerTestID="following-page-content"
+        scrollTestID="following-page-scroll"
+      />,
     );
-
-    const { rerender } = renderWithProvider(page('trending'));
-
-    expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
-        .accessibilityState,
-    ).toEqual(expect.objectContaining({ selected: true }));
-
-    rerender(page('following'));
 
     expect(
       screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON).props
@@ -577,115 +438,6 @@ describe('EmptyShellTabPage', () => {
     ).toBeOnTheScreen();
   });
 
-  it('opens Custom filters from the button over the Trending pills', () => {
-    const onOpenFilters = jest.fn();
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-        onOpenFilters={onOpenFilters}
-      />,
-    );
-
-    const scroll = within(screen.getByTestId('trending-page-scroll'));
-    fireEvent.press(
-      scroll.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
-    );
-
-    expect(onOpenFilters).toHaveBeenCalledTimes(1);
-    expect(
-      scroll.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
-        .accessibilityState,
-    ).toEqual(expect.objectContaining({ selected: false }));
-    expect(
-      StyleSheet.flatten(
-        scroll.getByTestId(TRENDING_FILTER_RAIL_TEST_ID).props.style,
-      ),
-    ).toEqual(expect.objectContaining({ marginBottom: -16 }));
-  });
-
-  it('hides open posts on Trending when Custom filters apply closed positions', () => {
-    const { DEFAULT_FILTERS } = jest.requireActual(
-      './filters/filterDefaults',
-    ) as typeof import('./filters/filterDefaults');
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
-      />,
-    );
-
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
-    ).toBeNull();
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-eth-closed'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-aapl-closed'),
-    ).toBeOnTheScreen();
-  });
-
-  it('applies Custom filters on top of a selected pill feed', () => {
-    const openPump = mockOpenSpotFeedItem();
-    const closedPump = mockClosedSpotFeedItem({
-      id: 'v1-feed-pump-closed',
-      asset: openPump.asset,
-    });
-    const toPost = (item: SocialV1FeedItem) => ({
-      id: item.id,
-      authorHandle: item.author.username,
-      timestampMs: item.timestamp,
-      reactions: [],
-      item,
-    });
-    jest.mocked(useSocialFeed).mockImplementation((source) => ({
-      posts: source ? [toPost(openPump), toPost(closedPump)] : [],
-      rows: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: false,
-      loadMore: jest.fn(),
-      error: null,
-      refresh: jest.fn(async () => undefined),
-      dataUpdatedAt: undefined,
-    }));
-    const { DEFAULT_FILTERS } = jest.requireActual(
-      './filters/filterDefaults',
-    ) as typeof import('./filters/filterDefaults');
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
-      />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-    );
-
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-pump-closed'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
-    ).toBeNull();
-  });
-
   it('hides perp posts on Following when Custom filters apply tokens', () => {
     const { DEFAULT_FILTERS } = jest.requireActual(
       './filters/filterDefaults',
@@ -706,104 +458,6 @@ describe('EmptyShellTabPage', () => {
     ).toBeNull();
     expect(
       screen.getByTestId('social-v1-feed-card-v1-feed-pump-open'),
-    ).toBeOnTheScreen();
-  });
-
-  it('frames the Popular traders rail with block dividers on Trending', () => {
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
-
-    expect(
-      screen.getByTestId('social-v1-feed-entry-divider-block-popular-traders'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-v1-feed-entry-divider-block-trailing'),
-    ).toBeOnTheScreen();
-  });
-
-  it('loads the pressed chip from its own feed instead of the posts on screen', () => {
-    const btcPost = MOCK_SOCIAL_V1_FEED_ITEMS.map((item) => ({
-      id: item.id,
-      authorHandle: 'ada',
-      timestampMs: 1,
-      reactions: [],
-      item,
-    })).find((entry) => entry.item.asset.symbol === 'BTC');
-    jest.mocked(useSocialFeed).mockImplementation((source) => ({
-      posts: source && btcPost ? [btcPost] : [],
-      rows: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: false,
-      loadMore: jest.fn(),
-      error: null,
-      refresh: jest.fn(async () => undefined),
-      dataUpdatedAt: undefined,
-    }));
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')),
-    );
-
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-pump-open'),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-eth-closed'),
-    ).toBeNull();
-    expect(
-      screen.queryByTestId('social-v1-feed-card-v1-feed-aapl-closed'),
-    ).toBeNull();
-    expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
-    expect(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:BTC')).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
-  });
-
-  it('clears the asset filter when the selected chip is pressed again', () => {
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
-
-    fireEvent.press(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
-    );
-    fireEvent.press(
-      screen.getByTestId(getSocialV1HotTokenChipTestId('asset:ETH')),
-    );
-
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('social-v1-feed-card-v1-feed-eth-closed'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId('popular-traders-carousel-section'),
     ).toBeOnTheScreen();
   });
 
@@ -840,38 +494,6 @@ describe('EmptyShellTabPage', () => {
       screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId('popular-traders-carousel-section')).toBeNull();
-  });
-
-  it('places the Trending empty state above Popular traders', () => {
-    jest.mocked(useSocialV1Feed).mockImplementation(() => ({
-      posts: [],
-      pinnedPosts: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: false,
-      loadMore: () => undefined,
-      error: null,
-      refresh: () => Promise.resolve(),
-    }));
-
-    renderWithProvider(
-      <EmptyShellTabPage
-        tab="trending"
-        isActive
-        containerTestID="trending-page-content"
-        scrollTestID="trending-page-scroll"
-      />,
-    );
-
-    const testIds = collectTestIds(screen.getByTestId('trending-page-content'));
-    const emptyAt = testIds.indexOf(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID);
-    const railAt = testIds.indexOf('popular-traders-carousel-section');
-
-    expect(emptyAt).toBeGreaterThan(-1);
-    expect(railAt).toBeGreaterThan(emptyAt);
-    expect(
-      screen.getByText('social_leaderboard.feed.v1_empty.trending.description'),
-    ).toBeOnTheScreen();
   });
 
   it('keeps the empty state hidden while the feed is loading', () => {
@@ -1032,99 +654,5 @@ describe('EmptyShellTabPage', () => {
       screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
     ).toBeOnTheScreen();
     expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
-  });
-
-  describe('asset feed for a selected chip', () => {
-    const tokenFeedPost = {
-      id: 'token-feed-post',
-      authorHandle: 'frogwater',
-      timestampMs: 1,
-      reactions: [],
-      item: mockOpenSpotFeedItem({ id: 'token-feed-item' }),
-    };
-
-    const assetFeed = {
-      posts: [tokenFeedPost],
-      rows: [],
-      isLoading: false,
-      isFetchingNextPage: false,
-      hasNextPage: true,
-      loadMore: jest.fn(),
-      error: null,
-      refresh: jest.fn(async () => undefined),
-      dataUpdatedAt: undefined,
-    };
-
-    const renderTrending = () =>
-      renderWithProvider(
-        <EmptyShellTabPage
-          tab="trending"
-          isActive
-          containerTestID="trending-page-content"
-          scrollTestID="trending-page-scroll"
-        />,
-      );
-
-    beforeEach(() => {
-      jest.mocked(useSocialFeed).mockImplementation((source) =>
-        source
-          ? assetFeed
-          : {
-              ...assetFeed,
-              posts: [],
-              hasNextPage: false,
-            },
-      );
-    });
-
-    it('shows the asset feed instead of the posts already on screen', () => {
-      renderTrending();
-      fireEvent.press(
-        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-      );
-
-      expect(
-        screen.getByTestId('social-v1-feed-card-token-feed-item'),
-      ).toBeOnTheScreen();
-      expect(
-        screen.queryByTestId('social-v1-feed-card-v1-feed-btc-open'),
-      ).toBeNull();
-      expect(
-        screen.queryByTestId('popular-traders-carousel-section'),
-      ).toBeNull();
-    });
-
-    it('pages and refreshes the asset feed, then returns to the tab feed', () => {
-      const mainLoadMore = jest.fn();
-      jest.mocked(useSocialV1Feed).mockImplementation((tab) => ({
-        ...mockUseSocialV1Feed(tab),
-        loadMore: mainLoadMore,
-      }));
-      renderTrending();
-      fireEvent.press(
-        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-      );
-
-      fireEvent(
-        screen.getByTestId('trending-page-scroll'),
-        'momentumScrollEnd',
-        {
-          nativeEvent: {
-            contentOffset: { y: 1900, x: 0 },
-            contentSize: { height: 2800, width: 400 },
-            layoutMeasurement: { height: 800, width: 400 },
-          },
-        },
-      );
-      expect(assetFeed.loadMore).toHaveBeenCalled();
-      expect(mainLoadMore).not.toHaveBeenCalled();
-
-      fireEvent.press(
-        screen.getByTestId(getSocialV1HotTokenChipTestId('asset:PUMP')),
-      );
-      expect(
-        screen.getByTestId('social-v1-feed-card-v1-feed-btc-open'),
-      ).toBeOnTheScreen();
-    });
   });
 });

@@ -26,7 +26,7 @@ import { useLinkableSocialAccounts } from '../../hooks/useLinkableSocialAccounts
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileLinkedAccountSelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
-import { useManageProfileAnalytics } from '../../analytics';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const getLinkedEvmAddress = (linkedAddress: string): string | undefined => {
   try {
