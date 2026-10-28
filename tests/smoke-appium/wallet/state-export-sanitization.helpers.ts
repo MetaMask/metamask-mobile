@@ -74,7 +74,13 @@ function assertSanitizedAuthenticationExport(
 }
 
 function assertValueAbsent(serialized: string, value: string, label: string) {
-  if (value.length > 0 && serialized.includes(value)) {
+  if (value.length === 0) {
+    return;
+  }
+  // JSON.stringify escapes quotes inside the value, so a leaked copy is not
+  // always the raw string.
+  const escaped = JSON.stringify(value).slice(1, -1);
+  if (serialized.includes(value) || serialized.includes(escaped)) {
     throw new Error(`${label} was included in the exported state`);
   }
 }

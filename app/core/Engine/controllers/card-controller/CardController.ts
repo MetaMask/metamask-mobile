@@ -178,7 +178,7 @@ const resolveRedeemPollingChainId = (network?: string): string | undefined => {
     : undefined;
 };
 
-const metadata: StateMetadata<CardControllerState> = {
+export const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
     persist: true,
     includeInDebugSnapshot: true,

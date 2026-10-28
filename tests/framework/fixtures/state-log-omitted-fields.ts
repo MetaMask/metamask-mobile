@@ -30,6 +30,12 @@ export const STATE_LOG_OMITTED_FIELDS = {
     'screenConfigurations',
     'activeConfigurations',
   ],
+  QrSyncController: [
+    'otp',
+    'pendingSecretImports',
+    'provisioningMetadata',
+    'provisioningStatus',
+  ],
 } as const;
 
 export const STATE_LOG_SEEDED_MARKERS = [

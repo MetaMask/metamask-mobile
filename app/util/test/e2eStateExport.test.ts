@@ -9,6 +9,18 @@ jest.mock('./utils', () => ({
 }));
 
 import axios from 'axios';
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MessengerActions,
+  type MessengerEvents,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
+import {
+  Controller as AuthenticationController,
+  type AuthenticationControllerMessenger,
+} from '@metamask/profile-sync-controller/auth';
+import { Platform } from '@metamask/profile-sync-controller/sdk';
 import Engine from '../../core/Engine';
 import { store } from '../../store';
 import { generateStateLogs } from '../logs';
@@ -45,12 +57,37 @@ function stateWithSecrets() {
     engine: {
       backgroundState: {
         AuthenticationController: {
-          jwt: EXPORTED_SECRETS.jwt,
+          isSignedIn: true,
+          needsProfilePairing: false,
+          needsSocialPairing: false,
           bearerToken: EXPORTED_SECRETS.bearerToken,
-          session: {
-            accessToken: EXPORTED_SECRETS.accessToken,
-            refreshToken: EXPORTED_SECRETS.refreshToken,
+          srpSessionData: {
+            'entropy-source-id': {
+              token: {
+                accessToken: EXPORTED_SECRETS.accessToken,
+                expiresIn: 3600,
+                obtainedAt: 1700000000000,
+              },
+              profile: {
+                identifierId: 'identifier-id',
+                profileId: 'profile-id',
+                canonicalProfileId: 'canonical-profile-id',
+                metaMetricsId: 'profile-metametrics-id',
+                pairedIdentifierIds: [
+                  { id: 'paired-identifier-id', type: 'SRP' },
+                ],
+              },
+            },
           },
+          enrolledCredentials: [
+            {
+              type: 'email_otp',
+              status: 'active',
+              enrolledAt: 1700000000000,
+              email: 'user@example.com',
+              verified: true,
+            },
+          ],
         },
         KeyringController: {
           vault: EXPORTED_SECRETS.vault,
@@ -83,6 +120,58 @@ function stateWithSecrets() {
       },
     },
   };
+}
+
+const SANITIZED_AUTHENTICATION_STATE = {
+  isSignedIn: true,
+  needsProfilePairing: false,
+  needsSocialPairing: false,
+  srpSessionData: {
+    'entropy-source-id': {
+      token: { expiresIn: 3600, obtainedAt: 1700000000000 },
+      profile: {
+        identifierId: 'identifier-id',
+        profileId: 'profile-id',
+        canonicalProfileId: 'canonical-profile-id',
+        metaMetricsId: 'profile-metametrics-id',
+      },
+    },
+  },
+  enrolledCredentials: [
+    { type: 'email_otp', status: 'active', enrolledAt: 1700000000000 },
+  ],
+} as const;
+
+function installAuthenticationController() {
+  const rootMessenger = new Messenger<
+    MockAnyNamespace,
+    MessengerActions<AuthenticationControllerMessenger>,
+    MessengerEvents<AuthenticationControllerMessenger>
+  >({ namespace: MOCK_ANY_NAMESPACE });
+  rootMessenger.registerActionHandler('KeyringController:getState', () => ({
+    isUnlocked: false,
+    keyrings: [],
+  }));
+  const messenger: AuthenticationControllerMessenger = new Messenger({
+    namespace: 'AuthenticationController',
+    parent: rootMessenger,
+  });
+  rootMessenger.delegate({
+    actions: ['KeyringController:getState'],
+    events: ['KeyringController:lock', 'KeyringController:unlock'],
+    messenger,
+  });
+  Engine.context.AuthenticationController = new AuthenticationController({
+    messenger,
+    metametrics: {
+      agent: Platform.MOBILE,
+      getMetaMetricsId: () => 'metametrics-id',
+    },
+  });
+}
+
+function removeAuthenticationController() {
+  Reflect.deleteProperty(Engine.context, 'AuthenticationController');
 }
 
 function expectSerializedWithoutSecrets(value: unknown) {
@@ -242,6 +331,7 @@ describe('e2eStateExport', () => {
     ).SeedlessOnboardingController;
 
     beforeEach(() => {
+      installAuthenticationController();
       (
         Engine.context as {
           SeedlessOnboardingController: { state: Record<string, unknown> };
@@ -264,6 +354,7 @@ describe('e2eStateExport', () => {
     });
 
     afterEach(() => {
+      removeAuthenticationController();
       (
         Engine.context as { SeedlessOnboardingController?: unknown }
       ).SeedlessOnboardingController = originalSeedless;
@@ -294,7 +385,11 @@ describe('e2eStateExport', () => {
       expect(serialized).not.toContain(EXPORTED_SECRETS.encryptionKey);
       expect(serialized).not.toContain(EXPORTED_SECRETS.encryptionSalt);
       expect(serialized).not.toContain(EXPORTED_SECRETS.mnemonic);
-      expect(backgroundState.AuthenticationController).toBeUndefined();
+      expect(serialized).not.toContain('paired-identifier-id');
+      expect(serialized).not.toContain('user@example.com');
+      expect(backgroundState.AuthenticationController).toEqual(
+        SANITIZED_AUTHENTICATION_STATE,
+      );
       expect(backgroundState.KeyringController).toEqual(
         expect.objectContaining({
           vaultExists: expect.any(Boolean),
@@ -313,6 +408,7 @@ describe('e2eStateExport', () => {
 
   describe('handleExportAppStateCommand', () => {
     beforeEach(() => {
+      installAuthenticationController();
       (
         Engine.context as {
           SeedlessOnboardingController: { state: Record<string, unknown> };
@@ -323,6 +419,10 @@ describe('e2eStateExport', () => {
           nodeAuthTokens: [],
         },
       };
+    });
+
+    afterEach(() => {
+      removeAuthenticationController();
     });
 
     it('posts the in-app state log export to the command queue server', async () => {
