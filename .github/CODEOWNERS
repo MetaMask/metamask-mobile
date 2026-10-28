@@ -485,8 +485,10 @@ app/util/activity-adapters/                                 @MetaMask/mobile-cor
 app/util/activity/                                          @MetaMask/mobile-core-ux
 app/core/Analytics/events/activity/                         @MetaMask/mobile-core-ux
 # Feature-specific Activity templates (co-owned)
+app/components/Views/ActivityDetails/templates/Bridge/        @MetaMask/swaps-engineers @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @MetaMask/mobile-core-ux
 app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
+app/components/Views/ActivityList/bridge/                   @MetaMask/swaps-engineers @MetaMask/mobile-core-ux
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.

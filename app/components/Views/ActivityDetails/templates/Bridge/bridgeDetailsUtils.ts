@@ -5,8 +5,8 @@ import type {
   ActivityListItem,
   TokenAmount,
 } from '../../../../util/activity-adapters';
-import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
-import { getAssetIdCaipChainId } from '../activityAssetId';
+import { findBridgeHistoryItem } from '../../../../../util/bridge/findBridgeHistoryItem';
+import { getAssetIdCaipChainId } from '../../activityAssetId';
 
 export function getBridgeDestinationCaipChainId(
   token: TokenAmount | undefined,

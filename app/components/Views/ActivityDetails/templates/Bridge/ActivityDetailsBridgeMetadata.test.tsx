@@ -1,10 +1,10 @@
 import React from 'react';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import type { ActivityListItem } from '../../../../../util/activity-adapters';
 import { ActivityDetailsBridgeMetadata } from './ActivityDetailsBridgeMetadata';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 
-jest.mock('../../../../core/ClipboardManager', () => ({
+jest.mock('../../../../../core/ClipboardManager', () => ({
   setString: jest.fn(),
 }));
 

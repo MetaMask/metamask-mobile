@@ -51,7 +51,7 @@ import { findBridgeHistoryItem } from '../../../util/bridge/findBridgeHistoryIte
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog */
 import { getActivityDetailsRoute } from '../ActivityList/getActivityDetailsRoute';
-import { applyBridgeQuote } from '../ActivityList/helpers/apply-bridge-quote';
+import { applyBridgeQuote } from '../ActivityList/bridge/apply-bridge-quote';
 /* eslint-enable import-x/no-restricted-paths */
 import Routes from '../../../constants/navigation/Routes';
 import { mapTransactionToActivityItem } from '../../UI/Transactions/AssetDetailsActivityListItem.utils';

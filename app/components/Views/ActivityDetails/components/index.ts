@@ -7,7 +7,7 @@ export { ActivityDetailsStatus } from './ActivityDetailsStatus';
 export { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 export { ActivityDetailsAvatar } from './ActivityDetailsAvatar';
 export { ActivityDetailsApprovalTokenSection } from './ActivityDetailsApprovalTokenSection';
-export { ActivityDetailsBridgeMetadata } from './ActivityDetailsBridgeMetadata';
+export { ActivityDetailsBridgeMetadata } from '../templates/Bridge/ActivityDetailsBridgeMetadata';
 export { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
 export { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 export { ActivityDetailsPerpsExplorerButton } from './ActivityDetailsPerpsExplorerButton';
