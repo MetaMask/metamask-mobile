@@ -1,8 +1,8 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Image } from 'expo-image';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
 import { ActivityDetailsPerpsHero } from './ActivityDetailsPerpsHero';
 
 const mockGetIconUrls = jest.fn();

@@ -1,12 +1,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
-import Routes from '../../../../constants/navigation/Routes';
-import { useActivityBlockExplorer } from '../hooks/useActivityBlockExplorer';
+import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
+import { useActivityBlockExplorer } from '../../hooks/useActivityBlockExplorer';
 import {
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
-} from '../ActivityDetails.testIds';
+} from '../../ActivityDetails.testIds';
 import { ActivityDetailsPerpsStepTimeline } from './ActivityDetailsPerpsStepTimeline';
 
 const mockNavigate = jest.fn();
@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../hooks/useActivityBlockExplorer', () => ({
+jest.mock('../../hooks/useActivityBlockExplorer', () => ({
   useActivityBlockExplorer: jest.fn(() => ({
     url: 'https://arbiscan.io/tx/0xdeposit',
     title: 'Arbiscan',

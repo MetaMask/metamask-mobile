@@ -1,18 +1,18 @@
 import BigNumber from 'bignumber.js';
-import { strings } from '../../../../../locales/i18n';
+import { strings } from '../../../../../../locales/i18n';
 import type {
   ActivityListItem,
   PerpsOrderKind,
-} from '../../../../util/activity-adapters';
+} from '../../../../../../util/activity-adapters';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
 import {
   formatTransactionDate as formatPerpsTransactionDate,
   formatPerpsFiat,
   formatPositiveFiat,
   PRICE_RANGES_UNIVERSAL,
-} from '../../../UI/Perps/utils/formatUtils';
-import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
-import type { PerpsTransaction as PerpsTransactionSource } from '../../../UI/Perps/types/transactionHistory';
+} from '../../../../UI/Perps/utils/formatUtils';
+import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../../UI/Perps/utils/marketUtils';
+import type { PerpsTransaction as PerpsTransactionSource } from '../../../../UI/Perps/types/transactionHistory';
 /* eslint-enable import-x/no-restricted-paths */
 
 export type PerpsTransaction = PerpsTransactionSource;

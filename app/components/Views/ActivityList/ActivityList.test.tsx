@@ -536,7 +536,7 @@ let mockPredictSourceState: {
   isFetchingMore?: boolean;
 } = { items: [], isLoading: false, error: null };
 
-jest.mock('./hooks/usePerpsActivityItems', () => ({
+jest.mock('./perps/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
