@@ -3,6 +3,7 @@ import { fireEvent, render, renderHook } from '@testing-library/react-native';
 import type { NativeStackHeaderItem } from '@react-navigation/native-stack';
 import { useNativeHeader } from '../../../../hooks/useNativeHeader';
 import { MoneyHeaderTestIds } from './MoneyHeader.testIds';
+import { MoneyMfaTestIds } from '../MoneyMfa/MoneyMfa.testIds';
 import {
   useMoneyNativeHeader,
   type MoneyNativeHeaderParams,
@@ -62,6 +63,25 @@ describe('useMoneyNativeHeader', () => {
     expect(
       renderCustom(leftItems[0]).getByTestId(MoneyHeaderTestIds.TITLE),
     ).toBeOnTheScreen();
+  });
+
+  it('shows the 2-step verification shield next to the title and opens the sheet', () => {
+    const onMfaBadgePress = jest.fn();
+    const { leftItems } = renderItems({ isMfaEnabled: true, onMfaBadgePress });
+
+    fireEvent.press(
+      renderCustom(leftItems[0]).getByTestId(MoneyMfaTestIds.HEADER_BADGE),
+    );
+
+    expect(onMfaBadgePress).toHaveBeenCalledTimes(1);
+  });
+
+  it('omits the shield when 2-step verification is off', () => {
+    const { leftItems } = renderItems();
+
+    expect(
+      renderCustom(leftItems[0]).queryByTestId(MoneyMfaTestIds.HEADER_BADGE),
+    ).toBeNull();
   });
 
   it('adds a separate back button when pushed over another flow', () => {
