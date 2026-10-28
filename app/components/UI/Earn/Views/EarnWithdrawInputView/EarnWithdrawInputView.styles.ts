@@ -42,11 +42,6 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
       paddingVertical: 8,
     },
-    headerWithSubtitle: {
-      height: 'auto',
-      minHeight: 72,
-      paddingVertical: 4,
-    },
   });
 };
 
