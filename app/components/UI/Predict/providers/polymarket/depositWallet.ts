@@ -32,9 +32,10 @@ const DEPOSIT_WALLET_FACTORY_BEACON_SELECTOR = '0x49493a4d';
 
 const DEPOSIT_WALLET_DOMAIN_NAME = 'DepositWallet';
 const DEPOSIT_WALLET_DOMAIN_VERSION = '1';
-// Polymarket's relayer rejects deadlines above 300s, so use the maximum
-// allowed window to reduce intermittent "deadline too soon" failures.
-const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 300;
+// Polymarket's relayer rejects batches whose deadline is less than ~240s
+// ahead of its own clock ("deadline too soon"). 600s matches Polymarket's
+// SDKs and leaves room for device clocks that run behind.
+const DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS = 600;
 
 const RELAYER_SUCCESS_STATES = new Set(['STATE_CONFIRMED']);
 const RELAYER_FAILURE_STATES = new Set(['STATE_FAILED', 'STATE_INVALID']);
@@ -263,16 +264,21 @@ function decodeBeaconAddress(response: unknown): Hex | undefined {
   }
 }
 
-export async function readDepositWalletFactoryBeacon(): Promise<
-  Hex | undefined
-> {
+function getPolygonEthQuery(): EthQuery {
   const { NetworkController } = Engine.context;
   const networkClientId = NetworkController.findNetworkClientIdByChainId(
     numberToHex(POLYGON_MAINNET_CHAIN_ID),
   );
-  const ethQuery = new EthQuery(
+
+  return new EthQuery(
     NetworkController.getNetworkClientById(networkClientId).provider,
   );
+}
+
+export async function readDepositWalletFactoryBeacon(): Promise<
+  Hex | undefined
+> {
+  const ethQuery = getPolygonEthQuery();
 
   try {
     const response = await query(ethQuery, 'call', [
@@ -438,6 +444,35 @@ const DEPOSIT_WALLET_EIP712_TYPES = {
   ],
 };
 
+async function readPolygonBlockTimestamp(): Promise<number | undefined> {
+  try {
+    const block = await query(getPolygonEthQuery(), 'getBlockByNumber', [
+      'latest',
+      false,
+    ]);
+    const timestamp = Number(block?.timestamp);
+
+    return Number.isFinite(timestamp) && timestamp > 0 ? timestamp : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The deadline is counted from the later of the device clock and the latest
+ * Polygon block, so a device clock running behind can't push it under the
+ * relayer's minimum.
+ */
+async function getDepositWalletBatchDeadline(): Promise<string> {
+  const deviceTimestamp = Math.floor(Date.now() / 1000);
+  const chainTimestamp = await readPolygonBlockTimestamp();
+
+  return String(
+    Math.max(deviceTimestamp, chainTimestamp ?? 0) +
+      DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS,
+  );
+}
+
 export async function executeDepositWalletBatch({
   signer,
   walletAddress,
@@ -451,10 +486,10 @@ export async function executeDepositWalletBatch({
     throw new Error('Deposit wallet batch requires at least one call');
   }
 
-  const nonce = await getDepositWalletNonce({ ownerAddress: signer.address });
-  const deadline = String(
-    Math.floor(Date.now() / 1000) + DEPOSIT_WALLET_BATCH_DEADLINE_SECONDS,
-  );
+  const [nonce, deadline] = await Promise.all([
+    getDepositWalletNonce({ ownerAddress: signer.address }),
+    getDepositWalletBatchDeadline(),
+  ]);
   const normalizedWalletAddress = getAddress(walletAddress);
 
   const signature = await signer.signTypedMessage(
