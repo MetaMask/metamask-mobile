@@ -6,8 +6,6 @@ import {
   type UsernameStatus,
 } from '../profileOnboardingDraft';
 
-const STRING_PREFIX = 'social_leaderboard.profile_onboarding';
-
 export const getUsernameLocalError = (
   draft: ProfileOnboardingDraft,
   status: UsernameStatus,
@@ -16,12 +14,12 @@ export const getUsernameLocalError = (
     return null;
   }
   if (status === 'tooShort') {
-    return strings(`${STRING_PREFIX}.username_too_short`, {
+    return strings('social_leaderboard.profile_onboarding.username_too_short', {
       min: MIN_USERNAME_LENGTH,
     });
   }
   if (status === 'invalid') {
-    return strings(`${STRING_PREFIX}.username_invalid`);
+    return strings('social_leaderboard.profile_onboarding.username_invalid');
   }
   return null;
 };

@@ -1,8 +1,6 @@
 import { strings } from '../../../../../../locales/i18n';
 import type { UsernameStatus } from '../profileOnboardingDraft';
 
-const STRING_PREFIX = 'social_leaderboard.profile_onboarding';
-
 export type UsernameFeedbackTone = 'error' | 'success';
 
 export interface UsernameFeedback {
@@ -34,7 +32,9 @@ export const getUsernameFeedback = ({
   }
   if (showAvailable && status === 'available') {
     return {
-      message: strings(`${STRING_PREFIX}.username_available`),
+      message: strings(
+        'social_leaderboard.profile_onboarding.username_available',
+      ),
       tone: 'success',
     };
   }
