@@ -182,6 +182,7 @@ const PerpsFeeCaption = ({
           color={TextColor.TextAlternative}
           accessibilityLabel={promoAccessibilityLabel}
           testID={testID}
+          twClassName="tabular-nums"
         >
           {promoSentenceNodes(promoCopy, feePercentage, originalFeePercentage)}
         </Text>
@@ -190,6 +191,7 @@ const PerpsFeeCaption = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           testID={testID}
+          twClassName="tabular-nums"
         >
           {standardCopy}
         </Text>
