@@ -130,9 +130,11 @@ describe('useMoneyMfaHomePrompt', () => {
       }),
     });
 
-    mockBlur?.();
-    mockBlur = mockFocus?.();
-    resolveCredentials([]);
+    await act(async () => {
+      mockBlur?.();
+      mockBlur = mockFocus?.();
+      resolveCredentials([]);
+    });
     await flushPromises();
 
     expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
