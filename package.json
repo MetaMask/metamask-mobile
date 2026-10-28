@@ -954,6 +954,12 @@
       "appium-xcuitest-driver>appium-ios-remotexpc>appium-ios-tuntap": false
     }
   },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "breaking",
+      "previewVersion": "28.0.0-preview-bc2a298b8"
+    }
+  },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
   "foundryup": {
     "binaries": [
