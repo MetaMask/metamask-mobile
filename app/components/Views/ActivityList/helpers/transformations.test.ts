@@ -109,7 +109,7 @@ describe('ActivityList transformations', () => {
   });
 
   describe('shouldSkipUnrelatedTransaction', () => {
-    it('keeps direct token receives where the address is a top-level participant', () => {
+    it('keeps direct receives that the list gate drops via their value transfers', () => {
       const tokenReceive = buildTransaction({
         from: otherAddress,
         to: address,
