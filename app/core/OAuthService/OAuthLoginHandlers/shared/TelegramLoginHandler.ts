@@ -22,6 +22,7 @@ import {
 import { isRetryableError, retryWithDelay } from '../utils';
 import { OAuthError, OAuthErrorType } from '../../error';
 import Device from '../../../../util/device';
+import Logger from '../../../../util/Logger';
 
 const TELEGRAM_AUTH_SERVER_INITIATE_PATH = '/api/v2/telegram/login/initiate';
 const TELEGRAM_AUTH_SERVER_VERIFY_PATH = '/api/v2/telegram/login/verify';
@@ -104,7 +105,17 @@ interface TelegramVerifyResponse {
     identifier_type: string;
     profile_id: string;
   };
+  /**
+   * Auth-server JWT used as the Hydra jwt-bearer assertion
+   * (`iss` = authentication.*.cx.metamask.io). Not Telegram's ID token.
+   */
   token: string;
+  /**
+   * Raw Telegram OIDC ID token (`iss` = oauth.telegram.org), including the
+   * initiate `nonce` when one was sent. Used by MFA recovery as
+   * `provider_id_token`.
+   */
+  id_token?: string;
 }
 
 interface TelegramVerifyTokenPayload {
@@ -158,6 +169,33 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
   #getHydraClientId() {
     return getOidcClientId(this.#profileSyncEnv, ProfileSyncPlatform.MOBILE);
+  }
+
+  /** Dev-only: decode JWT payload claims without logging the raw token. */
+  #summarizeJwtClaims(
+    jwt: string | undefined,
+  ): Record<string, unknown> | undefined {
+    if (!jwt?.trim()) {
+      return undefined;
+    }
+    try {
+      const payload = JSON.parse(this.decodeIdToken(jwt)) as Record<
+        string,
+        unknown
+      >;
+      return {
+        iss: payload.iss,
+        aud: payload.aud,
+        sub: payload.sub,
+        nonce: payload.nonce,
+        idp_sub: payload.idp_sub,
+        exp: payload.exp,
+      };
+    } catch (error) {
+      return {
+        error: error instanceof Error ? error.message : 'decode_failed',
+      };
+    }
   }
 
   /**
@@ -279,9 +317,9 @@ export class TelegramLoginHandler extends BaseLoginHandler {
    * exchanges that token through Hydra's JWT bearer grant,
    * then mints the standard auth-service token set used by seedless onboarding.
    *
-   * The verify token is also returned as `provider_id_token` so MFA recovery can
-   * use Telegram's raw ID token as the escrow assertion without changing the
-   * Hydra mint path for normal login.
+   * Verify also returns Telegram's raw `id_token` (separate from auth-server
+   * `token`). That value is exposed as `provider_id_token` for MFA recovery
+   * without changing the Hydra mint path for normal login.
    *
    * The backend recomputes sha256(code_verifier) == code_challenge, consumes
    * the stored one-time login record, and returns the full auth response.
@@ -299,6 +337,19 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     }
 
     const verifyUrl = `${this.#getAuthenticationServerUrl()}${TELEGRAM_AUTH_SERVER_VERIFY_PATH}`;
+    const verifyRequestBody = {
+      code_verifier: params.codeVerifier,
+    };
+
+    if (__DEV__) {
+      Logger.log('TelegramLoginHandler: verify request', {
+        url: verifyUrl,
+        method: 'POST',
+        body: {
+          code_verifier: `${params.codeVerifier.slice(0, 8)}…(len=${params.codeVerifier.length})`,
+        },
+      });
+    }
 
     await waitForActiveAppState();
     await wait(VERIFY_AFTER_APP_ACTIVE_DELAY_MS);
@@ -309,9 +360,7 @@ export class TelegramLoginHandler extends BaseLoginHandler {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          code_verifier: params.codeVerifier,
-        }),
+        body: JSON.stringify(verifyRequestBody),
       });
 
     let verifyResponse: Response;
@@ -328,6 +377,12 @@ export class TelegramLoginHandler extends BaseLoginHandler {
 
     if (!verifyResponse.ok) {
       const errorText = await verifyResponse.text();
+      if (__DEV__) {
+        Logger.log('TelegramLoginHandler: verify error response', {
+          status: verifyResponse.status,
+          body: errorText,
+        });
+      }
       throw new OAuthError(
         `Telegram verify failed with status ${verifyResponse.status}: ${errorText}`,
         OAuthErrorType.AuthServerError,
@@ -335,6 +390,18 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     }
 
     const verifyData = (await verifyResponse.json()) as TelegramVerifyResponse;
+
+    if (__DEV__) {
+      Logger.log('TelegramLoginHandler: verify response', {
+        status: verifyResponse.status,
+        keys: Object.keys(verifyData),
+        expires_in: verifyData.expires_in,
+        profile: verifyData.profile,
+        token_claims: this.#summarizeJwtClaims(verifyData.token),
+        id_token_present: Boolean(verifyData.id_token?.trim()),
+        id_token_claims: this.#summarizeJwtClaims(verifyData.id_token),
+      });
+    }
 
     if (!verifyData.token) {
       throw new OAuthError(
@@ -404,8 +471,11 @@ export class TelegramLoginHandler extends BaseLoginHandler {
     mintResponse.account_name = verifyTokenPayload.idp_sub
       ? `Telegram ${verifyTokenPayload.idp_sub}`
       : 'Telegram account';
-    // Raw Telegram OIDC token from verify (before Hydra). Used by MFA recovery.
-    mintResponse.provider_id_token = verifyData.token;
+    // Auth-server `token` is the Hydra assertion — not Telegram's ID token.
+    // MFA recovery needs verify's separate Telegram `id_token`.
+    if (verifyData.id_token?.trim()) {
+      mintResponse.provider_id_token = verifyData.id_token;
+    }
 
     return mintResponse;
   }
