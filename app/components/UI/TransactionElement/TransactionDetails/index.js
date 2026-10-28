@@ -23,10 +23,12 @@ import { toDateFormat } from '../../../../util/date';
 import StyledButton from '../../StyledButton';
 import { showSpeedUp } from '../../Transactions/pendingTxActions';
 import StatusText from '../../../Base/StatusText';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 import DetailsModal from '../../../Base/DetailsModal';
 import { RPC, NO_RPC_BLOCK_EXPLORER } from '../../../../constants/network';
 import { useNavigation } from '@react-navigation/native';
@@ -372,8 +374,9 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.Column>
               <TagBase includesBorder>
                 <Text
-                  color={TextColor.Alternative}
-                  variant={TextVariant.BodySMBold}
+                  color={TextColor.TextAlternative}
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Bold}
                 >
                   {strings('transactions.batched_transactions')}
                 </Text>
@@ -400,7 +403,7 @@ class TransactionDetails extends PureComponent {
             <DetailsModal.SectionTitle>
               {strings('transactions.date')}
             </DetailsModal.SectionTitle>
-            <Text small primary>
+            <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
               {toDateFormat(time)}
             </Text>
           </DetailsModal.Column>
@@ -423,8 +426,8 @@ class TransactionDetails extends PureComponent {
                     style={styles.accountAvatar}
                   />
                   <Text
-                    variant={TextVariant.BodySM}
-                    primary
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextDefault}
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >
                     <EthereumAddress
@@ -453,8 +456,8 @@ class TransactionDetails extends PureComponent {
                     style={styles.accountAvatar}
                   />
                   <Text
-                    variant={TextVariant.BodySM}
-                    primary
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextDefault}
                     testID={WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT}
                   >
                     <EthereumAddress
@@ -473,7 +476,10 @@ class TransactionDetails extends PureComponent {
               <DetailsModal.SectionTitle upper>
                 {strings('transactions.nonce')}
               </DetailsModal.SectionTitle>
-              <Text small primary>{`#${parseInt(
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextDefault}
+              >{`#${parseInt(
                 txParams.nonce.replace(regex.transactionNonce, ''),
                 16,
               )}`}</Text>
@@ -512,7 +518,7 @@ class TransactionDetails extends PureComponent {
               onPress={this.viewOnEtherscan}
               style={styles.touchableViewOnEtherscan}
             >
-              <Text style={styles.viewOnEtherscan}>
+              <Text variant={TextVariant.BodyMd} style={styles.viewOnEtherscan}>
                 {`${strings('transactions.view_on')} ${getBlockExplorerName(
                   rpcBlockExplorer,
                 )}`}
