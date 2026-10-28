@@ -5,6 +5,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
 import Animated, {
   FadeIn,
@@ -15,6 +16,7 @@ import Animated, {
 import { strings } from '../../../../../../locales/i18n';
 import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
 import { playSelection } from '../../../../../util/haptics';
+import { useTheme } from '../../../../../util/theme';
 import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
@@ -56,6 +58,8 @@ const PendingPostsButton = ({
   onPress,
   pendingNewCount,
 }: PendingPostsButtonProps) => {
+  const tw = useTailwind();
+  const { shadows } = useTheme();
   if (pendingNewCount <= 0) {
     return null;
   }
@@ -75,12 +79,23 @@ const PendingPostsButton = ({
       <Animated.View
         entering={PENDING_POSTS_ZOOM_IN}
         exiting={PENDING_POSTS_ZOOM_OUT}
+        // ButtonBase clips its own shadow; Android draws elevation only under a background.
+        style={[
+          tw.style('rounded-full bg-background-section'),
+          shadows.size.sm,
+        ]}
       >
         <ButtonBase
           accessibilityLabel={label}
           size={ButtonBaseSize.Sm}
           onPress={handlePress}
-          twClassName="bg-background-elevated1 shadow-lg"
+          twClassName={(pressed) =>
+            `border border-muted ${
+              pressed
+                ? 'bg-background-section-pressed'
+                : 'bg-background-section'
+            }`
+          }
         >
           <AnimatedBalanceText
             accessible={false}

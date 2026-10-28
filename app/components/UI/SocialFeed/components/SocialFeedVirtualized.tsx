@@ -463,7 +463,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
           />
           <Box
             pointerEvents="box-none"
-            twClassName="absolute top-2 left-0 right-0 items-center"
+            twClassName="absolute top-5 left-0 right-0 items-center"
           >
             <PendingPostsButton
               pendingNewCount={pendingNewCount}

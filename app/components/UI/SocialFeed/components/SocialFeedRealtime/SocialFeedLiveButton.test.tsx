@@ -65,13 +65,13 @@ describe('SocialFeedLiveButton', () => {
     ).toBeNull();
   });
 
-  it('renders a medium secondary button with the play icon while live', () => {
+  it('renders a small secondary button with the play icon while live', () => {
     renderButton();
 
     expect(screen.getByLabelText('Live')).toBeOnTheScreen();
     const button = getButton();
     expect(button.props.variant).toBe(ButtonVariant.Secondary);
-    expect(button.props.size).toBe(ButtonSize.Md);
+    expect(button.props.size).toBe(ButtonSize.Sm);
     expect(button.props.startIconName).toBe(IconName.Play);
     expect(button.props.textProps).toBeUndefined();
     expect(button.props.startIconProps).toBeUndefined();
