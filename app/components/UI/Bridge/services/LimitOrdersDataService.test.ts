@@ -155,7 +155,8 @@ describe('LimitOrdersDataService', () => {
     await service.getLimitOrders(historyParams);
     expect(mockGetLimitOrders).toHaveBeenCalledTimes(2);
 
-    // The order is cancelled: it leaves the open orders for the history.
+    // The order is cancelled server side: it leaves the open orders for the
+    // history.
     mockGetLimitOrders.mockImplementation(async ({ states }) => ({
       orders: states?.includes(LimitOrderState.Cancelled)
         ? [MOCK_LIMIT_CANCELLED_ORDER]
