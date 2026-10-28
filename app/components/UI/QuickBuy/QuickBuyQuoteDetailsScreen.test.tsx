@@ -69,10 +69,6 @@ jest.mock('../../../component-library/components-temp/KeyValueRow', () => {
   };
 });
 
-jest.mock('../../../component-library/components/Icons/Icon', () => ({
-  IconName: { Info: 'Info' },
-}));
-
 const buildContext = (overrides = {}) => ({
   sourceToken: undefined,
   destToken: undefined,
@@ -107,6 +103,24 @@ describe('QuickBuyQuoteDetailsScreen', () => {
   it('always renders the countdown timer inline with the rate row', () => {
     render(<QuickBuyQuoteDetailsScreen />);
     expect(screen.getByTestId('mock-countdown')).toBeOnTheScreen();
+  });
+
+  it('opens the tooltip when a dotted label is pressed', () => {
+    render(<QuickBuyQuoteDetailsScreen />);
+
+    fireEvent.press(screen.getByText('social_leaderboard.quick_buy.slippage'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: {
+        title: 'bridge.slippage_info_title',
+        tooltip: 'bridge.slippage_info_description',
+        footerText: undefined,
+        buttonText: undefined,
+        onButtonPress: undefined,
+        dismissOnButtonPress: undefined,
+      },
+    });
   });
 
   it('shows a loading state while the first quote is blocking', () => {
