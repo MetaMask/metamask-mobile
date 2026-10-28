@@ -1,6 +1,7 @@
 import StorageWrapper from '../../../store/storage-wrapper';
 import { clearMoneyMfaDeviceState } from './clearMoneyMfaDeviceState';
 import { MONEY_MFA_STORAGE_KEY, moneyMfaStore } from './moneyMfaStore';
+import { moneyMfaHomePromptSession } from './moneyMfaHomePromptSession';
 import {
   MONEY_ACCOUNT_MIGRATION_STORAGE_KEY,
   moneyAccountMigration,
@@ -33,11 +34,13 @@ describe('clearMoneyMfaDeviceState', () => {
     jest.clearAllMocks();
   });
 
-  it('resets 2FA verification and migration and removes the saved values', async () => {
+  it('resets 2FA verification, migration and the home prompt, and removes the saved values', async () => {
     moneyMfaStore.setState({
       isMoneyAccountMfaEnabled: true,
       isMigrationBannerDismissed: true,
+      isHomePromptDismissed: true,
     });
+    moneyMfaHomePromptSession.markPrompted();
     await moneyAccountMigration.start();
 
     await clearMoneyMfaDeviceState();
@@ -45,7 +48,9 @@ describe('clearMoneyMfaDeviceState', () => {
     expect(moneyMfaStore.getState()).toEqual({
       isMoneyAccountMfaEnabled: false,
       isMigrationBannerDismissed: false,
+      isHomePromptDismissed: false,
     });
+    expect(moneyMfaHomePromptSession.hasPrompted()).toBe(false);
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
     expect(StorageWrapper.removeItem).toHaveBeenCalledWith(
       MONEY_MFA_STORAGE_KEY,

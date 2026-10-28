@@ -7,12 +7,21 @@ import MoneyMfaSettingUpSheet from './MoneyMfaSettingUpSheet';
 import MoneyMfaTurnOffSheet from './MoneyMfaTurnOffSheet';
 import MoneyMfaPromptSheet from './MoneyMfaPromptSheet';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
-import { dismissBanner } from '../../../../../reducers/banners';
-import { MONEY_MFA_HOME_PROMPT_ID } from '../../hooks/useMoneyMfaHomePrompt';
+import { moneyMfaStore } from '../../../../../lib/Money/mfa/moneyMfaStore';
 
 const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => callback?.());
 const mockGoBack = jest.fn();
 const mockDispatch = jest.fn();
+
+jest.mock('../../../../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn(() => Promise.resolve(null)),
+    getItemSync: jest.fn(() => null),
+    setItem: jest.fn(() => Promise.resolve()),
+    removeItem: jest.fn(() => Promise.resolve()),
+  },
+}));
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -56,6 +65,7 @@ const mockTurnOff = jest.fn();
 
 describe('Money 2-step verification sheets', () => {
   beforeEach(() => {
+    moneyMfaStore.reset();
     jest.clearAllMocks();
     jest.mocked(useMoneyMfa).mockReturnValue({
       status: 'not_set_up',
@@ -172,9 +182,7 @@ describe('Money 2-step verification sheets', () => {
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.PROMPT_SHEET_CLOSE));
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        dismissBanner(MONEY_MFA_HOME_PROMPT_ID),
-      );
+      expect(moneyMfaStore.getState().isHomePromptDismissed).toBe(true);
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
 
@@ -183,7 +191,7 @@ describe('Money 2-step verification sheets', () => {
 
       fireEvent.press(getByTestId(MoneyMfaTestIds.INTRO_BUTTON));
 
-      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(moneyMfaStore.getState().isHomePromptDismissed).toBe(false);
     });
   });
 });

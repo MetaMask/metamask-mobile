@@ -23,6 +23,7 @@ describe('moneyMfaStore', () => {
     expect(moneyMfaStore.getState()).toEqual({
       isMoneyAccountMfaEnabled: false,
       isMigrationBannerDismissed: false,
+      isHomePromptDismissed: false,
     });
   });
 
@@ -34,6 +35,7 @@ describe('moneyMfaStore', () => {
     expect(moneyMfaStore.getState()).toEqual({
       isMoneyAccountMfaEnabled: true,
       isMigrationBannerDismissed: true,
+      isHomePromptDismissed: false,
     });
   });
 
@@ -45,6 +47,7 @@ describe('moneyMfaStore', () => {
       JSON.stringify({
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: false,
+        isHomePromptDismissed: false,
       }),
     );
   });
@@ -65,6 +68,7 @@ describe('moneyMfaStore', () => {
       JSON.stringify({
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: true,
+        isHomePromptDismissed: true,
       }),
     );
 
@@ -75,6 +79,7 @@ describe('moneyMfaStore', () => {
       expect(freshStore.getState()).toEqual({
         isMoneyAccountMfaEnabled: true,
         isMigrationBannerDismissed: true,
+        isHomePromptDismissed: true,
       });
     });
   });

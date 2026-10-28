@@ -114,14 +114,16 @@ const mockVerifyOrEnroll = jest.fn();
 const mockShowToast = jest.fn();
 
 const activePasskey: EnrolledCredential = {
+  id: 'passkey',
   type: 'passkey',
   status: 'active',
 };
 
-const activeTotp = {
+const activeTotp: EnrolledCredential = {
+  id: 'totp',
   type: 'totp',
   status: 'active',
-} as EnrolledCredential;
+};
 
 const wrapper = ({ children }: { children: React.ReactNode }) =>
   React.createElement(
@@ -439,7 +441,7 @@ describe('useMoneyMfa', () => {
       moneyMfaStore.setState({ isMoneyAccountMfaEnabled: true });
     });
 
-    it('verifies with every active method, turns 2FA off and shows a toast', async () => {
+    it('verifies with a Money method, turns 2FA off and shows a toast', async () => {
       const { result } = arrange({ credentials: [activePasskey, activeTotp] });
 
       await act(async () => {
@@ -454,6 +456,22 @@ describe('useMoneyMfa', () => {
       });
       expect(result.current.status).toBe('off');
       expectToast('money.mfa.toast_off');
+    });
+
+    it('still asks for verification when no credentials are loaded', async () => {
+      const { result } = arrange({ credentials: [] });
+
+      await act(async () => {
+        await result.current.turnOff();
+      });
+
+      expect(mockVerifyOrEnroll).toHaveBeenCalledWith(
+        expect.objectContaining({
+          methods: ['passkey', 'totp'],
+          verifyWith: ['passkey', 'totp'],
+          maxSessionAgeMs: 0,
+        }),
+      );
     });
 
     it('keeps 2FA on when verification is cancelled', async () => {
