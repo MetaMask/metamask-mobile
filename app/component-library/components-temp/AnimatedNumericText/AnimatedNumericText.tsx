@@ -40,6 +40,7 @@ export interface AnimatedNumericTextProps {
   color?: TextColor;
   /** Layout styles for the row that contains the glyphs. */
   containerStyle?: StyleProp<ViewStyle>;
+  fontFamily?: FontFamily;
   fontWeight?: FontWeight;
   /** Typography styles applied to every glyph. */
   style?: StyleProp<TextStyle>;
@@ -97,6 +98,7 @@ const AnimatedNumericText = ({
   variant = TextVariant.BodyMd,
   color = TextColor.TextDefault,
   containerStyle,
+  fontFamily = FontFamily.Hero,
   fontWeight,
   style,
   testID,
@@ -120,7 +122,7 @@ const AnimatedNumericText = ({
     <DesignSystemText
       accessible={false}
       color={color}
-      fontFamily={FontFamily.Hero}
+      fontFamily={fontFamily}
       fontWeight={fontWeight}
       style={style}
       variant={variant}
@@ -149,7 +151,7 @@ const AnimatedNumericText = ({
               color={color}
               entering={animateGlyphs ? GLYPH_ENTER_TRANSITION : undefined}
               exiting={animateGlyphs ? GLYPH_EXIT_TRANSITION : undefined}
-              fontFamily={FontFamily.Hero}
+              fontFamily={fontFamily}
               fontWeight={fontWeight}
               key={key}
               layout={animateGlyphs ? GLYPH_LAYOUT_TRANSITION : undefined}
