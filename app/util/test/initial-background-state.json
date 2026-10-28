@@ -967,6 +967,7 @@
   "RampsController": {
     "autorampTransactionRecords": {},
     "autoramps": [],
+    "autorampTransactionRecords": {},
     "moneyAccountWalletRegistrations": [],
     "vbaAutorampListFetchedAt": null,
     "userRegion": null,

@@ -1,15 +1,25 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 import type { SocialFeedInlineRow } from '../../../UI/SocialFeed/components/SocialFeed';
+import {
+  mockClosedSpotFeedItem,
+  mockOpenPerpsFeedItem,
+} from '../../../UI/SocialFeed/mocks/socialV1Feed.mock';
 import type {
   SocialFeedPageHandle,
+  SocialV1FeedItem,
   SocialV1FeedPost,
 } from '../../../UI/SocialFeed/types';
 import { SocialEvent } from '../analytics/socialEvents';
 import type { SocialTabPageHandle } from '../shared/tabPageScroll';
 import { getSocialV1HotTokenChipTestId } from '../SocialV1View/feed/components/HotTokensCarousel.testIds';
+import { SocialV1ViewSelectorsIDs } from '../SocialV1View/SocialV1View.testIds';
+import { SOCIAL_FILTER_EMPTY_STATE_TEST_ID } from '../shared/SocialFilterEmptyState';
+import { DEFAULT_FILTERS } from '../shell/filters/filterDefaults';
+import { TRENDING_FILTER_RAIL_TEST_ID } from '../shell/filters/TrendingFilterRail';
 import { SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID } from '../SocialV1View/feed/components/SocialV1FeedEmptyState.testIds';
 import { mockHotToken } from '../SocialV1View/feed/mocks/socialV1HotTokens.mock';
 import type { SocialV1HotToken } from '../SocialV1View/feed/types';
@@ -41,6 +51,7 @@ interface MockSocialFeedProps {
   onAuthorPress?: (post: SocialV1FeedPost) => void;
   onCopyTrade?: unknown;
   onPositionPress?: (post: SocialV1FeedPost) => void;
+  filterPost?: (post: SocialV1FeedPost) => boolean;
   testID?: string;
   scrollTestID?: string;
 }
@@ -390,6 +401,71 @@ describe('TrendingView', () => {
       true,
     );
     expect(mockTrackInteraction).toHaveBeenCalledWith(Interaction.REFRESH);
+  });
+
+  it('opens Custom filters from the button over the pills', () => {
+    const onOpenFilters = jest.fn();
+    renderWithProvider(<TrendingView onOpenFilters={onOpenFilters} />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(onOpenFilters).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: false }));
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(TRENDING_FILTER_RAIL_TEST_ID).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ marginBottom: -16 }));
+  });
+
+  it('marks the filter button selected when a filter is applied', () => {
+    renderWithProvider(<TrendingView isFilterActive />);
+
+    expect(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON).props
+        .accessibilityState,
+    ).toEqual(expect.objectContaining({ selected: true }));
+    expect(
+      screen.getByTestId(SOCIAL_FILTER_EMPTY_STATE_TEST_ID),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_V1_FEED_EMPTY_STATE_TEST_ID)).toBeNull();
+  });
+
+  it('keeps closed posts when Custom filters apply closed positions', () => {
+    renderWithProvider(
+      <TrendingView
+        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
+      />,
+    );
+
+    const toPost = (item: SocialV1FeedItem): SocialV1FeedPost => ({
+      id: item.id,
+      authorHandle: item.author.username,
+      timestampMs: item.timestamp,
+      reactions: [],
+      item,
+    });
+    const filterPost = lastFeedProps().filterPost;
+    expect(filterPost?.(toPost(mockOpenPerpsFeedItem()))).toBe(false);
+    expect(filterPost?.(toPost(mockClosedSpotFeedItem()))).toBe(true);
+  });
+
+  it('stacks Custom filters on the selected pill feed', () => {
+    renderWithProvider(
+      <TrendingView
+        appliedFilters={{ ...DEFAULT_FILTERS, positionStatus: 'closed' }}
+      />,
+    );
+
+    pressChip(BTC);
+
+    expect(lastFeedProps().assetIds).toBe(BTC.assetIds);
+    expect(lastFeedProps().filterPost).toEqual(expect.any(Function));
   });
 
   it('forwards page scrolls from the shell to the feed', () => {
