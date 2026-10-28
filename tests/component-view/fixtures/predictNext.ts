@@ -12,6 +12,7 @@ import { PredictPortfolioService } from '../../../app/components/UI/PredictNext/
 import { getPredictOrderServiceMessenger } from '../../../app/core/Engine/messengers/predict-order-service-messenger';
 import { getPredictPortfolioServiceMessenger } from '../../../app/core/Engine/messengers/predict-portfolio-service-messenger';
 import { PREDICT_MARKET_TYPES } from '../../../app/components/UI/PredictNext/constants';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../../app/components/UI/PredictNext/config/venueCatalogs';
 import type {
   PredictGameLive,
   PredictQuote,
@@ -370,6 +371,73 @@ export const ncaaEvents = [
 export const messengerCall = Engine.controllerMessenger
   .call as unknown as jest.Mock;
 
+/** Kalshi's Feed IDs, as its static Venue catalog maps them. */
+export const PREDICT_NEXT_FEED_IDS = {
+  nflGames: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-games'] as PredictFeedId,
+  nflProps: KALSHI_STATIC_VENUE_CATALOG.feeds['nfl-props'] as PredictFeedId,
+  ncaaGames: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-games'
+  ] as PredictFeedId,
+  ncaaProps: KALSHI_STATIC_VENUE_CATALOG.feeds[
+    'college-football-props'
+  ] as PredictFeedId,
+} as const;
+
+/**
+ * The Venue catalog the messenger serves: a value (valid or malformed), an
+ * Error to reject with, or `'pending'` for a read that never settles.
+ */
+export type PredictNextCatalogFixture = unknown;
+
+let catalogFixture: PredictNextCatalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+
+/** Serves `catalog` for every later Venue catalog read until reset by
+ * {@link configurePredictNextFeeds}. */
+export const configurePredictNextCatalog = (
+  catalog: PredictNextCatalogFixture,
+) => {
+  catalogFixture = catalog;
+};
+
+/** Restores the default (valid Kalshi) Venue catalog. */
+export const resetPredictNextCatalog = () => {
+  catalogFixture = KALSHI_STATIC_VENUE_CATALOG;
+};
+
+/**
+ * Answers `PredictMarketDataService:getVenueCatalog`, or returns undefined
+ * for any other action. Custom messenger implementations call it first so
+ * capability-gated UI keeps resolving.
+ */
+export const answerPredictNextCatalog = (
+  action: string,
+): Promise<unknown> | undefined => {
+  if (action !== 'PredictMarketDataService:getVenueCatalog') {
+    return undefined;
+  }
+  if (catalogFixture === 'pending') {
+    return new Promise(() => undefined);
+  }
+  return catalogFixture instanceof Error
+    ? Promise.reject(catalogFixture)
+    : Promise.resolve(catalogFixture);
+};
+
+/**
+ * Installs a messenger implementation that serves the configured Venue
+ * catalog (see {@link configurePredictNextCatalog}) and delegates every other
+ * action to `implementation`. Use it instead of
+ * `messengerCall.mockImplementation` so capability-gated UI keeps resolving.
+ */
+export const mockPredictNextMessenger = (
+  implementation: (action: string, ...params: never[]) => unknown,
+) =>
+  messengerCall.mockImplementation(
+    (action: string, ...params: unknown[]) =>
+      answerPredictNextCatalog(action) ??
+      implementation(action, ...(params as never[])),
+  );
+
 /** One cursor-addressable Positions page: `cursor` is the incoming page
  * cursor (absent for the first page) and `nextCursor` links to the next
  * page, mirroring `PredictPositionsPage`. */
@@ -606,8 +674,14 @@ export const configurePredictNextFeeds = ({
     ...(ncaa instanceof Error ? [] : ncaa),
   ];
 
+  resetPredictNextCatalog();
   messengerCall.mockImplementation(
     (action: string, _venueId: string, resourceId: string, cursor?: string) => {
+      const catalogResponse = answerPredictNextCatalog(action);
+      if (catalogResponse) {
+        return catalogResponse;
+      }
+
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -664,7 +738,7 @@ export const configurePredictNextFeeds = ({
       }
 
       const feedId = resourceId as PredictFeedId;
-      const result = feedId === 'sports-football-nfl-games' ? nfl : ncaa;
+      const result = feedId === PREDICT_NEXT_FEED_IDS.nflGames ? nfl : ncaa;
       if (result instanceof Error) {
         return Promise.reject(result);
       }
@@ -673,7 +747,9 @@ export const configurePredictNextFeeds = ({
         venueId: 'kalshi',
         id: feedId,
         title:
-          feedId === 'sports-football-nfl-games' ? 'NFL Games' : 'NCAAF Games',
+          feedId === PREDICT_NEXT_FEED_IDS.nflGames
+            ? 'NFL Games'
+            : 'NCAAF Games',
         events: result,
       });
     },

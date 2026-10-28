@@ -54,6 +54,7 @@ export interface ScreenPerformanceConfig<ScreenId extends string = string> {
   flow?: string;
   logMarker: string;
   screenIds: readonly ScreenId[];
+  getAdditionalTags?: () => Record<string, TraceValue>;
 }
 
 interface UseScreenPerformanceOptions<ScreenId extends string> {
@@ -73,6 +74,7 @@ export function useScreenPerformance<ScreenId extends string>({
   enabled = true,
   resetKey,
 }: UseScreenPerformanceOptions<ScreenId>): void {
+  const getAdditionalTags = config.getAdditionalTags;
   const mountedRef = useRef(true);
   const traceIdRef = useRef<string | null>(null);
   const hasReachedContentRef = useRef(false);
@@ -131,6 +133,7 @@ export function useScreenPerformance<ScreenId extends string>({
 
     const id = uuidv4();
     const tags = {
+      ...getAdditionalTags?.(),
       [SCREEN_TAG.FEATURE]: config.feature,
       ...(config.flow ? { [SCREEN_TAG.FLOW]: config.flow } : {}),
       [SCREEN_TAG.METRIC_TYPE]: SCREEN_LOAD_METRIC_TYPE,
@@ -152,6 +155,7 @@ export function useScreenPerformance<ScreenId extends string>({
     config.flow,
     config.traceName,
     config.traceOperation,
+    getAdditionalTags,
     logSpan,
     screenId,
   ]);

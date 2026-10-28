@@ -50,6 +50,7 @@ import {
 } from './profiling-regression-issues.mjs';
 import {
   SCHEDULED_BASELINE_HOURS,
+  buildIssueVerdictDm,
   buildPerformanceChannelSlack,
   buildScheduledException,
   buildScheduledExceptionMarkdown,
@@ -2674,8 +2675,17 @@ async function runScheduledExceptionAnalysis({
       callClaude,
     });
   }
-  // The issue carries the proposal, so it is opened after that pass. Slack
-  // then links the issue next to the finding it tracks.
+  // Findings would have opened or commented a GitHub issue. Filing stays
+  // off unless --github-issues is passed. The verdict file is the DM body.
+  const issueDmPath = path.join(outputDirectory, 'issue-dm.md');
+  if (exception.meta.hasFindings && !args.dryRun && !args.githubIssues) {
+    fs.writeFileSync(
+      issueDmPath,
+      `${buildIssueVerdictDm(exception, aiText)}\n`,
+    );
+  } else if (fs.existsSync(issueDmPath)) {
+    fs.unlinkSync(issueDmPath);
+  }
   if (exception.meta.hasFindings && args.githubIssues && !args.dryRun) {
     const synced = syncProfilingRegressionIssues({
       exception,

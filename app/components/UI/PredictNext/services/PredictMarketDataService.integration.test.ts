@@ -76,6 +76,23 @@ describe('PredictNext public market data', () => {
     harnesses.splice(0).forEach((harness) => harness.destroy());
   });
 
+  it('serves the static Kalshi Venue catalog through the messenger without a network read', async () => {
+    const harness = buildPredictNextIntegrationHarness(() => ({ status: 500 }));
+
+    const result = await harness.messenger.call(
+      'PredictMarketDataService:getVenueCatalog',
+      KALSHI_VENUE_ID,
+    );
+
+    expect(result).toMatchObject({
+      venueId: 'kalshi',
+      actions: ['buy', 'sell'],
+      feeds: { 'nfl-games': 'sports-football-nfl-games' },
+      searchSupported: true,
+    });
+    expect(harness.fetchMock).not.toHaveBeenCalled();
+  });
+
   it('reads Balance through the authenticated service-to-transport chain', async () => {
     const balance = {
       venueId: 'kalshi',

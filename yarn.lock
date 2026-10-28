@@ -11030,17 +11030,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "@metamask/money-account-api-data-service@npm:2.3.0"
+"@metamask/money-account-api-data-service@npm:^2.1.0, @metamask/money-account-api-data-service@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "@metamask/money-account-api-data-service@npm:2.3.1"
   dependencies:
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/messenger": "npm:^3.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/utils": "npm:^12.0.0"
+    "@metamask/utils": "npm:^12.0.1"
     "@tanstack/query-core": "npm:^5.103.2"
-  checksum: 10/5ae95216a16d5a4bf4ed481c7413b95590b546b6fcff50c9d5e13a3ab719a0eeb3526cc4bd20de8f43f7269918e550a310404f48da4e795410a2bb38590077fa
+  checksum: 10/ccf1b5a8ef53d82de12e889eb66fe39966e06af5c27711e91268dcc1691960f4d822058b613c0b060e57638b2634acd34c33d69d67d20b05faa10593c77457f1
   languageName: node
   linkType: hard
 
@@ -11666,9 +11666,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^35.0.0":
-  version: 35.0.0
-  resolution: "@metamask/profile-sync-controller@npm:35.0.0"
+"@metamask/profile-sync-controller@npm:^36.0.0":
+  version: 36.0.0
+  resolution: "@metamask/profile-sync-controller@npm:36.0.0"
   dependencies:
     "@metamask/address-book-controller": "npm:^8.0.0"
     "@metamask/base-controller": "npm:^10.1.0"
@@ -11688,7 +11688,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/04a9224637f718667e75e3efb37da086f9193462e0b0ba9a2b5a8d89d9e62685c5eceed3ba7271e026f6695bc7f116a9c918c20175cd271aa174679fdc0c93dc
+  checksum: 10/c21e240c1d109e1c03261af74f5b09fdf43924135e19479f89474e11ebc00e4fb7ecef53745c59e3f42645ef7d7cf84be7816b0415d4efbe7370357572229bcf
   languageName: node
   linkType: hard
 
@@ -11857,29 +11857,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@npm:14.6.0":
-  version: 14.6.0
-  resolution: "@metamask/react-native-webview@npm:14.6.0"
+"@metamask/react-native-webview@npm:14.8.0":
+  version: 14.8.0
+  resolution: "@metamask/react-native-webview@npm:14.8.0"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/e3c993afb0c9750970d66090e4dee0a0a3dac95e1a8d236950cb5be11f68d5cf726bad51c8361b18ba7d95ef7a69d61067840c07ea8abd5f308f1c869ca51093
+  checksum: 10/469fa2ac5b0722b6e7b9acd426ac03f0ffd2577bc30fddcbe1372747bdd0135f36f82e6f2dd820a05c492581db9afb7a6681e9c3bf96165fb7d30106ebff9b1c
   languageName: node
   linkType: hard
 
-"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch":
-  version: 14.6.0
-  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch::version=14.6.0&hash=ee01ad"
+"@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch":
+  version: 14.8.0
+  resolution: "@metamask/react-native-webview@patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch::version=14.8.0&hash=ed9191"
   dependencies:
     escape-string-regexp: "npm:^4.0.0"
     invariant: "npm:2.2.4"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/70003a55aeda7ffe7bb203d275d30c106a138c6eb4cff858e07a4ed59ced2b4b0c9cd4979a73ccdd13377fc69be5268dec125ae29a6a7ea3f2ce11345b9d6c10
+  checksum: 10/0d4ac959d7390d2de0bbde15201799b94680de343c47f8f7c35495ccc793031f380d8021c0ccc68f67cef64f754ab1f06d07e1568fd1bcffc06ce8e1713c6763
   languageName: node
   linkType: hard
 
@@ -12182,9 +12182,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/snaps-controllers@npm:^22.0.0":
-  version: 22.0.0
-  resolution: "@metamask/snaps-controllers@npm:22.0.0"
+"@metamask/snaps-controllers@npm:^22.0.1":
+  version: 22.0.1
+  resolution: "@metamask/snaps-controllers@npm:22.0.1"
   dependencies:
     "@metamask/analytics-controller": "npm:^1.2.1"
     "@metamask/approval-controller": "npm:^9.0.2"
@@ -12218,17 +12218,17 @@ __metadata:
     semver: "npm:^7.5.4"
     tar-stream: "npm:^3.1.7"
   peerDependencies:
-    "@metamask/snaps-execution-environments": ^11.3.2
+    "@metamask/snaps-execution-environments": ^11.3.3
   peerDependenciesMeta:
     "@metamask/snaps-execution-environments":
       optional: true
-  checksum: 10/9d080b75db121cf47e54b72f812f0fe679d3e1b04ed045d123045801ea7c43810790a7f16fbf6802de65527694602497e30df5e0fcc38e3c672ede507edb1288
+  checksum: 10/357451dca8cdde6f4be421ea316b4eb06fa6a4ef44bbb623c0f53f8d7cc83b1c58990411190c566a3440d0c8ce57bd22bb9a4dc2952d01ff75cb1077f975d322
   languageName: node
   linkType: hard
 
-"@metamask/snaps-execution-environments@npm:^11.3.2":
-  version: 11.3.2
-  resolution: "@metamask/snaps-execution-environments@npm:11.3.2"
+"@metamask/snaps-execution-environments@npm:^11.3.3":
+  version: 11.3.3
+  resolution: "@metamask/snaps-execution-environments@npm:11.3.3"
   dependencies:
     "@metamask/json-rpc-engine": "npm:^10.5.0"
     "@metamask/object-multiplex": "npm:^2.1.0"
@@ -12240,7 +12240,7 @@ __metadata:
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/utils": "npm:^12.0.0"
     readable-stream: "npm:^3.6.2"
-  checksum: 10/d668aa06c2e5463316539fd07e7f70b50329366aa5a889cf9831bf84a3bb2d6955969014b7c3b0645b5f97788f7246983775966d0c7c9b1ee1f4d9f5d6faedeb
+  checksum: 10/b4a5df9d03e90f50fddecb86a257c1d342ea7a522cf1b4c38ecf31bb6ef763a0c5347ddb49aeb9430890ead815cc4e4dbcd2c8f92e784945e874f733a76b69a2
   languageName: node
   linkType: hard
 
@@ -12337,18 +12337,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/social-controllers@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "@metamask/social-controllers@npm:3.11.0"
+"@metamask/social-controllers@npm:^3.12.1":
+  version: 3.12.1
+  resolution: "@metamask/social-controllers@npm:3.12.1"
   dependencies:
     "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/controller-utils": "npm:^13.0.0"
     "@metamask/core-backend": "npm:^12.3.0"
     "@metamask/messenger": "npm:^3.0.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-  checksum: 10/b7d98c0e5ca7a41d20990596cb89264b2102ff1ff677f6b2a01ffc625b3b8fa327a32859eff9c122a751bf0c43bb6b57a3534b47c9fb18cda1a99a83366a47f0
+    "@metamask/utils": "npm:^12.0.0"
+  checksum: 10/cf45f9d7342fabb8ebf70214c75ed2d78de70b6ff7b54f0947c3614445e856f6cd72b133a6b32048c5e121c5b914d5d35c8c89e4971e46c5b5e72f61ef7f75bb
   languageName: node
   linkType: hard
 
@@ -12407,13 +12408,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/subscription-controller@npm:14.0.0, @metamask/subscription-controller@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "@metamask/subscription-controller@npm:14.0.0"
+"@metamask/subscription-controller@npm:15.0.0":
+  version: 15.0.0
+  resolution: "@metamask/subscription-controller@npm:15.0.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@metamask/authenticated-user-storage": "npm:^4.1.0"
-    "@metamask/base-controller": "npm:^10.0.0"
+    "@metamask/base-controller": "npm:^10.1.0"
     "@metamask/base-data-service": "npm:^2.1.0"
     "@metamask/chomp-api-service": "npm:^6.0.1"
     "@metamask/controller-utils": "npm:^13.0.0"
@@ -12426,16 +12427,16 @@ __metadata:
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
     "@metamask/money-account-utils": "npm:^2.1.0"
     "@metamask/polling-controller": "npm:^17.0.0"
-    "@metamask/profile-sync-controller": "npm:^34.0.3"
+    "@metamask/profile-sync-controller": "npm:^35.0.0"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/seedless-onboarding-controller": "npm:^12.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
-    "@metamask/transaction-controller": "npm:^72.2.0"
+    "@metamask/transaction-controller": "npm:^72.2.1"
     "@metamask/utils": "npm:^12.0.0"
     "@tanstack/query-core": "npm:^5.103.2"
     bignumber.js: "npm:^9.1.2"
     fast-deep-equal: "npm:^3.1.3"
-  checksum: 10/97186587a4e6e02013a30bfa9fc83c7323d61fb934aca562c650d45484c34164b49cf78d2eb1ffa0dc675493df7aafbee3df10e29778804c5e54071bdad53872
+  checksum: 10/362d5d42fef90672b7d6fe51b85b0529eb5c1cda0131ba19489fd8c94bcbd5bf8d895ccaa2f07fc1b783f56cee69f8e35f3a94fb668495d7805185ba4dc131d3
   languageName: node
   linkType: hard
 
@@ -38410,7 +38411,7 @@ __metadata:
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
-    "@metamask/money-account-api-data-service": "npm:^2.3.0"
+    "@metamask/money-account-api-data-service": "npm:^2.3.1"
     "@metamask/money-account-balance-service": "npm:^3.1.2"
     "@metamask/money-account-controller": "npm:^3.0.0"
     "@metamask/money-account-upgrade-controller": "npm:^5.1.0"
@@ -38435,7 +38436,7 @@ __metadata:
     "@metamask/preinstalled-example-snap": "npm:^0.8.1"
     "@metamask/profile-controller": "npm:^1.1.0"
     "@metamask/profile-metrics-controller": "npm:^5.1.0"
-    "@metamask/profile-sync-controller": "npm:^35.0.0"
+    "@metamask/profile-sync-controller": "npm:^36.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^27.1.0"
     "@metamask/react-data-query": "npm:^1.0.0"
@@ -38444,7 +38445,7 @@ __metadata:
     "@metamask/react-native-button": "patch:@metamask/react-native-button@npm%3A3.0.0#~/.yarn/patches/@metamask-react-native-button-npm-3.0.0-05f357e85a.patch"
     "@metamask/react-native-payments": "patch:@metamask/react-native-payments@npm%3A2.0.2#~/.yarn/patches/@metamask-react-native-payments-npm-2.0.2-4ddc5f9862.patch"
     "@metamask/react-native-search-api": "npm:1.0.1"
-    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.6.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.6.0-f12ccc06ff.patch"
+    "@metamask/react-native-webview": "patch:@metamask/react-native-webview@npm%3A14.8.0#~/.yarn/patches/@metamask-react-native-webview-npm-14.8.0-db5f771b4c.patch"
     "@metamask/remote-feature-flag-controller": "npm:^7.0.0"
     "@metamask/rpc-errors": "npm:^7.0.2"
     "@metamask/sample-controllers": "npm:^3.0.0"
@@ -38459,18 +38460,18 @@ __metadata:
     "@metamask/slip44": "npm:^4.2.0"
     "@metamask/smart-transactions-controller": "npm:^27.1.0"
     "@metamask/snap-account-service": "npm:^4.0.0"
-    "@metamask/snaps-controllers": "npm:^22.0.0"
-    "@metamask/snaps-execution-environments": "npm:^11.3.2"
+    "@metamask/snaps-controllers": "npm:^22.0.1"
+    "@metamask/snaps-execution-environments": "npm:^11.3.3"
     "@metamask/snaps-rpc-methods": "npm:^17.2.0"
     "@metamask/snaps-sdk": "npm:^12.1.0"
     "@metamask/snaps-utils": "npm:^12.6.1"
-    "@metamask/social-controllers": "npm:^3.11.0"
+    "@metamask/social-controllers": "npm:^3.12.1"
     "@metamask/solana-wallet-snap": "npm:^7.2.0"
     "@metamask/solana-wallet-standard": "npm:^0.6.0"
     "@metamask/stake-sdk": "npm:^3.4.0"
     "@metamask/stellar-wallet-snap": "npm:^1.3.0"
     "@metamask/storage-service": "npm:^2.0.0"
-    "@metamask/subscription-controller": "npm:14.0.0"
+    "@metamask/subscription-controller": "npm:15.0.0"
     "@metamask/superstruct": "npm:^3.4.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
     "@metamask/test-dapp": "npm:9.5.0"
@@ -43960,13 +43961,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:6.16.0":
-  version: 6.16.0
-  resolution: "qs@npm:6.16.0"
+"qs@npm:6.16.1":
+  version: 6.16.1
+  resolution: "qs@npm:6.16.1"
   dependencies:
     es-define-property: "npm:^1.0.1"
     side-channel: "npm:^1.1.1"
-  checksum: 10/7fbf9c2eb9c9bbd8997700caecc4b057ac259635873deefd5027fb26d06d79426cf468da55da87ffd147a24e93d3641352d8ac6664bd84688ad5b2f0b8d04828
+  checksum: 10/e33e0a5ceecb7bef81ea1f855365482045f55ba55278f40b8dbf9ee18eae8ef82d44246fe4e4009d6b6f102cbf2885a34b88c4272536cd628cde40b4ac9912c2
   languageName: node
   linkType: hard
 

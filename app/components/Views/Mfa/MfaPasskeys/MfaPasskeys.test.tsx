@@ -56,9 +56,21 @@ describe('MfaPasskeys', () => {
 
   it('lists the active passkeys and opens one', () => {
     const { getByText, getByTestId, queryByTestId } = renderPasskeys([
-      { type: 'passkey', status: 'active', displayName: '1Password' },
-      { type: 'email_otp', status: 'active', email: 'a@b.co', verified: true },
       {
+        id: 'passkey',
+        type: 'passkey',
+        status: 'active',
+        displayName: '1Password',
+      },
+      {
+        id: 'email_otp',
+        type: 'email_otp',
+        status: 'active',
+        email: 'a@b.co',
+        verified: true,
+      },
+      {
+        id: 'passkey',
         type: 'passkey',
         status: 'active',
         enrolledAt: new Date(2026, 8, 17, 11, 23).getTime(),

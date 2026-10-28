@@ -17,6 +17,7 @@ import {
   SocialFeedSkeleton,
   SocialFeedSurfaceProvider,
   SocialV1FeedPostList,
+  HYPERLIQUID_CAIP2_CHAIN_ID,
   useSocialFeed,
   type SocialFeedSource,
   type SocialV1FeedPost,
@@ -29,9 +30,8 @@ import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 export const PERPS_TRENDING_POST_COUNT = 3;
 
 const PERPS_TRENDING_SOURCE: SocialFeedSource = {
-  kind: 'all',
-  audience: 'all',
-  assetClass: 'perps',
+  scope: 'trending',
+  chains: [HYPERLIQUID_CAIP2_CHAIN_ID],
 };
 
 interface PerpsSocialTrendingProps {

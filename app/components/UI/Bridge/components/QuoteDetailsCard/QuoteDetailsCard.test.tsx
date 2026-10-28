@@ -318,6 +318,9 @@ describe('QuoteDetailsCard', () => {
     );
 
     expect(getByText(strings('bridge.rate'))).toBeOnTheScreen();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.QUOTE_KEYPAD_DISMISS_TARGET),
+    ).toBeOnTheScreen();
     expect(getByText('1 ETH = 24.4 USDC')).toBeOnTheScreen();
     expect(getByText(strings('bridge.network_fee'))).toBeOnTheScreen();
     expect(getByText(strings('bridge.slippage'))).toBeOnTheScreen();

@@ -43,6 +43,9 @@ PredictNext/
   navigation/
     root/                      # Predict root router (legacy or PredictNext stack)
 
+  capabilities/
+    index.ts                   # Venue descriptors, capability hooks and selectors
+    surfaceFeedKeys.ts         # The surface section/tab to Feed key table
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy

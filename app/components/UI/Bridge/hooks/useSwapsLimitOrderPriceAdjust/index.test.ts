@@ -467,6 +467,32 @@ describe('useSwapsLimitOrderPriceAdjust', () => {
       expect(result.current.limitPrice).toBe('1');
     });
 
+    it('waits for the default price mode reset when the token pair arrives after mount', () => {
+      mockUseLiveTokenFiatRate.mockImplementation((token) => {
+        if (token?.symbol === 'ETH') return 2000;
+        if (token?.symbol === 'USDC') return 1;
+        return undefined;
+      });
+      const initialProps: {
+        destToken: typeof usdc | undefined;
+        sourceToken: typeof sourceToken | undefined;
+      } = {
+        destToken: undefined,
+        sourceToken: undefined,
+      };
+      const { result, rerender } = renderHook(
+        (props) => useSwapsLimitOrderPriceAdjust(props),
+        { initialProps },
+      );
+
+      expect(result.current.limitPrice).toBeUndefined();
+
+      rerender({ destToken: usdc, sourceToken });
+
+      expect(result.current.executionType).toBe(LimitOrderExecutionType.SELL);
+      expect(result.current.limitPrice).toBe('2000');
+    });
+
     it('does not follow the market after a percent preset or after the market preset', () => {
       const { result, rerender } = renderPriceAdjustHook();
 
