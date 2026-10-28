@@ -1,12 +1,16 @@
 export {
   socialFeedSourceFromAsset,
+  toFeedAssetId,
   toSocialFeedRequest,
 } from './data/socialFeedSource';
 export type {
+  FeedScope,
   SocialFeedAssetRef,
+  SocialFeedQuery,
   SocialFeedRequest,
   SocialFeedSource,
 } from './data/socialFeedSource';
+export { HYPERLIQUID_CAIP2_CHAIN_ID } from './data/feed-constants';
 export { useSocialFeed } from './data/useSocialFeed';
 export type {
   SocialFeedState,
@@ -28,6 +32,7 @@ export { default as SocialFeedError } from './components/SocialFeedError';
 export { default as SocialFeed } from './components/SocialFeed';
 export type {
   SocialFeedHeaderProps,
+  SocialFeedInlineRow,
   SocialFeedProps,
   SocialFeedScrollMode,
 } from './components/SocialFeed';

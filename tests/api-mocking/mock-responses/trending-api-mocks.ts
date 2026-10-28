@@ -249,11 +249,18 @@ export const TRENDING_API_MOCKS: MockEventsObject = {
     },
     {
       // Prices-history (chart series) fetched on prediction detail render.
-      // Empty history is safe — consumer (PolymarketProvider) returns [] when
-      // history is not a non-empty array.
-      urlEndpoint: /https:\/\/clob\.polymarket\.com\/prices-history.*/,
+      // An empty series is safe — consumer (PolymarketProvider) returns [].
+      urlEndpoint: /https:\/\/data-api\.polymarket\.com\/v2\/prices-history.*/,
       responseCode: 200,
-      response: { history: [] },
+      response: {
+        data: [],
+        pagination: {
+          limit: 10_000,
+          offset: 0,
+          has_more: false,
+          next_cursor: null,
+        },
+      },
       priority: 1000,
     },
     {
