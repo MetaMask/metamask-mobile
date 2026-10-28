@@ -9,6 +9,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import { PERPS_FEE_RATE_DISPLAY_DECIMALS } from '../../constants/perpsConfig';
 import {
   Text,
   TextVariant,
@@ -61,7 +62,7 @@ interface PerpsFeesDisplayProps {
 const formatRateValue = (rate: number | undefined): string | undefined =>
   rate === undefined || Number.isNaN(rate)
     ? undefined
-    : (rate * 100).toFixed(3);
+    : (rate * 100).toFixed(PERPS_FEE_RATE_DISPLAY_DECIMALS);
 
 const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   feeDiscountPercentage,
@@ -140,6 +141,15 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         percentageRates ? styles.percentageFeeContent : null,
       ]}
       accessibilityLabel={percentageRates ? takerMakerFeeText.full : undefined}
+      // The percentage branch below replaces the single value-bearing
+      // `<Text testID={testID}>` with two rate texts (`-taker`/`-maker`),
+      // which would otherwise unmount the base `testID` entirely. E2E
+      // readiness helpers (e.g. `waitForFeesReady`) wait on that base id as
+      // their "fees finished loading" signal regardless of which display
+      // mode is assigned, so it is kept mounted here as a value-bearing
+      // fallback. Only set in the percentage branch so dollar mode keeps a
+      // single element carrying `testID`, as before.
+      testID={percentageRates ? testID : undefined}
     >
       {hasDiscount ? (
         <View style={styles.vipBadgeContainer}>

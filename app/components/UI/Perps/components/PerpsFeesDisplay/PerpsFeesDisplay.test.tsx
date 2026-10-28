@@ -283,6 +283,25 @@ describe('PerpsFeesDisplay', () => {
       expect(queryByText('$8.50')).toBeNull();
     });
 
+    it('keeps the base testID mounted so dollar-mode readiness waits (e.g. E2E waitForFeesReady) still resolve', () => {
+      const { getByTestId } = render(
+        <PerpsFeesDisplay
+          fee={undefined}
+          feeDisplayMode="percentage"
+          takerFeeRate={0.00143}
+          makerFeeRate={0.00114}
+          testID="fee"
+        />,
+      );
+
+      // Rendered on the row container, alongside the per-rate -taker/-maker
+      // testIDs, since the single value-bearing <Text testID="fee"> from
+      // dollar mode does not render in this branch.
+      expect(getByTestId('fee')).toBeTruthy();
+      expect(getByTestId('fee-taker')).toHaveTextContent('Taker 0.143% /');
+      expect(getByTestId('fee-maker')).toHaveTextContent('Maker 0.114%');
+    });
+
     it('renders the placeholder when either rate is undefined', () => {
       const { getByText } = render(
         <PerpsFeesDisplay

@@ -5582,64 +5582,13 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  describe('Fee Display Format A/B test (TAT-4046)', () => {
-    const getHooksMock = () =>
-      jest.requireMock('../../hooks') as {
-        usePerpsFeeDisplayAbTest: jest.Mock;
-        usePerpsOrderFees: jest.Mock;
-      };
-
-    it('keeps the $ fee row and does not request the breakdown for control', async () => {
-      const { usePerpsFeeDisplayAbTest, usePerpsOrderFees } = getHooksMock();
-      usePerpsFeeDisplayAbTest.mockReturnValue({
-        feeDisplayMode: 'dollar',
-        variantName: 'control',
-        isActive: false,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      await waitFor(() => {
-        expect(screen.getByText('Fees')).toBeDefined();
-      });
-
-      expect(usePerpsOrderFees).toHaveBeenCalledWith(
-        expect.objectContaining({ includeFeeRateBreakdown: false }),
-      );
-    });
-
-    it('requests the taker/maker breakdown and renders both rates for treatment', async () => {
-      const { usePerpsFeeDisplayAbTest, usePerpsOrderFees } = getHooksMock();
-      usePerpsFeeDisplayAbTest.mockReturnValue({
-        feeDisplayMode: 'percentage',
-        variantName: 'treatment',
-        isActive: true,
-      });
-      usePerpsOrderFees.mockReturnValue({
-        totalFee: 45,
-        undiscountedTotalFee: 45,
-        protocolFee: 45,
-        metamaskFee: 0,
-        totalFeeRate: 0.00045,
-        protocolFeeRate: 0.00045,
-        metamaskFeeRate: 0,
-        takerFeeRate: 0.00143,
-        makerFeeRate: 0.00114,
-        isLoadingMetamaskFee: false,
-        error: null,
-      });
-
-      render(<PerpsOrderView />, { wrapper: TestWrapper });
-
-      expect(usePerpsOrderFees).toHaveBeenCalledWith(
-        expect.objectContaining({ includeFeeRateBreakdown: true }),
-      );
-      await waitFor(() => {
-        expect(screen.getByText('Taker 0.143% /')).toBeDefined();
-        expect(screen.getByText('Maker 0.114%')).toBeDefined();
-      });
-    });
-  });
+  // Perps Fee Display Format A/B test (TAT-4046): whole-page control/
+  // treatment behavior (does the row render the right text for each
+  // variant, is the breakdown requested only for treatment) is covered by
+  // state-driven tests in `PerpsOrderView.view.test.tsx`, which render
+  // through the real `usePerpsFeeDisplayAbTest` / `usePerpsOrderFees` hooks
+  // and a flag set on Redux state rather than mocking those hooks here.
+  // See its "Fee Display Format A/B test (TAT-4046)" describe block.
 
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {

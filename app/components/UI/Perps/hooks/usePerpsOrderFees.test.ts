@@ -2700,7 +2700,98 @@ describe('usePerpsOrderFees - Fee Rate Breakdown (TAT-4046)', () => {
     expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
   });
 
-  it('falls back to the resolved side for both taker and maker when the opposite-side request fails', async () => {
+  it("requests the opposite side as a limit execution for a market order, not this order's own forced-taker type", async () => {
+    // HyperLiquid charges a market-executing order taker regardless of the
+    // `isMaker` flag it is sent. If the opposite-side request re-sent
+    // `orderType: 'market'` with `isMaker` flipped, the provider would
+    // return this same taker quote again and the maker rate below would be
+    // unreachable from a market order. Keying the two mocked responses on
+    // `isMaker` (not `orderType`) reproduces that real provider contract and
+    // proves the request actually asks for `orderType: 'limit'`.
+    mockCalculateFees.mockImplementation(
+      (params: FeeCalculationParams): Promise<FeeCalculationResult> =>
+        Promise.resolve(
+          params.isMaker
+            ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0 } // maker
+            : { protocolFeeRate: 0.00045, metamaskFeeRate: 0 }, // taker
+        ) as Promise<FeeCalculationResult>,
+    );
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'market',
+          amount: '100000',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'market',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+  });
+
+  it("requests the opposite side as a limit execution for a Chase order, not this order's own forced-maker type", async () => {
+    // The mirror image of the market-order contract test above: HyperLiquid
+    // charges `chase` maker regardless of `isMaker`, so the opposite-side
+    // request must ask for `orderType: 'limit'` to reach the taker rate.
+    mockCalculateFees.mockImplementation(
+      (params: FeeCalculationParams): Promise<FeeCalculationResult> =>
+        Promise.resolve(
+          params.isMaker
+            ? { protocolFeeRate: 0.00015, metamaskFeeRate: 0 } // maker
+            : { protocolFeeRate: 0.00045, metamaskFeeRate: 0 }, // taker
+        ) as Promise<FeeCalculationResult>,
+    );
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'chase',
+          amount: '100000',
+          direction: 'long',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(1, {
+      orderType: 'chase',
+      isMaker: true,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(mockCalculateFees).toHaveBeenNthCalledWith(2, {
+      orderType: 'limit',
+      isMaker: false,
+      amount: '100000',
+      symbol: 'ETH',
+    });
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+    expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
+  });
+
+  it('keeps the resolved side and leaves the opposite side undefined — never fabricated — when the opposite-side request fails', async () => {
     mockCalculateFees
       .mockResolvedValueOnce({
         protocolFeeRate: 0.00045,
@@ -2725,7 +2816,39 @@ describe('usePerpsOrderFees - Fee Rate Breakdown (TAT-4046)', () => {
     // The primary $ fee is unaffected by the breakdown request failing.
     expect(result.current.error).toBeNull();
     expect(result.current.protocolFeeRate).toBe(0.00045);
+    // A market order resolves taker — that known, real quote is kept.
     expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
-    expect(result.current.makerFeeRate).toBeCloseTo(0.00045);
+    // The maker side was never actually resolved. Showing the taker rate
+    // under the "Maker" label here would present an invented number as a
+    // confirmed fee, so it stays undefined for the UI's placeholder instead.
+    expect(result.current.makerFeeRate).toBeUndefined();
+  });
+
+  it('keeps the resolved maker side and leaves taker undefined when the opposite-side request fails for a Chase order', async () => {
+    mockCalculateFees
+      .mockResolvedValueOnce({
+        protocolFeeRate: 0.00015,
+        metamaskFeeRate: 0,
+      })
+      .mockRejectedValueOnce(new Error('Opposite-side quote failed'));
+
+    const { result } = renderHook(
+      () =>
+        usePerpsOrderFees({
+          orderType: 'chase',
+          amount: '100000',
+          direction: 'long',
+          includeFeeRateBreakdown: true,
+        }),
+      { wrapper: createWrapper() },
+    );
+
+    await waitFor(() => {
+      expect(result.current.isLoadingMetamaskFee).toBe(false);
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
+    expect(result.current.takerFeeRate).toBeUndefined();
   });
 });
