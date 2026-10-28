@@ -25,7 +25,6 @@ import { selectIsSolanaTestnetEnabled } from '../featureFlagController/solanaTes
 ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
 import { selectIsBitcoinTestnetEnabled } from '../featureFlagController/bitcoinTestnet';
 ///: END:ONLY_INCLUDE_IF
-import { selectIsStellarAccountsEnabled } from '../featureFlagController/stellarAccountsEnabled';
 
 export const selectMultichainNetworkControllerState = (state: RootState) =>
   state.engine.backgroundState?.MultichainNetworkController ??
@@ -57,7 +56,6 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     selectIsBitcoinTestnetEnabled,
     ///: END:ONLY_INCLUDE_IF
-    selectIsStellarAccountsEnabled,
   ],
   (
     multichainNetworkControllerState: MultichainNetworkControllerState,
@@ -65,13 +63,12 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     isBitcoinTestnetEnabled: Json,
     ///: END:ONLY_INCLUDE_IF
-    selectIsStellarAccountsEnabled: Json,
   ) => {
     const isSolanaTestnetEnabledBoolean = Boolean(isSolanaTestnetEnabled);
     ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
     const isBitcoinTestnetEnabledBoolean = Boolean(isBitcoinTestnetEnabled);
     ///: END:ONLY_INCLUDE_IF
-    const isStellarAccountsEnabled = Boolean(selectIsStellarAccountsEnabled);
+
     const extendedNonEvmData: Record<
       CaipChainId,
       {
@@ -173,7 +170,7 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
       // TrxScope.Nile,
       // TrxScope.Shasta,
       ///: END:ONLY_INCLUDE_IF
-      ...(isStellarAccountsEnabled ? [XlmScope.Pubnet] : []),
+      XlmScope.Pubnet,
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
