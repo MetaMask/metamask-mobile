@@ -17,7 +17,7 @@ import {
   resetPendingPosts,
 } from '../pendingPosts/pendingPostsStore';
 import { LiveViewSelectorsIDs } from '../LiveView/LiveView.testIds';
-import { SocialFeedRealtimeControlsSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtimeControls';
+import { SocialFeedRealtimeSelectorsIDs } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import type { UseMyProfileResult } from '../MyProfileView/hooks';
 import type { SocialShellTab } from '../shell/types';
 import { getFilterChipTestId } from '../shell/filters/SocialFiltersBottomSheet.testIds';
@@ -84,7 +84,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     'react-native',
   ) as typeof import('react-native');
   const { SocialFeedRealtimeContext } = jest.requireActual(
-    '../../../UI/SocialFeed/components/SocialFeedRealtimeControls/SocialFeedRealtimeContext',
+    '../../../UI/SocialFeed/components/SocialFeedRealtime/SocialFeedRealtimeContext',
   );
 
   interface MockSocialFeedProps {
@@ -110,7 +110,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
             value: {
               paused: props.paused ?? false,
               pendingNewCount: 0,
-              revealPending: jest.fn(),
             },
           },
           props.renderHeader?.(),
@@ -539,7 +538,7 @@ describe('SocialV1View', () => {
       screen.getByTestId(LiveViewSelectorsIDs.FILTER_BUTTON),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SocialFeedRealtimeControlsSelectorsIDs.STREAM_BUTTON),
+      screen.getByTestId(SocialFeedRealtimeSelectorsIDs.LIVE_BUTTON),
     ).toBeOnTheScreen();
   });
 

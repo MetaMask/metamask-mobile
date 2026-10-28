@@ -22,7 +22,7 @@ import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
 import type { SocialFeedInlineRow } from './SocialFeed.types';
-import { useSocialFeedRealtime } from './SocialFeedRealtimeControls/SocialFeedRealtimeContext';
+import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
 import SocialFeedVirtualized, {
   REFRESH_MIN_DURATION_MS,
 } from './SocialFeedVirtualized';
@@ -32,13 +32,13 @@ const RealtimeProbe = () => {
   if (!realtime) {
     return null;
   }
-  const { paused, pendingNewCount, revealPending } = realtime;
-  return (
-    <Text onPress={revealPending}>
-      {`${pendingNewCount} new${paused ? ', paused' : ''}`}
-    </Text>
-  );
+  const { paused, pendingNewCount } = realtime;
+  return <Text>{`${pendingNewCount} held${paused ? ', paused' : ''}`}</Text>;
 };
+
+jest.mock('../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -118,6 +118,7 @@ jest.mock('react-native-reanimated', () => {
     ...Reanimated,
     useAnimatedScrollHandler: jest.fn(() => 'near-top-handler'),
     useComposedEventHandler: jest.fn(() => undefined),
+    useReducedMotion: jest.fn(() => false),
   };
 });
 
@@ -505,9 +506,9 @@ describe('SocialFeedVirtualized', () => {
     expect(getRefreshControl().props.refreshing).toBe(false);
   });
 
-  it('reveals pending posts, refreshes, then scrolls to the top', async () => {
+  const trackRevealSteps = (pendingNewCount: number) => {
     const calls: string[] = [];
-    const realtime = realtimeState(3);
+    const realtime = realtimeState(pendingNewCount);
     realtime.revealPending.mockImplementation(() => calls.push('reveal'));
     const refresh = jest.fn(async () => {
       calls.push('refresh');
@@ -518,38 +519,82 @@ describe('SocialFeedVirtualized', () => {
         calls.push(`scroll ${offset}`);
       });
     mockUseSocialFeed.mockReturnValue(feedState({ refresh, realtime }));
-    renderFeed({ realtime: true, renderHeader: () => <RealtimeProbe /> });
+    return calls;
+  };
+
+  it('reveals held posts from the pill, refreshes, then scrolls to the top', async () => {
+    const calls = trackRevealSteps(3);
+    renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByText('3 new'));
+      fireEvent.press(screen.getByLabelText('3 new posts'));
     });
 
     expect(calls).toEqual(['reveal', 'refresh', 'scroll 0']);
   });
 
-  it('gives the header a no-op reveal without realtime', async () => {
-    const refresh = jest.fn(async () => undefined);
-    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
-    renderFeed({ renderHeader: () => <RealtimeProbe /> });
-
-    await act(async () => {
-      fireEvent.press(screen.getByText('0 new'));
-    });
-
-    expect(refresh).not.toHaveBeenCalled();
-  });
-
-  it('shares the paused prop with the header', () => {
+  it('hides the pill without held posts', () => {
     mockUseSocialFeed.mockReturnValue(
       feedState({ realtime: realtimeState(0) }),
     );
+
+    renderFeed({ realtime: true });
+
+    expect(screen.queryByLabelText(/new post/)).toBeNull();
+  });
+
+  it('reveals held posts when resumed', async () => {
+    const calls = trackRevealSteps(3);
+    const { rerender } = renderFeed({ realtime: true, paused: true });
+
+    await act(async () => {
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          realtime
+          paused={false}
+        />,
+      );
+    });
+
+    expect(calls).toEqual(['reveal', 'refresh', 'scroll 0']);
+  });
+
+  it('reveals nothing while staying paused', async () => {
+    const calls = trackRevealSteps(3);
+    const { rerender } = renderFeed({ realtime: true, paused: true });
+
+    await act(async () => {
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          realtime
+          paused
+        />,
+      );
+    });
+
+    expect(calls).toEqual([]);
+  });
+
+  it('shares paused and the held count with the header', () => {
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ realtime: realtimeState(2) }),
+    );
+
     renderFeed({
       realtime: true,
       paused: true,
       renderHeader: () => <RealtimeProbe />,
     });
 
-    expect(screen.getByText('0 new, paused')).toBeOnTheScreen();
+    expect(screen.getByText('2 held, paused')).toBeOnTheScreen();
   });
 
   it('checks live price visibility once scrolling settles', () => {

@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
-import { playSelection } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
 import type { SocialFeedInlineRow } from '../../../UI/SocialFeed/components/SocialFeed';
@@ -56,17 +55,12 @@ interface MockSocialFeedProps {
 
 const mockSocialFeed = jest.fn<null, [MockSocialFeedProps]>();
 const mockFeedScrollToOffset = jest.fn();
-const mockRevealPending = jest.fn();
-let mockPendingNewCount = 0;
 
 jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   const ReactActual = jest.requireActual('react') as typeof React;
   const { View } = jest.requireActual(
     'react-native',
   ) as typeof import('react-native');
-  const { SocialFeedRealtimeContext } = jest.requireActual(
-    '../../../UI/SocialFeed/components/SocialFeedRealtimeControls/SocialFeedRealtimeContext',
-  );
 
   const MockSocialFeed = (props: MockSocialFeedProps) => {
     mockSocialFeed(props);
@@ -76,17 +70,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
     return ReactActual.createElement(
       View,
       { testID: props.testID },
-      ReactActual.createElement(
-        SocialFeedRealtimeContext.Provider,
-        {
-          value: {
-            paused: false,
-            pendingNewCount: mockPendingNewCount,
-            revealPending: mockRevealPending,
-          },
-        },
-        props.renderHeader?.(),
-      ),
+      props.renderHeader?.(),
       props.emptyState,
       props.inlineRows?.map((row) =>
         ReactActual.createElement(
@@ -100,18 +84,6 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
 
   return { __esModule: true, default: MockSocialFeed };
 });
-
-jest.mock('../../../../util/haptics', () => ({
-  ImpactMoment: {
-    PullToRefresh: 'pullToRefresh',
-    SecondaryCTA: 'secondaryCTA',
-  },
-  fireImpact: jest.fn(),
-  playImpact: jest.fn(() => Promise.resolve()),
-  playSelection: jest.fn(() => Promise.resolve()),
-}));
-
-const mockPlaySelection = jest.mocked(playSelection);
 
 jest.mock('./hooks/useTrendingHotTokens', () => ({
   useTrendingHotTokens: jest.fn(),
@@ -226,7 +198,6 @@ const pressChip = (token: SocialV1HotToken) =>
 describe('TrendingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockPendingNewCount = 0;
     mockUseTrendingHotTokens.mockReturnValue({
       tokens: [BTC, ETH],
       isLoading: false,
@@ -271,36 +242,6 @@ describe('TrendingView', () => {
     expect(lastFeedProps()).toEqual(
       expect.objectContaining(TRENDING_FEED_QUERY),
     );
-  });
-
-  it('reveals held posts from the pill', () => {
-    mockPendingNewCount = 3;
-    renderWithProvider(<TrendingView />);
-
-    fireEvent.press(
-      screen.getByLabelText('social_leaderboard.feed.live_stream.new_posts'),
-    );
-
-    expect(mockRevealPending).toHaveBeenCalledTimes(1);
-  });
-
-  it('plays a selection haptic when revealing from the pill', () => {
-    mockPendingNewCount = 3;
-    renderWithProvider(<TrendingView />);
-
-    fireEvent.press(
-      screen.getByLabelText('social_leaderboard.feed.live_stream.new_posts'),
-    );
-
-    expect(mockPlaySelection).toHaveBeenCalledTimes(1);
-  });
-
-  it('hides the pill without held posts', () => {
-    renderWithProvider(<TrendingView />);
-
-    expect(
-      screen.queryByLabelText('social_leaderboard.feed.live_stream.new_posts'),
-    ).toBeNull();
   });
 
   it('streams the feed only while the tab is active', () => {

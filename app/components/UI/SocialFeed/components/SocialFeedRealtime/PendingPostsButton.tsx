@@ -37,7 +37,6 @@ const PENDING_POSTS_FADE_OUT = FadeOut.springify()
 export interface PendingPostsButtonProps {
   onPress: () => void;
   pendingNewCount: number;
-  textColor?: TextColor;
 }
 
 export const getPendingPostsLabel = (pendingNewCount: number): string =>
@@ -49,11 +48,13 @@ export const getPendingPostsLabel = (pendingNewCount: number): string =>
         count: pendingNewCount,
       });
 
-/** "N new posts" pill; springs in when posts arrive and out when revealed. */
+/**
+ * Floating "N new posts" pill; springs in when posts arrive and out when
+ * revealed.
+ */
 const PendingPostsButton = ({
   onPress,
   pendingNewCount,
-  textColor = TextColor.TextDefault,
 }: PendingPostsButtonProps) => {
   if (pendingNewCount <= 0) {
     return null;
@@ -79,10 +80,11 @@ const PendingPostsButton = ({
           accessibilityLabel={label}
           size={ButtonBaseSize.Sm}
           onPress={handlePress}
+          twClassName="bg-background-elevated1 shadow-lg"
         >
           <AnimatedBalanceText
             accessible={false}
-            color={textColor}
+            color={TextColor.SuccessDefault}
             fontFamily={FontFamily.Default}
             isLoading={false}
             loadingValue={label}

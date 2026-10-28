@@ -15,7 +15,7 @@ import SocialV1FeedEmptyState from '../SocialV1View/feed/components/SocialV1Feed
 import SocialFeed, {
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import SocialFeedRealtimeControls from '../../../UI/SocialFeed/components/SocialFeedRealtimeControls';
+import { SocialFeedLiveButton } from '../../../UI/SocialFeed/components/SocialFeedRealtime';
 import type {
   SocialFeedPageHandle,
   SocialV1FeedPost,
@@ -122,7 +122,7 @@ const LiveView: React.FC<LiveViewProps> = ({
         testID={LiveViewSelectorsIDs.FILTER_BAR}
         twClassName="px-4 pt-4 pb-2"
       >
-        <SocialFeedRealtimeControls onPausedChange={handlePausedChange} />
+        <SocialFeedLiveButton onPausedChange={handlePausedChange} />
       </SocialTabFilterBar>
     ),
     [handlePausedChange, isFilterActive, onOpenFilters],

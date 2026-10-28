@@ -46,7 +46,7 @@ interface SocialFeedBaseProps extends SocialFeedQuery {
   title?: string;
   /**
    * Rendered below the title, scrolling with the posts. In virtualized mode it
-   * can hold `SocialFeedRealtimeControls`.
+   * can hold `SocialFeedLiveButton`.
    */
   renderHeader?: () => React.ReactNode;
   /** Keeps only matching posts, realtime ones included. Memoize it. */
@@ -65,9 +65,12 @@ export interface SocialFeedContentProps extends SocialFeedBaseProps {
 
 export interface SocialFeedVirtualizedProps extends SocialFeedBaseProps {
   scrollMode: 'virtualized';
-  /** Streams new posts in. Ignored for sources without a socket channel. */
+  /**
+   * Streams new posts in. Ignored for sources without a socket channel. Held
+   * posts show a floating "N new posts" pill that reveals them.
+   */
   realtime?: boolean;
-  /** Holds new posts back until revealed. */
+  /** Holds new posts back; switching back to false reveals them. */
   paused?: boolean;
   /**
    * Host rows between posts, hidden while the first page loads. With no

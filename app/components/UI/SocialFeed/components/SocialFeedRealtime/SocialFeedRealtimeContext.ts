@@ -6,8 +6,6 @@ export interface SocialFeedRealtimeContextValue {
   paused: boolean;
   /** New posts held back. Always 0 without realtime. */
   pendingNewCount: number;
-  /** Shows the held posts and scrolls to the top. A no-op without realtime. */
-  revealPending: () => void;
 }
 
 export const SocialFeedRealtimeContext =

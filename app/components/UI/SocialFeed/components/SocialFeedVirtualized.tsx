@@ -8,6 +8,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useIsFocused } from '@react-navigation/native';
 import React, {
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
@@ -50,10 +51,11 @@ import {
   SocialFeedFooter,
   SocialFeedPlaceholder,
 } from './SocialFeedListStates';
+import PendingPostsButton from './SocialFeedRealtime/PendingPostsButton';
 import {
   SocialFeedRealtimeContext,
   type SocialFeedRealtimeContextValue,
-} from './SocialFeedRealtimeControls/SocialFeedRealtimeContext';
+} from './SocialFeedRealtime/SocialFeedRealtimeContext';
 import SocialFeedRow from './SocialFeedRow';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
 
@@ -88,8 +90,6 @@ const NO_INLINE_ROWS: readonly SocialFeedInlineRow[] = [];
 interface ScrollContext extends Record<string, unknown> {
   nearTop?: boolean;
 }
-
-const noop = () => undefined;
 
 const waitForMinimumRefresh = () =>
   new Promise<void>((resolve) => setTimeout(resolve, REFRESH_MIN_DURATION_MS));
@@ -311,6 +311,14 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
     listRef.current?.scrollToOffset({ offset: 0, animated: true });
   }, [refresh, revealPending]);
 
+  const wasPausedRef = useRef(paused);
+  useEffect(() => {
+    if (wasPausedRef.current && !paused) {
+      handleRevealPending().catch(() => undefined);
+    }
+    wasPausedRef.current = paused;
+  }, [handleRevealPending, paused]);
+
   const handleScrollSettled = useCallback(() => {
     livePrices?.requestVisibilityCheck();
   }, [livePrices]);
@@ -371,14 +379,9 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
   );
 
   const pendingNewCount = live?.pendingNewCount ?? 0;
-  const isLive = Boolean(live);
-  const realtimeControls = useMemo<SocialFeedRealtimeContextValue>(
-    () => ({
-      paused,
-      pendingNewCount,
-      revealPending: isLive ? handleRevealPending : noop,
-    }),
-    [handleRevealPending, isLive, paused, pendingNewCount],
+  const realtimeState = useMemo<SocialFeedRealtimeContextValue>(
+    () => ({ paused, pendingNewCount }),
+    [paused, pendingNewCount],
   );
   const header = (
     <>
@@ -397,7 +400,7 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
       analyticsSource={analyticsSource}
       showMockedFields={showMockedFields}
     >
-      <SocialFeedRealtimeContext.Provider value={realtimeControls}>
+      <SocialFeedRealtimeContext.Provider value={realtimeState}>
         <Box twClassName="flex-1 bg-default" testID={testID}>
           {performance ? (
             <SocialFeedFirstContentTrace
@@ -458,6 +461,15 @@ const SocialFeedVirtualized: React.FC<SocialFeedVirtualizedProps> = ({
             }
             testID={scrollTestID}
           />
+          <Box
+            pointerEvents="box-none"
+            twClassName="absolute top-2 left-0 right-0 items-center"
+          >
+            <PendingPostsButton
+              pendingNewCount={pendingNewCount}
+              onPress={handleRevealPending}
+            />
+          </Box>
         </Box>
       </SocialFeedRealtimeContext.Provider>
     </SocialFeedSurfaceProvider>

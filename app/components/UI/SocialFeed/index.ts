@@ -35,8 +35,8 @@ export type {
   SocialFeedProps,
   SocialFeedScrollMode,
 } from './components/SocialFeed';
-export { default as SocialFeedRealtimeControls } from './components/SocialFeedRealtimeControls';
-export type { SocialFeedRealtimeControlsProps } from './components/SocialFeedRealtimeControls';
+export { SocialFeedLiveButton } from './components/SocialFeedRealtime';
+export type { SocialFeedLiveButtonProps } from './components/SocialFeedRealtime';
 export { default as SocialFeedEmpty } from './components/SocialFeedEmpty';
 export { SocialEntryOptionsProvider } from './components/SocialEntryOptionsBottomSheet';
 export {

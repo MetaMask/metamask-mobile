@@ -16,7 +16,6 @@ import SocialFeed, {
   type SocialFeedInlineRow,
   type SocialFeedProps,
 } from '../../../UI/SocialFeed/components/SocialFeed';
-import SocialFeedRealtimeControls from '../../../UI/SocialFeed/components/SocialFeedRealtimeControls';
 import type { SocialFeedQuery } from '../../../UI/SocialFeed/data/socialFeedSource';
 import type {
   SocialFeedPageHandle,
@@ -178,7 +177,6 @@ const TrendingView: React.FC<TrendingViewProps> = ({
       // The filter rail cancels 16px of the space under it, which leaves 8px
       // above the first post's own 8px.
       <Box twClassName="pt-4 pb-6">
-        <SocialFeedRealtimeControls twClassName="px-4 pb-2" />
         <TrendingFilterRail
           onOpenFilters={onOpenFilters}
           isFilterActive={isFilterActive}
