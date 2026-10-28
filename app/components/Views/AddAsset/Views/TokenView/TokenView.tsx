@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ActivityIndicator } from 'react-native';
 import AddCustomToken from '../../components/AddCustomToken/AddCustomToken';
 import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
@@ -21,6 +21,10 @@ import SearchTokenAutocomplete from '../../components/SearchTokenAutoComplete/Se
 import NetworkSelector from '../../components/NetworkSelector/NetworkSelector';
 import { useSearchRequest } from '../../../../UI/Trending/hooks/useSearchRequest/useSearchRequest';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import OwnedTokensView from '../../components/OwnedTokens/OwnedTokensView';
+import TokenImportModeSwitch, {
+  type TokenImportMode,
+} from '../../components/OwnedTokens/TokenImportModeSwitch';
 
 interface TokenViewProps {
   selectedNetwork: SupportedCaipChainId | Hex | null;
@@ -35,6 +39,7 @@ const TokenView = ({
 }: TokenViewProps) => {
   const { colors } = useTheme();
   const navigation = useNavigation<AppNavigationProp>();
+  const [importMode, setImportMode] = useState<TokenImportMode>('find');
   const renderTabBar = (props: typeof TabBarProps) => <TabBar {...props} />;
 
   // Probe the search API with a test query to check if the selected network supports token search.
@@ -57,13 +62,18 @@ const TokenView = ({
 
   return (
     <Box twClassName="flex-1">
-      <NetworkSelector
-        selectedNetwork={selectedNetwork}
-        openNetworkSelector={openNetworkSelector}
-        networkConfigurations={networkConfigurations}
-      />
+      <TokenImportModeSwitch mode={importMode} onChange={setImportMode} />
+      {importMode === 'find' ? (
+        <NetworkSelector
+          selectedNetwork={selectedNetwork}
+          openNetworkSelector={openNetworkSelector}
+          networkConfigurations={networkConfigurations}
+        />
+      ) : null}
 
-      {isLoadingSearchSupported ? (
+      {importMode === 'owned' ? (
+        <OwnedTokensView />
+      ) : isLoadingSearchSupported ? (
         <Box
           twClassName="flex-1 justify-center items-center px-4"
           testID="add-asset-loading-indicator"
