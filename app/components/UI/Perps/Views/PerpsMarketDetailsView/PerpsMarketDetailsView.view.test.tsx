@@ -53,6 +53,7 @@ import { analytics } from '../../../../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   clearLeaderboardApiMock,
+  getLeaderboardMessengerSpy,
   mockPerpsTraders,
   setupLeaderboardApiMock,
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
@@ -76,6 +77,9 @@ import {
   getCandlePeriodBottomSheetSelectors as getPerpsCandlePeriodBottomSheetSelector,
 } from '../../../Charts/CandlePeriodSelector';
 import { strings } from '../../../../../../locales/i18n';
+import type { RootState } from '../../../../../reducers';
+import type { DeepPartial } from '../../../../../util/test/renderWithProvider';
+import { PERPS_SHARE_POSITION_INTERACTION_TYPE } from '../PerpsSharePositionView/PerpsSharePositionView.constants';
 
 const CANDLE_SELECTOR_BASE =
   `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-candle-period-selector` as const;
@@ -977,6 +981,70 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Position card and navigation', () => {
+    const indexedEthLong = {
+      positionId: 'social-eth-long',
+      tokenSymbol: 'ETH',
+      tokenName: 'Ethereum',
+      tokenAddress: 'ETH',
+      chain: 'hyperliquid',
+      positionAmount: 2.5,
+      isOpen: true,
+      boughtUsd: 5000,
+      soldUsd: 0,
+      realizedPnl: 0,
+      costBasis: 500,
+      trades: [],
+      lastTradeAt: 1_700_000_000,
+      currentValueUSD: 5100,
+      pnlValueUsd: 100,
+      pnlPercent: 20,
+      perpPositionType: 'long' as const,
+      perpLeverage: 10,
+      positionAmountWithLeverage: 2.5,
+    };
+
+    const canPostOverrides: DeepPartial<RootState> = {
+      engine: {
+        backgroundState: {
+          PerpsController: { isEligible: true },
+          KeyringController: { isUnlocked: true },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              perpsSocialEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+              [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
+              aiSocialLeaderboardEnabled: {
+                enabled: true,
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+          ProfileController: {
+            profile: {
+              profileId: 'profile-1',
+              username: 'trader',
+              displayName: 'trader',
+              bio: '',
+              linkedAddresses: [
+                'eip155:1:0x0000000000000000000000000000000000000001',
+              ],
+              avatarUrl: '',
+              tradingPrivacy: 'public',
+              connectedToX: false,
+              createdAt: '',
+              updatedAt: '',
+            },
+          },
+        },
+      },
+    };
+
+    afterEach(() => {
+      clearLeaderboardApiMock();
+    });
+
     it('renders position card with share button when position exists', async () => {
       renderPerpsMarketDetailsView({
         overrides: {
@@ -997,48 +1065,25 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('opens the Share position sheet from the position card when the user can post to Social', async () => {
+      setupLeaderboardApiMock({ openPositions: [indexedEthLong] });
       renderPerpsMarketDetailsView({
-        overrides: {
-          engine: {
-            backgroundState: {
-              PerpsController: { isEligible: true },
-              RemoteFeatureFlagController: {
-                remoteFeatureFlags: {
-                  perpsSocialEnabled: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                  [SOCIAL_V1_AB_KEY]: SocialV1Variant.Treatment,
-                  aiSocialLeaderboardEnabled: {
-                    enabled: true,
-                    minimumVersion: '0.0.0',
-                  },
-                },
-              },
-              ProfileController: {
-                profile: {
-                  profileId: 'profile-1',
-                  username: 'trader',
-                  displayName: 'trader',
-                  bio: '',
-                  linkedAddresses: [
-                    'eip155:1:0x0000000000000000000000000000000000000001',
-                  ],
-                  avatarUrl: '',
-                  tradingPrivacy: 'public',
-                  connectedToX: false,
-                  createdAt: '',
-                  updatedAt: '',
-                },
-              },
-            },
-          },
-        },
+        overrides: canPostOverrides,
         extraRoutes: [{ name: Routes.PERPS.MODALS.ROOT }],
       });
 
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+      await waitFor(() =>
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchOpenPositions',
+          expect.anything(),
+        ),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
       fireEvent.press(
-        await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
       );
 
       expect(
@@ -1046,6 +1091,74 @@ describe('PerpsMarketDetailsView', () => {
           getRouteProbeTestId(Routes.PERPS.MODALS.ROOT),
         ),
       ).toBeOnTheScreen();
+    });
+
+    it('hides Post to feed and opens the PnL hero card when the position is not indexed', async () => {
+      setupLeaderboardApiMock({ openPositions: [] });
+      renderPerpsMarketDetailsView({
+        overrides: canPostOverrides,
+        extraRoutes: [{ name: Routes.PERPS.PNL_HERO_CARD }],
+      });
+
+      await screen.findByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON);
+      await waitFor(() =>
+        expect(getLeaderboardMessengerSpy()).toHaveBeenCalledWith(
+          'SocialService:fetchOpenPositions',
+          expect.anything(),
+        ),
+      );
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
+      ).toBeNull();
+      expect(
+        await screen.findByTestId(
+          getRouteProbeTestId(Routes.PERPS.PNL_HERO_CARD),
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('opens the composer from Post to feed and tracks the Post to MetaMask interaction', async () => {
+      setupLeaderboardApiMock({ openPositions: [indexedEthLong] });
+      const trackEventSpy = jest.spyOn(analytics, 'trackEvent');
+      try {
+        renderPerpsMarketDetailsView({
+          overrides: canPostOverrides,
+          extraRoutes: [{ name: Routes.SOCIAL.POST_COMPOSER }],
+        });
+
+        fireEvent.press(
+          await screen.findByTestId(
+            PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON,
+          ),
+        );
+
+        expect(
+          await screen.findByTestId(
+            getRouteProbeTestId(Routes.SOCIAL.POST_COMPOSER),
+          ),
+        ).toBeOnTheScreen();
+        expect(trackEventSpy).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.PERPS_UI_INTERACTION.category,
+            properties: expect.objectContaining({
+              interaction_type:
+                PERPS_SHARE_POSITION_INTERACTION_TYPE.POST_TO_METAMASK,
+              asset: 'ETH',
+              direction: 'long',
+            }),
+          }),
+        );
+      } finally {
+        trackEventSpy.mockRestore();
+      }
     });
 
     it('opens the PnL hero card from the position card when the user cannot post to Social', async () => {

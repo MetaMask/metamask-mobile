@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   StackActions,
   useNavigation,
@@ -28,16 +28,11 @@ import Foxicon, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { areAddressesEqual } from '../../../../../util/address';
-import { useMyProfile } from '../../../../Views/SocialLeaderboard/MyProfileView/hooks';
-import { useTraderPositions } from '../../../../Views/SocialLeaderboard/TraderProfileView/hooks';
 import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import {
-  HYPERLIQUID_CHAIN_NAME,
-  getPerpPositionDirection,
-  isPerpPosition,
-} from '../../../SocialFeed/utils/perp';
-import { PROVIDER_CONFIG } from '../../constants/perpsConfig';
+  getPerpsShareDirection,
+  postPerpsPositionToFeed,
+} from '../../hooks/usePerpsCanPostPosition';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsSharePositionSheetSelectorsIDs } from '../../Perps.testIds';
 import type { PerpsModalsNavigationParamList } from '../../types/navigation';
@@ -47,50 +42,23 @@ const PerpsSharePositionView = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const { params } =
     useRoute<RouteProp<PerpsModalsNavigationParamList, 'PerpsSharePosition'>>();
-  const { position, marketPrice, accountAddress } = params;
+  const { position, marketPrice, socialPosition } = params;
   const sheetRef = useRef<BottomSheetRef>(null);
   const hasSelectedOptionRef = useRef(false);
-  const { profile } = useMyProfile();
-  const linkedAddress = profile?.linkedAccountAddress?.trim() ?? '';
-  const isFromLinkedAccount =
-    linkedAddress !== '' &&
-    accountAddress !== undefined &&
-    areAddressesEqual(accountAddress, linkedAddress);
-  const isFromOtherAccount =
-    linkedAddress !== '' &&
-    accountAddress !== undefined &&
-    !isFromLinkedAccount;
-  const { openPositions, isLoadingOpen } = useTraderPositions(
-    isFromLinkedAccount ? linkedAddress : '',
-  );
   const { openComposer } = useOpenSocialPostComposer();
+  const direction = getPerpsShareDirection(position);
 
-  const direction = Number.parseFloat(position.size) > 0 ? 'long' : 'short';
-  const isHyperliquidPosition =
-    (position.providerId ?? PROVIDER_CONFIG.DefaultProvider) ===
-    PROVIDER_CONFIG.DefaultProvider;
-  const socialPosition = useMemo(
-    () =>
-      isHyperliquidPosition
-        ? openPositions.find(
-            (candidate) =>
-              isPerpPosition(candidate) &&
-              candidate.chain?.toLowerCase() === HYPERLIQUID_CHAIN_NAME &&
-              candidate.tokenSymbol === position.symbol &&
-              getPerpPositionDirection(candidate) === direction,
-          )
-        : undefined,
-    [direction, isHyperliquidPosition, openPositions, position.symbol],
-  );
-  const isPostDisabled = !socialPosition;
-  let postDescription = strings(
-    'perps.share_position.post_to_metamask_description',
-  );
-  if (isFromOtherAccount) {
-    postDescription = strings('perps.share_position.post_other_account');
-  } else if (isPostDisabled && !isLoadingOpen) {
-    postDescription = strings('perps.share_position.post_not_ready');
-  }
+  useEffect(() => {
+    if (socialPosition || hasSelectedOptionRef.current) {
+      return;
+    }
+    navigation.dispatch(
+      StackActions.replace(Routes.PERPS.PNL_HERO_CARD, {
+        position,
+        marketPrice,
+      }),
+    );
+  }, [marketPrice, navigation, position, socialPosition]);
 
   const eventProperties = useMemo(
     () => ({
@@ -120,18 +88,22 @@ const PerpsSharePositionView = () => {
       return;
     }
     hasSelectedOptionRef.current = true;
-    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        PERPS_SHARE_POSITION_INTERACTION_TYPE.POST_TO_METAMASK,
-      ...eventProperties,
-    });
-    openComposer({
-      position: socialPosition,
-      entryPoint: 'perps',
-      openFeedAfterPost: true,
+    postPerpsPositionToFeed({
+      socialPosition,
+      symbol: position.symbol,
+      direction,
+      track,
+      openComposer,
     });
     closeSheet();
-  }, [closeSheet, eventProperties, openComposer, socialPosition, track]);
+  }, [
+    closeSheet,
+    direction,
+    openComposer,
+    position.symbol,
+    socialPosition,
+    track,
+  ]);
 
   const handleShareExternally = useCallback(() => {
     if (hasSelectedOptionRef.current) {
@@ -170,9 +142,6 @@ const PerpsSharePositionView = () => {
       </BottomSheetHeader>
       <ListItem
         isInteractive
-        disabled={isPostDisabled}
-        accessibilityState={{ disabled: isPostDisabled }}
-        twClassName={isPostDisabled ? 'opacity-50' : undefined}
         avatar={<Foxicon variant={FoxiconVariant.Base} size={24} />}
         title={strings('perps.share_position.post_to_metamask')}
         titleEndAccessory={
@@ -180,7 +149,9 @@ const PerpsSharePositionView = () => {
             {strings('perps.share_position.new_badge')}
           </Tag>
         }
-        description={postDescription}
+        description={strings(
+          'perps.share_position.post_to_metamask_description',
+        )}
         endAccessory={chevron}
         accessoryGap={2}
         onPress={handlePostToMetaMask}

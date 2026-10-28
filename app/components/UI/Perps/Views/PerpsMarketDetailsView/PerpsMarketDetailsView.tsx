@@ -175,7 +175,12 @@ import {
   getChartLimitOrderLines,
 } from '../../utils/chartOverlayLines';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
+import {
+  getPerpsShareDirection,
+  postPerpsPositionToFeed,
+} from '../../hooks/usePerpsCanPostPosition';
 import { usePerpsSharePosition } from '../../hooks/usePerpsSharePosition';
+import { useOpenSocialPostComposer } from '../../../../Views/SocialLeaderboard/hooks/useOpenSocialPostComposer';
 import { usePerpsTPSLUpdate } from '../../hooks/usePerpsTPSLUpdate';
 import { useStopLossPrompt } from '../../hooks/useStopLossPrompt';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
@@ -330,7 +335,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
 
   // Keep direct navigation for configuration methods (setOptions, setParams)
   const navigation = useNavigation<AppNavigationProp>();
-  const { sharePosition } = usePerpsSharePosition();
+  const { sharePosition, canPostPosition, findSocialPosition } =
+    usePerpsSharePosition();
+  const { openComposer } = useOpenSocialPostComposer();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const {
@@ -1396,6 +1403,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     sharePosition(existingPosition, currentPrice.toString());
   }, [existingPosition, currentPrice, sharePosition]);
 
+  const handlePostToFeedPress = useCallback(() => {
+    if (!existingPosition) {
+      return;
+    }
+    const socialPosition = findSocialPosition(existingPosition);
+    if (!socialPosition) {
+      return;
+    }
+    postPerpsPositionToFeed({
+      socialPosition,
+      symbol: existingPosition.symbol,
+      direction: getPerpsShareDirection(existingPosition),
+      track,
+      openComposer,
+    });
+  }, [existingPosition, findSocialPosition, openComposer, track]);
+
   // Stats card tooltip handler
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
@@ -1770,6 +1794,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
             szDecimals={marketData?.szDecimals}
             onAutoClosePress={handleAutoClosePress}
             onMarginPress={handleMarginPress}
+            onPostToFeedPress={
+              existingPosition && canPostPosition(existingPosition)
+                ? handlePostToFeedPress
+                : undefined
+            }
             onSharePress={handleSharePress}
             variant={isPerpsSocialEnabled ? 'tabs' : 'default'}
           />
@@ -1811,7 +1840,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
       currentPrice,
       marketData?.szDecimals,
       handleAutoClosePress,
+      canPostPosition,
       handleMarginPress,
+      handlePostToFeedPress,
       handleSharePress,
       isPerpsSocialEnabled,
       displayOrders,

@@ -72,6 +72,7 @@ export const PerpsPositionCardSelectorsIDs = {
   CARD: 'PerpsPositionCard',
   HEADER: 'position-card-header',
   SHARE_BUTTON: 'position-card-share',
+  POST_TO_FEED_BUTTON: 'position-card-post-to-feed',
   PNL_CARD: 'position-card-pnl',
   PNL_VALUE: 'position-card-pnl-value',
   RETURN_CARD: 'position-card-return',

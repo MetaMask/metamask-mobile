@@ -90,6 +90,7 @@ interface PerpsPositionCardProps {
   onAutoClosePress?: () => void;
   onFlipPress?: () => void;
   onMarginPress?: () => void;
+  onPostToFeedPress?: () => void;
   onSharePress?: () => void;
   /** Test ID for the card */
   testID?: string;
@@ -107,6 +108,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   onAutoClosePress,
   onFlipPress: _onFlipPress,
   onMarginPress,
+  onPostToFeedPress,
   onSharePress,
   testID,
   szDecimals,
@@ -211,7 +213,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const sectionTitle =
-    onSharePress || isCross ? (
+    onSharePress || onPostToFeedPress || isCross ? (
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -236,14 +238,33 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </Tag>
           )}
         </Box>
-        {onSharePress && (
-          <ButtonIcon
-            size={ButtonIconSize.Sm}
-            iconName={IconName.Share}
-            onPress={onSharePress}
-            testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
-          />
-        )}
+        {onPostToFeedPress || onSharePress ? (
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={2}
+          >
+            {onPostToFeedPress ? (
+              <Button
+                variant={ButtonVariant.Secondary}
+                size={ButtonSize.Sm}
+                onPress={onPostToFeedPress}
+                testID={PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON}
+              >
+                {strings('perps.position.card.post_to_feed')}
+              </Button>
+            ) : null}
+            {onSharePress ? (
+              <ButtonIcon
+                size={ButtonIconSize.Md}
+                variant={ButtonIconVariant.Filled}
+                iconName={IconName.Share}
+                onPress={onSharePress}
+                testID={PerpsPositionCardSelectorsIDs.SHARE_BUTTON}
+              />
+            ) : null}
+          </Box>
+        ) : null}
       </Box>
     ) : (
       strings('perps.position.card.position_title')

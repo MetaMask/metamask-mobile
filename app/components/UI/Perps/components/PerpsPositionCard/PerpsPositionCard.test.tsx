@@ -838,6 +838,42 @@ describe('PerpsPositionCard', () => {
       );
       expect(shareButton).toBeNull();
     });
+
+    it('renders Post to feed only when a post is available and keeps share on the share action', () => {
+      const onPostToFeedPress = jest.fn();
+      const onSharePress = jest.fn();
+      const { rerender } = render(
+        <PerpsPositionCard
+          position={mockPosition}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      expect(
+        screen.queryByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
+      ).toBeNull();
+
+      rerender(
+        <PerpsPositionCard
+          position={mockPosition}
+          onPostToFeedPress={onPostToFeedPress}
+          onSharePress={onSharePress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.POST_TO_FEED_BUTTON),
+      );
+      fireEvent.press(
+        screen.getByTestId(PerpsPositionCardSelectorsIDs.SHARE_BUTTON),
+      );
+
+      expect(
+        screen.getByText('perps.position.card.post_to_feed'),
+      ).toBeOnTheScreen();
+      expect(onPostToFeedPress).toHaveBeenCalledTimes(1);
+      expect(onSharePress).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Privacy Mode', () => {
