@@ -100,11 +100,7 @@ export const useMoneyMfa = () => {
 
   let status: MoneyMfaStatus;
   // Turning it on creates the MPC Money account, which needs the MPC keyring.
-  if (
-    !isFlagEnabled ||
-    !isMfaDevBuild() ||
-    !isMpcMoneyKeyringBuildEnabled()
-  ) {
+  if (!isFlagEnabled || !isMfaDevBuild() || !isMpcMoneyKeyringBuildEnabled()) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
