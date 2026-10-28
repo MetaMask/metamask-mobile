@@ -195,7 +195,8 @@ describe('buildNightlySlackMessage', () => {
   it('links the iOS builds to TestFlight', () => {
     const payload = buildNightlySlackMessage(buildMetadata(), links);
 
-    expect(blocksText(payload)).toContain('https://testflight.apple.com/join/hBrjtFuA');
+    expect(blocksText(payload)).toContain('https://testflight.apple.com/join|TestFlight');
+    expect(blocksText(payload)).not.toContain('hBrjtFuA');
   });
 
   it('links each build to the commit history at its own commit, even when RC and EXP differ', () => {
