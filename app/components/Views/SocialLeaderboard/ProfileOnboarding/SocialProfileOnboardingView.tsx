@@ -57,6 +57,8 @@ import {
   createInitialOnboardingDraft,
   displayNameFromUsername,
   getUsernameStatus,
+  isUneditedXUsername,
+  MIN_USERNAME_LENGTH,
   normalizeUsername,
   onboardingProfileFingerprint,
   type ProfileOnboardingDraft,
@@ -370,7 +372,13 @@ const SocialProfileOnboardingView: React.FC = () => {
         if (requestId !== usernameCheckId.current) {
           return 'superseded';
         }
-        if (!availability.available || !availability.valid) {
+        if (!availability.valid) {
+          setUsernameClaimError(
+            strings('social_leaderboard.profile_onboarding.username_invalid'),
+          );
+          return 'unavailable';
+        }
+        if (!availability.available) {
           setUsernameClaimError(
             strings(
               'social_leaderboard.profile_onboarding.username_unavailable',
@@ -397,6 +405,7 @@ const SocialProfileOnboardingView: React.FC = () => {
     (username: string) => {
       clearUsernameCheckTimer();
       if (getUsernameStatus(username) !== 'available') {
+        setUsernameClaimError(null);
         usernameCheckId.current += 1;
         return;
       }
@@ -763,6 +772,15 @@ const SocialProfileOnboardingView: React.FC = () => {
 
   const usernameStatus = getUsernameStatus(draft.username);
   const username = normalizeUsername(draft.username);
+  const isUsernamePatternEnforced = !isUneditedXUsername(draft);
+  const usernameLocalError =
+    isUsernamePatternEnforced && usernameStatus === 'tooShort'
+      ? strings('social_leaderboard.profile_onboarding.username_too_short', {
+          min: MIN_USERNAME_LENGTH,
+        })
+      : isUsernamePatternEnforced && usernameStatus === 'invalid'
+        ? strings('social_leaderboard.profile_onboarding.username_invalid')
+        : null;
   const continueDisabled =
     ((step === 'username' || step === 'x-identity') &&
       !canContinueUsernameStep(draft)) ||
@@ -870,6 +888,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                 <XProfileIdentityStep
                   draft={draft}
                   usernameStatus={usernameStatus}
+                  usernameLocalError={usernameLocalError}
                   usernameClaimError={usernameClaimError}
                   onToggleUsername={handleToggleXUsername}
                   onToggleAvatar={handleToggleXAvatar}
@@ -905,7 +924,7 @@ const SocialProfileOnboardingView: React.FC = () => {
                       value={draft.username}
                       onChangeText={handleUsernameChange}
                       isError={
-                        usernameStatus === 'invalid' ||
+                        Boolean(usernameLocalError) ||
                         Boolean(usernameClaimError)
                       }
                       startAccessory={
@@ -935,7 +954,17 @@ const SocialProfileOnboardingView: React.FC = () => {
                           SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                       }}
                     />
-                    {usernameClaimError ? (
+                    {usernameLocalError ? (
+                      <Text
+                        variant={TextVariant.BodySm}
+                        color={TextColor.ErrorDefault}
+                        testID={
+                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
+                        }
+                      >
+                        {usernameLocalError}
+                      </Text>
+                    ) : usernameClaimError ? (
                       <Text
                         variant={TextVariant.BodySm}
                         color={TextColor.ErrorDefault}
@@ -946,7 +975,9 @@ const SocialProfileOnboardingView: React.FC = () => {
                         {usernameClaimError}
                       </Text>
                     ) : null}
-                    {usernameStatus === 'available' && !usernameClaimError ? (
+                    {usernameStatus === 'available' &&
+                    !usernameClaimError &&
+                    !usernameLocalError ? (
                       <Text
                         variant={TextVariant.BodySm}
                         color={TextColor.SuccessDefault}
@@ -956,19 +987,6 @@ const SocialProfileOnboardingView: React.FC = () => {
                       >
                         {strings(
                           'social_leaderboard.profile_onboarding.username_available',
-                        )}
-                      </Text>
-                    ) : null}
-                    {usernameStatus === 'invalid' ? (
-                      <Text
-                        variant={TextVariant.BodySm}
-                        color={TextColor.ErrorDefault}
-                        testID={
-                          SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS
-                        }
-                      >
-                        {strings(
-                          'social_leaderboard.profile_onboarding.username_invalid',
                         )}
                       </Text>
                     ) : null}

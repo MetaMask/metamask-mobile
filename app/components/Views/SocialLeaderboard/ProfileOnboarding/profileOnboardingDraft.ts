@@ -47,10 +47,11 @@ export interface ProfileOnboardingDraft {
   shareTradingActivity: boolean;
 }
 
-export type UsernameStatus = 'empty' | 'invalid' | 'available';
+export type UsernameStatus = 'empty' | 'tooShort' | 'invalid' | 'available';
 
-const USERNAME_PATTERN = /^[a-z0-9]+(?:_[a-z0-9]+)*$/;
-const MIN_USERNAME_LENGTH = 3;
+/** Server rule: letters, numbers, and underscores; edges allowed. */
+const USERNAME_PATTERN = /^[a-z0-9_]+$/;
+export const MIN_USERNAME_LENGTH = 3;
 
 export const normalizeUsername = (value: string): string =>
   value.trim().replace(/^@+/, '').toLowerCase();
@@ -60,8 +61,10 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
   if (!username) {
     return 'empty';
   }
+  if (username.length < MIN_USERNAME_LENGTH) {
+    return 'tooShort';
+  }
   if (
-    username.length < MIN_USERNAME_LENGTH ||
     username.length > MAX_USERNAME_LENGTH ||
     !USERNAME_PATTERN.test(username)
   ) {

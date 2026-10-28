@@ -514,6 +514,87 @@ describe('SocialProfileOnboardingView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('checks availability for a handle with a trailing underscore', async () => {
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const usernameInput = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+    );
+    fireEvent.changeText(usernameInput, 'hello_');
+
+    expect(
+      screen.queryByText('Use letters, numbers, and underscores.'),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(
+        Engine.context.ProfileController.checkUsernameAvailability,
+      ).toHaveBeenCalledWith('hello_');
+    });
+    expect(
+      await screen.findByText('Username available', { exact: true }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).not.toBe(true);
+  });
+
+  it('shows the minimum length message instead of the unavailable message', async () => {
+    jest
+      .mocked(Engine.context.ProfileController.checkUsernameAvailability)
+      .mockResolvedValue({
+        username: 'hello_',
+        available: false,
+        valid: true,
+        normalized: 'hello_',
+        errors: [],
+      });
+    renderSocialProfileOnboarding();
+    fireEvent.press(
+      screen.getByTestId(
+        SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+      ),
+    );
+    const usernameInput = screen.getByTestId(
+      SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
+    );
+
+    fireEvent.changeText(usernameInput, 'hello_');
+    expect(
+      await screen.findByText(
+        'This handle is unavailable. Choose another one.',
+      ),
+    ).toBeOnTheScreen();
+
+    fireEvent.changeText(usernameInput, 'h');
+    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+    expect(
+      screen.queryByText('This handle is unavailable. Choose another one.'),
+    ).not.toBeOnTheScreen();
+    expect(screen.queryByText('Username available')).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(SocialProfileOnboardingSelectorsIDs.CONTINUE_BUTTON)
+        .props.accessibilityState?.disabled,
+    ).toBe(true);
+
+    fireEvent.changeText(usernameInput, 'ab');
+    expect(screen.getByText('Use at least 3 characters.')).toBeOnTheScreen();
+
+    fireEvent.changeText(usernameInput, 'hello_');
+    expect(
+      await screen.findByText(
+        'This handle is unavailable. Choose another one.',
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText('Use at least 3 characters.'),
+    ).not.toBeOnTheScreen();
+  });
+
   it('stays on the username step when the availability check fails', async () => {
     jest
       .mocked(Engine.context.ProfileController.checkUsernameAvailability)
@@ -1333,8 +1414,8 @@ describe('SocialProfileOnboardingView', () => {
   it('continues with an X handle that fails the username pattern until it is edited', async () => {
     jest.mocked(Engine.context.ProfileController.connectX).mockResolvedValue({
       xUserId: 'x-user-1',
-      xProfileUrl: 'https://x.com/_bad__name',
-      username: '_bad__name',
+      xProfileUrl: 'https://x.com/bad-name',
+      username: 'bad-name',
       displayName: 'Bad Name',
       avatarUrl: '',
       createdAt: '2026-01-01T00:00:00.000Z',
@@ -1350,7 +1431,7 @@ describe('SocialProfileOnboardingView', () => {
         SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByText('@_bad__name')).toBeOnTheScreen();
+    expect(screen.getByText('@bad-name')).toBeOnTheScreen();
     expect(
       screen.queryByText('Use letters, numbers, and underscores.'),
     ).not.toBeOnTheScreen();
@@ -1384,7 +1465,7 @@ describe('SocialProfileOnboardingView', () => {
     const usernameInput = await screen.findByTestId(
       SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
     );
-    fireEvent.changeText(usernameInput, '_bad__name');
+    fireEvent.changeText(usernameInput, 'bad-name');
 
     expect(
       await screen.findByText('Use letters, numbers, and underscores.'),

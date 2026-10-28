@@ -44,6 +44,8 @@ import UsernameShuffleDie from './UsernameShuffleDie';
 interface XProfileIdentityStepProps {
   draft: ProfileOnboardingDraft;
   usernameStatus: UsernameStatus;
+  /** Local rule message, if any. */
+  usernameLocalError: string | null;
   usernameClaimError: string | null;
   onToggleUsername: (enabled: boolean) => void;
   onToggleAvatar: (enabled: boolean) => void;
@@ -242,6 +244,7 @@ const CrossDissolve: React.FC<{
 const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
   draft,
   usernameStatus,
+  usernameLocalError,
   usernameClaimError,
   onToggleUsername,
   onToggleAvatar,
@@ -355,7 +358,7 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 value={draft.username}
                 onChangeText={onUsernameChange}
                 isError={
-                  usernameStatus === 'invalid' || Boolean(usernameClaimError)
+                  Boolean(usernameLocalError) || Boolean(usernameClaimError)
                 }
                 startAccessory={
                   <Text
@@ -383,7 +386,15 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                   testID: SocialProfileOnboardingSelectorsIDs.USERNAME_INPUT,
                 }}
               />
-              {usernameClaimError ? (
+              {usernameLocalError ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
+                >
+                  {usernameLocalError}
+                </Text>
+              ) : usernameClaimError ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.ErrorDefault}
@@ -392,7 +403,9 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                   {usernameClaimError}
                 </Text>
               ) : null}
-              {usernameStatus === 'available' && !usernameClaimError ? (
+              {!usernameLocalError &&
+              !usernameClaimError &&
+              usernameStatus === 'available' ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.SuccessDefault}
@@ -400,17 +413,6 @@ const XProfileIdentityStep: React.FC<XProfileIdentityStepProps> = ({
                 >
                   {strings(
                     'social_leaderboard.profile_onboarding.username_available',
-                  )}
-                </Text>
-              ) : null}
-              {usernameStatus === 'invalid' ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                  testID={SocialProfileOnboardingSelectorsIDs.USERNAME_STATUS}
-                >
-                  {strings(
-                    'social_leaderboard.profile_onboarding.username_invalid',
                   )}
                 </Text>
               ) : null}
