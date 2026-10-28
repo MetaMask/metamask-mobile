@@ -318,7 +318,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             />
           </Box>
         }
-        twClassName="px-4 pt-1 pb-3"
+        twClassName="px-4 pt-1 pb-6"
       />
       <KeyboardAwareScrollView
         contentContainerStyle={tw.style(
@@ -345,6 +345,7 @@ const ImportNewSecretRecoveryPhrase = () => {
             uniqueId={uniqueId}
             onCurrentWordChange={setCurrentInputWord}
             autoFocus={false}
+            includeTopMargin={false}
           />
         </Box>
       </KeyboardAwareScrollView>
