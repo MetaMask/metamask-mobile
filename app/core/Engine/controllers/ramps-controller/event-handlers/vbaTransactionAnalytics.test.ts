@@ -144,7 +144,7 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
       NOW,
     );
 
-    expect(properties.source_amount).toBe(100.5);
+    expect(properties).toMatchObject({ source_amount: 100.5 });
     expect(properties).not.toHaveProperty('destination_amount');
   });
 
@@ -202,8 +202,8 @@ describe('buildMoneyVbaTransactionUpdatedProperties', () => {
         payload('Completed'),
         {},
         Date.parse(CREATED_AT) - 5_000,
-      ).seconds_since_created,
-    ).toBe(0);
+      ),
+    ).toMatchObject({ seconds_since_created: 0 });
   });
 
   it('returns null when the vendor status is outside the schema', () => {
@@ -256,7 +256,7 @@ describe('readVbaTransactionBaseProperties', () => {
         KycController: {
           vendor: 'iron',
           providerFlowStatus: 'submitted',
-          sessionStatus: { finalStatus: 'approved', kycStatus: 'approved' },
+          sessionStatus: { finalStatus: 'approved' },
         },
         GeolocationController: { location: 'UNKNOWN' },
       }),

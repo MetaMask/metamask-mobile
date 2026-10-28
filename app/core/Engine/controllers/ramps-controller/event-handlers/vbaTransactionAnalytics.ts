@@ -2,6 +2,7 @@ import type { AutorampTransactionSummary } from '@metamask/ramps-controller';
 import { MetaMetricsEvents } from '../../../../Analytics';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
+import type { JsonMap } from '../../../../../util/analytics/analytics.types';
 import {
   ANALYTICS_REGION_UNKNOWN,
   toAnalyticsRegion,
@@ -80,7 +81,7 @@ interface BackgroundControllers {
   };
 }
 
-export interface MoneyVbaTransactionUpdatedProperties {
+export interface MoneyVbaTransactionUpdatedProperties extends JsonMap {
   status: AnalyticsStatus;
   transaction_status: string;
   previous_status?: string;
