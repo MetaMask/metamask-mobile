@@ -17,7 +17,7 @@ import {
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
+import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -113,6 +113,11 @@ const mapTradingError = (error: unknown): never => {
   }
   return mapError(error);
 };
+
+/** Kalshi's Venue ID. Only Kalshi's adapter and its composition name it;
+ * every other caller takes the Venue from the Active Venue, a route, or an
+ * intent. */
+export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;

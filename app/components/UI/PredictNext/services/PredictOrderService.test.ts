@@ -13,7 +13,6 @@ import {
   PredictOrderService,
 } from './PredictOrderService';
 import {
-  KALSHI_VENUE_ID,
   type PredictBuyOrderReceipt,
   type PredictDecimal,
   type PredictEntityId,
@@ -24,6 +23,7 @@ import {
   type PredictSignedAmount,
   type PredictTimestamp,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const preview: PredictOrderPreview = {
   previewId: 'preview-1',

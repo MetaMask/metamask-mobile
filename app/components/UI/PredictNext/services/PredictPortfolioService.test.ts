@@ -17,12 +17,12 @@ import {
   portfolioQueryFamilies,
 } from '../queries/portfolioQueries';
 import {
-  KALSHI_VENUE_ID,
   type PredictAmount,
   type PredictEntityId,
   type PredictTimestamp,
   type PredictVenueId,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 import {
   PredictPortfolioService,
   type PredictPortfolioServiceMessenger,

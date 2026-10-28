@@ -1437,6 +1437,13 @@
         "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
       "placeholder": "Add a position and a few words to post",
       "post": "Post",
@@ -1711,6 +1718,8 @@
       "username_label": "Username",
       "display_name_label": "Display name",
       "username_available": "Username available",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
       "username_invalid": "Use letters, numbers, and underscores.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
       "username_check_error": "Couldn't check that username. Check your connection and try again.",
@@ -1758,6 +1767,9 @@
       "save": "Save",
       "save_error": "Couldn't save changes. Check your connection and try again.",
       "username_unavailable": "This handle is unavailable. Choose another one.",
+      "username_too_short": "Use at least {{min}} characters.",
+      "username_too_long": "Use at most {{max}} characters.",
+      "username_invalid": "Use letters, numbers, and underscores.",
       "handle_helper": "Your handle appears on posts and your profile as @handle.metamask.",
       "socials_helper": "Your X handle appears on posts and your profile.",
       "show_trading_activity": "Show trading activity",
@@ -8614,7 +8626,11 @@
     "failure": {
       "title": "Something went wrong",
       "retry": "Try again",
-      "close": "Close"
+      "close": "Close",
+      "support_title": "We couldn't verify your details",
+      "support_description": "Contact support to continue.",
+      "contact_support": "Contact support",
+      "done": "Done"
     },
     "errors": {
       "invalid_code": "This code isn’t correct. Try again",
@@ -8624,7 +8640,6 @@
       "email_taken": "This email is already in use. Try a different one.",
       "cooldown": "Too many requests. Wait a moment and try again.",
       "limit_reached": "You've reached the limit for this method.",
-      "multi_primary_srp": "Verification isn't available yet for wallets with more than one Secret Recovery Phrase.",
       "signed_out": "Sign in to continue.",
       "unsupported": "This method isn't supported on this device.",
       "flow_in_progress": "Another verification is already in progress.",
