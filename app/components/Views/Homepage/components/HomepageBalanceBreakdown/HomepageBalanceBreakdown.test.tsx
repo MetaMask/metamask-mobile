@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor } from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
-import I18n from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import HomepageBalanceBreakdown from './HomepageBalanceBreakdown';
 import { HomepageBalanceBreakdownTestIds } from './HomepageBalanceBreakdown.testIds';
 import { useBalanceBreakdown } from '../../BalanceBreakdown/hooks/useBalanceBreakdown';
@@ -23,6 +23,7 @@ import { mockTheme } from '../../../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 import { createActiveABTestAssignment } from '../../../../../util/analytics/activeABTestAssignments';
 import { getHomepageBalanceColor } from './HomepageBalanceBreakdownHero';
+import { getSliceLabel } from './homepageBalanceBreakdown.constants';
 
 const mockNavigate = jest.fn();
 const mockNavigateToMoneyHome = jest.fn();
@@ -719,7 +720,7 @@ describe('HomepageBalanceBreakdown', () => {
     expect(mockNavigateToMoneyHome).not.toHaveBeenCalled();
   });
 
-  it('keeps Money Add visible while hiding unresolved non-Money rows', () => {
+  it('keeps Money Add visible and shows an error warning for failed rows', () => {
     jest.mocked(useBalanceBreakdown).mockReturnValue({
       ...breakdown,
       slices: {
@@ -736,11 +737,51 @@ describe('HomepageBalanceBreakdown', () => {
       getByTestId(HomepageBalanceBreakdownTestIds.MONEY_BUY),
     ).toHaveTextContent('Add');
     expect(
-      queryByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+      getByTestId(HomepageBalanceBreakdownTestIds.ROW('tokens')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ERROR_WARNING('tokens')),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(HomepageBalanceBreakdownTestIds.VALUE_UNDERLINE('tokens')),
     ).not.toBeOnTheScreen();
     expect(
       queryByTestId(HomepageBalanceBreakdownTestIds.ROW('defi')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('opens an error sheet when a failed row warning is pressed', () => {
+    jest.mocked(useBalanceBreakdown).mockReturnValue({
+      ...breakdown,
+      slices: {
+        ...breakdown.slices,
+        tokens: makeSlice('tokens', { status: 'error', valueFiat: 0 }),
+      },
+    });
+
+    const { getByTestId } = render(<HomepageBalanceBreakdown />);
+
+    fireEvent.press(
+      getByTestId(HomepageBalanceBreakdownTestIds.ERROR_WARNING('tokens')),
+    );
+
+    expect(
+      getByTestId(HomepageBalanceBreakdownTestIds.ERROR_SHEET('tokens')),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        HomepageBalanceBreakdownTestIds.ERROR_SHEET_GESTURE_ROOT('tokens'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(
+        HomepageBalanceBreakdownTestIds.ERROR_SHEET_DESCRIPTION('tokens'),
+      ),
+    ).toHaveTextContent(
+      strings('balance_breakdown.error.description', {
+        primitive: getSliceLabel('tokens'),
+      }),
+    );
   });
 
   it('keeps fiat and PnL values privacy-sensitive', () => {

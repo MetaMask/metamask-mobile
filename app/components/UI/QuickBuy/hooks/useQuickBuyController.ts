@@ -1759,13 +1759,13 @@ export function useQuickBuyController(
       if (copyTradeOrigin) {
         postCopyTradeIntent(
           () =>
-            sourceToken
+            sourceToken && activeQuote.quoteId
               ? buildCopyTradeIntentOptions(
                   copyTradeOrigin,
                   `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
                   {
                     product: 'swaps',
-                    quoteId: activeQuote.quote.requestId,
+                    quoteId: activeQuote.quoteId,
                   },
                 )
               : undefined,

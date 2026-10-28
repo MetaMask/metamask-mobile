@@ -12,8 +12,7 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
+  TextInputSelectionChangeEvent,
   TouchableOpacity,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -179,9 +178,7 @@ interface TokenInputAreaProps {
   onInputPress?: () => void;
   onMaxPress?: () => void;
   selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
+  onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -389,10 +386,22 @@ export const TokenInputArea = forwardRef<
         return defaultCurrencyValue;
       }
 
-      return amount && amount !== '0'
-        ? formatAmountWithLocaleSeparators(amount)
-        : amount;
-    }, [amount, defaultCurrencyValue, shouldShowFiatAmountAsPrimary]);
+      if (!amount || amount === '0') {
+        return amount;
+      }
+
+      const displayAmount =
+        tokenType === TokenInputAreaType.Destination
+          ? (formatSecondaryTokenAmount(amount) ?? amount)
+          : amount;
+
+      return formatAmountWithLocaleSeparators(displayAmount);
+    }, [
+      amount,
+      defaultCurrencyValue,
+      shouldShowFiatAmountAsPrimary,
+      tokenType,
+    ]);
 
     const { fontSize, onContainerLayout } = useAutoSizingFont({
       text: `${inputPrefix ?? ''}${primaryAmountDisplayValue || '0'}`,

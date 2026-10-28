@@ -123,9 +123,6 @@ interface DepositNeoBank {
   getDepositInstructions: (
     autorampId: string,
   ) => Promise<AutorampDepositInstructions | null>;
-  listAutorampTransactions?: (
-    autorampId: string,
-  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 interface DetailRow {
@@ -138,6 +135,9 @@ interface DetailRow {
 interface DepositRamps {
   state?: { autoramps?: AutorampCursor[] };
   refreshAutoramp?: (autorampId: string) => Promise<AutorampCursor>;
+  refreshAutorampTransactions?: (
+    autorampId: string,
+  ) => Promise<AutorampTransactionSummary[]>;
 }
 
 const isTerminalStatus = (status: string): boolean =>
@@ -285,6 +285,7 @@ const VbaDetails = () => {
   const pollingDoneRef = useRef(false);
   const pixFetchTraceIdRef = useRef<string | null>(null);
   const pixFetchTraceSettledRef = useRef(false);
+  const transactionsFetchedForRef = useRef<string | null>(null);
   const accountKey = `${walletAddress ?? ''}:${sourceCurrency ?? ''}`;
   const accountKeyRef = useRef(accountKey);
   const [stateAccountKey, setStateAccountKey] = useState(accountKey);
@@ -451,66 +452,85 @@ const VbaDetails = () => {
       const neoBank = (
         Engine.context as unknown as { NeoBankService?: DepositNeoBank }
       ).NeoBankService;
-      if (!neoBank) {
-        return;
-      }
-
-      // One logical trace covers all retries so polling cannot flood Sentry.
-      if (!pixFetchTraceIdRef.current && !pixFetchTraceSettledRef.current) {
-        pixFetchTraceIdRef.current = startVbaCufChildTrace(
-          TraceName.VbaPixFetch,
-        );
-      }
-      const requestTraceId = pixFetchTraceIdRef.current;
-      try {
-        const details = await neoBank.getDepositInstructions(autoramp.id);
-        if (!stillCurrent()) {
-          finishPixFetchTrace(
-            false,
-            isMountedRef.current
-              ? VBA_CUF_END_REASON.SUPERSEDED
-              : VBA_CUF_END_REASON.BAILED,
-            requestTraceId,
+      let depositError: unknown;
+      if (neoBank) {
+        // One logical trace covers all retries so polling cannot flood Sentry.
+        // Deposit details stay independent of the transaction refresh.
+        if (!pixFetchTraceIdRef.current && !pixFetchTraceSettledRef.current) {
+          pixFetchTraceIdRef.current = startVbaCufChildTrace(
+            TraceName.VbaPixFetch,
           );
-          return;
         }
-        if (details) {
-          finishPixFetchTrace(true, undefined, requestTraceId);
-          setCachedDepositInstructions(autoramp.id, details);
-          setInstructions(details);
-          // Debug builds keep polling so the latest deposit stays visible.
-          pollingDoneRef.current = !debugEnabled;
-        }
-      } catch (error) {
-        if (!stillCurrent()) {
-          finishPixFetchTrace(
-            false,
-            isMountedRef.current
-              ? VBA_CUF_END_REASON.SUPERSEDED
-              : VBA_CUF_END_REASON.BAILED,
-            requestTraceId,
-          );
-          return;
-        }
-        Logger.error(error as Error, {
-          message: 'VbaDetails: failed to load deposit instructions',
-        });
-        throw error;
-      }
-
-      if (debugEnabled && neoBank.listAutorampTransactions) {
+        const requestTraceId = pixFetchTraceIdRef.current;
         try {
-          const transactions = await neoBank.listAutorampTransactions(
+          const details = await neoBank.getDepositInstructions(autoramp.id);
+          if (!stillCurrent()) {
+            finishPixFetchTrace(
+              false,
+              isMountedRef.current
+                ? VBA_CUF_END_REASON.SUPERSEDED
+                : VBA_CUF_END_REASON.BAILED,
+              requestTraceId,
+            );
+            return;
+          }
+          if (details) {
+            finishPixFetchTrace(true, undefined, requestTraceId);
+            setCachedDepositInstructions(autoramp.id, details);
+            setInstructions(details);
+            // Debug builds keep polling so the latest deposit stays visible.
+            pollingDoneRef.current = !debugEnabled;
+          }
+        } catch (error) {
+          if (!stillCurrent()) {
+            finishPixFetchTrace(
+              false,
+              isMountedRef.current
+                ? VBA_CUF_END_REASON.SUPERSEDED
+                : VBA_CUF_END_REASON.BAILED,
+              requestTraceId,
+            );
+            return;
+          }
+          Logger.error(error as Error, {
+            message: 'VbaDetails: failed to load deposit instructions',
+          });
+          depositError = error;
+        }
+      }
+
+      const shouldRefreshTransactions =
+        Boolean(ramps.refreshAutorampTransactions) &&
+        (debugEnabled || transactionsFetchedForRef.current !== autoramp.id);
+      if (
+        stillCurrent() &&
+        shouldRefreshTransactions &&
+        ramps.refreshAutorampTransactions
+      ) {
+        try {
+          const transactions = await ramps.refreshAutorampTransactions(
             autoramp.id,
           );
-          setTransactionStatus(
-            pickLatestTransaction(transactions)?.status ?? null,
-          );
+          if (!stillCurrent()) {
+            return;
+          }
+          if (!debugEnabled) {
+            transactionsFetchedForRef.current = autoramp.id;
+          }
+          if (debugEnabled) {
+            setTransactionStatus(
+              pickLatestTransaction(transactions)?.status ?? null,
+            );
+          }
         } catch (error) {
           Logger.error(error as Error, {
-            message: 'VbaDetails: failed to list autoramp transactions',
+            message: 'VbaDetails: failed to refresh autoramp transactions',
           });
         }
+      }
+
+      if (depositError) {
+        throw depositError;
       }
     },
     [
@@ -533,6 +553,7 @@ const VbaDetails = () => {
     setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
+    transactionsFetchedForRef.current = null;
     setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
     setAwaitingProviderApproval(false);

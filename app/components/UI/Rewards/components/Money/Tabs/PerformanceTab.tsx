@@ -52,27 +52,10 @@ import {
   PerformanceCommissionRow,
   PerformanceRebateRow,
 } from '../PerformanceActivityRows';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
 
 /** Rows shown under each Performance section before "see all". */
 const PERFORMANCE_PREVIEW_COUNT = 5;
-
-export const PERFORMANCE_TAB_TEST_IDS = {
-  CONTAINER: 'rewards-money-performance-tab',
-  FUNNEL: 'rewards-money-performance-funnel',
-  FUNNEL_BAR: 'rewards-money-performance-funnel-bar',
-  COMMISSIONS: 'rewards-money-performance-commissions',
-  COMMISSIONS_HEADER: 'rewards-money-performance-commissions-header',
-  COMMISSIONS_DIVIDER: 'rewards-money-performance-commissions-divider',
-  REBATES: 'rewards-money-performance-rebates',
-  REBATES_HEADER: 'rewards-money-performance-rebates-header',
-  REBATES_DIVIDER: 'rewards-money-performance-rebates-divider',
-  FUNNEL_SKELETON: 'rewards-money-performance-funnel-skeleton',
-  FUNNEL_ERROR: 'rewards-money-performance-funnel-error',
-  COMMISSIONS_ERROR: 'rewards-money-performance-commissions-error',
-  COMMISSIONS_EMPTY: 'rewards-money-performance-commissions-empty',
-  REBATES_ERROR: 'rewards-money-performance-rebates-error',
-  REBATES_EMPTY: 'rewards-money-performance-rebates-empty',
-} as const;
 
 // ---------------------------------------------------------------------------
 // Derived state. Each source (funnel, commissions, rebates) reduces to the
@@ -279,7 +262,10 @@ const FunnelSection: React.FC<{
               </Text>
             </Box>
             {rows.map((row, index) => (
-              <Box key={row.key}>
+              <Box
+                key={row.key}
+                testID={`${PERFORMANCE_TAB_TEST_IDS.FUNNEL_ROW}-${row.key}`}
+              >
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   justifyContent={BoxJustifyContent.Between}
@@ -484,11 +470,7 @@ const PerformanceTab: React.FC<PerformanceTabProps> = ({
       ) : null}
       {commissions.show ? (
         <ActivitySection
-          title={
-            isReferrer
-              ? localizedText.tradeCommissions
-              : localizedText.tradingCommissionsSection
-          }
+          title={localizedText.tradingCommissionsSection}
           testIDs={{
             header: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_HEADER,
             divider: PERFORMANCE_TAB_TEST_IDS.COMMISSIONS_DIVIDER,
