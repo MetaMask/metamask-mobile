@@ -4,9 +4,8 @@ import type {
 } from '@metamask/profile-sync-controller/sdk';
 import { bytesToHex } from '@metamask/utils';
 
-/** Audience the dev MPC service accepts for 2FA approvals. */
-export const MPC_APPROVAL_AUDIENCE =
-  'https://oidc.dev-api.cx.metamask.io/oauth2/token';
+/** The dev MPC service, as the auth API lists it in its allowed audiences. */
+export const MPC_APPROVAL_AUDIENCE = 'mpc-service.dev-api.cx.metamask.io';
 
 export interface MpcTwoFactorApprovalOptions {
   requestMfaApproval: (
