@@ -19,10 +19,6 @@ import {
   getCachedDepositInstructions,
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
-import {
-  clearVbaProviderApprovalPending,
-  markVbaProviderApprovalPending,
-} from './vbaProviderApprovalStorage';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -111,18 +107,6 @@ jest.mock('./vbaCufTrace', () => ({
   endVbaCufChildTrace: jest.fn(),
   endVbaCufJourney: jest.fn(),
 }));
-
-jest.mock('./vbaProviderApprovalStorage', () => ({
-  markVbaProviderApprovalPending: jest.fn(() => Promise.resolve()),
-  clearVbaProviderApprovalPending: jest.fn(() => Promise.resolve()),
-}));
-
-const mockMarkVbaProviderApprovalPending = jest.mocked(
-  markVbaProviderApprovalPending,
-);
-const mockClearVbaProviderApprovalPending = jest.mocked(
-  clearVbaProviderApprovalPending,
-);
 
 const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
 const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
@@ -234,8 +218,6 @@ describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
-    mockMarkVbaProviderApprovalPending.mockResolvedValue();
-    mockClearVbaProviderApprovalPending.mockResolvedValue();
     resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
@@ -995,84 +977,22 @@ describe('VbaDetails', () => {
     );
   });
 
-  describe('when the provider has not activated the customer yet', () => {
-    beforeEach(() => {
-      setAutoramps([]);
-      mockHydrate.mockResolvedValue({
-        autorampStatus: 'not_ready',
-        kycStatus: 'approved',
-      });
+  it('keeps the details skeleton while the provider has not activated the customer', async () => {
+    setAutoramps([]);
+    mockHydrate.mockResolvedValue({
+      autorampStatus: 'not_ready',
+      kycStatus: 'approved',
     });
 
-    it('navigates to Money home', async () => {
-      renderWithProvider(<VbaDetails />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
-      });
-    });
-
-    it('marks provider approval as pending for the wallet', async () => {
-      renderWithProvider(<VbaDetails />);
-
-      await waitFor(() => {
-        expect(mockMarkVbaProviderApprovalPending).toHaveBeenCalledWith(
-          '0xabc',
-        );
-      });
-      expect(mockClearVbaProviderApprovalPending).not.toHaveBeenCalled();
-    });
-
-    it('ends the journey as awaiting the provider', async () => {
-      renderWithProvider(<VbaDetails />);
-
-      await waitFor(() => {
-        expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
-          false,
-          VBA_CUF_END_REASON.AWAITING_PROVIDER,
-        );
-      });
-    });
-
-    it('does not create the autoramp or fetch instructions', async () => {
-      renderWithProvider(<VbaDetails />);
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalled();
-      });
-      expect(mockCreateAutoramp).not.toHaveBeenCalled();
-      expect(mockGetDepositInstructions).not.toHaveBeenCalled();
-    });
-
-    it('stops polling', async () => {
-      jest.useFakeTimers();
-      try {
-        renderWithProvider(<VbaDetails />);
-        await waitFor(() => {
-          expect(mockNavigate).toHaveBeenCalled();
-        });
-
-        await act(async () => {
-          jest.advanceTimersByTime(30_000);
-        });
-
-        expect(mockHydrate).toHaveBeenCalledTimes(1);
-      } finally {
-        jest.useRealTimers();
-      }
-    });
-  });
-
-  it('clears the pending provider approval once a usable autoramp exists', async () => {
-    renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockClearVbaProviderApprovalPending).toHaveBeenCalledWith('0xabc');
+      expect(mockHydrate).toHaveBeenCalled();
     });
-    expect(mockMarkVbaProviderApprovalPending).not.toHaveBeenCalled();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {

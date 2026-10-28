@@ -981,17 +981,6 @@ describe('MoneyHomeView', () => {
       );
     });
 
-    it('renders the account_pending card', () => {
-      mockUseVbaHomeCard.mockReturnValue({
-        type: 'account_pending',
-      } as VbaHomeCard);
-
-      expectOnlyVbaCard(
-        renderWithProvider(<MoneyHomeView />),
-        MONEY_VBA_HOME_CARD_TEST_IDS.account_pending.CONTAINER,
-      );
-    });
-
     it('renders the kyc_pending card', () => {
       mockUseVbaHomeCard.mockReturnValue({
         type: 'kyc_pending',
