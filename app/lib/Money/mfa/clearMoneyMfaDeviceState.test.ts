@@ -22,6 +22,7 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountController: {
+        state: { moneyAccounts: {} },
         createMoneyAccount: jest.fn(() => Promise.resolve({ id: 'mpc' })),
         setDefaultMoneyAccount: jest.fn(),
       },

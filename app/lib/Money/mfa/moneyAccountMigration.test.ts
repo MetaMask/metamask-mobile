@@ -20,6 +20,7 @@ jest.mock('../../../core/Engine', () => ({
   default: {
     context: {
       MoneyAccountController: {
+        state: { moneyAccounts: {} },
         createMoneyAccount: jest.fn(),
         setDefaultMoneyAccount: jest.fn(),
       },
@@ -50,6 +51,7 @@ describe('moneyAccountMigration', () => {
   afterEach(() => {
     moneyAccountMigration.reset();
     jest.clearAllMocks();
+    mockMoneyAccountController.state.moneyAccounts = {};
   });
 
   it('starts as not started', () => {
@@ -121,6 +123,28 @@ describe('moneyAccountMigration', () => {
     await expect(promise).rejects.toThrow('cancelled');
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
     expect(mockSetItem).not.toHaveBeenCalled();
+    expect(
+      mockMoneyAccountController.setDefaultMoneyAccount,
+    ).not.toHaveBeenCalled();
+  });
+
+  it('reuses an MPC Money account an earlier run created', async () => {
+    mockMoneyAccountController.state.moneyAccounts = {
+      'mpc-existing': {
+        id: 'mpc-existing',
+        options: { entropy: { type: KeyringAccountEntropyTypeOption.Mpc } },
+      },
+    } as unknown as typeof mockMoneyAccountController.state.moneyAccounts;
+
+    await moneyAccountMigration.start();
+
+    expect(
+      mockMoneyAccountController.createMoneyAccount,
+    ).not.toHaveBeenCalled();
+    expect(
+      mockMoneyAccountController.setDefaultMoneyAccount,
+    ).toHaveBeenCalledWith('mpc-existing');
+    expect(moneyAccountMigration.getStatus()).toBe('done');
   });
 
   it('saves each status and notifies subscribers', async () => {
