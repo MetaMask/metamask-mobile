@@ -214,7 +214,7 @@ describe('QuickBuyActionFooter', () => {
 
     expect(screen.getByTestId('quick-buy-est-receive-row')).toHaveStyle({
       minHeight: 24,
-      marginBottom: 20,
+      marginBottom: 16,
     });
   });
 
