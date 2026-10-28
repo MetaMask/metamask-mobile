@@ -4,7 +4,8 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { REFERER_HERO_CARD_TEST_IDS } from '../RefererHeroCard';
 import { REFEREE_HERO_CARD_TEST_IDS } from '../RefereeHeroCard';
 import { REWARDS_OPT_IN_SECTION_TEST_IDS } from '../RewardsOptInSection';
-import WaysToEarnTab, { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab';
+import WaysToEarnTab from './WaysToEarnTab';
+import { WAYS_TO_EARN_TAB_TEST_IDS } from './WaysToEarnTab.testIds';
 
 const PROFILE_ID = 'profile-a';
 

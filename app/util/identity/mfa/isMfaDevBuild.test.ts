@@ -1,18 +1,18 @@
-import { isMfaKitEnabled } from './isMfaKitEnabled';
+import { isMfaDevBuild } from './isMfaDevBuild';
 
-describe('isMfaKitEnabled', () => {
+describe('isMfaDevBuild', () => {
   it.each(['production', 'beta'])('returns false in %s builds', (env) => {
-    expect(isMfaKitEnabled(env)).toBe(false);
+    expect(isMfaDevBuild(env)).toBe(false);
   });
 
   it.each(['dev', 'rc', 'exp', 'e2e', 'test'])(
     'returns true in %s builds',
     (env) => {
-      expect(isMfaKitEnabled(env)).toBe(true);
+      expect(isMfaDevBuild(env)).toBe(true);
     },
   );
 
   it('is enabled in the unit test build', () => {
-    expect(isMfaKitEnabled()).toBe(true);
+    expect(isMfaDevBuild()).toBe(true);
   });
 });

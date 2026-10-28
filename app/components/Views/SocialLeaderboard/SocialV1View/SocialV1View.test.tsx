@@ -84,6 +84,7 @@ jest.mock('../../../UI/SocialFeed/components/SocialFeed', () => {
   ) as typeof import('react-native');
 
   interface MockSocialFeedProps {
+    location?: string;
     realtime?: boolean;
     filterPost?: (post: unknown) => boolean;
     renderHeader?: (props: {
@@ -370,14 +371,25 @@ describe('SocialV1View', () => {
     );
   });
 
-  it('renders the three mocked position cards on Trending', () => {
+  it('renders Trending through the shared virtualized feed', () => {
     renderWithProvider(<SocialV1View />);
 
-    MOCK_SOCIAL_V1_FEED_ITEMS.forEach((item) => {
-      expect(
-        screen.getByTestId(getSocialFeedPositionCardTestId(item.id)),
-      ).toBeOnTheScreen();
-    });
+    const trendingFeed = mockSocialFeed.mock.calls
+      .map(([props]) => props)
+      .filter((props) => props.location === 'social_trending')
+      .pop();
+
+    expect(trendingFeed).toEqual(
+      expect.objectContaining({
+        scrollMode: 'virtualized',
+        showMockedFields: true,
+        isActive: true,
+        onCopyTrade: expect.any(Function),
+        performance: expect.objectContaining({ tab: 'trending' }),
+        testID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-content`,
+        scrollTestID: `${SocialV1ViewSelectorsIDs.TRENDING_PAGE}-scroll`,
+      }),
+    );
   });
 
   it('emits TSA-1122 exposure when the v1 home opens', () => {
@@ -776,13 +788,12 @@ describe('SocialV1View', () => {
     );
 
     expect(
-      screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getAllByTestId(
+      within(
+        screen.getByTestId(SocialV1ViewSelectorsIDs.FOLLOWING_PAGE),
+      ).getByTestId(
         getSocialFeedPositionCardTestId(MOCK_SOCIAL_V1_FEED_ITEMS[0].id),
       ),
-    ).toHaveLength(2);
+    ).toBeOnTheScreen();
   });
 
   it('insets the header avatar so it shares the 16px tab padding', () => {
