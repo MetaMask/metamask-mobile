@@ -17,6 +17,7 @@ import {
   TextColor,
   Text,
   TextVariant,
+  FontWeight,
   TextField,
   ButtonSize,
   BoxAlignItems,
@@ -350,24 +351,31 @@ const ManualBackupStep1 = () => {
   const renderSeedphraseView = () => (
     <Box twClassName="flex-1 justify-between">
       <Box
-        twClassName="flex-1 flex-col gap-4"
+        twClassName="flex-1 flex-col gap-6"
         testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
       >
-        <Box gap={1}>
-          <TitleStandard
-            title={strings('manual_backup_step_1.action')}
-            bottomLabel={strings('manual_backup_step_1.description')}
-          />
-          <TextButton
-            variant={TextVariant.BodySm}
-            onPress={showWhatIsSeedphrase}
-            testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
-          >
-            {strings('manual_backup_step_1.what_is_srp')}
-          </TextButton>
-        </Box>
+        <TitleStandard
+          title={strings('manual_backup_step_1.action')}
+          bottomLabel={
+            <Text
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={TextColor.TextAlternative}
+              twClassName="flex-1"
+            >
+              {strings('manual_backup_step_1.description')}{' '}
+              <TextButton
+                variant={TextVariant.BodySm}
+                onPress={showWhatIsSeedphrase}
+                testID={ManualBackUpStepsSelectorsIDs.SEEDPHRASE_LINK}
+              >
+                {strings('manual_backup_step_1.what_is_srp')}
+              </TextButton>
+            </Text>
+          }
+        />
         {seedPhraseHidden ? (
-          <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+          <Box twClassName="bg-default rounded-xl flex-row border border-muted min-h-[230px]">
             {renderSeedPhraseConcealer()}
           </Box>
         ) : (

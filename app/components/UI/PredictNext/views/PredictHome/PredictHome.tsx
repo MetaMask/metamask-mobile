@@ -12,47 +12,65 @@ import {
 } from '@metamask/design-system-react-native';
 import Reanimated from 'react-native-reanimated';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
-import { useFeed } from '../../hooks/useFeed';
 import { useEventsWithLiveData } from '../../hooks/useEventsWithLiveData';
 import { useBalance } from '../../hooks/useBalance';
 import {
   FEED_SCREENS,
-  NCAA_FEED_SCREEN_ID,
-  NFL_FEED_SCREEN_ID,
-  getFeedScreenTab,
+  type FeedScreenDefinition,
   type FeedScreenId,
 } from '../../navigation/feedScreens';
+import {
+  PREDICT_SURFACE_FEED_KEYS,
+  canPerformVenueAction,
+  isVenueSearchSupported,
+  resolveSurfaceFeeds,
+  useVenueCapabilities,
+  type PredictVenueCapabilities,
+} from '../../capabilities';
+import { useNextVenueId } from '../../implementation';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
 import { usePredictOrderFlow } from '../PredictOrderFlow';
-import {
-  KALSHI_VENUE_ID,
-  type PredictEvent,
-  type PredictMarket,
-  type PredictOutcome,
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+  PredictVenueId,
 } from '../../types';
 import { TraceName } from '../../../../../util/trace';
 import { BalanceSummary } from './internal/BalanceSummary';
 import { FeedPreviewSection } from './internal/FeedPreviewSection';
+import {
+  HOME_SECTION_IDS,
+  HomeFeedReads,
+  type HomeFeedRead,
+} from './internal/HomeFeedReads';
+import { HomeSectionsStatus } from './internal/HomeSectionsStatus';
 import { PortfolioActions } from './internal/PortfolioActions';
 import { useVisibleSections } from './internal/useVisibleSections';
 import { PredictHomeTestIds } from './PredictHome.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
-const PREVIEW_LIMIT = 2;
-const NO_EVENTS: readonly PredictEvent[] = [];
-const NFL_GAMES_FEED_ID = getFeedScreenTab(
-  FEED_SCREENS[NFL_FEED_SCREEN_ID],
-).feedId;
-const NCAA_GAMES_FEED_ID = getFeedScreenTab(
-  FEED_SCREENS[NCAA_FEED_SCREEN_ID],
-).feedId;
-const FEED_SECTION_IDS: readonly FeedScreenId[] = [
-  NFL_FEED_SCREEN_ID,
-  NCAA_FEED_SCREEN_ID,
-];
+const sectionTitle = (sectionId: FeedScreenId) => {
+  const feedScreen: FeedScreenDefinition = FEED_SCREENS[sectionId];
+  return feedScreen.selectionLabel ?? feedScreen.title;
+};
 
-export const PredictHome = () => {
+interface PredictHomeViewProps {
+  venueId: PredictVenueId;
+  capabilities: PredictVenueCapabilities;
+  /** How many sections the Venue supports. */
+  sectionCount: number;
+  /** One read per Home section, supported or not, in display order. */
+  reads: readonly HomeFeedRead[];
+}
+
+const PredictHomeView = ({
+  venueId,
+  capabilities,
+  sectionCount,
+  reads,
+}: PredictHomeViewProps) => {
   const navigation =
     useNavigation<NativeStackNavigationProp<PredictNextStackParamList>>();
   const isFocused = useIsFocused();
@@ -64,62 +82,51 @@ export const PredictHome = () => {
     onContentLayout,
     onSectionLayout,
     onScrollSettled,
-  } = useVisibleSections({ keys: FEED_SECTION_IDS, scrollY });
-  const balanceQuery = useBalance(KALSHI_VENUE_ID);
-  const nflQuery = useFeed(KALSHI_VENUE_ID, NFL_GAMES_FEED_ID, {
-    limit: PREVIEW_LIMIT,
-  });
-  const ncaaQuery = useFeed(KALSHI_VENUE_ID, NCAA_GAMES_FEED_ID, {
-    limit: PREVIEW_LIMIT,
-  });
-  const feedNflEvents = useMemo(
-    () => nflQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
-    [nflQuery.data],
-  );
-  const feedNcaaEvents = useMemo(
-    () => ncaaQuery.data?.pages[0]?.events.slice(0, PREVIEW_LIMIT) ?? NO_EVENTS,
-    [ncaaQuery.data],
-  );
+  } = useVisibleSections({ keys: HOME_SECTION_IDS, scrollY });
+  const balanceQuery = useBalance(venueId);
+  const canBuy = canPerformVenueAction(capabilities, 'buy');
   const feedEvents = useMemo(
-    () => [...feedNflEvents, ...feedNcaaEvents],
-    [feedNflEvents, feedNcaaEvents],
+    () => reads.flatMap((read) => read.events),
+    [reads],
   );
   // Section-level visibility: every Event of a section that overlaps the
   // viewport is watched; a section scrolled fully out releases all of its Events.
   const visibleEventIds = useMemo(
     () =>
-      FEED_SECTION_IDS.flatMap((sectionId) => {
-        if (!visibleKeys.includes(sectionId)) {
-          return [];
-        }
-        const sectionEvents =
-          sectionId === NFL_FEED_SCREEN_ID ? feedNflEvents : feedNcaaEvents;
-        return sectionEvents.map((event) => event.id);
-      }),
-    [visibleKeys, feedNflEvents, feedNcaaEvents],
+      reads.flatMap((read) =>
+        visibleKeys.includes(read.sectionId)
+          ? read.events.map((event) => event.id)
+          : [],
+      ),
+    [visibleKeys, reads],
   );
-  const liveEvents = useEventsWithLiveData(KALSHI_VENUE_ID, feedEvents, {
+  const liveEvents = useEventsWithLiveData(venueId, feedEvents, {
     visibleEventIds,
     isVisible: isFocused,
     marketScope: 'card',
   });
-  const nflEvents = useMemo(
-    () => liveEvents.slice(0, feedNflEvents.length),
-    [liveEvents, feedNflEvents.length],
-  );
-  const ncaaEvents = useMemo(
-    () => liveEvents.slice(feedNflEvents.length),
-    [liveEvents, feedNflEvents.length],
-  );
+  // Splits the live Events back into their sections, in read order.
+  const sections = useMemo(() => {
+    const result: HomeFeedRead[] = [];
+    let start = 0;
+    for (const read of reads) {
+      const end = start + read.events.length;
+      result.push({ ...read, events: liveEvents.slice(start, end) });
+      start = end;
+    }
+    return result;
+  }, [reads, liveEvents]);
 
   usePredictNextMeasurement({
     traceName: TraceName.PredictNextHomeView,
-    conditions: [!nflQuery.isLoading, !ncaaQuery.isLoading],
+    conditions: [
+      capabilities.status !== 'loading',
+      ...reads.map((read) => !read.isLoading),
+    ],
     debugContext: {
-      nflEventCount: nflEvents.length,
-      nflError: nflQuery.isError,
-      ncaaEventCount: ncaaEvents.length,
-      ncaaError: ncaaQuery.isError,
+      sectionCount,
+      eventCount: liveEvents.length,
+      sectionErrorCount: reads.filter((read) => read.isError).length,
     },
   });
 
@@ -135,24 +142,24 @@ export const PredictHome = () => {
   const openPortfolio = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.PORTFOLIO, {
-        venueId: KALSHI_VENUE_ID,
+        venueId,
       }),
-    [navigation],
+    [navigation, venueId],
   );
   const openSearch = useCallback(
     () =>
       navigation.navigate(PredictNextRoutes.SEARCH, {
-        venueId: KALSHI_VENUE_ID,
+        venueId,
       }),
-    [navigation],
+    [navigation, venueId],
   );
   const openFeedScreen = useCallback(
     (feedScreenId: FeedScreenId) =>
       navigation.navigate(PredictNextRoutes.FEED, {
-        venueId: KALSHI_VENUE_ID,
+        venueId,
         feedScreenId,
       }),
-    [navigation],
+    [navigation, venueId],
   );
   const { openOrderFlow } = usePredictOrderFlow();
   const openEvent = useCallback(
@@ -189,15 +196,21 @@ export const PredictHome = () => {
         titleProps={{ testID: PredictHomeTestIds.HEADER_TITLE }}
         scrollY={scrollY}
         titleSectionHeight={titleSectionHeightSv}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Search,
-            onPress: openSearch,
-            testID: PredictHomeTestIds.SEARCH,
-            accessibilityLabel: strings('predict_next.search.placeholder'),
-            accessibilityRole: 'button',
-          },
-        ]}
+        endButtonIconProps={
+          isVenueSearchSupported(capabilities)
+            ? [
+                {
+                  iconName: IconName.Search,
+                  onPress: openSearch,
+                  testID: PredictHomeTestIds.SEARCH,
+                  accessibilityLabel: strings(
+                    'predict_next.search.placeholder',
+                  ),
+                  accessibilityRole: 'button',
+                },
+              ]
+            : undefined
+        }
         {...(navigation.canGoBack()
           ? {
               onBack: () => navigation.goBack(),
@@ -227,41 +240,66 @@ export const PredictHome = () => {
           <BalanceSummary
             balance={balanceQuery.data}
             isLoading={balanceQuery.isPending}
-            isError={balanceQuery.isError}
+            error={balanceQuery.error}
             onRetry={() => balanceQuery.refetch()}
           />
-          <PortfolioActions
-            onPositionsPress={openPortfolio}
-            // TODO(PRED-1162): Wire funding actions when the funding slice lands.
-            onAddFundsPress={() => undefined}
-            onWithdrawPress={() => undefined}
+          {/* Funding actions appear when PRED-1162 ships them and the
+              Venue descriptor lists deposit or withdraw. */}
+          <PortfolioActions onPositionsPress={openPortfolio} />
+          <HomeSectionsStatus
+            capabilities={capabilities}
+            hasSections={sectionCount > 0}
           />
-          <FeedPreviewSection
-            feedScreenId={NFL_FEED_SCREEN_ID}
-            onLayout={onSectionLayout(NFL_FEED_SCREEN_ID)}
-            title={FEED_SCREENS[NFL_FEED_SCREEN_ID].selectionLabel}
-            events={nflEvents}
-            isLoading={nflQuery.isLoading}
-            isError={nflQuery.isError}
-            onOpen={() => openFeedScreen(NFL_FEED_SCREEN_ID)}
-            onOpenEvent={openEvent}
-            onOrder={openOrder}
-            onRetry={() => nflQuery.refetch()}
-          />
-          <FeedPreviewSection
-            feedScreenId={NCAA_FEED_SCREEN_ID}
-            onLayout={onSectionLayout(NCAA_FEED_SCREEN_ID)}
-            title={FEED_SCREENS[NCAA_FEED_SCREEN_ID].selectionLabel}
-            events={ncaaEvents}
-            isLoading={ncaaQuery.isLoading}
-            isError={ncaaQuery.isError}
-            onOpen={() => openFeedScreen(NCAA_FEED_SCREEN_ID)}
-            onOpenEvent={openEvent}
-            onOrder={openOrder}
-            onRetry={() => ncaaQuery.refetch()}
-          />
+          {sections.map((section) =>
+            section.feedId ? (
+              <FeedPreviewSection
+                key={section.sectionId}
+                feedScreenId={section.sectionId}
+                onLayout={onSectionLayout(section.sectionId)}
+                title={sectionTitle(section.sectionId)}
+                events={section.events}
+                isLoading={section.isLoading}
+                isError={section.isError}
+                onOpen={() => openFeedScreen(section.sectionId)}
+                onOpenEvent={openEvent}
+                onOrder={canBuy ? openOrder : undefined}
+                onRetry={section.refetch}
+              />
+            ) : null,
+          )}
         </Box>
       </Reanimated.ScrollView>
     </Box>
+  );
+};
+
+/**
+ * The PredictNext home for the Active Venue. Its sections are the rows of the
+ * surface table whose Feed key the Venue's descriptor maps to a Feed.
+ */
+export const PredictHome = () => {
+  const venueId = useNextVenueId();
+  const capabilities = useVenueCapabilities(venueId);
+  // A section renders, and its Feed is read, only when the Venue has its key.
+  const sectionFeeds = useMemo(
+    () =>
+      resolveSurfaceFeeds(
+        capabilities,
+        PREDICT_SURFACE_FEED_KEYS.nextHomeSections,
+      ),
+    [capabilities],
+  );
+
+  return (
+    <HomeFeedReads venueId={venueId} sectionFeeds={sectionFeeds}>
+      {(reads) => (
+        <PredictHomeView
+          venueId={venueId}
+          capabilities={capabilities}
+          sectionCount={sectionFeeds.length}
+          reads={reads}
+        />
+      )}
+    </HomeFeedReads>
   );
 };

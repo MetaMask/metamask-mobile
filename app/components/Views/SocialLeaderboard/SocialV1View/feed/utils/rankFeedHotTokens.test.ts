@@ -11,8 +11,12 @@ import {
   getSocialV1HotTokenId,
   pinSelectedHotToken,
   rankFeedHotTokens,
+  SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT,
   SOCIAL_V1_HOT_TOKEN_LIMIT,
 } from './rankFeedHotTokens';
+
+const SOLANA_MAINNET = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+const PUMP_MINT = 'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn';
 
 const postFor = (item: SocialV1FeedItem): SocialV1FeedPost => ({
   id: `post-${item.id}`,
@@ -86,14 +90,14 @@ describe('rankFeedHotTokens', () => {
       'asset:BTC',
     ]);
     expect(tokens[0]?.symbol).toBe('xyz:PUMP');
-    expect(tokens[0]?.chain).toBe('solana');
-    expect(tokens[0]?.contractAddress).toBe(
-      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-    );
-    expect(tokens[1]?.contractAddress).toBeUndefined();
+    expect(tokens[0]?.assetIds).toEqual([
+      `${SOLANA_MAINNET}/token:${PUMP_MINT}`,
+      'eip155:999/perp:xyz.PUMP',
+    ]);
+    expect(tokens[1]?.assetIds).toEqual(['eip155:999/perp:BTC']);
   });
 
-  it('fills the contract from a later spot row when the first row is a perp', () => {
+  it('collects the spot asset from a later row when the first row is a perp', () => {
     const posts = [
       postFor(
         mockOpenPerpsFeedItem({
@@ -115,11 +119,96 @@ describe('rankFeedHotTokens', () => {
 
     const [pump] = rankFeedHotTokens(posts);
 
-    expect(pump?.chain).toBe('solana');
-    expect(pump?.contractAddress).toBe(
-      'pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn',
-    );
+    expect(pump?.assetIds).toEqual([
+      'eip155:999/perp:xyz.PUMP',
+      `${SOLANA_MAINNET}/token:${PUMP_MINT}`,
+    ]);
     expect(pump?.symbol).toBe('xyz:PUMP');
+  });
+
+  it('orders a chip’s asset ids by how often each appears', () => {
+    const basePump = (id: string) =>
+      postFor(
+        mockOpenSpotFeedItem({
+          id,
+          asset: {
+            symbol: 'PUMP',
+            avatar: {
+              positionId: id,
+              chain: 'base',
+              tokenAddress: '0xABC',
+              tokenImageUrl: null,
+              tokenSymbol: 'PUMP',
+            },
+          },
+        }),
+      );
+    const posts = [
+      postFor(mockOpenSpotFeedItem()),
+      basePump('base-pump-1'),
+      basePump('base-pump-2'),
+    ];
+
+    const [pump] = rankFeedHotTokens(posts);
+
+    expect(pump?.assetIds).toEqual([
+      'eip155:8453/erc20:0xabc',
+      `${SOLANA_MAINNET}/token:${PUMP_MINT}`,
+    ]);
+  });
+
+  it('caps a chip at ten asset ids', () => {
+    const posts = Array.from(
+      { length: SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT + 1 },
+      (_, index) =>
+        postFor(
+          mockOpenSpotFeedItem({
+            id: `pepe-${index}`,
+            asset: {
+              symbol: 'PEPE',
+              avatar: {
+                positionId: `pepe-${index}`,
+                chain: 'base',
+                tokenAddress: `0x${String(index).padStart(40, '0')}`,
+                tokenImageUrl: null,
+                tokenSymbol: 'PEPE',
+              },
+            },
+          }),
+        ),
+    );
+
+    const [pepe] = rankFeedHotTokens(posts);
+
+    expect(pepe?.assetIds).toHaveLength(SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT);
+    expect(pepe?.assetIds).not.toContain(
+      `eip155:8453/erc20:0x${String(SOCIAL_V1_HOT_TOKEN_ASSET_ID_LIMIT).padStart(40, '0')}`,
+    );
+  });
+
+  it('skips a chip with no asset id the feed can filter by', () => {
+    const posts = [
+      postFor(
+        mockOpenSpotFeedItem({
+          id: 'arb-spot',
+          asset: {
+            symbol: 'ARB',
+            avatar: {
+              positionId: 'arb-spot',
+              chain: 'arbitrum-nova',
+              tokenAddress: '0x1',
+              tokenImageUrl: null,
+              tokenSymbol: 'ARB',
+            },
+          },
+        }),
+      ),
+      postFor(ticker('ETH')),
+    ];
+
+    expect(rankFeedHotTokens(posts).map((token) => token.id)).toEqual([
+      'asset:ETH',
+    ]);
   });
 
   it('uses the asset name as the chip label when the feed has one', () => {

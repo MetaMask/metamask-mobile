@@ -8,10 +8,10 @@ import type {
   PredictLiveDataServiceEvents,
 } from '../../../components/UI/PredictNext/services/PredictLiveDataService';
 import {
-  KALSHI_VENUE_ID,
   type PredictEntityId,
   type PredictTimestamp,
 } from '../../../components/UI/PredictNext/types';
+import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PredictMarketDataServiceGetEventAction } from '../../../components/UI/PredictNext/services/PredictMarketDataService';
 import {

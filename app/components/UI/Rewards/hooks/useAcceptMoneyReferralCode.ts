@@ -159,6 +159,7 @@ function runIfMounted(isMounted: boolean, update: () => void): void {
 type ValidationOutcome =
   | { kind: 'thrown'; error: unknown }
   | { kind: 'invalid'; message: string }
+  | { kind: 'unknown' }
   | { kind: 'ok' };
 
 async function validationOutcome(
@@ -174,13 +175,10 @@ async function validationOutcome(
   if (!validationError) {
     return { kind: 'ok' };
   }
-  return {
-    kind: 'invalid',
-    message:
-      validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR
-        ? strings('rewards.error_messages.something_went_wrong')
-        : validationError,
-  };
+  if (validationError === MONEY_REFERRAL_CODE_UNKNOWN_ERROR) {
+    return { kind: 'unknown' };
+  }
+  return { kind: 'invalid', message: validationError };
 }
 
 function openAcceptedSplash(
@@ -348,15 +346,15 @@ export const useAcceptMoneyReferralCode =
             return { accepted: false, refusalReason: refusal };
           }
           if (validation.kind === 'invalid') {
-            // A failed validation call is not a code the server rejected, so it
-            // does not claim the code is invalid and does not emit refused.
             runIfMounted(isMountedRef.current, () => {
               setErrorMessage(validation.message);
-              setRefusalReason(null);
+              setRefusalReason('invalid_code');
             });
-            return { accepted: false };
+            return { accepted: false, refusalReason: 'invalid_code' };
           }
 
+          // An unknown validate result could not reach the server. Register is
+          // the authority, matching extension.
           try {
             await Engine.controllerMessenger.call(
               'RewardsMoneyController:registerReferee',

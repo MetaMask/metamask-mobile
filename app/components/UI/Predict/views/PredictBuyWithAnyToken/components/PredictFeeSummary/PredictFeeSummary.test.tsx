@@ -1,5 +1,4 @@
 import React from 'react';
-import { DiscountType } from '@metamask/bridge-controller';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { TouchableOpacity } from 'react-native';
 import PredictFeeSummary from './PredictFeeSummary';
@@ -187,14 +186,27 @@ describe('PredictFeeSummary', () => {
     render(
       <PredictFeeSummary
         {...baseProps}
-        feePolicyDiscountType={DiscountType.SUBSCRIPTION}
         originalTotal={15}
+        feePolicy={{ builderCode: 'predict-pro-builder' }}
       />,
     );
 
     expect(screen.getByText('$15.00')).toBeOnTheScreen();
     expect(screen.getByText('$13.50')).toBeOnTheScreen();
     expect(screen.getByTestId('rewards-member-badge')).toBeOnTheScreen();
+  });
+
+  it('hides the original total without a fee policy builder code', () => {
+    render(
+      <PredictFeeSummary
+        {...baseProps}
+        originalTotal={15}
+        feePolicy={{ builderCode: '' }}
+      />,
+    );
+
+    expect(screen.queryByText('$15.00')).not.toBeOnTheScreen();
+    expect(screen.queryByTestId('rewards-member-badge')).not.toBeOnTheScreen();
   });
 
   it('renders rewards animation in idle state for opted-in accounts', () => {

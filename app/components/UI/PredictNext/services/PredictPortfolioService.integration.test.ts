@@ -2,7 +2,7 @@ import { hashKey } from '@tanstack/query-core';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const position = {
   venueId: 'kalshi',
@@ -307,7 +307,10 @@ describe('PredictNext account-scoped Portfolio reads', () => {
         'PredictPortfolioService:invalidateQueries',
         { queryKey: positionsFamily },
       );
-      dateNow.mockRestore();
+      // `Date.now` is a suite-wide mock in the test setup: restore its value
+      // rather than the (non-existent) real implementation, which would leave
+      // the clock undefined for every later test in this file.
+      dateNow.mockReturnValue(123);
 
       await untilCacheCarries(updates, '37.50');
       const latest = updates[updates.length - 1];
@@ -342,6 +345,180 @@ describe('PredictNext account-scoped Portfolio reads', () => {
       );
 
       expect(harness.fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('platform reset', () => {
+    /** Real-timer poll so cancelled reads and their late responses settle. */
+    const until = async (
+      condition: () => boolean,
+      timeoutMs = 1_000,
+    ): Promise<void> => {
+      const deadline = Date.now() + timeoutMs;
+      while (!condition()) {
+        if (Date.now() > deadline) {
+          throw new Error('Timed out waiting for the reads to settle');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+    };
+
+    /** Collects the granular cache updates published for one query hash. */
+    const collectCacheUpdates = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      hash: string,
+    ): DataServiceGranularCacheUpdatedPayload[] => {
+      const updates: DataServiceGranularCacheUpdatedPayload[] = [];
+      harness.messenger.subscribe(
+        `PredictPortfolioService:cacheUpdated:${hash}`,
+        (payload) => updates.push(payload),
+      );
+      return updates;
+    };
+
+    /** A response the test releases when it wants the read to settle. */
+    const defer = () => {
+      let release: (result: { body: unknown }) => void = () => undefined;
+      const promise = new Promise<{ body: unknown }>((resolve) => {
+        release = resolve;
+      });
+      return { promise, release: (body: unknown) => release({ body }) };
+    };
+
+    const callsTo = (
+      harness: ReturnType<typeof createPredictNextIntegrationHarness>,
+      path: string,
+    ): number =>
+      harness.fetchMock.mock.calls.filter(([url]) => String(url).includes(path))
+        .length;
+
+    it('cancels in-flight reads and discards their late responses', async () => {
+      const balance = defer();
+      const positions = defer();
+      const activity = defer();
+      const harness = buildPredictNextIntegrationHarness((url) => {
+        if (String(url).endsWith('/balance')) {
+          return balance.promise;
+        }
+        if (String(url).includes('/positions')) {
+          return positions.promise;
+        }
+        if (String(url).includes('/activity')) {
+          return activity.promise;
+        }
+        return { status: 404 };
+      });
+      const updates: DataServiceGranularCacheUpdatedPayload[] = [];
+      [
+        ['PredictPortfolioService:getBalance', KALSHI_VENUE_ID],
+        [
+          'PredictPortfolioService:getPositions',
+          KALSHI_VENUE_ID,
+          { limit: 20 },
+        ],
+        ['PredictPortfolioService:getActivity', KALSHI_VENUE_ID, { limit: 20 }],
+      ].forEach((queryKey) =>
+        harness.messenger.subscribe(
+          `PredictPortfolioService:cacheUpdated:${hashKey(queryKey)}`,
+          (payload) => updates.push(payload),
+        ),
+      );
+
+      const reads = [
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+        harness.messenger.call(
+          'PredictPortfolioService:getPositions',
+          KALSHI_VENUE_ID,
+          { limit: 20 },
+        ),
+        harness.messenger.call(
+          'PredictPortfolioService:getActivity',
+          KALSHI_VENUE_ID,
+          { limit: 20 },
+        ),
+      ];
+      await until(() => callsTo(harness, '/activity') === 1);
+      expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+
+      // The platform reset runs while all three reads are in flight.
+      await harness.portfolioService.clearAccountData();
+
+      // Their callers fail rather than receive the previous person's data.
+      const settled = await Promise.allSettled(reads);
+      expect(settled.map((result) => result.status)).toEqual([
+        'rejected',
+        'rejected',
+        'rejected',
+      ]);
+
+      // The previous person's responses arrive afterwards: they never reach
+      // the cache or the updates a UI query client hydrates from.
+      const publishedBefore = updates.length;
+      balance.release({
+        venueId: 'kalshi',
+        currency: 'USD',
+        available: '100.00',
+      });
+      positions.release({ venueId: 'kalshi', positions: [position] });
+      activity.release({ venueId: 'kalshi', activity: [fill] });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      const late = updates.slice(publishedBefore);
+      expect(JSON.stringify(late)).not.toContain('100.00');
+      expect(JSON.stringify(late)).not.toContain('LAL');
+      // The cancelled reads made no further request.
+      expect(harness.fetchMock).toHaveBeenCalledTimes(3);
+    });
+
+    it('refetches a cached Balance that is still inside its stale time', async () => {
+      let available = '100.00';
+      const harness = buildPredictNextIntegrationHarness((url) =>
+        String(url).endsWith('/balance')
+          ? { body: { venueId: 'kalshi', currency: 'USD', available } }
+          : { status: 404 },
+      );
+      const updates = collectCacheUpdates(
+        harness,
+        hashKey(['PredictPortfolioService:getBalance', KALSHI_VENUE_ID]),
+      );
+
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '100.00' });
+      // A second read inside the stale time is served from the cache, so the
+      // venue is not called again.
+      await harness.messenger.call(
+        'PredictPortfolioService:getBalance',
+        KALSHI_VENUE_ID,
+      );
+      expect(callsTo(harness, '/balance')).toBe(1);
+
+      available = '5.00';
+      await harness.portfolioService.clearAccountData();
+
+      // The purge removes the entry rather than leaving it stale: a stale
+      // entry keeps its data and republishes it on the next fetch, which would
+      // hydrate the previous person's Balance into a cleared UI cache.
+      expect(updates[updates.length - 1]).toMatchObject({
+        type: 'removed',
+        state: null,
+      });
+
+      // The next read refetches instead of handing back the previous
+      // person's Balance.
+      await expect(
+        harness.messenger.call(
+          'PredictPortfolioService:getBalance',
+          KALSHI_VENUE_ID,
+        ),
+      ).resolves.toMatchObject({ available: '5.00' });
+      expect(callsTo(harness, '/balance')).toBe(2);
     });
   });
 });

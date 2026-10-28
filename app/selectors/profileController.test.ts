@@ -3,6 +3,7 @@ import {
   selectProfileControllerState,
   selectProfileControllerProfile,
   selectProfileControllerLinkedEvmAddress,
+  selectIsProfileTradingActivityPrivate,
   selectProfileControllerXProfile,
   selectIsConnectedToX,
 } from './profileController';
@@ -120,6 +121,27 @@ describe('profileController selectors', () => {
       expect(
         selectProfileControllerLinkedEvmAddress(buildState(null)),
       ).toBeNull();
+    });
+  });
+
+  describe('selectIsProfileTradingActivityPrivate', () => {
+    it('returns true for an existing private profile', () => {
+      const state = buildState({
+        profile: { ...COMPLETE_PROFILE, tradingPrivacy: 'private' },
+      });
+
+      expect(selectIsProfileTradingActivityPrivate(state)).toBe(true);
+    });
+
+    it('returns false for a public or missing profile', () => {
+      expect(
+        selectIsProfileTradingActivityPrivate(
+          buildState({ profile: COMPLETE_PROFILE }),
+        ),
+      ).toBe(false);
+      expect(selectIsProfileTradingActivityPrivate(buildState(null))).toBe(
+        false,
+      );
     });
   });
 

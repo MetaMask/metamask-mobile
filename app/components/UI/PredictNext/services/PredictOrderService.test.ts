@@ -13,7 +13,6 @@ import {
   PredictOrderService,
 } from './PredictOrderService';
 import {
-  KALSHI_VENUE_ID,
   type PredictBuyOrderReceipt,
   type PredictDecimal,
   type PredictEntityId,
@@ -24,6 +23,7 @@ import {
   type PredictSignedAmount,
   type PredictTimestamp,
 } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const preview: PredictOrderPreview = {
   previewId: 'preview-1',
@@ -384,6 +384,102 @@ describe('PredictOrderService', () => {
       await expect(
         service().commitPreview(KALSHI_VENUE_ID, 'preview-1'),
       ).rejects.toMatchObject({ code: PredictErrorCode.VENUE_UNAVAILABLE });
+      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+  });
+
+  describe('abandonCommits', () => {
+    /** A commit response the test releases when it chooses. */
+    const deferredCommit = () => {
+      let release: (value: PredictOrderReceipt) => void = () => undefined;
+      trading.commitOrder.mockImplementation(
+        () =>
+          new Promise<PredictOrderReceipt>((resolve) => {
+            release = resolve;
+          }),
+      );
+      return { release: (value: PredictOrderReceipt) => release(value) };
+    };
+
+    /** Lets the observation loop reach its next re-POST. */
+    const settle = async (): Promise<void> => {
+      for (let tick = 0; tick < 20; tick += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      }
+    };
+
+    it('rejects an in-flight commit immediately and ignores its late receipt', async () => {
+      const pending = deferredCommit();
+      const orderService = serviceWith(60_000);
+
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await settle();
+      orderService.abandonCommits();
+
+      // Resolved straight away: the caller must not wait out the observation
+      // delay, and must not receive a receipt the previous person caused.
+      await expect(commit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
+
+      // A terminal receipt would normally refresh the authoritative reads; a
+      // reset just cleared them, so it must not repopulate them.
+      pending.release(receiptWith({ status: 'filled' }));
+      await settle();
+      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+
+    it('never re-POSTs an abandoned observation', async () => {
+      trading.commitOrder.mockResolvedValueOnce(
+        receiptWith({ status: 'pending' }),
+      );
+      const pending = deferredCommit();
+      const orderService = service();
+
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await settle();
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+
+      orderService.abandonCommits();
+      await expect(commit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+
+      // The in-flight re-POST resolves after the abandonment: the loop stops
+      // there instead of sending the previous person's Commit again.
+      pending.release(receiptWith({ status: 'pending' }));
+      await settle();
+      expect(trading.commitOrder).toHaveBeenCalledTimes(2);
+      expect(invalidateQueries).toHaveBeenCalledTimes(0);
+    });
+
+    it('observes a commit started after the abandonment normally', async () => {
+      trading.commitOrder.mockResolvedValue(receiptWith({ status: 'filled' }));
+      const orderService = service();
+
+      orderService.abandonCommits();
+
+      await expect(
+        orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1'),
+      ).resolves.toEqual(receiptWith({ status: 'filled' }));
+      expect(invalidateQueries).toHaveBeenCalledTimes(3);
+    });
+
+    it('abandons in-flight commits when the service is destroyed', async () => {
+      const pending = deferredCommit();
+      const orderService = service();
+
+      const commit = orderService.commitPreview(KALSHI_VENUE_ID, 'preview-1');
+      await settle();
+      orderService.destroy();
+
+      await expect(commit).rejects.toMatchObject({
+        code: PredictErrorCode.UNAUTHENTICATED,
+      });
+      pending.release(receiptWith({ status: 'filled' }));
+      await settle();
+      expect(trading.commitOrder).toHaveBeenCalledTimes(1);
       expect(invalidateQueries).toHaveBeenCalledTimes(0);
     });
   });

@@ -2,6 +2,9 @@ import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
+  Button,
+  ButtonSize,
+  ButtonVariant,
   FilterButton,
   FilterButtonGroup,
   IconName,
@@ -10,20 +13,29 @@ import {
 import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { strings } from '../../../../../../locales/i18n';
-import { navigateToSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { pushSocialLeaderboard } from '../../../../Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import {
+  SocialLeaderboard,
+  type SocialLeaderboardSource,
+} from '../../../SocialLeaderboard';
 import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsSocialEnabled } from '../../hooks/usePerpsSocialEnabled';
 import PerpsSocialTrending from './PerpsSocialTrending';
-import PerpsSocialTopTraders from './PerpsSocialTopTraders';
 
 type SocialFeedTab = 'trending' | 'top_traders';
+
+const TOP_TRADERS_LIMIT = 5;
+const TOP_TRADERS_SOURCE: SocialLeaderboardSource = {
+  kind: 'all',
+  assetClass: 'perps',
+};
 
 const PerpsSocialFeedSectionInner: React.FC = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const [tab, setTab] = useState<SocialFeedTab>('trending');
 
   const handleOpenSocial = useCallback(() => {
-    navigateToSocialLeaderboard(navigation.navigate, {
+    pushSocialLeaderboard(navigation.navigate, {
       source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       initialTab: tab === 'top_traders' ? 'leaderboard' : 'trending',
     });
@@ -67,7 +79,24 @@ const PerpsSocialFeedSectionInner: React.FC = () => {
       {tab === 'trending' ? (
         <PerpsSocialTrending />
       ) : (
-        <PerpsSocialTopTraders onSeeMorePress={handleOpenSocial} />
+        <>
+          <SocialLeaderboard
+            source={TOP_TRADERS_SOURCE}
+            location="perps_home"
+            limit={TOP_TRADERS_LIMIT}
+          />
+          <Box twClassName="px-4 pt-3">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              isFullWidth
+              onPress={handleOpenSocial}
+              testID={PerpsHomeViewSelectorsIDs.SOCIAL_FEED_SEE_MORE}
+            >
+              {strings('perps.home.see_more')}
+            </Button>
+          </Box>
+        </>
       )}
     </Box>
   );

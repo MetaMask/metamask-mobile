@@ -20,17 +20,16 @@ import type {
   LedgerEarningEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
+import {
+  creditedBaseUnits,
+  isVoidedEarning,
+} from '../../utils/earningsSummaryTotals';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const PERFORMANCE_ACTIVITY_TEST_IDS = {
-  COMMISSION_ROW: 'performance-commission-row',
-  REBATE_ROW: 'performance-rebate-row',
-} as const;
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows.testIds';
 
 function copiedTimesLabel(
   localizedText: ReferralLocalizedText,
@@ -112,17 +111,21 @@ function rebateIconName(item: LedgerEarningEntryDto): IconName {
 function rebateAmount(item: LedgerEarningEntryDto): {
   label: string;
   color: TextColor;
+  voided: boolean;
 } {
-  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
-  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+  const voided = isVoidedEarning(item.musd_amount, item.voided_musd_amount);
+  const units = voided
+    ? item.musd_amount
+    : creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
 
   return {
     label:
-      formatMusdBaseUnits(credited, {
+      formatMusdBaseUnits(units, {
         signed: true,
         maximumFractionDigits: 2,
       }) ?? '—',
-    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    color: voided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    voided,
   };
 }
 
@@ -146,16 +149,27 @@ export const PerformanceRebateRow: React.FC<{
         iconProps={{ color: IconColor.IconDefault }}
       />
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          twClassName="shrink"
+        >
           {rebateTitle(item, localizedText)}
         </Text>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
           {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
         </Text>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={amount.color}>
-        {amount.label}
-      </Text>
+      <Box alignItems={BoxAlignItems.End}>
+        <Text variant={TextVariant.BodyMd} color={amount.color}>
+          {amount.label}
+        </Text>
+        {amount.voided ? (
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {localizedText.voided}
+          </Text>
+        ) : null}
+      </Box>
     </Box>
   );
 };

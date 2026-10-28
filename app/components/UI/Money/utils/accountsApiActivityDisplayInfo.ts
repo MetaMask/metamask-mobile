@@ -12,13 +12,17 @@ const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
   card: 'money.transaction.purchase',
   cashback: 'money.transaction.musd_back',
   refund: 'money.transaction.refund',
+  bank_transfer: 'money.transaction.deposited',
 };
 
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
   enrichment?: CardTransaction,
 ): MoneyTransactionDisplayInfo {
-  const isIncoming = activity.kind === 'cashback' || activity.kind === 'refund';
+  const isIncoming =
+    activity.kind === 'cashback' ||
+    activity.kind === 'refund' ||
+    activity.kind === 'bank_transfer';
   const sign = isIncoming ? '+' : '-';
 
   // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
@@ -30,13 +34,18 @@ export function accountsApiActivityDisplayInfo(
   const fiatAmount = `${sign}${moneyFormatUsd(usdValue)}`;
 
   const base: MoneyTransactionDisplayInfo = {
-    description: strings('money.transaction.card'),
+    description:
+      activity.kind === 'bank_transfer'
+        ? strings('money.transaction.bank_transfer')
+        : strings('money.transaction.card'),
     label: strings(KIND_LABEL_KEY[activity.kind]),
     primaryAmount,
     fiatAmount,
     isIncoming,
-    icon: IconName.Card,
+    icon: activity.kind === 'bank_transfer' ? IconName.Add : IconName.Card,
     status: 'confirmed',
+    showPrimaryAmount: activity.kind === 'bank_transfer',
+    isFiatAmountMuted: activity.kind === 'bank_transfer',
   };
 
   if (activity.kind !== 'card' || !enrichment) {

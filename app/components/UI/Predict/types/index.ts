@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
 
 import { Hex } from '@metamask/utils';
-import type { DiscountType } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarketListOrder } from '../constants/flags';
-import type { PredictPaymentMethodValue } from '../constants/eventNames';
+import type {
+  PredictOutcomeVersionValue,
+  PredictPaymentMethodValue,
+} from '../constants/eventNames';
 
 export enum Side {
   BUY = 'BUY',
@@ -382,6 +384,12 @@ export type PredictOutcome = {
   line?: number;
   resolvedBy?: string;
   resolutionStatus?: string;
+  /**
+   * Gamma market version for this outcome's market, as reported by Gamma.
+   * Informational only: order routing reads `OrderPreview.outcomeVersion`,
+   * which the provider resolves when it builds the preview.
+   */
+  version?: string;
 };
 
 export type PredictOutcomeToken = {
@@ -486,10 +494,19 @@ export interface PredictPriceHistoryPoint {
 }
 
 export interface GetPriceHistoryParams {
+  /** Outcome token id. */
   marketId: string;
+  /**
+   * Bucket width in minutes. Omit it to let the server size the bucket to the
+   * window. An explicit width is served exactly, so a fine width over a window
+   * older than that grain's retention (about 7 days for 1-minute data) comes
+   * back empty.
+   */
   fidelity?: number;
   interval?: PredictPriceHistoryInterval;
+  /** Window start, epoch seconds. Used with `endTs`; the window may span at most 15 days. */
   startTs?: number;
+  /** Window end, epoch seconds (exclusive). */
   endTs?: number;
 }
 
@@ -615,6 +632,11 @@ export interface PredictTradeAnalyticsProperties {
   portfolioModuleEnabled?: boolean;
   marketType?: string;
   outcome?: string;
+  /**
+   * `outcome_version` analytics value: `v1`, `v2`, or `mixed` (claims only).
+   * Normalized, unlike the raw Gamma version in `OrderPreview.outcomeVersion`.
+   */
+  outcomeVersion?: PredictOutcomeVersionValue;
   marketSlug?: string;
   gameId?: string;
   gameStartTime?: string;
@@ -776,7 +798,6 @@ export interface PredictFees {
 }
 
 export interface PredictFeePolicy {
-  discountType: DiscountType.SUBSCRIPTION;
   builderCode: string;
 }
 
@@ -801,6 +822,11 @@ export interface OrderPreview {
   timestamp: number;
   side: Side;
   sharePrice: number;
+  /**
+   * Sell previews only: the lowest bid price used to fill the full size from
+   * the order book snapshot.
+   */
+  worstFillPrice?: number;
   maxAmountSpent: number;
   minAmountReceived: number;
   slippage: number;
@@ -817,6 +843,12 @@ export interface OrderPreview {
   // so we can perform optimistic updates
   positionId?: string;
   orderType?: PredictOrderType;
+  /**
+   * Gamma market version of the traded outcome's market, resolved when the
+   * provider builds the preview. Routes the order: "v2" uses the positions
+   * protocol; any other value uses the CTF path.
+   */
+  outcomeVersion?: string;
 }
 
 export type OrderResult = Result<{

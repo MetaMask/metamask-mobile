@@ -12,19 +12,37 @@ export const SOCIAL_FEED_QUERY_ACTIONS = [
   'SocialService:fetchTraderFeed',
 ] as const satisfies readonly SocialFeedRequest['action'][];
 
+/**
+ * Distinguishes this paginated cache from `SocialService.fetchQuery`.
+ *
+ * The service stores each page as a plain `FeedResponse` under
+ * `[action, options]`. The UI query client hydrates
+ * `SocialService:cacheUpdated:${hash}` into any query with that hash, which
+ * replaces `{ pages, pageParams }` and crashes the next render in
+ * `hasNextPage` (`data.pages` is missing). This extra segment keeps prefix
+ * invalidation on `[action]` working and makes the hashes differ.
+ */
+export const SOCIAL_FEED_INFINITE_QUERY_KIND = 'infinite' as const;
+
 export type SocialFeedQueryKey = [
   SocialFeedRequest['action'],
   SocialFeedRequest['options'] & { limit: number },
+  typeof SOCIAL_FEED_INFINITE_QUERY_KIND,
 ];
 
 /**
- * `[action, request options + page size]`. The page size is part of the key
- * because a 3-item preview and a full list are different first pages.
+ * `[action, request options + page size, 'infinite']`. The page size is part
+ * of the key because a 3-item preview and a full list are different first
+ * pages. See {@link SOCIAL_FEED_INFINITE_QUERY_KIND} for the third segment.
  */
 export const buildSocialFeedQueryKey = (
   request: SocialFeedRequest,
   limit: number,
-): SocialFeedQueryKey => [request.action, { ...request.options, limit }];
+): SocialFeedQueryKey => [
+  request.action,
+  { ...request.options, limit },
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
+];
 
 /**
  * Fetches one feed page for a resolved request.
@@ -39,12 +57,15 @@ export const fetchSocialFeedPage = (
 ): Promise<FeedResponse> => {
   const paging = olderThan ? { limit, olderThan } : { limit };
   switch (request.action) {
-    case 'SocialService:fetchFeed':
+    case 'SocialService:fetchFeed': {
+      const { chains, assetIds, ...options } = request.options;
       return Engine.controllerMessenger.call('SocialService:fetchFeed', {
-        ...request.options,
-        chains: [...request.options.chains],
+        ...options,
+        chains: [...chains],
+        ...(assetIds ? { assetIds: [...assetIds] } : {}),
         ...paging,
       });
+    }
     case 'SocialService:fetchTokenFeed':
       return Engine.controllerMessenger.call('SocialService:fetchTokenFeed', {
         ...request.options,

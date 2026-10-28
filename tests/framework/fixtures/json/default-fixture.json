@@ -232,7 +232,8 @@
           }
         },
         "MoneyAccountController": {
-          "moneyAccounts": {}
+          "moneyAccounts": {},
+          "defaultMoneyAccountId": null
         },
         "MoneyAccountUpgradeController": {
           "upgradedAccounts": {}
@@ -907,7 +908,6 @@
       "moneyAccountSweepstakesStats": {},
       "moneyAccountSweepstakesVolumeStats": {},
       "onboardingActiveStep": "INTRO",
-      "onboardingReferralCode": null,
       "ondoCampaignActivity": {},
       "ondoCampaignDeposits": {},
       "ondoCampaignLeaderboardPositions": {},
@@ -952,9 +952,12 @@
     },
     "rewardsMoney": {
       "cashbackLedger": {},
+      "claimLocks": {},
+      "claimWaitingUntil": {},
       "commissions": {},
       "earningsHistory": {},
       "earningsSummary": {},
+      "inFlightClaims": {},
       "referralFunnel": {},
       "referralMe": {}
     },
