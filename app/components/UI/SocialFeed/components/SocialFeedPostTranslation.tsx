@@ -6,7 +6,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Pressable } from 'react-native';
+import { AccessibilityInfo } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -15,9 +15,6 @@ import { translateComment } from '../translateComment';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 const ENGLISH = 'en';
-
-/** BodySm is shorter than the 24dp minimum target. Extra slop covers the gap. */
-const TRANSLATION_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
 
 type TranslationPhase = 'idle' | 'pending' | 'translated' | 'failed';
 
@@ -47,20 +44,16 @@ const TranslationAction = ({
   onPress: () => void;
   testID: string;
 }) => (
-  <Pressable
+  <Text
     accessibilityRole="button"
-    hitSlop={TRANSLATION_HIT_SLOP}
+    variant={TextVariant.BodySm}
+    fontWeight={FontWeight.Medium}
+    color={TextColor.TextAlternative}
     onPress={onPress}
     testID={testID}
   >
-    <Text
-      variant={TextVariant.BodySm}
-      fontWeight={FontWeight.Medium}
-      color={TextColor.TextAlternative}
-    >
-      {label}
-    </Text>
-  </Pressable>
+    {label}
+  </Text>
 );
 
 const TranslationStatus = ({
