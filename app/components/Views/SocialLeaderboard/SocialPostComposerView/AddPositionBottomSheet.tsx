@@ -262,7 +262,7 @@ const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
                         color: TextColor.TextDefault,
                         fontWeight: FontWeight.Medium,
                       }}
-                      style={{ backgroundColor: 'transparent' }}
+                      twClassName="bg-transparent"
                       testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
                     >
                       {showPostEmptyCopy ? (
