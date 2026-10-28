@@ -34,6 +34,7 @@ const ContactSupportStep = ({ step, onAction }: StepProps<'failure'>) => {
 
   return (
     <StepLayout
+      isVerticallyCentered
       top={
         <Box twClassName="items-center">
           <ContactSupportImage name="mfa-contact-support" />
@@ -74,6 +75,7 @@ const FailureStep = (props: StepProps<'failure'>) => {
   }
   return (
     <StepLayout
+      isVerticallyCentered
       top={
         <AvatarIcon
           iconName={IconName.Danger}
