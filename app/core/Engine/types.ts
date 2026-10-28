@@ -609,6 +609,12 @@ import {
   MoneyAccountUpgradeControllerEvents,
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
+import {
+  MfaRecoveryController,
+  type MfaRecoveryControllerActions,
+  type MfaRecoveryControllerEvents,
+  type MfaRecoveryControllerState,
+} from '@metamask/mfa-recovery-controller';
 import { captureException } from '@sentry/react-native';
 import { Wallet } from '@metamask/wallet';
 
@@ -797,6 +803,7 @@ export type GlobalActions =
   | ConfigRegistryApiServiceActions
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions
+  | MfaRecoveryControllerActions
   | SentinelApiServiceActions;
 
 export type GlobalEvents =
@@ -911,6 +918,7 @@ export type GlobalEvents =
   | NeoBankServiceEvents
   | ChompApiServiceEvents
   | MoneyAccountUpgradeControllerEvents
+  | MfaRecoveryControllerEvents
   | SentinelApiServiceEvents;
 
 /**
@@ -1075,6 +1083,7 @@ export type MessengerClients = {
   NeoBankService: NeoBankService;
   ChompApiService: ChompApiService;
   MoneyAccountUpgradeController: MoneyAccountUpgradeController;
+  MfaRecoveryController: MfaRecoveryController;
 };
 
 /**
@@ -1169,6 +1178,7 @@ export type EngineState = {
   ComplianceController: ComplianceControllerState;
   KycController: KycControllerState;
   MoneyAccountUpgradeController: MoneyAccountUpgradeControllerState;
+  MfaRecoveryController: MfaRecoveryControllerState;
 };
 
 /** Messenger client names */
@@ -1297,7 +1307,8 @@ export type MessengerClientsToInitialize =
   | 'KycService'
   | 'KycController'
   | 'ChompApiService'
-  | 'MoneyAccountUpgradeController';
+  | 'MoneyAccountUpgradeController'
+  | 'MfaRecoveryController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
