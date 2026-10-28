@@ -304,7 +304,7 @@
     "@metamask/multichain-account-service": "^14.1.0",
     "@metamask/accounts-controller": "^40.1.0",
     "@metamask/snap-account-service": "^4.0.0",
-    "@metamask/permission-controller": "^14.0.0",
+    "@metamask/permission-controller": "^14.1.0",
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "72.2.1",
     "@metamask/keyring-controller": "^28.2.0",
