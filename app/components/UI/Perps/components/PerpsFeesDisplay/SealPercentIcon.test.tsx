@@ -13,39 +13,36 @@ const FillProbe = ({ token }: { token: string }) => {
   return <Path testID="fill-probe" fill={color} />;
 };
 
-const paintedColor = (icon: React.ReactElement) => {
+const tokenColor = (token: string) => {
+  const { UNSAFE_getByType } = render(<FillProbe token={token} />);
+  return UNSAFE_getByType(Path).props.fill;
+};
+
+const sealStyleColor = (icon: React.ReactElement) => {
   const { UNSAFE_getByType } = render(icon);
-  const node = UNSAFE_getByType(icon.type === SealPercentIcon ? Svg : Path);
-  if (node.type === Path) {
-    return node.props.fill;
-  }
-  const style = StyleSheet.flatten(node.props.style);
-  return node.props.color ?? style?.color;
+  return StyleSheet.flatten(UNSAFE_getByType(Svg).props.style).color;
 };
 
 describe('SealPercentIcon', () => {
   it('uses the icon color token, with IconDefault matching the fees-sheet title', () => {
-    const defaultColor = paintedColor(<SealPercentIcon size={24} />);
-    const titleColor = paintedColor(
-      <FillProbe token={TextColor.TextDefault} />,
-    );
+    const defaultColor = sealStyleColor(<SealPercentIcon size={24} />);
+    const titleColor = tokenColor(TextColor.TextDefault);
 
     expect(defaultColor).toBe(titleColor);
   });
 
-  it('uses IconAlternative, the same grey as TextAlternative, on form rows', () => {
+  it('paints form rows with IconAlternative through currentColor, like the info icon', () => {
     const { UNSAFE_getByType } = render(
       <SealPercentIcon size={16} color={IconColor.IconAlternative} />,
     );
-    const formColor = UNSAFE_getByType(Svg).props.color;
-    const textColor = paintedColor(
-      <FillProbe token={TextColor.TextAlternative} />,
-    );
-    const titleColor = paintedColor(
-      <FillProbe token={TextColor.TextDefault} />,
-    );
+    const svg = UNSAFE_getByType(Svg);
+    const path = UNSAFE_getByType(Path);
+    const formColor = StyleSheet.flatten(svg.props.style).color;
+    const textColor = tokenColor(TextColor.TextAlternative);
+    const titleColor = tokenColor(TextColor.TextDefault);
 
-    expect(UNSAFE_getByType(Path).props.fill).toBe('currentColor');
+    expect(svg.props.fill).toBe('currentColor');
+    expect(path.props.fill).toBeUndefined();
     expect(formColor).toBe(textColor);
     expect(formColor).not.toBe(titleColor);
   });

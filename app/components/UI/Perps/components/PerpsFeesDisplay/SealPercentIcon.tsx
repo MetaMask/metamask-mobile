@@ -41,10 +41,10 @@ const SealPercentIcon = ({
   color = IconColor.IconDefault,
 }: SealPercentIconProps) => {
   const tw = useTailwind();
-  // react-native-svg paints `currentColor` from the root `color` style.
-  // A hex `fill` on the path is dropped when the root also sets `fill="none"`,
-  // which left these stamps white beside gray text.
-  const iconStyle = StyleSheet.flatten(tw.style(color));
+  // Same paint path as the design-system Icon used by the fees info button:
+  // `fill="currentColor"` on the root, color only in the style, and no fill
+  // on the path so it inherits that color instead of the default text color.
+  const svgStyle = StyleSheet.flatten(tw.style(color));
   const isInformative = Boolean(accessibilityLabel);
 
   return (
@@ -61,12 +61,11 @@ const SealPercentIcon = ({
         height={size}
         viewBox="0 0 256 256"
         fill="currentColor"
-        color={iconStyle.color}
-        style={iconStyle}
+        style={svgStyle}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Path d={SEAL_PERCENT_PATH} fill="currentColor" />
+        <Path d={SEAL_PERCENT_PATH} />
       </Svg>
     </View>
   );
