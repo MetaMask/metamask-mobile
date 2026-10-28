@@ -471,6 +471,23 @@ app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accou
 app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
 
+# Activity
+# Core Activity code owned by mobile-core-ux.
+# Feature-specific subfolders (Perps, Ramps, etc.) are co-owned by their respective
+# feature teams and mobile-core-ux. This block must stay below feature-team pattern
+# rules (**/Perps/**, **/Ramps/**, etc.) and above **/*.snap (last-match-wins).
+app/components/Views/ActivityList/                          @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/                       @MetaMask/mobile-core-ux
+app/components/Views/ActivityScreen/                        @MetaMask/mobile-core-ux
+app/components/Views/ActivityView/                          @MetaMask/mobile-core-ux
+app/components/UI/ActivityListItemRow/                      @MetaMask/mobile-core-ux
+app/util/activity-adapters/                                 @MetaMask/mobile-core-ux
+app/util/activity/                                          @MetaMask/mobile-core-ux
+app/core/Analytics/events/activity/                         @MetaMask/mobile-core-ux
+# Feature-specific Activity templates (co-owned)
+app/components/Views/ActivityDetails/templates/Perps/       @MetaMask/perps @MetaMask/mobile-core-ux
+app/components/Views/ActivityDetails/templates/Ramps/       @MetaMask/money-movement @MetaMask/mobile-core-ux
+
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
 # ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.
