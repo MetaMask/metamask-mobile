@@ -1,3 +1,4 @@
+import Logger from '../../../../../util/Logger';
 import type {
   PredictEntityId,
   PredictFeedId,
@@ -5,6 +6,13 @@ import type {
   PredictVenueId,
 } from '../../types';
 import { PredictApiReadClient, PredictHttpError } from './PredictApiReadClient';
+
+jest.mock('../../../../../util/Logger', () => ({
+  __esModule: true,
+  default: { log: jest.fn(), error: jest.fn() },
+}));
+
+const mockLoggerError = jest.mocked(Logger.error);
 
 const venueId = 'kalshi' as PredictVenueId;
 const eventId = 'event/one' as PredictEntityId;
@@ -30,6 +38,7 @@ describe('PredictApiReadClient', () => {
   let client: PredictApiReadClient;
 
   beforeEach(() => {
+    mockLoggerError.mockClear();
     fetchMock = jest.fn();
     client = new PredictApiReadClient({
       baseUrl: 'https://predict.example/api/',
@@ -143,6 +152,26 @@ describe('PredictApiReadClient', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('logs the token provider failure before failing with 401', async () => {
+    const providerError = new Error('wallet is locked');
+    client = new PredictApiReadClient({
+      baseUrl: 'https://predict.example/api/',
+      clientVersion: '7.0.0',
+      fetch: fetchMock,
+      getBearerToken: jest.fn().mockRejectedValue(providerError),
+    });
+
+    await expect(client.fetchBalance(venueId)).rejects.toMatchObject({
+      status: 401,
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      providerError,
+      'PredictNext: failed to get the Predict API bearer token',
+    );
+  });
+
   it('authenticates Positions requests with encoded page parameters', async () => {
     fetchMock.mockResolvedValue(createResponse());
 
@@ -150,6 +179,36 @@ describe('PredictApiReadClient', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://predict.example/api/v1/venues/kalshi/positions?cursor=next+page&limit=20',
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: 'Bearer secret-token',
+        }),
+      }),
+    );
+  });
+
+  it('sends the Positions status filter as a comma-separated list', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+
+    await client.fetchPositions(venueId, {
+      limit: 3,
+      status: ['open', 'claimable'],
+      sort: 'value',
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/positions?limit=3&sort=value&status=open%2Cclaimable',
+      expect.anything(),
+    );
+  });
+
+  it('authenticates Portfolio Summary requests', async () => {
+    fetchMock.mockResolvedValue(createResponse());
+
+    await client.fetchPortfolioSummary(venueId);
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://predict.example/api/v1/venues/kalshi/portfolio/summary',
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer secret-token',

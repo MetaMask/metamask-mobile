@@ -5,6 +5,7 @@ import {
 } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import { AccountOverviewSelectorsIDs } from '../../../app/components/UI/AccountRightButton/AccountOverview.testIds';
 import { BrowserURLBarSelectorsIDs } from '../../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
+import { PhishingModalSelectorsIDs } from '../../../app/components/UI/PhishingModal/PhishingModal.testIds';
 import { AddBookmarkViewSelectorsIDs } from '../../../app/components/Views/AddBookmark/AddBookmarkView.testIds';
 import { getDappUrl } from '../../framework/fixtures/FixtureUtils';
 import type { AppiumElement } from '../../framework/AppiumElement';
@@ -17,7 +18,10 @@ import {
   sleep,
 } from '../../framework';
 import AppiumContextHelpers from '../../framework/AppiumContextHelpers';
-import { executeMobileDeepLink } from '../../framework/AppiumUtilities';
+import {
+  executeMobileDeepLink,
+  withImplicitWait,
+} from '../../framework/AppiumUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 /** Keep in sync with AppConstants.HOMEPAGE_URL — do not import app constants (pulls RN). */
@@ -101,8 +105,8 @@ class Browser {
   }
 
   get backToSafetyButton(): Promise<AppiumElement> {
-    return Matchers.getElementByText(
-      BrowserViewSelectorsText.BACK_TO_SAFETY_BUTTON,
+    return Matchers.getElementByID(
+      PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON,
     );
   }
 
@@ -481,6 +485,10 @@ class Browser {
     await Gestures.waitAndTap(this.backToSafetyButton, {
       elemDescription: 'Back to safety button',
     });
+    // Do not wait here for the button to stay gone. `goBackToSafety` hides the
+    // modal after 500ms, and an iframe rescan can show it again about a second
+    // later. iOS keeps the control displayed across that rescan, so a reverse
+    // visibility wait fails the tap before the URL assertion can re-dismiss.
   }
 
   async tapReturnHomeButton(): Promise<void> {
@@ -510,10 +518,102 @@ class Browser {
     // wrapper View often returns empty getText(), which would falsely pass a
     // not-equal assertion. After a WebView load/tap the driver stays in WEBVIEW
     // context; getText() there hits LavaMoat scuttling (ShadowRoot).
+    //
+    // `goBackToSafety` hides the phishing modal about 500ms after tap. An iframe
+    // rescan can cover the URL bar again about a second later. While the modal
+    // is up, display text may be empty or may still show the blocked origin.
+    // Read text when the node exists. A URL that no longer shows the blocked
+    // origin passes. Otherwise, if Back to safety is visible, re-dismiss
+    // (bounded) and re-read. Create each locator inside a 300ms
+    // implicit wait so a missing Cancel does not burn the 3.5s session wait.
     await AppiumContextHelpers.switchToNativeContext();
-    await Assertions.expectElementToNotHaveText(this.urlBarDisplayText, text, {
-      description: description ?? `URL input box text is not "${text}"`,
-    });
+    const assertionDescription =
+      description ?? `URL input box text is not "${text}"`;
+    // Same budget as AppiumAssertions poll probes.
+    const probeImplicitWaitMs = 300;
+    // Cap re-dismisses so a stuck phishing modal fails with a clear error.
+    let phishingReDismisses = 0;
+    const maxPhishingReDismisses = 2;
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const urlText = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const display = await this.urlBarDisplayText;
+            if (!(await display.unwrap().isExisting())) {
+              return '';
+            }
+            return (await display.textContent()).trim();
+          },
+        );
+
+        // A safe URL satisfies this assertion. Do not re-dismiss after that,
+        // or a leftover overlay can exhaust the re-tap cap and fail a pass.
+        if (urlText && !urlText.includes(text)) {
+          return;
+        }
+
+        // The URL is still empty or still shows the blocked origin. Re-tap
+        // whenever Back to safety is visible, then re-read the URL.
+        const phishingVisible = await withImplicitWait(
+          probeImplicitWaitMs,
+          async () => {
+            const back = await this.backToSafetyButton;
+            return (
+              (await back.unwrap().isExisting()) && (await back.isVisible())
+            );
+          },
+        );
+        if (phishingVisible) {
+          if (phishingReDismisses >= maxPhishingReDismisses) {
+            throw new Error(
+              'Phishing modal still visible after re-dismiss limit',
+            );
+          }
+          phishingReDismisses += 1;
+          await Gestures.waitAndTap(this.backToSafetyButton, {
+            elemDescription: `Back to safety re-dismiss (${phishingReDismisses})`,
+            timeout: 5_000,
+          });
+          throw new Error(
+            `Phishing modal reappeared (re-dismiss ${phishingReDismisses})`,
+          );
+        }
+
+        // Display text is opacity 0 while the editor is focused. Dismiss only
+        // when Cancel is already up; a missing Cancel must not wait 3.5s.
+        if (!urlText) {
+          const editorOpen = await withImplicitWait(
+            probeImplicitWaitMs,
+            async () => {
+              const cancel = await this.cancelUrlInputButton;
+              return (
+                (await cancel.unwrap().isExisting()) &&
+                (await cancel.isVisible())
+              );
+            },
+          );
+          if (editorOpen) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+              timeout: 2_000,
+            });
+          }
+        }
+
+        throw new Error(
+          `URL bar still shows the blocked page (got "${urlText}")`,
+        );
+      },
+      {
+        // Product delay (500ms) + modal out + possible iframe re-warning cycle.
+        timeout: 20_000,
+        interval: 200,
+        description: assertionDescription,
+        elemDescription: 'browser URL bar',
+      },
+    );
   }
 
   /**

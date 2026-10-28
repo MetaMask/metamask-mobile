@@ -50,6 +50,8 @@ import {
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
 import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
@@ -193,22 +195,6 @@ const MoneyHomeView = () => {
     }, [trackScreenViewed]),
   );
 
-  const handlePullRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        refetchBalance(),
-        refetchInterest(),
-        refreshMusdFiatRate(),
-        Engine.context.CardController.fetchCardHomeData({ force: true }),
-      ]);
-    } catch (error) {
-      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refetchBalance, refetchInterest, refreshMusdFiatRate]);
-
   const { hasMoneyAccount } = useMoneyAccountInfo();
 
   // At most one VBA identity-status card; `none` renders nothing. The focus
@@ -242,6 +228,7 @@ const MoneyHomeView = () => {
     // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
     isSettling: isActivitySettling,
     error: activityError,
+    refetch: refetchActivity,
     moneyAddress,
     cardEnrichmentByHash,
   } = useMoneyActivityItems({
@@ -251,6 +238,24 @@ const MoneyHomeView = () => {
     },
   });
   const activityItems = buckets[MoneyActivityFilter.All];
+
+  const handlePullRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        refetchBalance(),
+        refetchInterest(),
+        refreshMusdFiatRate(),
+        Promise.resolve(refetchActivity()),
+        Engine.context.CardController.fetchCardHomeData({ force: true }),
+      ]);
+    } catch (error) {
+      Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchBalance, refetchInterest, refreshMusdFiatRate, refetchActivity]);
+
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
   const isCardStateResolved = useSelector(selectIsCardStateResolved);
@@ -573,6 +578,7 @@ const MoneyHomeView = () => {
     if (hasPendingDetailsOpenRef.current) {
       return;
     }
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.MONEY_ACTION_ROW);
     hasPendingDetailsOpenRef.current = true;
     // Self-clears so the button recovers if no navigator presents the route.
     setTimeout(() => {

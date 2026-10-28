@@ -30,6 +30,7 @@ import { filterSupportedLeagues } from '../../constants/sports';
 import { getPrimarySportsCardOutcomes } from '../../utils/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
+import { isActionableClaimablePosition } from '../../utils/positions';
 import {
   CryptoPriceHistoryPoint,
   CryptoPriceSubscriptionOptions,
@@ -98,6 +99,7 @@ import {
   POLYMARKET_PROVIDER_ID,
   SAFE_EXEC_GAS_LIMIT,
   V1_MARKET_VERSION,
+  V2_MARKET_VERSION,
 } from './constants';
 import {
   computeProxyAddress,
@@ -112,6 +114,7 @@ import {
   SignatureType,
   PolymarketApiEvent,
   PolymarketApiEventsKeysetResponse,
+  PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketDataApiV2Response,
   PolymarketPositionV2,
@@ -172,6 +175,7 @@ import { submitProtocolClobOrder } from './protocol/transport';
 import {
   buildClaimTransaction,
   planDepositWalletClaim,
+  type ClaimMarketVersions,
 } from './preflight/claim';
 import { buildDepositMaintenanceTransaction } from './preflight/deposit';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
@@ -210,6 +214,49 @@ const PREDICT_ACTIVITY_MAX_EMPTY_PAGE_HOPS = 5;
  * response can never loop unbounded. 5 pages × 100 rows = 500 positions.
  */
 const PREDICT_POSITIONS_MAX_PAGES = 5;
+/**
+ * Data API v2 `bucket_seconds` bounds. Callers pass `fidelity` in minutes (the
+ * unit of the retired CLOB `/prices-history` route); it is converted to
+ * seconds and clamped to this range at the request boundary.
+ */
+const PRICE_HISTORY_MIN_BUCKET_SECONDS = 60;
+const PRICE_HISTORY_MAX_BUCKET_SECONDS = 86_400;
+/**
+ * Upper bound on cursor-followed pages per price-history read. A page holds up
+ * to 10,000 points and the chart buckets keep series far below that, so more
+ * than one page is already unusual; the cap only guards against a runaway walk.
+ */
+const PRICE_HISTORY_MAX_PAGES = 5;
+
+/** Data API v2 `/prices-history` response envelope (fields the app reads). */
+interface PolymarketPriceHistoryPage {
+  data?: { timestamp?: unknown; price?: unknown }[];
+  pagination?: { next_cursor?: string | null };
+}
+
+/** Error for a non-2xx `/v2/prices-history` response. */
+class PolymarketPriceHistoryHttpError extends Error {
+  readonly status: number;
+
+  readonly retryAfter: string | null;
+
+  constructor(status: number, retryAfter: string | null) {
+    super(`Failed to get price history (HTTP ${status})`);
+    this.name = 'PolymarketPriceHistoryHttpError';
+    this.status = status;
+    this.retryAfter = retryAfter;
+  }
+}
+
+/** Converts a fidelity in minutes to a Data API v2 `bucket_seconds` value. */
+const fidelityToBucketSeconds = (fidelityMinutes: number): number =>
+  Math.min(
+    PRICE_HISTORY_MAX_BUCKET_SECONDS,
+    Math.max(
+      PRICE_HISTORY_MIN_BUCKET_SECONDS,
+      Math.round(fidelityMinutes * 60),
+    ),
+  );
 
 /**
  * Narrows the geoblock payload to the fields the app relies on. Returns `null`
@@ -382,6 +429,11 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().enabledSportsMarketTypes;
   }
 
+  /** True while the Protocol V2 markets kill switch is on. */
+  #shouldHideV2Markets(): boolean {
+    return this.#getFeatureFlags().disablePolymarketV2Markets;
+  }
+
   #canGroupAllActiveMarkets(event: PolymarketApiEvent): boolean {
     const enabledMarketTypes = new Set(this.#getEnabledSportsMarketTypes());
 
@@ -449,6 +501,7 @@ export class PolymarketProvider implements PredictProvider {
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
       enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+      hideV2Markets: this.#shouldHideV2Markets(),
     });
 
     if (filterEmptyOutcomes) {
@@ -1045,6 +1098,18 @@ export class PolymarketProvider implements PredictProvider {
   }: {
     marketId: string;
   }): Promise<PredictMarket> {
+    // Details always include v2 markets, so a position or deeplink can still
+    // open one while the kill switch hides it from listings.
+    return this.#getMarketDetails({ marketId, hideV2Markets: false });
+  }
+
+  async #getMarketDetails({
+    marketId,
+    hideV2Markets,
+  }: {
+    marketId: string;
+    hideV2Markets: boolean;
+  }): Promise<PredictMarket> {
     if (!marketId) {
       throw new Error('marketId is required');
     }
@@ -1090,6 +1155,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues,
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets,
       });
 
       if (!parsedMarket) {
@@ -1117,8 +1183,11 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      // Highlights are a listing: with the kill switch on, an all-v2 market
+      // fails to parse and is dropped like any other failed id.
+      const hideV2Markets = this.#shouldHideV2Markets();
       const marketPromises = marketIds.map((marketId) =>
-        this.getMarketDetails({ marketId }).catch((error) => {
+        this.#getMarketDetails({ marketId, hideV2Markets }).catch((error) => {
           DevLogger.log(
             `PolymarketProvider: Failed to fetch market ${marketId}`,
             error,
@@ -1368,6 +1437,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1409,6 +1479,7 @@ export class PolymarketProvider implements PredictProvider {
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
         enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
+        hideV2Markets: this.#shouldHideV2Markets(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
@@ -1453,49 +1524,81 @@ export class PolymarketProvider implements PredictProvider {
       throw new Error('marketId parameter is required');
     }
 
-    try {
-      const { CLOB_ENDPOINT } = getPolymarketEndpoints();
-      const searchParams = new URLSearchParams({ market: marketId });
+    const searchParams = new URLSearchParams({ token_id: marketId });
 
-      if (typeof fidelity === 'number') {
-        searchParams.set('fidelity', String(fidelity));
-      }
+    // Data API v2 takes exactly one window form. An explicit range wins, as it
+    // did on the CLOB route; it is capped at 15 days, so long ranges (MAX)
+    // must use an interval preset.
+    if (startTs !== undefined && endTs !== undefined) {
+      searchParams.set('start', String(startTs));
+      searchParams.set('end', String(endTs));
+    } else if (interval) {
+      searchParams.set('interval', interval);
+    } else {
+      // Without a window the endpoint answers 400, so skip the request.
+      return [];
+    }
 
-      if (startTs !== undefined && endTs !== undefined) {
-        searchParams.set('startTs', String(startTs));
-        searchParams.set('endTs', String(endTs));
-      } else if (interval) {
-        searchParams.set('interval', interval);
-      }
-
-      const response = await fetchWithTimeout(
-        `${CLOB_ENDPOINT}/prices-history?${searchParams.toString()}`,
-        {
-          method: 'GET',
-        },
+    // Omitting bucket_seconds lets the server size the bucket to the window.
+    if (
+      typeof fidelity === 'number' &&
+      Number.isFinite(fidelity) &&
+      fidelity > 0
+    ) {
+      searchParams.set(
+        'bucket_seconds',
+        String(fidelityToBucketSeconds(fidelity)),
       );
+    }
 
-      if (!response.ok) {
-        throw new Error('Failed to get price history');
-      }
+    try {
+      const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
+      const points: PredictPriceHistoryPoint[] = [];
+      let cursor: string | null = null;
+      let pages = 0;
 
-      const data = (await response.json()) as {
-        history?: { t?: number; p?: number }[];
-      };
+      do {
+        // A cursor is only valid alongside the original query parameters.
+        const pageParams = new URLSearchParams(searchParams);
+        if (cursor) {
+          pageParams.set('cursor', cursor);
+        }
 
-      if (!Array.isArray(data?.history)) {
-        return [];
-      }
+        const response = await fetchWithTimeout(
+          `${DATA_API_ENDPOINT}/v2/prices-history?${pageParams.toString()}`,
+          { method: 'GET' },
+        );
 
-      return data.history
-        .filter(
-          (entry): entry is { t: number; p: number } =>
-            typeof entry?.t === 'number' && typeof entry?.p === 'number',
-        )
-        .map((entry) => ({
-          timestamp: entry.t,
-          price: entry.p,
-        }));
+        if (!response.ok) {
+          // 429 and 503 carry Retry-After. The call makes no further request;
+          // the next attempt comes from the UI (remount or timeframe change).
+          throw new PolymarketPriceHistoryHttpError(
+            response.status,
+            response.headers?.get('Retry-After') ?? null,
+          );
+        }
+
+        const page = (await response.json()) as PolymarketPriceHistoryPage;
+        if (!Array.isArray(page?.data)) {
+          break;
+        }
+
+        for (const entry of page.data) {
+          if (
+            typeof entry?.timestamp === 'number' &&
+            Number.isFinite(entry.timestamp) &&
+            typeof entry?.price === 'number' &&
+            Number.isFinite(entry.price)
+          ) {
+            points.push({ timestamp: entry.timestamp, price: entry.price });
+          }
+        }
+
+        cursor = page.pagination?.next_cursor ?? null;
+        pages += 1;
+      } while (cursor && pages < PRICE_HISTORY_MAX_PAGES);
+
+      return points;
     } catch (error) {
       DevLogger.log('Error getting price history via Polymarket API:', error);
 
@@ -1507,6 +1610,10 @@ export class PolymarketProvider implements PredictProvider {
           interval,
           startTs,
           endTs,
+          ...(error instanceof PolymarketPriceHistoryHttpError && {
+            status: error.status,
+            retryAfter: error.retryAfter,
+          }),
         }),
       );
 
@@ -2638,6 +2745,77 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  async #resolveClaimMarketVersions(
+    positions: PredictPosition[],
+  ): Promise<ClaimMarketVersions> {
+    // Gamma is fetched per event id (`position.marketId`) and shared across
+    // positions; versions are keyed by condition id because one event can
+    // hold several markets. A failed or unmatched lookup keeps the CTF claim.
+    const eventMarkets = new Map<string, Promise<PolymarketApiMarket[]>>();
+
+    const getMarketsForEvent = (
+      marketId: string,
+    ): Promise<PolymarketApiMarket[]> => {
+      const cached = eventMarkets.get(marketId);
+      if (cached) {
+        return cached;
+      }
+
+      const markets = getMarketDetailsFromGammaApi({ marketId })
+        .then((event) => event.markets ?? [])
+        .catch((error) => {
+          DevLogger.log('PolymarketProvider: claim version lookup failed', {
+            marketId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+          return [];
+        });
+      eventMarkets.set(marketId, markets);
+      return markets;
+    };
+
+    const versions = await Promise.all(
+      positions.map(async (position) => {
+        const markets = await getMarketsForEvent(position.marketId);
+        const market = markets.find(
+          (candidate) => candidate.conditionId === position.outcomeId,
+        );
+
+        return [
+          position.outcomeId,
+          market?.version === V2_MARKET_VERSION ? V2_MARKET_VERSION : undefined,
+        ] as const;
+      }),
+    );
+
+    return Object.fromEntries(versions);
+  }
+
+  /**
+   * While the Protocol V2 kill switch is on, v2 positions stay unclaimed and
+   * the rest are claimed. Throws `MARKET_UNAVAILABLE` when no winning
+   * position is left, so the user is never sent a claim that pays nothing.
+   * With the switch off, every position is claimed.
+   */
+  #excludeV2ClaimPositions(
+    positions: PredictPosition[],
+    marketVersions: ClaimMarketVersions,
+  ): PredictPosition[] {
+    if (!this.#shouldHideV2Markets()) {
+      return positions;
+    }
+
+    const claimPositions = positions.filter(
+      (position) => marketVersions[position.outcomeId] !== V2_MARKET_VERSION,
+    );
+
+    if (!claimPositions.some(isActionableClaimablePosition)) {
+      throw new Error(PREDICT_ERROR_CODES.MARKET_UNAVAILABLE);
+    }
+
+    return claimPositions;
+  }
+
   public async prepareClaim(
     params: ClaimOrderParams,
   ): Promise<ClaimOrderResponse> {
@@ -2668,17 +2846,25 @@ export class PolymarketProvider implements PredictProvider {
         safeAddress,
         protocol,
       });
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
+      const claimPositions = this.#excludeV2ClaimPositions(
+        positions,
+        marketVersions,
+      );
       const claimTransaction = await buildClaimTransaction({
         signer,
-        positions,
+        positions: claimPositions,
         safeAddress,
         protocol,
+        marketVersions,
         safeLegacyUsdceBalance,
       });
 
       return {
         chainId: POLYGON_MAINNET_CHAIN_ID,
         transactions: [claimTransaction],
+        positions: claimPositions,
+        marketVersions,
       };
     } catch (error) {
       // Log error for debugging
@@ -2757,10 +2943,12 @@ export class PolymarketProvider implements PredictProvider {
     }
 
     try {
+      const marketVersions = await this.#resolveClaimMarketVersions(positions);
       const calls = await planDepositWalletClaim({
         positions,
         walletAddress: accountState.address,
         protocol,
+        marketVersions,
       });
 
       DevLogger.log(
@@ -3241,15 +3429,20 @@ export class PolymarketProvider implements PredictProvider {
       );
     }
 
-    const depositPusdRaw = await getRawBalance({
-      address: accountState.address,
-      tokenAddress: protocol.collateral.tradingToken,
-    });
+    // Deposit-wallet collateral and the legacy Safe code check share no data.
+    // Overlap them so the balance read waits for one round trip. Legacy
+    // collateral is read only after that Safe is known to exist.
     const legacySafeAddress = computeProxyAddress(address);
-    const legacySafeDeployed = await isSmartContractAddress(
-      legacySafeAddress,
-      numberToHex(POLYGON_MAINNET_CHAIN_ID),
-    );
+    const [depositPusdRaw, legacySafeDeployed] = await Promise.all([
+      getRawBalance({
+        address: accountState.address,
+        tokenAddress: protocol.collateral.tradingToken,
+      }),
+      isSmartContractAddress(
+        legacySafeAddress,
+        numberToHex(POLYGON_MAINNET_CHAIN_ID),
+      ),
+    ]);
 
     let legacyPusdRaw = 0n;
     let legacyUsdceRaw = 0n;

@@ -174,6 +174,7 @@ describe('useOpenPositionHeader', () => {
       positionValue: '$90.00',
       isLoading: false,
       sharePosition: null,
+      isPositionLoading: false,
     });
   });
 

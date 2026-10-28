@@ -59,6 +59,8 @@ export const createMfaFlow = ({
   let recoveredStep: string | undefined;
   let current: CurrentStep | undefined;
   let lastOperation: (() => Promise<void>) | undefined;
+  /** The authenticator setup on screen before its code, so back can return. */
+  let totpSetup: Extract<MfaFlowStep, { name: 'totpSetup' }> | undefined;
   let state: MfaFlowState = {
     step: { name: 'idle' },
     busy: false,
@@ -261,13 +263,14 @@ export const createMfaFlow = ({
     }
     // Only a setup that started becomes the current step.
     current = { method: 'totp', purpose: 'setup', flowId: challenge.flowId };
-    show({
+    totpSetup = {
       name: 'totpSetup',
       secret: challenge.secret,
       qrCode: challenge.qrCode,
       setupUri: challenge.setupUri,
       isRestart,
-    });
+    };
+    show(totpSetup);
   };
 
   const startVerification = async (
@@ -441,7 +444,8 @@ export const createMfaFlow = ({
 
   /**
    * Shows an error the user can fix on the same step. An email linked to
-   * another account goes back to email entry.
+   * another account goes back to email entry, and its spent challenge is
+   * dropped so continuing sends a new code.
    *
    * @param code - The error's code.
    */
@@ -451,6 +455,7 @@ export const createMfaFlow = ({
       current?.method === 'email_otp' &&
       current.purpose === 'setup'
     ) {
+      current = { ...current, flowId: undefined };
       show(
         { name: 'emailEntry', prefillEmail: current.email },
         { error: code },
@@ -478,7 +483,12 @@ export const createMfaFlow = ({
     }
     const code = getFlowErrorCode(error);
     const handling = getErrorHandling(code);
-    if (!presented && handling !== 'refresh' && handling !== 'failure') {
+    if (
+      !presented &&
+      handling !== 'refresh' &&
+      handling !== 'failure' &&
+      handling !== 'support'
+    ) {
       // No screen yet to show the error on: the failure screen offers to try
       // again, so the flow cannot hang on `idle`.
       fail(code, true);
@@ -504,6 +514,11 @@ export const createMfaFlow = ({
         return undefined;
       case 'failure':
         fail(code, false, error);
+        return undefined;
+      case 'support':
+        // Shown even before any other screen: the user needs a way to
+        // contact support.
+        show({ name: 'failure', code, canRetry: false });
         return undefined;
       default:
         setState({ busy: false, error: code });
@@ -560,6 +575,23 @@ export const createMfaFlow = ({
   };
 
   const submitEmailAddress = async (email: string) => {
+    // Returning from the setup code keeps its challenge. Continuing with the
+    // same address returns to that code instead of sending another one.
+    if (
+      current?.method === 'email_otp' &&
+      current.purpose === 'setup' &&
+      current.email === email &&
+      current.flowId
+    ) {
+      show({
+        name: 'otp',
+        purpose: 'setup',
+        method: 'email_otp',
+        email,
+        codeSent: true,
+      });
+      return;
+    }
     current = { method: 'email_otp', purpose: 'setup', email };
     // Stay on email entry until a code is sent. Opening the code screen
     // first tells the user a code went out when enrollment still failed.
@@ -655,6 +687,25 @@ export const createMfaFlow = ({
       case 'retry':
         if (lastOperation) {
           await run(lastOperation);
+        }
+        return;
+      case 'back':
+        // Setup codes return to the setup behind them without replacing the
+        // authenticator secret or sending another email code.
+        if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'totp' &&
+          totpSetup
+        ) {
+          show(totpSetup);
+        } else if (
+          step.name === 'otp' &&
+          step.purpose === 'setup' &&
+          step.method === 'email_otp' &&
+          current?.email
+        ) {
+          show({ name: 'emailEntry', prefillEmail: current.email });
         }
         return;
       case 'dismiss':

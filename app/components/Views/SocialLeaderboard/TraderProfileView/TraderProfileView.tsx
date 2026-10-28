@@ -3,9 +3,16 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Button,
+  ButtonIcon,
+  ButtonIconSize,
+  ButtonSize,
   ButtonVariant,
+  FontWeight,
   HeaderStandardAnimated,
+  IconColor,
+  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -26,7 +33,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -57,6 +69,13 @@ import TraderMuteChip from '../components/TraderMuteChip';
 import { useFollowWithNotificationSetup } from '../hooks/useFollowWithNotificationSetup';
 import { useTraderMuteActions } from '../hooks/useTraderMuteActions';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
+import SocialHeaderGlassSurface from '../components/SocialHeaderGlassSurface';
+import { shareSocialProfile } from '../navigation/socialTraderDeeplink';
+import ProfilePostsEmptyState from '../MyProfileView/components/ProfilePostsEmptyState';
+import { useMyProfilePosts } from '../MyProfileView/hooks/useMyProfilePosts';
+import ProfilePostsLoadingState from '../shared/ProfilePostsLoadingState';
+import SocialFeedPostShell from '../../../UI/SocialFeed/components/SocialFeedPostShell';
+import SocialV1FeedPostList from '../../../UI/SocialFeed/components/SocialV1FeedPostList';
 import {
   HYPERLIQUID_CHAIN_NAME,
   isPerpPosition,
@@ -106,7 +125,10 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
 const getPositionListKey = (position: Position): string =>
   position.positionId ?? `${position.tokenAddress}-${position.chain}`;
 
-const POSITION_TABS = ['open', 'closed'] as const;
+const PROFILE_TABS = ['open', 'closed', 'posts'] as const;
+const END_REACHED_THRESHOLD_PX = 600;
+
+type TraderProfileTab = (typeof PROFILE_TABS)[number];
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -143,6 +165,16 @@ const TraderProfileView = () => {
     isLoadingClosed,
     refetch: refetchPositions,
   } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+  const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
+  const {
+    posts,
+    isLoading: isPostsLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    loadMore,
+    error: postsError,
+    refresh: refreshPosts,
+  } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
@@ -193,17 +225,21 @@ const TraderProfileView = () => {
     [onMutePress, traderId],
   );
 
-  const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const positionTabs = useMemo<TabItem[]>(
     () =>
-      POSITION_TABS.map((tab) => ({
+      PROFILE_TABS.map((tab) => ({
         key: tab,
-        label: strings(`social_leaderboard.trader_profile.${tab}`),
+        label:
+          tab === 'posts'
+            ? strings('social_leaderboard.my_profile.posts')
+            : strings(`social_leaderboard.trader_profile.${tab}`),
         content: null,
         testID:
           tab === 'open'
             ? TraderProfileViewSelectorsIDs.TAB_OPEN
-            : TraderProfileViewSelectorsIDs.TAB_CLOSED,
+            : tab === 'closed'
+              ? TraderProfileViewSelectorsIDs.TAB_CLOSED
+              : TraderProfileViewSelectorsIDs.TAB_POSTS,
       })),
     [],
   );
@@ -214,6 +250,10 @@ const TraderProfileView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleShareProfile = useCallback(() => {
+    shareSocialProfile(traderId);
+  }, [traderId]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     playImpact(ImpactMoment.PullToRefresh);
@@ -221,11 +261,11 @@ const TraderProfileView = () => {
       // Both hooks rethrow after logging; allSettled keeps one failure from
       // taking down the other refetch and prevents an unhandled rejection
       // from surfacing in the UI.
-      await Promise.allSettled([refresh(), refetchPositions()]);
+      await Promise.allSettled([refresh(), refetchPositions(), refreshPosts()]);
     } finally {
       setIsRefreshing(false);
     }
-  }, [refresh, refetchPositions]);
+  }, [refresh, refetchPositions, refreshPosts]);
 
   const handleFollowPress = useCallback(
     async () =>
@@ -243,10 +283,10 @@ const TraderProfileView = () => {
   );
 
   const handleTabChange = useCallback(
-    (tab: 'open' | 'closed') => {
+    (tab: TraderProfileTab) => {
       if (activeTab === tab) return;
       setActiveTab(tab);
-      if (traderAddress) {
+      if (traderAddress && tab !== 'posts') {
         queueMicrotask(() => {
           track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
             [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
@@ -260,7 +300,7 @@ const TraderProfileView = () => {
 
   const handlePositionTabPress = useCallback(
     (index: number) => {
-      const tab = POSITION_TABS[index];
+      const tab = PROFILE_TABS[index];
       if (!tab) return;
       handleTabChange(tab);
     },
@@ -316,9 +356,14 @@ const TraderProfileView = () => {
 
   const currentSortKey: SortKey = activeTab === 'open' ? openSort : closedSort;
   const sortedPositions = useMemo(
-    () => sortPositions(positions, currentSortKey, activeTab),
-    [positions, currentSortKey, activeTab],
+    () =>
+      activeTab === 'posts'
+        ? []
+        : sortPositions(positions, currentSortKey, activeTab),
+    [activeTab, positions, currentSortKey],
   );
+  const showPostsEmptyState =
+    !isPostsLoading && posts.length === 0 && !postsError;
 
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
@@ -342,6 +387,22 @@ const TraderProfileView = () => {
     setTitleSectionHeight,
     titleSectionHeightSv,
   } = useHeaderStandardAnimated();
+
+  const handlePostsScrollSettled = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (activeTab !== 'posts' || !hasNextPage) {
+        return;
+      }
+      const { contentOffset, contentSize, layoutMeasurement } =
+        event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (contentOffset.y + layoutMeasurement.height);
+      if (distanceFromEnd <= END_REACHED_THRESHOLD_PX) {
+        loadMore();
+      }
+    },
+    [activeTab, hasNextPage, loadMore],
+  );
 
   const headerTitle = profile?.profile.name;
 
@@ -378,6 +439,20 @@ const TraderProfileView = () => {
         backButtonProps={{
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
+        endAccessory={
+          <SocialHeaderGlassSurface twClassName="px-1">
+            <ButtonIcon
+              iconName={IconName.Share}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Md}
+              onPress={handleShareProfile}
+              accessibilityLabel={strings(
+                'social_leaderboard.my_profile.share_profile',
+              )}
+              testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
+            />
+          </SocialHeaderGlassSurface>
+        }
         testID={TraderProfileViewSelectorsIDs.HEADER}
       />
 
@@ -386,7 +461,10 @@ const TraderProfileView = () => {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           onScroll={onScroll}
+          onMomentumScrollEnd={handlePostsScrollSettled}
+          onScrollEndDrag={handlePostsScrollSettled}
           scrollEventThrottle={16}
+          testID={TraderProfileViewSelectorsIDs.SCROLL}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -480,11 +558,11 @@ const TraderProfileView = () => {
                     <Box twClassName="flex-1">
                       <TabsBar
                         tabs={positionTabs}
-                        activeIndex={activeTab === 'open' ? 0 : 1}
+                        activeIndex={PROFILE_TABS.indexOf(activeTab)}
                         onTabPress={handlePositionTabPress}
                       />
                     </Box>
-                    {positions.length > 0 && (
+                    {activeTab !== 'posts' && positions.length > 0 && (
                       <Box twClassName="pr-4">
                         <SortButton
                           label={strings(
@@ -499,24 +577,67 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  {isLoadingPositions && positions.length === 0 ? (
+                  {activeTab === 'posts' ? (
+                    isPostsLoading && posts.length === 0 ? (
+                      <ProfilePostsLoadingState />
+                    ) : showPostsEmptyState ? (
+                      <ProfilePostsEmptyState />
+                    ) : postsError && posts.length === 0 ? (
+                      <Box
+                        alignItems={BoxAlignItems.Center}
+                        justifyContent={BoxJustifyContent.Center}
+                        twClassName="w-full px-4 py-16 gap-3"
+                      >
+                        <Text
+                          variant={TextVariant.BodyMd}
+                          fontWeight={FontWeight.Medium}
+                          color={TextColor.TextDefault}
+                          twClassName="text-center"
+                        >
+                          {strings('social_leaderboard.feed.error.title')}
+                        </Text>
+                        <Button
+                          variant={ButtonVariant.Secondary}
+                          size={ButtonSize.Sm}
+                          onPress={() => {
+                            refreshPosts().catch(() => undefined);
+                          }}
+                          twClassName="self-center"
+                        >
+                          {strings('social_leaderboard.feed.error.retry')}
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box paddingTop={4}>
+                        <SocialV1FeedPostList
+                          posts={posts}
+                          dividerKeyPrefix="trader-profile"
+                          renderPost={(post) => (
+                            <SocialFeedPostShell post={post} />
+                          )}
+                        />
+                        {isFetchingNextPage ? (
+                          <Box
+                            alignItems={BoxAlignItems.Center}
+                            twClassName="px-4"
+                          >
+                            <ActivityIndicator size="small" />
+                          </Box>
+                        ) : null}
+                      </Box>
+                    )
+                  ) : isLoadingPositions && positions.length === 0 ? (
                     POSITION_SKELETON_KEYS.map((key) => (
                       <PositionRowSkeleton key={key} />
                     ))
                   ) : sortedPositions.length === 0 ? (
-                    <Box
-                      twClassName="px-4 py-8"
-                      alignItems={BoxAlignItems.Center}
-                    >
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.TextAlternative}
-                      >
-                        {strings(
-                          'social_leaderboard.trader_profile.no_positions',
-                        )}
-                      </Text>
-                    </Box>
+                    <ProfilePostsEmptyState
+                      message={strings(
+                        activeTab === 'closed'
+                          ? 'social_leaderboard.my_profile.empty_closed'
+                          : 'social_leaderboard.my_profile.empty_open',
+                      )}
+                    />
                   ) : (
                     sortedPositions.map((position) => (
                       <PositionRow

@@ -15,6 +15,7 @@ import {
   getWalletName,
   type ProvisioningError,
 } from '../../../pushProvisioning';
+import { ProvisioningErrorCode } from '../../../pushProvisioning/types';
 import { buildProvisioningUserAddress } from '../../../util/buildUserAddress';
 import {
   CardStatus,
@@ -78,11 +79,15 @@ export function useCardWalletProvisioning(
     pendingVerificationDevices,
     canOpenInWallet,
     openInWallet,
+    hideProvisioningUi,
   } = usePushProvisioning({
     cardId: data?.card?.id,
     walletProvisioning,
     userAddress: userAddressForProvisioning,
-    onSuccess: () => {
+    onSuccess: (result) => {
+      if (result?.activationState === 'requires_activation') {
+        return;
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [
@@ -103,6 +108,9 @@ export function useCardWalletProvisioning(
       });
     },
     onError: (provisioningError: ProvisioningError) => {
+      if (provisioningError.code === ProvisioningErrorCode.WALLET_DECLINED) {
+        return;
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
         labelOptions: [
@@ -124,13 +132,15 @@ export function useCardWalletProvisioning(
     },
   });
 
-  const walletEntry = resolveWalletEntry({
-    cardStatus: data?.card?.status,
-    isEligibilityLoading: isLoading,
-    canAddToWallet,
-    isCardInWallet,
-    platformWalletSupported,
-  });
+  const walletEntry = hideProvisioningUi
+    ? 'none'
+    : resolveWalletEntry({
+        cardStatus: data?.card?.status,
+        isEligibilityLoading: isLoading,
+        canAddToWallet,
+        isCardInWallet,
+        platformWalletSupported,
+      });
 
   return {
     initiateProvisioning,

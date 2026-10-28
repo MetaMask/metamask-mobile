@@ -6,6 +6,12 @@ PredictNext uses feature/domain-first ownership for product UI and preserves cro
 
 ```text
 PredictNext/
+  index.ts                     # Curated external entry point
+  implementation/
+    index.ts                   # Legacy/next switch and Active Venue resolution
+    PredictImplementationSwitch.tsx
+    usePredictImplementation.ts
+    NextVenueContext.tsx       # The next branch's resolved Venue (useNextVenueId)
   events/
     cards/
       index.ts                 # Supported Event-card API
@@ -36,7 +42,11 @@ PredictNext/
       internal/                # Summary, tabs, and empty-state composition
   hooks/                       # Existing cross-screen React query integration
   navigation/
+    root/                      # Predict root router (legacy or PredictNext stack)
 
+  capabilities/
+    index.ts                   # Venue descriptors, capability hooks and selectors
+    surfaceFeedKeys.ts         # The surface section/tab to Feed key table
   contracts/                   # Runtime API contracts
   types/                       # Canonical domain types
   queries/                     # Query descriptors and cache policy
@@ -103,7 +113,7 @@ Code outside Predict uses the PredictNext public API described in [the public AP
 
 Code outside PredictNext imports only from `app/components/UI/PredictNext/index.ts`. That file names each public export explicitly and grows only when a ticket migrates a real caller. Do not use `export *`. Named composition wiring (Engine service initialization and messengers, navigator registration) is the allowlisted exception. Inside PredictNext, modules keep importing each other through their module-root `index.ts` files.
 
-Put the temporary Venue switch and legacy pass-through under the owning module, for example `portfolio/internal/legacy/`. Predict-specific code that currently lives in shared surfaces, such as Homepage Predictions, moves into legacy `Predict/` unchanged, and the PredictNext wrapper renders it. Keep dependencies one-way: legacy code never imports PredictNext public wrappers.
+Every public API chooses its branch through `implementation/`: `usePredictImplementation()` resolves the Active Venue to `legacy` or `next` with its `venueId`, and `<PredictImplementationSwitch legacy next resolving />` mounts only the active branch. That module holds the single Venue-to-implementation map. The `next` branch reads its Venue with `useNextVenueId()`; screens below the entry screen take `venueId` from route params or an Order intent, never from a Venue constant. Put each public API's legacy pass-through under its owning module, for example `portfolio/internal/legacy/`. The public API contract describes the switch pattern for components and hooks. Predict-specific code that currently lives in shared surfaces, such as Homepage Predictions, moves into legacy `Predict/` unchanged, and the PredictNext wrapper renders it. Keep dependencies one-way: legacy code never imports PredictNext public wrappers.
 
 ## Adding or moving a module
 

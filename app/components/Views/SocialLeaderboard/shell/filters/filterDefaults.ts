@@ -1,5 +1,6 @@
 import type {
   SocialFilterNetwork,
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
   SocialFilterVerification,
@@ -40,6 +41,7 @@ export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
   traderCohort: 'all',
   verification: 'all',
+  positionStatus: 'all',
   timeframe: '7d',
   network: 'all',
   marketCap: { ...MARKET_CAP_RANGE },
@@ -56,7 +58,7 @@ export const DEFAULT_TAB_FILTER_STATE: Record<
 > = {
   trending: { ...DEFAULT_FILTERS },
   following: { ...DEFAULT_FILTERS },
-  liveTrades: { ...DEFAULT_FILTERS },
+  live: { ...DEFAULT_FILTERS },
   leaderboard: { ...DEFAULT_FILTERS },
 };
 
@@ -75,10 +77,7 @@ export const TYPE_LABEL_KEY: Record<SocialFilterType, string> = {
 /** Following has no sized cohort left, so the sheet hides this section. */
 export const COHORT_OPTIONS_FOLLOWING: SocialTraderCohort[] = ['all'];
 
-export const COHORT_OPTIONS_LIVE_TRADES: SocialTraderCohort[] = [
-  'all',
-  'following',
-];
+export const COHORT_OPTIONS_LIVE: SocialTraderCohort[] = ['all', 'following'];
 
 export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   'all',
@@ -87,8 +86,8 @@ export const COHORT_OPTIONS_LEADERBOARD: SocialTraderCohort[] = [
   // (the row badge is mocked today).
 ];
 
-/** @deprecated Use COHORT_OPTIONS_LIVE_TRADES. Kept for existing imports. */
-export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE_TRADES;
+/** @deprecated Use COHORT_OPTIONS_LIVE. Kept for existing imports. */
+export const COHORT_OPTIONS_WITH_FOLLOWING = COHORT_OPTIONS_LIVE;
 
 /** @deprecated Use COHORT_OPTIONS_FOLLOWING. */
 export const COHORT_OPTIONS_WITHOUT_FOLLOWING = COHORT_OPTIONS_FOLLOWING;
@@ -100,6 +99,22 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
   whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
   verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
+};
+
+export const POSITION_STATUS_OPTIONS: SocialFilterPositionStatus[] = [
+  'all',
+  'open',
+  'closed',
+];
+
+/** All reuses the asset-type All string. */
+export const POSITION_STATUS_LABEL_KEY: Record<
+  SocialFilterPositionStatus,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  open: 'social_leaderboard.shell.filters.position_status.open',
+  closed: 'social_leaderboard.shell.filters.position_status.closed',
 };
 
 export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [

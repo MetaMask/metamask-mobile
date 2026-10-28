@@ -1,3 +1,4 @@
+import { lightTheme } from '@metamask/design-tokens';
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -95,23 +96,37 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
+    expect(screen.getByText('-')).toBeOnTheScreen();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
 
-  it('wraps a highlighted row in the muted gradient card', () => {
+  it('wraps a highlighted row in the muted viewer card', () => {
     renderWithProvider(
       <SocialV1TraderRow
-        trader={baseTrader}
+        trader={{ ...baseTrader, rank: 59, overallRank: 59 }}
         onFollowPress={mockOnFollowPress}
         highlighted
-        hideRank
       />,
     );
 
-    expect(
-      screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT),
-    ).toBeOnTheScreen();
+    const card = screen.getByTestId(SocialV1TraderRowSelectorsIDs.HIGHLIGHT);
+
+    expect(card).toBeOnTheScreen();
+    expect(card).toHaveStyle({
+      backgroundColor: lightTheme.colors.background.muted,
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingLeft: 8,
+      paddingRight: 8,
+      paddingTop: 12,
+      paddingBottom: 12,
+    });
+    expect(screen.queryByTestId('social-gradient-card-gradient')).toBeNull();
+    expect(screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK)).toHaveStyle({
+      width: 32,
+    });
+    expect(screen.getByText('59')).toBeOnTheScreen();
   });
 
   it('keeps the row interactive', () => {
@@ -196,5 +211,27 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
     ).toBeNull();
+  });
+
+  it('shows a zero percent and a zero follower count on the pinned viewer card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          rank: 0,
+          overallRank: 0,
+          percentageChange: 0,
+          followerCount: 0,
+        }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+      />,
+    );
+
+    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.getByText('+0.0%')).toBeOnTheScreen();
+    expect(screen.getByText('0 followers')).toBeOnTheScreen();
   });
 });
