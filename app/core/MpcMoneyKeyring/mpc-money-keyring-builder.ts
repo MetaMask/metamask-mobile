@@ -102,6 +102,11 @@ export function buildMpcMoneyKeyringV2Builder(): KeyringV2Builder {
 export interface RealMpcMoneyKeyringBuilderOptions {
   /** Returns the profile access token used for the MPC service. */
   getBearerToken: () => Promise<string>;
+  /**
+   * Returns a one-time 2FA approval for a signature hash. Without it,
+   * signatures that need 2FA use the profile token.
+   */
+  getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>;
 }
 
 let twoFactorTokenProvider: (() => Promise<string>) | undefined;
@@ -138,10 +143,12 @@ const getProfileId = (token: string): string => {
  *
  * @param options - Builder options.
  * @param options.getBearerToken - Returns the profile access token.
+ * @param options.getTwoFactorApproval - Returns a 2FA approval for a hash.
  * @returns The real Money MPC keyring builder.
  */
 export function buildRealMpcMoneyKeyringBuilder({
   getBearerToken,
+  getTwoFactorApproval,
 }: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
   applyEmptyIkmHkdfWorkaround();
 
@@ -155,10 +162,18 @@ export function buildRealMpcMoneyKeyringBuilder({
       dkls23Lib,
       cloudURL: MPC_CLOUD_URL,
       relayerURL: MPC_RELAYER_URL,
-      getProfileToken: (options?: { twoFactor?: boolean }) =>
-        options?.twoFactor && twoFactorTokenProvider
-          ? twoFactorTokenProvider()
-          : getBearerToken(),
+      getProfileToken: (options?: {
+        twoFactor?: boolean;
+        challenge?: Uint8Array;
+      }) => {
+        if (options?.twoFactor && twoFactorTokenProvider) {
+          return twoFactorTokenProvider();
+        }
+        if (options?.twoFactor && options.challenge && getTwoFactorApproval) {
+          return getTwoFactorApproval(options.challenge);
+        }
+        return getBearerToken();
+      },
       // TODO: replace the placeholder once the backup key source is decided.
       getBackupEncryptionKey: async () =>
         sha256(

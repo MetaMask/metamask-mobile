@@ -27,10 +27,13 @@ const toBase64Url = (value: object) =>
   Buffer.from(JSON.stringify(value)).toString('base64url');
 const TOKEN = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub: 'profile-1' })}.sig`;
 
-const buildKeyring = () => {
+const buildKeyring = (
+  getTwoFactorApproval?: (hash: Uint8Array) => Promise<string>,
+) => {
   const getBearerToken = jest.fn().mockResolvedValue(TOKEN);
   const keyring = buildRealMpcMoneyKeyringBuilder({
     getBearerToken,
+    getTwoFactorApproval,
   })() as unknown as {
     options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
   };
@@ -85,6 +88,33 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     );
     expect(await options.getProfileToken()).toBe(TOKEN);
     expect(getBearerToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses a 2FA approval for the signature hash when the call needs 2FA', async () => {
+    const getTwoFactorApproval = jest.fn().mockResolvedValue('approval');
+    const { options, getBearerToken } = buildKeyring(getTwoFactorApproval);
+    const challenge = new Uint8Array(32).fill(1);
+
+    expect(await options.getProfileToken({ twoFactor: true, challenge })).toBe(
+      'approval',
+    );
+    expect(getTwoFactorApproval).toHaveBeenCalledWith(challenge);
+    expect(await options.getProfileToken()).toBe(TOKEN);
+    expect(getBearerToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('prefers the QA 2FA token provider over the approval', async () => {
+    setMpcTwoFactorTokenProvider(jest.fn().mockResolvedValue('2fa-token'));
+    const getTwoFactorApproval = jest.fn();
+    const { options } = buildKeyring(getTwoFactorApproval);
+
+    expect(
+      await options.getProfileToken({
+        twoFactor: true,
+        challenge: new Uint8Array(32),
+      }),
+    ).toBe('2fa-token');
+    expect(getTwoFactorApproval).not.toHaveBeenCalled();
   });
 
   it('pins the Money Account whitelist config', async () => {
