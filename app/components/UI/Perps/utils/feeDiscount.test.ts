@@ -163,6 +163,28 @@ describe('formatCombinedFeePercentage', () => {
   it('returns undefined when the confirmed rates sum to zero', () => {
     expect(formatCombinedFeePercentage(0, 0)).toBeUndefined();
   });
+
+  it.each([
+    [Number.NaN, 0],
+    [Number.POSITIVE_INFINITY, 0],
+    [0, Number.NEGATIVE_INFINITY],
+  ])(
+    'returns undefined when the combined rate is not finite',
+    (protocolFeeRate, metamaskFeeRate) => {
+      const result = formatCombinedFeePercentage(
+        protocolFeeRate,
+        metamaskFeeRate,
+      );
+
+      expect(result).toBeUndefined();
+    },
+  );
+
+  it('returns undefined when the combined rate is negative', () => {
+    const result = formatCombinedFeePercentage(-0.00043, 0.0002);
+
+    expect(result).toBeUndefined();
+  });
 });
 
 describe('formatOriginalCombinedFeePercentage', () => {

@@ -1,7 +1,7 @@
 import { IconColor } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 /**
@@ -42,9 +42,9 @@ const SealPercentIcon = ({
 }: SealPercentIconProps) => {
   const tw = useTailwind();
   // Same paint path as the design-system Icon used by the fees info button:
-  // `fill="currentColor"` on the root, color only in the style, and no fill
-  // on the path so it inherits that color instead of the default text color.
-  const svgStyle = StyleSheet.flatten(tw.style(color));
+  // `fill="currentColor"` on the root, color on the SVG, and no fill on the
+  // path so it inherits that color instead of the default text color.
+  const svgColor = tw.color(color);
   const isInformative = Boolean(accessibilityLabel);
 
   return (
@@ -61,7 +61,7 @@ const SealPercentIcon = ({
         height={size}
         viewBox="0 0 256 256"
         fill="currentColor"
-        style={svgStyle}
+        color={svgColor}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >

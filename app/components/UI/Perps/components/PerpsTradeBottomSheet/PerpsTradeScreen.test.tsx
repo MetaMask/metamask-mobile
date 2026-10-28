@@ -557,6 +557,11 @@ describe('PerpsTradeScreen errors', () => {
       screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
     ).toHaveTextContent('Includes 0.143% 0.063% fee after promo');
     expect(
+      within(
+        screen.getByTestId(PerpsTradeSheetSelectorsIDs.FEE_TEXT),
+      ).queryByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).not.toBeOnTheScreen();
+    expect(
       screen.getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
     ).toBeOnTheScreen();
     expect(

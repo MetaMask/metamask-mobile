@@ -148,8 +148,9 @@ const PerpsFeeCaption = ({
     },
   );
   // Strikethrough is visual only. Name the previous rate when it is shown.
-  const promoAccessibilityLabel = showOriginalRate
-    ? bridgeFee
+  let promoAccessibilityLabel: string | undefined;
+  if (showOriginalRate) {
+    promoAccessibilityLabel = bridgeFee
       ? strings('perps.trade_sheet.includes_fee_after_promo_a11y_with_bridge', {
           feePercentage,
           originalFeePercentage,
@@ -158,8 +159,8 @@ const PerpsFeeCaption = ({
       : strings('perps.trade_sheet.includes_fee_after_promo_a11y', {
           feePercentage,
           originalFeePercentage,
-        })
-    : undefined;
+        });
+  }
 
   return (
     <Box
@@ -169,7 +170,6 @@ const PerpsFeeCaption = ({
       justifyContent={BoxJustifyContent.Center}
       gap={2}
       twClassName={twClassName}
-      testID={testID}
     >
       <PerpsFeeDiscountLabel
         feeDiscountPercentage={feeDiscountPercentage}
@@ -181,11 +181,16 @@ const PerpsFeeCaption = ({
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
           accessibilityLabel={promoAccessibilityLabel}
+          testID={testID}
         >
           {promoSentenceNodes(promoCopy, feePercentage, originalFeePercentage)}
         </Text>
       ) : (
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          testID={testID}
+        >
           {standardCopy}
         </Text>
       )}

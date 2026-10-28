@@ -115,4 +115,21 @@ describe('PerpsFeeCaption', () => {
     expect(screen.queryByText('0.063')).toBeOnTheScreen();
     expect(screen.queryByLabelText(/was/)).not.toBeOnTheScreen();
   });
+
+  it('keeps the bridge fee in the discounted-only sentence', () => {
+    render(
+      <PerpsFeeCaption
+        testID={CAPTION_TEST_ID}
+        feePercentage="0.063"
+        bridgeFee="$0.15"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(screen.getByTestId(CAPTION_TEST_ID)).toHaveTextContent(
+      'Includes 0.063% fee after promo + $0.15 bridge fee',
+    );
+    expect(screen.queryByLabelText(/was/)).not.toBeOnTheScreen();
+  });
 });
