@@ -4,6 +4,7 @@ import {
   getUsernameStatus,
   MIN_USERNAME_LENGTH,
 } from '../../ProfileOnboarding/profileOnboardingDraft';
+import { MAX_USERNAME_LENGTH } from '../../ProfileOnboarding/generateUsername';
 
 /**
  * The one server code that means the handle broke a rule rather than being
@@ -18,6 +19,11 @@ export const getHandleLocalRuleError = (value: string): string | null => {
   if (status === 'empty' || status === 'tooShort') {
     return strings('social_leaderboard.manage_profile.username_too_short', {
       min: MIN_USERNAME_LENGTH,
+    });
+  }
+  if (status === 'tooLong') {
+    return strings('social_leaderboard.manage_profile.username_too_long', {
+      max: MAX_USERNAME_LENGTH,
     });
   }
   if (status === 'invalid') {

@@ -8,6 +8,9 @@ const TOO_SHORT = strings(
   'social_leaderboard.manage_profile.username_too_short',
   { min: 3 },
 );
+const TOO_LONG = strings('social_leaderboard.manage_profile.username_too_long', {
+  max: 16,
+});
 const INVALID = strings('social_leaderboard.manage_profile.username_invalid');
 const UNAVAILABLE = strings(
   'social_leaderboard.manage_profile.username_unavailable',
@@ -32,6 +35,11 @@ describe('getHandleLocalRuleError', () => {
   it('asks for the minimum length for a handle that is empty or too short', () => {
     expect(getHandleLocalRuleError('')).toBe(TOO_SHORT);
     expect(getHandleLocalRuleError('ab')).toBe(TOO_SHORT);
+  });
+
+  it('asks for the maximum length for a handle that is too long', () => {
+    expect(getHandleLocalRuleError('abcdefghijklmnopq')).toBe(TOO_LONG);
+    expect(getHandleLocalRuleError('a'.repeat(16))).toBeNull();
   });
 
   it('asks for the allowed characters when the handle breaks the charset', () => {

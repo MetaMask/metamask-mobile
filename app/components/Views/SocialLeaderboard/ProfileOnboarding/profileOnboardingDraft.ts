@@ -47,7 +47,12 @@ export interface ProfileOnboardingDraft {
   shareTradingActivity: boolean;
 }
 
-export type UsernameStatus = 'empty' | 'tooShort' | 'invalid' | 'available';
+export type UsernameStatus =
+  | 'empty'
+  | 'tooShort'
+  | 'tooLong'
+  | 'invalid'
+  | 'available';
 
 /** Server rule: letters, numbers, and underscores; edges allowed. */
 const USERNAME_PATTERN = /^[a-z0-9_]+$/;
@@ -64,10 +69,11 @@ export const getUsernameStatus = (value: string): UsernameStatus => {
   if (username.length < MIN_USERNAME_LENGTH) {
     return 'tooShort';
   }
-  if (
-    username.length > MAX_USERNAME_LENGTH ||
-    !USERNAME_PATTERN.test(username)
-  ) {
+  // Length outranks the pattern, so a long handle still hears about its length.
+  if (username.length > MAX_USERNAME_LENGTH) {
+    return 'tooLong';
+  }
+  if (!USERNAME_PATTERN.test(username)) {
     return 'invalid';
   }
   return 'available';

@@ -5,6 +5,7 @@ import {
   type ProfileOnboardingDraft,
   type UsernameStatus,
 } from '../profileOnboardingDraft';
+import { MAX_USERNAME_LENGTH } from '../generateUsername';
 
 export const getUsernameLocalError = (
   draft: ProfileOnboardingDraft,
@@ -16,6 +17,11 @@ export const getUsernameLocalError = (
   if (status === 'tooShort') {
     return strings('social_leaderboard.profile_onboarding.username_too_short', {
       min: MIN_USERNAME_LENGTH,
+    });
+  }
+  if (status === 'tooLong') {
+    return strings('social_leaderboard.profile_onboarding.username_too_long', {
+      max: MAX_USERNAME_LENGTH,
     });
   }
   if (status === 'invalid') {

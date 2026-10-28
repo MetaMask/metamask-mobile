@@ -46,10 +46,16 @@ describe('profileOnboardingDraft', () => {
   it('accepts letters, numbers, and underscores between 3 and 16 characters', () => {
     expect(getUsernameStatus('bad-name')).toBe('invalid');
     expect(getUsernameStatus('bad name')).toBe('invalid');
-    expect(getUsernameStatus('a'.repeat(17))).toBe('invalid');
     expect(getUsernameStatus('')).toBe('empty');
     expect(getUsernameStatus('wen_cat')).toBe('available');
     expect(getUsernameStatus('wen_cat_12')).toBe('available');
+  });
+
+  it('reports a handle above the maximum length before the pattern', () => {
+    expect(getUsernameStatus('a'.repeat(17))).toBe('tooLong');
+    expect(getUsernameStatus('a'.repeat(16))).toBe('available');
+    // Length outranks the pattern.
+    expect(getUsernameStatus('bad-name-that-is-long')).toBe('tooLong');
   });
 
   it('reports a handle under the minimum length before any other rule', () => {

@@ -5,6 +5,7 @@ import {
   MIN_USERNAME_LENGTH,
   type ProfileOnboardingDraft,
 } from '../profileOnboardingDraft';
+import { MAX_USERNAME_LENGTH } from '../generateUsername';
 import { getUsernameLocalError } from './getUsernameLocalError';
 
 const manualDraft = (username: string): ProfileOnboardingDraft => ({
@@ -54,6 +55,14 @@ describe('getUsernameLocalError', () => {
     expect(getUsernameLocalError(draft, 'tooShort')).toBe(
       strings('social_leaderboard.profile_onboarding.username_too_short', {
         min: MIN_USERNAME_LENGTH,
+      }),
+    );
+  });
+
+  it('asks for the maximum length for a handle above sixteen characters', () => {
+    expect(getUsernameLocalError(manualDraft('a'.repeat(17)), 'tooLong')).toBe(
+      strings('social_leaderboard.profile_onboarding.username_too_long', {
+        max: MAX_USERNAME_LENGTH,
       }),
     );
   });

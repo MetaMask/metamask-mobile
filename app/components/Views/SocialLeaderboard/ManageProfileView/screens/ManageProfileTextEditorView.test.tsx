@@ -262,6 +262,52 @@ describe('ManageProfileTextEditorView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('shows the maximum length rule without asking the server for a long handle', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkUsernameAvailability = jest.fn();
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability,
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
+      'abcdefghijklmnopq',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_SAVE),
+      );
+    });
+
+    expect(checkUsernameAvailability).not.toHaveBeenCalled();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.username_too_long', {
+          max: 16,
+        }),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.username_invalid'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
   it('shows the length rule without asking the server for a short handle', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkUsernameAvailability = jest.fn();
