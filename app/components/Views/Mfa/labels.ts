@@ -33,6 +33,19 @@ const ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
  * Wording for authenticator app codes, which the app shows rather than an
  * email: a new code is in the app, not requested.
  */
+const ERROR_LINKS: Partial<Record<MfaFlowErrorCode, string>> = {
+  email_claimed: 'https://support.metamask.io/configure/wallet/email-in-use',
+};
+
+/**
+ * The help article for an error, if it has one.
+ *
+ * @param code - The error code.
+ * @returns The article URL.
+ */
+export const getErrorLink = (code: MfaFlowErrorCode): string | undefined =>
+  ERROR_LINKS[code];
+
 const TOTP_ERROR_KEYS: Partial<Record<MfaFlowErrorCode, string>> = {
   invalid_code: 'mfa.errors.invalid_totp_code',
   flow_expired: 'mfa.errors.totp_expired',

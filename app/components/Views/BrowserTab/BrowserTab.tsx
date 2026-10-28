@@ -1241,7 +1241,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             ) {
               return;
             }
-            backgroundBridgeRef.current?.onMessage(dataParsed);
+
+            // Provider messages use the frame URL from the WebView event.
+            const frameUrl = nativeEvent.url;
+            if (!isHttpPageUrl(frameUrl)) {
+              return;
+            }
+
+            backgroundBridgeRef.current?.onMessage({
+              ...dataParsed,
+              origin: frameUrl,
+            });
             return;
           }
         } catch (e: unknown) {
