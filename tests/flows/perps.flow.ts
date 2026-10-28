@@ -8,6 +8,8 @@ import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
 import PerpsProMarketView from '../page-objects/Perps/PerpsProMarketView';
 import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
+import TabBarComponent from '../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../page-objects/wallet/WalletActionsBottomSheet';
 import WalletView from '../page-objects/wallet/WalletView';
 
 /** Presence probe for optional Perps UI (tutorial / tooltip). Keep short — smoke fixtures pre-grant notifications and usually skip GTM. */
@@ -149,9 +151,14 @@ export const waitForOrderScreenVisible = async (
 };
 
 /**
- * Opens Perps from the wallet homepage and waits until the Perps home search
- * control is visible. Each attempt stays short so a late-mounted section can
- * be retried inside the outer budget.
+ * Opens Perps from the wallet and waits until the Perps home search control is
+ * visible.
+ *
+ * Uses Trade → Perps (same entry as Predict withdraw / deposit smokes). Homepage
+ * Perps section scroll alone is insufficient: AB placement and deferred mount
+ * can leave the section below a short scroll budget, so #37617 retries kept
+ * repeating the same 2-scroll miss
+ * (`Element not found within scroll limit of 2 scrolls`).
  */
 export const openPerpsHomeFromWallet = async (): Promise<void> => {
   await Utilities.executeWithRetry(
@@ -165,13 +172,14 @@ export const openPerpsHomeFromWallet = async (): Promise<void> => {
         return;
       }
 
-      await WalletView.scrollAndTapPerpsSection();
+      await TabBarComponent.tapActions();
+      await WalletActionsBottomSheet.tapPerpsButton();
       await dismissPerpsOnboardingTutorialIfPresent();
       await Assertions.expectElementToBeVisible(
         PerpsMarketListView.homeSearchToggle,
         {
           description: 'Perps home search control is visible',
-          timeout: 5_000,
+          timeout: 10_000,
         },
       );
     },
