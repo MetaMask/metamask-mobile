@@ -34,7 +34,10 @@ export type SocialEndpoint =
   | 'position_by_id'
   | 'trader_profile'
   | 'follow'
-  | 'unfollow';
+  | 'unfollow'
+  | 'blocked_profiles'
+  | 'block'
+  | 'unblock';
 
 /**
  * Coarse-grained error category derived from the thrown error shape.

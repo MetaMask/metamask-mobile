@@ -11,8 +11,11 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandardAnimated,
+  Icon,
   IconColor,
   IconName,
+  IconSize,
+  TabEmptyState,
   Text,
   TextColor,
   TextVariant,
@@ -90,10 +93,11 @@ import {
 } from './components/Skeletons';
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
+import ProfileOptionsSheet from './components/ProfileOptionsSheet';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import TraderStatsSheet from './components/TraderStatsSheet';
 import type { TraderProfileWithSheetStats } from './types/traderProfileStatsSheet';
-import { useTraderPositions, useTraderProfile } from './hooks';
+import { useTraderBlock, useTraderPositions, useTraderProfile } from './hooks';
 import { resolveQuickBuyOriginalEntryPointFromProfile } from '../../../UI/QuickBuy/analytics';
 import {
   CLOSED_SORT_CYCLE,
@@ -158,13 +162,18 @@ const TraderProfileView = () => {
     toggleFollow,
     refresh,
   } = useTraderProfile(traderId, { refetchInterval: 30_000 });
+  const { isBlocked, block, unblock } = useTraderBlock(
+    profile?.profile.profileId,
+  );
   const {
     openPositions,
     closedPositions,
     isLoadingOpen,
     isLoadingClosed,
     refetch: refetchPositions,
-  } = useTraderPositions(traderId, { refetchInterval: 30_000 });
+  } = useTraderPositions(traderId, {
+    refetchInterval: isBlocked ? undefined : 30_000,
+  });
   const [activeTab, setActiveTab] = useState<TraderProfileTab>('open');
   const {
     posts,
@@ -174,10 +183,13 @@ const TraderProfileView = () => {
     loadMore,
     error: postsError,
     refresh: refreshPosts,
-  } = useMyProfilePosts(traderId, { isActive: activeTab === 'posts' });
+  } = useMyProfilePosts(traderId, {
+    isActive: activeTab === 'posts' && !isBlocked,
+  });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsSheetOpen, setIsStatsSheetOpen] = useState(false);
+  const [isProfileOptionsOpen, setIsProfileOptionsOpen] = useState(false);
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
@@ -281,6 +293,32 @@ const TraderProfileView = () => {
       ),
     [toggleFollow, traderAddress, profile, isFollowing, followWithSetup],
   );
+
+  const handleOpenProfileOptions = useCallback(() => {
+    setIsProfileOptionsOpen(true);
+  }, []);
+
+  const handleCloseProfileOptions = useCallback(() => {
+    setIsProfileOptionsOpen(false);
+  }, []);
+
+  const handleBlock = useCallback(async () => {
+    const wasFollowing = isFollowing;
+    const didBlock = await block();
+    if (didBlock && wasFollowing) {
+      await toggleFollow({
+        source: 'trader_profile',
+        traderAddress: traderAddress || profile?.profile.address || '',
+        traderUsername: profile?.profile.name,
+        traderAvatarUri: profile?.profile.imageUrl,
+      });
+    }
+  }, [block, isFollowing, toggleFollow, traderAddress, profile]);
+
+  const handleUnblock = useCallback(async () => {
+    playImpact(ImpactMoment.FollowToggle);
+    await unblock();
+  }, [unblock]);
 
   const handleTabChange = useCallback(
     (tab: TraderProfileTab) => {
@@ -431,7 +469,7 @@ const TraderProfileView = () => {
           ) : undefined
         }
         subtitle={
-          headlineStats ? (
+          headlineStats && !isBlocked ? (
             <TraderProfileCompactStats stats={headlineStats} />
           ) : undefined
         }
@@ -450,6 +488,17 @@ const TraderProfileView = () => {
                 'social_leaderboard.my_profile.share_profile',
               )}
               testID={TraderProfileViewSelectorsIDs.SHARE_BUTTON}
+            />
+            <ButtonIcon
+              iconName={IconName.MoreHorizontal}
+              iconProps={{ color: IconColor.IconDefault }}
+              size={ButtonIconSize.Md}
+              onPress={handleOpenProfileOptions}
+              isDisabled={!profile}
+              accessibilityLabel={strings(
+                'social_leaderboard.trader_profile.more_options',
+              )}
+              testID={TraderProfileViewSelectorsIDs.MORE_BUTTON}
             />
           </SocialHeaderGlassSurface>
         }
@@ -501,7 +550,7 @@ const TraderProfileView = () => {
                       profile={profile.profile}
                       twitterHandle={profile.socialHandles?.twitter}
                     />
-                    {headlineStats ? (
+                    {isBlocked ? null : headlineStats ? (
                       <StatsRow
                         stats={headlineStats}
                         holdTimeMinutes={profile.stats.medianHoldMinutes}
@@ -522,20 +571,31 @@ const TraderProfileView = () => {
                     twClassName="px-4 pt-3 pb-1"
                   >
                     <Box twClassName="flex-1">
-                      <Button
-                        variant={
-                          isFollowing
-                            ? ButtonVariant.Secondary
-                            : ButtonVariant.Primary
-                        }
-                        isFullWidth
-                        onPress={handleFollowPress}
-                        testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                      >
-                        {isFollowing
-                          ? strings('social_leaderboard.following')
-                          : strings('social_leaderboard.follow')}
-                      </Button>
+                      {isBlocked ? (
+                        <Button
+                          variant={ButtonVariant.Secondary}
+                          isFullWidth
+                          onPress={handleUnblock}
+                          testID={TraderProfileViewSelectorsIDs.UNBLOCK_BUTTON}
+                        >
+                          {strings('social_leaderboard.trader_profile.unblock')}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant={
+                            isFollowing
+                              ? ButtonVariant.Secondary
+                              : ButtonVariant.Primary
+                          }
+                          isFullWidth
+                          onPress={handleFollowPress}
+                          testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                        >
+                          {isFollowing
+                            ? strings('social_leaderboard.following')
+                            : strings('social_leaderboard.follow')}
+                        </Button>
+                      )}
                     </Box>
                     {showMuteChip && (
                       <TraderMuteChip
@@ -548,106 +608,141 @@ const TraderProfileView = () => {
                     )}
                   </Box>
 
-                  <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
-
-                  <Box
-                    flexDirection={BoxFlexDirection.Row}
-                    alignItems={BoxAlignItems.Center}
-                    twClassName="mb-2"
-                  >
-                    <Box twClassName="flex-1">
-                      <TabsBar
-                        tabs={positionTabs}
-                        activeIndex={PROFILE_TABS.indexOf(activeTab)}
-                        onTabPress={handlePositionTabPress}
+                  {isBlocked ? (
+                    <Box
+                      alignItems={BoxAlignItems.Center}
+                      twClassName="px-6 pt-12"
+                    >
+                      <TabEmptyState
+                        icon={
+                          <>
+                            <Icon
+                              name={IconName.Ban}
+                              size={IconSize.Lg}
+                              color={IconColor.IconAlternative}
+                            />
+                            <Text
+                              variant={TextVariant.HeadingSm}
+                              twClassName="text-center"
+                            >
+                              {strings(
+                                'social_leaderboard.trader_profile.blocked_title',
+                                { name: profile.profile.name },
+                              )}
+                            </Text>
+                          </>
+                        }
+                        description={strings(
+                          'social_leaderboard.trader_profile.blocked_description',
+                        )}
+                        twClassName="max-w-80"
+                        testID={TraderProfileViewSelectorsIDs.BLOCKED_STATE}
                       />
                     </Box>
-                    {activeTab !== 'posts' && positions.length > 0 && (
-                      <Box twClassName="pr-4">
-                        <SortButton
-                          label={strings(
-                            activeTab === 'open'
-                              ? OPEN_SORT_LABEL_KEYS[openSort]
-                              : CLOSED_SORT_LABEL_KEYS[closedSort],
-                          )}
-                          onPress={handleSortPress}
-                          testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
-                        />
-                      </Box>
-                    )}
-                  </Box>
+                  ) : (
+                    <>
+                      <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />
 
-                  {activeTab === 'posts' ? (
-                    isPostsLoading && posts.length === 0 ? (
-                      <ProfilePostsLoadingState />
-                    ) : showPostsEmptyState ? (
-                      <ProfilePostsEmptyState />
-                    ) : postsError && posts.length === 0 ? (
                       <Box
+                        flexDirection={BoxFlexDirection.Row}
                         alignItems={BoxAlignItems.Center}
-                        justifyContent={BoxJustifyContent.Center}
-                        twClassName="w-full px-4 py-16 gap-3"
+                        twClassName="mb-2"
                       >
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
-                          color={TextColor.TextDefault}
-                          twClassName="text-center"
-                        >
-                          {strings('social_leaderboard.feed.error.title')}
-                        </Text>
-                        <Button
-                          variant={ButtonVariant.Secondary}
-                          size={ButtonSize.Sm}
-                          onPress={() => {
-                            refreshPosts().catch(() => undefined);
-                          }}
-                          twClassName="self-center"
-                        >
-                          {strings('social_leaderboard.feed.error.retry')}
-                        </Button>
+                        <Box twClassName="flex-1">
+                          <TabsBar
+                            tabs={positionTabs}
+                            activeIndex={PROFILE_TABS.indexOf(activeTab)}
+                            onTabPress={handlePositionTabPress}
+                          />
+                        </Box>
+                        {activeTab !== 'posts' && positions.length > 0 && (
+                          <Box twClassName="pr-4">
+                            <SortButton
+                              label={strings(
+                                activeTab === 'open'
+                                  ? OPEN_SORT_LABEL_KEYS[openSort]
+                                  : CLOSED_SORT_LABEL_KEYS[closedSort],
+                              )}
+                              onPress={handleSortPress}
+                              testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
+                            />
+                          </Box>
+                        )}
                       </Box>
-                    ) : (
-                      <Box paddingTop={4}>
-                        <SocialV1FeedPostList
-                          posts={posts}
-                          dividerKeyPrefix="trader-profile"
-                          renderPost={(post) => (
-                            <SocialFeedPostShell post={post} />
-                          )}
-                        />
-                        {isFetchingNextPage ? (
+
+                      {activeTab === 'posts' ? (
+                        isPostsLoading && posts.length === 0 ? (
+                          <ProfilePostsLoadingState />
+                        ) : showPostsEmptyState ? (
+                          <ProfilePostsEmptyState />
+                        ) : postsError && posts.length === 0 ? (
                           <Box
                             alignItems={BoxAlignItems.Center}
-                            twClassName="px-4"
+                            justifyContent={BoxJustifyContent.Center}
+                            twClassName="w-full px-4 py-16 gap-3"
                           >
-                            <ActivityIndicator size="small" />
+                            <Text
+                              variant={TextVariant.BodyMd}
+                              fontWeight={FontWeight.Medium}
+                              color={TextColor.TextDefault}
+                              twClassName="text-center"
+                            >
+                              {strings('social_leaderboard.feed.error.title')}
+                            </Text>
+                            <Button
+                              variant={ButtonVariant.Secondary}
+                              size={ButtonSize.Sm}
+                              onPress={() => {
+                                refreshPosts().catch(() => undefined);
+                              }}
+                              twClassName="self-center"
+                            >
+                              {strings('social_leaderboard.feed.error.retry')}
+                            </Button>
                           </Box>
-                        ) : null}
-                      </Box>
-                    )
-                  ) : isLoadingPositions && positions.length === 0 ? (
-                    POSITION_SKELETON_KEYS.map((key) => (
-                      <PositionRowSkeleton key={key} />
-                    ))
-                  ) : sortedPositions.length === 0 ? (
-                    <ProfilePostsEmptyState
-                      message={strings(
-                        activeTab === 'closed'
-                          ? 'social_leaderboard.my_profile.empty_closed'
-                          : 'social_leaderboard.my_profile.empty_open',
+                        ) : (
+                          <Box paddingTop={4}>
+                            <SocialV1FeedPostList
+                              posts={posts}
+                              dividerKeyPrefix="trader-profile"
+                              renderPost={(post) => (
+                                <SocialFeedPostShell post={post} />
+                              )}
+                            />
+                            {isFetchingNextPage ? (
+                              <Box
+                                alignItems={BoxAlignItems.Center}
+                                twClassName="px-4"
+                              >
+                                <ActivityIndicator size="small" />
+                              </Box>
+                            ) : null}
+                          </Box>
+                        )
+                      ) : isLoadingPositions && positions.length === 0 ? (
+                        POSITION_SKELETON_KEYS.map((key) => (
+                          <PositionRowSkeleton key={key} />
+                        ))
+                      ) : sortedPositions.length === 0 ? (
+                        <ProfilePostsEmptyState
+                          message={strings(
+                            activeTab === 'closed'
+                              ? 'social_leaderboard.my_profile.empty_closed'
+                              : 'social_leaderboard.my_profile.empty_open',
+                          )}
+                        />
+                      ) : (
+                        sortedPositions.map((position) => (
+                          <PositionRow
+                            key={getPositionListKey(position)}
+                            position={position}
+                            onPress={handlePositionPress}
+                            isClosed={activeTab === 'closed'}
+                            showTradeDate={currentSortKey === 'recent'}
+                          />
+                        ))
                       )}
-                    />
-                  ) : (
-                    sortedPositions.map((position) => (
-                      <PositionRow
-                        key={getPositionListKey(position)}
-                        position={position}
-                        onPress={handlePositionPress}
-                        isClosed={activeTab === 'closed'}
-                        showTradeDate={currentSortKey === 'recent'}
-                      />
-                    ))
+                    </>
                   )}
                 </>
               )}
@@ -659,6 +754,13 @@ const TraderProfileView = () => {
         <TraderStatsSheet
           profile={profile as TraderProfileWithSheetStats}
           onClose={() => setIsStatsSheetOpen(false)}
+        />
+      ) : null}
+      {isProfileOptionsOpen && profile ? (
+        <ProfileOptionsSheet
+          traderName={profile.profile.name}
+          onBlock={handleBlock}
+          onClose={handleCloseProfileOptions}
         />
       ) : null}
     </SafeAreaView>
