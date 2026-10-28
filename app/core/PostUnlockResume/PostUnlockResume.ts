@@ -19,7 +19,11 @@ const RUNTIME_ID = `${Date.now()}:${Math.random()}`;
 export interface PostUnlockResumeRequest {
   /** Feature that owns the request; only that owner can clear it. */
   owner: string;
-  /** Main navigator state to open after the next cold-start unlock. */
+  /**
+   * Main navigator state to open after the next cold-start unlock. Its screens
+   * mount before Redux reflects the unlocked keyring, so they must wait for
+   * any store data they read.
+   */
   state: NavigationBranchState;
   /** How long after the last write a relaunch still resumes. */
   maxAgeMs: number;

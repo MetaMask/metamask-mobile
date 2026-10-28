@@ -8,8 +8,10 @@ import {
 } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import Engine from '../../../../../../core/Engine';
+import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
-import { getVbaWalletAddress } from '../vbaWalletAddress';
+import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   getVbaDestinationForSnapshot,
@@ -287,7 +289,9 @@ export const resolveVbaOnboarding = async (
   source: string,
 ): Promise<ResolvedVbaOnboarding> => {
   try {
-    const walletAddress = getVbaWalletAddress();
+    const walletAddress = selectSelectedVbaWalletAddress(
+      ReduxService.store.getState() as RootState,
+    );
     if (!walletAddress) {
       return { status: 'error' };
     }
