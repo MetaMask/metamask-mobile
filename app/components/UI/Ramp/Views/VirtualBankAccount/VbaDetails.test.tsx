@@ -2,6 +2,7 @@ import React, { StrictMode } from 'react';
 import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
@@ -570,6 +571,34 @@ describe('VbaDetails', () => {
       fireEvent.press(getByLabelText('Copy Routing number'));
 
       expect(Clipboard.setString).toHaveBeenCalledWith('021000021');
+    });
+
+    it('renders cached US bank details immediately for a USD account', () => {
+      mockRouteParams = { sourceCurrency: 'USD' };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'USD' },
+        },
+      ]);
+      setCachedDepositInstructions(
+        'ar-1',
+        usBankInstructions as AutorampDepositInstructions,
+      );
+      mockGetDepositInstructions.mockReturnValue(new Promise(() => undefined));
+
+      const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+        <VbaDetails />,
+      );
+
+      expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+        strings('virtual_bank_account.vba_details.bank_transfer_title'),
+      );
+      expect(getByText('021000021')).toBeOnTheScreen();
+      expect(getByText('123456789')).toBeOnTheScreen();
+      expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
     });
 
     it('shows the bank transfer title while USD instructions are loading', async () => {
