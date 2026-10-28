@@ -25,7 +25,7 @@ import {
   Text,
   TextVariant,
   TextColor,
-  FontWeight,
+  FontFamily,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -37,7 +37,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
-import { getFontSizeForInputLength } from './getFontSizeForInputLength';
+import { getFontSizeForInputLength } from '../../../../../component-library/components-temp/AnimatedAmountDisplay';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -132,11 +132,15 @@ export const createBuildQuoteNavDetails = (
   ] as const;
 
 const DEFAULT_AMOUNT = 100;
+const INPUT_SIDE_MARGIN_CHARACTER_RESERVE = 2;
+// Largest step of the shared amount scale. The row keeps this height so the
+// payment pill stays put while longer amounts shrink inside it.
+const AMOUNT_ROW_HEIGHT = getFontSizeForInputLength(1);
 
 function BuildQuote() {
   const navigation = useNavigation<AppNavigationProp>();
   const isOnBuildQuoteScreen = useIsFocused();
-  const { styles } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, {});
   const { formatCurrency } = useFormatters();
   const cursorOpacity = useBlinkingCursor();
 
@@ -352,8 +356,21 @@ function BuildQuote() {
     () => `${currencyPrefix}${amount}${currencySuffix}`,
     [currencyPrefix, currencySuffix, amount],
   );
-  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
-  const amountLineHeight = amountFontSize + 10;
+  const amountFontSize = getFontSizeForInputLength(
+    amountDisplayString.length + INPUT_SIDE_MARGIN_CHARACTER_RESERVE,
+  );
+  const amountTextStyle = {
+    fontSize: amountFontSize,
+    lineHeight: amountFontSize,
+    textAlign: 'center' as const,
+  };
+  const cursorStyle = {
+    width: 1,
+    marginHorizontal: 0,
+    height: Math.round(amountFontSize * 0.95),
+    backgroundColor: theme.colors.text.muted,
+    transform: [{ translateY: Math.round(amountFontSize * -0.04) }],
+  };
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -801,37 +818,35 @@ function BuildQuote() {
         <ScreenLayout.Content style={styles.content}>
           <View style={styles.centerGroup}>
             <View style={styles.amountContainer}>
-              <View style={styles.amountRow}>
+              <View
+                testID={BUILD_QUOTE_TEST_IDS.AMOUNT_ROW}
+                style={[styles.amountRow, { height: AMOUNT_ROW_HEIGHT }]}
+              >
                 <Text
                   testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Regular}
+                  variant={TextVariant.DisplayMd}
+                  fontFamily={FontFamily.Hero}
                   color={
                     amountInputHasError ? TextColor.ErrorDefault : undefined
                   }
-                  twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                  style={amountTextStyle}
                   numberOfLines={1}
                 >
                   {currencyPrefix}
                   {amount}
                 </Text>
                 <Animated.View
-                  style={[
-                    styles.cursor,
-                    {
-                      height: Math.max(amountLineHeight - 4, 16),
-                      opacity: cursorOpacity,
-                    },
-                  ]}
+                  testID={BuildQuoteSelectors.AMOUNT_INPUT_CURSOR}
+                  style={[cursorStyle, { opacity: cursorOpacity }]}
                 />
                 {currencySuffix ? (
                   <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Regular}
+                    variant={TextVariant.DisplayMd}
+                    fontFamily={FontFamily.Hero}
                     color={
                       amountInputHasError ? TextColor.ErrorDefault : undefined
                     }
-                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
+                    style={amountTextStyle}
                   >
                     {currencySuffix}
                   </Text>
@@ -864,8 +879,12 @@ function BuildQuote() {
 
           <View style={styles.actionSection}>
             {hasAmount ? (
-              <>
-                {actionSectionMessage}
+              <View style={styles.continueStack}>
+                {actionSectionMessage ? (
+                  <View style={styles.continueMessage} pointerEvents="box-none">
+                    {actionSectionMessage}
+                  </View>
+                ) : null}
                 {embeddedCheckout.renderOverlay?.({
                   interactive: canContinue,
                 })}
@@ -895,7 +914,7 @@ function BuildQuote() {
                     {strings('fiat_on_ramp.continue')}
                   </Button>
                 )}
-              </>
+              </View>
             ) : (
               quickAmounts.length > 0 && (
                 <QuickAmounts
