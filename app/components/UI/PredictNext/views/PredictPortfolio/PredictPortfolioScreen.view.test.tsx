@@ -13,9 +13,10 @@ import {
   makePredictNextSellReceipt,
   makePredictNextSettlement,
   messengerCall,
+  mockPredictNextMessenger,
 } from '../../../../../../tests/component-view/fixtures/predictNext';
 import Engine from '../../../../../core/Engine';
-import { KALSHI_VENUE_ID } from '../../types';
+import { KALSHI_VENUE_ID } from '../../adapters/remote/KalshiRemoteAdapter';
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 // eslint-disable-next-line import-x/no-namespace -- spy on named `endTrace` export
 import * as Trace from '../../../../../util/trace';
@@ -136,7 +137,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('retries a failed Balance read', async () => {
     let fails = true;
-    messengerCall.mockImplementation((action: string) =>
+    mockPredictNextMessenger((action: string) =>
       action === 'PredictPortfolioService:getBalance'
         ? fails
           ? Promise.reject(new Error('Balance failed'))
@@ -170,7 +171,7 @@ describe('PredictPortfolioScreen', () => {
     await view.findByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE);
 
     messengerCall.mockClear();
-    messengerCall.mockImplementation((action: string) =>
+    mockPredictNextMessenger((action: string) =>
       action === 'PredictPortfolioService:getBalance'
         ? Promise.reject(new Error('Balance refetch failed'))
         : Promise.resolve({
@@ -317,7 +318,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('does not complete Portfolio TTI while the active list is still loading', async () => {
     const endTraceSpy = jest.spyOn(Trace, 'endTrace');
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -413,7 +414,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('fetches the next Positions page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -439,7 +440,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getPositions') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -479,7 +480,7 @@ describe('PredictPortfolioScreen', () => {
   });
 
   it('fetches the next Activity page on end reached', async () => {
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getBalance') {
         return Promise.resolve({
           venueId: 'kalshi',
@@ -509,7 +510,7 @@ describe('PredictPortfolioScreen', () => {
 
     let resolveNextPage: (value: unknown) => void = () => undefined;
     await act(async () => {
-      messengerCall.mockImplementation((action: string) => {
+      mockPredictNextMessenger((action: string) => {
         if (action === 'PredictPortfolioService:getActivity') {
           return new Promise((resolve) => {
             resolveNextPage = resolve;
@@ -613,7 +614,7 @@ describe('PredictPortfolioScreen', () => {
 
   it('renders first-load skeletons for Positions and Activity', async () => {
     // Never-resolving reads keep both panels in their loading state.
-    messengerCall.mockImplementation(() => new Promise(() => undefined));
+    mockPredictNextMessenger(() => new Promise(() => undefined));
 
     const view = renderPredictPortfolioScreen({ venueId: KALSHI_VENUE_ID });
 
@@ -643,7 +644,7 @@ describe('PredictPortfolioScreen', () => {
       view.getByTestId(PredictPortfolioScreenTestIds.BALANCE_VALUE),
     ).toBeOnTheScreen();
 
-    messengerCall.mockImplementation((action: string) => {
+    mockPredictNextMessenger((action: string) => {
       if (action === 'PredictPortfolioService:getPositions') {
         return Promise.resolve({
           venueId: 'kalshi',

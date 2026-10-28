@@ -88,6 +88,39 @@ describe('useSocialShellFilters', () => {
     expect(result.current.applied.leaderboard.timeframe).toBe('7d');
   });
 
+  it('clears applied filters and keeps the leaderboard type chip', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.setLeaderboardType('tokens');
+    });
+    act(() => {
+      result.current.openSheet('leaderboard');
+      result.current.updateDraft({ timeframe: '30d' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+    act(() => {
+      result.current.openSheet('following');
+      result.current.updateDraft({ type: 'perps' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    act(() => {
+      result.current.clearAppliedFilters('leaderboard');
+      result.current.clearAppliedFilters('following');
+    });
+
+    expect(result.current.applied.leaderboard.type).toBe('tokens');
+    expect(result.current.applied.leaderboard.timeframe).toBe('7d');
+    expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
+    expect(result.current.applied.following.type).toBe('all');
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
   it('updates the leaderboard type without marking the sheet filter as active', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 
@@ -133,6 +166,69 @@ describe('useSocialShellFilters', () => {
     });
 
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
+  });
+
+  it('treats an open or closed position as active on Trending only', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.updateDraft({ positionStatus: 'open' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('trending')).toBe(true);
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
+  it('does not light Following when a leftover position status is applied', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('following');
+    });
+    act(() => {
+      result.current.updateDraft({ positionStatus: 'closed' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.applied.following.positionStatus).toBe('closed');
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
+  it('resets the Trending draft without applying or clearing applied filters', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.updateDraft({
+        type: 'perps',
+        positionStatus: 'closed',
+        marketCap: { min: 10, max: 20 },
+      });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.resetDraftToDefaults();
+    });
+
+    expect(result.current.draft).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.trending.positionStatus).toBe('closed');
+    expect(result.current.applied.trending.type).toBe('perps');
+    expect(result.current.hasActiveFilters('trending')).toBe(true);
   });
 
   it('does not treat leftover verification or 24h volume as active on Following', () => {

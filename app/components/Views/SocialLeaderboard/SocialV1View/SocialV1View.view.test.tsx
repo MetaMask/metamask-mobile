@@ -13,6 +13,7 @@ import '../../../../../tests/component-view/mocks';
 import React from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import NetInfo from '@react-native-community/netinfo';
 import {
   act,
   fireEvent,
@@ -20,6 +21,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import type NetInfoMock from '../../../../__mocks__/@react-native-community/netinfo';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import { AccessRestrictedModalSelectorsIDs } from '../../../UI/Compliance/AccessRestrictedModal/AccessRestrictedModal.testIds';
@@ -133,12 +135,24 @@ const installComplianceController = (blocked: boolean) => {
   });
 };
 
-const pressCopyTrade = async () => {
-  const trendingPage = within(
+const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
+
+// The tab feeds only fetch online, and the NetInfo mock starts offline.
+beforeEach(() => {
+  netInfoMock.__setMockNetInfo({ type: 'wifi', isInternetReachable: true });
+});
+
+afterEach(() => {
+  netInfoMock.__resetMockNetInfo();
+});
+
+const findTrendingCopyTradeButton = () =>
+  within(
     screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_PAGE),
-  );
-  const button = await trendingPage.findByTestId(copyTradeButtonTestId);
-  fireEvent.press(button);
+  ).findByTestId(copyTradeButtonTestId);
+
+const pressCopyTrade = async () => {
+  fireEvent.press(await findTrendingCopyTradeButton());
 };
 
 beforeEach(async () => {
@@ -410,7 +424,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
 
   it('reopens Quick Buy over the feed when a failed post-trade share retries', async () => {
     renderFeedWithQuickBuyState();
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen();
 
@@ -429,7 +443,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
 
   it('reopens Quick Buy in sell mode when the failed trade was a sell', async () => {
     renderFeedWithQuickBuyState(quickBuySellableUsdcOverrides());
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen(DEFAULT_QUICK_BUY_TARGET, 'sell');
 
@@ -447,7 +461,7 @@ describe('SocialV1View post-trade Quick Buy reopen', () => {
           .build(),
       },
     );
-    await screen.findByTestId(copyTradeButtonTestId);
+    await findTrendingCopyTradeButton();
 
     requestFeedQuickBuyReopen();
 

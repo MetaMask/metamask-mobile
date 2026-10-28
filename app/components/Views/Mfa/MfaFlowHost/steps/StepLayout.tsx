@@ -45,6 +45,8 @@ interface StepLayoutProps {
   top?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
+  /** Centers the content vertically, as on result screens. */
+  isVerticallyCentered?: boolean;
 }
 
 /** The 2-step verification shield, above the title of the intro and picker. */
@@ -117,6 +119,7 @@ const StepLayout = ({
   top,
   children,
   footer,
+  isVerticallyCentered = false,
 }: StepLayoutProps) => {
   const tw = useTailwind();
   const { bottom } = useSafeAreaInsets();
@@ -129,7 +132,10 @@ const StepLayout = ({
       keyboardVerticalOffset={16 - bottom}
     >
       <ScrollView
-        contentContainerStyle={tw.style('px-4 pt-4 pb-6 gap-4')}
+        contentContainerStyle={tw.style(
+          'px-4 pt-4 pb-6 gap-4',
+          isVerticallyCentered && 'flex-grow justify-center',
+        )}
         keyboardShouldPersistTaps="handled"
       >
         {top}

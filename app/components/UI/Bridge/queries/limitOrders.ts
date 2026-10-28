@@ -2,7 +2,6 @@ import {
   LimitOrderState,
   type GetLimitOrdersQuery,
 } from '../api/limitOrders/getLimitOrders/types';
-import { LIMIT_ORDERS_STALE_TIME } from '../constants/limitOrders';
 
 export type LimitOrdersQueryParams = Omit<GetLimitOrdersQuery, 'cursor'>;
 
@@ -38,7 +37,10 @@ export const limitOrdersQueries = {
 
     return {
       queryKey: ['LimitOrdersDataService:getLimitOrders', params] as const,
-      staleTime: LIMIT_ORDERS_STALE_TIME,
+      // Orders change server side (fills, expiries) without the client
+      // knowing, so a list being shown again must come from the API rather
+      // than from the data service cache.
+      staleTime: 0,
     };
   },
 };

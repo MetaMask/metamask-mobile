@@ -104,9 +104,6 @@ export const convertInternalAccountToCaipAccountId = (
 // Metrics related utils
 export enum RewardsMetricsButtons {
   WAYS_TO_EARN = 'ways_to_earn',
-  COPY_REFERRAL_CODE = 'copy_referral_code',
-  COPY_REFERRAL_LINK = 'copy_referral_link',
-  SHARE_REFERRAL_LINK = 'share_referral_link',
   OPT_OUT = 'opt_out',
   OPT_OUT_CANCEL = 'opt_out_cancel',
   VISIT_APP_STORE = 'visit_app_store',
@@ -221,15 +218,3 @@ export const exitRewardsFlow = (
 };
 
 export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';
-
-// Referral URL builder
-export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
-export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;
-
-/**
- * Builds a referral URL from a referral code
- * @param referralCode - The referral code to build the URL from
- * @returns The full referral URL
- */
-export const buildReferralUrl = (referralCode: string): string =>
-  `${REFERRAL_BASE_URL}${referralCode}`;

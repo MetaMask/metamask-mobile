@@ -14,8 +14,10 @@ import {
   parsePredictSearchResults,
   parsePredictVenueStatus,
 } from '../../contracts/v1/marketData';
+import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
+import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
+import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -111,6 +113,11 @@ const mapTradingError = (error: unknown): never => {
   }
   return mapError(error);
 };
+
+/** Kalshi's Venue ID. Only Kalshi's adapter and its composition name it;
+ * every other caller takes the Venue from the Active Venue, a route, or an
+ * intent. */
+export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
@@ -253,6 +260,10 @@ export class KalshiRemoteAdapter {
       },
     };
     this.marketData = {
+      // Static client config until PRED-1403 serves the catalog from the
+      // Predict API; only this method changes then.
+      fetchVenueCatalog: async () =>
+        parsePredictVenueCatalog(KALSHI_STATIC_VENUE_CATALOG, this.venueId),
       fetchVenueStatus: async (options) => {
         try {
           const value = await client.fetchVenueStatus(this.venueId, options);

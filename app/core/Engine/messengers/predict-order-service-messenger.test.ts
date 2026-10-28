@@ -8,7 +8,7 @@ import type {
   PredictOrderServiceActions,
   PredictOrderServiceEvents,
 } from '../../../components/UI/PredictNext/services/PredictOrderService';
-import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/types';
+import { KALSHI_VENUE_ID } from '../../../components/UI/PredictNext/adapters/remote/KalshiRemoteAdapter';
 import {
   getPredictOrderServiceInitMessenger,
   getPredictOrderServiceMessenger,
