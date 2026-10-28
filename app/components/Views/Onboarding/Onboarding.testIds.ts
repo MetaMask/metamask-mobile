@@ -2,6 +2,7 @@ import enContent from '../../../../locales/languages/en.json';
 
 export const OnboardingSelectorIDs = {
   CONTAINER_ID: 'onboarding-screen',
+  LANDING_CONTENT_ID: 'onboarding-landing-content',
   NEW_WALLET_BUTTON: 'wallet-setup-screen-create-new-wallet-button-id',
   EXISTING_WALLET_BUTTON:
     'wallet-setup-screen-have-an-existing-wallet-button-id',

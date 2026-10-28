@@ -498,6 +498,46 @@ describe('SocialFiltersBottomSheet', () => {
     expect(screen.queryByTestId('social-filters-network-all')).toBeNull();
   });
 
+  it('shows Positions on Trending and hides them on Following', () => {
+    const { rerender } = render(
+      <SocialFiltersBottomSheet
+        tab="trending"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId('social-filters-positions-all'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-positions-open'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('social-filters-positions-closed'),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('social-filters-type-predictions')).toBeNull();
+    expect(
+      screen.queryByTestId('social-filters-verification-verified'),
+    ).toBeNull();
+
+    rerender(
+      <SocialFiltersBottomSheet
+        tab="following"
+        draft={baseDraft}
+        onChange={jest.fn()}
+        onApply={jest.fn()}
+        onReset={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
+
+    expect(screen.queryByTestId('social-filters-positions-open')).toBeNull();
+  });
+
   it('omits Predictions and Verification on Following', () => {
     render(
       <SocialFiltersBottomSheet

@@ -1,6 +1,7 @@
 import {
   parsePredictActivityPage,
   parsePredictBalance,
+  parsePredictPortfolioSummary,
   parsePredictPositionsPage,
 } from '../../contracts/v1/portfolio';
 import {
@@ -17,7 +18,7 @@ import {
 import { parsePredictVenueCatalog } from '../../contracts/v1/venueCatalog';
 import { KALSHI_STATIC_VENUE_CATALOG } from '../../config/venueCatalogs';
 import { PredictError, PredictErrorCode } from '../../errors';
-import { KALSHI_VENUE_ID, type FetchOrderPreviewParams } from '../../types';
+import type { FetchOrderPreviewParams, PredictVenueId } from '../../types';
 import type {
   VenueMarketDataAdapter,
   VenuePortfolioAdapter,
@@ -113,6 +114,11 @@ const mapTradingError = (error: unknown): never => {
   }
   return mapError(error);
 };
+
+/** Kalshi's Venue ID. Only Kalshi's adapter and its composition name it;
+ * every other caller takes the Venue from the Active Venue, a route, or an
+ * intent. */
+export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
 
 export class KalshiRemoteAdapter {
   readonly venueId = KALSHI_VENUE_ID;
@@ -227,6 +233,21 @@ export class KalshiRemoteAdapter {
               (position) => position.venueId !== this.venueId,
             )
           ) {
+            throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
+          }
+          return result;
+        } catch (error) {
+          return mapError(error);
+        }
+      },
+      fetchPortfolioSummary: async (options) => {
+        try {
+          const value = await client.fetchPortfolioSummary(
+            this.venueId,
+            options,
+          );
+          const result = parsePredictPortfolioSummary(value);
+          if (result.venueId !== this.venueId) {
             throw PredictError.from(PredictErrorCode.INVALID_RESPONSE);
           }
           return result;

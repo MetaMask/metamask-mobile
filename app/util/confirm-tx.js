@@ -5,7 +5,6 @@ import {
   conversionUtil,
   addCurrencies,
   multiplyCurrencies,
-  conversionGreaterThan,
 } from './conversion';
 import I18n from '../../locales/i18n';
 import { getIntlNumberFormatter } from './intl';
@@ -27,23 +26,6 @@ const NON_ISO4217_CRYPTO_CODES = [
   'WINGS',
   'ZEC',
 ];
-
-export function increaseLastGasPrice(lastGasPrice) {
-  return addHexPrefix(
-    multiplyCurrencies(lastGasPrice || '0x0', 1.1, {
-      multiplicandBase: 16,
-      multiplierBase: 10,
-      toNumericBase: 'hex',
-    }),
-  );
-}
-
-export function hexGreaterThan(a, b) {
-  return conversionGreaterThan(
-    { value: a, fromNumericBase: 'hex' },
-    { value: b, fromNumericBase: 'hex' },
-  );
-}
 
 export function getHexGasTotal({ gasLimit, gasPrice }) {
   return addHexPrefix(
@@ -75,26 +57,6 @@ export function addFiat(...args) {
       bBase: 10,
     }),
   );
-}
-
-export function getValueFromWeiHex({
-  value,
-  fromCurrency = 'ETH',
-  toCurrency,
-  conversionRate,
-  numberOfDecimals,
-  toDenomination,
-}) {
-  return conversionUtil(value, {
-    fromNumericBase: 'hex',
-    toNumericBase: 'dec',
-    fromCurrency,
-    toCurrency,
-    numberOfDecimals,
-    fromDenomination: 'WEI',
-    toDenomination,
-    conversionRate,
-  });
 }
 
 export function getTransactionFee({

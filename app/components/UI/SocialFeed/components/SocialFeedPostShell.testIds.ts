@@ -14,4 +14,9 @@ export const SocialFeedPostShellSelectorsIDs = {
   IDENTITY_PRESS: 'social-v1-feed-post-trader',
   POSITION_PRESS: 'social-v1-feed-post-position',
   PENDING: 'social-v1-feed-post-pending',
+  TRANSLATE: 'social-v1-feed-post-translate',
+  TRANSLATING: 'social-v1-feed-post-translating',
+  TRANSLATED: 'social-v1-feed-post-translated',
+  TRANSLATION_FAILED: 'social-v1-feed-post-translation-failed',
+  TRANSLATION_RETRY: 'social-v1-feed-post-translation-retry',
 } as const;

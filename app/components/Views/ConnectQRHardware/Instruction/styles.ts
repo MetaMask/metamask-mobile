@@ -51,16 +51,6 @@ export const createStyles = (theme: Theme, insets: EdgeInsets) =>
     button: {
       padding: 5,
     },
-    buttonText: {
-      color: theme.brandColors.white,
-      ...fontStyles.normal,
-    },
-    image: {
-      width: 240,
-      height: 96,
-      marginTop: 20,
-      marginBottom: 20,
-    },
     keystone: {
       color: theme.colors.text.default,
       height: 48,

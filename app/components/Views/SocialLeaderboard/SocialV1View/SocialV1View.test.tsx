@@ -42,6 +42,13 @@ let mockRouteParams: {
   initialTab?: SocialShellTab;
 } = {};
 
+jest.mock('../../../UI/SocialFeed/hooks/useSocialBlockLists', () => ({
+  useSocialBlockLists: () => ({
+    blockedProfileIds: new Set(),
+    blockedCommentIds: new Set(),
+  }),
+}));
+
 jest.mock('../MyProfileView/hooks', () => ({
   useMyProfile: () => mockUseMyProfile(),
 }));
@@ -596,6 +603,28 @@ describe('SocialV1View', () => {
     fireEvent.press(screen.getByTestId('social-filters-bottom-sheet-backdrop'));
 
     expect(screen.queryByTestId('social-filters-bottom-sheet')).toBeNull();
+  });
+
+  it('opens Trending Custom filters with Positions and without Verification', () => {
+    renderWithProvider(<SocialV1View />);
+
+    fireEvent.press(
+      screen.getByTestId(SocialV1ViewSelectorsIDs.TRENDING_FILTER_BUTTON),
+    );
+
+    expect(screen.getByTestId('social-filters-bottom-sheet')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'open')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(getFilterChipTestId('positions', 'closed')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('verification', 'verified')),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(getFilterChipTestId('type', 'predictions')),
+    ).toBeNull();
   });
 
   it('opens the filters bottom sheet from the Following filter button', () => {

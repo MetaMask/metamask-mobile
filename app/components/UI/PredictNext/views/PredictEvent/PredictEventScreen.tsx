@@ -37,6 +37,8 @@ import {
 import { useEvent } from '../../hooks/useEvent';
 import { useEventWithLiveData } from '../../hooks/useEventWithLiveData';
 import { usePositions } from '../../hooks/usePositions';
+import { getOutcomeName } from '../../utils/entryCopy';
+import { dedupeLatestPositions } from '../../utils/positions';
 import { usePredictNextMeasurement } from '../../hooks/usePredictNextMeasurement';
 import { PredictNextRoutes } from '../../navigation/routes';
 import type { PredictNextStackParamList } from '../../navigation/types';
@@ -301,17 +303,18 @@ export const PredictEventScreen = () => {
     [liveEvent?.markets, winnerMarketIds],
   );
   const listContentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
-  // Positions the Predict User holds in this Event's Markets: matched by
+  // Open Positions the Predict User holds in this Event's Markets: matched by
   // canonical Market identity, independent of the Position's catalog context.
+  // Resolved Positions cannot be cashed out, so they stay on Portfolio.
   const heldPositions = useMemo(() => {
-    const positions =
-      positionsQuery.data?.pages.flatMap((page) => page.positions) ?? [];
+    const positions = dedupeLatestPositions(positionsQuery.data?.pages ?? []);
     if (!liveEvent) {
       return [];
     }
     const marketIds = new Set(liveEvent.markets.map((market) => market.id));
     return positions.filter(
-      (position) => position != null && marketIds.has(position.marketId),
+      (position) =>
+        position.status === 'open' && marketIds.has(position.marketId),
     );
   }, [positionsQuery.data, liveEvent]);
   usePredictNextMeasurement({
@@ -406,7 +409,7 @@ export const PredictEventScreen = () => {
         marketId: position.marketId,
         side: position.side,
         outcomeLabel:
-          outcome?.label ?? position.context?.outcomeLabel ?? position.side,
+          outcome?.label ?? getOutcomeName(position.side, position.context),
         eventTitle: liveEvent.title,
         eventImageUrl: liveEvent.imageUrl,
         maxContracts: Math.floor(Number(position.shares)),
