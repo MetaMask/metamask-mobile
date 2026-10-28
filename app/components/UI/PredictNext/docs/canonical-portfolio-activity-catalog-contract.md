@@ -214,6 +214,14 @@ interface PredictVenueCatalog {
 
 The catalog describes support only. It is distinct from rollout flags, Venue Status, eligibility, and Account Readiness. The backend still authorizes every write independently. Feed labels are localized client copy keyed by semantic key, so the catalog sends no display strings.
 
+PRED-1376 implements the client side:
+
+- **Vocabulary.** `PREDICT_FEED_KEYS` in `types/index.ts`. Mobile types `PredictFeedKey` as that closed union rather than a branded string; the parser drops keys outside it, so the wire format is unchanged. Add a key there before the backend serves it.
+- **Mapping table.** `capabilities/surfaceFeedKeys.ts` maps Homepage slots, Explore tabs, Rewards campaign rows, and PredictNext Home sections and Feed Screen tabs to keys.
+- **Parsing.** `parsePredictVenueCatalog` (`contracts/v1/venueCatalog.ts`) drops unknown actions, Feed keys, and fields. A malformed known field, a known key without a Feed ID, or another Venue's `venueId` rejects the whole catalog.
+- **Sources.** Polymarket is static client config (`config/venueCatalogs.ts`) until PRED-1356. Kalshi is read through `PredictMarketDataService:getVenueCatalog`, whose adapter method serves the static Kalshi catalog until PRED-1403 swaps in this route.
+- **Failure.** `useVenueCapabilities` re-validates every catalog. A failed refresh keeps the last valid catalog. With no valid catalog, the result is `loading` or `unavailable` and enables no action, Feed, or search; there is no fallback to the bundled catalog or to another Venue. The Order flow refuses to open an action the Venue does not list.
+
 ## Invariants
 
 - `PredictPosition.shares` > 0. Holdings are never rounded at the boundary.
@@ -752,13 +760,14 @@ The Predict User bought 50 contracts at 0.55 with a 0.78 fee, so the cost basis 
 
 ### Venue catalog
 
-Feed keys are illustrative. PRED-1376 owns the vocabulary.
+The Kalshi V1 catalog PRED-1376 ships as static client config. `sports` is the Venue's general sports discovery Feed, which for V1 is NFL Games.
 
 ```json
 {
   "venueId": "kalshi",
   "actions": ["buy", "sell"],
   "feeds": {
+    "sports": "sports-football-nfl-games",
     "nfl-games": "sports-football-nfl-games",
     "nfl-props": "sports-football-nfl-win-totals",
     "college-football-games": "sports-football-ncaa-games",

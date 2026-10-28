@@ -550,9 +550,7 @@
     "forgot_password_point_2_bold": "シークレットリカバリーフレーズ,",
     "forgot_password_point_2_1": "をお持ちの場合は、シークレットリカバリーフレーズを使って現在のウォレットをリセットし、再インポートすることができます。",
     "reset_wallet": "ウォレットをリセット",
-    "reset_wallet_desc": "ウォレットのデータは、このデバイスのMetaMaskから",
-    "reset_wallet_desc_bold": "完全に消去されます",
-    "reset_wallet_desc_2": "。この操作は元に戻せません。",
+    "reset_wallet_desc": "ウォレットのデータは、このデバイスのMetaMaskから完全に消去されます。この操作は元に戻せません。",
     "reset_wallet_desc_login": "ウォレットの復元には、シークレットリカバリーフレーズか、GoogleまたはAppleアカウントのパスワードを利用できます。MetaMaskはこの情報を保持していません。",
     "reset_wallet_desc_srp": "ウォレットを復元するには、シークレットリカバリーフレーズがあることを確認してください。MetaMaskはこの情報を保持していません。",
     "reset_wallet_desc_srp_1": "ウォレットを復元するには、次の情報があることを確認してください:",
@@ -1170,8 +1168,6 @@
       "terms_sheet_button": "Agree and start verification"
     },
     "kyc_email": {
-      "verify_description": "placeholder for verify description",
-      "enroll_description": "placeholder for enroll description",
       "error_title": "Couldn't start verification",
       "error_description": "Something went wrong opening email verification. Please try again."
     },
@@ -1410,12 +1406,12 @@
       "gifs_missing_key": "Add a Klipy API key to load GIFs",
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
-      "share_position_title": "Share a position",
+      "add_position_title": "Add a position",
       "tab_open": "未約定",
       "tab_closed": "クローズ済み",
       "section_tokens": "トークン",
       "section_perps": "パーペチュアル",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
       "empty_description": "Create a position to share it here.",
       "empty_open": "保有中のポジションはありません",
       "empty_closed": "No closed positions",
@@ -3523,11 +3519,9 @@
       "title": "損益ヒーローカード",
       "header_title": "取引内容をシェア",
       "share_button": "共有",
-      "share_message_with_referral_code": "MetaMaskで{{asset}}パーペチュアルを取引しましょう。私の紹介コード ({{code}}) を使ってサインアップすると、追加の報酬がもらえます。{{link}}",
       "share_message_without_referral_code": "MetaMaskで{{asset}}のパーペチュアルを取引しましょう。",
       "share_failed": "画像をエクスポートできませんでした",
-      "export_success": "画像をエクスポートしました",
-      "referral_code_text": "私の紹介コードを使って追加の報酬を獲得しましょう。"
+      "export_success": "画像をエクスポートしました"
     },
     "market_details": {
       "fullscreen_chart": "チャートの全画面表示",
@@ -11808,10 +11802,6 @@
       "error_fetching_description": "接続を確認して、もう一度お試しください。",
       "retry_button": "再試行"
     },
-    "referral_validation_unknown_error": {
-      "title": "紹介コードを検証できませんでした",
-      "description": "接続を確認して、もう一度お試しください。"
-    },
     "active_activity_error": {
       "error_fetching_title": "アクティビティを読み込めませんでした",
       "error_fetching_description": "接続を確認して、もう一度お試しください。",
@@ -11854,7 +11844,6 @@
       "progress_to_next_tier": "次のレベルまであと{{pointsRemaining}}ポイント",
       "bps_unit": "bps",
       "badge_label": "VIP {{tier}}",
-      "referral_tag_label": "VIP",
       "swaps_label": "スワップ",
       "perps_label": "パーペチュアル",
       "points_label": "ポイント",
@@ -11910,9 +11899,7 @@
       "retry_button": "再試行",
       "empty_title": "まだトランザクションがありません。利用実績があると、ここにVIPトランザクションが表示されます。"
     },
-    "referral_title": "紹介",
     "referral_stats_earned_from_referrals": "紹介して報酬を獲得",
-    "referral_stats_referrals": "紹介",
     "loading_activity": "アクティビティを読み込み中...",
     "error_loading_activity": "アクティビティの読み込みエラー",
     "activity_empty_title": "最近のアクティビティはありません。",
@@ -11977,8 +11964,6 @@
       "step_confirm": "次へ",
       "step_finish": "さあ始めましょう",
       "step_skip": "スキップ",
-      "step4_title_referral_validating": "紹介コードを検証中...",
-      "step4_referral_input_error": "無効な紹介コード",
       "title": "リワードの獲得を開始",
       "description": "MetaMaskを使うだけで、賞品を獲得し、特典を請求し、他にも収益を得る方法を発見できます。",
       "sign_up": "リワードに参加",
@@ -11987,9 +11972,6 @@
       "legal_disclaimer_2": "利用規約",
       "legal_disclaimer_3": "このデバイスのすべてのアカウントをオプトインし、オンチェーンアクティビティを追跡して、自動的に報酬を提供します。",
       "legal_disclaimer_4": "詳細",
-      "referral_prompt": "紹介コードをお持ちですか？",
-      "referral_hide": "コードを非表示",
-      "referral_placeholder": "紹介コード（オプション）",
       "referral_label": "紹介コード"
     },
     "settings": {
@@ -12021,13 +12003,6 @@
       "off_device_accounts_sheet_title": "登録済みアカウントが見つかりません",
       "off_device_accounts_sheet_description": "これらのアカウントは、MetaMaskの再インストール後にまだ追加されていないウォレットに属している可能性があります。これらのアドレスに心当たりがありませんか？",
       "off_device_accounts_sheet_let_us_know": "お知らせください"
-    },
-    "referred_by_code": {
-      "title": "紹介コード",
-      "description_linked": "招待コードがリンクされました。お客様が取引を行うと、紹介者に報酬が支払われます。",
-      "description_not_linked": "お友達からコードが送られる前に登録してしまいましたか？この下にコードを入力すると、コードがリンクされます。",
-      "input_placeholder": "紹介コードを入力してください",
-      "invalid_code": "無効な紹介コード"
     },
     "bonus_code": {
       "input_placeholder": "ボーナスコードを入力してください",
@@ -12074,22 +12049,6 @@
     },
     "ways_to_earn": {
       "title": "獲得方法"
-    },
-    "referral": {
-      "referral_code": "紹介コード",
-      "referral_link": "紹介リンク",
-      "actions": {
-        "share_referral_link": "友達を紹介",
-        "share_referral_subject": "MetaMaskリワードにご参加ください"
-      },
-      "info": {
-        "title": "コードを友達に教えましょう",
-        "description": "紹介ボーナスはキャンペーンごとに異なります。詳細は各キャンペーンを確認してください。",
-        "vip_title": "紹介した相手がスワップとパーペチュアル取引を行うごとに、レベニューシェアを獲得できます。レートはレベルに応じて変化します。",
-        "vip_referrals_label": "紹介",
-        "vip_revenue_share_label": "レベニューシェア"
-      },
-      "referral_code_copied": "紹介コードをクリップボードにコピーしました"
     },
     "link_account_group": {
       "link_account": "アカウントを追加",

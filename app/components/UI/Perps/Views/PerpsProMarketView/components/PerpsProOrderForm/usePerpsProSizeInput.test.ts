@@ -622,6 +622,52 @@ describe('usePerpsProSizeInput', () => {
     expect(result.current.effectiveUsdAmount).toBe('250');
   });
 
+  it('shows an order-book fill size in coin instead of the USD projection', () => {
+    // 0.00406 BTC at 81,690 reads $331.66, which projects back down to 0.00405.
+    setTestOrderBookPreferences({ currency: 'base' });
+    const fillParams = { effectivePrice: 81690, szDecimals: 5 };
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      { initialProps: createParams({ ...fillParams, usdAmount: '' }) },
+    );
+
+    rerender(
+      createParams({
+        ...fillParams,
+        usdAmount: '331.66',
+        fillAssetAmount: '0.00406',
+      }),
+    );
+
+    expect(result.current.sizeInput.value).toBe('0.00406');
+    expect(result.current.effectiveUsdAmount).toBe('331.66');
+  });
+
+  it('projects USD again once the order-book fill no longer applies', () => {
+    setTestOrderBookPreferences({ currency: 'base' });
+    const { result, rerender } = renderHook(
+      (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),
+      {
+        initialProps: createParams({
+          usdAmount: '331.66',
+          effectivePrice: 81690,
+          szDecimals: 5,
+          fillAssetAmount: '0.00406',
+        }),
+      },
+    );
+
+    rerender(
+      createParams({
+        usdAmount: '331.66',
+        effectivePrice: 82000,
+        szDecimals: 5,
+      }),
+    );
+
+    expect(result.current.sizeInput.value).toBe('0.00404');
+  });
+
   it('resyncs a dirty asset draft when canonical USD is clamped externally', () => {
     const { result, rerender } = renderHook(
       (params: UsePerpsProSizeInputParams) => usePerpsProSizeInput(params),

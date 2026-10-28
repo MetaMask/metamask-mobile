@@ -91,6 +91,13 @@ describe('PerformanceTab', () => {
 
   it('shows five rebate rows when the ledger returns eight', async () => {
     mockCall.mockImplementation((action: string) => {
+      if (action === 'RewardsMoneyController:getCommissions') {
+        return Promise.resolve({
+          results: [],
+          cursor: null,
+          has_more: false,
+        });
+      }
       if (action === 'RewardsMoneyController:getEarningsLedger') {
         return Promise.resolve({
           results: Array.from({ length: 8 }, (_, index) => earningRow(index)),
@@ -121,17 +128,20 @@ describe('PerformanceTab', () => {
 
   it('shows the rebate skeleton while the first page is in flight', async () => {
     mockCall.mockImplementation((action: string) => {
+      if (action === 'RewardsMoneyController:getCommissions') {
+        return new Promise(() => undefined);
+      }
       if (action === 'RewardsMoneyController:getEarningsLedger') {
         return new Promise(() => undefined);
       }
       return Promise.resolve(undefined);
     });
 
-    const { findByTestId, queryByTestId } = renderRefereeTab();
+    const { findAllByTestId, queryByTestId } = renderRefereeTab();
 
     expect(
-      await findByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
-    ).toBeOnTheScreen();
+      await findAllByTestId(TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS.CONTAINER),
+    ).toHaveLength(2);
     expect(
       queryByTestId(`${PERFORMANCE_TAB_TEST_IDS.REBATES_EMPTY}-action`),
     ).toBeNull();

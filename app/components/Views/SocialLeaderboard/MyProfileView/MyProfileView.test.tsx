@@ -21,6 +21,7 @@ import type {
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import Logger from '../../../../util/Logger';
 import { requestPostsTabFocus } from '../pendingPosts/pendingPostsStore';
 import {
   getLocalSocialProfileSnapshot,
@@ -238,10 +239,14 @@ jest.mock('../NotificationPreferences/hooks', () => ({
   }),
 }));
 
+jest.mock('../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
-  openURL: jest.fn(),
+  openURL: jest.fn(() => Promise.resolve()),
   canOpenURL: jest.fn(),
   getInitialURL: jest.fn(),
 }));
@@ -534,6 +539,21 @@ describe('MyProfileView', () => {
     expect(Linking.openURL).toHaveBeenCalledWith('https://x.com/giga-whale');
   });
 
+  it('logs when the owner X profile cannot be opened', async () => {
+    const error = new Error('Cannot open URL');
+    jest.mocked(Linking.openURL).mockRejectedValueOnce(error);
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.X_LINK));
+
+    await waitFor(() => {
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        'MyProfileHeader: failed to open the X profile',
+      );
+    });
+  });
+
   it('returns to SocialV1 from the MMDS back button', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -715,6 +735,21 @@ describe('MyProfileView', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('opens the avatar picker from the owner avatar and pencil', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.AVATAR));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.SOCIAL.EDIT_AVATAR);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+  });
+
   it('opens Manage profile from Edit profile', () => {
     renderWithProvider(<MyProfileView />);
 
@@ -872,6 +907,35 @@ describe('MyProfileView', () => {
     });
   });
 
+  it('shares the profile deeplink from another profile header', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: Share.sharedAction });
+
+    renderWithProvider(<MyProfileView />);
+
+    fireEvent.press(
+      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
+    );
+
+    expect(shareSpy).toHaveBeenCalledWith({
+      url: 'https://link.metamask.io/social/profile?traderId=trader-1',
+    });
+  });
+
+  it('hides the trader deeplink share button on the owner profile', () => {
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_TRADER_BUTTON),
+    ).toBeNull();
+  });
+
   it('hides owner actions and shows follow for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
@@ -892,6 +956,11 @@ describe('MyProfileView', () => {
 
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_PROFILE_BUTTON),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EDIT_AVATAR_BUTTON, {
+        includeHiddenElements: true,
+      }),
     ).toBeNull();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
@@ -1053,9 +1122,11 @@ describe('MyProfileView', () => {
     renderWithProvider(<MyProfileView />);
     fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB));
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.CLOSED_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeNull();
 
     requestPostsTabFocus();
     act(() => {
@@ -1063,9 +1134,11 @@ describe('MyProfileView', () => {
     });
 
     expect(
-      screen.getByTestId(MyProfileViewSelectorsIDs.POSTS_TAB).props
-        .accessibilityState,
-    ).toEqual({ selected: true });
+      screen.getByTestId(MyProfileViewSelectorsIDs.EMPTY_STATE),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.POSITIONS_LIST),
+    ).toBeNull();
   });
 
   it('scrolls back to the top when focused right after the viewer posts', () => {

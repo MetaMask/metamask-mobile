@@ -1,4 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useMemo } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+} from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -16,8 +21,13 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
+import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../locales/i18n';
-import { formatCents, formatPrice } from '../../utils/format';
+import {
+  formatCents,
+  formatPositionSize,
+  formatPrice,
+} from '../../utils/format';
 import {
   getPredictExchangeFee,
   getPredictSellNetProceeds,
@@ -30,7 +40,8 @@ import {
   usePredictBottomSheet,
   type PredictBottomSheetRef,
 } from '../../hooks/usePredictBottomSheet';
-import { TouchableOpacity } from 'react-native';
+import { Modal, TouchableOpacity, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export type PredictOrderRetrySheetRef = PredictBottomSheetRef;
 
@@ -40,6 +51,7 @@ export type PredictOrderRetrySheetVariant =
   | 'price_moved'
   | 'failed'
   | 'quote_unavailable'
+  | 'timeout'
   | 'no_match';
 
 interface PredictOrderRetrySheetProps {
@@ -61,6 +73,12 @@ interface PredictOrderRetrySheetProps {
   /** Submits the confirmed refreshed quote. */
   onConfirm: () => void;
   onDismiss?: () => void;
+  /**
+   * Called as soon as the user closes the sheet (X, "Try later", Android
+   * back), before the close animation, so an action in flight can be
+   * cancelled right away.
+   */
+  onCancel?: () => void;
   isRetrying?: boolean;
 }
 
@@ -72,6 +90,8 @@ function getTitleForVariant(variant: PredictOrderRetrySheetVariant): string {
       return strings('predict.order.order_failed_title');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_title');
+    case 'timeout':
+      return strings('predict.order.market_timeout_title');
     case 'price_moved':
       return strings('predict.order.price_moved_title');
     case 'no_match':
@@ -95,6 +115,8 @@ function getBodyForVariant({
       return strings('predict.order.order_failed_body');
     case 'quote_unavailable':
       return strings('predict.order.price_unavailable_body');
+    case 'timeout':
+      return strings('predict.order.market_timeout_body');
     case 'no_match':
       return strings('predict.order.no_match_body');
     case 'busy':
@@ -135,6 +157,7 @@ const PredictOrderRetrySheet = forwardRef<
       onRetry,
       onConfirm,
       onDismiss,
+      onCancel,
       isRetrying = false,
     },
     ref,
@@ -149,6 +172,11 @@ const PredictOrderRetrySheet = forwardRef<
     } = usePredictBottomSheet({ onDismiss });
 
     useImperativeHandle(ref, getRefHandlers, [getRefHandlers]);
+
+    const handleClose = useCallback(() => {
+      onCancel?.();
+      closeSheet();
+    }, [onCancel, closeSheet]);
 
     const quoteRows = useMemo(() => {
       if (!preview) {
@@ -186,6 +214,15 @@ const PredictOrderRetrySheet = forwardRef<
       if (preview.side === Side.SELL) {
         return [
           priceRow,
+          {
+            label: strings('predict.order.retry_expected_fill_label'),
+            value: strings('predict.order.retry_expected_fill_value', {
+              shares: formatPositionSize(preview.maxAmountSpent, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              }),
+            }),
+          },
           {
             label: strings('predict.order.retry_proceeds_label'),
             value: formatPrice(getPredictSellNetProceeds(preview), {
@@ -236,104 +273,122 @@ const PredictOrderRetrySheet = forwardRef<
     const showFooter = !isBusy;
 
     return (
-      <BottomSheet
-        ref={sheetRef}
-        shouldNavigateBack={false}
-        isInteractable
-        onClose={handleSheetClosed}
-      >
-        <TouchableOpacity
-          testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
-          onPress={closeSheet}
-          style={tw.style('absolute top-8 right-4 z-10')}
+      // A full-window Modal so the sheet is never clipped by a shorter
+      // parent, such as the Predict sell bottom sheet.
+      <View pointerEvents="box-none" style={tw.style('absolute h-0 w-0')}>
+        <Modal
+          visible
+          transparent
+          animationType="none"
+          statusBarTranslucent
+          onRequestClose={handleClose}
         >
-          <Icon
-            name={IconName.Close}
-            size={IconSize.Xl}
-            color={IconColor.IconDefault}
-          />
-        </TouchableOpacity>
-        <Box
-          testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
-          alignItems={BoxAlignItems.Center}
-          twClassName="px-6 pb-8 pt-8 gap-4"
-        >
-          <Box
-            alignItems={BoxAlignItems.Center}
-            twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
-          >
-            <Icon
-              name={IconName.Warning}
-              size={IconSize.Xl}
-              color={iconColor}
-            />
-          </Box>
-          <Text
-            variant={TextVariant.HeadingMd}
-            color={TextColor.TextDefault}
-            twClassName="text-center"
-          >
-            {title}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={TextColor.TextAlternative}
-            twClassName="text-center"
-          >
-            {body}
-          </Text>
-          {isQuoteShown && (
-            <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
-              {quoteRows.map((row) => (
-                <Box
-                  key={row.label}
-                  flexDirection={BoxFlexDirection.Row}
-                  justifyContent={BoxJustifyContent.Between}
+          <ModalSafeAreaProvider>
+            <GestureHandlerRootView style={tw.style('flex-1')}>
+              {/* Swipe and backdrop only report the close after the
+                  animation, so they are off while an action runs. */}
+              <BottomSheet
+                ref={sheetRef}
+                shouldNavigateBack={false}
+                isInteractable={!isRetrying}
+                onClose={handleSheetClosed}
+              >
+                <TouchableOpacity
+                  testID={PredictOrderRetrySheetSelectorsIDs.CLOSE_BUTTON}
+                  onPress={handleClose}
+                  style={tw.style('absolute top-8 right-4 z-10')}
                 >
+                  <Icon
+                    name={IconName.Close}
+                    size={IconSize.Xl}
+                    color={IconColor.IconDefault}
+                  />
+                </TouchableOpacity>
+                <Box
+                  testID={PredictOrderRetrySheetSelectorsIDs.CONTAINER}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="px-6 pb-8 pt-8 gap-4"
+                >
+                  <Box
+                    alignItems={BoxAlignItems.Center}
+                    twClassName={`h-12 w-12 rounded-full ${iconBg} justify-center`}
+                  >
+                    <Icon
+                      name={IconName.Warning}
+                      size={IconSize.Xl}
+                      color={iconColor}
+                    />
+                  </Box>
+                  <Text
+                    variant={TextVariant.HeadingMd}
+                    color={TextColor.TextDefault}
+                    twClassName="text-center"
+                  >
+                    {title}
+                  </Text>
                   <Text
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
+                    twClassName="text-center"
                   >
-                    {row.label}
+                    {body}
                   </Text>
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextDefault}
-                  >
-                    {row.value}
-                  </Text>
+                  {isQuoteShown && (
+                    <Box twClassName="w-full gap-2 rounded-lg bg-background-muted p-4">
+                      {quoteRows.map((row) => (
+                        <Box
+                          key={row.label}
+                          flexDirection={BoxFlexDirection.Row}
+                          justifyContent={BoxJustifyContent.Between}
+                        >
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextAlternative}
+                          >
+                            {row.label}
+                          </Text>
+                          <Text
+                            variant={TextVariant.BodyMd}
+                            color={TextColor.TextDefault}
+                          >
+                            {row.value}
+                          </Text>
+                        </Box>
+                      ))}
+                    </Box>
+                  )}
                 </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
-        {showFooter && (
-          <BottomSheetFooter
-            buttonPropsArray={[
-              {
-                variant: ButtonVariants.Primary,
-                label: buttonLabel,
-                onPress: isQuoteShown ? onConfirm : onRetry,
-                testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
-                isDisabled: isRetrying,
-                loading: isRetrying,
-              },
-              ...(isNoMatch
-                ? [
-                    {
-                      variant: ButtonVariants.Secondary,
-                      label: strings('predict.order.try_later'),
-                      onPress: closeSheet,
-                      testID:
-                        PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
-                    },
-                  ]
-                : []),
-            ]}
-            style={tw.style('px-6')}
-          />
-        )}
-      </BottomSheet>
+                {showFooter && (
+                  <BottomSheetFooter
+                    buttonPropsArray={[
+                      {
+                        variant: ButtonVariants.Primary,
+                        label: buttonLabel,
+                        onPress: isQuoteShown ? onConfirm : onRetry,
+                        testID: PredictOrderRetrySheetSelectorsIDs.RETRY_BUTTON,
+                        isDisabled: isRetrying,
+                        loading: isRetrying,
+                      },
+                      ...(isNoMatch
+                        ? [
+                            {
+                              variant: ButtonVariants.Secondary,
+                              label: strings('predict.order.try_later'),
+                              onPress: handleClose,
+                              testID:
+                                PredictOrderRetrySheetSelectorsIDs.TRY_LATER_BUTTON,
+                            },
+                          ]
+                        : []),
+                    ]}
+                    style={tw.style('px-6')}
+                  />
+                )}
+              </BottomSheet>
+            </GestureHandlerRootView>
+          </ModalSafeAreaProvider>
+        </Modal>
+      </View>
     );
   },
 );

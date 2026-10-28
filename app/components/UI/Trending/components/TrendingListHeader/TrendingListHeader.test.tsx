@@ -43,7 +43,7 @@ describe('TrendingListHeader', () => {
   });
 
   it('renders back button and title when search is not visible', () => {
-    const { getByTestId, queryByPlaceholderText, queryByTestId } = render(
+    const { getByTestId, queryByPlaceholderText } = render(
       <TrendingListHeader {...defaultProps} />,
     );
 

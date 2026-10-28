@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -18,7 +19,7 @@ import LiveView from './LiveView';
 import { LiveViewSelectorsIDs } from './LiveView.testIds';
 
 interface MockSocialFeedProps {
-  source: unknown;
+  scope: string;
   location: string;
   scrollMode: string;
   realtime?: boolean;
@@ -144,12 +145,22 @@ describe('LiveView', () => {
     mockPendingNewCount = 0;
   });
 
+  it('pads the Live filter bar 16px below the tabs and 8px above the feed', () => {
+    renderWithProvider(<LiveView />, { state });
+
+    expect(
+      StyleSheet.flatten(
+        screen.getByTestId(LiveViewSelectorsIDs.FILTER_BAR).props.style,
+      ),
+    ).toEqual(expect.objectContaining({ paddingTop: 16, paddingBottom: 8 }));
+  });
+
   it('renders the all-traders feed in virtualized realtime mode', () => {
     renderWithProvider(<LiveView />, { state });
 
     expect(lastFeedProps()).toEqual(
       expect.objectContaining({
-        source: { kind: 'all', audience: 'all', scope: 'all' },
+        scope: 'all',
         location: 'social_live',
         scrollMode: 'virtualized',
         realtime: true,
