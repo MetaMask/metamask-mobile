@@ -8,8 +8,11 @@ import {
   BottomSheetHeader,
   Box,
   FilterButton,
-  SegmentedControl,
-  SegmentedControlSize,
+  FilterButtonGroup,
+  FilterButtonSize,
+  FilterButtonVariant,
+  FontWeight,
+  TabEmptyState,
   Text,
   TextButton,
   TextColor,
@@ -21,7 +24,8 @@ import { useTraderPositions } from '../TraderProfileView/hooks';
 import PositionRow from '../TraderProfileView/components/PositionRow';
 import { PositionRowSkeleton } from '../TraderProfileView/components/Skeletons';
 import { isPerpPosition } from '../../../UI/SocialFeed/utils/perp';
-import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
+import HiddenPositionInfo from './HiddenPositionInfo';
 import { SocialEvent, useSocialScreenAnalytics } from '../analytics';
 
 const { Interaction, Outcome, Screen, Trade } = SocialEvent;
@@ -33,19 +37,21 @@ const styles = StyleSheet.create({
 
 const SKELETON_KEYS = ['s1', 's2', 's3', 's4'] as const;
 
-export interface SharePositionBottomSheetProps {
+export interface AddPositionBottomSheetProps {
   address: string;
   onSelect: (position: Position, isClosed: boolean) => void;
   onClose: () => void;
 }
 
-const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
+const AddPositionBottomSheet: React.FC<AddPositionBottomSheetProps> = ({
   address,
   onSelect,
   onClose,
 }) => {
   const { colors } = useTheme();
   const [tab, setTab] = useState<'open' | 'closed'>('open');
+  const [isHiddenPositionInfoOpen, setIsHiddenPositionInfoOpen] =
+    useState(false);
   // Wallet-only PerpsController rows are not included — they have no
   // `positionUid` and cannot be posted.
   const {
@@ -66,6 +72,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     !isLoadingClosed &&
     openPositions.length === 0 &&
     closedPositions.length === 0;
+  const showPostEmptyCopy = tab === 'open' || bothEmpty;
 
   const openTokens = useMemo(
     () => openPositions.filter((position) => !isPerpPosition(position)),
@@ -91,6 +98,15 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     onClose();
   }, [onClose, trackInteraction]);
 
+  const handleShowHiddenPositionInfo = useCallback(() => {
+    trackInteraction(Interaction.TAP);
+    setIsHiddenPositionInfoOpen(true);
+  }, [trackInteraction]);
+
+  const handleHideHiddenPositionInfo = useCallback(() => {
+    setIsHiddenPositionInfoOpen(false);
+  }, []);
+
   const handleSelect = useCallback(
     (position: Position) => {
       trackInteraction(Interaction.TAP, {
@@ -101,16 +117,10 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
     [onSelect, tab, trackInteraction],
   );
 
-  const emptyMessage = bothEmpty
-    ? strings('social_leaderboard.composer.empty_description')
-    : tab === 'open'
-      ? strings('social_leaderboard.composer.empty_open')
-      : strings('social_leaderboard.composer.empty_closed');
-
   const renderOpenSections = () => (
     <>
       {openTokens.length > 0 ? (
-        <Box testID={SharePositionBottomSheetSelectorsIDs.TOKENS_SECTION}>
+        <Box testID={AddPositionBottomSheetSelectorsIDs.TOKENS_SECTION}>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextMuted}
@@ -129,7 +139,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
         </Box>
       ) : null}
       {openPerps.length > 0 ? (
-        <Box testID={SharePositionBottomSheetSelectorsIDs.PERPS_SECTION}>
+        <Box testID={AddPositionBottomSheetSelectorsIDs.PERPS_SECTION}>
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextMuted}
@@ -167,7 +177,9 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
       transparent
       animationType="none"
       statusBarTranslucent
-      onRequestClose={handleClose}
+      onRequestClose={
+        isHiddenPositionInfoOpen ? handleHideHiddenPositionInfo : handleClose
+      }
     >
       <SafeAreaProvider>
         <GestureHandlerRootView style={styles.root}>
@@ -179,45 +191,47 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
               ]}
               onPress={handleClose}
               accessibilityRole="button"
-              testID={SharePositionBottomSheetSelectorsIDs.BACKDROP}
+              testID={AddPositionBottomSheetSelectorsIDs.BACKDROP}
             />
             <BottomSheet
               onClose={handleClose}
-              testID={SharePositionBottomSheetSelectorsIDs.SHEET}
+              testID={AddPositionBottomSheetSelectorsIDs.SHEET}
             >
               <BottomSheetHeader
                 onClose={handleClose}
                 closeButtonProps={{
-                  testID: SharePositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
+                  testID: AddPositionBottomSheetSelectorsIDs.CLOSE_BUTTON,
                 }}
               >
-                {strings('social_leaderboard.composer.share_position_title')}
+                {strings('social_leaderboard.composer.add_position_title')}
               </BottomSheetHeader>
               <Box twClassName="px-4 pb-3">
-                <SegmentedControl
+                <FilterButtonGroup
                   value={tab}
                   onChange={handleTabChange}
-                  size={SegmentedControlSize.Md}
+                  variant={FilterButtonVariant.Secondary}
                 >
                   <FilterButton
                     value="open"
-                    testID={SharePositionBottomSheetSelectorsIDs.OPEN_TAB}
+                    size={FilterButtonSize.Md}
+                    testID={AddPositionBottomSheetSelectorsIDs.OPEN_TAB}
                   >
                     {strings('social_leaderboard.composer.tab_open')}
                   </FilterButton>
                   <FilterButton
                     value="closed"
-                    testID={SharePositionBottomSheetSelectorsIDs.CLOSED_TAB}
+                    size={FilterButtonSize.Md}
+                    testID={AddPositionBottomSheetSelectorsIDs.CLOSED_TAB}
                   >
                     {strings('social_leaderboard.composer.tab_closed')}
                   </FilterButton>
-                </SegmentedControl>
+                </FilterButtonGroup>
               </Box>
               <ScrollView>
                 {error && positions.length === 0 ? (
                   <Box
                     twClassName="px-4 py-8 items-center gap-2"
-                    testID={SharePositionBottomSheetSelectorsIDs.ERROR}
+                    testID={AddPositionBottomSheetSelectorsIDs.ERROR}
                   >
                     <Text
                       variant={TextVariant.BodyMd}
@@ -229,7 +243,7 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                       onPress={() => {
                         refetch().catch(() => undefined);
                       }}
-                      testID={SharePositionBottomSheetSelectorsIDs.RETRY}
+                      testID={AddPositionBottomSheetSelectorsIDs.RETRY}
                     >
                       {strings('social_leaderboard.composer.retry')}
                     </TextButton>
@@ -237,16 +251,29 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 ) : isLoading && positions.length === 0 ? (
                   SKELETON_KEYS.map((key) => <PositionRowSkeleton key={key} />)
                 ) : positions.length === 0 ? (
-                  <Box
-                    twClassName="px-4 py-8"
-                    testID={SharePositionBottomSheetSelectorsIDs.EMPTY}
-                  >
-                    <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
+                  <Box twClassName="items-center px-4 py-8">
+                    <TabEmptyState
+                      description={
+                        showPostEmptyCopy
+                          ? strings('social_leaderboard.composer.empty_title')
+                          : strings('social_leaderboard.composer.empty_closed')
+                      }
+                      descriptionProps={{
+                        color: TextColor.TextDefault,
+                        fontWeight: FontWeight.Medium,
+                      }}
+                      twClassName="bg-transparent"
+                      testID={AddPositionBottomSheetSelectorsIDs.EMPTY}
                     >
-                      {emptyMessage}
-                    </Text>
+                      {showPostEmptyCopy ? (
+                        <TextButton
+                          onPress={handleShowHiddenPositionInfo}
+                          testID={AddPositionBottomSheetSelectorsIDs.EMPTY_HELP}
+                        >
+                          {strings('social_leaderboard.composer.empty_help')}
+                        </TextButton>
+                      ) : null}
+                    </TabEmptyState>
                   </Box>
                 ) : tab === 'open' ? (
                   renderOpenSections()
@@ -255,6 +282,9 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
                 )}
               </ScrollView>
             </BottomSheet>
+            {isHiddenPositionInfoOpen ? (
+              <HiddenPositionInfo onDismiss={handleHideHiddenPositionInfo} />
+            ) : null}
           </Box>
         </GestureHandlerRootView>
       </SafeAreaProvider>
@@ -262,4 +292,4 @@ const SharePositionBottomSheet: React.FC<SharePositionBottomSheetProps> = ({
   );
 };
 
-export default SharePositionBottomSheet;
+export default AddPositionBottomSheet;
