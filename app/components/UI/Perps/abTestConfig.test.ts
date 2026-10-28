@@ -200,7 +200,9 @@ describe('Perps abTestConfig', () => {
 
   describe('FEE_DISPLAY_AB_TEST_KEY', () => {
     it('follows the {team}{TICKET}Abtest{TestName} naming convention', () => {
-      expect(FEE_DISPLAY_AB_TEST_KEY).toBe('tatTAT4046AbtestFeeDisplayFormat');
+      expect(FEE_DISPLAY_AB_TEST_KEY).toBe(
+        'perpsTAT4046AbtestFeeDisplayFormat',
+      );
       expect(FEE_DISPLAY_AB_TEST_KEY).toMatch(
         /^[a-z][A-Za-z0-9]*[A-Z]{2,}[0-9]+Abtest[A-Z][A-Za-z0-9]*$/,
       );

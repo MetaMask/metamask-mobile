@@ -172,7 +172,7 @@ export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappin
  * Consume via `usePerpsFeeDisplayAbTest()` — do not call `useABTest` with
  * this flag directly.
  */
-export const FEE_DISPLAY_AB_TEST_KEY = 'tatTAT4046AbtestFeeDisplayFormat';
+export const FEE_DISPLAY_AB_TEST_KEY = 'perpsTAT4046AbtestFeeDisplayFormat';
 
 export enum FeeDisplayVariant {
   Control = 'control',
