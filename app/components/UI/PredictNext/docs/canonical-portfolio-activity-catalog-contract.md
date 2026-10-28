@@ -471,13 +471,15 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 | ------------------------- | ---------------------------------------------------------------- | -------------------------- |
 | `trade`, `action: 'buy'`  | `predictionPlaced`                                               | `amount`, direction `out`  |
 | `trade`, `action: 'sell'` | `predictionCashedOut`                                            | `amount`, direction `in`   |
-| `settlement`              | New Settlement kind, for example `predictionSettled` (PRED-1405) | `proceeds`, direction `in` |
+| `settlement`              | `predictionSettled`                                              | `proceeds`, direction `in` |
 
 - Legacy Polymarket keeps `predictionClaimWinnings` until PRED-1356. Canonical types never use "claim winnings".
 - `eventTitle` and `icon` come from `context` when present.
 - `status` is `success`, because canonical Activity contains only executed Trades and completed Settlements.
 - `hash` carries the canonical `id`, not a transaction hash.
-- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. PRED-1405 resolves this with the `@metamask/client-utils` owners.
+- `predictionSettled` items also carry `outcomeLabel`, `marketQuestion`, `side`, `result`, `shares` and `realizedPnl` (when present) as plain decimal strings, so the details screen renders a Settlement without a lookup.
+- Shared `ActivityItem` requires a CAIP-2 `chainId`. Kalshi has no chain, and a Polygon ID must not be fabricated. Kalshi items use the venue constant `KALSHI_VENUE_CHAIN_ID` (`kalshi:mainnet`) from `app/util/activity-adapters`, which only keys the details source. Rows hide the network badge for `prediction*` kinds, and only `eip155:` chains get a hex chain ID or a transaction fetch.
+- Mobile declares `predictionSettled` locally in `app/util/activity-adapters/types.ts` (PRED-1405) and upstreams it to `@metamask/client-utils` in parallel. The local entry is deleted when a client-utils bump brings the kind in.
 
 ## Open decisions for product
 
