@@ -1,10 +1,34 @@
 import React from 'react';
+import { FlatList } from 'react-native';
 import { render, screen, within } from '@testing-library/react-native';
 import { Text } from '@metamask/design-system-react-native';
 import { MarketList } from './MarketList';
 import { MarketListTestIds } from './MarketList.testIds';
 
 describe('MarketList', () => {
+  it('forwards optional rendering limits without truncating the supplied rows', () => {
+    const data = Array.from({ length: 30 }, (_, id) => ({ id: `${id}` }));
+    const view = render(
+      <MarketList
+        data={data}
+        keyExtractor={(item) => item.id}
+        renderItem={(item) => <Text>{item.id}</Text>}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+      />,
+    );
+
+    expect(view.UNSAFE_getByType(FlatList).props).toEqual(
+      expect.objectContaining({
+        data,
+        initialNumToRender: 6,
+        maxToRenderPerBatch: 6,
+        windowSize: 5,
+      }),
+    );
+  });
+
   it('renders mixed card variants in the supplied item order', () => {
     const items = [
       { id: 'standard', label: 'Standard' },

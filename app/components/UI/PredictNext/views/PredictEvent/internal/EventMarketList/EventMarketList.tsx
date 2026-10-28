@@ -1,7 +1,11 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { BadgeCount, Box } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
+import { Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabsBar from '../../../../../../../component-library/components-temp/Tabs/TabsBar';
+import { useNetworkTier } from '../../../../../../../hooks/useNetworkTier';
+import { selectPrivacyMode } from '../../../../../../../selectors/preferencesController';
+import { getHardwareTier } from '../../../../../../../util/deviceCapability';
 import { strings } from '../../../../../../../../locales/i18n';
 import { PREDICT_MARKET_TYPES } from '../../../../constants';
 import { getEventGame } from '../../../../events/game';
@@ -11,7 +15,8 @@ import {
   SpreadMarketGroupCard,
   TotalMarketGroupCard,
 } from '../../../../events/markets';
-import type { PredictMarket } from '../../../../types';
+import type { PredictMarket, PredictPosition } from '../../../../types';
+import { EventPositionRow } from '../EventPositionRow';
 import {
   createMarketGroupProjection,
   type MarketGroupProjection,
@@ -19,21 +24,44 @@ import {
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import type { EventMarketListProps } from './EventMarketList.types';
 import { useEventPositions } from './useEventPositions';
+import { createPositionsTab } from './createPositionsTab';
+import { getEventMarketListPolicy } from './getEventMarketListPolicy';
 
-const getMarketKey = (projection: MarketGroupProjection): string =>
-  projection.type === 'group'
-    ? `group:${projection.key}`
-    : `market:${projection.market.id}`;
+type ContentTab = 'positions' | 'markets';
+type ContentRow =
+  | MarketGroupProjection
+  | { type: 'position'; position: PredictPosition };
+
+const getRowKey = (row: ContentRow): string => {
+  if (row.type === 'position') {
+    return JSON.stringify([
+      'positions',
+      row.position.venueId,
+      row.position.marketId,
+      row.position.side,
+    ]);
+  }
+  return row.type === 'group'
+    ? `markets:group:${row.key}`
+    : `markets:market:${row.market.id}`;
+};
 
 const EventMarketListContent = ({
   event,
   onOrder,
   onRulesPress,
+  onCashOut,
   children,
   testID = EventMarketListTestIds.ROOT,
 }: EventMarketListProps) => {
   const tw = useTailwind();
+  const networkTier = useNetworkTier();
+  const { animated, ...renderingPolicy } = getEventMarketListPolicy(
+    getHardwareTier(),
+    networkTier,
+  );
   const positions = useEventPositions(event);
+  const isPrivacyMode = useSelector(selectPrivacyMode);
   const [selectedMarketIds, setSelectedMarketIds] = useState<
     Record<string, PredictMarket['id']>
   >({});
@@ -41,6 +69,51 @@ const EventMarketListContent = ({
     () => createMarketGroupProjection(event.markets),
     [event.markets],
   );
+  let firstTab: ContentTab | undefined;
+  if (positions.length > 0) {
+    firstTab = 'positions';
+  } else if (markets.length > 0) {
+    firstTab = 'markets';
+  }
+  const [selectedTab, setSelectedTab] = useState<ContentTab | undefined>(
+    firstTab,
+  );
+  const activeTab =
+    (selectedTab === 'positions' && positions.length > 0) ||
+    (selectedTab === 'markets' && markets.length > 0)
+      ? selectedTab
+      : firstTab;
+
+  // Reconcile only an invalid selection, before children render. Late holdings
+  // must not override an already-valid Market selection.
+  if (selectedTab !== activeTab) {
+    setSelectedTab(activeTab);
+  }
+
+  const rows = useMemo<readonly ContentRow[]>(
+    () =>
+      activeTab === 'positions'
+        ? positions.map((position) => ({ type: 'position', position }))
+        : markets,
+    [activeTab, markets, positions],
+  );
+  const tabs = [
+    ...(positions.length > 0 ? [createPositionsTab(positions.length)] : []),
+    ...(markets.length > 0
+      ? [
+          {
+            key: 'markets' as const,
+            label: strings(
+              getEventGame(event)
+                ? 'predict_next.event.game_lines'
+                : 'predict_next.event.outcome',
+            ),
+            content: null,
+            testID: EventMarketListTestIds.MARKETS_TAB,
+          },
+        ]
+      : []),
+  ];
   const contentContainerStyle = useMemo(() => tw.style('px-4'), [tw]);
   const handleGroupMarketSelect = useCallback(
     (groupKey: string, marketId: PredictMarket['id']) => {
@@ -86,49 +159,48 @@ const EventMarketListContent = ({
     },
     [handleGroupMarketSelect, onOrder, onRulesPress, selectedMarketIds],
   );
+  const renderRow = useCallback(
+    (row: ContentRow) =>
+      row.type === 'position' ? (
+        <EventPositionRow
+          position={row.position}
+          isPrivacyMode={isPrivacyMode}
+          onCashOut={onCashOut}
+          testID={EventMarketListTestIds.positionRow(
+            row.position.marketId,
+            row.position.side,
+          )}
+          cashOutTestID={EventMarketListTestIds.positionCashOut(
+            row.position.marketId,
+            row.position.side,
+          )}
+        />
+      ) : (
+        renderMarket(row)
+      ),
+    [isPrivacyMode, onCashOut, renderMarket],
+  );
 
   return (
     <MarketList
+      {...renderingPolicy}
       testID={testID}
-      data={markets}
+      data={rows}
       extraData={selectedMarketIds}
-      keyExtractor={getMarketKey}
-      renderItem={renderMarket}
+      keyExtractor={getRowKey}
+      renderItem={renderRow}
       contentContainerStyle={contentContainerStyle}
       ListHeaderComponent={
         <Box>
           {children}
-          {markets.length > 0 ? (
+          {tabs.length > 0 ? (
             <TabsBar
               testID={EventMarketListTestIds.TABS}
+              animated={animated}
               twClassName="-mx-4 mb-4"
-              tabs={[
-                ...(positions.length > 0
-                  ? [
-                      {
-                        key: 'positions',
-                        label: strings('predict_next.portfolio.positions'),
-                        content: null,
-                        testID: EventMarketListTestIds.POSITIONS_TAB,
-                        endAccessory: (
-                          <BadgeCount count={positions.length} max={99} />
-                        ),
-                      },
-                    ]
-                  : []),
-                {
-                  key: 'markets',
-                  label: strings(
-                    getEventGame(event)
-                      ? 'predict_next.event.game_lines'
-                      : 'predict_next.event.outcome',
-                  ),
-                  content: null,
-                  testID: EventMarketListTestIds.MARKETS_TAB,
-                },
-              ]}
-              activeIndex={positions.length > 0 ? 1 : 0}
-              onTabPress={() => undefined}
+              tabs={tabs}
+              activeIndex={tabs.findIndex((tab) => tab.key === activeTab)}
+              onTabPress={(index) => setSelectedTab(tabs[index].key)}
             />
           ) : null}
         </Box>

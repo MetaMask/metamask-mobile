@@ -3683,7 +3683,8 @@
     "event": {
       "your_positions": "Your positions",
       "game_lines": "Game Lines",
-      "outcome": "Outcome"
+      "outcome": "Outcome",
+      "positions_with_count": "Positions, {{count}}"
     },
     "search": {
       "placeholder": "Search markets",

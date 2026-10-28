@@ -47,6 +47,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
   onTabPress,
   testID,
   twClassName,
+  animated = true,
   ...boxProps
 }) => {
   const tw = useTailwind();
@@ -122,7 +123,7 @@ const TabsBar: React.FC<TabsBarProps> = ({
 
       const isFirstTime = !isInitialized;
 
-      if (isFirstTime) {
+      if (isFirstTime || !animated) {
         // First time - set position immediately without animation
         underlineX.value = activeTabLayout.x;
         underlineW.value = activeTabLayout.width;
@@ -137,11 +138,18 @@ const TabsBar: React.FC<TabsBarProps> = ({
       if (scrollEnabled && scrollViewRef.current) {
         scrollViewRef.current.scrollTo({
           x: Math.max(0, activeTabLayout.x - 50),
-          animated: !isFirstTime,
+          animated: animated && !isFirstTime,
         });
       }
     },
-    [scrollEnabled, underlineX, underlineW, tabs.length, isInitialized],
+    [
+      animated,
+      scrollEnabled,
+      underlineX,
+      underlineW,
+      tabs.length,
+      isInitialized,
+    ],
   );
 
   // Animate when activeIndex changes and layouts are ready
@@ -297,6 +305,9 @@ const TabsBar: React.FC<TabsBarProps> = ({
           isActive={index === activeIndex}
           isDisabled={tab.isDisabled}
           endAccessory={tab.endAccessory}
+          accessibilityLabel={tab.accessibilityLabel ?? tab.label}
+          accessibilityHint={tab.accessibilityHint}
+          accessibilityValue={tab.accessibilityValue}
           onPress={() => handleTabPress(index)}
           onLayout={(layoutEvent) => handleTabLayout(index, layoutEvent)}
           testID={tab.testID ?? `${testID}-tab-${index}`}
@@ -306,6 +317,10 @@ const TabsBar: React.FC<TabsBarProps> = ({
       {/* Animated underline */}
       {activeIndex >= 0 && isInitialized && (
         <Reanimated.View
+          testID={testID ? `${testID}-underline` : undefined}
+          accessible={false}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           style={[
             tw.style('absolute bottom-0 h-0.5 bg-icon-default'),
             underlineStyle,

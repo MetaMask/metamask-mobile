@@ -2,6 +2,7 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { render, fireEvent, act } from '@testing-library/react-native';
+import { BadgeCount } from '@metamask/design-system-react-native';
 
 // Internal dependencies.
 import TabsBar from './TabsBar';
@@ -1649,6 +1650,100 @@ describe('TabsBar', () => {
   });
 
   describe('End Accessory', () => {
+    it('remeasures badge-width changes without changing the selected tab', () => {
+      jest.useFakeTimers();
+      const tabs = (count: number): TabItem[] => [
+        {
+          key: 'positions',
+          label: 'Positions',
+          content: null,
+          endAccessory: <BadgeCount count={count} />,
+        },
+        { key: 'markets', label: 'Outcome', content: null },
+      ];
+      const view = render(
+        <TabsBar
+          tabs={tabs(9)}
+          activeIndex={1}
+          onTabPress={jest.fn()}
+          testID="tabs-bar"
+          animated={false}
+        />,
+      );
+      const measure = (positionWidth: number) => {
+        act(() => {
+          fireEvent(
+            view.getByTestId('tabs-bar'),
+            'layout',
+            mockLayoutEvent(300),
+          );
+          fireEvent(view.getByTestId('tabs-bar-tab-0'), 'layout', {
+            nativeEvent: {
+              layout: { x: 0, y: 0, width: positionWidth, height: 40 },
+            },
+          });
+          fireEvent(view.getByTestId('tabs-bar-tab-1'), 'layout', {
+            nativeEvent: {
+              layout: { x: positionWidth + 24, y: 0, width: 80, height: 40 },
+            },
+          });
+        });
+        act(() => jest.advanceTimersByTime(32));
+      };
+
+      try {
+        measure(100);
+        expect(
+          view.getByTestId('tabs-bar-underline', {
+            includeHiddenElements: true,
+          }),
+        ).toHaveAnimatedStyle({ width: 80, transform: [{ translateX: 124 }] });
+        expect(view.UNSAFE_queryByType(ScrollView)).toBeNull();
+
+        view.rerender(
+          <TabsBar
+            tabs={tabs(100)}
+            activeIndex={1}
+            onTabPress={jest.fn()}
+            testID="tabs-bar"
+            animated={false}
+          />,
+        );
+        measure(170);
+
+        expect(
+          view.getByRole('tab', { name: 'Outcome', selected: true }),
+        ).toBeOnTheScreen();
+        expect(
+          view.getByTestId('tabs-bar-underline', {
+            includeHiddenElements: true,
+          }),
+        ).toHaveAnimatedStyle({ width: 80, transform: [{ translateX: 194 }] });
+        expect(view.UNSAFE_getByType(ScrollView).props.horizontal).toBe(true);
+
+        view.rerender(
+          <TabsBar
+            tabs={tabs(9)}
+            activeIndex={1}
+            onTabPress={jest.fn()}
+            testID="tabs-bar"
+            animated={false}
+          />,
+        );
+        measure(100);
+
+        expect(
+          view.getByTestId('tabs-bar-underline', {
+            includeHiddenElements: true,
+          }),
+        ).toHaveAnimatedStyle({ width: 80, transform: [{ translateX: 124 }] });
+        expect(view.UNSAFE_queryByType(ScrollView)).toBeNull();
+      } finally {
+        view.unmount();
+        jest.useRealTimers();
+      }
+    });
+
     it('renders endAccessory on a tab that sets it', () => {
       const tabsWithAccessory: TabItem[] = [
         { key: 'tab1', label: 'Tab 1', content: null },
@@ -1676,6 +1771,48 @@ describe('TabsBar', () => {
   });
 
   describe('Accessibility', () => {
+    it('forwards per-tab labels, hints and count values while preserving selection through insertion', () => {
+      const onTabPress = jest.fn();
+      const market = { key: 'markets', label: 'Outcome', content: null };
+      const positions = {
+        key: 'positions',
+        label: 'Positions',
+        content: null,
+        accessibilityLabel: 'Positions, 2',
+        accessibilityHint: 'Show held Outcomes',
+      };
+      const { getByRole, rerender } = render(
+        <TabsBar tabs={[market]} activeIndex={0} onTabPress={onTabPress} />,
+      );
+
+      rerender(
+        <TabsBar
+          tabs={[positions, market]}
+          activeIndex={1}
+          onTabPress={onTabPress}
+        />,
+      );
+
+      expect(
+        getByRole('tab', { name: 'Outcome', selected: true }),
+      ).toBeOnTheScreen();
+      const positionsTab = getByRole('tab', {
+        name: 'Positions, 2',
+        selected: false,
+      });
+      expect(positionsTab.props.accessibilityHint).toBe('Show held Outcomes');
+      fireEvent.press(positionsTab);
+      expect(onTabPress).toHaveBeenCalledWith(0);
+
+      rerender(
+        <TabsBar tabs={[market]} activeIndex={0} onTabPress={onTabPress} />,
+      );
+
+      expect(
+        getByRole('tab', { name: 'Outcome', selected: true }),
+      ).toBeOnTheScreen();
+    });
+
     it('provides proper accessibility for tabs', () => {
       const mockOnTabPress = jest.fn();
       const { getAllByText } = render(
@@ -1687,5 +1824,128 @@ describe('TabsBar', () => {
         expect(tabElements[0]).toBeOnTheScreen();
       });
     });
+  });
+
+  describe('Motion control', () => {
+    it.each([undefined, false])(
+      'respects motion control when scrolling to an overflowing tab (%s)',
+      (animated) => {
+        jest.useFakeTimers();
+        const scrollTo = jest.spyOn(ScrollView.prototype, 'scrollTo');
+        const tabs = mockTabs.slice(0, 2);
+        const view = render(
+          <TabsBar
+            tabs={tabs}
+            activeIndex={0}
+            onTabPress={jest.fn()}
+            testID="tabs-bar"
+            animated={animated}
+          />,
+        );
+
+        try {
+          act(() => {
+            fireEvent(
+              view.getByTestId('tabs-bar'),
+              'layout',
+              mockLayoutEvent(200),
+            );
+            [0, 1].forEach((index) =>
+              fireEvent(view.getByTestId(`tabs-bar-tab-${index}`), 'layout', {
+                nativeEvent: {
+                  layout: { x: index * 164, y: 0, width: 140, height: 40 },
+                },
+              }),
+            );
+          });
+          act(() => jest.advanceTimersByTime(250));
+          scrollTo.mockClear();
+
+          view.rerender(
+            <TabsBar
+              tabs={tabs}
+              activeIndex={1}
+              onTabPress={jest.fn()}
+              testID="tabs-bar"
+              animated={animated}
+            />,
+          );
+
+          expect(scrollTo).toHaveBeenLastCalledWith({
+            x: 114,
+            animated: animated !== false,
+          });
+        } finally {
+          view.unmount();
+          scrollTo.mockRestore();
+          jest.useRealTimers();
+        }
+      },
+    );
+
+    it.each([undefined, false])(
+      'uses timed motion by default and immediate positioning when disabled (%s)',
+      (animated) => {
+        jest.useFakeTimers();
+        const view = render(
+          <TabsBar
+            tabs={mockTabs.slice(0, 2)}
+            activeIndex={0}
+            onTabPress={jest.fn()}
+            testID="tabs-bar"
+            animated={animated}
+          />,
+        );
+
+        try {
+          act(() => {
+            fireEvent(
+              view.getByTestId('tabs-bar'),
+              'layout',
+              mockLayoutEvent(300),
+            );
+            [0, 1].forEach((index) =>
+              fireEvent(view.getByTestId(`tabs-bar-tab-${index}`), 'layout', {
+                nativeEvent: {
+                  layout: { x: index * 124, y: 0, width: 100, height: 40 },
+                },
+              }),
+            );
+          });
+          act(() => jest.advanceTimersByTime(250));
+
+          view.rerender(
+            <TabsBar
+              tabs={mockTabs.slice(0, 2)}
+              activeIndex={1}
+              onTabPress={jest.fn()}
+              testID="tabs-bar"
+              animated={animated}
+            />,
+          );
+
+          expect(
+            view.getByTestId('tabs-bar-underline', {
+              includeHiddenElements: true,
+            }),
+          ).toHaveAnimatedStyle({
+            width: 100,
+            transform: [{ translateX: animated === false ? 124 : 0 }],
+          });
+          act(() => jest.advanceTimersByTime(250));
+          expect(
+            view.getByTestId('tabs-bar-underline', {
+              includeHiddenElements: true,
+            }),
+          ).toHaveAnimatedStyle({
+            width: 100,
+            transform: [{ translateX: 124 }],
+          });
+        } finally {
+          view.unmount();
+          jest.useRealTimers();
+        }
+      },
+    );
   });
 });
