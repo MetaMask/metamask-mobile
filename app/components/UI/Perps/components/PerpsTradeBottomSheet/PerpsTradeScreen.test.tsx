@@ -373,6 +373,54 @@ describe('PerpsTradeScreen errors', () => {
     expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
   });
 
+  it('keeps a pre-price USD edit in USD after the price arrives', () => {
+    store = configureStore({});
+    store.dispatch(setPerpsSizeDenomination('asset'));
+    const onKeypadChange = jest.fn();
+    const { rerender } = render(
+      <PerpsTradeScreen
+        {...defaultProps}
+        amount="0"
+        tokenAmount="0"
+        amountPrice={0}
+        isInputFocused
+        onKeypadChange={onKeypadChange}
+      />,
+    );
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_5));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '5', valueAsNumber: 5 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+
+    onKeypadChange.mockClear();
+    rerender(
+      <Provider store={store}>
+        <PerpsTradeScreen
+          {...defaultProps}
+          amount="5"
+          tokenAmount="0.2"
+          amountPrice={25}
+          isInputFocused
+          onKeypadChange={onKeypadChange}
+        />
+      </Provider>,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Show asset value' }),
+    ).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId(KeypadTestIds.KEY_0));
+
+    expect(onKeypadChange).toHaveBeenCalledWith(
+      expect.objectContaining({ value: '50', valueAsNumber: 50 }),
+    );
+    expect(onKeypadChange.mock.calls[0][0].isAssetAmount).toBeUndefined();
+  });
+
   it('keeps the USD keypad when a saved coin unit has no price yet', () => {
     store = configureStore({});
     store.dispatch(setPerpsSizeDenomination('asset'));

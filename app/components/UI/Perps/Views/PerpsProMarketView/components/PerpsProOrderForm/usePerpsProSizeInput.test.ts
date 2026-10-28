@@ -247,6 +247,24 @@ describe('usePerpsProSizeInput', () => {
     });
   });
 
+  it('writes base order-book currency when settings restore coin against a USD book', () => {
+    setStoredSizeDenomination('asset');
+    setTestOrderBookPreferences({ currency: 'usd' });
+
+    const { result } = renderHook(() =>
+      usePerpsProSizeInput(
+        createParams({ usdAmount: '100', effectivePrice: 100 }),
+      ),
+    );
+
+    expect(getTestOrderBookPreferences().currency).toBe('base');
+    expect(result.current.sizeInput.denomination).toEqual({
+      unit: 'asset',
+      symbol: 'BTC',
+    });
+    expect(result.current.sizeInput.value).toBe('1');
+  });
+
   it('shows the USD amount until a persisted coin unit can be priced', () => {
     setStoredSizeDenomination('asset');
     const { result, rerender } = renderHook(

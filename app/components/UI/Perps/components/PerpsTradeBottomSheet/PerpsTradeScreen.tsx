@@ -59,6 +59,7 @@ import {
 } from './PerpsTradeBottomSheet';
 import { usePerpsOrderBookPreferences } from '../../hooks/usePerpsOrderBookPreferences';
 import { usePerpsSizeDenomination } from '../../hooks/usePerpsSizeDenomination';
+import { resolveShownPerpsSizeDenomination } from '../../utils/perpsSizeDenomination';
 
 interface PerpsTradeScreenProps {
   asset: string;
@@ -339,10 +340,19 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
   const { navigateTo, title, banner } = usePerpsTradeSheet();
   const { denomination, setDenomination } = usePerpsSizeDenomination();
   const { setOrderBookPreferences } = usePerpsOrderBookPreferences();
-  // A saved coin unit is not displayable until the price can project it.
-  // Until then the keypad stays in USD, matching the amount Place Order submits.
-  const priceReady = Number.isFinite(amountPrice) && amountPrice > 0;
-  const showAssetValue = denomination === 'asset' && priceReady;
+  // A USD amount typed before the price can project coin must stay in USD
+  // until the keypad closes. Flipping to coin on the price tick would reseed
+  // the draft and make the next key edit coin instead of the USD entry.
+  const usdEditBeforePriceRef = React.useRef(false);
+  if (!isInputFocused) {
+    usdEditBeforePriceRef.current = false;
+  }
+  const showAssetValue =
+    resolveShownPerpsSizeDenomination({
+      saved: denomination,
+      price: amountPrice,
+      holdUsdEdit: usdEditBeforePriceRef.current,
+    }) === 'asset';
   // Pro restores a saved order-book coin on mount. Write that currency with the
   // shared unit so switching back to USD here is not put back to coin later.
   const onDisplayToggle = () => {
@@ -367,6 +377,9 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
     valueAsNumber: number;
   }) => {
     if (!showAssetValue) {
+      if (denomination === 'asset') {
+        usdEditBeforePriceRef.current = true;
+      }
       onKeypadChange(input);
       return;
     }
@@ -519,6 +532,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
+                  testID={PerpsTradeSheetSelectorsIDs.KEYPAD_25_PERCENT_BUTTON}
                   onPress={() => onPercentagePress(0.25)}
                 >
                   25%
@@ -527,6 +541,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
+                  testID={PerpsTradeSheetSelectorsIDs.KEYPAD_50_PERCENT_BUTTON}
                   onPress={() => onPercentagePress(0.5)}
                 >
                   50%
@@ -535,6 +550,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
+                  testID={PerpsTradeSheetSelectorsIDs.KEYPAD_MAX_BUTTON}
                   onPress={onMaxPress}
                 >
                   {strings('perps.deposit.max_button')}
@@ -543,6 +559,7 @@ const PerpsTradeScreen: React.FC<PerpsTradeScreenProps> = ({
                   variant={ButtonVariant.Secondary}
                   size={ButtonSize.Md}
                   twClassName="flex-1"
+                  testID={PerpsTradeSheetSelectorsIDs.KEYPAD_DONE_BUTTON}
                   onPress={onDonePress}
                 >
                   {strings('perps.deposit.done_button')}
