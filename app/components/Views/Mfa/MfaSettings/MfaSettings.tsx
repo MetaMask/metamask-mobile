@@ -27,9 +27,10 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { isRealMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { useTheme } from '../../../../util/theme';
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
+import { selectMfaUiKitMethods } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { getActiveCredentials, getActivePasskeys } from '../credentials';
@@ -70,6 +71,7 @@ const MfaSettings = () => {
   const { toastRef } = useContext(ToastContext);
   const { credentials, enroll } = useMfa();
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+  const methods = useSelector(selectMfaUiKitMethods);
   const passkeyCount = getActivePasskeys(credentials).length;
   const { status: moneyMfaStatus, turnOn: turnOnMoneyMfa } = useMoneyMfa();
   const isMoneyMfaOn = moneyMfaStatus === 'enabled';
@@ -124,7 +126,9 @@ const MfaSettings = () => {
     },
   ];
   const visibleRows = rows.filter(
-    ({ method }) => !(isSocialLogin && method === 'email_otp'),
+    ({ method, isSetUp }) =>
+      !(isSocialLogin && method === 'email_otp') &&
+      (isSetUp || methods.includes(method)),
   );
 
   const toggleMoneyMfa = () => {
@@ -210,8 +214,8 @@ const MfaSettings = () => {
             testID={ROW_TEST_IDS[method]}
           />
         ))}
-        {isMfaKitEnabled() ? <MfaQaPresets /> : null}
-        {isMfaKitEnabled() && isRealMpcMoneyKeyringBuildEnabled() ? (
+        {isMfaDevBuild() ? <MfaQaPresets /> : null}
+        {isMfaDevBuild() && isRealMpcMoneyKeyringBuildEnabled() ? (
           <MoneyMpcQaPresets />
         ) : null}
       </ScrollView>

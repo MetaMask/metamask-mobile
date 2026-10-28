@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -102,7 +102,7 @@ export const useMoneyMfa = () => {
   // Turning it on creates the MPC Money account, which needs the MPC keyring.
   if (
     !isFlagEnabled ||
-    !isMfaKitEnabled() ||
+    !isMfaDevBuild() ||
     !isMpcMoneyKeyringBuildEnabled()
   ) {
     status = 'unavailable';

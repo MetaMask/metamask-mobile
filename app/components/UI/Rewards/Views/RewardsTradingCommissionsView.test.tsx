@@ -7,7 +7,7 @@ import type {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
 import { useCommissions } from '../hooks/useCommissions';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../components/Money/PerformanceActivityRows.testIds';
 import RewardsTradingCommissionsView, {
   REWARDS_TRADING_COMMISSIONS_VIEW_TEST_IDS,
 } from './RewardsTradingCommissionsView';

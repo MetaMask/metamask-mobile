@@ -5,7 +5,7 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { isMfaKitEnabled, useMfa } from '../../../../util/identity/mfa';
+import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
 import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
@@ -31,7 +31,7 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 
 jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
-  isMfaKitEnabled: jest.fn(),
+  isMfaDevBuild: jest.fn(),
 }));
 
 jest.mock('../../../../constants/featureFlags', () => ({
@@ -77,7 +77,7 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
-const mockIsMfaKitEnabled = jest.mocked(isMfaKitEnabled);
+const mockIsMfaDevBuild = jest.mocked(isMfaDevBuild);
 const mockIsMpcKeyringEnabled = jest.mocked(isMpcMoneyKeyringBuildEnabled);
 const mockStart = jest.mocked(moneyAccountMigration.start);
 const setMigration = (status: MoneyAccountMigrationStatus) =>
@@ -150,7 +150,7 @@ const arrange = ({
   credentials?: EnrolledCredential[];
 } = {}) => {
   mockUseSelector.mockReturnValue(isFlagEnabled);
-  mockIsMfaKitEnabled.mockReturnValue(isKitEnabled);
+  mockIsMfaDevBuild.mockReturnValue(isKitEnabled);
   mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
   mockUseMfa.mockReturnValue({
     credentials,

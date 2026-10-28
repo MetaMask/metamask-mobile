@@ -8,7 +8,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SocialPostComposerView from './SocialPostComposerView';
 import { SocialPostComposerViewSelectorsIDs } from './SocialPostComposerView.testIds';
-import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
 import {
   consumePostsTabFocus,
   getPendingPostsSnapshot,
@@ -682,7 +682,7 @@ describe('SocialPostComposerView', () => {
     );
 
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.SHEET),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.SHEET),
     ).toBeOnTheScreen();
   });
 
