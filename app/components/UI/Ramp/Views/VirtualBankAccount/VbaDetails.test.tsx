@@ -3,6 +3,7 @@ import { AccessibilityInfo } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
+import { ListItem } from '@metamask/design-system-react-native';
 import renderWithProvider, {
   type ProviderValues,
 } from '../../../../../util/test/renderWithProvider';
@@ -18,7 +19,10 @@ import {
   getCachedDepositInstructions,
   setCachedDepositInstructions,
 } from './vbaDepositInstructionsCache';
-import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
+import {
+  clearVbaProviderApprovalPending,
+  markVbaProviderApprovalPending,
+} from './vbaProviderApprovalStorage';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
 import {
@@ -107,6 +111,18 @@ jest.mock('./vbaCufTrace', () => ({
   endVbaCufChildTrace: jest.fn(),
   endVbaCufJourney: jest.fn(),
 }));
+
+jest.mock('./vbaProviderApprovalStorage', () => ({
+  markVbaProviderApprovalPending: jest.fn(() => Promise.resolve()),
+  clearVbaProviderApprovalPending: jest.fn(() => Promise.resolve()),
+}));
+
+const mockMarkVbaProviderApprovalPending = jest.mocked(
+  markVbaProviderApprovalPending,
+);
+const mockClearVbaProviderApprovalPending = jest.mocked(
+  clearVbaProviderApprovalPending,
+);
 
 const mockStartVbaCufChildTrace = jest.mocked(startVbaCufChildTrace);
 const mockEndVbaCufChildTrace = jest.mocked(endVbaCufChildTrace);
@@ -218,6 +234,8 @@ describe('VbaDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
+    mockMarkVbaProviderApprovalPending.mockResolvedValue();
+    mockClearVbaProviderApprovalPending.mockResolvedValue();
     resetMusdAutorampSetupGuard();
     clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
@@ -841,7 +859,7 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('stays on the creating state when refreshing the autoramp fails', async () => {
+  it('hides the load error while refreshing a non-Approved autoramp fails', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Pending' }]);
     mockRefreshAutoramp.mockRejectedValue(new Error('refresh failed'));
 
@@ -850,15 +868,13 @@ describe('VbaDetails', () => {
     await waitFor(() => {
       expect(Logger.error).toHaveBeenCalled();
     });
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.LOAD_ERROR),
     ).not.toBeOnTheScreen();
   });
 
-  it('shows Creating your bank account until the autoramp is Approved', async () => {
+  it('shows the details title and skeleton until the autoramp is Approved', async () => {
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Created' }]);
     mockRefreshAutoramp.mockResolvedValue({
       id: 'ar-1',
@@ -866,57 +882,197 @@ describe('VbaDetails', () => {
       status: 'Authorized',
     });
 
-    const { getByText, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
     });
-    expect(
-      getByText(strings('virtual_bank_account.creating_account.title')),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.title'),
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     expect(mockGetDepositInstructions).not.toHaveBeenCalled();
-    expect(queryByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeNull();
   });
 
-  it('goes to Money home from the creating state back button', async () => {
+  it('shows the bank transfer title while a USD account is being created', async () => {
+    mockLocation = 'US';
+    setAutoramps([]);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalled();
+    });
+    expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
+      strings('virtual_bank_account.vba_details.bank_transfer_title'),
+    );
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
+  });
+
+  it('shows four skeleton rows for a USD bank transfer', async () => {
+    mockLocation = 'US';
+    setAutoramps([]);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalled();
+    });
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.LOADING).findAllByType(ListItem),
+    ).toHaveLength(4);
+  });
+
+  it('shows two skeleton rows for Pix', async () => {
+    setAutoramps([]);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalled();
+    });
+    expect(
+      getByTestId(VbaDetailsSelectorsIDs.LOADING).findAllByType(ListItem),
+    ).toHaveLength(2);
+  });
+
+  it('tracks the account creation screen while the autoramp is not Approved', async () => {
+    setAutoramps([]);
+
+    renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(mockHydrate).toHaveBeenCalled();
+    });
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+      resetKey: '0xabc:BRL',
+      enabled: true,
+      contentReady: true,
+    });
+    expect(mockUseScreenPerformance).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        screenId: VBA_SCREEN_ID.ACCOUNT_DETAILS,
+        enabled: true,
+      }),
+    );
+  });
+
+  it('stops tracking the account creation screen once the autoramp is Approved', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockUseScreenPerformance).toHaveBeenLastCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.ACCOUNT_CREATION,
+      resetKey: '0xabc:BRL',
+      enabled: false,
+      contentReady: true,
+    });
+  });
+
+  it('returns to the caller from the header while the account is being created', async () => {
     setAutoramps([]);
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockHydrate).toHaveBeenCalled();
     });
-    fireEvent.press(getByTestId(VbaCreatingAccountSelectorsIDs.BACK_BUTTON));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-      screen: Routes.MONEY.ROOT,
-      params: { screen: Routes.MONEY.HOME },
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  describe('when the provider has not activated the customer yet', () => {
+    beforeEach(() => {
+      setAutoramps([]);
+      mockHydrate.mockResolvedValue({
+        autorampStatus: 'not_ready',
+        kycStatus: 'approved',
+      });
+    });
+
+    it('navigates to Money home', async () => {
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+          screen: Routes.MONEY.ROOT,
+          params: { screen: Routes.MONEY.HOME },
+        });
+      });
+    });
+
+    it('marks provider approval as pending for the wallet', async () => {
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockMarkVbaProviderApprovalPending).toHaveBeenCalledWith(
+          '0xabc',
+        );
+      });
+      expect(mockClearVbaProviderApprovalPending).not.toHaveBeenCalled();
+    });
+
+    it('ends the journey as awaiting the provider', async () => {
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+          false,
+          VBA_CUF_END_REASON.AWAITING_PROVIDER,
+        );
+      });
+    });
+
+    it('does not create the autoramp or fetch instructions', async () => {
+      renderWithProvider(<VbaDetails />);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalled();
+      });
+      expect(mockCreateAutoramp).not.toHaveBeenCalled();
+      expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+    });
+
+    it('stops polling', async () => {
+      jest.useFakeTimers();
+      try {
+        renderWithProvider(<VbaDetails />);
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalled();
+        });
+
+        await act(async () => {
+          jest.advanceTimersByTime(30_000);
+        });
+
+        expect(mockHydrate).toHaveBeenCalledTimes(1);
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 
-  it('keeps loading when no usable autoramp exists and the customer is not active', async () => {
-    setAutoramps([]);
-    mockHydrate.mockResolvedValue({
-      autorampStatus: 'not_ready',
-      kycStatus: 'approved',
-    });
-
-    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
-      <VbaDetails />,
-    );
+  it('clears the pending provider approval once a usable autoramp exists', async () => {
+    renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
-      expect(mockHydrate).toHaveBeenCalled();
+      expect(mockClearVbaProviderApprovalPending).toHaveBeenCalledWith('0xabc');
     });
-    expect(
-      getByText(
-        strings('virtual_bank_account.creating_account.awaiting_provider'),
-      ),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-    expect(mockGetDepositInstructions).not.toHaveBeenCalled();
+    expect(mockMarkVbaProviderApprovalPending).not.toHaveBeenCalled();
   });
 
   it('does nothing when no Money Account wallet is selected', async () => {
@@ -924,9 +1080,7 @@ describe('VbaDetails', () => {
 
     const { getByTestId } = renderWithProvider(<VbaDetails />);
 
-    expect(
-      getByTestId(VbaCreatingAccountSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeOnTheScreen();
     await waitFor(() => {
       expect(mockGetDepositInstructions).not.toHaveBeenCalled();
     });

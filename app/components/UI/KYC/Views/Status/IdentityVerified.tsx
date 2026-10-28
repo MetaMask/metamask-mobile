@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackActions, useNavigation } from '@react-navigation/native';
@@ -21,6 +21,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
+import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
+import { ensureMusdAutoramp } from '../../../Ramp/Views/VirtualBankAccount/ensureMusdAutoramp';
+import { useVbaRegionSourceCurrency } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaRegionSourceCurrency';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
@@ -36,11 +40,35 @@ export const VbaIdentityVerifiedSelectorsIDs = {
  * KYC approved, no usable autoramp yet. Continue opens Choose Currency when
  * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
  * Back goes to Money home.
+ *
+ * When the currency is already known (chooseCurrency off), account creation
+ * starts on mount so the account is usually ready by the time the user taps
+ * Continue. Account details joins the same run, and owns routing for its
+ * outcome (waiting, provider approval, failures).
  */
 const VbaIdentityVerified = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
+  const walletAddress = useSelector(selectSelectedVbaWalletAddress);
+  const regionCurrency = useVbaRegionSourceCurrency();
+  const networkTier = useNetworkTier();
+
+  const startedSetupKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!walletAddress || !regionCurrency || networkTier === 'NONE') {
+      return;
+    }
+    // Start once per account; a network tier change must not rerun setup.
+    const setupKey = `${walletAddress}:${regionCurrency}`;
+    if (startedSetupKeyRef.current === setupKey) {
+      return;
+    }
+    startedSetupKeyRef.current = setupKey;
+    // Errors are handled when account details runs the same setup.
+    ensureMusdAutoramp(walletAddress, regionCurrency).catch(() => undefined);
+  }, [networkTier, regionCurrency, walletAddress]);
 
   const handleBack = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {

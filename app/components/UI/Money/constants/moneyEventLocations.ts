@@ -62,6 +62,8 @@ export enum COMPONENT_NAMES {
   MONEY_VBA_GET_STARTED_CARD = 'money_vba_get_started_card',
   /** ACCOUNT_IS_READY VBA identity-status card on Money Home (Figma node 2158-5306). */
   MONEY_VBA_ACCOUNT_READY_CARD = 'money_vba_account_ready_card',
+  /** ACCOUNT_PENDING VBA card on Money Home: waiting on provider approval (TRAM-4252). */
+  MONEY_VBA_ACCOUNT_PENDING_CARD = 'money_vba_account_pending_card',
   /** KYC_PENDING VBA identity-status card on Money Home (Figma node 2254-13372). */
   MONEY_VBA_KYC_PENDING_CARD = 'money_vba_kyc_pending_card',
   /** FINISH_VERIFICATION VBA identity-status card on Money Home (Figma node 2267-18364). */

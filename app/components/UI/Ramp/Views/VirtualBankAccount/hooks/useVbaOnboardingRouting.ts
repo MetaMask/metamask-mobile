@@ -11,6 +11,11 @@ import Engine from '../../../../../../core/Engine';
 import ReduxService from '../../../../../../core/redux';
 import Logger from '../../../../../../util/Logger';
 import { selectSelectedVbaWalletAddress } from '../../../../../../selectors/rampsController';
+import {
+  selectKycProviderFlowStatus,
+  selectKycSessionStatus,
+} from '../../../../../../selectors/kycController';
+import NavigationService from '../../../../../../core/NavigationService';
 import type { RootState } from '../../../../../../reducers';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -33,11 +38,19 @@ import {
   getVbaKycStatusOverride,
 } from '../vbaDevOverrides';
 import { findUsableAutoramp } from '../ensureMusdAutoramp';
-import { VBA_KYC_VENDOR } from '../constants';
+import { VBA_ACCOUNT_PENDING_SOURCE, VBA_KYC_VENDOR } from '../constants';
 import type { VbaSourceCurrency } from '../../../../../../util/region/getVbaSourceCurrency';
 import { TraceName } from '../../../../../../util/trace';
-import { endVbaCufChildTrace, startVbaCufChildTrace } from '../vbaCufTrace';
-import { VBA_CUF_END_REASON } from '../vbaCufTags';
+import {
+  endVbaCufChildTrace,
+  startVbaCufChildTrace,
+  startVbaCufJourney,
+} from '../vbaCufTrace';
+import {
+  getVbaCufEntrySurfaceForSource,
+  VBA_CUF_END_REASON,
+} from '../vbaCufTags';
+import { selectVbaRegionSourceCurrency } from './useVbaRegionSourceCurrency';
 
 type VbaOnboardingScreenName =
   (typeof VbaOnboardingRoutes)[keyof typeof VbaOnboardingRoutes];
@@ -178,49 +191,6 @@ export const openCompletedVbaAccount = (
     }
     current = parent;
   }
-};
-
-const hasPersistedApprovedAutoramp = (walletAddress: string): boolean => {
-  const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
-  return findUsableAutoramp(autoramps, walletAddress)?.status === 'Approved';
-};
-
-/**
- * Cold entry from Money surfaces. An account whose autoramp is already
- * Approved on this device opens its details directly, and onboarding facts
- * refresh in the background. Everyone else gets the loading screen, which
- * hydrates before picking a destination. Dev KYC overrides always take the
- * loading screen so the override still applies.
- *
- * @param navigation - Navigation from the entry surface.
- * @param params - Loading screen params, used when the fast path does not apply.
- */
-export const openVbaEntry = (
-  navigation: AppNavigationProp,
-  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
-): void => {
-  const walletAddress = selectSelectedVbaWalletAddress(
-    ReduxService.store.getState() as RootState,
-  );
-  if (
-    walletAddress &&
-    getVbaKycStatusOverride() === null &&
-    hasPersistedApprovedAutoramp(walletAddress)
-  ) {
-    openCompletedVbaAccount(navigation);
-    Engine.context.RampsController.hydrateVbaOnboarding({
-      walletAddress,
-      refreshKyc: true,
-      refreshAutoramps: true,
-    }).catch((error: unknown) => {
-      Logger.error(error as Error, {
-        tags: { feature: 'vba-onboarding' },
-        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
-      });
-    });
-    return;
-  }
-  openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);
 };
 
 export const navigateToVbaOnboardingDestination = (
@@ -469,4 +439,164 @@ export const useOpenVbaOnboarding = (
     },
     [navigation, defaultSource],
   );
+};
+
+const VBA_ENTRY_DEFAULT_SOURCE = 'money-add-money-bank-account';
+
+type KnownEntryDestination = Extract<
+  VbaOnboardingDestinationId,
+  'complete' | 'identityVerified' | 'kycPending' | 'kycRejected'
+>;
+
+/** Leaf route each status destination lands on, for the still-here check. */
+const KNOWN_DESTINATION_ROUTE: Record<
+  Exclude<KnownEntryDestination, 'complete'>,
+  string
+> = {
+  identityVerified: VbaOnboardingRoutes.IDENTITY_VERIFIED,
+  kycPending: VbaOnboardingRoutes.KYC_PENDING,
+  kycRejected: VbaOnboardingRoutes.KYC_REJECTED,
+};
+
+/**
+ * Destination this device already knows without a network call, mirroring
+ * `getVbaDestinationForSnapshot` for an existing KYC session. Returns `null`
+ * when the next step depends on network facts (terms, email, consent), so
+ * the loading screen resolves it.
+ */
+const getKnownVbaEntryDestination = (
+  walletAddress: string,
+  source: string,
+): KnownEntryDestination | null => {
+  const autoramps = Engine.context.RampsController.state?.autoramps ?? [];
+  const usableAutoramp = findUsableAutoramp(autoramps, walletAddress);
+  if (usableAutoramp?.status === 'Approved') {
+    return 'complete';
+  }
+  const state = ReduxService.store.getState() as RootState;
+  const sessionStatus = selectKycSessionStatus(state);
+  if (!sessionStatus) {
+    return null;
+  }
+  const providerFlowStatus = selectKycProviderFlowStatus(state);
+  const { finalStatus, kycStatus } = sessionStatus;
+  if (finalStatus === 'approved' || kycStatus === 'approved') {
+    if (usableAutoramp) {
+      return 'complete';
+    }
+    // Details runs account setup, so it re-checks a pending provider approval.
+    // It needs a currency to do that; without one (chooseCurrency on, or no
+    // region currency) Identity verified leads to Choose currency instead.
+    return source === VBA_ACCOUNT_PENDING_SOURCE &&
+      selectVbaRegionSourceCurrency(state)
+      ? 'complete'
+      : 'identityVerified';
+  }
+  if (finalStatus === 'retry' || kycStatus === 'retry') {
+    // A resubmitted retry resolves to identity verification online, which
+    // needs a snapshot, so let the loading screen handle it.
+    return providerFlowStatus === 'submitted' ? null : 'kycRejected';
+  }
+  if (finalStatus === 'rejected') {
+    return 'kycRejected';
+  }
+  if (kycStatus === 'pending' || providerFlowStatus === 'submitted') {
+    return 'kycPending';
+  }
+  return null;
+};
+
+/**
+ * Confirms a known destination online and moves the user if it was wrong,
+ * but only while they are still on the screen it opened.
+ */
+const correctKnownVbaEntryDestination = (
+  navigation: AppNavigationProp,
+  destination: Exclude<KnownEntryDestination, 'complete'>,
+  source: string,
+): void => {
+  resolveVbaOnboarding(source)
+    .then((resolved) => {
+      if (
+        resolved.status !== 'ready' ||
+        resolved.destinationId === destination ||
+        NavigationService.getCurrentRoute()?.name !==
+          KNOWN_DESTINATION_ROUTE[destination]
+      ) {
+        return;
+      }
+      Logger.log('[vba-onboarding] correct entry', {
+        source,
+        from: destination,
+        destinationId: resolved.destinationId,
+      });
+      // Status screens end the journey on mount; the corrected route is a
+      // fresh attempt from the same entry surface.
+      if (destination !== 'identityVerified') {
+        startVbaCufJourney(getVbaCufEntrySurfaceForSource(source));
+      }
+      navigateToVbaOnboardingDestination(
+        navigation,
+        resolved.destinationId,
+        resolved.snapshot,
+      );
+    })
+    .catch((error: unknown) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: { name: 'openVbaEntry', data: { step: 'correct', source } },
+      });
+    });
+};
+
+/**
+ * Cold entry from Money surfaces. When this device already knows where the
+ * user is (an Approved account, or an existing KYC session), it opens that
+ * screen directly and confirms in the background:
+ * - Account details refreshes onboarding facts and corrects itself.
+ * - Status screens are re-resolved online and replaced only if the user is
+ * still on them and the answer differs.
+ *
+ * Everyone else gets the loading screen, which hydrates before picking a
+ * destination. Dev KYC overrides always take the loading screen so the
+ * override still applies.
+ *
+ * @param navigation - Navigation from the entry surface.
+ * @param params - Loading screen params; `source` also tags telemetry.
+ */
+export const openVbaEntry = (
+  navigation: AppNavigationProp,
+  params?: NonNullable<VbaOnboardingParamList['VbaOnboardingLoading']>,
+): void => {
+  const walletAddress = selectSelectedVbaWalletAddress(
+    ReduxService.store.getState() as RootState,
+  );
+  const source = params?.source ?? VBA_ENTRY_DEFAULT_SOURCE;
+  const destination =
+    walletAddress && getVbaKycStatusOverride() === null
+      ? getKnownVbaEntryDestination(walletAddress, source)
+      : null;
+
+  if (!walletAddress || !destination) {
+    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, params);
+    return;
+  }
+
+  if (destination === 'complete') {
+    openCompletedVbaAccount(navigation);
+    Engine.context.RampsController.hydrateVbaOnboarding({
+      walletAddress,
+      refreshKyc: true,
+      refreshAutoramps: true,
+    }).catch((error: unknown) => {
+      Logger.error(error as Error, {
+        tags: { feature: 'vba-onboarding' },
+        context: { name: 'openVbaEntry', data: { step: 'hydrate' } },
+      });
+    });
+    return;
+  }
+
+  navigateToVbaOnboardingDestination(navigation, destination);
+  correctKnownVbaEntryDestination(navigation, destination, source);
 };

@@ -18,7 +18,10 @@ import {
 } from './hooks/useVbaOnboardingRouting';
 import type { VbaOnboardingParamList } from './routes';
 import { endVbaCufJourney, startVbaCufJourney } from './vbaCufTrace';
-import { VBA_CUF_END_REASON } from './vbaCufTags';
+import {
+  getVbaCufEntrySurfaceForSource,
+  VBA_CUF_END_REASON,
+} from './vbaCufTags';
 
 const VBA_LOADING_SOURCE = 'money-add-money-bank-account';
 
@@ -55,12 +58,7 @@ const VbaOnboardingLoading = ({ route }: VbaOnboardingLoadingProps) => {
   }, [navigation]);
 
   const handleRetry = useCallback(() => {
-    const entrySurface = source.startsWith('vba-home-card-')
-      ? 'home_card'
-      : source === 'vba-action-row-details'
-        ? 'money_action_row'
-        : 'add_money_sheet';
-    startVbaCufJourney(entrySurface);
+    startVbaCufJourney(getVbaCufEntrySurfaceForSource(source));
     setHasError(false);
     setAttempt((count) => count + 1);
   }, [source]);
