@@ -1,10 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  Image,
-  RefreshControl,
-  ScrollView,
-} from 'react-native';
+import { AccessibilityInfo, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -15,8 +10,7 @@ import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
+  BoxBackgroundColor,
   Button,
   ButtonIcon,
   ButtonIconSize,
@@ -29,6 +23,7 @@ import {
   Text,
   TextColor,
   TextVariant,
+  TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type {
@@ -52,8 +47,6 @@ import {
   VBA_CHOOSABLE_SOURCE_CURRENCIES,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import vbaPixLogo from './assets/vba-pix-logo.png';
-import bankTransferImage from '../../../../../images/bank-transfer.png';
 import {
   pickLatestTransaction,
   type AutorampTransactionSummary,
@@ -97,7 +90,6 @@ export const VbaDetailsSelectorsIDs = {
   CONTAINER: 'vba-details-container',
   HEADER: 'vba-details-header',
   BACK_BUTTON: 'vba-details-back-button',
-  LOGO: 'vba-details-logo',
   TITLE: 'vba-details-title',
   COPY_BUTTON: 'vba-details-copy-button',
   PIX_CODE: 'vba-details-pix-code',
@@ -110,6 +102,7 @@ export const VbaDetailsSelectorsIDs = {
   LOADING: 'vba-details-loading',
   LOAD_ERROR: 'vba-details-load-error',
   DEBUG_BUTTON: 'vba-details-debug-button',
+  DONE_BUTTON: 'vba-details-done-button',
 } as const;
 
 interface AutorampCursor {
@@ -197,14 +190,8 @@ const buildDetailRows = (
   if (instructions?.type !== 'Pix') {
     return [];
   }
-  const rows: DetailRow[] = [
-    {
-      id: 'copia-cola',
-      testID: VbaDetailsSelectorsIDs.PIX_CODE,
-      label: strings('virtual_bank_account.vba_details.copia_cola_label'),
-      value: instructions.brCode,
-    },
-  ];
+  // Pix key first, Copia e Cola second (TRAM-4210).
+  const rows: DetailRow[] = [];
   if (instructions.pixKey) {
     rows.push({
       id: 'pix-key',
@@ -213,6 +200,12 @@ const buildDetailRows = (
       value: instructions.pixKey,
     });
   }
+  rows.push({
+    id: 'copia-cola',
+    testID: VbaDetailsSelectorsIDs.PIX_CODE,
+    label: strings('virtual_bank_account.vba_details.copia_cola_label'),
+    value: instructions.brCode,
+  });
   return rows;
 };
 
@@ -755,70 +748,55 @@ const VbaDetails = () => {
           <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
         }
       >
-        <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
-          <Image
-            source={isBankTransfer ? bankTransferImage : vbaPixLogo}
-            accessibilityIgnoresInvertColors
-            accessible={false}
-            importantForAccessibility="no"
-            style={tw.style('h-[88px] w-[88px]')}
-            testID={VbaDetailsSelectorsIDs.LOGO}
-          />
-        </Box>
-        <Text
-          variant={TextVariant.HeadingLg}
-          twClassName="mt-6 text-center"
-          testID={VbaDetailsSelectorsIDs.TITLE}
-        >
-          {strings(
+        <TitleStandard
+          title={strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_title'
               : 'virtual_bank_account.vba_details.title',
           )}
-        </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2 text-center"
-        >
-          {strings(
+          bottomLabel={strings(
             isBankTransfer
               ? 'virtual_bank_account.vba_details.bank_transfer_description'
               : 'virtual_bank_account.vba_details.description',
           )}
-        </Text>
+          titleProps={{ testID: VbaDetailsSelectorsIDs.TITLE }}
+        />
         {rows.length > 0 ? (
-          <Box twClassName="mt-6 overflow-hidden rounded-xl bg-muted">
+          <Box
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            marginTop={6}
+            twClassName="overflow-hidden rounded-xl"
+          >
             {rows.map((row) => (
-              <Box key={row.id} testID={row.testID}>
-                <ListItem
-                  title={row.label}
-                  titleProps={{
-                    variant: TextVariant.BodySm,
-                    fontWeight: FontWeight.Regular,
-                    color: TextColor.TextAlternative,
-                  }}
-                  description={row.value}
-                  descriptionProps={{
-                    variant: TextVariant.BodyMd,
-                    color: TextColor.TextDefault,
-                    numberOfLines: 1,
-                  }}
-                  endAccessory={
-                    <ButtonIcon
-                      iconName={IconName.Copy}
-                      size={ButtonIconSize.Md}
-                      onPress={handleCopy(row.value, row.label)}
-                      accessibilityLabel={strings(
-                        'virtual_bank_account.vba_details.copy_label',
-                        { field: row.label },
-                      )}
-                      testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
-                    />
-                  }
-                  accessoryGap={3}
-                />
-              </Box>
+              <ListItem
+                key={row.id}
+                testID={row.testID}
+                title={row.label}
+                titleProps={{
+                  variant: TextVariant.BodySm,
+                  fontWeight: FontWeight.Regular,
+                  color: TextColor.TextAlternative,
+                }}
+                description={row.value}
+                descriptionProps={{
+                  variant: TextVariant.BodyMd,
+                  color: TextColor.TextDefault,
+                  numberOfLines: 1,
+                }}
+                endAccessory={
+                  <ButtonIcon
+                    iconName={IconName.Copy}
+                    size={ButtonIconSize.Md}
+                    onPress={handleCopy(row.value, row.label)}
+                    accessibilityLabel={strings(
+                      'virtual_bank_account.vba_details.copy_label',
+                      { field: row.label },
+                    )}
+                    testID={`${VbaDetailsSelectorsIDs.COPY_BUTTON}-${row.id}`}
+                  />
+                }
+                accessoryGap={3}
+              />
             ))}
           </Box>
         ) : errorMessage ? (
@@ -834,7 +812,9 @@ const VbaDetails = () => {
           </Text>
         ) : (
           <Box
-            twClassName="mt-6 overflow-hidden rounded-xl bg-muted"
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            marginTop={6}
+            twClassName="overflow-hidden rounded-xl"
             accessible
             accessibilityRole="progressbar"
             accessibilityLabel={strings(
@@ -842,45 +822,46 @@ const VbaDetails = () => {
             )}
             testID={VbaDetailsSelectorsIDs.LOADING}
           >
-            {['copia-cola', 'pix-key'].map((id) => (
-              <Box
+            {/* Reuses ListItem so each placeholder row gets the same padding
+                and min height as a loaded two-line row, so the card doesn't
+                jump when the details land. Both bars sit in the title slot
+                because it is the only full-width slot, so the 85% bar has a
+                width to resolve against. */}
+            {['pix-key', 'copia-cola'].map((id) => (
+              <ListItem
                 key={id}
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="gap-3 px-4 py-3"
-              >
-                <Skeleton
-                  width={20}
-                  height={20}
-                  twClassName="rounded-full"
-                  {...skeletonMotion}
-                />
-                <Box twClassName="flex-1 gap-2">
+                title={
+                  <Box gap={2} twClassName="flex-1">
+                    <Skeleton
+                      width={96}
+                      height={14}
+                      twClassName="rounded"
+                      {...skeletonMotion}
+                    />
+                    <Skeleton
+                      width="85%"
+                      height={18}
+                      twClassName="rounded"
+                      {...skeletonMotion}
+                    />
+                  </Box>
+                }
+                endAccessory={
+                  // Matches the copy ButtonIcon at ButtonIconSize.Md (32px).
                   <Skeleton
-                    width={96}
-                    height={14}
+                    width={32}
+                    height={32}
                     twClassName="rounded"
                     {...skeletonMotion}
                   />
-                  <Skeleton
-                    width="85%"
-                    height={18}
-                    twClassName="rounded"
-                    {...skeletonMotion}
-                  />
-                </Box>
-                <Skeleton
-                  width={24}
-                  height={24}
-                  twClassName="rounded"
-                  {...skeletonMotion}
-                />
-              </Box>
+                }
+                accessoryGap={3}
+              />
             ))}
           </Box>
         )}
       </ScrollView>
-      <Box twClassName="gap-4 px-4 pb-2 pt-4">
+      <Box gap={4} paddingHorizontal={4} paddingTop={4} paddingBottom={2}>
         {SHOW_ACCOUNT_PROVIDER_DISCLOSURE ? (
           <Text
             variant={TextVariant.BodyXs}
@@ -902,6 +883,15 @@ const VbaDetails = () => {
             {'Debug'}
           </Button>
         ) : null}
+        <Button
+          variant={ButtonVariant.Primary}
+          size={ButtonSize.Lg}
+          isFullWidth
+          onPress={handleBack}
+          testID={VbaDetailsSelectorsIDs.DONE_BUTTON}
+        >
+          {strings('virtual_bank_account.vba_details.button')}
+        </Button>
       </Box>
       {debugEnabled && isDebugOpen ? (
         <VbaDepositDebugSheet

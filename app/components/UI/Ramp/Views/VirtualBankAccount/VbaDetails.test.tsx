@@ -226,17 +226,22 @@ describe('VbaDetails', () => {
   });
 
   it('renders the details screen', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
 
     expect(getByTestId(VbaDetailsSelectorsIDs.CONTAINER)).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.HEADER)).toBeOnTheScreen();
-    expect(getByTestId(VbaDetailsSelectorsIDs.LOGO)).toHaveProp(
-      'importantForAccessibility',
-      'no',
-    );
+    expect(queryByTestId('vba-details-logo')).not.toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.TITLE)).toHaveTextContent(
       strings('virtual_bank_account.vba_details.title'),
     );
+    expect(
+      getByText(
+        'Add funds directly from your bank. Funds usually land in your Money account within minutes.',
+      ),
+    ).toBeOnTheScreen();
+    expect(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON)).toBeOnTheScreen();
     expect(
       queryByTestId(VbaDetailsSelectorsIDs.HELPER_TEXT),
     ).not.toBeOnTheScreen();
@@ -248,7 +253,7 @@ describe('VbaDetails', () => {
   });
 
   it('returns to the caller from the header', async () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(<VbaDetails />);
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
     await waitFor(() => {
       expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
     });
@@ -261,7 +266,40 @@ describe('VbaDetails', () => {
       false,
       VBA_CUF_END_REASON.BAILED,
     );
-    expect(queryByTestId('vba-details-done-button')).not.toBeOnTheScreen();
+  });
+
+  it('returns to the caller from the Done button, like the header back', async () => {
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    const doneButton = getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON);
+    expect(doneButton).toHaveTextContent('Done');
+    fireEvent.press(doneButton);
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockEndVbaCufJourney).toHaveBeenCalledWith(
+      false,
+      VBA_CUF_END_REASON.BAILED,
+    );
+  });
+
+  it('returns to Money home from the Done button when there is no navigation history', async () => {
+    mockCanGoBack = false;
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+    await waitFor(() => {
+      expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
+    });
+
+    fireEvent.press(getByTestId(VbaDetailsSelectorsIDs.DONE_BUTTON));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
   });
 
   it('returns to Money home when there is no navigation history', async () => {
@@ -321,20 +359,37 @@ describe('VbaDetails', () => {
       contentReady: true,
       contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
     });
-    expect(getByText('PIX Copia e Cola')).toBeOnTheScreen();
+    expect(getByText('Pix Copia e Cola')).toBeOnTheScreen();
     expect(getByText('00020126')).toBeOnTheScreen();
     expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
-    expect(getByText('PIX key')).toBeOnTheScreen();
+    expect(getByText('Pix key')).toBeOnTheScreen();
     expect(getByText('pix@example.com')).toBeOnTheScreen();
     expect(
       queryByTestId('vba-details-row-icon-copia-cola'),
     ).not.toBeOnTheScreen();
     expect(queryByTestId('vba-details-row-icon-pix-key')).not.toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX Copia e Cola')).toBeOnTheScreen();
-    expect(getByLabelText('Copy PIX key')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix Copia e Cola')).toBeOnTheScreen();
+    expect(getByLabelText('Copy Pix key')).toBeOnTheScreen();
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
     expect(mockListTransactions).not.toHaveBeenCalled();
     expect(mockRefreshAutorampTransactions).toHaveBeenCalledWith('ar-1');
+  });
+
+  it('lists the Pix key before Copia e Cola', async () => {
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getAllByLabelText, getByTestId } = renderWithProvider(
+      <VbaDetails />,
+    );
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+
+    expect(
+      getAllByLabelText(/^Copy Pix/).map(
+        (button) => button.props.accessibilityLabel,
+      ),
+    ).toEqual(['Copy Pix key', 'Copy Pix Copia e Cola']);
   });
 
   it('copies a Pix value', async () => {
@@ -345,11 +400,11 @@ describe('VbaDetails', () => {
       expect(getByTestId(VbaDetailsSelectorsIDs.PIX_KEY)).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByLabelText('Copy PIX key'));
+    fireEvent.press(getByLabelText('Copy Pix key'));
 
     expect(Clipboard.setString).toHaveBeenCalledWith('pix@example.com');
     expect(AccessibilityInfo.announceForAccessibility).toHaveBeenCalledWith(
-      'Copied PIX key',
+      'Copied Pix key',
     );
   });
 
