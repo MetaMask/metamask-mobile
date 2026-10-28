@@ -1,5 +1,6 @@
 import type {
   SocialFilterNetwork,
+  SocialFilterPositionStatus,
   SocialFilterTimeframe,
   SocialFilterType,
   SocialFilterVerification,
@@ -40,6 +41,7 @@ export const DEFAULT_FILTERS: SocialShellFilters = {
   type: 'all',
   traderCohort: 'all',
   verification: 'all',
+  positionStatus: 'all',
   timeframe: '7d',
   network: 'all',
   marketCap: { ...MARKET_CAP_RANGE },
@@ -97,6 +99,22 @@ export const COHORT_LABEL_KEY: Record<SocialTraderCohort, string> = {
   dolphin: 'social_leaderboard.shell.filters.trader_cohort.dolphin',
   whale: 'social_leaderboard.shell.filters.trader_cohort.whale',
   verified: 'social_leaderboard.shell.filters.trader_cohort.verified',
+};
+
+export const POSITION_STATUS_OPTIONS: SocialFilterPositionStatus[] = [
+  'all',
+  'open',
+  'closed',
+];
+
+/** All reuses the asset-type All string. */
+export const POSITION_STATUS_LABEL_KEY: Record<
+  SocialFilterPositionStatus,
+  string
+> = {
+  all: 'social_leaderboard.shell.filters.type.all',
+  open: 'social_leaderboard.shell.filters.position_status.open',
+  closed: 'social_leaderboard.shell.filters.position_status.closed',
 };
 
 export const VERIFICATION_OPTIONS: SocialFilterVerification[] = [

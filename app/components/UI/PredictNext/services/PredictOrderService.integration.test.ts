@@ -11,7 +11,7 @@ import {
   PREDICT_ORDER_SERVICE_NAME,
   PredictOrderService,
 } from '../services/PredictOrderService';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const previewResponse = {
   previewId: 'b3c2a1d0-1111-4222-8333-444455556666',

@@ -17,8 +17,6 @@ export type PredictSignedAmount = string & {
 export type PredictHttpsUrl = string & { readonly __brand: 'PredictHttpsUrl' };
 export type PredictHexColor = string & { readonly __brand: 'PredictHexColor' };
 
-export const KALSHI_VENUE_ID = 'kalshi' as PredictVenueId;
-
 export type PredictMarketStatus =
   | 'initialized'
   | 'active'

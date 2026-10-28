@@ -2,8 +2,9 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import SharePositionBottomSheet from './SharePositionBottomSheet';
-import { SharePositionBottomSheetSelectorsIDs } from './SharePositionBottomSheet.testIds';
+import AddPositionBottomSheet from './AddPositionBottomSheet';
+import { AddPositionBottomSheetSelectorsIDs } from './AddPositionBottomSheet.testIds';
+import { HiddenPositionInfoSelectorsIDs } from './HiddenPositionInfo.testIds';
 
 jest.mock('../../../UI/SocialFeed/utils/perp', () => ({
   isPerpPosition: (position: { chain?: string; perpPositionType?: string }) =>
@@ -112,7 +113,7 @@ jest.mock('react-native-gesture-handler', () => {
   };
 });
 
-describe('SharePositionBottomSheet', () => {
+describe('AddPositionBottomSheet', () => {
   const onSelect = jest.fn();
   const onClose = jest.fn();
 
@@ -132,7 +133,7 @@ describe('SharePositionBottomSheet', () => {
 
   it('loads positions for the linked social address', () => {
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -146,7 +147,7 @@ describe('SharePositionBottomSheet', () => {
 
   it('groups open tokens and perps', () => {
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -154,10 +155,10 @@ describe('SharePositionBottomSheet', () => {
     );
 
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.TOKENS_SECTION),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.TOKENS_SECTION),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.PERPS_SECTION),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.PERPS_SECTION),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-ETH')).toBeOnTheScreen();
     expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
@@ -165,7 +166,7 @@ describe('SharePositionBottomSheet', () => {
 
   it('selects a closed position from the Closed tab', () => {
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -173,7 +174,7 @@ describe('SharePositionBottomSheet', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.CLOSED_TAB),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.CLOSED_TAB),
     );
     fireEvent.press(screen.getByTestId('position-row-DOGE'));
 
@@ -193,7 +194,7 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -201,8 +202,52 @@ describe('SharePositionBottomSheet', () => {
     );
 
     expect(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.EMPTY),
-    ).toHaveTextContent('social_leaderboard.composer.empty_description');
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY),
+    ).toHaveTextContent(/social_leaderboard\.composer\.empty_title/);
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    ).toHaveTextContent('social_leaderboard.composer.empty_help');
+  });
+
+  it('opens hidden position info from the empty state link', () => {
+    mockUseTraderPositions.mockReturnValue({
+      openPositions: [],
+      closedPositions: [],
+      isLoadingOpen: false,
+      isLoadingClosed: false,
+      error: null,
+      openError: null,
+      closedError: null,
+      refetch: mockRefetch,
+    });
+
+    renderWithProvider(
+      <AddPositionBottomSheet
+        address="0x1111111111111111111111111111111111111111"
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.press(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.EMPTY_HELP),
+    );
+
+    expect(
+      screen.getByTestId(HiddenPositionInfoSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(HiddenPositionInfoSelectorsIDs.BODY),
+    ).toHaveTextContent('social_leaderboard.composer.hidden_position_body');
+
+    fireEvent.press(screen.getByTestId(HiddenPositionInfoSelectorsIDs.CONFIRM));
+
+    expect(
+      screen.queryByTestId(HiddenPositionInfoSelectorsIDs.SHEET),
+    ).toBeNull();
+    expect(
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.SHEET),
+    ).toBeOnTheScreen();
   });
 
   it('shows an error with retry', () => {
@@ -218,7 +263,7 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -226,7 +271,7 @@ describe('SharePositionBottomSheet', () => {
     );
 
     fireEvent.press(
-      screen.getByTestId(SharePositionBottomSheetSelectorsIDs.RETRY),
+      screen.getByTestId(AddPositionBottomSheetSelectorsIDs.RETRY),
     );
 
     expect(mockRefetch).toHaveBeenCalledTimes(1);
@@ -245,7 +290,7 @@ describe('SharePositionBottomSheet', () => {
     });
 
     renderWithProvider(
-      <SharePositionBottomSheet
+      <AddPositionBottomSheet
         address="0x1111111111111111111111111111111111111111"
         onSelect={onSelect}
         onClose={onClose}
@@ -254,7 +299,7 @@ describe('SharePositionBottomSheet', () => {
 
     expect(screen.getByTestId('position-row-BTC')).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(SharePositionBottomSheetSelectorsIDs.ERROR),
+      screen.queryByTestId(AddPositionBottomSheetSelectorsIDs.ERROR),
     ).toBeNull();
   });
 });

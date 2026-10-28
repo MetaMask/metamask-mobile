@@ -1442,8 +1442,15 @@
         "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
-      "placeholder": "Share your thoughts about a position",
+      "placeholder": "Add a position and a few words to post",
       "post": "Post",
       "close": "Close composer",
       "character_count": "{{count}}/{{limit}}",
@@ -1458,12 +1465,15 @@
       "remove_position": "Remove position",
       "remove_gif": "Remove GIF",
       "hide_keyboard": "Hide keyboard",
-      "share_position_title": "Share a position",
+      "add_position_title": "Add a position",
       "tab_open": "Open",
       "tab_closed": "Closed",
       "section_tokens": "Tokens",
       "section_perps": "Perps",
-      "empty_title": "No positions to share",
+      "empty_title": "No positions to post yet",
+      "empty_help": "Why don't I see a position?",
+      "hidden_position_body": "Positions only appear here if they include at least one trade of $10 or more. Smaller trades, like recurring buys, aren't tracked yet.",
+      "got_it": "Got it",
       "empty_description": "Create a position to share it here.",
       "empty_open": "No open positions",
       "empty_closed": "No closed positions",
@@ -1517,7 +1527,12 @@
           "timeframe": "Time frame",
           "network": "Network",
           "market_cap": "Market cap",
-          "volume_24h": "24h volume"
+          "volume_24h": "24h volume",
+          "positions": "Positions"
+        },
+        "position_status": {
+          "open": "Open",
+          "closed": "Closed"
         },
         "type": {
           "all": "All",
@@ -1677,12 +1692,7 @@
       "empty_closed_tokens": "No closed tokens",
       "empty_open_perps": "No open perps",
       "empty_closed_perps": "No closed perps",
-      "first_trade_prompt": "First trade?",
-      "empty_title": "Make your first post",
-      "empty_description": "You'll get 15% of the fees if someone copies your moves.",
-      "other_empty_title": "No posts yet",
-      "other_empty_description": "When they share a trade, it will show up here.",
-      "share_first_trade": "Create MetaMask post",
+      "empty_title": "No posts yet",
       "debug_reset_profile": "debug: reset profile",
       "joined": "Joined {{time}}",
       "load_profile_error": "Couldn't load your profile.",
@@ -6299,6 +6309,14 @@
       "feed": "Feed",
       "holders": "Holders"
     },
+    "feed_tab": {
+      "empty": {
+        "no_balance_title": "Post your trade",
+        "has_balance_title": "Start your first post",
+        "description": "You'll get 15% of the fees every time someone copies your moves.",
+        "create_post": "Create MetaMask Post"
+      }
+    },
     "holders_tab": {
       "empty": "No holders to show yet",
       "error": {
@@ -7243,6 +7261,11 @@
   },
   "balance_breakdown": {
     "allocation": "Allocation",
+    "error": {
+      "accessibility_label": "Balance data unavailable",
+      "description": "There was an error fetching data for {{primitive}}. Please try again later.",
+      "title": "Unable to load balance"
+    },
     "hide_balance": "Hide total balance",
     "show_balance": "Show total balance"
   },
@@ -10277,16 +10300,16 @@
       "limit_price": "{{symbol}} limit price",
       "not_enough_gas": "Not enough gas",
       "filled": "Filled",
-      "filled_at": "Filled at {{date}}",
+      "filled_at": "Filled on {{date}}",
       "expired": "Expired",
       "expired_after": "Expired after {{duration}}",
       "duration_days": "{{count}}d",
       "duration_hours": "{{count}}h",
       "duration_minutes": "{{count}}m",
       "canceled": "Canceled",
-      "canceled_at": "Canceled at {{date}}",
+      "canceled_at": "Canceled on {{date}}",
       "failed": "Failed",
-      "failed_at": "Failed at {{date}}",
+      "failed_at": "Failed on {{date}}",
       "buy_when": "Buy when",
       "sell_when": "Sell when",
       "is_at_or_below": "is at or below",
@@ -10326,6 +10349,7 @@
       "expiry_label": "Expires after",
       "confirm_order": "Confirm order",
       "status": "Status",
+      "open": "Open",
       "in_progress": "In progress",
       "submitted": "Submitted",
       "cancel_order": "Cancel order",
@@ -10650,7 +10674,7 @@
     },
     "submit": "Submit",
     "default_slippage_description": "Your transaction won't go through if the price changes more than the slippage percent.",
-    "cost_tolerance": "Price Tolerance",
+    "cost_tolerance": "Price tolerance",
     "cost_tolerance_tooltip_content": "Includes slippage, price impact, and network fees.",
     "default_cost_tolerance_description": "Your limit order won't go through if we can't execute within {{costTolerance}}% of the displayed output amount.",
     "exceeding_lower_cost_tolerance_error": "Enter a price tolerance greater than {{value}}%",
