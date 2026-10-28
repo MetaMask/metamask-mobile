@@ -48,8 +48,7 @@ import {
   useVbaHomeCardRefresh,
 } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaHomeCard';
 import { useVbaEligibility } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaEligibility';
-import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
-import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
 import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import MoneyCondensedInfoCards from '../../components/MoneyCondensedInfoCards';
@@ -594,10 +593,10 @@ const MoneyHomeView = () => {
       button_row_button_count: actionButtonRowCount,
     });
 
-    // Route immediately: the loading screen hydrates and replaces itself with
-    // the next destination, so Details never shows an in-place busy state
-    // while status resolves.
-    openAsOnlyOnboardingRoute(navigation, VbaOnboardingRoutes.LOADING, {
+    // Route immediately: an approved account opens its details directly.
+    // Otherwise the loading screen hydrates and replaces itself with the next
+    // destination, so Details never shows an in-place busy state.
+    openVbaEntry(navigation, {
       source: 'vba-action-row-details',
     });
   }, [navigation, trackButtonClicked, actionButtonRowCount]);

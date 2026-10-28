@@ -22,8 +22,8 @@ import Animated, {
 import { getHardwareTier } from '../../../../util/deviceCapability';
 
 /**
- * The engagement-row pill: a hairline-outlined `ButtonBase`, shared by the
- * reaction chips and the add-reaction button so the row reads as one set.
+ * Hairline outline for the add-reaction control. Reaction chips use the same
+ * border treatment with a muted fill and their own padding.
  */
 export const REACTION_PILL_TW_CLASS = 'bg-transparent border';
 
@@ -91,7 +91,7 @@ const ReactionChip: React.FC<ReactionChipProps> = ({
           variant: TextVariant.BodySm,
           color: TextColor.TextAlternative,
         }}
-        twClassName={`${REACTION_PILL_TW_CLASS} px-2.5 ${
+        twClassName={`border bg-muted px-2 ${
           isSelected ? 'border-default' : 'border-muted'
         }`}
         accessibilityState={{ selected: isSelected }}

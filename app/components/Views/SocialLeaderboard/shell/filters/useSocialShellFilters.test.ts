@@ -168,6 +168,69 @@ describe('useSocialShellFilters', () => {
     expect(result.current.hasActiveFilters('leaderboard')).toBe(false);
   });
 
+  it('treats an open or closed position as active on Trending only', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.updateDraft({ positionStatus: 'open' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.hasActiveFilters('trending')).toBe(true);
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
+  it('does not light Following when a leftover position status is applied', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('following');
+    });
+    act(() => {
+      result.current.updateDraft({ positionStatus: 'closed' });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+
+    expect(result.current.applied.following.positionStatus).toBe('closed');
+    expect(result.current.hasActiveFilters('following')).toBe(false);
+  });
+
+  it('resets the Trending draft without applying or clearing applied filters', () => {
+    const { result } = renderHook(() => useSocialShellFilters());
+
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.updateDraft({
+        type: 'perps',
+        positionStatus: 'closed',
+        marketCap: { min: 10, max: 20 },
+      });
+    });
+    act(() => {
+      result.current.applyFilters();
+    });
+    act(() => {
+      result.current.openSheet('trending');
+    });
+    act(() => {
+      result.current.resetDraftToDefaults();
+    });
+
+    expect(result.current.draft).toEqual(DEFAULT_FILTERS);
+    expect(result.current.applied.trending.positionStatus).toBe('closed');
+    expect(result.current.applied.trending.type).toBe('perps');
+    expect(result.current.hasActiveFilters('trending')).toBe(true);
+  });
+
   it('does not treat leftover verification or 24h volume as active on Following', () => {
     const { result } = renderHook(() => useSocialShellFilters());
 

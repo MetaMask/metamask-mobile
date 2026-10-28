@@ -73,6 +73,7 @@ import {
   useSocialShellFilters,
 } from '../shell/filters';
 import LiveView from '../LiveView';
+import TrendingView from '../TrendingView';
 import { SocialEntryOptionsProvider } from '../../../UI/SocialFeed/components/SocialEntryOptionsBottomSheet';
 import { TraderStatRotationContext } from '../../../UI/SocialFeed/components/TraderStatRotationContext';
 import SocialLivePricesProvider from '../../../UI/SocialFeed/live/SocialLivePricesProvider';
@@ -283,6 +284,9 @@ const SocialV1ViewContent: React.FC = () => {
 
   const handleOpenLiveFilters = useCallback(() => {
     openSheet('live');
+  }, [openSheet]);
+  const handleOpenTrendingFilters = useCallback(() => {
+    openSheet('trending');
   }, [openSheet]);
   const handleOpenFollowingFilters = useCallback(() => {
     openSheet('following');
@@ -803,32 +807,37 @@ const SocialV1ViewContent: React.FC = () => {
                           onClearFilters={() => clearAppliedFilters('live')}
                           appliedFilters={applied.live}
                         />
+                      ) : tab === 'trending' ? (
+                        <TrendingView
+                          isActive={activeIndex === trendingIndex}
+                          source={analyticsSource}
+                          performance={socialPerformanceByTab.trending}
+                          onScroll={scrollHandlers[tab]}
+                          pageRef={pageRef}
+                          onCopyTrade={handleCopyTrade}
+                          onOpenFilters={handleOpenTrendingFilters}
+                          isFilterActive={hasActiveFilters('trending')}
+                          onClearFilters={() => clearAppliedFilters('trending')}
+                          appliedFilters={applied.trending}
+                          testID={testIds.container}
+                          scrollTestID={testIds.scroll}
+                        />
                       ) : (
                         <EmptyShellTabPage
                           tab={tab}
                           source={analyticsSource}
                           performance={socialPerformanceByTab[tab]}
-                          isActive={
-                            tab === 'trending'
-                              ? activeIndex === trendingIndex
-                              : activeIndex === followingIndex
-                          }
+                          isActive={activeIndex === followingIndex}
                           onScroll={scrollHandlers[tab]}
                           pageRef={pageRef}
                           containerTestID={testIds.container}
                           scrollTestID={testIds.scroll}
-                          onOpenFilters={
-                            tab === 'following'
-                              ? handleOpenFollowingFilters
-                              : undefined
-                          }
+                          onOpenFilters={handleOpenFollowingFilters}
                           isFilterActive={hasActiveFilters('following')}
                           onClearFilters={() =>
                             clearAppliedFilters('following')
                           }
-                          appliedFilters={
-                            tab === 'following' ? applied.following : undefined
-                          }
+                          appliedFilters={applied.following}
                           onQuickBuy={openQuickBuy}
                         />
                       )}

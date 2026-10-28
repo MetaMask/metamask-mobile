@@ -29,8 +29,10 @@ import {
   portfolioQueries,
   type GetActivityResult,
   type GetBalanceResult,
+  type GetPortfolioSummaryResult,
   type GetPositionsResult,
   type PortfolioPageParams,
+  type PositionsPageParams,
 } from '../queries/portfolioQueries';
 import type { PredictReadOptions, PredictVenueId } from '../types';
 import { isRetryablePredictError } from './servicePolicy';
@@ -84,7 +86,7 @@ export interface PredictPortfolioServiceGetPositionsAction {
   type: 'PredictPortfolioService:getPositions';
   handler: (
     venueId: PredictVenueId,
-    params: PortfolioPageParams,
+    params: PositionsPageParams,
     cursor?: string,
     options?: PredictReadOptions,
   ) => Promise<GetPositionsResult>;
@@ -100,10 +102,19 @@ export interface PredictPortfolioServiceGetActivityAction {
   ) => Promise<GetActivityResult>;
 }
 
+export interface PredictPortfolioServiceGetPortfolioSummaryAction {
+  type: 'PredictPortfolioService:getPortfolioSummary';
+  handler: (
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ) => Promise<GetPortfolioSummaryResult>;
+}
+
 export type PredictPortfolioServiceActions =
   | PredictPortfolioServiceGetBalanceAction
   | PredictPortfolioServiceGetPositionsAction
   | PredictPortfolioServiceGetActivityAction
+  | PredictPortfolioServiceGetPortfolioSummaryAction
   | DataServiceInvalidateQueriesAction<typeof PREDICT_PORTFOLIO_SERVICE_NAME>;
 
 export type PredictPortfolioServiceEvents =
@@ -140,6 +151,7 @@ export class PredictPortfolioService extends BaseDataService<
   readonly #balancePolicy: ServicePolicy;
   readonly #positionsPolicy: ServicePolicy;
   readonly #activityPolicy: ServicePolicy;
+  readonly #summaryPolicy: ServicePolicy;
   /** Reads this service has cached, by query hash, for invalidation
    * refreshes. */
   readonly #cachedReads = new Map<string, CachedRead>();
@@ -162,9 +174,9 @@ export class PredictPortfolioService extends BaseDataService<
       // options.
       queryClientConfig: { queryCache },
       // Inert pass-through policy. Retries and circuit breaking live in the
-      // per-read policies below so that Balance, Positions, and Activity can
-      // load and retry independently: exhausting one read's retries must not
-      // open the circuit for the others.
+      // per-read policies below so that Balance, Positions, Activity, and the
+      // Summary load and retry independently: exhausting one read's retries
+      // must not open the circuit for the others.
       policyOptions: {
         maxRetries: 0,
         maxConsecutiveFailures: Number.MAX_SAFE_INTEGER,
@@ -179,6 +191,7 @@ export class PredictPortfolioService extends BaseDataService<
     this.#balancePolicy = this.#createReadPolicy();
     this.#positionsPolicy = this.#createReadPolicy();
     this.#activityPolicy = this.#createReadPolicy();
+    this.#summaryPolicy = this.#createReadPolicy();
 
     messenger.registerActionHandler(
       'PredictPortfolioService:getBalance',
@@ -191,6 +204,10 @@ export class PredictPortfolioService extends BaseDataService<
     messenger.registerActionHandler(
       'PredictPortfolioService:getActivity',
       this.getActivity.bind(this),
+    );
+    messenger.registerActionHandler(
+      'PredictPortfolioService:getPortfolioSummary',
+      this.getPortfolioSummary.bind(this),
     );
   }
 
@@ -236,9 +253,46 @@ export class PredictPortfolioService extends BaseDataService<
     );
   }
 
+  /** Reads the backend-computed totals over every holding. Never derived
+   * from a loaded Positions page. */
+  async getPortfolioSummary(
+    venueId: PredictVenueId,
+    options?: PredictReadOptions,
+  ): Promise<GetPortfolioSummaryResult> {
+    this.#assertVenue(venueId);
+    const descriptor = portfolioQueries.getPortfolioSummary(venueId);
+    // Remember the read so invalidateQueries can refresh its cache entry.
+    this.#registerCachedRead(descriptor.queryKey, () =>
+      this.getPortfolioSummary(venueId),
+    );
+    // Account-scoped: trace timing, outcome, and completeness only, never
+    // the amounts.
+    return withPredictNextTrace(
+      {
+        method: 'getPortfolioSummary',
+        name: TraceName.PredictNextGetPortfolioSummary,
+        op: TraceOperation.PredictDataFetch,
+        tags: { venueId },
+        resultData: (result) => ({ complete: result.complete }),
+      },
+      () =>
+        this.fetchQuery({
+          queryKey: descriptor.queryKey,
+          staleTime: descriptor.staleTime,
+          queryFn: ({ signal }) =>
+            this.#summaryPolicy.execute(
+              () =>
+                this.#portfolio.fetchPortfolioSummary({
+                  signal: options?.signal ?? signal,
+                }) as Promise<Json & GetPortfolioSummaryResult>,
+            ),
+        }),
+    );
+  }
+
   async getPositions(
     venueId: PredictVenueId,
-    params: PortfolioPageParams,
+    params: PositionsPageParams,
     cursor?: string,
     options?: PredictReadOptions,
   ): Promise<GetPositionsResult> {
