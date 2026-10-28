@@ -38,6 +38,11 @@ const buildKeyring = () => {
 };
 
 describe('buildRealMpcMoneyKeyringBuilder', () => {
+  afterEach(() => {
+    setMpcTwoFactorTokenProvider(undefined);
+    jest.restoreAllMocks();
+  });
+
   it('is keyed by the MPC money keyring type', () => {
     const builder = buildRealMpcMoneyKeyringBuilder({
       getBearerToken: jest.fn(),
@@ -80,8 +85,6 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
     );
     expect(await options.getProfileToken()).toBe(TOKEN);
     expect(getBearerToken).toHaveBeenCalledTimes(1);
-
-    setMpcTwoFactorTokenProvider(undefined);
   });
 
   it('pins the Money Account whitelist config', async () => {
@@ -97,6 +100,27 @@ describe('buildRealMpcMoneyKeyringBuilder', () => {
 
     expect(await options.getBackupEncryptionKey()).toStrictEqual(
       sha256(new TextEncoder().encode('mm-mobile-dev-backup:profile-1')),
+    );
+  });
+
+  it('decodes a base64url profile token as base64', async () => {
+    // This payload encodes to base64url with `-` and `_`.
+    const sub = 'profile-??>>';
+    const token = `${toBase64Url({ alg: 'RS256' })}.${toBase64Url({ sub })}.sig`;
+    expect(token.split('.')[1]).toMatch(/[-_]/u);
+    const from = jest.spyOn(Buffer, 'from');
+    const keyring = buildRealMpcMoneyKeyringBuilder({
+      getBearerToken: jest.fn().mockResolvedValue(token),
+    })() as unknown as {
+      options: ConstructorParameters<typeof RealMpcMoneyKeyring>[0];
+    };
+
+    expect(await keyring.options.getBackupEncryptionKey()).toStrictEqual(
+      sha256(new TextEncoder().encode(`mm-mobile-dev-backup:${sub}`)),
+    );
+    expect(from).toHaveBeenCalledWith(
+      expect.not.stringMatching(/[-_]/u),
+      'base64',
     );
   });
 });
