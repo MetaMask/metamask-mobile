@@ -16,6 +16,13 @@ import PasskeyStep from './PasskeyStep';
 import PickerStep from './PickerStep';
 import TotpSetupStep from './TotpSetupStep';
 
+const mockOpenSupportWithConsent = jest.fn();
+jest.mock('../../../../hooks/useSupportConsent', () => ({
+  useSupportConsent: () => ({
+    openSupportWithConsent: mockOpenSupportWithConsent,
+  }),
+}));
+
 const reason = { operation: 'test' };
 
 const buildState = <Step extends MfaFlowStep>(
@@ -739,6 +746,33 @@ describe('FailureStep', () => {
       getByText("You've reached the limit for this method."),
     ).toBeOnTheScreen();
     expect(queryByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON)).toBeNull();
+  });
+
+  it('sends an error only support can fix to support', () => {
+    const onAction = jest.fn();
+    const { getByTestId, getByText } = render(
+      <FailureStep
+        {...buildState({
+          name: 'failure',
+          code: 'multi_primary_srp',
+          canRetry: false,
+        })}
+        reason={reason}
+        onAction={onAction}
+      />,
+    );
+
+    expect(getByText("We couldn't verify your details")).toBeOnTheScreen();
+    expect(getByText('Contact support to continue.')).toBeOnTheScreen();
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.PRIMARY_BUTTON));
+    const [, url] = mockOpenSupportWithConsent.mock.calls[0];
+    expect(new URL(url).searchParams.get('mfa_error')).toBe(
+      'multi_primary_srp',
+    );
+
+    fireEvent.press(getByTestId(MfaFlowSelectorsIDs.SECONDARY_BUTTON));
+    expect(onAction).toHaveBeenCalledWith({ type: 'dismiss' });
   });
 });
 
