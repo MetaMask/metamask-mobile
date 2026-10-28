@@ -1,6 +1,7 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 
 import {
+  DEMO_PAYOUT_WALLET,
   isKalshiDemoOnboardingEnabled,
   kalshiDemoPayoutNetwork,
   kalshiDemoPayoutWallet,
@@ -13,27 +14,39 @@ describe('demoOnboardingConfig', () => {
     expect(isKalshiDemoOnboardingEnabled('')).toBe(false);
   });
 
-  it('checksums the selected account and prefers the override', () => {
-    const selected = '0x1234567890abcdef1234567890abcdef12345678';
+  it('defaults to the Stripe sandbox wallet, not the selected account', () => {
+    const selected = '0x44934055428d2eF7E3F97D98187f2459007fa49F';
 
     expect(kalshiDemoPayoutWallet(selected, '')).toBe(
-      toChecksumHexAddress(selected),
+      toChecksumHexAddress(DEMO_PAYOUT_WALLET),
     );
+    expect(kalshiDemoPayoutWallet(undefined, undefined)).toBe(
+      toChecksumHexAddress(DEMO_PAYOUT_WALLET),
+    );
+  });
+
+  it('prefers the env override and can sign the selected account', () => {
+    const selected = '0x44934055428d2eF7E3F97D98187f2459007fa49F';
+
     expect(
       kalshiDemoPayoutWallet(
         selected,
         '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
       ),
     ).toBe(toChecksumHexAddress('0xabcdefabcdefabcdefabcdefabcdefabcdefabcd'));
+    expect(kalshiDemoPayoutWallet(selected, 'account')).toBe(
+      toChecksumHexAddress(selected),
+    );
+    expect(kalshiDemoPayoutWallet(undefined, 'account')).toBeUndefined();
   });
 
   it('rejects an address Kalshi would not accept', () => {
-    expect(kalshiDemoPayoutWallet('not-an-address', '')).toBeUndefined();
+    expect(kalshiDemoPayoutWallet('x', 'not-an-address')).toBeUndefined();
   });
 
-  it('defaults the network to base', () => {
-    expect(kalshiDemoPayoutNetwork('')).toBe('base');
-    expect(kalshiDemoPayoutNetwork('polygon')).toBe('polygon');
-    expect(kalshiDemoPayoutNetwork('ethereum')).toBe('base');
+  it('defaults the network to polygon', () => {
+    expect(kalshiDemoPayoutNetwork('')).toBe('polygon');
+    expect(kalshiDemoPayoutNetwork('base')).toBe('base');
+    expect(kalshiDemoPayoutNetwork('ethereum')).toBe('polygon');
   });
 });

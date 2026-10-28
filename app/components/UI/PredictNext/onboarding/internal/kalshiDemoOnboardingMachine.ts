@@ -2,12 +2,16 @@ import {
   KalshiOnboardingHttpError,
   KalshiOnboardingPolicyError,
 } from '../../adapters/remote/KalshiOnboardingClient';
-import type { KalshiOnboardingState } from '../../contracts/v1/onboarding';
+import type {
+  KalshiMfaChallenge,
+  KalshiOnboardingState,
+} from '../../contracts/v1/onboarding';
 
 export type OnboardingStep =
   | 'loading'
   | 'email'
   | 'code'
+  | 'mfa'
   | 'working'
   | 'wallet'
   | 'done'
@@ -50,6 +54,8 @@ export interface OnboardingViewState {
   /** The error step offers *Try again* instead of *Close* only. */
   retryable: boolean;
   cooldownSec?: number;
+  /** The second factor Kalshi asked for. Set on the `mfa` step. */
+  mfa?: KalshiMfaChallenge;
 }
 
 export type OnboardingEvent =
@@ -57,6 +63,7 @@ export type OnboardingEvent =
   | { type: 'busy' }
   | { type: 'status'; state: KalshiOnboardingState; initial: boolean }
   | { type: 'link_sent' }
+  | { type: 'mfa_required'; mfa: KalshiMfaChallenge }
   | { type: 'verifying' }
   | { type: 'activated' }
   | { type: 'failed'; failure: OnboardingFailure }
@@ -117,6 +124,8 @@ export const onboardingReducer = (
     }
     case 'link_sent':
       return { step: 'code', busy: false, retryable: false };
+    case 'mfa_required':
+      return { step: 'mfa', busy: false, retryable: false, mfa: event.mfa };
     case 'verifying':
       return { step: 'working', busy: true, retryable: false };
     case 'activated':

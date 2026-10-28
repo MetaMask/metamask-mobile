@@ -114,4 +114,25 @@ describe('onboardingReducer', () => {
       onboardingReducer(initialOnboardingState, { type: 'dismissed' }).step,
     ).toBe('hidden');
   });
+
+  it('shows the second-factor step and keeps it after a wrong code', () => {
+    const mfa = { method: 'sms', phoneLast4: '8564' } as const;
+    const asked = onboardingReducer(initialOnboardingState, {
+      type: 'mfa_required',
+      mfa,
+    });
+    expect(asked).toMatchObject({ step: 'mfa', busy: false, mfa });
+
+    const wrong = onboardingReducer(asked, {
+      type: 'failed',
+      failure: describeOnboardingFailure(
+        http(400, 'onboarding_code_incorrect'),
+      ),
+    });
+    expect(wrong).toMatchObject({
+      step: 'mfa',
+      message: 'code_incorrect',
+      mfa,
+    });
+  });
 });

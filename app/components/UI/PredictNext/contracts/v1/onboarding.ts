@@ -1,6 +1,6 @@
 import {
   boolean,
-  literal,
+  enums,
   number,
   optional,
   string,
@@ -66,9 +66,39 @@ const IntentStruct = type({
 export const parseKalshiEnrollmentIntent = (value: unknown) =>
   create(value, IntentStruct);
 
-const VerifyStruct = type({ verified: literal(true) });
+export const KALSHI_MFA_METHODS = [
+  'sms',
+  'email',
+  'authenticator-app',
+] as const;
 
-export const parseKalshiLinkVerify = (value: unknown) =>
+export type KalshiMfaMethod = (typeof KALSHI_MFA_METHODS)[number];
+
+/** The second factor Kalshi still wants after the first code was accepted. */
+export interface KalshiMfaChallenge {
+  method: KalshiMfaMethod;
+  phoneLast4?: string;
+  obfuscatedEmail?: string;
+}
+
+const VerifyStruct = type({
+  verified: boolean(),
+  mfa: optional(
+    type({
+      method: enums(KALSHI_MFA_METHODS),
+      phoneLast4: optional(string()),
+      obfuscatedEmail: optional(string()),
+    }),
+  ),
+});
+
+export interface KalshiLinkVerify {
+  verified: boolean;
+  /** Set when `verified` is false: submit that code to the same route. */
+  mfa?: KalshiMfaChallenge;
+}
+
+export const parseKalshiLinkVerify = (value: unknown): KalshiLinkVerify =>
   create(value, VerifyStruct);
 
 const ActivateStruct = type({

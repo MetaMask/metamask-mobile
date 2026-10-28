@@ -15,6 +15,7 @@ import {
 
 import ModalSafeAreaProvider from '../../../../../component-library/components-temp/ModalSafeAreaProvider';
 import { strings } from '../../../../../../locales/i18n';
+import type { KalshiMfaChallenge } from '../../contracts/v1/onboarding';
 import type { KalshiDemoOnboarding } from './useKalshiDemoOnboarding';
 import { KalshiDemoOnboardingTestIds as TestIds } from './KalshiDemoOnboarding.testIds';
 
@@ -23,6 +24,24 @@ export const DEMO_EMAIL_CODE = '888888';
 
 const t = (key: string, params?: Record<string, string>) =>
   strings(`predict_next.kalshi_demo_onboarding.${key}`, params);
+
+/** Title for the second-factor step, from what Kalshi said it will use. */
+const mfaTitle = (mfa: KalshiMfaChallenge | undefined): string => {
+  switch (mfa?.method) {
+    case 'sms':
+      return mfa.phoneLast4
+        ? t('mfa_sms_title', { last4: mfa.phoneLast4 })
+        : t('mfa_sms_title_unknown');
+    case 'authenticator-app':
+      return t('mfa_authenticator_title');
+    case 'email':
+      return mfa.obfuscatedEmail
+        ? t('mfa_email_title', { email: mfa.obfuscatedEmail })
+        : t('mfa_email_title_unknown');
+    default:
+      return t('mfa_title');
+  }
+};
 
 interface KalshiDemoOnboardingModalProps {
   onboarding: KalshiDemoOnboarding;
@@ -58,6 +77,7 @@ export const KalshiDemoOnboardingModal = ({
   const { state } = onboarding;
   const [email, setEmail] = useState('');
   const [code, setCode] = useState(DEMO_EMAIL_CODE);
+  const [mfaCode, setMfaCode] = useState('');
   const coolingDown = useCooldown(state.cooldownSec);
   const disabled = state.busy || coolingDown;
 
@@ -158,6 +178,47 @@ export const KalshiDemoOnboardingModal = ({
               testID={TestIds.RESEND}
             >
               {t('resend')}
+            </Button>
+          </>
+        );
+      case 'mfa':
+        return (
+          <>
+            <Text variant={TextVariant.HeadingSm} testID={TestIds.MFA_TITLE}>
+              {mfaTitle(state.mfa)}
+            </Text>
+            <TextField
+              value={mfaCode}
+              onChangeText={setMfaCode}
+              placeholder={t('code_label')}
+              isDisabled={state.busy}
+              inputProps={{
+                keyboardType: 'number-pad',
+                autoComplete: 'one-time-code',
+                accessibilityLabel: t('code_label'),
+              }}
+              testID={TestIds.MFA_CODE_INPUT}
+            />
+            {message}
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              isLoading={state.busy}
+              isDisabled={disabled || !/^[0-9]{6,8}$/u.test(mfaCode.trim())}
+              onPress={() => onboarding.verifyCode(mfaCode)}
+              testID={TestIds.MFA_VERIFY}
+            >
+              {t('verify')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Tertiary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={onboarding.dismiss}
+              testID={TestIds.NOT_NOW}
+            >
+              {t('not_now')}
             </Button>
           </>
         );

@@ -116,11 +116,21 @@ export const createOnboardingController = (
       }
       const status = await inputs().client.getStatus();
       check();
+      Logger.log('PredictNext: Kalshi onboarding poll', {
+        state: status.state,
+        intentStatus: status.intentStatus,
+        waitingFor: pending,
+        remainingMs: deadline - inputs().now(),
+      });
       if (!pending.includes(status.state)) {
         await route(status.state, false);
         return;
       }
     }
+    Logger.log('PredictNext: Kalshi onboarding poll timed out', {
+      limitMs,
+      waitingFor: pending,
+    });
     dispatch({ type: 'review_timed_out' });
   };
 
@@ -159,6 +169,10 @@ export const createOnboardingController = (
     dispatch({ type: 'verifying' });
     const status = await inputs().client.getStatus();
     check();
+    Logger.log('PredictNext: Kalshi onboarding status after verify', {
+      state: status.state,
+      intentStatus: status.intentStatus,
+    });
     if (status.state !== 'link_pending') {
       await route(status.state, false);
       return;
@@ -243,8 +257,14 @@ export const createOnboardingController = (
       const key = inputs().newKey();
       perform(async () => {
         const check = guard();
-        await inputs().client.verifyCode(trimmed, key);
+        const result = await inputs().client.verifyCode(trimmed, key);
         check();
+        // Kalshi wants the account's second factor next. Ask for it and send
+        // it to this same action; the link is not through yet.
+        if (!result.verified && result.mfa) {
+          dispatch({ type: 'mfa_required', mfa: result.mfa });
+          return;
+        }
         await readStatusAfterVerify();
       });
     },

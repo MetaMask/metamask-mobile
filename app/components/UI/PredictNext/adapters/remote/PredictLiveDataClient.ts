@@ -259,6 +259,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
       this.#scheduleLinger();
     }
 
+    this.#logWire('unwatch');
     return released;
   }
 
@@ -277,12 +278,45 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
     const socket = this.#socket;
     this.#socket = undefined;
     socket?.close();
+    this.#logWire('disconnect');
   }
 
   destroy(): void {
     this.#appStateSubscription?.remove();
     this.#appStateSubscription = undefined;
     this.disconnect();
+  }
+
+  // ---------------------------------------------------------------------
+  // SCRATCH: live-subscription tracing. Uncommitted; see predict-ws-logging
+  // .patch. Prints the whole current state, and only when it changes, so the
+  // log is a change-log rather than a stream of deltas.
+  // ---------------------------------------------------------------------
+  #lastWireLine = '';
+
+  #logWire(reason: string): void {
+    const describe = (topic: PredictLiveDataTopic) => {
+      const state = this.#topics[topic];
+      const live = [...state.serverIds];
+      const queued = [...state.watchCounts.keys()].filter(
+        (entityId) => !state.serverIds.has(entityId),
+      );
+      return `${topic} ${live.length}/${state.maxPerConnection} [${
+        live.join(' ') || '-'
+      }]${queued.length ? ` +${queued.length} queued [${queued.join(' ')}]` : ''}`;
+    };
+    const socket = this.#suspended
+      ? 'suspended'
+      : ['connecting', 'open', 'closing', 'closed'][
+          this.#socket?.readyState ?? 3
+        ];
+    const line = `${socket} | ${describe('market')} | ${describe('game')}`;
+    if (line === this.#lastWireLine) {
+      return;
+    }
+    this.#lastWireLine = line;
+    // eslint-disable-next-line no-console
+    console.log(`[ws] ${reason.padEnd(11)} :: ${line}`);
   }
 
   #forEachTopic(visit: (state: TopicState) => void): void {
@@ -304,10 +338,12 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
   #onAppStateChange = (nextAppState: AppStateStatus): void => {
     if (nextAppState === 'background') {
       this.#suspend();
+      this.#logWire('background');
       return;
     }
     if (nextAppState === 'active') {
       this.#resume();
+      this.#logWire('foreground');
     }
   };
 
@@ -462,6 +498,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
           ...state.watchCounts.keys(),
         ]);
       });
+      this.#logWire('welcome');
       return;
     }
 
@@ -544,6 +581,7 @@ export class PredictLiveDataClient implements PredictLiveDataTransport {
         }),
       );
     }
+    this.#logWire(type);
   }
 
   #flushUnsentWatches(

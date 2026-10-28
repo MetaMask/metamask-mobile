@@ -1,6 +1,7 @@
 import { AppState } from 'react-native';
 
 import { KalshiOnboardingHttpError } from '../../adapters/remote/KalshiOnboardingClient';
+import type { KalshiLinkVerify } from '../../contracts/v1/onboarding';
 import {
   createOnboardingController,
   type KalshiOnboardingApi,
@@ -62,7 +63,9 @@ describe('createOnboardingController', () => {
         supersededPrevious: false,
       })),
       submitEmail: jest.fn(async () => undefined),
-      verifyCode: jest.fn(async () => ({ verified: true as const })),
+      verifyCode: jest.fn(
+        async (): Promise<KalshiLinkVerify> => ({ verified: true }),
+      ),
       runDemoKyc: jest.fn(async () => statusOf('approved')),
       activate: jest.fn(async () => ({ intentStatus: 'ACTIVATED' })),
     };
@@ -161,5 +164,39 @@ describe('createOnboardingController', () => {
     await flush();
 
     expect(events.at(-1)).toEqual({ type: 'review_timed_out' });
+  });
+
+  it('asks for the second factor and verifies it on the same route', async () => {
+    client.verifyCode
+      .mockResolvedValueOnce({
+        verified: false,
+        mfa: { method: 'sms', phoneLast4: '8564' },
+      })
+      .mockResolvedValueOnce({ verified: true });
+    client.getStatus.mockResolvedValue(statusOf('approved'));
+    const controller = start();
+
+    controller.verifyCode('111111');
+    await flush();
+
+    expect(events).toContainEqual({
+      type: 'mfa_required',
+      mfa: { method: 'sms', phoneLast4: '8564' },
+    });
+    // The first code did not link anything, so status is not read yet.
+    expect(client.getStatus).not.toHaveBeenCalled();
+    expect(events.map((e) => e.type)).not.toContain('verifying');
+
+    controller.verifyCode('222222');
+    await flush();
+
+    expect(client.verifyCode).toHaveBeenNthCalledWith(1, '111111', 'key-1');
+    expect(client.verifyCode).toHaveBeenNthCalledWith(2, '222222', 'key-2');
+    expect(events.map((e) => e.type)).toContain('verifying');
+    expect(events.filter((e) => e.type === 'status').at(-1)).toEqual({
+      type: 'status',
+      state: 'approved',
+      initial: false,
+    });
   });
 });

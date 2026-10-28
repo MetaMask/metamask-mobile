@@ -130,7 +130,13 @@ export class KalshiOnboardingClient {
       balanceRequest(),
       enrollmentCurrentRequest(),
     ]);
-    return parseKalshiOnboardingStatus(value);
+    const status = parseKalshiOnboardingStatus(value);
+    Logger.log('PredictNext: Kalshi onboarding status', {
+      state: status.state,
+      intentStatus: status.intentStatus,
+      expireTs: status.expireTs,
+    });
+    return status;
   }
 
   async createIntent(idempotencyKey: string) {
@@ -140,7 +146,13 @@ export class KalshiOnboardingClient {
       { idempotencyKey },
       [enrollmentIntentRequest(idempotencyKey)],
     );
-    return parseKalshiEnrollmentIntent(value);
+    const intent = parseKalshiEnrollmentIntent(value);
+    Logger.log('PredictNext: Kalshi onboarding intent', {
+      intentStatus: intent.intentStatus,
+      supersededPrevious: intent.supersededPrevious,
+      expireTs: intent.expireTs,
+    });
+    return intent;
   }
 
   async submitEmail(email: string, idempotencyKey: string): Promise<void> {
@@ -288,6 +300,14 @@ export class KalshiOnboardingClient {
         }
       }
     }
+    // Route, status and error code only. Never bodies, codes or tokens.
+    Logger.log('PredictNext: Kalshi onboarding response', {
+      method,
+      route: route.join('/'),
+      signed: Boolean(deviceAuth),
+      status: response.status,
+      code: bodyCode(parsed),
+    });
     return {
       status: response.status,
       body: parsed,
