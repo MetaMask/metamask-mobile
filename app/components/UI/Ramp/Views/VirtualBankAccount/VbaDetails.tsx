@@ -1,11 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
@@ -26,10 +22,7 @@ import {
   TitleStandard,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type {
-  AppNavigationProp,
-  RootStackParamList,
-} from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import type { AutorampDepositInstructions } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
@@ -44,12 +37,13 @@ import {
   selectUsableVbaAutoramp,
 } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
-import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
-  getVbaSourceCurrencyForCountry,
+  selectMoneyMovementNeobank,
+  selectNeobankMarkets,
+} from '../../../../../selectors/featureFlagController/moneyAccount';
+import {
+  getVbaMarketForCountry,
   isVbaSourceCurrency,
-  VBA_CHOOSABLE_SOURCE_CURRENCIES,
-  type VbaSourceCurrency,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -140,12 +134,6 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
-// EUR stays out until that deposit layout exists. Ignore anything else too.
-const toDrawableCurrency = (value: unknown): VbaSourceCurrency | undefined =>
-  isVbaSourceCurrency(value) && VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(value)
-    ? value
-    : undefined;
-
 const buildDetailRows = (
   instructions: AutorampDepositInstructions | null,
 ): DetailRow[] => {
@@ -201,10 +189,10 @@ const buildDetailRows = (
 
 /**
  * Virtual bank account screen. This is the only place that registers the
- * wallet and creates the autoramp, in the fiat mapped from the effective
- * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
- * IP country). An existing autoramp's currency wins, and no second currency
- * is ever created on the Money account.
+ * wallet and creates the autoramp, in the currency of the open market flag
+ * listing the effective location (`moneyMovementNeobank.regionOverride` when
+ * set, otherwise the IP country). An existing autoramp's currency wins, and
+ * no second currency is ever created on the Money account.
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -216,31 +204,19 @@ const VbaDetails = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const walletAddress = useSelector(selectSelectedVbaWalletAddress);
-  const route = useRoute<RouteProp<RootStackParamList, 'RampVbaDetails'>>();
   const location = useSelector(selectGeolocationLocation);
-  const {
-    chooseCurrency,
-    regionCurrencies,
-    regions,
-    defaultCurrency,
-    regionOverride,
-  } = useSelector(selectMoneyMovementNeobank);
-  const effectiveLocation = regionOverride ?? location;
-  // With chooseCurrency on, only the picked currency may create an account.
-  const regionCurrency = chooseCurrency
-    ? undefined
-    : getVbaSourceCurrencyForCountry(
-        effectiveLocation,
-        regionCurrencies,
-        regions,
-        defaultCurrency,
-      );
-  const usableAutoramp = useSelector(selectUsableVbaAutoramp);
-  const existingCurrency = toDrawableCurrency(
-    usableAutoramp?.depositRailsSummary?.currency,
+  const { isEnabled: isGateEnabled, regionOverride } = useSelector(
+    selectMoneyMovementNeobank,
   );
-  const pickedCurrency = toDrawableCurrency(route.params?.sourceCurrency);
-  const sourceCurrency = existingCurrency ?? pickedCurrency ?? regionCurrency;
+  const markets = useSelector(selectNeobankMarkets);
+  const usableAutoramp = useSelector(selectUsableVbaAutoramp);
+  const existingCurrency = usableAutoramp?.depositRailsSummary?.currency;
+  const newSignupCurrency = isGateEnabled
+    ? getVbaMarketForCountry(markets, regionOverride ?? location)?.currency
+    : undefined;
+  const sourceCurrency = isVbaSourceCurrency(existingCurrency)
+    ? existingCurrency
+    : newSignupCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();

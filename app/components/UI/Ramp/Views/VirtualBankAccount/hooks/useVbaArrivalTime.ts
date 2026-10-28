@@ -55,7 +55,7 @@ export function useVbaArrivalTime(): VbaArrivalTime {
   const { location, isRegionEligible } = useVbaEligibility();
   const depositAssetId = useMoneyAccountDepositAssetId();
 
-  // Only fetch for countries `moneyMovementNeobank.regions` allows (same gate as
+  // Only fetch for countries an open currency flag lists (same gate as
   // entry). Under the dev geo bypass the IP lookup can be unknown or outside
   // that list, and the ramps API has no catalog for it. Geolocation returns
   // "US" or "US-CA"; the ramps API indexes country-level regions by lowercase

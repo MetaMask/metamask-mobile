@@ -121,10 +121,14 @@ describeForPlatforms('VbaIdentityVerified view', () => {
                   moneyMovementNeobank: {
                     enabled: true,
                     minimumVersion: '0.0.0',
-                    regions: ['BR', 'US'],
-                    regionCurrencies: { BR: 'BRL', US: 'USD' },
-                    defaultCurrency: 'USD',
                     chooseCurrency,
+                  },
+                  moneyMovementNeobankBrl: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                    currency: 'BRL',
+                    regions: ['BR'],
+                    layout: 'Pix',
                   },
                 },
               },
@@ -222,7 +226,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     expect(ramps.createAutoramp).not.toHaveBeenCalled();
   });
 
-  it('creates the currency picked on Choose Currency', async () => {
+  it('ignores the currency picked on Choose Currency and creates the country market currency', async () => {
     ramps.createAutoramp?.mockImplementation(
       async (request: { recipient_account: { address: string } }) => {
         const autoramp = {
@@ -251,7 +255,7 @@ describeForPlatforms('VbaIdentityVerified view', () => {
     ).toBeOnTheScreen();
     expect(ramps.createAutoramp).toHaveBeenCalledWith(
       expect.objectContaining({
-        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+        source_currencies: [{ type: 'Fiat', code: 'BRL' }],
       }),
     );
   });
