@@ -54,7 +54,7 @@ import {
   ActivityDetailRow,
   ActivityDetailSection,
 } from '../../../../Views/ActivityDetails/components/ActivityDetailsLayout';
-import { getBridgeDestinationCaipChainId } from '../../../../Views/ActivityDetails/templates/bridgeDetailsUtils';
+import { getBridgeDestinationCaipChainId } from '../../../../Views/ActivityDetails/templates/Bridge/bridgeDetailsUtils';
 /* eslint-enable import-x/no-restricted-paths */
 import type {
   ActivityListItem,

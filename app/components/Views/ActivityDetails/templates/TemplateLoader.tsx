@@ -4,7 +4,7 @@ import {
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 import { ApprovalDetails } from './ApprovalDetails';
-import { BridgeDetails } from './BridgeDetails';
+import { BridgeDetails } from './Bridge/BridgeDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
 import { DepositDetails } from './DepositDetails';

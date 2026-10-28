@@ -22,7 +22,7 @@ import {
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
 import { useActivityDetailsLendAgain } from '../hooks/useActivityDetailsLendAgain';
-import { getSwapAgainLabel } from './swapAgainLabel';
+import { getSwapAgainLabel } from './Bridge/swapAgainLabel';
 
 function LendAgainButton({
   token,
