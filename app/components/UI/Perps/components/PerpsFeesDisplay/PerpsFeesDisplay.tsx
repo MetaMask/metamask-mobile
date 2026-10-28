@@ -83,9 +83,10 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
 
   const isPromotionalDiscount =
     hasDiscount && feeDiscountKind === 'promotional';
-  const discountedFeeColor = isPromotionalDiscount
-    ? TextColor.SuccessDefault
-    : color;
+  const discountedFeeColor =
+    isPromotionalDiscount && showStrikethrough
+      ? TextColor.SuccessDefault
+      : color;
 
   return (
     <View style={styles.feeRowContent}>

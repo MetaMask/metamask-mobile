@@ -36,10 +36,7 @@ export function formatCombinedFeePercentage(
     return undefined;
   }
   const totalRate = protocolFeeRate + metamaskFeeRate;
-  if (!Number.isFinite(totalRate) || totalRate === 0) {
-    return undefined;
-  }
-  if (totalRate < 0) {
+  if (!Number.isFinite(totalRate) || totalRate <= 0) {
     return undefined;
   }
   return (totalRate * 100).toFixed(3);

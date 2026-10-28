@@ -757,6 +757,28 @@ describe('PerpsOrderView', () => {
       return submitButton;
     };
 
+    it('shows promotional pricing when Core returns a grant fee quote', async () => {
+      const calculateFees = Engine.context.PerpsController
+        .calculateFees as jest.Mock;
+      calculateFees.mockResolvedValue(GRANT_FEE_QUOTE);
+      const { stream } = renderTradeSheet();
+      await waitForDeferredOrderData();
+      emitEthPrice(stream);
+
+      expect(
+        await screen.findByTestId(
+          PerpsTradeSheetSelectorsIDs.FEE_TEXT,
+          {},
+          { timeout: TIMEOUT_MS },
+        ),
+      ).toHaveTextContent(
+        strings('perps.trade_sheet.includes_fee_after_promo', {
+          originalFeePercentage: '0.145',
+          feePercentage: '0.070',
+        }),
+      );
+    });
+
     it('shows the spendable Perps balance on the pay with row when it differs from the total', async () => {
       const spendableBalance = '250.5';
       const totalBalance = '5000';

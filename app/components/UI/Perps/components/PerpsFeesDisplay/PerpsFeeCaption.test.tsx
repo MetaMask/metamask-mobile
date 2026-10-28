@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
+import { Text, TextColor } from '@metamask/design-system-react-native';
+import Svg from 'react-native-svg';
+import { PerpsFeeDiscountLabelSelectorsIDs } from '../../Perps.testIds';
 import PerpsFeeCaption from './PerpsFeeCaption';
+import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
 
 const CAPTION_TEST_ID = 'perps-fee-caption';
 
@@ -64,6 +68,44 @@ describe('PerpsFeeCaption', () => {
     expect(
       screen.getByLabelText('Includes 0.063% fee after promo, was 0.143%'),
     ).toBeOnTheScreen();
+  });
+
+  it('uses success color for the discounted promotional rate', () => {
+    render(
+      <PerpsFeeCaption
+        testID={CAPTION_TEST_ID}
+        feePercentage="0.063"
+        originalFeePercentage="0.143"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    const discountedRate = screen
+      .UNSAFE_getAllByType(Text)
+      .find((node) => node.props.children === '0.063');
+
+    expect(discountedRate?.props.color).toBe(TextColor.SuccessDefault);
+  });
+
+  it('uses the caption-sized promotional seal', () => {
+    const { UNSAFE_getByType } = render(
+      <PerpsFeeCaption
+        testID={CAPTION_TEST_ID}
+        feePercentage="0.063"
+        originalFeePercentage="0.143"
+        feeDiscountPercentage={80}
+        feeDiscountKind="promotional"
+      />,
+    );
+
+    expect(
+      screen.getByTestId(PerpsFeeDiscountLabelSelectorsIDs.LABEL),
+    ).toBeOnTheScreen();
+    expect(UNSAFE_getByType(Svg).props).toMatchObject({
+      width: SEAL_PERCENT_ICON_SIZE.caption,
+      height: SEAL_PERCENT_ICON_SIZE.caption,
+    });
   });
 
   it('keeps a translated percent sign outside the styled rates', () => {

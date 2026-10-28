@@ -12,7 +12,7 @@ import MembershipVipBadge from '../../../../shared/MembershipVipBadge/Membership
 import SealPercentIcon, {
   SEAL_PERCENT_ICON_SIZE,
 } from '../../PerpsFeesDisplay/SealPercentIcon';
-import { PerpsFeeDiscountLabelSelectorsIDs } from '../../../Perps.testIds';
+import { PerpsFeesTooltipSelectorsIDs } from '../../../Perps.testIds';
 import {
   BannerBase,
   Box,
@@ -68,7 +68,7 @@ const FeesTooltipContent = ({ testID, data }: FeesTooltipContentProps) => {
             startAccessory={
               <SealPercentIcon
                 size={SEAL_PERCENT_ICON_SIZE.banner}
-                testID={PerpsFeeDiscountLabelSelectorsIDs.LABEL}
+                testID={PerpsFeesTooltipSelectorsIDs.PROMOTIONAL_BANNER_SEAL}
               />
             }
             title={strings(discountMessage, {

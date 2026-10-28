@@ -25,7 +25,10 @@ import PerpsRebateBanner from '../../components/PerpsRebateBanner';
 import { usePerpsClosePositionForm } from '../../hooks/usePerpsClosePositionForm';
 import { usePerpsLimitPriceInput } from '../../hooks/usePerpsLimitPriceInput';
 import { formatPositionSize } from '../../utils/formatUtils';
-import { formatOriginalCombinedFeePercentage } from '../../utils/feeDiscount';
+import {
+  formatCombinedFeePercentage,
+  formatOriginalCombinedFeePercentage,
+} from '../../utils/feeDiscount';
 import PerpsCloseTotals from './components/PerpsCloseTotals';
 import PerpsClosePositionSheetHeader from './components/PerpsClosePositionSheetHeader';
 import PerpsLimitPriceRow from './components/PerpsLimitPriceRow';
@@ -157,10 +160,10 @@ const PerpsClosePositionBottomSheet: React.FC = () => {
     handleOrderTypeChange(effectiveOrderType === 'market' ? 'limit' : 'market');
   }, [effectiveOrderType, handleOrderTypeChange, fireImpact]);
 
-  const totalFeeRate =
-    (feeResults.protocolFeeRate ?? 0) + (feeResults.metamaskFeeRate ?? 0);
-  const feePercentage =
-    totalFeeRate > 0 ? (totalFeeRate * 100).toFixed(3) : undefined;
+  const feePercentage = formatCombinedFeePercentage(
+    feeResults.protocolFeeRate,
+    feeResults.metamaskFeeRate,
+  );
   const originalFeePercentage = formatOriginalCombinedFeePercentage(
     feeResults.protocolFeeRate,
     feeResults.metamaskFeeRate,
