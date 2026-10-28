@@ -22,7 +22,7 @@ interface EventPositionRowProps {
   cashOutTestID?: string;
 }
 
-/** Existing Event holding presentation, shared by the section and virtualized list. */
+/** Position row presentation for the isolated EventMarketList. */
 export const EventPositionRow = ({
   position,
   isPrivacyMode,
