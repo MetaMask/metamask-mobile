@@ -1436,6 +1436,13 @@
         "sold_ago": "Sold · {{age}}"
       }
     },
+    "translation": {
+      "see_translation": "See translation",
+      "translating": "Translating...",
+      "translated_to_english": "Translated to English",
+      "failed": "Couldn't translate.",
+      "try_again": "Try again"
+    },
     "composer": {
       "placeholder": "Add a position and a few words to post",
       "post": "Post",
