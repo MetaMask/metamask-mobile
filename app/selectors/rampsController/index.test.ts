@@ -566,6 +566,21 @@ describe('RampsController Selectors', () => {
       ).toEqual(expect.objectContaining({ status: 'RegistrationFailed' }));
     });
 
+    it('prefers an Approved autoramp over an earlier failed create', () => {
+      expect(
+        selectUsableVbaAutoramp.resultFunc(
+          {
+            autoramps: [
+              autoramp(wallet, 'RegistrationFailed'),
+              autoramp(wallet, 'AuthorizationFailed'),
+              autoramp(wallet, 'Approved'),
+            ],
+          } as never,
+          wallet,
+        ),
+      ).toEqual(expect.objectContaining({ status: 'Approved' }));
+    });
+
     it('ignores an autoramp on another address and returns undefined without a wallet', () => {
       const other = { autoramps: [autoramp('0xdef', 'Approved')] } as never;
       expect(selectUsableVbaAutoramp.resultFunc(other, wallet)).toBeUndefined();
