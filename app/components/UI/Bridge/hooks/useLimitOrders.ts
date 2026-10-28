@@ -52,8 +52,6 @@ export function useLimitOrders({
     enabled: isEnabled,
   });
 
-  // Goes through invalidation, like `refresh`, so the interval and pull to
-  // refresh reload the orders the same way.
   useEffect(() => {
     if (!isEnabled || !refetchInterval) {
       return undefined;

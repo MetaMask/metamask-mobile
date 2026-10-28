@@ -332,13 +332,14 @@ describe('getLimitOrders', () => {
         );
 
       const hook = renderHook(
-        () =>
+        ({ enabled }: { enabled: boolean }) =>
           useLimitOrders({
             walletAddress: WALLET_ADDRESS,
             states: OPEN_STATES,
+            enabled,
             refetchInterval,
           }),
-        { wrapper },
+        { wrapper, initialProps: { enabled: true } },
       );
 
       return {
@@ -425,7 +426,7 @@ describe('getLimitOrders', () => {
       }
     });
 
-    it('reloads the orders from the API on refetch rather than from the data service cache', async () => {
+    it('reloads the orders from the API on refetch', async () => {
       globalFetchSpy
         .mockResolvedValueOnce(
           createPageResponse({
@@ -455,6 +456,41 @@ describe('getLimitOrders', () => {
             'order-1',
           ]),
         );
+      } finally {
+        tearDown();
+      }
+    });
+
+    // What a switch away from the orders tab and back to it does.
+    it('reloads the orders from the API once the query is enabled again', async () => {
+      globalFetchSpy
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        )
+        .mockResolvedValueOnce(
+          createPageResponse({
+            orders: [createApiOrder('order-2'), createApiOrder('order-1')],
+            hasNextPage: false,
+          }),
+        );
+      const { result, rerender, tearDown } = setUp();
+
+      try {
+        await waitFor(() => expect(result.current.orders).toHaveLength(1));
+
+        rerender({ enabled: false });
+        rerender({ enabled: true });
+
+        await waitFor(() =>
+          expect(result.current.orders.map(({ id }) => id)).toStrictEqual([
+            'order-2',
+            'order-1',
+          ]),
+        );
+        expect(globalFetchSpy).toHaveBeenCalledTimes(2);
       } finally {
         tearDown();
       }

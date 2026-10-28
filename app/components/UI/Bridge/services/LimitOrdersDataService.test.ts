@@ -10,7 +10,10 @@ import {
   MOCK_LIMIT_OPEN_ORDER,
 } from '../api/limitOrders/getLimitOrders/mock';
 import { LimitOrderState } from '../api/limitOrders/getLimitOrders/types';
-import { type LimitOrdersQueryParams } from '../queries/limitOrders';
+import {
+  limitOrdersQueries,
+  type LimitOrdersQueryParams,
+} from '../queries/limitOrders';
 import {
   LimitOrdersDataService,
   type LimitOrdersDataServiceActions,
@@ -126,7 +129,9 @@ describe('LimitOrdersDataService', () => {
     expect(secondPage.orders).toStrictEqual([MOCK_LIMIT_FILLED_ORDER]);
   });
 
-  it('fetches the orders from the API every time they are requested rather than from the cache', async () => {
+  // A list shown again, on a tab switch or a refetch, must reflect the orders
+  // as they are now rather than as they were when last fetched.
+  it('fetches the open orders and the history from the API on every request', async () => {
     const historyParams: LimitOrdersQueryParams = {
       ...PARAMS,
       states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
@@ -144,6 +149,7 @@ describe('LimitOrdersDataService', () => {
 
     await service.getLimitOrders(PARAMS);
     await service.getLimitOrders(historyParams);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(2);
 
     // The order is cancelled server side: it leaves the open orders for the
     // history.
@@ -158,6 +164,26 @@ describe('LimitOrdersDataService', () => {
     expect((await service.getLimitOrders(historyParams)).orders).toStrictEqual([
       MOCK_LIMIT_CANCELLED_ORDER,
     ]);
+    expect(mockGetLimitOrders).toHaveBeenCalledTimes(4);
+  });
+
+  it('fetches the open orders and the history again once every limit orders query is invalidated', async () => {
+    const historyParams: LimitOrdersQueryParams = {
+      ...PARAMS,
+      states: [LimitOrderState.Filled, LimitOrderState.Cancelled],
+    };
+    mockGetLimitOrders.mockResolvedValue({ orders: [], total: 0 });
+    const { messenger } = createMessenger();
+    const service = buildService(messenger);
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+
+    await messenger.call('LimitOrdersDataService:invalidateQueries', {
+      queryKey: limitOrdersQueries.allOrdersKey(),
+    });
+    await service.getLimitOrders(PARAMS);
+    await service.getLimitOrders(historyParams);
+
     expect(mockGetLimitOrders).toHaveBeenCalledTimes(4);
   });
 
