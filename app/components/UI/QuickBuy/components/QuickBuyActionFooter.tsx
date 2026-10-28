@@ -14,7 +14,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useDispatch } from 'react-redux';
@@ -30,6 +30,12 @@ import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 import SwapsRebateBanner from '../../Bridge/components/SwapsRebateBanner';
+
+const styles = StyleSheet.create({
+  payWithTokenIcon: {
+    marginRight: 8,
+  },
+});
 
 const QuickBuyActionFooter: React.FC = () => {
   const tw = useTailwind();
@@ -88,68 +94,73 @@ const QuickBuyActionFooter: React.FC = () => {
         isDisabled={hasNoPayWithFunds}
         testID="quick-buy-disabled-footer"
       >
-        {isEstReceiveLoading || estimatedReceiveFiat ? (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="pb-5"
-          >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
-            >
+        {/* The row keeps its height before a quote lands so the footer never
+            grows and the centered amount above it does not shift. */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="mb-4 min-h-6"
+          testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_ROW}
+        >
+          {isEstReceiveLoading || estimatedReceiveFiat ? (
+            <>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                gap={1}
+              >
+                {isEstReceiveLoading ? (
+                  <Skeleton
+                    width={96}
+                    height={16}
+                    style={tw.style('rounded-md')}
+                    testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LABEL_LOADING}
+                  />
+                ) : (
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
+                  >
+                    {strings('social_leaderboard.quick_buy.est_receive')}
+                  </Text>
+                )}
+                {!isEstReceiveLoading && gasFeeDeductionLabel ? (
+                  <Box
+                    twClassName="rounded-md bg-info-muted px-1.5"
+                    testID={QuickBuySheetSelectorsIDs.GAS_FEE_DEDUCTION}
+                  >
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      {gasFeeDeductionLabel}
+                    </Text>
+                  </Box>
+                ) : null}
+              </Box>
+
               {isEstReceiveLoading ? (
                 <Skeleton
-                  width={96}
-                  height={16}
+                  width={72}
+                  height={20}
                   style={tw.style('rounded-md')}
-                  testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LABEL_LOADING}
+                  testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING}
                 />
               ) : (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.TextAlternative}
-                >
-                  {strings('social_leaderboard.quick_buy.est_receive')}
-                </Text>
+                <QuickBuyRateTag
+                  label={estimatedReceiveFiat as string}
+                  onPress={
+                    features.quoteDetails && !hasNoPayWithFunds
+                      ? () => setActiveScreen('quoteDetails')
+                      : undefined
+                  }
+                  isHighPriceImpact={isPriceImpactError}
+                />
               )}
-              {!isEstReceiveLoading && gasFeeDeductionLabel ? (
-                <Box
-                  twClassName="rounded-md bg-info-muted px-1.5"
-                  testID={QuickBuySheetSelectorsIDs.GAS_FEE_DEDUCTION}
-                >
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={TextColor.PrimaryDefault}
-                  >
-                    {gasFeeDeductionLabel}
-                  </Text>
-                </Box>
-              ) : null}
-            </Box>
-
-            {isEstReceiveLoading ? (
-              <Skeleton
-                width={72}
-                height={20}
-                style={tw.style('rounded-md')}
-                testID={QuickBuySheetSelectorsIDs.EST_RECEIVE_LOADING}
-              />
-            ) : (
-              <QuickBuyRateTag
-                label={estimatedReceiveFiat as string}
-                onPress={
-                  features.quoteDetails && !hasNoPayWithFunds
-                    ? () => setActiveScreen('quoteDetails')
-                    : undefined
-                }
-                isHighPriceImpact={isPriceImpactError}
-              />
-            )}
-          </Box>
-        ) : null}
+            </>
+          ) : null}
+        </Box>
 
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -173,12 +184,13 @@ const QuickBuyActionFooter: React.FC = () => {
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
-              gap={2}
+              gap={1}
             >
               {pickerToken ? (
                 <QuickBuyTokenIcon
                   token={pickerToken}
                   size={AvatarTokenSize.Sm}
+                  wrapperStyle={styles.payWithTokenIcon}
                 />
               ) : null}
               <Text

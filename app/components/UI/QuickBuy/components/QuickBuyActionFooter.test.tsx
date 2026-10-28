@@ -204,6 +204,20 @@ describe('QuickBuyActionFooter', () => {
     ).not.toBeOnTheScreen();
   });
 
+  it('keeps the Est. receive row height before a quote value is available', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue({
+      ...baseContext,
+      estimatedReceiveFiat: undefined,
+    });
+
+    render(<QuickBuyActionFooter />);
+
+    expect(screen.getByTestId('quick-buy-est-receive-row')).toHaveStyle({
+      minHeight: 24,
+      marginBottom: 20,
+    });
+  });
+
   it('shows a loading skeleton while the quote is loading', () => {
     (useQuickBuyContext as jest.Mock).mockReturnValue({
       ...baseContext,

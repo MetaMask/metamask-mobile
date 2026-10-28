@@ -4,6 +4,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Text,
   TextVariant,
   TextColor,
@@ -44,10 +45,14 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      gap={2}
+      gap={1}
       testID={QuickBuySheetSelectorsIDs.RATE_TAG}
     >
-      <Text variant={TextVariant.BodySm} color={textColor}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={textColor}
+      >
         {displayLabel}
       </Text>
       {onPress ? (

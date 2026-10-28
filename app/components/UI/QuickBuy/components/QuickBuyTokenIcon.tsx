@@ -3,7 +3,7 @@ import {
   AvatarTokenSize,
 } from '@metamask/design-system-react-native';
 import React, { useMemo } from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
@@ -30,6 +30,8 @@ const styles = StyleSheet.create({
 interface QuickBuyTokenIconProps {
   token: BridgeToken;
   size?: AvatarTokenSize;
+  /** Applied to the outer badge wrapper, or the avatar when there is no badge. */
+  wrapperStyle?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -45,6 +47,7 @@ interface QuickBuyTokenIconProps {
 const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
   token,
   size = AvatarTokenSize.Md,
+  wrapperStyle,
 }) => {
   const networkImageSource = getNetworkImageSource({
     chainId: token.chainId,
@@ -73,6 +76,7 @@ const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
       name={token.symbol}
       src={source}
       size={size}
+      style={networkImageSource ? undefined : wrapperStyle}
       imageOrSvgProps={{
         imageProps: { onError, testID: QUICK_BUY_TOKEN_ICON_AVATAR_TEST_ID },
       }}
@@ -85,7 +89,7 @@ const QuickBuyTokenIcon: React.FC<QuickBuyTokenIconProps> = ({
 
   return (
     <BadgeWrapper
-      style={styles.badgeWrapper}
+      style={StyleSheet.flatten([styles.badgeWrapper, wrapperStyle])}
       badgePosition={BadgePosition.BottomRight}
       badgeElement={
         <Badge
