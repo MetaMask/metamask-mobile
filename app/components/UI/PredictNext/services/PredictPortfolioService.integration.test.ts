@@ -2,7 +2,7 @@ import { hashKey } from '@tanstack/query-core';
 import type { DataServiceGranularCacheUpdatedPayload } from '@metamask/base-data-service';
 import { buildPredictNextIntegrationHarness as createPredictNextIntegrationHarness } from '../../../../../tests/integration/harnesses/predict-next';
 import { portfolioQueryFamilies } from '../queries/portfolioQueries';
-import { KALSHI_VENUE_ID } from '../types';
+import { KALSHI_VENUE_ID } from '../adapters/remote/KalshiRemoteAdapter';
 
 const position = {
   venueId: 'kalshi',

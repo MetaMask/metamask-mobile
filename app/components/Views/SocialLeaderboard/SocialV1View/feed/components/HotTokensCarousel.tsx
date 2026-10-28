@@ -23,11 +23,10 @@ import Animated, {
   useFrameCallback,
   useSharedValue,
 } from 'react-native-reanimated';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
 import PositionTokenAvatar from '../../../../../UI/SocialFeed/components/PositionTokenAvatar';
 import { ExplorePill } from '../../../../../UI/Trending/components/ExplorePill';
 import { SectionPillsSkeleton } from '../../../../../UI/Trending/components/SectionPillsSkeleton';
-import { useSocialV1HotTokens } from '../hooks/useSocialV1HotTokens';
-import type { SocialV1FeedPost } from '../../../../../UI/SocialFeed/types';
 import type { SocialV1HotToken } from '../types';
 import {
   getSocialV1HotTokenCloseTestId,
@@ -36,7 +35,7 @@ import {
   SOCIAL_V1_HOT_TOKENS_TRACK_TEST_ID,
 } from './HotTokensCarousel.testIds';
 
-const EMPTY_POSTS: SocialV1FeedPost[] = [];
+const EMPTY_TOKENS: SocialV1HotToken[] = [];
 
 /** Slow news-footer crawl. */
 const MARQUEE_PIXELS_PER_SECOND = 24;
@@ -58,9 +57,9 @@ const wrapOffset = (x: number, width: number): number => {
 };
 
 export interface HotTokensCarouselProps {
-  /** Loaded feed posts the ranking is counted from. */
-  posts?: readonly SocialV1FeedPost[];
-  /** True during the feed's first fetch, before any post is on screen. */
+  /** Ranked chips, most frequent first. */
+  tokens?: SocialV1HotToken[];
+  /** True until the first ranking exists; shows the skeleton. */
   isLoading?: boolean;
   /** Chip id of the asset currently filtering the feed. */
   selectedTokenId?: string | null;
@@ -161,28 +160,27 @@ const HotTokenTrack: React.FC<{
  * Trending (reactions, overflow menu, Popular traders). A pan on this rail
  * still wins over the pager so scrubbing the chips does not change tabs.
  *
- * Chips are the assets that appear most often in `posts`. Icons go through
- * `PositionTokenAvatar`, the same resolution the position cards use.
+ * The crawl runs a callback every frame, so low-end hardware keeps the rail
+ * still. The pan stays, so the chips can still be scrubbed.
+ *
+ * Icons go through `PositionTokenAvatar`, the same resolution the position
+ * cards use.
  */
 const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
-  posts = EMPTY_POSTS,
-  isLoading: feedIsLoading = false,
+  tokens = EMPTY_TOKENS,
+  isLoading = false,
   selectedTokenId = null,
   onTokenPress,
   isActive = true,
 }) => {
-  const { tokens, isLoading } = useSocialV1HotTokens(
-    posts,
-    feedIsLoading,
-    selectedTokenId,
-  );
+  const [isLowHardware] = useState(() => getHardwareTier() === 'LOW');
   const rankedToken = useMemo(
     () => tokens.find((token) => token.id === selectedTokenId) ?? null,
     [selectedTokenId, tokens],
   );
-  // The rail is ranked from the unfiltered feed. Remember the selected chip,
-  // including a perp with no contract, so a refetch that drops that asset
-  // still leaves a chip the user can tap to clear the filter.
+  // The rail is ranked from the unfiltered feed. Remember the selected chip so
+  // a refetch that drops that asset still leaves a chip the user can tap to
+  // clear the filter.
   const heldTokenRef = useRef<SocialV1HotToken | null>(null);
   if (!selectedTokenId) {
     heldTokenRef.current = null;
@@ -300,8 +298,8 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
   const marqueeFrameCallback = useFrameCallback(tickMarquee, false);
 
   useEffect(() => {
-    marqueeFrameCallback.setActive(isActive);
-  }, [isActive, marqueeFrameCallback]);
+    marqueeFrameCallback.setActive(isActive && !isLowHardware);
+  }, [isActive, isLowHardware, marqueeFrameCallback]);
 
   const trackStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: -offset.value }],
@@ -318,20 +316,14 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     return null;
   }
 
-  // The feed column leaves 24px under this rail. Cancelling 16px of that
-  // leaves 8px, and the first post keeps its own 8px padding, for 16px total.
   if (isLoading) {
-    return (
-      <Box twClassName="-mb-4">
-        <SectionPillsSkeleton rowCount={1} />
-      </Box>
-    );
+    return <SectionPillsSkeleton rowCount={1} />;
   }
 
   return (
     <Box
       onLayout={handleViewportLayout}
-      twClassName="overflow-hidden -mb-4"
+      twClassName="overflow-hidden"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>

@@ -97,6 +97,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
   commentedOnly,
   location,
   analyticsSource,
+  showMockedFields,
   isActive,
   title,
   renderHeader,
@@ -154,6 +155,7 @@ const SocialFeedContent: React.FC<SocialFeedContentProps> = ({
     <SocialFeedSurfaceProvider
       location={location}
       analyticsSource={analyticsSource}
+      showMockedFields={showMockedFields}
     >
       <Box twClassName="gap-4" testID={testID}>
         {title ? <Text variant={TextVariant.HeadingSm}>{title}</Text> : null}

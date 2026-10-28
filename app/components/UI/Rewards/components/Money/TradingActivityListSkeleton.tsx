@@ -6,11 +6,7 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-
-export const TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS = {
-  CONTAINER: 'trading-activity-list-skeleton',
-  ROW: 'trading-activity-list-skeleton-row',
-} as const;
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from './TradingActivityListSkeleton.testIds';
 
 /** Avatar is 40px and each row is separated by a 16px gap. */
 const ROW_HEIGHT = 40;

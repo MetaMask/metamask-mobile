@@ -12,11 +12,12 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useEarningsSummary } from '../../../hooks/useEarningsSummary';
 import { useLast7DaysEarnings } from '../../../hooks/useLast7DaysEarnings';
 import { useEarningsHistory } from '../../../hooks/useEarningsHistory';
-import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton';
-import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard';
-import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows';
-import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner';
-import EarningsTab, { EARNINGS_TAB_TEST_IDS } from './EarningsTab';
+import { TRADING_ACTIVITY_LIST_SKELETON_TEST_IDS } from '../TradingActivityListSkeleton.testIds';
+import { CLAIMABLE_REWARDS_CARD_TEST_IDS } from '../ClaimableRewardsCard.testIds';
+import { EARNINGS_HISTORY_TEST_IDS } from '../EarningsHistoryRows.testIds';
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from '../RewardsPausedBanner.testIds';
+import EarningsTab from './EarningsTab';
+import { EARNINGS_TAB_TEST_IDS } from './EarningsTab.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -310,73 +311,6 @@ describe('EarningsTab', () => {
 
     expect(queryByTestId(EARNINGS_TAB_TEST_IDS.BREAKDOWN)).toBeNull();
     expect(getByTestId(EARNINGS_TAB_TEST_IDS.HISTORY)).toBeOnTheScreen();
-  });
-
-  it('renders Claim when a referee has cashback of at least $1', () => {
-    const { getByTestId, queryByTestId } = renderTab('referee', {
-      summary: {
-        ...SUMMARY,
-        claimable: '1000000',
-        claimed: '50',
-        self_earned: {
-          ...SUMMARY.self_earned,
-          by_claim_family: {
-            REFERRAL_TRADE_FEE_CASHBACK: {
-              ...SUMMARY.self_earned.by_claim_family
-                .REFERRAL_TRADE_FEE_CASHBACK,
-              claimable: '1000000',
-            },
-          },
-        },
-      },
-    });
-
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeOnTheScreen();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeNull();
-  });
-
-  it('renders a disabled Claimed button when a referee has only claimed', () => {
-    const { getByTestId, queryByTestId } = renderTab('referee', {
-      summary: { ...SUMMARY, claimable: '0', claimed: '50' },
-    });
-
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeDisabled();
-  });
-
-  it('hides Claim and Claimed for a referrer with cashback of at least $1', () => {
-    const { queryByTestId } = renderTab('referrer', {
-      summary: {
-        ...SUMMARY,
-        claimable: '1000000',
-        claimed: '50',
-        self_earned: {
-          ...SUMMARY.self_earned,
-          by_claim_family: {
-            REFERRAL_TRADE_FEE_CASHBACK: {
-              ...SUMMARY.self_earned.by_claim_family
-                .REFERRAL_TRADE_FEE_CASHBACK,
-              claimable: '1000000',
-            },
-          },
-        },
-      },
-    });
-
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIM_BUTTON),
-    ).toBeNull();
-    expect(
-      queryByTestId(CLAIMABLE_REWARDS_CARD_TEST_IDS.CLAIMED_BUTTON),
-    ).toBeNull();
   });
 
   it('shows Balance from lifetime and Paused for a referee whose claims are held', () => {

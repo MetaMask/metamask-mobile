@@ -17,11 +17,7 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import type { ReferralLocalizedText } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
 import { formatMusdBaseUnits } from '../../utils/formatUtils';
-
-export const REWARDS_PAUSED_BANNER_TEST_IDS = {
-  BANNER: 'rewards-paused-banner',
-  LEARN_MORE: 'rewards-paused-banner-learn-more',
-} as const;
+import { REWARDS_PAUSED_BANNER_TEST_IDS } from './RewardsPausedBanner.testIds';
 
 /**
  * Neutral banner above claims history. The amount is `blocked` on families

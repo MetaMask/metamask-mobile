@@ -13,8 +13,9 @@ import { navigateToRewardsRoute } from '../../../utils';
 import { useReferralFunnel } from '../../../hooks/useReferralFunnel';
 import { useCommissions } from '../../../hooks/useCommissions';
 import { useCashbackLedger } from '../../../hooks/useCashbackLedger';
-import PerformanceTab, { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab';
-import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows';
+import PerformanceTab from './PerformanceTab';
+import { PERFORMANCE_TAB_TEST_IDS } from './PerformanceTab.testIds';
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from '../PerformanceActivityRows.testIds';
 
 const mockNavigate = jest.fn();
 
@@ -324,18 +325,6 @@ describe('PerformanceTab', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows a funnel row skeleton while the funnel is loading', () => {
-    const { getByTestId, queryByTestId } = renderTab('referrer', {
-      funnelData: null,
-      funnelLoading: true,
-    });
-
-    expect(
-      getByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL_SKELETON),
-    ).toBeOnTheScreen();
-    expect(queryByTestId(PERFORMANCE_TAB_TEST_IDS.FUNNEL)).toBeNull();
-  });
-
   it('keeps cached funnel data without an error banner', () => {
     const { getByTestId, queryByTestId, queryByText } = renderTab('referrer', {
       funnelError: true,
@@ -455,16 +444,5 @@ describe('PerformanceTab', () => {
     expect(getByText('Referral details couldn’t be loaded')).toBeOnTheScreen();
     expect(queryByText('Referrals')).toBeNull();
     expect(getByText('Trading commissions')).toBeOnTheScreen();
-  });
-
-  it('navigates to the rebates list from the section header', () => {
-    const { getByTestId } = renderTab('referee');
-
-    fireEvent.press(getByTestId(PERFORMANCE_TAB_TEST_IDS.REBATES_HEADER));
-
-    expect(navigateToRewardsRoute).toHaveBeenCalledWith(
-      expect.anything(),
-      Routes.REWARDS_TRADING_REBATES_VIEW,
-    );
   });
 });

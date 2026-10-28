@@ -19,7 +19,7 @@ import { useMyProfile } from '../../MyProfileView/hooks';
 import ManageProfileScreenChrome from '../components/ManageProfileScreenChrome';
 import { ManageProfileTradingActivitySelectorsIDs } from '../ManageProfileView.testIds';
 import { useProfileController } from '../hooks/useProfileController';
-import { useManageProfileAnalytics } from '../../analytics';
+import { useManageProfileAnalytics } from '../../../../../hooks/useManageProfileAnalytics';
 
 const ManageProfileTradingActivityView: React.FC = () => {
   const { brandColors, colors } = useTheme();
