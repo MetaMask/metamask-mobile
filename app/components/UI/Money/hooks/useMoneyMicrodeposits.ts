@@ -93,6 +93,11 @@ export function useMoneyMicrodeposits(address?: string): {
     return () => subscription.remove();
   }, []);
 
+  const pollInterval = lowSlowNetwork
+    ? LOW_SLOW_POLL_INTERVAL_MS
+    : POLL_INTERVAL_MS;
+  const shouldPoll = isFocused && appIsActive && !knownOffline;
+
   const query = useQuery({
     queryKey: moneyMicrodepositsQueryKey(normalizedAddress),
     queryFn: async (): Promise<MicrodepositActivity[]> => {
@@ -121,12 +126,7 @@ export function useMoneyMicrodeposits(address?: string): {
     // The list is refreshed on every mount; keeping it cached after unmount
     // only leaves a GC timer (and stale rows) behind.
     gcTime: 0,
-    refetchInterval:
-      isFocused && appIsActive && !knownOffline
-        ? lowSlowNetwork
-          ? LOW_SLOW_POLL_INTERVAL_MS
-          : POLL_INTERVAL_MS
-        : false,
+    refetchInterval: shouldPoll ? pollInterval : false,
   });
 
   const refetchQuery = query.refetch;
