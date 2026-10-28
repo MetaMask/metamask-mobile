@@ -474,7 +474,7 @@ describe('ProfileDrawer', () => {
       ).toBeNull();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -483,11 +483,13 @@ describe('ProfileDrawer', () => {
         isPlusAccessUnknown: true,
       });
 
-      const { queryByTestId } = renderWithProvider(<ProfileDrawer />);
+      const { getByTestId } = renderWithProvider(<ProfileDrawer />);
 
       expect(
-        queryByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
-      ).toBeNull();
+        within(
+          getByTestId(ProfileDrawerSelectorsIDs.METAMASK_ORANGE),
+        ).getByText(strings('accounts_menu.join_metamask_orange')),
+      ).toBeOnTheScreen();
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {

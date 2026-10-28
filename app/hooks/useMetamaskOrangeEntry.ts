@@ -15,7 +15,10 @@ import { usePlusAccess } from './usePlusAccess';
 import { useProSubscriptionEnabled } from './useProSubscriptionEnabled';
 
 export interface UseMetamaskOrangeEntryResult {
-  /** True when the Pro flow is on and Plus access is already known. */
+  /**
+   * True when the Pro flow is on. The row stays in the menu while Plus
+   * access is still loading so it does not appear after the list is visible.
+   */
   showOrangeEntry: boolean;
   /** Subscriber or join label, already localized. */
   label: string;
@@ -32,11 +35,13 @@ export interface UseMetamaskOrangeEntryResult {
 export function useMetamaskOrangeEntry(): UseMetamaskOrangeEntryResult {
   const navigation = useNavigation<AppNavigationProp>();
   const { isProSubscriptionEnabled } = useProSubscriptionEnabled();
-  const { isPlusSubscriber, isPlusAccessUnknown } = usePlusAccess();
+  const { isPlusSubscriber } = usePlusAccess();
   const { trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.ACCOUNTS_MENU,
   });
-  const showOrangeEntry = isProSubscriptionEnabled && !isPlusAccessUnknown;
+  // Present as soon as the Pro flow is on. The label updates in place once
+  // Plus access is known.
+  const showOrangeEntry = isProSubscriptionEnabled;
   const labelKey = isPlusSubscriber
     ? 'accounts_menu.metamask_orange'
     : 'accounts_menu.join_metamask_orange';

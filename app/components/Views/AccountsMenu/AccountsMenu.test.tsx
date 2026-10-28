@@ -619,7 +619,7 @@ describe('AccountsMenu', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('stays hidden while membership access is unresolved', () => {
+    it('shows the join label while membership access is unresolved', () => {
       mockUseProSubscriptionEnabled.mockReturnValue({
         isProSubscriptionEnabled: true,
       });
@@ -628,11 +628,11 @@ describe('AccountsMenu', () => {
         isPlusAccessUnknown: true,
       });
 
-      const { queryByTestId } = render(<AccountsMenu />);
+      const { getByTestId } = render(<AccountsMenu />);
 
       expect(
-        queryByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
-      ).not.toBeOnTheScreen();
+        getByTestId(AccountsMenuSelectorsIDs.METAMASK_ORANGE),
+      ).toHaveTextContent('accounts_menu.join_metamask_orange');
     });
 
     it('invites a non-member to join and opens the subscription flow', () => {
