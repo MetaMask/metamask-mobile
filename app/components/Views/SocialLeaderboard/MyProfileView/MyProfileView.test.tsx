@@ -1,7 +1,14 @@
 import React from 'react';
 import { Linking, Share } from 'react-native';
+import { IconName } from '@metamask/design-system-react-native';
 import { brandColor } from '@metamask/design-tokens';
-import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import type {
   Position,
   TraderProfileResponse,
@@ -93,6 +100,7 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID,
     backButtonProps,
     includesTopInset,
+    startAccessory,
     endAccessory,
   }: {
     title?: React.ReactNode;
@@ -101,16 +109,18 @@ jest.mock('@metamask/design-system-react-native', () => {
     testID?: string;
     backButtonProps?: { testID?: string };
     includesTopInset?: boolean;
+    startAccessory?: React.ReactNode;
     endAccessory?: React.ReactNode;
   }) =>
     ReactActual.createElement(
       View,
       { testID, style: includesTopInset ? { marginTop: 1 } : undefined },
-      ReactActual.createElement(
-        Pressable,
-        { onPress: onBack, testID: backButtonProps?.testID },
-        ReactActual.createElement(Text, null, 'back'),
-      ),
+      startAccessory ??
+        ReactActual.createElement(
+          Pressable,
+          { onPress: onBack, testID: backButtonProps?.testID },
+          ReactActual.createElement(Text, null, 'back'),
+        ),
       title,
       subtitle,
       endAccessory,
@@ -576,7 +586,7 @@ describe('MyProfileView', () => {
     ).toHaveProp('accessibilityLabel', 'debug: reset profile');
   });
 
-  it('opens the post composer from the owner profile header', () => {
+  it('opens the post composer from the profile actions', () => {
     renderWithProvider(<MyProfileView />);
 
     const createPostButton = screen.getByTestId(
@@ -596,10 +606,21 @@ describe('MyProfileView', () => {
       .mockResolvedValue({ action: Share.sharedAction });
     renderWithProvider(<MyProfileView />);
 
-    fireEvent.press(
-      screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
+    const shareProfileButton = screen.getByTestId(
+      MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON,
     );
 
+    fireEvent.press(shareProfileButton);
+
+    expect(
+      within(shareProfileButton).UNSAFE_getByProps({ name: IconName.Share }),
+    ).toBeTruthy();
+    expect(shareProfileButton).toHaveProp('hitSlop', {
+      top: 12,
+      bottom: 12,
+      left: 12,
+      right: 12,
+    });
     await waitFor(() =>
       expect(shareSpy).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -955,6 +976,9 @@ describe('MyProfileView', () => {
     ).toBeNull();
     expect(
       screen.queryByTestId(MyProfileViewSelectorsIDs.CREATE_POST_BUTTON),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.SHARE_PROFILE_BUTTON),
     ).not.toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.FOLLOW_BUTTON),

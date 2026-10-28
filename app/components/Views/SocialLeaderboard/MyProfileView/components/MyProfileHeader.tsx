@@ -57,7 +57,7 @@ const MyProfileHeader: React.FC<MyProfileHeaderProps> = ({
   const thesis = profile.bio?.trim() || '';
 
   return (
-    <Box paddingHorizontal={4} paddingBottom={4}>
+    <Box paddingHorizontal={4} paddingTop={3} paddingBottom={4}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
