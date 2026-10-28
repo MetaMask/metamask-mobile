@@ -8,9 +8,12 @@ const TOO_SHORT = strings(
   'social_leaderboard.manage_profile.username_too_short',
   { min: 3 },
 );
-const TOO_LONG = strings('social_leaderboard.manage_profile.username_too_long', {
-  max: 16,
-});
+const TOO_LONG = strings(
+  'social_leaderboard.manage_profile.username_too_long',
+  {
+    max: 16,
+  },
+);
 const INVALID = strings('social_leaderboard.manage_profile.username_invalid');
 const UNAVAILABLE = strings(
   'social_leaderboard.manage_profile.username_unavailable',
