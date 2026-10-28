@@ -132,10 +132,10 @@ describe('ManageProfileTextEditorView', () => {
   it('checks username availability before updating the handle', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkUsernameAvailability = jest.fn().mockResolvedValue({
-      username: 'laser-gains',
+      username: 'laser_gains',
       available: true,
       valid: true,
-      normalized: 'laser-gains',
+      normalized: 'laser_gains',
       errors: [],
     });
     mockUseProfileController.mockReturnValue({
@@ -156,7 +156,7 @@ describe('ManageProfileTextEditorView', () => {
 
     fireEvent.changeText(
       screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
-      'laser-gains',
+      'laser_gains',
     );
 
     await act(async () => {
@@ -165,18 +165,18 @@ describe('ManageProfileTextEditorView', () => {
       );
     });
 
-    expect(checkUsernameAvailability).toHaveBeenCalledWith('laser-gains');
-    expect(updateProfile).toHaveBeenCalledWith({ username: 'laser-gains' });
+    expect(checkUsernameAvailability).toHaveBeenCalledWith('laser_gains');
+    expect(updateProfile).toHaveBeenCalledWith({ username: 'laser_gains' });
   });
 
   it('does not update the handle when the username is unavailable', async () => {
     const updateProfile = jest.fn().mockResolvedValue(undefined);
     const checkUsernameAvailability = jest.fn().mockResolvedValue({
-      username: 'laser-gains',
+      username: 'laser_gains',
       available: false,
       valid: true,
-      normalized: 'laser-gains',
-      errors: ['already_taken'],
+      normalized: 'laser_gains',
+      errors: [{ code: 'TAKEN', message: 'Already taken' }],
     });
     mockUseProfileController.mockReturnValue({
       isControllerBacked: true,
@@ -196,7 +196,7 @@ describe('ManageProfileTextEditorView', () => {
 
     fireEvent.changeText(
       screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
-      'laser-gains',
+      'laser_gains',
     );
 
     await act(async () => {
@@ -209,6 +209,96 @@ describe('ManageProfileTextEditorView', () => {
     expect(
       screen.getByText(
         strings('social_leaderboard.manage_profile.username_unavailable'),
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the character rule when the server rejects the format', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkUsernameAvailability = jest.fn().mockResolvedValue({
+      username: 'laser_gains',
+      available: false,
+      valid: false,
+      normalized: 'laser_gains',
+      errors: [{ code: 'INVALID_FORMAT', message: 'Bad format' }],
+    });
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability,
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
+      'laser_gains',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_SAVE),
+      );
+    });
+
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.username_invalid'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByText(
+        strings('social_leaderboard.manage_profile.username_unavailable'),
+      ),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows the length rule without asking the server for a short handle', async () => {
+    const updateProfile = jest.fn().mockResolvedValue(undefined);
+    const checkUsernameAvailability = jest.fn();
+    mockUseProfileController.mockReturnValue({
+      isControllerBacked: true,
+      profile: undefined,
+      linkedAddresses: [],
+      updateProfile,
+      createProfile: jest.fn().mockResolvedValue(undefined),
+      fetchAndUpdateProfile: jest.fn(),
+      fetchAndUpdateXAccount: jest.fn(),
+      disconnectX: jest.fn(),
+      getXAuthorizationUrl: jest.fn(),
+      checkUsernameAvailability,
+    });
+    mockUseRoute.mockReturnValue({ params: { field: 'handle' } });
+
+    renderWithProvider(<ManageProfileTextEditorView />);
+
+    fireEvent.changeText(
+      screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_INPUT),
+      'ab',
+    );
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ManageProfileEditorSelectorsIDs.HANDLE_SAVE),
+      );
+    });
+
+    expect(checkUsernameAvailability).not.toHaveBeenCalled();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.manage_profile.username_too_short', {
+          min: 3,
+        }),
       ),
     ).toBeOnTheScreen();
   });
