@@ -1235,14 +1235,14 @@ describe('handleUniversalLink', () => {
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });
 
-    it('injects screen=asset and mode=pro when action is PERPS_PRO in execute mode', async () => {
-      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}?symbol=ETH`;
+    it('forwards a mode=pro param on PERPS_ASSET through to the shared perps handler in execute mode', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=ETH&mode=pro`;
       const perpsProUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: perpsProUrl,
-        pathname: `/${ACTIONS.PERPS_PRO}`,
-        search: '?symbol=ETH',
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=ETH&mode=pro',
       };
 
       await handleUniversalLink({
@@ -1255,18 +1255,19 @@ describe('handleUniversalLink', () => {
       });
 
       expect(handlePerpsUrl).toHaveBeenCalledWith({
-        perpsPath: 'perps?screen=asset&mode=pro&symbol=ETH',
+        perpsPath: 'perps?screen=asset&symbol=ETH&mode=pro',
       });
       expect(handled).toHaveBeenCalled();
     });
 
-    it('defaults a PERPS_PRO link with no symbol to the shared pro asset path', async () => {
-      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}`;
+    it('forwards a mode=pro param with no symbol so the handler defaults to BTC', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?mode=pro`;
       const perpsProUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: perpsProUrl,
-        pathname: `/${ACTIONS.PERPS_PRO}`,
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?mode=pro',
       };
 
       await handleUniversalLink({
@@ -1283,14 +1284,14 @@ describe('handleUniversalLink', () => {
       });
     });
 
-    it('returns a perps pro startup intent in resolve mode', async () => {
-      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_PRO}?symbol=BTC`;
+    it('returns a perps asset startup intent in resolve mode with mode=pro forwarded', async () => {
+      const perpsProUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.PERPS_ASSET}?symbol=BTC&mode=pro`;
       const perpsProUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: perpsProUrl,
-        pathname: `/${ACTIONS.PERPS_PRO}`,
-        search: '?symbol=BTC',
+        pathname: `/${ACTIONS.PERPS_ASSET}`,
+        search: '?symbol=BTC&mode=pro',
       };
       const intent: DeeplinkIntent = {
         target: {
@@ -1316,7 +1317,7 @@ describe('handleUniversalLink', () => {
 
       expect(result).toBe(intent);
       expect(createPerpsDeeplinkIntent).toHaveBeenCalledWith({
-        perpsPath: 'perps?screen=asset&mode=pro&symbol=BTC',
+        perpsPath: 'perps?screen=asset&symbol=BTC&mode=pro',
       });
       expect(handlePerpsUrl).not.toHaveBeenCalled();
     });

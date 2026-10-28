@@ -97,8 +97,10 @@ const parsePerpsNavigationParams = (
 };
 
 /**
- * `perps-pro` links ask to persist Pro mode. The remote flag still gates the
- * layout, so a disabled flag leaves the current mode unchanged.
+ * A `mode=pro` query param asks to persist Pro mode (e.g.
+ * `perps-asset?symbol=ETH&mode=pro` or `perps?screen=asset&mode=pro`). The
+ * remote flag still gates the layout, so a disabled flag leaves the current
+ * mode unchanged.
  */
 const shouldActivateProMode = (perpsPath: string): boolean =>
   readPerpsQueryParams(perpsPath).get('mode') === 'pro' &&
@@ -306,8 +308,8 @@ const perpsHomeTarget = (activatePro: boolean): DeeplinkIntent['target'] => {
  * - https://link.metamask.io/perps?screen=market-list&tab=stocks      → PerpsMarketListView (HIP3 stocks)
  * - https://link.metamask.io/perps?screen=asset&symbol=BTC            → PerpsMarketDetailsView (crypto)
  * - https://link.metamask.io/perps?screen=asset&symbol=xyz:TSLA       → PerpsMarketDetailsView (HIP3)
- * - https://link.metamask.io/perps-pro                                → Pro mode, BTC market
- * - https://link.metamask.io/perps-pro?symbol=ETH                     → Pro mode, ETH market
+ * - https://link.metamask.io/perps-asset?symbol=ETH&mode=pro          → Pro mode, ETH market
+ * - https://link.metamask.io/perps-asset?mode=pro                     → Pro mode, BTC market (default)
  * - https://link.metamask.io/perps?screen=asset&mode=pro&symbol=ETH   → Pro mode, ETH market
  *
  * Navigation behavior:

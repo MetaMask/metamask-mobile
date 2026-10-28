@@ -73,7 +73,7 @@ flowchart TD
     Action -->|swap| HandleSwap[handleSwapUrl]
     Action -->|buy/sell| HandleRamp[handleRampUrl]
     Action -->|home| HandleHome[navigateToHomeUrl]
-    Action -->|perps/perps-markets/perps-asset/perps-pro| HandlePerps[handlePerpsUrl]
+    Action -->|perps/perps-markets/perps-asset| HandlePerps[handlePerpsUrl]
     Action -->|predict| HandlePredict[handlePredictUrl]
     Action -->|rewards| HandleRewards[handleRewardsUrl]
     Action -->|dapp| HandleBrowser[handleBrowserUrl]
