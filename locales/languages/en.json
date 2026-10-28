@@ -13047,6 +13047,7 @@
     "membership_status": {
       "active": "Active",
       "processing": "Processing",
+      "free_trial": "Free trial",
       "overdue": "Overdue",
       "deactivated": "Deactivated",
       "cancelled": "Cancelled",

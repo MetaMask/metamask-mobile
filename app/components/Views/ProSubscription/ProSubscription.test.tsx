@@ -1,20 +1,53 @@
 import React from 'react';
 import { act, render, fireEvent } from '@testing-library/react-native';
+import type { NavigationState } from '@react-navigation/native';
 import ProSubscription from './ProSubscription';
 import { ProSubscriptionTestIds } from './ProSubscription.testIds';
 import { MoneyAccountPlusAccess } from '../../../hooks/useMoneyAccountPlusAccess';
+import Routes from '../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
-const mockReplace = jest.fn();
+const mockDispatch = jest.fn();
 const mockSetParams = jest.fn();
 const mockNavigation = {
   goBack: mockGoBack,
-  replace: mockReplace,
+  dispatch: mockDispatch,
   setParams: mockSetParams,
+};
+
+const subscriptionModalState = {
+  key: 'app',
+  index: 1,
+  routeNames: ['Home', Routes.PRO_SUBSCRIPTION.ROOT, Routes.PRO_HUB.ROOT],
+  routes: [
+    { key: 'home', name: 'Home' },
+    { key: 'pro-sub', name: Routes.PRO_SUBSCRIPTION.ROOT },
+  ],
+  type: 'stack',
+  stale: false,
+} as NavigationState;
+
+const expectProHubReplacesSubscriptionModal = () => {
+  expect(mockDispatch).toHaveBeenCalledTimes(1);
+  const update = mockDispatch.mock.calls[0][0] as (state: NavigationState) => {
+    type: string;
+    payload: NavigationState;
+  };
+
+  expect(update(subscriptionModalState)).toEqual(
+    expect.objectContaining({
+      type: 'RESET',
+      payload: expect.objectContaining({
+        index: 1,
+        routes: [{ key: 'home', name: 'Home' }, { name: Routes.PRO_HUB.ROOT }],
+      }),
+    }),
+  );
 };
 const mockRoute = { params: {} };
 
 jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
   useRoute: () => mockRoute,
 }));
@@ -137,7 +170,7 @@ describe('ProSubscription', () => {
 
       render(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('keeps Benefits visible when the user becomes a subscriber during checkout', () => {
@@ -149,7 +182,7 @@ describe('ProSubscription', () => {
       );
       rerender(<ProSubscription />);
 
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(getByTestId('mock-benefits')).toBeOnTheScreen();
     });
 
@@ -163,7 +196,7 @@ describe('ProSubscription', () => {
       );
       rerender(<ProSubscription />);
 
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
     });
 
     it('does not send an unresolved user to the hub', () => {
@@ -173,7 +206,7 @@ describe('ProSubscription', () => {
 
       const { queryByTestId } = render(<ProSubscription />);
 
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(queryByTestId('mock-benefits')).toBeNull();
     });
@@ -202,7 +235,7 @@ describe('ProSubscription', () => {
       fireEvent.press(getByTestId('mock-processing'));
 
       expect(mockShowProcessingToast).toHaveBeenCalledTimes(1);
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
       expect(queryByTestId('mock-success')).toBeNull();
     });
   });
@@ -233,7 +266,7 @@ describe('ProSubscription', () => {
       });
 
       expect(mockGetSubscriptions).toHaveBeenCalledTimes(1);
-      expect(mockReplace).toHaveBeenCalledWith('ProHub');
+      expectProHubReplacesSubscriptionModal();
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
@@ -247,7 +280,7 @@ describe('ProSubscription', () => {
       });
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('keeps the success screen visible once the user becomes a subscriber', () => {
@@ -260,7 +293,7 @@ describe('ProSubscription', () => {
       fireEvent.press(getByTestId(ProSubscriptionTestIds.CLOSE_BUTTON));
 
       expect(getByTestId('mock-success')).toBeOnTheScreen();
-      expect(mockReplace).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
   });
 

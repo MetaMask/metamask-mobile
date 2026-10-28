@@ -1,8 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
+  CommonActions,
   useNavigation,
   useRoute,
+  type NavigationState,
   type RouteProp,
 } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -38,6 +40,29 @@ const ProSubscriptionScreen = {
 
 type ProSubscriptionScreen =
   (typeof ProSubscriptionScreen)[keyof typeof ProSubscriptionScreen];
+
+/**
+ * Join MetaMask Orange is a full-screen modal. Replacing that route with
+ * Pro Hub only dismisses the modal on iOS, so Continue never shows the hub.
+ * Remove the modal and place Pro Hub on the card stack underneath it.
+ *
+ * @param state - App stack state while the subscription modal is open.
+ * @returns A reset action whose top route is Pro Hub.
+ */
+function openProHubFromSubscriptionModal(state: NavigationState) {
+  const routes = [
+    ...state.routes.filter(
+      (route) => route.name !== Routes.PRO_SUBSCRIPTION.ROOT,
+    ),
+    { name: Routes.PRO_HUB.ROOT },
+  ];
+
+  return CommonActions.reset({
+    ...state,
+    routes,
+    index: routes.length - 1,
+  });
+}
 
 const ProSubscription = () => {
   const navigation = useNavigation<AppStackNavigationProp>();
@@ -79,7 +104,7 @@ const ProSubscription = () => {
       currentScreen !== ProSubscriptionScreen.Success &&
       !isCheckoutInProgress
     ) {
-      navigation.replace(Routes.PRO_HUB.ROOT);
+      navigation.dispatch(openProHubFromSubscriptionModal);
     }
   }, [proAccess, currentScreen, isCheckoutInProgress, navigation]);
 
@@ -110,7 +135,7 @@ const ProSubscription = () => {
 
   const handleProcessing = useCallback(() => {
     showProcessingToast();
-    navigation.replace(Routes.PRO_HUB.ROOT);
+    navigation.dispatch(openProHubFromSubscriptionModal);
   }, [navigation, showProcessingToast]);
 
   const handleSubscriptionOnSuccess = useCallback(async () => {
@@ -128,7 +153,7 @@ const ProSubscription = () => {
       });
       return;
     }
-    navigation.replace(Routes.PRO_HUB.ROOT);
+    navigation.dispatch(openProHubFromSubscriptionModal);
   }, [navigation]);
 
   let screenContent: React.ReactNode = null;
