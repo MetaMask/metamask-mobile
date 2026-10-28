@@ -113,12 +113,18 @@ describe('moneyAccountMigration', () => {
     );
   });
 
-  it('rejects without saving a result when reset while running', async () => {
+  it('rejects without saving a result when reset while the account is created', async () => {
+    let finishCreate: (account: { id: string }) => void = () => undefined;
+    mockMoneyAccountController.createMoneyAccount.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishCreate = resolve;
+      }) as ReturnType<typeof mockMoneyAccountController.createMoneyAccount>,
+    );
     const promise = moneyAccountMigration.start();
     moneyAccountMigration.reset();
     mockSetItem.mockClear();
 
-    jest.runAllTimers();
+    finishCreate({ id: 'mpc-account' });
 
     await expect(promise).rejects.toThrow('cancelled');
     expect(moneyAccountMigration.getStatus()).toBe('not_started');
