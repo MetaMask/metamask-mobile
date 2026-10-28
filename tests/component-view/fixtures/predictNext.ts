@@ -25,7 +25,6 @@ import type {
   PredictFeedId,
   PredictMarket,
   PredictOutcome,
-  PredictPosition,
   PredictSignedAmount,
   PredictTimestamp,
 } from '../../../app/components/UI/PredictNext/types';
@@ -528,12 +527,12 @@ export const composePredictNextPortfolioTrading = () => {
 
 export const makePredictNextPosition = (
   overrides: Record<string, unknown> = {},
-): PredictPosition => ({
-  venueId: 'kalshi' as PredictPosition['venueId'],
+) => ({
+  venueId: 'kalshi',
   marketId: 'KXNBAGAME-26MAY12-LALBOS-LAL' as PredictEntityId,
   side: 'yes' as const,
-  shares: '75.00' as PredictPosition['shares'],
-  marketExposure: '41.25' as PredictPosition['marketExposure'],
+  shares: '75.00',
+  marketExposure: '41.25',
   realizedPnl: '-2.50' as PredictSignedAmount,
   updatedAt: '2026-09-01T12:00:00.000Z' as PredictTimestamp,
   context: {
