@@ -285,6 +285,7 @@ describe('PerpsFeesDisplay', () => {
     it('renders the placeholder when either rate is undefined', () => {
       const { getByText } = render(
         <PerpsFeesDisplay
+          fee={undefined}
           feeDisplayMode="percentage"
           takerFeeRate={0.00143}
           makerFeeRate={undefined}
@@ -296,7 +297,11 @@ describe('PerpsFeesDisplay', () => {
 
     it('renders a custom placeholder when both rates are undefined', () => {
       const { getByText } = render(
-        <PerpsFeesDisplay feeDisplayMode="percentage" placeholder="-" />,
+        <PerpsFeesDisplay
+          fee={undefined}
+          feeDisplayMode="percentage"
+          placeholder="-"
+        />,
       );
 
       expect(getByText('-')).toBeTruthy();
