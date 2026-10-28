@@ -19,10 +19,10 @@ import Animated, {
   ZoomOut,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
-import { AnimatedBalanceText } from '#app/component-library/components-temp/AnimatedNumericText';
-import { playSelection } from '#app/util/haptics';
-import { useTheme } from '#app/util/theme';
-import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '#app/components/UI/SocialFeed/data/socialFeedRealtime';
+import { AnimatedBalanceText } from '../../../../../component-library/components-temp/AnimatedNumericText';
+import { playSelection } from '../../../../../util/haptics';
+import { useTheme } from '../../../../../util/theme';
+import { SOCIAL_FEED_REALTIME_BUFFER_SIZE } from '../../data/socialFeedRealtime';
 
 const PENDING_POSTS_ZOOM_IN = ZoomIn.springify()
   .damping(14)
