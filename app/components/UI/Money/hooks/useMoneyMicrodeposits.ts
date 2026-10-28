@@ -8,6 +8,7 @@ import Logger from '../../../../util/Logger';
 import type { RootState } from '../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectKycSessionStatus } from '../../../../selectors/kycController';
+import { selectIsUnlocked } from '../../../../selectors/keyringController';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { useNetworkTierState } from '../../../../hooks/useNetworkTier';
 import type { MicrodepositActivity } from '../types/moneyActivity';
@@ -43,6 +44,7 @@ export function useMoneyMicrodeposits(): {
 } {
   const address = useSelector(selectPrimaryMoneyAccount)?.address;
   const normalizedAddress = address?.toLowerCase() ?? '';
+  const isUnlocked = useSelector(selectIsUnlocked);
   const sessionStatus = useSelector(selectKycSessionStatus);
   const kycApproved =
     sessionStatus?.finalStatus === 'approved' ||
@@ -76,6 +78,11 @@ export function useMoneyMicrodeposits(): {
   const lowSlowNetwork =
     hardwareTier === 'LOW' && networkTier === 'SLOW_CELLULAR';
   const knownOffline = networkIsResolved && networkTier === 'NONE';
+  const queryEnabled =
+    Boolean(normalizedAddress) &&
+    canReceiveMicrodeposits &&
+    isUnlocked &&
+    !knownOffline;
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
@@ -94,16 +101,21 @@ export function useMoneyMicrodeposits(): {
       try {
         return mapMicrodeposits(await service.getMicrodeposits());
       } catch (error) {
-        // A failed fetch must not hide the rest of Money Activity; the next
-        // poll retries.
+        // Keep the last good rows: React Query retains the previous success
+        // when the query rejects, while a transient failure would otherwise
+        // hide every microdeposit until the next poll.
         Logger.error(error as Error, {
           message: 'useMoneyMicrodeposits: failed to fetch microdeposits',
         });
-        return [];
+        throw error;
       }
     },
-    enabled:
-      Boolean(normalizedAddress) && canReceiveMicrodeposits && !knownOffline,
+    enabled: queryEnabled,
+    // ReactQueryService marks TanStack focused on foreground before React
+    // commits enabled:false after auto-lock, so a focus or reconnect refetch
+    // could run queryFn while the wallet is locked.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: false,
     staleTime: 0,
     // The list is refreshed on every mount; keeping it cached after unmount
@@ -119,8 +131,13 @@ export function useMoneyMicrodeposits(): {
 
   const refetchQuery = query.refetch;
   const refetch = useCallback(() => {
+    // `refetch()` ignores `enabled`, so pull-to-refresh must re-check the gate
+    // itself or it bypasses it.
+    if (!queryEnabled) {
+      return;
+    }
     refetchQuery().catch(() => undefined);
-  }, [refetchQuery]);
+  }, [queryEnabled, refetchQuery]);
 
   return {
     microdeposits: query.data ?? EMPTY_MICRODEPOSITS,
