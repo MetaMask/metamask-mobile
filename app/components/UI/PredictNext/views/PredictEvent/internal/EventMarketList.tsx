@@ -1,31 +1,60 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, type ReactNode } from 'react';
 import { useSelector } from 'react-redux';
-import { Box } from '@metamask/design-system-react-native';
+import { BadgeCount, Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import TabsBar from '../../../../../../../component-library/components-temp/Tabs/TabsBar';
-import { useNetworkTier } from '../../../../../../../hooks/useNetworkTier';
-import { selectPrivacyMode } from '../../../../../../../selectors/preferencesController';
-import { getHardwareTier } from '../../../../../../../util/deviceCapability';
-import { strings } from '../../../../../../../../locales/i18n';
-import { PREDICT_MARKET_TYPES } from '../../../../constants';
-import { getEventGame } from '../../../../events/game';
+import TabsBar from '../../../../../../component-library/components-temp/Tabs/TabsBar';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { selectPrivacyMode } from '../../../../../../selectors/preferencesController';
+import { getHardwareTier } from '../../../../../../util/deviceCapability';
+import { strings } from '../../../../../../../locales/i18n';
+import { PREDICT_MARKET_TYPES } from '../../../constants';
+import { getEventGame } from '../../../events/game';
 import {
   MarketList,
   MarketStandardCard,
   SpreadMarketGroupCard,
   TotalMarketGroupCard,
-} from '../../../../events/markets';
-import type { PredictMarket, PredictPosition } from '../../../../types';
-import { EventPositionRow } from '../EventPositionRow';
+} from '../../../events/markets';
+import type {
+  PredictEvent,
+  PredictMarket,
+  PredictOutcome,
+  PredictPosition,
+} from '../../../types';
+import { EventPositionRow } from './EventPositionRow';
 import {
   createMarketGroupProjection,
   type MarketGroupProjection,
-} from '../createMarketGroupProjection';
+} from './createMarketGroupProjection';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
-import type { EventMarketListProps } from './EventMarketList.types';
 import { useEventPositions } from './useEventPositions';
-import { createPositionsTab } from './createPositionsTab';
-import { getEventMarketListPolicy } from './getEventMarketListPolicy';
+
+const MAX_BADGE_COUNT = 99;
+const DEFAULT_LIST_WINDOW = {
+  initialNumToRender: 10,
+  maxToRenderPerBatch: 10,
+  windowSize: 21,
+};
+const LOW_HARDWARE_LIST_WINDOW = {
+  initialNumToRender: 6,
+  maxToRenderPerBatch: 6,
+  windowSize: 5,
+};
+
+export interface EventMarketListProps {
+  /** The current canonical Event, including any live-projected Markets. */
+  event: PredictEvent;
+  /** Expresses buy intent; the caller owns the Order workflow. */
+  onOrder: (market: PredictMarket, outcome: PredictOutcome) => void;
+  /** Requests the displayed Market's rules from the existing sheet owner. */
+  onRulesPress: (market: PredictMarket) => void;
+  /** Expresses Cash Out intent for one canonical Position. */
+  onCashOut: (position: PredictPosition) => void;
+  /** Static header content above the tabs in the same scrolling surface. */
+  children?: ReactNode;
+  /** Overrides the virtualized list's root test ID. */
+  testID?: string;
+}
 
 type ContentTab = 'positions' | 'markets';
 type ContentRow =
@@ -56,10 +85,11 @@ const EventMarketListContent = ({
 }: EventMarketListProps) => {
   const tw = useTailwind();
   const networkTier = useNetworkTier();
-  const renderingPolicy = getEventMarketListPolicy(
-    getHardwareTier(),
-    networkTier,
-  );
+  // Unknown transport keeps the default window, including on LOW hardware.
+  const listWindow =
+    getHardwareTier() === 'LOW' && networkTier !== null
+      ? LOW_HARDWARE_LIST_WINDOW
+      : DEFAULT_LIST_WINDOW;
   const positions = useEventPositions(event);
   const isPrivacyMode = useSelector(selectPrivacyMode);
   const [selectedMarketIds, setSelectedMarketIds] = useState<
@@ -98,7 +128,24 @@ const EventMarketListContent = ({
     [activeTab, markets, positions],
   );
   const tabs = [
-    ...(positions.length > 0 ? [createPositionsTab(positions.length)] : []),
+    ...(positions.length > 0
+      ? [
+          {
+            key: 'positions' as const,
+            label: strings('predict_next.portfolio.positions'),
+            content: null,
+            testID: EventMarketListTestIds.POSITIONS_TAB,
+            endAccessory: (
+              <BadgeCount
+                count={positions.length}
+                max={MAX_BADGE_COUNT}
+                twClassName="relative -top-px -ml-2 h-auto min-h-3 min-w-3 rounded bg-error-default-hover px-0.5"
+                textProps={{ twClassName: 'text-[10px] leading-[12px]' }}
+              />
+            ),
+          },
+        ]
+      : []),
     ...(markets.length > 0
       ? [
           {
@@ -183,7 +230,7 @@ const EventMarketListContent = ({
 
   return (
     <MarketList
-      {...renderingPolicy}
+      {...listWindow}
       testID={testID}
       data={rows}
       extraData={selectedMarketIds}

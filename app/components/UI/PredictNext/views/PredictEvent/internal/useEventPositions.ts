@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from 'react';
-import { useNetworkTier } from '../../../../../../../hooks/useNetworkTier';
-import { usePositions } from '../../../../hooks/usePositions';
-import { PORTFOLIO_PAGE_LIMIT } from '../../../../queries/portfolioQueries';
-import type { PredictEvent, PredictPosition } from '../../../../types';
+import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
+import { usePositions } from '../../../hooks/usePositions';
+import { PORTFOLIO_PAGE_LIMIT } from '../../../queries/portfolioQueries';
+import type { PredictEvent, PredictPosition } from '../../../types';
 
 const PAGE_PARAMS = { limit: PORTFOLIO_PAGE_LIMIT };
 /** Includes the initial page, matching the existing Event Screen discovery bound. */

@@ -3,14 +3,14 @@ import {
   makePredictNextCompositeGameEvent,
   makePredictNextMultiMarketEvent,
   makePredictNextPosition,
-} from '../../../../../../../../tests/component-view/fixtures/predictNext';
-import type { usePositions } from '../../../../hooks/usePositions';
-import { PORTFOLIO_PAGE_LIMIT } from '../../../../queries/portfolioQueries';
+} from '../../../../../../../tests/component-view/fixtures/predictNext';
+import type { usePositions } from '../../../hooks/usePositions';
+import { PORTFOLIO_PAGE_LIMIT } from '../../../queries/portfolioQueries';
 import type {
   PredictEvent,
   PredictPosition,
   PredictVenueId,
-} from '../../../../types';
+} from '../../../types';
 import { useEventPositions } from './useEventPositions';
 
 // Keep async discovery journeys in EventMarketList.view.test.tsx. These narrow
@@ -25,12 +25,12 @@ const mockUsePositions = jest.fn<
   Parameters<typeof usePositions>
 >();
 
-jest.mock('../../../../hooks/usePositions', () => ({
+jest.mock('../../../hooks/usePositions', () => ({
   usePositions: (...args: Parameters<typeof usePositions>) =>
     mockUsePositions(...args),
 }));
 
-jest.mock('../../../../../../../hooks/useNetworkTier', () => ({
+jest.mock('../../../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => 'WIFI',
 }));
 

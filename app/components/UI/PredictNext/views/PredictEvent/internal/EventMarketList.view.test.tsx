@@ -1,4 +1,4 @@
-import '../../../../../../../../tests/component-view/mocks';
+import '../../../../../../../tests/component-view/mocks';
 import {
   configurePredictNextFeeds,
   makePredictNextCompositeGameEvent,
@@ -7,29 +7,29 @@ import {
   makePredictNextTotalsEvent,
   messengerCall,
   mockPredictNextMessenger,
-} from '../../../../../../../../tests/component-view/fixtures/predictNext';
-import { renderEventMarketList } from '../../../../../../../../tests/component-view/renderers/predictNext';
-import { createComponentViewQueryClient } from '../../../../../../../../tests/component-view/render';
+} from '../../../../../../../tests/component-view/fixtures/predictNext';
+import { renderEventMarketList } from '../../../../../../../tests/component-view/renderers/predictNext';
+import { createComponentViewQueryClient } from '../../../../../../../tests/component-view/render';
 import { act, fireEvent, waitFor, within } from '@testing-library/react-native';
 import type { InfiniteData } from '@tanstack/react-query';
 import { FlatList } from 'react-native';
 import { getTotalMemorySync } from 'react-native-device-info';
-import Engine from '../../../../../../../core/Engine';
-import { updateBgState } from '../../../../../../../core/redux/slices/engine';
+import Engine from '../../../../../../core/Engine';
+import { updateBgState } from '../../../../../../core/redux/slices/engine';
 import NetInfo from '@react-native-community/netinfo';
-import type NetInfoMock from '../../../../../../../__mocks__/@react-native-community/netinfo';
-import { strings } from '../../../../../../../../locales/i18n';
-import { MarketStandardCardTestIds } from '../../../../events/markets/MarketStandardCard.testIds';
-import { MarketGroupCardTestIds } from '../../../../events/markets/MarketGroupCard.testIds';
-import { portfolioQueries } from '../../../../queries/portfolioQueries';
+import type NetInfoMock from '../../../../../../__mocks__/@react-native-community/netinfo';
+import { strings } from '../../../../../../../locales/i18n';
+import { MarketStandardCardTestIds } from '../../../events/markets/MarketStandardCard.testIds';
+import { MarketGroupCardTestIds } from '../../../events/markets/MarketGroupCard.testIds';
+import { portfolioQueries } from '../../../queries/portfolioQueries';
 import type {
   PredictEvent,
   PredictMarket,
   PredictPosition,
   PredictPositionsPage,
-} from '../../../../types';
+} from '../../../types';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
-import { formatSharesAmount } from '../../../../utils/formatShares';
+import { formatSharesAmount } from '../../../utils/formatShares';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 const createPositionsCache = (
