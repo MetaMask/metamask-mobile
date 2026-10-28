@@ -5,7 +5,8 @@ import { useProSubscriptionPaymentMonitor } from '../../hooks/useProSubscription
 /**
  * App-wide watcher for a membership payment that is still bridging or
  * on-ramping. Toasts come from the shared toast host. A failed payment
- * opens a bottom sheet from this root mount.
+ * mounts the payment-failed sheet, which draws above the root stack.
+ * Returning null while it is closed keeps that iOS overlay unmounted.
  */
 const ProSubscriptionPaymentMonitor: React.FC = () => {
   const { isPaymentFailedSheetOpen, closePaymentFailedSheet } =

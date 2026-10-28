@@ -1,5 +1,7 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { Modal, Platform } from 'react-native';
+import { FullWindowOverlay } from 'react-native-screens';
+import { act, fireEvent } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -58,8 +60,54 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 describe('PaymentFailedSheet', () => {
+  const originalPlatformOS = Platform.OS;
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    Platform.OS = originalPlatformOS;
+  });
+
+  // The sheet has to leave the Main tree. Jest cannot place a native window
+  // above the root stack, so these tests assert the host ConfirmMembershipApproval
+  // uses for the same constraint.
+  it('renders the sheet inside a FullWindowOverlay on iOS', () => {
+    Platform.OS = 'ios';
+
+    const { UNSAFE_queryByType } = renderWithProvider(
+      <PaymentFailedSheet onClose={mockOnClose} />,
+    );
+
+    expect(UNSAFE_queryByType(FullWindowOverlay)).not.toBeNull();
+    expect(UNSAFE_queryByType(Modal)).toBeNull();
+  });
+
+  it('renders the sheet inside a transparent Modal on Android', () => {
+    Platform.OS = 'android';
+
+    const { UNSAFE_getByType, UNSAFE_queryByType } = renderWithProvider(
+      <PaymentFailedSheet onClose={mockOnClose} />,
+    );
+
+    expect(UNSAFE_queryByType(FullWindowOverlay)).toBeNull();
+    expect(UNSAFE_getByType(Modal).props).toEqual(
+      expect.objectContaining({ visible: true, transparent: true }),
+    );
+  });
+
+  it('closes the sheet when the Android back button is pressed', () => {
+    Platform.OS = 'android';
+    const { UNSAFE_getByType } = renderWithProvider(
+      <PaymentFailedSheet onClose={mockOnClose} />,
+    );
+
+    act(() => {
+      UNSAFE_getByType(Modal).props.onRequestClose();
+    });
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
 
   it('renders the failed payment copy', () => {
