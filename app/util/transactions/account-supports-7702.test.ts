@@ -1,4 +1,3 @@
-import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { accountSupports7702 } from './account-supports-7702';
 
@@ -63,7 +62,7 @@ describe('accountSupports7702', () => {
 
   it('returns true for MPC Money keyring', async () => {
     const controller = createMockKeyringController({
-      type: KeyringTypes.mpcMoney,
+      type: ExtendedKeyringTypes.mpcMoney,
     });
     await expect(accountSupports7702(SAMPLE_ADDRESS, controller)).resolves.toBe(
       true,

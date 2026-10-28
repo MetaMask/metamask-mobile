@@ -5,6 +5,7 @@ enum ExtendedKeyringTypes {
   ledger = 'Ledger Hardware',
   oneKey = 'OneKey Hardware',
   money = 'Money Keyring',
+  mpcMoney = 'MPC Money Keyring',
 }
 
 export default ExtendedKeyringTypes;
