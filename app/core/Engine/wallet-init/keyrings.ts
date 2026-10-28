@@ -87,7 +87,7 @@ export function getKeyringBuilders(
     const keyring = new QrKeyring({ bridge: qrKeyringBridge });
     // To fix the bug in #9560, forgetDevice will reset all keyring properties
     // to default.
-    keyring.forgetDevice();
+    void keyring.forgetDevice();
     return keyring;
   };
 
