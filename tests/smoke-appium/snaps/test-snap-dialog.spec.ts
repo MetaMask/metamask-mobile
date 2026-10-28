@@ -85,8 +85,7 @@ appiumTest.describe(SmokeSnaps('Dialog Snap Tests'), () => {
           currentDeviceDetails,
           { restartDevice: false },
           async () => {
-            await TestSnaps.tapButton('sendCustomButton');
-            await Assertions.expectTextDisplayed('Custom Dialog');
+            await TestSnaps.openCustomDialog();
             await TestSnaps.fillCustomDialogInput('Hello, World!');
             await TestSnaps.tapConfirmButton();
             await TestSnaps.checkResultSpan(
