@@ -540,7 +540,7 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
+jest.mock('./predict/usePredictActivityItems', () => ({
   usePredictActivityItems: jest.fn(() => mockPredictSourceState),
 }));
 
