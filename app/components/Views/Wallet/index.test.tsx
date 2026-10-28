@@ -825,6 +825,15 @@ jest.mock('../../../util/address', () => ({
 }));
 
 // Better navigation mock pattern (from WalletActions.test.tsx)
+let mockIsPastPrivacyPolicyDate = false;
+jest.mock('../../../reducers/legalNotices', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../reducers/legalNotices'),
+  get isPastPrivacyPolicyDate() {
+    return mockIsPastPrivacyPolicyDate;
+  },
+}));
+
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
 
@@ -938,6 +947,26 @@ describe('Wallet', () => {
     render(Wallet);
 
     expect(capturedContext).toBeDefined();
+  });
+
+  it('opens the marketing consent modal while marketing consent is undecided, even with MetaMetrics off', () => {
+    const undecidedState = {
+      ...mockInitialState,
+      security: { dataCollectionForMarketing: null },
+    } as unknown as typeof mockInitialState;
+    jest
+      .mocked(useSelector)
+      .mockImplementation((callback: (state: unknown) => unknown) =>
+        callback(undecidedState),
+      );
+    mockIsPastPrivacyPolicyDate = true;
+
+    renderWalletWithRootState(undecidedState);
+    mockIsPastPrivacyPolicyDate = false;
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.EXPERIENCE_ENHANCER,
+    });
   });
 
   it('should render correctly when Solana support is enabled', () => {
