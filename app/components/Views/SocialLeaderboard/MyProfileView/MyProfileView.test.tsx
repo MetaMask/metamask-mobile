@@ -7,6 +7,7 @@ import type {
   TraderProfileResponse,
 } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { strings } from '../../../../../locales/i18n';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
@@ -697,6 +698,31 @@ describe('MyProfileView', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(MyProfileViewSelectorsIDs.SHARE_FIRST_TRADE_BUTTON),
+    ).toBeOnTheScreen();
+    expect(strings('social_leaderboard.my_profile.empty_title')).toBe(
+      'Post your first trade',
+    );
+    expect(strings('social_leaderboard.my_profile.empty_description')).toBe(
+      'If someone copies your trade, you get 15% of the fees.',
+    );
+    expect(strings('social_leaderboard.my_profile.share_first_trade')).toBe(
+      'Post to MetaMask',
+    );
+    expect(strings('social_leaderboard.my_profile.first_trade_prompt')).toBe(
+      'First trade?',
+    );
+    expect(
+      screen.getByText(strings('social_leaderboard.my_profile.empty_title')),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.my_profile.empty_description'),
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        strings('social_leaderboard.my_profile.share_first_trade'),
+      ),
     ).toBeOnTheScreen();
   });
 
