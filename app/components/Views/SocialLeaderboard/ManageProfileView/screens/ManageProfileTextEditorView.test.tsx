@@ -38,7 +38,6 @@ describe('ManageProfileTextEditorView', () => {
         profileId: 'current-user',
         displayName: 'Giga Whale',
         handle: 'giga-whale.metamask',
-        shareUrl: 'https://metamask.io/social/giga-whale',
       },
       isLoading: false,
       error: null,

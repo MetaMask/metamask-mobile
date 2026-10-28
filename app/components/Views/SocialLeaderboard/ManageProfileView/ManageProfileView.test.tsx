@@ -99,7 +99,6 @@ const profile: UseMyProfileResult['profile'] = {
   connectedToX: true,
   followerCount: 0,
   followingCount: 0,
-  shareUrl: 'https://metamask.io/social/giga-whale',
   linkedAccountAddress: MOCK_ADDRESS_2,
   shareTradingActivity: true,
 };

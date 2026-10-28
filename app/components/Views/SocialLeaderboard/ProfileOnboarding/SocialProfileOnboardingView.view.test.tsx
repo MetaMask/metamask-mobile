@@ -28,7 +28,7 @@ import {
 } from '../../../../../tests/component-view/renderers/socialLeaderboard';
 import {
   getLocalSocialProfileSnapshot,
-  restoreDefaultLocalSocialProfile,
+  clearLocalSocialProfile,
 } from '../MyProfileView/hooks/localSocialProfileStore';
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
@@ -235,7 +235,7 @@ const restoreProfileControllerMocks = () => {
 
 describe('SocialProfileOnboardingView', () => {
   afterEach(() => {
-    restoreDefaultLocalSocialProfile();
+    clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
     jest.mocked(Engine.context.ProfileController.createProfile).mockClear();
     jest

@@ -152,7 +152,6 @@ describe('profileOnboardingDraft', () => {
     expect(profile.xHandle).toBeNull();
     expect(profile.connectedToX).toBe(false);
     expect(profile.rankingTag).toBeNull();
-    expect(profile.shareUrl).toBe('https://metamask.io/wen_cat');
   });
 
   it('keeps the mocked X handle and avatar when those toggles stay on', () => {

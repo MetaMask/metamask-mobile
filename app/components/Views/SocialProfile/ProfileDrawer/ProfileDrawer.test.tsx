@@ -282,7 +282,6 @@ describe('ProfileDrawer', () => {
         imageUrl: null,
         avatarPresetId: 'astronaut',
         avatarBackgroundId: 'sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
@@ -307,7 +306,6 @@ describe('ProfileDrawer', () => {
         displayName: 'Bonk Player',
         handle: 'bonk-player',
         imageUrl: 'foxicon://astronaut/sky',
-        shareUrl: 'https://metamask.io/social/bonk-player',
       }),
     );
 
