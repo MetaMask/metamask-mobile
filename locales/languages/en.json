@@ -9650,6 +9650,8 @@
     "transaction": {
       "deposited": "Deposited",
       "bank_transfer": "Bank transfer",
+      "microdeposit": "Test deposit",
+      "microdeposit_from": "From {{name}}",
       "received": "Received",
       "sent": "Sent",
       "card_transaction": "Card transaction",

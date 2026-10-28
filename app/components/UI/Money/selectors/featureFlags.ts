@@ -131,6 +131,22 @@ export const selectMoneyVbaCompletedActivityEnabled = createSelector(
   },
 );
 
+/**
+ * Dedicated gate for bank microdeposits in Money Activity. Kept separate from
+ * the VBA flags: the microdeposit list is a second, flag-gated fetch on every
+ * activity load, and it needs its own kill switch while the neobank-proxy
+ * route rolls out.
+ */
+export const selectMoneyMicrodepositsEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.moneyMicrodepositsEnabled as unknown as VersionGatedFeatureFlag;
+    const localFlag = process.env.MM_MONEY_MICRODEPOSITS_ENABLED === 'true';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
 export const selectMoneyEnableMoneyAccountFlag = createSelector(
   selectRemoteFeatureFlags,
   isMoneyAccountEnabled,
