@@ -9,6 +9,7 @@ import type {
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import MyProfileView from './MyProfileView';
 import { MyProfileViewSelectorsIDs } from './MyProfileView.testIds';
+import { ProfileOptionsSheetSelectorsIDs } from '../TraderProfileView/components/ProfileOptionsSheet.testIds';
 import type { UseMyProfileResult } from './hooks/useMyProfile';
 import type { UseFollowedTradersResult } from '../NotificationPreferences/hooks/useFollowedTraders';
 import type { UseMyProfilePostsResult } from './hooks/useMyProfilePosts';
@@ -18,6 +19,7 @@ import type {
   UseTraderPositionsOptions,
   UseTraderPositionsResult,
 } from '../TraderProfileView/hooks/useTraderPositions';
+import type { UseTraderBlockResult } from '../TraderProfileView/hooks/useTraderBlock';
 import type { UseTraderProfileResult } from '../TraderProfileView/hooks/useTraderProfile';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import Routes from '../../../../constants/navigation/Routes';
@@ -72,6 +74,12 @@ const mockUseMyProfileAddress = jest.fn<string | undefined, []>(
   () => '0xselected',
 );
 const mockUseTraderProfile = jest.fn<UseTraderProfileResult, []>();
+const mockUseTraderBlock = jest.fn<
+  UseTraderBlockResult,
+  [string | undefined]
+>();
+const mockBlock = jest.fn().mockResolvedValue(true);
+const mockUnblock = jest.fn().mockResolvedValue(true);
 const mockUseTraderPositions = jest.fn<
   UseTraderPositionsResult,
   [string, UseTraderPositionsOptions?]
@@ -172,6 +180,7 @@ jest.mock('./hooks', () => ({
 
 jest.mock('../TraderProfileView/hooks', () => ({
   useTraderProfile: () => mockUseTraderProfile(),
+  useTraderBlock: (profileId?: string) => mockUseTraderBlock(profileId),
   useTraderPositions: (
     addressOrId: string,
     options?: UseTraderPositionsOptions,
@@ -321,6 +330,11 @@ describe('MyProfileView', () => {
       isFollowing: false,
       toggleFollow: jest.fn().mockResolvedValue(undefined),
       refresh: jest.fn().mockResolvedValue(undefined),
+    });
+    mockUseTraderBlock.mockReturnValue({
+      isBlocked: false,
+      block: mockBlock,
+      unblock: mockUnblock,
     });
     mockUseMyProfilePosts.mockReturnValue({
       posts: [],
@@ -927,6 +941,106 @@ describe('MyProfileView', () => {
     ).toBeNull();
   });
 
+  it('shows the profile options button only for another trader', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows the blocked state and Unblock CTA for a blocked trader', () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderBlock.mockReturnValue({
+      isBlocked: true,
+      block: mockBlock,
+      unblock: mockUnblock,
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.BLOCKED_STATE),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('You blocked @alpha.eth')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.PERFORMANCE_SECTION),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(MyProfileViewSelectorsIDs.OPEN_TAB),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.getByTestId(MyProfileViewSelectorsIDs.UNBLOCK_BUTTON),
+    ).toHaveTextContent('Unblock');
+  });
+
+  it('unblocks a trader without following them again', async () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    mockUseTraderBlock.mockReturnValue({
+      isBlocked: true,
+      block: mockBlock,
+      unblock: mockUnblock,
+    });
+
+    renderWithProvider(<MyProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(MyProfileViewSelectorsIDs.UNBLOCK_BUTTON),
+      );
+    });
+
+    expect(mockUnblock).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks and unfollows a followed trader from profile options', async () => {
+    mockProfileRouteParams = {
+      traderId: 'trader-1',
+      traderName: 'alpha.eth',
+      traderAddress: '0xabc',
+    };
+    const toggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTraderProfile.mockReturnValue({
+      profile: null,
+      isLoading: false,
+      error: null,
+      isFollowing: true,
+      toggleFollow,
+      refresh: jest.fn().mockResolvedValue(undefined),
+    });
+
+    renderWithProvider(<MyProfileView />);
+    fireEvent.press(screen.getByTestId(MyProfileViewSelectorsIDs.MORE_BUTTON));
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(ProfileOptionsSheetSelectorsIDs.BLOCK_BUTTON),
+      );
+    });
+
+    expect(mockBlock).toHaveBeenCalledTimes(1);
+    expect(toggleFollow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: 'trader_profile',
+        traderAddress: '0xabc',
+      }),
+    );
+  });
+
   it('hides owner actions and shows follow for another trader', () => {
     mockProfileRouteParams = {
       traderId: 'trader-1',
@@ -1146,10 +1260,9 @@ describe('MyProfileView', () => {
   it('prefetches positions with the viewed profile address', () => {
     renderWithProvider(<MyProfileView />);
 
-    expect(mockUseTraderPositions).toHaveBeenCalledWith(
-      '0xselected',
-      undefined,
-    );
+    expect(mockUseTraderPositions).toHaveBeenCalledWith('0xselected', {
+      refetchInterval: 30_000,
+    });
   });
 
   it('shows open positions after tapping Open', () => {

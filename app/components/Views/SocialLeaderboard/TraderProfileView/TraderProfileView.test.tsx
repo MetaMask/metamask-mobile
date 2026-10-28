@@ -10,12 +10,10 @@ import Routes from '../../../../constants/navigation/Routes';
 import { ImpactMoment } from '../../../../util/haptics';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import type { SocialAIPreference } from '../NotificationPreferences/hooks';
-import type { UseTraderBlockResult } from './hooks/useTraderBlock';
 import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import { ProfileOptionsSheetSelectorsIDs } from './components/ProfileOptionsSheet.testIds';
 import { SCROLLABLE_SCREEN_SAFE_AREA_EDGES } from '../shared/scrollableScreenSafeArea';
 import { expectHeaderIncludesTopInset } from '../shared/scrollableScreenSafeArea.testUtils';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -381,19 +379,9 @@ let mockPositionsResult: UseTraderPositionsResult = {
   refetch: mockRefetchPositions,
 };
 
-const mockBlock = jest.fn();
-const mockUnblock = jest.fn();
-let mockBlockResult: UseTraderBlockResult = {
-  isBlocked: false,
-  block: mockBlock,
-  unblock: mockUnblock,
-};
-const mockUseTraderBlock = jest.fn((_profileId?: string) => mockBlockResult);
-
 jest.mock('./hooks', () => ({
   useTraderProfile: () => mockProfileResult,
   useTraderPositions: () => mockPositionsResult,
-  useTraderBlock: (profileId?: string) => mockUseTraderBlock(profileId),
 }));
 
 const mockRefreshPosts = jest.fn().mockResolvedValue(undefined);
@@ -468,13 +456,6 @@ describe('TraderProfileView', () => {
     mockRefreshPosts.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
     mockToggleFollow.mockResolvedValue(undefined);
-    mockBlock.mockResolvedValue(true);
-    mockUnblock.mockResolvedValue(true);
-    mockBlockResult = {
-      isBlocked: false,
-      block: mockBlock,
-      unblock: mockUnblock,
-    };
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -1422,133 +1403,5 @@ describe('TraderProfileView', () => {
     );
 
     expect(screen.getByTestId('trader-stats-sheet')).toBeOnTheScreen();
-  });
-
-  describe('block', () => {
-    const openProfileOptions = () => {
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.MORE_BUTTON),
-      );
-    };
-
-    it('reads block state for the profile id', () => {
-      renderWithProvider(<TraderProfileView />);
-
-      expect(mockUseTraderBlock).toHaveBeenCalledWith('trader-1');
-    });
-
-    it('opens the profile options sheet from the header more button', () => {
-      renderWithProvider(<TraderProfileView />);
-
-      openProfileOptions();
-
-      expect(
-        screen.getByTestId(ProfileOptionsSheetSelectorsIDs.SHEET),
-      ).toBeOnTheScreen();
-      expect(screen.getByText('Profile options')).toBeOnTheScreen();
-      expect(screen.getByText('Block @trader1')).toBeOnTheScreen();
-    });
-
-    it('blocks and unfollows a followed trader', async () => {
-      mockProfileResult.isFollowing = true;
-      renderWithProvider(<TraderProfileView />);
-      openProfileOptions();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(ProfileOptionsSheetSelectorsIDs.BLOCK_BUTTON),
-        );
-      });
-
-      expect(mockBlock).toHaveBeenCalledTimes(1);
-      expect(mockToggleFollow).toHaveBeenCalledWith(
-        expect.objectContaining({ source: 'trader_profile' }),
-      );
-      expect(
-        screen.queryByTestId(ProfileOptionsSheetSelectorsIDs.SHEET),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('does not toggle follow when blocking a trader who is not followed', async () => {
-      renderWithProvider(<TraderProfileView />);
-      openProfileOptions();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(ProfileOptionsSheetSelectorsIDs.BLOCK_BUTTON),
-        );
-      });
-
-      expect(mockBlock).toHaveBeenCalledTimes(1);
-      expect(mockToggleFollow).not.toHaveBeenCalled();
-    });
-
-    it('keeps the follow when the block request fails', async () => {
-      mockProfileResult.isFollowing = true;
-      mockBlock.mockResolvedValue(false);
-      renderWithProvider(<TraderProfileView />);
-      openProfileOptions();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(ProfileOptionsSheetSelectorsIDs.BLOCK_BUTTON),
-        );
-      });
-
-      expect(mockToggleFollow).not.toHaveBeenCalled();
-    });
-
-    describe('when the trader is blocked', () => {
-      beforeEach(() => {
-        mockBlockResult = { ...mockBlockResult, isBlocked: true };
-      });
-
-      it('shows the blocked state instead of stats, tabs, and positions', () => {
-        renderWithProvider(<TraderProfileView />);
-
-        expect(
-          screen.getByTestId(TraderProfileViewSelectorsIDs.BLOCKED_STATE),
-        ).toBeOnTheScreen();
-        expect(screen.getByText('You blocked @trader1')).toBeOnTheScreen();
-        expect(
-          screen.getByText(
-            'Their posts and positions are hidden on this device for this session.',
-          ),
-        ).toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(TraderProfileViewSelectorsIDs.TAB_OPEN),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.queryByTestId(TraderProfileViewSelectorsIDs.COMPACT_STATS),
-        ).not.toBeOnTheScreen();
-      });
-
-      it('replaces the follow button with Unblock', () => {
-        renderWithProvider(<TraderProfileView />);
-
-        expect(
-          screen.queryByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
-        ).not.toBeOnTheScreen();
-        expect(
-          screen.getByTestId(TraderProfileViewSelectorsIDs.UNBLOCK_BUTTON),
-        ).toHaveTextContent('Unblock');
-      });
-
-      it('unblocks without following again', async () => {
-        renderWithProvider(<TraderProfileView />);
-
-        await act(async () => {
-          fireEvent.press(
-            screen.getByTestId(TraderProfileViewSelectorsIDs.UNBLOCK_BUTTON),
-          );
-        });
-
-        expect(mockUnblock).toHaveBeenCalledTimes(1);
-        expect(mockToggleFollow).not.toHaveBeenCalled();
-      });
-    });
   });
 });
