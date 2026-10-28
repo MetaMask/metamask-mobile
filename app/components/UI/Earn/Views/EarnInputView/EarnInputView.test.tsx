@@ -714,7 +714,7 @@ describe('EarnInputView', () => {
         })),
       });
 
-      const { getByText, getAllByText } = render(EarnInputView, {
+      const { getByText, getAllByText, queryByText } = render(EarnInputView, {
         params: {
           ...baseProps.route.params,
           token: MOCK_USDC_MAINNET_ASSET,
@@ -735,16 +735,15 @@ describe('EarnInputView', () => {
       // Token Selector should display USDC as selected token
       expect(getByText('2.5% APR')).toBeOnTheScreen();
       expect(getByText('100 USDC')).toBeOnTheScreen();
-
-      await act(async () => {
-        fireEvent.press(getByText('1'));
-      });
+      expect(getByText('Max')).toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(getByText('Max'));
       });
 
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
   });
 
@@ -1127,17 +1126,21 @@ describe('EarnInputView', () => {
   });
 
   describe('stake button states', () => {
-    it('displays `Enter amount` if input is 0', () => {
-      const { getByText } = renderComponent();
+    it('hides the review button and keeps quick amounts when the amount is zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
-      expect(getByText('Enter amount')).toBeOnTheScreen();
+      expect(queryByText('Enter amount')).not.toBeOnTheScreen();
+      expect(getByText('25%')).toBeOnTheScreen();
     });
 
-    it('displays `Review` on stake button if input is valid', () => {
-      const { getByText } = renderComponent();
+    it('replaces quick amounts with Review when the amount is greater than zero', () => {
+      const { getByText, queryByText } = renderComponent();
 
       fireEvent.press(getByText('1'));
+
       expect(getByText('Review')).toBeOnTheScreen();
+      expect(queryByText('25%')).not.toBeOnTheScreen();
+      expect(queryByText('Max')).not.toBeOnTheScreen();
     });
 
     it('disables pooled staking review button during service interruption', async () => {
@@ -1243,7 +1246,7 @@ describe('EarnInputView', () => {
       const { getByText, queryAllByText } = renderComponent();
 
       fireEvent.press(getByText('4'));
-      expect(queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 

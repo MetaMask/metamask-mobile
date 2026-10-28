@@ -866,7 +866,6 @@ const EarnInputView = () => {
     return strings('stake.review');
   };
 
-  const balanceText = strings('stake.balance');
   const buttonLabel = getButtonLabel();
 
   useFocusEffect(
@@ -1094,9 +1093,6 @@ const EarnInputView = () => {
         contentContainerStyle={styles.scrollViewContent}
       >
         <InputDisplay
-          isOverMaximum={isOverMaximum}
-          balanceText={balanceText}
-          balanceValue={balanceValue}
           amountToken={amountToken}
           amountFiatNumber={amountFiatNumber}
           isFiat={isFiat}
@@ -1135,13 +1131,18 @@ const EarnInputView = () => {
           )
         ///: END:ONLY_INCLUDE_IF
       }
+      {!isTronEnabled &&
+        isNonZeroAmount &&
+        renderReviewButton(isReviewButtonDisabled)}
       {!isPreviewVisible && (
         <>
-          <QuickAmounts
-            amounts={quickAmounts}
-            onAmountPress={handleQuickAmountPressWithTracking}
-            onMaxPress={onRightActionPress}
-          />
+          {(isTronEnabled || !isNonZeroAmount) && (
+            <QuickAmounts
+              amounts={quickAmounts}
+              onAmountPress={handleQuickAmountPressWithTracking}
+              onMaxPress={onRightActionPress}
+            />
+          )}
           <Keypad
             value={!isFiat ? amountToken : amountFiatNumber}
             // Debounce used to avoid error message flicker from recalculating gas fee estimate
@@ -1157,7 +1158,6 @@ const EarnInputView = () => {
         shouldShowTronReviewButton && renderReviewButton(isReviewButtonDisabled)
         ///: END:ONLY_INCLUDE_IF
       }
-      {!isTronEnabled && renderReviewButton(isReviewButtonDisabled)}
     </ScreenLayout>
   );
 };

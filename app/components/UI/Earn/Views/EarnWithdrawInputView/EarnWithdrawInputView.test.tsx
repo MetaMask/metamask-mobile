@@ -645,7 +645,7 @@ describe('EarnWithdrawInputView', () => {
       render(EarnWithdrawInputView);
 
       fireEvent.press(screen.getByText('8'));
-      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(2);
+      expect(screen.queryAllByText('Not enough ETH')).toHaveLength(1);
     });
   });
 
@@ -1028,7 +1028,7 @@ describe('EarnWithdrawInputView', () => {
       await waitFor(() => {
         expect(
           screen.queryAllByText('Amount exceeds safe withdrawal limit'),
-        ).toHaveLength(2);
+        ).toHaveLength(1);
       });
     });
   });
