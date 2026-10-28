@@ -3348,6 +3348,50 @@ export const runQuickBuyControllerCases = ({
           expect(callOrder).toStrictEqual(['intent', 'submitTx']);
         });
 
+        it('posts a swaps intent for an intent quote before submitIntent', async () => {
+          setupQuoteSourceMock(
+            createQuoteState({
+              activeQuote: createActiveQuote({
+                quoteId: 'b16f3319-fb64-4b15-9a16-ff8769195eb2',
+                quote: {
+                  requestId: 'quote-request-1',
+                  intent: { protocol: 'cowswap' },
+                },
+              }),
+              destTokenAmount: '1',
+            }),
+          );
+          const callOrder: string[] = [];
+          mockMessengerCall().mockImplementation(() => {
+            callOrder.push('intent');
+          });
+          (
+            Engine.context.BridgeStatusController.submitIntent as jest.Mock
+          ).mockImplementation(async () => {
+            callOrder.push('submitIntent');
+          });
+
+          const { result } = renderHook(
+            createTarget(),
+            jest.fn(),
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            copyTradeOrigin,
+          );
+
+          await act(async () => {
+            await result.current.handleConfirm();
+          });
+
+          expect(mockMessengerCall()).toHaveBeenCalledWith(
+            'SocialService:createCopyTradeIntent',
+            expectedIntent,
+          );
+          expect(callOrder).toStrictEqual(['intent', 'submitIntent']);
+        });
+
         it('posts a swaps intent for a sell', async () => {
           mockUsePositionTokenBalance.mockReturnValue(
             createSourceToken({ address: '0xDEST', symbol: 'TARGET' }),
