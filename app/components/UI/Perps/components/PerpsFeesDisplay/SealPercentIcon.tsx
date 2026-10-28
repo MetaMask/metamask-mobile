@@ -41,7 +41,10 @@ const SealPercentIcon = ({
   color = IconColor.IconDefault,
 }: SealPercentIconProps) => {
   const tw = useTailwind();
-  const { color: fill } = StyleSheet.flatten(tw.style(color));
+  // react-native-svg paints `currentColor` from the root `color` style.
+  // A hex `fill` on the path is dropped when the root also sets `fill="none"`,
+  // which left these stamps white beside gray text.
+  const iconStyle = StyleSheet.flatten(tw.style(color));
   const isInformative = Boolean(accessibilityLabel);
 
   return (
@@ -57,11 +60,13 @@ const SealPercentIcon = ({
         width={size}
         height={size}
         viewBox="0 0 256 256"
-        fill="none"
+        fill="currentColor"
+        color={iconStyle.color}
+        style={iconStyle}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
-        <Path d={SEAL_PERCENT_PATH} fill={fill} />
+        <Path d={SEAL_PERCENT_PATH} fill="currentColor" />
       </Svg>
     </View>
   );
