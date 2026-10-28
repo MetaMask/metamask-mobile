@@ -1124,6 +1124,10 @@ export const PerpsFeeDiscountLabelSelectorsIDs = {
   LABEL: 'perps-fee-discount-label',
 } as const;
 
+export const PerpsFeesTooltipSelectorsIDs = {
+  PROMOTIONAL_BANNER_SEAL: 'perps-fees-tooltip-promotional-banner-seal',
+} as const;
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================
