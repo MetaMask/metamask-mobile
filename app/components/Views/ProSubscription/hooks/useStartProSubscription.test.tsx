@@ -14,10 +14,14 @@ import { ApprovalTypes } from '../../../../core/RPCMethods/RPCMethodMiddleware';
 import Logger from '../../../../util/Logger';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
-import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
+import {
+  selectMoneyAccountPremiumVaultConfig,
+  selectMoneyAccountVaultConfig,
+} from '../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyAccountDeposit } from '../../../UI/Money/hooks/useMoneyAccount';
 import type { SelectedPlusPlan } from '../screens/Benefits/utils/getSelectedPlusPlan';
 import { waitForMembershipTopUp } from '../utils/waitForMembershipTopUp';
+import { fetchMembershipFundingRates } from '../utils/membershipFundingAmount';
 import {
   buildConfirmMembershipRequestData,
   useStartProSubscription,
@@ -55,6 +59,11 @@ jest.mock('../../../UI/Money/hooks/useMoneyAccount', () => ({
 
 jest.mock('../utils/waitForMembershipTopUp', () => ({
   waitForMembershipTopUp: jest.fn(),
+}));
+
+jest.mock('../utils/membershipFundingAmount', () => ({
+  ...jest.requireActual('../utils/membershipFundingAmount'),
+  fetchMembershipFundingRates: jest.fn(),
 }));
 
 jest.mock('uuid', () => ({
@@ -138,8 +147,15 @@ const mockedStartSubscription = Engine.context.SubscriptionDelegationService
 const mockedApprovalAdd = Engine.context.ApprovalController.add as jest.Mock;
 const mockedUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 const mockedWaitForMembershipTopUp = jest.mocked(waitForMembershipTopUp);
+const mockedFetchFundingRates = jest.mocked(fetchMembershipFundingRates);
 const mockInitiateDeposit = jest.fn();
 const mockCancelTopUp = jest.fn();
+
+const VAULT_CONFIG = { chainId: CHAIN_ID, accountantAddress: '0xbase' };
+const PREMIUM_VAULT_CONFIG = {
+  chainId: CHAIN_ID,
+  accountantAddress: '0xpremium',
+};
 
 describe('useStartProSubscription', () => {
   beforeEach(() => {
@@ -151,9 +167,16 @@ describe('useStartProSubscription', () => {
         return { address: PAYER_ADDRESS };
       }
       if (selector === selectMoneyAccountVaultConfig) {
-        return { chainId: CHAIN_ID };
+        return VAULT_CONFIG;
+      }
+      if (selector === selectMoneyAccountPremiumVaultConfig) {
+        return PREMIUM_VAULT_CONFIG;
       }
       return undefined;
+    });
+    mockedFetchFundingRates.mockResolvedValue({
+      baseRate: BigInt(1_000_000),
+      premiumRate: BigInt(1_002_997),
     });
     mockedCheckBalance.mockResolvedValue({
       hasSufficientBalance: true,
@@ -274,6 +297,50 @@ describe('useStartProSubscription', () => {
     });
   });
 
+  it('funds a fresh $4.99 checkout with the vault rounding add-on at 6-decimal precision', async () => {
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '4990000',
+    });
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await result.current.startSubscription(MONTHLY_PLAN);
+    });
+
+    expect(mockedFetchFundingRates).toHaveBeenCalledWith(
+      VAULT_CONFIG,
+      PREMIUM_VAULT_CONFIG,
+    );
+    expect(mockInitiateDeposit).toHaveBeenCalledWith(
+      expect.objectContaining({ amount: '4.990013' }),
+    );
+  });
+
+  it('does not open the top-up when the vault rates cannot be read', async () => {
+    const rateError = new Error('rpc unavailable');
+    mockedFetchFundingRates.mockRejectedValue(rateError);
+    mockedCheckBalance.mockResolvedValue({
+      hasSufficientBalance: false,
+      balance: '0',
+      requiredBalance: '4990000',
+    });
+    const { result } = renderHook(() => useStartProSubscription());
+
+    await act(async () => {
+      await expect(result.current.startSubscription(MONTHLY_PLAN)).rejects.toBe(
+        rateError,
+      );
+    });
+
+    expect(mockInitiateDeposit).not.toHaveBeenCalled();
+    expect(mockedStartSubscription).not.toHaveBeenCalled();
+    expect(result.current.errorMessage).toBe(
+      strings('pro_subscription.join_error'),
+    );
+  });
+
   it('tops up the shortfall then starts the subscription when balance is insufficient', async () => {
     let resolveTopUp: (() => void) | undefined;
     mockedCheckBalance.mockResolvedValue({
@@ -298,7 +365,7 @@ describe('useStartProSubscription', () => {
 
     expect(mockInitiateDeposit).toHaveBeenCalledWith({
       batchId: GENERATED_BATCH_ID,
-      amount: '39.99',
+      amount: '39.990083',
       transactionType: TransactionType.membershipSubscription,
       forceBottomSheet: true,
     });
