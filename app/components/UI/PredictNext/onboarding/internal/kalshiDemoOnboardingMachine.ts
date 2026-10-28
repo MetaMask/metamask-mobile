@@ -57,6 +57,7 @@ export type OnboardingEvent =
   | { type: 'busy' }
   | { type: 'status'; state: KalshiOnboardingState; initial: boolean }
   | { type: 'link_sent' }
+  | { type: 'verifying' }
   | { type: 'activated' }
   | { type: 'failed'; failure: OnboardingFailure }
   | { type: 'review_timed_out' }
@@ -116,6 +117,8 @@ export const onboardingReducer = (
     }
     case 'link_sent':
       return { step: 'code', busy: false, retryable: false };
+    case 'verifying':
+      return { step: 'working', busy: true, retryable: false };
     case 'activated':
       return { step: 'done', busy: false, retryable: false };
     case 'review_timed_out':

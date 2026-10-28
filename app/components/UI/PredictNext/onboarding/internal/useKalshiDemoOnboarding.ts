@@ -16,6 +16,8 @@ import {
 
 /** Poll budget after demo KYC returns `kyc_pending`. */
 export const KYC_PENDING_POLL_LIMIT_MS = 60_000;
+/** Poll budget for Kalshi to move the intent off `link_pending` after verify. */
+export const LINK_VERIFY_POLL_LIMIT_MS = 60_000;
 /** Poll budget for an intent already in `kyc_review`. */
 export const KYC_REVIEW_POLL_LIMIT_MS = 120_000;
 
@@ -97,7 +99,10 @@ export const createOnboardingController = (
       timers.add(timer);
     });
 
-  const poll = async (limitMs: number): Promise<void> => {
+  const poll = async (
+    limitMs: number,
+    pending: KalshiOnboardingState[] = ['kyc_pending', 'kyc_review'],
+  ): Promise<void> => {
     const check = guard();
     const deadline = inputs().now() + limitMs;
     while (inputs().now() < deadline) {
@@ -111,7 +116,7 @@ export const createOnboardingController = (
       }
       const status = await inputs().client.getStatus();
       check();
-      if (status.state !== 'kyc_pending' && status.state !== 'kyc_review') {
+      if (!pending.includes(status.state)) {
         await route(status.state, false);
         return;
       }
@@ -143,6 +148,23 @@ export const createOnboardingController = (
       inputs().onActivated();
     }
   }
+
+  /**
+   * Kalshi can lag behind a successful verify. Once the code is accepted we
+   * know the link is going through, so show progress and keep checking
+   * instead of sending the user back to the email step.
+   */
+  const readStatusAfterVerify = async () => {
+    const check = guard();
+    dispatch({ type: 'verifying' });
+    const status = await inputs().client.getStatus();
+    check();
+    if (status.state !== 'link_pending') {
+      await route(status.state, false);
+      return;
+    }
+    await poll(LINK_VERIFY_POLL_LIMIT_MS, ['link_pending']);
+  };
 
   const readStatus = async (initial: boolean) => {
     const check = guard();
@@ -223,7 +245,7 @@ export const createOnboardingController = (
         const check = guard();
         await inputs().client.verifyCode(trimmed, key);
         check();
-        await readStatus(false);
+        await readStatusAfterVerify();
       });
     },
     activate: () => {

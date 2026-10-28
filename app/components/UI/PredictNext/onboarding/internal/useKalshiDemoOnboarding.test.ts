@@ -23,6 +23,8 @@ describe('createOnboardingController', () => {
   const keys: string[] = [];
   let client: jest.Mocked<KalshiOnboardingApi>;
 
+  let clock = 0;
+
   const start = () => {
     const controller = createOnboardingController(
       () => ({
@@ -36,7 +38,10 @@ describe('createOnboardingController', () => {
           keys.push(key);
           return key;
         },
-        now: () => 0,
+        now: () => {
+          clock += 10_000;
+          return clock;
+        },
       }),
       (event) => {
         events.push(event);
@@ -47,6 +52,7 @@ describe('createOnboardingController', () => {
 
   beforeEach(() => {
     events.length = 0;
+    clock = 0;
     keys.length = 0;
     AppState.currentState = 'active';
     client = {
@@ -128,5 +134,32 @@ describe('createOnboardingController', () => {
     await flush();
 
     expect(client.submitEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it('re-reads status after verify until Kalshi leaves link_pending', async () => {
+    client.getStatus
+      .mockResolvedValueOnce(statusOf('link_pending'))
+      .mockResolvedValueOnce(statusOf('link_pending'))
+      .mockResolvedValueOnce(statusOf('approved'));
+    const controller = start();
+
+    controller.verifyCode('123456');
+    await flush();
+
+    expect(client.getStatus).toHaveBeenCalledTimes(3);
+    expect(events.map((e) => e.type)).toContain('verifying');
+    expect(events.filter((e) => e.type === 'status')).toEqual([
+      { type: 'status', state: 'approved', initial: false },
+    ]);
+  });
+
+  it('times out when link_pending outlasts the verify poll budget', async () => {
+    client.getStatus.mockResolvedValue(statusOf('link_pending'));
+    const controller = start();
+
+    controller.verifyCode('123456');
+    await flush();
+
+    expect(events.at(-1)).toEqual({ type: 'review_timed_out' });
   });
 });
