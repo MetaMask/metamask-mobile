@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import { BadgeCount, Box } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabsBar from '../../../../../../../component-library/components-temp/Tabs/TabsBar';
 import { strings } from '../../../../../../../../locales/i18n';
@@ -18,6 +18,7 @@ import {
 } from '../createMarketGroupProjection';
 import { EventMarketListTestIds } from './EventMarketList.testIds';
 import type { EventMarketListProps } from './EventMarketList.types';
+import { useEventPositions } from './useEventPositions';
 
 const getMarketKey = (projection: MarketGroupProjection): string =>
   projection.type === 'group'
@@ -32,6 +33,7 @@ const EventMarketListContent = ({
   testID = EventMarketListTestIds.ROOT,
 }: EventMarketListProps) => {
   const tw = useTailwind();
+  const positions = useEventPositions(event);
   const [selectedMarketIds, setSelectedMarketIds] = useState<
     Record<string, PredictMarket['id']>
   >({});
@@ -101,6 +103,19 @@ const EventMarketListContent = ({
               testID={EventMarketListTestIds.TABS}
               twClassName="-mx-4 mb-4"
               tabs={[
+                ...(positions.length > 0
+                  ? [
+                      {
+                        key: 'positions',
+                        label: strings('predict_next.portfolio.positions'),
+                        content: null,
+                        testID: EventMarketListTestIds.POSITIONS_TAB,
+                        endAccessory: (
+                          <BadgeCount count={positions.length} max={99} />
+                        ),
+                      },
+                    ]
+                  : []),
                 {
                   key: 'markets',
                   label: strings(
@@ -112,7 +127,7 @@ const EventMarketListContent = ({
                   testID: EventMarketListTestIds.MARKETS_TAB,
                 },
               ]}
-              activeIndex={0}
+              activeIndex={positions.length > 0 ? 1 : 0}
               onTabPress={() => undefined}
             />
           ) : null}
