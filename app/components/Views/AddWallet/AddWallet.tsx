@@ -146,6 +146,7 @@ const AddWallet = () => {
             key={config.testID}
             isInteractive
             variant={ListItemVariant.MultiLine}
+            twClassName="min-h-0"
             onPress={() => handleActionPress(config)}
             testID={config.testID}
             avatar={
