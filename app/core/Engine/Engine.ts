@@ -1355,6 +1355,7 @@ export class Engine {
       ShieldController,
       ClaimsController,
       KycController,
+      ProfileController,
       PredictOrderService,
       PredictPortfolioService,
     } = this.context;
@@ -1401,6 +1402,10 @@ export class Engine {
 
     // KYC:
     KycController.clearState();
+
+    // Social profile. It is persisted and belongs to the previous wallet's
+    // session, so it must not be shown for the new one.
+    ProfileController.clearState();
 
     // PredictNext account state. A wallet reset replaces the Predict User
     // within one process, so the previous person's account reads and their
