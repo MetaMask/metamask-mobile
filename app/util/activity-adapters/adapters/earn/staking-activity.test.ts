@@ -6,7 +6,7 @@ import {
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import { ChainId, PooledStakingContract } from '@metamask/stake-sdk';
 import { JsonRpcProvider } from '@ethersproject/providers';
-import type { ActivityListItem, TokenAmount } from '../types';
+import type { ActivityListItem, TokenAmount } from '../../types';
 import {
   classifyKeyringStakingActivity,
   classifyPooledStakingActivity,

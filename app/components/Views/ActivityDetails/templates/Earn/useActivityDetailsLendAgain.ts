@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
 import { parseCaipChainId, type CaipChainId } from '@metamask/utils';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the Earn token map + lending redirect; route-isolation backlog */
-import { EVENT_LOCATIONS } from '../../../UI/Earn/constants/events/earnEvents';
-import { EARN_EXPERIENCES } from '../../../UI/Earn/constants/experiences';
-import useEarnTokens from '../../../UI/Earn/hooks/useEarnTokens';
-import { useStablecoinLendingRedirect } from '../../../UI/Earn/hooks/useStablecoinLendingRedirect';
+import { EVENT_LOCATIONS } from '../../../../UI/Earn/constants/events/earnEvents';
+import { EARN_EXPERIENCES } from '../../../../UI/Earn/constants/experiences';
+import useEarnTokens from '../../../../UI/Earn/hooks/useEarnTokens';
+import { useStablecoinLendingRedirect } from '../../../../UI/Earn/hooks/useStablecoinLendingRedirect';
 /* eslint-enable import-x/no-restricted-paths */
-import type { TokenAmount } from '../../../../util/activity-adapters';
+import type { TokenAmount } from '../../../../../util/activity-adapters';
 import {
   getActivityTokenAddress,
   getActivityTokenCaipChainId,
-} from './activityDetailsDoItAgainUtils';
+} from '../../hooks/activityDetailsDoItAgainUtils';
 
 /** The Earn token map is keyed by decimal chain id — the `eip155` reference. */
 function toEarnMapChainKey(caipChainId: CaipChainId): string | undefined {

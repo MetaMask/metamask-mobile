@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
-import { ActivityDetailsAmountHeader } from '../components';
-import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTemplate';
+import { ActivityDetailsAmountHeader } from '../../components';
+import { ActivityDetailsStandardTemplate } from '../ActivityDetailsStandardTemplate';
 
 /**
  * Single-asset details for Earn/Staking deposits, unstakes and reward claims.
