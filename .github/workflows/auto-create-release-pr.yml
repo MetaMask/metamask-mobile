@@ -6,6 +6,10 @@ name: Auto Create Release PR
 # - release/X.Y.0         — regular release (no OTA_VERSION bump).
 # - release/X.Y.Z (Z > 0) — native hotfix (no OTA_VERSION bump).
 # - release/X.Y.Z-ota     — OTA hotfix; OTA_VERSION is set to v<X.Y.Z>.
+#   The pull request targets ota-base/v<package.json version> (the store tag),
+#   not stable, so an older OTA can run pull_request CI after stable moves on.
+#   Branches cut from a tag that does not contain this file are repaired by
+#   ensure-ota-release-pr.yml, which runs from the default branch.
 #   Runway always increments Z past any existing native patch on the same X.Y
 #   line, so the production OTA tag v<X.Y.Z> never collides with a native tag.
 #   The `-ota` suffix is a branch-name convention ONLY: CHANGELOG.md header,

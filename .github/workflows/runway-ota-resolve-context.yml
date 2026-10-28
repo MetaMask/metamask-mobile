@@ -73,11 +73,31 @@ jobs:
           BRANCH="${SOURCE_BRANCH#refs/heads/}"
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
 
-          # Try same-repo head first, then owner:branch (required by API when listing pulls)
-          # jq '.[0].number' on an empty array outputs the literal string "null", so normalise to empty
-          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
-          if [[ -z "$PR_NUMBER" ]]; then
-            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number // empty' 2>/dev/null || echo "")
+          # Prefer the lowest-numbered open PR whose title is release: <semver> (OTA).
+          # An off-title pin PR must not be approved. gh pr list is newest first.
+          # Non-OTA branches keep the previous lowest-number filter.
+          # Keep SELECT_OTA_PR in sync with select-ota-pull-request.test.ts.
+          OTA_TITLE=""
+          if [[ "$BRANCH" =~ ^release/((0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))-ota$ ]]; then
+            OTA_TITLE="release: ${BASH_REMATCH[1]} (OTA)"
+          fi
+          SELECT_OTA_PR='(map(select((.baseRefName | startswith("ota-base/")) and .title == $title)) | sort_by(.number) | .[0].number) // (map(select(.title == $title)) | sort_by(.number) | .[0].number) // empty'
+          SELECT_ANY_PR='(map(select(.baseRefName | startswith("ota-base/"))) | sort_by(.number) | .[0].number) // (sort_by(.number) | .[0].number) // empty'
+          select_open_pr() {
+            local head="$1"
+            local filter="$SELECT_OTA_PR"
+            if [[ -z "$OTA_TITLE" ]]; then
+              filter="$SELECT_ANY_PR"
+            fi
+            gh pr list --repo "$GITHUB_REPOSITORY" --head "$head" --state open --json number,baseRefName,title \
+              | jq -r --arg title "$OTA_TITLE" "$filter"
+          }
+          PR_NUMBER=$(select_open_pr "$BRANCH" 2>/dev/null || echo "")
+          if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
+            PR_NUMBER=$(select_open_pr "$GITHUB_REPOSITORY_OWNER:$BRANCH" 2>/dev/null || echo "")
+          fi
+          if [[ "$PR_NUMBER" == "null" ]]; then
+            PR_NUMBER=""
           fi
 
           echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"

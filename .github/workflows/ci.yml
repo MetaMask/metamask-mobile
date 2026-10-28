@@ -8,6 +8,9 @@ on:
       - opened
       - reopened
       - synchronize
+    # Release sync PRs into stable do not run pull_request CI.
+    # OTA hotfix PRs target ota-base/v* (pinned to the store tag) so this
+    # trigger still runs when stable has moved ahead of that tag.
     branches-ignore:
       - stable
   merge_group:

@@ -1,0 +1,142 @@
+##############################################################################################
+#
+# Ensure OTA release PR
+#
+# OTA branches are cut from the store release tag. A push-triggered workflow
+# uses the workflow file on that tag, so an OTA cut from a tag older than this
+# change still opens its pull request into stable. This workflow runs from the
+# default branch and points that pull request at ota-base/v<package.json version>.
+#
+# The base branch is created from the tag and then left pinned. Do not merge
+# the OTA pull request into it. Shipping publishes the head SHA and does not
+# merge into stable. JS fixes reach main through the normal fix pull request.
+#
+# `create` only pins the base branch. Opening the pull request here would race
+# Auto Create Release PR and make that workflow skip the OTA_VERSION bump.
+# `workflow_run` runs only after that workflow concludes success, then
+# retargets or opens the pull request. Current store tags trigger Auto Create
+# Release PR on `create`; `push` is the trigger on main. Both events are
+# accepted. head_branch is the created ref. A failed run must not open the
+# pull request. Dispatch this workflow with ota_branch to repair an OTA that
+# was opened before this file reached the default branch.
+#
+# Old tags still auto-label ota-base pull requests on `opened`, after this
+# job has already returned. The clear-late-e2e-label job runs when that
+# workflow finishes, removes pr-not-ready-for-e2e, and reopens the pull
+# request. Auto-label does not listen to `reopened`, so the label is not
+# added again, and Check all jobs pass is not left failed by a late label.
+#
+# Runway's branch and workflow_dispatch interface is unchanged.
+#
+##############################################################################################
+name: Ensure OTA release PR
+
+on:
+  create:
+  workflow_run:
+    workflows:
+      - 'Auto Create Release PR'
+      - 'Auto-apply pr-not-ready-for-e2e label'
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      ota_branch:
+        description: 'OTA branch to repair (release/X.Y.Z-ota)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    ensure-ota-release-pr-${{
+      github.event.workflow_run.head_branch ||
+      github.event.inputs.ota_branch ||
+      github.event.ref ||
+      'unknown'
+    }}
+  cancel-in-progress: false
+
+jobs:
+  ensure:
+    name: Pin base branch and retarget OTA pull request
+    if: >-
+      ${{
+        (github.event_name == 'create' && github.event.ref_type == 'branch' && startsWith(github.event.ref, 'release/') && endsWith(github.event.ref, '-ota')) ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'create') && startsWith(github.event.workflow_run.head_branch, 'release/') && endsWith(github.event.workflow_run.head_branch, '-ota') && github.event.workflow_run.head_repository.full_name == github.repository) ||
+        github.event_name == 'workflow_dispatch'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # token exchange pushes the pin and edits the pull request
+    steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: write
+            pull_requests: write
+
+      # Explicit default-branch ref. create/workflow_run must not check out the
+      # OTA tag, or this job would run the scripts from that older commit.
+      - name: Checkout default branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
+          token: ${{ steps.get-token.outputs.token }}
+          persist-credentials: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+
+      - name: Ensure OTA base branch and pull request
+        env:
+          OTA_BRANCH: ${{ github.event_name == 'workflow_dispatch' && inputs.ota_branch || github.event.workflow_run.head_branch || github.event.ref }}
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+          # Branch creation only pins ota-base. The pull request is opened after
+          # Auto Create Release PR, or by a manual dispatch of this workflow.
+          ALLOW_CREATE: ${{ github.event_name == 'create' && 'false' || 'true' }}
+        run: bash .github/scripts/repair-ota-release-pr.sh
+
+  # pull_request workflows run the file from the merge commit. A repair against
+  # an older tag therefore runs that tag's auto-label workflow, which does not
+  # ignore ota-base/**. The label is added after gh pr create returns, and
+  # ci-status-gate fails Check all jobs pass while pr-not-ready-for-e2e is set.
+  # This job runs from the default branch after that workflow completes.
+  clear-late-e2e-label:
+    name: Remove late pr-not-ready-for-e2e label
+    if: >-
+      ${{ github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Auto-apply pr-not-ready-for-e2e label' && github.event.workflow_run.conclusion == 'success' && startsWith(github.event.workflow_run.head_branch, 'release/') && endsWith(github.event.workflow_run.head_branch, '-ota') && github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Generate token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            contents: read
+            pull_requests: write
+
+      - name: Checkout default branch
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 1
+          token: ${{ steps.get-token.outputs.token }}
+          persist-credentials: false
+
+      - name: Remove the label and retrigger CI
+        env:
+          GH_TOKEN: ${{ steps.get-token.outputs.token }}
+        run: bash .github/scripts/clear-late-ota-e2e-label.sh
