@@ -37,6 +37,7 @@ import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatPr
 import { useMoneyAccountDepositAssetId } from '../../hooks/useMoneyAccountDepositAssetId';
 import { selectHasUnapprovedTransactions } from '../../../../../selectors/transactionController';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { openAsOnlyOnboardingRoute } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
 import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
 import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
@@ -80,7 +81,11 @@ const MoneyAddMoneySheet: React.FC = () => {
   const hasPendingTransaction = useSelector(selectHasUnapprovedTransactions);
   // Flag, min version, supported IP geolocation, and the dev bypass.
   const vbaEligibility = useVbaEligibility();
-  const bankAccountVisibility = getBankAccountEntryVisibility(vbaEligibility);
+  const usableVbaAutoramp = useSelector(selectUsableVbaAutoramp);
+  const bankAccountVisibility = getBankAccountEntryVisibility({
+    ...vbaEligibility,
+    hasUsableAutoramp: Boolean(usableVbaAutoramp),
+  });
   // Derive the deposit asset (CAIP-19) from the same vault config the deposit
   // flow uses, so the entry gate checks the exact asset the deposit targets.
   const depositAssetId = useMoneyAccountDepositAssetId();

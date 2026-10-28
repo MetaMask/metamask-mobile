@@ -13,6 +13,7 @@ import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/us
 import { useRegionHasFiatProvider } from '../../../Ramp/hooks/useRegionHasFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { selectUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
@@ -108,6 +109,11 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../../../selectors/rampsController', () => ({
+  ...jest.requireActual('../../../../../selectors/rampsController'),
+  selectUsableVbaAutoramp: jest.fn(),
+}));
+
 jest.mock('../../../../../selectors/geolocationController', () => ({
   ...jest.requireActual('../../../../../selectors/geolocationController'),
   selectGeolocationLocation: jest.fn(),
@@ -177,6 +183,9 @@ describe('MoneyAddMoneySheet', () => {
       isEnabled: true,
       regions: ['BR'],
     });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
     (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('BR');
     delete process.env.MM_MONEY_VBA_GEO_BYPASS;
   });
@@ -254,6 +263,26 @@ describe('MoneyAddMoneySheet', () => {
 
     fireEvent.press(getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW));
     expect(mockInitiateDeposit).not.toHaveBeenCalled();
+  });
+
+  it('enables the Bank account row for a usable autoramp even when the flag is off', () => {
+    (selectMoneyMovementNeobank as unknown as jest.Mock).mockReturnValue({
+      isEnabled: false,
+      regions: [],
+    });
+    (selectUsableVbaAutoramp as unknown as jest.Mock).mockReturnValue({
+      id: 'ar-1',
+    });
+
+    const { getByTestId, getAllByText } = renderWithProvider(
+      <MoneyAddMoneySheet />,
+    );
+
+    expect(
+      getByTestId(MoneyAddMoneySheetTestIds.BANK_ACCOUNT_ROW),
+    ).toBeEnabled();
+    // Only External address is coming soon.
+    expect(getAllByText('Coming soon')).toHaveLength(1);
   });
 
   it('hides the Bank account row when the flag is on and geolocation is outside its regions', () => {

@@ -38,13 +38,18 @@ import { useNetworkTier } from '../../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../../util/deviceCapability';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectSelectedVbaWalletAddress } from '../../../../../selectors/rampsController';
+import {
+  findUsableVbaAutoramp,
+  selectSelectedVbaWalletAddress,
+  selectUsableVbaAutoramp,
+} from '../../../../../selectors/rampsController';
 import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import {
   getVbaSourceCurrencyForCountry,
   isVbaSourceCurrency,
   VBA_CHOOSABLE_SOURCE_CURRENCIES,
+  type VbaSourceCurrency,
 } from '../../../../../util/region/getVbaSourceCurrency';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
@@ -135,6 +140,12 @@ const isTerminalStatus = (status: string): boolean =>
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
 
+// EUR stays out until that deposit layout exists. Ignore anything else too.
+const toDrawableCurrency = (value: unknown): VbaSourceCurrency | undefined =>
+  isVbaSourceCurrency(value) && VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(value)
+    ? value
+    : undefined;
+
 const buildDetailRows = (
   instructions: AutorampDepositInstructions | null,
 ): DetailRow[] => {
@@ -192,7 +203,8 @@ const buildDetailRows = (
  * Virtual bank account screen. This is the only place that registers the
  * wallet and creates the autoramp, in the fiat mapped from the effective
  * location (`moneyMovementNeobank.regionOverride` when set, otherwise the
- * IP country).
+ * IP country). An existing autoramp's currency wins, and no second currency
+ * is ever created on the Money account.
  * Until the autoramp is Approved it shows the creating state. Polling stops
  * once deposit details load or the autoramp is Rejected or Cancelled; only
  * Retry creates a replacement. Pushed on the root stack
@@ -223,14 +235,12 @@ const VbaDetails = () => {
         regions,
         defaultCurrency,
       );
-  const requestedCurrency = route.params?.sourceCurrency;
-  // EUR stays out until that deposit layout exists. Ignore anything else too.
-  const pickedCurrency =
-    isVbaSourceCurrency(requestedCurrency) &&
-    VBA_CHOOSABLE_SOURCE_CURRENCIES.includes(requestedCurrency)
-      ? requestedCurrency
-      : undefined;
-  const sourceCurrency = pickedCurrency ?? regionCurrency;
+  const usableAutoramp = useSelector(selectUsableVbaAutoramp);
+  const existingCurrency = toDrawableCurrency(
+    usableAutoramp?.depositRailsSummary?.currency,
+  );
+  const pickedCurrency = toDrawableCurrency(route.params?.sourceCurrency);
+  const sourceCurrency = existingCurrency ?? pickedCurrency ?? regionCurrency;
   const hardwareTier = getHardwareTier();
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
@@ -326,6 +336,20 @@ const VbaDetails = () => {
         );
       }
       if (!autoramp) {
+        const existing = findUsableVbaAutoramp(readAutoramps(), walletAddress);
+        if (existing) {
+          const existingFailure = getAccountCreateFiatFailureResult(
+            existing.status,
+          );
+          if (existingFailure) {
+            throw new AccountCreateRegistrationError(existingFailure);
+          }
+          // A refresh can set its currency, which re-keys this screen.
+          if (ramps.refreshAutoramp) {
+            await ramps.refreshAutoramp(existing.id);
+          }
+          return;
+        }
         if (!sourceCurrency) {
           if (!stillCurrent()) {
             return;

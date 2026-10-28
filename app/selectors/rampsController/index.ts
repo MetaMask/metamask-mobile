@@ -171,3 +171,37 @@ export const selectSelectedVbaWalletAddress = createSelector(
     return toChecksumHexAddress(address);
   },
 );
+
+/**
+ * First autoramp on the Money account address that is not Rejected or
+ * Cancelled. A failed account create still counts. Reads no feature flag, so
+ * an existing account stays reachable when the neobank flags are off.
+ *
+ * @param autoramps - Autoramps from `RampsController` state.
+ * @param walletAddress - Money account address.
+ * @returns The usable autoramp, or undefined.
+ */
+export const findUsableVbaAutoramp = <
+  T extends { walletAddress: string; status: string },
+>(
+  autoramps: readonly T[],
+  walletAddress: string | null | undefined,
+): T | undefined => {
+  const wallet = walletAddress?.trim().toLowerCase();
+  if (!wallet) {
+    return undefined;
+  }
+  return autoramps.find(
+    (autoramp) =>
+      autoramp.walletAddress?.trim().toLowerCase() === wallet &&
+      autoramp.status !== 'Rejected' &&
+      autoramp.status !== 'Cancelled',
+  );
+};
+
+export const selectUsableVbaAutoramp = createSelector(
+  selectRampsControllerState,
+  selectSelectedVbaWalletAddress,
+  (rampsControllerState, walletAddress) =>
+    findUsableVbaAutoramp(rampsControllerState?.autoramps ?? [], walletAddress),
+);
