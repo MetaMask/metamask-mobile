@@ -118,12 +118,15 @@ export const setMpcTwoFactorTokenProvider = (
   twoFactorTokenProvider = provider;
 };
 
-const getProfileId = (token: string): string =>
-  (
-    JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf8')) as {
+// JWT segments are base64url; the React Native `buffer` polyfill only decodes base64.
+const getProfileId = (token: string): string => {
+  const payload = token.split('.')[1].replace(/-/gu, '+').replace(/_/gu, '/');
+  return (
+    JSON.parse(Buffer.from(payload, 'base64').toString('utf8')) as {
       sub: string;
     }
   ).sub;
+};
 
 /**
  * Build the V1 keyring builder for the real Money MPC keyring, backed by the
