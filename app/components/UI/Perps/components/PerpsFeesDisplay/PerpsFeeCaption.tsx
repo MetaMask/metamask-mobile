@@ -21,9 +21,19 @@ import { SEAL_PERCENT_ICON_SIZE } from './SealPercentIcon';
  */
 const ORIGINAL_RATE_PLACEHOLDER = '\u0000originalFeePercentage\u0000';
 const DISCOUNTED_RATE_PLACEHOLDER = '\u0000feePercentage\u0000';
+const ORIGINAL_RATE_KEY = 'original-fee-rate';
+const DISCOUNTED_RATE_KEY = 'discounted-fee-rate';
 const PROMO_RATE_SPLIT = new RegExp(
   `(${ORIGINAL_RATE_PLACEHOLDER}|${DISCOUNTED_RATE_PLACEHOLDER})`,
 );
+
+/**
+ * Copy slices are identified by their text. A repeated slice gets an
+ * occurrence suffix so two identical fragments do not share a key, without
+ * using the list index.
+ */
+const promoCopyKey = (segment: string, occurrence: number): string =>
+  occurrence === 0 ? segment : `${segment}\u0000${occurrence}`;
 
 interface PerpsFeeCaptionProps {
   feePercentage: string;
@@ -60,15 +70,17 @@ const promoSentenceNodes = (
   template: string,
   feePercentage: string,
   originalFeePercentage?: string,
-): React.ReactNode[] =>
-  template
+): React.ReactNode[] => {
+  const copyOccurrence = new Map<string, number>();
+
+  return template
     .split(PROMO_RATE_SPLIT)
     .filter((segment) => segment !== '')
-    .map((segment, index) => {
+    .map((segment) => {
       if (segment === ORIGINAL_RATE_PLACEHOLDER) {
         return (
           <Text
-            key={`original-rate-${index}`}
+            key={ORIGINAL_RATE_KEY}
             variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             twClassName="line-through"
@@ -80,7 +92,7 @@ const promoSentenceNodes = (
       if (segment === DISCOUNTED_RATE_PLACEHOLDER) {
         return (
           <Text
-            key={`discounted-rate-${index}`}
+            key={DISCOUNTED_RATE_KEY}
             variant={TextVariant.BodyXs}
             color={TextColor.SuccessDefault}
           >
@@ -88,9 +100,11 @@ const promoSentenceNodes = (
           </Text>
         );
       }
+      const occurrence = copyOccurrence.get(segment) ?? 0;
+      copyOccurrence.set(segment, occurrence + 1);
       return (
         <Text
-          key={`promo-copy-${index}`}
+          key={promoCopyKey(segment, occurrence)}
           variant={TextVariant.BodyXs}
           color={TextColor.TextAlternative}
         >
@@ -98,6 +112,7 @@ const promoSentenceNodes = (
         </Text>
       );
     });
+};
 
 const PerpsFeeCaption = ({
   feePercentage,
