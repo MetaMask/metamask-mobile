@@ -1246,10 +1246,10 @@
     },
     "vba_details": {
       "title": "Add money with Pix",
-      "description": "Copy the code and paste it into Pix Copia e Cola in your bank app. Funds usually land in your Money account instantly.",
+      "description": "Add funds directly from your bank. Funds usually land in your Money account within minutes.",
       "helper_text": "Your Money account is provided by [Entity], [regulated status, to confirm]. Reais are converted to mUSD when they arrive.",
-      "copia_cola_label": "PIX Copia e Cola",
-      "pix_key_label": "PIX key",
+      "copia_cola_label": "Pix Copia e Cola",
+      "pix_key_label": "Pix key",
       "bank_transfer_title": "Add money by bank transfer",
       "bank_transfer_description": "Use these details to send money from your bank account to MetaMask Money.",
       "account_holder_label": "Account holder",
