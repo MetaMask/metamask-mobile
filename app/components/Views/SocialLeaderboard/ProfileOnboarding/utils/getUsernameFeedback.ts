@@ -10,7 +10,6 @@ export interface UsernameFeedback {
   tone: UsernameFeedbackTone;
 }
 
-/** The one line under the username field: local error, claim error, or available. */
 export const getUsernameFeedback = ({
   localError,
   claimError,

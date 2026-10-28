@@ -8,12 +8,10 @@ import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingVi
 import type { UsernameFeedback } from './utils/getUsernameFeedback';
 
 interface UsernameStatusLineProps {
-  /** `null` renders nothing. */
   feedback: UsernameFeedback | null;
   align?: 'left' | 'center';
 }
 
-/** Renders the single feedback line under the username field. */
 const UsernameStatusLine: React.FC<UsernameStatusLineProps> = ({
   feedback,
   align = 'left',

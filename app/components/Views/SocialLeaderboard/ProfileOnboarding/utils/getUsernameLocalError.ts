@@ -8,7 +8,6 @@ import {
 
 const STRING_PREFIX = 'social_leaderboard.profile_onboarding';
 
-/** Client-side username rule message; `null` lets a server verdict speak. */
 export const getUsernameLocalError = (
   draft: ProfileOnboardingDraft,
   status: UsernameStatus,
