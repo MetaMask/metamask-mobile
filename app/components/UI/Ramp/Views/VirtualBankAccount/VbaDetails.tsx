@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Image, ScrollView } from 'react-native';
+import {
+  AccessibilityInfo,
+  Image,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -56,6 +61,10 @@ import {
 import { isVbaDepositDebugEnabled } from './vbaDepositDebug';
 import VbaDepositDebugSheet from './VbaDepositDebugSheet';
 import { ensureMusdAutoramp, findUsableAutoramp } from './ensureMusdAutoramp';
+import {
+  getCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import {
   AccountCreateRegistrationError,
   ACCOUNT_CREATE_ERROR_DESTINATION,
@@ -136,6 +145,23 @@ const isTerminalStatus = (status: string): boolean =>
 
 const readAutoramps = (): AutorampCursor[] =>
   (Engine.context.RampsController as DepositRamps).state?.autoramps ?? [];
+
+const readCachedInstructions = (
+  walletAddress: string | null | undefined,
+  sourceCurrency: string | undefined,
+): AutorampDepositInstructions | null => {
+  if (!walletAddress) {
+    return null;
+  }
+  const autoramp = findUsableAutoramp(
+    readAutoramps(),
+    walletAddress,
+    sourceCurrency,
+  );
+  return autoramp?.status === 'Approved'
+    ? getCachedDepositInstructions(autoramp.id)
+    : null;
+};
 
 const buildDetailRows = (
   instructions: AutorampDepositInstructions | null,
@@ -237,7 +263,10 @@ const VbaDetails = () => {
   const networkTier = useNetworkTier();
   const debugEnabled = isVbaDepositDebugEnabled();
   const [instructions, setInstructions] =
-    useState<AutorampDepositInstructions | null>(null);
+    useState<AutorampDepositInstructions | null>(() =>
+      readCachedInstructions(walletAddress, sourceCurrency),
+    );
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [autorampId, setAutorampId] = useState<string | null>(null);
   const [autorampStatus, setAutorampStatus] = useState<string | null>(() =>
     walletAddress
@@ -447,6 +476,7 @@ const VbaDetails = () => {
         }
         if (details) {
           finishPixFetchTrace(true, undefined, requestTraceId);
+          setCachedDepositInstructions(autoramp.id, details);
           setInstructions(details);
           // Debug builds keep polling so the latest deposit stays visible.
           pollingDoneRef.current = !debugEnabled;
@@ -503,7 +533,7 @@ const VbaDetails = () => {
     setStateAccountKey(nextKey);
     // A reused route or an account switch must not keep the previous details.
     pollingDoneRef.current = false;
-    setInstructions(null);
+    setInstructions(readCachedInstructions(walletAddress, sourceCurrency));
     setLoadError(false);
     setAwaitingProviderApproval(false);
     setAutorampId(null);
@@ -620,6 +650,23 @@ const VbaDetails = () => {
     [],
   );
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshDeposit();
+      setLoadError(false);
+    } catch (error) {
+      setLoadError(true);
+      Logger.error(error as Error, {
+        message: 'VbaDetails: pull to refresh failed',
+      });
+    } finally {
+      if (isMountedRef.current) {
+        setIsRefreshing(false);
+      }
+    }
+  }, [refreshDeposit]);
+
   const handleOpenDebug = useCallback(() => {
     setIsDebugOpen(true);
   }, []);
@@ -683,6 +730,9 @@ const VbaDetails = () => {
       <ScrollView
         contentContainerStyle={tw.style('flex-grow px-4 pb-4')}
         testID={VbaDetailsSelectorsIDs.CONTAINER}
+        refreshControl={
+          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
+        }
       >
         <Box alignItems={BoxAlignItems.Center} twClassName="w-full">
           <Image

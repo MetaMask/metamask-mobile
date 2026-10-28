@@ -9,6 +9,10 @@ import { strings } from '../../../../../../locales/i18n';
 import VbaDetails, { VbaDetailsSelectorsIDs } from './VbaDetails';
 import { VbaDepositDebugSelectorsIDs } from './VbaDepositDebugSheet';
 import { resetMusdAutorampSetupGuard } from './ensureMusdAutoramp';
+import {
+  clearCachedDepositInstructions,
+  setCachedDepositInstructions,
+} from './vbaDepositInstructionsCache';
 import { VbaCreatingAccountSelectorsIDs } from './VbaCreatingAccount';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
@@ -193,6 +197,7 @@ describe('VbaDetails', () => {
     jest.clearAllMocks();
     mockStartVbaCufChildTrace.mockReturnValue('vba-child-id');
     resetMusdAutorampSetupGuard();
+    clearCachedDepositInstructions();
     mockWalletAddress = '0xabc';
     mockLocation = 'BR';
     mockRouteParams = undefined;
@@ -268,6 +273,25 @@ describe('VbaDetails', () => {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },
     });
+  });
+
+  it('renders cached Pix details immediately and revalidates in the background', async () => {
+    setCachedDepositInstructions('ar-1', pixInstructions);
+    mockGetDepositInstructions.mockResolvedValue({
+      ...pixInstructions,
+      pixKey: 'new@example.com',
+    });
+
+    const { getByTestId, queryByTestId, getByText } = renderWithProvider(
+      <VbaDetails />,
+    );
+
+    expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    expect(queryByTestId(VbaDetailsSelectorsIDs.LOADING)).toBeNull();
+    await waitFor(() => {
+      expect(getByText('new@example.com')).toBeOnTheScreen();
+    });
+    expect(mockGetDepositInstructions).toHaveBeenCalledWith('ar-1');
   });
 
   it('shows both Pix rows without leading key icons', async () => {
