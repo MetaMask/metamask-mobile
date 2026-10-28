@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, within } from '@testing-library/react-native';
-import type { KycDataShare, KycSessionStatus } from '@metamask/kyc-controller';
+import type { KycDataShare } from '@metamask/kyc-controller';
 import IdentityVerification from './IdentityVerification';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../util/test/initial-root-state';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { strings } from '../../../../../locales/i18n';
 import { formatTimestampToDateTime } from '../../../../util/date';
@@ -29,41 +28,24 @@ const MOONPAY_SHARE: KycDataShare = {
   sharedAt: '2026-09-17T11:23:00.000Z',
 };
 
-const sessionStatus = (finalStatus: string): KycSessionStatus =>
-  ({
-    id: 'session-1',
-    finalStatus,
-    externalUserId: 'external-user-1',
-    kycStatus: finalStatus,
-    vendor: 'moonpay',
-    vendorStatus: 'approved',
-  }) as KycSessionStatus;
+const IRON_SHARE: KycDataShare = {
+  kycSessionId: '223e4567-e89b-12d3-a456-426614174001',
+  vendor: 'iron',
+  sharedAt: '2026-08-02T09:05:00.000Z',
+};
 
-const renderScreen = (finalStatus: string | null = 'approved') =>
-  renderWithProvider(<IdentityVerification />, {
-    state: {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          KycController: {
-            sessionStatus: finalStatus ? sessionStatus(finalStatus) : null,
-          },
-        },
-      },
-    },
-  });
+const arrange = (shares: KycDataShare[] = [MOONPAY_SHARE]) => {
+  mockUseIdentityDataShares.mockReturnValue({ shares, isLoading: false });
+  return renderWithProvider(<IdentityVerification />);
+};
 
 describe('IdentityVerification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseIdentityDataShares.mockReturnValue({
-      shares: [MOONPAY_SHARE],
-      isLoading: false,
-    });
   });
 
   it('renders the screen header', () => {
-    const { getByTestId } = renderScreen();
+    const { getByTestId } = arrange();
 
     const header = getByTestId(IdentityVerificationSelectorsIDs.HEADER);
     expect(
@@ -72,68 +54,56 @@ describe('IdentityVerification', () => {
   });
 
   it('navigates back when the back button is pressed', () => {
-    const { getByTestId } = renderScreen();
+    const { getByTestId } = arrange();
 
     fireEvent.press(getByTestId(CommonSelectorsIDs.BACK_ARROW_BUTTON));
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('shows the verified headline for an approved session', () => {
-    const { getByText } = renderScreen('approved');
+  it('names the provider each verification was for', () => {
+    const { getByText } = arrange();
 
-    expect(
-      getByText(strings('identity_verification.status_verified')),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the not-verified headline for a rejected session', () => {
-    const { getByText } = renderScreen('rejected');
-
-    expect(
-      getByText(strings('identity_verification.status_not_verified')),
-    ).toBeOnTheScreen();
-  });
-
-  it('shows the in-progress headline for a pending session', () => {
-    const { getByText } = renderScreen('pending');
-
-    expect(
-      getByText(strings('identity_verification.status_in_progress')),
-    ).toBeOnTheScreen();
-  });
-
-  it('lists each vendor the identity data was shared with, and when', () => {
-    const { getByTestId, getByText } = renderScreen();
-
-    expect(
-      getByTestId(`${IdentityVerificationSelectorsIDs.SHARE_ROW}-moonpay`),
-    ).toBeOnTheScreen();
-    expect(getByText('MoonPay')).toBeOnTheScreen();
     expect(
       getByText(
-        strings('identity_verification.shared_on', {
-          date: formatTimestampToDateTime(Date.parse(MOONPAY_SHARE.sharedAt)),
+        strings('identity_verification.verification_for', {
+          provider: 'MoonPay',
         }),
       ),
     ).toBeOnTheScreen();
   });
 
-  it('hides the shared-with section when nothing has been shared', () => {
-    mockUseIdentityDataShares.mockReturnValue({
-      shares: [],
-      isLoading: false,
-    });
-
-    const { queryByTestId } = renderScreen();
+  it('shows the date beneath each verification', () => {
+    const { getByText } = arrange();
 
     expect(
-      queryByTestId(IdentityVerificationSelectorsIDs.SHARED_WITH_HEADING),
+      getByText(
+        formatTimestampToDateTime(Date.parse(MOONPAY_SHARE.sharedAt)) as string,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders one row per provider', () => {
+    const { getByTestId } = arrange([MOONPAY_SHARE, IRON_SHARE]);
+
+    expect(
+      getByTestId(`${IdentityVerificationSelectorsIDs.SHARE_ROW}-moonpay`),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(`${IdentityVerificationSelectorsIDs.SHARE_ROW}-iron`),
+    ).toBeOnTheScreen();
+  });
+
+  it('hides the card entirely when there are no verifications', () => {
+    const { queryByTestId } = arrange([]);
+
+    expect(
+      queryByTestId(IdentityVerificationSelectorsIDs.VERIFICATION_CARD),
     ).toBeNull();
   });
 
   it('renders the delete identity data button', () => {
-    const { getByTestId } = renderScreen();
+    const { getByTestId } = arrange();
 
     expect(
       getByTestId(IdentityVerificationSelectorsIDs.DELETE_BUTTON),

@@ -9,6 +9,7 @@ import AutoLock from './AutoLock/AutoLock';
 import ClearPrivacy from './ClearPrivacy/ClearPrivacy';
 import BlockaidSettings from './BlockaidSettings';
 import SupportConsentPreferenceSection from './SupportConsentPreferenceSection';
+import IdentityVerificationSection from './IdentityVerificationSection';
 
 export {
   ClearCookiesSection,
@@ -22,4 +23,5 @@ export {
   ClearPrivacy,
   BlockaidSettings,
   SupportConsentPreferenceSection,
+  IdentityVerificationSection,
 };

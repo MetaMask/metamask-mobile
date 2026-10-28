@@ -8553,11 +8553,8 @@
   "identity_verification": {
     "title": "Identity verification",
     "settings_description": "See your verification status and who your identity data is shared with.",
-    "status_verified": "Identity verified",
-    "status_not_verified": "Identity not verified",
-    "status_in_progress": "Verification in progress",
-    "shared_with": "Shared with",
-    "shared_on": "Shared {{date}}",
+    "section_button": "View",
+    "verification_for": "Identity verification for {{provider}}",
     "delete_identity_data": "Delete identity data"
   },
   "mfa": {
