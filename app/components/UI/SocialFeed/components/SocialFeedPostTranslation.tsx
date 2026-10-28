@@ -5,7 +5,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { AccessibilityInfo } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -14,6 +15,9 @@ import { translateComment } from '../translateComment';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 
 const ENGLISH = 'en';
+
+/** BodySm is shorter than the 24dp minimum target. Extra slop covers the gap. */
+const TRANSLATION_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
 
 type TranslationPhase = 'idle' | 'pending' | 'translated' | 'failed';
 
@@ -42,6 +46,7 @@ const TranslationAction = ({
     fontWeight={FontWeight.Medium}
     color={TextColor.TextAlternative}
     accessibilityRole="button"
+    hitSlop={TRANSLATION_HIT_SLOP}
     onPress={onPress}
     testID={testID}
   >
@@ -63,6 +68,8 @@ const TranslationStatus = ({
       <Text
         variant={TextVariant.BodySm}
         color={TextColor.TextAlternative}
+        accessibilityLiveRegion="polite"
+        accessibilityState={{ busy: true }}
         testID={`${SocialFeedPostShellSelectorsIDs.TRANSLATING}-${postId}`}
       >
         {strings('social_leaderboard.translation.translating')}
@@ -72,7 +79,10 @@ const TranslationStatus = ({
 
   if (phase === 'failed') {
     return (
-      <Box twClassName="flex-row items-center gap-1">
+      <Box
+        twClassName="flex-row items-center gap-1"
+        accessibilityLiveRegion="polite"
+      >
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
@@ -95,6 +105,7 @@ const TranslationStatus = ({
         variant={TextVariant.BodySm}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
+        accessibilityLiveRegion="polite"
         testID={`${SocialFeedPostShellSelectorsIDs.TRANSLATED}-${postId}`}
       >
         {strings('social_leaderboard.translation.translated_to_english')}
@@ -121,6 +132,21 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
   const comment = post.item.comment ?? '';
   const visibleComment =
     phase === 'translated' && translatedText ? translatedText : comment;
+
+  useEffect(() => {
+    if (phase === 'idle') {
+      return;
+    }
+    const announcement =
+      phase === 'pending'
+        ? strings('social_leaderboard.translation.translating')
+        : phase === 'failed'
+          ? strings('social_leaderboard.translation.failed')
+          : `${visibleComment} ${strings(
+              'social_leaderboard.translation.translated_to_english',
+            )}`;
+    AccessibilityInfo.announceForAccessibility(announcement);
+  }, [phase, visibleComment]);
 
   const onTranslate = () => {
     const { commentId } = post;
@@ -160,7 +186,11 @@ const SocialFeedPostTranslation = ({ post }: { post: SocialV1FeedPost }) => {
 
   return (
     <Box twClassName="gap-2">
-      <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+      <Text
+        variant={TextVariant.BodyMd}
+        color={TextColor.TextDefault}
+        accessibilityLiveRegion="polite"
+      >
         {visibleComment}
       </Text>
       {translationEnabled && showsTranslationControl(post) ? (

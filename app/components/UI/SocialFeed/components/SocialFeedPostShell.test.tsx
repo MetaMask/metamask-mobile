@@ -1,7 +1,7 @@
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
-import { View } from 'react-native';
+import { AccessibilityInfo, View } from 'react-native';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
@@ -146,7 +146,7 @@ const renderShell = (
     onPositionPress?: (post: SocialV1FeedPost) => void;
     /** `null` renders with no surface provider, so invented values stay hidden. */
     showMockedFields?: boolean | null;
-    /** Turns on `aiSocialCommentTranslationEnabled` for this render. */
+    /** Turns on `aiSocialCommentTranslation` for this render. */
     translationEnabled?: boolean;
   },
 ) => {
@@ -180,7 +180,7 @@ const renderShell = (
               backgroundState: {
                 RemoteFeatureFlagController: {
                   remoteFeatureFlags: {
-                    aiSocialCommentTranslationEnabled: {
+                    aiSocialCommentTranslation: {
                       enabled: true,
                       minimumVersion: '0.0.0',
                     },
@@ -779,6 +779,12 @@ describe('SocialFeedPostShell', () => {
       });
 
       expect(screen.getByText('See translation')).toBeOnTheScreen();
+      expect(screen.getByText('See translation')).toHaveProp('hitSlop', {
+        top: 12,
+        bottom: 12,
+        left: 8,
+        right: 8,
+      });
     });
 
     it('hides translation when the feature flag is off', () => {
@@ -822,15 +828,28 @@ describe('SocialFeedPostShell', () => {
         { translationEnabled: true },
       );
 
+      const announce = jest.spyOn(
+        AccessibilityInfo,
+        'announceForAccessibility',
+      );
       fireEvent.press(screen.getByText('See translation'));
 
+      expect(announce).toHaveBeenCalledWith('Translating...');
       expect(screen.getByText('Translating...')).toBeOnTheScreen();
+      expect(screen.getByText('Translating...')).toHaveProp(
+        'accessibilityState',
+        { busy: true },
+      );
       await waitFor(() => {
         expect(
           screen.getByText('This content is in Korean.'),
         ).toBeOnTheScreen();
       });
       expect(screen.getByText('Translated to English')).toBeOnTheScreen();
+      expect(announce).toHaveBeenCalledWith(
+        'This content is in Korean. Translated to English',
+      );
+      announce.mockRestore();
       expect(screen.queryByText('이 내용은 한국어입니다.')).toBeNull();
       expect(translate).toHaveBeenCalledWith({
         commentId: 'comment-1',
