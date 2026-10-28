@@ -10,6 +10,8 @@ import { moneyMfaHomePromptSession } from '../../../../lib/Money/mfa/moneyMfaHom
 import { useMoneyMfaHomePrompt } from './useMoneyMfaHomePrompt';
 
 const mockNavigate = jest.fn();
+let mockFocus: (() => (() => void) | void) | undefined;
+let mockBlur: (() => void) | void;
 
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
@@ -23,7 +25,10 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
-  useFocusEffect: (callback: () => void) => callback(),
+  useFocusEffect: (callback: () => (() => void) | void) => {
+    mockFocus = callback;
+    mockBlur = callback();
+  },
 }));
 
 jest.mock('react-redux', () => ({
@@ -61,12 +66,14 @@ const arrange = ({
   hasBalance = true,
   credentials = [],
   refreshError,
+  pendingCredentials,
 }: {
   status?: MoneyMfaStatus;
   totalBalance?: number;
   hasBalance?: boolean;
   credentials?: EnrolledCredential[];
   refreshError?: Error;
+  pendingCredentials?: Promise<EnrolledCredential[]>;
 } = {}) => {
   mockUseMoneyMfa.mockReturnValue({
     status,
@@ -86,7 +93,9 @@ const arrange = ({
     }
     return undefined;
   });
-  if (refreshError) {
+  if (pendingCredentials) {
+    mockRefreshEnrolledCredentials.mockReturnValue(pendingCredentials);
+  } else if (refreshError) {
     mockRefreshEnrolledCredentials.mockRejectedValue(refreshError);
   } else {
     mockRefreshEnrolledCredentials.mockResolvedValue(credentials);
@@ -110,6 +119,24 @@ describe('useMoneyMfaHomePrompt', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MFA_PROMPT_SHEET,
     });
+  });
+
+  it('opens the prompt when Wallet regains focus during the passkey check', async () => {
+    let resolveCredentials: (credentials: EnrolledCredential[]) => void = () =>
+      undefined;
+    arrange({
+      pendingCredentials: new Promise((resolve) => {
+        resolveCredentials = resolve;
+      }),
+    });
+
+    mockBlur?.();
+    mockBlur = mockFocus?.();
+    resolveCredentials([]);
+    await flushPromises();
+
+    expect(mockRefreshEnrolledCredentials).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('opens the prompt once per session', async () => {
