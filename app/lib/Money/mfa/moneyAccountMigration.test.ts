@@ -114,10 +114,10 @@ describe('moneyAccountMigration', () => {
   });
 
   it('rejects without saving a result when reset while the account is created', async () => {
-    let finishCreate: (account: { id: string }) => void = () => undefined;
+    let finishCreate: (account: unknown) => void = () => undefined;
     mockMoneyAccountController.createMoneyAccount.mockReturnValueOnce(
       new Promise((resolve) => {
-        finishCreate = resolve;
+        finishCreate = resolve as (account: unknown) => void;
       }) as ReturnType<typeof mockMoneyAccountController.createMoneyAccount>,
     );
     const promise = moneyAccountMigration.start();
