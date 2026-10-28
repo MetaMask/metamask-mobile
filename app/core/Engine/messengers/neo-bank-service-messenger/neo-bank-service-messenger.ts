@@ -29,7 +29,13 @@ export function getNeoBankServiceMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AuthenticationController:getBearerToken'],
+    actions: [
+      'AuthenticationController:getBearerToken',
+      // WalletRegistrationService.getMoonpayCustomerId() reads the canonical
+      // profile id through this action; NeoBankService.getMicrodeposits()
+      // depends on it.
+      'AuthenticationController:getSessionProfile',
+    ],
     events: [],
     messenger,
   });
