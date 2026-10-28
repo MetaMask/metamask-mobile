@@ -9,6 +9,10 @@ import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
 import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../analytics/onboardingCompletedAnalytics';
 import type { WalletSetupCompletedAttributionAnalyticsPayload } from '../analytics/walletSetupCompletedAttribution';
 import { analytics } from '../analytics/analytics';
+import {
+  takeImportedWalletFundingAmountRange,
+  type FundingAmountRange,
+} from '../analytics/fundingAmountRange';
 import Logger from '../Logger';
 import { QrSyncSyncFlows } from '../../core/QrSync/constants';
 import {
@@ -114,16 +118,33 @@ export function finalizeOnboardingCompletion({
         isBasicFunctionalityEnabled: finalBasicFunctionalityEnabled,
       });
 
-    const onboardingCompletedEvent = AnalyticsEventBuilder.createEventBuilder(
-      MetaMetricsEvents.ONBOARDING_COMPLETED,
-    )
-      .addProperties({
-        ...onboardingCompletedProperties,
-        ...walletSetupAttributionProps,
-      })
-      .build();
+    const trackOnboardingCompleted = (
+      fundingAmountRange?: FundingAmountRange,
+    ) =>
+      analytics.trackEvent(
+        AnalyticsEventBuilder.createEventBuilder(
+          MetaMetricsEvents.ONBOARDING_COMPLETED,
+        )
+          .addProperties({
+            ...onboardingCompletedProperties,
+            ...(fundingAmountRange
+              ? { funding_amount_range: fundingAmountRange }
+              : {}),
+            ...walletSetupAttributionProps,
+          })
+          .build(),
+      );
 
-    analytics.trackEvent(onboardingCompletedEvent);
+    // Import waits (up to the fetch timeout) to reuse Wallet Setup Completed's balance fetch.
+    const pendingFundingAmountRange =
+      successFlow === ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE
+        ? takeImportedWalletFundingAmountRange()
+        : undefined;
+    if (pendingFundingAmountRange) {
+      pendingFundingAmountRange.then(trackOnboardingCompleted);
+    } else {
+      trackOnboardingCompleted();
+    }
 
     dispatch(
       setWalletHomeOnboardingStepsEligible(true, {
