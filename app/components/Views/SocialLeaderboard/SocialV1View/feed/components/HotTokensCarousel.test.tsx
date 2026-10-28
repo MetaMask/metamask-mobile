@@ -110,7 +110,7 @@ describe('HotTokensCarousel', () => {
 
     expect(
       screen.getByTestId(SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID),
-    ).toHaveStyle({ marginBottom: -16 });
+    ).toBeOnTheScreen();
     expect(
       screen.queryByTestId(`${SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}-row-1`),
     ).not.toBeOnTheScreen();

@@ -316,20 +316,14 @@ const HotTokensCarousel: React.FC<HotTokensCarouselProps> = ({
     return null;
   }
 
-  // The feed column leaves 24px under this rail. Cancelling 16px of that
-  // leaves 8px, and the first post keeps its own 8px padding, for 16px total.
   if (isLoading) {
-    return (
-      <Box twClassName="-mb-4">
-        <SectionPillsSkeleton rowCount={1} />
-      </Box>
-    );
+    return <SectionPillsSkeleton rowCount={1} />;
   }
 
   return (
     <Box
       onLayout={handleViewportLayout}
-      twClassName="overflow-hidden -mb-4"
+      twClassName="overflow-hidden"
       testID={SOCIAL_V1_HOT_TOKENS_CAROUSEL_TEST_ID}
     >
       <GestureDetector gesture={pan}>
