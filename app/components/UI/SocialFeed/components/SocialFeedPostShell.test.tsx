@@ -779,7 +779,9 @@ describe('SocialFeedPostShell', () => {
       });
 
       expect(screen.getByText('See translation')).toBeOnTheScreen();
-      expect(screen.getByText('See translation')).toHaveProp('hitSlop', {
+      expect(
+        screen.getByRole('button', { name: 'See translation' }),
+      ).toHaveProp('hitSlop', {
         top: 12,
         bottom: 12,
         left: 8,
@@ -832,7 +834,7 @@ describe('SocialFeedPostShell', () => {
         AccessibilityInfo,
         'announceForAccessibility',
       );
-      fireEvent.press(screen.getByText('See translation'));
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
 
       expect(announce).toHaveBeenCalledWith('Translating...');
       expect(screen.getByText('Translating...')).toBeOnTheScreen();
@@ -862,7 +864,7 @@ describe('SocialFeedPostShell', () => {
         translationEnabled: true,
       });
 
-      fireEvent.press(screen.getByText('See translation'));
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
 
       await waitFor(() => {
         expect(screen.getByText("Couldn't translate.")).toBeOnTheScreen();
@@ -874,7 +876,7 @@ describe('SocialFeedPostShell', () => {
         sourceLanguage: 'ko',
         translations: { en: 'Amazing position, in English' },
       });
-      fireEvent.press(screen.getByText('Try again'));
+      fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
 
       await waitFor(() => {
         expect(
@@ -892,7 +894,7 @@ describe('SocialFeedPostShell', () => {
         { translationEnabled: true },
       );
 
-      fireEvent.press(screen.getByText('See translation'));
+      fireEvent.press(screen.getByRole('button', { name: 'See translation' }));
 
       expect(screen.getByText('Already translated')).toBeOnTheScreen();
       expect(translate).not.toHaveBeenCalled();

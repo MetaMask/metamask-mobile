@@ -6,7 +6,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo } from 'react-native';
+import { AccessibilityInfo, Pressable } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { selectAiSocialCommentTranslationEnabled } from '../../../../selectors/featureFlagController/socialCommentTranslation';
@@ -41,17 +41,20 @@ const TranslationAction = ({
   onPress: () => void;
   testID: string;
 }) => (
-  <Text
-    variant={TextVariant.BodySm}
-    fontWeight={FontWeight.Medium}
-    color={TextColor.TextAlternative}
+  <Pressable
     accessibilityRole="button"
     hitSlop={TRANSLATION_HIT_SLOP}
     onPress={onPress}
     testID={testID}
   >
-    {label}
-  </Text>
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+    >
+      {label}
+    </Text>
+  </Pressable>
 );
 
 const TranslationStatus = ({
