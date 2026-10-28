@@ -1,10 +1,10 @@
-import '../../../../tests/component-view/mocks';
+import '../../../../../tests/component-view/mocks';
 import { fireEvent, within } from '@testing-library/react-native';
 import { Text, TextColor } from '@metamask/design-system-react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { CaipChainId } from '@metamask/utils';
-import { strings } from '../../../../locales/i18n';
-import { describeForPlatforms } from '../../../../tests/component-view/platform';
+import { strings } from '../../../../../locales/i18n';
+import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import {
   ACTIVITY_CV_PREDICT_DEPOSIT_TIME_MS,
   ACTIVITY_CV_PREDICT_MARKET_TITLE,
@@ -19,20 +19,20 @@ import {
   buildPredictSellActivity,
   initialStateActivity,
   initialStateActivityWithLocalTransactions,
-} from '../../../../tests/component-view/presets/activity';
+} from '../../../../../tests/component-view/presets/activity';
 import {
   renderActivityDetailsView,
   getActivityDetailsViewParams,
-} from '../../../../tests/component-view/renderers/activity';
-import Engine from '../../../core/Engine';
-import { mapPredictActivity } from '../../../util/activity-adapters';
-import type { PredictActivity } from '../../UI/Predict/types';
-import { formatPredictDate } from './templates/PredictDetails/PredictDetails.types';
+} from '../../../../../tests/component-view/renderers/activity';
+import Engine from '../../../../core/Engine';
+import { mapPredictActivity } from '../../../../util/activity-adapters';
+import type { PredictActivity } from '../../../../UI/Predict/types';
+import { formatPredictDate } from './PredictDetails.types';
 import {
   ActivityDetailsSelectorsIDs,
   getActivityDetailsStepIconTestId,
   getActivityDetailsStepTestId,
-} from './ActivityDetails.testIds';
+} from '../../ActivityDetails.testIds';
 
 const findAmountTextColor = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
