@@ -59,6 +59,10 @@ import {
 } from '../PostTradeShareBottomSheet/postTradeShareSession';
 import SocialV1View from './SocialV1View';
 import { SocialV1ViewSelectorsIDs } from './SocialV1View.testIds';
+import {
+  acceptSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
 
 const OPEN_PERP_POSITION_ID = 'cv-open-perp';
 const OPEN_PERP_TIMESTAMP = 1_700_000_000;
@@ -150,6 +154,14 @@ const findTrendingCopyTradeButton = () =>
 const pressCopyTrade = async () => {
   fireEvent.press(await findTrendingCopyTradeButton());
 };
+
+beforeEach(async () => {
+  await acceptSocialTerms();
+});
+
+afterEach(async () => {
+  await resetSocialTermsAcceptance();
+});
 
 describe('SocialV1View copy trade', () => {
   beforeEach(() => {

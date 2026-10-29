@@ -35,7 +35,15 @@ interface CurrentStep {
   purpose: MfaPurpose;
   flowId?: string;
   email?: string;
+  /** When the server accepts another email code. */
+  resendAvailableAt?: number;
 }
+
+/**
+ * The server's minimum gap between two email codes. A sent code starts it, so
+ * the resend button waits rather than failing with the cooldown error.
+ */
+const EMAIL_RESEND_COOLDOWN_MS = 60_000;
 
 export const createMfaFlow = ({
   request,
@@ -177,12 +185,16 @@ export const createMfaFlow = ({
             reason: tokenReason,
           });
     current.flowId = challenge.flowId;
+    current.resendAvailableAt =
+      current.method === 'email_otp'
+        ? now() + EMAIL_RESEND_COOLDOWN_MS
+        : undefined;
     if (state.step.name === 'otp') {
       setState({
         step: { ...state.step, codeSent: true },
         busy: false,
         error: undefined,
-        resendAvailableAt: undefined,
+        resendAvailableAt: current.resendAvailableAt,
       });
     }
   };
@@ -412,7 +424,7 @@ export const createMfaFlow = ({
    *
    * There is no `resendAvailableAt` check here: a resend that comes too early
    * fails with a cooldown code, which the `cooldown` branch handles, and a
-   * successful send clears it in `beginCodeChallenge`.
+   * successful send restarts it in `beginCodeChallenge`.
    *
    * @param code - The error's code.
    * @param isRecovery - Whether the failed operation was itself a recovery.
@@ -583,13 +595,16 @@ export const createMfaFlow = ({
       current.email === email &&
       current.flowId
     ) {
-      show({
-        name: 'otp',
-        purpose: 'setup',
-        method: 'email_otp',
-        email,
-        codeSent: true,
-      });
+      show(
+        {
+          name: 'otp',
+          purpose: 'setup',
+          method: 'email_otp',
+          email,
+          codeSent: true,
+        },
+        { resendAvailableAt: current.resendAvailableAt },
+      );
       return;
     }
     current = { method: 'email_otp', purpose: 'setup', email };
@@ -597,13 +612,16 @@ export const createMfaFlow = ({
     // first tells the user a code went out when enrollment still failed.
     await run(async () => {
       await beginCodeChallenge();
-      show({
-        name: 'otp',
-        purpose: 'setup',
-        method: 'email_otp',
-        email,
-        codeSent: true,
-      });
+      show(
+        {
+          name: 'otp',
+          purpose: 'setup',
+          method: 'email_otp',
+          email,
+          codeSent: true,
+        },
+        { resendAvailableAt: current?.resendAvailableAt },
+      );
     });
   };
 

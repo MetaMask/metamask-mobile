@@ -5,7 +5,7 @@ import { AppiumAssertions } from '../../../framework';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../../page-objects/wallet/WalletActionsBottomSheet';
 import TransactionPayConfirmation from '../../../page-objects/Confirmation/TransactionPayConfirmation';
-import PredictMarketList from '../../../page-objects/Predict/PredictMarketList';
+import PredictHome from '../../../page-objects/Predict/PredictHome';
 import { Performance, PerformancePredict } from '../../../tags.performance.js';
 import WalletView from '../../../page-objects/wallet/WalletView.js';
 import { enableHermesAppProfiling } from '../../helpers/appProfiling';
@@ -43,9 +43,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
       await enableHermesAppProfiling();
       await WalletView.scrollAndTapPredictionsSection();
       await timer1.measure(async () => {
-        await AppiumAssertions.expectElementToBeVisible(
-          PredictMarketList.container,
-        );
+        await AppiumAssertions.expectElementToBeVisible(PredictHome.container);
       });
 
       // Timer 2: Open deposit screen
@@ -55,7 +53,7 @@ perfTest.describe(`${Performance} ${PerformancePredict}`, () => {
         currentDeviceDetails.platform,
       );
 
-      await PredictMarketList.tapAddFundsButton();
+      await PredictHome.tapAddFunds();
       await timer2.measure(async () => {
         await AppiumAssertions.expectElementToBeVisible(
           TransactionPayConfirmation.keyboardContainer,

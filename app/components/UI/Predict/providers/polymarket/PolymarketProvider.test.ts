@@ -90,7 +90,10 @@ import type { SignedSafeExecution } from './preflight/core';
 import { planDepositWalletPreflight } from './preflight/depositWallet';
 import { buildLegacySafeMigrationSweepTransaction } from './preflight/legacySafeMigration';
 import { buildTradeAllowancesTx } from './preflight/trade';
-import { buildWithdrawTransaction } from './preflight/withdraw';
+import {
+  buildUnsignedWithdrawTransaction,
+  buildWithdrawTransaction,
+} from './preflight/withdraw';
 import {
   generateTransferData,
   isSmartContractAddress,
@@ -219,6 +222,7 @@ jest.mock('./preflight/trade', () => ({
 }));
 
 jest.mock('./preflight/withdraw', () => ({
+  buildUnsignedWithdrawTransaction: jest.fn(),
   buildWithdrawTransaction: jest.fn(),
 }));
 
@@ -304,6 +308,9 @@ const mockBuildTradeAllowancesTx = jest.mocked(buildTradeAllowancesTx);
 const ctfTradeProtocol = expect.objectContaining({ key: 'v2' });
 const positionsTradeProtocol = expect.objectContaining({ key: 'positions' });
 const mockBuildWithdrawTransaction = jest.mocked(buildWithdrawTransaction);
+const mockBuildUnsignedWithdrawTransaction = jest.mocked(
+  buildUnsignedWithdrawTransaction,
+);
 
 const depositWalletAddress = '0x2222222222222222222222222222222222222222';
 const legacySafeAddress = '0x9999999999999999999999999999999999999999';
@@ -1274,6 +1281,10 @@ describe('PolymarketProvider', () => {
         data: '0xsignedWithdraw',
       },
       type: TransactionType.predictWithdraw,
+    });
+    mockBuildUnsignedWithdrawTransaction.mockResolvedValue({
+      to: '0x9999999999999999999999999999999999999999',
+      data: '0xpreValidatedWithdraw',
     });
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -3913,6 +3924,43 @@ describe('PolymarketProvider', () => {
       amount: 1,
       walletType: 'deposit-wallet',
     });
+  });
+
+  it('builds the Safe withdraw simulation call with the requested amount', async () => {
+    const result = await createProvider().getWithdrawSimulation({
+      signer,
+      amountRaw: 2_000_000n,
+    });
+
+    expect(mockBuildUnsignedWithdrawTransaction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        signer,
+        safeAddress: '0x9999999999999999999999999999999999999999',
+        requestedAmountRaw: 2_000_000n,
+        protocol: expect.objectContaining({ key: 'v2' }),
+        safeLegacyUsdceBalance: 0n,
+      }),
+    );
+    expect(result).toEqual({
+      chainId: CHAIN_IDS.POLYGON,
+      from: signer.address,
+      to: '0x9999999999999999999999999999999999999999',
+      data: '0xpreValidatedWithdraw',
+    });
+  });
+
+  it('returns no withdraw simulation for deposit wallets', async () => {
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const result = await createProvider().getWithdrawSimulation({
+      signer,
+      amountRaw: 2_000_000n,
+    });
+
+    expect(mockBuildUnsignedWithdrawTransaction).not.toHaveBeenCalled();
+    expect(result).toBeUndefined();
   });
 
   it('gets spot crypto price history from the current Polymarket price history API', async () => {

@@ -13,6 +13,10 @@ import type { ReviewOrderParams } from '../Views/ReviewOrder/ReviewOrder';
 import type { OrderCompletedParams } from '../Views/OrderCompleted/OrderCompleted';
 import type { CardTransaction } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import type { CardFundingToken, CardUserPhase } from '../types';
+import type {
+  CardMfaCodeParams,
+  CardMfaMethodParams,
+} from '../Views/CardMfa/types';
 
 /**
  * Nested-navigation params for Card container screens navigated via
@@ -43,6 +47,8 @@ export interface CardPostAuthRedirect {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CardScreensStackParamList = {
   CardHome: { fromCardOnboarding?: boolean } | undefined;
+  CardApplePaySplash: undefined;
+  CardApplePayConfirmation: undefined;
   CardWelcome: undefined;
   ChooseYourCard: ChooseYourCardParams | undefined;
   ReviewOrder: ReviewOrderParams | undefined;
@@ -67,6 +73,8 @@ export type CardScreensStackParamList = {
         postAuthRedirect?: CardPostAuthRedirect;
       }
     | undefined;
+  CardMfaMethod: CardMfaMethodParams;
+  CardMfaCode: CardMfaCodeParams;
   CardSpendingLimit:
     | {
         flow?: 'manage' | 'enable' | 'onboarding' | 'enable_card';
@@ -145,6 +153,7 @@ export type CardModalsNavigationParamList = {
   CardRevokeAllowanceSheet: ImmersveRevokeAllowanceSheetRouteParams | undefined;
   CardUkMigrationModal: undefined;
   CardDigitalWalletInstructionsModal: undefined;
+  CardApplePayUsageSheet: undefined;
   CardSignInHelpModal: undefined;
 };
 

@@ -35,6 +35,10 @@ const RewardsSettingsView: React.FC = () => {
 
   useTrackRewardsPageView({ page_type: 'settings' });
 
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
   const handleOpenOffDeviceSheet = useCallback(() => {
     setIsOffDeviceSheetOpen(true);
   }, []);
@@ -81,7 +85,7 @@ const RewardsSettingsView: React.FC = () => {
       >
         <HeaderStandard
           title={strings('rewards.settings.title')}
-          onBack={() => navigation.goBack()}
+          onBack={handleBack}
           backButtonProps={{ testID: 'header-back-button' }}
           includesTopInset
         />

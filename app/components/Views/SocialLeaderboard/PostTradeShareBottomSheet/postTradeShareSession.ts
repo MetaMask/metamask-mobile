@@ -102,15 +102,19 @@ const STORE_GLOBAL_KEY = '__mmPostTradeShareSession__';
 interface StoreState {
   session: PostTradeShareSession | null;
   listeners: Set<Listener>;
+  /** Mounted screens able to reopen Quick Buy, ref-counted per owner. */
+  reopenOwners: Map<string, number>;
 }
 
 const bootstrap = (): StoreState => ({
   session: null,
   listeners: new Set(),
+  reopenOwners: new Map(),
 });
 
 const globalScope = globalThis as unknown as Record<string, StoreState>;
 const state: StoreState = globalScope[STORE_GLOBAL_KEY] ?? bootstrap();
+state.reopenOwners ??= new Map();
 globalScope[STORE_GLOBAL_KEY] = state;
 let nextSessionId = 0;
 
@@ -204,6 +208,34 @@ export const requestPostTradeShareReopen = (): void => {
   state.session = { ...state.session, reopenRequested: true };
   notify();
 };
+
+/**
+ * Marks `owner` as able to reopen Quick Buy until the returned function runs.
+ * The sheet offers Try again only while the session's owner is registered.
+ */
+export const registerPostTradeShareReopenOwner = (
+  owner: string,
+): (() => void) => {
+  state.reopenOwners.set(owner, (state.reopenOwners.get(owner) ?? 0) + 1);
+  notify();
+  let isRegistered = true;
+  return () => {
+    if (!isRegistered) {
+      return;
+    }
+    isRegistered = false;
+    const count = (state.reopenOwners.get(owner) ?? 0) - 1;
+    if (count > 0) {
+      state.reopenOwners.set(owner, count);
+    } else {
+      state.reopenOwners.delete(owner);
+    }
+    notify();
+  };
+};
+
+export const hasPostTradeShareReopenOwner = (owner: string): boolean =>
+  state.reopenOwners.has(owner);
 
 export const consumePostTradeShareReopen = (): PostTradeShareReopen | null => {
   if (!state.session?.reopenRequested || state.session.product !== 'spot') {
