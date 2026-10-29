@@ -6607,6 +6607,88 @@ describe('CardController — sign-in resolution and migration', () => {
       ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
     });
 
+    it('abandonAuth clears a migration so the next sign-in links the wallet', async () => {
+      const { controller, immersve } = buildSignInController();
+      const option = {
+        providerId: CardProviderIds.Immersve,
+        method: 'siwe' as const,
+      };
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: false,
+        nextStep: {
+          type: 'mfa_select',
+          options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
+        },
+      });
+
+      controller.beginMigration();
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+      controller.abandonAuth();
+
+      (immersve.submitCredentials as jest.Mock).mockResolvedValueOnce({
+        done: true,
+        tokenSet: {
+          ...mockTokenSet,
+          providerUserId: 'imv-user',
+          accountAddress: ADDR_A,
+        },
+      });
+      await controller.authenticateWithWallet({
+        option,
+        address: ADDR_A,
+        country: 'GB',
+      });
+
+      expect(controller.getSignInLink()?.status).toBe('linked');
+    });
+
+    it('uses nextSessionId for the following MFA post', async () => {
+      const { controller, immersve } = buildSignInController();
+      (immersve.submitCredentials as jest.Mock)
+        .mockResolvedValueOnce({
+          done: false,
+          nextSessionId: 'login-req-2',
+          nextStep: {
+            type: 'mfa_select',
+            options: [
+              { method: 'email', maskedDestination: 'j***@example.com' },
+            ],
+          },
+        })
+        .mockResolvedValueOnce({
+          done: false,
+          nextStep: {
+            type: 'mfa_code',
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+            expiresAt: null,
+          },
+        });
+
+      await controller.authenticateWithWallet({
+        option: {
+          providerId: CardProviderIds.Immersve,
+          method: 'siwe',
+        },
+        address: ADDR_A,
+        country: 'GB',
+      });
+      await controller.submitCredentials({
+        type: 'mfa_method',
+        method: 'email',
+        destination: 'jane@example.com',
+      });
+
+      expect(immersve.submitCredentials).toHaveBeenLastCalledWith(
+        expect.objectContaining({ id: 'login-req-2' }),
+        expect.objectContaining({ type: 'mfa_method' }),
+      );
+    });
+
     it('records a started link when migration finishes on the MFA code', async () => {
       const { controller, immersve } = buildSignInController();
       (immersve.submitCredentials as jest.Mock)

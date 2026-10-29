@@ -1771,10 +1771,12 @@ export class CardController extends BaseController<
 
   /**
    * Drops an in-progress login, including a half-finished MFA challenge,
-   * without clearing stored tokens.
+   * without clearing stored tokens. Also drops a migration that was waiting
+   * on that login, so the next ordinary sign-in does not write a started link.
    */
   abandonAuth(): void {
     this.currentSession = null;
+    this.#migrationInProgress = false;
   }
 
   #linkWalletSignInIfMissing(
@@ -1964,6 +1966,7 @@ export class CardController extends BaseController<
     if (result.nextStep) {
       this.currentSession = {
         ...this.currentSession,
+        id: result.nextSessionId ?? this.currentSession.id,
         currentStep: result.nextStep,
       };
     } else {

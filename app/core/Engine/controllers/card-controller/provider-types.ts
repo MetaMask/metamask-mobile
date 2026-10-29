@@ -180,6 +180,11 @@ export interface CardAuthResult {
   done: boolean;
   tokenSet?: CardAuthTokens;
   nextStep?: CardAuthStep;
+  /**
+   * Login id from an MFA step response. The controller uses it for the next
+   * post when the provider issues a new id per step.
+   */
+  nextSessionId?: string;
   onboardingRequired?: {
     sessionId: string;
     phase: string;

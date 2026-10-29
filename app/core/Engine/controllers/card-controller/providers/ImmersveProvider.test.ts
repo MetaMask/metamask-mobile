@@ -559,6 +559,7 @@ describe('ImmersveProvider', () => {
 
       expect(result).toStrictEqual({
         done: false,
+        nextSessionId: 'login-req-1',
         nextStep: {
           type: 'mfa_select',
           options: [
@@ -617,7 +618,7 @@ describe('ImmersveProvider', () => {
     it('posts the chosen method and returns the code step', async () => {
       const { provider, service } = createProvider();
       service.post.mockResolvedValue({
-        loginRequestId: 'login-req-1',
+        loginRequestId: 'login-req-2',
         nextStep: {
           type: 'submit-mfa-code',
           mfaOption: {
@@ -641,6 +642,7 @@ describe('ImmersveProvider', () => {
       });
       expect(result).toStrictEqual({
         done: false,
+        nextSessionId: 'login-req-2',
         nextStep: {
           type: 'mfa_code',
           method: 'email',
@@ -941,6 +943,24 @@ describe('ImmersveProvider', () => {
         statusCode: 403,
         errorCode: 'FUNDING_SOURCE_EXISTS',
       });
+    });
+
+    it('maps an MFA 403 on a non-login call to Forbidden and reports it', async () => {
+      const { provider, service } = createProvider();
+      service.post.mockRejectedValue(
+        new CardApiError(
+          403,
+          '/api/funding-sources',
+          JSON.stringify({ errorCode: 'MFA_CODE_INVALID' }),
+        ),
+      );
+
+      await expect(provider.createFundingSource(TOKENS)).rejects.toMatchObject({
+        code: CardProviderErrorCode.Forbidden,
+        statusCode: 403,
+        errorCode: 'MFA_CODE_INVALID',
+      });
+      expect(Logger.error).toHaveBeenCalled();
     });
 
     it('createFundingSource maps API failures', async () => {

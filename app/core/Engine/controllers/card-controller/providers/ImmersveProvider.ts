@@ -82,18 +82,15 @@ const IMMERSVE_MFA_FORBIDDEN_CODES: Readonly<
   LOGIN_STEP_INVALID: CardProviderErrorCode.AuthRestartRequired,
 };
 
-function isExpectedMfaLoginError(error: unknown): boolean {
-  return (
-    error instanceof CardApiError &&
-    error.statusCode === 403 &&
-    typeof error.errorCode === 'string' &&
-    error.errorCode in IMMERSVE_MFA_FORBIDDEN_CODES
-  );
-}
-
-function mapMfaForbiddenError(error: CardApiError): CardProviderError | null {
+function mapMfaForbiddenError(error: unknown): CardProviderError | null {
+  if (
+    !(error instanceof CardApiError) ||
+    error.statusCode !== 403 ||
+    typeof error.errorCode !== 'string'
+  ) {
+    return null;
+  }
   const code = error.errorCode;
-  if (!code) return null;
   const mapped = IMMERSVE_MFA_FORBIDDEN_CODES[code];
   if (!mapped) return null;
 
@@ -160,8 +157,7 @@ function reportAndMap(
 ): never {
   const isAuthFailure =
     isCardAuthTokenError(error) ||
-    (error instanceof CardApiError && error.statusCode === 401) ||
-    isExpectedMfaLoginError(error);
+    (error instanceof CardApiError && error.statusCode === 401);
   if (!isAuthFailure) {
     Logger.error(
       error as Error,
@@ -197,8 +193,6 @@ function mapApiError(error: unknown, operation: string): CardProviderError {
     }
 
     if (error.statusCode === 403) {
-      const mfaError = mapMfaForbiddenError(error);
-      if (mfaError) return mfaError;
       return new CardProviderError(
         CardProviderErrorCode.Forbidden,
         `Forbidden on ${operation}`,
@@ -396,11 +390,25 @@ function loginCompleteRequest(
   }
 }
 
+function readLoginRequestId(
+  response: ImmersveLoginCompleteResponse,
+): string | undefined {
+  if (
+    'loginRequestId' in response &&
+    typeof response.loginRequestId === 'string' &&
+    response.loginRequestId.length > 0
+  ) {
+    return response.loginRequestId;
+  }
+  return undefined;
+}
+
 function mapLoginCompleteResponse(
   response: ImmersveLoginCompleteResponse,
   session: CardAuthSession,
 ): CardAuthResult {
   const step = readMfaStep(response);
+  const nextSessionId = readLoginRequestId(response);
 
   if (step?.type === 'select-mfa-method') {
     const options = (step.mfaOptions ?? [])
@@ -414,7 +422,11 @@ function mapLoginCompleteResponse(
         IMMERSVE_NO_VERIFIED_CONTACT_CODE,
       );
     }
-    return { done: false, nextStep: { type: 'mfa_select', options } };
+    return {
+      done: false,
+      nextStep: { type: 'mfa_select', options },
+      ...(nextSessionId ? { nextSessionId } : {}),
+    };
   }
 
   if (step?.type === 'submit-mfa-code') {
@@ -429,6 +441,7 @@ function mapLoginCompleteResponse(
     }
     return {
       done: false,
+      ...(nextSessionId ? { nextSessionId } : {}),
       nextStep: {
         type: 'mfa_code',
         method: option.method,
@@ -799,6 +812,10 @@ export class ImmersveProvider implements ICardProvider {
         request.body,
       );
     } catch (error) {
+      const mfaError = mapMfaForbiddenError(error);
+      if (mfaError) {
+        throw mfaError;
+      }
       reportAndMap(error, 'submitCredentials', {
         network: this.network,
         country:
