@@ -12,7 +12,6 @@ import {
 } from '@metamask/eth-money-mpc-keyring';
 import { sha256 } from '@noble/hashes/sha2';
 import { MpcMoneyKeyring } from './MpcMoneyKeyring';
-import { applyEmptyIkmHkdfWorkaround } from './empty-ikm-hkdf-workaround';
 
 // Only dev is deployed so far.
 const MPC_CLOUD_URL =
@@ -143,8 +142,6 @@ const getProfileId = (token: string): string => {
 export function buildRealMpcMoneyKeyringBuilder({
   getBearerToken,
 }: RealMpcMoneyKeyringBuilderOptions): KeyringBuilder {
-  applyEmptyIkmHkdfWorkaround();
-
   const builder: KeyringBuilder = () => {
     // Loaded lazily so builds without the real keyring never load the native
     // module.
