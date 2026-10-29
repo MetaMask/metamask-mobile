@@ -11,7 +11,7 @@ import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext/activity/internal/legacy/usePredictActivityItems';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -539,9 +539,12 @@ jest.mock('./hooks/usePerpsActivityItems', () => ({
   usePerpsActivityItems: jest.fn(() => mockPerpsSourceState),
 }));
 
-jest.mock('./hooks/usePredictActivityItems', () => ({
-  usePredictActivityItems: jest.fn(() => mockPredictSourceState),
-}));
+jest.mock(
+  '../../UI/PredictNext/activity/internal/legacy/usePredictActivityItems',
+  () => ({
+    usePredictActivityItems: jest.fn(() => mockPredictSourceState),
+  }),
+);
 
 const usePerpsActivityItemsMock = jest.mocked(usePerpsActivityItems);
 const usePredictActivityItemsMock = jest.mocked(usePredictActivityItems);

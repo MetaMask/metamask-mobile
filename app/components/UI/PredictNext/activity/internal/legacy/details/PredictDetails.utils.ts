@@ -1,10 +1,10 @@
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import type {
   ActivityListItem,
   PredictSettlementExtras,
-} from '../../../../../util/activity-adapters';
+} from '../../../../../../../util/activity-adapters';
 import { formatPredictDate } from './PredictDetails.types';
-import type { ActivityDetailsStep } from '../../components';
+import type { ActivityDetailsStep } from '../../../../../../Views/ActivityDetails/components';
 
 const POLYMARKET_BASE_URL = 'https://polymarket.com';
 

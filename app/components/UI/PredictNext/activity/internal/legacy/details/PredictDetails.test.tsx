@@ -2,11 +2,11 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { PredictActivity } from '#app/components/UI/Predict/types';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
-import type { ActivityListItem } from '../../../../../util/activity-adapters';
-import Routes from '../../../../../constants/navigation/Routes';
-import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import type { ActivityListItem } from '../../../../../../../util/activity-adapters';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { ActivityDetailsSelectorsIDs } from '../../../../../../Views/ActivityDetails/ActivityDetails.testIds';
 import { usePredictDetailsItem } from './usePredictDetailsItem';
 import { PredictDetails } from './PredictDetails';
 
@@ -23,10 +23,10 @@ jest.mock('./usePredictDetailsItem', () => ({
 const usePredictDetailsItemMock = jest.mocked(usePredictDetailsItem);
 
 jest.mock(
-  '../../../../../selectors/multichainAccounts/accountTreeController',
+  '../../../../../../../selectors/multichainAccounts/accountTreeController',
   () => {
     const actual = jest.requireActual(
-      '../../../../../selectors/multichainAccounts/accountTreeController',
+      '../../../../../../../selectors/multichainAccounts/accountTreeController',
     );
     return {
       ...actual,

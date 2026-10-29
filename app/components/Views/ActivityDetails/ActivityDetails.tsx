@@ -30,7 +30,7 @@ import {
 import { PerpsConnectionProvider } from '../../UI/Perps/providers/PerpsConnectionProvider';
 import { PerpsStreamProvider } from '../../UI/Perps/providers/PerpsStreamManager';
 import { usePerpsDetailsItem } from './templates/Perps/usePerpsDetailsItem';
-import { usePredictDetailsItem } from './templates/PredictDetails/usePredictDetailsItem';
+import { usePredictDetailsItem } from '../../UI/PredictNext/activity/internal/legacy/details/usePredictDetailsItem';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';

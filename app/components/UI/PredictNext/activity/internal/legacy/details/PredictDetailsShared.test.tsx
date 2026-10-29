@@ -1,8 +1,8 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { strings } from '../../../../../../locales/i18n';
-import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+import { strings } from '../../../../../../../../locales/i18n';
+import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
+import { ActivityDetailsSelectorsIDs } from '../../../../../../Views/ActivityDetails/ActivityDetails.testIds';
 import {
   ClaimWinningsBreakdown,
   PredictHero,

@@ -114,7 +114,7 @@ import {
 import { useRampNavigation } from '../../UI/Ramp/hooks/useRampNavigation';
 import { RAMPS_BUY_CUF_SURFACE } from '../../UI/Ramp/constants/rampsBuyCufTags';
 import { usePerpsActivityItems } from './hooks/usePerpsActivityItems';
-import { usePredictActivityItems } from './hooks/usePredictActivityItems';
+import { usePredictActivityItems } from '../../UI/PredictNext/activity/internal/legacy/usePredictActivityItems';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import {

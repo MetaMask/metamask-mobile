@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { SectionDivider } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
-import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { strings } from '../../../../../../../../locales/i18n';
+import { selectSelectedAccountGroupEvmInternalAccount } from '../../../../../../../selectors/multichainAccounts/accountTreeController';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
@@ -15,8 +15,8 @@ import {
   ActivityDetailsTemplateFrame,
   useActivityPayFiat,
   useFormatActivityTokenAmount,
-} from '../../components';
-import { ActivityDetailsSelectorsIDs } from '../../ActivityDetails.testIds';
+} from '../../../../../../Views/ActivityDetails/components';
+import { ActivityDetailsSelectorsIDs } from '../../../../../../Views/ActivityDetails/ActivityDetails.testIds';
 import {
   getPredictFundsCtaLabel,
   type PredictActivityListItem,

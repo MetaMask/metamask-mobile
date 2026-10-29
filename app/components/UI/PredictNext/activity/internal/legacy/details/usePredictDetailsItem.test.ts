@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
-import { mapPredictActivity } from '#app/util/activity-adapters';
+import { mapPredictActivity } from '../mapPredictActivity';
 import { usePredictActivity } from '#app/components/UI/Predict/hooks/usePredictActivity';
 import { usePredictDetailsItem } from './usePredictDetailsItem';
 
@@ -11,7 +11,7 @@ jest.mock('#app/components/UI/Predict/hooks/usePredictActivity', () => ({
   usePredictActivity: jest.fn(),
 }));
 
-jest.mock('#app/util/activity-adapters', () => ({
+jest.mock('../mapPredictActivity', () => ({
   mapPredictActivity: jest.fn(),
 }));
 

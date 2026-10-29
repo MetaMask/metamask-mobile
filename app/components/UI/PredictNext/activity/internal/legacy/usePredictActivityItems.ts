@@ -12,12 +12,9 @@
  */
 import { useCallback, useMemo } from 'react';
 import type { CaipChainId } from '@metamask/utils';
-import {
-  mapPredictActivity,
-  type ActivityListItem,
-} from '../../../../util/activity-adapters';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { usePredictActivity } from '../../../UI/Predict/hooks/usePredictActivity';
+import type { ActivityListItem } from '../../../../../../util/activity-adapters';
+import { usePredictActivity } from '../../../../Predict/hooks/usePredictActivity';
+import { mapPredictActivity } from './mapPredictActivity';
 
 /** Polymarket settles on Polygon; injected as the activity chainId. */
 const PREDICT_ACTIVITY_CHAIN_ID = 'eip155:137' as CaipChainId;

@@ -5,24 +5,22 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../../locales/i18n';
+import { strings } from '../../../../../../../../locales/i18n';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
   ActivityDetailsDoItAgainButton,
   ActivityDetailsTemplateFrame,
   ActivityDetailsWebviewButton,
-} from '../../components';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Predict UI utilities until shared predict utilities are extracted. */
+} from '../../../../../../Views/ActivityDetails/components';
 import {
   formatCurrencyValue,
   formatPositionSize,
   formatPrice,
-} from '../../../../UI/Predict/utils/format';
-/* eslint-enable import-x/no-restricted-paths */
+} from '../../../../../Predict/utils/format';
 import { type PredictActivityListItem } from './PredictDetails.types';
 import { usePredictDetailsItem } from './usePredictDetailsItem';
-import { DefaultDetails } from '../DefaultDetails';
+import { DefaultDetails } from '../../../../../../Views/ActivityDetails/templates/DefaultDetails';
 import {
   ClaimWinningsBreakdown,
   PredictHero,
