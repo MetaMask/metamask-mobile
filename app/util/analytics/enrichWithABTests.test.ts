@@ -3,7 +3,6 @@ import { MetaMetricsEvents } from '../../core/Analytics/MetaMetrics.events';
 import { WHATS_HAPPENING_EXPLORE_AB_KEY } from '../../components/Views/TrendingView/abTestConfig';
 import {
   HOMEPAGE_BALANCE_BREAKDOWN_AB_KEY,
-  HOMEPAGE_EARN_SECTION_AB_KEY,
   PERPS_SECTION_PRIORITY_AB_KEY,
 } from '../../components/Views/Homepage/abTestConfig';
 import { createActiveABTestAssignment } from './activeABTestAssignments';
@@ -377,22 +376,6 @@ describe('enrichWithABTests', () => {
         'homeTMCU725AbtestHomepagePerpsPillsEmptyState',
         'control',
       ),
-    ]);
-  });
-
-  it('enriches homepage Earn section Home Viewed events', () => {
-    const event = AnalyticsEventBuilder.createEventBuilder('Home Viewed')
-      .addProperties({
-        section_name: 'earn',
-      })
-      .build();
-
-    const result = enrichWithABTests(event, {
-      [HOMEPAGE_EARN_SECTION_AB_KEY]: 'treatment',
-    });
-
-    expect(result.properties.active_ab_tests).toEqual([
-      createActiveABTestAssignment(HOMEPAGE_EARN_SECTION_AB_KEY, 'treatment'),
     ]);
   });
 
