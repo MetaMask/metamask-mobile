@@ -131,8 +131,8 @@ export interface SocialV1SpotClosedFeedItem extends SocialV1FeedItemBase {
 }
 
 /**
- * Composer-shared spot position. Reuses the open card layout; Copy trade is
- * gated by `showCopyTrade` so a closed share still has no CTA.
+ * Composer-shared open spot position. Reuses the open card layout; Copy trade
+ * is gated by `showCopyTrade`. A closed composer spot maps to `spotClosed`.
  */
 export interface SocialV1SpotShareFeedItem extends SocialV1FeedItemBase {
   variant: 'spotShare';
