@@ -956,6 +956,7 @@
       "vipTransactions": {}
     },
     "rewardsMoney": {
+      "answeredReferralCode": null,
       "cashbackLedger": {},
       "claimLocks": {},
       "claimWaitingUntil": {},

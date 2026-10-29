@@ -99,6 +99,7 @@ describe('rewardsMoneyReducer', () => {
       claimWaitingUntil: {},
       claimLocks: {},
       pendingReferralCode: null,
+      answeredReferralCode: null,
     });
   });
 
@@ -114,6 +115,7 @@ describe('rewardsMoneyReducer', () => {
       claimWaitingUntil: {},
       claimLocks: {},
       pendingReferralCode: null,
+      answeredReferralCode: null,
     });
   });
 
@@ -370,6 +372,7 @@ describe('rewardsMoneyReducer', () => {
           },
         },
         pendingReferralCode: null,
+        answeredReferralCode: null,
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -414,6 +417,7 @@ describe('rewardsMoneyReducer', () => {
       const persisted = {
         ...initialState,
         pendingReferralCode: 'KOL1',
+        answeredReferralCode: 'KOL0',
       };
 
       const state = rewardsMoneyReducer(initialState, {
@@ -422,6 +426,7 @@ describe('rewardsMoneyReducer', () => {
       } as Action);
 
       expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBeNull();
     });
 
     it('drops a last profile id left by an older persisted slice', () => {
@@ -447,6 +452,7 @@ describe('rewardsMoneyReducer', () => {
         claimWaitingUntil: {},
         claimLocks: {},
         pendingReferralCode: null,
+        answeredReferralCode: null,
       });
     });
   });
@@ -485,6 +491,46 @@ describe('rewardsMoneyReducer', () => {
 
       expect(state.pendingReferralCode).toBeNull();
     });
+
+    it('ignores the same code once it was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL1'),
+      );
+
+      expect(state.pendingReferralCode).toBeNull();
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
+
+    it('still stores a different code after one was answered', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(
+        answered,
+        setPendingReferralCode('KOL2'),
+      );
+
+      expect(state.pendingReferralCode).toBe('KOL2');
+    });
+
+    it('keeps the answered code when clearing with nothing pending', () => {
+      const answered = rewardsMoneyReducer(
+        rewardsMoneyReducer(initialState, setPendingReferralCode('KOL1')),
+        clearPendingReferralCode(),
+      );
+
+      const state = rewardsMoneyReducer(answered, clearPendingReferralCode());
+
+      expect(state.answeredReferralCode).toBe('KOL1');
+    });
   });
 
   describe('resetRewardsMoneyState', () => {
@@ -514,6 +560,7 @@ describe('rewardsMoneyReducer', () => {
         claimWaitingUntil: {},
         claimLocks: {},
         pendingReferralCode: null,
+        answeredReferralCode: null,
       });
     });
   });

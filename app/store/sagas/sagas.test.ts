@@ -39,6 +39,7 @@ import Authentication from '../../core/Authentication';
 import AppConstants from '../../core/AppConstants';
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
+import { setPendingReferralCode } from '../../reducers/rewardsMoney';
 jest.mock('../../util/analytics/persistAttributionFromPendingDeeplink', () => ({
   getUtmAttributesFromDeeplinkUrl: jest.fn(),
   persistUtmAttributes: jest.fn(),
@@ -866,6 +867,33 @@ describe('handleDeeplinkSaga', () => {
           expect(mockGetUtmAttributesFromDeeplinkUrl).toHaveBeenCalledWith(
             onboardingLink,
           );
+        });
+
+        it('stores the Money referral code from the pending deeplink on arrival', async () => {
+          AppStateEventProcessor.pendingDeeplink =
+            'metamask://home?ref=kol-123';
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .put(setPendingReferralCode('KOL123'))
+            .dispatch(checkForDeeplink())
+            .silentRun();
+        });
+
+        it('stores nothing when the pending deeplink has no valid referral code', async () => {
+          AppStateEventProcessor.pendingDeeplink = 'metamask://home?ref=a';
+
+          await expectSaga(handleDeeplinkSaga)
+            .withState({
+              ...defaultMockState,
+              user: { existingUser: false },
+            })
+            .not.put.actionType(setPendingReferralCode.type)
+            .dispatch(checkForDeeplink())
+            .silentRun();
         });
 
         it('handle onboarding deeplink when completed onboarding is false', async () => {

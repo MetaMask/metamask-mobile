@@ -85,7 +85,9 @@ describe('useAcceptMoneyReferralCode', () => {
 
   const unusedToastVariant = jest.fn(() => ({}) as RewardsToastOptions);
 
-  const renderAcceptHook = () => {
+  const renderAcceptHook = (
+    options?: Parameters<typeof useAcceptMoneyReferralCode>[0],
+  ) => {
     const store = configureStore({
       reducer: { rewardsMoney: rewardsMoneyReducer },
     });
@@ -98,7 +100,7 @@ describe('useAcceptMoneyReferralCode', () => {
 
     return {
       store,
-      ...renderHook(() => useAcceptMoneyReferralCode(), { wrapper }),
+      ...renderHook(() => useAcceptMoneyReferralCode(options), { wrapper }),
     };
   };
 
@@ -313,6 +315,22 @@ describe('useAcceptMoneyReferralCode', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
       );
+    });
+
+    it('hands a successful registration to onAccepted instead of the splash', async () => {
+      mockMessenger();
+      const onAccepted = jest.fn();
+
+      const { result } = renderAcceptHook({ onAccepted });
+      let acceptResult: AcceptReferralCodeResult | undefined;
+      await act(async () => {
+        acceptResult = await result.current.acceptReferralCode(CODE);
+      });
+
+      expect(acceptResult).toEqual({ accepted: true });
+      expect(onAccepted).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('reports loading while the flow runs and settles it afterwards', async () => {

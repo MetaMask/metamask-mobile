@@ -552,6 +552,7 @@ describe('AcceptInviteSheet', () => {
     expect(builder.addProperties).toHaveBeenCalledWith({
       referral_code: 'AB12CD',
       interaction_type: 'declined',
+      location: 'invite_sheet',
     });
     expect(builder.addProperties).not.toHaveBeenCalledWith(
       expect.objectContaining({ refusal_reason: expect.anything() }),
@@ -850,6 +851,7 @@ describe('AcceptInviteSheet', () => {
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
         interaction_type: 'viewed',
+        location: 'invite_sheet',
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -861,6 +863,7 @@ describe('AcceptInviteSheet', () => {
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
         interaction_type: 'viewed',
+        location: 'invite_sheet',
       });
     });
 
@@ -945,6 +948,7 @@ describe('AcceptInviteSheet', () => {
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
         interaction_type: 'viewed',
+        location: 'invite_sheet',
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -982,6 +986,7 @@ describe('AcceptInviteSheet', () => {
       expect(dismissedBuilder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'dismissed',
+        location: 'invite_sheet',
       });
     });
 
@@ -1016,6 +1021,7 @@ describe('AcceptInviteSheet', () => {
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
         interaction_type: 'viewed',
+        location: 'invite_sheet',
         referral_code: 'KOL1',
       });
       expect(viewedBuilder.addProperties).not.toHaveBeenCalledWith(
@@ -1090,6 +1096,7 @@ describe('AcceptInviteSheet', () => {
         const builder = mockCreateEventBuilder.mock.results[0]?.value;
         expect(builder.addProperties).toHaveBeenCalledWith({
           interaction_type: 'viewed',
+          location: 'invite_sheet',
           referral_code: 'KOL1',
         });
         expect(builder.addProperties).not.toHaveBeenCalledWith(
@@ -1119,6 +1126,7 @@ describe('AcceptInviteSheet', () => {
       const viewedBuilder = mockCreateEventBuilder.mock.results[0]?.value;
       expect(viewedBuilder.addProperties).toHaveBeenCalledWith({
         interaction_type: 'viewed',
+        location: 'invite_sheet',
         referral_code: 'KOL1',
       });
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
@@ -1146,6 +1154,7 @@ describe('AcceptInviteSheet', () => {
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'AB12CD',
           interaction_type: action,
+          location: 'invite_sheet',
         });
       },
     );
@@ -1166,6 +1175,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'accepted',
+        location: 'invite_sheet',
       });
       expect(mockAcceptReferralCode).toHaveBeenCalledWith('KOL1');
     });
@@ -1202,6 +1212,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'accepted',
+        location: 'invite_sheet',
       });
     });
 
@@ -1244,6 +1255,7 @@ describe('AcceptInviteSheet', () => {
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
           interaction_type: 'accepted',
+          location: 'invite_sheet',
         });
       },
     );
@@ -1282,6 +1294,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'accepted',
+        location: 'invite_sheet',
       });
     });
 
@@ -1303,6 +1316,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'refused',
+        location: 'invite_sheet',
         refusal_reason: 'already_referred',
       });
       expect(queryByTestId(TEST_IDS.CONTAINER)).toBeTruthy();
@@ -1342,6 +1356,7 @@ describe('AcceptInviteSheet', () => {
         ).toHaveBeenCalledWith({
           referral_code: 'KOL1',
           interaction_type: 'refused',
+          location: 'invite_sheet',
           refusal_reason: 'already_referred',
         });
 
@@ -1353,6 +1368,7 @@ describe('AcceptInviteSheet', () => {
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
           interaction_type: action,
+          location: 'invite_sheet',
           refusal_reason: 'already_referred',
         });
       },
@@ -1387,6 +1403,7 @@ describe('AcceptInviteSheet', () => {
       ).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'refused',
+        location: 'invite_sheet',
         refusal_reason: 'invalid_code',
       });
 
@@ -1401,6 +1418,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'accepted',
+        location: 'invite_sheet',
       });
       expect(builder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining({ refusal_reason: expect.anything() }),
@@ -1435,6 +1453,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'declined',
+        location: 'invite_sheet',
       });
       expect(builder.addProperties).not.toHaveBeenCalledWith(
         expect.objectContaining({ refusal_reason: expect.anything() }),
@@ -1452,6 +1471,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'dismissed',
+        location: 'invite_sheet',
       });
       expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     });
@@ -1467,6 +1487,7 @@ describe('AcceptInviteSheet', () => {
       expect(builder.addProperties).toHaveBeenCalledWith({
         referral_code: 'KOL1',
         interaction_type: 'dismissed',
+        location: 'invite_sheet',
       });
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -1491,6 +1512,7 @@ describe('AcceptInviteSheet', () => {
         expect(builder.addProperties).toHaveBeenCalledWith({
           referral_code: 'KOL1',
           interaction_type: action,
+          location: 'invite_sheet',
         });
         expect(mockGoBack).toHaveBeenCalledTimes(1);
       },

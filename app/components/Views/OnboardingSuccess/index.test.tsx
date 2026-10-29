@@ -15,6 +15,9 @@ import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import { getOnboardingExitAction } from '../../../util/onboarding/getOnboardingExitAction';
+import Routes from '../../../constants/navigation/Routes';
+import { CommonActions } from '@react-navigation/native';
 
 const mockNavigationDispatch = jest.fn();
 let mockRouteParams: { successFlow?: ONBOARDING_SUCCESS_FLOW } | undefined = {};
@@ -37,6 +40,16 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('../../../util/onboarding/finalizeOnboardingCompletion', () => ({
   finalizeOnboardingCompletion: jest.fn(),
 }));
+
+jest.mock('../../../util/onboarding/getOnboardingExitAction', () => {
+  const actual = jest.requireActual(
+    '../../../util/onboarding/getOnboardingExitAction',
+  );
+  return {
+    ...actual,
+    getOnboardingExitAction: jest.fn(actual.getOnboardingExitAction),
+  };
+});
 
 jest.mock('../../../selectors/onboarding', () => ({
   selectOnboardingAccountType: jest.fn(),
@@ -131,6 +144,38 @@ describe('OnboardingSuccess', () => {
         ResetNavigationToHome,
       );
     });
+  });
+
+  it('picks the exit only after onboarding is finalized', async () => {
+    mockRouteParams = {
+      successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+    };
+    const stepReset = CommonActions.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.MONEY_REFERRAL,
+          params: { referralCode: 'KOL123' },
+        },
+      ],
+    });
+    const getExitAction = jest
+      .mocked(getOnboardingExitAction)
+      .mockReturnValueOnce(stepReset);
+
+    renderWithProvider(<OnboardingSuccess />);
+
+    await waitFor(() => {
+      expect(mockNavigationDispatch).toHaveBeenCalledWith(stepReset);
+    });
+    expect(getExitAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      }),
+    );
+    expect(
+      jest.mocked(finalizeOnboardingCompletion).mock.invocationCallOrder[0],
+    ).toBeLessThan(getExitAction.mock.invocationCallOrder[0]);
   });
 
   it('uses backed-up SRP completion when route params are absent', async () => {

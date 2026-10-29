@@ -53,12 +53,18 @@ export interface RewardsMoneyState {
    */
   claimLocks: Record<string, ClaimLock>;
   /**
-   * Referral code from the `ref` param of the last deeplink the user
-   * continued past the interstitial, waiting for the invite sheet. A newer
-   * link replaces it. Dropped on rehydrate: the code belongs to the session
-   * that opened the link.
+   * Referral code from the `ref` param of the last deeplink, waiting for the
+   * onboarding step or the invite sheet. Captured on arrival for a user with
+   * no wallet yet, otherwise once the user continued past the interstitial.
+   * A newer link replaces it. Dropped on rehydrate: the code belongs to the
+   * session that opened the link.
    */
   pendingReferralCode: string | null;
+  /**
+   * Last pending code that was cleared, so the same link parsed again later
+   * in the session cannot prompt twice. Dropped on rehydrate.
+   */
+  answeredReferralCode: string | null;
 }
 
 export type ClaimLockStatus = 'in_progress' | 'awaiting_fresh_summary';
@@ -79,6 +85,7 @@ export const initialState: RewardsMoneyState = {
   claimWaitingUntil: {},
   claimLocks: {},
   pendingReferralCode: null,
+  answeredReferralCode: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -280,9 +287,15 @@ const rewardsMoneySlice = createSlice({
       state.claimLocks[action.payload.profileId] = action.payload.lock;
     },
     setPendingReferralCode: (state, action: PayloadAction<string>) => {
+      if (action.payload === state.answeredReferralCode) {
+        return;
+      }
       state.pendingReferralCode = action.payload;
     },
     clearPendingReferralCode: (state) => {
+      if (state.pendingReferralCode) {
+        state.answeredReferralCode = state.pendingReferralCode;
+      }
       state.pendingReferralCode = null;
     },
     resetRewardsMoneyState: () => initialState,
@@ -310,6 +323,7 @@ const rewardsMoneySlice = createSlice({
           // Claim disabled after the process that owned the claim was gone.
           claimLocks: {},
           pendingReferralCode: null,
+          answeredReferralCode: null,
         };
       },
     );

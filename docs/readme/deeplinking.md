@@ -329,21 +329,34 @@ https://link.metamask.io/rewards?ref=KOL123
 Any universal link can carry a Money referral code in `ref`. The link still
 opens its own destination; the code never changes routing.
 
-- The code is read only after the interstitial resolves in favor of the link
-  (or the action skips it). A rejected link stores nothing.
+- For users with a wallet, the code is read only after the interstitial
+  resolves in favor of the link (or the action skips it). A rejected link
+  stores nothing.
+- For users without a wallet, `handleDeeplinkSaga` reads the code when the
+  link arrives, next to the UTM attribution. The interstitial still gates
+  where the link goes; the code is only offered by the onboarding step below.
 - Non-alphanumeric characters are stripped and the code is uppercased. Codes
   outside 3–24 characters are discarded.
 - The code is kept for the current app session only, in
-  `rewardsMoney.pendingReferralCode`. A newer link replaces it.
-- New users keep the link pending through onboarding, so the code is read
-  when that link is processed after onboarding completes.
-- Once the wallet is unlocked, `PendingMoneyReferralInvite` reads referral me
-  and opens the Money invite sheet (`RewardsMoneyInviteSheet`) prefilled with
-  the code. Users who are already a referrer or referee, users in an excluded
-  region, and failed reads drop the code without a prompt. With basic
-  functionality or Rewards Money off, the code is dropped.
+  `rewardsMoney.pendingReferralCode`. A newer link replaces it. A code the
+  user already answered this session (`answeredReferralCode`) is not stored
+  again, so the same link does not prompt twice.
+- First-time onboarding (create, import, social login) ends on the
+  `OnboardingMoneyReferral` step instead of Home when a code is pending. The
+  route is picked by `getOnboardingExitAction` after
+  `finalizeOnboardingCompletion`, so no Money call is made before Basic
+  Functionality is settled. With Basic Functionality or Rewards Money off,
+  the code is dropped and onboarding goes to Home. The step reads referral
+  me; a failed read, a load over 5 seconds, being offline, or a profile that
+  can no longer accept an invite goes to Home and drops the code.
+- Otherwise, once the wallet is unlocked, `PendingMoneyReferralInvite` reads
+  referral me and opens the Money invite sheet (`RewardsMoneyInviteSheet`)
+  prefilled with the code. Users who are already a referrer or referee, users
+  in an excluded region, and failed reads drop the code without a prompt. With
+  basic functionality or Rewards Money off, the code is dropped.
 - No referral is created from the link. Only accepting the invite registers
-  the user as a referee. Closing the sheet in any way clears the code.
+  the user as a referee. Leaving the sheet or the onboarding step in any way
+  clears the code.
 - The push notification pre-prompt waits while a code is pending.
 - `DEEP_LINK_USED` reports the normalized code as `referral_code`.
 

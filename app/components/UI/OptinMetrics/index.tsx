@@ -29,7 +29,7 @@ import HeaderStandardGlass from '../../../component-library/components-temp/Head
 import FooterGlass from '../../../component-library/components-temp/FooterGlass';
 import { useHeaderGlassInset } from '../../../component-library/components-temp/HeaderGlass';
 import { strings } from '../../../../locales/i18n';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
@@ -69,6 +69,7 @@ import {
   replayPendingAppInstall,
 } from '../../../util/analytics/appInstallEvent';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import { getOnboardingExitAction } from '../../../util/onboarding/getOnboardingExitAction';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import { OnboardingScreenIds } from '../../../hooks/performance/onboardingPerformanceIds';
 import { useScreenPerformance } from '../../../hooks/performance/useScreenPerformance';
@@ -78,6 +79,7 @@ import { useScreenPerformance } from '../../../hooks/performance/useScreenPerfor
  */
 const OptinMetrics = () => {
   const dispatch = useDispatch();
+  const store = useStore<RootState>();
   const navigation = useNavigation<AppNavigationProp>();
   const route =
     useRoute<
@@ -186,12 +188,17 @@ const OptinMetrics = () => {
       return onContinue();
     }
 
-    navigation.reset({
-      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-    });
+    navigation.dispatch(
+      getOnboardingExitAction({
+        state: store.getState(),
+        successFlow,
+        dispatch,
+      }),
+    );
   }, [
     dispatch,
     navigation,
+    store,
     route?.params,
     accountType,
     isBasicFunctionalityEnabled,

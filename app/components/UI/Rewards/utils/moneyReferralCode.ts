@@ -1,3 +1,5 @@
+import UrlParser from 'url-parse';
+
 export const MONEY_REFERRAL_CODE_MIN_LENGTH = 3;
 export const MONEY_REFERRAL_CODE_MAX_LENGTH = 24;
 
@@ -23,4 +25,18 @@ export function parseMoneyReferralCode(value: unknown): string | null {
     return null;
   }
   return code;
+}
+
+/**
+ * Reads the Money referral code carried by a deeplink URL, for any scheme
+ * the app accepts (`https://link.metamask.io/...`, `metamask://...`).
+ * Returns null when the link has no valid code or cannot be parsed.
+ */
+export function parseMoneyReferralCodeFromUrl(url: string): string | null {
+  try {
+    const { query } = new UrlParser(url, true);
+    return parseMoneyReferralCode(query[MONEY_REFERRAL_CODE_QUERY_PARAM]);
+  } catch {
+    return null;
+  }
 }

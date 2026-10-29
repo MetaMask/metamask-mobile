@@ -243,159 +243,167 @@ export interface UseAcceptMoneyReferralCodeResult {
  * that already succeeded. The `forceFresh` read back updates the persona when
  * it succeeds; a failed read does not block the splash.
  */
-export const useAcceptMoneyReferralCode =
-  (): UseAcceptMoneyReferralCodeResult => {
-    const navigation = useNavigation<AppNavigationProp>();
-    const { validateCode } = useValidateMoneyReferralCode();
-    const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
-    const [isLoading, setIsLoading] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [refusalReason, setRefusalReason] =
-      useState<ReferralRefusalReason | null>(null);
-    const [acceptBlockedUntil, setAcceptBlockedUntil] = useState<number | null>(
-      null,
-    );
-    const isAcceptingRef = useRef(false);
-    const isMountedRef = useRef(true);
-    const rateLimitUntilRef = useRef<number | null>(null);
+export const useAcceptMoneyReferralCode = ({
+  onAccepted,
+}: {
+  /**
+   * Replaces the accepted splash once registration succeeded, for a screen
+   * that cannot reach the splash route (the onboarding referral step).
+   */
+  onAccepted?: () => void;
+} = {}): UseAcceptMoneyReferralCodeResult => {
+  const navigation = useNavigation<AppNavigationProp>();
+  const { validateCode } = useValidateMoneyReferralCode();
+  const { fetchReferralMe } = useReferralMe({ fetchOnMount: false });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [refusalReason, setRefusalReason] =
+    useState<ReferralRefusalReason | null>(null);
+  const [acceptBlockedUntil, setAcceptBlockedUntil] = useState<number | null>(
+    null,
+  );
+  const isAcceptingRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const rateLimitUntilRef = useRef<number | null>(null);
 
-    const clearError = useCallback(() => {
-      if (
-        rateLimitUntilRef.current !== null &&
-        Date.now() < rateLimitUntilRef.current
-      ) {
+  const clearError = useCallback(() => {
+    if (
+      rateLimitUntilRef.current !== null &&
+      Date.now() < rateLimitUntilRef.current
+    ) {
+      return;
+    }
+    setErrorMessage('');
+    setRefusalReason(null);
+  }, []);
+
+  const noteRefusal = useCallback((error: unknown): ReferralRefusalReason => {
+    const reason = getRegisterRefereeRefusalReason(error);
+    setErrorMessage(getRegisterRefereeErrorTitle(error));
+    setRefusalReason(reason);
+    const waitSeconds = rateLimitWaitSeconds(error);
+    if (waitSeconds === undefined) {
+      rateLimitUntilRef.current = null;
+      setAcceptBlockedUntil(null);
+      return reason;
+    }
+    const until = Date.now() + waitSeconds * 1000;
+    rateLimitUntilRef.current = until;
+    setAcceptBlockedUntil(until);
+    return reason;
+  }, []);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (acceptBlockedUntil === null) {
+      return undefined;
+    }
+    const remaining = acceptBlockedUntil - Date.now();
+    const release = () => {
+      rateLimitUntilRef.current = null;
+      if (!isMountedRef.current) {
         return;
       }
+      setAcceptBlockedUntil(null);
       setErrorMessage('');
       setRefusalReason(null);
-    }, []);
+    };
+    if (remaining <= 0) {
+      release();
+      return undefined;
+    }
+    const timer = setTimeout(release, remaining);
+    return () => clearTimeout(timer);
+  }, [acceptBlockedUntil]);
 
-    const noteRefusal = useCallback((error: unknown): ReferralRefusalReason => {
-      const reason = getRegisterRefereeRefusalReason(error);
-      setErrorMessage(getRegisterRefereeErrorTitle(error));
-      setRefusalReason(reason);
-      const waitSeconds = rateLimitWaitSeconds(error);
-      if (waitSeconds === undefined) {
-        rateLimitUntilRef.current = null;
-        setAcceptBlockedUntil(null);
-        return reason;
+  const refreshReferralMe = useCallback(
+    () => refreshReferralMeWithRetries(fetchReferralMe),
+    [fetchReferralMe],
+  );
+
+  const acceptReferralCode = useCallback(
+    async (code: string): Promise<AcceptReferralCodeResult> => {
+      if (
+        acceptAlreadyRunning(isAcceptingRef.current, rateLimitUntilRef.current)
+      ) {
+        return { accepted: false };
       }
-      const until = Date.now() + waitSeconds * 1000;
-      rateLimitUntilRef.current = until;
-      setAcceptBlockedUntil(until);
-      return reason;
-    }, []);
+      isAcceptingRef.current = true;
+      runIfMounted(isMountedRef.current, () => setIsLoading(true));
 
-    useEffect(() => {
-      isMountedRef.current = true;
-      return () => {
-        isMountedRef.current = false;
-      };
-    }, []);
-
-    useEffect(() => {
-      if (acceptBlockedUntil === null) {
-        return undefined;
-      }
-      const remaining = acceptBlockedUntil - Date.now();
-      const release = () => {
-        rateLimitUntilRef.current = null;
-        if (!isMountedRef.current) {
-          return;
+      try {
+        runIfMounted(isMountedRef.current, () => {
+          setErrorMessage('');
+          setRefusalReason(null);
+        });
+        const validation = await validationOutcome(validateCode, code);
+        if (validation.kind === 'thrown') {
+          const refusal = isMountedRef.current
+            ? noteRefusal(validation.error)
+            : getRegisterRefereeRefusalReason(validation.error);
+          return { accepted: false, refusalReason: refusal };
         }
-        setAcceptBlockedUntil(null);
-        setErrorMessage('');
-        setRefusalReason(null);
-      };
-      if (remaining <= 0) {
-        release();
-        return undefined;
-      }
-      const timer = setTimeout(release, remaining);
-      return () => clearTimeout(timer);
-    }, [acceptBlockedUntil]);
-
-    const refreshReferralMe = useCallback(
-      () => refreshReferralMeWithRetries(fetchReferralMe),
-      [fetchReferralMe],
-    );
-
-    const acceptReferralCode = useCallback(
-      async (code: string): Promise<AcceptReferralCodeResult> => {
-        if (
-          acceptAlreadyRunning(
-            isAcceptingRef.current,
-            rateLimitUntilRef.current,
-          )
-        ) {
-          return { accepted: false };
+        if (validation.kind === 'invalid') {
+          runIfMounted(isMountedRef.current, () => {
+            setErrorMessage(validation.message);
+            setRefusalReason('invalid_code');
+          });
+          return { accepted: false, refusalReason: 'invalid_code' };
         }
-        isAcceptingRef.current = true;
-        runIfMounted(isMountedRef.current, () => setIsLoading(true));
+
+        // An unknown validate result could not reach the server. Register is
+        // the authority, matching extension.
+        try {
+          await Engine.controllerMessenger.call(
+            'RewardsMoneyController:registerReferee',
+            { code: normalizeMoneyReferralCode(code) },
+          );
+        } catch (error) {
+          const refusal = isMountedRef.current
+            ? noteRefusal(error)
+            : getRegisterRefereeRefusalReason(error);
+          return { accepted: false, refusalReason: refusal };
+        }
 
         try {
-          runIfMounted(isMountedRef.current, () => {
-            setErrorMessage('');
-            setRefusalReason(null);
-          });
-          const validation = await validationOutcome(validateCode, code);
-          if (validation.kind === 'thrown') {
-            const refusal = isMountedRef.current
-              ? noteRefusal(validation.error)
-              : getRegisterRefereeRefusalReason(validation.error);
-            return { accepted: false, refusalReason: refusal };
-          }
-          if (validation.kind === 'invalid') {
-            runIfMounted(isMountedRef.current, () => {
-              setErrorMessage(validation.message);
-              setRefusalReason('invalid_code');
-            });
-            return { accepted: false, refusalReason: 'invalid_code' };
-          }
-
-          // An unknown validate result could not reach the server. Register is
-          // the authority, matching extension.
-          try {
-            await Engine.controllerMessenger.call(
-              'RewardsMoneyController:registerReferee',
-              { code: normalizeMoneyReferralCode(code) },
-            );
-          } catch (error) {
-            const refusal = isMountedRef.current
-              ? noteRefusal(error)
-              : getRegisterRefereeRefusalReason(error);
-            return { accepted: false, refusalReason: refusal };
-          }
-
-          try {
-            await refreshReferralMe();
-          } catch {
-            // A failed read does not block the splash.
-          }
-
-          // Registration already succeeded. Open the splash either way: a
-          // failed read leaves the previous persona in place, and the Rewards
-          // tab refetches referral me the next time it is focused. Skip
-          // goBack when the sheet has already left the stack, or that pop
-          // would dismiss the screen underneath it.
-          openAcceptedSplash(navigation, isMountedRef.current);
-          return { accepted: true };
-        } finally {
-          isAcceptingRef.current = false;
-          runIfMounted(isMountedRef.current, () => setIsLoading(false));
+          await refreshReferralMe();
+        } catch {
+          // A failed read does not block the splash.
         }
-      },
-      [navigation, noteRefusal, refreshReferralMe, validateCode],
-    );
 
-    return {
-      acceptReferralCode,
-      isLoading,
-      errorMessage,
-      refusalReason,
-      acceptBlockedUntil,
-      clearError,
-    };
+        // Registration already succeeded. Open the splash either way: a
+        // failed read leaves the previous persona in place, and the Rewards
+        // tab refetches referral me the next time it is focused. Skip
+        // goBack when the sheet has already left the stack, or that pop
+        // would dismiss the screen underneath it.
+        if (onAccepted) {
+          onAccepted();
+        } else {
+          openAcceptedSplash(navigation, isMountedRef.current);
+        }
+        return { accepted: true };
+      } finally {
+        isAcceptingRef.current = false;
+        runIfMounted(isMountedRef.current, () => setIsLoading(false));
+      }
+    },
+    [navigation, noteRefusal, onAccepted, refreshReferralMe, validateCode],
+  );
+
+  return {
+    acceptReferralCode,
+    isLoading,
+    errorMessage,
+    refusalReason,
+    acceptBlockedUntil,
+    clearError,
   };
+};
 
 export default useAcceptMoneyReferralCode;

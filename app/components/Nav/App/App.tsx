@@ -114,6 +114,7 @@ import ExperienceEnhancerModal from '../../Views/ExperienceEnhancerModal';
 import { FeatureNotificationsGateSheet } from '../../Views/Settings/NotificationsSettings/FeatureNotificationsGateSheet';
 import LedgerSelectAccount from '../../Views/LedgerSelectAccount';
 import OnboardingSuccess from '../../Views/OnboardingSuccess';
+import OnboardingMoneyReferral from '../../Views/OnboardingMoneyReferral';
 import WalletCreationError from '../../Views/WalletCreationError';
 import DefaultSettings from '../../Views/OnboardingSuccess/DefaultSettings';
 import OnboardingGeneralSettings from '../../Views/OnboardingSuccess/OnboardingGeneralSettings';
@@ -1138,6 +1139,12 @@ const AppFlow = () => {
       }}
     >
       <NativeStack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
+      {/* Beside HomeNav: every onboarding exit, nested or not, resets into it. */}
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.MONEY_REFERRAL}
+        component={OnboardingMoneyReferral}
+        options={{ presentation: 'card', gestureEnabled: false }}
+      />
       <NativeStack.Screen
         name="ReviewModal"
         component={ReviewModal}

@@ -1,24 +1,20 @@
-import React, { useLayoutEffect, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import {
-  CommonActions,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import Routes from '../../../constants/navigation/Routes';
+import React, { useCallback, useLayoutEffect, useRef } from 'react';
+import { useDispatch, useSelector, useStore } from 'react-redux';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import type { RootState } from '../../../reducers';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import {
+  getOnboardingExitAction,
+  resetToHomeAction,
+} from '../../../util/onboarding/getOnboardingExitAction';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 
-export const ResetNavigationToHome = CommonActions.reset({
-  index: 0,
-  routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-});
+export const ResetNavigationToHome = resetToHomeAction();
 
 interface OnboardingSuccessRouteParams {
   successFlow?: ONBOARDING_SUCCESS_FLOW;
@@ -81,17 +77,24 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
 export const OnboardingSuccess = () => {
   const navigation = useNavigation<AppNavigationProp>();
+  const store = useStore<RootState>();
   const route =
     useRoute<RouteProp<OnboardingSuccessParamList, 'OnboardingSuccess'>>();
   const successFlow =
     route?.params?.successFlow ?? ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP;
-  const nextScreen = ResetNavigationToHome;
+
+  const handleDone = useCallback(() => {
+    navigation.dispatch(
+      getOnboardingExitAction({
+        state: store.getState(),
+        successFlow,
+        dispatch: store.dispatch,
+      }),
+    );
+  }, [navigation, store, successFlow]);
 
   return (
-    <OnboardingSuccessComponent
-      successFlow={successFlow}
-      onDone={() => navigation.dispatch(nextScreen)}
-    />
+    <OnboardingSuccessComponent successFlow={successFlow} onDone={handleDone} />
   );
 };
 

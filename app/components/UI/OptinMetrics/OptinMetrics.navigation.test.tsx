@@ -12,8 +12,20 @@ import { analytics } from '../../../util/analytics/analytics';
 import Logger from '../../../util/Logger';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import { getOnboardingExitAction } from '../../../util/onboarding/getOnboardingExitAction';
+import { CommonActions } from '@react-navigation/native';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
+
+jest.mock('../../../util/onboarding/getOnboardingExitAction', () => {
+  const actual = jest.requireActual(
+    '../../../util/onboarding/getOnboardingExitAction',
+  );
+  return {
+    ...actual,
+    getOnboardingExitAction: jest.fn(actual.getOnboardingExitAction),
+  };
+});
 
 jest.mock('../../../util/Logger', () => ({
   __esModule: true,
@@ -356,16 +368,79 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
       const onComplete = navCall?.[1]?.onComplete;
 
-      mockReset.mockClear();
+      mockDispatchAction.mockClear();
       await onComplete();
 
       await waitFor(() => {
-        expect(mockReset).toHaveBeenCalledWith(
+        expect(mockDispatchAction).toHaveBeenCalledWith(
           expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            type: 'RESET',
+            payload: expect.objectContaining({
+              routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            }),
           }),
         );
       });
+    });
+  });
+
+  describe('onboarding exit', () => {
+    const stepReset = CommonActions.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.MONEY_REFERRAL,
+          params: { referralCode: 'KOL123' },
+        },
+      ],
+    });
+
+    beforeEach(() => {
+      mockEligibility.shouldShowQuestionnaire = false;
+    });
+
+    it('resets to the exit picked for the finished flow', async () => {
+      mockRouteParams = { successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP };
+      const getExitAction = jest
+        .mocked(getOnboardingExitAction)
+        .mockReturnValueOnce(stepReset);
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockDispatchAction).toHaveBeenCalledWith(stepReset);
+      });
+      expect(getExitAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          successFlow: ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP,
+        }),
+      );
+    });
+
+    it('leaves the exit to onContinue when one is provided', async () => {
+      const onContinue = jest.fn();
+      mockRouteParams = {
+        successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+        onContinue,
+      };
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(onContinue).toHaveBeenCalledTimes(1);
+      });
+      expect(getOnboardingExitAction).not.toHaveBeenCalled();
+      expect(mockDispatchAction).not.toHaveBeenCalled();
     });
   });
 

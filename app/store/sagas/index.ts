@@ -55,6 +55,8 @@ import {
 import { getDevAutoUnlockPassword } from '../../util/environment';
 import { saveAttribution } from '../../core/redux/slices/attribution';
 import { getUtmAttributesFromDeeplinkUrl } from '../../util/analytics/persistAttributionFromPendingDeeplink';
+import { setPendingReferralCode } from '../../reducers/rewardsMoney';
+import { parseMoneyReferralCodeFromUrl } from '../../components/UI/Rewards/utils/moneyReferralCode';
 
 /**
  * Safety ceiling: if `MainNavigator` never mounts (e.g. the user stays on
@@ -272,6 +274,12 @@ export function* handleDeeplinkSaga() {
         const utmPayload = getUtmAttributesFromDeeplinkUrl(url.href);
         if (utmPayload) {
           yield put(saveAttribution(utmPayload));
+        }
+        // Offered by the onboarding referral step, which is the user's
+        // consent; the interstitial still gates the link's destination.
+        const referralCode = parseMoneyReferralCodeFromUrl(url.href);
+        if (referralCode) {
+          yield put(setPendingReferralCode(referralCode));
         }
       }
 
