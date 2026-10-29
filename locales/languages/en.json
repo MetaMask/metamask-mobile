@@ -2947,6 +2947,7 @@
       "no_positions": "No open positions",
       "card": {
         "position_title": "Position",
+        "post_to_feed": "Post to feed",
         "pnl_label": "P&L",
         "return_label": "Return",
         "size_label": "Size",
@@ -3623,8 +3624,6 @@
       "title": "Share position",
       "post_to_metamask": "Post to MetaMask",
       "post_to_metamask_description": "Earn 15% on fees every time someone copies your moves.",
-      "post_not_ready": "This position isn't ready to post yet",
-      "post_other_account": "Only positions from your profile's wallet can be posted",
       "new_badge": "New",
       "share_externally": "Share externally"
     },
