@@ -6,7 +6,12 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
@@ -38,6 +43,7 @@ import {
   selectReferralMeEntry,
 } from '../../../../reducers/rewardsMoney/selectors';
 import { strings } from '../../../../../locales/i18n';
+import type { RewardsHomeParamList } from '../../../Nav/Main/types/navigation';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import EarningsTab from '../components/Money/Tabs/EarningsTab';
@@ -98,6 +104,8 @@ function dashboardStillLoading(
 const RewardsMoneyDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation<AppNavigationProp>();
+  const route =
+    useRoute<RouteProp<RewardsHomeParamList, 'RewardsMoneyDashboard'>>();
   const floatingTabBarInset = useFloatingTabBarInset();
   const { scrollY, titleSectionHeightSv, setTitleSectionHeight, onScroll } =
     useHeaderStandardAnimated();
@@ -128,13 +136,30 @@ const RewardsMoneyDashboard: React.FC = () => {
   const earningsSummaryEntry = useSelector((state: RootState) =>
     selectEarningsSummaryEntry(state, profileId),
   );
-  const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const [activeTab, setActiveTab] = useState<RewardsMoneyTab>(
+    route.params?.initialTab === 'earnings' ? 'earnings' : 'waysToEarn',
+  );
   const [titleSectionHeight, setMeasuredTitleSectionHeight] = useState(0);
   const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
   const [panelContentHeight, setPanelContentHeight] = useState(0);
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
+  const initialTabRef = useRef(route.params?.initialTab);
+  initialTabRef.current = route.params?.initialTab;
+
+  // A Money Home Claim tap sets this once. Clear it on focus so the next
+  // visit to Rewards opens on Ways to earn again.
+  useFocusEffect(
+    useCallback(() => {
+      if (initialTabRef.current !== 'earnings') {
+        setActiveTab('waysToEarn');
+        return;
+      }
+      setActiveTab('earnings');
+      navigation.setParams({ initialTab: undefined });
+    }, [navigation]),
+  );
   const referralMe = referralMeEntry?.data;
   const showEarningsDot = canClaimEarnings(
     earningsSummaryEntry?.data,

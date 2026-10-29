@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { act, fireEvent } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { setCandidateSubscriptionId } from '../../../../actions/rewards';
 import type {
   EarningsSummaryDto,
@@ -42,19 +42,36 @@ jest.mock('../hooks/useReferralMe', () => ({
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockSetParams = jest.fn();
 let mockParentNavigatorType = 'tab';
+let mockRouteParams: { initialTab?: 'earnings' } | undefined;
+let mockFocusEffectCallback: (() => void | (() => void)) | undefined;
+let mockFocusEffectCleanup: (() => void) | undefined;
+const mockNavigation = {
+  navigate: mockNavigate,
+  goBack: mockGoBack,
+  setParams: mockSetParams,
+  getParent: () => ({
+    getState: () => ({ type: mockParentNavigatorType }),
+  }),
+};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  const React = jest.requireActual('react');
   return {
     ...actual,
-    useNavigation: () => ({
-      navigate: mockNavigate,
-      goBack: mockGoBack,
-      getParent: () => ({
-        getState: () => ({ type: mockParentNavigatorType }),
-      }),
-    }),
+    useNavigation: () => mockNavigation,
+    useRoute: () => ({ params: mockRouteParams }),
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      mockFocusEffectCallback = effect;
+      React.useEffect(() => {
+        const cleanup = effect();
+        mockFocusEffectCleanup =
+          typeof cleanup === 'function' ? cleanup : undefined;
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
   };
 });
 
@@ -323,6 +340,9 @@ describe('RewardsMoneyDashboard', () => {
         createEventBuilder: mockCreateEventBuilder,
       }),
     );
+    mockRouteParams = undefined;
+    mockFocusEffectCallback = undefined;
+    mockFocusEffectCleanup = undefined;
     mockUseEarningsSummary.mockReturnValue({
       fetchEarningsSummary: jest.fn(),
     });
@@ -761,6 +781,44 @@ describe('RewardsMoneyDashboard', () => {
     expect(
       queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_TAB_DOT),
     ).toBeNull();
+  });
+
+  it('opens on the earnings tab when initialTab is earnings and clears the param', async () => {
+    mockRouteParams = { initialTab: 'earnings' };
+    const { getByTestId, queryByTestId } = renderDashboard();
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeOnTheScreen();
+    expect(getByTestId('rewards-money-earnings-tab')).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).not.toBeOnTheScreen();
+    await waitFor(() => {
+      expect(mockSetParams).toHaveBeenCalledWith({ initialTab: undefined });
+    });
+  });
+
+  it('returns to Ways to earn when the same dashboard instance is focused again', () => {
+    mockRouteParams = { initialTab: 'earnings' };
+    const { getByTestId, rerender } = renderDashboard();
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY),
+    ).toBeOnTheScreen();
+
+    mockRouteParams = undefined;
+    rerender(<RewardsMoneyDashboard />);
+    act(() => {
+      mockFocusEffectCleanup?.();
+      const cleanup = mockFocusEffectCallback?.();
+      mockFocusEffectCleanup =
+        typeof cleanup === 'function' ? cleanup : undefined;
+    });
+
+    expect(
+      getByTestId(REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY),
+    ).toBeOnTheScreen();
   });
 
   it('switches to the Earnings tab body', () => {
