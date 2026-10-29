@@ -165,7 +165,8 @@ export const getActiveRouteNameFromNavigationState = (
  * Navigates into the rewards sub-pages stack (`RewardsNavigator`, registered at
  * the root `MainNavigator` level under `Routes.REWARDS_FLOW`).
  *
- * The rewards dashboard lives in the Rewards tab (`RewardsHome`), separate from
+ * The rewards dashboard lives in `RewardsHome` (`Routes.REWARDS_VIEW` on the
+ * root stack, and a Home tab only in the control nav arm), separate from
  * `RewardsNavigator`. A plain `navigation.navigate(<subPage>)` from the dashboard
  * cannot resolve those routes because they live in the not-yet-mounted
  * `RewardsNavigator`, so this uses React Navigation nested navigation to target
@@ -194,13 +195,14 @@ type RewardsFlowExitNavigation = Pick<
 >;
 
 /**
- * Leaves the pushed `REWARDS_FLOW` stack and returns the user to the Rewards
- * dashboard in the tab.
+ * Leaves the pushed `REWARDS_FLOW` stack and returns the user to Rewards home.
  *
  * VIP screens previously used `StackActions.replace(Routes.REWARDS_DASHBOARD)`,
- * but the dashboard lives in the Rewards tab — not inside `RewardsNavigator` —
- * so that replace could not be handled. Popping the flow (or falling back to the
- * Rewards tab) keeps navigation consistent with the native-stack migration.
+ * but that dashboard lives in `RewardsHome`, not inside `RewardsNavigator`, so
+ * that replace could not be handled. Pop the flow when something is under it.
+ * Otherwise open `Routes.REWARDS_VIEW` directly: the control nav arm still has
+ * a Rewards tab and handles that name, and the other arms only register it on
+ * the root stack.
  *
  * @param navigation - The navigation object from `useNavigation()`.
  */
@@ -212,9 +214,7 @@ export const exitRewardsFlow = (
     return;
   }
 
-  navigation.navigate(Routes.HOME_TABS, {
-    screen: Routes.REWARDS_VIEW,
-  });
+  navigation.navigate(Routes.REWARDS_VIEW);
 };
 
 export { getBetaSupportUrl } from '../../../util/support/betaSupportUrl';

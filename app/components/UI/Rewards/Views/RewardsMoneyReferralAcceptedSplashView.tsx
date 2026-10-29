@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -120,17 +120,14 @@ const RewardsMoneyReferralAcceptedSplashViewContent: React.FC = () => {
     ],
   );
 
-  // The tab picked its home from the pre-accept persona and does not remount
-  // while this splash is the active screen. Popping back would reveal that
-  // earlier home, so every exit selects the Money dashboard explicitly.
+  // Rewards home is the root RewardsView stack, not a Home tab. Replace the
+  // splash so Back does not return here, and open the Money dashboard.
   const showMoneyDashboard = useCallback(() => {
-    navigation.navigate(Routes.HOME_TABS, {
-      screen: Routes.REWARDS_VIEW,
-      params: {
+    navigation.dispatch(
+      StackActions.replace(Routes.REWARDS_VIEW, {
         screen: Routes.REWARDS_MONEY_DASHBOARD,
-        initial: false,
-      },
-    });
+      }),
+    );
   }, [navigation]);
 
   const handleDismiss = useCallback(() => {

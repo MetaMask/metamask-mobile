@@ -285,7 +285,7 @@ describe('Rewards Utils', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('navigates to the rewards tab when there is no back route', () => {
+    it('opens rewards home when there is no back route', () => {
       const mockGoBack = jest.fn();
       const mockNavigate = jest.fn();
       const navigation = {
@@ -297,9 +297,7 @@ describe('Rewards Utils', () => {
       exitRewardsFlow(navigation as never);
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.REWARDS_VIEW,
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_VIEW);
     });
   });
 
