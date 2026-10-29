@@ -157,7 +157,7 @@ async function signWithDeviceKey(
   profile: DeviceKeyProfile,
   data: Uint8Array,
 ): Promise<Uint8Array> {
-  if (!stored || stored.keySlot !== profile.keySlot) {
+  if (stored?.keySlot !== profile.keySlot) {
     throw new P256DeviceKeyUnavailableError();
   }
 
