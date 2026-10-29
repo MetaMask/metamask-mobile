@@ -1,7 +1,6 @@
 import { buildMusdAutorampRequest } from '@metamask/ramps-controller';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
-import { findUsableVbaAutoramp } from '../../../../../selectors/rampsController';
 import { TraceName } from '../../../../../util/trace';
 import type { VbaSourceCurrency } from '../../../../../util/region/getVbaSourceCurrency';
 import {
@@ -156,11 +155,12 @@ const runSetup = async (
     walletAddress,
     sourceCurrency,
   );
-  // Any currency counts, so a second one is never created on the Money account.
-  if (findUsableVbaAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 
+  // Hydrate reports ready when any fiat is usable. A different known fiat
+  // does not satisfy this request, so create one for the requested currency.
   if (snapshot.autorampStatus === 'ready') {
     await createAutoramp(walletAddress, sourceCurrency);
     return 'ready';
@@ -221,7 +221,7 @@ const runSetup = async (
     walletAddress,
     sourceCurrency,
   );
-  if (findUsableVbaAutoramp(readAutoramps(), walletAddress)) {
+  if (findUsableAutoramp(readAutoramps(), walletAddress, sourceCurrency)) {
     return 'ready';
   }
 

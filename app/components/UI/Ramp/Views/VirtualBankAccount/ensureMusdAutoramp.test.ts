@@ -138,25 +138,7 @@ describe('ensureMusdAutoramp', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
 
-  it('does not create BRL when the hydrate reveals a USD autoramp', async () => {
-    mockHydrate.mockImplementation(async () => {
-      setAutoramps([
-        {
-          walletAddress: '0xabc',
-          status: 'Approved',
-          depositRailsSummary: { currency: 'USD' },
-        },
-      ]);
-      return { autorampStatus: 'ready', kycStatus: 'approved' };
-    });
-
-    await expect(ensureMusdAutoramp('0xabc', 'BRL')).resolves.toBe('ready');
-
-    expect(mockHydrate).toHaveBeenCalledTimes(1);
-    expect(mockCreate).not.toHaveBeenCalled();
-  });
-
-  it('does not create a second currency next to an autoramp in another currency', async () => {
+  it('creates the requested fiat when the usable autoramp is a different currency', async () => {
     setAutoramps([
       {
         walletAddress: '0xabc',
@@ -168,7 +150,11 @@ describe('ensureMusdAutoramp', () => {
 
     await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
 
-    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
   });
 
   it('does not create again when the usable autoramp has no currency yet', async () => {
@@ -214,12 +200,16 @@ describe('ensureMusdAutoramp', () => {
     },
   );
 
-  it('does not create another fiat next to a failed autoramp with no currency', async () => {
+  it('does not let a failed autoramp with no currency block another fiat', async () => {
     setAutoramps([{ walletAddress: '0xabc', status: 'RegistrationFailed' }]);
 
     await expect(ensureMusdAutoramp('0xabc', 'USD')).resolves.toBe('ready');
 
-    expect(mockCreate).not.toHaveBeenCalled();
+    expect(mockCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source_currencies: [{ type: 'Fiat', code: 'USD' }],
+      }),
+    );
   });
 
   it('does not treat a rejected BRL autoramp as terminal for a USD request', async () => {

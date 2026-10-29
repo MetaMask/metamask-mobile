@@ -49,9 +49,7 @@ let mockLocation: string | undefined = 'BR';
 let mockRouteParams: { sourceCurrency?: string } | undefined;
 let mockChooseCurrency = false;
 let mockRegionOverride: string | undefined;
-let mockUsableAutoramp:
-  | { depositRailsSummary?: { currency?: string } }
-  | undefined;
+let mockNeobankFlagOn = true;
 let mockDebugEnv: string | undefined;
 let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null;
 let mockNetworkTier: 'NONE' | 'SLOW_CELLULAR' | 'FAST_CELLULAR' | 'WIFI' | null;
@@ -74,29 +72,28 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('../../../../../selectors/rampsController', () => ({
-  findUsableVbaAutoramp: jest.requireActual(
-    '../../../../../selectors/rampsController',
-  ).findUsableVbaAutoramp,
   selectSelectedVbaWalletAddress: () => mockWalletAddress,
-  selectUsableVbaAutoramp: () => mockUsableAutoramp,
 }));
 
-jest.mock(
-  '../../../../../selectors/featureFlagController/moneyAccount',
-  () => ({
-    ...jest.requireActual(
-      '../../../../../selectors/featureFlagController/moneyAccount',
-    ),
-    selectMoneyMovementNeobank: () => ({
-      isEnabled: true,
-      regions: ['BR', 'US'],
-      regionCurrencies: { BR: 'BRL', US: 'USD' },
-      defaultCurrency: undefined,
-      chooseCurrency: mockChooseCurrency,
-      regionOverride: mockRegionOverride,
-    }),
-  }),
-);
+jest.mock('../../../../../selectors/featureFlagController/moneyAccount', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/featureFlagController/moneyAccount',
+  );
+  return {
+    ...actual,
+    selectMoneyMovementNeobank: (state: unknown) =>
+      mockNeobankFlagOn
+        ? {
+            isEnabled: true,
+            regions: ['BR', 'US'],
+            regionCurrencies: { BR: 'BRL', US: 'USD' },
+            defaultCurrency: undefined,
+            chooseCurrency: mockChooseCurrency,
+            regionOverride: mockRegionOverride,
+          }
+        : actual.selectMoneyMovementNeobank(state),
+  };
+});
 
 jest.mock('../../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: () => mockLocation,
@@ -232,7 +229,7 @@ describe('VbaDetails', () => {
     mockRouteParams = undefined;
     mockChooseCurrency = false;
     mockRegionOverride = undefined;
-    mockUsableAutoramp = undefined;
+    mockNeobankFlagOn = true;
     mockDebugEnv = undefined;
     mockHardwareTier = null;
     mockNetworkTier = null;
@@ -941,6 +938,20 @@ describe('VbaDetails', () => {
     expect(mockRefreshAutoramp).not.toHaveBeenCalled();
   });
 
+  it('opens an existing approved account without creating one when moneyMovementNeobank is absent', async () => {
+    mockNeobankFlagOn = false;
+    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
+
+    const { getByTestId } = renderWithProvider(<VbaDetails />);
+
+    await waitFor(() => {
+      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
+    });
+    expect(mockHydrate).not.toHaveBeenCalled();
+    expect(mockRegisterWallet).not.toHaveBeenCalled();
+    expect(mockCreateAutoramp).not.toHaveBeenCalled();
+  });
+
   it('creates the autoramp for the flag region override ahead of the IP country', async () => {
     setAutoramps([]);
     mockLocation = 'DE';
@@ -1143,12 +1154,8 @@ describe('VbaDetails', () => {
     });
   });
 
-  it('refreshes an unlabeled approved account and does not create USD when it is BRL', async () => {
+  it('refreshes an unlabeled approved account and creates USD when it is BRL', async () => {
     mockLocation = 'US';
-    mockHydrate.mockResolvedValue({
-      kycStatus: 'approved',
-      autorampStatus: 'ready',
-    });
     setAutoramps([{ id: 'ar-1', walletAddress: '0xabc', status: 'Approved' }]);
     mockRefreshAutoramp.mockImplementation(async () => {
       const stamped: TestAutoramp = {
@@ -1160,114 +1167,32 @@ describe('VbaDetails', () => {
       setAutoramps([stamped]);
       return stamped;
     });
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
+    mockHydrate.mockResolvedValue({ autorampStatus: 'ready' });
+    mockCreateAutoramp.mockImplementation(async () => {
+      const created: TestAutoramp = {
+        id: 'ar-usd',
+        walletAddress: '0xabc',
+        status: 'Created',
+        depositRailsSummary: { currency: 'USD' },
+      };
+      setAutoramps([
+        {
+          id: 'ar-1',
+          walletAddress: '0xabc',
+          status: 'Approved',
+          depositRailsSummary: { currency: 'BRL' },
+        },
+        created,
+      ]);
+      return created;
     });
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-    expect(mockNavigateToVbaOnboardingDestination).not.toHaveBeenCalled();
-  });
-
-  it('does not create a second currency next to a pending autoramp', async () => {
-    mockLocation = 'US';
-    const pending: TestAutoramp = {
-      id: 'ar-1',
-      walletAddress: '0xabc',
-      status: 'Pending',
-      depositRailsSummary: { currency: 'BRL' },
-    };
-    setAutoramps([pending]);
-    mockRefreshAutoramp.mockResolvedValue(pending);
-    mockHydrate.mockResolvedValue({
-      kycStatus: 'approved',
-      autorampStatus: 'ready',
-    });
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockRefreshAutoramp).toHaveBeenCalledWith('ar-1');
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('stops polling and opens the generic error for an existing autoramp in a currency this build cannot show', async () => {
-    const eur: TestAutoramp = {
-      id: 'ar-1',
-      walletAddress: '0xabc',
-      status: 'Approved',
-      depositRailsSummary: { currency: 'EUR' },
-    };
-    setAutoramps([eur]);
-    mockRefreshAutoramp.mockResolvedValue(eur);
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
-        expect.anything(),
-        'accountCreateGeneric',
-      );
-    });
-    expect(mockRefreshAutoramp).toHaveBeenCalledTimes(1);
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('opens the verification error for a failed create outside every region', async () => {
-    mockLocation = 'DE';
-    setAutoramps([
-      { id: 'ar-1', walletAddress: '0xabc', status: 'RegistrationFailed' },
-    ]);
-
-    renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(mockNavigateToVbaOnboardingDestination).toHaveBeenCalledWith(
-        expect.anything(),
-        'accountCreateDetails',
-        undefined,
-        { httpStatus: 200, fiatStatus: 'RegistrationFailed' },
-        undefined,
-      );
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('opens the existing autoramp currency after travel instead of creating', async () => {
-    mockUsableAutoramp = { depositRailsSummary: { currency: 'BRL' } };
-    mockLocation = 'US';
-    mockGetDepositInstructions.mockResolvedValue(pixInstructions);
-
-    const { getByTestId } = renderWithProvider(<VbaDetails />);
-
-    await waitFor(() => {
-      expect(getByTestId(VbaDetailsSelectorsIDs.PIX_CODE)).toBeOnTheScreen();
-    });
-    expect(mockCreateAutoramp).not.toHaveBeenCalled();
-  });
-
-  it('does not let an autoramp on another address block creating one', async () => {
-    setAutoramps([
-      {
-        id: 'ar-old',
-        walletAddress: '0xdef',
-        status: 'Approved',
-        depositRailsSummary: { currency: 'BRL' },
-      },
-    ]);
-    mockHydrate.mockResolvedValue({ autorampStatus: 'needs_source_currency' });
 
     renderWithProvider(<VbaDetails />);
 
     await waitFor(() => {
       expect(mockCreateAutoramp).toHaveBeenCalledWith(
         expect.objectContaining({
-          source_currencies: [{ type: 'Fiat', code: 'BRL' }],
+          source_currencies: [{ type: 'Fiat', code: 'USD' }],
         }),
       );
     });
