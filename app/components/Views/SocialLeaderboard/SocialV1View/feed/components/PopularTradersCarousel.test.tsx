@@ -74,6 +74,14 @@ describe('PopularTradersCarousel', () => {
     mockUsePopularTraders.mockReturnValue(loadedResult());
   });
 
+  it('starts the title flush with the header so the section reads as 12px', () => {
+    renderWithProvider(<PopularTradersCarousel />);
+
+    expect(
+      screen.getByTestId(PopularTradersCarouselSelectorsIDs.HEADER),
+    ).toHaveStyle({ paddingTop: 0, paddingBottom: 0 });
+  });
+
   it('renders a card for each trader plus View more', () => {
     renderWithProvider(<PopularTradersCarousel />);
 
