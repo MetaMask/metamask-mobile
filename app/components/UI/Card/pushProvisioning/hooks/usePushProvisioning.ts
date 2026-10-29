@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { AppState, type AppStateStatus } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
@@ -205,18 +206,24 @@ export function usePushProvisioning(
     }
   }, [walletAdapter, lastFourDigits, refreshEligibility]);
 
-  useEffect(() => {
-    if (suppressImmersveApplePay) {
-      setIsEligibilityCheckLoading(false);
-      return undefined;
-    }
+  const checkedLastFourRef = useRef<string | undefined>(undefined);
 
-    void refreshEligibility({ silent: false });
+  useFocusEffect(
+    useCallback(() => {
+      if (suppressImmersveApplePay) {
+        setIsEligibilityCheckLoading(false);
+        return undefined;
+      }
 
-    return () => {
-      eligibilityRequestIdRef.current += 1;
-    };
-  }, [refreshEligibility, suppressImmersveApplePay]);
+      const shouldShowLoading = checkedLastFourRef.current !== lastFourDigits;
+      checkedLastFourRef.current = lastFourDigits;
+      void refreshEligibility({ silent: !shouldShowLoading });
+
+      return () => {
+        eligibilityRequestIdRef.current += 1;
+      };
+    }, [refreshEligibility, lastFourDigits, suppressImmersveApplePay]),
+  );
 
   const appStateRef = useRef<AppStateStatus>(AppState.currentState);
 
