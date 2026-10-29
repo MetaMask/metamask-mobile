@@ -5,7 +5,9 @@ import type { EnrolledCredential } from '@metamask/profile-sync-controller/sdk';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
 import { ToastContext } from '../../../../component-library/components/Toast';
-import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
+import { useMfa } from '../../../../util/identity/mfa';
+import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { isMpcMoneyKeyringBuildEnabled } from '../../../../constants/featureFlags';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { useMoneyMfa } from './useMoneyMfa';
@@ -31,7 +33,6 @@ jest.mock('../../../../store/storage-wrapper', () => ({
 
 jest.mock('../../../../util/identity/mfa', () => ({
   useMfa: jest.fn(),
-  isMfaDevBuild: jest.fn(),
 }));
 
 jest.mock('../../../../constants/featureFlags', () => ({
@@ -77,7 +78,6 @@ jest.mock('../../../../lib/Money/mfa/moneyAccountMigration', () => {
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockUseMfa = jest.mocked(useMfa);
-const mockIsMfaDevBuild = jest.mocked(isMfaDevBuild);
 const mockIsMpcKeyringEnabled = jest.mocked(isMpcMoneyKeyringBuildEnabled);
 const mockStart = jest.mocked(moneyAccountMigration.start);
 const setMigration = (status: MoneyAccountMigrationStatus) =>
@@ -149,8 +149,11 @@ const arrange = ({
   isMpcKeyringEnabled?: boolean;
   credentials?: EnrolledCredential[];
 } = {}) => {
-  mockUseSelector.mockReturnValue(isFlagEnabled);
-  mockIsMfaDevBuild.mockReturnValue(isKitEnabled);
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectMoneyEnableMfaFlag) return isFlagEnabled;
+    if (selector === selectMfaUiKitEnabled) return isKitEnabled;
+    return undefined;
+  });
   mockIsMpcKeyringEnabled.mockReturnValue(isMpcKeyringEnabled);
   mockUseMfa.mockReturnValue({
     credentials,
