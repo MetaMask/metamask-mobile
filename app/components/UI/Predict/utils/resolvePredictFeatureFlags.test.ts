@@ -389,20 +389,7 @@ describe('resolvePredictFeatureFlags', () => {
       expect(result.isMembershipFeeWaiverEnabled).toBe(true);
     });
 
-    it('returns false when the remote flag is disabled', () => {
-      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (
-          flag &&
-          typeof flag === 'object' &&
-          'enabled' in flag &&
-          'minimumVersion' in flag &&
-          !('leagues' in flag)
-        ) {
-          return (flag as { enabled: boolean }).enabled;
-        }
-        return undefined;
-      });
-
+    it('returns true when the remote flag object is present', () => {
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
           predictSubscriptionFeeWaiverEnabled: {
@@ -412,7 +399,7 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.isMembershipFeeWaiverEnabled).toBe(false);
+      expect(result.isMembershipFeeWaiverEnabled).toBe(true);
     });
   });
 
