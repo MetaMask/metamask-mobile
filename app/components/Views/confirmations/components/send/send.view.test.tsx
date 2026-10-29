@@ -52,6 +52,7 @@ import {
 } from './RedesignedSendView.testIds';
 import { Send } from './send';
 import { SendAlertModalSelectorIDs } from './send-alert-modal/send-alert-modal.testIds';
+import { KeypadTestIds } from '../../../../Base/Keypad/Keypad.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import {
@@ -102,6 +103,112 @@ const buildTrustedAddressScanOverrides = (...addresses: string[]) =>
       },
     },
   }) as unknown as Record<string, unknown>;
+
+const SEND_FIAT_ACCOUNT_ID = 'acc-1';
+const SEND_FIAT_TOKEN_ADDRESS = '0x1111111111111111111111111111111111111111';
+const SEND_FIAT_NATIVE_ADDRESS = '0x0000000000000000000000000000000000000000';
+const ETHEREUM_CHAIN_ID = '0x1';
+/** Chain 143. A $0.02 native coin, the direction where the doubled rate grows. */
+const CHEAP_NATIVE_CHAIN_ID = '0x8f';
+const TOKEN_FIAT_PRICE = 2;
+const ETHEREUM_NATIVE_PRICE = 4000;
+const CHEAP_NATIVE_PRICE = 0.02;
+
+const fungibleAssetPrice = (id: string, price: number) => ({
+  assetPriceType: 'fungible' as const,
+  id,
+  price,
+  usdPrice: price,
+  lastUpdated: 1700000000000,
+});
+
+/**
+ * Account assets carry the native-coin fiat rate. Market data carries the
+ * token priced in that native coin. `useRouteParams` folds the two into the
+ * token's own fiat price before the amount screen renders the fiat line.
+ */
+function sendFiatConversionState() {
+  const ethereumTokenId = `eip155:1/erc20:${SEND_FIAT_TOKEN_ADDRESS}`;
+  const cheapTokenId = `eip155:143/erc20:${SEND_FIAT_TOKEN_ADDRESS}`;
+  const ethereumNativeId = 'eip155:1/slip44:60';
+  const cheapNativeId = 'eip155:143/slip44:60';
+  const tokenInfo = {
+    type: 'erc20',
+    symbol: 'TEST',
+    name: 'Test Token',
+    decimals: 6,
+  };
+
+  return initialStateWallet()
+    .withOverrides(sendViewOverrides)
+    .withOverrides({
+      settings: { primaryCurrency: 'ETH' },
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [CHEAP_NATIVE_CHAIN_ID]: {
+                chainId: CHEAP_NATIVE_CHAIN_ID,
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'monad',
+                    url: 'https://rpc.monad.xyz',
+                    type: 'custom',
+                    name: 'Monad',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: [],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Monad',
+                nativeCurrency: 'MON',
+              },
+            },
+          },
+          AssetsController: {
+            selectedCurrency: 'usd',
+            assetsInfo: {
+              [ethereumNativeId]: {
+                type: 'native',
+                symbol: 'ETH',
+                name: 'Ethereum',
+                decimals: 18,
+              },
+              [cheapNativeId]: {
+                type: 'native',
+                symbol: 'MON',
+                name: 'Monad',
+                decimals: 18,
+              },
+              [ethereumTokenId]: tokenInfo,
+              [cheapTokenId]: tokenInfo,
+            },
+            assetsPrice: {
+              [ethereumNativeId]: fungibleAssetPrice(
+                'eth',
+                ETHEREUM_NATIVE_PRICE,
+              ),
+              [cheapNativeId]: fungibleAssetPrice('mon', CHEAP_NATIVE_PRICE),
+              [ethereumTokenId]: fungibleAssetPrice(
+                'test-eth',
+                TOKEN_FIAT_PRICE,
+              ),
+              [cheapTokenId]: fungibleAssetPrice('test-mon', TOKEN_FIAT_PRICE),
+            },
+            assetsBalance: {
+              [SEND_FIAT_ACCOUNT_ID]: {
+                [ethereumNativeId]: { amount: '10' },
+                [cheapNativeId]: { amount: '1000' },
+                [ethereumTokenId]: { amount: '1000' },
+                [cheapTokenId]: { amount: '1000' },
+              },
+            },
+          },
+        },
+      },
+    } as unknown as Record<string, unknown>)
+    .build();
+}
 
 /** Mainnet USDC (6 decimals), high balance — mirrors smoke ERC-20 send E2E fixture. */
 const EVM_USDC_ASSET = {
@@ -1157,5 +1264,82 @@ describeForPlatforms('Send', () => {
         }
       });
     }
+  });
+
+  // MMQA-2523. The account list stores the native-coin fiat rate. Market data
+  // stores the token priced in that coin. The amount screen must show the
+  // token's own price. Applying the native-coin price again collapses a $2
+  // token when the native coin is $4,000 and inflates it when the native coin
+  // is $0.02. ETH stays at the native rate because that price is 1.
+  describe('fiat conversion', () => {
+    const openAmount = (asset: {
+      address: string;
+      chainId: string;
+      decimals: number;
+      symbol: string;
+    }) => {
+      const state = sendFiatConversionState();
+
+      return renderScreenWithRoutes(
+        Send as unknown as React.ComponentType,
+        { name: Routes.SEND.DEFAULT },
+        [],
+        { state },
+        { screen: Routes.SEND.AMOUNT, params: { asset } },
+      );
+    };
+
+    it('shows $20 for 10 tokens priced at $2 when the native coin is $4000', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_TOKEN_ADDRESS,
+        chainId: ETHEREUM_CHAIN_ID,
+        decimals: 6,
+        symbol: 'TEST',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 20.00');
+      });
+    });
+
+    it('shows $20 for 10 tokens priced at $2 when the native coin is $0.02', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_TOKEN_ADDRESS,
+        chainId: CHEAP_NATIVE_CHAIN_ID,
+        decimals: 6,
+        symbol: 'TEST',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_0));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 20.00');
+      });
+    });
+
+    it('shows $4000 for 1 ETH', async () => {
+      const { getByTestId } = openAmount({
+        address: SEND_FIAT_NATIVE_ADDRESS,
+        chainId: ETHEREUM_CHAIN_ID,
+        decimals: 18,
+        symbol: 'ETH',
+      });
+
+      fireEvent.press(getByTestId(KeypadTestIds.KEY_1));
+
+      await waitFor(() => {
+        expect(
+          getByTestId(RedesignedSendViewSelectorsIDs.FIAT_TOGGLE),
+        ).toHaveTextContent('$ 4,000.00');
+      });
+    });
   });
 });

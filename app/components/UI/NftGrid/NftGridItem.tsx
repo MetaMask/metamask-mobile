@@ -85,14 +85,16 @@ const NftGridItem = ({
       </Text>
 
       {/* TODO: check if is better to use collection name from nft contract? */}
-      <Text
-        variant={TextVariant.BodySm}
-        fontWeight={FontWeight.Medium}
-        twClassName="text-alternative"
-        numberOfLines={1}
-      >
-        {item.collection?.name}
-      </Text>
+      {item.collection?.name ? (
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          twClassName="text-alternative"
+          numberOfLines={1}
+        >
+          {item.collection.name}
+        </Text>
+      ) : null}
     </Pressable>
   );
 };

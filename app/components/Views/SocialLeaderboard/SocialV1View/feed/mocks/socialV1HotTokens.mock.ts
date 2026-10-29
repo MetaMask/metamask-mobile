@@ -3,7 +3,7 @@ import type { SocialV1HotToken } from '../types';
 export const mockHotToken = (
   overrides: Partial<SocialV1HotToken> = {},
 ): SocialV1HotToken => {
-  const { avatar, ...rest } = overrides;
+  const { avatar, assetIds, ...rest } = overrides;
   const id = rest.id ?? 'hot-btc';
   const symbol = rest.symbol ?? 'BTC';
 
@@ -12,6 +12,7 @@ export const mockHotToken = (
     symbol,
     label: 'Bitcoin perps',
     ...rest,
+    assetIds: assetIds ?? [`eip155:999/perp:${symbol.replace(/:/gu, '.')}`],
     avatar: avatar ?? {
       positionId: id,
       chain: 'hyperliquid',

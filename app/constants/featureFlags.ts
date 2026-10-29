@@ -53,6 +53,7 @@ export enum FeatureFlagNames {
   moneyVbaCompletedActivityEnabled = 'moneyVbaCompletedActivityEnabled',
   perpsBrandRefresh = 'perpsBrandRefresh',
   exploreBrandRefresh = 'exploreBrandRefresh',
+  mfaUiKit = 'mfaUiKit',
 }
 
 /** Minimum expected app version required for QR add-device account sync. Will update if extends */

@@ -77,6 +77,8 @@ export interface LeaderboardShellTabPageProps {
   appliedFilters?: SocialShellFilters;
   onOpenFilters?: () => void;
   isFilterActive?: boolean;
+  /** Clears the applied Leaderboard filters. The type chip is kept. */
+  onClearFilters?: () => void;
   onTypeChange?: (type: SocialTypeFilter) => void;
 }
 
@@ -94,6 +96,7 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
   appliedFilters = DEFAULT_FILTERS,
   onOpenFilters,
   isFilterActive = false,
+  onClearFilters,
   onTypeChange,
 }) => {
   const tw = useTailwind();
@@ -245,6 +248,9 @@ const LeaderboardShellTabPage: React.FC<LeaderboardShellTabPageProps> = ({
                 location="social_leaderboard"
                 filters={filters}
                 showViewerRow
+                filteredEmpty={isFilterActive}
+                onClearFilters={onClearFilters}
+                emptyClassName="-mt-4"
                 onOutcomeChange={setScreenOutcome}
                 performance={performance}
               />

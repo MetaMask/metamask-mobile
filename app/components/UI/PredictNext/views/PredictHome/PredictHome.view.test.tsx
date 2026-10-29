@@ -8,6 +8,7 @@ import { PredictEventScreenTestIds } from '../PredictEvent/PredictEventScreen.te
 import { PredictOrderFlowTestIds } from '../PredictOrderFlow/internal/PredictOrderFlow.testIds';
 import { PredictFeedScreenTestIds } from '../PredictFeedScreen/PredictFeedScreen.testIds';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolio/PredictPortfolioScreen.testIds';
+import { PredictSearchScreenTestIds } from '../PredictSearch/PredictSearchScreen.testIds';
 import { PredictError, PredictErrorCode } from '../../errors';
 import {
   KALSHI_STATIC_VENUE_CATALOG,
@@ -854,6 +855,173 @@ describe('PredictHome', () => {
       expect(
         view.queryByTestId(PredictHomeTestIds.SEARCH),
       ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('venue-generic Home', () => {
+    const calls = (action: string) =>
+      messengerCall.mock.calls.filter(([name]) => name === action);
+
+    it('renders the sections and Feeds of an arbitrary Venue descriptor', async () => {
+      // A feed set Kalshi's catalog does not have: college football only,
+      // under Feed IDs of its own, plus a key Home has no section for.
+      const testFeedId = 'test-college-games' as PredictFeedId;
+      configurePredictNextCatalog({
+        venueId: 'kalshi',
+        actions: ['buy'],
+        feeds: {
+          'college-football-games': testFeedId,
+          trending: 'test-trending',
+        },
+        searchSupported: false,
+      });
+      const testEvents = [
+        makePredictNextEvent('test-1', 'Test Game One'),
+        makePredictNextEvent('test-2', 'Test Game Two'),
+      ];
+      mockPredictNextMessenger((action: string, venueId: string) => {
+        if (action === 'PredictMarketDataService:getFeed') {
+          return Promise.resolve({
+            venueId,
+            id: testFeedId,
+            title: 'Test Games',
+            events: testEvents,
+          });
+        }
+        if (action === 'PredictPortfolioService:getBalance') {
+          return Promise.resolve({ venueId, currency: 'USD', available: '1' });
+        }
+        return Promise.resolve(undefined);
+      });
+      const view = renderPredictNext();
+
+      const section = await view.findByTestId(
+        PredictHomeTestIds.section(NCAA_FEED_SCREEN_ID),
+      );
+      expect(
+        await within(section).findByTestId(
+          PredictHomeTestIds.event('kalshi', 'test-1'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        within(section).getByTestId(
+          PredictHomeTestIds.event('kalshi', 'test-2'),
+        ),
+      ).toBeOnTheScreen();
+      expect(within(section).getByText('NCAAF')).toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.section(NFL_FEED_SCREEN_ID)),
+      ).not.toBeOnTheScreen();
+      expect(
+        view.queryByTestId(PredictHomeTestIds.SEARCH),
+      ).not.toBeOnTheScreen();
+      expect(
+        calls('PredictMarketDataService:getFeed').map(
+          ([, venueId, feedId, params]) => [venueId, feedId, params],
+        ),
+      ).toEqual([['kalshi', testFeedId, { limit: 2 }]]);
+
+      fireEvent.press(
+        view.getByTestId(PredictHomeTestIds.sectionHeader(NCAA_FEED_SCREEN_ID)),
+      );
+
+      expect(
+        await view.findByTestId(PredictFeedScreenTestIds.VIEW),
+      ).toBeOnTheScreen();
+      await waitFor(() =>
+        expect(messengerCall).toHaveBeenCalledWith(
+          'PredictMarketDataService:getFeed',
+          'kalshi',
+          testFeedId,
+          { limit: 20 },
+        ),
+      );
+    });
+
+    describe('for a Venue other than Kalshi', () => {
+      // Polymarket's bundled descriptor: search, but none of Home's Feed keys.
+      const venueId = 'polymarket' as PredictVenueId;
+
+      beforeEach(() => {
+        mockPredictNextMessenger((action: string, requestedVenueId: string) => {
+          if (action === 'PredictPortfolioService:getBalance') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              currency: 'USD',
+              available: '42',
+            });
+          }
+          if (action === 'PredictPortfolioService:getPositions') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              positions: [],
+            });
+          }
+          if (action === 'PredictPortfolioService:getActivity') {
+            return Promise.resolve({
+              venueId: requestedVenueId,
+              activity: [],
+            });
+          }
+          if (action === 'PredictMarketDataService:searchEvents') {
+            return Promise.resolve({ venueId: requestedVenueId, events: [] });
+          }
+          return Promise.resolve(undefined);
+        });
+      });
+
+      it('reads everything for the Active Venue and never for Kalshi', async () => {
+        const view = renderPredictNext(false, { venueId });
+
+        expect(
+          await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT),
+        ).toHaveTextContent('$42.00');
+        expect(
+          await view.findByTestId(PredictHomeTestIds.SECTIONS_UNAVAILABLE),
+        ).toBeOnTheScreen();
+        expect(view.getByTestId(PredictHomeTestIds.SEARCH)).toBeOnTheScreen();
+        expect(calls('PredictPortfolioService:getBalance')).toEqual([
+          ['PredictPortfolioService:getBalance', venueId],
+        ]);
+        expect(calls('PredictMarketDataService:getFeed')).toHaveLength(0);
+        expect(
+          messengerCall.mock.calls.filter(([, id]) => id === 'kalshi'),
+        ).toEqual([]);
+      });
+
+      it('opens Portfolio for the Active Venue', async () => {
+        const view = renderPredictNext(false, { venueId });
+        await view.findByTestId(PredictHomeTestIds.BALANCE_AMOUNT);
+
+        fireEvent.press(view.getByTestId(PredictHomeTestIds.POSITIONS));
+
+        expect(
+          await view.findByTestId(PredictPortfolioScreenTestIds.CONTAINER),
+        ).toBeOnTheScreen();
+        await waitFor(() =>
+          expect(
+            calls('PredictPortfolioService:getPositions').map(([, id]) => id),
+          ).toContain(venueId),
+        );
+      });
+
+      it('opens search for the Active Venue', async () => {
+        const view = renderPredictNext(false, { venueId });
+
+        fireEvent.press(await view.findByTestId(PredictHomeTestIds.SEARCH));
+        fireEvent.changeText(
+          await view.findByTestId(PredictSearchScreenTestIds.INPUT),
+          'chiefs',
+        );
+
+        await waitFor(() =>
+          expect(messengerCall).toHaveBeenCalledWith(
+            'PredictMarketDataService:searchEvents',
+            venueId,
+            expect.objectContaining({ q: 'chiefs' }),
+          ),
+        );
+      });
     });
   });
 });

@@ -29,11 +29,7 @@ import {
   formatRewardsRelativeDay,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const PERFORMANCE_ACTIVITY_TEST_IDS = {
-  COMMISSION_ROW: 'performance-commission-row',
-  REBATE_ROW: 'performance-rebate-row',
-} as const;
+import { PERFORMANCE_ACTIVITY_TEST_IDS } from './PerformanceActivityRows.testIds';
 
 function copiedTimesLabel(
   localizedText: ReferralLocalizedText,

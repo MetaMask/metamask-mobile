@@ -15,6 +15,9 @@ describe('SocialFeedError', () => {
     expect(
       screen.getByText(strings('social_leaderboard.feed.error.title')),
     ).toBeOnTheScreen();
+    expect(
+      screen.getByText(strings('social_leaderboard.feed.error.description')),
+    ).toBeOnTheScreen();
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 });

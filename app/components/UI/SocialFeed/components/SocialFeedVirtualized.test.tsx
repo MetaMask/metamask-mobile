@@ -15,13 +15,30 @@ import {
 import { useNetworkTier } from '../../../../hooks/useNetworkTier';
 import { getHardwareTier } from '../../../../util/deviceCapability';
 import { createSocialFeedEntrances } from '../data/socialFeedEntrances';
+import type { SocialFeedQuery } from '../data/socialFeedSource';
 import { useSocialFeed, type SocialFeedState } from '../data/useSocialFeed';
 import { useSocialLivePrices } from '../live/SocialLivePricesContext';
 import { mockOpenPerpsFeedItem } from '../mocks/socialV1Feed.mock';
 import type { SocialFeedPageHandle, SocialV1FeedPost } from '../types';
 import FeedItemEntryAnimation from './FeedItemEntryAnimation';
-import type { SocialFeedHeaderProps } from './SocialFeed.types';
-import SocialFeedVirtualized from './SocialFeedVirtualized';
+import type { SocialFeedInlineRow } from './SocialFeed.types';
+import { useSocialFeedRealtime } from './SocialFeedRealtime/SocialFeedRealtimeContext';
+import SocialFeedVirtualized, {
+  REFRESH_MIN_DURATION_MS,
+} from './SocialFeedVirtualized';
+
+const RealtimeProbe = () => {
+  const realtime = useSocialFeedRealtime();
+  if (!realtime) {
+    return null;
+  }
+  const { paused, pendingNewCount } = realtime;
+  return <Text>{`${pendingNewCount} held${paused ? ', paused' : ''}`}</Text>;
+};
+
+jest.mock('../../../../util/haptics', () => ({
+  playSelection: jest.fn(() => Promise.resolve()),
+}));
 
 const mockUseSocialFeedScreenView = jest.fn();
 jest.mock('../socialFeedTracking', () => ({
@@ -33,8 +50,22 @@ jest.mock('../socialFeedTracking', () => ({
   socialFeedTracksLocation: () => false,
 }));
 import { getSocialFeedPostSkeletonTestId } from './SocialFeedPostSkeleton.testIds';
-import { SOCIAL_FEED_RETRY_TEST_ID } from './SocialFeedStates.testIds';
+import {
+  SOCIAL_FEED_EMPTY_TEST_ID,
+  SOCIAL_FEED_RETRY_TEST_ID,
+} from './SocialFeedStates.testIds';
 import { getSocialV1FeedEntryDividerTestId } from './SocialV1FeedPostList.testIds';
+import {
+  SocialFeedSurfaceProvider,
+  useSocialFeedSurface,
+} from '../SocialFeedSurface';
+import { useSocialTabFirstContentTrace } from '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace';
+import type { SocialPerformanceContext } from '../../../../util/social/socialPerformance';
+
+jest.mock(
+  '../../../Views/SocialLeaderboard/SocialV1View/performance/useSocialTabFirstContentTrace',
+  () => ({ useSocialTabFirstContentTrace: jest.fn() }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   useIsFocused: jest.fn(() => true),
@@ -87,6 +118,7 @@ jest.mock('react-native-reanimated', () => {
     ...Reanimated,
     useAnimatedScrollHandler: jest.fn(() => 'near-top-handler'),
     useComposedEventHandler: jest.fn(() => undefined),
+    useReducedMotion: jest.fn(() => false),
   };
 });
 
@@ -103,8 +135,37 @@ const mockUseSocialLivePrices = jest.mocked(useSocialLivePrices);
 const mockFeedItemEntryAnimation = jest.mocked(FeedItemEntryAnimation);
 const mockUseAnimatedScrollHandler = jest.mocked(useAnimatedScrollHandler);
 const mockUseComposedEventHandler = jest.mocked(useComposedEventHandler);
+const mockUseSocialTabFirstContentTrace = jest.mocked(
+  useSocialTabFirstContentTrace,
+);
 
-const source = { kind: 'all', audience: 'all', scope: 'all' } as const;
+const performanceContext = (
+  overrides: Partial<SocialPerformanceContext> = {},
+): SocialPerformanceContext => ({
+  enabled: true,
+  hardwareTier: null,
+  isActive: true,
+  isFocused: true,
+  networkTier: null,
+  ...overrides,
+});
+
+const inlineRow = (key: string, afterIndex: number): SocialFeedInlineRow => ({
+  key,
+  afterIndex,
+  render: () => <Text>{key}</Text>,
+});
+
+/** Text of every post and inline row on screen, top to bottom. */
+const renderedRowTexts = (pattern: RegExp) =>
+  screen.getAllByText(pattern).map((node) => node.props.children);
+
+const SurfaceProbe: React.FC = () => {
+  const { showMockedFields } = useSocialFeedSurface();
+  return <Text>{`mocked:${showMockedFields}`}</Text>;
+};
+
+const query: SocialFeedQuery = { scope: 'all' };
 
 const post = (id: string): SocialV1FeedPost => ({
   id,
@@ -140,7 +201,7 @@ const renderFeed = (
 ) =>
   render(
     <SocialFeedVirtualized
-      source={source}
+      {...query}
       location="social_live"
       scrollMode="virtualized"
       scrollTestID="feed-scroll"
@@ -164,6 +225,7 @@ describe('SocialFeedVirtualized', () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.restoreAllMocks();
   });
 
@@ -198,7 +260,7 @@ describe('SocialFeedVirtualized', () => {
     );
     rerender(
       <SocialFeedVirtualized
-        source={source}
+        {...query}
         location="social_live"
         scrollMode="virtualized"
         scrollTestID="feed-scroll"
@@ -235,7 +297,7 @@ describe('SocialFeedVirtualized', () => {
 
     renderFeed({ realtime: true, paused: true, filterPost });
 
-    expect(mockUseSocialFeed).toHaveBeenCalledWith(source, {
+    expect(mockUseSocialFeed).toHaveBeenCalledWith(query, {
       enabled: true,
       realtime: true,
       paused: true,
@@ -392,11 +454,67 @@ describe('SocialFeedVirtualized', () => {
     expect(refresh).toHaveBeenCalledTimes(1);
   });
 
-  it('reveals pending posts, refreshes, then scrolls to the top', async () => {
+  it('tells the host about a pull-to-refresh', async () => {
+    jest.useFakeTimers();
+    const onRefresh = jest.fn();
+    renderFeed({ onRefresh });
+
+    await act(async () => {
+      const refreshing = screen
+        .UNSAFE_getByType(RefreshControl)
+        .props.onRefresh();
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS);
+      await refreshing;
+    });
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('clears the refresh spinner when the host callback throws', async () => {
+    const onRefresh = jest.fn(() => {
+      throw new Error('analytics down');
+    });
+    renderFeed({ onRefresh });
+    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
+
+    await act(async () => {
+      await expect(getRefreshControl().props.onRefresh()).rejects.toThrow(
+        'analytics down',
+      );
+    });
+
+    expect(getRefreshControl().props.refreshing).toBe(false);
+  });
+
+  it('holds the refresh spinner for the minimum duration', async () => {
+    jest.useFakeTimers();
+    renderFeed();
+    const getRefreshControl = () => screen.UNSAFE_getByType(RefreshControl);
+
+    await act(async () => {
+      getRefreshControl().props.onRefresh();
+    });
+    await act(async () => {
+      jest.advanceTimersByTime(REFRESH_MIN_DURATION_MS - 1);
+    });
+    const refreshingBeforeMinimum = getRefreshControl().props.refreshing;
+    await act(async () => {
+      jest.advanceTimersByTime(1);
+    });
+
+    expect(refreshingBeforeMinimum).toBe(true);
+    expect(getRefreshControl().props.refreshing).toBe(false);
+  });
+
+  const trackRevealSteps = (
+    pendingNewCount: number,
+    settleRefresh: () => Promise<void> = async () => undefined,
+  ) => {
     const calls: string[] = [];
-    const realtime = realtimeState(3);
+    const realtime = realtimeState(pendingNewCount);
     realtime.revealPending.mockImplementation(() => calls.push('reveal'));
     const refresh = jest.fn(async () => {
+      await settleRefresh();
       calls.push('refresh');
     });
     jest
@@ -405,35 +523,93 @@ describe('SocialFeedVirtualized', () => {
         calls.push(`scroll ${offset}`);
       });
     mockUseSocialFeed.mockReturnValue(feedState({ refresh, realtime }));
-    const renderHeader = jest.fn(
-      ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
-        <Text onPress={onRevealPending}>{`${pendingNewCount} new`}</Text>
-      ),
-    );
-    renderFeed({ realtime: true, renderHeader });
+    return calls;
+  };
+
+  it('reveals held posts from the pill, scrolls to the top, then refreshes', async () => {
+    const calls = trackRevealSteps(3);
+    renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByText('3 new'));
+      fireEvent.press(screen.getByLabelText('3 new posts'));
     });
 
-    expect(calls).toEqual(['reveal', 'refresh', 'scroll 0']);
+    expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
   });
 
-  it('gives the header a no-op reveal without realtime', async () => {
-    const refresh = jest.fn(async () => undefined);
-    mockUseSocialFeed.mockReturnValue(feedState({ refresh }));
-    const renderHeader = jest.fn(
-      ({ pendingNewCount, onRevealPending }: SocialFeedHeaderProps) => (
-        <Text onPress={onRevealPending}>{`${pendingNewCount} new`}</Text>
-      ),
-    );
-    renderFeed({ renderHeader });
+  it('scrolls to the top from the pill before the refresh settles', async () => {
+    const calls = trackRevealSteps(3, () => new Promise(() => undefined));
+    renderFeed({ realtime: true });
 
     await act(async () => {
-      fireEvent.press(screen.getByText('0 new'));
+      fireEvent.press(screen.getByLabelText('3 new posts'));
     });
 
-    expect(refresh).not.toHaveBeenCalled();
+    expect(calls).toEqual(['reveal', 'scroll 0']);
+  });
+
+  it('hides the pill without held posts', () => {
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ realtime: realtimeState(0) }),
+    );
+
+    renderFeed({ realtime: true });
+
+    expect(screen.queryByLabelText(/new post/)).toBeNull();
+  });
+
+  it('reveals held posts when resumed', async () => {
+    const calls = trackRevealSteps(3);
+    const { rerender } = renderFeed({ realtime: true, paused: true });
+
+    await act(async () => {
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          realtime
+          paused={false}
+        />,
+      );
+    });
+
+    expect(calls).toEqual(['reveal', 'scroll 0', 'refresh']);
+  });
+
+  it('reveals nothing while staying paused', async () => {
+    const calls = trackRevealSteps(3);
+    const { rerender } = renderFeed({ realtime: true, paused: true });
+
+    await act(async () => {
+      rerender(
+        <SocialFeedVirtualized
+          {...query}
+          location="social_live"
+          scrollMode="virtualized"
+          scrollTestID="feed-scroll"
+          realtime
+          paused
+        />,
+      );
+    });
+
+    expect(calls).toEqual([]);
+  });
+
+  it('shares paused and the held count with the header', () => {
+    mockUseSocialFeed.mockReturnValue(
+      feedState({ realtime: realtimeState(2) }),
+    );
+
+    renderFeed({
+      realtime: true,
+      paused: true,
+      renderHeader: () => <RealtimeProbe />,
+    });
+
+    expect(screen.getByText('2 held, paused')).toBeOnTheScreen();
   });
 
   it('checks live price visibility once scrolling settles', () => {
@@ -462,5 +638,179 @@ describe('SocialFeedVirtualized', () => {
 
     expect(screen.getByText('one')).toBeOnTheScreen();
     expect(refresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('loads the query its fields describe', () => {
+    const assetIds = ['eip155:999/perp:BTC'] as const;
+
+    renderFeed({ scope: 'trending', assetIds });
+
+    expect(mockUseSocialFeed.mock.lastCall?.[0]).toEqual({
+      scope: 'trending',
+      assetIds,
+    });
+  });
+
+  describe('mocked fields', () => {
+    it('shows them when the host opts in', () => {
+      renderFeed({
+        showMockedFields: true,
+        renderHeader: () => <SurfaceProbe />,
+      });
+
+      expect(screen.getByText('mocked:true')).toBeOnTheScreen();
+    });
+
+    it('keeps the outer surface choice when omitted', () => {
+      render(
+        <SocialFeedSurfaceProvider showMockedFields>
+          <SocialFeedVirtualized
+            {...query}
+            location="social_live"
+            scrollMode="virtualized"
+            renderHeader={() => <SurfaceProbe />}
+          />
+        </SocialFeedSurfaceProvider>,
+      );
+
+      expect(screen.getByText('mocked:true')).toBeOnTheScreen();
+    });
+  });
+
+  describe('inline rows', () => {
+    const rowTextPattern = /^(one|two|three|rail|empty)$/;
+
+    it('hides the rows while the first page loads', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ isLoading: true, dataUpdatedAt: undefined }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 3)] });
+
+      expect(screen.queryByText('rail')).toBeNull();
+      expect(
+        screen.getByTestId(getSocialFeedPostSkeletonTestId(0)),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows the rows under the empty state once the first page is empty', () => {
+      renderFeed({
+        inlineRows: [inlineRow('rail', 3)],
+        emptyState: <Text>empty</Text>,
+      });
+
+      expect(renderedRowTexts(rowTextPattern)).toEqual(['empty', 'rail']);
+    });
+
+    it('keeps the retry below the rows after a failed first page', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ error: 'feed down', dataUpdatedAt: undefined }),
+      );
+
+      renderFeed({
+        inlineRows: [
+          {
+            key: 'rail',
+            afterIndex: 3,
+            render: () => <Text testID="inline-rail">rail</Text>,
+          },
+        ],
+      });
+      const orderedIds = screen
+        .getAllByTestId(
+          new RegExp(`^(inline-rail|${SOCIAL_FEED_RETRY_TEST_ID})$`),
+        )
+        .map((node) => node.props.testID);
+
+      expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
+      expect(orderedIds).toEqual(['inline-rail', SOCIAL_FEED_RETRY_TEST_ID]);
+    });
+
+    it('draws a divider under every row but the last, rows included', () => {
+      mockUseSocialFeed.mockReturnValue(
+        feedState({ posts: [post('one'), post('two')] }),
+      );
+
+      renderFeed({ inlineRows: [inlineRow('rail', 1)] });
+
+      expect(
+        screen.getByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-one'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-inline-rail'),
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(
+          getSocialV1FeedEntryDividerTestId('social_live-two'),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  it('renders the host empty state in place of the default one', () => {
+    renderFeed({ emptyState: <Text>nothing trending</Text> });
+
+    expect(screen.getByText('nothing trending')).toBeOnTheScreen();
+    expect(screen.queryByTestId(SOCIAL_FEED_EMPTY_TEST_ID)).toBeNull();
+  });
+
+  describe('performance', () => {
+    it('traces the initial fetch for the tab while the context is enabled', () => {
+      renderFeed({
+        performance: { tab: 'trending', context: performanceContext() },
+      });
+
+      expect(lastFeedOptions()?.performance).toEqual({ tab: 'trending' });
+    });
+
+    it('does not trace the initial fetch while the context is disabled', () => {
+      renderFeed({
+        performance: {
+          tab: 'trending',
+          context: performanceContext({ enabled: false }),
+        },
+      });
+
+      expect(lastFeedOptions()?.performance).toBeUndefined();
+    });
+
+    it('runs no first-content trace without a performance context', () => {
+      renderFeed();
+
+      expect(mockUseSocialTabFirstContentTrace).not.toHaveBeenCalled();
+    });
+
+    it.each<[string, Partial<SocialFeedState>, string | null, boolean]>([
+      ['content once posts render', { posts: [post('one')] }, 'content', true],
+      [
+        'error when a failure leaves the list empty',
+        { error: 'feed down', dataUpdatedAt: undefined },
+        'error',
+        false,
+      ],
+      ['empty when the settled first page is empty', {}, 'empty', true],
+      [
+        'nothing while the first page loads',
+        { isLoading: true, dataUpdatedAt: undefined },
+        null,
+        false,
+      ],
+    ])('reports %s', (_label, overrides, expectedState, expectedUsableData) => {
+      const context = performanceContext();
+      mockUseSocialFeed.mockReturnValue(feedState(overrides));
+
+      renderFeed({ performance: { tab: 'trending', context } });
+
+      expect(mockUseSocialTabFirstContentTrace).toHaveBeenLastCalledWith({
+        tab: 'trending',
+        contentState: expectedState,
+        hasUsableData: expectedUsableData,
+        performance: context,
+      });
+    });
   });
 });

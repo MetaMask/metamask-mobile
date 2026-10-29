@@ -3,7 +3,7 @@
 - **Status:** Proposed by PRED-1402. Rules marked _Proposed, needs product sign-off_ are recommended defaults, not agreements.
 - **Scope:** Account-scoped Position, Portfolio Summary, and Activity reads, and the public Venue catalog.
 - **Venues:** Kalshi implements it in the Predict API now (PRED-1378, PRED-1380, PRED-1403). Polymarket implements the same contract in the Predict API under PRED-1356.
-- **Adoption:** PRED-1404 changes `types/`, `contracts/v1/`, services, queries, fixtures, and screens to match this contract. Until then, code and tests remain the executable contract.
+- **Adoption:** PRED-1404 adopted it in mobile: `types/`, `contracts/v1/portfolio.ts`, `PredictPortfolioService` (including `getPortfolioSummary`), `portfolioQueries`, `usePortfolioSummary`, the fixtures in `contracts/v1/fixtures/portfolio-contract/`, and the Portfolio screen.
 
 ## Why
 
@@ -84,8 +84,8 @@ interface PredictPosition {
   side: PredictOutcomeSide;
   status: PredictPositionStatus;
   shares: PredictAmount;
-  averagePrice: PredictDecimal;
-  costBasis: PredictAmount;
+  averagePrice?: PredictDecimal;
+  costBasis?: PredictAmount;
   currentValue?: PredictAmount;
   unrealizedPnl?: PredictSignedAmount;
   unrealizedPnlPercent?: PredictSignedPercent;
@@ -98,8 +98,8 @@ interface PredictPosition {
 | `marketId`, `side`     | Position identity within the Venue. Also the Cash Out intent (`marketId` + `side`).                                                                                                                                                                 | Never                                            | Row keys, Cash Out                                    |
 | `status`               | `open`: the Market's result is not determined. `claimable`: resolved, and the Venue requires a Claim to pay out. `settled`: resolved, and no user action is needed (payout is automatic or zero). Only advances: `open` → `claimable` or `settled`. | Never                                            | Open and resolved sections, won or lost, Claim CTA    |
 | `shares`               | Decimal shares, exact, never rounded. Always greater than zero.                                                                                                                                                                                     | Never                                            | Home rows, Portfolio rows, Cash Out                   |
-| `averagePrice`         | Fee-exclusive, average-cost execution price of the held shares.                                                                                                                                                                                     | Never                                            | Crypto up/down position row, Position detail          |
-| `costBasis`            | USD paid for the held shares, under the [fee](#open-decisions-for-product) and [PnL](#open-decisions-for-product) rules.                                                                                                                            | Never                                            | Home rows ("$X on Yes"), resolved rows (lost amount)  |
+| `averagePrice`         | Fee-exclusive, average-cost execution price of the held shares.                                                                                                                                                                                     | The backend's Order ledger cannot account for the holding | Crypto up/down position row, Position detail          |
+| `costBasis`            | USD paid for the held shares, under the [fee](#open-decisions-for-product) and [PnL](#open-decisions-for-product) rules.                                                                                                                            | The backend's Order ledger cannot account for the holding | Home rows ("$X on Yes"), resolved rows (lost amount)  |
 | `currentValue`         | USD. `open`: `shares` × best Bid of the held Outcome. Resolved: `shares` × the determined payout per share.                                                                                                                                         | No Bid, a stale Bid, or a disputed determination | Home rows, Portfolio rows, resolved rows (won amount) |
 | `unrealizedPnl`        | `currentValue` − `costBasis`.                                                                                                                                                                                                                       | `currentValue` is absent                         | Row PnL tone                                          |
 | `unrealizedPnlPercent` | `unrealizedPnl` / `costBasis` × 100.                                                                                                                                                                                                                | `currentValue` is absent, or `costBasis` is `0`  | Home rows, Portfolio rows, resolved rows              |
@@ -183,9 +183,9 @@ type PredictActivityEntry = PredictTradeEntry | PredictSettlementEntry;
 | `realizedPnl` (trade)      | Sells only: `amount` − cost basis of the sold shares. Absent on buys. Kalshi always provides it on sells.                         | Buys, or a sell whose cost basis the backend cannot establish     | Details "Net PnL" on sells                         |
 | `result`                   | The Market's result. `scalar` means a non-binary payout per share, such as a 50/50 resolution.                                    | Never                                                             | Won or lost copy                                   |
 | `proceeds`                 | USD credited by the Settlement. `"0"` for a losing Position.                                                                      | Never                                                             | Row amount, details hero                           |
-| `realizedPnl` (settlement) | `proceeds` − settlement fees − cost basis of the settled shares. Kalshi always provides it.                                       | The backend cannot establish the cost basis of the settled shares | Details PnL. Details omit the PnL row when absent. |
+| `realizedPnl` (settlement) | `proceeds` − cost basis of the settled shares. Settlement fees are already accounted for in the cost basis, so they are never subtracted twice. Kalshi always provides it.                                       | The backend cannot establish the cost basis of the settled shares | Details PnL. Details omit the PnL row when absent. |
 
-A Settlement is reported per held side. A Market where the Predict User held nothing at Settlement produces no entry. Settlement entries carry no manual-Claim marker. PRED-1356 decides whether Polymarket needs one; it is not added speculatively.
+A Settlement is reported once per Market, for the side the Predict User **net** held: `|yes_count_fp − no_count_fp|` contracts. Those counts are lifetime acquisitions, not the quantity held at Settlement, so equal counts mean a flat Position and produce no entry. `market_result` names the winning side, which is often not the held one. Settlement entries carry no manual-Claim marker. PRED-1356 decides whether Polymarket needs one; it is not added speculatively.
 
 ### Venue catalog
 
@@ -234,7 +234,7 @@ PRED-1376 implements the client side:
 - `realizedPnl`, on sells and on Settlements, is absent only when the backend cannot establish the cost basis. It is never fabricated or defaulted to `"0"`. Kalshi always provides it.
 - `complete` is `false` whenever a Position lacks `currentValue`, or the holdings traversal was bounded.
 - A Trade's `action` comes from the backend's own Order records. An execution that cannot be joined to one is excluded and alerted on. It never appears without a direction.
-- Activity is ordered by `timestamp` descending, then entry kind, then `id`. The order is total and deterministic.
+- Activity is ordered by `timestamp` descending, then entry kind (`trade` before `settlement`), then `id` ascending. The order is total and deterministic, so a page boundary never reorders entries that share a timestamp.
 - A paginated Positions pass returns every Position that is held throughout the pass at least once. It can repeat a Position but never skips one.
 - Funding records never appear in Activity.
 - Response `venueId` matches the requested Venue on the envelope and on every entry. Mobile rejects mismatches, as `KalshiRemoteAdapter` does today.
@@ -276,7 +276,7 @@ GET /v1/venues/{venueId}/positions?status={status}&sort=value&limit={limit}
 **`sort=opened` (paginated).** This is the list read for the Portfolio screen and the legacy position sections.
 
 - Order: `status` group (`open`, then `claimable`, then `settled`), then `openedAt` descending, then `marketId`, then `side`. The order is total.
-- `openedAt` is internal to the backend and is not in the payload. It is the time of the first execution of the current holding, or, when that cannot be established, the time the backend first observed the holding. The backend persists it and never recomputes it, so prices, Fills that add to or reduce the holding, and Bid changes never move a Position in this order.
+- `openedAt` is internal to the backend and is not in the payload. It is the time of the first execution of the current holding, or, when that cannot be established, a fixed sentinel that sorts last in its status group (see the API repo's `docs/BACKLOG.md`). It is never recomputed, so prices, Fills that add to or reduce the holding, and Bid changes never move a Position in this order.
 - The cursor is an opaque keyset over that order, bound to the `status` filter it was issued with. `nextCursor` is absent only when no Position follows the cursor.
 - A Position held throughout a pass is returned at least once, and never skipped. Its key is stable, and its `status` only advances, which moves it later in the order, never behind the cursor. A Position can repeat after its status advances. Mobile de-duplicates by `marketId` + `side`, keeping the latest copy.
 - A Position opened during a pass sorts ahead of the cursor and appears on the next refresh, as new Activity entries do. A Position closed and reopened during a pass is a new holding with a new `openedAt`. A Position whose status leaves a filtered section appears in its new section on the next refresh.
@@ -297,6 +297,7 @@ GET /v1/venues/{venueId}/activity?limit={limit}&cursor={cursor}
 - `limit`: default 20, max 50.
 - The cursor is an opaque keyset over `(timestamp, kind, id)`. Pages never duplicate or skip entries, including entries written between page reads, which sort ahead of the cursor.
 - `nextCursor` is absent only when every source is exhausted below the cursor. A source that cannot be read fails the page with `503`. It never ends the list early.
+- A page that can reach below the Venue's settlement archive horizon carries `settlementsCompleteFrom`: the instant from which Settlements are complete. Kalshi archives settled positions and stops serving their records, so below that horizon Trades stay complete and Settlements may not. It is absent when no page can reach the horizon.
 - A cursor whose entry no longer exists stays valid, because it is a key, not a position.
 
 ### Balance
@@ -361,8 +362,8 @@ Against the served dev contract (`https://predict-api.dev-api.cx.metamask.io/doc
 +    complete: boolean
    PositionsResponseDto.positions[]:
 +    status: enum [open, claimable, settled] # required
-+    averagePrice: PredictDecimal # required
-+    costBasis: PredictAmount # required
++    averagePrice: PredictDecimal # optional; absent only without a ledger
++    costBasis: PredictAmount # optional; absent only without a ledger
 +    currentValue: PredictAmount # optional
 +    unrealizedPnl: PredictSignedAmount # optional
 +    unrealizedPnlPercent: PredictSignedPercent # optional
@@ -431,10 +432,10 @@ The backend's own records are the Venue Account's order ledger. A MetaMask ISV s
 | `amount`                 | Buy: `actualSpend`. Sell: `netProceeds`.                                                                                                                                                                                                    |
 | `realizedPnl` (sell)     | `netProceeds` − the average cost of the sold contracts from the same ledger as Positions. Always present, because the ledger covers every execution.                                                                                        |
 | `timestamp`              | Time of the Order's last Fill. Needs a new persisted execution time, because `resolvedAt` is the backend's observation time.                                                                                                                |
-| Settlement source        | `GET /portfolio/settlements`. One entry per side with a nonzero `yes_count_fp` or `no_count_fp`. Flat settlements are excluded.                                                                                                             |
+| Settlement source        | `GET /portfolio/settlements`. One entry per Market, for the net held side: `|yes_count_fp − no_count_fp|` contracts, attributed to the side the counts favour. Both counts are lifetime acquisitions. Flat settlements are excluded.                                                                                                             |
 | Settlement `id`          | Deterministic from `ticker`, side, and `settled_time`.                                                                                                                                                                                      |
 | `result`, `proceeds`     | `market_result`. `revenue` in cents → dollars, attributed to the result side.                                                                                                                                                               |
-| Settlement `realizedPnl` | `proceeds` − `fee_cost` − the ledger cost basis of the settled contracts. Always present. `yes_total_cost_dollars` and `no_total_cost_dollars` are a cross-check.                                                                           |
+| Settlement `realizedPnl` | `proceeds` − the ledger cost basis of the settled contracts. `fee_cost` is the market's **trading** fees, already inside that cost basis, and is never subtracted again. Always present. `yes_total_cost_dollars` and `no_total_cost_dollars` are a cross-check.                                                                           |
 | Pagination               | Merge trades (a database keyset) and Settlements (upstream, bounded by `max_ts` at the cursor timestamp, _verify_) per page. This removes the five-upstream-page bound and the "cursor aged out" early end in `kalshi-activity.service.ts`. |
 
 ## Polymarket feasibility (PRED-1356)
