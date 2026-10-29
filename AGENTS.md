@@ -219,6 +219,10 @@ If the user asks to implement a ticket directly from Jira:
 | MetaMask Contributor Docs | https://github.com/MetaMask/contributor-docs |
 | E2E CI Decision Tree      | `.github/guidelines/E2E_DECISION_TREE.md`    |
 
+## Deeplinks
+
+Before changing deeplink behavior, including route constants, navigator registrations, or how a destination screen consumes deeplink params, read [`app/core/DeeplinkManager/AGENTS.md`](app/core/DeeplinkManager/AGENTS.md) and the [Deeplink regression coverage](docs/readme/deeplinking.md#deeplink-regression-coverage) section. It says when to update the real-URI unit and navigation component-view coverage.
+
 ## Test Guidelines
 
 Three test types coexist in this repo:
