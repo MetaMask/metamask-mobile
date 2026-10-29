@@ -35,9 +35,7 @@ const AccountGroupBalanceChange = ({
       userCurrency,
     );
     const signedAmount =
-      amountChangeInUserCurrency >= 0
-        ? `+${formattedAmount}`
-        : formattedAmount;
+      amountChangeInUserCurrency >= 0 ? `+${formattedAmount}` : formattedAmount;
     // Trailing space separates the fiat amount from the percentage sibling.
     return `${signedAmount} `;
   }, [amountChangeInUserCurrency, userCurrency, formatCurrency]);
