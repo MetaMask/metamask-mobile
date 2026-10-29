@@ -13,6 +13,7 @@ import {
   BottomSheetHeader,
   ButtonIcon,
   ButtonIconSize,
+  ButtonIconVariant,
   FontWeight,
   IconColor,
   IconName,
@@ -70,7 +71,18 @@ const HomepageBalanceBreakdownMoneyAddButton = ({
     trackButtonClicked,
   });
 
-  return (
+  return label.length > 3 ? (
+    <ButtonIcon
+      accessibilityLabel={accessibilityLabel}
+      iconName={IconName.Add}
+      iconProps={{ size: IconSize.Sm }}
+      onPress={handleAddPress}
+      size={ButtonIconSize.Sm}
+      testID={HomepageBalanceBreakdownTestIds.MONEY_BUY}
+      twClassName="w-10 mx-1"
+      variant={ButtonIconVariant.Filled}
+    />
+  ) : (
     <Button
       accessibilityLabel={accessibilityLabel}
       onPress={handleAddPress}

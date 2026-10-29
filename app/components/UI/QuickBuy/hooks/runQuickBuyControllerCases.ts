@@ -3128,19 +3128,14 @@ export const runQuickBuyControllerCases = ({
 
         expect(
           Engine.context.BridgeStatusController.submitTx,
-        ).toHaveBeenCalledWith(
-          '0xWALLET',
-          expect.objectContaining({ approval: null }),
-          true,
-          undefined, // quotesReceivedContext
-          undefined, // location
-          undefined, // abTests
-          undefined, // mergedActiveAbTests
-          undefined, // tokenSecurityTypeDestination
-          undefined, // batchSellTrades
-          undefined, // inputPrimaryDenomination
-          '1.5',
-        );
+        ).toHaveBeenCalledWith({
+          accountAddress: '0xWALLET',
+          quoteResponses: [expect.objectContaining({ approval: null })],
+          isStxEnabled: true,
+          tokenSecurityTypeDestination: null,
+          inputPrimaryDenomination: 'token_amount',
+          migrationPhase: '1.5',
+        });
       });
 
       it('records social activity after a resolved social Quick Buy', async () => {
