@@ -49,7 +49,8 @@ describe('MoneyAuthenticatorDetailsView', () => {
     );
 
     expect(getByText('Google Authenticator')).toBeOnTheScreen();
-    expect(getByText('Added Sep 3, 2026 at 12:00 PM')).toBeOnTheScreen();
+    expect(getByText('Created')).toBeOnTheScreen();
+    expect(getByText('Sep 3, 2026')).toBeOnTheScreen();
     expect(queryByText('Active')).not.toBeOnTheScreen();
     expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(queryByText('Today')).not.toBeOnTheScreen();

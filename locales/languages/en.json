@@ -8142,6 +8142,7 @@
     "passkey_details": {
       "title": "Passkey details",
       "rename_title": "Rename passkey",
+      "created_date": "Created",
       "delete_title": "Remove passkey",
       "cannot_delete_title": "Passkey can't be removed",
       "rename": "Rename passkey",

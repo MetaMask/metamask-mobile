@@ -15,14 +15,27 @@ const SHORT_MONTHS = [
   'Dec',
 ] as const;
 
-export const formatMoneySecurityMethodAddedAt = (date: Date) => {
+const getFormattedDateTime = (date: Date) => {
   const hours = date.getHours();
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const period = hours >= 12 ? 'PM' : 'AM';
   const twelveHour = hours % 12 || 12;
 
-  return strings('money.security.method_added_at', {
+  return {
     date: `${SHORT_MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`,
     time: `${twelveHour}:${minutes} ${period}`,
+  };
+};
+
+export const formatMoneySecurityMethodDate = (date: Date) => {
+  const { date: formattedDate } = getFormattedDateTime(date);
+  return formattedDate;
+};
+
+export const formatMoneySecurityMethodAddedAt = (date: Date) => {
+  const dateTime = getFormattedDateTime(date);
+  return strings('money.security.method_added_at', {
+    date: dateTime.date,
+    time: dateTime.time,
   });
 };

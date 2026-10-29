@@ -57,13 +57,19 @@ describe('MoneyPasskeyDetailsSheet', () => {
     );
 
     expect(getByText('Passkey #1 - 1Password')).toBeOnTheScreen();
-    expect(getByText('Added Sep 2, 2026 at 12:00 PM')).toBeOnTheScreen();
-    expect(queryByText('Last used')).not.toBeOnTheScreen();
-    expect(queryByText('Today')).not.toBeOnTheScreen();
+    expect(queryByText('Passkey details')).not.toBeOnTheScreen();
+    expect(queryByText('Details')).not.toBeOnTheScreen();
+    expect(getByText('Created')).toBeOnTheScreen();
+    expect(getByText('Sep 2, 2026')).toBeOnTheScreen();
+    expect(getByText('Last used')).toBeOnTheScreen();
+    expect(getByText('Today')).toBeOnTheScreen();
     expect(queryByText('Wallet recovery')).not.toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON));
+    expect(
+      getByTestId(MoneyPasskeyDetailsSheetTestIds.KEYBOARD),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(MoneyPasskeyDetailsSheetTestIds.NAME_INPUT).props.autoFocus,
     ).toBe(true);
@@ -81,6 +87,25 @@ describe('MoneyPasskeyDetailsSheet', () => {
     const { getByText } = renderWithProvider(<MoneyPasskeyDetailsSheet />);
 
     expect(getByText('Wallet recovery')).toBeOnTheScreen();
+  });
+
+  it('cancels a rename with the back button without saving', () => {
+    const { getByTestId, getByText, queryByTestId } = renderWithProvider(
+      <MoneyPasskeyDetailsSheet />,
+    );
+
+    fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.RENAME_BUTTON));
+    fireEvent.changeText(
+      getByTestId(MoneyPasskeyDetailsSheetTestIds.NAME_INPUT),
+      'Unsaved name',
+    );
+    fireEvent.press(getByTestId(MoneyPasskeyDetailsSheetTestIds.BACK_BUTTON));
+
+    expect(
+      queryByTestId(MoneyPasskeyDetailsSheetTestIds.NAME_INPUT),
+    ).toBeNull();
+    expect(getByText('Passkey #1 - 1Password')).toBeOnTheScreen();
+    expect(mockRenamePasskey).not.toHaveBeenCalled();
   });
 
   it('opens the delete confirmation bottom sheet', () => {

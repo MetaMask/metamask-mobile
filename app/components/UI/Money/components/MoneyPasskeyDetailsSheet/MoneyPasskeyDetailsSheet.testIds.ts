@@ -5,4 +5,5 @@ export const MoneyPasskeyDetailsSheetTestIds = {
   DELETE_BUTTON: 'money-passkey-details-sheet-delete-button',
   NAME_INPUT: 'money-passkey-details-sheet-name-input',
   SAVE_BUTTON: 'money-passkey-details-sheet-save-button',
+  KEYBOARD: 'money-passkey-details-sheet-keyboard',
 } as const;

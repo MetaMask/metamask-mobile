@@ -37,11 +37,15 @@ describe('MoneyEmailDetailsView', () => {
   });
 
   it('shows synchronized email details and social-login usage', () => {
-    const { getByText } = renderWithProvider(<MoneyEmailDetailsView />);
+    const { getByText, queryByText } = renderWithProvider(
+      <MoneyEmailDetailsView />,
+    );
 
-    expect(getByText('Email')).toBeOnTheScreen();
+    expect(queryByText('Email')).not.toBeOnTheScreen();
     expect(getByText('account1@gmail.com')).toBeOnTheScreen();
-    expect(getByText(/Added Sep 17, 2026 at/)).toBeOnTheScreen();
+    expect(getByText('Created')).toBeOnTheScreen();
+    expect(getByText('Sep 17, 2026')).toBeOnTheScreen();
+    expect(queryByText('Last used')).not.toBeOnTheScreen();
     expect(getByText('Wallet recovery')).toBeOnTheScreen();
     expect(getByText('Verifying Money transactions')).toBeOnTheScreen();
   });
