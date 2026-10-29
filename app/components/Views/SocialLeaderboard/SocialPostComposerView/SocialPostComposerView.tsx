@@ -584,7 +584,7 @@ const SocialPostComposerView: React.FC = () => {
               </Text>
               <Button
                 variant={ButtonVariant.Primary}
-                size={ButtonSize.Sm}
+                size={ButtonSize.Md}
                 isDisabled={!canSubmit || isSubmitting}
                 onPress={handlePost}
                 testID={SocialPostComposerViewSelectorsIDs.POST_BUTTON}
