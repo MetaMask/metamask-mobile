@@ -68,55 +68,55 @@ export function useImmersveMfa() {
     advancingRef.current = true;
   }, []);
 
-  const submitMethod = useCallback(
-    async (
-      method: CardMfaMethod,
-      destination: string,
-    ): Promise<CardAuthResult> => {
+  // Stay busy after a successful call. The screen runs goToNextStep next, and
+  // that can spend seconds on resume data before it leaves this screen.
+  const runWhileSubmitting = useCallback(
+    async <T>(work: () => Promise<T>): Promise<T> => {
       setIsSubmitting(true);
       try {
-        return await Engine.context.CardController.submitCredentials({
+        return await work();
+      } catch (error) {
+        setIsSubmitting(false);
+        throw error;
+      }
+    },
+    [],
+  );
+
+  const submitMethod = useCallback(
+    (method: CardMfaMethod, destination: string): Promise<CardAuthResult> =>
+      runWhileSubmitting(() =>
+        Engine.context.CardController.submitCredentials({
           type: 'mfa_method',
           method,
           destination,
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [],
+        }),
+      ),
+    [runWhileSubmitting],
   );
 
   const submitCode = useCallback(
-    async (code: string): Promise<CardAuthResult> => {
-      setIsSubmitting(true);
-      try {
-        return await Engine.context.CardController.submitCredentials({
+    (code: string): Promise<CardAuthResult> =>
+      runWhileSubmitting(() =>
+        Engine.context.CardController.submitCredentials({
           type: 'mfa_code',
           code,
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [],
+        }),
+      ),
+    [runWhileSubmitting],
   );
 
   const restart = useCallback(
-    async (country: string, address: string): Promise<CardAuthResult> => {
-      setIsSubmitting(true);
-      try {
-        return await Engine.context.CardController.authenticateWithWallet({
+    (country: string, address: string): Promise<CardAuthResult> =>
+      runWhileSubmitting(() =>
+        Engine.context.CardController.authenticateWithWallet({
           option: { providerId: CardProviderIds.Immersve, method: 'siwe' },
           address,
           country,
           autoSignup: false,
-        });
-      } finally {
-        setIsSubmitting(false);
-      }
-    },
-    [],
+        }),
+      ),
+    [runWhileSubmitting],
   );
 
   const continueAfterAuth = useCallback(
@@ -171,13 +171,18 @@ export function useImmersveMfa() {
       }
       if (result.done) {
         markAdvancing();
-        await continueAfterAuth({
-          country: params.country,
-          address: params.address,
-          continuation: params.continuation,
-        });
+        try {
+          await continueAfterAuth({
+            country: params.country,
+            address: params.address,
+            continuation: params.continuation,
+          });
+        } finally {
+          setIsSubmitting(false);
+        }
         return;
       }
+      setIsSubmitting(false);
       throw new CardProviderError(
         CardProviderErrorCode.Unknown,
         'Unexpected login step',

@@ -28,6 +28,12 @@ jest.mock('./useImmersveResumeOnboarding', () => ({
 
 const mockReplace = jest.fn();
 const mockListeners: Record<string, () => void> = {};
+const mfaParams: CardMfaMethodParams = {
+  country: 'NZ',
+  address: '0xabc',
+  options: [],
+  continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
+};
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     replace: mockReplace,
@@ -241,5 +247,59 @@ describe('useImmersveMfa', () => {
     });
     expect(mockReplace).not.toHaveBeenCalled();
     expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays busy while resume data loads after a code', async () => {
+    let releaseResume: () => void = () => undefined;
+    mockResume.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          releaseResume = resolve;
+        }),
+    );
+    mockSubmitCredentials.mockResolvedValue({ done: true });
+    const { result } = renderHook(() => useImmersveMfa());
+
+    let finished = Promise.resolve();
+    await act(async () => {
+      const authResult = await result.current.submitCode('123456');
+      finished = result.current.goToNextStep(authResult, mfaParams);
+    });
+
+    expect(result.current.isSubmitting).toBe(true);
+
+    await act(async () => {
+      releaseResume();
+      await finished;
+    });
+
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it('becomes idle when the code is rejected', async () => {
+    mockSubmitCredentials.mockRejectedValue(new Error('network'));
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await expect(
+      act(async () => {
+        await result.current.submitCode('123456');
+      }),
+    ).rejects.toThrow('network');
+
+    expect(result.current.isSubmitting).toBe(false);
+  });
+
+  it('becomes idle when the next step is unexpected', async () => {
+    mockSubmitCredentials.mockResolvedValue({ done: false });
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await expect(
+      act(async () => {
+        const authResult = await result.current.submitCode('123456');
+        await result.current.goToNextStep(authResult, mfaParams);
+      }),
+    ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+
+    expect(result.current.isSubmitting).toBe(false);
   });
 });
