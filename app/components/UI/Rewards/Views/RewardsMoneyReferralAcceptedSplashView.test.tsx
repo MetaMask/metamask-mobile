@@ -1,5 +1,5 @@
 import React from 'react';
-import { StackActions } from '@react-navigation/native';
+import { CommonActions } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { fireEvent, render } from '@testing-library/react-native';
 import ExtendedKeyringTypes from '../../../../constants/keyringTypes';
@@ -21,6 +21,32 @@ const TEST_IDS = REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_TEST_IDS;
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+
+const mockHomeRoute = {
+  key: 'home-key',
+  name: Routes.HOME_TABS,
+};
+
+const mockRootRoutesBeforeDismiss = [
+  mockHomeRoute,
+  { key: 'old-rewards', name: Routes.REWARDS_VIEW },
+  { key: 'rewards-flow', name: Routes.REWARDS_FLOW },
+  {
+    key: 'splash',
+    name: Routes.REWARDS_MONEY_REFERRAL_ACCEPTED_SPLASH_VIEW,
+  },
+];
+
+const moneyDashboardReset = CommonActions.reset({
+  index: 1,
+  routes: [
+    mockHomeRoute,
+    {
+      name: Routes.REWARDS_VIEW,
+      params: { screen: Routes.REWARDS_MONEY_DASHBOARD },
+    },
+  ],
+});
 
 const sessionBackgroundState = (profileId: string) => ({
   AuthenticationController: {
@@ -48,6 +74,10 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       canGoBack: () => true,
       dispatch: mockDispatch,
+      getState: () => ({
+        index: mockRootRoutesBeforeDismiss.length - 1,
+        routes: mockRootRoutesBeforeDismiss,
+      }),
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
@@ -261,11 +291,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.VIEW_REWARDS));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_VIEW, {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-      }),
-    );
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
   it('opens the money dashboard when the splash is closed', () => {
@@ -273,11 +299,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.CLOSE));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_VIEW, {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-      }),
-    );
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
   });
 
   it('opens the trade actions sheet over the money dashboard when start trading is pressed', () => {
@@ -285,11 +307,7 @@ describe('RewardsMoneyReferralAcceptedSplashView', () => {
 
     fireEvent.press(getByTestId(TEST_IDS.START_TRADING));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_VIEW, {
-        screen: Routes.REWARDS_MONEY_DASHBOARD,
-      }),
-    );
+    expect(mockDispatch).toHaveBeenCalledWith(moneyDashboardReset);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.TRADE_WALLET_ACTIONS,
       params: { hasBottomNotch: false },
