@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import type { Asset } from '@metamask/assets-controllers';
 import { useSelector } from 'react-redux';
 import {
   selectAssetsBySelectedAccountGroup,
@@ -6,11 +7,21 @@ import {
 } from '../../../../selectors/assets/assets-list';
 import type { FlashListAssetKey } from '../TokenList/TokenList';
 
-const getLookupKey = (
+const lookupKey = (
   chainId: string | undefined,
   assetId: string,
   isStaked: boolean,
 ) => `${chainId}:${assetId}:${isStaked}`;
+
+// Fields are joined with a newline, which a user cannot type, so a query never
+// matches across the symbol/name boundary. Missing names are skipped.
+const toEntry = (
+  { chainId, assetId, symbol, name }: Asset,
+  isStaked: boolean,
+): [string, string] => [
+  lookupKey(chainId, assetId, isStaked),
+  [symbol, name].filter(Boolean).join('\n').toLowerCase(),
+];
 
 /**
  * Filters token keys by symbol or name (case-insensitive). The keys only carry
@@ -24,28 +35,18 @@ export const useTokenSearch = (
   searchQuery: string,
 ): FlashListAssetKey[] => {
   const assetsByChain = useSelector(selectAssetsBySelectedAccountGroup);
-
   const stakedAssets = useSelector(selectStakedAssets);
 
-  const searchTextByKey = useMemo(() => {
-    const lookup = new Map<string, string>();
-    for (const chainAssets of Object.values(assetsByChain)) {
-      for (const { chainId, assetId, symbol, name } of chainAssets) {
-        lookup.set(
-          getLookupKey(chainId, assetId, false),
-          `${symbol} ${name}`.toLowerCase(),
-        );
-      }
-    }
-    for (const { stakedAsset } of stakedAssets) {
-      const { chainId, assetId, symbol, name } = stakedAsset;
-      lookup.set(
-        getLookupKey(String(chainId), assetId, true),
-        `${symbol} ${name}`.toLowerCase(),
-      );
-    }
-    return lookup;
-  }, [assetsByChain, stakedAssets]);
+  const searchTextByKey = useMemo(
+    () =>
+      new Map([
+        ...Object.values(assetsByChain)
+          .flat()
+          .map((asset) => toEntry(asset, false)),
+        ...stakedAssets.map(({ stakedAsset }) => toEntry(stakedAsset, true)),
+      ]),
+    [assetsByChain, stakedAssets],
+  );
 
   const query = searchQuery.trim().toLowerCase();
 
@@ -54,7 +55,7 @@ export const useTokenSearch = (
       query
         ? tokenKeys.filter(({ chainId, address, isStaked }) =>
             searchTextByKey
-              .get(getLookupKey(chainId, address, Boolean(isStaked)))
+              .get(lookupKey(chainId, address, Boolean(isStaked)))
               ?.includes(query),
           )
         : tokenKeys,

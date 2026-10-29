@@ -128,7 +128,6 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
     const [searchQuery, setSearchQuery] = useState('');
     const searchedTokenKeys = useTokenSearch(tokenKeysForList, searchQuery);
     const clearSearch = useCallback(() => setSearchQuery(''), []);
-    const isSearchVisible = isFullView && !showOnlyMusd;
 
     const [, forceUpdate] = useState(0);
 
@@ -330,7 +329,7 @@ const Tokens = forwardRef<TabRefreshHandle, TokensProps>(
         twClassName={!isFullView ? 'bg-default' : 'flex-1 bg-default'}
         testID={WalletViewSelectorsIDs.TOKENS_CONTAINER}
       >
-        {isSearchVisible && (
+        {isFullView && !showOnlyMusd && (
           <Box twClassName="px-4 pb-2">
             <TextFieldSearch
               value={searchQuery}

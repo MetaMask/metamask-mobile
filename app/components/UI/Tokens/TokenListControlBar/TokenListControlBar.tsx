@@ -10,7 +10,6 @@ interface TokenListControlBarProps {
 export const TokenListControlBar = ({ style }: TokenListControlBarProps) => (
   <BaseControlBar
     networkFilterTestId={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
-    customWrapper="outer"
     style={style}
   />
 );

@@ -146,6 +146,35 @@ describe('useTokenSearch', () => {
     expect(result.current).toEqual([ETH_KEY, STAKED_ETH_KEY]);
   });
 
+  it('does not match a missing name as text, but still matches by symbol', () => {
+    mockSelectors(
+      {
+        '0x1': [
+          {
+            assetId: ETH_KEY.address,
+            chainId: '0x1',
+            symbol: 'ETH',
+            name: undefined,
+          },
+        ],
+      },
+      [],
+    );
+
+    expect(
+      renderHook(() => useTokenSearch([ETH_KEY], 'undef')).result.current,
+    ).toEqual([]);
+    expect(
+      renderHook(() => useTokenSearch([ETH_KEY], 'eth')).result.current,
+    ).toEqual([ETH_KEY]);
+  });
+
+  it('does not match a query that spans the symbol and name', () => {
+    const { result } = renderHook(() => useTokenSearch([ETH_KEY], 'h e'));
+
+    expect(result.current).toEqual([]);
+  });
+
   it('excludes keys that have no matching asset data', () => {
     mockSelectors({}, []);
 
