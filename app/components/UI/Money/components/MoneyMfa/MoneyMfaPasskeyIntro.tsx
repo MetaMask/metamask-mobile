@@ -18,6 +18,9 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import shieldImage from '../../../../../images/mfa-shield.png';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import useMountEffect from '../../hooks/useMountEffect';
+import { COMPONENT_NAMES } from '../../constants/moneyEvents';
 
 const BENEFITS = [
   { icon: IconName.FaceId, labelKey: 'money.mfa.intro_benefit_login' },
@@ -38,6 +41,11 @@ interface MoneyMfaPasskeyIntroProps {
  */
 const MoneyMfaPasskeyIntro = ({ onAddPasskey }: MoneyMfaPasskeyIntroProps) => {
   const tw = useTailwind();
+  const { trackComponentViewed } = useMoneyAnalytics({
+    component_name: COMPONENT_NAMES.MONEY_MFA_PASSKEY_INTRO,
+  });
+
+  useMountEffect(trackComponentViewed);
 
   return (
     <Box twClassName="px-4 pb-4" testID={MoneyMfaTestIds.INTRO}>

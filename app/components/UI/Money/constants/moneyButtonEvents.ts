@@ -18,6 +18,10 @@ export enum MONEY_BUTTON_INTENTS {
   BANK_DETAILS = 'bank_details',
   GET_PRO = 'get_pro',
   OPEN_PRO_HUB = 'open_pro_hub',
+  ENABLE_MFA = 'enable_mfa',
+  DISABLE_MFA = 'disable_mfa',
+  RETRY_MFA_SETUP = 'retry_mfa_setup',
+  VIEW_MFA_STATUS = 'view_mfa_status',
 }
 
 export enum MONEY_BUTTON_TYPES {

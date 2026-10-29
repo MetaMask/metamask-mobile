@@ -2046,6 +2046,12 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETUP_CARD_BUTTON));
 
       expect(mockMfaTurnOn).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+        label_key: 'money.mfa.card_cta',
+        component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
+      });
     });
 
     it('renders the setting up banner while the Money account is set up', () => {
@@ -2063,6 +2069,12 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.FAILED_BANNER_RETRY));
 
       expect(mockMfaRetry).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.RETRY_MFA_SETUP,
+        label_key: 'money.mfa.failed_retry',
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
     });
 
     it('closes the setting-up banner', () => {
@@ -2072,6 +2084,11 @@ describe('MoneyHomeView', () => {
       fireEvent.press(getByTestId(MoneyMfaTestIds.SETTING_UP_BANNER_CLOSE));
 
       expect(mockMfaDismissBanner).toHaveBeenCalledTimes(1);
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+      });
     });
 
     it('opens the setting up sheet instead of Transfer while the Money account is set up', () => {
@@ -2086,6 +2103,12 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
       });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
+          redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET,
+        }),
+      );
     });
 
     it('opens the Transfer sheet when 2-step verification is enabled', () => {
@@ -2115,6 +2138,12 @@ describe('MoneyHomeView', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.MODALS.ROOT, {
         screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
+      });
+      expect(mockTrackButtonClicked).toHaveBeenCalledWith({
+        button_type: MONEY_BUTTON_TYPES.ICON,
+        button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
+        component_name: COMPONENT_NAMES.MONEY_MFA_HEADER_BADGE,
+        redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_ENABLED_SHEET,
       });
     });
 

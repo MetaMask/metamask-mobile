@@ -280,14 +280,45 @@ const MoneyHomeView = () => {
   useFocusEffect(refreshMfaCredentials);
 
   const handleMfaSetUpPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ENABLE_MFA,
+      label_key: 'money.mfa.card_cta',
+      component_name: COMPONENT_NAMES.MONEY_MFA_SETUP_CARD,
+    });
     void turnOnMfa();
-  }, [turnOnMfa]);
+  }, [trackButtonClicked, turnOnMfa]);
+
+  const handleMfaRetry = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.RETRY_MFA_SETUP,
+      label_key: 'money.mfa.failed_retry',
+      component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+    });
+    void retryMfaSetup();
+  }, [retryMfaSetup, trackButtonClicked]);
+
+  const handleMfaBannerDismiss = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.DISMISS,
+      component_name: COMPONENT_NAMES.MONEY_MFA_STATUS_BANNER,
+    });
+    dismissMfaBanner();
+  }, [dismissMfaBanner, trackButtonClicked]);
 
   const handleMfaBadgePress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.ICON,
+      button_intent: MONEY_BUTTON_INTENTS.VIEW_MFA_STATUS,
+      component_name: COMPONENT_NAMES.MONEY_MFA_HEADER_BADGE,
+      redirect_target: BOTTOM_SHEET_NAMES.MONEY_MFA_ENABLED_SHEET,
+    });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MFA_ENABLED_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackButtonClicked]);
   const {
     getLinkFlowRedirectTarget,
     startLinkFlow,
@@ -542,21 +573,23 @@ const MoneyHomeView = () => {
   );
 
   const handleTransferPress = useCallback(() => {
+    const isMfaSettingUp = mfaStatus === 'setting_up';
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: MONEY_BUTTON_INTENTS.TRANSFER_MONEY,
       label_key: 'money.action.transfer',
-      redirect_target: BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
+      redirect_target: isMfaSettingUp
+        ? BOTTOM_SHEET_NAMES.MONEY_MFA_SETTING_UP_SHEET
+        : BOTTOM_SHEET_NAMES.MONEY_TRANSFER_MONEY_SHEET,
       component_name: COMPONENT_NAMES.MONEY_ACTION_BUTTON_ROW,
       button_position: 2,
       button_row_button_count: actionButtonRowCount,
     });
 
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen:
-        mfaStatus === 'setting_up'
-          ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
-          : Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
+      screen: isMfaSettingUp
+        ? Routes.MONEY.MODALS.MFA_SETTING_UP_SHEET
+        : Routes.MONEY.MODALS.TRANSFER_MONEY_SHEET,
     });
   }, [navigation, trackButtonClicked, actionButtonRowCount, mfaStatus]);
 
@@ -1117,8 +1150,8 @@ const MoneyHomeView = () => {
           <MoneyMfaStatusBanner
             status={mfaStatus}
             isSettingUpDismissed={isMfaBannerDismissed}
-            onDismissSettingUp={dismissMfaBanner}
-            onRetry={retryMfaSetup}
+            onDismissSettingUp={handleMfaBannerDismiss}
+            onRetry={handleMfaRetry}
           />
           {showBalanceUnavailableBanner && (
             <Box twClassName="px-4 pt-2 pb-2">

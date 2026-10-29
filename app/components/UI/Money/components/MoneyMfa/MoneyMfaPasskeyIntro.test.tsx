@@ -3,8 +3,31 @@ import { fireEvent, render } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import MoneyMfaPasskeyIntro from './MoneyMfaPasskeyIntro';
 import { MoneyMfaTestIds } from './MoneyMfa.testIds';
+import { COMPONENT_NAMES } from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+
+const mockTrackComponentViewed = jest.fn();
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackComponentViewed: mockTrackComponentViewed,
+  })),
+}));
 
 describe('MoneyMfaPasskeyIntro', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('tracks the intro as viewed on mount', () => {
+    render(<MoneyMfaPasskeyIntro onAddPasskey={jest.fn()} />);
+
+    expect(useMoneyAnalytics).toHaveBeenCalledWith({
+      component_name: COMPONENT_NAMES.MONEY_MFA_PASSKEY_INTRO,
+    });
+    expect(mockTrackComponentViewed).toHaveBeenCalledTimes(1);
+  });
+
   it('renders the title and description', () => {
     const { getByText } = render(
       <MoneyMfaPasskeyIntro onAddPasskey={jest.fn()} />,
