@@ -37,7 +37,7 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
+  const ReactActual = jest.requireActual('react') as typeof React;
   const actualDesignSystem = jest.requireActual(
     '@metamask/design-system-react-native',
   );
@@ -75,8 +75,13 @@ jest.mock('@metamask/design-system-react-native', () => {
       value: string;
     }) => (
       <View accessibilityLabel={value} testID={testID}>
-        {ReactActual.Children.map(children, (child) => {
-          if (!ReactActual.isValidElement<{ value: string }>(child)) {
+        {ReactActual.Children.map(children, (child: React.ReactNode) => {
+          if (
+            !ReactActual.isValidElement<{
+              onPress?: () => void;
+              value: string;
+            }>(child)
+          ) {
             return child;
           }
 
