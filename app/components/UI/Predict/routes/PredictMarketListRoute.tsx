@@ -5,16 +5,16 @@ import PredictHome from '../views/PredictHome';
 import { selectPredictHomeRedesignEnabledFlag } from '../selectors/featureFlags';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import type { PredictStackParamList } from '../types/navigation';
-import { selectPredictConfig } from '../../PredictNext/selectors/predictConfig';
-import { resolvePredictMarketListLane } from '../../PredictNext/navigation/root/laneResolution';
+import { resolvePinnedMarketListVenue } from '../../PredictNext/navigation/root/laneResolution';
 import PredictNextStack from '../../PredictNext/navigation/PredictNextStack';
 import { PredictImplementationSwitch } from '../../PredictNext/implementation';
 
 /**
  * MARKET_LIST route component selector.
  *
- * Serves the market-list lane's Venue through the implementation switch, so
- * the PredictNext stack gets that Venue. On the legacy branch it renders the
+ * Serves the Active Venue through the implementation switch, so the
+ * PredictNext stack gets that Venue; legacy feed and search parameters stay
+ * on Polymarket. On the legacy branch it renders the
  * redesigned `PredictHome` shell when `predictHomeRedesign` is enabled,
  * otherwise the existing `PredictFeed`. Kept in its own
  * module (not `routes/index.tsx`) so it can be imported by tests without
@@ -22,13 +22,12 @@ import { PredictImplementationSwitch } from '../../PredictNext/implementation';
  */
 const PredictMarketListRoute = () => {
   const homeRedesignEnabled = useSelector(selectPredictHomeRedesignEnabledFlag);
-  const config = useSelector(selectPredictConfig);
   const params =
     useRoute<RouteProp<PredictStackParamList, 'PredictMarketList'>>().params;
 
   return (
     <PredictImplementationSwitch
-      pinnedVenue={resolvePredictMarketListLane(config, params)}
+      pinnedVenue={resolvePinnedMarketListVenue(params)}
       legacy={homeRedesignEnabled ? <PredictHome /> : <PredictFeed />}
       next={<PredictNextStack />}
       resolving={null}
