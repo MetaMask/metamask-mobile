@@ -3221,7 +3221,7 @@ export const runQuickBuyControllerCases = ({
             },
           );
           expect(onClose).toHaveBeenCalledTimes(1);
-          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
+          expect(mockShowToast).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).not.toHaveBeenCalled();
         });
 
@@ -3237,6 +3237,7 @@ export const runQuickBuyControllerCases = ({
             await confirmPromise;
           });
 
+          expect(mockShowToast).toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).toHaveBeenCalledTimes(1);
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'success', tx_hash: '0xhash' }),
@@ -3253,6 +3254,7 @@ export const runQuickBuyControllerCases = ({
           });
 
           expect(mockShowToast).toHaveBeenCalledWith({ kind: 'failed' });
+          expect(mockShowToast).not.toHaveBeenCalledWith({ kind: 'pending' });
           expect(mockRecordSocialTrade).not.toHaveBeenCalled();
           expect(mockTrackTradeCompleted).toHaveBeenCalledWith(
             expect.objectContaining({ status: 'failed' }),

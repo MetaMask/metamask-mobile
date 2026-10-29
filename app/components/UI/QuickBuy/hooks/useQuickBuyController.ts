@@ -1749,13 +1749,15 @@ export function useQuickBuyController(
           },
         })
       : undefined;
-    if (shouldPostTradeShare) {
-      onClose();
-    } else {
-      onClose();
+    const showPendingToast = () =>
       toastRef?.current?.showToast(
         buildQuickBuyToastOptions('pending', { trade: tradeToastInfo, theme }),
       );
+    onClose();
+    // HW: the pending toast would time out during on-device signing, so it is
+    // shown once the signing screen hands back instead.
+    if (!shouldPostTradeShare && !isHardwareAddress) {
+      showPendingToast();
     }
     // Medium impact acknowledging the Buy commit (catalog `PrimaryCTA`);
     // success/error feedback is deferred to the terminal complete/failed
@@ -1816,6 +1818,9 @@ export function useQuickBuyController(
               undefined, // inputPrimaryDenomination
               BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
             );
+      if (isHardwareAddress && !shouldPostTradeShare) {
+        showPendingToast();
+      }
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
       }
