@@ -47,40 +47,17 @@ import RewardsTabSkeleton from '../components/RewardsTabSkeleton/RewardsTabSkele
 import { useReferralMe } from '../hooks/useReferralMe';
 import { navigateToRewardsRoute } from '../utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { canClaimEarnings } from '../utils/claimEarnings';
 import {
   RewardsDashboardKind,
   trackRewardsDashboardViewed,
 } from '../utils/rewardsDashboardViewedTracking';
-
-export const REWARDS_MONEY_DASHBOARD_TEST_IDS = {
-  CONTAINER: 'rewards-money-dashboard',
-  LOADING: 'rewards-money-dashboard-loading',
-  ERROR: 'rewards-money-dashboard-error',
-  SETTINGS_BUTTON: 'rewards-money-dashboard-settings-button',
-  TABS: 'rewards-money-dashboard-tabs',
-  WAYS_TO_EARN_TAB: 'rewards-money-dashboard-ways-to-earn-tab',
-  EARNINGS_TAB: 'rewards-money-dashboard-earnings-tab',
-  EARNINGS_TAB_DOT: 'rewards-money-dashboard-earnings-tab-indicator-dot',
-  PERFORMANCE_TAB: 'rewards-money-dashboard-performance-tab',
-  WAYS_TO_EARN_BODY: 'rewards-money-dashboard-ways-to-earn-body',
-  EARNINGS_BODY: 'rewards-money-dashboard-earnings-body',
-  PERFORMANCE_BODY: 'rewards-money-dashboard-performance-body',
-} as const;
+import { rewardsMoneyScrollClipSpacer } from './rewardsMoneyScrollClipSpacer';
+import { REWARDS_MONEY_DASHBOARD_TEST_IDS } from './RewardsMoneyDashboard.testIds';
 
 type RewardsMoneyTab = 'waysToEarn' | 'earnings' | 'performance';
 
 const TAB_ORDER: RewardsMoneyTab[] = ['waysToEarn', 'earnings', 'performance'];
-
-const hasClaimableEarnings = (claimable?: string): boolean => {
-  if (!claimable) {
-    return false;
-  }
-  try {
-    return BigInt(claimable) > 0n;
-  } catch {
-    return false;
-  }
-};
 
 function sessionHasNoProfile(
   identityReady: boolean,
@@ -100,6 +77,10 @@ function referralReadSettledEmpty(
   return (
     Boolean(profileId) && entry !== undefined && !entry.loading && !hasReferral
   );
+}
+
+function stableLayoutHeight(current: number, next: number): number {
+  return Math.abs(current - next) < 1 ? current : next;
 }
 
 function dashboardStillLoading(
@@ -148,14 +129,17 @@ const RewardsMoneyDashboard: React.FC = () => {
     selectEarningsSummaryEntry(state, profileId),
   );
   const [activeTab, setActiveTab] = useState<RewardsMoneyTab>('waysToEarn');
+  const [titleSectionHeight, setMeasuredTitleSectionHeight] = useState(0);
+  const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
+  const [panelContentHeight, setPanelContentHeight] = useState(0);
   const hasTrackedDashboardViewed = useRef(false);
   const { createEventBuilder } = useAnalytics();
   const panelScrollRef = useRef<ScrollView>(null);
-  const showEarningsDot = hasClaimableEarnings(
-    earningsSummaryEntry?.data?.claimable,
-  );
-
   const referralMe = referralMeEntry?.data;
+  const showEarningsDot = canClaimEarnings(
+    earningsSummaryEntry?.data,
+    moneyDashboardPersona(referralMe),
+  );
   const localizedText = referralMe?.localized_text;
   const isPushedScreen = navigation.getParent()?.getState()?.type !== 'tab';
   // The three panels share this scroller. A tab press returns to the top so a
@@ -175,6 +159,14 @@ const RewardsMoneyDashboard: React.FC = () => {
     },
     [activeTab, scrollY],
   );
+
+  // The scroller's layout box includes the title overdraw, which the parent
+  // clips. A short panel in that band cannot scroll to its own end.
+  const clipSpacerHeight = rewardsMoneyScrollClipSpacer({
+    rawContentHeight: panelContentHeight + floatingTabBarInset,
+    scrollViewportHeight,
+    titleSectionHeight,
+  });
 
   useEffect(() => {
     if (
@@ -330,9 +322,14 @@ const RewardsMoneyDashboard: React.FC = () => {
             <TitleStandard
               title={strings('rewards.main_title')}
               twClassName="px-4 pt-2 pb-4"
-              onLayout={(event) =>
-                setTitleSectionHeight(event.nativeEvent.layout.height)
-              }
+              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.TITLE_SECTION}
+              onLayout={(event) => {
+                const height = event.nativeEvent.layout.height;
+                setTitleSectionHeight(height);
+                setMeasuredTitleSectionHeight((current) =>
+                  stableLayoutHeight(current, height),
+                );
+              }}
               titleProps={{ accessibilityRole: 'header' }}
             />
             <Box
@@ -347,40 +344,65 @@ const RewardsMoneyDashboard: React.FC = () => {
             </Box>
             <Animated.ScrollView
               ref={panelScrollRef}
+              testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_VIEW}
               showsVerticalScrollIndicator={false}
               style={tw.style('flex-1')}
               contentContainerStyle={tw.style(`pb-[${floatingTabBarInset}px]`)}
+              onLayout={(event) => {
+                const height = event.nativeEvent.layout.height;
+                setScrollViewportHeight((current) =>
+                  stableLayoutHeight(current, height),
+                );
+              }}
               onScroll={onScroll}
               scrollEventThrottle={16}
             >
-              {activeTab === 'waysToEarn' ? (
+              <Box
+                testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PANEL}
+                onLayout={(event) => {
+                  const height = event.nativeEvent.layout.height;
+                  setPanelContentHeight((current) =>
+                    stableLayoutHeight(current, height),
+                  );
+                }}
+              >
+                {activeTab === 'waysToEarn' ? (
+                  <Box
+                    testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
+                  >
+                    <WaysToEarnTab
+                      profileId={profileId}
+                      referralMe={referralMe}
+                      isSubscribed={Boolean(subscriptionId)}
+                    />
+                  </Box>
+                ) : null}
+                {activeTab === 'earnings' ? (
+                  <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}>
+                    <EarningsTab
+                      profileId={profileId}
+                      persona={moneyDashboardPersona(referralMe)}
+                      onViewPerformance={() => setActiveTab('performance')}
+                    />
+                  </Box>
+                ) : null}
+                {activeTab === 'performance' ? (
+                  <Box
+                    testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}
+                  >
+                    <PerformanceTab
+                      profileId={profileId}
+                      persona={moneyDashboardPersona(referralMe)}
+                      active
+                    />
+                  </Box>
+                ) : null}
+              </Box>
+              {clipSpacerHeight > 0 ? (
                 <Box
-                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.WAYS_TO_EARN_BODY}
-                >
-                  <WaysToEarnTab
-                    profileId={profileId}
-                    referralMe={referralMe}
-                    isSubscribed={Boolean(subscriptionId)}
-                  />
-                </Box>
-              ) : null}
-              {activeTab === 'earnings' ? (
-                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.EARNINGS_BODY}>
-                  <EarningsTab
-                    profileId={profileId}
-                    persona={moneyDashboardPersona(referralMe)}
-                    onViewPerformance={() => setActiveTab('performance')}
-                  />
-                </Box>
-              ) : null}
-              {activeTab === 'performance' ? (
-                <Box testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.PERFORMANCE_BODY}>
-                  <PerformanceTab
-                    profileId={profileId}
-                    persona={moneyDashboardPersona(referralMe)}
-                    active
-                  />
-                </Box>
+                  testID={REWARDS_MONEY_DASHBOARD_TEST_IDS.SCROLL_CLIP_SPACER}
+                  style={{ height: clipSpacerHeight }}
+                />
               ) : null}
             </Animated.ScrollView>
           </Animated.View>

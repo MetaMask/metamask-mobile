@@ -19,18 +19,20 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import type { PredictPosition } from '../../../types';
 import { PredictPortfolioScreenTestIds } from '../PredictPortfolioScreen.testIds';
+import { getEntryTitle, getOutcomeName } from '../../../utils/entryCopy';
 import {
+  formatSignedPercent,
   formatSignedUsdAmount,
   formatSharesAmount,
   formatUsdAmount,
-  isNonZeroAmount,
+  pnlToneClassName,
 } from './portfolioFormatting';
 
 interface PortfolioPositionRowProps {
   position: PredictPosition;
   isPrivacyMode: boolean;
   onPress?: (position: PredictPosition) => void;
-  /** Shows the Cash Out affordance for selling the Position back. */
+  /** Shows the Cash Out affordance for selling an open Position back. */
   onCashOut?: (position: PredictPosition) => void;
 }
 
@@ -39,53 +41,69 @@ interface PortfolioPositionMetricsProps {
   isPrivacyMode: boolean;
 }
 
-/** Trailing exposure and signed realized PnL; renders nothing when both are absent. */
+/** The signed unrealized PnL, with its percent when the backend sent one. */
+const formatPositionPnl = (
+  unrealizedPnl: string,
+  unrealizedPnlPercent?: string,
+): string => {
+  const amount = formatSignedUsdAmount(unrealizedPnl);
+  return unrealizedPnlPercent === undefined
+    ? amount
+    : strings('predict_next.portfolio.pnl_with_percent', {
+        amount,
+        percent: formatSignedPercent(unrealizedPnlPercent),
+      });
+};
+
+/**
+ * Trailing current value and unrealized PnL. A Position without a current
+ * value has no authoritative price: it says so instead of showing a value,
+ * and never renders as $0.00. PnL renders only when the backend sent it.
+ */
 const PortfolioPositionMetrics = ({
   position,
   isPrivacyMode,
 }: PortfolioPositionMetricsProps) => {
-  const { marketExposure, realizedPnl } = position;
-  const realizedPnlText =
-    realizedPnl && isNonZeroAmount(realizedPnl)
-      ? formatSignedUsdAmount(realizedPnl)
-      : undefined;
-
-  if (!marketExposure && !realizedPnlText) {
-    return null;
-  }
+  const { currentValue, unrealizedPnl, unrealizedPnlPercent } = position;
 
   return (
     <Box alignItems={BoxAlignItems.End}>
-      {marketExposure ? (
+      {currentValue === undefined ? (
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName="text-alternative"
+          testID={PredictPortfolioScreenTestIds.POSITION_ROW_VALUE_UNAVAILABLE}
+        >
+          {strings('predict_next.portfolio.value_unavailable')}
+        </Text>
+      ) : (
         <SensitiveText
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
+          testID={PredictPortfolioScreenTestIds.POSITION_ROW_VALUE}
         >
-          {formatUsdAmount(marketExposure)}
+          {formatUsdAmount(currentValue)}
         </SensitiveText>
-      ) : null}
-      {realizedPnlText ? (
+      )}
+      {unrealizedPnl === undefined ? null : (
         <SensitiveText
           variant={TextVariant.BodySm}
-          twClassName={
-            realizedPnlText.startsWith('-')
-              ? 'text-error-default'
-              : 'text-success-default'
-          }
+          twClassName={pnlToneClassName(unrealizedPnl)}
           isHidden={isPrivacyMode}
           length={SensitiveTextLength.Short}
+          testID={PredictPortfolioScreenTestIds.POSITION_ROW_PNL}
         >
-          {realizedPnlText}
+          {formatPositionPnl(unrealizedPnl, unrealizedPnlPercent)}
         </SensitiveText>
-      ) : null}
+      )}
     </Box>
   );
 };
 
-/** Renders one open Position as an optionally pressable row with an
- * optional Cash Out affordance. */
+/** Renders one Position as an optionally pressable row. Resolved Positions
+ * carry a status tag; only open ones offer Cash Out. */
 export const PortfolioPositionRow = ({
   position,
   isPrivacyMode,
@@ -93,11 +111,10 @@ export const PortfolioPositionRow = ({
   onCashOut,
 }: PortfolioPositionRowProps) => {
   const tw = useTailwind();
-  const { context } = position;
-  const title = context?.eventTitle ?? position.marketId;
-  const outcomeLabel = context?.outcomeLabel ?? position.side;
+  const { context, status } = position;
+  const title = getEntryTitle(context);
   const metaLine = strings('predict_next.portfolio.outcome_shares', {
-    outcome: outcomeLabel,
+    outcome: getOutcomeName(position.side, context),
     shares: formatSharesAmount(position.shares),
   });
 
@@ -109,9 +126,9 @@ export const PortfolioPositionRow = ({
       testID={PredictPortfolioScreenTestIds.POSITION_ROW}
     >
       <Box twClassName="mr-3 h-10 w-10 overflow-hidden rounded-lg bg-muted">
-        {context?.eventImageUrl ? (
+        {context?.imageUrl ? (
           <Image
-            source={{ uri: context.eventImageUrl }}
+            source={{ uri: context.imageUrl }}
             style={tw.style('h-full w-full')}
             accessibilityLabel={title}
           />
@@ -151,7 +168,16 @@ export const PortfolioPositionRow = ({
           position={position}
           isPrivacyMode={isPrivacyMode}
         />
-        {onCashOut ? (
+        {status === 'open' ? null : (
+          <Text
+            variant={TextVariant.BodyXs}
+            twClassName="text-alternative"
+            testID={PredictPortfolioScreenTestIds.POSITION_ROW_STATUS}
+          >
+            {strings(`predict_next.portfolio.position_status.${status}`)}
+          </Text>
+        )}
+        {onCashOut && status === 'open' ? (
           <Button
             variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}

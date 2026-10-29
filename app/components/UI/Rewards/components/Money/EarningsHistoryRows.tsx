@@ -16,18 +16,21 @@ import {
 import type {
   EarningOriginType,
   LedgerEarningEntryDto,
-  LedgerEntryDto,
   ReferralLocalizedText,
 } from '../../../../../core/Engine/controllers/rewards-money-controller/types';
-import { creditedBaseUnits } from '../../utils/earningsSummaryTotals';
+import {
+  creditedBaseUnits,
+  isVoidedEarning,
+} from '../../utils/earningsSummaryTotals';
+import {
+  isPendingClaimRow,
+  type EarningsHistoryListItem,
+} from '../../utils/claimEarnings';
 import {
   formatMusdBaseUnits,
   formatRewardsRelativeTime,
 } from '../../utils/formatUtils';
-
-export const EARNINGS_HISTORY_TEST_IDS = {
-  ROW: 'earnings-history-row',
-} as const;
+import { EARNINGS_HISTORY_TEST_IDS } from './EarningsHistoryRows.testIds';
 
 function earningTitle(
   origin: EarningOriginType,
@@ -72,35 +75,52 @@ function claimDebit(netAmount: string): string | null {
 function earningAmount(item: LedgerEarningEntryDto): {
   label: string;
   color: TextColor;
+  voided: boolean;
 } {
-  const credited = creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
-  const fullyVoided = credited === '0' && item.voided_musd_amount !== '0';
+  const voided = isVoidedEarning(item.musd_amount, item.voided_musd_amount);
+  const units = voided
+    ? item.musd_amount
+    : creditedBaseUnits(item.musd_amount, item.voided_musd_amount);
 
   return {
     label:
-      formatMusdBaseUnits(credited, {
+      formatMusdBaseUnits(units, {
         signed: true,
         maximumFractionDigits: 2,
       }) ?? '—',
-    color: fullyVoided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    color: voided ? TextColor.TextAlternative : TextColor.SuccessDefault,
+    voided,
   };
 }
 
 export const EarningsHistoryRow: React.FC<{
-  item: LedgerEntryDto;
+  item: EarningsHistoryListItem;
   localizedText: ReferralLocalizedText;
 }> = ({ item, localizedText }) => {
-  const isClaim = item.type === 'claim';
+  const pending = isPendingClaimRow(item);
+  const isClaim = pending || item.type === 'claim';
   const title = isClaim
     ? localizedText.historyClaimed
     : earningTitle(item.earning_origin_type, localizedText);
-  const amount = isClaim
-    ? {
-        label: claimDebit(item.net_amount) ?? '—',
-        color: TextColor.TextAlternative,
-      }
-    : earningAmount(item);
-
+  const credited = isClaim ? null : earningAmount(item);
+  let amount: string | null;
+  if (isPendingClaimRow(item)) {
+    amount = claimDebit(item.net_amount);
+  } else if (item.type === 'claim') {
+    amount = claimDebit(item.net_amount);
+  } else {
+    amount = credited?.label ?? null;
+  }
+  const amountColor = isClaim
+    ? TextColor.TextAlternative
+    : (credited?.color ?? TextColor.SuccessDefault);
+  const voided = credited?.voided === true;
+  const subtitle = pending
+    ? localizedText.historyClaimPending
+    : formatRewardsRelativeTime(new Date(item.ledger_timestamp));
+  const iconName = isClaim
+    ? IconName.Arrow2UpRight
+    : earningIcon(item.earning_origin_type);
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
@@ -109,26 +129,48 @@ export const EarningsHistoryRow: React.FC<{
       testID={`${EARNINGS_HISTORY_TEST_IDS.ROW}-${item.id}`}
     >
       <AvatarIcon
-        iconName={
-          isClaim
-            ? IconName.Arrow2UpRight
-            : earningIcon(item.earning_origin_type)
-        }
+        iconName={iconName}
         size={AvatarIconSize.Md}
         severity={AvatarIconSeverity.Neutral}
         iconProps={{ color: IconColor.IconDefault }}
       />
       <Box twClassName="flex-1">
-        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-          {title}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-2"
+        >
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            twClassName="shrink"
+          >
+            {title}
+          </Text>
+          {voided ? null : (
+            <Text
+              variant={TextVariant.BodyMd}
+              color={amountColor}
+              twClassName="ml-auto"
+            >
+              {amount ?? '—'}
+            </Text>
+          )}
+        </Box>
         <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          {formatRewardsRelativeTime(new Date(item.ledger_timestamp))}
+          {subtitle}
         </Text>
       </Box>
-      <Text variant={TextVariant.BodyMd} color={amount.color}>
-        {amount.label}
-      </Text>
+      {voided ? (
+        <Box alignItems={BoxAlignItems.End}>
+          <Text variant={TextVariant.BodyMd} color={amountColor}>
+            {amount ?? '—'}
+          </Text>
+          <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+            {localizedText.voided}
+          </Text>
+        </Box>
+      ) : null}
     </Box>
   );
 };

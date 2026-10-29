@@ -764,6 +764,12 @@ export interface AdvancedChartProps {
   isLoading?: boolean;
 
   /**
+   * Placeholder drawn while the chart skeleton is showing.
+   * `default` is the flat design-system Skeleton. `candles` is the candle chart.
+   */
+  skeletonVariant?: 'default' | 'candles';
+
+  /**
    * Expected visible-range start (Unix ms). After data loads the WebView constrains
    * the viewport to `[visibleFromMs, lastBarTime]` via `chart.setVisibleRange()`.
    * The user can still scroll left to reveal older/paginated data.

@@ -20,22 +20,18 @@ import {
 
 describe('deriveSecurityFacts', () => {
   describe('verdict', () => {
-    // Reached only when nothing malicious and nothing warning was found, which
-    // an empty payload satisfies.
+    // The pill reads Blockaid's `resultType` directly.
     it.each([
       ['Verified', 'screened'],
       ['Benign', 'screened'],
       ['Warning', 'medium_risk'],
       ['Spam', 'medium_risk'],
       ['Malicious', 'high_risk'],
-    ])(
-      'falls back to %s -> %s when nothing was detected',
-      (resultType, verdict) => {
-        expect(
-          deriveSecurityFacts(buildSecurityData({ resultType })).verdict,
-        ).toBe(verdict);
-      },
-    );
+    ])('maps resultType %s -> %s', (resultType, verdict) => {
+      expect(
+        deriveSecurityFacts(buildSecurityData({ resultType })).verdict,
+      ).toBe(verdict);
+    });
 
     // The API gives no guarantee the five documented values are the only ones
     // it will send, and the safe reading of a word we do not know is that
@@ -131,77 +127,41 @@ describe('deriveSecurityFacts', () => {
 });
 
 describe('resolveVerdict', () => {
-  const verdictFor = (
-    features: Parameters<typeof resolveAdditionalChecks>[0],
-    resultType = 'Verified',
-  ) => {
-    const securityData = buildSecurityData({
-      resultType,
-      features: [...features],
-    });
-    return resolveVerdict(securityData, resolveAdditionalChecks(features));
-  };
-
-  it('reads high risk off a malicious row', () => {
-    expect(verdictFor([feature('SANCTIONED_CREATOR', 'Malicious')])).toBe(
-      'high_risk',
-    );
+  it.each([
+    ['Verified', 'screened'],
+    ['Benign', 'screened'],
+    ['Warning', 'medium_risk'],
+    ['Spam', 'medium_risk'],
+    ['Malicious', 'high_risk'],
+  ])('maps resultType %s to %s', (resultType, verdict) => {
+    expect(resolveVerdict(buildSecurityData({ resultType }))).toBe(verdict);
   });
 
-  // The case the two-input verdict exists for. A detected honeypot produces no
-  // row — the Contract section already shows it — so a verdict read from the
-  // rows alone would call this token screened.
-  it('reads high risk off a detected honeypot that produces no row', () => {
-    const features = [feature('HONEYPOT', 'Malicious')];
+  // No guarantee the five documented values are the only ones the API sends; a
+  // word we do not know reads as unscreened rather than the nearest guess.
+  it.each(['', 'Suspicious', 'LOW'])(
+    'falls back to unscreened for %p',
+    (resultType) => {
+      expect(resolveVerdict(buildSecurityData({ resultType }))).toBe(
+        'unscreened',
+      );
+    },
+  );
 
-    expect(resolveAdditionalChecks(features)).toStrictEqual([]);
-    expect(verdictFor(features)).toBe('high_risk');
+  // The pill reads `resultType` alone, so a Benign token still reads screened
+  // even while it carries a Warning-typed feature the Additional checks list
+  // surfaces below — the UNSTABLE_TOKEN_PRICE / ZERO shape.
+  it('stays screened for a Benign token that still lists a warning', () => {
+    const features = [feature('UNSTABLE_TOKEN_PRICE', 'Warning')];
+    const securityData = buildSecurityData({ resultType: 'Benign', features });
+
+    expect(resolveVerdict(securityData)).toBe('screened');
+    expect(resolveAdditionalChecks(features)).toHaveLength(1);
   });
 
-  // Read literally off the spec the two branches would be exclusive, and this
-  // token would report "1 flag" while carrying a honeypot.
-  it('prefers high risk when a honeypot sits beside a warning row', () => {
-    const features = [
-      feature('HONEYPOT', 'Malicious'),
-      feature('SNIPE_AT_MINT', 'Warning'),
-    ];
-
-    expect(verdictFor(features)).toBe('high_risk');
-  });
-
-  it('reads medium risk when every row is a warning', () => {
-    expect(
-      verdictFor([
-        feature('SNIPE_AT_MINT', 'Warning'),
-        feature('WASH_TRADING', 'Warning'),
-      ]),
-    ).toBe('medium_risk');
-  });
-
-  // The shape that proves `Info` cannot promote a verdict: five capability
-  // signals, every one of them typed the same way as the good news beside it.
+  // The shape that proves an `Info` capability signal cannot promote a verdict.
   it('reads screened off the Coinbase Wrapped XRP shape', () => {
-    expect(resolveVerdict(CBXRP_VERIFIED, [])).toBe('screened');
-  });
-
-  it('reads unscreened for an unrecognised resultType with no findings', () => {
-    expect(verdictFor([], 'Suspicious')).toBe('unscreened');
-  });
-
-  /**
-   * The regression that matters most.
-   *
-   * `renounced` dashes on silence, so a token that says nothing about ownership
-   * shows `unknown` on that row rather than a red cross. The verdict must not
-   * follow the row either way: it reads types off features that are *present*,
-   * and silence carries no type.
-   */
-  it('stays screened when a check is unknown on silence rather than a signal', () => {
-    const features = [feature('VERIFIED_CONTRACT', 'Benign')];
-    const checks = resolveSecurityChecks(features);
-
-    expect(checks[ContractCheckKey.Renounced].outcome).toBe('unknown');
-    expect(verdictFor(features)).toBe('screened');
+    expect(resolveVerdict(CBXRP_VERIFIED)).toBe('screened');
   });
 });
 
@@ -276,6 +236,58 @@ describe('resolveAdditionalChecks', () => {
       expect(risks[0].severity).toBe('warning');
     },
   );
+
+  // The sheet's three "Mixed — default to highest severity (feature.type)" rows
+  // are the exception to fixed severity: they follow the matched ids' types.
+  describe('the mixed rows', () => {
+    it.each([
+      ['AIRDROP_PATTERN', 'suspicious_airdrop'],
+      ['IMPERSONATOR', 'impersonation_risk'],
+      ['TOKEN_BACKDOOR', 'dangerous_contract_behavior'],
+    ])('%s typed Warning resolves %s to warning', (featureId, id) => {
+      const risks = resolveAdditionalChecks([feature(featureId, 'Warning')]);
+
+      expect(risks[0].id).toBe(id);
+      expect(risks[0].severity).toBe('warning');
+    });
+
+    it.each([
+      ['AIRDROP_PATTERN', 'suspicious_airdrop'],
+      ['IMPERSONATOR', 'impersonation_risk'],
+      ['TOKEN_BACKDOOR', 'dangerous_contract_behavior'],
+    ])('%s typed Malicious resolves %s to malicious', (featureId, id) => {
+      const risks = resolveAdditionalChecks([feature(featureId, 'Malicious')]);
+
+      expect(risks[0].id).toBe(id);
+      expect(risks[0].severity).toBe('malicious');
+    });
+
+    // Highest wins: one malicious sibling pulls the whole row red.
+    it('takes the highest type among the matched ids', () => {
+      const risks = resolveAdditionalChecks([
+        feature('AIRDROP_PATTERN', 'Warning'),
+        feature('SPAM_TEXT', 'Malicious'),
+      ]);
+
+      expect(risks).toHaveLength(1);
+      expect(risks[0].id).toBe('suspicious_airdrop');
+      expect(risks[0].severity).toBe('malicious');
+    });
+
+    // The Kimchi shape: a Spam token whose only risk id is a Warning-typed
+    // airdrop reads medium risk, not high.
+    it('does not escalate the verdict for a warning-typed airdrop', () => {
+      const facts = deriveSecurityFacts(
+        buildSecurityData({
+          resultType: 'Spam',
+          features: [feature('AIRDROP_PATTERN', 'Warning')],
+        }),
+      );
+
+      expect(facts.risks[0].severity).toBe('warning');
+      expect(facts.verdict).toBe('medium_risk');
+    });
+  });
 
   it('localizes a mapped row title and description', () => {
     const risks = resolveAdditionalChecks([
@@ -569,6 +581,82 @@ describe('sumTopTenPercentage', () => {
   });
 
   it.each([null, undefined])('returns null for %p', (financialStats) => {
+    expect(sumTopTenPercentage(financialStats)).toBeNull();
+  });
+
+  // TRENCHTOWN-shaped: a 99.4% AMM pool plus a handful of tiny wallets. The
+  // pool must not count, so the figure reads the wallets' share, not ~100%.
+  it('excludes non-wallet holders from the sum', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: [
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.3,
+        },
+        {
+          label: 'locker',
+          name: null,
+          address: '0xlck',
+          holdingPercentage: 0.1,
+        },
+        {
+          label: 'contract',
+          name: null,
+          address: '0xctr',
+          holdingPercentage: 0.05,
+        },
+        { label: 'wallet', name: null, address: '0x1', holdingPercentage: 0.4 },
+        { label: 'wallet', name: null, address: '0x2', holdingPercentage: 0.3 },
+        { label: 'wallet', name: null, address: '0x3', holdingPercentage: 0.1 },
+      ],
+    };
+
+    expect(sumTopTenPercentage(financialStats)).toBeCloseTo(0.8);
+  });
+
+  it('sums only the top ten wallet holders', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: Array.from({ length: 12 }, (_, index) => ({
+        label: 'wallet',
+        name: null,
+        address: `0x${index}`,
+        holdingPercentage: index < 10 ? 2 : 50,
+      })),
+    };
+
+    // The first ten wallets (2% each) count; the two 50% tail entries do not.
+    expect(sumTopTenPercentage(financialStats)).toBe(20);
+  });
+
+  it('returns null when no wallet holders remain after filtering', () => {
+    const financialStats = {
+      ...buildSecurityData().financialStats,
+      topHolders: [
+        {
+          label: 'market',
+          name: null,
+          address: '0xamm',
+          holdingPercentage: 99.4,
+        },
+        {
+          label: 'program',
+          name: null,
+          address: '0xrtr',
+          holdingPercentage: 0.6,
+        },
+      ],
+    };
+
     expect(sumTopTenPercentage(financialStats)).toBeNull();
   });
 });

@@ -13,7 +13,11 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
-import type { Position } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  type CandleData,
+  type Position,
+} from '@metamask/perps-controller';
 import {
   MOCK_PERPS_MARKET_INSIGHTS_REPORT,
   OPEN_POSITION_STREAM_ITEM,
@@ -54,7 +58,7 @@ import {
 } from '../../../../../../tests/component-view/api-mocking/socialLeaderboard';
 import { mockPerpFeedItem } from '../../../SocialFeed/mocks/coreFeed.mock';
 import { SocialFeedPostShellSelectorsIDs } from '../../../SocialFeed/components/SocialFeedPostShell.testIds';
-import { LiveTradesViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveTradesView/LiveTradesView.testIds';
+import { LiveViewSelectorsIDs } from '../../../../Views/SocialLeaderboard/LiveView/LiveView.testIds';
 import { SocialLeaderboardSelectorsIDs } from '../../../SocialLeaderboard';
 import {
   getPerpsMarketDetailsTabSelector,
@@ -1494,7 +1498,7 @@ describe('PerpsMarketDetailsView', () => {
         screen.queryByTestId(getPerpsMarketDetailsTabSelector('live_trades')),
       ).not.toBeOnTheScreen();
       expect(
-        screen.queryByTestId(LiveTradesViewSelectorsIDs.CONTAINER),
+        screen.queryByTestId(LiveViewSelectorsIDs.CONTAINER),
       ).not.toBeOnTheScreen();
     });
 
@@ -1615,7 +1619,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         ],
       });
-      // navigateToSocialLeaderboard reads ReduxService.store directly.
+      // pushSocialLeaderboard reads ReduxService.store directly.
       const unwire = wirePerpsControllerForStore(store);
       try {
         fireEvent.press(
@@ -1691,7 +1695,7 @@ describe('PerpsMarketDetailsView', () => {
           },
         ],
       });
-      // navigateToSocialLeaderboard reads ReduxService.store directly.
+      // pushSocialLeaderboard reads ReduxService.store directly.
       const unwire = wirePerpsControllerForStore(store);
       try {
         fireEvent.press(
@@ -1715,6 +1719,73 @@ describe('PerpsMarketDetailsView', () => {
       } finally {
         unwire();
       }
+    });
+  });
+
+  describe('Chart loading', () => {
+    const DETAIL_SKELETON_ID = `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-chart-skeleton`;
+    const TRADINGVIEW_CHART_ID = `${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`;
+    const ethCandles: CandleData = {
+      symbol: 'ETH',
+      interval: CandlePeriod.FifteenMinutes,
+      candles: [
+        {
+          time: Date.now(),
+          open: '2737.9',
+          high: '2737.9',
+          low: '2737.9',
+          close: '2737.9',
+          volume: '1',
+        },
+      ],
+    };
+
+    it('shows the candle skeleton while candle data is missing', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      expect(await screen.findByTestId(DETAIL_SKELETON_ID)).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(`${DETAIL_SKELETON_ID}-candle-0`),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(TRADINGVIEW_CHART_ID)).not.toBeOnTheScreen();
+    });
+
+    it('swaps the candle skeleton for the chart once the chart is ready', async () => {
+      renderEligibleNoPositionPerpsDetails({
+        overrides: {
+          engine: {
+            backgroundState: {
+              PerpsController: { isEligible: true },
+            },
+          },
+          settings: {
+            perpsChartPreferences: {
+              preferredCandlePeriod: CandlePeriod.FifteenMinutes,
+            },
+          },
+        },
+        streamOverrides: { positions: [], liveCandles: ethCandles },
+      });
+
+      expect(
+        await screen.findByTestId(`${TRADINGVIEW_CHART_ID}-skeleton`),
+      ).toBeOnTheScreen();
+      expect(screen.queryByTestId(DETAIL_SKELETON_ID)).not.toBeOnTheScreen();
+
+      act(() => {
+        screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`).props.onMessage({
+          nativeEvent: { data: JSON.stringify({ type: 'CHART_READY' }) },
+        });
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.queryByTestId(`${TRADINGVIEW_CHART_ID}-skeleton`),
+        ).not.toBeOnTheScreen(),
+      );
+      expect(
+        screen.getByTestId(`${TRADINGVIEW_CHART_ID}-webview`),
+      ).toBeOnTheScreen();
     });
   });
 });

@@ -7,6 +7,12 @@ import { CreateVirtualBankAccountSelectorsIDs } from './CreateVirtualBankAccount
 import { useKycDisclaimers } from './hooks/useKycDisclaimers';
 import useMoneyVaultApy from '../../../Money/hooks/useMoneyVaultApy';
 import { useVbaArrivalTime } from './hooks/useVbaArrivalTime';
+import { useScreenPerformance } from '../../../../../hooks/useScreenPerformance';
+import {
+  VBA_SCREEN_CONTENT_STATE,
+  VBA_SCREEN_ID,
+  VBA_SCREEN_PERFORMANCE_CONFIG,
+} from './vbaScreenPerformance';
 const mockOnSuccess = jest.fn();
 const mockGoBack = jest.fn();
 
@@ -30,6 +36,9 @@ const mockUseMoneyVaultApy = jest.mocked(useMoneyVaultApy);
 
 jest.mock('./hooks/useVbaArrivalTime');
 const mockUseVbaArrivalTime = jest.mocked(useVbaArrivalTime);
+
+jest.mock('../../../../../hooks/useScreenPerformance');
+const mockUseScreenPerformance = jest.mocked(useScreenPerformance);
 
 // Iron sends only the MoonPay Enterprise T&C, and its `display_name` does not
 // say "MoonPay" — the screen rewords the label client-side.
@@ -78,6 +87,12 @@ describe('CreateVirtualBankAccount', () => {
     ).toBeOnTheScreen();
     expect(getByText('Get account details')).toBeOnTheScreen();
     expect(getByText('Deposits earn 4.2% APY as mUSD.')).toBeOnTheScreen();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.POPULATED,
+    });
   });
 
   it('shows the earn copy without a number when APY is unavailable', () => {
@@ -263,6 +278,12 @@ describe('CreateVirtualBankAccount', () => {
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ),
     ).toBeDisabled();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.EMPTY,
+    });
   });
 
   it('renders the hardcoded MoonPay Privacy Policy link and opens the MoonPay privacy URL when pressed', () => {
@@ -355,6 +376,12 @@ describe('CreateVirtualBankAccount', () => {
         CreateVirtualBankAccountSelectorsIDs.AGREE_AND_CONTINUE_BUTTON,
       ),
     ).toBeDisabled();
+    expect(mockUseScreenPerformance).toHaveBeenCalledWith({
+      config: VBA_SCREEN_PERFORMANCE_CONFIG,
+      screenId: VBA_SCREEN_ID.VENDOR_TERMS,
+      contentReady: true,
+      contentState: VBA_SCREEN_CONTENT_STATE.ERROR,
+    });
 
     fireEvent.press(getByText('Try again'));
     expect(mockRetry).toHaveBeenCalledTimes(1);

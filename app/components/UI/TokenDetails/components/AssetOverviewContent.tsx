@@ -85,6 +85,8 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 20,
     } as ViewStyle,
     tokenDetailsWrapper: {
+      // Clears the action buttons when nothing else renders between them.
+      marginTop: 24,
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,

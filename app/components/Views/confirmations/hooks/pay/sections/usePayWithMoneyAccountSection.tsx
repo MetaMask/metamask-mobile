@@ -63,18 +63,15 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isEnabled = Boolean(
     transactionType && enableMoneyAccountTransactions[transactionType],
   );
-  const showPerpsDepositNoFeeTag =
+  // Perps deposits only. Predict deposits are not subsidised, so they must
+  // never show the tag. The gate is the Monad mUSD -> Hyperliquid fixed-spread
+  // route in `confirmations_relay_fixed_spread`.
+  const showNoDepositFeeTag =
     isPerpsMoneyAccountNoFeeRouteEnabled &&
     hasTransactionType(transactionMeta, [
       TransactionType.perpsDeposit,
       TransactionType.perpsDepositAndOrder,
     ]);
-  const showPredictDepositNoFeeTag = hasTransactionType(transactionMeta, [
-    TransactionType.predictDeposit,
-    TransactionType.predictDepositAndOrder,
-  ]);
-  const showNoDepositFeeTag =
-    showPerpsDepositNoFeeTag || showPredictDepositNoFeeTag;
 
   const handlePress = useCallback(() => {
     if (transactionId) {

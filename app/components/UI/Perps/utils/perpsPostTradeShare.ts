@@ -12,6 +12,7 @@ import {
   clearPostTradeShareSession,
   getPostTradeShareSession,
   patchPostTradeShareSession,
+  type PostTradeShareVariant,
 } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
 import type { SocialPostPerpsPreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { PROVIDER_CONFIG } from '../constants/perpsConfig';
@@ -41,6 +42,19 @@ export const canBeginPerpsPostTradeShare = ({
   orderTypeHasExchangeOrderId(orderType) &&
   resolveProviderId(activeProvider) === 'hyperliquid';
 
+/**
+ * Orders outside copy-trade that go through the post-trade prompt: a
+ * Hyperliquid market order, which fills with one order id.
+ */
+export const canPromptPerpsPostTrade = ({
+  orderType,
+  activeProvider,
+}: {
+  orderType: OrderType;
+  activeProvider: string | undefined;
+}): boolean =>
+  orderType === 'market' && resolveProviderId(activeProvider) === 'hyperliquid';
+
 const usdLabel = (amountUsd: string | undefined): string | undefined => {
   const amount = Number(amountUsd);
   if (!Number.isFinite(amount) || amount <= 0) {
@@ -57,7 +71,7 @@ const priceLabel = (price: string | undefined): string | undefined => {
   return formatTradeUnitPrice(value);
 };
 
-const buildPreview = ({
+export const buildPerpsPostTradePreview = ({
   asset,
   direction,
   leverage,
@@ -79,6 +93,39 @@ const buildPreview = ({
   costLabel: usdLabel(amountUsd),
   entryPriceLabel: priceLabel(entryPrice),
 });
+
+/** Opens the pending perps share sheet without the copy-trade checks. */
+export const openPerpsPostTradeShareSession = ({
+  asset,
+  direction,
+  leverage,
+  amountUsd,
+  variant = 'share',
+}: {
+  asset: string;
+  direction: 'long' | 'short';
+  leverage?: number;
+  amountUsd?: string;
+  variant?: PostTradeShareVariant;
+}): string => {
+  const preview = buildPerpsPostTradePreview({
+    asset,
+    direction,
+    leverage,
+    amountUsd,
+  });
+  const directionLabel = direction === 'long' ? 'Long' : 'Short';
+  return beginPostTradeShareSession({
+    product: 'perps',
+    status: 'pending',
+    variant,
+    pairLabel: preview.leverageLabel
+      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
+      : `${directionLabel} ${preview.tokenSymbol}`,
+    tradeInFlightChain: 'hyperliquid',
+    preview,
+  });
+};
 
 /**
  * Opens the share sheet as pending for a Social V1 perps copy-trade that can
@@ -111,16 +158,11 @@ export const beginPerpsPostTradeShare = ({
   ) {
     return undefined;
   }
-  const preview = buildPreview({ asset, direction, leverage, amountUsd });
-  const directionLabel = direction === 'long' ? 'Long' : 'Short';
-  return beginPostTradeShareSession({
-    product: 'perps',
-    status: 'pending',
-    pairLabel: preview.leverageLabel
-      ? `${preview.leverageLabel} ${directionLabel} ${preview.tokenSymbol}`
-      : `${directionLabel} ${preview.tokenSymbol}`,
-    tradeInFlightChain: 'hyperliquid',
-    preview,
+  return openPerpsPostTradeShareSession({
+    asset,
+    direction,
+    leverage,
+    amountUsd,
   });
 };
 

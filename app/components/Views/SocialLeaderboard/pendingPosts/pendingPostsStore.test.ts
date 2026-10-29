@@ -4,11 +4,11 @@ import { mockOpenPerpsFeedItem } from '../../../UI/SocialFeed/mocks/socialV1Feed
 import {
   addPendingPost,
   confirmPendingPosts,
-  consumeFollowingFocus,
+  consumePostsTabFocus,
   dismissSettledPendingPosts,
   getPendingPostsSnapshot,
   PENDING_POST_CONFIRM_WINDOW_MS,
-  requestFollowingFocus,
+  requestPostsTabFocus,
   resetPendingPosts,
   subscribePendingPosts,
 } from './pendingPostsStore';
@@ -146,25 +146,25 @@ describe('pendingPostsStore', () => {
     });
   });
 
-  describe('Following focus', () => {
+  describe('Posts tab focus', () => {
     it('is consumed once after a request', () => {
-      requestFollowingFocus(NOW);
+      requestPostsTabFocus(NOW);
 
-      expect(consumeFollowingFocus(NOW + 500)).toBe(true);
-      expect(consumeFollowingFocus(NOW + 600)).toBe(false);
+      expect(consumePostsTabFocus(NOW + 500)).toBe(true);
+      expect(consumePostsTabFocus(NOW + 600)).toBe(false);
     });
 
-    it('expires when the feed is not reached soon after posting', () => {
-      requestFollowingFocus(NOW);
+    it('expires when the profile is not reached soon after posting', () => {
+      requestPostsTabFocus(NOW);
 
-      expect(consumeFollowingFocus(NOW + 60_000)).toBe(false);
+      expect(consumePostsTabFocus(NOW + 60_000)).toBe(false);
     });
 
     it('is cleared by a reset', () => {
-      requestFollowingFocus(NOW);
+      requestPostsTabFocus(NOW);
       resetPendingPosts();
 
-      expect(consumeFollowingFocus(NOW)).toBe(false);
+      expect(consumePostsTabFocus(NOW)).toBe(false);
     });
   });
 });

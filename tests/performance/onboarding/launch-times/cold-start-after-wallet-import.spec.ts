@@ -1,5 +1,6 @@
 import { test } from '../../../framework/fixtures/playwright';
 import {
+  Performance,
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
@@ -13,14 +14,16 @@ import {
 import TimerHelper from '../../../framework/TimerHelper';
 
 import WalletView from '../../../page-objects/wallet/WalletView.js';
+import { skipHermesCollectionUntilRestart } from '../../helpers/appProfiling';
 
-test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
+test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
+      await skipHermesCollectionUntilRestart();
       await AppiumGestures.terminateApp(currentDeviceDetails);
       await AppiumGestures.activateApp(currentDeviceDetails);
 

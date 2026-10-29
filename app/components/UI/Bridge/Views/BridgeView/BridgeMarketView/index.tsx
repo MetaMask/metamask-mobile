@@ -716,31 +716,31 @@ const BridgeMarketViewContent = ({
           location={location}
           transactionActiveAbTests={transactionActiveAbTests}
         />
-
-        <SwapsKeypad
-          ref={keypadRef}
-          value={sourceAmountInput.keypadValue}
-          onChange={sourceAmountInput.handleKeypadChange}
-          currency={sourceAmountInput.keypadCurrency}
-          decimals={sourceAmountInput.keypadDecimals}
-        >
-          {sourceAmount && sourceAmount !== '0' ? (
-            <SwapsMarketOrderConfirmButton
-              location={location}
-              transactionActiveAbTests={transactionActiveAbTests}
-              testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
-            />
-          ) : (
-            <GaslessQuickPickOptions
-              token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
-              onMaxPress={handleSourceMaxPress}
-              isQuoteSponsored={isQuoteSponsored}
-              onAmountSelect={handleSourcePresetAmountSelect}
-            />
-          )}
-        </SwapsKeypad>
       </Box>
+
+      <SwapsKeypad
+        ref={keypadRef}
+        value={sourceAmountInput.keypadValue}
+        onChange={sourceAmountInput.handleKeypadChange}
+        currency={sourceAmountInput.keypadCurrency}
+        decimals={sourceAmountInput.keypadDecimals}
+      >
+        {sourceAmount && sourceAmount !== '0' ? (
+          <SwapsMarketOrderConfirmButton
+            location={location}
+            transactionActiveAbTests={transactionActiveAbTests}
+            testID={BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD}
+          />
+        ) : (
+          <GaslessQuickPickOptions
+            token={sourceToken}
+            tokenBalance={latestSourceBalance?.displayBalance}
+            onMaxPress={handleSourceMaxPress}
+            isQuoteSponsored={isQuoteSponsored}
+            onAmountSelect={handleSourcePresetAmountSelect}
+          />
+        )}
+      </SwapsKeypad>
     </ScreenView>
   );
 };

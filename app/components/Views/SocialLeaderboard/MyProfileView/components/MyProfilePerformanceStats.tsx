@@ -105,7 +105,7 @@ const MyProfilePerformanceStats: React.FC<MyProfilePerformanceStatsProps> = ({
           ))}
         </Box>
       </Box>
-      <SectionDivider marginVertical={6} />
+      <SectionDivider marginVertical={0} twClassName="mt-6" />
     </Box>
   );
 };

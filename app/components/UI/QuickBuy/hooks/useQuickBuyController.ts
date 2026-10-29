@@ -55,7 +55,9 @@ import { caipChainIdToTradeInFlightChain } from '../../SocialFeed/utils/chainMap
 import {
   beginPostTradeShareSession,
   patchPostTradeShareSession,
-} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet';
+} from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/postTradeShareSession';
+import { usePostTradePromptResolver } from '../../../Views/SocialLeaderboard/PostTradeShareBottomSheet/usePostTradePromptResolver';
+import type { SocialPostTradePreview } from '../../../Views/SocialLeaderboard/SocialPostComposerView/SocialPostComposerView.types';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
@@ -90,6 +92,7 @@ import {
 } from '../../../../core/redux/slices/bridge';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectSourceWalletAddress } from '../../../../selectors/bridge';
+import { selectIsProfileTradingActivityPrivate } from '../../../../selectors/profileController';
 import { isHardwareAccount } from '../../../../util/address';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
@@ -134,6 +137,7 @@ import {
   trackQuickBuyTrade,
   beginQuickBuySubmission,
   endQuickBuySubmission,
+  type TrackedQuickBuyPostTradePrompt,
 } from '../quickBuyTradeTracker';
 import { resolveQuickBuyTerminalToast } from '../resolveQuickBuyTerminalToast';
 import { resolveLiveTokenBalance } from './liveSelectedTokenBalance';
@@ -295,6 +299,10 @@ export function useQuickBuyController(
   const theme = useTheme();
   const { toastRef } = useContext(ToastContext);
   const { goToBuy } = useRampNavigation();
+  const resolvePostTradePrompt = usePostTradePromptResolver();
+  const isProfileTradingActivityPrivate = useSelector(
+    selectIsProfileTradingActivityPrivate,
+  );
 
   const traderAddress = analyticsContext.traderAddress ?? '';
   const caip19 = useMemo(
@@ -1675,9 +1683,44 @@ export function useQuickBuyController(
     );
     const previewChain =
       caipChainIdToTradeInFlightChain(target.chain) ?? target.chain;
-    const shouldPostTradeShare = postTradeShare && Boolean(tradeInFlightChain);
+    const sharePreview: SocialPostTradePreview = {
+      tokenSymbol: target.tokenSymbol,
+      tokenAddress: target.tokenAddress,
+      chain: previewChain,
+      side: tradeMode,
+      costLabel: tradeToastInfo.fiatAmountLabel,
+      entryPriceLabel: formattedRate,
+    };
+    // Public copy-trades always share. Private profiles use the normal
+    // Quick Buy toasts instead. Other swaps get the prompt chosen from the
+    // linked profile and how many share sheets it has already completed.
+    const shouldForcePostTradeShare =
+      postTradeShare && !isProfileTradingActivityPrivate;
+    const prompt = shouldForcePostTradeShare
+      ? undefined
+      : resolvePostTradePrompt('swap');
+    let trackedPostTradePrompt: TrackedQuickBuyPostTradePrompt | undefined;
+    if (prompt?.kind === 'claim_sheet') {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'share_sheet' && tradeInFlightChain) {
+      trackedPostTradePrompt = prompt;
+    } else if (prompt?.kind === 'post_to_feed_toast' && tradeInFlightChain) {
+      trackedPostTradePrompt = {
+        kind: 'post_to_feed_toast',
+        tradeInFlightChain,
+        preview: sharePreview,
+      };
+    }
+    const isCreateProfilePrompt =
+      trackedPostTradePrompt?.kind === 'claim_sheet';
+    const shouldPostTradeShare =
+      isCreateProfilePrompt ||
+      ((shouldForcePostTradeShare ||
+        trackedPostTradePrompt?.kind === 'share_sheet') &&
+        Boolean(tradeInFlightChain));
     const postTradeShareSessionId = shouldPostTradeShare
       ? beginPostTradeShareSession({
+          variant: isCreateProfilePrompt ? 'create_profile' : 'share',
           target,
           tradeMode,
           pairLabel:
@@ -1687,14 +1730,7 @@ export function useQuickBuyController(
           tradeInFlightChain,
           copyTradeOrigin,
           owner: postTradeShareOwner,
-          preview: {
-            tokenSymbol: target.tokenSymbol,
-            tokenAddress: target.tokenAddress,
-            chain: previewChain,
-            side: tradeMode,
-            costLabel: tradeToastInfo.fiatAmountLabel,
-            entryPriceLabel: formattedRate,
-          },
+          preview: sharePreview,
         })
       : undefined;
     if (shouldPostTradeShare) {
@@ -1723,13 +1759,13 @@ export function useQuickBuyController(
       if (copyTradeOrigin) {
         postCopyTradeIntent(
           () =>
-            sourceToken
+            sourceToken && activeQuote.quoteId
               ? buildCopyTradeIntentOptions(
                   copyTradeOrigin,
                   `${formatChainIdToCaip(sourceToken.chainId)}:${walletAddress}`,
                   {
                     product: 'swaps',
-                    quoteId: activeQuote.quote.requestId,
+                    quoteId: activeQuote.quoteId,
                   },
                 )
               : undefined,
@@ -1748,19 +1784,14 @@ export function useQuickBuyController(
             quotesReceivedContext: undefined,
             migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
           })
-        : await Engine.context.BridgeStatusController.submitTx(
-            walletAddress,
-            activeQuote,
-            stxEnabled,
-            undefined, // quotesReceivedContext
-            undefined, // location
-            undefined, // abTests
-            undefined, // mergedActiveAbTests
-            undefined, // tokenSecurityTypeDestination
-            undefined, // batchSellTrades
-            undefined, // inputPrimaryDenomination
-            BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
-          );
+        : await Engine.context.BridgeStatusController.submitTx({
+            accountAddress: walletAddress,
+            quoteResponses: [activeQuote],
+            isStxEnabled: stxEnabled,
+            tokenSecurityTypeDestination: destToken?.securityData?.type ?? null,
+            inputPrimaryDenomination: 'token_amount',
+            migrationPhase: BRIDGE_QUOTE_RESPONSE_MIGRATION_PHASE,
+          });
       if (isSocialTradeSource(analyticsContext.source)) {
         recordSocialTrade();
       }
@@ -1778,6 +1809,7 @@ export function useQuickBuyController(
           txSignature: txHash,
           postTradeShare: shouldPostTradeShare,
           postTradeShareSessionId,
+          postTradePrompt: trackedPostTradePrompt,
         });
         if (postTradeShareSessionId && txHash) {
           patchPostTradeShareSession(postTradeShareSessionId, {
@@ -1879,6 +1911,8 @@ export function useQuickBuyController(
     markTradeSubmitted,
     submitStartedAtRef,
     postTradeShare,
+    isProfileTradingActivityPrivate,
+    resolvePostTradePrompt,
     copyTradeOrigin,
     postTradeShareOwner,
     sourceTokenAmount,

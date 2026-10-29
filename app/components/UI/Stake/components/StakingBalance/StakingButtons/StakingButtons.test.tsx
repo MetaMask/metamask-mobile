@@ -39,17 +39,33 @@ import {
 import { TokenI } from '../../../../Tokens/types';
 import { EARN_EXPERIENCES } from '../../../../Earn/constants/experiences';
 import { getMockUseEarnTokens } from '../../../../Earn/__mocks__/earnMockData';
+import { earnSelectors } from '../../../../../../selectors/earnController';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
+const mockShowEarnToast = jest.fn();
+const mockMissingTokenToast = {};
+const mockTrackEvent = jest.fn();
 
 jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
-    trackEvent: jest.fn(),
+    trackEvent: mockTrackEvent,
     createEventBuilder: () => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn().mockReturnValue({}),
     }),
   }),
+}));
+
+jest.mock('../../../../Earn/hooks/useEarnToasts', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    showToast: mockShowEarnToast,
+    EarnToastOptions: {
+      earnWithdrawal: {
+        detailsUnavailable: mockMissingTokenToast,
+      },
+    },
+  })),
 }));
 
 type MockSelectPooledStakingEnabledFlagSelector = jest.MockedFunction<
@@ -314,6 +330,35 @@ describe('StakingButtons', () => {
       },
       screen: Routes.STAKING.UNSTAKE,
     });
+  });
+
+  it('shows an error toast and does not navigate when output token is missing', async () => {
+    (
+      earnSelectors.selectEarnTokenPair as jest.MockedFunction<
+        typeof earnSelectors.selectEarnTokenPair
+      >
+    ).mockReturnValueOnce({
+      earnToken: undefined,
+      outputToken: undefined,
+    });
+
+    const props = {
+      style: {},
+      hasStakedPositions: true,
+      hasEthToUnstake: true,
+      asset: MOCK_ETH_MAINNET_ASSET,
+    };
+    const { getByText } = renderWithProvider(<StakingButtons {...props} />, {
+      state: mockInitialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Unstake'));
+    });
+
+    expect(mockShowEarnToast).toHaveBeenCalledWith(mockMissingTokenToast);
+    expect(navigate).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   describe('glass', () => {

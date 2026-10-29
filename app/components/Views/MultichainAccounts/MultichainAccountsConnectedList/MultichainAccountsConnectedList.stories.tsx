@@ -11,7 +11,7 @@ import { Box } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
-import { withNavigation } from '../../../../../.storybook/decorators';
+import { withNavigation } from '../../../../../.rnstorybook/decorators';
 
 // Internal dependencies
 import MultichainAccountsConnectedList from './MultichainAccountsConnectedList';

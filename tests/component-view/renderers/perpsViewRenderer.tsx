@@ -379,13 +379,29 @@ function focusedPriceChannel(cachedFocusedPrice: PriceUpdate | null = null) {
 /**
  * Candles channel. The cached series is a synchronous read for the trade
  * sheet header. It is not pushed through the live candle subscription.
+ * `liveCandles` is delivered once to a subscriber with the same symbol and
+ * interval.
  */
 function candlesChannel(
   cachedCandles: CandleData | null,
   chartCacheFresh: boolean,
+  liveCandles: CandleData | null,
 ) {
   return {
-    subscribe: (): (() => void) => noopUnsubscribe,
+    subscribe: (params?: {
+      symbol: string;
+      interval: CandlePeriod;
+      callback: (data: CandleData) => void;
+    }): (() => void) => {
+      if (
+        liveCandles &&
+        params?.symbol === liveCandles.symbol &&
+        params.interval === liveCandles.interval
+      ) {
+        params.callback(liveCandles);
+      }
+      return noopUnsubscribe;
+    },
     getSnapshot: () => cachedCandles,
     getCachedData: (
       symbol: string,
@@ -530,6 +546,8 @@ export interface PerpsStreamOverrides {
    * series is seeded, otherwise false.
    */
   chartCacheFresh?: boolean;
+  /** Candle series delivered to `candles.subscribe` for a matching symbol and interval. */
+  liveCandles?: CandleData | null;
   /** `focusedPrice.getSnapshot()` only. The live focused subscription stays empty. */
   cachedFocusedPrice?: PriceUpdate | null;
 }
@@ -570,7 +588,11 @@ function createTestStreamManager(
     focusedPrice: focusedPriceChannel(
       streamOverrides?.cachedFocusedPrice ?? null,
     ),
-    candles: candlesChannel(cachedCandles, chartCacheFresh),
+    candles: candlesChannel(
+      cachedCandles,
+      chartCacheFresh,
+      streamOverrides?.liveCandles ?? null,
+    ),
     retryOrderStreams: (): void => {
       orders.clearCache();
       fills.clearCache();

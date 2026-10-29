@@ -564,6 +564,8 @@ export const PerpsProMarketViewSelectorsIDs = {
   ORDER_BOOK_PANEL: 'perps-pro-market-order-book-panel',
   ORDER_BOOK_COLLAPSE_BUTTON: 'perps-pro-market-order-book-collapse',
   ORDER_BOOK_EXPAND_BUTTON: 'perps-pro-market-order-book-expand',
+  ORDER_BOOK_SIZE_ON_CLICK_SWITCH:
+    'perps-pro-market-order-book-panel-config-sheet-size-on-click',
   POSITIONS_PANEL: 'perps-pro-market-positions-panel',
   POSITIONS_PANEL_TABS: 'perps-pro-market-positions-panel-tabs',
   POSITIONS_HISTORY_BUTTON: 'perps-pro-market-positions-history',
@@ -1124,6 +1126,10 @@ export const PerpsFeeDiscountLabelSelectorsIDs = {
   LABEL: 'perps-fee-discount-label',
 } as const;
 
+export const PerpsFeesTooltipSelectorsIDs = {
+  PROMOTIONAL_BANNER_SEAL: 'perps-fees-tooltip-promotional-banner-seal',
+} as const;
+
 // ========================================
 // PERPS SLIPPAGE CONFIG BOTTOM SHEET SELECTORS
 // ========================================
@@ -1312,7 +1318,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
   CAROUSEL_WRAPPER: 'perps-hero-card-view-carousel-wrapper',
   CAROUSEL: 'perps-hero-card-view-carousel',
   CARD_CONTAINER: 'perps-hero-card-view-card-container',
-  REFERRAL_CODE_TAG: 'perps-hero-card-view-referral-code-tag',
   QR_CODE: 'perps-hero-card-view-qr-code',
   ASSET_SYMBOL: 'perps-hero-card-view-asset-symbol',
   DIRECTION_BADGE: 'perps-hero-card-view-direction-badge',
@@ -1326,8 +1331,6 @@ export const PerpsHeroCardViewSelectorsIDs = {
 export const getPerpsHeroCardViewSelector = {
   cardContainer: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.CARD_CONTAINER}-${index}`,
-  referralCodeTag: (index: number) =>
-    `${PerpsHeroCardViewSelectorsIDs.REFERRAL_CODE_TAG}-${index}`,
   qrCode: (index: number) =>
     `${PerpsHeroCardViewSelectorsIDs.QR_CODE}-${index}`,
   assetSymbol: (index: number) =>

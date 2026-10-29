@@ -74,7 +74,7 @@ export function convertPriceRangeToUsd(
   }
 
   return {
-    tokenSide: priceRange.tokenSide,
+    side: priceRange.tokenSide === 'source' ? 'src' : 'dest',
     currency: USD_PRICE_RANGE_CURRENCY,
     min,
     max,
