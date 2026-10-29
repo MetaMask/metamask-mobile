@@ -258,6 +258,23 @@ describe('build-android-upload-to-testmu daily app cleanup', () => {
     expect(cleanup?.['continue-on-error']).toBe(true);
   });
 
+  it('never lets the cache steps block the APK upload', () => {
+    const cacheSteps = [
+      'Check if TestMu cleanup already ran today',
+      'Mark TestMu cleanup as done for today',
+    ].map(
+      (name) =>
+        stepByName(JOB, name) as
+          | (WorkflowStep & { 'continue-on-error'?: boolean })
+          | undefined,
+    );
+
+    expect(cacheSteps).toHaveLength(2);
+    cacheSteps.forEach((step) => {
+      expect(step?.['continue-on-error']).toBe(true);
+    });
+  });
+
   it('only records the daily marker after a successful cleanup', () => {
     const save = stepByName(JOB, 'Mark TestMu cleanup as done for today');
     const lookup = stepByName(JOB, 'Check if TestMu cleanup already ran today');

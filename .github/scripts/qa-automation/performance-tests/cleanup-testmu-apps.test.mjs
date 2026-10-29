@@ -125,6 +125,31 @@ test('never deletes apps with a foreign id, a missing date or an unparseable dat
   assert.match(body, /APP_OLD_WITH,APP_OLD_WITHOUT/);
 });
 
+test('matches apps by name or customId when custom_id is missing', () => {
+  const result = runCleanup({
+    pages: [
+      [
+        {
+          app_id: 'APP_BY_NAME',
+          name: 'metamask-android-with-srp-byname',
+          updated_at: '2026-10-20T00:00:00.000Z',
+        },
+        {
+          app_id: 'APP_BY_CAMEL',
+          customId: 'metamask-android-without-srp-bycamel',
+          updated_at: '2026-10-20T00:00:00.000Z',
+        },
+      ],
+    ],
+  });
+
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    deleteCalls(result.log).join('\n'),
+    /"appIds":"APP_BY_NAME,APP_BY_CAMEL"/,
+  );
+});
+
 test('--dry-run lists candidates without issuing a DELETE request', () => {
   const result = runCleanup({
     pages: [PAGE_ONE, PAGE_TWO.slice(0, 2)],

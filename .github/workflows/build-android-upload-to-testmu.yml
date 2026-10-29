@@ -1060,6 +1060,8 @@ jobs:
       - name: Check if TestMu cleanup already ran today
         id: testmu-cleanup-cache
         if: inputs.upload_to_testmu
+        # A cache-service error must not block the APK upload.
+        continue-on-error: true
         uses: actions/cache/restore@v6
         with:
           path: .testmu-cleanup-marker
@@ -1082,6 +1084,8 @@ jobs:
 
       - name: Mark TestMu cleanup as done for today
         if: steps.testmu-cleanup.outcome == 'success'
+        # A cache-service error or a same-day key race must not block the upload.
+        continue-on-error: true
         uses: actions/cache/save@v6
         with:
           path: .testmu-cleanup-marker

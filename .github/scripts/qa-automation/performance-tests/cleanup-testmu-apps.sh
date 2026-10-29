@@ -78,7 +78,10 @@ for ((page = 1; page <= MAX_PAGES; page++)); do
 
   jq -r --argjson cutoff "$CUTOFF" '
     .data[]?
-    | select((.custom_id // "") | test("^metamask-android-(with|without)-srp-"))
+    | select(
+        (.custom_id // .customId // .name // "")
+        | test("^metamask-android-(with|without)-srp-")
+      )
     | select(
         try (
           (.updated_at | sub("\\.[0-9]+Z$"; "Z") | fromdateiso8601) < $cutoff
