@@ -134,7 +134,7 @@ export class PredictDeviceAuthService {
     const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
-    if (!binding || !key) {
+    if (this.#stoppedDuringKeyLoad(binding, key) || !binding || !key) {
       return undefined;
     }
     if (!this.#deps.isSignedIn()) {
@@ -149,6 +149,9 @@ export class PredictDeviceAuthService {
     const unlocked = this.#deps.isUnlocked();
     const binding = this.#resolveBinding();
     const key = await this.#ensureDeviceKey(binding, enabled, unlocked);
+    if (this.#stoppedDuringKeyLoad(binding, key)) {
+      return;
+    }
     if (binding && key && includeA2t && this.#deps.isSignedIn()) {
       await binding.session.ensureA2T();
     } else if (!this.#deps.isSignedIn()) {
@@ -189,6 +192,25 @@ export class PredictDeviceAuthService {
         logFailure(error);
       }
     }
+  }
+
+  /**
+   * A lock or flag clear during key loading already dropped this session.
+   * `ensureA2T` would otherwise start a new flight and poll until timeout.
+   * Returns true when issuance must stop. Clears only when this call still
+   * holds a key, so the pre-load clear is not repeated.
+   */
+  #stoppedDuringKeyLoad(
+    binding: PredictDeviceAuthBinding | undefined,
+    key: P256DevicePublicMaterial | null,
+  ): boolean {
+    if (this.#deps.isEnabled() && this.#deps.isUnlocked()) {
+      return false;
+    }
+    if (binding && key) {
+      this.clear();
+    }
+    return true;
   }
 
   /**

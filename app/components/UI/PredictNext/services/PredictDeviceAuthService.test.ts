@@ -72,11 +72,17 @@ const createService = ({
   unlocked = true,
   signedIn = true,
   getProfile = () => KALSHI_AUTHENTICATION_PROFILE,
+  isEnabled = () => enabled,
+  isUnlocked = () => unlocked,
+  isSignedIn = () => signedIn,
 }: {
   enabled?: boolean;
   unlocked?: boolean;
   signedIn?: boolean;
   getProfile?: () => VenueAuthenticationProfile | undefined;
+  isEnabled?: () => boolean;
+  isUnlocked?: () => boolean;
+  isSignedIn?: () => boolean;
 } = {}) => {
   const registerActionHandler = jest.fn();
   const messenger = {
@@ -89,9 +95,9 @@ const createService = ({
     getCanonicalProfileId: () => 'profile-id',
     getSrpIdentifier: async () => 'srp-id',
     signSrpMessage: async () => 'signature',
-    isEnabled: () => enabled,
-    isUnlocked: () => unlocked,
-    isSignedIn: () => signedIn,
+    isEnabled,
+    isUnlocked,
+    isSignedIn,
     fetch,
     now: () => 1_700_000_000,
     nowMs: () => 0,
@@ -308,6 +314,40 @@ describe('PredictDeviceAuthService', () => {
     expect(mockClearDeviceKey).not.toHaveBeenCalled();
     expect(mockClearSession).not.toHaveBeenCalled();
   });
+
+  it.each(['getA2t', 'prefetch'] as const)(
+    '%s skips A2T issuance when the wallet locks during device key loading',
+    async (method) => {
+      let unlocked = true;
+      const { service } = createService({ isUnlocked: () => unlocked });
+      mockEnsureDeviceKey.mockImplementation(async () => {
+        unlocked = false;
+        service.clear();
+        return DEVICE_PUBLIC_MATERIAL;
+      });
+
+      await expect(service[method]()).resolves.toBeUndefined();
+
+      expect(mockGetA2t).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(['getA2t', 'prefetch'] as const)(
+    '%s skips A2T issuance when Predict auth is disabled during device key loading',
+    async (method) => {
+      let enabled = true;
+      const { service } = createService({ isEnabled: () => enabled });
+      mockEnsureDeviceKey.mockImplementation(async () => {
+        enabled = false;
+        service.clear();
+        return DEVICE_PUBLIC_MATERIAL;
+      });
+
+      await expect(service[method]()).resolves.toBeUndefined();
+
+      expect(mockGetA2t).not.toHaveBeenCalled();
+    },
+  );
 
   it('prefetches the A2T for the profile resolved before the device key loads', async () => {
     const getProfile = jest.fn(() => KALSHI_AUTHENTICATION_PROFILE);
