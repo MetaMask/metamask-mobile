@@ -697,7 +697,7 @@ export const usePerpsProOrderForm = ({
   // this cannot double-count — and silencing it here would drop exposure
   // entirely whenever that panel is absent.
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
-  // Perps Fee Display Format A/B test (TAT-4046): $ amount vs. Taker/Maker
+  // Fee display format A/B test: $ amount vs. Taker/Maker
   // % rates on the fee row below. `usePerpsFeeDisplayAbTest` re-resolves the
   // assignment from Redux on every render rather than freezing it at mount,
   // but the resolved flags only change between app sessions, so the format
@@ -733,7 +733,7 @@ export const usePerpsProOrderForm = ({
 
   // Restore reduce-only from the 30s pending draft.
   const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
-  // Perps Fee Display Format A/B test (TAT-4046) is scoped to opening or
+  // The fee display format A/B test is scoped to opening or
   // increasing a position; the reduce-only checkbox routes this same form
   // through a position-close order, which must keep the dollar display
   // regardless of the assigned variant.
@@ -4123,8 +4123,7 @@ export const usePerpsProOrderForm = ({
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
-      // Perps Fee Display Format A/B test (TAT-4046). Forced to 'dollar' for
-      // a reduce-only close via `effectiveFeeDisplayMode` above.
+      // 'dollar' for a reduce-only close via `effectiveFeeDisplayMode` above.
       feeDisplayMode: effectiveFeeDisplayMode,
       takerFeeRate: hasValidAmount ? feeResults.takerFeeRate : undefined,
       makerFeeRate: hasValidAmount ? feeResults.makerFeeRate : undefined,

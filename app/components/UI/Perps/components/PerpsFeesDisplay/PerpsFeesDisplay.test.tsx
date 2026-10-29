@@ -333,7 +333,7 @@ describe('PerpsFeesDisplay', () => {
     });
   });
 
-  describe('Percentage mode (Perps Fee Display Format A/B test, TAT-4046)', () => {
+  describe('Percentage mode (Perps Fee Display Format A/B test)', () => {
     it('renders "Taker X% / Maker Y%" from the rates and ignores fee/originalFee', () => {
       const { getByText, queryByText } = render(
         <PerpsFeesDisplay

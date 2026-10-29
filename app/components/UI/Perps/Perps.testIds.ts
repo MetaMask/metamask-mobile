@@ -830,8 +830,8 @@ export const PerpsProOrderFormSelectorsIDs = {
   SUMMARY_FEES: 'perps-pro-order-form-summary-fees',
   SUMMARY_FEES_BUTTON: 'perps-pro-order-form-summary-fees-button',
   SUMMARY_FEES_VALUE: 'perps-pro-order-form-summary-fees-value',
-  // Perps Fee Display Format A/B test (TAT-4046) percentage mode:
-  // `PerpsFeesDisplay` derives these as `${SUMMARY_FEES_VALUE}-taker`/`-maker`.
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${SUMMARY_FEES_VALUE}-taker`/`-maker`.
   SUMMARY_FEES_VALUE_TAKER: 'perps-pro-order-form-summary-fees-value-taker',
   SUMMARY_FEES_VALUE_MAKER: 'perps-pro-order-form-summary-fees-value-maker',
   SUMMARY_TWAP_RUNTIME: 'perps-pro-order-form-summary-twap-runtime',
@@ -1065,8 +1065,8 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_VALUE: 'perps-order-view-liquidation-price-value',
   FEES_VALUE: 'perps-order-view-fees-value',
   ORIGINAL_FEES_VALUE: 'perps-order-view-fees-value-original',
-  // Perps Fee Display Format A/B test (TAT-4046) percentage mode:
-  // `PerpsFeesDisplay` derives these as `${FEES_VALUE}-taker`/`-maker`.
+  // Percentage mode: `PerpsFeesDisplay` derives these as
+  // `${FEES_VALUE}-taker`/`-maker`.
   FEES_VALUE_TAKER: 'perps-order-view-fees-value-taker',
   FEES_VALUE_MAKER: 'perps-order-view-fees-value-maker',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',

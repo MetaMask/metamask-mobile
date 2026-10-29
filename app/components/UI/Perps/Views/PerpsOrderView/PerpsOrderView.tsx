@@ -821,7 +821,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     };
   }, [currentPrice]);
 
-  // Perps Fee Display Format A/B test (TAT-4046): $ amount vs. Taker/Maker
+  // Fee display format A/B test: $ amount vs. Taker/Maker
   // % rates on this fee row. `usePerpsFeeDisplayAbTest` re-resolves the
   // assignment from Redux on every render rather than freezing it at mount,
   // but the resolved flags only change between app sessions, so the format

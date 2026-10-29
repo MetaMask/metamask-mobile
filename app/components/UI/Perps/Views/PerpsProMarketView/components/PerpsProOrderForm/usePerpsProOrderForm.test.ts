@@ -65,7 +65,7 @@ const mockUsePerpsLiquidationPrice = jest.fn((_params: unknown) => ({
   isCalculating: false,
 }));
 let mockTotalFee = 5;
-// Only populated by the Perps Fee Display Format A/B test (TAT-4046)
+// Only populated by the fee display format A/B test
 // treatment tests below; `undefined` matches the real hook's control-mode
 // (includeFeeRateBreakdown: false) result.
 let mockTakerFeeRate: number | undefined;
@@ -912,7 +912,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.feeProtocolFeeRate).toBe(0.02);
     });
 
-    it('keeps the summary in dollar mode with no taker/maker rates for control (TAT-4046)', () => {
+    it('keeps the summary in dollar mode with no taker/maker rates for control', () => {
       const { result } = renderProForm();
 
       expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
@@ -923,7 +923,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
-    it('requests the breakdown and surfaces both rates on the summary for treatment (TAT-4046)', () => {
+    it('requests the breakdown and surfaces both rates on the summary for treatment', () => {
       mockFeeDisplayMode = 'percentage';
       mockTakerFeeRate = 0.00143;
       mockMakerFeeRate = 0.00114;
@@ -938,7 +938,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.makerFeeRate).toBe(0.00114);
     });
 
-    it('hides taker/maker rates on the summary while the amount is invalid, even for treatment (TAT-4046)', () => {
+    it('hides taker/maker rates on the summary while the amount is invalid, even for treatment', () => {
       mockFeeDisplayMode = 'percentage';
       mockTakerFeeRate = 0.00143;
       mockMakerFeeRate = 0.00114;
@@ -950,7 +950,7 @@ describe('usePerpsProOrderForm', () => {
       expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
-    it('keeps a reduce-only close in dollar mode and does not request the breakdown, even for treatment (TAT-4046)', () => {
+    it('keeps a reduce-only close in dollar mode and does not request the breakdown, even for treatment', () => {
       mockFeeDisplayMode = 'percentage';
       mockContextValue.pendingReduceOnly = true;
 

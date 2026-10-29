@@ -1901,7 +1901,7 @@ describe('PerpsProOrderForm', () => {
     });
   });
 
-  describe('Fee Display Format A/B test (TAT-4046)', () => {
+  describe('Fee Display Format A/B test', () => {
     it('passes feeDisplayMode and both rates through to PerpsFeesDisplay for treatment', () => {
       renderForm({
         summary: {

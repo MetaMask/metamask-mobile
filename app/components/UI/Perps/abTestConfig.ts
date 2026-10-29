@@ -156,7 +156,7 @@ export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappin
   };
 
 /**
- * TAT-4046: Perps Fee Display Format — $ vs. Taker/Maker %.
+ * Perps Fee Display Format — $ vs. Taker/Maker %.
  *
  * Control keeps today's single blended dollar fee amount on the order
  * entry/review fee row. Treatment replaces it with "Taker X.XXX% / Maker

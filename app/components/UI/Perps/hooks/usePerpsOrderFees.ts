@@ -121,7 +121,7 @@ interface UsePerpsOrderFeesParams {
    * When true, also resolves `takerFeeRate` / `makerFeeRate` by requesting
    * the opposite `isMaker` side from the provider in addition to this
    * order's actual resolved side. Off by default so existing callers pay no
-   * extra request; the Perps Fee Display Format A/B test (TAT-4046) opts in
+   * extra request; the fee display format A/B test opts in
    * only for the `percentage` variant. See `usePerpsFeeDisplayAbTest`.
    */
   includeFeeRateBreakdown?: boolean;
@@ -509,9 +509,9 @@ export function usePerpsOrderFees({
             : undefined;
 
         // Step 3.5: Resolve the opposite isMaker side so both the taker and
-        // maker combined rate can be shown at once (Perps Fee Display Format
-        // A/B test, TAT-4046). Skipped by default — only requested by the
-        // `percentage` variant — and failures here must not block the
+        // maker combined rate can be shown at once (fee display format A/B
+        // test). Skipped by default — only requested by the `percentage`
+        // variant — and failures here must not block the
         // primary $ fee the rest of this flow depends on.
         //
         // The opposite-side request always asks for `orderType: 'limit'`,

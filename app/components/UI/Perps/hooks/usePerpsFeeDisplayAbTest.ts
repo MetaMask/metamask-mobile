@@ -16,7 +16,7 @@ export interface UsePerpsFeeDisplayAbTestResult {
 }
 
 /**
- * Resolves the Perps fee display format experiment (TAT-4046): $ amount vs.
+ * Resolves the Perps fee display format experiment: $ amount vs.
  * Taker/Maker percentage rates on the order entry/review fee row.
  *
  * Every order-entry/review surface must use this hook instead of calling

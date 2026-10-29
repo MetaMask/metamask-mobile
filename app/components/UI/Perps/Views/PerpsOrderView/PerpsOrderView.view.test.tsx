@@ -258,7 +258,7 @@ describe('PerpsOrderView', () => {
     await waitForDeferredOrderData();
   });
 
-  describe('Fee Display Format A/B test (TAT-4046)', () => {
+  describe('Fee Display Format A/B test', () => {
     const withFeeDisplayVariant = (variant: 'control' | 'treatment') => ({
       engine: {
         backgroundState: {

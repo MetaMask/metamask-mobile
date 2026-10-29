@@ -68,7 +68,7 @@ export interface PerpsProOrderSummaryProps {
   onSlippagePress?: () => void;
   onFeesInfoPress?: () => void;
   /**
-   * Perps Fee Display Format A/B test (TAT-4046). `'dollar'` (default)
+   * Fee display format A/B test. `'dollar'` (default)
    * renders `fee`/`originalFee` as today; `'percentage'` renders
    * `takerFeeRate`/`makerFeeRate` as "Taker X.XXX% / Maker Y.YYY%" instead.
    */

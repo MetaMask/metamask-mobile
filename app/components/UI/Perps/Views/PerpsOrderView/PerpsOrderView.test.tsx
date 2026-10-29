@@ -5582,13 +5582,13 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  // Perps Fee Display Format A/B test (TAT-4046): whole-page control/
+  // Fee display format A/B test: whole-page control/
   // treatment behavior (does the row render the right text for each
   // variant, is the breakdown requested only for treatment) is covered by
   // state-driven tests in `PerpsOrderView.view.test.tsx`, which render
   // through the real `usePerpsFeeDisplayAbTest` / `usePerpsOrderFees` hooks
   // and a flag set on Redux state rather than mocking those hooks here.
-  // See its "Fee Display Format A/B test (TAT-4046)" describe block.
+  // See its "Fee Display Format A/B test" describe block.
 
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {

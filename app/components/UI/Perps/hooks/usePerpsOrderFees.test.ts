@@ -2477,7 +2477,7 @@ describe('usePerpsOrderFees - Enhanced Error Handling', () => {
   });
 });
 
-describe('usePerpsOrderFees - Fee Rate Breakdown (TAT-4046)', () => {
+describe('usePerpsOrderFees - Fee Rate Breakdown', () => {
   const mockCalculateFees = jest.fn<
     Promise<FeeCalculationResult>,
     [FeeCalculationParams]

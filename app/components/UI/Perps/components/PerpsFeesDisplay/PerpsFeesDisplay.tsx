@@ -45,9 +45,8 @@ interface PerpsFeesDisplayProps {
   /**
    * `'dollar'` (default) renders `fee`/`originalFee` as today. `'percentage'`
    * renders `takerFeeRate`/`makerFeeRate` as "Taker X.XXX% / Maker Y.YYY%"
-   * instead, ignoring `fee`/`originalFee`. Perps Fee Display Format A/B test
-   * (TAT-4046) — only the order entry/review row passes this; every other
-   * call site keeps the default dollar rendering.
+   * instead, ignoring `fee`/`originalFee`. Only the order entry/review row
+   * passes this; every other call site keeps the default dollar rendering.
    */
   feeDisplayMode?: 'dollar' | 'percentage';
   /** Taker-side combined fee rate as a decimal. Only used in `percentage` mode. */
