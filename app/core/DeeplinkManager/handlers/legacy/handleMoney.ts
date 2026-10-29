@@ -101,7 +101,6 @@ const getMoneyAccountFlagStatus = (
     : MoneyAccountFlagStatus.Disabled;
 };
 
-// TODO: Placeholder path until the final deeplink shape is decided.
 export const MONEY_ACCOUNT_STATUS_DEEPLINK_PATH = 'account-status';
 
 const getMoneyDeeplinkPath = (actionPath = '') =>

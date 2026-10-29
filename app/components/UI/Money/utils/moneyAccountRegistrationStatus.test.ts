@@ -12,10 +12,10 @@ import {
 const ERROR_RESULT = { status: 'error', error: new Error('failed') } as const;
 
 const createUpgrade = (status: UpgradeEntry['status']) =>
-  ({ chainId: '0x8f', status }) as UpgradeEntry;
+  ({ chainId: '0x8f', status }) as unknown as UpgradeEntry;
 
 const createIntent = (status: IntentEntry['status']) =>
-  ({ chainId: '0x8f', status }) as IntentEntry;
+  ({ chainId: '0x8f', status }) as unknown as IntentEntry;
 
 describe('moneyAccountRegistrationStatus', () => {
   describe('getAssociationStatus', () => {
