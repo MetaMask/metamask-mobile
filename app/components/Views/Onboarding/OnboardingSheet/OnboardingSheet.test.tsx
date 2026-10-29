@@ -31,8 +31,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
 
 jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
-  selectAddDeviceSyncEnabled: (...args: unknown[]) =>
-    mockSelectAddDeviceSyncEnabled(...args),
+  selectAddDeviceSyncEnabled: () => mockSelectAddDeviceSyncEnabled(),
 }));
 
 jest.mock('react-redux', () => ({
@@ -117,7 +116,9 @@ describe('OnboardingSheet', () => {
     ).toBe(true);
   });
 
-  it('disables Telegram and Apple while Google login is loading', () => {
+  it('disables sibling actions while Google login is loading', () => {
+    mockSelectAddDeviceSyncEnabled.mockReturnValueOnce(true);
+
     const { getByTestId } = renderSheet({
       onPressContinueWithTelegram: jest.fn(),
       loadingProvider: AuthConnection.Google,
@@ -131,6 +132,9 @@ describe('OnboardingSheet', () => {
     ).toBeDisabled();
     expect(
       getByTestId(OnboardingSheetSelectorIDs.GOOGLE_LOGIN_BUTTON),
+    ).toBeDisabled();
+    expect(
+      getByTestId(OnboardingSheetSelectorIDs.IMPORT_FROM_EXTENSION_BUTTON),
     ).toBeDisabled();
   });
 });

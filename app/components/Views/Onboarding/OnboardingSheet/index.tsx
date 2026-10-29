@@ -266,6 +266,7 @@ const OnboardingSheet = ({
             isFullWidth
             size={ButtonSize.Lg}
             containerStyle={tw.style('self-stretch')}
+            isDisabled={isSocialLoading}
           >
             {strings('import_from_seed.import_from_extension_menu')}
           </ButtonGlass>

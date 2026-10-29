@@ -16,8 +16,7 @@ const mockNavigate = jest.fn();
 const mockSelectAddDeviceSyncEnabled = jest.fn(() => false);
 
 jest.mock('../../../../selectors/featureFlagController/addDeviceSync', () => ({
-  selectAddDeviceSyncEnabled: (...args: unknown[]) =>
-    mockSelectAddDeviceSyncEnabled(...args),
+  selectAddDeviceSyncEnabled: () => mockSelectAddDeviceSyncEnabled(),
 }));
 
 jest.mock('react-redux', () => ({
