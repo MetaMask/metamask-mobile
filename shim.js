@@ -372,8 +372,8 @@ if (enableApiCallLogs || isTestEnvironment) {
       const isBase64 = meta.endsWith(';base64');
 
       const buf = isBase64
-        ? Buffer.from(payload, 'base64')
-        : Buffer.from(decodeURIComponent(payload), 'utf8');
+        ? global.Buffer.from(payload, 'base64')
+        : global.Buffer.from(decodeURIComponent(payload), 'utf8');
       const ab = buf.buffer.slice(
         buf.byteOffset,
         buf.byteOffset + buf.byteLength,

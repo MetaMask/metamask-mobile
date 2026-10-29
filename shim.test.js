@@ -265,6 +265,9 @@ describe('E2E network shim', () => {
       opened.push({ url, protocols });
     };
     loadShim();
+    // The WebSocket patch is applied inside mockReady.then(), so the health
+    // check must resolve before the patch is active.
+    answerHealthCheck({ ok: true });
     await flushPromises();
 
     const wsUrl = 'wss://example.com/socket';
