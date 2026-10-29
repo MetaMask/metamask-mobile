@@ -80,20 +80,13 @@ export interface OrderFeesResult {
   feeSource?: PerpsFeeSource;
   /**
    * Taker-side combined fee rate (protocol + MetaMask) as a decimal (e.g.
-   * 0.00143 for 0.143%). Only populated when the caller requests
-   * `includeFeeRateBreakdown`; `undefined` otherwise, while loading, or when
-   * this order resolved to the maker side and the opposite-side (taker)
-   * lookup failed. For an order type that can never fill as taker (e.g. a
-   * post-only chase), this equals `makerFeeRate` — the provider reports the
-   * only rate that can actually apply.
+   * 0.00143 for 0.143%). Populated only when `includeFeeRateBreakdown` is
+   * set. `undefined` otherwise, while loading, or when the taker lookup failed.
    */
   takerFeeRate?: number;
   /**
    * Maker-side combined fee rate (protocol + MetaMask) as a decimal. Same
-   * population rule as `takerFeeRate`: `undefined` when this order resolved
-   * to the taker side and the opposite-side lookup failed, and equal to
-   * `takerFeeRate` for an order type that can never fill as maker (e.g. a
-   * market order).
+   * population rule as `takerFeeRate`.
    */
   makerFeeRate?: number;
 }
@@ -508,26 +501,8 @@ export function usePerpsOrderFees({
             ? coreFeesResult.metamaskFeeDiscountBips / 100
             : undefined;
 
-        // Step 3.5: Resolve the opposite isMaker side so both the taker and
-        // maker combined rate can be shown at once (fee display format A/B
-        // test). Skipped by default — only requested by the `percentage`
-        // variant — and failures here must not block the
-        // primary $ fee the rest of this flow depends on.
-        //
-        // The opposite-side request always asks for `orderType: 'limit'`,
-        // never this order's own `orderType`. The provider charges some
-        // execution types one side regardless of the `isMaker` flag it is
-        // given — a market-executing order (e.g. `market`, `stop_market`,
-        // `twap`) is always taker, and `chase` is always maker, because it
-        // is post-only by construction. Re-sending that same forced
-        // `orderType` with `isMaker` flipped would silently return the same
-        // rate again and mislabel it as the opposite side. `limit` is the
-        // one execution type whose charged side actually tracks the
-        // `isMaker` flag, so it is the only reliable way to ask the
-        // provider for "the other side" independent of this order's own
-        // execution type. The base maker/taker rate itself does not vary
-        // with `orderType` beyond that charged-side decision, so this does
-        // not change which rate comes back — only which side is requested.
+        // Opposite side is always requested as `limit`. Market-like types and
+        // chase ignore `isMaker`, so resending them would repeat this side's rate.
         let takerRate: number | undefined;
         let makerRate: number | undefined;
         if (includeFeeRateBreakdown) {
@@ -554,13 +529,8 @@ export function usePerpsOrderFees({
             takerRate = isMaker ? otherSideRate : thisSideRate;
             makerRate = isMaker ? thisSideRate : otherSideRate;
           } catch (breakdownError) {
-            // Non-blocking: the primary $ fee (above) is unaffected. Keep
-            // the side this order actually resolved to — it is a real,
-            // known quote — but leave the unresolved side `undefined`
-            // rather than fabricating it from the other side's rate: maker
-            // and taker rates can differ, so showing one as a stand-in for
-            // the other would present an invented number as a confirmed
-            // fee. The UI falls back to its placeholder for that side.
+            // Keep the resolved side. Leave the other side undefined so a
+            // failed lookup cannot display one rate under the other label.
             DevLogger.log(
               'Fee Calculation: taker/maker breakdown failed, keeping only the resolved side',
               {

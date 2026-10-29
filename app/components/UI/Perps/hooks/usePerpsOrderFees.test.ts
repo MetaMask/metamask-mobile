@@ -2674,32 +2674,6 @@ describe('usePerpsOrderFees - Fee Rate Breakdown', () => {
     expect(result.current.takerFeeRate).toBeCloseTo(0.00045);
   });
 
-  it('a post-only Chase order reports the same rate for both sides, since only maker can ever apply', async () => {
-    mockCalculateFees.mockResolvedValue({
-      protocolFeeRate: 0.00015,
-      metamaskFeeRate: 0,
-    });
-
-    const { result } = renderHook(
-      () =>
-        usePerpsOrderFees({
-          orderType: 'chase',
-          amount: '100000',
-          direction: 'long',
-          providerId: 'hyperliquid',
-          includeFeeRateBreakdown: true,
-        }),
-      { wrapper: createWrapper() },
-    );
-
-    await waitFor(() => {
-      expect(result.current.isLoadingMetamaskFee).toBe(false);
-    });
-
-    expect(result.current.takerFeeRate).toBeCloseTo(0.00015);
-    expect(result.current.makerFeeRate).toBeCloseTo(0.00015);
-  });
-
   it("requests the opposite side as a limit execution for a market order, not this order's own forced-taker type", async () => {
     // HyperLiquid charges a market-executing order taker regardless of the
     // `isMaker` flag it is sent. If the opposite-side request re-sent

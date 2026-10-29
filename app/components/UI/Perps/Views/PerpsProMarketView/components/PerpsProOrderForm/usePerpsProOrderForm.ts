@@ -697,12 +697,7 @@ export const usePerpsProOrderForm = ({
   // this cannot double-count — and silencing it here would drop exposure
   // entirely whenever that panel is absent.
   const { useBottomSheet } = usePerpsScreenVsBottomSheetAbTest();
-  // Fee display format A/B test: $ amount vs. Taker/Maker
-  // % rates on the fee row below. `usePerpsFeeDisplayAbTest` re-resolves the
-  // assignment from Redux on every render rather than freezing it at mount,
-  // but the resolved flags only change between app sessions, so the format
-  // itself does not flip mid-session as the amount/token recompute the
-  // underlying number.
+  // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
   const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
 
   const {
@@ -733,11 +728,10 @@ export const usePerpsProOrderForm = ({
 
   // Restore reduce-only from the 30s pending draft.
   const [reduceOnly, setReduceOnly] = useState(Boolean(pendingReduceOnly));
-  // The fee display format A/B test is scoped to opening or
-  // increasing a position; the reduce-only checkbox routes this same form
-  // through a position-close order, which must keep the dollar display
-  // regardless of the assigned variant.
-  const effectiveFeeDisplayMode = reduceOnly ? 'dollar' : feeDisplayMode;
+  // Opening orders may show rates. Closes and TWAP stay on dollars: a TWAP
+  // quote has no builder fee, and the limit quote for the other side does.
+  const effectiveFeeDisplayMode =
+    reduceOnly || orderForm.type === 'twap' ? 'dollar' : feeDisplayMode;
   const [twapDays, setTwapDays] = useState('');
   const [twapHours, setTwapHours] = useState('');
   const [twapMinutes, setTwapMinutes] = useState(
@@ -1781,9 +1775,6 @@ export const usePerpsProOrderForm = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
-    // Only the treatment variant needs the opposite side's rate; control
-    // and a reduce-only close keep the single-call $ path with no added
-    // cost.
     includeFeeRateBreakdown: effectiveFeeDisplayMode === 'percentage',
   });
   // Size the max off the same resolved quote that drives the displayed fee.
@@ -4123,7 +4114,6 @@ export const usePerpsProOrderForm = ({
       feeDiscountPercentage: feeResults.feeDiscountPercentage,
       onFeesInfoPress: () => setSelectedTooltip('fees'),
       feeDiscountKind: feeResults.feeDiscountKind,
-      // 'dollar' for a reduce-only close via `effectiveFeeDisplayMode` above.
       feeDisplayMode: effectiveFeeDisplayMode,
       takerFeeRate: hasValidAmount ? feeResults.takerFeeRate : undefined,
       makerFeeRate: hasValidAmount ? feeResults.makerFeeRate : undefined,

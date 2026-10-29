@@ -165,9 +165,8 @@ export const PERPS_HOME_EXPLORE_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMappin
  * MetaMask combined, reflecting VIP-tier discounts), not a static default.
  *
  * In scope: the fee row for `create_position` and `increase_exposure`, Lite
- * (full page) and Pro mode. Position close, deposit/withdraw, and the Pro
- * scale-order ladder preview are out of scope — see the `PerpsFeesDisplay`
- * call sites not wired to `feeDisplayMode`.
+ * (full page) and Pro mode. Position close, deposit/withdraw, TWAP, and the
+ * Pro scale-order ladder preview stay on the dollar amount.
  *
  * Consume via `usePerpsFeeDisplayAbTest()` — do not call `useABTest` with
  * this flag directly.

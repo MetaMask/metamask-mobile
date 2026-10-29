@@ -821,12 +821,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     };
   }, [currentPrice]);
 
-  // Fee display format A/B test: $ amount vs. Taker/Maker
-  // % rates on this fee row. `usePerpsFeeDisplayAbTest` re-resolves the
-  // assignment from Redux on every render rather than freezing it at mount,
-  // but the resolved flags only change between app sessions, so the format
-  // itself does not flip mid-session as the amount/token recompute the
-  // underlying number.
+  // Fee row shows a $ amount, or Taker/Maker rates when treatment is assigned.
   const { feeDisplayMode } = usePerpsFeeDisplayAbTest();
 
   // Calculate estimated fees using the new hook
@@ -843,8 +838,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     currentBidPrice: currentTopOfBook?.bestBid
       ? Number.parseFloat(currentTopOfBook.bestBid)
       : undefined,
-    // Only the treatment variant needs the opposite side's rate; control
-    // keeps the single-call $ path with no added cost.
     includeFeeRateBreakdown: feeDisplayMode === 'percentage',
   });
 

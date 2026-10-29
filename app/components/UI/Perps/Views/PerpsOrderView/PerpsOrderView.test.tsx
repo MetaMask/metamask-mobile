@@ -120,7 +120,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.order.margin': 'Margin',
       'perps.order.liquidation_price': 'Liquidation price',
       'perps.order.fees': 'Fees',
-      'perps.order.fees_taker_maker': 'Taker {{taker}}% / Maker {{maker}}%',
       'perps.order.off': 'off',
       'perps.order.tp': 'TP',
       'perps.order.sl': 'SL',
@@ -5582,13 +5581,7 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  // Fee display format A/B test: whole-page control/
-  // treatment behavior (does the row render the right text for each
-  // variant, is the breakdown requested only for treatment) is covered by
-  // state-driven tests in `PerpsOrderView.view.test.tsx`, which render
-  // through the real `usePerpsFeeDisplayAbTest` / `usePerpsOrderFees` hooks
-  // and a flag set on Redux state rather than mocking those hooks here.
-  // See its "Fee Display Format A/B test" describe block.
+  // Control/treatment fee-row behavior is covered in PerpsOrderView.view.test.tsx.
 
   describe('Points section with rewards', () => {
     it('displays points row and handles tooltip when rewards should show', async () => {

@@ -149,14 +149,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
         percentageRates ? styles.percentageFeeContent : null,
       ]}
       accessibilityLabel={percentageRates ? takerMakerFeeText.full : undefined}
-      // The percentage branch below replaces the single value-bearing
-      // `<Text testID={testID}>` with two rate texts (`-taker`/`-maker`),
-      // which would otherwise unmount the base `testID` entirely. E2E
-      // readiness helpers (e.g. `waitForFeesReady`) wait on that base id as
-      // their "fees finished loading" signal regardless of which display
-      // mode is assigned, so it is kept mounted here as a value-bearing
-      // fallback. Only set in the percentage branch so dollar mode keeps a
-      // single element carrying `testID`, as before.
+      // Keep the base testID mounted in percentage mode so E2E fee waits still resolve.
       testID={percentageRates ? testID : undefined}
     >
       {hasDiscount ? (

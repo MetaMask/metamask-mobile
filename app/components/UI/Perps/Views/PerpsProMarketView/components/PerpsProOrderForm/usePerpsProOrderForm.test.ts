@@ -956,14 +956,27 @@ describe('usePerpsProOrderForm', () => {
 
       const { result } = renderProForm();
 
-      // The experiment is scoped to opening/increasing a position; the
-      // reduce-only checkbox routes this same form through a close, which
-      // must keep the $ display (and skip the extra opposite-side request)
-      // regardless of the assigned variant.
       expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
         expect.objectContaining({ includeFeeRateBreakdown: false }),
       );
       expect(result.current.summary.feeDisplayMode).toBe('dollar');
+    });
+
+    it('keeps a TWAP order in dollar mode and does not request the breakdown, even for treatment', () => {
+      mockFeeDisplayMode = 'percentage';
+      mockOrderForm.type = 'twap';
+
+      const { result } = renderProForm();
+
+      expect(mockUsePerpsOrderFees).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orderType: 'twap',
+          includeFeeRateBreakdown: false,
+        }),
+      );
+      expect(result.current.summary.feeDisplayMode).toBe('dollar');
+      expect(result.current.summary.takerFeeRate).toBeUndefined();
+      expect(result.current.summary.makerFeeRate).toBeUndefined();
     });
 
     it('routes Scale fees and validation through the concrete provider', () => {
