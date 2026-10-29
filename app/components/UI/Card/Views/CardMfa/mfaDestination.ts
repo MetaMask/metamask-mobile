@@ -1,4 +1,9 @@
-const NATIONAL_NUMBER = /^\d{4,15}$/;
+import {
+  formatE164PhoneNumber,
+  isValidLocalPhoneNumber,
+  normalizePhoneDigits,
+  stripCallingCodePrefix,
+} from '../../util/contactDetails';
 
 function isEmailLabel(label: string): boolean {
   if (label.length === 0) return false;
@@ -31,9 +36,10 @@ export function toE164Phone(
   areaCode: string,
   nationalNumber: string,
 ): string | null {
-  const digits = nationalNumber.replace(/\D/g, '');
-  if (!areaCode || !NATIONAL_NUMBER.test(digits)) return null;
-  return `+${areaCode}${digits}`;
+  if (normalizePhoneDigits(areaCode).length === 0) return null;
+  const localNumber = stripCallingCodePrefix(nationalNumber, areaCode);
+  if (!isValidLocalPhoneNumber(localNumber)) return null;
+  return formatE164PhoneNumber(areaCode, localNumber);
 }
 
 export function normalizeMfaEmail(value: string): string | null {

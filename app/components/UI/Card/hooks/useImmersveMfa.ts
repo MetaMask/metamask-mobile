@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import type { AppStackNavigationProp } from '../../../../core/NavigationService/types';
+import Routes from '../../../../constants/navigation/Routes';
 import {
   CardProviderError,
   CardProviderErrorCode,
@@ -9,7 +11,10 @@ import {
   type CardMfaMethod,
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { useImmersveResumeOnboarding } from './useImmersveResumeOnboarding';
-import type { ImmersveMfaContinuation } from '../Views/CardMfa/types';
+import type {
+  CardMfaMethodParams,
+  ImmersveMfaContinuation,
+} from '../Views/CardMfa/types';
 
 export type ImmersveMfaErrorKind =
   | 'destination_mismatch'
@@ -34,12 +39,12 @@ export function classifyImmersveMfaError(error: unknown): ImmersveMfaErrorKind {
 }
 
 /**
- * Submits Immersve MFA steps and leaves the in-memory login when the user
- * backs out. Forward navigation calls `markAdvancing` first so replacing the
- * method screen with the code screen does not drop the session.
+ * Submits Immersve MFA steps and leaves the in-memory login when the screen
+ * is removed. Forward navigation calls `markAdvancing` first so replacing one
+ * MFA screen with the next does not drop the session.
  */
 export function useImmersveMfa() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const resume = useImmersveResumeOnboarding();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const advancingRef = useRef(false);
@@ -50,14 +55,11 @@ export function useImmersveMfa() {
 
   useEffect(
     () =>
-      navigation.addListener('beforeRemove', (event) => {
+      navigation.addListener('beforeRemove', () => {
         if (advancingRef.current) {
           return;
         }
-        const actionType = event.data.action.type;
-        if (actionType === 'GO_BACK' || actionType === 'POP') {
-          abandon();
-        }
+        abandon();
       }),
     [abandon, navigation],
   );
@@ -141,6 +143,49 @@ export function useImmersveMfa() {
     [resume],
   );
 
+  const goToNextStep = useCallback(
+    async (result: CardAuthResult, params: CardMfaMethodParams) => {
+      const step = result.nextStep;
+      if (step?.type === 'mfa_select') {
+        markAdvancing();
+        navigation.replace(Routes.CARD.MFA_METHOD, {
+          country: params.country,
+          address: params.address,
+          options: step.options,
+          continuation: params.continuation,
+        });
+        return;
+      }
+      if (step?.type === 'mfa_code') {
+        markAdvancing();
+        navigation.replace(Routes.CARD.MFA_CODE, {
+          country: params.country,
+          address: params.address,
+          options: params.options,
+          continuation: params.continuation,
+          method: step.method,
+          maskedDestination: step.maskedDestination,
+          expiresAt: step.expiresAt,
+        });
+        return;
+      }
+      if (result.done) {
+        markAdvancing();
+        await continueAfterAuth({
+          country: params.country,
+          address: params.address,
+          continuation: params.continuation,
+        });
+        return;
+      }
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Unexpected login step',
+      );
+    },
+    [continueAfterAuth, markAdvancing, navigation],
+  );
+
   return {
     isSubmitting,
     submitMethod,
@@ -149,5 +194,6 @@ export function useImmersveMfa() {
     abandon,
     continueAfterAuth,
     markAdvancing,
+    goToNextStep,
   };
 }

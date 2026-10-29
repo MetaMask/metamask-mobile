@@ -15,7 +15,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useParams,
@@ -66,13 +65,8 @@ const CardMfaMethod = () => {
     useParams<CardMfaMethodParams>();
   const { allRegions } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    isSubmitting,
-    submitMethod,
-    restart,
-    continueAfterAuth,
-    markAdvancing,
-  } = useImmersveMfa();
+  const { isSubmitting, submitMethod, restart, goToNextStep } =
+    useImmersveMfa();
 
   const [selectedMethod, setSelectedMethod] = useState<MfaMethod | null>(() =>
     options.length === 1 ? options[0].method : null,
@@ -141,33 +135,6 @@ const CardMfaMethod = () => {
     );
   }, [allRegions, navigation, needsRestart, selectedCountry?.key]);
 
-  const goAfterRestart = useCallback(
-    async (result: Awaited<ReturnType<typeof restart>>) => {
-      markAdvancing();
-      const step = result.nextStep;
-      if (step?.type === 'mfa_select') {
-        navigation.replace(Routes.CARD.MFA_METHOD, {
-          country,
-          address,
-          options: step.options,
-          continuation,
-        });
-        return;
-      }
-      if (result.done) {
-        await continueAfterAuth({ country, address, continuation });
-      }
-    },
-    [
-      address,
-      continuation,
-      continueAfterAuth,
-      country,
-      markAdvancing,
-      navigation,
-    ],
-  );
-
   const handleRestart = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -179,16 +146,23 @@ const CardMfaMethod = () => {
         .build(),
     );
     try {
-      await goAfterRestart(await restart(country, address));
+      await goToNextStep(await restart(country, address), {
+        country,
+        address,
+        options,
+        continuation,
+      });
     } catch (restartError) {
       if (getSiweErrorType(restartError) === 'user_cancelled') return;
       setError(getCardProviderErrorMessage(restartError));
     }
   }, [
     address,
+    continuation,
     country,
     createEventBuilder,
-    goAfterRestart,
+    goToNextStep,
+    options,
     restart,
     trackEvent,
   ]);
@@ -208,23 +182,12 @@ const CardMfaMethod = () => {
     );
     try {
       const result = await submitMethod(selectedMethod, destination);
-      markAdvancing();
-      const step = result.nextStep;
-      if (step?.type === 'mfa_code') {
-        navigation.replace(Routes.CARD.MFA_CODE, {
-          country,
-          address,
-          options,
-          continuation,
-          method: step.method,
-          maskedDestination: step.maskedDestination,
-          expiresAt: step.expiresAt,
-        });
-        return;
-      }
-      if (result.done) {
-        await continueAfterAuth({ country, address, continuation });
-      }
+      await goToNextStep(result, {
+        country,
+        address,
+        options,
+        continuation,
+      });
     } catch (submitError) {
       if (classifyImmersveMfaError(submitError) === 'restart_required') {
         setNeedsRestart(true);
@@ -234,12 +197,10 @@ const CardMfaMethod = () => {
   }, [
     address,
     continuation,
-    continueAfterAuth,
     country,
     createEventBuilder,
     destination,
-    markAdvancing,
-    navigation,
+    goToNextStep,
     options,
     selectedMethod,
     submitMethod,

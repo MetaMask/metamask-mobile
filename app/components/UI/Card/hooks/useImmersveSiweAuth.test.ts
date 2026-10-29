@@ -120,6 +120,36 @@ describe('useImmersveSiweAuth', () => {
     );
   });
 
+  it('records mfa_required when login returns a code step', async () => {
+    mockCard.initiateAuth.mockResolvedValue(undefined);
+    mockCard.getCurrentAuthStep.mockReturnValue({
+      type: 'siwe',
+      message: 'sign this',
+    });
+    (mockKeyring.signPersonalMessage as jest.Mock).mockResolvedValue('0xsig');
+    mockCard.submitCredentials.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'email',
+        maskedDestination: 'j***@example.com',
+        expiresAt: null,
+      },
+    });
+
+    const { result } = renderHook(() => useImmersveSiweAuth());
+    await act(async () => {
+      await result.current.signIn({ country: 'GB', address: '0xabc' });
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        provider: 'immersve',
+        mfa_required: true,
+      }),
+    );
+  });
+
   it('throws and records an error when the step is not a SIWE challenge', async () => {
     mockCard.initiateAuth.mockResolvedValue(undefined);
     mockCard.getCurrentAuthStep.mockReturnValue({ type: 'email_password' });

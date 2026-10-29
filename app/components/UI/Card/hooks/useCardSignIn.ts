@@ -203,17 +203,17 @@ export function useCardSignIn(country: string | null): UseCardSignInResult {
         },
       );
 
-      if (result.nextStep?.type === 'mfa_select') {
-        handoffMfa({
+      if (
+        handoffMfa(result, {
           country: signInCountry,
           address: checksummed,
-          options: result.nextStep.options,
           continuation: {
             entrypoint: CardEntryPoint.AUTHENTICATION,
             showAccountExistsToast: false,
             navigateFromRoot: true,
           },
-        });
+        })
+      ) {
         return;
       }
 

@@ -63,11 +63,10 @@ export const useImmersveResumeOnboarding = () => {
 
         if (!alreadyAuthenticated) {
           const authResult = await signIn({ country, address });
-          if (authResult.nextStep?.type === 'mfa_select') {
-            handoffMfa({
+          if (
+            handoffMfa(authResult, {
               country,
               address,
-              options: authResult.nextStep.options,
               continuation: {
                 entrypoint,
                 email,
@@ -75,7 +74,8 @@ export const useImmersveResumeOnboarding = () => {
                 showAccountExistsToast,
                 navigateFromRoot,
               },
-            });
+            })
+          ) {
             return;
           }
         }

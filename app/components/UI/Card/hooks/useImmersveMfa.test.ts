@@ -5,6 +5,7 @@ import {
 } from '../../../../core/Engine/controllers/card-controller/provider-types';
 import { CardEntryPoint } from '../util/metrics';
 import { classifyImmersveMfaError, useImmersveMfa } from './useImmersveMfa';
+import type { CardMfaMethodParams } from '../Views/CardMfa/types';
 
 const mockSubmitCredentials = jest.fn();
 const mockAuthenticateWithWallet = jest.fn();
@@ -25,16 +26,12 @@ jest.mock('./useImmersveResumeOnboarding', () => ({
   useImmersveResumeOnboarding: () => mockResume,
 }));
 
-const mockListeners: Record<
-  string,
-  (event: { data: { action: { type: string } } }) => void
-> = {};
+const mockReplace = jest.fn();
+const mockListeners: Record<string, () => void> = {};
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
-    addListener: (
-      event: string,
-      callback: (event: { data: { action: { type: string } } }) => void,
-    ) => {
+    replace: mockReplace,
+    addListener: (event: string, callback: () => void) => {
       mockListeners[event] = callback;
       return jest.fn();
     },
@@ -76,14 +73,13 @@ describe('useImmersveMfa', () => {
     const { result } = renderHook(() => useImmersveMfa());
 
     act(() => {
-      mockListeners.beforeRemove({ data: { action: { type: 'GO_BACK' } } });
+      mockListeners.beforeRemove();
     });
     expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
 
     act(() => {
       result.current.markAdvancing();
-      mockListeners.beforeRemove({ data: { action: { type: 'GO_BACK' } } });
-      mockListeners.beforeRemove({ data: { action: { type: 'REPLACE' } } });
+      mockListeners.beforeRemove();
     });
     expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
   });
@@ -133,5 +129,117 @@ describe('useImmersveMfa', () => {
       type: 'mfa_code',
       code: '123456',
     });
+  });
+
+  it('opens the next MFA screen and keeps the session', async () => {
+    const params: CardMfaMethodParams = {
+      country: 'NZ',
+      address: '0xabc',
+      options: [
+        { method: 'email' as const, maskedDestination: 'j***@example.com' },
+      ],
+      continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
+    };
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await act(async () => {
+      await result.current.goToNextStep(
+        {
+          done: false,
+          nextStep: {
+            type: 'mfa_code',
+            method: 'email',
+            maskedDestination: 'j***@example.com',
+            expiresAt: null,
+          },
+        },
+        params,
+      );
+    });
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      'CardMfaCode',
+      expect.objectContaining({ method: 'email' }),
+    );
+
+    act(() => {
+      mockListeners.beforeRemove();
+    });
+    expect(mockAbandonAuth).not.toHaveBeenCalled();
+  });
+
+  it('opens the method screen for a method-selection step', async () => {
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await act(async () => {
+      await result.current.goToNextStep(
+        {
+          done: false,
+          nextStep: {
+            type: 'mfa_select',
+            options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+          },
+        },
+        {
+          country: 'NZ',
+          address: '0xabc',
+          options: [],
+          continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
+        },
+      );
+    });
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      'CardMfaMethod',
+      expect.objectContaining({
+        options: [{ method: 'phone', maskedDestination: '+64 *****1234' }],
+      }),
+    );
+  });
+
+  it('resumes onboarding when the login is done', async () => {
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await act(async () => {
+      await result.current.goToNextStep(
+        { done: true },
+        {
+          country: 'NZ',
+          address: '0xabc',
+          options: [],
+          continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
+        },
+      );
+    });
+
+    expect(mockResume).toHaveBeenCalledWith(
+      expect.objectContaining({
+        alreadyAuthenticated: true,
+        country: 'NZ',
+        address: '0xabc',
+      }),
+    );
+  });
+
+  it('throws and leaves the session when the next step is unexpected', async () => {
+    const { result } = renderHook(() => useImmersveMfa());
+
+    await expect(
+      result.current.goToNextStep(
+        { done: false },
+        {
+          country: 'NZ',
+          address: '0xabc',
+          options: [],
+          continuation: { entrypoint: CardEntryPoint.AUTHENTICATION },
+        },
+      ),
+    ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
+
+    act(() => {
+      mockListeners.beforeRemove();
+    });
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
   });
 });

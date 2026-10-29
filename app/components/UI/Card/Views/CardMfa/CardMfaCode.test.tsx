@@ -29,10 +29,14 @@ jest.mock('../../hooks/useImmersveResumeOnboarding', () => ({
 }));
 
 const mockReplace = jest.fn();
+const mockListeners: Record<string, () => void> = {};
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     replace: mockReplace,
-    addListener: () => jest.fn(),
+    addListener: (event: string, callback: () => void) => {
+      mockListeners[event] = callback;
+      return jest.fn();
+    },
     isFocused: () => true,
   }),
 }));
@@ -274,6 +278,80 @@ describe('CardMfaCode', () => {
         options: [{ method: 'email', maskedDestination: 'j***@example.com' }],
       }),
     );
+  });
+
+  it('opens a fresh code screen when a restart skips method selection', async () => {
+    mockSubmitCredentials.mockRejectedValue(
+      new CardProviderError(
+        CardProviderErrorCode.AuthRestartRequired,
+        'locked',
+        403,
+        'MFA_ATTEMPTS_EXCEEDED',
+      ),
+    );
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'phone',
+        maskedDestination: '+64 *****1234',
+        expiresAt: 99,
+      },
+    });
+
+    const { getByTestId, findByTestId } = render(<CardMfaCode />);
+    fireEvent.changeText(getByTestId('otp-code-field'), '111111');
+    fireEvent.press(await findByTestId('card-mfa-code-start-over'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        'CardMfaCode',
+        expect.objectContaining({
+          method: 'phone',
+          maskedDestination: '+64 *****1234',
+          expiresAt: 99,
+        }),
+      );
+    });
+  });
+
+  it('clears the code after a network error so it can be submitted again', async () => {
+    mockSubmitCredentials
+      .mockRejectedValueOnce(
+        new CardProviderError(CardProviderErrorCode.Network, 'offline'),
+      )
+      .mockResolvedValueOnce({ done: true });
+
+    const { getByTestId, findByTestId } = render(<CardMfaCode />);
+    fireEvent.changeText(getByTestId('otp-code-field'), '123456');
+
+    expect(await findByTestId('otp-code-field-error')).toHaveTextContent(
+      'card.card_authentication.errors.network_error',
+    );
+    expect(getByTestId('otp-code-field')).toHaveProp('value', '');
+
+    fireEvent.changeText(getByTestId('otp-code-field'), '123456');
+
+    await waitFor(() => {
+      expect(mockSubmitCredentials).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('clears the code and still abandons the login when the next step is unexpected', async () => {
+    mockSubmitCredentials.mockResolvedValue({ done: false });
+
+    const { getByTestId, findByTestId } = render(<CardMfaCode />);
+    fireEvent.changeText(getByTestId('otp-code-field'), '123456');
+
+    expect(await findByTestId('otp-code-field-error')).toHaveTextContent(
+      'card.card_authentication.errors.unknown_error',
+    );
+    expect(getByTestId('otp-code-field')).toHaveProp('value', '');
+
+    mockListeners.beforeRemove();
+
+    expect(mockReplace).not.toHaveBeenCalled();
+    expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
   });
 
   it('expires when the app returns to the foreground after expiresAt', () => {

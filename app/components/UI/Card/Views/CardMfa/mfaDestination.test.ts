@@ -22,4 +22,17 @@ describe('mfaDestination', () => {
   it('builds an E.164 phone number', () => {
     expect(toE164Phone('64', '21 123 4567')).toBe('+64211234567');
   });
+
+  it('strips a calling code the user already typed', () => {
+    expect(toE164Phone('64', '64211234567')).toBe('+64211234567');
+  });
+
+  it('normalizes a calling code that includes a plus sign', () => {
+    expect(toE164Phone('+64', '21 123 4567')).toBe('+64211234567');
+  });
+
+  it('returns null when the calling code has no digits', () => {
+    expect(toE164Phone('', '211234567')).toBeNull();
+    expect(toE164Phone('+', '211234567')).toBeNull();
+  });
 });

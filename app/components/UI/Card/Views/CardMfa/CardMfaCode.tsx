@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { AccessibilityInfo, AppState } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Button,
@@ -9,8 +8,6 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
@@ -31,19 +28,11 @@ import { CardActions, CardScreens, withCardProvider } from '../../util/metrics';
 import type { CardMfaCodeParams } from './types';
 
 const CardMfaCode = () => {
-  const navigation = useNavigation<AppStackNavigationProp>();
   const params = useParams<CardMfaCodeParams>();
-  const { country, address, continuation, maskedDestination, expiresAt } =
-    params;
+  const { country, address, maskedDestination, expiresAt } = params;
   const isScreenTransitionComplete = useScreenTransitionComplete();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const {
-    isSubmitting,
-    submitCode,
-    restart,
-    continueAfterAuth,
-    markAdvancing,
-  } = useImmersveMfa();
+  const { isSubmitting, submitCode, restart, goToNextStep } = useImmersveMfa();
 
   const [confirmCode, setConfirmCode] = useState('');
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
@@ -107,32 +96,7 @@ const CardMfaCode = () => {
     );
     try {
       const result = await restart(country, address);
-      markAdvancing();
-      const step = result.nextStep;
-      if (step?.type === 'mfa_select') {
-        navigation.replace(Routes.CARD.MFA_METHOD, {
-          country,
-          address,
-          options: step.options,
-          continuation,
-        });
-        return;
-      }
-      if (step?.type === 'mfa_code') {
-        navigation.replace(Routes.CARD.MFA_CODE, {
-          country,
-          address,
-          options: params.options,
-          continuation,
-          method: step.method,
-          maskedDestination: step.maskedDestination,
-          expiresAt: step.expiresAt,
-        });
-        return;
-      }
-      if (result.done) {
-        await continueAfterAuth({ country, address, continuation });
-      }
+      await goToNextStep(result, params);
     } catch (restartError) {
       if (getSiweErrorType(restartError) === 'user_cancelled') return;
       setExpiredMessage(getCardProviderErrorMessage(restartError));
@@ -140,13 +104,10 @@ const CardMfaCode = () => {
     }
   }, [
     address,
-    continuation,
-    continueAfterAuth,
     country,
     createEventBuilder,
-    markAdvancing,
-    navigation,
-    params.options,
+    goToNextStep,
+    params,
     restart,
     trackEvent,
   ]);
@@ -164,9 +125,7 @@ const CardMfaCode = () => {
       );
       try {
         const result = await submitCode(code);
-        if (!result.done) return;
-        markAdvancing();
-        await continueAfterAuth({ country, address, continuation });
+        await goToNextStep(result, params);
       } catch (submitError) {
         const kind = classifyImmersveMfaError(submitError);
         if (kind === 'invalid_code') {
@@ -183,18 +142,11 @@ const CardMfaCode = () => {
           return;
         }
         setError(getCardProviderErrorMessage(submitError));
+        setConfirmCode('');
+        setLatestValueSubmitted(null);
       }
     },
-    [
-      address,
-      continuation,
-      continueAfterAuth,
-      country,
-      createEventBuilder,
-      markAdvancing,
-      submitCode,
-      trackEvent,
-    ],
+    [createEventBuilder, goToNextStep, params, submitCode, trackEvent],
   );
 
   useEffect(() => {

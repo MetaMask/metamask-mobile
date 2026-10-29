@@ -9,12 +9,14 @@ import CardMfaMethod from './CardMfaMethod';
 import type { CardMfaMethodParams } from './types';
 
 const mockSubmitCredentials = jest.fn();
+const mockAuthenticateWithWallet = jest.fn();
 const mockAbandonAuth = jest.fn();
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     CardController: {
       submitCredentials: (...args: unknown[]) => mockSubmitCredentials(...args),
-      authenticateWithWallet: jest.fn(),
+      authenticateWithWallet: (...args: unknown[]) =>
+        mockAuthenticateWithWallet(...args),
       abandonAuth: () => mockAbandonAuth(),
     },
   },
@@ -332,6 +334,53 @@ describe('CardMfaMethod', () => {
 
     mockListeners.beforeRemove({ data: { action: { type: 'GO_BACK' } } });
 
+    expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the code screen when a restart skips method selection', async () => {
+    mockParams.current = { ...mockParams.current, options: [] };
+    mockAuthenticateWithWallet.mockResolvedValue({
+      done: false,
+      nextStep: {
+        type: 'mfa_code',
+        method: 'email',
+        maskedDestination: 'j***@example.com',
+        expiresAt: null,
+      },
+    });
+
+    const { getByTestId } = render(<CardMfaMethod />);
+    fireEvent.press(getByTestId('card-mfa-method-restart'));
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        'CardMfaCode',
+        expect.objectContaining({
+          method: 'email',
+          maskedDestination: 'j***@example.com',
+        }),
+      );
+    });
+  });
+
+  it('shows an error and still abandons the login when the next step is unexpected', async () => {
+    mockSubmitCredentials.mockResolvedValue({ done: false });
+
+    const { getByTestId, findByTestId } = render(<CardMfaMethod />);
+    fireEvent.press(getByTestId('card-mfa-option-email'));
+    fireEvent.changeText(
+      getByTestId('card-mfa-email-input'),
+      'jane@example.com',
+    );
+    fireEvent.press(getByTestId('card-mfa-method-continue'));
+
+    expect(await findByTestId('card-mfa-method-error')).toHaveTextContent(
+      'card.card_authentication.errors.unknown_error',
+    );
+
+    mockListeners.beforeRemove({ data: { action: { type: 'NAVIGATE' } } });
+
+    expect(mockReplace).not.toHaveBeenCalled();
     expect(mockAbandonAuth).toHaveBeenCalledTimes(1);
   });
 });
