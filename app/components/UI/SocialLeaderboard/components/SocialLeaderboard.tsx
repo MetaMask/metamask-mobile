@@ -71,6 +71,9 @@ const rowLayoutTransition = LinearTransition.duration(
 /** Extra placeholders past the fold so the shimmer continues while scrolling. */
 const SKELETON_OVERSCAN = 2;
 
+/** Stable empty chain list so an unready source does not change the hook deps. */
+const NO_LEADERBOARD_CHAINS: readonly string[] = [];
+
 /** Lets a host that owns the scroll view drive pull-to-refresh. */
 export interface SocialLeaderboardHandle {
   refresh: () => Promise<void>;
@@ -178,6 +181,13 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
       traders,
       sort,
       showViewerRow && resolution.status === 'ready',
+      {
+        timeframe,
+        chains:
+          resolution.status === 'ready'
+            ? resolution.chains
+            : NO_LEADERBOARD_CHAINS,
+      },
     );
 
   const rows = useMemo(
@@ -370,6 +380,12 @@ const SocialLeaderboard: React.FC<SocialLeaderboardProps> = ({
             highlighted
             hideRank={viewerRow.hideRank}
             showLeaderboardDetails
+            neutralMetricLabel={
+              viewerRow.empty
+                ? strings('social_leaderboard.leaderboard.viewer_no_trades')
+                : undefined
+            }
+            omitPercentage={viewerRow.omitPercentage}
             testID={SocialLeaderboardSelectorsIDs.VIEWER_CARD}
           />
         ) : null}

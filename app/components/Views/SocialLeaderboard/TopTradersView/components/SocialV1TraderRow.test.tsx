@@ -96,7 +96,7 @@ describe('SocialV1TraderRow', () => {
     expect(
       screen.getByTestId(SocialV1TraderRowSelectorsIDs.RANK),
     ).toBeOnTheScreen();
-    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
   });
@@ -230,8 +230,62 @@ describe('SocialV1TraderRow', () => {
       />,
     );
 
-    expect(screen.getByText('-')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(screen.getByText('+0.0%')).toBeOnTheScreen();
     expect(screen.getByText('0 followers')).toBeOnTheScreen();
+  });
+
+  it('shows a muted empty label and hides a zero percent and zero followers', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          rank: 0,
+          overallRank: 0,
+          percentageChange: 0,
+          followerCount: 0,
+          pnlValue: 0,
+        }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+        neutralMetricLabel="No trades yet"
+      />,
+    );
+
+    expect(screen.getByText('No trades yet')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
+    expect(screen.queryByText('-')).toBeNull();
+  });
+
+  it('keeps followers and hides a missing percent on the pinned card', () => {
+    renderWithProvider(
+      <SocialV1TraderRow
+        trader={{
+          ...baseTrader,
+          percentageChange: 0,
+          followerCount: 7,
+          pnlValue: -0.59,
+        }}
+        metric={{ label: '-$0.59', isPositive: false }}
+        onFollowPress={mockOnFollowPress}
+        highlighted
+        hideRank
+        showLeaderboardDetails
+        omitPercentage
+      />,
+    );
+
+    expect(screen.getByText('-$0.59')).toBeOnTheScreen();
+    expect(screen.getByText('7 followers')).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
   });
 });

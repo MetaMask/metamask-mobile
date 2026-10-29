@@ -53,6 +53,17 @@ export interface SocialV1TraderRowProps extends TraderRowProps {
    * the follower count under the username.
    */
   showLeaderboardDetails?: boolean;
+  /**
+   * Replaces the colored dollar on the pinned card when the viewer has no
+   * PnL for the selected window. Renders muted, and hides a forced zero
+   * percent and zero follower count.
+   */
+  neutralMetricLabel?: string;
+  /**
+   * Hides the ROI line on the pinned card when the profile has no ROI.
+   * A real 0% still shows.
+   */
+  omitPercentage?: boolean;
 }
 
 /**
@@ -70,18 +81,24 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
   highlighted = false,
   hideRank = false,
   showLeaderboardDetails = false,
+  neutralMetricLabel,
+  omitPercentage = false,
 }) => {
-  const metricText = metric?.label ?? formatSignedUsd(trader.pnlValue);
+  const metricText =
+    neutralMetricLabel ?? metric?.label ?? formatSignedUsd(trader.pnlValue);
   const isMetricPositive = metric?.isPositive ?? trader.pnlValue >= 0;
   const showMedal = !hideRank && isTopRank(trader.rank);
   const rowHeight = showLeaderboardDetails
     ? SOCIAL_V1_TRADER_ROW_DETAIL_HEIGHT
     : SOCIAL_V1_TRADER_ROW_HEIGHT;
   // A missing ROI on a list row is stored as 0. Hide that line rather than
-  // showing +0.0%. The pinned viewer card shows the zero.
-  const showZeroDetails = highlighted;
+  // showing +0.0%. The pinned viewer card shows a real zero, and hides the
+  // line when the viewer's own profile has no ROI or no trades.
+  const showZeroDetails = highlighted && !neutralMetricLabel;
   const percentLabel =
-    showLeaderboardDetails && (trader.percentageChange !== 0 || showZeroDetails)
+    showLeaderboardDetails &&
+    !omitPercentage &&
+    (trader.percentageChange !== 0 || showZeroDetails)
       ? formatPercent(trader.percentageChange, { decimals: 1 })
       : null;
   const isPercentPositive = trader.percentageChange >= 0;
@@ -103,15 +120,7 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
         style={{ width: RANK_COLUMN_WIDTH }}
         testID={SocialV1TraderRowSelectorsIDs.RANK}
       >
-        {hideRank ? (
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextMuted}
-          >
-            -
-          </Text>
-        ) : showMedal ? (
+        {hideRank ? null : showMedal ? (
           <RankMedal rank={trader.rank} size={MEDAL_SIZE} />
         ) : (
           <Text
@@ -170,10 +179,13 @@ const SocialV1TraderRow: React.FC<SocialV1TraderRowProps> = ({
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
           numberOfLines={1}
+          color={neutralMetricLabel ? TextColor.TextAlternative : undefined}
           twClassName={
-            isMetricPositive
-              ? 'text-success-default shrink-0'
-              : 'text-error-default shrink-0'
+            neutralMetricLabel
+              ? 'shrink-0'
+              : isMetricPositive
+                ? 'text-success-default shrink-0'
+                : 'text-error-default shrink-0'
           }
         >
           {metricText}

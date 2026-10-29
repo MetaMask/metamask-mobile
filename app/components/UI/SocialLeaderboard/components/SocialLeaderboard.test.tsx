@@ -78,6 +78,11 @@ jest.mock('../../../../hooks/useNetworkTier', () => ({
   useNetworkTier: () => mockNetworkTier,
 }));
 
+const mockUseQuery = jest.fn();
+jest.mock('@metamask/react-data-query', () => ({
+  useQuery: (options: unknown) => mockUseQuery(options),
+}));
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -154,6 +159,12 @@ describe('SocialLeaderboard', () => {
     mockNetworkTier = 'WIFI';
     mockProfile = null;
     mockQueryResult();
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
   });
 
   it('fetches the combined ranking and renders rows ordered by PnL', () => {
@@ -350,13 +361,36 @@ describe('SocialLeaderboard', () => {
     expect(rowIds()).toEqual(['trader-row-mid', 'trader-row-low']);
   });
 
-  it('builds a rank-less viewer card when the viewer is not ranked', () => {
+  it('builds the off-page viewer card from the trader profile', () => {
     mockProfile = {
       profileId: 'viewer',
       handle: 'me',
       displayName: 'Me',
-      pnlUsd: 12,
     };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+          imageUrl: 'foxicon://agent/background1',
+        },
+        stats: { pnl7d: 12, roiPercent7d: 2.4 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 7,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
 
     renderLeaderboard({ showViewerRow: true });
 
@@ -364,7 +398,77 @@ describe('SocialLeaderboard', () => {
       screen.getByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
     ).toBeOnTheScreen();
     expect(screen.getByText('Me')).toBeOnTheScreen();
+    expect(screen.getByText('+$12.00')).toBeOnTheScreen();
+    expect(screen.queryByText('-')).toBeNull();
     expect(rowIds()).toHaveLength(3);
+    expect(mockUseQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
+  it('omits the off-page viewer card while the trader profile is loading', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockUseQuery.mockReturnValue({
+      data: undefined,
+      error: null,
+      isLoading: true,
+      refetch: jest.fn(),
+    });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(
+      screen.queryByTestId(SocialLeaderboardSelectorsIDs.VIEWER_CARD),
+    ).toBeNull();
+    expect(rowIds()).toHaveLength(3);
+  });
+
+  it('shows the empty label when the off-page profile has no pnl', () => {
+    mockProfile = {
+      profileId: 'viewer',
+      handle: 'me',
+      displayName: 'Me',
+    };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+          imageUrl: null,
+        },
+        stats: {},
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 0,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+
+    renderLeaderboard({ showViewerRow: true });
+
+    expect(
+      screen.getByText('social_leaderboard.leaderboard.viewer_no_trades'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.PERCENTAGE),
+    ).toBeNull();
+    expect(
+      screen.queryByTestId(SocialV1TraderRowSelectorsIDs.FOLLOWERS),
+    ).toBeNull();
   });
 
   it('falls back to the handle on the viewer card without a display name', () => {
@@ -372,8 +476,30 @@ describe('SocialLeaderboard', () => {
       profileId: 'viewer',
       handle: 'me',
       displayName: '',
-      pnlUsd: 12,
     };
+    mockUseQuery.mockReturnValue({
+      data: {
+        profile: {
+          profileId: 'viewer',
+          address: '0xabc',
+          allAddresses: ['0xabc'],
+          name: 'live-name',
+        },
+        stats: { pnl7d: 12 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+        },
+        socialHandles: {},
+        followerCount: 0,
+        followingCount: 0,
+        copytradedAllTime: { count: 0, volumeUSD: 0, distinctActors: 0 },
+      },
+      error: null,
+      isLoading: false,
+      refetch: jest.fn(),
+    });
 
     renderLeaderboard({ showViewerRow: true });
 
