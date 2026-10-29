@@ -467,11 +467,11 @@ The Polymarket backend adapter supplies every field from upstream records, not f
 
 ## Shared Activity kinds
 
-| Canonical entry           | Shared `ActivityKind` | `data.token`               |
-| ------------------------- | --------------------- | -------------------------- |
-| `trade`, `action: 'buy'`  | `predictionPlaced`    | `amount`, direction `out`  |
-| `trade`, `action: 'sell'` | `predictionCashedOut` | `amount`, direction `in`   |
-| `settlement`              | `predictionSettled`   | `proceeds`, direction `in` |
+| Canonical entry           | Shared `ActivityKind`                                            | `data.token`               |
+| ------------------------- | ---------------------------------------------------------------- | -------------------------- |
+| `trade`, `action: 'buy'`  | `predictionPlaced`                                               | `amount`, direction `out`  |
+| `trade`, `action: 'sell'` | `predictionCashedOut`                                            | `amount`, direction `in`   |
+| `settlement`              | `predictionSettled`                                              | `proceeds`, direction `in` |
 
 - Legacy Polymarket keeps `predictionClaimWinnings` until PRED-1356. Canonical types never use "claim winnings".
 - `eventTitle` and `icon` come from `context` when present.
