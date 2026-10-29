@@ -354,6 +354,18 @@ const Onboarding = () => {
     isEmpty: false,
   });
 
+  // Control arm for the known-answer check (branch only, never merged): the
+  // same code path as the 1,000 ms arm with 0 ms, so both arms repack JS from
+  // the same base commit.
+  const knownAnswerInjected = useRef(false);
+  if (!knownAnswerInjected.current) {
+    knownAnswerInjected.current = true;
+    const injectUntil = Date.now() + 0;
+    while (Date.now() < injectUntil) {
+      // busy-wait
+    }
+  }
+
   const handleOnboardingInteractiveContentReady = useCallback(() => {
     setOnboardingContentReady(true);
   }, []);
