@@ -18,6 +18,8 @@ import SocialFeedPostShell from './SocialFeedPostShell';
 import { SocialFeedPostShellSelectorsIDs } from './SocialFeedPostShell.testIds';
 import { ReactionPickerBalloonSelectorsIDs } from './ReactionPickerBalloon.testIds';
 
+jest.mock('../../../Views/SocialLeaderboard/terms/socialTermsAcceptance');
+
 jest.mock('react-native-device-info', () => ({
   getModel: () => Promise.resolve('iPhone 12'),
   getApplicationName: () => Promise.resolve('applicationName'),
@@ -32,7 +34,6 @@ jest.mock('react-native-device-info', () => ({
 jest.mock('../translateComment', () => ({
   translateComment: jest.fn().mockResolvedValue({ state: 'translationFailed' }),
 }));
-
 jest.mock('../commentReactionApi', () => ({
   reactToComment: jest.fn().mockResolvedValue({
     reactions: [{ emotion: '🔥', count: 1 }],
@@ -158,6 +159,7 @@ const renderShell = (
   const shell = (
     <SocialFeedPostShell
       post={post}
+      requireSocialTerms
       onAuthorPress={options?.onAuthorPress}
       onPositionPress={options?.onPositionPress}
       onCopyTrade={options?.onCopyTrade}

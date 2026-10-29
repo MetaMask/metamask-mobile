@@ -10,6 +10,7 @@ import {
   getFollowTradingHomeRoute,
   isSocialV1Treatment,
 } from '../../../../components/Views/SocialLeaderboard/Onboarding/socialLeaderboardOnboardingNavigation';
+import { ensureSocialTermsAccepted } from '../../../../components/Views/SocialLeaderboard/terms/socialTermsAcceptance';
 
 interface HandleSocialTraderPositionUrlParams {
   actionPath: string;
@@ -42,6 +43,12 @@ const parseSocialTraderPositionNavigationParams = (
 };
 
 const navigateToFallback = () => {
+  if (
+    isSocialV1Treatment() &&
+    !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+  ) {
+    return;
+  }
   NavigationService.navigation.navigate(
     getFollowTradingHomeRoute(),
     undefined,
@@ -131,6 +138,13 @@ export const handleSocialTraderPositionUrl = ({
 
     const openedFromNotification = notificationSubtype !== undefined;
 
+    const isV1Treatment = isSocialV1Treatment();
+    if (
+      isV1Treatment &&
+      !ensureSocialTermsAccepted(NavigationService.navigation.navigate)
+    ) {
+      return;
+    }
     NavigationService.navigation.navigate(Routes.SOCIAL.POSITION, {
       positionId,
       traderId,
@@ -138,7 +152,7 @@ export const handleSocialTraderPositionUrl = ({
       originalEntryPoint: openedFromNotification ? 'notification' : 'deep_link',
       notificationSubtype,
       notificationTemplateVariant,
-      isSocialV1: isSocialV1Treatment(),
+      isSocialV1: isV1Treatment,
     });
   } catch (error) {
     DevLogger.log(

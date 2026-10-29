@@ -1706,6 +1706,14 @@
       "create_profile": "Create profile",
       "retry": "Try again"
     },
+    "terms": {
+      "title": "Review our Terms of Use",
+      "close": "Close",
+      "checkbox": "I agree to the Terms of Use, which apply to my use of MetaMask and all of its features",
+      "agree": "Agree",
+      "scroll_helper": "Please scroll to read all sections",
+      "placeholder_body": "The full Social Supplemental Terms will appear here.\n\nThis is temporary placeholder text while the final legal copy is prepared. It is long enough to require scrolling so the scroll-to-end requirement can be tested.\n\nSection 1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nSection 2. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSection 3. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.\n\nSection 4. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.\n\nSection 5. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem."
+    },
     "profile_onboarding": {
       "intro_title": "See trades as they happen",
       "live_activity": "Live activity",
@@ -5698,7 +5706,9 @@
         "title": "Social Leaderboard",
         "description": "Reset the Social Leaderboard onboarding so it shows again the next time the feature is opened.",
         "onboarding_seen": "Onboarding seen: {{seen}}",
-        "reset_onboarding": "Reset onboarding"
+        "reset_onboarding": "Reset onboarding",
+        "terms_accepted": "Social Terms of Use accepted: {{accepted}}",
+        "reset_terms": "Reset Social Terms of Use"
       },
       "new_wallet": {
         "title": "New wallet",

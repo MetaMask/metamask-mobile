@@ -33,6 +33,12 @@ import {
 import { displayNameFromUsername } from './profileOnboardingDraft';
 import { SocialProfileOnboardingSelectorsIDs } from './SocialProfileOnboardingView.testIds';
 import { strings } from '../../../../../locales/i18n';
+import {
+  acceptSocialTerms,
+  hasAcceptedSocialTerms,
+  resetSocialTermsAcceptance,
+} from '../terms/socialTermsAcceptance';
+import { SocialTermsSheetSelectorsIDs } from '../terms/SocialTermsSheet';
 
 const netInfoMock = NetInfo as unknown as typeof NetInfoMock;
 
@@ -234,7 +240,12 @@ const restoreProfileControllerMocks = () => {
 };
 
 describe('SocialProfileOnboardingView', () => {
-  afterEach(() => {
+  beforeEach(async () => {
+    await acceptSocialTerms();
+  });
+
+  afterEach(async () => {
+    await resetSocialTermsAcceptance();
     clearLocalSocialProfile();
     netInfoMock.__resetMockNetInfo();
     jest.mocked(Engine.context.ProfileController.createProfile).mockClear();
@@ -342,6 +353,111 @@ describe('SocialProfileOnboardingView', () => {
         trading_privacy: 'public',
       },
     );
+  });
+
+  describe('Social Terms of Use', () => {
+    const agreeToTerms = () => {
+      fireEvent(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.WEBVIEW),
+        'message',
+        { nativeEvent: { data: 'social-terms-scroll-end' } },
+      );
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CHECKBOX),
+      );
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.AGREE_BUTTON),
+      );
+    };
+
+    beforeEach(async () => {
+      await resetSocialTermsAcceptance();
+    });
+
+    it('asks for the terms before the manual path and continues once agreed', async () => {
+      renderSocialProfileOnboarding();
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      );
+
+      expect(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+      ).not.toBeOnTheScreen();
+
+      agreeToTerms();
+
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.USERNAME_STEP,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(hasAcceptedSocialTerms()).toBe(true);
+    });
+
+    it('asks for the terms before the X path and continues once agreed', async () => {
+      renderSocialProfileOnboarding();
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      agreeToTerms();
+
+      expect(
+        await screen.findByTestId(
+          SocialProfileOnboardingSelectorsIDs.X_IDENTITY_STEP,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('stays on the intro without accepting when the sheet is closed', () => {
+      renderSocialProfileOnboarding();
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CONNECT_X_BUTTON,
+        ),
+      );
+      fireEvent.press(
+        screen.getByTestId(SocialTermsSheetSelectorsIDs.CLOSE_BUTTON),
+      );
+
+      expect(
+        screen.queryByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.INTRO),
+      ).toBeOnTheScreen();
+      expect(hasAcceptedSocialTerms()).toBe(false);
+    });
+
+    it('skips the sheet when the current terms were already accepted', async () => {
+      await acceptSocialTerms();
+      renderSocialProfileOnboarding();
+
+      fireEvent.press(
+        screen.getByTestId(
+          SocialProfileOnboardingSelectorsIDs.CREATE_MANUALLY_BUTTON,
+        ),
+      );
+
+      expect(
+        screen.queryByTestId(SocialTermsSheetSelectorsIDs.SHEET),
+      ).not.toBeOnTheScreen();
+      expect(
+        screen.getByTestId(SocialProfileOnboardingSelectorsIDs.USERNAME_STEP),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('hides the back arrow on the intro and shows it on later steps', () => {
