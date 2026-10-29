@@ -577,11 +577,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = ({
     onScroll: (event) => {
       'worklet';
       // eslint-disable-next-line react-compiler/react-compiler -- Reanimated shared values are intentionally mutated from worklets.
-      const scrollY = event.contentOffset.y + scrollTopInset;
-      scrollYShared.value = scrollY;
+      scrollYShared.value = event.contentOffset.y + scrollTopInset;
+      // The About tracker measures against content layout, so it takes the raw offset.
       scheduleOnRN(
         scheduleAboutScrollOnRN,
-        scrollY,
+        event.contentOffset.y,
         event.layoutMeasurement.height,
       );
     },
