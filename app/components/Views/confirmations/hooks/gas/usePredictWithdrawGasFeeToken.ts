@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 import {
   TransactionType,
   hasTransactionType,
@@ -8,6 +9,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { getTokenTransferData } from '../../utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../utils/transaction';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 /**
  * Checks whether the gas station can pay a Predict Safe withdraw in pUSD.
@@ -20,7 +22,9 @@ import { parseStandardTokenTransactionData } from '../../utils/transaction';
  *
  * The check runs only for a Predict withdraw with a forced gas fee token (Safe
  * accounts) and a native balance that can't cover gas. Deposit-wallet
- * withdraws have no gas fee token because the relayer pays.
+ * withdraws have no gas fee token because the relayer pays. It also respects
+ * the transaction simulations setting, like the TransactionController's own
+ * gas fee token lookup.
  *
  * If the check fails (for example, an RPC error while building the Safe
  * call), the hook returns neither pending nor unavailable, so the withdraw
@@ -37,6 +41,7 @@ export function usePredictWithdrawGasFeeToken(): {
 } {
   const transactionMeta = useTransactionMetadataRequest();
   const { hasInsufficientBalance } = useHasInsufficientBalance();
+  const isSimulationEnabled = useSelector(selectUseTransactionSimulations);
 
   const address = transactionMeta?.txParams?.from ?? '';
   const transferData = transactionMeta
@@ -47,6 +52,7 @@ export function usePredictWithdrawGasFeeToken(): {
     '0';
 
   const isEnabled =
+    isSimulationEnabled &&
     hasTransactionType(transactionMeta, [TransactionType.predictWithdraw]) &&
     Boolean(transactionMeta?.selectedGasFeeToken) &&
     Boolean(transactionMeta?.isGasFeeTokenIgnoredIfBalance) &&

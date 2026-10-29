@@ -11,6 +11,7 @@ import { usePredictWithdrawGasFeeToken } from './usePredictWithdrawGasFeeToken';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { generateTransferData } from '../../../../../util/transactions';
+import { selectUseTransactionSimulations } from '../../../../../selectors/preferencesController';
 
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -21,6 +22,11 @@ jest.mock('../../../../../core/Engine', () => ({
 }));
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useHasInsufficientBalance');
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn().mockImplementation((selector) => selector()),
+}));
+jest.mock('../../../../../selectors/preferencesController');
 
 const FROM_MOCK = '0x5648abf0e1f50740fabb5a672d0e57640c99572c';
 const PUSD_MOCK = '0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB' as Hex;
@@ -71,6 +77,9 @@ describe('usePredictWithdrawGasFeeToken', () => {
   const isWithdrawGasFeeTokenAvailableMock = jest.mocked(
     Engine.context.PredictController.isWithdrawGasFeeTokenAvailable,
   );
+  const selectUseTransactionSimulationsMock = jest.mocked(
+    selectUseTransactionSimulations,
+  );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -79,6 +88,7 @@ describe('usePredictWithdrawGasFeeToken', () => {
       hasInsufficientBalance: true,
       nativeCurrency: 'POL',
     });
+    selectUseTransactionSimulationsMock.mockReturnValue(true);
   });
 
   it('checks the Safe withdraw for the current account and amount', async () => {
@@ -166,6 +176,10 @@ describe('usePredictWithdrawGasFeeToken', () => {
   });
 
   it.each([
+    [
+      'transaction simulations are disabled',
+      () => selectUseTransactionSimulationsMock.mockReturnValue(false),
+    ],
     [
       'the native balance covers gas',
       () =>
