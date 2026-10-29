@@ -1,4 +1,5 @@
 import type { Messenger } from '@metamask/messenger';
+import type { AuthenticationController } from '@metamask/profile-sync-controller';
 import { getVersion } from 'react-native-device-info';
 import type {
   LoginResponseDto,
@@ -22,7 +23,6 @@ import type {
   SeasonStateDto,
   SubscriptionBenefitDto,
   LineaTokenRewardDto,
-  ApplyReferralDto,
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
@@ -56,6 +56,7 @@ import type {
   VipTransactionType,
   PaginatedVipTransactionsDto,
   VipTransactionsLastUpdatedDto,
+  TradingFeeGrantResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -111,6 +112,44 @@ const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+const TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS = 2000;
+
+export const MAX_PERPS_TRADING_FEE_GRANT_BIPS = 999.99;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isTradingFeeGrantResponse(
+  value: unknown,
+): value is TradingFeeGrantResponseDto {
+  if (!isRecord(value) || !Object.hasOwn(value, 'grant')) {
+    return false;
+  }
+  if (value.grant === null) {
+    return true;
+  }
+  if (
+    !isRecord(value.grant) ||
+    typeof value.grant.programId !== 'string' ||
+    typeof value.grant.expiresAt !== 'string' ||
+    !Number.isFinite(Date.parse(value.grant.expiresAt)) ||
+    !isRecord(value.grant.hyperliquid) ||
+    typeof value.grant.hyperliquid.builderCode !== 'string' ||
+    typeof value.grant.hyperliquid.builderFeeBips !== 'string'
+  ) {
+    return false;
+  }
+
+  const feeString = value.grant.hyperliquid.builderFeeBips;
+  const fee = Number(feeString);
+  return (
+    /^(?:0|[1-9]\d{0,2})(?:\.\d{1,2})?$/u.test(feeString) &&
+    Number.isFinite(fee) &&
+    fee >= 0 &&
+    fee <= MAX_PERPS_TRADING_FEE_GRANT_BIPS
+  );
+}
 
 // Auth endpoint action types
 
@@ -152,11 +191,6 @@ export interface RewardsDataServiceGetSeasonStatusAction {
 export interface RewardsDataServiceGetReferralDetailsAction {
   type: `${typeof SERVICE_NAME}:getReferralDetails`;
   handler: RewardsDataService['getReferralDetails'];
-}
-
-export interface RewardsDataServiceValidateReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:validateReferralCode`;
-  handler: RewardsDataService['validateReferralCode'];
 }
 
 export interface RewardsDataServiceMobileJoinAction {
@@ -202,11 +236,6 @@ export interface RewardsDataServiceGetSeasonMetadataAction {
 export interface RewardsDataServiceGetSeasonOneLineaRewardTokensAction {
   type: `${typeof SERVICE_NAME}:getSeasonOneLineaRewardTokens`;
   handler: RewardsDataService['getSeasonOneLineaRewardTokens'];
-}
-
-export interface RewardsDataServiceApplyReferralCodeAction {
-  type: `${typeof SERVICE_NAME}:applyReferralCode`;
-  handler: RewardsDataService['applyReferralCode'];
 }
 
 export interface RewardsDataServiceValidateBonusCodeAction {
@@ -403,6 +432,11 @@ export interface RewardsDataServiceGetVipFeesAction {
   handler: RewardsDataService['getVipFees'];
 }
 
+export interface RewardsDataServiceGetTradingFeeGrantsAction {
+  type: `${typeof SERVICE_NAME}:getTradingFeeGrants`;
+  handler: RewardsDataService['getTradingFeeGrants'];
+}
+
 export interface RewardsDataServiceGetVipTransactionsAction {
   type: `${typeof SERVICE_NAME}:getVipTransactions`;
   handler: RewardsDataService['getVipTransactions'];
@@ -433,7 +467,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceValidateReferralCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -443,7 +476,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
-  | RewardsDataServiceApplyReferralCodeAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -457,6 +489,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetVIPDashboardAction
   | RewardsDataServiceGetVipEquityMultiplierAction
   | RewardsDataServiceGetVipRefereeDashboardAction
+  | RewardsDataServiceGetTradingFeeGrantsAction
   | RewardsDataServiceGetVipFeesAction
   | RewardsDataServiceGetVipTransactionsAction
   | RewardsDataServiceLookupVipTransactionAction
@@ -488,9 +521,12 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetMoneyAccountSweepstakesParticipantOutcomeAction
   | RewardsDataServiceRegisterMoneyAccountBindingAction;
 
+type AllowedActions =
+  AuthenticationController.AuthenticationControllerGetBearerTokenAction;
+
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
-  RewardsDataServiceActions,
+  RewardsDataServiceActions | AllowedActions,
   never
 >;
 
@@ -562,10 +598,6 @@ export class RewardsDataService {
       this.getReferralDetails.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:validateReferralCode`,
-      this.validateReferralCode.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:mobileJoin`,
       this.mobileJoin.bind(this),
     );
@@ -600,10 +632,6 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonOneLineaRewardTokens`,
       this.getSeasonOneLineaRewardTokens.bind(this),
-    );
-    this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:applyReferralCode`,
-      this.applyReferralCode.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:validateBonusCode`,
@@ -756,6 +784,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipFees`,
       this.getVipFees.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getTradingFeeGrants`,
+      this.getTradingFeeGrants.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getVipTransactions`,
@@ -1058,7 +1090,7 @@ export class RewardsDataService {
 
   /**
    * Perform optin via signature for the current account.
-   * @param body - The login request body containing account, timestamp, signature and referral code.
+   * @param body - The login request body containing account, timestamp and signature.
    * @returns The login response DTO.
    */
   async mobileOptin(body: MobileOptinDto): Promise<LoginResponseDto> {
@@ -1167,30 +1199,6 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data as SubscriptionReferralDetailsDto;
-  }
-
-  /**
-   * Validate a referral code.
-   * @param code - The referral code to validate.
-   * @returns Promise<{valid: boolean}> - Object indicating if the code is valid.
-   */
-  async validateReferralCode(
-    code: string,
-  ): Promise<{ valid: boolean; isVipCode?: boolean }> {
-    const response = await this.makeRequest(
-      `/referral/validate?code=${encodeURIComponent(code)}`,
-      {
-        method: 'GET',
-      },
-    );
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to validate referral code. Please try again shortly.`,
-      );
-    }
-
-    return (await response.json()) as { valid: boolean; isVipCode?: boolean };
   }
 
   /**
@@ -1513,40 +1521,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Apply a referral code to an existing subscription.
-   * @param dto - The apply referral request body containing the referral code.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns Promise that resolves when the referral code is applied successfully.
-   * @throws Error with the error message from the API response.
-   */
-  async applyReferralCode(
-    dto: ApplyReferralDto,
-    subscriptionId: string,
-  ): Promise<void> {
-    const response = await this.makeRequest(
-      '/wr/subscriptions/apply-referral',
-      {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      // Handle 204 No Content as success (already handled by response.ok)
-      if (response.status === 204) {
-        return;
-      }
-
-      const errorData = await response.json();
-      const errorMessage =
-        errorData?.message || `Apply referral code failed: ${response.status}`;
-
-      throw new Error(errorMessage);
-    }
-  }
-
-  /**
    * Apply a bonus code to a subscription.
    * @param dto - The DTO containing the bonus code to apply.
    * @param subscriptionId - The subscription ID to apply the bonus code to.
@@ -1804,6 +1778,45 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as VipFeesResponseDto;
+  }
+
+  /**
+   * Fetch the active profile's trading-fee grant using Profile Sync auth.
+   */
+  async getTradingFeeGrants(): Promise<TradingFeeGrantResponseDto> {
+    const token = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (!token) {
+      throw new Error('Profile Sync bearer token is required');
+    }
+
+    const response = await this.makeRequest(
+      '/trading-fee-grants',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      },
+      undefined,
+      TRADING_FEE_GRANT_REQUEST_TIMEOUT_MS,
+    );
+    if (!response.ok) {
+      throw new Error(`Get trading fee grants failed: ${response.status}`);
+    }
+
+    const result: unknown = await response.json();
+    if (!isTradingFeeGrantResponse(result)) {
+      throw new Error('Invalid trading fee grant response');
+    }
+
+    const currentToken = await this.#messenger.call(
+      'AuthenticationController:getBearerToken',
+    );
+    if (currentToken !== token) {
+      throw new Error('Profile changed during trading fee grant request');
+    }
+
+    return result;
   }
 
   async getVipTransactions(

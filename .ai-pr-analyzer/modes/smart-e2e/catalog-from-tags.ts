@@ -3,7 +3,6 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { flaskTags, smokeTags } from '../../../tests/tags.js';
-import { performanceTags } from '../../../tests/tags.performance.js';
 
 export type TagConfig = { tag: string; description: string };
 
@@ -11,7 +10,6 @@ export type CatalogEntry = { id: string; description: string };
 
 export type SmartE2eCatalog = {
   e2e: CatalogEntry[];
-  performance: CatalogEntry[];
 };
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -28,7 +26,6 @@ export function catalogEntries(
 export function buildSmartE2eCatalog(): SmartE2eCatalog {
   return {
     e2e: catalogEntries({ ...smokeTags, ...flaskTags }),
-    performance: catalogEntries(performanceTags),
   };
 }
 

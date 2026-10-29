@@ -168,6 +168,7 @@ export class WalletHomeSections {
         {
           tapTimeout: 5_000,
           overshootSwipe: clippedHeaderNudge,
+          clearTabBar: true,
         },
       )
     ) {
@@ -192,6 +193,7 @@ export class WalletHomeSections {
             },
             maxAttempts: 2,
             tapTimeout: 3_000,
+            clearTabBar: true,
           },
         ),
       [direction, fallbackDirection],
@@ -243,14 +245,20 @@ export class WalletHomeSections {
         this.predictionsSectionHeader,
         'Predictions section',
         'down',
-        { overshootSwipe: { direction: 'up', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'up', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     } catch {
       await WalletHomeScroll.scrollAndTapSection(
         this.predictionsSectionHeader,
         'Predictions section',
         'up',
-        { overshootSwipe: { direction: 'down', percentage: 0.2 } },
+        {
+          overshootSwipe: { direction: 'down', percentage: 0.2 },
+          clearTabBar: true,
+        },
       );
     }
   }

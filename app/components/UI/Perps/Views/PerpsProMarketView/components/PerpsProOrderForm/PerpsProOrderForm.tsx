@@ -48,6 +48,7 @@ import {
   PerpsProOrderFormSelectorsIDs,
 } from '../../../../Perps.testIds';
 import PerpsFeesDisplay from '../../../../components/PerpsFeesDisplay';
+import PerpsRebateBanner from '../../../../components/PerpsRebateBanner';
 import PerpsProCompactInput, {
   PerpsProInputKeyboardAccessory,
   type PerpsProCompactInputRef,
@@ -239,6 +240,7 @@ const OrderSummary = ({
   fee,
   originalFee,
   feeDiscountPercentage,
+  feeDiscountKind,
   onSlippagePress,
   onFeesInfoPress,
   twapSummary,
@@ -324,6 +326,7 @@ const OrderSummary = ({
           fee={fee}
           originalFee={originalFee}
           feeDiscountPercentage={feeDiscountPercentage}
+          feeDiscountKind={feeDiscountKind}
           testID={ids.SUMMARY_FEES_VALUE}
           variant={TextVariant.BodyXs}
           color={TextColor.TextDefault}
@@ -506,6 +509,7 @@ const PerpsProOrderForm = ({
   onUseMidPricePress,
   chaseMaxDistance = '',
   onChaseMaxDistanceChange = () => undefined,
+  onChaseMaxDistanceFocus,
   chaseMaxDistanceUnit = 'usd',
   onChaseMaxDistanceUnitChange = () => undefined,
   chaseReferencePrice = PERPS_CONSTANTS.FallbackPriceDisplay,
@@ -528,6 +532,7 @@ const PerpsProOrderForm = ({
   onTPSLPress,
   notices,
   summary,
+  rebateQuote,
   placeOrderLabel,
   placeOrderIntent,
   isPlaceOrderDisabled = false,
@@ -907,6 +912,7 @@ const PerpsProOrderForm = ({
                   label={`${strings('perps.order.chase.max_distance')} (${chaseMaxDistanceUnit === 'usd' ? 'USD' : '%'})`}
                   value={chaseMaxDistance}
                   onChangeText={onChaseMaxDistanceChange}
+                  onFocus={onChaseMaxDistanceFocus}
                   testID={ids.CHASE_MAX_DISTANCE_INPUT}
                   isDisabled={isScaleFormLocked}
                   variant="inline-labeled"
@@ -1037,6 +1043,12 @@ const PerpsProOrderForm = ({
             }
           />
         ) : null}
+        <PerpsRebateBanner
+          coin={rebateQuote?.coin}
+          direction={rebateQuote?.direction}
+          notionalUsd={rebateQuote?.notionalUsd}
+          textTwClassName="text-body-xs leading-[16px]"
+        />
       </Box>
       <PerpsProInputKeyboardAccessory
         inputTestID={ids.SIZE_INPUT}

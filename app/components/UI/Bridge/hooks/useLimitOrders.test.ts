@@ -24,10 +24,15 @@ const WALLET_ADDRESS = '0x1234567890123456789012345678901234567890';
 const OPEN_STATES = [LimitOrderState.Open];
 const REFETCH_INTERVAL = 20_000;
 
-function createPage(id: string, nextCursor?: string): GetLimitOrdersResponse {
+function createPage(
+  id: string,
+  nextCursor?: string,
+  total = 1,
+): GetLimitOrdersResponse {
   return {
     orders: [{ ...MOCK_LIMIT_OPEN_ORDER, id }],
     nextCursor,
+    total,
   };
 }
 
@@ -93,6 +98,33 @@ describe('useLimitOrders', () => {
     );
   });
 
+  it('includes the asset and custom limit in the service query key', () => {
+    mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
+
+    renderHook(() =>
+      useLimitOrders({
+        walletAddress: WALLET_ADDRESS,
+        states: OPEN_STATES,
+        assetId: 'eip155:1/slip44:60',
+        limit: 1,
+      }),
+    );
+
+    expect(mockUseInfiniteQuery).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queryKey: [
+          'LimitOrdersDataService:getLimitOrders',
+          {
+            walletAddress: WALLET_ADDRESS,
+            states: OPEN_STATES,
+            assetId: 'eip155:1/slip44:60',
+            limit: 1,
+          },
+        ],
+      }),
+    );
+  });
+
   it('flattens orders from every loaded page', () => {
     const queryResult = createQueryResult({
       pages: [createPage('order-1'), createPage('order-2')],
@@ -110,6 +142,39 @@ describe('useLimitOrders', () => {
       'order-1',
       'order-2',
     ]);
+  });
+
+  it('returns the total reported by the latest loaded page', () => {
+    mockUseInfiniteQuery.mockReturnValue(
+      createQueryResult({
+        pages: [
+          createPage('order-1', 'cursor-2', 25),
+          createPage('order-2', undefined, 26),
+        ],
+      }) as never,
+    );
+
+    const { result } = renderHook(() =>
+      useLimitOrders({
+        walletAddress: WALLET_ADDRESS,
+        states: OPEN_STATES,
+      }),
+    );
+
+    expect(result.current.total).toBe(26);
+  });
+
+  it('returns no total before any page has loaded', () => {
+    mockUseInfiniteQuery.mockReturnValue(createQueryResult() as never);
+
+    const { result } = renderHook(() =>
+      useLimitOrders({
+        walletAddress: WALLET_ADDRESS,
+        states: OPEN_STATES,
+      }),
+    );
+
+    expect(result.current.total).toBeUndefined();
   });
 
   it('returns the next page cursor from the service response', () => {

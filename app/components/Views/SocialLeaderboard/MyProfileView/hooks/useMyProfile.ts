@@ -32,20 +32,10 @@ export interface MySocialProfile {
   connectedToX?: boolean;
   followerCount?: number | null;
   followingCount?: number | null;
-  shareUrl: string;
   /** Whole-percent win rate (e.g. 60). Swap for profile-endpoint stats later. */
   winRatePercent?: number | null;
   /** Realized P&L in USD. */
   pnlUsd?: number | null;
-  timesCopied?: number | null;
-  /** 30d trading volume in USD until the profile endpoint is authoritative. */
-  volumeUsd30d?: number | null;
-  /** 30d trade count until the profile endpoint is authoritative. */
-  tradeCount30d?: number | null;
-  /** Preformatted profile-age label for the stats sheet (no API field yet). */
-  profileAgeLabel?: string | null;
-  /** Whole-percent copy success rate for the stats sheet (no API field yet). */
-  copySuccessRatePercent?: number | null;
   /** Wallet account chosen during local onboarding. */
   linkedAccountId?: string | null;
   linkedAccountAddress?: string | null;
@@ -61,13 +51,28 @@ export interface UseMyProfileResult {
   refresh: () => Promise<void>;
 }
 
+interface UseMyProfileOptions {
+  enabled?: boolean;
+}
+
+// Shared across mounts so a remount, like reopening the profile drawer, does
+// not wait again on a lookup that already found the profile or a 404.
+const resolvedSessionProfileIds = new Set<string>();
+
+/** Test helper. Forgets every resolved profile lookup. */
+export const resetResolvedSessionProfileIds = (): void => {
+  resolvedSessionProfileIds.clear();
+};
+
 /**
  * Owner profile seam.
  *
  * Identity comes from ProfileController. The in-memory store only overlays
  * the onboarding foxicon preset, which the profile API does not store.
  */
-export const useMyProfile = (): UseMyProfileResult => {
+export const useMyProfile = ({
+  enabled = true,
+}: UseMyProfileOptions = {}): UseMyProfileResult => {
   const { profileId: sessionProfileId, isLoading: isSessionLoading } =
     useSessionProfileId();
   const {
@@ -99,6 +104,7 @@ export const useMyProfile = (): UseMyProfileResult => {
 
     try {
       const fetched = await fetchAndUpdateProfile(profileId);
+      resolvedSessionProfileIds.add(profileId);
       if (fetched.connectedToX) {
         try {
           await fetchAndUpdateXAccount();
@@ -107,7 +113,10 @@ export const useMyProfile = (): UseMyProfileResult => {
         }
       }
     } catch (err) {
-      if (!isProfileNotFoundError(err)) {
+      if (isProfileNotFoundError(err)) {
+        resolvedSessionProfileIds.add(profileId);
+      } else {
+        resolvedSessionProfileIds.delete(profileId);
         setError(strings('social_leaderboard.my_profile.load_profile_error'));
       }
     } finally {
@@ -117,12 +126,12 @@ export const useMyProfile = (): UseMyProfileResult => {
   }, [fetchAndUpdateProfile, fetchAndUpdateXAccount, sessionProfileId]);
 
   useEffect(() => {
-    if (isSessionLoading || !sessionProfileId?.trim()) {
+    if (!enabled || isSessionLoading || !sessionProfileId?.trim()) {
       return;
     }
 
     refresh().catch(() => undefined);
-  }, [isSessionLoading, refresh, sessionProfileId]);
+  }, [enabled, isSessionLoading, refresh, sessionProfileId]);
 
   const mappedControllerProfile = controllerProfile
     ? profileControllerToMySocialProfile(controllerProfile, controllerXProfile)
@@ -133,10 +142,12 @@ export const useMyProfile = (): UseMyProfileResult => {
       ? withLocalAvatarPreset(mappedControllerProfile, profile)
       : null,
     isLoading:
-      isSessionLoading ||
-      isHydrating ||
-      (Boolean(trimmedSessionProfileId) &&
-        settledSessionProfileId !== trimmedSessionProfileId),
+      enabled &&
+      !resolvedSessionProfileIds.has(trimmedSessionProfileId) &&
+      (isSessionLoading ||
+        isHydrating ||
+        (Boolean(trimmedSessionProfileId) &&
+          settledSessionProfileId !== trimmedSessionProfileId)),
     error,
     refresh,
   };

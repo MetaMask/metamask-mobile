@@ -16,6 +16,11 @@ import {
   PERPS_SECTION_PRIORITY_VARIANTS,
   PerpsSectionPriorityVariant,
 } from './abTestConfig';
+import {
+  SOCIAL_V1_AB_KEY,
+  SOCIAL_V1_VARIANTS,
+  SocialV1Variant,
+} from '../../../constants/socialV1';
 
 interface MockABTestResult {
   variant: unknown;
@@ -39,6 +44,13 @@ const defaultUseABTestImplementation = (key: string): MockABTestResult => {
       variant:
         PERPS_SECTION_PRIORITY_VARIANTS[PerpsSectionPriorityVariant.Control],
       variantName: PerpsSectionPriorityVariant.Control,
+      isActive: true,
+    };
+  }
+  if (key === SOCIAL_V1_AB_KEY) {
+    return {
+      variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Control],
+      variantName: SocialV1Variant.Control,
       isActive: true,
     };
   }
@@ -159,6 +171,32 @@ jest.mock('../../UI/Perps/hooks', () => ({
     refresh: jest.fn(),
     isRefreshing: false,
   })),
+}));
+
+const mockUseSocialTopTradersEligible = jest.fn(
+  (_enabled: boolean, _hydrateProfile: boolean) => false,
+);
+jest.mock('./hooks/useIsSocialTopTradersEligible', () => ({
+  useIsSocialTopTradersEligible: (enabled: boolean, hydrateProfile: boolean) =>
+    mockUseSocialTopTradersEligible(enabled, hydrateProfile),
+}));
+
+let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
+let mockNetworkTier:
+  | 'NONE'
+  | 'SLOW_CELLULAR'
+  | 'FAST_CELLULAR'
+  | 'WIFI'
+  | null = 'WIFI';
+jest.mock('../../../util/deviceCapability', () => ({
+  getHardwareTier: () => mockHardwareTier,
+}));
+jest.mock('../../../hooks/useNetworkTier', () => ({
+  useNetworkTier: () => mockNetworkTier,
+  useNetworkTierState: () => ({
+    tier: mockNetworkTier,
+    isResolved: mockNetworkTier !== null,
+  }),
 }));
 
 jest.mock('../../UI/Perps/hooks/usePerpsConnection', () => ({
@@ -392,23 +430,6 @@ jest.mock('../../UI/Earn/hooks/useMusdConversionTokens', () => ({
 const mockEnableAllPopularNetworks = jest.fn();
 let mockPopularNetworks: string[] = [];
 const mockIsNetworkEnabled = jest.fn(() => true);
-let mockHardwareTier: 'LOW' | 'MID' | 'HIGH' | null = 'MID';
-let mockNetworkTier:
-  | 'NONE'
-  | 'SLOW_CELLULAR'
-  | 'FAST_CELLULAR'
-  | 'WIFI'
-  | null = 'WIFI';
-jest.mock('../../../util/deviceCapability', () => ({
-  getHardwareTier: () => mockHardwareTier,
-}));
-jest.mock('../../../hooks/useNetworkTier', () => ({
-  useNetworkTier: () => mockNetworkTier,
-  useNetworkTierState: () => ({
-    tier: mockNetworkTier,
-    isResolved: mockNetworkTier !== null,
-  }),
-}));
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: () => ({
     namespace: 'eip155',
@@ -476,6 +497,9 @@ describe('Homepage', () => {
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: false });
     mockUseABTest.mockImplementation(defaultUseABTestImplementation);
+    mockUseSocialTopTradersEligible.mockReturnValue(false);
+    mockHardwareTier = 'MID';
+    mockNetworkTier = 'WIFI';
     mockUseOwnedNfts.mockReturnValue([]);
     mockPopularNetworks = [];
     mockIsNetworkEnabled.mockReturnValue(true);
@@ -561,7 +585,14 @@ describe('Homepage', () => {
       screen.getByTestId('balance-breakdown-section-mock'),
     ).toBeOnTheScreen();
     expect(mockBalanceBreakdownSection).toHaveBeenCalledWith(
-      balanceBreakdownSectionProps,
+      expect.objectContaining({
+        ...balanceBreakdownSectionProps,
+        deviceCapability: expect.objectContaining({
+          hardwareTier: expect.anything(),
+          networkTier: expect.anything(),
+          networkTierResolved: expect.any(Boolean),
+        }),
+      }),
     );
   });
 
@@ -793,6 +824,201 @@ describe('Homepage', () => {
       calls.forEach((call) => {
         expect(call[0]?.totalSectionsLoaded).toBe(6);
       });
+    });
+
+    it('moves Top Traders before the Tokens and Perps sections for eligible users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(1);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(2);
+      expect(callBySectionName('predict')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, true);
+    });
+
+    it('keeps Top Traders below allocation when network capability resolves after the first render', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      const rendered = renderWithProvider(<Homepage />, {
+        state: stateWithPreferences,
+      });
+
+      mockNetworkTier = 'WIFI';
+      rendered.rerender(<Homepage />);
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
+    it('uses cached eligibility without profile hydration on low-end devices', () => {
+      mockHardwareTier = 'LOW';
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('skips profile hydration on low-end devices while network capability is unknown', () => {
+      mockHardwareTier = 'LOW';
+      mockNetworkTier = null;
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('skips profile hydration on mid-tier devices while network capability is unresolved', () => {
+      mockHardwareTier = 'MID';
+      mockNetworkTier = null;
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(true, false);
+    });
+
+    it('keeps Top Traders below Tokens for ineligible Social V1 treatment users', () => {
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+    });
+
+    it('keeps Perps before Tokens below Top Traders when Perps priority also applies', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+      const perpsHooksMock = jest.mocked(
+        jest.requireMock<typeof import('../../UI/Perps/hooks')>(
+          '../../UI/Perps/hooks',
+        ),
+      );
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(true);
+      mockUseABTest.mockImplementation((key: string) => {
+        if (key === PERPS_SECTION_PRIORITY_AB_KEY) {
+          return {
+            variant:
+              PERPS_SECTION_PRIORITY_VARIANTS[
+                PerpsSectionPriorityVariant.Treatment
+              ],
+            variantName: PerpsSectionPriorityVariant.Treatment,
+            isActive: true,
+          };
+        }
+        if (key === SOCIAL_V1_AB_KEY) {
+          return {
+            variant: SOCIAL_V1_VARIANTS[SocialV1Variant.Treatment],
+            variantName: SocialV1Variant.Treatment,
+            isActive: true,
+          };
+        }
+        return defaultUseABTestImplementation(key);
+      });
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(2);
+
+      perpsHooksMock.useIsActivePerpsTrader.mockReturnValue(false);
+    });
+
+    it('keeps Top Traders in its default position for eligible control users', () => {
+      mockUseSocialTopTradersEligible.mockReturnValue(true);
+
+      renderWithProvider(<Homepage />, { state: stateWithPreferences });
+
+      const calls = getUseHomeViewedEventCalls();
+      const callBySectionName = (name: string) =>
+        calls.find((c) => c[0]?.sectionName === name)?.[0];
+
+      expect(callBySectionName('tokens')?.sectionIndex).toBe(0);
+      expect(callBySectionName('perps')?.sectionIndex).toBe(1);
+      expect(callBySectionName('top_traders')?.sectionIndex).toBe(3);
+      expect(mockUseSocialTopTradersEligible).toHaveBeenCalledWith(
+        false,
+        false,
+      );
     });
   });
 

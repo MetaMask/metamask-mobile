@@ -37,6 +37,9 @@ test.describe(`${Performance} ${PerformanceOnboarding} ${PerformanceLaunch}`, ()
         screenId: 'onboarding_landing',
         platform,
         required: true,
+        // Landing-only. The shared 15s default stays for screens without a baseline.
+        // Android max on Pixel 8 Pro was 384ms.
+        threshold: { ios: 15_000, android: 1_200 },
       });
     },
   );

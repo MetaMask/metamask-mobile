@@ -2,13 +2,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   ButtonIcon,
   ButtonIconSize,
   FontWeight,
-  Icon,
+  IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -18,23 +16,17 @@ import React, { useMemo } from 'react';
 import { Pressable } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import TraderAvatar from './TraderAvatar';
-import { MOCK_MARKER } from '../mockMarker';
-import { useSocialFeedSurface } from '../SocialFeedSurface';
 import type { SocialV1FeedAuthor } from '../types';
 import RotatingTraderStat from './RotatingTraderStat';
-import {
-  buildTraderStatLabels,
-  resolveTraderCohort,
-  traderCohortEmoji,
-} from '../utils/traderStats';
+import { buildTraderStatLabels } from '../utils/traderStats';
 import { formatFeedPostAge } from '../utils/formatters';
 import {
   SocialTraderIdentityRowSelectorsIDs,
   type SocialTraderIdentityRowTestIds,
 } from './SocialTraderIdentityRow.testIds';
 
-/** Matches the previous `h-8 w-8` author image. */
-const AVATAR_SIZE = 32;
+/** Matches `AvatarAccountSize.Lg`. */
+const AVATAR_SIZE = 40;
 
 export interface SocialTraderIdentityRowProps {
   author: SocialV1FeedAuthor;
@@ -50,11 +42,14 @@ export interface SocialTraderIdentityRowProps {
   now?: number;
   testIDs?: SocialTraderIdentityRowTestIds;
   twClassName?: string;
+  /** Post content, stacked under the header and aligned with the handle. */
+  children?: React.ReactNode;
 }
 
 /**
- * Shared trader identity chrome for Social V1: avatar, handle, invented
- * verified badge, cohort emoji, relative age, rotating stat line, overflow.
+ * Shared trader identity chrome for Social V1: the avatar in a left gutter,
+ * then a column with the handle, relative age, rotating stat line and
+ * overflow, followed by any content passed as children.
  */
 const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   author,
@@ -67,111 +62,67 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
   now,
   testIDs,
   twClassName,
+  children,
 }) => {
   const tw = useTailwind();
-  const { showMockedFields } = useSocialFeedSurface();
   const statLabels = useMemo(() => buildTraderStatLabels(author), [author]);
-  const cohortEmoji = traderCohortEmoji(resolveTraderCohort(author.pnl30d));
+
+  const avatar = (
+    <TraderAvatar
+      imageUrl={imageUrl}
+      // Profile id seeds the Maskicon. Ids that do not start with `0x`
+      // are hashed in full, so each trader stays distinct once wallet
+      // addresses leave the feed payload.
+      address={author.id}
+      size={AVATAR_SIZE}
+      recyclingKey={recyclingKey}
+      testID={testIDs?.avatar ?? SocialTraderIdentityRowSelectorsIDs.AVATAR}
+    />
+  );
 
   const identity = (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      gap={2}
-      twClassName="flex-1 min-w-0"
-    >
-      <TraderAvatar
-        imageUrl={imageUrl}
-        // Profile id seeds the Maskicon. Ids that do not start with `0x`
-        // are hashed in full, so each trader stays distinct once wallet
-        // addresses leave the feed payload.
-        address={author.id}
-        size={AVATAR_SIZE}
-        recyclingKey={recyclingKey}
-        testID={testIDs?.avatar ?? SocialTraderIdentityRowSelectorsIDs.AVATAR}
-      />
-      {/* The name row and the stat line share a column so the stats sit
-          under the name rather than under the avatar. */}
-      <Box twClassName="flex-1 min-w-0 overflow-hidden">
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
+    <Box twClassName="min-w-0">
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        gap={2}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Bold}
+          color={TextColor.TextDefault}
+          numberOfLines={1}
+          twClassName="shrink min-w-0"
+          testID={testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE}
         >
-          <Text
-            variant={TextVariant.BodyMd}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-            numberOfLines={1}
-            twClassName="shrink"
-            testID={
-              testIDs?.handle ?? SocialTraderIdentityRowSelectorsIDs.HANDLE
-            }
-          >
-            {handle}
-          </Text>
-          {/* Nothing reports verification yet, so the badge is invented.
-              Social V1 keeps it, marked, so the gap stays visible; other
-              surfaces omit it until a real signal exists. */}
-          {showMockedFields ? (
-            <>
-              <Icon
-                name={IconName.VerifiedFilled}
-                size={IconSize.Sm}
-                twClassName="text-info-default shrink-0"
-                testID={
-                  testIDs?.verifiedBadge ??
-                  SocialTraderIdentityRowSelectorsIDs.VERIFIED_BADGE
-                }
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.TextMuted}
-                twClassName="shrink-0"
-              >
-                {MOCK_MARKER}
-              </Text>
-            </>
-          ) : null}
-          {cohortEmoji ? (
-            <Text
-              variant={TextVariant.BodySm}
-              twClassName="shrink-0"
-              testID={
-                testIDs?.cohort ?? SocialTraderIdentityRowSelectorsIDs.COHORT
-              }
-            >
-              {cohortEmoji}
-            </Text>
-          ) : null}
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextMuted}
-            twClassName="shrink-0"
-            testID={
-              testIDs?.timestamp ??
-              SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
-            }
-          >
-            {formatFeedPostAge(timestampMs, now)}
-          </Text>
-        </Box>
-        <RotatingTraderStat
-          labels={statLabels}
+          {handle}
+        </Text>
+        <Text
+          variant={TextVariant.BodyXs}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextMuted}
+          twClassName="shrink-0"
           testID={
-            testIDs?.traderStat ??
-            SocialTraderIdentityRowSelectorsIDs.TRADER_STAT
+            testIDs?.timestamp ?? SocialTraderIdentityRowSelectorsIDs.TIMESTAMP
           }
-        />
+        >
+          {formatFeedPostAge(timestampMs, now)}
+        </Text>
       </Box>
+      <RotatingTraderStat
+        labels={statLabels}
+        testID={
+          testIDs?.traderStat ?? SocialTraderIdentityRowSelectorsIDs.TRADER_STAT
+        }
+      />
     </Box>
   );
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+      alignItems={BoxAlignItems.Start}
+      gap={2}
       twClassName={twClassName}
       testID={
         testIDs?.container ?? SocialTraderIdentityRowSelectorsIDs.CONTAINER
@@ -181,22 +132,45 @@ const SocialTraderIdentityRow: React.FC<SocialTraderIdentityRowProps> = ({
         <Pressable
           onPress={onIdentityPress}
           accessibilityRole="button"
-          testID={testIDs?.identityPress}
-          style={tw.style('flex-1 min-w-0')}
+          accessibilityLabel={handle}
         >
-          {identity}
+          {avatar}
         </Pressable>
       ) : (
-        identity
+        avatar
       )}
-      <ButtonIcon
-        iconName={IconName.MoreHorizontal}
-        size={ButtonIconSize.Md}
-        onPress={onMorePress}
-        accessibilityLabel={strings('social_leaderboard.entry_options.title')}
-        twClassName="shrink-0"
-        testID={testIDs?.more ?? SocialTraderIdentityRowSelectorsIDs.MORE}
-      />
+      <Box twClassName="flex-1 min-w-0" gap={2}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Start}
+          gap={2}
+        >
+          {onIdentityPress ? (
+            <Pressable
+              onPress={onIdentityPress}
+              accessibilityRole="button"
+              testID={testIDs?.identityPress}
+              style={tw.style('flex-1 min-w-0')}
+            >
+              {identity}
+            </Pressable>
+          ) : (
+            <Box twClassName="flex-1 min-w-0">{identity}</Box>
+          )}
+          <ButtonIcon
+            iconName={IconName.MoreHorizontal}
+            iconProps={{ color: IconColor.IconAlternative }}
+            size={ButtonIconSize.Sm}
+            onPress={onMorePress}
+            accessibilityLabel={strings(
+              'social_leaderboard.entry_options.title',
+            )}
+            twClassName="shrink-0"
+            testID={testIDs?.more ?? SocialTraderIdentityRowSelectorsIDs.MORE}
+          />
+        </Box>
+        {children}
+      </Box>
     </Box>
   );
 };

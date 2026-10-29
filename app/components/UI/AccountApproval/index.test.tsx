@@ -1,6 +1,7 @@
 import React from 'react';
 import { Linking } from 'react-native';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
+import { RequestSourceFlow } from '@metamask/phishing-controller';
 import AccountApproval from '.';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -38,8 +39,8 @@ const mockGetPhishingTestResultAsync = jest.fn().mockResolvedValue({
   result: false,
 });
 jest.mock('../../../util/phishingDetection', () => ({
-  getPhishingTestResultAsync: (origin: string) =>
-    mockGetPhishingTestResultAsync(origin),
+  getPhishingTestResultAsync: (origin: string, flow: RequestSourceFlow) =>
+    mockGetPhishingTestResultAsync(origin, flow),
 }));
 
 // Linking.openURL is already globally mocked in testSetup.js
@@ -221,12 +222,16 @@ describe('AccountApproval', () => {
     );
 
     // The full URL (with path) must be forwarded to the scanner, not the hostname.
-    expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
-      'https://shared-host.example/view/test-path',
-    );
-    expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
-      'shared-host.example',
-    );
+    await waitFor(() => {
+      expect(mockGetPhishingTestResultAsync).toHaveBeenCalledWith(
+        'https://shared-host.example/view/test-path',
+        RequestSourceFlow.DappConnection,
+      );
+      expect(mockGetPhishingTestResultAsync).not.toHaveBeenCalledWith(
+        'shared-host.example',
+        expect.anything(),
+      );
+    });
   });
 
   it('renders warning banner when hostname is flagged as phishing', async () => {

@@ -199,18 +199,37 @@ describeForPlatforms('BridgeView', () => {
           {
             assetId:
               'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            symbol: 'DUM8',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            decimals: 6,
+          },
+          {
+            assetId:
+              'eip155:1/erc20:0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            address: '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599',
+            symbol: 'WBTC',
+            decimals: 8,
+          },
+        ],
+        'eip155:137': [
+          {
+            assetId: 'eip155:137/slip44:966',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'POL',
+            decimals: 18,
           },
         ],
       });
-      const { getByTestId, queryByTestId, store } = renderBridgeView({
-        deterministicFiat: true,
-        overrides: {
-          bridge: {
-            ...DEFAULT_BRIDGE,
+      const { getByTestId, getByText, queryByTestId, store } = renderBridgeView(
+        {
+          deterministicFiat: true,
+          overrides: {
+            bridge: {
+              ...DEFAULT_BRIDGE,
+            },
           },
         },
-      });
+      );
 
       fireEvent.press(getByTestId(BridgeViewSelectorsIDs.LIMIT_TAB));
       act(() => {
@@ -224,6 +243,13 @@ describeForPlatforms('BridgeView', () => {
           ),
         ).toBeOnTheScreen();
       });
+      expect(
+        getByText(
+          strings('bridge.limit.unsupported_fee_token_pair', {
+            supportedTokens: 'USDC, WBTC',
+          }),
+        ),
+      ).toBeOnTheScreen();
       expect(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeDisabled();
 
       act(() => {
@@ -620,6 +646,30 @@ describeForPlatforms('BridgeView', () => {
 
     expect(await findByDisplayValue('9.5')).toBeOnTheScreen();
     expect(await findByText('$19,000.00')).toBeOnTheScreen();
+  });
+
+  it('renders the market keypad outside the responder-based content wrapper', async () => {
+    const { getByTestId } = defaultBridgeWithTokens({
+      bridge: {
+        sourceAmount: '0',
+        sourceToken: ETH_SOURCE,
+        destToken: undefined,
+      },
+    } as unknown as Record<string, unknown>);
+
+    fireEvent(
+      getByTestId(BridgeViewSelectorsIDs.SOURCE_TOKEN_INPUT),
+      'pressIn',
+    );
+    const keypadDeleteButton = await waitFor(() =>
+      getByTestId(BuildQuoteSelectors.KEYPAD_DELETE_BUTTON),
+    );
+
+    let ancestor = keypadDeleteButton.parent;
+    while (ancestor) {
+      expect(ancestor.props.onStartShouldSetResponder).toBeUndefined();
+      ancestor = ancestor.parent;
+    }
   });
 
   it('tracks source input denomination toggle', () => {

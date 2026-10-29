@@ -5,11 +5,18 @@
  * not here.
  */
 
-import { buildNightlySlackMessage, loadMetadata, type NightlyBuildMetadata } from './slack-nightly-build-notification';
+import {
+  buildNightlySlackMessage,
+  loadMetadata,
+  loadPreviousMetadata,
+  resolvePreviousCommits,
+  type NightlyBuildMetadata,
+} from './slack-nightly-build-notification';
 
 jest.mock('fs', () => ({
   readFileSync: jest.fn(),
   existsSync: jest.fn(),
+  readdirSync: jest.fn(),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-commonjs
@@ -18,6 +25,7 @@ const fs = require('fs');
 afterEach(() => {
   jest.mocked(fs.readFileSync).mockReset();
   jest.mocked(fs.existsSync).mockReset();
+  jest.mocked(fs.readdirSync).mockReset();
 });
 
 function blocksText(payload: { blocks: object[] }): string {
@@ -37,12 +45,16 @@ const SUCCESS_ENTRY = {
   commit_sha: 'abcdef1234567890',
 };
 
-function buildMetadata(overrides: Partial<NightlyBuildMetadata['builds']> = {}): NightlyBuildMetadata {
+function buildMetadata(
+  overrides: Partial<NightlyBuildMetadata['builds']> = {},
+  run: { runId?: string; generatedAt?: string } = {},
+): NightlyBuildMetadata {
+  const runId = run.runId ?? '999';
   return {
-    run_id: '999',
-    run_url: 'https://github.com/MetaMask/metamask-mobile/actions/runs/999',
+    run_id: runId,
+    run_url: `https://github.com/MetaMask/metamask-mobile/actions/runs/${runId}`,
     triggered_sha: 'fedcba0987654321',
-    generated_at: '2026-10-16T04:00:00.000Z',
+    generated_at: run.generatedAt ?? '2026-10-16T04:00:00.000Z',
     builds: {
       'ios-exp': { ...SUCCESS_ENTRY },
       'ios-rc': { ...SUCCESS_ENTRY },
@@ -90,6 +102,66 @@ describe('loadMetadata', () => {
   });
 });
 
+describe('loadPreviousMetadata', () => {
+  it('returns an empty list when the directory does not exist', () => {
+    fs.existsSync.mockReturnValue(false);
+
+    expect(loadPreviousMetadata('previous-nightly-metadata')).toEqual([]);
+  });
+
+  it('loads every run with a metadata file, newest first', () => {
+    const older = buildMetadata({}, { runId: '1', generatedAt: '2026-10-17T05:00:00.000Z' });
+    const newer = buildMetadata({}, { runId: '2', generatedAt: '2026-10-18T05:00:00.000Z' });
+    fs.existsSync.mockImplementation((path: string) => !path.includes('/3/'));
+    fs.readdirSync.mockReturnValue(['1', '2', '3']);
+    fs.readFileSync.mockImplementation((path: string) => JSON.stringify(path.includes('/1/') ? older : newer));
+
+    const previous = loadPreviousMetadata('previous-nightly-metadata');
+
+    expect(previous.map((run) => run.run_id)).toEqual(['2', '1']);
+  });
+});
+
+describe('resolvePreviousCommits', () => {
+  it('uses the most recent earlier run where the same build succeeded', () => {
+    const lastNight = buildMetadata(
+      {
+        'ios-rc': { result: 'failure', version: null, build_number: null, commit_sha: null },
+        'android-rc': { ...SUCCESS_ENTRY, commit_sha: 'android-last-night' },
+      },
+      { runId: '2', generatedAt: '2026-10-18T05:00:00.000Z' },
+    );
+    const twoNightsAgo = buildMetadata(
+      { 'ios-rc': { ...SUCCESS_ENTRY, commit_sha: 'ios-two-nights-ago' } },
+      { runId: '1', generatedAt: '2026-10-17T05:00:00.000Z' },
+    );
+
+    const commits = resolvePreviousCommits([lastNight, twoNightsAgo], '3');
+
+    expect(commits['ios-rc']).toBe('ios-two-nights-ago');
+    expect(commits['android-rc']).toBe('android-last-night');
+  });
+
+  it('ignores the current run if it is in the list', () => {
+    const current = buildMetadata({ 'ios-exp': { ...SUCCESS_ENTRY, commit_sha: 'current' } }, { runId: '3' });
+
+    const commits = resolvePreviousCommits([current], '3');
+
+    expect(commits['ios-exp']).toBeUndefined();
+  });
+
+  it('falls back to the given SHA when no earlier run covers a build', () => {
+    const commits = resolvePreviousCommits([], '3', 'previous-run-head');
+
+    expect(commits).toEqual({
+      'ios-exp': 'previous-run-head',
+      'ios-rc': 'previous-run-head',
+      'android-exp': 'previous-run-head',
+      'android-rc': 'previous-run-head',
+    });
+  });
+});
+
 describe('buildNightlySlackMessage', () => {
   const links = {
     androidRcUrl: 'https://app.runway.team/bucket/android-rc',
@@ -126,7 +198,7 @@ describe('buildNightlySlackMessage', () => {
     expect(blocksText(payload)).toContain('https://testflight.apple.com/join/hBrjtFuA');
   });
 
-  it('links each build to its own commit, even when RC and EXP differ', () => {
+  it('links each build to the commit history at its own commit, even when RC and EXP differ', () => {
     const metadata = buildMetadata({
       'android-rc': { ...SUCCESS_ENTRY, commit_sha: '1111111aaaaaaa' },
       'android-exp': { ...SUCCESS_ENTRY, commit_sha: '2222222bbbbbbb' },
@@ -134,8 +206,36 @@ describe('buildNightlySlackMessage', () => {
 
     const payload = buildNightlySlackMessage(metadata, links, { repoUrl: 'https://github.com/MetaMask/metamask-mobile' });
 
-    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/tree/1111111aaaaaaa');
-    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/tree/2222222bbbbbbb');
+    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/commits/1111111aaaaaaa/|1111111>');
+    expect(blocksText(payload)).toContain('https://github.com/MetaMask/metamask-mobile/commits/2222222bbbbbbb/|2222222>');
+  });
+
+  it('links to the changes since the previous nightly of the same build', () => {
+    const metadata = buildMetadata({ 'android-rc': { ...SUCCESS_ENTRY, commit_sha: 'newsha' } });
+
+    const payload = buildNightlySlackMessage(metadata, links, {
+      repoUrl: 'https://github.com/MetaMask/metamask-mobile',
+      previousCommits: { 'android-rc': 'oldsha' },
+    });
+
+    expect(blocksText(payload)).toContain(
+      '<https://github.com/MetaMask/metamask-mobile/compare/oldsha...newsha|Changes since last nightly>',
+    );
+  });
+
+  it('says there are no changes when the previous nightly built the same commit', () => {
+    const payload = buildNightlySlackMessage(buildMetadata(), links, {
+      previousCommits: { 'ios-exp': SUCCESS_ENTRY.commit_sha },
+    });
+
+    expect(blocksText(payload)).toContain('No changes since last nightly');
+    expect(blocksText(payload)).not.toContain('/compare/');
+  });
+
+  it('omits the compare link when there is no previous commit', () => {
+    const payload = buildNightlySlackMessage(buildMetadata(), links);
+
+    expect(blocksText(payload)).not.toContain('since last nightly');
   });
 
   it('shows a build-failed warning instead of version/build number for a failed build', () => {

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useInfiniteQuery } from '@metamask/react-data-query';
 import { focusManager, useQueryClient } from '@tanstack/react-query';
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
 import type {
   GetLimitOrdersResponse,
   LimitOrderState,
@@ -13,6 +13,8 @@ interface UseLimitOrdersParams {
   walletAddress?: string;
   states: LimitOrderState[];
   chainId?: CaipChainId;
+  assetId?: CaipAssetType;
+  limit?: number;
   enabled?: boolean;
   /**
    * How often, in milliseconds, the orders are refetched from the API while
@@ -25,6 +27,8 @@ export function useLimitOrders({
   walletAddress,
   states,
   chainId,
+  assetId,
+  limit = LIMIT_ORDERS_PAGE_LIMIT,
   enabled = true,
   refetchInterval,
 }: UseLimitOrdersParams) {
@@ -35,9 +39,10 @@ export function useLimitOrders({
         walletAddress: walletAddress ?? '',
         states,
         chainId,
-        limit: LIMIT_ORDERS_PAGE_LIMIT,
+        assetId,
+        limit,
       }),
-    [walletAddress, states, chainId],
+    [walletAddress, states, chainId, assetId, limit],
   );
   const isEnabled = enabled && Boolean(walletAddress);
   const query = useInfiniteQuery<GetLimitOrdersResponse>({
@@ -47,8 +52,6 @@ export function useLimitOrders({
     enabled: isEnabled,
   });
 
-  // A plain `refetchInterval` would be answered from the data service cache
-  // until its stale time lapses, so the query is invalidated instead.
   useEffect(() => {
     if (!isEnabled || !refetchInterval) {
       return undefined;
@@ -77,6 +80,9 @@ export function useLimitOrders({
 
   return {
     orders: query.data?.pages.flatMap((page) => page.orders) ?? [],
+    // Each page reports the total as of when it was fetched, so the latest
+    // page has the freshest one.
+    total: query.data?.pages.at(-1)?.total,
     isLoading: query.isLoading,
     isError: query.isError,
     hasNextPage: Boolean(query.hasNextPage),

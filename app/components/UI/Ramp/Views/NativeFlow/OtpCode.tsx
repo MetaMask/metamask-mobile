@@ -6,7 +6,14 @@ import React, {
   useRef,
   FC,
 } from 'react';
-import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {
   Box,
@@ -42,6 +49,7 @@ import { TRANSAK_SUPPORT_URL } from '../../constants';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import useScreenTransitionComplete from '../../../../hooks/useScreenTransitionComplete';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
 import { useTransakController } from '../../hooks/useTransakController';
@@ -176,9 +184,13 @@ const V2OtpCode = () => {
 
   const inputRef = useBlurOnFulfill({ value, cellCount: CELL_COUNT }) || null;
 
+  // On Android, focusing during the navigation transition is dropped, so the
+  // keyboard never opens. Wait for the transition to finish before focusing.
+  const isScreenTransitionComplete = useScreenTransitionComplete();
   useEffect(() => {
+    if (!isScreenTransitionComplete) return;
     inputRef.current?.focus();
-  }, [inputRef]);
+  }, [inputRef, isScreenTransitionComplete]);
 
   useEffect(() => {
     // Skip the countdown timer in E2E: the recurring setTimeout keeps the JS
@@ -429,32 +441,43 @@ const V2OtpCode = () => {
             </Text>
           </Box>
 
-          <CodeField
-            testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
-            ref={inputRef as React.RefObject<TextInput>}
-            {...props}
-            value={value}
-            onChangeText={handleValueChange}
-            cellCount={CELL_COUNT}
-            rootStyle={styles.codeFieldRoot}
-            keyboardType="number-pad"
-            textContentType="oneTimeCode"
-            editable={!isLoading}
-            renderCell={({ index, symbol, isFocused }) => (
-              <View
-                onLayout={getCellOnLayoutHandler(index)}
-                key={index}
-                style={[styles.cellRoot, isFocused && styles.focusCell]}
-              >
-                <Text style={styles.cellText}>
-                  {/* Cursor uses setInterval which keeps the JS thread non-idle,
+          <View style={styles.codeFieldRoot}>
+            <CodeField
+              testID={OtpCodeSelectorsIDs.OTP_CODE_INPUT}
+              ref={inputRef as React.RefObject<TextInput>}
+              {...props}
+              // The hidden input covers the boxes and keeps the tap without
+              // reopening the keyboard. The press layer below takes the tap.
+              pointerEvents="none"
+              value={value}
+              onChangeText={handleValueChange}
+              cellCount={CELL_COUNT}
+              rootStyle={styles.codeFieldCells}
+              keyboardType="number-pad"
+              textContentType="oneTimeCode"
+              editable={!isLoading}
+              renderCell={({ index, symbol, isFocused }) => (
+                <View
+                  onLayout={getCellOnLayoutHandler(index)}
+                  key={index}
+                  style={[styles.cellRoot, isFocused && styles.focusCell]}
+                >
+                  <Text style={styles.cellText}>
+                    {/* Cursor uses setInterval which keeps the JS thread non-idle,
                       stalling Detox synchronization. Omit it in E2E builds. */}
-                  {symbol ||
-                    (isFocused && !hasTestOverrides ? <Cursor /> : null)}
-                </Text>
-              </View>
-            )}
-          />
+                    {symbol ||
+                      (isFocused && !hasTestOverrides ? <Cursor /> : null)}
+                  </Text>
+                </View>
+              )}
+            />
+            <Pressable
+              accessible={false}
+              style={StyleSheet.absoluteFill}
+              onPress={() => inputRef.current?.focus()}
+              onPressOut={props.onPressOut}
+            />
+          </View>
 
           {error && (
             <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>

@@ -102,6 +102,12 @@ export enum ConfirmationLaunchSource {
    * the landing returns to it instead of stacking a second copy on top.
    */
   RewardsMoneyHome = 'rewards-money-home',
+  /**
+   * The adjust-margin sheet. That sheet stays on the stack under the deposit
+   * confirmation, so finishing the deposit should dismiss the confirmation
+   * and land back on the sheet.
+   */
+  PerpsAdjustMargin = 'perps-adjust-margin',
 }
 
 export interface ConfirmationParams {

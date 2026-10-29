@@ -2,7 +2,13 @@
 
 One Preview/Commit route pair, one durable Order operation, and one canonical Order Receipt serve both buy and sell, discriminated by an `action: 'buy' | 'sell'` field, rather than growing separate sell endpoints. A sell intent (Cash Out) is expressed in whole contracts, bounded by the Position being reduced, not a USD spend: Positions are share-denominated, the venue matches whole contracts, and integer contract quoting mirrors the buy's integer-cent quote math. Action-specific fields are absent rather than null — a sell carries Proceeds fields and no debit/payout fields, and a buy the reverse — so `payoutExposure` stays semantically clean and the mobile `PredictOrderService` remains action-agnostic: quotes and Commits pass through unchanged, and buy and Cash Out cannot drift into separate orchestration modules.
 
-Status: accepted, 2026-09-28 (PRED-1195). Amended 2026-09-28 with the version-tolerance rule below.
+Status: accepted, 2026-09-28 (PRED-1195). Amended 2026-09-28 with the version-tolerance rule below. Clarified 2026-10-20 by PRED-1374, below.
+
+## PRED-1374 clarification
+
+The whole-contract sell rule is Kalshi-specific. The single action-discriminated workflow stays. When Polymarket moves to the Predict API service (PRED-1356), its fractional Cash Out must fit, so the venue-neutral sell quantity should be a decimal share string, with each Venue's precision, minimum, and step constraints enforced by its implementation. Kalshi's current integer request and parser stay unchanged until a slice changes them deliberately.
+
+PredictNext is unreleased. The version-tolerance rules below describe implemented behavior, not a requirement to support older unreleased shapes. Coordinated breaking changes are allowed without dual parsers or version negotiation.
 
 ## Considered options
 

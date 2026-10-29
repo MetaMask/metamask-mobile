@@ -10,7 +10,6 @@ import {
 } from '../framework/quality-gates';
 import { getTeamInfoFromTags } from '../framework/utils/teams';
 import { DeviceInfoExtractor } from './utils/DeviceInfoExtractor';
-import { BrowserStackEnricher } from './providers/browserstack/BrowserStackEnricher';
 import { TestMuAIEnricher } from './providers/testmu/TestMuAIEnricher';
 import { HtmlReportGenerator } from './generators/HtmlReportGenerator';
 import { CsvReportGenerator } from './generators/CsvReportGenerator';
@@ -178,16 +177,10 @@ class PerformanceReporter {
     logger.info(`Generating reports for ${this.metrics.length} tests`);
 
     const summary = this.calculateSummary();
-    const isBrowserStackRun = this.detectBrowserStackRun();
     const isTestMuRun = this.detectTestMuRun();
 
     if (this.sessions.length > 0 && isTestMuRun) {
       await this.enrichSessionsWithTestMuData();
-    }
-
-    if (this.sessions.length > 0 && isBrowserStackRun) {
-      await this.enrichSessionsWithProviderData();
-      await this.publishAppSizeToSentry();
     }
 
     // Clean up leftover environment variables
@@ -544,33 +537,6 @@ class PerformanceReporter {
     };
   }
 
-  private detectBrowserStackRun(): boolean {
-    const projectNames = this.sessions
-      .map((s) => s.projectName)
-      .filter(Boolean);
-    const isBrowserStackProject = (name: string): boolean => {
-      const normalizedName = name.toLowerCase();
-      return (
-        normalizedName.includes('browserstack') ||
-        normalizedName === 'android-onboarding' ||
-        normalizedName === 'ios-onboarding'
-      );
-    };
-    const isBrowserStackRun =
-      this.sessions.length > 0 &&
-      projectNames.some((name) => isBrowserStackProject(name ?? ''));
-
-    logger.info(
-      `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
-    );
-    if (this.sessions.length > 0 && !isBrowserStackRun) {
-      logger.info(
-        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
-      );
-    }
-    return isBrowserStackRun;
-  }
-
   private detectTestMuRun(): boolean {
     return this.sessions.some((session) =>
       (session.projectName ?? '').toLowerCase().includes('testmu'),
@@ -592,81 +558,6 @@ class PerformanceReporter {
         await enricher.enrichSession(session);
       } catch (error) {
         logger.error(`Error enriching TestMu session for ${session.testTitle}`);
-      }
-    }
-  }
-
-  private async enrichSessionsWithProviderData(): Promise<void> {
-    logger.info(
-      `Fetching video URLs, profiling and network logs for ${this.sessions.length} sessions`,
-    );
-
-    const enricher = new BrowserStackEnricher();
-
-    for (const session of this.sessions) {
-      try {
-        await enricher.enrichSession(session);
-      } catch (error) {
-        logger.error(`Error enriching session for ${session.testTitle}`);
-      }
-    }
-  }
-
-  /**
-   * After BrowserStack enrichment, publish the installed app size for each
-   * session that has profiling data to Sentry, following the same pattern
-   * as the per-test timing measurements sent from the fixture.
-   */
-  private async publishAppSizeToSentry(): Promise<void> {
-    for (const session of this.sessions) {
-      const appSizeMb = session.profilingSummary?.appSizeMb;
-      if (appSizeMb === undefined) {
-        continue;
-      }
-
-      const metric = this.metrics.find((m) => m.testName === session.testTitle);
-
-      const deviceInfo: DeviceInfo = session.deviceInfo ??
-        metric?.device ?? {
-          name: 'Unknown',
-          osVersion: 'Unknown',
-          provider: 'browserstack',
-        };
-
-      const teamInfo = session.team ?? metric?.team ?? null;
-
-      try {
-        const sentToSentry = await publishPerformanceScenarioToSentry({
-          metrics: {
-            steps: [],
-            timestamp: session.timestamp ?? new Date().toISOString(),
-            thresholdMarginPercent: 0,
-            team: teamInfo,
-            total: 0,
-            totalThreshold: null,
-            hasThresholds: false,
-            totalValidation: null,
-            device: deviceInfo,
-            appSizeMb,
-          },
-          testTitle: session.testTitle,
-          projectName: session.projectName ?? 'unknown',
-          testFilePath: session.testFilePath,
-          videoRecordingUrl: session.videoURL ?? null,
-          tags: session.tags ?? metric?.tags ?? [],
-          status: session.testStatus,
-        });
-
-        if (sentToSentry) {
-          logger.info(
-            `App size (${appSizeMb} MB) for "${session.testTitle}" sent to Sentry`,
-          );
-        }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        logger.warn(
-          `Failed to publish app size for "${session.testTitle}" to Sentry: ${message}`,
-        );
       }
     }
   }
@@ -749,7 +640,7 @@ class PerformanceReporter {
   ): Promise<void> {
     for (const metric of metrics) {
       // Skip if no profiling data or if enrichment produced an error object
-      // (BrowserStackEnricher sets profilingSummary to { error: '...' } on failure)
+      // (an enricher sets profilingSummary to { error: '...' } on failure)
       if (!metric.profilingSummary || metric.profilingSummary.error) continue;
 
       // Derive status that matches what the fixture sends: timedOut is a

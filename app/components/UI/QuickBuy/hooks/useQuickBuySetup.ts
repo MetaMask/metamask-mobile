@@ -1,5 +1,4 @@
 import {
-  formatAddressToAssetId,
   formatChainIdToHex,
   isNativeAddress,
   isNonEvmChainId,
@@ -69,10 +68,12 @@ export const useQuickBuySetup = (
   // Decode the CAIP-19 wrapper if present (Social feed always encodes this way
   // for non-EVM and may also do so for EVM). Native references (`slip44:NNN`)
   // are served from the chain's native asset registry. Token references
-  // (`erc20`, `token`, `spl`, `trc20`, …) get their bare address forwarded to
-  // `useAssetMetadata`. Bare hex/base58 addresses (legacy EVM shape) fall
-  // through unchanged — except the EVM native sentinel (`0x0…0`), which Token
-  // Details passes for natives like MON on Monad or HYPE on HyperEVM.
+  // (`erc20`, `token`, `spl`, `trc20`, `asset`, …) are forwarded to
+  // `useAssetMetadata` as the bare address for EVM and the full CAIP-19 ID for
+  // non-EVM, since references like Stellar's `CODE-ISSUER` aren't addresses.
+  // Bare hex/base58 addresses (legacy EVM shape) fall through unchanged —
+  // except the EVM native sentinel (`0x0…0`), which Token Details passes for
+  // natives like MON on Monad or HYPE on HyperEVM.
   const { metadataQuery, isNativeAsset, parsedTokenAddress } = useMemo(() => {
     const fallback = {
       metadataQuery: position?.tokenAddress ?? '',
@@ -101,11 +102,13 @@ export const useQuickBuySetup = (
       };
     }
     return {
-      metadataQuery: parsed.reference,
+      metadataQuery: isNonEvmChainId(position.chain)
+        ? position.tokenAddress
+        : parsed.reference,
       isNativeAsset: false,
       parsedTokenAddress: parsed.reference,
     };
-  }, [position?.tokenAddress]);
+  }, [position?.tokenAddress, position?.chain]);
 
   // Fetch token metadata (decimals, image) from Token Metadata API for the
   // dest token. Skipped for natives (handled via getNativeSourceToken).
@@ -158,8 +161,7 @@ export const useQuickBuySetup = (
       const evmAddress = parsedTokenAddress ?? position.tokenAddress;
       return {
         address: isNonEvmChainId(destChainId)
-          ? (formatAddressToAssetId(assetMetadata.address, destChainId) ??
-            assetMetadata.address)
+          ? assetMetadata.assetId
           : evmAddress,
         symbol: position.tokenSymbol,
         name: position.tokenName,

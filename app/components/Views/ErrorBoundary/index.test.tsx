@@ -15,12 +15,14 @@ import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import {
   confirmSupportConsent,
   navigateToSupportConsent,
+  openSupportWithSavedPreference,
   rejectSupportConsent,
 } from '../../../util/support';
 
 jest.mock('../../../util/support', () => ({
   navigateToSupportConsent: jest.fn(),
   confirmSupportConsent: jest.fn(),
+  openSupportWithSavedPreference: jest.fn().mockReturnValue(false),
   rejectSupportConsent: jest.fn(),
 }));
 
@@ -288,6 +290,24 @@ describe('ErrorBoundary', () => {
     expect(
       getByTestId('standalone-support-consent-confirm-button'),
     ).toBeOnTheScreen();
+  });
+
+  it('opens support directly when a saved preference is available', async () => {
+    jest.mocked(openSupportWithSavedPreference).mockReturnValueOnce(true);
+    const { getByText, queryByTestId } = renderWithProvider(
+      <Fallback {...mockProps} />,
+      { state: initialState },
+    );
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('error_screen.contact_support')));
+    });
+
+    expect(openSupportWithSavedPreference).toHaveBeenCalledWith(
+      expect.any(Function),
+      METAMASK_SUPPORT_URL,
+    );
+    expect(queryByTestId('standalone-support-consent-modal')).toBeNull();
   });
 
   it('confirms via the standalone consent modal, opening the enriched URL', async () => {

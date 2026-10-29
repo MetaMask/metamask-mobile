@@ -1,18 +1,19 @@
 import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-function getFontSize(length: number) {
+/** Returns the legacy font size breakpoints used by confirmation amounts. */
+export const getFontSizeForConfirmationAmount = (length: number): number => {
   if (length <= 8) return 64;
   if (length <= 13) return 40;
   if (length <= 18) return 30;
   return 20;
-}
+};
 
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
 }) => {
-  const fontSize = getFontSize(params.vars.amountLength);
+  const fontSize = getFontSizeForConfirmationAmount(params.vars.amountLength);
 
   return StyleSheet.create({
     container: {

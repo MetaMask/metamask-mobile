@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -18,6 +19,8 @@ import type { AppNavigationProp } from '../../../../../core/NavigationService/ty
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { navigateToVbaOnboardingDestination } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { VbaOnboardingRoutes } from '../../../Ramp/Views/VirtualBankAccount/routes';
+import { selectMoneyMovementNeobank } from '../../../../../selectors/featureFlagController/moneyAccount';
 import VbaIllustration, {
   VbaIllustrationSource,
 } from '../../components/Illustration';
@@ -29,10 +32,15 @@ export const VbaIdentityVerifiedSelectorsIDs = {
   CONTINUE_BUTTON: 'vba-identity-verified-continue-button',
 } as const;
 
-/** KYC approved, no usable autoramp yet. Continue opens details; Back → Money home. */
+/**
+ * KYC approved, no usable autoramp yet. Continue opens Choose Currency when
+ * `moneyMovementNeobank.chooseCurrency` is on, otherwise account details.
+ * Back goes to Money home.
+ */
 const VbaIdentityVerified = () => {
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
+  const { chooseCurrency } = useSelector(selectMoneyMovementNeobank);
 
   const handleBack = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -42,8 +50,14 @@ const VbaIdentityVerified = () => {
   }, [navigation]);
 
   const handleContinue = useCallback(() => {
+    if (chooseCurrency) {
+      navigation.dispatch(
+        StackActions.push(VbaOnboardingRoutes.CHOOSE_CURRENCY),
+      );
+      return;
+    }
     navigateToVbaOnboardingDestination(navigation, 'complete');
-  }, [navigation]);
+  }, [chooseCurrency, navigation]);
 
   return (
     <SafeAreaView

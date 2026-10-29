@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -64,9 +65,9 @@ describe('VbaIdentityVerified', () => {
     );
 
     expect(mockParentDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'NAVIGATE',
-        payload: expect.objectContaining({ name: Routes.RAMP.VBA_DETAILS }),
+      CommonActions.reset({
+        index: 1,
+        routes: [{ name: Routes.HOME_TABS }, { name: Routes.RAMP.VBA_DETAILS }],
       }),
     );
   });

@@ -11,12 +11,14 @@ import { getLimitOrdersBaseUrl } from '../getLimitOrdersBaseUrl';
  * `nextCursor` of a page as `cursor` to fetch the page after it.
  *
  * @param query - The orders to fetch.
- * @returns One page of orders, and the cursor of the next page if there is one.
+ * @returns One page of orders, the cursor of the next page if there is one,
+ * and how many orders match the query across every page.
  */
 export async function getLimitOrders({
   walletAddress,
   states,
   chainId,
+  assetId,
   limit,
   cursor,
 }: GetLimitOrdersQuery): Promise<GetLimitOrdersResponse> {
@@ -39,6 +41,10 @@ export async function getLimitOrders({
 
   if (chainId) {
     searchParams.set('chainIds', chainId);
+  }
+
+  if (assetId) {
+    searchParams.set('assetId', assetId);
   }
 
   if (limit !== undefined) {
@@ -70,12 +76,13 @@ export async function getLimitOrders({
     );
   }
 
-  const { orders, endCursor, hasNextPage } = parseLimitOrderPageResponse(
+  const { orders, endCursor, hasNextPage, total } = parseLimitOrderPageResponse(
     await response.json(),
   );
 
   return {
     orders,
     ...(hasNextPage && endCursor ? { nextCursor: endCursor } : {}),
+    total,
   };
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -64,10 +65,10 @@ const QuickBuyToolbar: React.FC = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        gap={3}
+        gap={4}
       >
         {headerToken ? (
-          <QuickBuyTokenIcon token={headerToken} />
+          <QuickBuyTokenIcon token={headerToken} size={AvatarTokenSize.Lg} />
         ) : (
           <Box twClassName="h-10 w-10" />
         )}

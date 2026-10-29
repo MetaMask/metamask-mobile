@@ -6,6 +6,7 @@ import {
   BridgeClientId,
   FeatureId,
   getClientHeaders,
+  SwapFeatureTag,
 } from '@metamask/bridge-controller';
 
 import { BRIDGE_API_BASE_URL } from '../../../../constants/bridge';
@@ -94,6 +95,7 @@ export const useFetchPopularTokens = () => {
             chain_scope: chainIds.length > 1 ? 'multi_chain' : 'single_chain',
             chain_ids: chainIds.join(','),
           },
+          tags: { feature: SwapFeatureTag.SWAP },
           startTime: Date.now(),
         });
 

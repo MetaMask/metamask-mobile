@@ -1,11 +1,6 @@
 import { Dimensions } from 'react-native';
 import { strings } from '../../../../../locales/i18n';
 import { PredictSeries, Recurrence } from '../types';
-import {
-  formatSubscriptNotation,
-  type FormatSubscriptNotationOptions,
-} from '../../../../util/number/subscriptNotation';
-import currencySymbols from '../../../../util/currency-symbols.json';
 
 /**
  * Formats a percentage value
@@ -127,66 +122,6 @@ export const formatPrice = (
     minimumFractionDigits: minFractionDigits,
     maximumFractionDigits: maximumDecimals,
   }).format(rounded);
-};
-
-/**
- * Formats a price value with subscript notation for very small values
- * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₅614)
- * - The subscript indicates the number of leading zeros after the decimal point
- * - Returns "—" for zero values
- * - Values >= 1: exactly 2 decimal places (e.g. $2,285.01)
- * - Values < 1: up to 4 decimal places (e.g. $0.1446)
- * @param price - The price value to format (string or number)
- * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
- * @param options - Optional; set `maxDigitsAfterSubscript` to shorten the digit tail after `0.0ₙ` (e.g. compact OHLC rows).
- * @returns Formatted price string with currency symbol or "—" for zero
- * @example formatPriceWithSubscriptNotation(2285.013) => "$2,285.01"
- * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
- * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
- * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
- * @example formatPriceWithSubscriptNotation(0) => "—"
- * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
- * @example formatPriceWithSubscriptNotation(0.00003415, 'USD', { maxDigitsAfterSubscript: 2 }) => "$0.0₄34"
- */
-export interface FormatPriceWithSubscriptNotationOptions
-  extends FormatSubscriptNotationOptions {
-  /** Override the default max decimal places (2 for ≥1, 4 for <1). */
-  maximumFractionDigits?: number;
-}
-
-export const formatPriceWithSubscriptNotation = (
-  price: string | number,
-  currencyCode = 'USD',
-  options?: FormatPriceWithSubscriptNotationOptions,
-): string => {
-  const num = typeof price === 'string' ? parseFloat(price) : price;
-
-  if (isNaN(num)) {
-    return '$0.00';
-  }
-
-  if (num === 0) {
-    return '—';
-  }
-
-  // Known symbol (e.g. $, €) → prefix; unknown code (e.g. PLN) → suffix
-  // Matches addCurrencySymbol convention used elsewhere in the app
-  const symbol =
-    currencySymbols[currencyCode.toLowerCase() as keyof typeof currencySymbols];
-  const addSymbol = (n: string) =>
-    symbol ? `${symbol}${n}` : `${n} ${currencyCode.toUpperCase()}`;
-
-  const subscript = formatSubscriptNotation(num, options);
-  if (subscript) return addSymbol(subscript);
-
-  const maximumFractionDigits =
-    options?.maximumFractionDigits ?? (num >= 1 ? 2 : 4);
-  const formattedNumber = new Intl.NumberFormat('en-US', {
-    style: 'decimal',
-    minimumFractionDigits: 2,
-    maximumFractionDigits,
-  }).format(num);
-  return addSymbol(formattedNumber);
 };
 
 /**

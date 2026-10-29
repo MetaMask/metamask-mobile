@@ -3,6 +3,7 @@ import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { toast, ToastSeverity } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { Source } from '@metamask/assets-controllers';
 import AddCustomCollectible from './AddCustomCollectible';
 import Engine from '../../../../../core/Engine';
 // eslint-disable-next-line import-x/no-namespace
@@ -133,6 +134,12 @@ describe('AddCustomCollectible', () => {
     });
 
     expect(Engine.context.NftController.addNft).toHaveBeenCalledTimes(1);
+    expect(Engine.context.NftController.addNft).toHaveBeenCalledWith(
+      VALID_ADDRESS,
+      '55',
+      'mainnet',
+      { source: Source.Custom },
+    );
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 

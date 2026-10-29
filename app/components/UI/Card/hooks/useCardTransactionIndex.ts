@@ -111,6 +111,10 @@ export function useCardTransactionIndex({
     getNextPageParam: (lastPage: CardTransactionPage) => lastPage.nextCursor,
     initialPageParam: undefined as string | undefined,
     enabled: queryEnabled,
+    // Same as useCardTransactions: the 5-minute app default would hide a
+    // purchase made outside the app from Money Activity enrichment.
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const allItems = useMemo(

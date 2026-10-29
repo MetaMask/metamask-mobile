@@ -1,7 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Profile, XProfile } from '@metamask/profile-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { useMyProfile } from './useMyProfile';
+import { resetResolvedSessionProfileIds, useMyProfile } from './useMyProfile';
 
 const mockFetchAndUpdateProfile = jest.fn();
 const mockFetchAndUpdateXAccount = jest.fn();
@@ -53,6 +53,7 @@ const controllerProfile: Profile = {
 describe('useMyProfile', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    resetResolvedSessionProfileIds();
     mockControllerState.profile = controllerProfile;
     mockUseSessionProfileId.mockReturnValue({
       profileId: 'profile-123',
@@ -73,6 +74,14 @@ describe('useMyProfile', () => {
     expect(result.current.profile?.handle).toBe('alice');
     expect(result.current.profile?.joinedAt).toBe('2026-01-01T00:00:00Z');
     expect(result.current.error).toBeNull();
+  });
+
+  it('does not hydrate the controller profile when disabled', () => {
+    const { result } = renderHook(() => useMyProfile({ enabled: false }));
+
+    expect(mockFetchAndUpdateProfile).not.toHaveBeenCalled();
+    expect(result.current.profile?.handle).toBe('alice');
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('treats a missing profile as empty instead of an error', async () => {
@@ -132,6 +141,72 @@ describe('useMyProfile', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.profile?.handle).toBe('alice');
+  });
+
+  it('does not wait again on remount once a lookup found no profile', async () => {
+    mockControllerState.profile = undefined;
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 404'),
+    );
+    const firstMount = renderHook(() => useMyProfile());
+    await waitFor(() => {
+      expect(firstMount.result.current.isLoading).toBe(false);
+    });
+    firstMount.unmount();
+    mockFetchAndUpdateProfile.mockImplementation(
+      () => new Promise<Profile>(() => undefined),
+    );
+
+    const { result } = renderHook(() => useMyProfile());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.profile).toBeNull();
+    expect(mockFetchAndUpdateProfile).toHaveBeenCalledTimes(2);
+  });
+
+  it('waits again on remount when the last lookup failed', async () => {
+    mockControllerState.profile = undefined;
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 500'),
+    );
+    const firstMount = renderHook(() => useMyProfile());
+    await waitFor(() => {
+      expect(firstMount.result.current.isLoading).toBe(false);
+    });
+    firstMount.unmount();
+    mockFetchAndUpdateProfile.mockImplementation(
+      () => new Promise<Profile>(() => undefined),
+    );
+
+    const { result } = renderHook(() => useMyProfile());
+
+    expect(result.current.isLoading).toBe(true);
+  });
+
+  it('shows loading on retry after a resolved lookup later fails', async () => {
+    mockControllerState.profile = undefined;
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 404'),
+    );
+    const { result } = renderHook(() => useMyProfile());
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+    mockFetchAndUpdateProfile.mockRejectedValue(
+      new Error('GET_PROFILE_FAILED: 500'),
+    );
+    await act(async () => {
+      await result.current.refresh();
+    });
+    mockFetchAndUpdateProfile.mockImplementation(
+      () => new Promise<Profile>(() => undefined),
+    );
+
+    act(() => {
+      result.current.refresh().catch(() => undefined);
+    });
+
+    expect(result.current.isLoading).toBe(true);
   });
 
   it('refreshes the linked X account without failing the profile', async () => {

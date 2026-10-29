@@ -1,7 +1,8 @@
 import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo } from 'react';
+import { ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useLoadMoreOnScroll } from '../tokenDetailsScroll';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import { useSocialFeed } from '../../../SocialFeed/data/useSocialFeed';
 import type { SocialFeedSource } from '../../../SocialFeed/data/socialFeedSource';
@@ -14,84 +15,39 @@ import {
   SocialEntryOptionsProvider,
   useSocialEntryModeration,
 } from '../../../SocialFeed/components/SocialEntryOptionsBottomSheet';
-import SocialFeedEmpty from '../../../SocialFeed/components/SocialFeedEmpty';
 import SocialFeedError from '../../../SocialFeed/components/SocialFeedError';
 import SocialFeedPostShell, {
   type SocialFeedPostShellProps,
 } from '../../../SocialFeed/components/SocialFeedPostShell';
 import SocialFeedSkeleton from '../../../SocialFeed/components/SocialFeedSkeleton';
 import SocialV1FeedPostList from '../../../SocialFeed/components/SocialV1FeedPostList';
-
-/** How far past the screen a footer may sit and still count as reached. */
-const LOAD_MORE_THRESHOLD_PX = 600;
-
-/** How often a mounted feed checks whether its footer has scrolled into view. */
-const VISIBILITY_CHECK_MS = 400;
+import type { TokenDetailsRouteParams } from '../../constants/constants';
+import TokenDetailsFeedEmptyState from './TokenDetailsFeedEmptyState';
 
 const NEXT_PAGE_TEST_ID = 'token-details-feed-next-page';
-
-const styles = StyleSheet.create({
-  // An empty view measures as height 0, and the visibility check ignores that,
-  // so the footer would never ask for another page. One pixel is enough to
-  // measure, and `collapsable={false}` stops Android from dropping the view.
-  sentinel: {
-    height: 1,
-  },
-});
 
 export interface TokenDetailsFeedProps {
   source: SocialFeedSource;
   location: SocialSurfaceLocation;
   onCopyTrade?: SocialFeedPostShellProps['onCopyTrade'];
+  /** The visible tab pages alone follow the page scroll for more posts. */
+  isActive?: boolean;
+  /** True when this wallet holds the token. Picks the empty-state copy. */
+  hasBalance?: boolean;
+  /** Token on screen, so the empty-state post opens on this holding. */
+  token?: TokenDetailsRouteParams;
+  /** Reports whether the feed is showing its empty state. */
+  onEmptyChange?: (isEmpty: boolean) => void;
 }
-
-const LoadMoreSentinel: React.FC<{
-  enabled: boolean;
-  onVisible: () => void;
-}> = ({ enabled, onVisible }) => {
-  const ref = useRef<View>(null);
-  const onVisibleRef = useRef(onVisible);
-  onVisibleRef.current = onVisible;
-
-  const check = useCallback(() => {
-    ref.current?.measureInWindow((_x, y, _width, height) => {
-      if (height <= 0) {
-        return;
-      }
-      const screenHeight = Dimensions.get('window').height;
-      if (y < screenHeight + LOAD_MORE_THRESHOLD_PX && y + height > 0) {
-        onVisibleRef.current();
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (!enabled) {
-      return undefined;
-    }
-    check();
-    const intervalId = setInterval(check, VISIBILITY_CHECK_MS);
-    return () => clearInterval(intervalId);
-  }, [check, enabled]);
-
-  if (!enabled) {
-    return null;
-  }
-
-  return (
-    <View
-      ref={ref}
-      collapsable={false}
-      style={styles.sentinel}
-      onLayout={check}
-    />
-  );
-};
 
 const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
   source,
   location,
   onCopyTrade,
+  isActive = true,
+  hasBalance = false,
+  token,
+  onEmptyChange,
 }) => {
   const enabled = useSelector(selectSocialLeaderboardEnabled);
   const { isEntryHidden } = useSocialEntryModeration();
@@ -120,17 +76,29 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             postId: post.id,
             authorId: post.item.author.id,
             authorHandle: post.authorHandle,
+            commentId: post.commentId,
           }),
       ),
     [isEntryHidden, posts],
   );
+
+  useLoadMoreOnScroll({
+    enabled: isActive && hasNextPage && !isFetchingNextPage,
+    onLoadMore: loadMore,
+  });
+
+  const showEmpty =
+    enabled && !isLoading && !error && visiblePosts.length === 0;
+
+  useEffect(() => {
+    onEmptyChange?.(showEmpty);
+  }, [onEmptyChange, showEmpty]);
 
   if (!enabled) {
     return null;
   }
 
   const showSkeleton = isLoading && posts.length === 0;
-  const showEmpty = !isLoading && !error && visiblePosts.length === 0;
 
   return (
     <SocialFeedSurfaceProvider location={location}>
@@ -143,7 +111,9 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             renderPost={renderPost}
           />
         ) : null}
-        {showEmpty ? <SocialFeedEmpty /> : null}
+        {showEmpty ? (
+          <TokenDetailsFeedEmptyState hasBalance={hasBalance} token={token} />
+        ) : null}
         {error ? <SocialFeedError onRetry={() => refresh()} /> : null}
         {isFetchingNextPage ? (
           <Box
@@ -154,10 +124,6 @@ const TokenDetailsFeedBody: React.FC<TokenDetailsFeedProps> = ({
             <ActivityIndicator size="small" />
           </Box>
         ) : null}
-        <LoadMoreSentinel
-          enabled={hasNextPage && !isFetchingNextPage}
-          onVisible={loadMore}
-        />
       </Box>
     </SocialFeedSurfaceProvider>
   );

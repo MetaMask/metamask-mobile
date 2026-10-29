@@ -11,6 +11,7 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { VIP_REFEREE_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import RewardsVipRefereeSplashView from './RewardsVipRefereeSplashView';
+import { strings } from '../../../../../locales/i18n';
 
 const mockNavigateDispatch = jest.fn();
 const mockGoBack = jest.fn();
@@ -42,87 +43,13 @@ jest.mock('@react-navigation/native', () => {
       goBack: mockGoBack,
       navigate: mockNavigate,
     }),
+    useRoute: () => ({
+      key: 'RewardsVipRefereeSplashView',
+      name: 'RewardsVipRefereeSplashView',
+      params: undefined,
+    }),
   };
 });
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View, Text } = jest.requireActual('react-native');
-
-  return {
-    Box: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
-    FontWeight: { Bold: 'bold', Medium: 'medium' },
-    Text: ({ children, ...props }: { children?: React.ReactNode }) =>
-      ReactActual.createElement(Text, props, children),
-    TextVariant: { BodyMd: 'bodyMd', BodySm: 'bodySm' },
-  };
-});
-
-jest.mock('react-native-linear-gradient', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockLinearGradient({
-    children,
-    testID,
-  }: {
-    children?: React.ReactNode;
-    testID?: string;
-  }) {
-    return ReactActual.createElement(View, { testID }, children);
-  };
-});
-
-jest.mock('@react-native-masked-view/masked-view', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return function MockMaskedView({
-    children,
-    maskElement,
-  }: {
-    children?: React.ReactNode;
-    maskElement?: React.ReactNode;
-  }) {
-    return ReactActual.createElement(View, null, maskElement, children);
-  };
-});
-
-jest.mock('react-native-safe-area-context', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    SafeAreaView: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => ReactActual.createElement(View, { testID }, children),
-  };
-});
-
-jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
-
-jest.mock('../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string, opts?: Record<string, string>) => {
-    const translations: Record<string, string> = {
-      'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nFOX COLLECTIVE',
-      'rewards.vip.splash_description':
-        'Placeholder referee splash copy for tests only.',
-      'rewards.vip.referee_splash_continue': 'Continue',
-      'rewards.vip.splash_not_now': 'Not now',
-    };
-    if (key === 'rewards.vip.referee_referred_by') {
-      return `Referred by ${opts?.code ?? ''}`;
-    }
-    return translations[key] ?? key;
-  }),
-}));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
@@ -167,20 +94,30 @@ describe('RewardsVipRefereeSplashView', () => {
   });
 
   it('renders the referee splash with the referred-by code when not accepted', () => {
-    const { getAllByText, getByTestId, getByText } = render(
-      <RewardsVipRefereeSplashView />,
-    );
+    const { getByTestId } = render(<RewardsVipRefereeSplashView />);
 
     expect(
       getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
     expect(
-      getAllByText('WELCOME\nTO MOCK\nFOX COLLECTIVE')[0],
-    ).toBeOnTheScreen();
-    expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
+      getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.TITLE),
+    ).toHaveTextContent(strings('rewards.vip.splash_title'));
+    expect(
+      getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.DESCRIPTION),
+    ).toHaveTextContent(strings('rewards.vip.splash_description'));
     expect(
       getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.REFERRED_BY),
-    ).toBeOnTheScreen();
+    ).toHaveTextContent(
+      strings('rewards.vip.referee_referred_by', {
+        code: mockReferredByVipCode,
+      }),
+    );
+    expect(
+      getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.CONTINUE_BUTTON),
+    ).toHaveTextContent(strings('rewards.vip.referee_splash_continue'));
+    expect(
+      getByTestId(VIP_REFEREE_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON),
+    ).toHaveTextContent(strings('rewards.vip.splash_not_now'));
   });
 
   it('omits the referred-by footer when no referral code is available', () => {

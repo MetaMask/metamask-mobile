@@ -4,6 +4,7 @@
 
 import { useCallback, useRef } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { runAfterInteractions } from '../utils/runAfterInteractions';
 import Engine from '../../../../core/Engine';
 import { useDispatch } from 'react-redux';
 import {
@@ -54,10 +55,13 @@ export const useGeoRewardsMetadata = ({
     }
   }, [dispatch, enabled]);
 
-  // Initial data fetch
+  // After first paint. The lookup is not part of the dashboard shell.
   useFocusEffect(
     useCallback(() => {
-      fetchGeoRewardsMetadata();
+      const handle = runAfterInteractions(() => {
+        void fetchGeoRewardsMetadata();
+      });
+      return () => handle.cancel();
     }, [fetchGeoRewardsMetadata]),
   );
 

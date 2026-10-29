@@ -2,8 +2,8 @@
 //
 // The e2e shim rewrites `global.WebSocket` so that:
 // - URLs matching a `WS_SERVICES` config prefix are rewritten to that
-//   service's dedicated local mock server (per-service port), exactly as
-//   before this helper existed.
+//   service's dedicated local mock server (per-service port), keeping the
+//   path and query after the prefix (e.g. account activity's `/v1?token=…`).
 // - Any other `ws://` / `wss://` URL falls back to the central e2e mock
 //   server's `/proxy-ws` upgrade path, mirroring the `/proxy` HTTP path:
 //   `ws://<mockServerHost>:<mockServerPort>/proxy-ws?url=<encodeURIComponent(original)>`
@@ -41,7 +41,8 @@ function isLocalUrl(url: string): boolean {
  * @param url - The URL argument passed to the WebSocket constructor. May be
  * anything the caller received; only strings are ever rewritten.
  * @param wsRoutes - Exact-prefix route table (production URL prefix → local
- * mock URL). First matching prefix wins.
+ * mock URL). First matching prefix wins; the rest of the URL after the
+ * prefix is appended to the local mock URL.
  * @param mockServerPort - Port of the central e2e mock server (the same
  * `-mockServerPort` launch arg used by the `/proxy` HTTP path).
  * @param shouldBypassProxy - Optional predicate mirroring the shim's
@@ -65,10 +66,15 @@ export function resolveWebSocketTarget(
     return url;
   }
 
-  // 1. Exact-prefix service routes win over the generic fallback.
+  // 1. Exact-prefix service routes win over the generic fallback. The
+  // remainder after the prefix (path, query, fragment) is kept, so the local
+  // server sees what the app asked for. A prefix only matches at a URL
+  // boundary, so `wss://host` does not claim `wss://host.example.com`.
   for (const [prefix, localUrl] of Object.entries(wsRoutes)) {
-    if (url.startsWith(prefix)) {
-      return localUrl;
+    const base = prefix.replace(/\/$/, '');
+    const rest = url.slice(base.length);
+    if (url.startsWith(prefix) && (rest === '' || /^[/?#]/.test(rest))) {
+      return localUrl.replace(/\/$/, '') + rest;
     }
   }
 

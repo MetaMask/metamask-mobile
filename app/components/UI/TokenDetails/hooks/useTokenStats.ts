@@ -7,6 +7,7 @@ import type {
 } from '@metamask/assets-controllers';
 import type { FungibleAssetPrice } from '@metamask/assets-controller';
 import i18n, { strings } from '../../../../../locales/i18n';
+import type { TokenMarketData } from '../queries/tokenMarketData';
 import { getIntlDateTimeFormatter } from '../../../../util/intl';
 import { TokenStatKey, type TokenStatValues } from '../constants/tokenStats';
 import {
@@ -55,10 +56,12 @@ const LISTED_ON_EXCHANGE_FEATURE_ID = 'LISTED_ON_CENTRALIZED_EXCHANGE';
 
 export interface UseTokenStatsParams {
   /** Resolved by `useTokenMarketData`, in the user's selected currency. */
-  marketData: FungibleAssetPrice | null;
+  marketData: TokenMarketData | null;
   /** True while the market-data fetch is in flight. */
   isMarketDataLoading: boolean;
   securityData?: TokenSecurityData | null;
+  /** `holders.count` from the token API. Blockaid is the fallback. */
+  tokenApiHoldersCount?: number | null;
   currentCurrency: string;
 }
 
@@ -176,8 +179,9 @@ const resolveVolumeFlags = (
  *
  * Draws on two sources. Market cap, 24h volume, the 24h high/low range and
  * circulating supply come from the price API via `useTokenMarketData`.
- * Holders, top 10 share, tax, LP locked, the primary pool, volume flags,
- * exchange listing and the creation date come from the Blockaid security data.
+ * Top 10 share, tax, LP locked, the primary pool, volume flags, exchange
+ * listing and the creation date come from the Blockaid security data. Holders
+ * prefers `tokenApiHoldersCount`, then the Blockaid security count.
  * Liq/MC spans both and is therefore absent whenever either side is.
  *
  * Liquidity reads from the security data but needs the price API too: Blockaid
@@ -188,10 +192,8 @@ const resolveVolumeFlags = (
  * Every field on both sources is optional, so each stat falls back to the gray
  * dash on its own rather than a surface emptying as a unit.
  *
- * Liq/MC is computed entirely in USD — summed `reserveUSD` over
- * `circulatingSupply * usdPrice` — rather than dividing by `marketCap`, which
- * follows the selected currency and would scale the ratio by the exchange rate
- * without ever looking wrong.
+ * Liq/MC is calculated on the client by dividing liquidity by market cap.
+ * It is rendered on both the stats bar and the Security tab.
  *
  * Both the stat bar and the Security tab read this one record, each picking
  * the keys it shows. That is the point: ten of these appear on both surfaces,
@@ -202,6 +204,7 @@ export const useTokenStats = ({
   marketData,
   isMarketDataLoading,
   securityData,
+  tokenApiHoldersCount,
   currentCurrency,
 }: UseTokenStatsParams): TokenStatValues =>
   useMemo(() => {
@@ -221,35 +224,38 @@ export const useTokenStats = ({
       liquidityUsd == null || usdToSelected == null
         ? null
         : liquidityUsd * usdToSelected;
-
-    const { circulatingSupply, usdPrice } = marketData ?? {};
-    const marketCapUsd =
-      circulatingSupply != null && usdPrice != null
-        ? circulatingSupply * usdPrice
-        : null;
+    const marketCap =
+      marketData?.marketCap ?? marketData?.dilutedMarketCap ?? null;
+    const liquidity =
+      liquidityInSelectedCurrency ?? marketData?.liquidity ?? null;
 
     const liquidityToMarketCapRatio = getLiquidityToMarketCapRatio(
-      liquidityUsd,
-      marketCapUsd,
+      liquidity,
+      marketCap,
     );
 
     return {
       [TokenStatKey.MarketCap]: {
-        value: formatCompactFiat(marketData?.marketCap, currentCurrency),
+        value: formatCompactFiat(marketCap, currentCurrency),
         isLoading: isMarketDataLoading,
       },
       // Security-sourced, but its conversion rate is not, so it waits on the
       // market data the same way the cells above it do.
       [TokenStatKey.Liquidity]: {
-        value: formatCompactFiat(liquidityInSelectedCurrency, currentCurrency),
+        value: formatCompactFiat(liquidity, currentCurrency),
         isLoading: isMarketDataLoading,
       },
       [TokenStatKey.Volume24h]: {
-        value: formatCompactFiat(marketData?.totalVolume, currentCurrency),
+        value: formatCompactFiat(
+          marketData?.totalVolume ?? financialStats?.tradeVolume24h,
+          currentCurrency,
+        ),
         isLoading: isMarketDataLoading,
       },
       [TokenStatKey.Holders]: {
-        value: formatCompactNumber(financialStats?.holdersCount),
+        value: formatCompactNumber(
+          tokenApiHoldersCount ?? financialStats?.holdersCount,
+        ),
       },
       [TokenStatKey.Top10]: {
         value: formatPercent(
@@ -306,6 +312,12 @@ export const useTokenStats = ({
       },
       [TokenStatKey.Created]: { value: formatCreated(securityData?.created) },
     };
-  }, [marketData, isMarketDataLoading, securityData, currentCurrency]);
+  }, [
+    marketData,
+    isMarketDataLoading,
+    securityData,
+    tokenApiHoldersCount,
+    currentCurrency,
+  ]);
 
 export default useTokenStats;

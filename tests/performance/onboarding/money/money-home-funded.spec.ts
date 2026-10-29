@@ -6,6 +6,7 @@ import MoneyHomeView from '../../../page-objects/Money/MoneyHomeView.js';
 import TabBarComponent from '../../../page-objects/wallet/TabBarComponent.js';
 import { Performance, PerformanceMoney } from '../../../tags.performance.js';
 import { MONEY_FUNDED_USER_SRP } from '../../../constants/money.js';
+import { enableHermesAppProfiling } from '../../helpers/appProfiling';
 
 perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
   perfTest(
@@ -24,11 +25,13 @@ perfTest.describe(`${Performance} ${PerformanceMoney}`, () => {
 
       const timer = new TimerHelper(
         'Time since the user taps Money tab until content is visible',
-        // Temp: Keeping large timeout temporarily until we measure baseline performance.
-        { ios: 60_000, android: 60_000 },
+        // Android base from the Oct 2026 Pixel 8 Pro baseline (max 6104ms).
+        // iOS stays wide until an iOS baseline exists.
+        { ios: 60_000, android: 15_600 },
         currentDeviceDetails.platform,
       );
 
+      await enableHermesAppProfiling();
       // Best practice: action before measure() with assertions inside measure();
       await TabBarComponent.tapMoney();
 

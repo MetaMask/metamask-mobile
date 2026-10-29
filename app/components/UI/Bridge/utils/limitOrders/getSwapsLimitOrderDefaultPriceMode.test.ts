@@ -37,6 +37,16 @@ const musd = createMockToken({
   decimals: 6,
 });
 
+const USDG_ADDRESS = '0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168';
+const ROBINHOOD_CHAIN_ID = '0x1237';
+
+const usdg = createMockToken({
+  address: USDG_ADDRESS,
+  symbol: 'USDG',
+  decimals: 6,
+  chainId: ROBINHOOD_CHAIN_ID,
+});
+
 describe('getIsSwapsLimitOrderStablecoin', () => {
   it('detects a stablecoin from a lowercase address', () => {
     expect(getIsSwapsLimitOrderStablecoin(usdc)).toBe(true);
@@ -79,6 +89,34 @@ describe('getIsSwapsLimitOrderStablecoin', () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it('detects USDG as a stablecoin on Robinhood Chain', () => {
+    expect(getIsSwapsLimitOrderStablecoin(usdg)).toBe(true);
+  });
+
+  it('detects USDG from a lowercase address on Robinhood Chain', () => {
+    expect(
+      getIsSwapsLimitOrderStablecoin(
+        createMockToken({ ...usdg, address: USDG_ADDRESS.toLowerCase() }),
+      ),
+    ).toBe(true);
+  });
+
+  it('detects USDG on Robinhood Chain identified by its CAIP chain id', () => {
+    expect(
+      getIsSwapsLimitOrderStablecoin(
+        createMockToken({ ...usdg, chainId: 'eip155:4663' as CaipChainId }),
+      ),
+    ).toBe(true);
+  });
+
+  it('does not detect the USDG address as a stablecoin on another chain', () => {
+    expect(
+      getIsSwapsLimitOrderStablecoin(
+        createMockToken({ ...usdg, chainId: '0x1' }),
+      ),
+    ).toBe(false);
   });
 
   it('does not detect a stablecoin outside the configured chain', () => {
@@ -156,6 +194,18 @@ describe('getSwapsLimitOrderDefaultPriceMode', () => {
       getSwapsLimitOrderDefaultPriceMode({
         sourceToken: eth,
         destToken: musd,
+      }),
+    ).toEqual({
+      executionType: LimitOrderExecutionType.SELL,
+      isLimitFiatMode: false,
+    });
+  });
+
+  it('sells the source token priced in USDG when USDG is the only stablecoin on Robinhood Chain', () => {
+    expect(
+      getSwapsLimitOrderDefaultPriceMode({
+        sourceToken: createMockToken({ ...eth, chainId: ROBINHOOD_CHAIN_ID }),
+        destToken: usdg,
       }),
     ).toEqual({
       executionType: LimitOrderExecutionType.SELL,

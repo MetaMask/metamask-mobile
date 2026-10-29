@@ -13,6 +13,14 @@ export const HomepageBalanceBreakdownTestIds = {
   VALUE: (key: SliceKey) => `homepage-balance-breakdown-value-${key}`,
   VALUE_UNDERLINE: (key: SliceKey) =>
     `homepage-balance-breakdown-value-underline-${key}`,
+  ERROR_WARNING: (key: SliceKey) =>
+    `homepage-balance-breakdown-error-warning-${key}`,
+  ERROR_SHEET: (key: SliceKey) =>
+    `homepage-balance-breakdown-error-sheet-${key}`,
+  ERROR_SHEET_GESTURE_ROOT: (key: SliceKey) =>
+    `homepage-balance-breakdown-error-sheet-gesture-root-${key}`,
+  ERROR_SHEET_DESCRIPTION: (key: SliceKey) =>
+    `homepage-balance-breakdown-error-sheet-description-${key}`,
   MONEY_BUY: 'homepage-balance-breakdown-money-buy',
   SKELETON: (key: SliceKey) => `homepage-balance-breakdown-skeleton-${key}`,
   APY: 'homepage-balance-breakdown-money-apy',

@@ -21,7 +21,13 @@ export type SentinelFeeTokenValidationResult =
     }
   | {
       isValid: false;
-      reason: SentinelFeeTokenValidationReason;
+      reason: Exclude<SentinelFeeTokenValidationReason, 'unsupported-pair'>;
+      retry: () => void;
+    }
+  | {
+      isValid: false;
+      reason: 'unsupported-pair';
+      supportedTokenSymbols: string[];
       retry: () => void;
     };
 
@@ -79,6 +85,15 @@ export function useSentinelFeeTokenValidation({
   }
 
   if (data) {
+    const supportedTokens = data[chainId] ?? [];
+    if (supportedTokens.length === 0) {
+      return {
+        isValid: false,
+        reason: 'unavailable',
+        retry,
+      };
+    }
+
     const isValid = validateSentinelFeeTokenPair({
       sentinelFeeTokens: data,
       chainId,
@@ -88,7 +103,14 @@ export function useSentinelFeeTokenValidation({
 
     return isValid
       ? { isValid: true, retry }
-      : { isValid: false, reason: 'unsupported-pair', retry };
+      : {
+          isValid: false,
+          reason: 'unsupported-pair',
+          supportedTokenSymbols: [
+            ...new Set(supportedTokens.map(({ symbol }) => symbol)),
+          ],
+          retry,
+        };
   }
 
   if (isError) {

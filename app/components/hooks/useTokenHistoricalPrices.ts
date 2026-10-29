@@ -9,6 +9,8 @@ import { parseCaipAssetType, type Hex } from '@metamask/utils';
 import type { TokenI } from '../UI/Tokens/types';
 import { getDecimalChainId } from '../../util/networks';
 import { TraceName, endTrace, trace } from '../../util/trace';
+import { PRICE_API_BASE_URL } from '../../constants/urls';
+import { usePriceApiHost } from '../UI/TokenDetails/context/PriceApiHostContext';
 
 export type TimePeriod =
   | '1h'
@@ -73,6 +75,8 @@ export interface HistoricalPricesRequest {
   vsCurrency: string;
   from?: number;
   to?: number;
+  /** Price API origin. Omitted means prod. */
+  baseUrl?: string;
 }
 
 interface HistoricalPricesResult {
@@ -117,7 +121,9 @@ const buildHistoricalPricesUrl = (request: HistoricalPricesRequest): string => {
   }
 
   const uri = new URL(
-    `https://price.api.cx.metamask.io/v3/historical-prices/${caipChainId}/${assetIdentifier}`,
+    `${
+      request.baseUrl ?? PRICE_API_BASE_URL
+    }/v3/historical-prices/${caipChainId}/${assetIdentifier}`,
   );
   uri.searchParams.set(
     'timePeriod',
@@ -209,6 +215,9 @@ export const historicalPricesQueryOptions = (
       request.vsCurrency,
       request.from ?? null,
       request.to ?? null,
+      // Keyed by host so a non-prod response never surfaces under the prod
+      // entry, or the other way round.
+      request.baseUrl ?? PRICE_API_BASE_URL,
     ],
     queryFn: ({ signal }) => fetchHistoricalPrices(request, signal),
     retry: false,
@@ -223,6 +232,7 @@ const toHistoricalPricesRequest = ({
   from,
   to,
   vsCurrency,
+  baseUrl,
 }: {
   asset: Pick<TokenI, 'address' | 'chainId'>;
   address: string;
@@ -231,6 +241,7 @@ const toHistoricalPricesRequest = ({
   from?: number;
   to?: number;
   vsCurrency: string;
+  baseUrl?: string;
 }): HistoricalPricesRequest => ({
   assetChainId: String(asset.chainId ?? ''),
   assetAddress: asset.address,
@@ -240,12 +251,19 @@ const toHistoricalPricesRequest = ({
   vsCurrency,
   from,
   to,
+  baseUrl,
 });
 
+/**
+ * @param baseUrl - Price API origin. Passed explicitly rather than read from
+ * context because this runs outside the React tree, and it has to match what
+ * the hook will ask for or the warmed entry is never read.
+ */
 export const prefetchHistoricalPrices = (
   queryClient: QueryClient,
   token: Pick<TokenI, 'address' | 'chainId'>,
   vsCurrency: string,
+  baseUrl?: string,
 ): void => {
   queryClient
     .query(
@@ -256,6 +274,7 @@ export const prefetchHistoricalPrices = (
           chainId: token.chainId as Hex,
           timePeriod: DEFAULT_HISTORICAL_TIME_PERIOD,
           vsCurrency,
+          baseUrl,
         }),
       ),
     )
@@ -285,6 +304,8 @@ const useTokenHistoricalPrices = ({
   hasInsufficientCoverage: boolean;
   apiDurationMs: number | undefined;
 } => {
+  const baseUrl = usePriceApiHost();
+
   const query = useQuery(
     historicalPricesQueryOptions(
       toHistoricalPricesRequest({
@@ -295,6 +316,7 @@ const useTokenHistoricalPrices = ({
         vsCurrency,
         from,
         to,
+        baseUrl,
       }),
     ),
   );

@@ -6,6 +6,7 @@ import { ToastContext } from '../../../../component-library/components/Toast';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ButtonIconProps } from '../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.types';
+import { strings } from '../../../../../locales/i18n';
 jest.mock('../../../../util/haptics');
 
 const mockTheme = {
@@ -122,6 +123,22 @@ describe('useEarnToasts', () => {
       expect(
         result.current.EarnToastOptions.mUsdConversion.failed,
       ).toBeDefined();
+    });
+
+    it('includes a withdrawal details unavailable error toast', () => {
+      const { result } = renderHook(() => useEarnToasts(), { wrapper });
+
+      expect(
+        result.current.EarnToastOptions.earnWithdrawal.detailsUnavailable,
+      ).toMatchObject({
+        variant: ToastVariants.Icon,
+        iconName: IconName.CircleX,
+        hapticsType: NotificationMoment.Error,
+      });
+      expect(
+        result.current.EarnToastOptions.earnWithdrawal.detailsUnavailable
+          .labelOptions?.[0]?.label,
+      ).toBe(strings('stake.withdrawal_details_unavailable'));
     });
 
     it('configures success toast with correct properties', () => {

@@ -2,10 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFocusEffect } from '@react-navigation/native';
 import { useNetworkTier } from '../../../../../../hooks/useNetworkTier';
-import {
-  AutorampStatus,
-  type AutorampAccount,
-  type MoneyAccountWalletRegistration,
+import type {
+  AutorampAccount,
+  MoneyAccountWalletRegistration,
 } from '@metamask/ramps-controller';
 import type {
   KycProviderFlowStatus,
@@ -37,12 +36,11 @@ export type VbaHomeCard =
   | { type: 'none' }
   /** GET_STARTED — Figma node 2267-17522. */
   | { type: 'get_started' }
-  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved with a usable autoramp. */
+  /** ACCOUNT_IS_READY — Figma node 2158-5306. KYC approved. */
   | { type: 'account_is_ready' }
   /**
-   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, flow
-   * submitted, or approved but provisioning has not produced a usable
-   * autoramp yet.
+   * KYC_PENDING — Figma node 2254-13372. Vendor still processing, or flow
+   * submitted.
    */
   | { type: 'kyc_pending' }
   /** FINISH_VERIFICATION — Figma node 2267-18364. */
@@ -100,21 +98,6 @@ const EMPTY_WALLET_REGISTRATIONS: readonly MoneyAccountWalletRegistration[] =
 const matchesWallet = (walletAddress: string, candidate: string): boolean =>
   candidate.toLowerCase() === walletAddress.trim().toLowerCase();
 
-/**
- * Whether the wallet has an autoramp that is not `Rejected` or `Cancelled`.
- * Mirrors `RampsController`'s private `#hasUsableAutorampForWallet`.
- */
-const hasUsableAutorampForWallet = (
-  walletAddress: string,
-  autoramps: readonly AutorampAccount[],
-): boolean =>
-  autoramps.some(
-    (autoramp) =>
-      matchesWallet(walletAddress, autoramp.walletAddress) &&
-      autoramp.status !== AutorampStatus.Rejected &&
-      autoramp.status !== AutorampStatus.Cancelled,
-  );
-
 /** Whether the wallet has any autoramp row, including dead routes. */
 const hasAnyAutorampForWallet = (
   walletAddress: string,
@@ -137,17 +120,10 @@ const hasWalletRegistration = (
   );
 
 /**
- * Pure decision resolving the single VBA status card for Money home. For the
- * approved states it mirrors the onboarding funnel's own destination logic
- * (`getVbaDestinationForSnapshot`: approved + ready route → complete,
- * approved + route missing → still provisioning) and the controller's
- * `#hasUsableAutorampForWallet` semantics — do not reinvent them here.
- *
- * TRAM-4079: the original TRAM-4099 order returned `none` whenever a usable
- * autoramp existed and showed `account_is_ready` only while it was still
- * missing — the exact inverse of the card's copy ("You're all set", view the
- * Pix details) and of the funnel. Rule 3 now keys the card off the usable
- * autoramp.
+ * Pure decision resolving the single VBA status card for Money home. An
+ * approved session always gets `account_is_ready`: the onboarding funnel
+ * (`getVbaDestinationForSnapshot`) opens details when a usable autoramp
+ * exists and Identity verified when it does not, and details creates it.
  *
  * The approved check is `finalStatus === 'approved' || kycStatus === 'approved'`
  * (relay approval counts while the vendor `finalStatus` is still pending).
@@ -195,15 +171,12 @@ export function getVbaHomeCard({
     sessionStatus?.finalStatus === 'approved' ||
     sessionStatus?.kycStatus === 'approved';
 
-  // 3. KYC approved. A usable autoramp means the virtual account details are
-  // ready — show the account_is_ready card ("You're all set" / view the Pix
-  // details). Without one, provisioning is still running: kyc_pending,
-  // mirroring the onboarding funnel's `kycPending` destination for an approved
-  // session whose route is not ready yet.
+  // 3. KYC approved. Identity is no longer being verified, so show
+  // account_is_ready with or without a usable autoramp. Its CTA opens
+  // onboarding, which sends a user without one through Identity verified to
+  // the details screen, where the autoramp is created.
   if (isApproved) {
-    return hasUsableAutorampForWallet(walletAddress, autoramps)
-      ? { type: 'account_is_ready' }
-      : { type: 'kyc_pending' };
+    return { type: 'account_is_ready' };
   }
 
   // 4. KYC rejected or retry — no card exists in Figma yet (design question

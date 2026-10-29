@@ -11,10 +11,16 @@
  *
  * Reads nightly-build-metadata.json (written by the `collect-metadata` job
  * in nightly-build.yml) and posts one Block Kit message with a Main RC
- * section and a Main EXP section, each covering Android + iOS.
+ * section and a Main EXP section, each covering Android + iOS. When the
+ * metadata of earlier nightly runs is available, each build also links to a
+ * GitHub compare of the changes since the last successful nightly of that
+ * same build.
  *
  * Required env: SLACK_BOT_TOKEN, SLACK_CHANNEL_ID (not required in dry run)
  * Optional env: NIGHTLY_BUILD_METADATA_PATH (default nightly-build-metadata.json),
+ * PREVIOUS_NIGHTLY_METADATA_DIR (default previous-nightly-metadata; one
+ * subdirectory per earlier run, each holding its nightly-build-metadata.json),
+ * PREVIOUS_NIGHTLY_SHA (compare base when no earlier metadata covers a build),
  * RUNWAY_NIGHTLY_ANDROID_RC_URL, RUNWAY_NIGHTLY_ANDROID_EXP_URL,
  * RUNWAY_NIGHTLY_IOS_RC_URL, RUNWAY_NIGHTLY_IOS_EXP_URL,
  * GITHUB_REPOSITORY (default MetaMask/metamask-mobile),
@@ -24,6 +30,7 @@
 import fs from 'fs';
 
 const DEFAULT_METADATA_PATH = 'nightly-build-metadata.json';
+const DEFAULT_PREVIOUS_METADATA_DIR = 'previous-nightly-metadata';
 
 const DEFAULT_REPO_URL = `https://github.com/${process.env.GITHUB_REPOSITORY || 'MetaMask/metamask-mobile'}`;
 
@@ -61,6 +68,13 @@ export interface NightlyBuildMetadata {
   };
 }
 
+export type BuildKey = keyof NightlyBuildMetadata['builds'];
+
+/** Commit SHA each build is compared against, keyed by build. */
+export type PreviousCommits = Partial<Record<BuildKey, string>>;
+
+const BUILD_KEYS: BuildKey[] = ['ios-exp', 'ios-rc', 'android-exp', 'android-rc'];
+
 export interface RunwayLinks {
   androidRcUrl?: string;
   androidExpUrl?: string;
@@ -71,6 +85,8 @@ export interface RunwayLinks {
 export interface NightlySlackMessageOptions {
   /** Defaults to DEFAULT_REPO_URL; overridable for tests. */
   repoUrl?: string;
+  /** Builds without an entry get no "changes since last nightly" link. */
+  previousCommits?: PreviousCommits;
 }
 
 interface SlackPayload {
@@ -109,6 +125,53 @@ export function loadMetadata(path: string): NightlyBuildMetadata {
 }
 
 /**
+ * Loads the metadata of earlier nightly runs from `dir/<run id>/nightly-build-metadata.json`,
+ * newest first. Unreadable or missing entries are skipped, since the compare
+ * link is optional.
+ */
+export function loadPreviousMetadata(dir: string): NightlyBuildMetadata[] {
+  if (!fs.existsSync(dir)) {
+    return [];
+  }
+  const previous: NightlyBuildMetadata[] = [];
+  for (const entry of fs.readdirSync(dir)) {
+    const path = `${dir}/${entry}/${DEFAULT_METADATA_PATH}`;
+    if (!fs.existsSync(path)) {
+      continue;
+    }
+    try {
+      previous.push(loadMetadata(path));
+    } catch (error) {
+      console.warn(`⚠️ Skipping unreadable previous metadata at ${path}: ${(error as Error).message}`);
+    }
+  }
+  return previous.sort((a, b) => Date.parse(b.generated_at) - Date.parse(a.generated_at));
+}
+
+/**
+ * For each build, picks the commit of the most recent earlier nightly where
+ * that same build succeeded, so a failed build last night still compares
+ * against the build testers actually installed. Falls back to `fallbackSha`
+ * when none of the earlier runs covers the build.
+ */
+export function resolvePreviousCommits(
+  previous: NightlyBuildMetadata[],
+  currentRunId: string,
+  fallbackSha?: string,
+): PreviousCommits {
+  const earlier = previous.filter((run) => run.run_id !== currentRunId);
+  const commits: PreviousCommits = {};
+  for (const key of BUILD_KEYS) {
+    const match = earlier.find((run) => isSuccess(run.builds[key]) && run.builds[key].commit_sha);
+    const sha = match?.builds[key].commit_sha ?? fallbackSha;
+    if (sha) {
+      commits[key] = sha;
+    }
+  }
+  return commits;
+}
+
+/**
  * Check if a URL is valid (mirrors scripts/slack-rc-notification.mjs's isValidUrl).
  */
 function isValidUrl(url: string | undefined): boolean {
@@ -139,7 +202,17 @@ function commitLink(repoUrl: string, sha: string | null): string {
   if (!sha) {
     return '_commit unknown_';
   }
-  return `<${repoUrl}/tree/${sha}|${shortSha(sha)}>`;
+  return `<${repoUrl}/commits/${sha}/|${shortSha(sha)}>`;
+}
+
+function compareLink(repoUrl: string, previousSha: string | undefined, sha: string | null): string | null {
+  if (!previousSha || !sha) {
+    return null;
+  }
+  if (previousSha === sha) {
+    return '_No changes since last nightly_';
+  }
+  return `<${repoUrl}/compare/${previousSha}...${sha}|Changes since last nightly>`;
 }
 
 function versionLine(entry: BuildEntry): string {
@@ -152,31 +225,36 @@ function isSuccess(entry: BuildEntry): boolean {
   return entry.result === 'success';
 }
 
-function androidFieldText(entry: BuildEntry, runwayUrl: string | undefined, repoUrl: string): string {
-  if (!isSuccess(entry)) {
-    return `*:android: Android*\n:warning: build ${entry.result ?? 'did not run'}`;
-  }
-  const downloadLink = resolveLink(runwayUrl, 'Download');
-  return `*:android: Android*\n${versionLine(entry)}\n${downloadLink} • commit ${commitLink(repoUrl, entry.commit_sha)}`;
+interface PlatformBuild {
+  title: string;
+  entry: BuildEntry;
+  /** Download links shown before the commit link, e.g. Runway and TestFlight. */
+  downloadLinks: string[];
+  previousSha: string | undefined;
 }
 
-function iosFieldText(entry: BuildEntry, runwayUrl: string | undefined, repoUrl: string): string {
+function platformFieldText({ title, entry, downloadLinks, previousSha }: PlatformBuild, repoUrl: string): string {
   if (!isSuccess(entry)) {
-    return `*:mac_apple: iOS*\n:warning: build ${entry.result ?? 'did not run'}`;
+    return `*${title}*\n:warning: build ${entry.result ?? 'did not run'}`;
   }
-  const downloadLink = resolveLink(runwayUrl, 'Download');
-  const testFlightLink = `<${TESTFLIGHT_URL}|TestFlight>`;
-  return `*:mac_apple: iOS*\n${versionLine(entry)}\n${downloadLink} • ${testFlightLink} • commit ${commitLink(repoUrl, entry.commit_sha)}`;
+  const lines = [
+    `*${title}*`,
+    versionLine(entry),
+    [...downloadLinks, `commit ${commitLink(repoUrl, entry.commit_sha)}`].join(' • '),
+  ];
+  const compare = compareLink(repoUrl, previousSha, entry.commit_sha);
+  if (compare) {
+    lines.push(compare);
+  }
+  return lines.join('\n');
 }
 
 function buildChannelBlocks(
   label: string,
   ldFlag: string,
   ldUrl: string,
-  android: BuildEntry,
-  ios: BuildEntry,
-  androidRunwayUrl: string | undefined,
-  iosRunwayUrl: string | undefined,
+  android: PlatformBuild,
+  ios: PlatformBuild,
   repoUrl: string,
 ): object[] {
   return [
@@ -190,8 +268,8 @@ function buildChannelBlocks(
     {
       type: 'section',
       fields: [
-        { type: 'mrkdwn', text: androidFieldText(android, androidRunwayUrl, repoUrl) },
-        { type: 'mrkdwn', text: iosFieldText(ios, iosRunwayUrl, repoUrl) },
+        { type: 'mrkdwn', text: platformFieldText(android, repoUrl) },
+        { type: 'mrkdwn', text: platformFieldText(ios, repoUrl) },
       ],
     },
   ];
@@ -220,7 +298,21 @@ export function buildNightlySlackMessage(
   options: NightlySlackMessageOptions = {},
 ): SlackPayload {
   const repoUrl = options.repoUrl || DEFAULT_REPO_URL;
+  const previousCommits = options.previousCommits ?? {};
   const headerText = ':iphone: :rocketship: Nightly Builds from main branch available';
+  const testFlightLink = `<${TESTFLIGHT_URL}|TestFlight>`;
+  const android = (key: BuildKey, runwayUrl: string | undefined): PlatformBuild => ({
+    title: ':android: Android',
+    entry: metadata.builds[key],
+    downloadLinks: [resolveLink(runwayUrl, 'Download')],
+    previousSha: previousCommits[key],
+  });
+  const ios = (key: BuildKey, runwayUrl: string | undefined): PlatformBuild => ({
+    title: ':mac_apple: iOS',
+    entry: metadata.builds[key],
+    downloadLinks: [resolveLink(runwayUrl, 'Download'), testFlightLink],
+    previousSha: previousCommits[key],
+  });
 
   const blocks: object[] = [
     {
@@ -243,10 +335,8 @@ export function buildNightlySlackMessage(
       ':package: Main RC',
       'main-rc',
       LAUNCHDARKLY_RC_URL,
-      metadata.builds['android-rc'],
-      metadata.builds['ios-rc'],
-      links.androidRcUrl,
-      links.iosRcUrl,
+      android('android-rc', links.androidRcUrl),
+      ios('ios-rc', links.iosRcUrl),
       repoUrl,
     ),
     { type: 'divider' },
@@ -254,10 +344,8 @@ export function buildNightlySlackMessage(
       ':test_tube: Main EXP',
       'main-exp',
       LAUNCHDARKLY_EXP_URL,
-      metadata.builds['android-exp'],
-      metadata.builds['ios-exp'],
-      links.androidExpUrl,
-      links.iosExpUrl,
+      android('android-exp', links.androidExpUrl),
+      ios('ios-exp', links.iosExpUrl),
       repoUrl,
     ),
     { type: 'divider' },
@@ -342,7 +430,13 @@ export async function main(): Promise<void> {
     iosExpUrl: process.env.RUNWAY_NIGHTLY_IOS_EXP_URL,
   };
 
-  const payload = buildNightlySlackMessage(metadata, links);
+  const previousCommits = resolvePreviousCommits(
+    loadPreviousMetadata(process.env.PREVIOUS_NIGHTLY_METADATA_DIR || DEFAULT_PREVIOUS_METADATA_DIR),
+    metadata.run_id,
+    process.env.PREVIOUS_NIGHTLY_SHA || undefined,
+  );
+
+  const payload = buildNightlySlackMessage(metadata, links, { previousCommits });
 
   if (isDryRun) {
     console.log('\n--- Slack payload (dry run) ---\n');

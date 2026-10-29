@@ -126,6 +126,9 @@ export function useTransactionConfirm() {
           },
           { pop: true },
         );
+      } else if (launchedFrom === ConfirmationLaunchSource.PerpsAdjustMargin) {
+        // The adjust-margin sheet is still underneath this confirmation.
+        navigation.goBack();
       } else {
         navigateToPerpsHome();
       }

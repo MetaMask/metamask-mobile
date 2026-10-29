@@ -52,13 +52,34 @@ interface CrossGateCase {
 const blockedMarkets: CrossGateCase[] = [
   { name: 'rollout flag off', flag: false },
   { name: 'Pro inactive', pro: false },
-  { name: 'Terminal backend', terminal: true },
   { name: 'HIP-3 market', market: { marketSource: 'xyz' } },
   { name: 'Lighter market', market: { providerId: 'lighter' } },
   { name: 'isolated-only asset', metadata: { onlyIsolated: true } },
   { name: 'noCross asset', metadata: { marginMode: 'noCross' } },
   { name: 'strictIsolated asset', metadata: { marginMode: 'strictIsolated' } },
+  {
+    name: 'HIP-3 market on the Terminal backend',
+    terminal: true,
+    market: { marketSource: 'xyz' },
+  },
+  {
+    name: 'Lighter market on the Terminal backend',
+    terminal: true,
+    market: { providerId: 'lighter' },
+  },
 ];
+
+const terminalBackendFlags = (enabled: boolean) => ({
+  engine: {
+    backgroundState: {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          perpsTerminalBackendEnabled: { enabled, minimumVersion: '0.0.0' },
+        },
+      },
+    },
+  },
+});
 
 describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
   let unwire: (() => void) | undefined;
@@ -214,9 +235,10 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
     );
   });
 
-  it('selects Cross, updates the form and submits the chosen mode', async () => {
+  it('selects Cross, updates the form and submits the chosen mode on the Terminal backend', async () => {
     const { store } = renderPerpsCrossMarginOrderFormPanel({
       streamOverrides: { account: createFundedAccountForViews('1000') },
+      overrides: terminalBackendFlags(true),
     });
     unwire = wirePerpsControllerForStore(store);
     await openMarginModeSheet();
@@ -549,6 +571,37 @@ describeForPlatforms('PerpsProOrderFormPanel Cross orders', () => {
       strings('perps.pro_order_form.isolated'),
     );
     expect(Engine.context.PerpsController.placeOrder).not.toHaveBeenCalled();
+  });
+
+  it('keeps Cross unavailable on the Terminal backend when only the venue reports an isolated-only asset', async () => {
+    // Terminal market lists carry no margin restriction; the venue read
+    // (skipFilters) does.
+    jest
+      .mocked(Engine.context.PerpsController.getMarkets)
+      .mockImplementation(async (params) => [
+        params?.skipFilters
+          ? { ...crossMarginMarketInfo, onlyIsolated: true }
+          : crossMarginMarketInfo,
+      ]);
+    renderPerpsCrossMarginOrderFormPanel({
+      overrides: terminalBackendFlags(true),
+    });
+
+    await openMarginModeSheet();
+    fireEvent.press(screen.getByTestId(marginIds.CROSS_OPTION));
+
+    expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
+      expect.objectContaining({ skipFilters: true }),
+    );
+    expect(screen.getByTestId(marginIds.CROSS_OPTION)).toBeDisabled();
+    expect(
+      screen.getByText(strings('perps.margin_mode.cross_description')),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId(formIds.MARGIN_MODE_BUTTON)).toHaveTextContent(
+      strings('perps.pro_order_form.isolated'),
+    );
+    // An unresolved key renders `[missing "en.<key>" translation]` on both sides.
+    expect(screen.queryAllByText(/\[missing/iu)).toHaveLength(0);
   });
 
   it('holds Cross selection and submission until the venue lock resolves', async () => {

@@ -11,6 +11,7 @@ import {
   resolveRunsInRange,
   sampleRunsAcrossNewestDays,
   planWeeklyRuns,
+  listCompletedAnalysisRuns,
   loadCollectedReports,
   runsToRetryWithLeftoverBudget,
   reportsForRuns,
@@ -97,6 +98,27 @@ test('parseArgs supports weekly, collection and scheduled exception modes', () =
     parseArgs(['--scheduled-exception', '--skip-ai', '--run', '100']).skipAi,
     true,
   );
+});
+
+test('weekly --github-issues lists issues and does not open or comment', () => {
+  const source = fs.readFileSync(
+    new URL('./analyze-app-profiling.mjs', import.meta.url),
+    'utf8',
+  );
+  const mainStart = source.indexOf('async function main(');
+  const scheduledStart = source.indexOf(
+    'async function runScheduledExceptionAnalysis',
+  );
+  const weeklyStart = source.indexOf('async function runWeeklyAnalysis');
+  const weeklyEnd = source.indexOf('\nif (import.meta.url');
+  const dispatch = source.slice(mainStart, scheduledStart);
+  const weekly = source.slice(weeklyStart, weeklyEnd);
+
+  assert.match(dispatch, /if \(args\.weekly\) \{[\s\S]*?return;/);
+  assert.match(weekly, /loadWeeklyIssues\(/);
+  assert.equal(weekly.includes('syncProfilingRegressionIssues('), false);
+  assert.equal(weekly.includes("issue', 'create'"), false);
+  assert.equal(weekly.includes("issue', 'comment'"), false);
 });
 
 test('resolveRunsInRange keeps a half-open scheduled window', () => {
@@ -279,6 +301,90 @@ test('the newest analysis of a run wins over an older one', () => {
   assert.equal(collected.get('900').meta.analysis, 'newest');
   // A failed analysis and one outside the window are not history.
   assert.equal(collected.has('800'), false);
+  assert.equal(collected.size, 1);
+});
+
+test('collects chained analyses from performance runs and standalone ones', () => {
+  const calls = [];
+  const runsByWorkflow = {
+    'analyze-app-profiling.yml': [
+      { databaseId: 10, status: 'completed', conclusion: 'success', createdAt: '2026-09-18T12:00:00Z' },
+    ],
+    'run-performance-e2e-manual.yml': [
+      { databaseId: 30, status: 'completed', conclusion: 'failure', createdAt: '2026-09-19T12:00:00Z' },
+      { databaseId: 20, status: 'completed', conclusion: 'success', createdAt: '2026-09-17T12:00:00Z' },
+    ],
+  };
+
+  const runs = listCompletedAnalysisRuns('MetaMask/metamask-mobile', {
+    listRuns: (repo, workflow, branch = null) => {
+      calls.push({ repo, workflow, branch });
+      return runsByWorkflow[workflow];
+    },
+  });
+
+  assert.deepEqual(calls, [
+    { repo: 'MetaMask/metamask-mobile', workflow: 'analyze-app-profiling.yml', branch: null },
+    { repo: 'MetaMask/metamask-mobile', workflow: 'run-performance-e2e-manual.yml', branch: 'main' },
+  ]);
+  // Newest first across both workflows.
+  assert.deepEqual(
+    runs.map((run) => [run.databaseId, run.requiresSuccess]),
+    [
+      [30, false],
+      [10, true],
+      [20, false],
+    ],
+  );
+});
+
+test('a failed performance run still provides its chained report', () => {
+  const analysisRuns = [
+    // A flaky scenario failed the performance run after its report uploaded.
+    { databaseId: 30, status: 'completed', conclusion: 'failure', createdAt: '2026-09-19T12:00:00Z', requiresSuccess: false },
+    { databaseId: 25, status: 'in_progress', conclusion: '', createdAt: '2026-09-19T18:00:00Z', requiresSuccess: false },
+    { databaseId: 20, status: 'completed', conclusion: 'failure', createdAt: '2026-09-18T12:00:00Z', requiresSuccess: true },
+  ];
+  const reports = {
+    30: { meta: { runId: '30' }, scenarios: [] },
+    25: { meta: { runId: '25' }, scenarios: [] },
+    20: { meta: { runId: '700' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, runId) => reports[runId] || null,
+    },
+  );
+
+  assert.deepEqual([...collected.keys()], ['30']);
+});
+
+test('a standalone re-analysis wins over the chained report of the same run', () => {
+  const analysisRuns = [
+    { databaseId: 500, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T14:00:00Z', requiresSuccess: true },
+    { databaseId: 30, status: 'completed', conclusion: 'success', createdAt: '2026-09-19T12:00:00Z', requiresSuccess: false },
+  ];
+  const reports = {
+    500: { meta: { runId: '30', analysis: 're-run' }, scenarios: [] },
+    30: { meta: { runId: '30', analysis: 'chained' }, scenarios: [] },
+  };
+
+  const collected = loadCollectedReports(
+    'MetaMask/metamask-mobile',
+    '2026-09-14T00:00:00.000Z',
+    '2026-09-21T00:00:00.000Z',
+    {
+      listAnalysisRuns: () => analysisRuns,
+      readReport: (_repo, runId) => reports[runId] || null,
+    },
+  );
+
+  assert.equal(collected.get('30').meta.analysis, 're-run');
   assert.equal(collected.size, 1);
 });
 

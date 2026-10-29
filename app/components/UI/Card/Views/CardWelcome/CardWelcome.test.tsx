@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
-import { StatusBar, StyleSheet, type ViewStyle } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { StatusBar } from 'react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import CardWelcome from './CardWelcome';
@@ -10,59 +9,17 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MONEY_HOME_CARD_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
-import { RiveErrorType } from '@rive-app/react-native';
-import { __resetRiveMocks } from '../../../../../__mocks__/rive-app-react-native';
-import { CARDS_ENTRANCE_START_TIMEOUT_MS } from './CardWelcomeCardsAnimation';
-
-// Override the global Rive mock: the shared mock renders RiveView without
-// exposing `onError`, which these tests fire to assert the static fallback, and
-// they also drive the native view's readiness (`mockViewReady`) because the
-// text reveal is sequenced off the entrance actually starting.
-interface MockRiveViewProps {
-  testID?: string;
-  style?: unknown;
-  onError?: (error: { message: string; type: RiveErrorType }) => void;
-}
-
-let mockLastRiveViewProps: MockRiveViewProps | undefined;
-let mockViewReady: boolean;
-
-jest.mock('@rive-app/react-native', () => {
-  const actual = jest.requireActual(
-    '../../../../../__mocks__/rive-app-react-native',
-  );
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const MockReact = require('react');
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View } = require('react-native');
-
-  const MockRiveView = (props: MockRiveViewProps) => {
-    mockLastRiveViewProps = props;
-    return MockReact.createElement(View, {
-      testID: props.testID,
-      style: props.style,
-    });
-  };
-
-  return {
-    ...actual,
-    RiveView: MockRiveView,
-    useRive: () => ({
-      riveRef: { current: null },
-      riveViewRef: mockViewReady ? { playIfNeeded: jest.fn() } : null,
-      setHybridRef: { f: jest.fn() },
-    }),
-  };
-});
+import {
+  __fireRiveViewError,
+  __resetRiveMocks,
+  RiveErrorType,
+} from '../../../../../__mocks__/rive-app-react-native';
 
 const mockUseCardPostAuthRedirect = jest.fn();
 
 jest.mock('../../hooks/useCardPostAuthRedirect', () => ({
+  ...jest.requireActual('../../hooks/useCardPostAuthRedirect'),
   useCardPostAuthRedirect: () => mockUseCardPostAuthRedirect(),
-  MONEY_HOME_CARD_ORIGIN: {
-    screen: 'Money',
-    params: { screen: 'MoneyHome' },
-  },
 }));
 
 const mockUseCardEducationAnimationState = jest.fn();
@@ -120,35 +77,6 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const map: Record<string, string> = {
-      'card.card_onboarding.title': 'Enable MetaMask Card features',
-      'card.card_onboarding.description':
-        'Change your spending token and network by signing in with your Crypto Life email and password.',
-      'card.card_onboarding.apply_now_button': 'Sign in',
-      'predict.gtm_content.not_now': 'Not now',
-    };
-    return map[key] || key;
-  },
-}));
-
-jest.mock('../../../../../images/stacked-cards.png', () => 1);
-
-jest.mock(
-  '../../../../../animations/onboarding_card_education_v3.riv',
-  () => 1,
-  { virtual: true },
-);
-
-jest.mock('../../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: () => actual.mockTheme,
-  };
-});
-
 const createTestStore = (
   initialState: {
     cardholderAccounts?: string[];
@@ -170,8 +98,6 @@ const createTestStore = (
     },
   });
 
-const getRiveOnError = () => mockLastRiveViewProps?.onError;
-
 describe('CardWelcome', () => {
   let store: ReturnType<typeof createTestStore>;
   let setBarStyleSpy: jest.SpyInstance;
@@ -179,8 +105,6 @@ describe('CardWelcome', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __resetRiveMocks();
-    mockLastRiveViewProps = undefined;
-    mockViewReady = true;
     mockUseCardPostAuthRedirect.mockReturnValue(undefined);
     mockUseCardEducationAnimationState.mockReturnValue('static');
     mockNavigate.mockClear();
@@ -251,6 +175,12 @@ describe('CardWelcome', () => {
       expect(
         getByTestId(CardWelcomeSelectors.WELCOME_TO_CARD_DESCRIPTION_TEXT),
       ).toHaveTextContent(strings('card.card_onboarding.description'));
+      expect(
+        getByTestId(CardWelcomeSelectors.VERIFY_ACCOUNT_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.apply_now_button'));
+      expect(
+        getByTestId(CardWelcomeSelectors.NOT_NOW_BUTTON),
+      ).toHaveTextContent(strings('card.card_onboarding.not_now_button'));
     });
 
     it('tracks view event on mount', () => {
@@ -343,244 +273,28 @@ describe('CardWelcome', () => {
     });
   });
 
-  describe('Text reveal', () => {
-    beforeEach(() => {
+  describe('Rive fallback', () => {
+    it('swaps to the static card image when the cards animation reports a Rive error', () => {
       store = createTestStore({ cardholderAccounts: [] });
-    });
-
-    /**
-     * Animated.View order: title, description, footer.
-     * Typed to match RNTL's `UNSAFE_getAllByType` so `lint:tsc` accepts the helpers.
-     */
-    type GetAllByType = <P>(
-      type: React.ComponentType<P>,
-    ) => import('react-test-renderer').ReactTestInstance[];
-
-    const getRevealStyleEntries = (
-      UNSAFE_getAllByType: GetAllByType,
-      index: number,
-    ): ViewStyle[] =>
-      UNSAFE_getAllByType(Animated.View)[index].props.style as ViewStyle[];
-
-    const getTitleRevealStyleEntries = (UNSAFE_getAllByType: GetAllByType) =>
-      getRevealStyleEntries(UNSAFE_getAllByType, 0);
-
-    const getDescriptionRevealStyleEntries = (
-      UNSAFE_getAllByType: GetAllByType,
-    ) => getRevealStyleEntries(UNSAFE_getAllByType, 1);
-
-    const getFooterRevealStyleEntries = (UNSAFE_getAllByType: GetAllByType) =>
-      getRevealStyleEntries(UNSAFE_getAllByType, 2);
-
-    it('releases the hidden text reveal style when the cards animation reports a Rive error while animating', () => {
       mockUseCardEducationAnimationState.mockReturnValue('animate');
 
-      const { getByTestId, queryByTestId, UNSAFE_getAllByType } = render(
+      const { getByTestId, queryByTestId } = render(
         <Provider store={store}>
           <CardWelcome />
         </Provider>,
       );
 
-      const onError = getRiveOnError();
-      expect(onError).toBeDefined();
-
       act(() => {
-        onError?.({
+        __fireRiveViewError({
           message: 'failed to load',
           type: RiveErrorType.MalformedFile,
         });
       });
 
-      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
-      const descriptionStyleEntries =
-        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
-
-      expect(StyleSheet.flatten(titleStyleEntries).opacity).not.toBe(0);
-      expect(StyleSheet.flatten(descriptionStyleEntries).opacity).not.toBe(0);
-      // The error resolves the state to 'static', which attaches neither the
-      // hidden style nor the animated reveal style: an empty style array is
-      // what proves the copy is not left waiting on a reveal that never runs.
-      expect(titleStyleEntries.filter(Boolean)).toHaveLength(0);
-      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(0);
       expect(getByTestId(CardWelcomeSelectors.CARD_IMAGE)).toBeOnTheScreen();
       expect(
         queryByTestId(CardWelcomeSelectors.CARDS_ANIMATION),
       ).not.toBeOnTheScreen();
-    });
-
-    it('holds the copy hidden until the cards entrance starts; buttons begin revealing on animate', () => {
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-      mockViewReady = false;
-
-      const { UNSAFE_getAllByType } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
-      const descriptionStyleEntries =
-        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
-      const footerContainerStyleEntries =
-        getFooterRevealStyleEntries(UNSAFE_getAllByType);
-
-      expect(StyleSheet.flatten(titleStyleEntries).opacity).toBe(0);
-      expect(StyleSheet.flatten(descriptionStyleEntries).opacity).toBe(0);
-      // Only the plain hidden style is attached on the copy: the title
-      // reveal is timed from the entrance, and the entrance has not started.
-      expect(titleStyleEntries.filter(Boolean)).toHaveLength(1);
-      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(1);
-      // Buttons fade on mount: footerContent + hidden + buttons reveal style.
-      expect(footerContainerStyleEntries.filter(Boolean)).toHaveLength(3);
-    });
-
-    it('attaches the title and description reveal styles once the cards entrance starts', () => {
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-
-      const { UNSAFE_getAllByType } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(
-        getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-      ).toHaveLength(2);
-      expect(
-        getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-      ).toHaveLength(2);
-      // footerContent + hidden + buttons reveal (independent of entrance)
-      expect(
-        getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-      ).toHaveLength(3);
-    });
-
-    it('reveals the copy anyway when the entrance never reports it started', () => {
-      jest.useFakeTimers();
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-      mockViewReady = false;
-
-      try {
-        const { UNSAFE_getAllByType } = render(
-          <Provider store={store}>
-            <CardWelcome />
-          </Provider>,
-        );
-
-        expect(
-          getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(1);
-        expect(
-          getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(1);
-        expect(
-          getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(3);
-
-        act(() => {
-          jest.advanceTimersByTime(CARDS_ENTRANCE_START_TIMEOUT_MS);
-        });
-
-        expect(
-          getTitleRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(2);
-        expect(
-          getDescriptionRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(2);
-        expect(
-          getFooterRevealStyleEntries(UNSAFE_getAllByType).filter(Boolean),
-        ).toHaveLength(3);
-      } finally {
-        jest.useRealTimers();
-      }
-    });
-
-    it("attaches neither the hidden nor the animated reveal style on the first render in 'static' mode", () => {
-      mockUseCardEducationAnimationState.mockReturnValue('static');
-
-      const { UNSAFE_getAllByType } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      const titleStyleEntries = getTitleRevealStyleEntries(UNSAFE_getAllByType);
-      const descriptionStyleEntries =
-        getDescriptionRevealStyleEntries(UNSAFE_getAllByType);
-      const footerContainerStyleEntries =
-        getFooterRevealStyleEntries(UNSAFE_getAllByType);
-
-      expect(StyleSheet.flatten(titleStyleEntries).opacity).toBeUndefined();
-      expect(
-        StyleSheet.flatten(descriptionStyleEntries).opacity,
-      ).toBeUndefined();
-      // An empty style array is the real signal here: a bare (unattached)
-      // animated-style handle also flattens to `opacity: undefined`, so only
-      // the absence of any truthy entry proves no reveal style was attached.
-      expect(titleStyleEntries.filter(Boolean)).toHaveLength(0);
-      expect(descriptionStyleEntries.filter(Boolean)).toHaveLength(0);
-      // Footer still has footerContent layout style, but no reveal chrome.
-      expect(
-        footerContainerStyleEntries.filter(
-          (entry) =>
-            Boolean(entry) && StyleSheet.flatten(entry).opacity != null,
-        ),
-      ).toHaveLength(0);
-    });
-
-    it("hides the text and buttons while the animation state is 'pending'", () => {
-      mockUseCardEducationAnimationState.mockReturnValue('pending');
-
-      const { UNSAFE_getAllByType } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(
-        StyleSheet.flatten(getTitleRevealStyleEntries(UNSAFE_getAllByType))
-          .opacity,
-      ).toBe(0);
-      expect(
-        StyleSheet.flatten(
-          getDescriptionRevealStyleEntries(UNSAFE_getAllByType),
-        ).opacity,
-      ).toBe(0);
-      expect(
-        StyleSheet.flatten(getFooterRevealStyleEntries(UNSAFE_getAllByType))
-          .opacity,
-      ).toBe(0);
-    });
-
-    it('keeps the text and buttons hidden on the render where the state first transitions from pending to animate', () => {
-      mockUseCardEducationAnimationState.mockReturnValue('pending');
-
-      const { rerender, UNSAFE_getAllByType } = render(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      mockUseCardEducationAnimationState.mockReturnValue('animate');
-      rerender(
-        <Provider store={store}>
-          <CardWelcome />
-        </Provider>,
-      );
-
-      expect(
-        StyleSheet.flatten(getTitleRevealStyleEntries(UNSAFE_getAllByType))
-          .opacity,
-      ).toBe(0);
-      expect(
-        StyleSheet.flatten(
-          getDescriptionRevealStyleEntries(UNSAFE_getAllByType),
-        ).opacity,
-      ).toBe(0);
-      expect(
-        StyleSheet.flatten(getFooterRevealStyleEntries(UNSAFE_getAllByType))
-          .opacity,
-      ).toBe(0);
     });
   });
 
@@ -803,7 +517,7 @@ describe('CardWelcome', () => {
       unmount();
 
       expect(unsubscribe).toHaveBeenCalled();
-      // mockTheme.themeAppearance is 'light', so the bar resets to dark-content.
+      // The fallback theme is light, so the bar resets to dark-content.
       expect(setBarStyleSpy).toHaveBeenCalledWith('dark-content', true);
     });
   });

@@ -23,6 +23,10 @@ type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
  *
+ * `SubscriptionController:getBenefits` is what lets the perps fee resolver
+ * hydrate the Money Account Plus benefits snapshot; without it every order
+ * resolves as having no subscription source and pays the default builder fee.
+ *
  * @param rootMessenger - The base messenger used to create the restricted
  * messenger.
  * @returns The PerpsControllerMessenger.

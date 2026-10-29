@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
-import Animated, { SlideInDown } from 'react-native-reanimated';
+import { ActivityIndicator, BackHandler } from 'react-native';
+import Animated, { SlideInDown, SlideInRight } from 'react-native-reanimated';
 import {
   StackActions,
   useNavigation,
@@ -20,6 +20,7 @@ import { MfaFlowSelectorsIDs } from '../Mfa.testIds';
 import IntroStep from './steps/IntroStep';
 import PickerStep from './steps/PickerStep';
 import EmailEntryStep from './steps/EmailEntryStep';
+import TotpSetupStep from './steps/TotpSetupStep';
 import CodeStep from './steps/CodeStep';
 import PasskeyStep from './steps/PasskeyStep';
 import FailureStep from './steps/FailureStep';
@@ -61,6 +62,24 @@ const MfaFlowHost = () => {
     [navigation, flow],
   );
 
+  // Android's back button goes back like the header's: a setup code returns
+  // to its setup; anywhere else, leaving the screen cancels the flow.
+  const isSetupCode =
+    state?.step.name === 'otp' && state.step.purpose === 'setup';
+  useEffect(() => {
+    if (!flow || !isSetupCode) {
+      return undefined;
+    }
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        flow.dispatch({ type: 'back' });
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [flow, isSetupCode]);
+
   useEffect(() => {
     if (isOnStack && !isRunning) {
       // Removes this modal, even when another screen sits on top of it.
@@ -77,25 +96,33 @@ const MfaFlowHost = () => {
 
   const { step } = state;
   const cancel = () => flow.dispatch({ type: 'cancel' });
+  // Enrollment codes have their setup screen behind them.
+  const goBack = () =>
+    flow.dispatch({
+      type: step.name === 'otp' && step.purpose === 'setup' ? 'back' : 'cancel',
+    });
   const shared = {
-    key: `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`,
     state,
     reason: flow.reason,
     onAction: flow.dispatch,
   };
+  // A new key per flow and step, so nothing typed on one carries to the next.
+  const stepKey = `${flowCount}-${'purpose' in step ? `${step.name}-${step.purpose}` : step.name}`;
 
   const renderStep = () => {
     switch (step.name) {
       case 'intro':
-        return <IntroStep {...shared} step={step} />;
+        return <IntroStep key={stepKey} {...shared} step={step} />;
       case 'emailEntry':
-        return <EmailEntryStep {...shared} step={step} />;
+        return <EmailEntryStep key={stepKey} {...shared} step={step} />;
+      case 'totpSetup':
+        return <TotpSetupStep key={stepKey} {...shared} step={step} />;
       case 'otp':
-        return <CodeStep {...shared} step={step} />;
+        return <CodeStep key={stepKey} {...shared} step={step} />;
       case 'passkey':
-        return <PasskeyStep {...shared} step={step} />;
+        return <PasskeyStep key={stepKey} {...shared} step={step} />;
       case 'failure':
-        return <FailureStep {...shared} step={step} />;
+        return <FailureStep key={stepKey} {...shared} step={step} />;
       default:
         return (
           <Box twClassName="flex-1 items-center justify-center">
@@ -117,7 +144,7 @@ const MfaFlowHost = () => {
           onClose={() => sheetRef.current?.onCloseBottomSheet()}
           closeButtonProps={{ testID: MfaFlowSelectorsIDs.CLOSE_BUTTON }}
         />
-        <PickerStep {...shared} step={step} />
+        <PickerStep key={stepKey} {...shared} step={step} />
       </BottomSheet>
     );
   }
@@ -126,15 +153,20 @@ const MfaFlowHost = () => {
   // slide in themselves, as a full-screen modal would.
   return (
     <Animated.View
-      entering={SlideInDown}
+      entering={
+        flow.reason.presentation === 'card' ? SlideInRight : SlideInDown
+      }
       style={tw.style('flex-1 bg-default')}
       testID={`${MfaFlowSelectorsIDs.CONTAINER}-${step.name}`}
     >
-      <HeaderStandard
-        onBack={cancel}
-        backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
-        includesTopInset
-      />
+      {/* The authenticator app setup adds a QR code button to its own header. */}
+      {step.name === 'totpSetup' ? null : (
+        <HeaderStandard
+          onBack={goBack}
+          backButtonProps={{ testID: MfaFlowSelectorsIDs.BACK_BUTTON }}
+          includesTopInset
+        />
+      )}
       {renderStep()}
     </Animated.View>
   );

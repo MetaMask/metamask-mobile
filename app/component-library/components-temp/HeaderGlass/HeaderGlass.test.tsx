@@ -81,6 +81,17 @@ describe('HeaderGlass', () => {
     });
   });
 
+  it('stays in flow without a backdrop when it is not floating', () => {
+    const { getByTestId, queryByTestId } = render(
+      <HeaderGlass isFloating={false} backdrop="static" testID="header">
+        <Text>Header</Text>
+      </HeaderGlass>,
+    );
+
+    expect(getByTestId('header')).not.toHaveStyle({ position: 'absolute' });
+    expect(queryByTestId(FLOATING_HEADER_FADE_TEST_ID)).toBeNull();
+  });
+
   it('reports its layout so the screen can inset its content', () => {
     const onLayout = jest.fn();
     const { getByTestId } = render(

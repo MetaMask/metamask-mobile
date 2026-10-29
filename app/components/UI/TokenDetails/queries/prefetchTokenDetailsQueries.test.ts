@@ -1,6 +1,7 @@
 import type { QueryClient } from '@tanstack/react-query';
 import type { TokenI } from '../../Tokens/types';
 import { prefetchTokenDetailsQueries } from './prefetchTokenDetailsQueries';
+import { PRICE_API_BASE_URL } from '../../../../constants/urls';
 
 const token = {
   address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
@@ -13,6 +14,7 @@ jest.mock('../../Tokens/util/tokenSecurityBadgeBatch', () => ({
 }));
 
 const assetId = 'eip155:1/erc20:0x6b175474e89094c44da98b954eedeac495271d0f';
+const DEV_HOST = 'https://price.dev-api.cx.metamask.io';
 
 const queryKeyName = (options: { queryKey: readonly unknown[] }): string =>
   String(options.queryKey[1]);
@@ -21,6 +23,7 @@ const prefetch = (
   marketDataMissing: boolean,
   hasNativeConversionRate: boolean,
   nextAssetId: string | null = assetId,
+  priceApiBaseUrl?: string,
 ) => {
   const query = jest.fn().mockResolvedValue(undefined);
   const queryClient = { query } as unknown as QueryClient;
@@ -31,6 +34,7 @@ const prefetch = (
     'usd',
     marketDataMissing,
     hasNativeConversionRate,
+    priceApiBaseUrl,
   );
   return query.mock.calls.map(
     (call) => call[0] as { queryKey: readonly unknown[] },
@@ -54,6 +58,7 @@ describe('prefetchTokenDetailsQueries', () => {
       '1d',
       null,
       'usd',
+      PRICE_API_BASE_URL,
     ]);
     expect(calls[2]?.queryKey).toEqual(
       expect.arrayContaining([
@@ -62,6 +67,23 @@ describe('prefetchTokenDetailsQueries', () => {
         'usd',
       ]),
     );
+  });
+
+  // The warmed entries have to be keyed to the host the page will ask for, or
+  // V1 opens on a spinner and fetches everything again.
+  it('warms the chart and history under the given host', () => {
+    const calls = prefetch(true, true, assetId, DEV_HOST);
+
+    expect(calls[0]?.queryKey).toContain(DEV_HOST);
+    expect(calls[1]?.queryKey).toContain(DEV_HOST);
+  });
+
+  // The spot price goes through a utility Bridge and swaps share, so it is
+  // deliberately left on prod even when the rest of the page moves.
+  it('leaves the spot price on prod when a host is given', () => {
+    const calls = prefetch(true, true, assetId, DEV_HOST);
+
+    expect(calls[2]?.queryKey).not.toContain(DEV_HOST);
   });
 
   it('skips spot when market data is already in state', () => {

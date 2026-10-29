@@ -1,6 +1,7 @@
 import { AppState, Platform, type AppStateStatus } from 'react-native';
 import {
   __resetAppProfilingForTests,
+  armMeasuredAppProfilingFromUri,
   getLastAppProfilePath,
   getLastAppProfilingError,
   initializeAppProfiling,
@@ -38,6 +39,7 @@ const mockGetHermesProfilerModule = jest.mocked(getHermesProfilerModule);
 function mockNativeModule(overrides?: {
   startProfiling?: jest.Mock;
   stopProfilingToAppStorage?: jest.Mock;
+  armProfiling?: jest.Mock;
 }) {
   const nativeModule = {
     startProfiling:
@@ -45,6 +47,7 @@ function mockNativeModule(overrides?: {
     stopProfilingToAppStorage:
       overrides?.stopProfilingToAppStorage ??
       jest.fn().mockResolvedValue(ANDROID_PROFILE_PATH),
+    armProfiling: overrides?.armProfiling ?? jest.fn().mockResolvedValue(true),
   };
   mockGetHermesProfilerModule.mockReturnValue(nativeModule);
   return nativeModule;
@@ -349,6 +352,78 @@ describe('appProfiling', () => {
 
       expect(getListener()).toBeDefined();
       expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('armMeasuredAppProfilingFromUri', () => {
+    const ARM_URL = 'metamask://e2e/profiler/arm?nonce=team';
+
+    it('leaves the arm URL to the regular deeplink flow when disabled', async () => {
+      const nativeModule = mockNativeModule();
+      const split = jest.spyOn(String.prototype, 'split');
+
+      expect(armMeasuredAppProfilingFromUri(ARM_URL)).toBe(false);
+      await flushPromises();
+
+      expect(split).not.toHaveBeenCalled();
+      expect(nativeModule.armProfiling).not.toHaveBeenCalled();
+    });
+
+    it('returns false for unrelated or missing URLs', () => {
+      expect(armMeasuredAppProfilingFromUri('metamask://home', true)).toBe(
+        false,
+      );
+      expect(armMeasuredAppProfilingFromUri(undefined, true)).toBe(false);
+    });
+
+    it('arms the running session with the nonce from the URL', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+      await startAppProfiling(true);
+
+      expect(armMeasuredAppProfilingFromUri(ARM_URL, true)).toBe(true);
+      await flushPromises();
+
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+      expect(nativeModule.armProfiling).toHaveBeenCalledWith('team');
+    });
+
+    it('starts profiling first when no session is running', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+
+      armMeasuredAppProfilingFromUri(ARM_URL, true);
+      await flushPromises();
+
+      expect(nativeModule.startProfiling).toHaveBeenCalledTimes(1);
+      expect(nativeModule.armProfiling).toHaveBeenCalledWith('team');
+    });
+
+    it('consumes a repeated nonce without arming again', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      const nativeModule = mockNativeModule();
+
+      armMeasuredAppProfilingFromUri(ARM_URL, true);
+      expect(armMeasuredAppProfilingFromUri(ARM_URL, true)).toBe(true);
+      await flushPromises();
+
+      expect(nativeModule.armProfiling).toHaveBeenCalledTimes(1);
+    });
+
+    it('logs arm failures instead of throwing', async () => {
+      (Platform as { OS: typeof Platform.OS }).OS = 'android';
+      mockNativeModule({
+        armProfiling: jest.fn().mockRejectedValue(new Error('arm failed')),
+      });
+      await startAppProfiling(true);
+
+      armMeasuredAppProfilingFromUri(ARM_URL, true);
+      await flushPromises();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'arm failed' }),
+        'Failed to arm measured Hermes profiling',
+      );
     });
   });
 });

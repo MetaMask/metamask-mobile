@@ -38,7 +38,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { formatPriceWithSubscriptNotation } from '../../../../Predict/utils/format';
+import { formatPriceWithSubscriptNotation } from '../../../../../../util/number/subscriptNotation';
 import { formatPerpsPrice } from '../../../../Perps/utils/formatUtils';
 import {
   type AbsolutePriceAlert,

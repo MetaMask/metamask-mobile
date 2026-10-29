@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { brandColor } from '@metamask/design-tokens';
 import {
@@ -12,8 +13,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
-import Logger from '../../../../../util/Logger';
-import { useOpenVbaOnboarding } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { openVbaEntry } from '../../../Ramp/Views/VirtualBankAccount/hooks/useVbaOnboardingRouting';
+import { startVbaCufJourney } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTrace';
+import { VBA_CUF_ENTRY_SURFACE } from '../../../Ramp/Views/VirtualBankAccount/vbaCufTags';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   MONEY_BUTTON_INTENTS,
@@ -48,13 +51,22 @@ const HERO_GRADIENT_LOCATIONS = [0.3162, 0.8704];
 const HERO_GRADIENT_ANGLE = 224;
 
 /**
+ * Blocks repeat CTA taps until the loading route has had time to present. A
+ * second reset in that window would remount the loading route and start a
+ * second hydrate.
+ */
+const CTA_REENTRY_WINDOW_MS = 1000;
+
+/**
  * VBA identity-status card on Money home. Renders every card variant
  * (get_started, account_is_ready, kyc_pending, finish_verification,
  * kyc_decision); all per-variant differences — copy, analytics names, CTA
  * treatment, hero art — live in {@link MONEY_VBA_HOME_CARD_CONFIG}.
  *
- * The card variant is chosen by {@link useVbaHomeCard}; this component only
- * renders and reports.
+ * The card variant is chosen by {@link useVbaHomeCard}. The CTA routes
+ * immediately to the onboarding loading screen, which hydrates status and
+ * forwards to the first incomplete module; the card never shows an in-place
+ * busy state.
  */
 const MoneyVbaHomeCard = ({
   variant,
@@ -63,17 +75,14 @@ const MoneyVbaHomeCard = ({
 }) => {
   const config = MONEY_VBA_HOME_CARD_CONFIG[variant];
   const testIds = MONEY_VBA_HOME_CARD_TEST_IDS[variant];
+  const navigation = useNavigation<AppNavigationProp>();
   const { trackButtonClicked, trackComponentViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: config.componentName,
   });
-  const openVbaOnboarding = useOpenVbaOnboarding(config.source);
   const hasTrackedCardViewRef = useRef(false);
+  const hasPendingCtaOpenRef = useRef(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  // True while the CTA's in-place hydrate runs. The spinner replaces the CTA
-  // icon and blocks re-presses so repeated taps cannot start concurrent
-  // hydrates.
-  const [isOpening, setIsOpening] = useState(false);
 
   useEffect(() => {
     if (hasTrackedCardViewRef.current) {
@@ -84,30 +93,28 @@ const MoneyVbaHomeCard = ({
   }, [trackComponentViewed]);
 
   const handleCtaPress = useCallback(() => {
-    if (isOpening) {
+    if (hasPendingCtaOpenRef.current) {
       return;
     }
+    startVbaCufJourney(VBA_CUF_ENTRY_SURFACE.HOME_CARD);
+    hasPendingCtaOpenRef.current = true;
+    // Self-clears so the CTA recovers if no navigator presents the route.
+    setTimeout(() => {
+      hasPendingCtaOpenRef.current = false;
+    }, CTA_REENTRY_WINDOW_MS);
     trackButtonClicked({
       button_type: MONEY_BUTTON_TYPES.TEXT,
       button_intent: config.buttonIntent,
       label_key: `${config.i18nPrefix}.cta`,
       redirect_target: SCREEN_NAMES.VBA_ONBOARDING,
     });
-    setIsOpening(true);
-    // Intentionally not awaited: openVbaOnboarding already routes internal
-    // failures to the recoverable-error screen. Log anything that escapes.
-    openVbaOnboarding()
-      .catch((error) => {
-        Logger.error(error as Error, {
-          tags: { feature: 'money-home' },
-          context: {
-            name: 'MoneyVbaHomeCard',
-            data: { variant, step: 'openVbaOnboarding' },
-          },
-        });
-      })
-      .finally(() => setIsOpening(false));
-  }, [config, isOpening, openVbaOnboarding, trackButtonClicked, variant]);
+    // Route immediately: the loading screen hydrates and replaces itself with
+    // the first incomplete module, so the CTA never shows an in-place busy
+    // state while status resolves.
+    openVbaEntry(navigation, {
+      source: config.source,
+    });
+  }, [config, navigation, trackButtonClicked]);
 
   const handleDismissPress = useCallback(() => {
     trackButtonClicked({
@@ -126,10 +133,9 @@ const MoneyVbaHomeCard = ({
     <ButtonBase
       size={ButtonBaseSize.Lg}
       isFullWidth
-      isLoading={isOpening}
       startIconName={config.ctaStartIconName}
       twClassName={config.ctaClassName}
-      textProps={{ twClassName: config.ctaTextClassName }}
+      textClassName={() => config.ctaTextClassName}
       onPress={handleCtaPress}
       testID={testIds.CTA_BUTTON}
     >
@@ -176,12 +182,9 @@ const MoneyVbaHomeCard = ({
       {config.isDismissible ? (
         <Box twClassName="flex-row gap-3">
           <Box twClassName="flex-1">
-            {/* No isOpening guard here — the disabled Pressable blocks
-                presses; keep both in sync if these handlers move. */}
             <ButtonBase
               size={ButtonBaseSize.Lg}
               isFullWidth
-              isDisabled={isOpening}
               twClassName="bg-muted"
               textProps={{ twClassName: 'text-default' }}
               onPress={handleDismissPress}

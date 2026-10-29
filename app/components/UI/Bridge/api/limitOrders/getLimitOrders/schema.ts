@@ -2,6 +2,7 @@ import {
   array,
   assign,
   boolean,
+  number,
   optional,
   string,
   type,
@@ -38,6 +39,10 @@ export const LimitOrderPageResponseSchema = type({
    */
   endCursor: optional(string()),
   hasNextPage: boolean(),
+  /**
+   * How many orders match the query across every page, not just this one.
+   */
+  total: number(),
 });
 
 export type LimitOrderPageResponse = Infer<typeof LimitOrderPageResponseSchema>;

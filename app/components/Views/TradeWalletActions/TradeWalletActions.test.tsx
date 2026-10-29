@@ -2,7 +2,6 @@ import { act, fireEvent } from '@testing-library/react-native';
 import { BackHandler, Platform, StyleSheet } from 'react-native';
 import type { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../constants/navigation/Routes';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import {
@@ -32,8 +31,6 @@ import {
 } from '../../UI/Perps/selectors/perpsController';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isHardwareAccount } from '../../../util/address';
-import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import { selectNativeTabBarEnabled } from '../../../selectors/featureFlagController/nativeTabBar';
 import TradeWalletActions, {
   TRADE_FOCUSED_BORDER_OPACITY,
@@ -411,15 +408,6 @@ jest.mock('../../../selectors/featureFlagController/nativeTabBar', () => ({
   selectNativeTabBarEnabled: jest.fn(),
 }));
 
-jest.mock('../../../selectors/featureFlagController/batchSell', () => ({
-  selectBatchSellEnabled: jest.fn().mockReturnValue(true),
-}));
-
-jest.mock('../../../util/address', () => ({
-  ...jest.requireActual('../../../util/address'),
-  isHardwareAccount: jest.fn(),
-}));
-
 const mockInitialState: DeepPartial<RootState> = {
   swaps: { '0x1': { isLive: true }, hasOnboarded: false, isLive: true },
   fiatOrders: {
@@ -553,8 +541,6 @@ describe('TradeWalletActions', () => {
       remove: jest.fn(),
     });
     (selectCanSignTransactions as unknown as jest.Mock).mockReturnValue(true);
-    jest.mocked(isHardwareAccount).mockReturnValue(false);
-
     mockCreateEventBuilder.mockReturnValue(mockLegacyEventBuilder);
     mockLegacyEventBuilder.addProperties.mockReturnValue(
       mockLegacyEventBuilder,
@@ -570,7 +556,6 @@ describe('TradeWalletActions', () => {
       },
     });
 
-    jest.mocked(selectBatchSellEnabled).mockReturnValue(true);
     jest.mocked(selectNativeTabBarEnabled).mockReturnValue(true);
   });
 
@@ -594,8 +579,8 @@ describe('TradeWalletActions', () => {
     );
 
     expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeDefined();
+      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
+    ).toBeNull();
     expect(queryByText('New')).toBeNull();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
@@ -747,6 +732,8 @@ describe('TradeWalletActions', () => {
       const blurStyle = StyleSheet.flatten(blurProps.style);
       expect(blurStyle).toMatchObject({
         borderWidth: StyleSheet.hairlineWidth,
+        borderRadius: TRADE_TRAY_GLASS_RADIUS,
+        borderCurve: 'continuous',
       });
       expect(blurStyle.borderColor).toMatch(
         new RegExp(`^rgba\\(.*, ${TRADE_FOCUSED_BORDER_OPACITY}\\)$`),
@@ -814,7 +801,7 @@ describe('TradeWalletActions', () => {
       mockIsTradeFocusedArm = false;
     });
 
-    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline', () => {
+    it('draws the plain sheet as glass in the app theme, with the tuned fill and hairline on continuous corners', () => {
       mockUseParams.mockReturnValue(nativeTrayParams);
 
       const { getByTestId } = renderScreen(
@@ -835,17 +822,30 @@ describe('TradeWalletActions', () => {
       const [glassProps] = mockGlassView.mock.calls[0];
       expect(StyleSheet.flatten(glassProps.style)).toMatchObject({
         borderRadius: TRADE_TRAY_GLASS_RADIUS,
+        borderCurve: 'continuous',
+      });
+      // The hairline must clip, or React Native draws its border with circular arcs.
+      expect(
+        getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_GLASS_BORDER),
+      ).toHaveStyle({
+        borderWidth: StyleSheet.hairlineWidth,
+        borderCurve: 'continuous',
+        overflow: 'hidden',
       });
       const fill = jest
         .mocked(
           getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
         )
-        .children.find(
-          (child) =>
-            typeof child !== 'string' &&
-            StyleSheet.flatten(child.props.style)?.opacity ===
-              TRADE_TRAY_GLASS_FILL_OPACITY,
-        );
+        .children.find((child) => {
+          if (typeof child === 'string') {
+            return false;
+          }
+          const style = StyleSheet.flatten(child.props.style);
+          return (
+            style?.opacity === TRADE_TRAY_GLASS_FILL_OPACITY &&
+            style?.borderCurve === 'continuous'
+          );
+        });
       expect(fill).toBeDefined();
     });
 
@@ -879,23 +879,41 @@ describe('TradeWalletActions', () => {
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE),
       ).toBeOnTheScreen();
-    });
-
-    it('falls back to the opaque sheet when glass is unavailable', () => {
-      mockIsGlassEnabled = false;
-      mockUseParams.mockReturnValue(nativeTrayParams);
-
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      expect(mockGlassView).not.toHaveBeenCalled();
+      // The notch's SVG bottom edge is cut to the sheet's original corners.
       expect(
         getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
-      ).toBeOnTheScreen();
+      ).not.toHaveStyle({ borderRadius: TRADE_TRAY_GLASS_RADIUS });
     });
+
+    const fallbackPlatforms: (typeof Platform.OS)[] = ['ios', 'android'];
+
+    it.each(fallbackPlatforms)(
+      'falls back to the opaque sheet on the tray corners on %s when glass is unavailable',
+      (os) => {
+        const originalOS = Platform.OS;
+        Platform.OS = os;
+        mockIsGlassEnabled = false;
+        mockUseParams.mockReturnValue(nativeTrayParams);
+
+        try {
+          const { getByTestId } = renderScreen(
+            TradeWalletActions,
+            { name: 'TradeWalletActions' },
+            { state: mockInitialState },
+          );
+
+          expect(mockGlassView).not.toHaveBeenCalled();
+          expect(
+            getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER),
+          ).toHaveStyle({
+            borderRadius: TRADE_TRAY_GLASS_RADIUS,
+            overflow: 'hidden',
+          });
+        } finally {
+          Platform.OS = originalOS;
+        }
+      },
+    );
   });
 
   describe('glass morph menu', () => {
@@ -964,6 +982,8 @@ describe('TradeWalletActions', () => {
         width: morphParams.buttonLayout.width,
         height: morphParams.buttonLayout.height,
         borderRadius: morphParams.buttonLayout.height / 2,
+        // The clip and hairline follow the glass's continuous corners.
+        borderCurve: 'continuous',
       });
     });
 
@@ -1140,45 +1160,6 @@ describe('TradeWalletActions', () => {
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeOnTheScreen();
-  });
-
-  it('does not render Batch Sell for hardware wallets', () => {
-    jest.mocked(isHardwareAccount).mockReturnValue(true);
-
-    const { getByTestId, queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
-    ).toBeDefined();
-  });
-
-  it('does not render Batch Sell when feature flag is disabled', () => {
-    jest.mocked(selectBatchSellEnabled).mockReturnValue(false);
-
-    const { queryByTestId } = renderScreen(
-      TradeWalletActions,
-      {
-        name: 'TradeWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
-
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON),
-    ).toBeNull();
   });
 
   it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
@@ -1365,9 +1346,6 @@ describe('TradeWalletActions', () => {
     const swapButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON,
     );
-    const batchSellButton = getByTestId(
-      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
-    );
     const earnButton = getByTestId(
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
@@ -1380,7 +1358,6 @@ describe('TradeWalletActions', () => {
 
     // Test that disabled buttons don't execute their actions when pressed
     fireEvent.press(swapButton);
-    fireEvent.press(batchSellButton);
     fireEvent.press(earnButton);
     fireEvent.press(perpsButton);
     fireEvent.press(predictButton);
@@ -1436,27 +1413,6 @@ describe('TradeWalletActions', () => {
       expect(mockOnDismiss).toHaveBeenCalled();
       expect(mockParentGoBack).toHaveBeenCalled();
       expect(mockGoToSwaps).toHaveBeenCalled();
-    });
-
-    it('navigates to batch sell token select after dismissing RootModalFlow', async () => {
-      const { getByTestId } = renderScreen(
-        TradeWalletActions,
-        { name: 'TradeWalletActions' },
-        { state: mockInitialState },
-      );
-
-      await pressActionButton(
-        getByTestId,
-        WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON,
-      );
-
-      expect(mockParentGoBack).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-        params: {
-          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
-        },
-      });
     });
 
     it('navigates to Perps home after dismissing RootModalFlow for returning users', async () => {

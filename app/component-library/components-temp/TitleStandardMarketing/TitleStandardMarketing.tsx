@@ -10,6 +10,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { typography } from '@metamask/design-tokens';
 
 // Internal dependencies.
 import { TitleStandardMarketingProps } from './TitleStandardMarketing.types';
@@ -42,7 +43,7 @@ export const TitleStandardMarketing: React.FC<TitleStandardMarketingProps> = ({
   twClassName = '',
   ...props
 }) => (
-  <Box twClassName={twClassName} gap={1} {...props}>
+  <Box twClassName={`mb-6 ${twClassName}`} gap={2} {...props}>
     {topAccessory}
     <BoxRow
       gap={2}
@@ -51,6 +52,7 @@ export const TitleStandardMarketing: React.FC<TitleStandardMarketingProps> = ({
       textProps={{
         variant: TextVariant.DisplayLg,
         fontFamily: FontFamily.Hero,
+        style: { lineHeight: typography.sDisplayLG.fontSize },
         ...titleProps,
       }}
     >

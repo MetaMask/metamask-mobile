@@ -1,6 +1,8 @@
 import {
   getHomepageSectionMountMode,
   shouldPlacePerpsAboveTokens,
+  shouldPlaceTopTradersAboveAllocation,
+  shouldShowTopTradersAboveAllocation,
 } from './homepageSectionMountPolicy';
 
 describe('getHomepageSectionMountMode', () => {
@@ -78,4 +80,72 @@ describe('shouldPlacePerpsAboveTokens', () => {
       ).toBe(false);
     },
   );
+});
+
+describe('shouldPlaceTopTradersAboveAllocation', () => {
+  it('keeps deferred Top Traders below allocation even when eligible', () => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: false,
+        isSocialV1PriorityEnabled: true,
+        isSocialTopTradersEligible: true,
+      }),
+    ).toBe(false);
+  });
+
+  it('places eligible Top Traders above allocation when mounted immediately', () => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: true,
+        isSocialV1PriorityEnabled: true,
+        isSocialTopTradersEligible: true,
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    ['Social V1 disabled', false, true],
+    ['user ineligible', true, false],
+  ])('%s keeps Top Traders below allocation', (_label, enabled, eligible) => {
+    expect(
+      shouldPlaceTopTradersAboveAllocation({
+        optionalSectionsCanMount: true,
+        isSocialV1PriorityEnabled: enabled,
+        isSocialTopTradersEligible: eligible,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('shouldShowTopTradersAboveAllocation', () => {
+  it('keeps the frozen placement disabled when either live feature flag is off', () => {
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: false,
+        isSocialV1PriorityEnabled: true,
+      }),
+    ).toBe(false);
+
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: true,
+        isSocialV1PriorityEnabled: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('shows Top Traders when the frozen placement and live gates are enabled', () => {
+    expect(
+      shouldShowTopTradersAboveAllocation({
+        topTradersAboveAllocationPlacement: true,
+        shouldMountOptionalSections: true,
+        isTopTradersEnabled: true,
+        isSocialV1PriorityEnabled: true,
+      }),
+    ).toBe(true);
+  });
 });

@@ -3,6 +3,7 @@ import React from 'react';
 import { render, renderHook } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { typography } from '@metamask/design-tokens';
 
 // Internal dependencies.
 import TitleStandardMarketing from './TitleStandardMarketing';
@@ -45,8 +46,23 @@ describe('TitleStandardMarketing', () => {
       );
 
       const title = getByTestId(TEST_IDS.TITLE);
-      expect(title).toHaveStyle(tw`text-display-lg`);
+      expect(title).toHaveStyle({
+        fontSize: typography.sDisplayLG.fontSize,
+      });
       expect(title).toHaveStyle(tw.style('font-hero-bold'));
+    });
+
+    it('sets the title line height equal to the DisplayLg font size', () => {
+      const { getByTestId } = render(
+        <TitleStandardMarketing
+          title="Import a wallet"
+          titleProps={{ testID: TEST_IDS.TITLE }}
+        />,
+      );
+
+      expect(getByTestId(TEST_IDS.TITLE)).toHaveStyle({
+        lineHeight: typography.sDisplayLG.fontSize,
+      });
     });
   });
 
@@ -201,7 +217,7 @@ describe('TitleStandardMarketing', () => {
   });
 
   describe('root container', () => {
-    it('applies style and twClassName to the root and keeps gap-1', () => {
+    it('applies style and twClassName to the root with gap-2 and mb-6', () => {
       const { result } = renderHook(() => useTailwind());
       const tw = result.current;
       const customStyle = { opacity: 0.5 };
@@ -218,7 +234,8 @@ describe('TitleStandardMarketing', () => {
       const container = getByTestId(TEST_IDS.CONTAINER);
       expect(container).toHaveStyle(customStyle);
       expect(container).toHaveStyle(tw`mt-4`);
-      expect(container).toHaveStyle(tw`gap-1`);
+      expect(container).toHaveStyle(tw`gap-2`);
+      expect(container).toHaveStyle(tw`mb-6`);
     });
   });
 });

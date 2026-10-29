@@ -1482,7 +1482,7 @@ describeForPlatforms('ActivityDetails — Solana swap', () => {
       exact: false,
     });
 
-    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activit', {
+    expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('activ', {
       exact: false,
     });
     expect(getByTestId(TRANSACTION_ID_ROW)).toHaveTextContent('-swap', {

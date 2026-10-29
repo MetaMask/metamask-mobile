@@ -375,6 +375,41 @@ describe('usePerpsLiveOrderBook', () => {
       expect(result.current.orderBook).toEqual(secondUpdate);
     });
 
+    it('applies the first snapshot of a new subscription immediately inside the throttle window', () => {
+      let capturedCallback: (data: OrderBookData) => void = jest.fn();
+      mockSubscribeToOrderBook.mockImplementation((params) => {
+        capturedCallback = params.callback;
+        return jest.fn();
+      });
+
+      const { result, rerender } = renderHook(
+        ({ symbol }) =>
+          usePerpsLiveOrderBook({
+            symbol,
+            throttleMs: 100,
+          }),
+        { initialProps: { symbol: 'BTC' } },
+      );
+
+      const firstUpdate = { ...mockOrderBookData, spread: '100' };
+      const nextSymbolUpdate = { ...mockOrderBookData, spread: '250' };
+
+      act(() => {
+        capturedCallback(firstUpdate);
+      });
+      expect(result.current.orderBook).toEqual(firstUpdate);
+
+      rerender({ symbol: 'ETH' });
+
+      act(() => {
+        capturedCallback(nextSymbolUpdate);
+      });
+
+      expect(result.current.orderBook).toEqual(nextSymbolUpdate);
+      expect(result.current.dataSymbol).toBe('ETH');
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it('applies pending update after throttle period', () => {
       let capturedCallback: (data: OrderBookData) => void = jest.fn();
       mockSubscribeToOrderBook.mockImplementation((params) => {

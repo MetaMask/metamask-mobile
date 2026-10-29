@@ -1,6 +1,7 @@
 import React from 'react';
-import { lightTheme } from '@metamask/design-tokens';
+import { darkTheme } from '@metamask/design-tokens';
 import {
+  act,
   fireEvent,
   screen,
   waitFor,
@@ -9,7 +10,8 @@ import {
 import { StyleSheet } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
-import { SocialFeedSurfaceProvider } from '../SocialFeedSurface';
+import { mockTheme } from '../../../../util/theme';
+import { AppThemeKey } from '../../../../util/theme/models';
 import SocialFeedPositionCard, {
   PositionCardBody,
 } from './SocialFeedPositionCard';
@@ -33,6 +35,9 @@ import {
 import { MINUTE } from '../../../../constants/time';
 import Routes from '../../../../constants/navigation/Routes';
 import { SOCIAL_FEED_COPY_TRADE_GEO_BLOCK_TEST_ID } from '../hooks/useCopyTradeToPerps';
+import { SocialLivePricesContext } from '../live/SocialLivePricesContext';
+import { SocialLivePriceStore } from '../live/SocialLivePriceStore';
+import type { SocialLivePriceSource } from '../live/types';
 
 const mockNavigate = jest.fn();
 const mockGate = jest.fn((action: () => Promise<void> | void) =>
@@ -340,24 +345,24 @@ describe('SocialFeedPositionCard', () => {
       expect(style?.width).toBe('100%');
     });
 
-    it('joins the symbol, leverage and direction into one title', () => {
+    it('keeps the leverage tag beside the symbol', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(
-        screen.getByText(
-          'ETH \u00b7 15x social_leaderboard.trader_position.short',
-        ),
+        screen.getByText('15x social_leaderboard.trader_position.short'),
       ).toBeOnTheScreen();
     });
 
-    it('merges the realized P&L and its percent into one line', () => {
+    it('stacks the realized P&L and its percent', () => {
       const item = mockClosedPerpsFeedItem();
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
-      expect(screen.getByText('+$96,378.60 (+38.2%)')).toBeOnTheScreen();
+      expect(screen.getByText('+$96,378.60')).toBeOnTheScreen();
+      expect(screen.getByText('+38.2%')).toBeOnTheScreen();
     });
 
     it('shows whichever half it has when the other is missing', () => {
@@ -366,15 +371,22 @@ describe('SocialFeedPositionCard', () => {
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('+$96,378.60')).toBeOnTheScreen();
+      expect(screen.queryByText('+38.2%')).toBeNull();
     });
 
     // The side is spent once the position closes; the toned border says how.
     it('titles a closed spot position with the bare symbol', () => {
-      const item = mockClosedSpotFeedItem();
+      const item = mockClosedSpotFeedItem({ closedAtMs: Date.now() });
 
       renderWithProvider(<SocialFeedPositionCard item={item} />);
 
       expect(screen.getByText('AAPL')).toBeOnTheScreen();
+      expect(
+        screen.queryByText('social_leaderboard.feed.position_card.sell'),
+      ).toBeNull();
+      expect(
+        screen.getByText('social_leaderboard.feed.position_card.sold_ago'),
+      ).toBeOnTheScreen();
     });
 
     it('shows how long ago the position closed', () => {
@@ -515,45 +527,88 @@ describe('SocialFeedPositionCard', () => {
     ).toBeOnTheScreen();
   });
 
-  // The card's wash is the fastest read of the outcome while scrolling, so it
-  // has to follow the position's state rather than only its numbers.
+  // The wash follows the P&L in dark mode. Light mode keeps the border only.
   describe('card tone', () => {
     const cardTintOf = (item: Parameters<typeof PositionCardBody>[0]['item']) =>
-      renderWithProvider(<PositionCardBody item={item} />).UNSAFE_getAllByType(
-        LinearGradient,
-      )[0].props.colors[0];
+      renderWithProvider(<PositionCardBody item={item} />, {
+        theme: {
+          ...mockTheme,
+          colors: darkTheme.colors,
+          typography: darkTheme.typography,
+          shadows: darkTheme.shadows,
+          themeAppearance: AppThemeKey.dark,
+        },
+      }).UNSAFE_getAllByType(LinearGradient)[0].props.colors[0];
 
-    it('leaves an open position neutral, whichever way it is running', () => {
-      expect(cardTintOf(mockOpenPerpsFeedItem())).toContain(
-        lightTheme.colors.icon.default,
+    it('washes an open winner green and an open loser red', () => {
+      expect(cardTintOf(mockOpenPerpsFeedItem())).toBe(
+        darkTheme.colors.success.muted,
       );
-      expect(
-        cardTintOf(mockOpenSpotFeedItem({ isPnlPositive: false })),
-      ).toContain(lightTheme.colors.icon.default);
+      expect(cardTintOf(mockOpenSpotFeedItem({ isPnlPositive: false }))).toBe(
+        darkTheme.colors.error.muted,
+      );
     });
 
     it('washes a closed winner green', () => {
-      expect(
-        cardTintOf(mockClosedPerpsFeedItem({ isPnlPositive: true })),
-      ).toContain(lightTheme.colors.success.default);
+      expect(cardTintOf(mockClosedPerpsFeedItem({ isPnlPositive: true }))).toBe(
+        darkTheme.colors.success.muted,
+      );
     });
 
     it('washes a closed loser red', () => {
-      expect(
-        cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false })),
-      ).toContain(lightTheme.colors.error.default);
+      expect(cardTintOf(mockClosedSpotFeedItem({ isPnlPositive: false }))).toBe(
+        darkTheme.colors.error.muted,
+      );
     });
 
-    it('leaves a closed position neutral when no PnL is available', () => {
+    it('does not wash an open card that has a price but no P&L', () => {
+      const utils = renderWithProvider(
+        <PositionCardBody
+          item={mockOpenPerpsFeedItem({
+            valueLabel: '$212,000.00',
+            pnlLabel: '',
+            pnlValueLabel: undefined,
+            isPnlPositive: false,
+          })}
+        />,
+        {
+          theme: {
+            ...mockTheme,
+            colors: darkTheme.colors,
+            typography: darkTheme.typography,
+            shadows: darkTheme.shadows,
+            themeAppearance: AppThemeKey.dark,
+          },
+        },
+      );
+
+      expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
+    });
+
+    it('washes a closed card from its realized P&L when the percent is missing', () => {
       expect(
         cardTintOf(
-          mockClosedSpotFeedItem({
+          mockClosedPerpsFeedItem({
+            valueLabel: '+$96,378.60',
+            pnlLabel: '',
+            isPnlPositive: true,
+          }),
+        ),
+      ).toBe(darkTheme.colors.success.muted);
+    });
+
+    it('leaves a closed position without a wash when no PnL is available', () => {
+      const utils = renderWithProvider(
+        <PositionCardBody
+          item={mockClosedSpotFeedItem({
             valueLabel: '',
             pnlLabel: '',
             isPnlPositive: false,
-          }),
-        ),
-      ).toContain(lightTheme.colors.icon.default);
+          })}
+        />,
+      );
+
+      expect(utils.UNSAFE_queryAllByType(LinearGradient)).toHaveLength(0);
     });
   });
 
@@ -655,24 +710,108 @@ describe('SocialFeedPositionCard', () => {
     });
   });
 
-  it('hides an invented mark price', () => {
-    const item = mockOpenPerpsFeedItem({ mockedFields: ['markPrice'] });
+  it('shows the snapshot mark price on any surface', () => {
+    const item = mockOpenPerpsFeedItem();
 
     renderWithProvider(<SocialFeedPositionCard item={item} />);
 
-    expect(screen.queryByText('$104,213')).toBeNull();
+    expect(screen.getByText('$104,213')).toBeOnTheScreen();
   });
 
-  it('keeps invented values when the surface opts in', () => {
-    const item = mockOpenPerpsFeedItem({ mockedFields: ['markPrice'] });
+  describe('live prices', () => {
+    const liveSource: SocialLivePriceSource = {
+      key: 'perp:BTC',
+      kind: 'perp',
+      symbol: 'BTC',
+      positionAmount: 2,
+      direction: 1,
+      snapshotPrice: 100_000,
+      snapshotPnlUsd: 1_000,
+      entryPrice: 99_500,
+      pnlBaseUsd: 10_000,
+      marketCapPerPrice: null,
+    };
 
-    renderWithProvider(
-      <SocialFeedSurfaceProvider showMockedFields>
-        <SocialFeedPositionCard item={item} />
-      </SocialFeedSurfaceProvider>,
-    );
+    const renderLive = (store: SocialLivePriceStore) => {
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        live: liveSource,
+      });
+      renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: true,
+          }}
+        >
+          <SocialFeedPositionCard item={item} />
+        </SocialLivePricesContext.Provider>,
+      );
+    };
 
-    expect(screen.getByText('$104,213')).toBeOnTheScreen();
+    it('keeps the snapshot until the first tick', () => {
+      renderLive(new SocialLivePriceStore(0));
+
+      expect(screen.getByText('$100,000')).toBeOnTheScreen();
+    });
+
+    it('moves the wash with the live P&L sign', () => {
+      const store = new SocialLivePriceStore(0);
+      const item = mockOpenPerpsFeedItem({
+        markPriceLabel: '$100,000',
+        isPnlPositive: true,
+        live: liveSource,
+      });
+      const utils = renderWithProvider(
+        <SocialLivePricesContext.Provider
+          value={{
+            store,
+            register: () => () => undefined,
+            requestVisibilityCheck: () => undefined,
+            reduceMotion: true,
+          }}
+        >
+          <PositionCardBody item={item} />
+        </SocialLivePricesContext.Provider>,
+        {
+          theme: {
+            ...mockTheme,
+            colors: darkTheme.colors,
+            typography: darkTheme.typography,
+            shadows: darkTheme.shadows,
+            themeAppearance: AppThemeKey.dark,
+          },
+        },
+      );
+
+      expect(utils.UNSAFE_getAllByType(LinearGradient)[0].props.colors[0]).toBe(
+        darkTheme.colors.success.muted,
+      );
+
+      act(() => {
+        store.publish('perp:BTC', 99_000);
+      });
+
+      expect(utils.UNSAFE_getAllByType(LinearGradient)[0].props.colors[0]).toBe(
+        darkTheme.colors.error.muted,
+      );
+    });
+
+    it('re-derives the mark price and P&L from a streamed price', () => {
+      const store = new SocialLivePriceStore(0);
+      renderLive(store);
+
+      act(() => {
+        store.publish('perp:BTC', 101_000);
+      });
+
+      // 1,000 + 2 * (101,000 - 100,000) on a 10,000 basis.
+      expect(screen.getByLabelText('$101,000')).toBeOnTheScreen();
+      expect(screen.getByLabelText('+$3K')).toBeOnTheScreen();
+      expect(screen.getByLabelText('+30.00%')).toBeOnTheScreen();
+    });
   });
 
   it('renders the position body without the post author header', () => {

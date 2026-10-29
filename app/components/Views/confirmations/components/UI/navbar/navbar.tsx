@@ -1,9 +1,32 @@
 import React, { ReactNode } from 'react';
-import { Platform, ViewStyle } from 'react-native';
+import { Platform, View, ViewStyle } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Box } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
+import { useTheme } from '../../../../../../util/theme';
 
 export const NAVBAR_SHEET_HANDLE_TEST_ID = 'navbar-sheet-handle';
+
+/**
+ * HeaderBase's top inset is a margin, so the header background starts below
+ * it and the screen behind shows through. Padding keeps the title below the
+ * notch and paints that band with the screen background.
+ */
+function FullScreenNavbarBackground({ children }: { children: ReactNode }) {
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  return (
+    <View
+      style={{
+        backgroundColor: colors.background.default,
+        paddingTop: insets.top,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
 
 /**
  * Optional overrides for navbar customization.
@@ -78,7 +101,7 @@ export function getNavbar({
           startAccessory={customLeft}
           endAccessory={customRight}
           style={overrides?.headerStyle}
-          includesTopInset={!isSheetPresentation}
+          includesTopInset={false}
           twClassName="bg-default"
         >
           {customTitle}
@@ -86,7 +109,9 @@ export function getNavbar({
       );
 
       if (!isSheetPresentation) {
-        return header;
+        return (
+          <FullScreenNavbarBackground>{header}</FullScreenNavbarBackground>
+        );
       }
 
       return (

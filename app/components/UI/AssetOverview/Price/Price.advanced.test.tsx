@@ -182,10 +182,14 @@ jest.mock('../../Charts/AdvancedChart/IndicatorBar', () => {
     __esModule: true,
     default: ({
       onIndicatorToggle,
+      isGlass,
     }: {
       onIndicatorToggle?: (name: string) => void;
+      isGlass?: boolean;
     }) => (
-      <View testID="mock-indicator-bar">
+      <View
+        testID={isGlass ? 'mock-indicator-bar-glass' : 'mock-indicator-bar'}
+      >
         <Pressable
           testID="toggle-rsi"
           onPress={() => onIndicatorToggle?.('RSI')}
@@ -1041,6 +1045,27 @@ describe('PriceAdvanced', () => {
       expect(
         getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
       ).toBe(false);
+    });
+
+    it('draws the indicator bar on glass when the screen passes isGlass', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} isGlass />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(getByTestId('mock-indicator-bar-glass')).toBeOnTheScreen();
     });
 
     it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {

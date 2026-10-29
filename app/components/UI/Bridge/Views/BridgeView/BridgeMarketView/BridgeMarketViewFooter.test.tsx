@@ -37,7 +37,7 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../components/RebateBanner', () => ({
+jest.mock('../../../components/SwapsRebateBanner', () => ({
   __esModule: true,
   default: () => null,
 }));

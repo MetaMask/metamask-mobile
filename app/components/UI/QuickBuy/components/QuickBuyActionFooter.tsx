@@ -4,6 +4,7 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -28,7 +29,7 @@ import QuickBuyDisabledSection from './QuickBuyDisabledSection';
 import QuickBuyQuickAmounts from './QuickBuyQuickAmounts';
 import QuickBuyRateTag from './QuickBuyRateTag';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
-import RebateBanner from '../../Bridge/components/RebateBanner';
+import SwapsRebateBanner from '../../Bridge/components/SwapsRebateBanner';
 
 const QuickBuyActionFooter: React.FC = () => {
   const tw = useTailwind();
@@ -180,7 +181,11 @@ const QuickBuyActionFooter: React.FC = () => {
                   size={AvatarTokenSize.Sm}
                 />
               ) : null}
-              <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
                 {pickerToken
                   ? pickerBalanceFiat
                     ? `${pickerToken.symbol} (${pickerBalanceFiat})`
@@ -199,7 +204,7 @@ const QuickBuyActionFooter: React.FC = () => {
         </Box>
       </QuickBuyDisabledSection>
 
-      <RebateBanner quote={activeQuote?.quote} twClassName="mb-3" />
+      <SwapsRebateBanner quote={activeQuote?.quote} twClassName="mb-3" />
 
       {showQuickAmounts ? (
         <QuickBuyQuickAmounts />

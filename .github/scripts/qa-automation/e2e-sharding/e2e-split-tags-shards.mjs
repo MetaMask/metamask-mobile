@@ -302,43 +302,35 @@ function getChangedSpecFiles() {
  * @param {string[]} splitFiles
  * @returns {string[]}
  */
-function applyFlakinessDetection(splitFiles) {
+function resolveDeviceWorkers(platform) {
+  const raw =
+    platform === 'ios'
+      ? process.env.IOS_DEVICE_POOL_SIZE
+      : process.env.ANDROID_DEVICE_POOL_SIZE;
+  const parsed = Number(raw);
+  if (Number.isInteger(parsed) && parsed >= 1) return parsed;
+  return platform === 'ios' ? 2 : 3;
+}
+
+function expandChangedSpecCopies(files) {
   const changedSpecs = getChangedSpecFiles();
-  if (changedSpecs.size === 0) {
-    return splitFiles;
-  }
+  if (changedSpecs.size === 0) return files;
 
-  const selectedSet = new Set(splitFiles.map(normalizePathForCompare));
-  const duplicatedSet = new Set();
-  for (const changed of changedSpecs) {
-    const normalized = normalizePathForCompare(changed);
-    if (selectedSet.has(normalized)) {
-      duplicateSpecFile(normalized);
-      duplicatedSet.add(normalized);
-    }
-  }
-
-  if (duplicatedSet.size === 0) {
-    console.log(
-      'ℹ️  No changed spec files found for this shard split -> No test retries.',
-    );
-    return splitFiles;
-  }
-
-  const expanded = [];
-  for (const file of splitFiles) {
+  const expanded = [...files];
+  for (const file of files) {
     const normalized = normalizePathForCompare(file);
-    expanded.push(file);
-    if (duplicatedSet.has(normalized)) {
-      const retry1 = computeRetryFilePath(normalized, 1);
-      if (retry1) expanded.push(retry1);
-    }
+    if (!changedSpecs.has(normalized)) continue;
+    const retry = computeRetryFilePath(normalized, 1);
+    if (retry && !expanded.includes(retry)) expanded.push(retry);
   }
-
-  console.log(
-    `ℹ️  Duplicated ${duplicatedSet.size} changed file(s) for flakiness detection.`,
-  );
   return expanded;
+}
+
+function materializeRetryCopies(files) {
+  for (const file of files) {
+    if (!/-retry-\d+\.spec\.(ts|js)$/.test(file)) continue;
+    duplicateSpecFile(baseSpecPath(file));
+  }
 }
 
 function* walk(dir) {
@@ -513,23 +505,24 @@ async function fetchE2ETestTimes() {
 
 async function selectShardFiles(files, splitNumber, totalSplits, platform) {
   const timings = await fetchE2ETestTimes();
+  const workers = resolveDeviceWorkers(platform);
 
   if (timings && Object.keys(timings).length > 0) {
     console.log('⏱️  Time-based sharding (from qa-stats / frozen timings)');
-    const shards = planShards(files, timings, platform, totalSplits);
+    const shards = planShards(files, timings, platform, totalSplits, workers);
     console.log(
-      `\n📊 Estimated shard durations (${platform === 'ios' ? 'ios' : 'android'}, ${totalSplits} shards):`,
+      `\n📊 Estimated shard wall-clock (${platform === 'ios' ? 'ios' : 'android'}, ${workers} workers, ${totalSplits} shards):`,
     );
     for (const shard of shards) {
-      const totalSec = Math.round(shard.totalDuration);
+      const totalSec = Math.round(shard.makespan);
       const mins = Math.floor(totalSec / 60);
       const secs = totalSec % 60;
       const marker = shard.index === splitNumber ? ' ← this runner' : '';
       console.log(
-        `   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s (${shard.files.length} files)${marker}`,
+        `   Shard ${shard.index}: ~${mins}m${String(secs).padStart(2, '0')}s wall (${shard.files.length} files)${marker}`,
       );
     }
-    return binPackShards(files, timings, platform, splitNumber, totalSplits);
+    return binPackShards(files, timings, platform, splitNumber, totalSplits, workers);
   }
 
   console.log('📦 Equal-count sharding (no timings)');
@@ -573,8 +566,18 @@ async function main() {
     throw new Error(`❌ No Appium specs found containing tag: ${env.TEST_SUITE_TAG}`);
   }
 
+  const includeFlakinessCopies = !(await shouldSkipFlakinessDetection());
+  const filesToPack = includeFlakinessCopies
+    ? expandChangedSpecCopies(allMatches)
+    : allMatches;
+  if (filesToPack.length !== allMatches.length) {
+    console.log(
+      `ℹ️  Included ${filesToPack.length - allMatches.length} changed spec copy(ies) before bin-packing.`,
+    );
+  }
+
   const splitFiles = await selectShardFiles(
-    allMatches,
+    filesToPack,
     env.SPLIT_NUMBER,
     env.TOTAL_SPLITS,
     env.PLATFORM,
@@ -642,13 +645,7 @@ async function main() {
     }
   }
 
-  // PR flakiness: run changed specs twice via *-retry-1.spec.* copies (attempt 1 only).
-  if (env.RUN_ATTEMPT === 1) {
-    const shouldSkipFlakinessGate = await shouldSkipFlakinessDetection();
-    if (!shouldSkipFlakinessGate) {
-      runFiles = applyFlakinessDetection(runFiles);
-    }
-  }
+  materializeRetryCopies(runFiles);
 
   console.log(
     `\n🧪 ${runFiles.length} spec file(s) for this shard (${env.SPLIT_NUMBER}/${env.TOTAL_SPLITS}):`,

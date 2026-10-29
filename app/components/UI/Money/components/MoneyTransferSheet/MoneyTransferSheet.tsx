@@ -214,17 +214,19 @@ const MoneyTransferSheet = () => {
           },
         ]
       : []),
-    {
-      label: strings('money.transfer_sheet.back_to_account'),
-      icon: IconName.Arrow2UpRight,
-      // The design system has no up-left arrow: the up-right "send" arrow is
-      // mirrored horizontally to point up-left ("send back").
-      iconProps: { style: { transform: [{ scaleX: -1 }] } },
-      testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
-      onPress: isRescueSendAvailable ? handleSendExternal : undefined,
-      disabled: !isRescueSendAvailable,
-      comingSoon: !isRescueSendAvailable,
-    },
+    ...(isRescueSendAvailable
+      ? [
+          {
+            label: strings('money.transfer_sheet.back_to_account'),
+            icon: IconName.Arrow2UpRight,
+            // The design system has no up-left arrow: the up-right "send" arrow is
+            // mirrored horizontally to point up-left ("send back").
+            iconProps: { style: { transform: [{ scaleX: -1 }] } },
+            testID: MoneyTransferSheetTestIds.SEND_EXTERNAL_ROW,
+            onPress: handleSendExternal,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.withdraw_to_bank'),
       icon: IconName.Bank,

@@ -9,6 +9,10 @@ import PerpsServiceInterruptionBanner, {
 } from './PerpsServiceInterruptionBanner';
 import { selectPerpsServiceInterruptionBannerEnabledFlag } from '../../selectors/featureFlags';
 import {
+  METAMASK_SUPPORT_URL,
+  PERPS_TROUBLESHOOT_URL,
+} from '../../../../../constants/urls';
+import {
   SERVICE_INTERRUPTION_CONFIG,
   SUPPORT_CONFIG,
 } from '../../constants/perpsConfig';
@@ -112,15 +116,16 @@ describe('PerpsServiceInterruptionBanner', () => {
     }
   });
 
-  it('opens the Perps FAQ in the SimpleWebview when the FAQ link is pressed', () => {
+  it('opens the Perps troubleshoot article in the SimpleWebview when the FAQ link is pressed', () => {
     const { getByTestId } = render(<PerpsServiceInterruptionBanner />);
 
     fireEvent.press(getByTestId(`${TEST_ID}-faq-link`));
 
+    expect(SERVICE_INTERRUPTION_CONFIG.FaqUrl).toBe(PERPS_TROUBLESHOOT_URL);
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: SERVICE_INTERRUPTION_CONFIG.FaqUrl,
+        url: PERPS_TROUBLESHOOT_URL,
         title: strings(SERVICE_INTERRUPTION_CONFIG.FaqTitleKey),
       },
     });
@@ -132,9 +137,10 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
 
+    expect(SERVICE_INTERRUPTION_CONFIG.SupportUrl).toBe(METAMASK_SUPPORT_URL);
     expect(mockOpenSupportWithConsent).toHaveBeenCalledWith(
       expect.any(Function),
-      SERVICE_INTERRUPTION_CONFIG.SupportUrl,
+      METAMASK_SUPPORT_URL,
     );
   });
 
@@ -146,12 +152,12 @@ describe('PerpsServiceInterruptionBanner', () => {
 
     fireEvent.press(getByTestId(`${TEST_ID}-support-link`));
     const [open] = mockOpenSupportWithConsent.mock.calls[0];
-    open(SERVICE_INTERRUPTION_CONFIG.SupportUrl);
+    open(METAMASK_SUPPORT_URL);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: SERVICE_INTERRUPTION_CONFIG.SupportUrl,
+        url: METAMASK_SUPPORT_URL,
         title: strings(SUPPORT_CONFIG.TitleKey),
       },
     });

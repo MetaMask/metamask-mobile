@@ -20,7 +20,7 @@ const ORDER = {
   },
 };
 
-const MINIMAL_PAGE = { orders: [ORDER], hasNextPage: false };
+const MINIMAL_PAGE = { orders: [ORDER], hasNextPage: false, total: 1 };
 
 describe('parseLimitOrderPageResponse', () => {
   it('accepts a page carrying only the required fields', () => {
@@ -34,6 +34,7 @@ describe('parseLimitOrderPageResponse', () => {
       newPageField: true,
       hasNextPage: true,
       endCursor: 'cursor',
+      total: 42,
       orders: [
         {
           ...ORDER,
@@ -53,6 +54,18 @@ describe('parseLimitOrderPageResponse', () => {
     };
 
     expect(parseLimitOrderPageResponse(page)).toStrictEqual(page);
+  });
+
+  it('rejects a page without a total', () => {
+    expect(() =>
+      parseLimitOrderPageResponse({ orders: [ORDER], hasNextPage: false }),
+    ).toThrow(/Invalid limit orders response/u);
+  });
+
+  it('rejects a total that is not a number', () => {
+    expect(() =>
+      parseLimitOrderPageResponse({ ...MINIMAL_PAGE, total: '1' }),
+    ).toThrow(/Invalid limit orders response/u);
   });
 
   it('rejects an order without an expiry, which every booked order has', () => {

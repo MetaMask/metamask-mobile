@@ -1,1 +1,1 @@
-export { NoFeeTag } from './no-fee-tag';
+export { NoFeeTag, NoDepositFeeTag } from './no-fee-tag';

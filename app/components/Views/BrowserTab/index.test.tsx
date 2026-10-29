@@ -14,7 +14,10 @@ import {
 import { handleWebShare } from '../../../util/browser/handleWebShare';
 import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
-import { PhishingDetectorResultType } from '@metamask/phishing-controller';
+import {
+  PhishingDetectorResultType,
+  RequestSourceFlow,
+} from '@metamask/phishing-controller';
 import BackgroundBridge from '../../../core/BackgroundBridge/BackgroundBridge';
 
 const mockInjectJavaScript = jest.fn();
@@ -497,9 +500,13 @@ describe('BrowserTab', () => {
       });
 
       // The full URL (with path) must be forwarded to the scanner, not the origin.
-      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(fullUrl);
+      expect(getPhishingTestResultAsync).toHaveBeenCalledWith(
+        fullUrl,
+        RequestSourceFlow.Browser,
+      );
       expect(getPhishingTestResultAsync).not.toHaveBeenCalledWith(
         'https://shared-host.example',
+        expect.anything(),
       );
       // Loading the flagged page is cancelled.
       expect(result).toBe(false);
@@ -747,6 +754,102 @@ describe('BrowserTab', () => {
       });
       expect(mockInjectJavaScript).not.toHaveBeenCalledWith(
         expect.stringContaining('window.location.href'),
+      );
+    });
+  });
+
+  describe('WebView onNavigationStateChange SPA URL resolution', () => {
+    const portfolioUrl = 'https://meyfi.meey.dev/portfolio';
+    const emailVerifyUrl = 'https://meyfi.meey.dev/portfolio/email-verify';
+
+    const commitPage = async (
+      webView: { props: Record<string, unknown> },
+      url: string,
+    ) => {
+      const onLoadEnd = webView.props.onLoadEnd as (event: {
+        nativeEvent: Record<string, unknown>;
+      }) => void;
+
+      await act(async () => {
+        onLoadEnd({
+          nativeEvent: {
+            url,
+            title: url,
+            canGoBack: false,
+            canGoForward: false,
+          },
+        });
+      });
+    };
+
+    it('updates the address bar when a same-origin path changes without a page load', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      const bridge = mockBackgroundBridgeInstances.at(-1);
+      bridge?.onDisconnect.mockClear();
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: false,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(bridge?.onDisconnect).not.toHaveBeenCalled();
+      expect(mockProps.updateTabInfo).toHaveBeenCalledWith(1, {
+        url: emailVerifyUrl,
+      });
+      await waitFor(() => {
+        expect(
+          screen.getByTestId('browser-url-display-text'),
+        ).toHaveTextContent(emailVerifyUrl);
+      });
+    });
+
+    it('leaves the address bar on the current path while a same-origin navigation is loading', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, portfolioUrl);
+
+      mockProps.updateTabInfo.mockClear();
+
+      const { onNavigationStateChange } = webView.props;
+
+      await act(async () => {
+        onNavigationStateChange({
+          url: emailVerifyUrl,
+          title: 'Email verify',
+          loading: true,
+          canGoBack: true,
+          canGoForward: false,
+        });
+      });
+
+      expect(mockProps.updateTabInfo).not.toHaveBeenCalled();
+      expect(screen.getByTestId('browser-url-display-text')).toHaveTextContent(
+        portfolioUrl,
       );
     });
   });
@@ -1266,10 +1369,11 @@ describe('BrowserTab', () => {
       );
 
       const onMessage = webView.props.onMessage as (event: {
-        nativeEvent: { data: string };
+        nativeEvent: { data: string; url?: string };
       }) => void;
       onMessage({
         nativeEvent: {
+          url: otherOriginUrl,
           data: JSON.stringify({
             name: 'metamask-provider',
             origin: 'https://app.uniswap.org',
@@ -1279,6 +1383,11 @@ describe('BrowserTab', () => {
       });
 
       expect(previousBridge?.onMessage).not.toHaveBeenCalled();
+      expect(destinationBridge?.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: otherOriginUrl,
+        }),
+      );
     });
 
     it('does not disconnect the bridge on same-origin onLoadStart', async () => {
@@ -1367,10 +1476,11 @@ describe('BrowserTab', () => {
       );
 
       const onMessage = webView.props.onMessage as (event: {
-        nativeEvent: { data: string };
+        nativeEvent: { data: string; url?: string };
       }) => void;
       onMessage({
         nativeEvent: {
+          url: redirectOriginUrl,
           data: JSON.stringify({
             name: 'metamask-provider',
             origin: 'https://example.org',
@@ -1380,6 +1490,11 @@ describe('BrowserTab', () => {
       });
 
       expect(intermediateBridge?.onMessage).not.toHaveBeenCalled();
+      expect(finalBridge?.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: redirectOriginUrl,
+        }),
+      );
     });
 
     it('rebuilds the bridge on same-origin URL bar navigation because the WebView remounts', async () => {
@@ -1416,7 +1531,7 @@ describe('BrowserTab', () => {
       expect(mockBackgroundBridgeInstances.at(-1)).not.toBe(previousBridge);
     });
 
-    it('keeps the bridge and forwards provider messages when onLoadStart is a blank remount URL', async () => {
+    it('keeps the bridge and drops provider messages when onLoadStart is a blank remount URL', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
       });
@@ -1438,18 +1553,90 @@ describe('BrowserTab', () => {
       expect(previousBridge?.onDisconnect).not.toHaveBeenCalled();
 
       const onMessage = webView.props.onMessage as (event: {
-        nativeEvent: { data: string };
+        nativeEvent: { data: string; url?: string };
       }) => void;
       onMessage({
         nativeEvent: {
+          url: 'about:blank',
           data: JSON.stringify({
             name: 'metamask-provider',
+            origin: dappUrl,
             data: { method: 'eth_accounts', params: [] },
           }),
         },
       });
 
-      expect(previousBridge?.onMessage).toHaveBeenCalledTimes(1);
+      expect(previousBridge?.onMessage).not.toHaveBeenCalled();
+    });
+
+    it('uses the WebView frame URL as the provider message origin', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+
+      const bridge = mockBackgroundBridgeInstances.at(-1);
+      expect(bridge).toBeDefined();
+      bridge?.onMessage.mockClear();
+
+      const onMessage = webView.props.onMessage as (event: {
+        nativeEvent: { data: string; url?: string };
+      }) => void;
+      onMessage({
+        nativeEvent: {
+          url: dappUrl,
+          data: JSON.stringify({
+            name: 'metamask-provider',
+            origin: 'https://other.example',
+            data: { method: 'eth_accounts', params: [] },
+          }),
+        },
+      });
+
+      expect(bridge?.onMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          origin: dappUrl,
+          data: { method: 'eth_accounts', params: [] },
+        }),
+      );
+    });
+
+    it('drops provider messages when the native frame URL is missing', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      await commitPage(webView, dappUrl);
+
+      const bridge = mockBackgroundBridgeInstances.at(-1);
+      expect(bridge).toBeDefined();
+      bridge?.onMessage.mockClear();
+
+      const onMessage = webView.props.onMessage as (event: {
+        nativeEvent: { data: string; url?: string };
+      }) => void;
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            name: 'metamask-provider',
+            origin: dappUrl,
+            data: { method: 'eth_accounts', params: [] },
+          }),
+        },
+      });
+
+      expect(bridge?.onMessage).not.toHaveBeenCalled();
     });
 
     it('disconnects the bridge on cross-origin backforward before document-URL commit and rebuilds after resolution', async () => {

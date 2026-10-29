@@ -8,6 +8,7 @@ import {
   CTF_COLLATERAL_ADAPTER_ADDRESS,
   NEG_RISK_CTF_COLLATERAL_ADAPTER_ADDRESS,
   USDC_E_ADDRESS,
+  V2_MARKET_VERSION,
 } from '../constants';
 import Logger from '../../../../../../util/Logger';
 
@@ -110,6 +111,12 @@ export interface BasePolymarketPositionsProtocolDefinition {
   collateral: {
     /** pUSD — the same collateral token the CTF protocol trades against. */
     tradingToken: string;
+    /**
+     * MetaMask collects its fee via a Permit2 authorization on pUSD — the
+     * same token the order settles in, for either protocol. Mirrors the CTF
+     * definition, where the fee authorization token is also the collateral.
+     */
+    feeAuthorizationToken: string;
   };
   order: {
     domainVersion: '3';
@@ -127,6 +134,7 @@ export const POLYMARKET_POSITIONS_PROTOCOL = {
   contracts: MATIC_POSITIONS_PROTOCOL_CONTRACTS,
   collateral: {
     tradingToken: MATIC_CONTRACTS_V2.collateral,
+    feeAuthorizationToken: MATIC_CONTRACTS_V2.collateral,
   },
   order: {
     domainVersion: '3',
@@ -138,6 +146,27 @@ export const POLYMARKET_POSITIONS_PROTOCOL = {
     clobBaseUrl: DEFAULT_CLOB_BASE_URL,
   },
 } satisfies BasePolymarketPositionsProtocolDefinition;
+
+/**
+ * The protocol a trade routes to, chosen by the Gamma market version.
+ */
+export type PolymarketTradeProtocol =
+  | PolymarketProtocolDefinition
+  | typeof POLYMARKET_POSITIONS_PROTOCOL;
+
+/**
+ * The Gamma market version chooses the trade path: a "v2" market uses the
+ * positions protocol (ExchangeV3, EIP-712 domain version "3"); "v1",
+ * missing, or unknown versions stay on the CTF path. Never infer the path
+ * from the outcome token id — both id fields can be present on a market.
+ */
+export function getPolymarketProtocolForMarketVersion(
+  version?: string,
+): PolymarketTradeProtocol {
+  return version === V2_MARKET_VERSION
+    ? POLYMARKET_POSITIONS_PROTOCOL
+    : POLYMARKET_V2_PROTOCOL;
+}
 
 export function getProtocolDepositTokenAddress(
   protocol: PolymarketProtocolDefinition,

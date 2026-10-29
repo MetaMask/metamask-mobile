@@ -63,6 +63,9 @@ export const performanceTrackerFixture = {
 
     setPerformanceSuiteActive(true);
     const locatorRecovery = createClaudeLocatorRecoveryProvider();
+    logger.info(
+      `AI locator recovery ${locatorRecovery ? 'enabled' : 'disabled (needs AI_LOCATOR_RECOVERY_ENABLED=true and ANTHROPIC_API_KEY)'}`,
+    );
     configurePerformanceLocatorRecovery(
       locatorRecovery
         ? {

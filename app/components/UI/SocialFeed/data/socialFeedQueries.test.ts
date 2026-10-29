@@ -1,6 +1,7 @@
 import { FEED_CAIP2_CHAINS } from './feed-constants';
 import {
   FEED_PAGE_LIMIT,
+  SOCIAL_FEED_INFINITE_QUERY_KIND,
   buildSocialFeedQueryKey,
   fetchSocialFeedPage,
   getSocialFeedNextPageParam,
@@ -45,10 +46,11 @@ describe('socialFeedQueries', () => {
   });
 
   describe('buildSocialFeedQueryKey', () => {
-    it('keys on the action, the request options and the page size', () => {
+    it('keys on the action, the request options, the page size, and the infinite marker', () => {
       expect(buildSocialFeedQueryKey(traderRequest, 3)).toStrictEqual([
         'SocialService:fetchTraderFeed',
         { addressOrId: '0xab/cd', commentedOnly: true, limit: 3 },
+        SOCIAL_FEED_INFINITE_QUERY_KIND,
       ]);
     });
   });
@@ -76,10 +78,7 @@ describe('socialFeedQueries', () => {
     });
 
     it('sends the global feed a mutable copy of its chain list', async () => {
-      const request = toSocialFeedRequest({
-        kind: 'all',
-        audience: 'following',
-      });
+      const request = toSocialFeedRequest({ scope: 'following' });
       if (!request) {
         throw new Error('expected a request');
       }

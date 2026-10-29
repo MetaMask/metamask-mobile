@@ -1,14 +1,23 @@
 import type { JsonRpcParams } from '@metamask/utils';
-import type { PhishingController } from '@metamask/phishing-controller';
+import {
+  RequestSourceFlow,
+  type PhishingController,
+} from '@metamask/phishing-controller';
 import Logger from '../../util/Logger';
 import {
   parseTypedDataMessage,
   extractSpenderFromApprovalData,
   extractSpenderFromPermitMessage,
+  getOriginScanFlow,
   hasValidTransactionParams,
   hasValidTypedDataParams,
+  isChainPermissionRequest,
+  isDappConnectionRequest,
   isEthSendTransaction,
   isEthSignTypedData,
+  isPersonalSign,
+  isWalletSendCalls,
+  isWatchAsset,
   scanAddress,
   scanUrl,
 } from './address-scan-util';
@@ -399,6 +408,149 @@ describe('address-scan-util', () => {
     });
   });
 
+  describe('isPersonalSign', () => {
+    it('returns true for personal_sign', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'personal_sign',
+      } as unknown as Parameters<typeof isPersonalSign>[0];
+
+      expect(isPersonalSign(req)).toBe(true);
+    });
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_chainId',
+      } as unknown as Parameters<typeof isPersonalSign>[0];
+
+      expect(isPersonalSign(req)).toBe(false);
+    });
+  });
+
+  describe('isWalletSendCalls', () => {
+    it('returns true for wallet_sendCalls method', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'wallet_sendCalls',
+      } as unknown as Parameters<typeof isWalletSendCalls>[0];
+
+      expect(isWalletSendCalls(req)).toBe(true);
+    });
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_sendTransaction',
+      } as unknown as Parameters<typeof isWalletSendCalls>[0];
+
+      expect(isWalletSendCalls(req)).toBe(false);
+    });
+  });
+
+  describe('isWatchAsset', () => {
+    it('returns true for wallet_watchAsset method', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'wallet_watchAsset',
+      } as unknown as Parameters<typeof isWatchAsset>[0];
+
+      expect(isWatchAsset(req)).toBe(true);
+    });
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_chainId',
+      } as unknown as Parameters<typeof isWatchAsset>[0];
+
+      expect(isWatchAsset(req)).toBe(false);
+    });
+  });
+
+  describe('isChainPermissionRequest', () => {
+    it.each(['wallet_addEthereumChain', 'wallet_switchEthereumChain'] as const)(
+      'returns true for %s method',
+      (method) => {
+        const req = {
+          jsonrpc: '2.0' as const,
+          id: 1,
+          method,
+        } as unknown as Parameters<typeof isChainPermissionRequest>[0];
+
+        expect(isChainPermissionRequest(req)).toBe(true);
+      },
+    );
+
+    it('returns false for wallet_watchAsset', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'wallet_watchAsset',
+      } as unknown as Parameters<typeof isChainPermissionRequest>[0];
+
+      expect(isChainPermissionRequest(req)).toBe(false);
+    });
+  });
+
+  describe('isDappConnectionRequest', () => {
+    it.each(['eth_requestAccounts', 'wallet_requestPermissions'] as const)(
+      'returns true for %s method',
+      (method) => {
+        const req = {
+          jsonrpc: '2.0' as const,
+          id: 1,
+          method,
+        } as unknown as Parameters<typeof isDappConnectionRequest>[0];
+
+        expect(isDappConnectionRequest(req)).toBe(true);
+      },
+    );
+
+    it('returns false for other methods', () => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method: 'eth_accounts',
+      } as unknown as Parameters<typeof isDappConnectionRequest>[0];
+
+      expect(isDappConnectionRequest(req)).toBe(false);
+    });
+  });
+
+  describe('getOriginScanFlow', () => {
+    it.each([
+      ['eth_sendTransaction', RequestSourceFlow.Confirmations],
+      ['eth_signTypedData', RequestSourceFlow.Confirmations],
+      ['eth_signTypedData_v1', RequestSourceFlow.Confirmations],
+      ['eth_signTypedData_v3', RequestSourceFlow.Confirmations],
+      ['eth_signTypedData_v4', RequestSourceFlow.Confirmations],
+      ['wallet_sendCalls', RequestSourceFlow.Confirmations],
+      ['wallet_addEthereumChain', RequestSourceFlow.Confirmations],
+      ['wallet_switchEthereumChain', RequestSourceFlow.Confirmations],
+      ['wallet_watchAsset', RequestSourceFlow.Confirmations],
+      ['eth_requestAccounts', RequestSourceFlow.DappConnection],
+      ['wallet_requestPermissions', RequestSourceFlow.DappConnection],
+      ['eth_accounts', RequestSourceFlow.RpcTrustSignals],
+      ['eth_chainId', RequestSourceFlow.RpcTrustSignals],
+      ['personal_sign', RequestSourceFlow.Confirmations],
+    ])('returns the flow for %s as %s', (method, expectedFlow) => {
+      const req = {
+        jsonrpc: '2.0' as const,
+        id: 1,
+        method,
+      } as unknown as Parameters<typeof getOriginScanFlow>[0];
+
+      expect(getOriginScanFlow(req)).toBe(expectedFlow);
+    });
+  });
+
   describe('scanAddress', () => {
     const chainId = '0x1';
     const address = '0x1234';
@@ -486,9 +638,16 @@ describe('address-scan-util', () => {
     it('calls phishingController.scanUrl and updates cache on success', async () => {
       const phishingController = createMockPhishingController();
 
-      await scanUrl(phishingController, origin);
+      await scanUrl(
+        phishingController,
+        origin,
+        RequestSourceFlow.RpcTrustSignals,
+      );
 
-      expect(phishingController.scanUrl).toHaveBeenCalledWith(origin);
+      expect(phishingController.scanUrl).toHaveBeenCalledWith(
+        origin,
+        RequestSourceFlow.RpcTrustSignals,
+      );
       expect(phishingController.state.urlScanCache).toEqual({
         [origin]: true,
       });
@@ -502,7 +661,7 @@ describe('address-scan-util', () => {
       } as unknown as PhishingController;
 
       await expect(
-        scanUrl(phishingController, origin),
+        scanUrl(phishingController, origin, RequestSourceFlow.RpcTrustSignals),
       ).resolves.toBeUndefined();
       expect(mockLogger.log).toHaveBeenCalledWith(
         expect.stringContaining('[scanUrl] Failed to scan URL'),

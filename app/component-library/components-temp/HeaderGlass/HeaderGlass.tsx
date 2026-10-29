@@ -24,6 +24,15 @@ export interface HeaderGlassOptions {
   backdrop?: HeaderGlassBackdropMode;
   /** Scroll distance over which the `animated` backdrop fades in. */
   fadeInDistance?: number;
+  /**
+   * On, the header is taken out of flow and pinned to the top of its parent
+   * over its backdrop. Off, it keeps its place in flow with no backdrop, like
+   * the plain MMDS header but with glass buttons, which is what a bottom sheet
+   * needs so the header sits below the drag handle.
+   *
+   * @default true
+   */
+  isFloating?: boolean;
 }
 
 export interface HeaderGlassProps {
@@ -38,6 +47,14 @@ export interface HeaderGlassProps {
   scrollDistance?: SharedValue<number>;
   /** Scroll distance over which the `animated` backdrop fades in. */
   fadeInDistance?: number;
+  /**
+   * On, the header is taken out of flow and pinned to the top of its parent
+   * over its backdrop. Off, it keeps its place in flow with no backdrop.
+   * Bottom sheets pass false so the header sits below the drag handle.
+   *
+   * @default true
+   */
+  isFloating?: boolean;
   testID?: string;
 }
 
@@ -51,6 +68,7 @@ const HeaderGlass = ({
   backdrop = 'animated',
   scrollDistance,
   fadeInDistance,
+  isFloating = true,
   testID,
 }: HeaderGlassProps) => {
   const tw = useTailwind();
@@ -59,13 +77,13 @@ const HeaderGlass = ({
     <View
       pointerEvents="box-none"
       style={[
-        tw.style('absolute left-0 right-0 top-0 z-10'),
+        isFloating && tw.style('absolute left-0 right-0 top-0 z-10'),
         { paddingTop: topInset },
       ]}
       onLayout={onLayout}
       testID={testID}
     >
-      {backdrop !== 'none' && (
+      {isFloating && backdrop !== 'none' && (
         <HeaderGlassBackdrop
           scrollDistance={backdrop === 'animated' ? scrollDistance : undefined}
           fadeInDistance={fadeInDistance}
