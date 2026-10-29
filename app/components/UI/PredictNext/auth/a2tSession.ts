@@ -4,6 +4,11 @@ import {
 } from './p256DeviceKey';
 import type { VenueAuthenticationProfile } from './venueAuthProfiles';
 
+/**
+ * Auth SRP login message: `metamask:<nonce>:<identifier>[:primary|secondary]`.
+ * A signature over this string is also a login signature. See ADR-0003
+ * open question 3 before changing the prefix.
+ */
 const SRP_MESSAGE = /^metamask:[^\s:]+:[^\s:]+(?::(?:primary|secondary))?$/u;
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu;

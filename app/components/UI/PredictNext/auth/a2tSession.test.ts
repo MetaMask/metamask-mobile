@@ -5,7 +5,6 @@ import {
 import { KALSHI_AUTHENTICATION_PROFILE } from './venueAuthProfiles';
 import {
   A2tSession,
-  a2tPopMessage,
   isA2tSessionCleared,
   type A2tSessionDependencies,
 } from './a2tSession';
@@ -165,13 +164,59 @@ describe('A2tSession', () => {
       `metamask:nonce-1:${SRP_IDENTIFIER}`,
     );
     expect(signDeviceProof).toHaveBeenCalledWith(
-      a2tPopMessage(
-        KALSHI_AUTHENTICATION_PROFILE,
-        CHALLENGE_ID,
-        'device-public-key',
-        'device-salt',
+      new TextEncoder().encode(
+        'kalshi-a2t-request-v1\n11111111-1111-4111-8111-111111111111\ndevice-public-key\ndevice-salt',
       ),
     );
+  });
+
+  it.each([
+    ['a user-storage key message', `metamask:${PROFILE_ID}`],
+    ['an extra segment', `metamask:nonce-1:${SRP_IDENTIFIER}:primary:extra`],
+    ['an unknown tag', `metamask:nonce-1:${SRP_IDENTIFIER}:backup`],
+    ['trailing whitespace', `metamask:nonce-1:${SRP_IDENTIFIER} `],
+  ])(
+    'rejects a challenge with %s before any signature',
+    async (_label, srpMessage) => {
+      const signSrpMessage = jest.fn(async () => 'srp-signature');
+      const signDeviceProof = jest.fn(async () =>
+        Uint8Array.from({ length: 64 }, () => 7),
+      );
+      const harness = createHarness({ signSrpMessage, signDeviceProof });
+      harness.fetchMock.mockResolvedValueOnce(
+        jsonResponse(200, { ...challengeBody, srpMessage }),
+      );
+
+      await expect(harness.session.ensureA2T()).rejects.toThrow(
+        'A2T challenge response was malformed',
+      );
+
+      expect(signSrpMessage).not.toHaveBeenCalled();
+      expect(signDeviceProof).not.toHaveBeenCalled();
+      expect(harness.fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('refuses to sign a challenge for another SRP identifier', async () => {
+    const signSrpMessage = jest.fn(async () => 'srp-signature');
+    const signDeviceProof = jest.fn(async () =>
+      Uint8Array.from({ length: 64 }, () => 7),
+    );
+    const harness = createHarness({ signSrpMessage, signDeviceProof });
+    harness.fetchMock.mockResolvedValueOnce(
+      jsonResponse(200, {
+        ...challengeBody,
+        srpMessage: 'metamask:nonce-1:0xother:primary',
+      }),
+    );
+
+    await expect(harness.session.ensureA2T()).rejects.toThrow(
+      'A2T challenge message does not match the SRP identifier',
+    );
+
+    expect(signSrpMessage).not.toHaveBeenCalled();
+    expect(signDeviceProof).not.toHaveBeenCalled();
+    expect(harness.fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('reuses a cached A2T when the device key is loaded again', async () => {
