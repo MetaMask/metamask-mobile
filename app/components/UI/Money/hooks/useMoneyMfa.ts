@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import NavigationService from '../../../../core/NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
-import { isMfaDevBuild, useMfa } from '../../../../util/identity/mfa';
+import { useMfa } from '../../../../util/identity/mfa';
 import type { MfaMethod } from '../../../../util/identity/mfa/engine/types';
 import { mobileMfaControllerAdapter } from '../../../../util/identity/mfa/bindings';
 import { ToastContext } from '../../../../component-library/components/Toast';
@@ -20,6 +20,7 @@ import {
 import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
 import { selectMoneyEnableMfaFlag } from '../selectors/featureFlags';
+import { selectMfaUiKitEnabled } from '../../../../selectors/featureFlagController/mfaUiKit';
 import { moneyMfaStore } from '../../../../lib/Money/mfa/moneyMfaStore';
 import { moneyAccountMigration } from '../../../../lib/Money/mfa/moneyAccountMigration';
 
@@ -76,6 +77,7 @@ const migrate = (): Promise<void> => {
  */
 export const useMoneyMfa = () => {
   const isFlagEnabled = useSelector(selectMoneyEnableMfaFlag);
+  const isKitEnabled = useSelector(selectMfaUiKitEnabled);
   const { credentials, enroll, verifyOrEnroll } = useMfa();
   const { toastRef } = useContext(ToastContext);
   const theme = useTheme();
@@ -98,7 +100,7 @@ export const useMoneyMfa = () => {
   );
 
   let status: MoneyMfaStatus;
-  if (!isFlagEnabled || !isMfaDevBuild()) {
+  if (!isFlagEnabled || !isKitEnabled) {
     status = 'unavailable';
   } else if (migrationStatus === 'migrating') {
     status = 'setting_up';
